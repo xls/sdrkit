@@ -1,0 +1,651 @@
+# The interface of the stack family cell. The registry test of the family writes this file.
+family cell version=1.0
+shape.RailwayCirFields since=1.0
+shape.RailwayCirFields.text type=text unit= optional=no since=1.0
+shape.RailwayCirFields.messages type=i64 unit= optional=no since=1.0
+shape.RailwayCirFields.syncs type=i64 unit= optional=no since=1.0
+shape.RailwayCirFields.failed_checks type=i64 unit= optional=no since=1.0
+shape.RailwayCirFields.carrier_offset_hz type=f64 unit=Hz optional=yes since=1.0
+shape.RailwayCirFields.level_db type=f64 unit=dB optional=yes since=1.0
+shape.RailwayCirFields.state type=choice(waiting,listening,decoding) unit= optional=no since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.RailwayCirMessageRow since=1.0
+shape.RailwayCirMessageRow.received type=time unit= optional=no since=1.0
+shape.RailwayCirMessageRow.protocol type=text unit= optional=no since=1.0
+shape.RailwayCirMessageRow.train type=text unit= optional=yes since=1.0
+shape.RailwayCirMessageRow.locomotive type=text unit= optional=no since=1.0
+shape.RailwayCirMessageRow.action type=text unit= optional=yes since=1.0
+shape.RailwayCirMessageRow.tail_id type=text unit= optional=yes since=1.0
+shape.RailwayCirMessageRow.pressure_kpa type=f64 unit=kPa optional=yes since=1.0
+shape.RailwayCirMessageRow.speed_kmh type=f64 unit=km/h optional=yes since=1.0
+shape.RailwayCirMessageRow.km_post_km type=f64 unit=km optional=yes since=1.0
+shape.RailwayCirMessageRow.test_frame type=bool unit= optional=no since=1.0
+shape.RailwayCirMessageRow.cars type=i64 unit= optional=yes since=1.0
+shape.RailwayCirMessageRow.corrections type=i64 unit= optional=no since=1.0
+shape.RailwayCirMessageRow.raw type=text unit= optional=no since=1.0
+shape.RailwayCirKlwEvent since=1.0
+shape.RailwayCirKlwEvent.text type=text unit= optional=no since=1.0
+shape.RailwayCirKlwEvent.locomotive type=text unit= optional=no since=1.0
+shape.RailwayCirKlwEvent.reserved type=i64 unit= optional=no since=1.0
+shape.RailwayCirKlwEvent.action_code type=i64 unit= optional=no since=1.0
+shape.RailwayCirKlwEvent.action type=text unit= optional=no since=1.0
+shape.RailwayCirKlwEvent.parameter type=text unit= optional=yes since=1.0
+shape.RailwayCirKlwEvent.pressure_kpa type=f64 unit=kPa optional=yes since=1.0
+shape.RailwayCirKlwEvent.tail_id type=text unit= optional=yes since=1.0
+shape.RailwayCirKlwEvent.extra type=text unit= optional=yes since=1.0
+shape.RailwayCirKlwEvent.clock type=text unit= optional=yes since=1.0
+shape.RailwayCirKlwEvent.corrections type=i64 unit= optional=no since=1.0
+shape.RailwayCirKlwEvent.raw type=text unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent since=1.0
+shape.RailwayCirTdcsEvent.text type=text unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.train type=text unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.locomotive type=text unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.loco_code type=i64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.loco_serial type=i64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.km_post_km type=f64 unit=km optional=yes since=1.0
+shape.RailwayCirTdcsEvent.increasing type=bool unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.test_frame type=bool unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.speed_kmh type=f64 unit=km/h optional=no since=1.0
+shape.RailwayCirTdcsEvent.weight_t type=f64 unit=t optional=no since=1.0
+shape.RailwayCirTdcsEvent.length type=f64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.cars type=i64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.station type=i64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.track type=i64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.actual_track type=i64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.driver type=i64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.signal_type type=i64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.semaphore_type type=i64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.role type=i64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.corrections type=i64 unit= optional=no since=1.0
+shape.RailwayCirTdcsEvent.raw type=text unit= optional=no since=1.0
+shape.SearchFields since=1.0
+shape.SearchFields.captures type=i64 unit= optional=no since=1.0
+shape.SearchFields.retunes type=i64 unit= optional=no since=1.0
+shape.SearchFields.decoded type=i64 unit= optional=no since=1.0
+shape.SearchFields.failed type=i64 unit= optional=no since=1.0
+shape.SearchFields.capture_centre type=hz unit=Hz optional=yes since=1.0
+shape.SearchFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.CellFields since=1.0
+shape.CellFields.cell_count type=i64 unit= optional=no since=1.0
+shape.CellFields.identified type=i64 unit= optional=no since=1.0
+shape.CellFields.operators type=i64 unit= optional=no since=1.0
+shape.CellFields.banner type=text unit= optional=no since=1.0
+shape.CellRow since=1.0
+shape.CellRow.plmn type=text unit= optional=yes since=1.0
+shape.CellRow.operator type=text unit= optional=yes since=1.0
+shape.CellRow.country type=text unit= optional=yes since=1.0
+shape.CellRow.plmn_count type=i64 unit= optional=yes since=1.0
+shape.CellRow.band type=i64 unit= optional=yes since=1.0
+shape.CellRow.band_confirmed type=bool unit= optional=no since=1.0
+shape.CellRow.earfcn type=i64 unit= optional=yes since=1.0
+shape.CellRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.CellRow.pci type=i64 unit= optional=no since=1.0
+shape.CellRow.duplex type=choice(FDD,TDD) unit= optional=no since=1.0
+shape.CellRow.enb type=i64 unit= optional=yes since=1.0
+shape.CellRow.sector type=i64 unit= optional=yes since=1.0
+shape.CellRow.cell_id type=i64 unit= optional=yes since=1.0
+shape.CellRow.tac type=i64 unit= optional=yes since=1.0
+shape.CellRow.width type=hz unit=Hz optional=yes since=1.0
+shape.CellRow.ports type=i64 unit= optional=yes since=1.0
+shape.CellRow.rsrp_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.CellRow.rsrq_db type=f64 unit=dB optional=no since=1.0
+shape.CellRow.sinr_db type=f64 unit=dB optional=no since=1.0
+shape.CellRow.carrier_offset type=hz unit=Hz optional=no since=1.0
+shape.CellRow.barred type=bool unit= optional=yes since=1.0
+shape.CellRow.etws type=bool unit= optional=no since=1.0
+shape.CellRow.cmas type=bool unit= optional=no since=1.0
+shape.CellRow.last_heard type=time unit= optional=yes since=1.0
+shape.CellDetailRow since=1.0
+shape.CellDetailRow.cell type=text unit= optional=no refers_to=cells since=1.0
+shape.CellDetailRow.cyclic_prefix type=choice(normal,extended) unit= optional=no since=1.0
+shape.CellDetailRow.phich_duration type=choice(normal,extended) unit= optional=yes since=1.0
+shape.CellDetailRow.phich_ng type=i64 unit= optional=yes since=1.0
+shape.CellDetailRow.sfn type=i64 unit= optional=yes since=1.0
+shape.CellDetailRow.clock_ppm type=f64 unit=ppm optional=no since=1.0
+shape.CellDetailRow.si_messages type=i64 unit= optional=no since=1.0
+shape.CellDetailRow.si_failed type=i64 unit= optional=no since=1.0
+shape.CellDetailRow.q_rx_lev_min_dbm type=f64 unit=dBm optional=yes since=1.0
+shape.CellDetailRow.p_max_dbm type=f64 unit=dBm optional=yes since=1.0
+shape.CellDetailRow.si_window type=duration unit=s optional=yes since=1.0
+shape.CellDetailRow.value_tag type=i64 unit= optional=yes since=1.0
+shape.CellDetailRow.ref_signal_power_dbm type=f64 unit=dBm optional=yes since=1.0
+shape.CellDetailRow.p_b type=i64 unit= optional=yes since=1.0
+shape.CellDetailRow.ul_earfcn type=i64 unit= optional=yes since=1.0
+shape.CellDetailRow.ul_rbs type=i64 unit= optional=yes since=1.0
+shape.CellDetailRow.ra_preambles type=i64 unit= optional=yes since=1.0
+shape.CellDetailRow.mod_period_coeff type=i64 unit= optional=yes since=1.0
+shape.CellDetailRow.paging_cycle type=i64 unit=frames optional=yes since=1.0
+shape.CellDetailRow.t300 type=duration unit=s optional=yes since=1.0
+shape.CellDetailRow.t310 type=duration unit=s optional=yes since=1.0
+shape.CellDetailRow.n310 type=i64 unit= optional=yes since=1.0
+shape.CellDetailRow.time_alignment type=duration unit=s optional=yes since=1.0
+shape.CellDetailRow.ac_barring type=bool unit= optional=yes since=1.0
+shape.CellDetailRow.q_hyst_db type=f64 unit=dB optional=yes since=1.0
+shape.CellDetailRow.priority type=i64 unit= optional=yes since=1.0
+shape.CellDetailRow.s_intra_search_db type=f64 unit=dB optional=yes since=1.0
+shape.CellDetailRow.s_non_intra_search_db type=f64 unit=dB optional=yes since=1.0
+shape.CellDetailRow.thresh_serving_low_db type=f64 unit=dB optional=yes since=1.0
+shape.CellDetailRow.t_reselection type=duration unit=s optional=yes since=1.0
+shape.CellPlmnRow since=1.0
+shape.CellPlmnRow.cell type=text unit= optional=no refers_to=cells since=1.0
+shape.CellPlmnRow.plmn type=text unit= optional=no since=1.0
+shape.CellPlmnRow.operator type=text unit= optional=yes since=1.0
+shape.CellBandRow since=1.0
+shape.CellBandRow.cell type=text unit= optional=no refers_to=cells since=1.0
+shape.CellBandRow.band type=i64 unit= optional=no since=1.0
+shape.CellBandRow.mfbi type=bool unit= optional=no since=1.0
+shape.CellSibRow since=1.0
+shape.CellSibRow.cell type=text unit= optional=no refers_to=cells since=1.0
+shape.CellSibRow.sib type=i64 unit= optional=no since=1.0
+shape.CellSibRow.period type=i64 unit=frames optional=yes since=1.0
+shape.CellSibRow.seen type=bool unit= optional=no since=1.0
+shape.CellNeighbourRow since=1.0
+shape.CellNeighbourRow.cell type=text unit= optional=no refers_to=cells since=1.0
+shape.CellNeighbourRow.list type=choice(intra,inter) unit= optional=no since=1.0
+shape.CellNeighbourRow.earfcn type=i64 unit= optional=yes since=1.0
+shape.CellNeighbourRow.pci type=i64 unit= optional=no since=1.0
+shape.CellNeighbourRow.q_offset_db type=f64 unit=dB optional=yes since=1.0
+shape.CellInterCarrierRow since=1.0
+shape.CellInterCarrierRow.cell type=text unit= optional=no refers_to=cells since=1.0
+shape.CellInterCarrierRow.earfcn type=i64 unit= optional=no since=1.0
+shape.CellInterCarrierRow.rbs type=i64 unit= optional=no since=1.0
+shape.CellInterCarrierRow.priority type=i64 unit= optional=yes since=1.0
+shape.CellInterCarrierRow.thresh_high_db type=f64 unit=dB optional=no since=1.0
+shape.CellInterCarrierRow.thresh_low_db type=f64 unit=dB optional=no since=1.0
+shape.CellInterCarrierRow.q_rx_lev_min_dbm type=f64 unit=dBm optional=no since=1.0
+shape.CellSiteRow since=1.0
+shape.CellSiteRow.plmn type=text unit= optional=yes since=1.0
+shape.CellSiteRow.operator type=text unit= optional=yes since=1.0
+shape.CellSiteRow.enb type=i64 unit= optional=no since=1.0
+shape.CellSiteRow.tac type=i64 unit= optional=no since=1.0
+shape.CellSiteRow.cell_count type=i64 unit= optional=no since=1.0
+shape.CellOperatorRow since=1.0
+shape.CellOperatorRow.plmn type=text unit= optional=no since=1.0
+shape.CellOperatorRow.operator type=text unit= optional=yes since=1.0
+shape.CellOperatorRow.country type=text unit= optional=yes since=1.0
+shape.CellOperatorRow.cell_count type=i64 unit= optional=no since=1.0
+shape.CellCarrierRow since=1.0
+shape.CellCarrierRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.CellCarrierRow.width type=hz unit=Hz optional=no since=1.0
+shape.CellCarrierRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.FoundCellEvent since=1.0
+shape.FoundCellEvent.source type=text unit= optional=no since=1.0
+shape.FoundCellEvent.text type=text unit= optional=no since=1.0
+shape.FoundCellEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.NrFields since=1.0
+shape.NrFields.cell_count type=i64 unit= optional=no since=1.0
+shape.NrFields.with_mib type=i64 unit= optional=no since=1.0
+shape.NrFields.gscn_lo type=i64 unit= optional=yes since=1.0
+shape.NrFields.gscn_hi type=i64 unit= optional=yes since=1.0
+shape.NrFields.candidates type=i64 unit= optional=yes since=1.0
+shape.NrFields.banner type=text unit= optional=no since=1.0
+shape.NrCellRow since=1.0
+shape.NrCellRow.band type=i64 unit= optional=yes since=1.0
+shape.NrCellRow.gscn type=i64 unit= optional=yes since=1.0
+shape.NrCellRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.NrCellRow.pci type=i64 unit= optional=no since=1.0
+shape.NrCellRow.ssb_scs type=hz unit=Hz optional=no since=1.0
+shape.NrCellRow.beams type=i64 unit= optional=no since=1.0
+shape.NrCellRow.sfn type=i64 unit= optional=yes since=1.0
+shape.NrCellRow.sib1 type=bool unit= optional=no since=1.0
+shape.NrCellRow.rsrp_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.NrCellRow.rsrq_db type=f64 unit=dB optional=no since=1.0
+shape.NrCellRow.sinr_db type=f64 unit=dB optional=no since=1.0
+shape.NrCellRow.last_heard type=time unit= optional=yes since=1.0
+shape.NbiotFields since=1.0
+shape.NbiotFields.cell_count type=i64 unit= optional=no since=1.0
+shape.NbiotFields.identified type=i64 unit= optional=no since=1.0
+shape.NbiotCellRow since=1.0
+shape.NbiotCellRow.plmn type=text unit= optional=yes since=1.0
+shape.NbiotCellRow.operator type=text unit= optional=yes since=1.0
+shape.NbiotCellRow.band type=i64 unit= optional=yes since=1.0
+shape.NbiotCellRow.earfcn type=i64 unit= optional=yes since=1.0
+shape.NbiotCellRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.NbiotCellRow.pci type=i64 unit= optional=no since=1.0
+shape.NbiotCellRow.operation_mode type=choice(inband_same_pci,inband_different_pci,guardband,standalone) unit= optional=yes since=1.0
+shape.NbiotCellRow.enb type=i64 unit= optional=yes since=1.0
+shape.NbiotCellRow.sector type=i64 unit= optional=yes since=1.0
+shape.NbiotCellRow.tac type=i64 unit= optional=yes since=1.0
+shape.NbiotCellRow.barred type=bool unit= optional=yes since=1.0
+shape.NbiotCellRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.NbiotCellRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.NbiotCellRow.last_heard type=time unit= optional=yes since=1.0
+shape.GsmrFields since=1.0
+shape.GsmrFields.cell_count type=i64 unit= optional=no since=1.0
+shape.GsmrFields.identified type=i64 unit= optional=no since=1.0
+shape.GsmrFields.railway_cells type=i64 unit= optional=no since=1.0
+shape.GsmrCellRow since=1.0
+shape.GsmrCellRow.plmn type=text unit= optional=yes since=1.0
+shape.GsmrCellRow.operator type=text unit= optional=yes since=1.0
+shape.GsmrCellRow.arfcn type=i64 unit= optional=yes since=1.0
+shape.GsmrCellRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.GsmrCellRow.bsic type=i64 unit= optional=no since=1.0
+shape.GsmrCellRow.ncc type=i64 unit= optional=no since=1.0
+shape.GsmrCellRow.bcc type=i64 unit= optional=no since=1.0
+shape.GsmrCellRow.lac type=i64 unit= optional=yes since=1.0
+shape.GsmrCellRow.cell_id type=i64 unit= optional=yes since=1.0
+shape.GsmrCellRow.band type=choice(gsm_r,gsm_900,gsm_850,dcs_1800) unit= optional=yes since=1.0
+shape.GsmrCellRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.GsmrCellRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.GsmrCellRow.last_heard type=time unit= optional=yes since=1.0
+shape.GsmrCarrierRow since=1.0
+shape.GsmrCarrierRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.GsmrCarrierRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.GsmrCarrierRow.synchronised type=bool unit= optional=no since=1.0
+shape.LbjFields since=1.0
+shape.LbjFields.bursts type=i64 unit= optional=no since=1.0
+shape.LbjFields.messages type=i64 unit= optional=no since=1.0
+shape.LbjFields.failed_checks type=i64 unit= optional=no since=1.0
+shape.LbjFields.blank_frames type=i64 unit= optional=no since=1.0
+shape.LbjFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.LbjFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.LbjFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.LbjMessageRow since=1.0
+shape.LbjMessageRow.received type=time unit= optional=yes since=1.0
+shape.LbjMessageRow.train type=text unit= optional=yes since=1.0
+shape.LbjMessageRow.speed_kmh type=i64 unit=km/h optional=yes since=1.0
+shape.LbjMessageRow.km_post_km type=f64 unit=km optional=yes since=1.0
+shape.LbjMessageRow.direction type=choice(up,down) unit= optional=yes since=1.0
+shape.LbjMessageRow.locomotive type=text unit= optional=yes since=1.0
+shape.LbjMessageRow.route type=text unit= optional=yes since=1.0
+shape.LbjMessageRow.position type=position unit= optional=yes since=1.0
+shape.LbjMessageRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.LbjMessageEvent since=1.0
+shape.LbjMessageEvent.source type=text unit= optional=yes since=1.0
+shape.LbjMessageEvent.text type=text unit= optional=no since=1.0
+shape.LbjMessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.LbjMessageEvent.position type=position unit= optional=yes since=1.0
+shape.LbjMessageEvent.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.LbjMessageEvent.speed_kmh type=i64 unit=km/h optional=yes since=1.0
+shape.LbjMessageEvent.km_post_km type=f64 unit=km optional=yes since=1.0
+shape.LbjMessageEvent.direction type=choice(up,down) unit= optional=yes since=1.0
+shape.LbjMessageEvent.locomotive type=text unit= optional=yes since=1.0
+shape.LbjMessageEvent.route type=text unit= optional=yes since=1.0
+shape.EbicabFields since=1.0
+shape.EbicabFields.bursts type=i64 unit= optional=no since=1.0
+shape.EbicabFields.telegrams type=i64 unit= optional=no since=1.0
+shape.EbicabFields.long type=i64 unit= optional=no since=1.0
+shape.EbicabFields.short type=i64 unit= optional=no since=1.0
+shape.EbicabFields.inverted type=i64 unit= optional=no since=1.0
+shape.EbicabFields.bursts_without_telegram type=i64 unit= optional=no since=1.0
+shape.EbicabFields.parity_hits type=i64 unit= optional=no since=1.0
+shape.EbicabFields.bit_rate_hz type=hz unit=bit/s optional=yes since=1.0
+shape.EbicabFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.EbicabFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.EbicabTelegramRow since=1.0
+shape.EbicabTelegramRow.received type=time unit= optional=yes since=1.0
+shape.EbicabTelegramRow.length_bits type=i64 unit=bits optional=no since=1.0
+shape.EbicabTelegramRow.nid_c type=i64 unit= optional=no since=1.0
+shape.EbicabTelegramRow.nid_bg type=i64 unit= optional=no since=1.0
+shape.EbicabTelegramRow.n_pig type=i64 unit= optional=no since=1.0
+shape.EbicabTelegramRow.n_total type=i64 unit= optional=no since=1.0
+shape.EbicabTelegramRow.m_version type=i64 unit= optional=no since=1.0
+shape.EbicabTelegramRow.copies type=i64 unit= optional=no since=1.0
+shape.EbicabTelegramRow.user_bits type=bytes unit= optional=no since=1.0
+shape.EbicabBaliseRow since=1.0
+shape.EbicabBaliseRow.nid_c type=i64 unit= optional=no since=1.0
+shape.EbicabBaliseRow.nid_bg type=i64 unit= optional=no since=1.0
+shape.EbicabBaliseRow.balise_in_group type=i64 unit= optional=no since=1.0
+shape.EbicabBaliseRow.group_size type=i64 unit= optional=no since=1.0
+shape.EbicabBaliseRow.last_heard type=time unit= optional=yes since=1.0
+shape.EbicabBaliseRow.heard type=i64 unit= optional=yes since=1.0
+shape.EbicabOtherBurstRow since=1.0
+shape.EbicabOtherBurstRow.received type=time unit= optional=yes since=1.0
+shape.EbicabOtherBurstRow.bits type=i64 unit= optional=no since=1.0
+shape.EbicabOtherBurstRow.duration type=duration unit=s optional=no since=1.0
+shape.EbicabOtherBurstRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.EbicabOtherBurstRow.first_bits type=bytes unit= optional=no since=1.0
+shape.EbicabOtherBurstRow.hint type=choice(ebicab_700,ebicab_900,short_eurobalise,long_eurobalise) unit= optional=yes since=1.0
+shape.EbicabTelegramEvent since=1.0
+shape.EbicabTelegramEvent.source type=text unit= optional=no since=1.0
+shape.EbicabTelegramEvent.text type=text unit= optional=no since=1.0
+shape.EbicabTelegramEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.EbicabTelegramEvent.length_bits type=i64 unit=bits optional=no since=1.0
+shape.EbicabTelegramEvent.nid_c type=i64 unit= optional=no since=1.0
+shape.EbicabTelegramEvent.nid_bg type=i64 unit= optional=no since=1.0
+shape.EbicabTelegramEvent.n_pig type=i64 unit= optional=no since=1.0
+shape.UmtsFields since=1.0
+shape.UmtsFields.cell_count type=i64 unit= optional=no since=1.0
+shape.UmtsCellRow since=1.0
+shape.UmtsCellRow.code type=i64 unit= optional=no since=1.0
+shape.UmtsCellRow.group type=i64 unit= optional=no since=1.0
+shape.UmtsCellRow.ec_io_db type=f64 unit=dB optional=no since=1.0
+shape.UmtsCellRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.UmtsCellRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.UmtsCellRow.frame_offset type=i64 unit=chips optional=no since=1.0
+shape.UmtsCellRow.sttd type=bool unit= optional=yes since=1.0
+shape.UmtsCellRow.captures_seen type=i64 unit= optional=no since=1.0
+shape.UmtsCellRow.bch_blocks type=i64 unit= optional=no since=1.0
+shape.UmtsCellRow.plmn type=text unit= optional=yes since=1.0
+shape.UmtsCellRow.operator type=text unit= optional=yes since=1.0
+shape.UmtsCellRow.cell_id type=i64 unit= optional=yes since=1.0
+shape.UmtsCellRow.cell_id_parts type=text unit= optional=yes since=1.0
+shape.UmtsCellRow.uarfcn type=i64 unit= optional=yes since=1.0
+shape.UmtsCellRow.last_heard type=time unit= optional=yes since=1.0
+shape.Cdma2000Fields since=1.0
+shape.Cdma2000Fields.station_count type=i64 unit= optional=no since=1.0
+shape.Cdma2000Fields.identified type=i64 unit= optional=no since=1.0
+shape.Cdma2000CellRow since=1.0
+shape.Cdma2000CellRow.pn type=text unit= optional=no since=1.0
+shape.Cdma2000CellRow.sid type=i64 unit= optional=yes since=1.0
+shape.Cdma2000CellRow.nid type=i64 unit= optional=yes since=1.0
+shape.Cdma2000CellRow.ec_io_db type=f64 unit=dB optional=no since=1.0
+shape.Cdma2000CellRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.Cdma2000CellRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.Cdma2000CellRow.clock_ppm type=f64 unit=ppm optional=no since=1.0
+shape.Cdma2000CellRow.paging type=text unit= optional=yes since=1.0
+shape.Cdma2000CellRow.protocol type=text unit= optional=yes since=1.0
+shape.Cdma2000CellRow.system_time type=text unit= optional=yes since=1.0
+shape.Cdma2000CellRow.local_time type=text unit= optional=yes since=1.0
+shape.Cdma2000CellRow.lc_state type=text unit= optional=yes since=1.0
+shape.Cdma2000CellRow.messages type=text unit= optional=no since=1.0
+shape.Cdma2000CellRow.last_heard type=time unit= optional=yes since=1.0
+shape.TdscdmaFields since=1.0
+shape.TdscdmaFields.cell_count type=i64 unit= optional=no since=1.0
+shape.TdscdmaCellRow since=1.0
+shape.TdscdmaCellRow.sync_dl type=i64 unit= optional=no since=1.0
+shape.TdscdmaCellRow.parameter type=text unit= optional=yes since=1.0
+shape.TdscdmaCellRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.TdscdmaCellRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.TdscdmaCellRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.TdscdmaCellRow.quadruples type=text unit= optional=no since=1.0
+shape.TdscdmaCellRow.frame_parity type=text unit= optional=yes since=1.0
+shape.TdscdmaCellRow.clarity type=f64 unit= optional=no since=1.0
+shape.TdscdmaCellRow.captures_seen type=i64 unit= optional=no since=1.0
+shape.TdscdmaCellRow.last_heard type=time unit= optional=yes since=1.0
+shape.EotFields since=1.0
+shape.EotFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.EotFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.EotFields.frames_repaired type=i64 unit= optional=no since=1.0
+shape.EotFields.syncs type=i64 unit= optional=no since=1.0
+shape.EotFields.last_unit type=text unit= optional=yes since=1.0
+shape.EotFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.EotFields.note type=text unit= optional=no since=1.0
+shape.EotFrameRow since=1.0
+shape.EotFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.EotFrameRow.link type=text unit= optional=no since=1.0
+shape.EotFrameRow.unit type=text unit= optional=no since=1.0
+shape.EotFrameRow.text type=text unit= optional=no since=1.0
+shape.EotFrameEvent since=1.0
+shape.EotFrameEvent.link type=text unit= optional=no since=1.0
+shape.EotFrameEvent.source type=text unit= optional=no since=1.0
+shape.EotFrameEvent.message_type type=i64 unit= optional=no since=1.0
+shape.EotFrameEvent.chaining type=i64 unit= optional=yes since=1.0
+shape.EotFrameEvent.battery type=i64 unit= optional=yes since=1.0
+shape.EotFrameEvent.pressure_psi type=i64 unit=psi optional=yes since=1.0
+shape.EotFrameEvent.charge_pct type=i64 unit=% optional=yes since=1.0
+shape.EotFrameEvent.spare type=bool unit= optional=yes since=1.0
+shape.EotFrameEvent.valve_open type=bool unit= optional=yes since=1.0
+shape.EotFrameEvent.confirmation type=bool unit= optional=yes since=1.0
+shape.EotFrameEvent.turbine type=bool unit= optional=yes since=1.0
+shape.EotFrameEvent.moving type=bool unit= optional=yes since=1.0
+shape.EotFrameEvent.marker_battery type=bool unit= optional=yes since=1.0
+shape.EotFrameEvent.marker_light type=bool unit= optional=yes since=1.0
+shape.EotFrameEvent.bits_corrected type=i64 unit= optional=no since=1.0
+shape.EotFrameEvent.text type=text unit= optional=no since=1.0
+shape.EotFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.Cv2xFields since=1.0
+shape.Cv2xFields.detected type=bool unit= optional=no since=1.0
+shape.Cv2xFields.symbol_us type=f64 unit=us optional=no since=1.0
+shape.Cv2xFields.prefix_us type=f64 unit=us optional=no since=1.0
+shape.Cv2xFields.slot_timing type=i64 unit=samples optional=yes since=1.0
+shape.Cv2xFields.correlation type=f64 unit= optional=yes since=1.0
+shape.Cv2xFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.Cv2xFields.busy_per_s type=f64 unit=1/s optional=yes since=1.0
+shape.Cv2xFields.busy_share type=f64 unit=% optional=yes since=1.0
+shape.Cv2xFields.guard_seen type=bool unit= optional=yes since=1.0
+shape.Cv2xFields.frame type=text unit= optional=yes since=1.0
+shape.Cv2xFields.content type=text unit= optional=no since=1.0
+shape.Cv2xFields.text type=text unit= optional=no since=1.0
+shape.Cv2xFields.note type=text unit= optional=no since=1.0
+shape.Cv2xDetectionRow since=1.0
+shape.Cv2xDetectionRow.time_s type=f64 unit=s optional=no since=1.0
+shape.Cv2xDetectionRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.Cv2xDetectionRow.correlation type=f64 unit= optional=no since=1.0
+shape.Cv2xDetectionRow.slot_timing type=i64 unit=samples optional=no since=1.0
+railway_cir since=1.0
+railway_cir.fields.RailwayCirFields since=1.0
+railway_cir.fields.DecoderFields since=1.0
+railway_cir.kept.messages since=1.0
+railway_cir.kept.RailwayCirFields.messages since=1.0
+railway_cir.table.messages row=RailwayCirMessageRow cap=2000 since=1.0
+railway_cir.event.railway_cir.klw fields=RailwayCirKlwEvent since=1.0
+railway_cir.event.railway_cir.tdcs fields=RailwayCirTdcsEvent since=1.0
+railway_cir.setting.history type=i64 unit= since=1.0
+railway_cir.setting.gen_invert_bits type=bool unit= since=1.0
+railway_cir.setting.gen_deviation_hz type=f64 unit=Hz since=1.0
+railway_cir.setting.locomotives type=text unit= since=1.0
+railway_cir.command.clear args= reply= since=1.0
+cell since=1.0
+cell.fields.SearchFields since=1.0
+cell.fields.CellFields since=1.0
+cell.fields.DecoderFields since=1.0
+cell.kept.SearchFields.retunes since=1.0
+cell.kept.SearchFields.decoded since=1.0
+cell.kept.SearchFields.failed since=1.0
+cell.kept.cells since=1.0
+cell.kept.details since=1.0
+cell.kept.cell_plmns since=1.0
+cell.kept.cell_bands since=1.0
+cell.kept.cell_sibs since=1.0
+cell.kept.neighbours since=1.0
+cell.kept.inter_carriers since=1.0
+cell.kept.sites since=1.0
+cell.kept.operators since=1.0
+cell.kept.CellFields since=1.0
+cell.table.cells row=CellRow cap=400 since=1.0
+cell.table.details row=CellDetailRow cap=400 since=1.0
+cell.table.cell_plmns row=CellPlmnRow cap=1600 since=1.0
+cell.table.cell_bands row=CellBandRow cap=1600 since=1.0
+cell.table.cell_sibs row=CellSibRow cap=1600 since=1.0
+cell.table.neighbours row=CellNeighbourRow cap=1600 since=1.0
+cell.table.inter_carriers row=CellInterCarrierRow cap=1600 since=1.0
+cell.table.sites row=CellSiteRow cap=400 since=1.0
+cell.table.operators row=CellOperatorRow cap=400 since=1.0
+cell.table.carriers row=CellCarrierRow cap=24 since=1.0
+cell.event.cell.lte_cell fields=FoundCellEvent since=1.0
+cell.setting.capture_s type=f64 unit=s since=1.0
+cell.setting.system_information type=bool unit= since=1.0
+cell.setting.max_cells type=i64 unit= since=1.0
+cell.setting.min_pss_db type=f64 unit=dB since=1.0
+cell.setting.max_cfo_khz type=f64 unit=kHz since=1.0
+cell.setting.hide_bands type=text unit= since=1.0
+cell.setting.only_bands type=text unit= since=1.0
+cell.setting.search type=text unit= since=1.0
+cell.setting.min_rsrp type=f64 unit=dBFS since=1.0
+cell.setting.band_known type=bool unit= since=1.0
+cell.setting.identified type=bool unit= since=1.0
+cell.setting.not_barred type=bool unit= since=1.0
+cell.setting.one_per_cell type=bool unit= since=1.0
+cell.setting.band_order type=text unit= since=1.0
+cell.setting.gen_scene type=choice(0,1,2,3) unit= since=1.0
+cell.setting.gen_sfn0 type=i64 unit= since=1.0
+cell.setting.gen_load type=bool unit= since=1.0
+cell.command.clear args= reply= since=1.0
+cell.command.remove args=row:text reply= since=1.0
+nr since=1.0
+nr.fields.SearchFields since=1.0
+nr.fields.NrFields since=1.0
+nr.fields.DecoderFields since=1.0
+nr.kept.SearchFields.retunes since=1.0
+nr.kept.SearchFields.decoded since=1.0
+nr.kept.SearchFields.failed since=1.0
+nr.kept.cells since=1.0
+nr.kept.NrFields.cell_count since=1.0
+nr.kept.NrFields.with_mib since=1.0
+nr.kept.NrFields.banner since=1.0
+nr.table.cells row=NrCellRow cap=300 since=1.0
+nr.event.cell.nr_cell fields=FoundCellEvent since=1.0
+nr.setting.capture_s type=f64 unit=s since=1.0
+nr.setting.max_cells type=i64 unit= since=1.0
+nr.setting.min_pss_db type=f64 unit=dB since=1.0
+nr.setting.hide_bands type=text unit= since=1.0
+nr.setting.only_bands type=text unit= since=1.0
+nr.setting.min_rsrp type=f64 unit=dBFS since=1.0
+nr.setting.mib_only type=bool unit= since=1.0
+nr.setting.not_barred type=bool unit= since=1.0
+nr.setting.band_order type=text unit= since=1.0
+nr.setting.gen_scene type=choice(0,1,2) unit= since=1.0
+nr.command.clear args= reply= since=1.0
+nr.command.remove args=row:text reply= since=1.0
+nbiot since=1.0
+nbiot.fields.SearchFields since=1.0
+nbiot.fields.NbiotFields since=1.0
+nbiot.fields.DecoderFields since=1.0
+nbiot.kept.SearchFields.retunes since=1.0
+nbiot.kept.SearchFields.decoded since=1.0
+nbiot.kept.SearchFields.failed since=1.0
+nbiot.kept.cells since=1.0
+nbiot.kept.NbiotFields since=1.0
+nbiot.table.cells row=NbiotCellRow cap=400 since=1.0
+nbiot.event.cell.nbiot_cell fields=FoundCellEvent since=1.0
+nbiot.setting.capture_s type=f64 unit=s since=1.0
+nbiot.setting.min_npss type=f64 unit= since=1.0
+nbiot.setting.read_sib1 type=bool unit= since=1.0
+nbiot.setting.freq_correction_ppm type=f64 unit=ppm since=1.0
+nbiot.setting.band_order type=text unit= since=1.0
+nbiot.setting.gen_scene type=choice(0,1,2,3) unit= since=1.0
+nbiot.setting.gen_load type=bool unit= since=1.0
+nbiot.setting.gen_npbch_rotation type=bool unit= since=1.0
+nbiot.command.clear args= reply= since=1.0
+nbiot.command.remove args=row:text reply= since=1.0
+gsmr since=1.0
+gsmr.fields.SearchFields since=1.0
+gsmr.fields.GsmrFields since=1.0
+gsmr.fields.DecoderFields since=1.0
+gsmr.kept.SearchFields.retunes since=1.0
+gsmr.kept.SearchFields.decoded since=1.0
+gsmr.kept.SearchFields.failed since=1.0
+gsmr.kept.cells since=1.0
+gsmr.kept.GsmrFields since=1.0
+gsmr.table.cells row=GsmrCellRow cap=200 since=1.0
+gsmr.table.carriers row=GsmrCarrierRow cap=24 since=1.0
+gsmr.event.cell.gsm_cell fields=FoundCellEvent since=1.0
+gsmr.setting.capture_s type=f64 unit=s since=1.0
+gsmr.setting.max_carriers type=i64 unit= since=1.0
+gsmr.setting.gsm_band type=choice(900,all) unit= since=1.0
+gsmr.setting.gen_scene type=choice(0,1,2) unit= since=1.0
+gsmr.setting.gen_centre_hz type=hz unit=Hz since=1.0
+gsmr.command.clear args= reply= since=1.0
+gsmr.command.remove args=row:text reply= since=1.0
+lbj since=1.0
+lbj.fields.LbjFields since=1.0
+lbj.fields.DecoderFields since=1.0
+lbj.component.modem.dropped since=1.0
+lbj.kept.messages since=1.0
+lbj.kept.LbjFields.bursts since=1.0
+lbj.kept.LbjFields.messages since=1.0
+lbj.kept.LbjFields.failed_checks since=1.0
+lbj.kept.LbjFields.blank_frames since=1.0
+lbj.table.messages row=LbjMessageRow cap=400 since=1.0
+lbj.event.lbj.message fields=LbjMessageEvent since=1.0
+lbj.setting.locomotives type=text unit= since=1.0
+lbj.setting.gen_deviation_hz type=hz unit=Hz since=1.0
+lbj.command.clear args= reply= since=1.0
+ebicab since=1.0
+ebicab.fields.EbicabFields since=1.0
+ebicab.fields.DecoderFields since=1.0
+ebicab.component.uplink.dropped since=1.0
+ebicab.kept.telegrams since=1.0
+ebicab.kept.balises since=1.0
+ebicab.kept.other_bursts since=1.0
+ebicab.kept.EbicabFields.bursts since=1.0
+ebicab.kept.EbicabFields.telegrams since=1.0
+ebicab.kept.EbicabFields.long since=1.0
+ebicab.kept.EbicabFields.short since=1.0
+ebicab.kept.EbicabFields.inverted since=1.0
+ebicab.kept.EbicabFields.bursts_without_telegram since=1.0
+ebicab.kept.EbicabFields.parity_hits since=1.0
+ebicab.table.telegrams row=EbicabTelegramRow cap=200 since=1.0
+ebicab.table.balises row=EbicabBaliseRow cap=100 since=1.0
+ebicab.table.other_bursts row=EbicabOtherBurstRow cap=100 since=1.0
+ebicab.event.balise.telegram fields=EbicabTelegramEvent since=1.0
+ebicab.setting.gen_scene type=choice(0,1,2,3) unit= since=1.0
+ebicab.setting.gen_burst_ms type=f64 unit=ms since=1.0
+ebicab.setting.gen_gap_ms type=f64 unit=ms since=1.0
+ebicab.setting.gen_random_bits type=i64 unit= since=1.0
+ebicab.setting.gen_bit_rate_pct type=f64 unit=% since=1.0
+ebicab.command.clear args= reply= since=1.0
+ebicab.command.remove args=row:text reply= since=1.0
+umts since=1.0
+umts.fields.SearchFields since=1.0
+umts.fields.UmtsFields since=1.0
+umts.fields.DecoderFields since=1.0
+umts.kept.SearchFields.retunes since=1.0
+umts.kept.SearchFields.decoded since=1.0
+umts.kept.SearchFields.failed since=1.0
+umts.kept.cells since=1.0
+umts.kept.UmtsFields since=1.0
+umts.table.cells row=UmtsCellRow cap=400 since=1.0
+umts.event.cell.umts_cell fields=FoundCellEvent since=1.0
+umts.setting.capture_s type=f64 unit=s since=1.0
+umts.setting.max_offset_hz type=f64 unit=Hz since=1.0
+umts.setting.max_cells type=i64 unit= since=1.0
+umts.setting.read_bch type=bool unit= since=1.0
+umts.setting.roll_off type=f64 unit= since=1.0
+umts.command.clear args= reply= since=1.0
+umts.command.remove args=row:text reply= since=1.0
+cdma2000 since=1.0
+cdma2000.fields.SearchFields since=1.0
+cdma2000.fields.Cdma2000Fields since=1.0
+cdma2000.fields.DecoderFields since=1.0
+cdma2000.kept.SearchFields.retunes since=1.0
+cdma2000.kept.SearchFields.decoded since=1.0
+cdma2000.kept.SearchFields.failed since=1.0
+cdma2000.kept.cells since=1.0
+cdma2000.kept.Cdma2000Fields since=1.0
+cdma2000.table.cells row=Cdma2000CellRow cap=200 since=1.0
+cdma2000.event.cell.cdma2000_cell fields=FoundCellEvent since=1.0
+cdma2000.setting.capture_s type=f64 unit=s since=1.0
+cdma2000.setting.band_class type=choice(none,0,1,4) unit= since=1.0
+cdma2000.setting.max_offset_hz type=f64 unit=Hz since=1.0
+cdma2000.setting.max_cells type=i64 unit= since=1.0
+cdma2000.setting.threshold type=f64 unit= since=1.0
+cdma2000.command.clear args= reply= since=1.0
+cdma2000.command.remove args=row:text reply= since=1.0
+tdscdma since=1.0
+tdscdma.fields.SearchFields since=1.0
+tdscdma.fields.TdscdmaFields since=1.0
+tdscdma.fields.DecoderFields since=1.0
+tdscdma.kept.SearchFields.retunes since=1.0
+tdscdma.kept.SearchFields.decoded since=1.0
+tdscdma.kept.SearchFields.failed since=1.0
+tdscdma.kept.cells since=1.0
+tdscdma.kept.TdscdmaFields since=1.0
+tdscdma.table.cells row=TdscdmaCellRow cap=200 since=1.0
+tdscdma.event.cell.tdscdma_cell fields=FoundCellEvent since=1.0
+tdscdma.setting.capture_s type=f64 unit=s since=1.0
+tdscdma.setting.threshold type=f64 unit= since=1.0
+tdscdma.setting.max_cells type=i64 unit= since=1.0
+tdscdma.setting.roll_off type=f64 unit= since=1.0
+tdscdma.setting.gen_multipliers type=bool unit= since=1.0
+tdscdma.command.clear args= reply= since=1.0
+tdscdma.command.remove args=row:text reply= since=1.0
+eot since=1.0
+eot.fields.EotFields since=1.0
+eot.fields.DecoderFields since=1.0
+eot.component.modem.dropped since=1.0
+eot.kept.frames since=1.0
+eot.kept.EotFields.frames_ok since=1.0
+eot.kept.EotFields.frames_bad since=1.0
+eot.kept.EotFields.frames_repaired since=1.0
+eot.kept.EotFields.syncs since=1.0
+eot.kept.EotFields.last_unit since=1.0
+eot.table.frames row=EotFrameRow cap=400 since=1.0
+eot.event.eot.frame fields=EotFrameEvent since=1.0
+eot.setting.direction type=choice(eot,hot) unit= since=1.0
+eot.setting.gen_unit type=i64 unit= since=1.0
+eot.setting.gen_psi type=i64 unit=psi since=1.0
+eot.setting.gen_type type=i64 unit= since=1.0
+eot.setting.gen_motion type=bool unit= since=1.0
+eot.command.clear args= reply= since=1.0
+cv2x since=1.0
+cv2x.fields.Cv2xFields since=1.0
+cv2x.fields.DecoderFields since=1.0
+cv2x.table.detections row=Cv2xDetectionRow cap=100 since=1.0
+cv2x.setting.channel_mhz type=choice(10,20) unit= since=1.0
+cv2x.setting.gen_busy type=f64 unit=% since=1.0
+cv2x.setting.gen_guard type=bool unit= since=1.0
+cv2x.setting.gen_resource_blocks type=i64 unit= since=1.0
+cv2x.command.clear args= reply= since=1.0

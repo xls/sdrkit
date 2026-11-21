@@ -1,0 +1,10 @@
+# id: pi4_variants
+# name: The PI4 variant (tone-spacing factor k) and the CW FSK space a beacon uses, by its beacon channel spacing
+# source: PI4 - PharusIgnis4 - a digital modulation (MGM) for beacon purposes, B. Hansen OZ2M, section 6.1 (one row for each choice the table gives)
+channel_spacing_hz,k,cw_fsk_space_hz,note
+1000,40,-250,30 MHz to 1 GHz
+1000,40,-400,above 1 GHz
+2000,80,-400,
+2000,96,-400,
+3000,96,-400,
+3000,120,-400,

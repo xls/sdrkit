@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 12000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic HF test signal, upper sideband, dial frequency at 0 Hz of the samples (audio frequency f appears at +f Hz). three CW signals: +400 Hz 20 WPM (20 dB in 500 Hz), -1500 Hz 28 WPM (14 dB), +2500 Hz 15 WPM Farnsworth 8 WPM with 8 % jitter (16 dB). 25.0 s.",
+    "core:recorder": "HF keyboard-mode test generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14070000.0
+    }
+  ],
+  "annotations": []
+}

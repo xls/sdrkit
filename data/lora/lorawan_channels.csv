@@ -1,0 +1,31 @@
+# id: lorawan_channels
+# name: LoRaWAN regional channel plans: the rows that make the channels of each plan
+# source: LoRaWAN Regional Parameters (RP002)
+# stacks: lorawan lorawanwide
+# note: Each row makes count channels from first_mhz, step_mhz apart, of width_khz and the spreading factors sf_min to sf_max. uplink: devices send there; downlink: gateways answer there (inverted IQ); default: a default (join) channel. A row with sub_band_size divides its channels into sub-bands of that many, numbered from 1, and a host that keeps one sub-band keeps only those of that sub-band; other rows stay. A row with uplink 0 is a channel for downlinks only. A host gives the stack the channels in its setting lw_channels as frequency Hz/bandwidth Hz/sf_min-sf_max/flags entries, flags u (uplink), d (downlink) and j (default).
+plan,first_mhz,step_mhz,count,width_khz,sf_min,sf_max,uplink,downlink,default,sub_band_size
+EU868,867.1,0.2,5,125,7,12,1,1,0,
+EU868,868.1,0.2,3,125,7,12,1,1,1,
+EU868,868.3,0,1,250,7,7,1,1,0,
+EU868,869.525,0,1,125,7,12,0,1,0,
+US915,902.3,0.2,64,125,7,10,1,0,0,8
+US915,903,1.6,8,500,8,8,1,0,0,1
+US915,923.3,0.6,8,500,7,12,0,1,0,
+AU915,915.2,0.2,64,125,7,10,1,0,0,8
+AU915,915.9,1.6,8,500,8,8,1,0,0,1
+AU915,923.3,0.6,8,500,7,12,0,1,0,
+AS923-1,923.2,0.2,2,125,7,12,1,1,1,
+AS923-1,923.6,0.2,6,125,7,12,1,1,0,
+AS923-1,923.2,0,1,250,7,7,1,1,0,
+AS923-2,921.4,0.2,2,125,7,12,1,1,1,
+AS923-2,921.8,0.2,6,125,7,12,1,1,0,
+AS923-2,921.4,0,1,250,7,7,1,1,0,
+AS923-3,916.6,0.2,2,125,7,12,1,1,1,
+AS923-3,917,0.2,6,125,7,12,1,1,0,
+AS923-3,916.6,0,1,250,7,7,1,1,0,
+AS923-4,917.3,0.2,2,125,7,12,1,1,1,
+AS923-4,917.7,0.2,6,125,7,12,1,1,0,
+AS923-4,917.3,0,1,250,7,7,1,1,0,
+EU433,433.175,0.2,3,125,7,12,1,1,1,
+EU433,433.175,0,1,250,7,7,1,1,0,
+EU433,434.665,0,1,125,7,12,0,1,0,

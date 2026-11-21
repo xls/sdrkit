@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 8000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic DVB-T multiplex (ETSI EN 300 744), 0.75 s, at the natural sample rate of a 7 MHz channel (8 Msps). 2K mode, guard interval 1/8, 16-QAM, non-hierarchical, code rate 2/3, cell id 0, TPS length indicator 23. The transport stream carried is mux_two_services.ts from its first packet (12.90196 Mbit/s constant rate). The recording starts with 20000 samples of noise only, then the signal starts one third of the way into OFDM symbol 0 of frame 1 of a super-frame. Carrier offset +10078.125 Hz (2.58 subcarrier spacings), white Gaussian noise for an SNR of 24 dB over the sample band, no multipath, no sample clock offset. RMS amplitude about 0.25 (signal plus noise). See specs/dvbt.md, section 'Test material'.",
+    "core:recorder": "synthetic DVB-T transmitter, noise seed 20260115",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    { "core:sample_start": 0, "core:frequency": 529500000.0 }
+  ],
+  "annotations": [
+    { "core:sample_start": 0, "core:sample_count": 20000, "core:comment": "noise only" },
+    { "core:sample_start": 20000, "core:sample_count": 5980000, "core:comment": "DVB-T 2K 1/8 16-QAM 2/3, 7 MHz" }
+  ]
+}

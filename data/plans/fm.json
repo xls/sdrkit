@@ -1,0 +1,563 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "fm_europe",
+      "name": "Europe (87.5-108 MHz, 100 kHz)",
+      "kind": "fm",
+      "source": {
+        "publisher": "BNetzA",
+        "title": "Frequenzplan gemaess Paragraph 90 TKG",
+        "date": "2026-08",
+        "clause": "entry 203003",
+        "url": "https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Downloads/DE/Sachgebiete/Telekommunikation/Unternehmen_Institutionen/Frequenzen/202608_Frequenzplan.pdf"
+      },
+      "verified": true,
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm",
+            "drm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 87500000,
+            "step_hz": 100000
+          }
+        }
+      ],
+      "also": [
+        {
+          "publisher": "ETSI",
+          "title": "Digital Radio Mondiale (DRM); System Specification",
+          "number": "ETSI ES 201 980 V4.2.1",
+          "date": "2021-01",
+          "clause": "Introduction (the LF, MF and HF broadcasting bands; the VHF ranges of mode E), 4.4.1 (100 kHz raster above 30 MHz)",
+          "url": "https://www.etsi.org/deliver/etsi_es/201900_201999/201980/04.02.01_60/es_201980v040201p.pdf"
+        }
+      ]
+    },
+    {
+      "id": "fm_uk_ireland",
+      "name": "United Kingdom and Ireland (87.5-108 MHz)",
+      "kind": "fm",
+      "source": {
+        "publisher": "Ofcom",
+        "title": "UK Frequency Allocation Table",
+        "number": "Issue 19 v1.1",
+        "date": "2026-07-03",
+        "clause": "87.5-108 MHz row, footnote UK36"
+      },
+      "verified": false,
+      "unverified_reason": "the UK band is in the UKFAT, but no official source found states the 100 kHz channel raster",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 87500000,
+            "step_hz": 100000
+          }
+        }
+      ]
+    },
+    {
+      "id": "fm_middle_east",
+      "name": "Middle East",
+      "kind": "fm",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5 (band 87.5-108 MHz, broadcasting) and the national FM rasters",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 87500000,
+            "step_hz": 100000
+          }
+        }
+      ]
+    },
+    {
+      "id": "fm_africa",
+      "name": "Africa",
+      "kind": "fm",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5 (band 87.5-108 MHz, broadcasting) and the national FM rasters",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 87500000,
+            "step_hz": 100000
+          }
+        }
+      ]
+    },
+    {
+      "id": "fm_china",
+      "name": "China",
+      "kind": "fm",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5 (band 87.5-108 MHz, broadcasting) and the national FM rasters",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm",
+            "cdr"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 87500000,
+            "step_hz": 100000
+          }
+        }
+      ],
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Recommendation ITU-R BS.1114-13 (systems for terrestrial digital sound broadcasting in the frequency range 30-3 000 MHz)",
+          "number": "ITU-R BS.1114-13",
+          "date": "2025-11",
+          "clause": "considering h) and p), Annex 6 clause 1 (System H, CDR, GY/T 268.1-2013, FM band 88-108 MHz)",
+          "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.1114-13-202511-I!!PDF-E.pdf"
+        }
+      ]
+    },
+    {
+      "id": "fm_india",
+      "name": "India and South Asia",
+      "kind": "fm",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5 (band 87.5-108 MHz, broadcasting) and the national FM rasters",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 87500000,
+            "step_hz": 100000
+          }
+        }
+      ]
+    },
+    {
+      "id": "fm_elsewhere",
+      "name": "Elsewhere (87.5-108 MHz, 100 kHz)",
+      "kind": "fm",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5 (band 87.5-108 MHz, broadcasting) and the national FM rasters",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 87500000,
+            "step_hz": 100000
+          }
+        }
+      ]
+    },
+    {
+      "id": "fm_australia_nz",
+      "name": "Australia (87.5-108 MHz, 200 kHz on odd tenths)",
+      "kind": "fm",
+      "source": {
+        "publisher": "Australian Government",
+        "title": "Broadcasting Services (Technical Planning) Guidelines 2017",
+        "number": "F2017L01290",
+        "date": "2017-09-26",
+        "clause": "cl. 6(1), cl. 20",
+        "url": "https://www.legislation.gov.au/F2017L01290"
+      },
+      "also": [
+        {
+          "publisher": "ACMA",
+          "title": "Radio and Television Broadcasting Stations, Internet Edition, General information",
+          "date": "2026-07",
+          "clause": "p. 411",
+          "url": "https://www.acma.gov.au/sites/default/files/2026-07/General%20Information.pdf"
+        },
+        {
+          "publisher": "Australian Government",
+          "title": "Broadcasting Services (Technical Planning) Guidelines 2007 (repealed 2017-09-30)",
+          "number": "F2007L02469",
+          "date": "2009-05-07",
+          "clause": "Appendix 2, cl. 2, 3, 11, 17, 26",
+          "url": "https://www.legislation.gov.au/F2007L02469"
+        }
+      ],
+      "verified": true,
+      "note": "the id keeps its old name: New Zealand has its own plan, fm_nz",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 87700000,
+            "step_hz": 200000
+          }
+        }
+      ]
+    },
+    {
+      "id": "fm_nz",
+      "name": "New Zealand (87.5-108 MHz, 100 kHz)",
+      "kind": "fm",
+      "source": {
+        "publisher": "Radio Spectrum Management (NZ)",
+        "title": "PIB 39 Spectrum Licence Certification Rules for Crown Management Rights",
+        "number": "Issue 8.7",
+        "date": "2024-04",
+        "clause": "4.3.1, 4.4.1, Table 10",
+        "url": "https://www.rsm.govt.nz/assets/Uploads/documents/pibs/spectrum-licence-certification-rules-for-crown-management-rights-pib-39-apr24.pdf"
+      },
+      "also": [
+        {
+          "publisher": "Radio Spectrum Management (NZ)",
+          "title": "PIB 59 Spectrum Licence Policy Rules for Crown Management Rights",
+          "number": "Issue 4.6",
+          "date": "2026-10",
+          "clause": "FM Raster, Appendix 1",
+          "url": "https://www.rsm.govt.nz/assets/Uploads/documents/pibs/policy-rules-for-crown-spectrum-management-rights-pib-59-oct2026.pdf"
+        }
+      ],
+      "verified": true,
+      "note": "88.4-106.63 MHz is under management right MR207; 87.5-88.4 and 106.63-107.7 MHz are for low-power FM",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 87500000,
+            "step_hz": 100000
+          }
+        }
+      ]
+    },
+    {
+      "id": "fm_japan",
+      "name": "Japan (76.1-98.9 MHz)",
+      "kind": "fm",
+      "source": {
+        "publisher": "Ministry of Internal Affairs and Communications (Japan)",
+        "title": "Broadcast Frequency Use Plan (Kikan hoso-yo shuhasu shiyo keikaku), MPT Notice No. 661 of 1988",
+        "date": "2025-10-10",
+        "clause": "1-2(1) i, 1-5",
+        "url": "https://www.tele.soumu.go.jp/horei/law_honbun/00004710.html"
+      },
+      "verified": true,
+      "note": "90.1-98.9 MHz carries FM relays of AM stations",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 76000000,
+          "end_hz": 98950000,
+          "modes": [
+            "fm",
+            "drm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 76100000,
+            "step_hz": 100000
+          }
+        }
+      ],
+      "also": [
+        {
+          "publisher": "ETSI",
+          "title": "Digital Radio Mondiale (DRM); System Specification",
+          "number": "ETSI ES 201 980 V4.2.1",
+          "date": "2021-01",
+          "clause": "Introduction (the LF, MF and HF broadcasting bands; the VHF ranges of mode E), 4.4.1 (100 kHz raster above 30 MHz)",
+          "url": "https://www.etsi.org/deliver/etsi_es/201900_201999/201980/04.02.01_60/es_201980v040201p.pdf"
+        }
+      ]
+    },
+    {
+      "id": "fm_north_america",
+      "name": "North America (88.1-107.9 MHz, 200 kHz)",
+      "kind": "fm",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47",
+        "number": "47 CFR 73.201",
+        "date": "1987-04-02",
+        "url": "https://www.ecfr.gov/current/title-47/section-73.201"
+      },
+      "also": [
+        {
+          "publisher": "ISED Canada",
+          "title": "BPR-3: Application Procedures and Rules for FM Broadcasting Undertakings",
+          "number": "BPR-3 Issue 7",
+          "date": "2024-05",
+          "clause": "3.1.13, 3.13.2"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47 (IBOC DAB operation: HD Radio on AM and FM stations)",
+          "number": "47 CFR 73.404",
+          "date": "2024-10-01",
+          "clause": "(a)",
+          "url": "https://www.ecfr.gov/current/title-47/section-73.404"
+        },
+        {
+          "publisher": "ITU",
+          "title": "Recommendation ITU-R BS.1114-13 (systems for terrestrial digital sound broadcasting in the frequency range 30-3 000 MHz)",
+          "number": "ITU-R BS.1114-13",
+          "date": "2025-11",
+          "clause": "considering f) and n) (System C, IBOC, standardised as NRSC-5, 88-108 MHz)",
+          "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.1114-13-202511-I!!PDF-E.pdf"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 88000000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm",
+            "hdradio"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 88100000,
+            "step_hz": 200000
+          }
+        }
+      ]
+    },
+    {
+      "id": "fm_south_america",
+      "name": "South and Central America",
+      "kind": "fm",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5 (band 87.5-108 MHz, broadcasting) and the national FM rasters",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87800000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 87900000,
+            "step_hz": 200000
+          }
+        }
+      ]
+    },
+    {
+      "id": "fm_south_korea",
+      "name": "South Korea",
+      "kind": "fm",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5 (band 87.5-108 MHz, broadcasting) and the national FM rasters",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 88000000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 88100000,
+            "step_hz": 200000
+          }
+        }
+      ]
+    },
+    {
+      "id": "fm_oirt",
+      "name": "OIRT (65.8 to 74 MHz)",
+      "kind": "fm",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5 (band 87.5-108 MHz, broadcasting) and the national FM rasters",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 65800000,
+          "end_hz": 74000000,
+          "modes": [
+            "fm",
+            "drm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 65810000,
+            "step_hz": 30000
+          }
+        }
+      ],
+      "also": [
+        {
+          "publisher": "ETSI",
+          "title": "Digital Radio Mondiale (DRM); System Specification",
+          "number": "ETSI ES 201 980 V4.2.1",
+          "date": "2021-01",
+          "clause": "Introduction (the LF, MF and HF broadcasting bands; the VHF ranges of mode E), 4.4.1 (100 kHz raster above 30 MHz)",
+          "url": "https://www.etsi.org/deliver/etsi_es/201900_201999/201980/04.02.01_60/es_201980v040201p.pdf"
+        }
+      ]
+    },
+    {
+      "id": "fm_wide",
+      "name": "Wide (76 to 108 MHz)",
+      "kind": "fm",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5 (band 87.5-108 MHz, broadcasting) and the national FM rasters",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "a receiver range, not a published plan",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 76000000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 76000000,
+            "step_hz": 100000
+          }
+        }
+      ]
+    },
+    {
+      "id": "fm_americas_100k",
+      "name": "Americas, 100 kHz steps",
+      "kind": "fm",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Article 5 (band 87.5-108 MHz, broadcasting) and the national FM rasters",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 108000000,
+          "modes": [
+            "fm"
+          ],
+          "modulation": "wfm",
+          "raster": {
+            "first_hz": 87500000,
+            "step_hz": 100000
+          }
+        }
+      ]
+    }
+  ]
+}

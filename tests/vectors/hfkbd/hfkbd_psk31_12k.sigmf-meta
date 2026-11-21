@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 12000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic HF test signal, upper sideband, dial frequency at 0 Hz of the samples (audio frequency f appears at +f Hz). two BPSK31 signals at audio 1000 Hz (SNR 12 dB in 31.25 Hz) and 1600 Hz (6 dB, +50 ppm clock, 2 Hz/min drift). 25.0 s.",
+    "core:recorder": "HF keyboard-mode test generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14070000.0
+    }
+  ],
+  "annotations": []
+}

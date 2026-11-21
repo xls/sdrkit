@@ -1,0 +1,26 @@
+[package]
+name = "sdrkit-dev-test"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Test helpers for stacks: generate, impair through sdrkit-algo-sim, feed, collect, compare with a vector"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+# The names of the C functions of a family header, for the pages.
+sdrkit-dev-interface = { path = "../sdrkit-dev-interface" }
+sdrkit-host-catalog = { path = "../../hosts/sdrkit-host-catalog" }
+# The settings that the engine adds to a test signal, for the page of the synth driver.
+sdrkit-host-engine = { path = "../../hosts/sdrkit-host-engine" }
+sdrkit-driver-registry = { path = "../../drivers/sdrkit-driver-registry" }
+sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core" }
+sdrkit-driver-soapyremote = { path = "../../drivers/sdrkit-driver-soapyremote" }

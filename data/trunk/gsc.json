@@ -1,0 +1,28 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "gsc_paging_us_900",
+      "name": "GSC paging: the US 900 MHz paging band",
+      "kind": "other",
+      "source": {
+        "publisher": "not recorded",
+        "title": "the 929 to 932 MHz paging band of the United States; 929.6125 MHz as a default dial",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band and the channel are not compared with a public document; no list of GSC channels was read",
+      "bands": [
+        {
+          "name": "US paging 929 to 932 MHz",
+          "service": "land_mobile",
+          "start_hz": 929000000,
+          "end_hz": 932000000,
+          "modes": ["gsc"],
+          "channel_width_hz": 12500,
+          "note": "stack gsc; one narrow FM paging channel at a time; the default dial 929.6125 MHz"
+        }
+      ]
+    }
+  ]
+}

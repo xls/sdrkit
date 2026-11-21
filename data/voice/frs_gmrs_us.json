@@ -1,0 +1,53 @@
+{
+  "$schema": "../../../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "voice_frs_gmrs_us",
+      "name": "FRS and GMRS, 22 channels",
+      "kind": "personal",
+      "source": {
+        "publisher": "FCC",
+        "title": "47 CFR Part 95 Subparts B and E",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "not compared with the source",
+      "bands": [
+        {
+          "name": "FRS and GMRS, 22 channels 462.5437 to 467.7188 MHz",
+          "service": "land_mobile",
+          "start_hz": 462543750,
+          "end_hz": 467718750,
+          "modes": ["voice_channels"],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            { "name": "1", "centre_hz": 462562500, "note": "FRS and GMRS simplex" },
+            { "name": "2", "centre_hz": 462587500, "note": "FRS and GMRS simplex" },
+            { "name": "3", "centre_hz": 462612500, "note": "FRS and GMRS simplex" },
+            { "name": "4", "centre_hz": 462637500, "note": "FRS and GMRS simplex" },
+            { "name": "5", "centre_hz": 462662500, "note": "FRS and GMRS simplex" },
+            { "name": "6", "centre_hz": 462687500, "note": "FRS and GMRS simplex" },
+            { "name": "7", "centre_hz": 462712500, "note": "FRS and GMRS simplex" },
+            { "name": "8", "centre_hz": 467562500, "note": "FRS only, low power" },
+            { "name": "9", "centre_hz": 467587500, "note": "FRS only, low power" },
+            { "name": "10", "centre_hz": 467612500, "note": "FRS only, low power" },
+            { "name": "11", "centre_hz": 467637500, "note": "FRS only, low power" },
+            { "name": "12", "centre_hz": 467662500, "note": "FRS only, low power" },
+            { "name": "13", "centre_hz": 467687500, "note": "FRS only, low power" },
+            { "name": "14", "centre_hz": 467712500, "note": "FRS only, low power" },
+            { "name": "15", "centre_hz": 462550000, "pair_hz": 467550000, "note": "FRS and GMRS; GMRS repeater output" },
+            { "name": "16", "centre_hz": 462575000, "pair_hz": 467575000, "note": "FRS and GMRS; GMRS repeater output" },
+            { "name": "17", "centre_hz": 462600000, "pair_hz": 467600000, "note": "FRS and GMRS; GMRS repeater output" },
+            { "name": "18", "centre_hz": 462625000, "pair_hz": 467625000, "note": "FRS and GMRS; GMRS repeater output" },
+            { "name": "19", "centre_hz": 462650000, "pair_hz": 467650000, "note": "FRS and GMRS; GMRS repeater output" },
+            { "name": "20", "centre_hz": 462675000, "pair_hz": 467675000, "note": "FRS and GMRS; GMRS repeater output" },
+            { "name": "21", "centre_hz": 462700000, "pair_hz": 467700000, "note": "FRS and GMRS; GMRS repeater output" },
+            { "name": "22", "centre_hz": 462725000, "pair_hz": 467725000, "note": "FRS and GMRS; GMRS repeater output" }
+          ]
+        }
+      ]
+    }
+  ]
+}

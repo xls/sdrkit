@@ -1,0 +1,100 @@
+# The interface of the stack family session. The registry test of the family writes this file.
+family session version=1.4
+shape.SessionFields since=1.0
+shape.SessionFields.session.state type=choice(waiting,running,failed,stopped) unit= optional=no since=1.0
+shape.SessionFields.session.samples type=i64 unit= optional=no since=1.0
+shape.SessionFields.session.dropped type=i64 unit= optional=no since=1.0
+shape.SessionFields.session.events_unlisted type=i64 unit= optional=no since=1.0
+shape.SessionFields.session.problem type=text unit= optional=yes since=1.0
+shape.SessionFields.session.request_problem type=text unit= optional=yes since=1.0
+shape.SessionFields.session.audio_lost type=i64 unit= optional=no since=1.0
+shape.SessionFields.session.transmit_lost type=i64 unit= optional=no since=1.0
+shape.SessionFields.session.retunes type=i64 unit= optional=no since=1.0
+shape.SessionFields.session.tx_sent type=i64 unit= optional=yes since=1.0
+shape.SessionFields.session.tx_failed type=i64 unit= optional=yes since=1.0
+shape.SessionFields.session.tx_last type=time unit= optional=yes since=1.0
+shape.SessionFields.session.tx_blocked type=text unit= optional=yes since=1.0
+shape.SessionFields.session.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.SessionFields.session.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.SessionFields.session.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.SessionFields.session.share type=f64 unit= optional=yes since=1.1
+shape.SessionFields.session.cores_needed type=f64 unit= optional=yes since=1.1
+shape.SessionFields.session.cores_declared type=f64 unit= optional=yes since=1.1
+shape.SessionFields.session.cores_free type=f64 unit= optional=yes since=1.1
+shape.SessionFields.session.threads type=i64 unit= optional=yes since=1.1
+shape.SessionFields.session.stage_behind type=i64 unit= optional=yes since=1.1
+shape.SessionFields.session.gaps type=i64 unit= optional=yes since=1.1
+shape.SessionFields.session.load_problem type=text unit= optional=yes since=1.1
+shape.SessionFields.session.core_units type=f64 unit= optional=yes since=1.1
+shape.SessionFields.session.media_lost type=i64 unit= optional=no since=1.3
+shape.SessionFields.session.audio_in_lost type=i64 unit= optional=no since=1.4
+shape.SessionFields.session.audio_in_rate_hz type=hz unit=Hz optional=yes since=1.4
+shape.SessionFields.session.audio_in_wanted type=bool unit= optional=no since=1.4
+shape.ComponentLoadRow since=1.1
+shape.ComponentLoadRow.section type=text unit= optional=no since=1.1
+shape.ComponentLoadRow.stage type=text unit= optional=no since=1.1
+shape.ComponentLoadRow.thread type=i64 unit= optional=no since=1.1
+shape.ComponentLoadRow.share type=f64 unit= optional=no since=1.1
+shape.ComponentLoadRow.share_total type=f64 unit= optional=no since=1.1
+shape.ComponentLoadRow.calls type=i64 unit= optional=no since=1.1
+shape.ComponentLoadRow.items_in type=i64 unit= optional=no since=1.1
+shape.ComponentLoadRow.items_out type=i64 unit= optional=no since=1.1
+shape.ComponentLoadRow.mean_us type=f64 unit=us optional=no since=1.1
+shape.ComponentLoadRow.worst_us type=f64 unit=us optional=no since=1.1
+shape.ComponentLoadRow.units type=f64 unit= optional=no since=1.1
+shape.StageLoadRow since=1.1
+shape.StageLoadRow.thread type=i64 unit= optional=no since=1.1
+shape.StageLoadRow.cut type=bool unit= optional=no since=1.1
+shape.StageLoadRow.share type=f64 unit= optional=no since=1.1
+shape.StageLoadRow.cost type=f64 unit= optional=no since=1.1
+shape.StageLoadRow.declared type=f64 unit= optional=yes since=1.1
+shape.StageLoadRow.queue_fill type=f64 unit= optional=no since=1.1
+shape.StageLoadRow.queue_units type=i64 unit= optional=no since=1.1
+shape.StageLoadRow.queue_units_max type=i64 unit= optional=no since=1.1
+shape.StageLoadRow.behind type=i64 unit= optional=no since=1.1
+shape.StageLoadRow.units type=f64 unit= optional=no since=1.1
+shape.StageLoadRow.declared_units type=f64 unit= optional=yes since=1.1
+shape.ConnectionLoadRow since=1.2
+shape.ConnectionLoadRow.from type=text unit= optional=no since=1.2
+shape.ConnectionLoadRow.output type=text unit= optional=no since=1.2
+shape.ConnectionLoadRow.to type=text unit= optional=no since=1.2
+shape.ConnectionLoadRow.input type=text unit= optional=no since=1.2
+shape.ConnectionLoadRow.format type=text unit= optional=no since=1.2
+shape.ConnectionLoadRow.stage type=text unit= optional=no since=1.2
+shape.ConnectionLoadRow.items_per_s type=f64 unit=1/s optional=no since=1.2
+shape.ConnectionLoadRow.bytes_per_s type=f64 unit=B/s optional=no since=1.2
+shape.ConnectionLoadRow.held_bytes type=i64 unit=B optional=no since=1.2
+shape.ConnectionLoadRow.held_mean_bytes type=f64 unit=B optional=no since=1.2
+shape.ConnectionLoadRow.held_max_bytes type=i64 unit=B optional=no since=1.2
+shape.ConnectionLoadRow.capacity_bytes type=i64 unit=B optional=yes since=1.2
+shape.ConnectionLoadRow.fill type=f64 unit= optional=yes since=1.2
+shape.ConnectionLoadRow.wait_mean_us type=f64 unit=us optional=yes since=1.2
+shape.ConnectionLoadRow.wait_worst_us type=f64 unit=us optional=yes since=1.2
+shape.ConnectionLoadRow.full type=i64 unit= optional=no since=1.2
+shape.ConnectionLoadRow.empty type=i64 unit= optional=no since=1.2
+shape.ConnectionLoadRow.boundary type=bool unit= optional=no since=1.2
+shape.ConnectionLoadRow.cut type=bool unit= optional=no since=1.2
+shape.ConnectionLoadRow.lost type=i64 unit= optional=no since=1.2
+shape.TransmitEvent since=1.0
+shape.TransmitEvent.sent type=bool unit= optional=no since=1.0
+shape.TransmitEvent.samples type=i64 unit= optional=no since=1.0
+shape.TransmitEvent.attenuation type=f64 unit=dB optional=yes since=1.0
+shape.TransmitEvent.attempts type=i64 unit= optional=no since=1.0
+shape.TransmitEvent.refused type=text unit= optional=yes since=1.0
+shape.TransmitEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.TransmitEvent.tx_power_db type=f64 unit=dB optional=yes since=1.4
+session since=1.0
+session.fields.SessionFields since=1.0
+session.table.session.components row=ComponentLoadRow cap=1024 since=1.1
+session.table.session.stages row=StageLoadRow cap=64 since=1.1
+session.table.session.connections row=ConnectionLoadRow cap=1024 since=1.2
+session.event.session.transmit fields=TransmitEvent since=1.0
+session.setting.tuned_hz type=hz unit=Hz since=1.0
+session.setting.spectrum type=bool unit= since=1.0
+session.setting.spectrum_size type=choice(256,512,1024,2048,4096,8192,16384,32768,65536,131072,262144) unit= since=1.0
+session.setting.spectrum_window type=choice(blackman_harris,hann,rectangular) unit= since=1.0
+session.setting.spectrum_fps type=f64 unit=1/s since=1.0
+session.setting.volume type=f64 unit= since=1.0
+session.setting.pan type=f64 unit= since=1.0
+session.setting.mute type=bool unit= since=1.0
+session.setting.solo type=bool unit= since=1.0

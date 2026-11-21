@@ -1,0 +1,29 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "ermes_channels",
+      "name": "ERMES paging channels",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "ETS 300 133, Enhanced Radio Message System (ERMES)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "not compared with the source; ERMES networks are closed down and none is known on the air",
+      "bands": [
+        {
+          "name": "ERMES 169.425 to 169.800 MHz",
+          "service": "land_mobile",
+          "start_hz": 169412500,
+          "end_hz": 169812500,
+          "modes": ["ermes"],
+          "channel_width_hz": 25000,
+          "note": "stack ermes; one channel at a time; the range of the dial 169 to 170 MHz, the default dial 169.65 MHz",
+          "numbering": { "first": 1, "last": 16, "first_centre_hz": 169425000, "step_hz": 25000 }
+        }
+      ]
+    }
+  ]
+}

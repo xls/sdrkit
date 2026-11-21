@@ -1,0 +1,7 @@
+city,freq_mhz,bw_mhz,standard,network,services,snr_db,reports,first_seen,last_seen
+Melbourne,177.5,7,DVB-T,Seven Melbourne,7HD|7TWO,33.0,9,2026-01-04,2026-10-30
+Sydney,177.5,7,DVB-T,Seven Sydney,7HD|7TWO|7mate,24.5,12,2026-01-02,2026-11-01
+Sydney,191.5,7,DVB-T,"Nine, Sydney","9HD|9Gem|""9Go!""",28.0,3,2026-01-02,2026-11-01
+Sydney,226.5,7,DVB-T,ABC Sydney,ABC TV|ABC NEWS,28.0,40,2026-01-02,2026-11-03
+Sydney,536.5,7,DVB-T2,Trial multiplex,Test 1,35.0,2,2026-06-01,2026-06-02
+Wollongong,529.5,7,DVB-T,ABC Illawarra,ABC TV,19.0,5,2026-02-10,2026-09-12

@@ -1,0 +1,34 @@
+[package]
+name = "sdrkit-stack-dvoice"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Digital voice: DMR, NXDN, dPMR, TETRA, P25 Phase 1 and 2, TETRAPOL, D-STAR, System Fusion, M17, FreeDV, DCR and an automatic detector"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-codec-codec2 = { path = "../../codec/sdrkit-codec-codec2" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-proto-link = { path = "../../proto/sdrkit-proto-link" }
+sdrkit-proto-channels = { path = "../../proto/sdrkit-proto-channels" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+serde.workspace = true
+serde_json.workspace = true
+num-complex.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The record of the declarations that a generic consumer reads.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+# The starting dials that a host reads from the data folder.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }

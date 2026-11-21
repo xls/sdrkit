@@ -1,0 +1,30 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "tetra_dmo_dial",
+      "name": "TETRA DMO: dial range",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "EN 300 396-2, TETRA Direct Mode Operation; Part 2: Radio aspects",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "not compared with the source",
+      "bands": [
+        {
+          "name": "TETRA DMO dial range",
+          "service": "land_mobile",
+          "start_hz": 30000000,
+          "end_hz": 1000000000,
+          "modes": [
+            "tetra_dmo"
+          ],
+          "channel_width_hz": 25000,
+          "note": "stack tetra_dmo; the default dial 427.0 MHz"
+        }
+      ]
+    }
+  ]
+}

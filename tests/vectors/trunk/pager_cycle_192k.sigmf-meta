@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 192000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic paging channel, one full cycle (15.95 s) of the paging test signal: POCSAG 512, 1200, 2400 bit/s (4.5 kHz deviation) and one FLEX frame each at 1600/2, 3200/2, 3200/4, 6400/4 (4.8 kHz deviation), 0.5 s of silence after each transmission. The channel (466.075 MHz) is 50 kHz below the centre; the carrier is 700 Hz above it. Carrier-to-noise 20 dB in 25 kHz. At 192 ksps it is the rate a whole-span carrier bank hands a pager receiver (the wide-input setting). See specs/trunk.md section 8.",
+    "core:recorder": "sdrkit trunking, paging and tones test signal definition (specs/trunk.md), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 466125000.0
+    }
+  ],
+  "annotations": []
+}

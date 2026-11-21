@@ -1,0 +1,2876 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "countries": [
+    {
+      "code": "AD",
+      "name": "Andorra",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "tv_eu",
+        "cable_eu"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "AE",
+      "name": "United Arab Emirates",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "AF",
+      "name": "Afghanistan",
+      "itu": 3
+    },
+    {
+      "code": "AG",
+      "name": "Antigua and Barbuda",
+      "itu": 2
+    },
+    {
+      "code": "AL",
+      "name": "Albania",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "AM",
+      "name": "Armenia",
+      "itu": 1,
+      "groups": [
+        "tv_oirt",
+        "an_dk"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "AO",
+      "name": "Angola",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "an_i"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "AR",
+      "name": "Argentina",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb",
+        "an_n"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "AS",
+      "name": "American Samoa",
+      "itu": 3,
+      "groups": [
+        "fm_north_america",
+        "tv_us"
+      ],
+      "presets": {
+        "rds": "rbds",
+        "fm_deemphasis_us": 75,
+        "tv_standard": "atsc3"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "AT",
+      "name": "Austria",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "fm_australia_nz",
+        "dab_band3",
+        "tv_au",
+        "ham_au",
+        "bc_r3",
+        "marine_intl",
+        "air_25",
+        "uhf_cb",
+        "cb40",
+        "ism_r3",
+        "an_au"
+      ],
+      "absent": [
+        "cable"
+      ],
+      "presets": {
+        "fm_deemphasis_us": 50,
+        "rds": "rds",
+        "tv_standard": "dvbt"
+      },
+      "verified": true,
+      "sources": [
+        {
+          "publisher": "ACMA",
+          "title": "Radio and Television Broadcasting Stations, Internet Edition, General information",
+          "date": "2026-07",
+          "clause": "p. 411-415",
+          "url": "https://www.acma.gov.au/sites/default/files/2026-07/General%20Information.pdf"
+        },
+        {
+          "publisher": "Australian Government",
+          "title": "Broadcasting Services (Technical Planning) Guidelines 2007 (repealed 2017-09-30)",
+          "number": "F2007L02469",
+          "date": "2009-05-07",
+          "clause": "Appendix 2, cl. 2, 3, 11, 17, 26",
+          "url": "https://www.legislation.gov.au/F2007L02469"
+        },
+        {
+          "publisher": "Australian Government",
+          "title": "Radiocommunications (Citizen Band Radio Stations) Class Licence 2025",
+          "number": "F2025L01088",
+          "date": "2025-10-01",
+          "clause": "s. 7, Schedule 1",
+          "url": "https://www.legislation.gov.au/F2025L01088"
+        },
+        {
+          "publisher": "Australian Government",
+          "title": "Radiocommunications (Low Interference Potential Devices) Class Licence 2025",
+          "number": "F2025L01047",
+          "date": "2025-10-01",
+          "clause": "Schedule 1, Table 1 items 19-20, Table 8 items 1 and 6",
+          "url": "https://www.legislation.gov.au/F2025L01047"
+        }
+      ],
+      "note": "DAB+ blocks on air: 9A, 9B and 9C in the capital cities, 8D in Canberra, 8B and 9D near the Gold Coast, 8C in Mandurah; analogue TV broadcasting has ended; an_au names the old analogue channels"
+    },
+    {
+      "code": "AZ",
+      "name": "Azerbaijan",
+      "itu": 1,
+      "groups": [
+        "tv_oirt",
+        "an_dk"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BA",
+      "name": "Bosnia and Herzegovina",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BB",
+      "name": "Barbados",
+      "itu": 2,
+      "groups": [
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BD",
+      "name": "Bangladesh",
+      "itu": 3,
+      "groups": [
+        "fm_india",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BF",
+      "name": "Burkina Faso",
+      "itu": 1
+    },
+    {
+      "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_dk",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BH",
+      "name": "Bahrain",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BI",
+      "name": "Burundi",
+      "itu": 1
+    },
+    {
+      "code": "BJ",
+      "name": "Benin",
+      "itu": 1
+    },
+    {
+      "code": "BN",
+      "name": "Brunei",
+      "itu": 3
+    },
+    {
+      "code": "BO",
+      "name": "Bolivia",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb",
+        "an_m"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BR",
+      "name": "Brazil",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb",
+        "an_m"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BS",
+      "name": "Bahamas",
+      "itu": 2,
+      "groups": [
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BT",
+      "name": "Bhutan",
+      "itu": 3
+    },
+    {
+      "code": "BW",
+      "name": "Botswana",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_za",
+        "an_i"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BY",
+      "name": "Belarus",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "tv_oirt",
+        "an_dk"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "BZ",
+      "name": "Belize",
+      "itu": 2,
+      "groups": [
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "CA",
+      "name": "Canada",
+      "itu": 2,
+      "groups": [
+        "fm_north_america",
+        "tv_ca",
+        "cable_us",
+        "ham_r2",
+        "bc_r2",
+        "marine_intl",
+        "air_25",
+        "frs_gmrs",
+        "cb40",
+        "ism_r2",
+        "an_m"
+      ],
+      "absent": [
+        "dab"
+      ],
+      "presets": {
+        "fm_deemphasis_us": 75,
+        "rds": "rbds",
+        "tv_standard": "atsc"
+      },
+      "verified": true,
+      "sources": [
+        {
+          "publisher": "ISED Canada",
+          "title": "BPR-3: Application Procedures and Rules for FM Broadcasting Undertakings",
+          "number": "BPR-3 Issue 7",
+          "date": "2024-05",
+          "clause": "3.1.13, 3.13.2"
+        },
+        {
+          "publisher": "ISED Canada",
+          "title": "BETS-6: Technical Standards and Requirements for FM Broadcasting Transmitters",
+          "number": "BETS-6 Issue 3",
+          "date": "2026-01-30",
+          "clause": "A.1.3.2"
+        },
+        {
+          "publisher": "ISED Canada",
+          "title": "BPR-10: Application Procedures and Rules for Digital Television (DTV) Undertakings",
+          "number": "BPR-10 Issue 3",
+          "date": "2025-11",
+          "clause": "2.2.1, Table 1",
+          "url": "https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/licences-and-certificates/radio-authorizations/broadcasting-certification/broadcasting-procedures-and-rules-bpr/bpr-10-application-procedures-and-rules-digital-television-dtv-undertakings"
+        },
+        {
+          "publisher": "ISED Canada",
+          "title": "BPR-2: Application Procedures and Rules for AM Broadcasting Undertakings",
+          "number": "BPR-2 Issue 4",
+          "date": "2025-06",
+          "clause": "1, 2.1"
+        },
+        {
+          "publisher": "ISED Canada",
+          "title": "SP 1435 MHz: Spectrum Policy for the band 1435-1525 MHz",
+          "date": "2012-12",
+          "clause": "3.1.2"
+        },
+        {
+          "publisher": "ISED Canada",
+          "title": "RSS-210: Licence-Exempt Radio Apparatus",
+          "number": "RSS-210 Issue 11",
+          "date": "2024-06-25",
+          "clause": "Annex E, Table E1"
+        }
+      ],
+      "note": "the AM band is 525-1705 kHz (BPR-2); L-band DAB ended in 2012 (SP 1435 MHz); analogue TV broadcasting has ended; an_m names the old analogue channels"
+    },
+    {
+      "code": "CD",
+      "name": "DR Congo",
+      "itu": 1
+    },
+    {
+      "code": "CF",
+      "name": "Central African Republic",
+      "itu": 1
+    },
+    {
+      "code": "CG",
+      "name": "Congo",
+      "itu": 1
+    },
+    {
+      "code": "CH",
+      "name": "Switzerland",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "CI",
+      "name": "Cote d'Ivoire",
+      "itu": 1,
+      "groups": [
+        "fm_africa"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "CL",
+      "name": "Chile",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb",
+        "an_m"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "CM",
+      "name": "Cameroon",
+      "itu": 1,
+      "groups": [
+        "fm_africa"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "CN",
+      "name": "China",
+      "itu": 3,
+      "groups": [
+        "fm_china",
+        "tv_cn",
+        "an_cn"
+      ],
+      "presets": {
+        "tv_standard": "dtmb"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "CO",
+      "name": "Colombia",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_americas",
+        "an_m"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "CR",
+      "name": "Costa Rica",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "CU",
+      "name": "Cuba",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "CV",
+      "name": "Cape Verde",
+      "itu": 1
+    },
+    {
+      "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_dk",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu_uhf",
+        "cable_eu",
+        "ham_r1",
+        "bc_r1",
+        "marine_intl",
+        "air_833",
+        "pmr446",
+        "dpmr446",
+        "cb80_de",
+        "lpd433",
+        "ism_r1",
+        "an_bg"
+      ],
+      "presets": {
+        "fm_deemphasis_us": 50,
+        "rds": "rds"
+      },
+      "unverified_reason": "the groups are confirmed; the 50 us pre-emphasis comes from ITU-R BS.450 and RDS is assumed, since EN 62106 is not freely available",
+      "sources": [
+        {
+          "publisher": "BNetzA",
+          "title": "Frequenzplan gemaess Paragraph 90 TKG",
+          "date": "2026-08",
+          "clause": "entries 20001, 21002, 32001, 203003, 205001, 224005, 225003, 248011, 249005",
+          "url": "https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Downloads/DE/Sachgebiete/Telekommunikation/Unternehmen_Institutionen/Frequenzen/202608_Frequenzplan.pdf"
+        },
+        {
+          "publisher": "BNetzA",
+          "title": "Allgemeinzuteilung von Frequenzen fuer den CB-Funk",
+          "number": "Vfg. 21/2021",
+          "date": "2021",
+          "clause": "Paragraph 1, table"
+        },
+        {
+          "publisher": "CEPT ECC",
+          "title": "ECC Decision on PMR446",
+          "number": "ECC/DEC/(15)05",
+          "date": "2015-07-03",
+          "clause": "decides 1 and 3",
+          "url": "https://docdb.cept.org/download/2782"
+        },
+        {
+          "publisher": "European Commission",
+          "title": "Commission Implementing Regulation laying down requirements for voice channel spacing for the single European sky",
+          "number": "(EU) No 1079/2012",
+          "date": "2012-11-16",
+          "clause": "Article 1",
+          "url": "https://www.legislation.gov.uk/eur/2012/1079"
+        }
+      ],
+      "note": "TV is DVB-T or DVB-T2 (BNetzA entry 249005); no DAB in L-band (entry 264002); analogue TV broadcasting has ended; an_bg names the old analogue channels"
+    },
+    {
+      "code": "DJ",
+      "name": "Djibouti",
+      "itu": 1
+    },
+    {
+      "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "DM",
+      "name": "Dominica",
+      "itu": 2
+    },
+    {
+      "code": "DO",
+      "name": "Dominican Republic",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "DZ",
+      "name": "Algeria",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_wide"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "EC",
+      "name": "Ecuador",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb",
+        "an_m"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_dk",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "EG",
+      "name": "Egypt",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "ER",
+      "name": "Eritrea",
+      "itu": 1
+    },
+    {
+      "code": "ES",
+      "name": "Spain",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "ET",
+      "name": "Ethiopia",
+      "itu": 1,
+      "groups": [
+        "fm_africa"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "FI",
+      "name": "Finland",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "FJ",
+      "name": "Fiji",
+      "itu": 3
+    },
+    {
+      "code": "FM",
+      "name": "Micronesia",
+      "itu": 3
+    },
+    {
+      "code": "FO",
+      "name": "Faroe Islands",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "tv_eu",
+        "cable_eu"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_l",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "GA",
+      "name": "Gabon",
+      "itu": 1
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
+      "groups": [
+        "fm_uk_ireland",
+        "dab_band3",
+        "tv_gb",
+        "cable_eu",
+        "ham_r1",
+        "bc_r1",
+        "marine_intl",
+        "air_833",
+        "pmr446",
+        "dpmr446",
+        "cb_uk",
+        "lpd433",
+        "ism_r1",
+        "an_i"
+      ],
+      "presets": {
+        "fm_deemphasis_us": 50,
+        "rds": "rds",
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the groups and the 50 us pre-emphasis are confirmed; RDS is assumed, since EN 62106 is not freely available",
+      "sources": [
+        {
+          "publisher": "Ofcom",
+          "title": "UK Frequency Allocation Table",
+          "number": "Issue 19 v1.1",
+          "date": "2026-07-03",
+          "clause": "sections 4 and 5"
+        },
+        {
+          "publisher": "Ofcom",
+          "title": "Decision to make the 700 MHz band available for mobile data: statement",
+          "date": "2014-11-19",
+          "clause": "paras 5.3, 5.6, 5.8",
+          "url": "https://www.ofcom.org.uk/__data/assets/pdf_file/0024/46923/700-mhz-statement.pdf"
+        },
+        {
+          "publisher": "Ofcom",
+          "title": "Site Engineering Code for Analogue Radio Broadcast Transmission Systems",
+          "date": "2013-01",
+          "clause": "section 2 item ii, section 3",
+          "url": "https://www.ofcom.org.uk/__data/assets/pdf_file/0017/37133/code2013.pdf"
+        },
+        {
+          "publisher": "Ofcom",
+          "title": "IR 2027: UK Interface Requirement for Citizens' Band radio",
+          "number": "IR 2027",
+          "date": "2018-01",
+          "clause": "Tables 3.1 and 3.2"
+        },
+        {
+          "publisher": "Ofcom",
+          "title": "IR 2030: UK Interface Requirements for licence exempt short range devices",
+          "number": "IR 2030",
+          "date": "2026-04-07",
+          "clause": "IR2030/1/10-13, IR2030/34/1"
+        },
+        {
+          "publisher": "European Commission",
+          "title": "Commission Implementing Regulation laying down requirements for voice channel spacing for the single European sky",
+          "number": "(EU) No 1079/2012",
+          "date": "2012-11-16",
+          "clause": "Article 1",
+          "url": "https://www.legislation.gov.uk/eur/2012/1079"
+        }
+      ],
+      "note": "long-wave broadcasting ends at 255 kHz in the UK (UKFAT); most multiplexes use DVB-T, some DVB-T2 (Ofcom, 2014); analogue TV broadcasting has ended; an_i names the old analogue channels"
+    },
+    {
+      "code": "GD",
+      "name": "Grenada",
+      "itu": 2
+    },
+    {
+      "code": "GE",
+      "name": "Georgia",
+      "itu": 1,
+      "groups": [
+        "tv_oirt",
+        "an_dk"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "GG",
+      "name": "Guernsey",
+      "itu": 1,
+      "groups": [
+        "fm_uk_ireland"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "GH",
+      "name": "Ghana",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_wide"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "GI",
+      "name": "Gibraltar",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "tv_eu",
+        "cable_eu"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "GL",
+      "name": "Greenland",
+      "itu": 2,
+      "groups": [
+        "fm_europe",
+        "tv_eu",
+        "cable_eu"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "GM",
+      "name": "Gambia",
+      "itu": 1
+    },
+    {
+      "code": "GN",
+      "name": "Guinea",
+      "itu": 1
+    },
+    {
+      "code": "GQ",
+      "name": "Equatorial Guinea",
+      "itu": 1
+    },
+    {
+      "code": "GR",
+      "name": "Greece",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "GT",
+      "name": "Guatemala",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "GU",
+      "name": "Guam",
+      "itu": 3,
+      "groups": [
+        "fm_north_america",
+        "tv_us",
+        "marine_us"
+      ],
+      "presets": {
+        "rds": "rbds",
+        "fm_deemphasis_us": 75,
+        "tv_standard": "atsc3"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "GW",
+      "name": "Guinea-Bissau",
+      "itu": 1
+    },
+    {
+      "code": "GY",
+      "name": "Guyana",
+      "itu": 2,
+      "groups": [
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "HK",
+      "name": "Hong Kong",
+      "itu": 3,
+      "groups": [
+        "fm_china",
+        "tv_hk",
+        "an_i",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dtmb"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "HN",
+      "name": "Honduras",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "HT",
+      "name": "Haiti",
+      "itu": 2,
+      "groups": [
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_dk",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "ID",
+      "name": "Indonesia",
+      "itu": 3,
+      "groups": [
+        "an_bg"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
+      "groups": [
+        "fm_uk_ireland",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_i",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "IL",
+      "name": "Israel",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "IM",
+      "name": "Isle of Man",
+      "itu": 1,
+      "groups": [
+        "fm_uk_ireland"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "IN",
+      "name": "India",
+      "itu": 3,
+      "groups": [
+        "fm_india",
+        "tv_wide",
+        "an_bg",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "IQ",
+      "name": "Iraq",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "IR",
+      "name": "Iran",
+      "itu": 3,
+      "groups": [
+        "fm_middle_east"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "IS",
+      "name": "Iceland",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "IT",
+      "name": "Italy",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_it",
+        "an_it",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "JE",
+      "name": "Jersey",
+      "itu": 1,
+      "groups": [
+        "fm_uk_ireland"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "JM",
+      "name": "Jamaica",
+      "itu": 2,
+      "groups": [
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "JO",
+      "name": "Jordan",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east",
+        "tv_wide"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "fm_japan",
+        "tv_jp",
+        "ham_r3",
+        "bc_r3",
+        "marine_intl",
+        "air_25",
+        "cb_jp",
+        "ism_r3",
+        "an_j"
+      ],
+      "absent": [
+        "dab",
+        "cable"
+      ],
+      "presets": {
+        "fm_deemphasis_us": 50,
+        "tv_standard": "isdbt"
+      },
+      "verified": true,
+      "sources": [
+        {
+          "publisher": "Ministry of Internal Affairs and Communications (Japan)",
+          "title": "Broadcast Frequency Use Plan (Kikan hoso-yo shuhasu shiyo keikaku), MPT Notice No. 661 of 1988",
+          "date": "2025-10-10",
+          "clause": "1-2(1)",
+          "url": "https://www.tele.soumu.go.jp/horei/law_honbun/00004710.html"
+        },
+        {
+          "publisher": "Ministry of Internal Affairs and Communications (Japan)",
+          "title": "Standard transmission system for VHF (FM) broadcasting, MIC Ordinance No. 86 of 2011",
+          "date": "2011",
+          "clause": "Article 5(2)",
+          "url": "https://www.tele.soumu.go.jp/horei/law_honbun/72ab2103.html"
+        },
+        {
+          "publisher": "Ministry of Internal Affairs and Communications (Japan)",
+          "title": "White Paper on Information and Communications in Japan",
+          "date": "2024",
+          "clause": "V-Low multimedia broadcasting",
+          "url": "https://www.soumu.go.jp/johotsusintokei/whitepaper/ja/r06/html/nd213130.html"
+        },
+        {
+          "publisher": "Government of Japan (e-Gov)",
+          "title": "Radio Act Enforcement Regulations",
+          "date": "2025",
+          "clause": "Article 6, paragraph 3"
+        }
+      ],
+      "note": "no DAB: V-Low multimedia broadcasting ended by 2024 (MIC White Paper); RDS is not stated in the sources; analogue TV broadcasting has ended; an_j names the old analogue channels"
+    },
+    {
+      "code": "KE",
+      "name": "Kenya",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "KG",
+      "name": "Kyrgyzstan",
+      "itu": 1,
+      "groups": [
+        "tv_oirt",
+        "an_dk"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "KH",
+      "name": "Cambodia",
+      "itu": 3
+    },
+    {
+      "code": "KI",
+      "name": "Kiribati",
+      "itu": 3
+    },
+    {
+      "code": "KM",
+      "name": "Comoros",
+      "itu": 1
+    },
+    {
+      "code": "KN",
+      "name": "Saint Kitts and Nevis",
+      "itu": 2
+    },
+    {
+      "code": "KP",
+      "name": "North Korea",
+      "itu": 3
+    },
+    {
+      "code": "KR",
+      "name": "South Korea",
+      "itu": 3,
+      "groups": [
+        "fm_south_korea",
+        "dab_tdmb_kr",
+        "tv_kr",
+        "cable_us",
+        "an_m"
+      ],
+      "presets": {
+        "fm_deemphasis_us": 75,
+        "tv_standard": "atsc3"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "KW",
+      "name": "Kuwait",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east",
+        "dab_band3",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "KZ",
+      "name": "Kazakhstan",
+      "itu": 1,
+      "groups": [
+        "tv_oirt",
+        "an_dk"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "LA",
+      "name": "Laos",
+      "itu": 3
+    },
+    {
+      "code": "LB",
+      "name": "Lebanon",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "LC",
+      "name": "Saint Lucia",
+      "itu": 2
+    },
+    {
+      "code": "LI",
+      "name": "Liechtenstein",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "tv_eu",
+        "cable_eu",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "LK",
+      "name": "Sri Lanka",
+      "itu": 3,
+      "groups": [
+        "fm_india",
+        "tv_wide"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "LR",
+      "name": "Liberia",
+      "itu": 1
+    },
+    {
+      "code": "LS",
+      "name": "Lesotho",
+      "itu": 1,
+      "groups": [
+        "tv_za",
+        "an_i"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_dk",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_dk",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "LY",
+      "name": "Libya",
+      "itu": 1,
+      "groups": [
+        "fm_africa"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "MA",
+      "name": "Morocco",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "MC",
+      "name": "Monaco",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_l"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "MD",
+      "name": "Moldova",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "tv_oirt",
+        "an_dk",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "ME",
+      "name": "Montenegro",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "MG",
+      "name": "Madagascar",
+      "itu": 1
+    },
+    {
+      "code": "MH",
+      "name": "Marshall Islands",
+      "itu": 3
+    },
+    {
+      "code": "MK",
+      "name": "North Macedonia",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "ML",
+      "name": "Mali",
+      "itu": 1
+    },
+    {
+      "code": "MM",
+      "name": "Myanmar",
+      "itu": 3
+    },
+    {
+      "code": "MN",
+      "name": "Mongolia",
+      "itu": 1,
+      "groups": [
+        "tv_oirt",
+        "an_dk"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "MO",
+      "name": "Macau",
+      "itu": 3,
+      "groups": [
+        "fm_china",
+        "tv_hk",
+        "an_i"
+      ],
+      "presets": {
+        "tv_standard": "dtmb"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "MP",
+      "name": "Northern Mariana Islands",
+      "itu": 3,
+      "groups": [
+        "fm_north_america",
+        "tv_us"
+      ],
+      "presets": {
+        "rds": "rbds",
+        "fm_deemphasis_us": 75,
+        "tv_standard": "atsc3"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "MR",
+      "name": "Mauritania",
+      "itu": 1
+    },
+    {
+      "code": "MT",
+      "name": "Malta",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "MU",
+      "name": "Mauritius",
+      "itu": 1
+    },
+    {
+      "code": "MV",
+      "name": "Maldives",
+      "itu": 3
+    },
+    {
+      "code": "MW",
+      "name": "Malawi",
+      "itu": 1,
+      "groups": [
+        "tv_za"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "MX",
+      "name": "Mexico",
+      "itu": 2,
+      "groups": [
+        "fm_north_america",
+        "tv_americas",
+        "cable_us",
+        "an_m",
+        "frs_gmrs"
+      ],
+      "presets": {
+        "rds": "rbds",
+        "fm_deemphasis_us": 75,
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "MY",
+      "name": "Malaysia",
+      "itu": 3,
+      "groups": [
+        "an_bg",
+        "pmr446"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "MZ",
+      "name": "Mozambique",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_za"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "NA",
+      "name": "Namibia",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_za",
+        "an_i"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "NC",
+      "name": "New Caledonia",
+      "itu": 3
+    },
+    {
+      "code": "NE",
+      "name": "Niger",
+      "itu": 1
+    },
+    {
+      "code": "NG",
+      "name": "Nigeria",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "NI",
+      "name": "Nicaragua",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "NO",
+      "name": "Norway",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "NP",
+      "name": "Nepal",
+      "itu": 3,
+      "groups": [
+        "fm_india",
+        "tv_wide"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "NR",
+      "name": "Nauru",
+      "itu": 3
+    },
+    {
+      "code": "NZ",
+      "name": "New Zealand",
+      "itu": 3,
+      "groups": [
+        "fm_nz",
+        "tv_nz",
+        "ham_r3",
+        "bc_r3",
+        "marine_intl",
+        "air_25",
+        "prs_nz",
+        "cb_nz",
+        "ism_r3",
+        "an_nz"
+      ],
+      "absent": [
+        "dab",
+        "cable"
+      ],
+      "presets": {
+        "fm_deemphasis_us": 50,
+        "rds": "rds",
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the groups are confirmed; no official source found states the FM pre-emphasis (RSM PIB 39 cites ITU-R BS.450 only)",
+      "sources": [
+        {
+          "publisher": "Radio Spectrum Management (NZ)",
+          "title": "PIB 39 Spectrum Licence Certification Rules for Crown Management Rights",
+          "number": "Issue 8.7",
+          "date": "2024-04",
+          "clause": "4.3.1, 4.4.1, Table 10",
+          "url": "https://www.rsm.govt.nz/assets/Uploads/documents/pibs/spectrum-licence-certification-rules-for-crown-management-rights-pib-39-apr24.pdf"
+        },
+        {
+          "publisher": "Radio Spectrum Management (NZ)",
+          "title": "Digital Television Channel Usage Table",
+          "date": "2024-11",
+          "url": "https://rsm.govt.nz/assets/Uploads/documents/digital-television-channel-usage-table.pdf"
+        },
+        {
+          "publisher": "New Zealand Gazette",
+          "title": "Radiocommunications Regulations (General User Radio Licence for Citizen Band Radio) Notice 2011",
+          "number": "2011-go3629",
+          "date": "2011-06-02",
+          "clause": "Schedule",
+          "url": "https://gazette.govt.nz/notice/id/2011-go3629"
+        },
+        {
+          "publisher": "New Zealand Gazette",
+          "title": "Radiocommunications Regulations (General User Radio Licence for Short Range Devices) Notice 2022",
+          "number": "2022-go3100",
+          "date": "2022-08-01",
+          "clause": "Schedule",
+          "url": "https://gazette.govt.nz/notice/id/2022-go3100"
+        }
+      ],
+      "note": "no DAB: no decision on digital radio broadcasting (RSM PIB 39 4.3.1); analogue TV broadcasting has ended; an_nz names the old analogue channels"
+    },
+    {
+      "code": "OM",
+      "name": "Oman",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "PA",
+      "name": "Panama",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "PE",
+      "name": "Peru",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb",
+        "an_m"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "PF",
+      "name": "French Polynesia",
+      "itu": 3
+    },
+    {
+      "code": "PG",
+      "name": "Papua New Guinea",
+      "itu": 3
+    },
+    {
+      "code": "PH",
+      "name": "Philippines",
+      "itu": 3,
+      "groups": [
+        "tv_ph",
+        "an_m"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "PK",
+      "name": "Pakistan",
+      "itu": 3,
+      "groups": [
+        "fm_india",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "PL",
+      "name": "Poland",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_dk",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "PR",
+      "name": "Puerto Rico",
+      "itu": 2,
+      "groups": [
+        "fm_north_america",
+        "tv_us",
+        "marine_us"
+      ],
+      "presets": {
+        "rds": "rbds",
+        "fm_deemphasis_us": 75,
+        "tv_standard": "atsc3"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "PS",
+      "name": "Palestine",
+      "itu": 1
+    },
+    {
+      "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "PW",
+      "name": "Palau",
+      "itu": 3
+    },
+    {
+      "code": "PY",
+      "name": "Paraguay",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb",
+        "an_n"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "QA",
+      "name": "Qatar",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east",
+        "dab_band3",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "RO",
+      "name": "Romania",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_dk",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "RS",
+      "name": "Serbia",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "RU",
+      "name": "Russia",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "tv_oirt",
+        "an_dk"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "RW",
+      "name": "Rwanda",
+      "itu": 1
+    },
+    {
+      "code": "SA",
+      "name": "Saudi Arabia",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east",
+        "dab_band3",
+        "tv_wide",
+        "an_bg"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "SB",
+      "name": "Solomon Islands",
+      "itu": 3
+    },
+    {
+      "code": "SC",
+      "name": "Seychelles",
+      "itu": 1
+    },
+    {
+      "code": "SD",
+      "name": "Sudan",
+      "itu": 1
+    },
+    {
+      "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "SG",
+      "name": "Singapore",
+      "itu": 3,
+      "groups": [
+        "an_bg",
+        "pmr446"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_dk",
+        "air_833",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "SL",
+      "name": "Sierra Leone",
+      "itu": 1
+    },
+    {
+      "code": "SM",
+      "name": "San Marino",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "tv_eu",
+        "tv_it",
+        "cable_eu",
+        "an_it"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "SN",
+      "name": "Senegal",
+      "itu": 1,
+      "groups": [
+        "fm_africa"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "SO",
+      "name": "Somalia",
+      "itu": 1
+    },
+    {
+      "code": "SR",
+      "name": "Suriname",
+      "itu": 2,
+      "groups": [
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "SS",
+      "name": "South Sudan",
+      "itu": 1
+    },
+    {
+      "code": "ST",
+      "name": "Sao Tome and Principe",
+      "itu": 1
+    },
+    {
+      "code": "SV",
+      "name": "El Salvador",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "SY",
+      "name": "Syria",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "SZ",
+      "name": "Eswatini",
+      "itu": 1,
+      "groups": [
+        "tv_za"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "TD",
+      "name": "Chad",
+      "itu": 1
+    },
+    {
+      "code": "TG",
+      "name": "Togo",
+      "itu": 1
+    },
+    {
+      "code": "TH",
+      "name": "Thailand",
+      "itu": 3,
+      "groups": [
+        "an_bg"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "TJ",
+      "name": "Tajikistan",
+      "itu": 1,
+      "groups": [
+        "tv_oirt",
+        "an_dk"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "TL",
+      "name": "Timor-Leste",
+      "itu": 3
+    },
+    {
+      "code": "TM",
+      "name": "Turkmenistan",
+      "itu": 1,
+      "groups": [
+        "tv_oirt",
+        "an_dk"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "TN",
+      "name": "Tunisia",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "dab_band3",
+        "tv_wide"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "TO",
+      "name": "Tonga",
+      "itu": 3
+    },
+    {
+      "code": "TR",
+      "name": "Turkey",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_eu",
+        "cable_eu",
+        "an_bg",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "TT",
+      "name": "Trinidad and Tobago",
+      "itu": 2,
+      "groups": [
+        "tv_americas"
+      ],
+      "presets": {
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "TV",
+      "name": "Tuvalu",
+      "itu": 3
+    },
+    {
+      "code": "TW",
+      "name": "Taiwan",
+      "itu": 3,
+      "groups": [
+        "fm_china",
+        "tv_kr",
+        "cable_us",
+        "an_m"
+      ],
+      "presets": {
+        "tv_standard": "atsc3"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "TZ",
+      "name": "Tanzania",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_wide"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "UA",
+      "name": "Ukraine",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "dab_band3",
+        "tv_oirt",
+        "an_dk",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "UG",
+      "name": "Uganda",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_wide"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "US",
+      "name": "United States",
+      "itu": 2,
+      "groups": [
+        "fm_north_america",
+        "tv_us",
+        "cable_us",
+        "ham_r2",
+        "bc_r2",
+        "marine_us",
+        "air_25",
+        "air_uat",
+        "frs_gmrs",
+        "murs",
+        "cb40",
+        "ism_r2",
+        "an_m"
+      ],
+      "absent": [
+        "dab"
+      ],
+      "presets": {
+        "fm_deemphasis_us": 75,
+        "rds": "rbds",
+        "tv_standard": "atsc"
+      },
+      "unverified_reason": "the groups and the 75 us pre-emphasis are confirmed; RBDS (NRSC-4-B) is not named in 47 CFR",
+      "sources": [
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 73.201",
+          "date": "1987-04-02",
+          "url": "https://www.ecfr.gov/current/title-47/section-73.201"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 73.317",
+          "date": "2026-11-05",
+          "clause": "(e)",
+          "url": "https://www.ecfr.gov/current/title-47/section-73.317"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 73.14",
+          "date": "2026-11-05",
+          "url": "https://www.ecfr.gov/current/title-47/section-73.14"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 73.404",
+          "date": "2026-11-05",
+          "clause": "(a)",
+          "url": "https://www.ecfr.gov/current/title-47/section-73.404"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 73.603",
+          "date": "2021-11-22",
+          "url": "https://www.ecfr.gov/current/title-47/section-73.603"
+        }
+      ],
+      "note": "no Eureka-147 DAB: digital radio is IBOC (HD Radio, 47 CFR 73.404); analogue TV broadcasting has ended; an_m names the old analogue channels"
+    },
+    {
+      "code": "UY",
+      "name": "Uruguay",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb",
+        "an_n"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "UZ",
+      "name": "Uzbekistan",
+      "itu": 1,
+      "groups": [
+        "tv_oirt",
+        "an_dk"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "VA",
+      "name": "Vatican City",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "tv_eu",
+        "tv_it",
+        "cable_eu",
+        "an_it"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "VC",
+      "name": "Saint Vincent and the Grenadines",
+      "itu": 2
+    },
+    {
+      "code": "VE",
+      "name": "Venezuela",
+      "itu": 2,
+      "groups": [
+        "fm_south_america",
+        "tv_isdbtb",
+        "an_m"
+      ],
+      "presets": {
+        "tv_standard": "isdbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "VI",
+      "name": "US Virgin Islands",
+      "itu": 2,
+      "groups": [
+        "fm_north_america",
+        "tv_us",
+        "marine_us"
+      ],
+      "presets": {
+        "rds": "rbds",
+        "fm_deemphasis_us": 75,
+        "tv_standard": "atsc3"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "VN",
+      "name": "Vietnam",
+      "itu": 3,
+      "groups": [
+        "an_dk"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "VU",
+      "name": "Vanuatu",
+      "itu": 3
+    },
+    {
+      "code": "WS",
+      "name": "Samoa",
+      "itu": 3
+    },
+    {
+      "code": "XK",
+      "name": "Kosovo",
+      "itu": 1,
+      "groups": [
+        "fm_europe",
+        "tv_eu",
+        "cable_eu"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "YE",
+      "name": "Yemen",
+      "itu": 1,
+      "groups": [
+        "fm_middle_east"
+      ],
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "ZA",
+      "name": "South Africa",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_za",
+        "an_i",
+        "pmr446"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "ZM",
+      "name": "Zambia",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_za"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    },
+    {
+      "code": "ZW",
+      "name": "Zimbabwe",
+      "itu": 1,
+      "groups": [
+        "fm_africa",
+        "tv_za"
+      ],
+      "presets": {
+        "tv_standard": "dvbt"
+      },
+      "unverified_reason": "the plans and presets are carried over from earlier data and not yet compared with the national regulator's plans"
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1 (Europe, Africa, Middle East, northern Asia)",
+      "groups": [
+        "fm_europe",
+        "tv_eu",
+        "an_bg",
+        "cable_eu",
+        "ham_r1",
+        "bc_r1",
+        "marine_intl",
+        "air_25",
+        "air_uhf_mil",
+        "pmr446",
+        "dpmr446",
+        "lpd433",
+        "cb40",
+        "ism_r1"
+      ],
+      "presets": {
+        "fm_deemphasis_us": 50,
+        "rds": "rds",
+        "tv_standard": "dvbt"
+      },
+      "note": "used for a country of Region 1 that gives no plans of its own"
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2 (the Americas)",
+      "groups": [
+        "fm_north_america",
+        "tv_americas",
+        "an_m",
+        "cable_us",
+        "ham_r2",
+        "bc_r2",
+        "marine_intl",
+        "air_25",
+        "air_uhf_mil",
+        "cb40",
+        "ism_r2"
+      ],
+      "presets": {
+        "fm_deemphasis_us": 75,
+        "rds": "rds"
+      },
+      "note": "used for a country of Region 2 that gives no plans of its own"
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3 (Asia and the Pacific)",
+      "groups": [
+        "fm_elsewhere",
+        "tv_wide",
+        "an_bg",
+        "cable_eu",
+        "ham_r3",
+        "bc_r3",
+        "marine_intl",
+        "air_25",
+        "air_uhf_mil",
+        "cb40",
+        "ism_r3"
+      ],
+      "presets": {
+        "fm_deemphasis_us": 50,
+        "rds": "rds",
+        "tv_standard": "dvbt"
+      },
+      "note": "used for a country of Region 3 that gives no plans of its own"
+    }
+  ]
+}

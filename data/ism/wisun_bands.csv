@@ -1,0 +1,48 @@
+# id: wisun_bands
+# name: Wi-SUN FAN channel plans by regulatory domain
+# stacks: wisun
+# source: the list that the wisun stack held in code (regulatory domains and operating classes of the Wi-SUN FAN PHY); not confirmed against the rules of each regulator
+# note: One row for each operating class of a band plan. domain is the regulatory domain value of the PHY (decimal). ranges_mhz are the usable ranges of the plan (low-high, apart by spaces). Channel k of a class is centred at first_mhz + spacing_khz x k for k from 0 to channels - 1. modes lists the FSK modes of the class as bit rate in kbit/s:modulation index, apart by spaces; an empty list is a class that the stack does not receive. A host sets the setting ranges of the stack to the ranges in Hz and the setting classes to the classes of the plan in class order. countries lists the ISO 3166-1 alpha-2 codes of the countries that use the plan, apart by spaces, and is the same on every row of a plan; a host picks the plans of a country by it. A country can have more than one plan. WW is worldwide and has no list; EU870 has no list, as the countries that open 870 to 876 MHz are not confirmed.
+id,name,domain,ranges_mhz,class,first_mhz,spacing_khz,channels,modes,countries
+ANZ,Australia / New Zealand,8,915-928,1,915.2,200,64,50:1.0,AU NZ
+ANZ,Australia / New Zealand,8,915-928,2,915.4,400,32,100:0.5 150:0.5,AU NZ
+NA,North America,1,902-928,1,902.2,200,129,50:1.0,US CA
+NA,North America,1,902-928,2,902.4,400,64,100:0.5 150:0.5,US CA
+NA,North America,1,902-928,3,902.6,600,42,,US CA
+MX,Mexico,6,902-928,1,902.2,200,129,50:1.0,MX
+MX,Mexico,6,902-928,2,902.4,400,64,100:0.5 150:0.5,MX
+BZ,Brazil,7,902-907.5 915-928,1,902.2,200,129,50:1.0,BR
+BZ,Brazil,7,902-907.5 915-928,2,902.4,400,64,100:0.5 150:0.5,BR
+BZ,Brazil,7,902-907.5 915-928,3,902.6,600,42,,BR
+JP,Japan,2,920-928,1,920.6,200,38,50:1.0,JP
+JP,Japan,2,920-928,2,920.9,400,18,100:0.5 150:0.5,JP
+JP,Japan,2,920-928,3,920.8,600,12,,JP
+KR,Korea,9,917-923.5,1,917.1,200,32,50:1.0,KR
+KR,Korea,9,917-923.5,2,917.3,400,16,100:0.5 150:0.5,KR
+PH,Philippines,10,915-918,1,915.2,200,14,50:1.0,PH
+PH,Philippines,10,915-918,2,915.4,400,7,100:0.5 150:0.5,PH
+MY,Malaysia,11,919-923,1,919.2,200,19,50:1.0,MY
+MY,Malaysia,11,919-923,2,919.4,400,10,100:0.5 150:0.5,MY
+HK,Hong Kong,12,920-925,1,920.2,200,24,50:1.0,HK
+HK,Hong Kong,12,920-925,2,920.4,400,12,100:0.5 150:0.5,HK
+SG,Singapore (920 MHz),13,920-925,1,920.2,200,24,50:1.0,SG
+SG,Singapore (920 MHz),13,920-925,2,920.4,400,12,100:0.5 150:0.5,SG
+SG866,Singapore (866 MHz),16,866-869,1,866.1,100,29,50:0.5,SG
+SG866,Singapore (866 MHz),16,866-869,2,866.1,200,15,100:0.5,SG
+SG866,Singapore (866 MHz),16,866-869,3,866.3,400,7,150:0.5,SG
+TH,Thailand,14,920-925,1,920.2,200,24,50:1.0,TH
+TH,Thailand,14,920-925,2,920.4,400,12,100:0.5 150:0.5,TH
+VN,Vietnam,15,920-925,1,920.2,200,24,50:1.0,VN
+VN,Vietnam,15,920-925,2,920.4,400,12,100:0.5 150:0.5,VN
+EU863,Europe 863,3,863-870,1,863.1,100,69,50:0.5,AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE IS LI NO CH GB
+EU863,Europe 863,3,863-870,2,863.1,200,35,100:0.5,AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE IS LI NO CH GB
+EU870,Europe 870,3,870-876,1,870.1,100,59,50:0.5,
+EU870,Europe 870,3,870-876,2,870.2,200,30,100:0.5,
+IN,India,5,865-867,1,865.1,100,19,50:0.5,IN
+IN,India,5,865-867,2,865.1,200,10,100:0.5,IN
+CN470,China 470,4,470-510,1,470.2,200,199,50:1.0,CN
+CN779,China 779,4,779-787,1,779.2,200,39,50:1.0,CN
+CN779,China 779,4,779-787,2,779.4,400,19,100:0.5 150:0.5,CN
+CN920,China 920,4,920.5-924.5,1,920.625,250,16,50:1.0 100:0.5,CN
+WW,Worldwide 2.4 GHz,0,2400-2483.5,1,2400.2,200,416,50:1.0,
+WW,Worldwide 2.4 GHz,0,2400-2483.5,2,2400.4,400,207,100:0.5 150:0.5,

@@ -1,0 +1,54 @@
+{
+  "recording": "fm_stereo_rds_500k.sigmf-meta",
+  "note": "Expected decode at the end of the recording (fed in blocks of 50000 samples, station finder off, RDS meanings Auto at 100.0 MHz = RDS/Europe). The 't_' values are the first report time (seconds of signal) at which the item appeared. Results are reported every 0.1 s of input, so they are quantised to 0.1 s. 'tolerance' gives the accepted range.",
+  "rds": {
+    "pi": "4A21",
+    "ps": "TUNEIT  ",
+    "rt": "Tuneit FM test signal",
+    "rt_complete": true,
+    "pty": 10,
+    "pty_name": "Pop Music",
+    "tp": true,
+    "ta": false,
+    "music": true,
+    "rbds": false,
+    "call_sign": "",
+    "sync": true,
+    "block_ok_pct": 100.0,
+    "groups_decoded": 44
+  },
+  "signal": {
+    "state": "locked",
+    "carrier": true,
+    "stereo": true,
+    "stereo_pct": 100.0,
+    "pilot_pct": 8.99,
+    "cfo_hz": 1500,
+    "dev_khz_peak": 52.7,
+    "snr_db": 49.2,
+    "multipath_pct": 0.1,
+    "equaliser": false
+  },
+  "audio_48k": {
+    "frames": 191928,
+    "left_1khz_amp": 0.400,
+    "left_3khz_amp": 0.0003,
+    "right_3khz_amp": 0.398,
+    "right_1khz_amp": 0.0003,
+    "note": "Tone amplitudes measured over the last 1 s of audio (single-bin DFT, peak amplitude, full scale = 1.0)."
+  },
+  "timing_s": { "t_lock": 0.10, "t_stereo": 0.10, "t_rds_sync": 0.10, "t_ps": 0.60, "t_rt_complete": 2.70 },
+  "tolerance": {
+    "pi_ps_rt_pty_flags": "exact",
+    "stereo": "exact",
+    "pilot_pct": [7, 11],
+    "cfo_hz": [1000, 2000],
+    "snr_db": "at least 40",
+    "groups_decoded": "at least 38 (11.4 groups/s are sent; allow 0.5 s to acquire)",
+    "left_1khz_amp": [0.30, 0.50],
+    "right_3khz_amp": [0.30, 0.50],
+    "separation_db": "at least 30",
+    "t_ps": "at most 1.5",
+    "t_rt_complete": "at most 3.9"
+  }
+}

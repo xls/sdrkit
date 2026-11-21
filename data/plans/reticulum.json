@@ -1,0 +1,168 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "reticulum_r1",
+      "name": "Reticulum (RNode) Region 1",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Default frequencies for Reticulum on RNode radios: no public document fixes them, each network selects its own",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "no document gives channels; the band limits are not compared with the national rules",
+      "bands": [
+        {
+          "name": "RNode Region 1",
+          "service": "short_range",
+          "start_hz": 863000000.0,
+          "end_hz": 870000000.0,
+          "modulation": "LoRa, sync word 0x12",
+          "note": "default frequency 868 MHz; the bandwidth and the spreading factor are those of the network (stack settings bw and sf, or the search)"
+        }
+      ]
+    },
+    {
+      "id": "reticulum_us",
+      "name": "Reticulum (RNode) Americas",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Default frequencies for Reticulum on RNode radios: no public document fixes them, each network selects its own",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "no document gives channels; the band limits are not compared with the national rules",
+      "bands": [
+        {
+          "name": "RNode Americas",
+          "service": "short_range",
+          "start_hz": 902000000.0,
+          "end_hz": 928000000.0,
+          "modulation": "LoRa, sync word 0x12",
+          "note": "default frequency 915 MHz; the bandwidth and the spreading factor are those of the network (stack settings bw and sf, or the search)"
+        }
+      ]
+    },
+    {
+      "id": "reticulum_au",
+      "name": "Reticulum (RNode) Australia",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Default frequencies for Reticulum on RNode radios: no public document fixes them, each network selects its own",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "no document gives channels; the band limits are not compared with the national rules",
+      "bands": [
+        {
+          "name": "RNode Australia",
+          "service": "short_range",
+          "start_hz": 915000000.0,
+          "end_hz": 928000000.0,
+          "modulation": "LoRa, sync word 0x12",
+          "note": "default frequency 921.5 MHz; the bandwidth and the spreading factor are those of the network (stack settings bw and sf, or the search)"
+        }
+      ]
+    },
+    {
+      "id": "reticulum_nz",
+      "name": "Reticulum (RNode) New Zealand",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Default frequencies for Reticulum on RNode radios: no public document fixes them, each network selects its own",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "no document gives channels; the band limits are not compared with the national rules",
+      "bands": [
+        {
+          "name": "RNode New Zealand",
+          "service": "short_range",
+          "start_hz": 915000000.0,
+          "end_hz": 928000000.0,
+          "modulation": "LoRa, sync word 0x12",
+          "note": "default frequency 921.5 MHz; the bandwidth and the spreading factor are those of the network (stack settings bw and sf, or the search)"
+        }
+      ]
+    },
+    {
+      "id": "reticulum_r3",
+      "name": "Reticulum (RNode) Region 3",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Default frequencies for Reticulum on RNode radios: no public document fixes them, each network selects its own",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "no document gives channels; the band limits are not compared with the national rules",
+      "bands": [
+        {
+          "name": "RNode Region 3",
+          "service": "short_range",
+          "start_hz": 915000000.0,
+          "end_hz": 928000000.0,
+          "modulation": "LoRa, sync word 0x12",
+          "note": "default frequency 921.5 MHz; the bandwidth and the spreading factor are those of the network (stack settings bw and sf, or the search)"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AU",
+      "groups": [
+        "reticulum_au"
+      ],
+      "unverified_reason": "no document gives a frequency; the band is not compared with the national rules"
+    },
+    {
+      "code": "NZ",
+      "groups": [
+        "reticulum_nz"
+      ],
+      "unverified_reason": "no document gives a frequency; the band is not compared with the national rules"
+    },
+    {
+      "code": "US",
+      "groups": [
+        "reticulum_us"
+      ],
+      "unverified_reason": "no document gives a frequency; the band is not compared with the national rules"
+    },
+    {
+      "code": "CA",
+      "groups": [
+        "reticulum_us"
+      ],
+      "unverified_reason": "no document gives a frequency; the band is not compared with the national rules"
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "reticulum_r1"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "reticulum_us"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "reticulum_r3"
+      ]
+    }
+  ]
+}

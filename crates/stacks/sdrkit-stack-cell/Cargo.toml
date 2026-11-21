@@ -1,0 +1,35 @@
+[package]
+name = "sdrkit-stack-cell"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Cell and railway broadcast stacks: LTE, 5G NR, NB-IoT, GSM and GSM-R cells from their broadcast system information, LBJ train broadcasts and Eurobalise telegrams"
+
+[dependencies]
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-proto-pager = { path = "../../proto/sdrkit-proto-pager" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+serde.workspace = true
+num-complex.workspace = true
+serde_json.workspace = true
+# GBK route names in LBJ detail messages ((Apache-2.0 OR MIT) AND BSD-3-Clause).
+encoding_rs = "0.8"
+
+[dev-dependencies]
+# The record of the declarations that a generic consumer reads.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The starting dials that a host reads from the data folder.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }

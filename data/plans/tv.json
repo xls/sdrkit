@@ -1,0 +1,1613 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "tv_eu",
+      "name": "Europe (VHF E5-E12, UHF 21-48)",
+      "kind": "tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Final Acts of the Regional Radiocommunication Conference RRC-06 (GE06)",
+        "date": "2006",
+        "clause": "Annex 2, chapter 3, Appendix 3.1, Table A.3.1-15",
+        "url": "https://www.itu.int/dms_pub/itu-r/opb/act/R-ACT-RRC.14-2006-PDF-E.pdf"
+      },
+      "also": [
+        {
+          "publisher": "BNetzA",
+          "title": "Frequenzplan gemaess Paragraph 90 TKG",
+          "date": "2026-08",
+          "clause": "entries 249005, 249A, 224005, 225003",
+          "url": "https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Downloads/DE/Sachgebiete/Telekommunikation/Unternehmen_Institutionen/Frequenzen/202608_Frequenzplan.pdf"
+        }
+      ],
+      "verified": true,
+      "note": "the GE06 raster: Band III carries DAB, not TV, in Germany and the United Kingdom",
+      "include": [
+        "tv_eu_band3",
+        "tv_eu_uhf"
+      ],
+      "bands": []
+    },
+    {
+      "id": "tv_eu_band3",
+      "name": "Europe, VHF Band III (E5-E12)",
+      "kind": "tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Final Acts of the Regional Radiocommunication Conference RRC-06 (GE06)",
+        "date": "2006",
+        "clause": "Annex 2, chapter 3, Appendix 3.1, Table A.3.1-15",
+        "url": "https://www.itu.int/dms_pub/itu-r/opb/act/R-ACT-RRC.14-2006-PDF-E.pdf"
+      },
+      "also": [
+        {
+          "publisher": "BNetzA",
+          "title": "Frequenzplan gemaess Paragraph 90 TKG",
+          "date": "2026-08",
+          "clause": "entries 249005, 249A, 224005, 225003",
+          "url": "https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Downloads/DE/Sachgebiete/Telekommunikation/Unternehmen_Institutionen/Frequenzen/202608_Frequenzplan.pdf"
+        }
+      ],
+      "verified": true,
+      "note": "the GE06 Band III raster for TV; Germany and the United Kingdom use Band III for DAB, not TV",
+      "bands": [
+        {
+          "name": "VHF Band III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 230000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 7000000,
+          "numbering": {
+            "first": 5,
+            "last": 12,
+            "first_centre_hz": 177500000,
+            "step_hz": 7000000,
+            "prefix": "E"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_eu_uhf",
+      "name": "Europe, UHF (21-48)",
+      "kind": "tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Final Acts of the Regional Radiocommunication Conference RRC-06 (GE06)",
+        "date": "2006",
+        "clause": "Annex 2, chapter 3, Appendix 3.1, Table A.3.1-15",
+        "url": "https://www.itu.int/dms_pub/itu-r/opb/act/R-ACT-RRC.14-2006-PDF-E.pdf"
+      },
+      "also": [
+        {
+          "publisher": "BNetzA",
+          "title": "Frequenzplan gemaess Paragraph 90 TKG",
+          "date": "2026-08",
+          "clause": "entries 249005, 249A, 224005, 225003",
+          "url": "https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Downloads/DE/Sachgebiete/Telekommunikation/Unternehmen_Institutionen/Frequenzen/202608_Frequenzplan.pdf"
+        }
+      ],
+      "verified": true,
+      "note": "the GE06 UHF raster: the TV channels of a country that uses Band III for DAB (Germany, BNetzA entries 224005 and 249005)",
+      "bands": [
+        {
+          "name": "UHF IV and V",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 694000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 48,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "700 MHz band",
+          "service": "broadcasting",
+          "start_hz": 694000000,
+          "end_hz": 790000000,
+          "in_use": false,
+          "note": "mobile (700 MHz band, ECC/DEC/(15)01)",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 49,
+            "last": 60,
+            "first_centre_hz": 698000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "800 MHz band",
+          "service": "broadcasting",
+          "start_hz": 790000000,
+          "end_hz": 862000000,
+          "in_use": false,
+          "note": "mobile (800 MHz band, ECC/DEC/(09)03)",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 61,
+            "last": 69,
+            "first_centre_hz": 794000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_gb",
+      "name": "United Kingdom (UHF 21-48, channel 38 radio astronomy)",
+      "kind": "tv",
+      "source": {
+        "publisher": "Ofcom",
+        "title": "UK Frequency Allocation Table",
+        "number": "Issue 19 v1.1",
+        "date": "2026-07-03",
+        "clause": "470-694 MHz row, footnotes UK222, UK233"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Final Acts of the Regional Radiocommunication Conference RRC-06 (GE06)",
+          "date": "2006",
+          "clause": "Annex 2, chapter 3, Appendix 3.1, Table A.3.1-15",
+          "url": "https://www.itu.int/dms_pub/itu-r/opb/act/R-ACT-RRC.14-2006-PDF-E.pdf"
+        },
+        {
+          "publisher": "Ofcom",
+          "title": "Decision to make the 700 MHz band available for mobile data: statement",
+          "date": "2014-11-19",
+          "clause": "paras 5.3, 5.6, 5.8",
+          "url": "https://www.ofcom.org.uk/__data/assets/pdf_file/0024/46923/700-mhz-statement.pdf"
+        },
+        {
+          "publisher": "Ofcom",
+          "title": "Space science and meteorology spectrum allocations in the UK",
+          "date": "2022-08-19",
+          "clause": "606-614 MHz row"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "UHF IV and V",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 606000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 37,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "Radio astronomy",
+          "service": "radio_astronomy",
+          "start_hz": 606000000,
+          "end_hz": 614000000,
+          "in_use": false,
+          "note": "radio astronomy (pulsar and VLBI observations)",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 38,
+            "last": 38,
+            "first_centre_hz": 610000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "UHF V",
+          "service": "broadcasting",
+          "start_hz": 614000000,
+          "end_hz": 694000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 39,
+            "last": 48,
+            "first_centre_hz": 618000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "700 MHz band",
+          "service": "broadcasting",
+          "start_hz": 694000000,
+          "end_hz": 790000000,
+          "in_use": false,
+          "note": "mobile since the 700 MHz clearance, completed August 2020",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 49,
+            "last": 60,
+            "first_centre_hz": 698000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "800 MHz band",
+          "service": "broadcasting",
+          "start_hz": 790000000,
+          "end_hz": 862000000,
+          "in_use": false,
+          "note": "mobile (800 MHz band, cleared before November 2014)",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 61,
+            "last": 69,
+            "first_centre_hz": 794000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_it",
+      "name": "Italy (VHF D-H2, UHF 21-48)",
+      "kind": "tv",
+      "source": {
+        "publisher": "Italy",
+        "title": "Italian national VHF raster (channels D-H2, 7 MHz)",
+        "date": "unknown"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Final Acts of the Regional Radiocommunication Conference RRC-06 (GE06)",
+          "date": "2006",
+          "clause": "Annex 2, chapter 3, Appendix 3.1, Table A.3.1-15",
+          "url": "https://www.itu.int/dms_pub/itu-r/opb/act/R-ACT-RRC.14-2006-PDF-E.pdf"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "VHF Band III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 230000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 7000000,
+          "channels": [
+            {
+              "name": "D",
+              "centre_hz": 177500000
+            },
+            {
+              "name": "E",
+              "centre_hz": 186000000
+            },
+            {
+              "name": "F",
+              "centre_hz": 194500000
+            },
+            {
+              "name": "G",
+              "centre_hz": 203500000
+            },
+            {
+              "name": "H",
+              "centre_hz": 212500000
+            },
+            {
+              "name": "H1",
+              "centre_hz": 219500000
+            },
+            {
+              "name": "H2",
+              "centre_hz": 226500000
+            }
+          ]
+        },
+        {
+          "name": "UHF IV and V",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 694000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 48,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "700 MHz band",
+          "service": "broadcasting",
+          "start_hz": 694000000,
+          "end_hz": 790000000,
+          "in_use": false,
+          "note": "mobile (700 MHz band, ECC/DEC/(15)01)",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 49,
+            "last": 60,
+            "first_centre_hz": 698000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "800 MHz band",
+          "service": "broadcasting",
+          "start_hz": 790000000,
+          "end_hz": 862000000,
+          "in_use": false,
+          "note": "mobile (800 MHz band, ECC/DEC/(09)03)",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 61,
+            "last": 69,
+            "first_centre_hz": 794000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_oirt",
+      "name": "Eastern Europe and CIS (VHF R6-R12, UHF 21-60)",
+      "kind": "tv",
+      "source": {
+        "publisher": "OIRT",
+        "title": "OIRT VHF television raster",
+        "date": "unknown"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Final Acts of the Regional Radiocommunication Conference RRC-06 (GE06)",
+          "date": "2006",
+          "clause": "Annex 2, chapter 3, Appendix 3.1, Table A.3.1-15",
+          "url": "https://www.itu.int/dms_pub/itu-r/opb/act/R-ACT-RRC.14-2006-PDF-E.pdf"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "the 700 MHz release (49-60) varies by country",
+      "bands": [
+        {
+          "name": "VHF Band III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 230000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 6,
+            "last": 12,
+            "first_centre_hz": 178000000,
+            "step_hz": 8000000,
+            "prefix": "R"
+          }
+        },
+        {
+          "name": "UHF IV and V",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 790000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 60,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "800 MHz band",
+          "service": "broadcasting",
+          "start_hz": 790000000,
+          "end_hz": 862000000,
+          "in_use": false,
+          "note": "mobile (800 MHz band, ECC/DEC/(09)03)",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 61,
+            "last": 69,
+            "first_centre_hz": 794000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_wide",
+      "name": "Wide CCIR (VHF E5-E12, UHF 21-69)",
+      "kind": "tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Final Acts of the Regional Radiocommunication Conference RRC-06 (GE06)",
+        "date": "2006",
+        "clause": "Annex 2, chapter 3, Appendix 3.1, Table A.3.1-15",
+        "url": "https://www.itu.int/dms_pub/itu-r/opb/act/R-ACT-RRC.14-2006-PDF-E.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "the GE06 raster with no reallocation, used where no national plan is in the data; not compared with any national plan",
+      "bands": [
+        {
+          "name": "VHF Band III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 230000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 7000000,
+          "numbering": {
+            "first": 5,
+            "last": 12,
+            "first_centre_hz": 177500000,
+            "step_hz": 7000000,
+            "prefix": "E"
+          }
+        },
+        {
+          "name": "UHF IV and V",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 862000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 69,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_au",
+      "name": "Australia (VHF 6-12 and 9A, UHF 28-51)",
+      "kind": "tv",
+      "source": {
+        "publisher": "ACMA",
+        "title": "Radio and Television Broadcasting Stations, Internet Edition, General information",
+        "date": "2026-07",
+        "clause": "p. 412-415, Television Channel Numbers and Frequency Limits",
+        "url": "https://www.acma.gov.au/sites/default/files/2026-07/General%20Information.pdf"
+      },
+      "also": [
+        {
+          "publisher": "ACMA",
+          "title": "Bands for broadcasting services",
+          "date": "2026-08-19",
+          "url": "https://www.acma.gov.au/bands-broadcasting-services"
+        },
+        {
+          "publisher": "Australian Government",
+          "title": "Radiocommunications (Spectrum Re-allocation) Declaration No. 1 of 2011, explanatory statement",
+          "number": "F2011L02180",
+          "date": "2011-11-01",
+          "url": "https://www.legislation.gov.au/F2011L02180"
+        }
+      ],
+      "verified": true,
+      "note": "broadcasters can run up to 125 kHz off the nominal centre",
+      "bands": [
+        {
+          "name": "VHF Band III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 230000000,
+          "modes": [
+            "dvbt"
+          ],
+          "channel_width_hz": 7000000,
+          "channels": [
+            {
+              "name": "6",
+              "centre_hz": 177500000
+            },
+            {
+              "name": "7",
+              "centre_hz": 184500000
+            },
+            {
+              "name": "8",
+              "centre_hz": 191500000
+            },
+            {
+              "name": "9",
+              "centre_hz": 198500000,
+              "note": "kept for digital radio; TV only in some remote areas"
+            },
+            {
+              "name": "9A",
+              "centre_hz": 205500000,
+              "note": "kept for digital radio; TV only in some remote areas"
+            },
+            {
+              "name": "10",
+              "centre_hz": 212500000
+            },
+            {
+              "name": "11",
+              "centre_hz": 219500000
+            },
+            {
+              "name": "12",
+              "centre_hz": 226500000
+            }
+          ]
+        },
+        {
+          "name": "UHF IV and V",
+          "service": "broadcasting",
+          "start_hz": 526000000,
+          "end_hz": 694000000,
+          "modes": [
+            "dvbt"
+          ],
+          "channel_width_hz": 7000000,
+          "numbering": {
+            "first": 28,
+            "last": 51,
+            "first_centre_hz": 529500000,
+            "step_hz": 7000000
+          }
+        },
+        {
+          "name": "694-820 MHz (digital dividend)",
+          "service": "broadcasting",
+          "start_hz": 694000000,
+          "end_hz": 820000000,
+          "in_use": false,
+          "note": "reallocated for other uses (mobile), 2011 to 2014",
+          "channel_width_hz": 7000000,
+          "numbering": {
+            "first": 52,
+            "last": 69,
+            "first_centre_hz": 697500000,
+            "step_hz": 7000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_nz",
+      "name": "New Zealand (UHF 25-48)",
+      "kind": "tv",
+      "source": {
+        "publisher": "Radio Spectrum Management (NZ)",
+        "title": "Digital Television Channel Usage Table",
+        "date": "2024-11",
+        "url": "https://rsm.govt.nz/assets/Uploads/documents/digital-television-channel-usage-table.pdf"
+      },
+      "also": [
+        {
+          "publisher": "Radio Spectrum Management (NZ)",
+          "title": "PIB 39 Spectrum Licence Certification Rules for Crown Management Rights",
+          "number": "Issue 8.7",
+          "date": "2024-04",
+          "clause": "4.3.1, 4.4.1, Table 10",
+          "url": "https://www.rsm.govt.nz/assets/Uploads/documents/pibs/spectrum-licence-certification-rules-for-crown-management-rights-pib-39-apr24.pdf"
+        },
+        {
+          "publisher": "Radio Spectrum Management (NZ)",
+          "title": "Digital television in New Zealand",
+          "date": "2013-12-01",
+          "url": "https://www.rsm.govt.nz/projects-and-auctions/completed-projects/digital-television-in-nz"
+        }
+      ],
+      "verified": true,
+      "note": "470-502 MHz is land mobile, CB and PRS",
+      "bands": [
+        {
+          "name": "UHF IV and V",
+          "service": "broadcasting",
+          "start_hz": 502000000,
+          "end_hz": 622000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 25,
+            "last": 39,
+            "first_centre_hz": 506000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "UHF V (not licensed)",
+          "service": "broadcasting",
+          "start_hz": 622000000,
+          "end_hz": 694000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "note": "allocated to TV but not available for licensing",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 40,
+            "last": 48,
+            "first_centre_hz": 626000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "700 MHz band",
+          "service": "broadcasting",
+          "start_hz": 694000000,
+          "end_hz": 790000000,
+          "in_use": false,
+          "note": "cleared at the digital switchover (1 December 2013); cellular since 2014",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 49,
+            "last": 60,
+            "first_centre_hz": 698000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_za",
+      "name": "Southern Africa (UHF 21-48)",
+      "kind": "tv",
+      "source": {
+        "publisher": "ICASA",
+        "title": "Terrestrial broadcasting frequency plan",
+        "date": "unknown"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Final Acts of the Regional Radiocommunication Conference RRC-06 (GE06)",
+          "date": "2006",
+          "clause": "Annex 2, chapter 3, Appendix 3.1, Table A.3.1-15",
+          "url": "https://www.itu.int/dms_pub/itu-r/opb/act/R-ACT-RRC.14-2006-PDF-E.pdf"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "UHF IV and V",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 694000000,
+          "modes": [
+            "dvbt",
+            "dvbt2"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 48,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "700 MHz band",
+          "service": "broadcasting",
+          "start_hz": 694000000,
+          "end_hz": 790000000,
+          "in_use": false,
+          "note": "mobile (700 MHz band, ECC/DEC/(15)01)",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 49,
+            "last": 60,
+            "first_centre_hz": 698000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "800 MHz band",
+          "service": "broadcasting",
+          "start_hz": 790000000,
+          "end_hz": 862000000,
+          "in_use": false,
+          "note": "mobile (800 MHz band, ECC/DEC/(09)03)",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 61,
+            "last": 69,
+            "first_centre_hz": 794000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_hk",
+      "name": "Hong Kong and Macau (UHF 21-69, DTMB)",
+      "kind": "tv",
+      "source": {
+        "publisher": "OFCA",
+        "title": "UHF television raster (8 MHz)",
+        "date": "unknown"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "UHF IV and V",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 862000000,
+          "modes": [
+            "dtmb"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 69,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_us",
+      "name": "United States (VHF 2-13, UHF 14-36)",
+      "kind": "tv",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47",
+        "number": "47 CFR 73.603",
+        "date": "2021-11-22",
+        "clause": "(a), (c)",
+        "url": "https://www.ecfr.gov/current/title-47/section-73.603"
+      },
+      "also": [
+        {
+          "publisher": "FCC",
+          "title": "Post-Auction Transition",
+          "date": "2020-09-30",
+          "url": "https://www.fcc.gov/about-fcc/fcc-initiatives/incentive-auctions/post-auction-transition"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 73.682",
+          "date": "2021",
+          "clause": "(d), (f)",
+          "url": "https://www.ecfr.gov/current/title-47/section-73.682"
+        },
+        {
+          "publisher": "FCC",
+          "title": "Expanding the Economic and Innovation Opportunities of Spectrum Through Incentive Auctions, Report and Order (the 600 MHz repack)",
+          "number": "FCC 14-50, GN Docket No. 12-268, 29 FCC Rcd 6567",
+          "date": "2014-06-02",
+          "url": "https://www.fcc.gov/document/fcc-adopts-rules-first-ever-incentive-auction"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47 (frequencies of the 600 MHz and 700 MHz mobile bands)",
+          "number": "47 CFR 27.5",
+          "date": "2024-10-01",
+          "clause": "(b), (c), (l)",
+          "url": "https://www.ecfr.gov/current/title-47/section-27.5"
+        }
+      ],
+      "verified": true,
+      "note": "ATSC 3.0 only with an ATSC 1.0 simulcast (47 CFR 73.682(f))",
+      "bands": [
+        {
+          "name": "VHF low (2-4)",
+          "service": "broadcasting",
+          "start_hz": 54000000,
+          "end_hz": 72000000,
+          "modes": [
+            "atsc",
+            "atsc3"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 2,
+            "last": 4,
+            "first_centre_hz": 57000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF low (5-6)",
+          "service": "broadcasting",
+          "start_hz": 76000000,
+          "end_hz": 88000000,
+          "modes": [
+            "atsc",
+            "atsc3"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 5,
+            "last": 6,
+            "first_centre_hz": 79000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF high",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 216000000,
+          "modes": [
+            "atsc",
+            "atsc3"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 7,
+            "last": 13,
+            "first_centre_hz": 177000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 608000000,
+          "modes": [
+            "atsc",
+            "atsc3"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 14,
+            "last": 36,
+            "first_centre_hz": 473000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "Radio astronomy",
+          "service": "radio_astronomy",
+          "start_hz": 608000000,
+          "end_hz": 614000000,
+          "in_use": false,
+          "note": "radio astronomy (47 CFR 73.603(c))",
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 37,
+            "last": 37,
+            "first_centre_hz": 611000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "600 MHz band",
+          "service": "broadcasting",
+          "start_hz": 614000000,
+          "end_hz": 698000000,
+          "in_use": false,
+          "note": "mobile since the incentive auction (FCC 14-50, 47 CFR 27.5(l)); TV left on 13 July 2020; the 73.603(a) table ends at 37",
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 38,
+            "last": 51,
+            "first_centre_hz": 617000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "700 MHz band",
+          "service": "broadcasting",
+          "start_hz": 698000000,
+          "end_hz": 806000000,
+          "in_use": false,
+          "note": "mobile (47 CFR 27.5(b), (c)); no longer in the 47 CFR 73.603 table",
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 52,
+            "last": 69,
+            "first_centre_hz": 701000000,
+            "step_hz": 6000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_ca",
+      "name": "Canada (VHF 2-13, UHF 14-35)",
+      "kind": "tv",
+      "source": {
+        "publisher": "ISED Canada",
+        "title": "BPR-10: Application Procedures and Rules for Digital Television (DTV) Undertakings",
+        "number": "BPR-10 Issue 3",
+        "date": "2025-11",
+        "clause": "2.2.1, Table 1",
+        "url": "https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/licences-and-certificates/radio-authorizations/broadcasting-certification/broadcasting-procedures-and-rules-bpr/bpr-10-application-procedures-and-rules-digital-television-dtv-undertakings"
+      },
+      "verified": true,
+      "note": "ATSC 1.0; ATSC 3.0 only as an experiment",
+      "bands": [
+        {
+          "name": "VHF low (2-4)",
+          "service": "broadcasting",
+          "start_hz": 54000000,
+          "end_hz": 72000000,
+          "modes": [
+            "atsc"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 2,
+            "last": 4,
+            "first_centre_hz": 57000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF low (5-6)",
+          "service": "broadcasting",
+          "start_hz": 76000000,
+          "end_hz": 88000000,
+          "modes": [
+            "atsc"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 5,
+            "last": 6,
+            "first_centre_hz": 79000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF high",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 216000000,
+          "modes": [
+            "atsc"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 7,
+            "last": 13,
+            "first_centre_hz": 177000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 602000000,
+          "modes": [
+            "atsc"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 14,
+            "last": 35,
+            "first_centre_hz": 473000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "Guard band",
+          "service": "broadcasting",
+          "start_hz": 602000000,
+          "end_hz": 608000000,
+          "in_use": false,
+          "note": "guard band since the 600 MHz transition (January 2022)",
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 36,
+            "last": 36,
+            "first_centre_hz": 605000000,
+            "step_hz": 6000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_americas",
+      "name": "Americas 6 MHz (VHF 2-13, UHF 14-51)",
+      "kind": "tv",
+      "source": {
+        "publisher": "CITEL",
+        "title": "System M television raster",
+        "date": "unknown"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "VHF low (2-4)",
+          "service": "broadcasting",
+          "start_hz": 54000000,
+          "end_hz": 72000000,
+          "modes": [
+            "atsc",
+            "dvbt",
+            "isdbt",
+            "dtmb"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 2,
+            "last": 4,
+            "first_centre_hz": 57000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF low (5-6)",
+          "service": "broadcasting",
+          "start_hz": 76000000,
+          "end_hz": 88000000,
+          "modes": [
+            "atsc",
+            "dvbt",
+            "isdbt",
+            "dtmb"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 5,
+            "last": 6,
+            "first_centre_hz": 79000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF high",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 216000000,
+          "modes": [
+            "atsc",
+            "dvbt",
+            "isdbt",
+            "dtmb"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 7,
+            "last": 13,
+            "first_centre_hz": 177000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 698000000,
+          "modes": [
+            "atsc",
+            "dvbt",
+            "isdbt",
+            "dtmb"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 14,
+            "last": 51,
+            "first_centre_hz": 473000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "700 MHz band",
+          "service": "broadcasting",
+          "start_hz": 698000000,
+          "end_hz": 806000000,
+          "in_use": false,
+          "note": "mobile (700 MHz band, APT band plan)",
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 52,
+            "last": 69,
+            "first_centre_hz": 701000000,
+            "step_hz": 6000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_isdbtb",
+      "name": "Americas 6 MHz with 1/7 MHz offset (ISDB-Tb, VHF 7-13, UHF 14-51)",
+      "kind": "tv",
+      "source": {
+        "publisher": "ABNT",
+        "title": "ABNT NBR 15601 (centre + 1/7 MHz)",
+        "date": "unknown"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "VHF high",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 216142857.142857,
+          "modes": [
+            "isdbt"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 7,
+            "last": 13,
+            "first_centre_hz": 177000000,
+            "step_hz": 6000000,
+            "offset_hz": 142857.14285714287
+          }
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 698142857.142857,
+          "modes": [
+            "isdbt"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 14,
+            "last": 51,
+            "first_centre_hz": 473000000,
+            "step_hz": 6000000,
+            "offset_hz": 142857.14285714287
+          }
+        },
+        {
+          "name": "700 MHz band",
+          "service": "broadcasting",
+          "start_hz": 698000000,
+          "end_hz": 806142857.142857,
+          "in_use": false,
+          "note": "mobile (700 MHz band)",
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 52,
+            "last": 69,
+            "first_centre_hz": 701000000,
+            "step_hz": 6000000,
+            "offset_hz": 142857.14285714287
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_kr",
+      "name": "South Korea (VHF 2-13, UHF 14-51)",
+      "kind": "tv",
+      "source": {
+        "publisher": "MSIT",
+        "title": "System M raster; 700 MHz plan",
+        "date": "unknown"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "Taiwan uses DVB-T on this raster",
+      "bands": [
+        {
+          "name": "VHF low (2-4)",
+          "service": "broadcasting",
+          "start_hz": 54000000,
+          "end_hz": 72000000,
+          "modes": [
+            "atsc",
+            "atsc3",
+            "dvbt"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 2,
+            "last": 4,
+            "first_centre_hz": 57000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF low (5-6)",
+          "service": "broadcasting",
+          "start_hz": 76000000,
+          "end_hz": 88000000,
+          "modes": [
+            "atsc",
+            "atsc3",
+            "dvbt"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 5,
+            "last": 6,
+            "first_centre_hz": 79000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF high",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 216000000,
+          "modes": [
+            "atsc",
+            "atsc3",
+            "dvbt"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 7,
+            "last": 13,
+            "first_centre_hz": 177000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 698000000,
+          "modes": [
+            "atsc",
+            "atsc3",
+            "dvbt"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 14,
+            "last": 51,
+            "first_centre_hz": 473000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "700 MHz band",
+          "service": "broadcasting",
+          "start_hz": 698000000,
+          "end_hz": 806000000,
+          "in_use": false,
+          "note": "mobile and public safety",
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 52,
+            "last": 69,
+            "first_centre_hz": 701000000,
+            "step_hz": 6000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_jp",
+      "name": "Japan (UHF 13-52, ISDB-T; VHF 1-12 no longer used)",
+      "kind": "tv",
+      "source": {
+        "publisher": "Ministry of Internal Affairs and Communications (Japan)",
+        "title": "Broadcast Frequency Use Plan (Kikan hoso-yo shuhasu shiyo keikaku), MPT Notice No. 661 of 1988",
+        "date": "2025-10-10",
+        "clause": "1-2(1) u (a)",
+        "url": "https://www.tele.soumu.go.jp/horei/law_honbun/00004710.html"
+      },
+      "verified": true,
+      "note": "VHF channels 1-12 carried analogue TV only, until 24 July 2011 (31 March 2012 in Iwate, Miyagi and Fukushima)",
+      "bands": [
+        {
+          "name": "VHF low (1-3)",
+          "service": "broadcasting",
+          "start_hz": 90000000,
+          "end_hz": 108000000,
+          "in_use": false,
+          "note": "analogue TV until 2011; now FM broadcasting (wide FM) and V-Low multimedia",
+          "channel_width_hz": 6000000,
+          "channels": [
+            {
+              "name": "1",
+              "centre_hz": 93000000
+            },
+            {
+              "name": "2",
+              "centre_hz": 99000000
+            },
+            {
+              "name": "3",
+              "centre_hz": 105000000
+            }
+          ]
+        },
+        {
+          "name": "VHF high (4-12)",
+          "service": "broadcasting",
+          "start_hz": 170000000,
+          "end_hz": 222000000,
+          "in_use": false,
+          "note": "analogue TV until 2011; now public broadband and V-High multimedia; channels 7 and 8 overlap by 2 MHz",
+          "channel_width_hz": 6000000,
+          "channels": [
+            {
+              "name": "4",
+              "centre_hz": 173000000
+            },
+            {
+              "name": "5",
+              "centre_hz": 179000000
+            },
+            {
+              "name": "6",
+              "centre_hz": 185000000
+            },
+            {
+              "name": "7",
+              "centre_hz": 191000000
+            },
+            {
+              "name": "8",
+              "centre_hz": 195000000
+            },
+            {
+              "name": "9",
+              "centre_hz": 201000000
+            },
+            {
+              "name": "10",
+              "centre_hz": 207000000
+            },
+            {
+              "name": "11",
+              "centre_hz": 213000000
+            },
+            {
+              "name": "12",
+              "centre_hz": 219000000
+            }
+          ]
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 710142857.142857,
+          "modes": [
+            "isdbt"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 13,
+            "last": 52,
+            "first_centre_hz": 473000000,
+            "step_hz": 6000000,
+            "offset_hz": 142857.14285714287
+          }
+        },
+        {
+          "name": "710-770 MHz",
+          "service": "broadcasting",
+          "start_hz": 710000000,
+          "end_hz": 770142857.142857,
+          "in_use": false,
+          "note": "cleared from TV in 2012; mobile",
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 53,
+            "last": 62,
+            "first_centre_hz": 713000000,
+            "step_hz": 6000000,
+            "offset_hz": 142857.14285714287
+          }
+        }
+      ],
+      "also": [
+        {
+          "publisher": "Ministry of Internal Affairs and Communications (Japan)",
+          "title": "Amendment of the Broadcast Frequency Use Plan (MPT Notice No. 661 of 1988), table of old and new text",
+          "date": "2011-07-11",
+          "clause": "Part 1, 4 and the use of channels 1 to 12 until 24 July 2011",
+          "url": "https://www.soumu.go.jp/main_content/000121573.pdf"
+        },
+        {
+          "publisher": "ITE (The Institute of Image Information and Television Engineers)",
+          "title": "Frequencies of the television broadcasting channels (terebi hoso-yo denpa no shuhasu ichiran)",
+          "date": "2026-11-09 (read)",
+          "clause": "VHF-Low and VHF-High tables, channels 1 to 12",
+          "url": "https://www.ite.or.jp/study/musen/tips/tip08.html"
+        }
+      ]
+    },
+    {
+      "id": "tv_ph",
+      "name": "Philippines (UHF 14-51, ISDB-T)",
+      "kind": "tv",
+      "source": {
+        "publisher": "NTC",
+        "title": "DTT plan, System M raster with the ISDB-T offset",
+        "date": "unknown"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 698142857.142857,
+          "modes": [
+            "isdbt"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 14,
+            "last": 51,
+            "first_centre_hz": 473000000,
+            "step_hz": 6000000,
+            "offset_hz": 142857.14285714287
+          }
+        }
+      ]
+    },
+    {
+      "id": "tv_cn",
+      "name": "China (DS-1 to DS-36, DTMB)",
+      "kind": "tv",
+      "source": {
+        "publisher": "SAPPRFT",
+        "title": "GY/T 106-1999 television channel table",
+        "date": "1999"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "VHF I",
+          "service": "broadcasting",
+          "start_hz": 48500000,
+          "end_hz": 92000000,
+          "modes": [
+            "dtmb"
+          ],
+          "channel_width_hz": 8000000,
+          "channels": [
+            {
+              "name": "DS1",
+              "centre_hz": 52500000
+            },
+            {
+              "name": "DS2",
+              "centre_hz": 60500000
+            },
+            {
+              "name": "DS3",
+              "centre_hz": 68500000
+            },
+            {
+              "name": "DS4",
+              "centre_hz": 80000000
+            },
+            {
+              "name": "DS5",
+              "centre_hz": 88000000
+            }
+          ]
+        },
+        {
+          "name": "VHF III",
+          "service": "broadcasting",
+          "start_hz": 167000000,
+          "end_hz": 223000000,
+          "modes": [
+            "dtmb"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 6,
+            "last": 12,
+            "first_centre_hz": 171000000,
+            "step_hz": 8000000,
+            "prefix": "DS"
+          }
+        },
+        {
+          "name": "UHF IV",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 566000000,
+          "modes": [
+            "dtmb"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 13,
+            "last": 24,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000,
+            "prefix": "DS"
+          }
+        },
+        {
+          "name": "UHF V",
+          "service": "broadcasting",
+          "start_hz": 606000000,
+          "end_hz": 702000000,
+          "modes": [
+            "dtmb"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 25,
+            "last": 36,
+            "first_centre_hz": 610000000,
+            "step_hz": 8000000,
+            "prefix": "DS"
+          }
+        },
+        {
+          "name": "703-798 MHz",
+          "service": "broadcasting",
+          "start_hz": 702000000,
+          "end_hz": 798000000,
+          "in_use": false,
+          "note": "mobile (5G) since 2020",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 37,
+            "last": 48,
+            "first_centre_hz": 706000000,
+            "step_hz": 8000000,
+            "prefix": "DS"
+          }
+        },
+        {
+          "name": "Above 798 MHz",
+          "service": "broadcasting",
+          "start_hz": 798000000,
+          "end_hz": 958000000,
+          "in_use": false,
+          "note": "not used for television",
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 49,
+            "last": 68,
+            "first_centre_hz": 802000000,
+            "step_hz": 8000000,
+            "prefix": "DS"
+          }
+        }
+      ]
+    }
+  ]
+}

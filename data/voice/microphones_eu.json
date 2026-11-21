@@ -1,0 +1,44 @@
+{
+  "$schema": "../../../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "voice_microphones_eu",
+      "name": "Wireless microphone bands, Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "national frequency tables",
+        "title": "bands open to wireless microphones",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "not compared with the national tables",
+      "bands": [
+        {
+          "name": "UHF 470 - 694 MHz",
+          "service": "short_range",
+          "start_hz": 470000000,
+          "end_hz": 694000000,
+          "modulation": "wfm",
+          "note": "TV band; the main band of professional systems; the gaps between TV channels are used"
+        },
+        {
+          "name": "823 - 832 MHz",
+          "service": "short_range",
+          "start_hz": 823000000,
+          "end_hz": 832000000,
+          "modulation": "wfm",
+          "note": "the duplex gap, professional wireless microphones"
+        },
+        {
+          "name": "863 - 865 MHz",
+          "service": "short_range",
+          "start_hz": 863000000,
+          "end_hz": 865000000,
+          "modulation": "wfm",
+          "note": "licence-free wireless audio"
+        }
+      ]
+    }
+  ]
+}

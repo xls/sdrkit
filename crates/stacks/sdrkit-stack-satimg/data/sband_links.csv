@@ -1,0 +1,53 @@
+# id: sband_links
+# name: S-band and L-band CCSDS telemetry links of the stack sband_ccsds
+# kind: links
+# modes: sband_ccsds
+# columns: link_name and centre_mhz, then one column for each setting of the stack, with the setting key as its heading and a choice by its key. An empty centre_mhz means that no frequency is known: tune by hand.
+# note: No public document gives these link parameters: every value is not confirmed by a public document. Which links are still on the air is not known. Frame sizes follow from frame_bits, rs_interleave and the code (the virtual fill is 255 minus the code word length).
+link_name,centre_mhz,modulation,symbol_rate,roll_off,conv,frame_bits,sync_word,nrzm,randomiser,rs,rs_interleave,rs_basis
+AIM Dump,2282.5,bpsk,3200000,0.5,false,9952,1ACFFC1D,true,frame,255_223,5,dual
+CloudSat S-Band Link,2217.5,bpsk,1000000,0.5,false,3216,04B3E375,true,none,none,1,dual
+Cluster-IIFM S-Band Highrate Link,,pm,524288,0.5,true,10232,1ACFFC1D,false,none,255_239,5,dual
+Coriolis S-Band Tactical DB,2221.5,bpsk,512000,0.5,true,8192,352EF853,false,none,none,1,dual
+Cosmos 2558 S-Band Dump,2284,pm,600000,0.6,false,10232,1ACFFC1D,false,none,255_223,5,dual
+DSCOVR TLM Link,2215,pm,40000,0.35,true,10112,1ACFFC1D,false,frame,255_223,5,dual
+DSCOVR High-Rate Link,2215,pm,276000,0.35,true,10112,1ACFFC1D,false,frame,255_223,5,dual
+Hinode S-Band dump,2256.22,pm,262000,0.6,false,8192,1ACFFC1D,false,frame,255_223,4,dual
+Hinode S-Band TLM,2256.22,pm,65600,0.6,true,8192,1ACFFC1D,false,frame,255_223,4,dual
+Jason-3 S-Band Link,2215.92,qpsk,838000,0.6,true,10232,1ACFFC1D,true,frame,255_239,5,dual
+MATS Dump,2214,oqpsk,1562000,0.25,false,10232,1ACFFC1D,false,frame,255_223,5,dual
+PREFIRE-1/2 S-Band Dump,2212.5,oqpsk,2000000,0.5,true,16416,1ACFFC1D,true,frame,none,1,dual
+SAOCOM 1A/1B TLM Dump,2255.45,oqpsk,2000000,0.5,true,8952,1ACFFC1D,true,frame,none,1,dual
+UVSQSat-NG OQPSK 312.5k S-Band Dump,2208,oqpsk,312500,0.5,true,2072,1ACFFC1D,false,frame,255_223,1,dual
+UVSQSat-NG 1.25M S-Band Dump,2208,bpsk,1250000,0.5,true,2072,1ACFFC1D,false,frame,255_223,1,dual
+UVSQSat-NG 2.5M S-Band Dump,2208,bpsk,2500000,0.5,true,2072,1ACFFC1D,false,frame,255_223,1,dual
+UVSQSat-NG 5M S-Band Dump,2208,bpsk,5000000,0.5,true,2072,1ACFFC1D,false,frame,255_223,1,dual
+UmKA-1 Dump,2402,bpsk,2000000,0.25,true,8192,1ACFFC1D,false,frame,none,1,dual
+WSF-M S-Band DB,2252.5,bpsk,400000,0.5,true,8192,1ACFFC1D,true,frame,none,1,dual
+SMAP S-Band Link,2274,bpsk,590000,0.5,false,10232,1ACFFC1D,true,frame,255_239,5,dual
+CHEOPS S-Band Dump,2208.5,oqpsk,1142000,0.5,false,10232,1ACFFC1D,false,frame,255_223,5,dual
+TIMED S-Band Dump,2214.97,qpsk,2295000,0.5,false,9872,1ACFFC1D,true,inside,none,1,dual
+SMOS TLM,2216,qpsk,838878,0.5,true,10232,1ACFFC1D,true,frame,255_223,5,dual
+NEOSSAT Dump,,qpsk,2000000,0.5,true,10232,1ACFFC1D,false,frame,255_223,5,dual
+OPS-SAT S-Band Link,2229.5,qpsk,1000000,0.15,true,8952,1ACFFC1D,false,frame,none,1,dual
+SWOT S-Band TLM,2282.4,oqpsk,932000,0.5,true,10232,1ACFFC1D,true,frame,255_223,5,dual
+PAZ S-band telemetry,2285,bpsk,1000000,0.5,false,8952,1ACFFC1D,false,frame,none,1,dual
+GCOM S-Band link,2220,oqpsk,500000,0.35,false,2048,1ACFFC1D,false,frame,255_223,1,dual
+Sentinel 6 S-Band TLM,2256.75,oqpsk,500000,0.6,false,10232,1ACFFC1D,false,frame,255_223,5,dual
+Sonate-2 S-Band Dump,,qpsk,2048000,0.35,true,16416,1ACFFC1D,false,frame,none,1,dual
+TROPICS S-Band Dump,2252.5,oqpsk,2000000,0.8,true,2072,1ACFFC1D,true,none,none,1,dual
+IRIS S-Band Dump,2220.8,bpsk,512000,0.5,true,14304,1ACFFC1D,true,frame,none,1,dual
+XMM-Newton S-band downlink,,pm,162000,0.5,true,8192,1ACFFC1D,false,frame,255_239,4,dual
+Integral S-band downlink,,pm,262000,0.5,true,8192,1ACFFC1D,false,frame,255_239,4,dual
+FORMOSAT-7/COSMIC-2 S-Band dump,2264,bpsk,2048000,0.5,false,10232,1ACFFC1D,true,frame,255_223,5,dual
+FORMOSAT-5 S-Band dump,2215,bpsk,1600000,0.5,false,10232,1ACFFC1D,false,frame,255_223,5,dual
+Falcon 9 S-Band TLM,,fsk,3571400,0.35,false,10232,1ACFFC1D,false,inside,255_239,5,dual
+Starship S-Band TLM,,oqpsk,3125000,0.5,false,10232,1ACFFC1D,false,inside,255_239,5,dual
+Crew Dragon S-Band TLM,,fsk,2350000,0.35,false,2000,1ACFFC1D,false,frame,255_223,1,dual
+ANGELS L-Band,1698.4,qpsk,400000,0.5,true,8192,1ACFFC1D,true,frame,255_223,4,dual
+OTB-3/Gazelle L-Band,1703,qpsk,1000000,0.5,true,8192,1ACFFC1D,true,frame,255_223,4,dual
+SciSat-1 Dump,2232,qpsk,2000000,0.5,false,9592,1ACFFC1D,false,frame,255_223,5,dual
+Calipso S band Dump,2268.5,qpsk,839000,0.5,true,10232,1ACFFC1D,true,frame,255_223,5,dual
+YouthSat Dump,,bpsk,1560000,0.5,false,8192,1ACFFC1D,false,frame,none,1,dual
+PRETTY 500k S-Band Dump,,qpsk,500000,0.5,true,16352,1ACFFC1D,false,frame,255_223,8,dual
+PRETTY 2M S-Band Dump,,qpsk,2000000,0.5,true,16352,1ACFFC1D,false,frame,255_223,8,dual

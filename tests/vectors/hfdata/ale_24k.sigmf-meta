@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 24000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic HF ALE (2G, 8-FSK 125 baud), 52.9 s. The dial (14.109 MHz, upper sideband) is at 0 Hz of the capture; tones 750 - 2500 Hz above it plus a +40 Hz tuning error. SNR 16 dB in 3 kHz, 1 % of the channel bits turned over before the tones. Eleven transmissions: a TWS sounding, an individual call with LQA answered and acknowledged, a net call answered by two members and acknowledged, an AMD message, a group call, a TIS sounding with a 9 character address.",
+    "core:recorder": "HF ALE test generator, seed 2",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14109000.0
+    }
+  ],
+  "annotations": []
+}

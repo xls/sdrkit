@@ -1,0 +1,13 @@
+[package]
+name = "sdrkit-algo-sim"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Signal simulation for sdrkit: seeded random numbers, noise set by SNR, C/N0, Es/N0 or Eb/N0, offset, drift, clock error, fading with named channel profiles, receiver impairments, generic modulators, Morse keying, scenes of timed bursts, and the standard generator settings"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../sdrkit-algo-dsp" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 250000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic NFM station with a CTCSS tone, 2.5 s. Noise only for the first 0.5 s, then a carrier of amplitude 0.3 frequency-modulated by a 1000 Hz tone at 2.5 kHz deviation plus an 88.5 Hz CTCSS tone at 600 Hz deviation. The station is 50 kHz below the centre (145.500 MHz). White Gaussian noise, carrier-to-noise 30 dB in 12.5 kHz. See specs/general.md, section 14.",
+    "core:recorder": "sdrkit general-receiver test signal definition (specs/general.md section 13), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 145550000.0
+    }
+  ],
+  "annotations": []
+}

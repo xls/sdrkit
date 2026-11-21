@@ -1,0 +1,28 @@
+[package]
+name = "sdrkit-stack-hfdata"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "HF data and signals: ALE and 3G-ALE, PACTOR, the MIL-STD-188-110, STANAG 4285 and 4539 modems, STANAG 4481 FSK, Link 11, HF waveform ID, HF beacons, ocean radar, wave-buoy link, ARQ-E, AUTOSPEC, G-TOR, EFR, Piccolo, Coquelet, the CIS HF signals"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-proto-link = { path = "../../proto/sdrkit-proto-link" }
+serde.workspace = true
+serde_json.workspace = true
+num-complex.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }

@@ -1,0 +1,7 @@
+# id: efr_transmitters
+# name: The long-wave EFR load-control transmitters, with a dial (upper sideband) that puts the carrier near 1500 Hz of audio
+# verified: no; the dials lie 1.5 kHz below the carriers, the third transmitter has no dial
+name,dial_hz,carrier_hz
+DCF49,127600,129100
+DCF39,137500,139000
+third transmitter,,135600

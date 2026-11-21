@@ -1,0 +1,20 @@
+[package]
+name = "sdrkit-proto-ookdev"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "The OOK/FSK device decoder framework of sdrkit: pulse detection, pulse trains, line-code slicers, bit rows, a registrable protocol list and typed device readings"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+serde.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }

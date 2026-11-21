@@ -1,0 +1,372 @@
+{
+ "recording": "gnss_l1_multi_4m.sigmf-meta",
+ "note": "Truth of the generated signal and the results sdrkit must decode from it. The recording is 1.5 s, too short for navigation data: it checks the front end, acquisition of every L1 code family, tracking start and C/N0. The navigation message layers are checked with nav_bits.json. 'first_code_epoch_sample' is the sample index (at 4 Msps) where the first whole code period begins; later periods follow every code period (1 ms; 4 ms for Galileo) scaled by (1 + Doppler / 1575.42 MHz). Doppler includes the +2500 Hz radio error and is per second of the sample clock.",
+ "setup": {
+  "centre_mhz": 1575.42,
+  "sample_rate": 4000000,
+  "systems": [
+   "GPS",
+   "QZSS",
+   "SBAS",
+   "Galileo"
+  ]
+ },
+ "present": {
+  "GPS": [
+   3,
+   13,
+   18,
+   21,
+   24,
+   27,
+   29,
+   30
+  ],
+  "QZSS": [
+   193,
+   194,
+   195
+  ],
+  "SBAS": [
+   123,
+   127,
+   128
+  ],
+  "Galileo": [
+   3,
+   5,
+   10,
+   12,
+   15,
+   17,
+   19,
+   21
+  ]
+ },
+ "satellites": [
+  {
+   "system": "GPS",
+   "prn": 3,
+   "name": "G03",
+   "cn0_dbhz": 42.9,
+   "azimuth_deg_true": 118.16,
+   "elevation_deg_true": 63.08,
+   "doppler_hz_at_0_75s": 3478.1,
+   "code_phase_chips_at_sample0": 869.56,
+   "first_code_epoch_sample": 599.96,
+   "transmit_time_tow_at_sample0": 354501.93085001
+  },
+  {
+   "system": "GPS",
+   "prn": 13,
+   "name": "G13",
+   "cn0_dbhz": 36.3,
+   "azimuth_deg_true": 286.75,
+   "elevation_deg_true": 13.29,
+   "doppler_hz_at_0_75s": 2400.6,
+   "code_phase_chips_at_sample0": 360.573,
+   "first_code_epoch_sample": 2590.13,
+   "transmit_time_tow_at_sample0": 354501.919352466
+  },
+  {
+   "system": "GPS",
+   "prn": 18,
+   "name": "G18",
+   "cn0_dbhz": 43.5,
+   "azimuth_deg_true": 174.97,
+   "elevation_deg_true": 70.01,
+   "doppler_hz_at_0_75s": 1203.9,
+   "code_phase_chips_at_sample0": 688.613,
+   "first_code_epoch_sample": 1307.48,
+   "transmit_time_tow_at_sample0": 354501.932673131
+  },
+  {
+   "system": "GPS",
+   "prn": 21,
+   "name": "G21",
+   "cn0_dbhz": 41.8,
+   "azimuth_deg_true": 350.54,
+   "elevation_deg_true": 52.15,
+   "doppler_hz_at_0_75s": 3634.0,
+   "code_phase_chips_at_sample0": 766.593,
+   "first_code_epoch_sample": 1002.57,
+   "transmit_time_tow_at_sample0": 354501.928749358
+  },
+  {
+   "system": "GPS",
+   "prn": 24,
+   "name": "G24",
+   "cn0_dbhz": 39.7,
+   "azimuth_deg_true": 319.96,
+   "elevation_deg_true": 35.1,
+   "doppler_hz_at_0_75s": 4340.1,
+   "code_phase_chips_at_sample0": 523.834,
+   "first_code_epoch_sample": 1951.77,
+   "transmit_time_tow_at_sample0": 354501.925512057
+  },
+  {
+   "system": "GPS",
+   "prn": 27,
+   "name": "G27",
+   "cn0_dbhz": 43.0,
+   "azimuth_deg_true": 331.75,
+   "elevation_deg_true": 63.85,
+   "doppler_hz_at_0_75s": 1992.5,
+   "code_phase_chips_at_sample0": 496.665,
+   "first_code_epoch_sample": 2058.01,
+   "transmit_time_tow_at_sample0": 354501.931485499
+  },
+  {
+   "system": "GPS",
+   "prn": 29,
+   "name": "G29",
+   "cn0_dbhz": 35.8,
+   "azimuth_deg_true": 246.55,
+   "elevation_deg_true": 11.03,
+   "doppler_hz_at_0_75s": 4794.0,
+   "code_phase_chips_at_sample0": 881.407,
+   "first_code_epoch_sample": 553.64,
+   "transmit_time_tow_at_sample0": 354501.91786159
+  },
+  {
+   "system": "GPS",
+   "prn": 30,
+   "name": "G30",
+   "cn0_dbhz": 38.0,
+   "azimuth_deg_true": 252.58,
+   "elevation_deg_true": 23.94,
+   "doppler_hz_at_0_75s": 4615.2,
+   "code_phase_chips_at_sample0": 57.191,
+   "first_code_epoch_sample": 3776.38,
+   "transmit_time_tow_at_sample0": 354501.922055905
+  },
+  {
+   "system": "QZSS",
+   "prn": 193,
+   "name": "J01",
+   "cn0_dbhz": 37.8,
+   "azimuth_deg_true": 176.18,
+   "elevation_deg_true": 14.56,
+   "doppler_hz_at_0_75s": 2423.5,
+   "code_phase_chips_at_sample0": 884.602,
+   "first_code_epoch_sample": 541.15,
+   "transmit_time_tow_at_sample0": 354501.876864714
+  },
+  {
+   "system": "QZSS",
+   "prn": 194,
+   "name": "J02",
+   "cn0_dbhz": 43.5,
+   "azimuth_deg_true": 111.57,
+   "elevation_deg_true": 84.31,
+   "doppler_hz_at_0_75s": 3459.8,
+   "code_phase_chips_at_sample0": 671.21,
+   "first_code_epoch_sample": 1375.52,
+   "transmit_time_tow_at_sample0": 354501.874656119
+  },
+  {
+   "system": "QZSS",
+   "prn": 195,
+   "name": "J03",
+   "cn0_dbhz": 43.5,
+   "azimuth_deg_true": 114.36,
+   "elevation_deg_true": 84.87,
+   "doppler_hz_at_0_75s": 1607.4,
+   "code_phase_chips_at_sample0": 662.303,
+   "first_code_epoch_sample": 1410.35,
+   "transmit_time_tow_at_sample0": 354501.874647413
+  },
+  {
+   "system": "SBAS",
+   "prn": 123,
+   "name": "S23",
+   "cn0_dbhz": 39.9,
+   "azimuth_deg_true": 226.12,
+   "elevation_deg_true": 50.32,
+   "doppler_hz_at_0_75s": 2501.5,
+   "code_phase_chips_at_sample0": 406.188,
+   "first_code_epoch_sample": 2411.78,
+   "transmit_time_tow_at_sample0": 354501.876397056
+  },
+  {
+   "system": "SBAS",
+   "prn": 127,
+   "name": "S27",
+   "cn0_dbhz": 40.8,
+   "azimuth_deg_true": 180.85,
+   "elevation_deg_true": 60.56,
+   "doppler_hz_at_0_75s": 2501.5,
+   "code_phase_chips_at_sample0": 290.821,
+   "first_code_epoch_sample": 2862.87,
+   "transmit_time_tow_at_sample0": 354501.878284283
+  },
+  {
+   "system": "SBAS",
+   "prn": 128,
+   "name": "S28",
+   "cn0_dbhz": 39.5,
+   "azimuth_deg_true": 129.08,
+   "elevation_deg_true": 47.42,
+   "doppler_hz_at_0_75s": 2501.5,
+   "code_phase_chips_at_sample0": 788.45,
+   "first_code_epoch_sample": 917.11,
+   "transmit_time_tow_at_sample0": 354501.875770723
+  },
+  {
+   "system": "Galileo",
+   "prn": 3,
+   "name": "E03",
+   "cn0_dbhz": 34.0,
+   "azimuth_deg_true": 50.57,
+   "elevation_deg_true": 7.88,
+   "doppler_hz_at_0_75s": 429.0,
+   "code_phase_chips_at_sample0": 2182.838,
+   "first_code_epoch_sample": 7464.95,
+   "transmit_time_tow_at_sample0": 354501.906133762
+  },
+  {
+   "system": "Galileo",
+   "prn": 5,
+   "name": "E05",
+   "cn0_dbhz": 38.9,
+   "azimuth_deg_true": 268.02,
+   "elevation_deg_true": 39.58,
+   "doppler_hz_at_0_75s": 3372.6,
+   "code_phase_chips_at_sample0": 3928.793,
+   "first_code_epoch_sample": 638.15,
+   "transmit_time_tow_at_sample0": 354501.915840462
+  },
+  {
+   "system": "Galileo",
+   "prn": 10,
+   "name": "E10",
+   "cn0_dbhz": 33.5,
+   "azimuth_deg_true": 161.24,
+   "elevation_deg_true": 5.03,
+   "doppler_hz_at_0_75s": 4358.4,
+   "code_phase_chips_at_sample0": 1747.635,
+   "first_code_epoch_sample": 9166.63,
+   "transmit_time_tow_at_sample0": 354501.905708343
+  },
+  {
+   "system": "Galileo",
+   "prn": 12,
+   "name": "E12",
+   "cn0_dbhz": 34.6,
+   "azimuth_deg_true": 115.1,
+   "elevation_deg_true": 11.56,
+   "doppler_hz_at_0_75s": 4349.3,
+   "code_phase_chips_at_sample0": 3769.266,
+   "first_code_epoch_sample": 1261.91,
+   "transmit_time_tow_at_sample0": 354501.907684522
+  },
+  {
+   "system": "Galileo",
+   "prn": 15,
+   "name": "E15",
+   "cn0_dbhz": 34.4,
+   "azimuth_deg_true": 102.16,
+   "elevation_deg_true": 10.66,
+   "doppler_hz_at_0_75s": 4188.8,
+   "code_phase_chips_at_sample0": 3383.315,
+   "first_code_epoch_sample": 2771.01,
+   "transmit_time_tow_at_sample0": 354501.907307248
+  },
+  {
+   "system": "Galileo",
+   "prn": 17,
+   "name": "E17",
+   "cn0_dbhz": 38.7,
+   "azimuth_deg_true": 316.24,
+   "elevation_deg_true": 38.03,
+   "doppler_hz_at_0_75s": 4459.3,
+   "code_phase_chips_at_sample0": 253.951,
+   "first_code_epoch_sample": 15007.03,
+   "transmit_time_tow_at_sample0": 354501.916248241
+  },
+  {
+   "system": "Galileo",
+   "prn": 19,
+   "name": "E19",
+   "cn0_dbhz": 34.0,
+   "azimuth_deg_true": 323.54,
+   "elevation_deg_true": 7.92,
+   "doppler_hz_at_0_75s": 5234.2,
+   "code_phase_chips_at_sample0": 1965.435,
+   "first_code_epoch_sample": 8315.01,
+   "transmit_time_tow_at_sample0": 354501.905921247
+  },
+  {
+   "system": "Galileo",
+   "prn": 21,
+   "name": "E21",
+   "cn0_dbhz": 37.7,
+   "azimuth_deg_true": 156.16,
+   "elevation_deg_true": 31.16,
+   "doppler_hz_at_0_75s": -171.6,
+   "code_phase_chips_at_sample0": 1743.968,
+   "first_code_epoch_sample": 9180.97,
+   "transmit_time_tow_at_sample0": 354501.913704759
+  }
+ ],
+ "front_end": {
+  "level_dbfs": [
+   -20.0,
+   -14.0
+  ],
+  "clip_percent_max": 0.01,
+  "dc_abs_max": 0.003
+ },
+ "acquisition_tests": [
+  {
+   "id": "A1",
+   "what": "Search every GPS PRN 1-32 over Doppler -10..+10 kHz with 16 ms (8 coherent pairs of 2 ms) on the first 0.5 s",
+   "expected": "every PRN in present.GPS is found; no other PRN is found",
+   "tolerance": {
+    "doppler_hz": 300,
+    "first_code_epoch_sample": 1.5
+   }
+  },
+  {
+   "id": "A2",
+   "what": "Search QZSS PRN 193-202 and SBAS PRN 120-158 the same way",
+   "expected": "exactly present.QZSS and present.SBAS are found",
+   "tolerance": {
+    "doppler_hz": 300,
+    "first_code_epoch_sample": 1.5
+   }
+  },
+  {
+   "id": "A3",
+   "what": "Search Galileo E1-B 1-36 with BOC(1,1) replicas, window centred on +2500 Hz +-6 kHz, 16 ms non-coherent (4 code periods)",
+   "expected": "every Galileo satellite with C/N0 >= 34 dB-Hz in present.Galileo is found; at most one of the weaker ones (E03, E10, E19, about 33.5 dB-Hz) may be missed; nothing that is not present",
+   "tolerance": {
+    "doppler_hz": 150,
+    "first_code_epoch_sample": 1.0
+   }
+  },
+  {
+   "id": "A4",
+   "what": "A false-alarm probability of 1e-3 per satellite search",
+   "expected": "over A1 to A3, at most 1 false detection"
+  }
+ ],
+ "tracking_tests": [
+  {
+   "id": "T1",
+   "what": "Start a channel on each A1/A2 detection and track to the end of the recording",
+   "expected": "every GPS, QZSS and SBAS channel reaches carrier lock; its C/N0 estimate at the end is within the tolerance of cn0_dbhz; its Doppler at 0.75 s is within the tolerance",
+   "tolerance": {
+    "cn0_db": 2.5,
+    "doppler_hz_locked": 10.0,
+    "lock_by_s": 1.2
+   }
+  },
+  {
+   "id": "T2",
+   "what": "The whole GNSS mode fed this file from the start (blocks of 16384 to 65536 samples), L1 tune, all systems",
+   "expected": "state 'satellites tracked' (1) by the end, at least 2 GPS satellites locked (the search effort setting at its default of 10; PRN order 1 to 32), no satellite locked that is not in 'present', best C/N0 between 40 and 46 dB-Hz, no position fix (the recording is shorter than a subframe)",
+   "tolerance": {}
+  }
+ ]
+}

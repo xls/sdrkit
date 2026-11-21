@@ -1,0 +1,26 @@
+[package]
+name = "sdrkit-proto-mpegts"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "The MPEG transport stream: demultiplexer, PSI and SI, services, guide, elementary streams, teletext and DVB subtitles, test multiplexes and the stream monitor"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-codec-mpa = { path = "../../codec/sdrkit-codec-mpa" }
+sdrkit-codec-mpeg2video = { path = "../../codec/sdrkit-codec-mpeg2video" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+
+[dev-dependencies]
+# The AAC decoder, for the test that it takes the format of an access unit from LOAS.
+sdrkit-codec-aac = { path = "../../codec/sdrkit-codec-aac" }
+serde_json.workspace = true
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dev-dependencies]
+# The AudioToolbox decoders, for the AC-3 services of the cable recording.
+sdrkit-codec-apple = { path = "../../codec/sdrkit-codec-apple" }

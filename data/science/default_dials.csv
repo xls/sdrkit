@@ -1,0 +1,6 @@
+# id: default_dials
+# name: Starting dials of the weather radio alert and meteor scatter monitors (162.550 MHz NOAA Weather Radio, 143.050 MHz the GRAVES radar)
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+same,,162550000
+mscatter,,143050000

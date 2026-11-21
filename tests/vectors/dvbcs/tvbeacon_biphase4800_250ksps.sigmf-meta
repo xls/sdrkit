@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 250000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic geostationary TV-satellite beacon, 12 s at 250 ksps (the mode's minimum). Carrier 60.0 kHz above the centre, amplitude 0.25, drifting -0.4 Hz/s, carrier-to-noise 30 dB in 1 kHz; no reference carrier (it would lie outside this capture). The carrier is phase modulated (peak index 1.2 rad) by a 48 kHz BPSK subcarrier carrying bi-phase (Manchester) data at 4800 bit/s (data clock 7 ppm fast). Frames of 256 bytes: sync FAF320, 0xFE, a minor-frame counter 0 to 31 in byte 4, fixed words, idle fill 0xFB, commutated and changing words, a seconds counter in byte 15, a copy of the counter in byte 122, and in the last byte the sum of the other 255 bytes modulo 256. The frame contents are made up for testing.",
+    "core:recorder": "sdrkit dvbcs test generator (synthetic), noise seed 7",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 11705250000.0
+    }
+  ],
+  "annotations": []
+}

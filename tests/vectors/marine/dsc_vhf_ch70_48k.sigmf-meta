@@ -1,0 +1,15 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 48000.0,
+    "core:version": "1.0.0",
+    "core:description": "DSC VHF channel 70, 1200 Bd AFSK 1300/2100 Hz on FM, carrier at 0 Hz, 25 dB SNR in 12.5 kHz",
+    "core:author": "sdrkit test vectors",
+    "core:license": "CC0-1.0",
+    "core:recorder": "synthetic"
+  },
+  "captures": [
+    {"core:sample_start": 0, "core:frequency": 156525000.0}
+  ],
+  "annotations": []
+}

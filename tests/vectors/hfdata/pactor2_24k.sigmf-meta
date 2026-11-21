@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 24000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic PACTOR-II physical layer, 24 s: two D-QPSK carriers 200 Hz apart at 100 baud, nominal pair centre 885 Hz above the dial (at 0 Hz) plus a 12 Hz tuning error, symbol clock +100 ppm, SNR 18 dB in 2.5 kHz. The frames are NOT real PACTOR frames: a fixed 40 symbol pattern followed by pseudo-random symbols, every 362 symbols.",
+    "core:recorder": "PACTOR-II/III/IV physical layer test generator, seed 3",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14072000.0
+    }
+  ],
+  "annotations": []
+}

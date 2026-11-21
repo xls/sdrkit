@@ -1,0 +1,49 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "aeromacs",
+      "name": "AeroMACS",
+      "kind": "aviation",
+      "source": {
+        "publisher": "RTCA",
+        "title": "DO-346 (AeroMACS MOPS); IEEE Std 802.16-2009",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the channel plan is from general knowledge; the documents were not read",
+      "bands": [
+        {
+          "name": "AeroMACS dial range",
+          "service": "aeronautical_mobile",
+          "start_hz": 5000000000.0,
+          "end_hz": 5150000000.0,
+          "modes": [
+            "aeromacs"
+          ],
+          "modulation": "OFDMA, 512 carriers, 5 MHz",
+          "channel_width_hz": 5000000.0,
+          "note": "stack aeromacs; the test signal is at 5095.0 MHz"
+        },
+        {
+          "name": "AeroMACS channels",
+          "service": "aeronautical_mobile",
+          "start_hz": 5092500000.0,
+          "end_hz": 5152500000.0,
+          "modes": [
+            "aeromacs"
+          ],
+          "modulation": "OFDMA, 5 MHz",
+          "channel_width_hz": 5000000.0,
+          "numbering": {
+            "first": 0,
+            "last": 11,
+            "first_centre_hz": 5095000000.0,
+            "step_hz": 5000000.0
+          },
+          "note": "5 MHz channels centred 5095 + 5n MHz, n = 0 to 11"
+        }
+      ]
+    }
+  ]
+}

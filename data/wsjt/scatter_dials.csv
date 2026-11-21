@@ -1,0 +1,9 @@
+# id: scatter_dials
+# name: Dials a host may offer as the starting dial of the burst, ping and beacon stacks, with the dial range of each
+# stacks: fsk441 iscat jt6m pi4
+# verified: no; usual operating dials (upper sideband), not a regional plan
+stack,submode,dial_hz,min_hz,max_hz,note
+fsk441,,144140000,28000000,1300000000,
+iscat,,144140000,28000000,1300000000,
+jt6m,,50230000,28000000,148000000,the 6 m JT6M calling frequency
+pi4,,1296000000,28000000,24000000000,microwave beacons through a converter

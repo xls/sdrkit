@@ -1,0 +1,15 @@
+# id: mesh_band_plans
+# name: Band plans of the mesh stacks: a dial and the networks heard around it
+# stacks: mesh meshtastic meshcore loraaprs meshcom lorawan
+# note: stacks lists the stacks that offer the plan, the first plan of a stack is its first choice. A host tunes to dial_mhz (meshcore_dial_mhz for the stack meshcore) and sets mt_slot_start and mt_slot_end from the row meshtastic_region of meshtastic_regions.csv, the setting channels from the presets of meshcore_group in meshcore_presets.csv (meshcore_default of meshcore_defaults.csv when the group has none) and from ham_presets.csv, and lw_channels from the plan lorawan_plan of lorawan_channels.csv (none when empty).
+plan,name,dial_mhz,stacks,meshtastic_region,meshcore_group,meshcore_default,meshcore_dial_mhz,lorawan_plan
+EU 868,EU 868 (Meshtastic LongFast 869.525 MHz),869.525,mesh meshtastic meshcore,EU_868,Europe,EU,869.618,EU868
+US 915,US 915 (Meshtastic LongFast 906.875 MHz),906.875,mesh meshtastic meshcore,US,North America,US,910.525,US915
+LoRa APRS EU,LoRa APRS EU 433.775 MHz SF12,433.775,mesh loraaprs,EU_868,Europe,EU,869.618,EU868
+LoRa APRS PL,LoRa APRS PL 434.855 MHz SF9,434.855,mesh loraaprs,EU_868,Europe,EU,869.618,EU868
+LoRa APRS UK,LoRa APRS UK 439.9125 MHz SF12,439.9125,mesh loraaprs,EU_868,Europe,EU,869.618,EU868
+MeshCom EU,MeshCom EU 433.175 MHz (+ LoRa APRS 433.775),433.175,mesh meshcom,EU_868,Europe,EU,869.618,EU868
+LoRaWAN EU868,LoRaWAN EU868 868.1 / 868.3 / 868.5 MHz,868.1,mesh lorawan,EU_868,Europe,EU,869.618,EU868
+LoRaWAN US915,LoRaWAN US915 903.9 MHz (sub-band 2),903.9,mesh lorawan,US,North America,US,869.618,US915
+ANZ 915,ANZ 915 (Meshtastic LongFast 919.875 MHz),919.875,mesh meshtastic meshcore,ANZ,Oceania,AU,915.8,
+ANZ 915 Mid,ANZ 915 (MeshCore Mid 915.075 MHz),915.075,mesh meshtastic meshcore,ANZ,Oceania,ANZ_MID,915.075,

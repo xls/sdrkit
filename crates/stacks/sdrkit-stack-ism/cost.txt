@@ -1,0 +1,4 @@
+# stack variant stage calibration-units-per-second-of-signal (written by the cost test, do not edit)
+wisun - bank 35811.6
+wisun - demod 7620.3
+wisun - tables 918.8

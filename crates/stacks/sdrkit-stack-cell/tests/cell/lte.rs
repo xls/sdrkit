@@ -1,0 +1,419 @@
+//! LTE: the recording against its expected results, and test signal round trips.
+
+use crate::common::*;
+use sdrkit_core::{Complex32, Generator, InputInfo, Owner};
+use sdrkit_stack_cell::lte::gen::{scene, LteCell, LteGenOptions, LteGenerator};
+use sdrkit_stack_cell::lte::search::NON_SI_PDSCH_DECODES;
+use sdrkit_stack_cell::CELL;
+use serde_json::Value as J;
+use std::sync::atomic::Ordering;
+
+fn check_fields(got: &J, want: &J, path: &str) {
+    match want {
+        J::Object(m) => {
+            for (k, v) in m {
+                check_fields(&got[k], v, &format!("{path}.{k}"));
+            }
+        }
+        J::Number(n) => {
+            let g = got.as_f64().unwrap_or(f64::NAN);
+            assert!(
+                (g - n.as_f64().unwrap()).abs() < 1e-6,
+                "{path}: got {got}, want {want}"
+            );
+        }
+        _ => assert_eq!(got, want, "{path}"),
+    }
+}
+
+#[test]
+fn recording() {
+    let Some((rec, exp)) = vector("lte_5mhz_7680k") else {
+        return;
+    };
+    let input = InputInfo::new(rec.rate_hz, rec.centre_hz, rec.centre_hz).recording();
+    let d = run_mode(&CELL, &[], input, &rec.samples, &[]);
+    let cells = d["cells"].as_array().unwrap();
+    assert_eq!(cells.len(), 1);
+    let c = &cells[0];
+    let w = &exp["cells"][0];
+    for k in [
+        "pci",
+        "duplex",
+        "cyclic_prefix",
+        "frequency_hz",
+        "earfcn",
+        "band",
+        "band_confirmed",
+    ] {
+        assert_eq!(c[k], w[k], "{k}");
+    }
+    assert!(
+        near(&c["carrier_offset_hz"], 2300.0, 100.0),
+        "{}",
+        c["carrier_offset_hz"]
+    );
+    assert!(near(&c["clock_ppm"], 0.0, 1.0));
+    for k in [
+        "n_rb",
+        "bandwidth_mhz",
+        "ports",
+        "phich_duration",
+        "phich_ng_index",
+    ] {
+        assert_eq!(c["mib"][k], w["mib"][k], "mib.{k}");
+    }
+    let sfn = c["mib"]["sfn_first_whole_frame"].as_i64().unwrap();
+    assert!((60..=61).contains(&sfn), "{sfn}");
+    for k in ["sib1", "sib2", "sib3"] {
+        check_fields(&c[k], &w[k], k);
+    }
+    assert_eq!(c["sib4_intra_neighbours"], w["sib4_intra_neighbours"]);
+    assert_eq!(c["sib5_inter_frequencies"], w["sib5_inter_frequencies"]);
+    assert_eq!(c["sibs_seen"], w["sibs_seen"]);
+    assert!(c["sinr_db"].as_f64().unwrap() >= 8.0, "{}", c["sinr_db"]);
+    let rsrq = c["rsrq_db"].as_f64().unwrap();
+    assert!((-14.0..=-7.0).contains(&rsrq), "{rsrq}");
+    assert_eq!(c["si_crc_failures"], 0);
+    assert_eq!(NON_SI_PDSCH_DECODES.load(Ordering::Relaxed), 0);
+    // The same table whatever the cuts of the input.
+    let d2 = run_mode(
+        &CELL,
+        &[],
+        input,
+        &rec.samples,
+        &random_pieces(17, rec.samples.len()),
+    );
+    assert_same(&d, &d2);
+}
+
+/// The test signal of `cell` at `rate` through the standard impairments of `keys`, `seconds` long.
+fn gen(
+    rate: f64,
+    cell: LteCell,
+    opt: LteGenOptions,
+    keys: &[(&str, J)],
+    seconds: f64,
+) -> Vec<Complex32> {
+    impaired(LteGenerator::new(rate, cell, opt), keys, seconds)
+}
+
+/// The options of most tests: frames from SFN 60.
+fn sfn60() -> LteGenOptions {
+    LteGenOptions {
+        sfn0: 60,
+        ..Default::default()
+    }
+}
+
+/// The cells found in `x`, most recently seen first.
+fn cells(rate: f64, centre: f64, x: &[Complex32]) -> Vec<J> {
+    let d = run_mode(
+        &CELL,
+        &[],
+        InputInfo::new(rate, centre, centre).recording(),
+        x,
+        &[],
+    );
+    d["cells"].as_array().unwrap().clone()
+}
+
+#[test]
+fn scenes() {
+    for sc in 0..4u32 {
+        let c = scene(sc, None);
+        let rate = 15e3 * sdrkit_stack_cell::lte::phy::fft_size(c.n_rb) as f64;
+        let centre = sdrkit_stack_cell::bands::earfcn_to_mhz(c.earfcn) * 1e6;
+        let x = gen(rate, c.clone(), sfn60(), &snr(25.0), 0.8);
+        let cs = cells(rate, centre, &x);
+        assert_eq!(cs.len(), 1, "scene {sc}: {cs:?}");
+        let r = &cs[0];
+        assert_eq!(r["pci"], c.pci, "scene {sc}");
+        assert_eq!(r["mib"]["n_rb"], c.n_rb, "scene {sc}");
+        assert_eq!(r["mib"]["ports"], c.ports, "scene {sc}");
+        assert_eq!(r["earfcn"], c.earfcn, "scene {sc}");
+        assert_eq!(r["band_confirmed"], true, "scene {sc}: {r}");
+        assert_eq!(r["sib1"]["enb"], c.enb, "scene {sc}");
+        assert_eq!(
+            r["sibs_seen"],
+            serde_json::json!([1, 2, 3, 4, 5]),
+            "scene {sc}"
+        );
+    }
+}
+
+#[test]
+fn noise_and_tone() {
+    let mut n = sdrkit_algo_sim::rng::Rng::new(3);
+    let x: Vec<Complex32> = (0..(7.68e6 * 0.2) as usize)
+        .map(|_| n.complex_normal(2.0 * 0.05 * 0.05))
+        .collect();
+    assert!(cells(7.68e6, 1815e6, &x).is_empty());
+    let y: Vec<Complex32> = (0..(7.68e6 * 0.2) as usize)
+        .map(|i| Complex32::from_polar(0.3, (i as f64 * 0.013) as f32))
+        .collect();
+    assert!(cells(7.68e6, 1815e6, &y).is_empty());
+}
+
+fn s1() -> LteCell {
+    scene(1, None)
+}
+
+fn one(rate: f64, centre: f64, x: &[Complex32]) -> J {
+    let cs = cells(rate, centre, x);
+    assert_eq!(cs.len(), 1, "{cs:?}");
+    cs[0].clone()
+}
+
+/// `keys` with the carrier moved by `hz`.
+fn moved(mut keys: Vec<(&'static str, J)>, hz: f64) -> Vec<(&'static str, J)> {
+    keys.push(("gen_offset_hz", J::from(hz)));
+    keys
+}
+
+#[test]
+fn impairments() {
+    let all = serde_json::json!([1, 2, 3, 4, 5]);
+    // +20 kHz with the centre known.
+    let x = gen(7.68e6, s1(), sfn60(), &moved(snr(25.0), 20e3), 0.45);
+    let c = one(7.68e6, 1815e6, &x);
+    assert_eq!(c["sibs_seen"], all);
+    // -50 kHz without the centre.
+    let x = gen(7.68e6, s1(), sfn60(), &moved(snr(25.0), -50e3), 0.45);
+    let d = run_mode(
+        &CELL,
+        &[],
+        InputInfo::new(7.68e6, 0.0, 0.0).recording(),
+        &x,
+        &[],
+    );
+    assert_eq!(d["cells"][0]["pci"], 301, "{d}");
+    assert_eq!(d["cells"][0]["sib1"]["enb"], 7001);
+    // Sample clock +-20 ppm.
+    for ppm in [20.0, -20.0] {
+        let mut keys = snr(25.0);
+        keys.push(("gen_clock_ppm", J::from(ppm)));
+        let x = gen(7.68e6, s1(), sfn60(), &keys, 0.45);
+        let c = one(7.68e6, 1815e6, &x);
+        assert_eq!(c["sibs_seen"], all, "{ppm} ppm");
+    }
+    // A start inside a frame.
+    let skip = LteGenOptions {
+        skip: 12_345,
+        ..sfn60()
+    };
+    let x = gen(7.68e6, s1(), skip, &snr(25.0), 0.45);
+    assert_eq!(one(7.68e6, 1815e6, &x)["sibs_seen"], all);
+    // Multipath.
+    let mut mp = s1();
+    mp.multipath = vec![(77, -6.0), (153, -9.0)];
+    let x = gen(7.68e6, mp, sfn60(), &snr(25.0), 0.45);
+    let c = one(7.68e6, 1815e6, &x);
+    assert!(c["sib1"].is_object(), "multipath: {c}");
+    // The radio's own rates: 1.92 Msps decodes the MIB only, the others everything.
+    let x = gen(1.92e6, s1(), sfn60(), &snr(25.0), 0.25);
+    let c = one(1.92e6, 1815e6, &x);
+    assert_eq!(c["mib"]["n_rb"], 25);
+    assert!(c["sib1"].is_null());
+    for rate in [10e6, 15.36e6] {
+        let x = gen(rate, s1(), sfn60(), &snr(25.0), 0.45);
+        let c = one(rate, 1815e6, &x);
+        assert_eq!(c["sibs_seen"], all, "rate {rate}");
+    }
+}
+
+#[test]
+fn threshold() {
+    let mut ok = 0;
+    for seed in 1..=4u64 {
+        let opt = LteGenOptions { seed, ..sfn60() };
+        let mut keys = snr(0.0);
+        keys.push(("gen_seed", J::from(seed)));
+        let x = gen(7.68e6, s1(), opt, &keys, 0.2);
+        let cs = cells(7.68e6, 1815e6, &x);
+        assert!(cs.iter().all(|c| c["pci"] == 301), "{cs:?}");
+        if cs
+            .first()
+            .is_some_and(|c| c["mib"].is_object() && c["sib1"].is_object())
+        {
+            ok += 1;
+        }
+    }
+    assert!(ok >= 3, "{ok} of 4");
+    let x = gen(7.68e6, s1(), sfn60(), &snr(-12.0), 0.2);
+    let cs = cells(7.68e6, 1815e6, &x);
+    assert!(cs.iter().all(|c| c["pci"] == 301), "{cs:?}");
+}
+
+/// The sum of `parts` with noise of power `noise` (each part at unit power before its gain).
+fn sum(parts: &[Vec<Complex32>], noise: f64, seed: u64) -> Vec<Complex32> {
+    let mut n = sdrkit_algo_sim::rng::Rng::new(seed);
+    let len = parts.iter().map(Vec::len).min().unwrap_or(0);
+    (0..len)
+        .map(|i| parts.iter().map(|p| p[i]).sum::<Complex32>() + n.complex_normal(noise))
+        .collect()
+}
+
+#[test]
+fn two_cells_on_one_carrier() {
+    let a = gen(7.68e6, s1(), sfn60(), &[], 0.45);
+    let mut c2 = scene(1, Some(302));
+    c2.gain_db = -6.0;
+    let b = gen(7.68e6, c2, LteGenOptions { seed: 2, ..sfn60() }, &[], 0.45);
+    // 33 dB under the stronger cell in the whole band (the old test's 0.004 noise against RMS 0.2).
+    let cs = cells(7.68e6, 1815e6, &sum(&[a, b], 2.0 * 0.02 * 0.02, 9));
+    for pci in [301, 302] {
+        let c = cs
+            .iter()
+            .find(|c| c["pci"] == pci)
+            .unwrap_or_else(|| panic!("PCI {pci}: {cs:?}"));
+        assert!(c["mib"].is_object(), "PCI {pci}");
+        assert!(c["sib1"].is_object(), "PCI {pci}: {c}");
+    }
+}
+
+#[test]
+fn paging_is_never_decoded() {
+    let before = NON_SI_PDSCH_DECODES.load(Ordering::Relaxed);
+    let x = gen(7.68e6, s1(), sfn60(), &snr(30.0), 0.45);
+    let c = one(7.68e6, 1815e6, &x);
+    assert_eq!(c["si_crc_failures"], 0);
+    assert_eq!(NON_SI_PDSCH_DECODES.load(Ordering::Relaxed), before);
+}
+
+/// Three sectors of one site on one 5 MHz carrier at the same timing and SFN: the strongest, one 3 dB
+/// under with another N_ID2, one 6 dB under sharing the strongest's N_ID2. Every cell must be read to its SIB1.
+fn sectors(seconds: f64) -> Vec<Complex32> {
+    let parts: Vec<Vec<Complex32>> = [(301u16, 0.0, 1u64), (302, -3.0, 2), (304, -6.0, 3)]
+        .iter()
+        .map(|&(pci, gain, seed)| {
+            let mut c = scene(1, Some(pci));
+            c.gain_db = gain;
+            c.sector = (pci - 300) as u32;
+            let opt = LteGenOptions {
+                seed,
+                load: false,
+                ..sfn60()
+            };
+            gen(7.68e6, c, opt, &[], seconds)
+        })
+        .collect();
+    sum(&parts, 2.0 * 0.015 * 0.015, 21)
+}
+
+#[test]
+fn synchronised_sectors() {
+    let x = sectors(0.45);
+    let cs = cells(7.68e6, 1815e6, &x);
+    for pci in [301, 302, 304] {
+        let c = cs
+            .iter()
+            .find(|c| c["pci"] == pci)
+            .unwrap_or_else(|| panic!("PCI {pci}: {cs:#?}"));
+        assert!(c["mib"].is_object(), "PCI {pci}: {c}");
+        assert!(c["sib1"].is_object(), "PCI {pci}: {c}");
+        assert_eq!(c["sib1"]["sector"], pci - 300, "PCI {pci}");
+    }
+    assert!(
+        cs.iter()
+            .all(|c| [301, 302, 304].contains(&c["pci"].as_u64().unwrap())),
+        "nothing invented: {cs:#?}"
+    );
+}
+
+/// A band scan: three carriers in bands 20, 8 and 3 seen through a 7.68 Msps radio stepped over the plan of
+/// those bands (two captures per centre, then the next): every cell in the table once, with its band confirmed.
+#[test]
+fn band_scan() {
+    use sdrkit_core::{Output, Receiver};
+    use sdrkit_stack_cell::scan::{lte_plan, Stepper};
+    let rate = 7.68e6;
+    let mut b20 = scene(0, Some(124));
+    b20.n_rb = 25;
+    let carriers = [b20, scene(2, None), scene(1, None)];
+    let freq = |c: &LteCell| sdrkit_stack_cell::bands::earfcn_to_mhz(c.earfcn) * 1e6;
+    let plan = lte_plan(&[20, 8, 3], None, rate);
+    assert!(plan.len() > 20, "{plan:?}");
+    let mut stepper = Stepper::new(plan.clone(), 0.0);
+    stepper.dwell_s = 0.0;
+    let mut rx = stack_graph(&CELL, &[]);
+    let mut centre = stepper.centre().unwrap();
+    rx.configure(&InputInfo::new(rate, centre, centre).recording())
+        .unwrap();
+    let mut out = Output::default();
+    let mut noise = sdrkit_algo_sim::rng::Rng::new(31);
+    let piece = (0.1 * rate) as usize;
+    let mut t = 0.0;
+    let mut steps = 0;
+    let captures =
+        |rx: &sdrkit_graph::StackGraph| value(rx.results(), "captures").unwrap_or(0.0) as u64;
+    while !stepper.done {
+        // The signal at this centre: every carrier whole inside the sample band, at its offset, plus noise. The radio's filter
+        // takes away what lies beyond. A generated carrier there folds back into the band, so it is left out.
+        let mut gens: Vec<Box<dyn Generator>> = carriers
+            .iter()
+            .filter(|c| (freq(c) - centre).abs() + c.n_rb as f64 * 90e3 + 30e3 < rate / 2.0)
+            .enumerate()
+            .map(|(i, c)| {
+                let opt = LteGenOptions {
+                    seed: 3 + i as u64,
+                    ..sfn60()
+                };
+                let v = gen_values(&[("gen_offset_hz", J::from(freq(c) - centre))]);
+                sdrkit_components::sim::impaired(
+                    Box::new(LteGenerator::new(rate, c.clone(), opt)),
+                    &v,
+                )
+                .expect("the offset")
+            })
+            .collect();
+        let mut buf = vec![Complex32::new(0.0, 0.0); piece];
+        let mut acc = vec![Complex32::new(0.0, 0.0); piece];
+        let mut fed = 0.0;
+        loop {
+            acc.iter_mut()
+                .for_each(|v| *v = noise.complex_normal(2.0 * 0.015 * 0.015));
+            for g in gens.iter_mut() {
+                g.generate(&mut buf);
+                for (a, b) in acc.iter_mut().zip(&buf) {
+                    *a += b;
+                }
+            }
+            let before = captures(&rx);
+            rx.feed(&acc, &mut out);
+            out.clear();
+            t += 0.1;
+            fed += 0.1;
+            for _ in before..captures(&rx) {
+                stepper.captured(centre);
+            }
+            if let Some(next) = stepper.tick(t) {
+                centre = next;
+                rx.retuned(&InputInfo::new(rate, centre, centre).recording());
+                break;
+            }
+            if stepper.done {
+                break;
+            }
+            assert!(fed < 2.0, "a step never finished at {centre}");
+        }
+        steps += 1;
+    }
+    assert_eq!(steps, plan.len());
+    let s = state(&rx);
+    let d = view(&rx, s);
+    assert_eq!(d["retunes"], plan.len() as u64 - 1);
+    let cs = d["cells"].as_array().unwrap();
+    for c in &carriers {
+        let found: Vec<&J> = cs.iter().filter(|x| x["pci"] == c.pci).collect();
+        assert_eq!(found.len(), 1, "PCI {} once: {cs:#?}", c.pci);
+        assert_eq!(found[0]["earfcn"], c.earfcn, "PCI {}", c.pci);
+        assert_eq!(found[0]["band"], c.band, "PCI {}", c.pci);
+        assert_eq!(
+            found[0]["band_confirmed"], true,
+            "PCI {}: {}",
+            c.pci, found[0]
+        );
+    }
+    assert_eq!(cs.len(), 3, "nothing invented: {cs:#?}");
+}

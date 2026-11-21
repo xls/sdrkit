@@ -1,0 +1,52 @@
+{
+  "$schema": "../../../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "voice_microphones_us",
+      "name": "Wireless microphone bands, USA",
+      "kind": "other",
+      "source": {
+        "publisher": "national frequency tables",
+        "title": "bands open to wireless microphones",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "not compared with the national tables",
+      "bands": [
+        {
+          "name": "UHF 470 - 608 MHz",
+          "service": "short_range",
+          "start_hz": 470000000,
+          "end_hz": 608000000,
+          "modulation": "wfm",
+          "note": "TV channels 14 to 36"
+        },
+        {
+          "name": "UHF 614 - 698 MHz",
+          "service": "short_range",
+          "start_hz": 614000000,
+          "end_hz": 698000000,
+          "modulation": "wfm",
+          "note": "TV channels 38 to 51 where still used"
+        },
+        {
+          "name": "902 - 928 MHz",
+          "service": "short_range",
+          "start_hz": 902000000,
+          "end_hz": 928000000,
+          "modulation": "wfm",
+          "note": "ISM band, low-cost wireless microphones"
+        },
+        {
+          "name": "944 - 952 MHz",
+          "service": "short_range",
+          "start_hz": 944000000,
+          "end_hz": 952000000,
+          "modulation": "wfm",
+          "note": "studio links and wireless microphones"
+        }
+      ]
+    }
+  ]
+}

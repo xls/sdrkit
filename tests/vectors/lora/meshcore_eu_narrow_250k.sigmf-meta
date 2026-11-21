@@ -1,0 +1,16 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 250000.0,
+    "core:version": "1.0.0",
+    "core:description": "MeshCore EU/UK narrow (SF8, 62.5 kHz, CR 4/8, sync 0x12, preamble 32) on 869.618 MHz, 50 kHz above the capture centre. Synthetic.",
+    "core:author": "sdrkit test vector generator",
+    "core:hw": "synthetic (no radio)"
+  },
+  "captures": [ { "core:sample_start": 0, "core:frequency": 869568000.0 } ],
+  "annotations": [
+    { "core:sample_start": 12500, "core:sample_count": 307456, "core:freq_lower_edge": 869587550.0, "core:freq_upper_edge": 869650050.0, "core:label": "MeshCore ADVERT (repeater, signed)" },
+    { "core:sample_start": 332456, "core:sample_count": 160000, "core:freq_lower_edge": 869587550.0, "core:freq_upper_edge": 869650050.0, "core:label": "MeshCore GRP_TXT on Public" },
+    { "core:sample_start": 504956, "core:sample_count": 135424, "core:freq_lower_edge": 869586150.0, "core:freq_upper_edge": 869648650.0, "core:label": "MeshCore GRP_TXT on #test, two hops" }
+  ]
+}

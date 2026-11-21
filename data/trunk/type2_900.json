@@ -1,0 +1,37 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "type2_900",
+      "name": "Type II 900 MHz",
+      "kind": "other",
+      "source": {
+        "publisher": "not published",
+        "title": "Motorola Type II channel numbering",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "no public document gives the plan; not compared with a received system",
+      "bands": [
+        {
+          "name": "Type II 900 MHz, channels 000 to 1DE",
+          "service": "land_mobile",
+          "start_hz": 935006250,
+          "end_hz": 940993750,
+          "modes": [
+            "motorola_type2"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "note": "channels 000 to 1DE hex; the dial of the stack 29.7 to 960 MHz, its default dial 851.0125 MHz",
+          "numbering": {
+            "first": 0,
+            "last": 478,
+            "first_centre_hz": 935012500,
+            "step_hz": 12500
+          }
+        }
+      ]
+    }
+  ]
+}

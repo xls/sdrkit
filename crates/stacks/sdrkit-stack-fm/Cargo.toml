@@ -1,0 +1,28 @@
+[package]
+name = "sdrkit-stack-fm"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "FM broadcast radio with stereo and RDS"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-proto-bcdata = { path = "../../proto/sdrkit-proto-bcdata" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+serde_json.workspace = true
+
+[dev-dependencies]
+# The record of the declarations.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The FM bands of the data folder, for the tests that set a band.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }

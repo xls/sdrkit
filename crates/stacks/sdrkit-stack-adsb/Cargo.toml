@@ -1,0 +1,28 @@
+[package]
+name = "sdrkit-stack-adsb"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "ADS-B and Mode S on 1090 MHz, Mode A/C replies, Mode S interrogations on 1030 MHz, UAT and FIS-B on 978 MHz, with Beast, SBS and ASTERIX feeds"
+
+[dependencies]
+sdrkit-proto-aero = { path = "../../proto/sdrkit-proto-aero" }
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+serde.workspace = true
+num-complex.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }

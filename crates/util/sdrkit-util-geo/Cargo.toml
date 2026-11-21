@@ -1,0 +1,21 @@
+[package]
+name = "sdrkit-util-geo"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Positions, geodesy, locators, CPR, satellite orbits (TLE and SGP4), time scales and NMEA 0183 for sdrkit"
+
+[dependencies]
+serde = { workspace = true, optional = true }
+
+[features]
+# Serialize and Deserialize on the plain value types (Position, Ecef, Enu, Look, Civil and others).
+serde = ["dep:serde"]
+
+[dev-dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+
+[[bench]]
+name = "geo"
+harness = false

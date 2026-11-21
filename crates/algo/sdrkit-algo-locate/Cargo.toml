@@ -1,0 +1,14 @@
+[package]
+name = "sdrkit-algo-locate"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Location from arrival times for sdrkit: ground-wave and hop propagation, ranked timing sources and a disciplined sample clock, a position solver with clock groups and an error ellipse, common-view clock alignment, and the matching of detections from several receivers"
+
+[dependencies]
+sdrkit-algo-dsp = { path = "../sdrkit-algo-dsp" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+
+[dev-dependencies]
+sdrkit-algo-sim = { path = "../sdrkit-algo-sim" }

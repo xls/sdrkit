@@ -1,0 +1,19 @@
+{
+  "annotations": [],
+  "captures": [
+    {
+      "core:datetime": "2026-11-08T08:38:29Z",
+      "core:frequency": 202928000.0,
+      "core:sample_start": 0
+    }
+  ],
+  "global": {
+    "core:dataset": "dab_9a_sydney.sigmf-data",
+    "core:datatype": "ci16_le",
+    "core:description": "dab",
+    "core:recorder": "sdrkit",
+    "core:sample_count": 8692752,
+    "core:sample_rate": 2100000.0,
+    "core:version": "1.0.0"
+  }
+}

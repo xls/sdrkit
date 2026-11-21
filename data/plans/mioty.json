@@ -1,0 +1,256 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "mioty_europe",
+      "name": "mioty, Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "TS 103 357, Short Range Devices; Low Throughput Networks; Protocols for radio interface A, annex (channels and profiles)",
+        "number": "V1.1.1",
+        "date": "2018-06"
+      },
+      "verified": false,
+      "unverified_reason": "only channel A of the profiles EU0 and EU1 is known; the other channels and profiles of the annex were not read",
+      "bands": [
+        {
+          "name": "mioty EU0 / EU1 channel A",
+          "service": "short_range",
+          "start_hz": 868150000,
+          "end_hz": 868210000,
+          "modes": [
+            "mioty"
+          ],
+          "note": "stack mioty; the dial 868.18 MHz, the middle of the 24 carriers"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "LI",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "mioty_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where the 868 MHz short range device band is harmonised; not compared with the national rules"
+    }
+  ]
+}

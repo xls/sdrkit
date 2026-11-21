@@ -1,0 +1,15 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 600000.0,
+    "core:version": "1.0.0",
+    "core:description": "MeshCom EU (SF11, 250 kHz, CR 4/6, sync 0x2B, preamble 32) on 433.175 MHz, 100 kHz above the capture centre. Synthetic.",
+    "core:author": "sdrkit test vector generator",
+    "core:hw": "synthetic (no radio)"
+  },
+  "captures": [ { "core:sample_start": 0, "core:frequency": 433075000.0 } ],
+  "annotations": [
+    { "core:sample_start": 30000, "core:sample_count": 453428, "core:freq_lower_edge": 433050500.0, "core:freq_upper_edge": 433300500.0, "core:label": "MeshCom text to all" },
+    { "core:sample_start": 513427, "core:sample_count": 689357, "core:freq_lower_edge": 433050500.0, "core:freq_upper_edge": 433300500.0, "core:label": "MeshCom position, relayed" }
+  ]
+}

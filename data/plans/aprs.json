@@ -1,0 +1,330 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "aprs_r1",
+      "name": "APRS, ITU Region 1",
+      "kind": "amateur",
+      "source": {
+        "publisher": "IARU Region 1",
+        "title": "IARU Region 1 band plan",
+        "date": "edition not checked"
+      },
+      "verified": false,
+      "unverified_reason": "the channel is not yet compared with the band plan",
+      "note": "The starting channel of the stack aprs in the countries of ITU Region 1.",
+      "bands": [
+        {
+          "name": "APRS 144.800 MHz",
+          "service": "amateur",
+          "start_hz": 144793750,
+          "end_hz": 144806250,
+          "modes": [
+            "aprs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            {
+              "name": "APRS 144.800 MHz",
+              "centre_hz": 144800000,
+              "width_hz": 12500,
+              "note": "AFSK 1200 baud"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aprs_na",
+      "name": "APRS, North and South America (144.390 MHz)",
+      "kind": "amateur",
+      "source": {
+        "publisher": "IARU Region 2",
+        "title": "IARU Region 2 band plan",
+        "date": "edition not checked"
+      },
+      "verified": false,
+      "unverified_reason": "the channel is not yet compared with the band plan",
+      "note": "The starting channel of the stack aprs in these countries.",
+      "bands": [
+        {
+          "name": "APRS 144.390 MHz",
+          "service": "amateur",
+          "start_hz": 144383750,
+          "end_hz": 144396250,
+          "modes": [
+            "aprs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            {
+              "name": "APRS 144.390 MHz",
+              "centre_hz": 144390000,
+              "width_hz": 12500,
+              "note": "AFSK 1200 baud"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aprs_br",
+      "name": "APRS, Brazil",
+      "kind": "amateur",
+      "source": {
+        "publisher": "IARU Region 2",
+        "title": "IARU Region 2 band plan",
+        "date": "edition not checked"
+      },
+      "verified": false,
+      "unverified_reason": "the channel is not yet compared with the band plan",
+      "note": "The starting channel of the stack aprs in Brazil.",
+      "bands": [
+        {
+          "name": "APRS 145.570 MHz",
+          "service": "amateur",
+          "start_hz": 145563750,
+          "end_hz": 145576250,
+          "modes": [
+            "aprs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            {
+              "name": "APRS 145.570 MHz",
+              "centre_hz": 145570000,
+              "width_hz": 12500,
+              "note": "AFSK 1200 baud"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aprs_au",
+      "name": "APRS, Australia",
+      "kind": "amateur",
+      "source": {
+        "publisher": "Wireless Institute of Australia",
+        "title": "Australian Amateur Radio Band Plan, Revision 2026-1",
+        "date": "2026-02"
+      },
+      "verified": true,
+      "note": "The starting channels of the stack aprs in Australia: 2 m national AX.25 APRS and the national 70 cm APRS channel.",
+      "bands": [
+        {
+          "name": "APRS 145.175 MHz",
+          "service": "amateur",
+          "start_hz": 145168750,
+          "end_hz": 145181250,
+          "modes": [
+            "aprs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            {
+              "name": "APRS 145.175 MHz",
+              "centre_hz": 145175000,
+              "width_hz": 12500,
+              "note": "AX.25"
+            }
+          ]
+        },
+        {
+          "name": "APRS 439.100 MHz",
+          "service": "amateur",
+          "start_hz": 439093750,
+          "end_hz": 439106250,
+          "modes": [
+            "aprs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            {
+              "name": "APRS 439.100 MHz",
+              "centre_hz": 439100000,
+              "width_hz": 12500,
+              "note": "AX.25"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aprs_nz",
+      "name": "APRS, New Zealand",
+      "kind": "amateur",
+      "source": {
+        "publisher": "IARU Region 3",
+        "title": "IARU Region 3 band plan",
+        "date": "edition not checked"
+      },
+      "verified": false,
+      "unverified_reason": "the channel is not yet compared with the band plan",
+      "note": "The starting channel of the stack aprs in New Zealand.",
+      "bands": [
+        {
+          "name": "APRS 144.575 MHz",
+          "service": "amateur",
+          "start_hz": 144568750,
+          "end_hz": 144581250,
+          "modes": [
+            "aprs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            {
+              "name": "APRS 144.575 MHz",
+              "centre_hz": 144575000,
+              "width_hz": 12500,
+              "note": "AFSK 1200 baud"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aprs_jp",
+      "name": "APRS, Japan, China and Taiwan (144.640 MHz)",
+      "kind": "amateur",
+      "source": {
+        "publisher": "IARU Region 3",
+        "title": "IARU Region 3 band plan",
+        "date": "edition not checked"
+      },
+      "verified": false,
+      "unverified_reason": "the channel is not yet compared with the band plan",
+      "note": "The starting channel of the stack aprs in these countries.",
+      "bands": [
+        {
+          "name": "APRS 144.640 MHz",
+          "service": "amateur",
+          "start_hz": 144633750,
+          "end_hz": 144646250,
+          "modes": [
+            "aprs"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            {
+              "name": "APRS 144.640 MHz",
+              "centre_hz": 144640000,
+              "width_hz": 12500,
+              "note": "AFSK 1200 baud"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "US",
+      "groups": [
+        "aprs_na"
+      ],
+      "unverified_reason": "the channel of the country is not yet compared with its band plan"
+    },
+    {
+      "code": "CA",
+      "groups": [
+        "aprs_na"
+      ],
+      "unverified_reason": "the channel of the country is not yet compared with its band plan"
+    },
+    {
+      "code": "MX",
+      "groups": [
+        "aprs_na"
+      ],
+      "unverified_reason": "the channel of the country is not yet compared with its band plan"
+    },
+    {
+      "code": "CO",
+      "groups": [
+        "aprs_na"
+      ],
+      "unverified_reason": "the channel of the country is not yet compared with its band plan"
+    },
+    {
+      "code": "CL",
+      "groups": [
+        "aprs_na"
+      ],
+      "unverified_reason": "the channel of the country is not yet compared with its band plan"
+    },
+    {
+      "code": "PE",
+      "groups": [
+        "aprs_na"
+      ],
+      "unverified_reason": "the channel of the country is not yet compared with its band plan"
+    },
+    {
+      "code": "BR",
+      "groups": [
+        "aprs_br"
+      ],
+      "unverified_reason": "the channel of the country is not yet compared with its band plan"
+    },
+    {
+      "code": "AU",
+      "groups": [
+        "aprs_au"
+      ],
+      "verified": true,
+      "sources": [
+        {
+          "publisher": "Wireless Institute of Australia",
+          "title": "Australian Amateur Radio Band Plan, Revision 2026-1",
+          "date": "2026-02"
+        }
+      ]
+    },
+    {
+      "code": "NZ",
+      "groups": [
+        "aprs_nz"
+      ],
+      "unverified_reason": "the channel of the country is not yet compared with its band plan"
+    },
+    {
+      "code": "JP",
+      "groups": [
+        "aprs_jp"
+      ],
+      "unverified_reason": "the channel of the country is not yet compared with its band plan"
+    },
+    {
+      "code": "CN",
+      "groups": [
+        "aprs_jp"
+      ],
+      "unverified_reason": "the channel of the country is not yet compared with its band plan"
+    },
+    {
+      "code": "TW",
+      "groups": [
+        "aprs_jp"
+      ],
+      "unverified_reason": "the channel of the country is not yet compared with its band plan"
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "aprs_r1"
+      ]
+    }
+  ]
+}

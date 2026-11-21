@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 1000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic GSM-R base station, 2.22 s (481 TDMA frames): ARFCN 960 (922.2 MHz) at +3 kHz from the capture centre, BSIC NCC 1 BCC 2, FCCH / SCH / BCCH on timeslot 0 with the 51-multiframe schedule, System Information 1, 2, 3, 4 and 2ter (cell identity 12001, LAI 001-01 LAC 4711, T3212 10, RXLEV-ACCESS-MIN 12, cell allocation 958/960/962, BCCH neighbours 955/958/961/967/970/973 in the 1024 range format, NCC permitted 0xFF), dummy bursts on the other timeslots. GMSK BT 0.3. Noise for 15 dB SNR in 200 kHz. See specs/cell.md section 4.",
+    "core:recorder": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 922200000.0
+    }
+  ],
+  "annotations": []
+}

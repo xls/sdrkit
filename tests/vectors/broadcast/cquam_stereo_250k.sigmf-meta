@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 250000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic medium-wave AM C-QUAM stereo station, 8 s. Carrier amplitude 0.3, +35 Hz from the capture centre, carrier-to-noise 35 dB in 10 kHz. Left 440 Hz and right 660 Hz tones at 0.35 of the carrier each, 25 Hz pilot at 5 % in the quadrature part. Made by an independent generator from the public C-QUAM description; see specs/broadcast.md, C-QUAM test vectors.",
+    "core:recorder": "independent C-QUAM generator, noise seed 1",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 999000.0
+    }
+  ],
+  "annotations": []
+}

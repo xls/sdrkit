@@ -1,0 +1,17 @@
+[package]
+name = "sdrkit-algo-modem"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Demodulation and synchronisation for sdrkit: symbol and carrier sync, frequency estimators, slicers and soft demappers, FSK, GMSK, chirp, OFDM, DSSS, equalisers, sync correlators, burst detection, SNR and squelch"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../sdrkit-algo-dsp" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-fec = { path = "../sdrkit-algo-fec" }
+num-complex.workspace = true
+
+[dev-dependencies]
+sdrkit-algo-sim = { path = "../sdrkit-algo-sim" }

@@ -1,0 +1,127 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "type2_800_splinter",
+      "name": "Type II 800 MHz domestic splinter",
+      "kind": "other",
+      "source": {
+        "publisher": "not published",
+        "title": "Motorola Type II channel numbering",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "no public document gives the plan; not compared with a received system",
+      "bands": [
+        {
+          "name": "Type II 800 MHz domestic splinter, channels 000 to 257",
+          "service": "land_mobile",
+          "start_hz": 850993750,
+          "end_hz": 865981250,
+          "modes": [
+            "motorola_type2"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "note": "channels 000 to 257 hex; the dial of the stack 29.7 to 960 MHz, its default dial 851.0125 MHz",
+          "numbering": {
+            "first": 0,
+            "last": 599,
+            "first_centre_hz": 851000000,
+            "step_hz": 25000
+          }
+        },
+        {
+          "name": "Type II 800 MHz domestic splinter, channels 258 to 2CF",
+          "service": "land_mobile",
+          "start_hz": 866006250,
+          "end_hz": 868993750,
+          "modes": [
+            "motorola_type2"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "note": "channels 258 to 2CF hex; the dial of the stack 29.7 to 960 MHz, its default dial 851.0125 MHz",
+          "numbering": {
+            "first": 600,
+            "last": 719,
+            "first_centre_hz": 866012500,
+            "step_hz": 25000
+          }
+        },
+        {
+          "name": "Type II 800 MHz domestic splinter, channels 2D0 to 2F7",
+          "service": "land_mobile",
+          "start_hz": 865993750,
+          "end_hz": 866981250,
+          "modes": [
+            "motorola_type2"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "note": "channels 2D0 to 2F7 hex; the dial of the stack 29.7 to 960 MHz, its default dial 851.0125 MHz",
+          "numbering": {
+            "first": 720,
+            "last": 759,
+            "first_centre_hz": 866000000,
+            "step_hz": 25000
+          }
+        },
+        {
+          "name": "Type II 800 MHz domestic splinter, channels 32F to 33F",
+          "service": "land_mobile",
+          "start_hz": 866993750,
+          "end_hz": 867406250,
+          "modes": [
+            "motorola_type2"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "note": "channels 32F to 33F hex; the dial of the stack 29.7 to 960 MHz, its default dial 851.0125 MHz",
+          "numbering": {
+            "first": 815,
+            "last": 831,
+            "first_centre_hz": 867000000,
+            "step_hz": 25000
+          }
+        },
+        {
+          "name": "Type II 800 MHz domestic splinter, channels 3C1 to 3FE",
+          "service": "land_mobile",
+          "start_hz": 867418750,
+          "end_hz": 868956250,
+          "modes": [
+            "motorola_type2"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "note": "channels 3C1 to 3FE hex; the dial of the stack 29.7 to 960 MHz, its default dial 851.0125 MHz",
+          "numbering": {
+            "first": 961,
+            "last": 1022,
+            "first_centre_hz": 867425000,
+            "step_hz": 25000
+          }
+        },
+        {
+          "name": "Type II 800 MHz domestic splinter, channels 3BE to 3BE",
+          "service": "land_mobile",
+          "start_hz": 868968750,
+          "end_hz": 868981250,
+          "modes": [
+            "motorola_type2"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "note": "channels 3BE to 3BE hex; the dial of the stack 29.7 to 960 MHz, its default dial 851.0125 MHz",
+          "numbering": {
+            "first": 958,
+            "last": 958,
+            "first_centre_hz": 868975000,
+            "step_hz": 25000
+          }
+        }
+      ]
+    }
+  ]
+}

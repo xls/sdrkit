@@ -1,0 +1,11 @@
+[package]
+name = "sdrkit-codec-apple"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Audio decoders for sdrkit on Apple's AudioToolbox: AAC-LC, HE-AAC, xHE-AAC, MPEG-1 Layers I to III, AC-3 and E-AC-3"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-codec-mpa = { path = "../sdrkit-codec-mpa" }

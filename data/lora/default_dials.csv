@@ -1,0 +1,9 @@
+# id: default_dials
+# name: Starting dials of the LoRa point-to-point, APRS, FANET, Reticulum and ExpressLRS stacks
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+loraraw,,868100000
+aprs,,144800000
+fanet,,868200000
+reticulum,,868000000
+elrs,,868000000

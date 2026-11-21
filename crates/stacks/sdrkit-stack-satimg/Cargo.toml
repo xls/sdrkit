@@ -1,0 +1,37 @@
+[package]
+name = "sdrkit-stack-satimg"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Weather satellite imagery: Meteor-M LRPT, GOES HRIT, GK-2A LRIT, HRIT and UHRIT, Elektro-L, FY-4, FY-2 S-VISSR, HRPT / AHRPT, FY-3, GOES-R Rebroadcast, file broadcasts"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-crypto = { path = "../../algo/sdrkit-algo-crypto" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-proto-ccsds = { path = "../../proto/sdrkit-proto-ccsds" }
+# The data files that settings name (the satellite list and the AVHRR calibration of eodb).
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+# The JPEG 2000 encoder makes the picture blocks of the GOES-R Rebroadcast test signal.
+sdrkit-codec-image = { path = "../../codec/sdrkit-codec-image", features = ["jpeg2000-encode"] }
+sdrkit-codec-bzip2 = { path = "../../codec/sdrkit-codec-bzip2" }
+# The DVB-S2 receiver and transmitter of the stacks that take DVB-S2 carriers.
+sdrkit-proto-dvbs2 = { path = "../../proto/sdrkit-proto-dvbs2" }
+sdrkit-proto-ipcast = { path = "../../proto/sdrkit-proto-ipcast" }
+sdrkit-proto-mpegts = { path = "../../proto/sdrkit-proto-mpegts" }
+serde.workspace = true
+serde_json.workspace = true
+# Deflate (RFC 1951) for ZIP products: MIT OR Zlib OR Apache-2.0.
+miniz_oxide = "0.8"
+
+[dev-dependencies]
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }

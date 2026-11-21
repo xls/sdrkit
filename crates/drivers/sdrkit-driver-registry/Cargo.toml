@@ -1,0 +1,20 @@
+[package]
+name = "sdrkit-driver-registry"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "The list of every radio driver of sdrkit: one line per driver crate"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-driver-core = { path = "../sdrkit-driver-core" }
+sdrkit-driver-spyserver = { path = "../sdrkit-driver-spyserver" }
+sdrkit-driver-rsptcp = { path = "../sdrkit-driver-rsptcp" }
+sdrkit-driver-sdrpp = { path = "../sdrkit-driver-sdrpp" }
+sdrkit-driver-kiwisdr = { path = "../sdrkit-driver-kiwisdr" }
+sdrkit-driver-openwebrx = { path = "../sdrkit-driver-openwebrx" }
+sdrkit-driver-tci = { path = "../sdrkit-driver-tci" }
+sdrkit-driver-hpsdr = { path = "../sdrkit-driver-hpsdr" }
+sdrkit-driver-soapyremote = { path = "../sdrkit-driver-soapyremote" }
+sdrkit-driver-sdrconnect = { path = "../sdrkit-driver-sdrconnect" }

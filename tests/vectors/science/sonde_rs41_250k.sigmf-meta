@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 250000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic RS41-SG radiosonde at 403.000 MHz (no carrier error), 4800 bit/s GFSK, 2.4 kHz deviation, one burst (preamble and 320 byte frame) per second, SNR 25 dB in 10 kHz. Made at 1 Msps and decimated by 4 with a 257-tap Blackman windowed-sinc low-pass. Flight: 25.20 N 55.36 E, 12 km, climbing 5 m/s, drifting east 10 m/s; frame times from 2026-06-01 00:00:00 UTC. 6.5 s. See specs/science.md, radiosonde test vectors.",
+    "core:recorder": "radiosonde test-signal generator, seed 1",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 403000000.0
+    }
+  ],
+  "annotations": []
+}

@@ -1,0 +1,15 @@
+[package]
+name = "sdrkit-macros"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "The derive macros of sdrkit-core: struct shapes for table rows, result sets and events"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1"
+quote = "1"
+syn = "2"

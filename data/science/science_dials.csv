@@ -1,0 +1,26 @@
+# id: science_dials
+# name: Usual dials and ranges of the radio science monitors and of the satellite carrier survey
+# stacks: riometer jove callisto pulsar eme_echo beacon_events radar_detect sat_survey
+# source: Radio JOVE receiver manual (NASA): 20.1 MHz; e-CALLISTO network pages: 45 to 870 MHz; ETSI TS 101 376-5-5 clause 4.2: GMR-1 mobile receive band from 1525 MHz
+# note: Usage, not a published plan, except the rows the source line names. A submode row names its submode after a slash.
+stack,frequency_hz,min_hz,max_hz,note
+riometer,30000000,20000000,60000000,"cosmic noise near 30 MHz"
+jove,20100000,10000000,40000000,"the Radio JOVE receiver frequency"
+callisto,200000000,45000000,870000000,"inside the e-CALLISTO range"
+pulsar,408000000,100000000,6000000000,"a common low pulsar frequency"
+eme_echo,144000000,50000000,10400000000,"the 2 m EME band"
+beacon_events,50000000,28000000,1300000000,"the 6 m beacon band"
+radar_detect/marine,3050000000,2900000000,9600000000,"S-band marine radar"
+radar_detect/weather,5625000000,2700000000,9600000000,"C-band weather radar"
+sat_survey/zombie,145970000,100000000,3000000000,""
+sat_survey/doppler_id,437500000,30000000,6000000000,""
+sat_survey/uhf_satcom,255000000,225000000,400000000,""
+sat_survey/gmr1,1535000000,1525000000,1559000000,"inside the GMR-1 mobile receive band"
+sat_survey/starlink,11325000000,10700000000,12700000000,"Ku band; needs an LNB and a dish"
+sat_survey/oneweb,11075000000,10700000000,12700000000,"Ku band; needs an LNB and a dish"
+sat_survey/tdrs,2106400000,2025000000,2300000000,""
+sat_survey/tiangong,2224075000,130000000,2300000000,""
+sat_survey/tsikada,150000000,140000000,410000000,""
+sat_survey/gonets,388500000,380000000,395000000,""
+sat_survey/tiantong,2185000000,2170000000,2200000000,""
+sat_survey/iss,145800000,130000000,3000000000,"band hop to 437.800 MHz when nothing is heard"

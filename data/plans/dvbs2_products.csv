@@ -1,0 +1,11 @@
+# id: dvbs2_products
+# name: DVB-S2 links of the stacks sat_filecast, goes_grb and gk2a_uhrit
+# kind: other
+# modes: sat_filecast goes_grb gk2a_uhrit
+# source: no public document was read; every value is not confirmed by a public document
+# note: centre_mhz is the frequency the radio tunes: the IF after a 5150 MHz C-band LNB for the file broadcasts. downlink_mhz is the satellite downlink. A host copies symbol_rate, roll_off, pid and part_bytes into the stack settings.
+band,submode,name,centre_mhz,width_mhz,downlink_mhz,symbol_rate,roll_off,pid,part_bytes,note
+sat_filecast,himawaricast,HimawariCast,1002,3.2,4148,2586148,,1001,1411,"C band through a 5150 MHz LNB; DVB-S2 QPSK 2/3"
+sat_filecast,geonetcast,GEONETCAST Americas,1070,36,4080,30000000,,4201,1408,"C band through a 5150 MHz LNB; DVB-S2 8PSK 5/6; needs 52 Msps"
+goes_grb,,GOES-R Rebroadcast,1686.6,13.02,1686.6,8665938,0.25,,,"GOES-16 to GOES-19; fixed L-band dish"
+gk2a_uhrit,,GK-2A UHRIT,8070,23.45,8070,15622440,0.25,,,"GEO-KOMPSAT-2A at 128.2 E; X-band dish with a down-converter"

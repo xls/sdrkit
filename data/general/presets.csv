@@ -1,0 +1,17 @@
+# id: general_presets
+# name: Presets of the general stack: a frequency with the demodulator and the filter width that suit it
+# stacks: general
+# verified: no; usual calling and channel frequencies; PMR446 is the European service, the 2 m, 70 cm and 40 m frequencies are the IARU Region 1 ones
+# note: demod is the demodulator key of the general stack. A host joins rows as key=frequency_hz,demod,width_hz,name entries separated by semicolons into the setting presets.
+key,name,freq_mhz,demod,width_hz
+airband_25k,Airband 25 kHz (AM),121.5,am,8000
+airband_8k33,Airband 8.33 kHz (AM),118.0,am,5000
+marine_16,Marine VHF channel 16,156.8,nfm,12500
+pmr446,PMR446,446.00625,nfm,8500
+ham_2m_fm,Amateur 2 m FM calling,145.5,nfm,12500
+ham_70cm_fm,Amateur 70 cm FM calling,433.5,nfm,12500
+cb_9,CB channel 9 (AM),27.065,am,8000
+shortwave_am,Shortwave broadcast (AM),9.4,am,9000
+ham_40m_lsb,Amateur 40 m (LSB),7.1,lsb,2700
+ham_20m_usb,Amateur 20 m (USB),14.2,usb,2700
+cw,CW,7.03,cw,500

@@ -1,0 +1,60 @@
+[package]
+name = "sdrkit-host-engine"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "The engine of a host: radios, sessions, catalogs and every owner reached through one handle"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core", features = ["std-net"] }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+# The impairments of the test-signal driver (`gen_*` settings).
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+# The backend registries of the kernel families, selected by the engine's settings.
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core" }
+# Every driver kind, made with the host's facilities.
+sdrkit-driver-registry = { path = "../../drivers/sdrkit-driver-registry" }
+sdrkit-svc-automation = { path = "../../svc/sdrkit-svc-automation" }
+sdrkit-svc-bank = { path = "../../svc/sdrkit-svc-bank" }
+sdrkit-svc-events = { path = "../../svc/sdrkit-svc-events" }
+sdrkit-svc-freqdb = { path = "../../svc/sdrkit-svc-freqdb" }
+sdrkit-svc-identify = { path = "../../svc/sdrkit-svc-identify" }
+sdrkit-svc-memory = { path = "../../svc/sdrkit-svc-memory" }
+sdrkit-svc-outputs = { path = "../../svc/sdrkit-svc-outputs" }
+sdrkit-svc-record = { path = "../../svc/sdrkit-svc-record" }
+sdrkit-svc-scan = { path = "../../svc/sdrkit-svc-scan" }
+sdrkit-svc-store = { path = "../../svc/sdrkit-svc-store" }
+sdrkit-svc-sweep = { path = "../../svc/sdrkit-svc-sweep" }
+sdrkit-svc-watch = { path = "../../svc/sdrkit-svc-watch" }
+# The checksum of the saved settings blob.
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+# The saved state and the JSON Schema of an owner's settings.
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+# The random source of the operating system.
+getrandom = "0.2"
+
+# The count of performance cores and the class of a thread, on Apple platforms.
+[target.'cfg(target_vendor = "apple")'.dependencies]
+libc = "0.2"
+
+[dev-dependencies]
+# The plan files of the repository.
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The fake rtl_tcp server.
+sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core", features = ["fake"] }
+# A stack with audio and a test signal.
+sdrkit-stack-fm = { path = "../../stacks/sdrkit-stack-fm" }
+# A stack that transmits.
+sdrkit-stack-lora = { path = "../../stacks/sdrkit-stack-lora" }
+# A stack with a transport stream.
+sdrkit-stack-dvbt = { path = "../../stacks/sdrkit-stack-dvbt" }
+sdrkit-stack-hfkbd = { path = "../../stacks/sdrkit-stack-hfkbd" }
+sdrkit-stack-general = { path = "../../stacks/sdrkit-stack-general" }
+# Every stack, for the stacks that need a wide radio.
+sdrkit-host-catalog = { path = "../sdrkit-host-catalog" }

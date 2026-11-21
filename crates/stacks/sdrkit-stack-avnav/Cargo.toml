@@ -1,0 +1,24 @@
+[package]
+name = "sdrkit-stack-avnav"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Aviation and marine radio navigation aids: NDB, ILS, VOR and Doppler VOR, DME, eLoran and Loran-C, DGPS beacons"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+num-complex.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }

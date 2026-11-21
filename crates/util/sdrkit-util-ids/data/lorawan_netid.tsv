@@ -1,0 +1,187 @@
+# LoRaWAN NetID allocations: the network operator each NetID is allocated to.
+# Source: LoRa Alliance, "NetID Allocations" R119, https://lora-alliance.org/wp-content/uploads/2026/07/NetID-Allocations_R119.pdf
+#   (published July 2026, retrieved 8 November 2026). Unassigned NetIDs are left out. Type 7 NetIDs are allocated in runs of 16
+#   (one DevAddr /21 subnet); the count column gives the run length.
+# NetID 0x000000 and 0x000001 are for experimental and private networks (LoRaWAN Backend Interfaces TS002, clause on DevAddr
+#   assignment).
+# Columns: first NetID (hex), count, operator or network name as the allocation list prints it
+000000	1	Private/experimental nodes
+000001	1	Private/experimental nodes
+000002	1	Actility
+000003	1	Proximus
+000004	1	Swisscom
+000006	1	Echostar Mobile
+000007	1	Bouygues Telecom
+000008	1	Orbiwise
+000009	1	Netmore
+00000A	1	KPN
+00000B	1	EveryNet
+00000D	1	SK Telecom
+00000E	1	SagemCom
+00000F	1	Orange
+000010	1	A2A Smart City
+000012	1	Kerlink
+000013	1	The Things Network
+000017	1	MultiTech Systems
+000018	1	Loriot
+000019	1	NNNCo
+000022	1	Comcast
+000023	1	Ventia
+000030	1	SoftBank
+000035	1	Shenzhen Tencent Computer Systems Company Limited
+000036	1	Netze BW GmbH
+000037	1	Tektelic
+000038	1	Charter Communicaton
+000039	1	Amazon
+00003A	1	Minol ZENNER Connect GmbH
+00003B	1	Semtech
+00003C	1	The Helium Foundation
+00003E	1	Unidata S.P.A.
+00003F	1	Birdz
+600000	1	RESERVED
+600001	1	Digita
+600002	1	Netmore
+600003	1	QuaeNet Inc.
+600005	1	IoT Network AS
+600008	1	Unidata
+60000A	1	Öresundskraft
+60000E	1	Spark
+600010	1	Senet
+600013	1	Actility
+600014	1	Kerlink
+600018	1	Minol ZENNER Connect GmbH
+60001B	1	Shenzhen Tencent Computer Systems Company Limited
+60001C	1	MachineQ/Comcast
+60001D	1	NTT (Nippon Telephone and Telegraph)
+60001F	1	KPN
+600020	1	Spectrum
+600021	1	Microshare Inc.
+600024	1	Netze BW GmbH
+600025	1	Tektelic
+600027	1	Birdz
+600028	1	Charter Communication
+60002A	1	Neptune Technology Group
+60002B	1	Amazon
+60002D	1	Decentralized Wireless Foundation Inc
+60002F	1	Meshify, Inc.
+600030	1	EchoStar Mobile Ltd
+600032	1	Orange
+600034	1	Semtech
+600036	1	Unabiz
+600038	1	Netz Niederoesterreich GmbH
+600039	1	Plan-S Satellite & Space
+60003B	1	Wien Energie GmbH
+60003C	1	SNCF SA
+C00000	1	RESERVED
+C00002	1	ResIOT
+C00003	1	SYSDEV
+C00008	1	Definium Technologies
+C0000B	1	3S
+C0000D	1	Packetworx
+C00012	1	Netmore
+C00013	1	Lyse AS
+C00014	1	VTC Digicom
+C00018	1	Minol ZENNER Connect GmbH
+C00019	1	Telekom Srbija
+C0001A	1	REQUEA
+C0001B	1	Sensor Network Services
+C0001D	1	Boston Networks Limited
+C0001F	1	Angel4Future Srl
+C00021	1	Hiber
+C00024	1	NTT (Nippon Telephone and Telegraph)
+C00026	1	Mirakonta
+C00028	1	Lacuna Space
+C00029	1	Andorra Telecom
+C0002A	1	Xiamen Milesight IoT Co., Ltd.
+C0002B	1	Grenoble Alps University
+C0002E	1	Spectrum
+C0002F	1	Afnic
+C00032	1	Microshare Inc.
+C00033	1	HEIG-VD
+C00037	1	Alperia Fiber
+C00038	1	First Snow Co., Ltd
+C0003B	1	Meshed Pty Ltd
+C0003C	1	Birdz
+C0003D	1	Arthur D Riley & Co Ltd
+C00040	1	Ceske Radiokomunikace
+C00042	1	MIOT Melita.io Technology GmbH
+C00044	1	MeWe, Inc
+C00045	1	Alpha-Omega Technology GmbH & Co. KG
+C00046	1	SSE Contracting Limted t/a Mayflower Smart Control
+C00047	1	VEGA Grieshaber KG
+C00049	1	Actility
+C0004B	1	Nova Track Ltd
+C0004D	1	Machines Talk
+C0004F	1	The Saira 2.0, LLC dba The IoT Solutions
+C00050	1	Neptune Technology Group
+C00051	1	myDevices
+C00052	1	Savoie Mont Blanc University
+C00053	1	Decentralized Wireless Foundation Inc
+C00054	1	X-Telia Group Inc
+C00057	1	Bejing Dingtek Technology Corp. Ltd
+C00058	1	The Things Network Foundation
+C0005A	1	Hutchison Drei Austria GmbH
+C0005B	1	Agrology, PBC
+C0005C	1	mhascaro GmbH
+C0005D	1	Log5 Data
+C0005E	1	Citysens GmbH
+C00060	1	Meshify, Inc.
+C00061	1	EchoStar Mobile Ltd
+C00063	1	Hello Space Systems Technology A.S.
+C00064	1	Wien Energie GmbH
+C00066	1	Stichting ThingsIX Foundation
+C00068	1	ElektronikSystem i Umea AB (ELSYS)
+C00069	1	UPLINK Network GmbH
+C0006A	1	Nynet Ltd
+C0006B	1	ETA2U SRL
+C0006D	1	MClimate
+C0006E	1	Cibicom A/S
+C00070	1	Akenza AG
+C00071	1	Ticae Telecom S.L.
+C00072	1	Unabiz
+C00073	1	SLY Inc.
+C00074	1	Swisscom
+C00075	1	Nell Inc
+C00079	1	Plan-S Satellite & Space
+C0007A	1	Emergent Technologies
+C0007B	1	Shenzhen Sunricher Technology Co., Ltd
+C0007C	1	Netz Niederoesterreich GmbH
+C0007D	1	Connected Conservation Foundation
+C0007E	1	Universidad de Salamanca
+C0007F	1	Heliotics s.r.o.
+C00080	1	Nesos Group Ltd
+C00081	1	SNCF SA
+C00082	1	University of Applied Sciences Lübeck
+E00000	16	RESERVED
+E00010	16	RESERVED
+E00020	16	Techtenna b.v.
+E00030	16	LNX Solutions
+E00040	16	Cometa Sas
+E00050	16	Provincie Zeeland / Pollex
+E00060	16	Intersaar GmbH
+E00080	16	HeNet B.V.
+E00090	16	SkyNet IoT
+E000A0	16	Kanton Zug
+E000B0	16	Nebra Ltd
+E000D0	16	Borough Smart
+E000E0	16	ISILINE s.r.l.
+E000F0	16	Schippers Europe B.V.
+E00100	16	Meshed Pty Ltd
+E00110	16	RemEX Technologies Limited
+E00120	16	Actility
+E00130	16	Provincie Zeeland / Pollex
+E00140	16	Tracpac Ltd
+E00150	16	Tracpac Ltd
+E00160	16	VTM IoT
+E001A0	16	Sparknet Technologies
+E001B0	16	Actility
+E001C0	16	Actility
+E001D0	16	SURF B.V.
+E001F0	16	Actility
+E00200	16	New Niederrhein Energie und Wasser GmbH
+E00210	16	FrostSmart Ltd
+E00220	16	Invisible Systems Ltd
+E00240	16	Actility
+E00250	16	Actility
+E00260	16	Actility
+E00270	16	Actility

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 7000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic DVB-C (EN 300 429 annex A) carrier, 0.2 s. 64-QAM, 5.361 Msym/s, roll-off 0.15, carrier 15 kHz above the centre, Es/N0 32 dB, no echo, normal spectrum, rms level about 0.2. Outer code: energy dispersal, RS(204,188), Forney interleaver I = 12; differential quadrant coding. Payload: a checkable transport stream. Packet n (n = 0, 1, 2, ... counted from the start of the transmitter) is: 0x47, 0x00, 0x20 (PID 0x0020, no flags), 0x10 | (n mod 16) (payload only, continuity counter n mod 16), then n as a 32-bit big-endian number in bytes 4 to 7, then byte i (8 to 187) = (7 n + 13 i) mod 256.",
+    "core:recorder": "sdrkit dvbcs test generator (synthetic), noise seed 7",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 346000000.0
+    }
+  ],
+  "annotations": []
+}

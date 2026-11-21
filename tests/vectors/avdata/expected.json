@@ -1,0 +1,92 @@
+{
+  "note": "Expected decode of the recordings in this folder (specs/avdata.md, section 'Test vectors'). Each recording is fed from its start in pieces of 65536 samples; the result is read after the last sample. Times are seconds of signal from the first sample. 'tolerance' gives the accepted range; a value given without one is exact.",
+  "acars_1m.sigmf-meta": {
+    "mode": "acars",
+    "settings": { "channels": "", "threshold_db": 8, "join_blocks": true, "center_hz": 131500000 },
+    "messages": [
+      { "end_s": 1.132, "freq_hz": 131525000, "mode": "2", "registration": "TST001", "ack": "NAK", "label": "H1", "label_meaning": "Message to / from terminal", "block_id": "0", "downlink": true, "blocks": 1, "msn": "M01", "flight": "TEST01", "text": "SYNTHETIC ACARS TEST BLOCK", "bits_fixed": 0 },
+      { "end_s": 1.540, "freq_hz": 131525000, "mode": "2", "registration": "TST001", "ack": "NAK", "label": "H1", "label_meaning": "Message to / from terminal", "block_id": "1", "downlink": true, "blocks": 1, "msn": "M01", "flight": "TEST01", "text": "SYNTHETIC ACARS TEST BLOCK", "bits_fixed": 0 },
+      { "end_s": 1.949, "freq_hz": 131525000, "mode": "2", "registration": "TST001", "ack": "NAK", "label": "H1", "label_meaning": "Message to / from terminal", "block_id": "2", "downlink": true, "blocks": 1, "msn": "M01", "flight": "TEST01", "text": "SYNTHETIC ACARS TEST BLOCK", "bits_fixed": 0 }
+    ],
+    "aircraft": [ { "registration": "TST001", "flight": "TEST01", "messages": 3, "last_label": "H1", "freq_hz": 131525000, "has_position": false } ],
+    "channels": [ { "freq_hz": 131525000, "messages": 3, "bad": 0 } ],
+    "counters": { "blocks_ok": 3, "blocks_bad": 0, "frames_started": 3, "positions": 0 },
+    "state": "decoding",
+    "measurements": { "snr_db": 30, "cfo_hz": 0 },
+    "tolerance": {
+      "messages": "exactly these three, newest first in the list, every field exact",
+      "end_s": 0.25,
+      "frames_started": "at least 3",
+      "snr_db": [24, 36],
+      "cfo_hz": [-400, 400],
+      "level_db": "any, the same within 1 dB for the three blocks"
+    }
+  },
+  "vdl2_250k.sigmf-meta": {
+    "mode": "vdl2",
+    "settings": { "channels": "136.900 136.775", "whole_span": false, "track_tuning": true, "center_hz": 136850000 },
+    "frames": [
+      { "t_s": 0.100, "freq_hz": 136900000, "src": "10A000", "src_type": 4, "dst": "FFFFFF", "dst_type": 7, "response": true, "kind": "U", "name": "GSIF", "proto": "XID", "position": [51.5, -0.5], "pos_kind": "XID ground station location", "airports": "ZZZZ" },
+      { "t_s": 0.400, "freq_hz": 136900000, "src": "4CA2B1", "src_type": 1, "dst": "10A000", "dst_type": 4, "response": false, "kind": "U", "name": "XID_CMD_LE", "pf": true, "proto": "XID", "position": [51.6, -0.2], "alt_ft": 35000, "pos_kind": "XID aircraft location", "destination_airport": "ZZZZ" },
+      { "t_s": 0.800, "freq_hz": 136900000, "src": "4CA2B1", "dst": "10A000", "kind": "I", "ns": 0, "nr": 0, "proto": "ACARS", "acars_crc_ok": true, "reg": "TST001", "label": "H1", "block_id": "1", "msg_num": "M01", "flight": "TEST01", "acars_text": "SYNTHETIC VDL2 TEST MESSAGE", "summary": "ACARS H1 (Message to / from terminal) TEST01: SYNTHETIC VDL2 TEST MESSAGE" },
+      { "t_s": 1.300, "freq_hz": 136775000, "src": "4CA2B1", "dst": "10A000", "kind": "I", "ns": 1, "nr": 0, "proto": "ACARS", "acars_crc_ok": true, "reg": "TST001", "label": "B6", "block_id": "2", "msg_num": "M02", "flight": "TEST01", "adsc": { "ground": "TESTGND", "crc_ok": true, "report": "Basic report", "lat": 51.49996, "lon": -0.39997, "alt_ft": 36000, "sec_past_hour": 1234.5, "accuracy": "< 0.25 nm", "flight_id": "TEST01", "track_deg": 90.0, "ground_kt": 450.0, "vs_fpm": 0 }, "summary": "ACARS B6 ADS-C position report" },
+      { "t_s": 1.800, "freq_hz": 136775000, "src": "4CA2B1", "dst": "10A000", "kind": "I", "ns": 2, "nr": 0, "proto": "X.25", "summary": "X.25 call request, LCN 1", "called_dte": "1234", "calling_dte": "56789", "call_user_data": "C100 (ICAO SNDCF)" },
+      { "t_s": 2.200, "freq_hz": 136900000, "src": "10A000", "dst": "4CA2B1", "response": true, "kind": "S", "name": "RR", "nr": 3, "summary": "RR N(R) 3" },
+      { "t_s": 2.200, "freq_hz": 136900000, "src": "10A000", "dst": "4CA2B1", "kind": "I", "ns": 0, "nr": 3, "proto": "ACARS", "acars_crc_ok": true, "reg": "TST001", "label": "H1", "block_id": "A", "downlink": false, "acars_text": "- #M1/TEST UPLINK OK" }
+    ],
+    "aircraft": [ { "icao": "4CA2B1", "reg": "TST001", "flight": "TEST01", "messages": 6, "ground_station": "10A000", "position": [51.49996, -0.39997], "alt_ft": 36000, "track_deg": 90.0, "ground_kt": 450.0, "track_points": 2 } ],
+    "ground_stations": [ { "addr": "10A000", "type": 4, "messages": 3, "position": [51.5, -0.5], "airports": "ZZZZ" } ],
+    "channels": [ { "freq_hz": 136775000, "in_band": true, "good": 2 }, { "freq_hz": 136900000, "in_band": true, "good": 4 } ],
+    "counters": { "frames_ok": 7, "bursts_bad": 0, "fcs_bad": 0, "positions": 3 },
+    "state": "decoding",
+    "tolerance": {
+      "frames": "exactly these seven (matched by source, destination, channel and time), nothing else",
+      "t_s": 0.006,
+      "position": 0.0001,
+      "tuning_error_hz": [-150, 150],
+      "aircraft.messages": "6: every frame to or from the aircraft counts (4 sent by it, the RR and the ACARS uplink addressed to it)"
+    }
+  },
+  "hfdl_48k.sigmf-meta": {
+    "mode": "hfdl",
+    "settings": { "channels": "8927", "whole_span": false, "center_hz": 8920000 },
+    "bursts": [
+      { "t_s": 0.200, "bps": 600, "slots": 1, "messages": [
+        { "kind": "SPDU", "squitter": true, "gs_id": 1, "gs_name": "San Francisco", "utc_sync": true, "frame_index": 777, "frame_time_utc": "06:54:24", "active_khz": [21934, 8927], "system_table_version": 50, "other_stations": [ { "gs_id": 7, "name": "Shannon", "utc": true, "khz": [11384, 10081] } ], "summary": "Squitter San Francisco, frame 777, 2 frequencies in use" } ] },
+      { "t_s": 2.800, "bps": 1200, "slots": 1, "messages": [
+        { "kind": "Unnumbered data", "hfnpdu": "Performance data", "uplink": false, "gs_id": 1, "ac_id": 23, "flight": "TEST01", "lat": 51.50013, "lon": -30.25017, "utc_sec": 40000, "utc": "11:06:40" },
+        { "kind": "Unnumbered data", "hfnpdu": "ACARS", "uplink": false, "gs_id": 1, "ac_id": 23, "acars_crc_ok": true, "reg": "TST001", "label": "H1", "block_id": "2", "msg_num": "M01", "flight": "TEST01", "acars_text": "SYNTHETIC HFDL TEST MESSAGE" } ] },
+      { "t_s": 5.400, "bps": 1800, "slots": 1, "messages": [
+        { "kind": "Unnumbered data", "hfnpdu": "ACARS", "uplink": true, "gs_id": 1, "ac_id": 23, "acars_crc_ok": true, "reg": "TST001", "label": "H1", "block_id": "A", "acars_text": "- #M1/TEST UPLINK OK" } ] }
+    ],
+    "aircraft": [ { "key": "ground station 1, aircraft id 23 (address not known)", "reg": "TST001", "flight": "TEST01", "gs_id": 1, "messages": 3, "position": [51.50013, -30.25017], "logged_on": false } ],
+    "ground_stations": [ { "id": 1, "name": "San Francisco", "heard_direct": true, "squitters": 1, "frame_index": 777, "utc_sync": true, "active_khz": [21934, 8927] } ],
+    "channels": [ { "freq_hz": 8927000, "gs_id": 1, "in_band": true, "good": 3, "bad": 0, "last_bps": 1800 } ],
+    "counters": { "pdus_ok": 3, "bursts_bad": 0, "squitters": 1, "lpdus": 3, "acars": 2, "positions": 1, "by_rate": { "300": 0, "600": 1, "1200": 1, "1800": 1 } },
+    "state": "decoding",
+    "measurements": { "cfo_hz": 40 },
+    "tolerance": { "t_s": 0.05, "cfo_hz": [37, 43], "lat_lon": 0.0002, "messages": "exactly these four, nothing else" }
+  },
+  "airband_250k.sigmf-meta": {
+    "mode": "airband",
+    "settings": { "center_hz": 118754166.667, "squelch_db": 6, "hang_s": 0.5, "scan": false, "channels": [ { "name": "118.700", "freq_hz": 118700000, "is833": false, "label": "A" }, { "name": "118.710", "freq_hz": 118708333.333, "is833": true, "label": "B" }, { "name": "118.650", "freq_hz": 118650000, "is833": false, "label": "C" } ] },
+    "activity": [
+      { "channel": "118.700", "start_s": 0.50, "dur_s": 1.50 },
+      { "channel": "118.710", "start_s": 1.20, "dur_s": 1.00 },
+      { "channel": "118.700", "start_s": 3.50, "dur_s": 1.50 },
+      { "channel": "118.710", "start_s": 4.00, "dur_s": 0.15 }
+    ],
+    "at_end": { "118.650": { "open": true, "transmissions_logged": 0 }, "118.700": { "open": false }, "118.710": { "open": false } },
+    "audio": { "118.700_tone_1khz_snr_db": "at least 19 (carrier-to-noise 25 dB minus 6)" },
+    "tuning_error_hz": 0,
+    "heterodyne": false,
+    "tolerance": { "start_s": 0.05, "dur_s": 0.10, "tuning_error_hz": [-300, 300], "activity": "exactly these four entries (the continuous channel is open and has no closed entry), nothing on noise" }
+  },
+  "selcal_500k.sigmf-meta": {
+    "mode": "selcal",
+    "settings": { "demod": "AM", "dial_hz": 124000000, "signal_offset_hz": -50000 },
+    "calls": [ { "code": "AM-CP", "tones_hz": [312.6, 977.2, 384.6, 1083.9], "dial_hz": 124000000, "time_s": 2.6 } ],
+    "codes": [ { "code": "AM-CP", "count": 1 } ],
+    "tolerance": { "calls": "exactly one call", "time_s": 0.3 }
+  }
+}

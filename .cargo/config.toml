@@ -1,0 +1,10 @@
+# Hardware AES and carry-less multiply on 64-bit ARM (iPhone, iPad, Apple silicon Macs, Android). Without these, the RustCrypto
+# AES and GCM code runs 30 to 50 times slower. Every ARMv8 Apple device has the instructions.
+[target.aarch64-apple-ios]
+rustflags = ["--cfg", "aes_armv8", "--cfg", "polyval_armv8"]
+
+[target.aarch64-apple-ios-sim]
+rustflags = ["--cfg", "aes_armv8", "--cfg", "polyval_armv8"]
+
+[target.aarch64-apple-darwin]
+rustflags = ["--cfg", "aes_armv8", "--cfg", "polyval_armv8"]

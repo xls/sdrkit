@@ -1,0 +1,18 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 4000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic MetOp AHRPT, QPSK 2.33 Msym/s, CCSDS K=7 code with G2 inverted, Es/N0 12 dB, carrier +20 kHz, symbol clock +10 ppm, AVHRR APID 103; 0.45 s",
+    "core:author": "sdrkit test vectors",
+    "core:license": "CC0-1.0",
+    "core:recorder": "synthetic generator"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 1701300000.0
+    }
+  ],
+  "annotations": []
+}

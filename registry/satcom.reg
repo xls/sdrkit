@@ -1,0 +1,1326 @@
+# The interface of the stack family satcom. The registry test of the family writes this file.
+family satcom version=1.2
+shape.InmarsatcFields since=1.0
+shape.InmarsatcFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.InmarsatcFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.InmarsatcFields.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.InmarsatcFields.drift_hz_s type=f64 unit=Hz/s optional=no since=1.0
+shape.InmarsatcFields.frames_found type=i64 unit= optional=no since=1.0
+shape.InmarsatcFields.packets_ok type=i64 unit= optional=no since=1.0
+shape.InmarsatcFields.packets_bad type=i64 unit= optional=no since=1.0
+shape.InmarsatcFields.message_count type=i64 unit= optional=no since=1.0
+shape.InmarsatcFields.esn0_db type=f64 unit=dB optional=yes since=1.0
+shape.InmarsatcFields.ebn0_db type=f64 unit=dB optional=yes since=1.0
+shape.InmarsatcFields.uw_errors type=i64 unit= optional=yes since=1.0
+shape.InmarsatcFields.uw_errors_avg type=f64 unit= optional=yes since=1.0
+shape.InmarsatcFields.symbol_error_rate type=f64 unit= optional=yes since=1.0
+shape.InmarsatcFields.polarity_slips type=i64 unit= optional=no since=1.0
+shape.InmarsatcFields.ocean_region_code type=i64 unit= optional=yes since=1.0
+shape.InmarsatcFields.region type=text unit= optional=yes since=1.0
+shape.InmarsatcFields.station_id type=i64 unit= optional=yes since=1.0
+shape.InmarsatcFields.station_name type=text unit= optional=yes since=1.0
+shape.InmarsatcFields.channel_type_code type=i64 unit= optional=yes since=1.0
+shape.InmarsatcFields.channel_type type=text unit= optional=yes since=1.0
+shape.InmarsatcFields.network_version type=i64 unit= optional=yes since=1.0
+shape.InmarsatcFields.signalling_channel type=i64 unit= optional=yes since=1.0
+shape.InmarsatcFields.random_interval type=i64 unit= optional=yes since=1.0
+shape.InmarsatcFields.status_byte type=i64 unit= optional=yes since=1.0
+shape.InmarsatcFields.status_text type=text unit= optional=yes since=1.0
+shape.InmarsatcFields.services_mask type=i64 unit= optional=yes since=1.0
+shape.InmarsatcFields.services_text type=text unit= optional=yes since=1.0
+shape.InmarsatcFields.signalling_uplink_hz type=hz unit=Hz optional=yes since=1.0
+shape.InmarsatcFields.frame_number type=i64 unit= optional=yes since=1.0
+shape.InmarsatcFields.frame_time type=duration unit=s optional=yes since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.InmarsatcMessageRow since=1.0
+shape.InmarsatcMessageRow.first_heard type=time unit= optional=yes since=1.0
+shape.InmarsatcMessageRow.last_heard type=time unit= optional=yes since=1.0
+shape.InmarsatcMessageRow.channel type=i64 unit= optional=no refers_to=channels since=1.0
+shape.InmarsatcMessageRow.message_number type=i64 unit= optional=no since=1.0
+shape.InmarsatcMessageRow.service_code type=i64 unit= optional=no since=1.0
+shape.InmarsatcMessageRow.service type=text unit= optional=no since=1.0
+shape.InmarsatcMessageRow.kind type=text unit= optional=no since=1.0
+shape.InmarsatcMessageRow.priority type=text unit= optional=no since=1.0
+shape.InmarsatcMessageRow.presentation type=text unit= optional=no since=1.0
+shape.InmarsatcMessageRow.packets type=i64 unit= optional=no since=1.0
+shape.InmarsatcMessageRow.complete type=bool unit= optional=no since=1.0
+shape.InmarsatcMessageRow.times_heard type=i64 unit= optional=no since=1.0
+shape.InmarsatcMessageRow.area type=text unit= optional=no since=1.0
+shape.InmarsatcMessageRow.subject type=text unit= optional=no since=1.0
+shape.InmarsatcMessageRow.warning_number type=text unit= optional=no since=1.0
+shape.InmarsatcMessageRow.text type=text unit= optional=no since=1.0
+shape.InmarsatcMessageRow.truncated type=bool unit= optional=no since=1.0
+shape.InmarsatcChannelRow since=1.0
+shape.InmarsatcChannelRow.index type=i64 unit= optional=no since=1.0
+shape.InmarsatcChannelRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.InmarsatcChannelRow.carrier type=bool unit= optional=no since=1.0
+shape.InmarsatcChannelRow.state type=choice(searching,carrier,frames) unit= optional=no since=1.0
+shape.InmarsatcChannelRow.ebn0_db type=f64 unit=dB optional=no since=1.0
+shape.InmarsatcChannelRow.uw_errors_avg type=f64 unit= optional=no since=1.0
+shape.InmarsatcChannelRow.frame_number type=i64 unit= optional=no since=1.0
+shape.InmarsatcChannelRow.frames_ok type=i64 unit= optional=no since=1.0
+shape.InmarsatcChannelRow.frames_bad type=i64 unit= optional=no since=1.0
+shape.InmarsatcChannelRow.messages type=i64 unit= optional=no since=1.0
+shape.InmarsatcChannelRow.region type=text unit= optional=no since=1.0
+shape.InmarsatcChannelRow.station_name type=text unit= optional=no since=1.0
+shape.InmarsatcChannelRow.channel_type type=text unit= optional=no since=1.0
+shape.InmarsatcPacketCountRow since=1.0
+shape.InmarsatcPacketCountRow.descriptor type=i64 unit= optional=no since=1.0
+shape.InmarsatcPacketCountRow.descriptor_name type=text unit= optional=no since=1.0
+shape.InmarsatcPacketCountRow.packets_ok type=i64 unit= optional=no since=1.0
+shape.InmarsatcPacketCountRow.packets_bad type=i64 unit= optional=no since=1.0
+shape.InmarsatcEgcEvent since=1.0
+shape.InmarsatcEgcEvent.source type=text unit= optional=no since=1.0
+shape.InmarsatcEgcEvent.text type=text unit= optional=no since=1.0
+shape.InmarsatcEgcEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.InmarsatcEgcEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.InmarsatcEgcEvent.message_number type=i64 unit= optional=no since=1.0
+shape.InmarsatcEgcEvent.service_code type=i64 unit= optional=no since=1.0
+shape.InmarsatcEgcEvent.priority_code type=i64 unit= optional=no since=1.0
+shape.InmarsatcEgcEvent.subject type=text unit= optional=no since=1.0
+shape.InmarsatcEgcEvent.area type=text unit= optional=no since=1.0
+shape.AeroFields since=1.0
+shape.AeroFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.AeroFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.AeroFields.frames type=i64 unit= optional=no since=1.0
+shape.AeroFields.messages type=i64 unit= optional=no since=1.0
+shape.AeroFields.positions type=i64 unit= optional=no since=1.0
+shape.AeroFields.aircraft type=i64 unit= optional=no since=1.0
+shape.AeroFields.channels_decoding type=i64 unit= optional=no since=1.0
+shape.AeroFields.ebn0_db type=f64 unit=dB optional=yes since=1.0
+shape.AeroChannelRow since=1.0
+shape.AeroChannelRow.id type=i64 unit= optional=no since=1.0
+shape.AeroChannelRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.AeroChannelRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.AeroChannelRow.rate type=i64 unit=bit/s optional=no since=1.0
+shape.AeroChannelRow.state type=choice(seen,carrier,frames,data) unit= optional=no since=1.0
+shape.AeroChannelRow.ebn0_db type=f64 unit=dB optional=no since=1.0
+shape.AeroChannelRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.AeroChannelRow.frames type=i64 unit= optional=no since=1.0
+shape.AeroChannelRow.uw_misses type=i64 unit= optional=no since=1.0
+shape.AeroChannelRow.sus_good type=i64 unit= optional=no since=1.0
+shape.AeroChannelRow.sus_bad type=i64 unit= optional=no since=1.0
+shape.AeroChannelRow.ber type=f64 unit= optional=no since=1.0
+shape.AeroSuTypeRow since=1.0
+shape.AeroSuTypeRow.su_type type=i64 unit= optional=no since=1.0
+shape.AeroSuTypeRow.su_name type=text unit= optional=no since=1.0
+shape.AeroSuTypeRow.count type=i64 unit= optional=no since=1.0
+shape.AeroLogonRow since=1.0
+shape.AeroLogonRow.at type=duration unit=s optional=no since=1.0
+shape.AeroLogonRow.time type=time unit= optional=yes since=1.0
+shape.AeroLogonRow.channel type=i64 unit= optional=no since=1.0
+shape.AeroLogonRow.aes type=text unit= optional=no since=1.0
+shape.AeroLogonRow.ges type=text unit= optional=no since=1.0
+shape.AeroLogonRow.logon type=bool unit= optional=no since=1.0
+shape.AeroMessageRow since=1.0
+shape.AeroMessageRow.at type=duration unit=s optional=no since=1.0
+shape.AeroMessageRow.time type=time unit= optional=yes since=1.0
+shape.AeroMessageRow.channel type=i64 unit= optional=no since=1.0
+shape.AeroMessageRow.rate type=i64 unit=bit/s optional=no since=1.0
+shape.AeroMessageRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.AeroMessageRow.aes type=text unit= optional=no since=1.0
+shape.AeroMessageRow.ges type=text unit= optional=no since=1.0
+shape.AeroMessageRow.registration type=text unit= optional=no since=1.0
+shape.AeroMessageRow.flight type=text unit= optional=no since=1.0
+shape.AeroMessageRow.label type=text unit= optional=no since=1.0
+shape.AeroMessageRow.label_name type=text unit= optional=no since=1.0
+shape.AeroMessageRow.message_number type=text unit= optional=no since=1.0
+shape.AeroMessageRow.text type=text unit= optional=no since=1.0
+shape.AeroMessageRow.check_ok type=bool unit= optional=no since=1.0
+shape.AeroMessageRow.complete type=bool unit= optional=no since=1.0
+shape.AeroMessageRow.adsc type=text unit= optional=no since=1.0
+shape.AeroMessageRow.position type=position unit= optional=yes since=1.0
+shape.AeroMessageRow.alt_ft type=f64 unit=ft optional=yes since=1.0
+shape.AeroMessageRow.reading type=text unit= optional=yes since=1.0
+shape.AeroMessageRow.reading_kind type=text unit= optional=yes since=1.0
+shape.AeroMessageRow.reading_category type=text unit= optional=yes since=1.0
+shape.AeroMessageRow.cpdlc_imi type=text unit= optional=yes since=1.0
+shape.AeroMessageRow.cpdlc_ground type=text unit= optional=yes since=1.0
+shape.AeroMessageRow.cpdlc_aircraft type=text unit= optional=yes since=1.0
+shape.AeroMessageRow.cpdlc_crc_ok type=bool unit= optional=yes since=1.0
+shape.AeroMessageRow.cpdlc_parsed type=bool unit= optional=yes since=1.0
+shape.AeroMessageRow.cpdlc_text type=text unit= optional=yes since=1.0
+shape.AeroAircraftRow since=1.0
+shape.AeroAircraftRow.address type=text unit= optional=yes since=1.0
+shape.AeroAircraftRow.registration type=text unit= optional=yes since=1.0
+shape.AeroAircraftRow.country type=text unit= optional=yes since=1.0
+shape.AeroAircraftRow.flight type=text unit= optional=yes since=1.0
+shape.AeroAircraftRow.label type=text unit= optional=yes since=1.0
+shape.AeroAircraftRow.messages type=i64 unit= optional=no since=1.0
+shape.AeroAircraftRow.position type=position unit= optional=yes since=1.0
+shape.AeroAircraftRow.alt_ft type=f64 unit=ft optional=yes since=1.0
+shape.AeroAircraftRow.track_deg type=f64 unit=deg optional=yes since=1.0
+shape.AeroAircraftRow.gs_kt type=f64 unit=kt optional=yes since=1.0
+shape.AeroAircraftRow.vs_fpm type=f64 unit=ft/min optional=yes since=1.0
+shape.AeroAircraftRow.last_heard type=time unit= optional=yes since=1.0
+shape.AeroAircraftRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.AeroFactRow since=1.0
+shape.AeroFactRow.kind type=text unit= optional=no since=1.0
+shape.AeroFactRow.text type=text unit= optional=no since=1.0
+shape.AeroFactRow.heard type=i64 unit= optional=yes since=1.0
+shape.AeroFactRow.last_heard type=time unit= optional=yes since=1.0
+shape.AeroMessageEvent since=1.0
+shape.AeroMessageEvent.source type=text unit= optional=yes since=1.0
+shape.AeroMessageEvent.text type=text unit= optional=no since=1.0
+shape.AeroMessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.AeroMessageEvent.position type=position unit= optional=yes since=1.0
+shape.AeroMessageEvent.label type=text unit= optional=no since=1.0
+shape.AeroMessageEvent.aes type=text unit= optional=no since=1.0
+shape.AeroMessageEvent.flight type=text unit= optional=no since=1.0
+shape.AeroMessageEvent.check_ok type=bool unit= optional=no since=1.0
+shape.AeroLogonEvent since=1.0
+shape.AeroLogonEvent.source type=text unit= optional=no since=1.0
+shape.AeroLogonEvent.text type=text unit= optional=no since=1.0
+shape.AeroLogonEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.AeroLogonEvent.ges type=text unit= optional=no since=1.0
+shape.AeroLogonEvent.logon type=bool unit= optional=no since=1.0
+shape.InmarsatFields since=1.0
+shape.InmarsatFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.InmarsatFields.satellite type=text unit= optional=yes since=1.0
+shape.InmarsatFields.satellite_confidence type=f64 unit= optional=yes since=1.0
+shape.InmarsatFields.satellite_ambiguous type=bool unit= optional=no since=1.0
+shape.InmarsatFields.beam type=text unit= optional=no since=1.0
+shape.InmarsatFields.identification_note type=text unit= optional=no since=1.0
+shape.InmarsatFields.messages type=i64 unit= optional=no since=1.0
+shape.InmarsatFields.positions type=i64 unit= optional=no since=1.0
+shape.InmarsatFields.egc_frames type=i64 unit= optional=no since=1.0
+shape.InmarsatFields.carriers type=i64 unit= optional=no since=1.0
+shape.InmarsatFields.decoding type=i64 unit= optional=no since=1.0
+shape.InmarsatCarrierRow since=1.0
+shape.InmarsatCarrierRow.id type=i64 unit= optional=no since=1.0
+shape.InmarsatCarrierRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.InmarsatCarrierRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.InmarsatCarrierRow.width type=hz unit=Hz optional=no since=1.0
+shape.InmarsatCarrierRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.InmarsatCarrierRow.class type=choice(narrow,medium,wide) unit= optional=no since=1.0
+shape.InmarsatCarrierRow.decodes type=choice(unknown,aero_p,inmarsat_c) unit= optional=no since=1.0
+shape.InmarsatCarrierRow.rate type=i64 unit=bit/s optional=no since=1.0
+shape.InmarsatCarrierRow.state type=i64 unit= optional=no since=1.0
+shape.InmarsatCarrierRow.ebn0_db type=f64 unit=dB optional=no since=1.0
+shape.InmarsatCarrierRow.frames type=i64 unit= optional=no since=1.0
+shape.InmarsatCarrierRow.satellite type=text unit= optional=no since=1.0
+shape.InmarsatCarrierRow.parked type=bool unit= optional=no since=1.0
+shape.InmarsatCarrierRow.focused type=bool unit= optional=no since=1.0
+shape.InmarsatCarrierRow.window type=i64 unit= optional=no since=1.0
+shape.InmarsatCarrierRow.voice_candidate type=bool unit= optional=no since=1.0
+shape.InmarsatCandidateRow since=1.0
+shape.InmarsatCandidateRow.name type=text unit= optional=no since=1.0
+shape.InmarsatCandidateRow.satellite_confidence type=f64 unit= optional=no since=1.0
+shape.InmarsatCandidateRow.content type=f64 unit= optional=yes since=1.0
+shape.InmarsatCandidateRow.frequency_score type=f64 unit= optional=yes since=1.0
+shape.InmarsatCandidateRow.geometry type=f64 unit= optional=yes since=1.0
+shape.InmarsatCandidateRow.elevation_deg type=f64 unit=deg optional=yes since=1.0
+shape.InmarsatCandidateRow.azimuth_deg type=f64 unit=deg optional=yes since=1.0
+shape.InmarsatCandidateReasonRow since=1.0
+shape.InmarsatCandidateReasonRow.candidate type=text unit= optional=no refers_to=candidates since=1.0
+shape.InmarsatCandidateReasonRow.why type=text unit= optional=no since=1.0
+shape.IridiumFields since=1.0
+shape.IridiumFields.bursts type=i64 unit= optional=no since=1.0
+shape.IridiumFields.demodulated type=i64 unit= optional=no since=1.0
+shape.IridiumFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.IridiumFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.IridiumFields.dropped type=i64 unit= optional=no since=1.0
+shape.IridiumFields.duplicates type=i64 unit= optional=no since=1.0
+shape.IridiumFields.downlink type=i64 unit= optional=no since=1.0
+shape.IridiumFields.uplink type=i64 unit= optional=no since=1.0
+shape.IridiumFields.burst_rate type=hz unit=Hz optional=no since=1.0
+shape.IridiumFields.uw_rate type=hz unit=Hz optional=no since=1.0
+shape.IridiumFields.confidence_pct type=f64 unit=% optional=yes since=1.0
+shape.IridiumFields.esn0_db type=f64 unit=dB optional=yes since=1.0
+shape.IridiumFields.noise_db_hz type=f64 unit=dBFS/Hz optional=yes since=1.0
+shape.IridiumRawRow since=1.0
+shape.IridiumRawRow.at type=duration unit=s optional=no since=1.0
+shape.IridiumRawRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.IridiumRawRow.direction type=choice(downlink,uplink) unit= optional=no since=1.0
+shape.IridiumRawRow.confidence_pct type=f64 unit=% optional=no since=1.0
+shape.IridiumRawRow.line type=text unit= optional=no since=1.0
+shape.IridiumRawEvent since=1.0
+shape.IridiumRawEvent.text type=text unit= optional=no since=1.0
+shape.IridiumRawEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.IridiumRawEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.IridiumRawEvent.confidence_pct type=f64 unit=% optional=no since=1.0
+shape.GlobalstarFields since=1.0
+shape.GlobalstarFields.active_channels type=i64 unit= optional=no since=1.0
+shape.GlobalstarFields.activities type=i64 unit= optional=no since=1.0
+shape.GlobalstarFields.doppler type=hz unit=Hz optional=yes since=1.0
+shape.GlobalstarChannelRow since=1.0
+shape.GlobalstarChannelRow.channel type=i64 unit= optional=no since=1.0
+shape.GlobalstarChannelRow.centre type=hz unit=Hz optional=no since=1.0
+shape.GlobalstarChannelRow.in_view type=bool unit= optional=no since=1.0
+shape.GlobalstarChannelRow.active type=bool unit= optional=no since=1.0
+shape.GlobalstarChannelRow.power_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.GlobalstarChannelRow.floor_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.GlobalstarChannelRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.GlobalstarChannelRow.occupancy_pct type=f64 unit=% optional=no since=1.0
+shape.GlobalstarChannelRow.doppler type=hz unit=Hz optional=no since=1.0
+shape.GlobalstarChannelRow.last_active type=duration unit=s optional=yes since=1.0
+shape.GlobalstarChannelRow.events type=i64 unit= optional=no since=1.0
+shape.GlobalstarActivityRow since=1.0
+shape.GlobalstarActivityRow.start type=duration unit=s optional=no since=1.0
+shape.GlobalstarActivityRow.duration type=duration unit=s optional=no since=1.0
+shape.GlobalstarActivityRow.channel type=i64 unit= optional=no since=1.0
+shape.GlobalstarActivityRow.peak_snr_db type=f64 unit=dB optional=no since=1.0
+shape.GlobalstarActivityRow.doppler_start type=hz unit=Hz optional=no since=1.0
+shape.GlobalstarActivityRow.doppler_end type=hz unit=Hz optional=no since=1.0
+shape.GlobalstarActivityRow.wall_start type=time unit= optional=yes since=1.0
+shape.GlobalstarActivityEvent since=1.0
+shape.GlobalstarActivityEvent.source type=text unit= optional=no since=1.0
+shape.GlobalstarActivityEvent.text type=text unit= optional=no since=1.0
+shape.GlobalstarActivityEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.GlobalstarActivityEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.GlobalstarActivityEvent.channel type=i64 unit= optional=no since=1.0
+shape.GlobalstarActivityEvent.duration type=duration unit=s optional=no since=1.0
+shape.GoesDcsFields since=1.0
+shape.GoesDcsFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.GoesDcsFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.GoesDcsFields.carriers type=i64 unit= optional=no since=1.0
+shape.GoesDcsReportRow since=1.0
+shape.GoesDcsReportRow.at type=duration unit=s optional=no since=1.0
+shape.GoesDcsReportRow.heard_at type=time unit= optional=yes since=1.0
+shape.GoesDcsReportRow.address type=text unit= optional=no since=1.0
+shape.GoesDcsReportRow.bit_rate_hz type=hz unit=bit/s optional=no since=1.0
+shape.GoesDcsReportRow.manchester type=bool unit= optional=no since=1.0
+shape.GoesDcsReportRow.channel type=i64 unit= optional=no since=1.0
+shape.GoesDcsReportRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.GoesDcsReportRow.flags type=i64 unit= optional=no since=1.0
+shape.GoesDcsReportRow.format type=choice(ascii,pseudo_binary,other) unit= optional=no since=1.0
+shape.GoesDcsReportRow.eot type=bool unit= optional=no since=1.0
+shape.GoesDcsReportRow.parity_errors type=i64 unit= optional=no since=1.0
+shape.GoesDcsReportRow.text type=text unit= optional=no since=1.0
+shape.GoesDcsPlatformRow since=1.0
+shape.GoesDcsPlatformRow.address type=text unit= optional=no since=1.0
+shape.GoesDcsPlatformRow.channel type=i64 unit= optional=no since=1.0
+shape.GoesDcsPlatformRow.bit_rate_hz type=hz unit=bit/s optional=no since=1.0
+shape.GoesDcsPlatformRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.GoesDcsPlatformRow.format type=choice(ascii,pseudo_binary,other) unit= optional=no since=1.0
+shape.GoesDcsPlatformRow.text type=text unit= optional=no since=1.0
+shape.GoesDcsPlatformRow.last_heard type=time unit= optional=yes since=1.0
+shape.GoesDcsPlatformRow.heard type=i64 unit= optional=yes since=1.0
+shape.GoesDcsCarrierRow since=1.0
+shape.GoesDcsCarrierRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.GoesDcsCarrierRow.channel type=i64 unit= optional=no since=1.0
+shape.GoesDcsCarrierRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.GoesDcsCarrierRow.bit_rate_hz type=hz unit=bit/s optional=yes since=1.0
+shape.GoesDcsReportEvent since=1.0
+shape.GoesDcsReportEvent.source type=text unit= optional=no since=1.0
+shape.GoesDcsReportEvent.text type=text unit= optional=no since=1.0
+shape.GoesDcsReportEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.GoesDcsReportEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.GoesDcsReportEvent.address type=text unit= optional=no since=1.0
+shape.GoesDcsReportEvent.channel type=i64 unit= optional=no since=1.0
+shape.GoesDcsReportEvent.bit_rate_hz type=hz unit=bit/s optional=no since=1.0
+shape.GoesDcsReportEvent.manchester type=bool unit= optional=no since=1.0
+shape.GoesDcsReportEvent.flags type=i64 unit= optional=no since=1.0
+shape.GoesDcsReportEvent.format type=choice(ascii,pseudo_binary,other) unit= optional=no since=1.0
+shape.GoesDcsReportEvent.eot type=bool unit= optional=no since=1.0
+shape.GoesDcsReportEvent.parity_errors type=i64 unit= optional=no since=1.0
+shape.GoesDcsReportEvent.bits_corrected type=i64 unit= optional=no since=1.0
+shape.ArgosFields since=1.0
+shape.ArgosFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.ArgosFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.ArgosFields.link type=choice(auto,uplink,downlink) unit= optional=no since=1.0
+shape.ArgosFields.locked type=bool unit= optional=no since=1.0
+shape.ArgosFields.carrier_line_db type=f64 unit=dB optional=no since=1.0
+shape.ArgosFields.downlink_bits type=i64 unit= optional=no since=1.0
+shape.ArgosFields.coding type=choice(nrz,inverted_nrz,nrzi) unit= optional=yes since=1.0
+shape.ArgosBurstRow since=1.0
+shape.ArgosBurstRow.at type=duration unit=s optional=no since=1.0
+shape.ArgosBurstRow.heard_at type=time unit= optional=yes since=1.0
+shape.ArgosBurstRow.kind type=choice(a2,other) unit= optional=no since=1.0
+shape.ArgosBurstRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.ArgosBurstRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.ArgosBurstRow.carrier_ms type=f64 unit=ms optional=no since=1.0
+shape.ArgosBurstRow.total_ms type=f64 unit=ms optional=no since=1.0
+shape.ArgosBurstRow.quality type=f64 unit= optional=no since=1.0
+shape.ArgosBurstRow.platform type=text unit= optional=yes since=1.0
+shape.ArgosBurstRow.data_bits type=i64 unit= optional=yes since=1.0
+shape.ArgosBurstRow.data type=bytes unit= optional=yes since=1.0
+shape.ArgosPlatformRow since=1.0
+shape.ArgosPlatformRow.platform type=text unit= optional=no since=1.0
+shape.ArgosPlatformRow.data type=bytes unit= optional=no since=1.0
+shape.ArgosPlatformRow.drift_hz_s type=f64 unit=Hz/s optional=no since=1.0
+shape.ArgosPlatformRow.last_heard type=time unit= optional=yes since=1.0
+shape.ArgosPlatformRow.heard type=i64 unit= optional=yes since=1.0
+shape.ArgosFrameRow since=1.0
+shape.ArgosFrameRow.at type=duration unit=s optional=no since=1.0
+shape.ArgosFrameRow.coding type=choice(nrz,inverted_nrz,nrzi) unit= optional=no since=1.0
+shape.ArgosFrameRow.bytes type=i64 unit= optional=no since=1.0
+shape.ArgosFrameRow.frame type=bytes unit= optional=no since=1.0
+shape.ArgosPttEvent since=1.0
+shape.ArgosPttEvent.source type=text unit= optional=no since=1.0
+shape.ArgosPttEvent.text type=text unit= optional=no since=1.0
+shape.ArgosPttEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.ArgosPttEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ArgosPttEvent.platform type=text unit= optional=no since=1.0
+shape.ArgosPttEvent.data_bits type=i64 unit= optional=no since=1.0
+shape.ArgosPttEvent.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.ArgosPttEvent.quality type=f64 unit= optional=no since=1.0
+shape.ArgosPttEvent.data type=bytes unit= optional=no since=1.0
+shape.ArgosDownlinkFrameEvent since=1.0
+shape.ArgosDownlinkFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ArgosDownlinkFrameEvent.coding type=choice(nrz,inverted_nrz,nrzi) unit= optional=no since=1.0
+shape.ArgosDownlinkFrameEvent.bytes type=i64 unit= optional=no since=1.0
+shape.ArgosDownlinkFrameEvent.frame type=bytes unit= optional=no since=1.0
+shape.HrdcpFields since=1.0
+shape.HrdcpFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.HrdcpFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.HrdcpFields.carriers type=i64 unit= optional=no since=1.0
+shape.HrdcpFields.plan type=text unit= optional=no since=1.0
+shape.HrdcpFields.note type=text unit= optional=no since=1.0
+shape.HrdcpReportRow since=1.0
+shape.HrdcpReportRow.at type=duration unit=s optional=no since=1.0
+shape.HrdcpReportRow.heard_at type=time unit= optional=yes since=1.0
+shape.HrdcpReportRow.address type=text unit= optional=no since=1.0
+shape.HrdcpReportRow.bits_corrected type=i64 unit= optional=no since=1.0
+shape.HrdcpReportRow.sequence type=i64 unit= optional=no since=1.0
+shape.HrdcpReportRow.type type=text unit= optional=no since=1.0
+shape.HrdcpReportRow.health type=text unit= optional=no since=1.0
+shape.HrdcpReportRow.compression type=text unit= optional=no since=1.0
+shape.HrdcpReportRow.crc_ok type=bool unit= optional=no since=1.0
+shape.HrdcpReportRow.frames type=i64 unit= optional=no since=1.0
+shape.HrdcpReportRow.frames_bad type=i64 unit= optional=no since=1.0
+shape.HrdcpReportRow.rs_corrected type=i64 unit= optional=no since=1.0
+shape.HrdcpReportRow.bytes type=i64 unit= optional=no since=1.0
+shape.HrdcpReportRow.format type=text unit= optional=no since=1.0
+shape.HrdcpReportRow.bit_rate_hz type=hz unit=bit/s optional=no since=1.0
+shape.HrdcpReportRow.manchester type=bool unit= optional=no since=1.0
+shape.HrdcpReportRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.HrdcpReportRow.channel type=i64 unit= optional=yes since=1.0
+shape.HrdcpReportRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.HrdcpReportRow.text type=text unit= optional=no since=1.0
+shape.HrdcpPlatformRow since=1.0
+shape.HrdcpPlatformRow.address type=text unit= optional=no since=1.0
+shape.HrdcpPlatformRow.channel type=i64 unit= optional=yes since=1.0
+shape.HrdcpPlatformRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.HrdcpPlatformRow.format type=text unit= optional=no since=1.0
+shape.HrdcpPlatformRow.text type=text unit= optional=no since=1.0
+shape.HrdcpPlatformRow.last_heard type=time unit= optional=yes since=1.0
+shape.HrdcpPlatformRow.heard type=i64 unit= optional=yes since=1.0
+shape.HrdcpCarrierRow since=1.0
+shape.HrdcpCarrierRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.HrdcpCarrierRow.channel type=i64 unit= optional=yes since=1.0
+shape.HrdcpCarrierRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.HrdcpCarrierRow.state type=i64 unit= optional=no since=1.0
+shape.HrdcpCarrierRow.bit_rate_hz type=hz unit=bit/s optional=yes since=1.0
+shape.HrdcpCarrierRow.bytes type=i64 unit= optional=no since=1.0
+shape.HrdcpReportEvent since=1.0
+shape.HrdcpReportEvent.source type=text unit= optional=no since=1.0
+shape.HrdcpReportEvent.text type=text unit= optional=no since=1.0
+shape.HrdcpReportEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.HrdcpReportEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.HrdcpReportEvent.address type=text unit= optional=no since=1.0
+shape.HrdcpReportEvent.channel type=i64 unit= optional=yes since=1.0
+shape.HrdcpReportEvent.sequence type=i64 unit= optional=no since=1.0
+shape.HrdcpReportEvent.type type=text unit= optional=no since=1.0
+shape.HrdcpReportEvent.health type=text unit= optional=no since=1.0
+shape.HrdcpReportEvent.compression type=text unit= optional=no since=1.0
+shape.HrdcpReportEvent.bytes type=i64 unit= optional=no since=1.0
+shape.HrdcpReportEvent.rs_corrected type=i64 unit= optional=no since=1.0
+shape.HrdcpReportEvent.crc_ok type=bool unit= optional=no since=1.0
+shape.SarsatFields since=1.0
+shape.SarsatFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.SarsatFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.SarsatFields.bursts_heard type=i64 unit= optional=no since=1.0
+shape.SarsatFields.finders type=i64 unit= optional=no since=1.0
+shape.SarsatFields.span_hz type=hz unit=Hz optional=no since=1.0
+shape.SarsatBurstRow since=1.0
+shape.SarsatBurstRow.at type=duration unit=s optional=no since=1.0
+shape.SarsatBurstRow.heard_at type=time unit= optional=yes since=1.0
+shape.SarsatBurstRow.generation type=i64 unit= optional=no since=1.0
+shape.SarsatBurstRow.hex_id type=text unit= optional=no since=1.0
+shape.SarsatBurstRow.beacon_type type=text unit= optional=no since=1.0
+shape.SarsatBurstRow.country type=text unit= optional=no since=1.0
+shape.SarsatBurstRow.protocol type=text unit= optional=no since=1.0
+shape.SarsatBurstRow.identification type=text unit= optional=no since=1.0
+shape.SarsatBurstRow.position type=position unit= optional=yes since=1.0
+shape.SarsatBurstRow.homing type=bool unit= optional=no since=1.0
+shape.SarsatBurstRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.SarsatBurstRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.SarsatBurstRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.SarsatBeaconRow since=1.0
+shape.SarsatBeaconRow.hex_id type=text unit= optional=no since=1.0
+shape.SarsatBeaconRow.generation type=i64 unit= optional=no since=1.0
+shape.SarsatBeaconRow.beacon_type type=text unit= optional=no since=1.0
+shape.SarsatBeaconRow.country type=text unit= optional=no since=1.0
+shape.SarsatBeaconRow.identification type=text unit= optional=no since=1.0
+shape.SarsatBeaconRow.position type=position unit= optional=yes since=1.0
+shape.SarsatBeaconRow.combined type=i64 unit= optional=yes since=1.0
+shape.SarsatBeaconRow.confirmed type=bool unit= optional=yes since=1.0
+shape.SarsatBeaconRow.repair_margin type=f64 unit= optional=yes since=1.0
+shape.SarsatBeaconRow.repair_cost type=f64 unit= optional=yes since=1.0
+shape.SarsatBeaconRow.last_heard type=time unit= optional=yes since=1.0
+shape.SarsatBeaconRow.heard type=i64 unit= optional=yes since=1.0
+shape.SarsatBeaconEvent since=1.0
+shape.SarsatBeaconEvent.source type=text unit= optional=no since=1.0
+shape.SarsatBeaconEvent.text type=text unit= optional=no since=1.0
+shape.SarsatBeaconEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.SarsatBeaconEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.SarsatBeaconEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.SarsatBeaconEvent.position type=position unit= optional=yes since=1.0
+shape.SarsatBeaconEvent.generation type=i64 unit= optional=no since=1.0
+shape.SarsatBeaconEvent.hex_id type=text unit= optional=no since=1.0
+shape.SarsatBeaconEvent.beacon_type type=text unit= optional=no since=1.0
+shape.SarsatBeaconEvent.country type=text unit= optional=no since=1.0
+shape.SarsatBeaconEvent.mid type=i64 unit= optional=no since=1.0
+shape.SarsatBeaconEvent.protocol type=text unit= optional=no since=1.0
+shape.SarsatBeaconEvent.identification type=text unit= optional=no since=1.0
+shape.SarsatBeaconEvent.homing type=bool unit= optional=no since=1.0
+shape.SarsatBeaconEvent.self_test type=bool unit= optional=no since=1.0
+shape.SarsatBeaconEvent.bits_corrected type=i64 unit= optional=no since=1.0
+shape.SarsatBeaconEvent.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.SarsatBeaconEvent.message_hex type=text unit= optional=no since=1.0
+shape.LoraSatFields since=1.0
+shape.LoraSatFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.LoraSatFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.LoraSatFields.satellite type=text unit= optional=no since=1.0
+shape.LoraSatFields.preset type=text unit= optional=yes since=1.0
+shape.LoraSatFields.demodulators type=i64 unit= optional=no since=1.0
+shape.LoraSatFields.doppler_max_hz type=hz unit=Hz optional=no since=1.0
+shape.LoraSatFields.doppler_rate_max_hz_s type=f64 unit=Hz/s optional=no since=1.0
+shape.LoraSatFrameRow since=1.0
+shape.LoraSatFrameRow.heard_at type=time unit= optional=yes since=1.0
+shape.LoraSatFrameRow.sf type=i64 unit= optional=no since=1.0
+shape.LoraSatFrameRow.bw_hz type=hz unit=Hz optional=no since=1.0
+shape.LoraSatFrameRow.cr type=i64 unit= optional=no since=1.0
+shape.LoraSatFrameRow.crc type=choice(none,ok,bad) unit= optional=no since=1.0
+shape.LoraSatFrameRow.sync type=i64 unit= optional=no since=1.0
+shape.LoraSatFrameRow.bytes type=i64 unit= optional=no since=1.0
+shape.LoraSatFrameRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.LoraSatFrameRow.doppler_hz type=hz unit=Hz optional=no since=1.0
+shape.LoraSatFrameRow.doppler_rate_hz_s type=f64 unit=Hz/s optional=yes since=1.0
+shape.LoraSatFrameRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.LoraSatFrameRow.satellite type=text unit= optional=yes since=1.0
+shape.LoraSatFrameRow.payload type=bytes unit= optional=no since=1.0
+shape.LoraSatFrameRow.text type=text unit= optional=no since=1.0
+shape.LoraSatDemodulatorRow since=1.0
+shape.LoraSatDemodulatorRow.sf type=i64 unit= optional=no since=1.0
+shape.LoraSatDemodulatorRow.bw_hz type=hz unit=Hz optional=no since=1.0
+shape.LoraSatDemodulatorRow.preambles type=i64 unit= optional=no since=1.0
+shape.LoraSatDemodulatorRow.sync_failed type=i64 unit= optional=no since=1.0
+shape.LoraSatDemodulatorRow.header_failed type=i64 unit= optional=no since=1.0
+shape.LoraSatDemodulatorRow.frames type=i64 unit= optional=no since=1.0
+shape.LoraSatDemodulatorRow.crc_failed type=i64 unit= optional=no since=1.0
+shape.LoraSatDemodulatorSyncRow since=1.0
+shape.LoraSatDemodulatorSyncRow.demodulator type=text unit= optional=no refers_to=demodulators since=1.0
+shape.LoraSatDemodulatorSyncRow.sync type=i64 unit= optional=no since=1.0
+shape.LoraSatSfRow since=1.0
+shape.LoraSatSfRow.sf type=i64 unit= optional=no since=1.0
+shape.LoraSatSfRow.frames type=i64 unit= optional=no since=1.0
+shape.LoraSatFrameEvent since=1.0
+shape.LoraSatFrameEvent.source type=text unit= optional=yes since=1.0
+shape.LoraSatFrameEvent.text type=text unit= optional=no since=1.0
+shape.LoraSatFrameEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.LoraSatFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.LoraSatFrameEvent.sf type=i64 unit= optional=no since=1.0
+shape.LoraSatFrameEvent.payload type=bytes unit= optional=no since=1.0
+shape.LoraSatFrameEvent.doppler_hz type=hz unit=Hz optional=no since=1.0
+shape.LoraSatFrameEvent.doppler_rate_hz_s type=f64 unit=Hz/s optional=yes since=1.0
+shape.OrbcommFields since=1.0
+shape.OrbcommFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.OrbcommFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.OrbcommFields.messages_joined type=i64 unit= optional=no since=1.0
+shape.OrbcommFields.satellites type=i64 unit= optional=no since=1.0
+shape.OrbcommSatelliteRow since=1.0
+shape.OrbcommSatelliteRow.satellite type=i64 unit= optional=no since=1.0
+shape.OrbcommSatelliteRow.frequency type=hz unit=Hz optional=yes since=1.0
+shape.OrbcommSatelliteRow.doppler type=hz unit=Hz optional=yes since=1.0
+shape.OrbcommSatelliteRow.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.OrbcommSatelliteRow.frames type=i64 unit= optional=no since=1.0
+shape.OrbcommSatelliteRow.heard type=i64 unit= optional=yes since=1.0
+shape.OrbcommSatelliteRow.bad type=i64 unit= optional=no since=1.0
+shape.OrbcommSatelliteRow.position type=position unit= optional=yes since=1.0
+shape.OrbcommSatelliteRow.height_m type=f64 unit=m optional=yes since=1.0
+shape.OrbcommSatelliteRow.inclination_deg type=f64 unit=deg optional=yes since=1.0
+shape.OrbcommSatelliteRow.period type=duration unit=s optional=yes since=1.0
+shape.OrbcommSatelliteRow.last_heard type=time unit= optional=yes since=1.0
+shape.OrbcommSatelliteChannelRow since=1.0
+shape.OrbcommSatelliteChannelRow.satellite type=i64 unit= optional=no refers_to=satellites since=1.0
+shape.OrbcommSatelliteChannelRow.uplink type=bool unit= optional=no since=1.0
+shape.OrbcommSatelliteChannelRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.OrbcommDecoderRow since=1.0
+shape.OrbcommDecoderRow.decoder type=i64 unit= optional=no since=1.0
+shape.OrbcommDecoderRow.state type=choice(free,acquiring,tracking,frame_lock) unit= optional=no since=1.0
+shape.OrbcommDecoderRow.frequency type=hz unit=Hz optional=yes since=1.0
+shape.OrbcommDecoderRow.offset type=hz unit=Hz optional=yes since=1.0
+shape.OrbcommDecoderRow.doppler type=hz unit=Hz optional=yes since=1.0
+shape.OrbcommDecoderRow.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.OrbcommDecoderRow.level_db type=f64 unit=dB optional=yes since=1.0
+shape.OrbcommDecoderRow.satellite type=i64 unit= optional=yes since=1.0
+shape.OrbcommDecoderRow.clock_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.OrbcommDecoderRow.frames type=i64 unit= optional=yes since=1.0
+shape.OrbcommDecoderRow.frames_ok type=i64 unit= optional=yes since=1.0
+shape.OrbcommDecoderRow.frames_bad type=i64 unit= optional=yes since=1.0
+shape.OrbcommDecoderRow.sync_losses type=i64 unit= optional=yes since=1.0
+shape.OrbcommPacketRow since=1.0
+shape.OrbcommPacketRow.at type=duration unit=s optional=no since=1.0
+shape.OrbcommPacketRow.wall type=time unit= optional=yes since=1.0
+shape.OrbcommPacketRow.satellite type=i64 unit= optional=yes since=1.0
+shape.OrbcommPacketRow.decoder type=i64 unit= optional=no since=1.0
+shape.OrbcommPacketRow.type type=choice(sync,message,uplink,downlink,network,fill,ephemeris,elements,other,message_joined) unit= optional=no since=1.0
+shape.OrbcommPacketRow.bytes type=bytes unit= optional=yes since=1.0
+shape.OrbcommPacketRow.text type=text unit= optional=no since=1.0
+shape.OrbcommPacketTypeRow since=1.0
+shape.OrbcommPacketTypeRow.type type=choice(sync,message,uplink,downlink,network,fill,ephemeris,elements,other,message_joined) unit= optional=no since=1.0
+shape.OrbcommPacketTypeRow.count type=i64 unit= optional=no since=1.0
+shape.OrbcommMessageEvent since=1.0
+shape.OrbcommMessageEvent.source type=text unit= optional=no since=1.0
+shape.OrbcommMessageEvent.text type=text unit= optional=no since=1.0
+shape.OrbcommMessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.OrbcommMessageEvent.message_id type=i64 unit= optional=no since=1.0
+shape.OrbcommMessageEvent.complete type=bool unit= optional=no since=1.0
+shape.PskDemodFields since=1.0
+shape.PskDemodFields.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.PskDemodFields.order type=choice(auto,bpsk,qpsk,oqpsk,8psk) unit= optional=yes since=1.0
+shape.PskDemodFields.lock type=f64 unit= optional=yes since=1.0
+shape.PskDemodFields.carrier_hz type=hz unit=Hz optional=yes since=1.0
+shape.PskDemodFields.drift_hz_s type=f64 unit=Hz/s optional=yes since=1.0
+shape.PskDemodFields.evm_pct type=f64 unit=% optional=yes since=1.0
+shape.PskDemodFields.esn0_db type=f64 unit=dB optional=yes since=1.0
+shape.PskDemodFields.ebn0_db type=f64 unit=dB optional=yes since=1.0
+shape.PskDemodFields.symbols type=i64 unit= optional=no since=1.0
+shape.PskDemodFields.bits type=i64 unit= optional=no since=1.0
+shape.PskDemodFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.PskDemodFields.bit_stream type=text unit= optional=no since=1.0
+shape.PskDemodFields.bits_first type=i64 unit= optional=no since=1.0
+shape.PskDemodFields.rotation_deg type=f64 unit=deg optional=no since=1.0
+shape.PskDemodFields.conjugated type=bool unit= optional=no since=1.0
+shape.PskDemodFields.rail_shift type=bool unit= optional=no since=1.0
+shape.PskDemodFields.resolved type=bool unit= optional=no since=1.0
+shape.PskDemodFields.signal_hz type=hz unit=Hz optional=yes since=1.0
+shape.PskDemodFields.width_3db_hz type=hz unit=Hz optional=yes since=1.0
+shape.PskDemodFields.width_10db_hz type=hz unit=Hz optional=yes since=1.0
+shape.PskDemodFields.occupied_hz type=hz unit=Hz optional=yes since=1.0
+shape.PskDemodFields.signal_snr_db type=f64 unit=dB optional=yes since=1.0
+shape.PskDemodFields.baud_raw_hz type=hz unit=Hz optional=yes since=1.0
+shape.PskDemodFields.snapped type=bool unit= optional=yes since=1.0
+shape.PskDemodFields.rate_confidence type=f64 unit= optional=yes since=1.0
+shape.PskDemodFields.order_confidence type=f64 unit= optional=yes since=1.0
+shape.PskDemodFields.shape type=choice(rect,rrc) unit= optional=yes since=1.0
+shape.PskDemodFields.roll_off type=f64 unit= optional=yes since=1.0
+shape.PskDemodFields.envelope_db type=f64 unit=dB optional=yes since=1.0
+shape.PskDemodFields.line_x2_db type=f64 unit=dB optional=yes since=1.0
+shape.PskDemodFields.line_x4_db type=f64 unit=dB optional=yes since=1.0
+shape.PskDemodFields.line_x8_db type=f64 unit=dB optional=yes since=1.0
+shape.PskDemodFields.note type=choice(too_short,no_rate_line,no_trial,no_constellation) unit= optional=yes since=1.0
+shape.PskDemodRateRow since=1.0
+shape.PskDemodRateRow.rate_hz type=hz unit=Hz optional=no since=1.0
+shape.PskDemodRateRow.strength_db type=f64 unit=dB optional=no since=1.0
+shape.PskDemodTrialRow since=1.0
+shape.PskDemodTrialRow.order type=choice(auto,bpsk,qpsk,oqpsk,8psk) unit= optional=no since=1.0
+shape.PskDemodTrialRow.symbol_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.PskDemodTrialRow.evm type=f64 unit= optional=no since=1.0
+shape.PskDemodSyncRow since=1.0
+shape.PskDemodSyncRow.bit type=i64 unit= optional=no since=1.0
+shape.PskDemodLogRow since=1.0
+shape.PskDemodLogRow.at type=duration unit=s optional=no since=1.0
+shape.PskDemodLogRow.text type=text unit= optional=no since=1.0
+shape.PskDemodLockEvent since=1.0
+shape.PskDemodLockEvent.text type=text unit= optional=no since=1.0
+shape.PskDemodLockEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.PskDemodLockEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.PskDemodLockEvent.symbol_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.PskDemodLockEvent.order type=choice(auto,bpsk,qpsk,oqpsk,8psk) unit= optional=yes since=1.0
+shape.PskDemodBytesEvent since=1.0
+shape.PskDemodBytesEvent.text type=text unit= optional=no since=1.0
+shape.PskDemodBytesEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.PskDemodBytesEvent.bytes type=bytes unit= optional=no since=1.0
+shape.Qo100Fields since=1.0
+shape.Qo100Fields.lnb_error_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100Fields.lnb_error_ppm type=f64 unit=ppm optional=no since=1.0
+shape.Qo100Fields.drift_hz_s type=f64 unit=Hz/s optional=no since=1.0
+shape.Qo100Fields.beacon_lock type=choice(outside,searching,locked,held) unit= optional=no since=1.0
+shape.Qo100Fields.correction_applied type=bool unit= optional=no since=1.0
+shape.Qo100Fields.measurements type=i64 unit= optional=no since=1.0
+shape.Qo100Fields.locked_for type=duration unit=s optional=no since=1.0
+shape.Qo100Fields.dial_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100Fields.listening type=i64 unit= optional=yes refers_to=conversations since=1.0
+shape.Qo100Fields.wideband_outside type=bool unit= optional=no since=1.0
+shape.Qo100Fields.narrow_floor_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.Qo100Fields.own_to_beacon_db type=f64 unit=dB optional=yes since=1.2
+shape.Qo100TxFields since=1.2
+shape.Qo100TxFields.transmitting type=bool unit= optional=no since=1.2
+shape.Qo100TxFields.tx_freq_hz type=hz unit=Hz optional=no since=1.2
+shape.Qo100TxFields.tx_time_s type=duration unit=s optional=yes since=1.2
+shape.Qo100TxFields.tx_mic_dbfs type=f64 unit=dBFS optional=yes since=1.2
+shape.Qo100TxFields.tx_peak_db type=f64 unit=dB optional=yes since=1.2
+shape.Qo100TxFields.tx_level_db type=f64 unit=dB optional=yes since=1.2
+shape.Qo100TxFields.tx_limit_db type=f64 unit=dB optional=yes since=1.2
+shape.Qo100BeaconRow since=1.0
+shape.Qo100BeaconRow.name type=text unit= optional=no since=1.0
+shape.Qo100BeaconRow.nominal_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100BeaconRow.found type=bool unit= optional=no since=1.0
+shape.Qo100BeaconRow.apparent_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100BeaconRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Qo100SignalRow since=1.0
+shape.Qo100SignalRow.rf_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100SignalRow.width_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100SignalRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.Qo100SignalRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Qo100SignalRow.class type=choice(unknown,beacon,carrier,cw,psk,ssb,sstv,wide_digital) unit= optional=no since=1.0
+shape.Qo100SignalRow.beacon type=text unit= optional=yes since=1.0
+shape.Qo100SignalRow.track type=i64 unit= optional=yes refers_to=tracks since=1.0
+shape.Qo100TrackRow since=1.0
+shape.Qo100TrackRow.last_heard type=time unit= optional=yes since=1.0
+shape.Qo100TrackRow.rf_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100TrackRow.width_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100TrackRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.Qo100TrackRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Qo100TrackRow.active type=bool unit= optional=no since=1.0
+shape.Qo100TrackRow.duty_pct type=f64 unit=% optional=no since=1.0
+shape.Qo100TrackRow.class type=choice(unknown,beacon,carrier,cw,psk,ssb,sstv,wide_digital) unit= optional=no since=1.0
+shape.Qo100TrackRow.conversation type=i64 unit= optional=yes refers_to=conversations since=1.0
+shape.Qo100ConversationRow since=1.0
+shape.Qo100ConversationRow.last_heard type=time unit= optional=yes since=1.0
+shape.Qo100ConversationRow.active type=bool unit= optional=no since=1.0
+shape.Qo100ConversationRow.dial_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100ConversationRow.lower_edge_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100ConversationRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.Qo100ConversationRow.peak_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.Qo100ConversationRow.stations type=i64 unit= optional=no since=1.0
+shape.Qo100ConversationRow.talk type=duration unit=s optional=no since=1.0
+shape.Qo100ConversationRow.length type=duration unit=s optional=no since=1.0
+shape.Qo100CallsignRow since=1.0
+shape.Qo100CallsignRow.conversation type=i64 unit= optional=no refers_to=conversations since=1.0
+shape.Qo100CallsignRow.callsign type=text unit= optional=no since=1.0
+shape.Qo100DatvCarrierRow since=1.0
+shape.Qo100DatvCarrierRow.rf_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100DatvCarrierRow.if_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100DatvCarrierRow.width_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100DatvCarrierRow.symbol_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100DatvCarrierRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Qo100DatvCarrierRow.flat_topped type=bool unit= optional=no since=1.0
+shape.Qo100DatvCarrierRow.is_beacon type=bool unit= optional=no since=1.0
+shape.Qo100LockEvent since=1.0
+shape.Qo100LockEvent.text type=text unit= optional=no since=1.0
+shape.Qo100LockEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.Qo100LockEvent.lnb_error_hz type=hz unit=Hz optional=no since=1.0
+shape.Qo100LockEvent.lnb_error_ppm type=f64 unit=ppm optional=no since=1.0
+shape.Qo100ConversationEvent since=1.0
+shape.Qo100ConversationEvent.text type=text unit= optional=no since=1.0
+shape.Qo100ConversationEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.Qo100ConversationEvent.channel type=text unit= optional=no since=1.0
+shape.Qo100ConversationEvent.conversation type=i64 unit= optional=no refers_to=conversations since=1.0
+shape.Qo100ConversationEvent.dial_hz type=hz unit=Hz optional=no since=1.0
+shape.CubesatFields since=1.0
+shape.CubesatFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.CubesatFields.rs_repaired type=i64 unit= optional=no since=1.0
+shape.CubesatFields.kiss_sent type=i64 unit= optional=no since=1.0
+shape.CubesatFields.note type=text unit= optional=no since=1.0
+shape.CubesatTxFields since=1.1
+shape.CubesatTxFields.tx_sending type=bool unit= optional=no since=1.1
+shape.CubesatTxFields.tx_sent type=i64 unit= optional=no since=1.1
+shape.CubesatTxFields.tx_waiting type=i64 unit= optional=no since=1.1
+shape.CubesatFrameRow since=1.0
+shape.CubesatFrameRow.heard_at type=time unit= optional=yes since=1.0
+shape.CubesatFrameRow.framing type=choice(ax25_afsk,ax25_g3ruh,ax25_nrzi,ax100_mode5,ax100_mode6,ccsds_rs,geoscan,lucky7,spino,erminaz,usp,ngham,u482c,mobitex,mobitex_nx,beesat1,beesat9,ccsds_concat) unit= optional=no since=1.0
+shape.CubesatFrameRow.baud type=i64 unit= optional=no since=1.0
+shape.CubesatFrameRow.rs_corrected type=i64 unit= optional=yes since=1.0
+shape.CubesatFrameRow.satellite type=text unit= optional=yes since=1.0
+shape.CubesatFrameRow.norad type=i64 unit= optional=no since=1.0
+shape.CubesatFrameRow.guess type=bool unit= optional=no since=1.0
+shape.CubesatFrameRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.CubesatFrameRow.from type=text unit= optional=yes since=1.0
+shape.CubesatFrameRow.to type=text unit= optional=yes since=1.0
+shape.CubesatFrameRow.path type=text unit= optional=yes since=1.0
+shape.CubesatFrameRow.frame_type type=text unit= optional=yes since=1.0
+shape.CubesatFrameRow.pid type=i64 unit= optional=yes since=1.0
+shape.CubesatFrameRow.csp type=text unit= optional=yes since=1.0
+shape.CubesatFrameRow.data type=bytes unit= optional=no since=1.0
+shape.CubesatFrameRow.payload type=bytes unit= optional=no since=1.0
+shape.CubesatFrameRow.text type=text unit= optional=yes since=1.0
+shape.CubesatFrameRow.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.CubesatFrameRow.validated type=text unit= optional=yes since=1.0
+shape.CubesatFrameRow.kind type=text unit= optional=yes since=1.0
+shape.CubesatFrameRow.inverted type=bool unit= optional=no since=1.0
+shape.CubesatFrameRow.spacecraft type=i64 unit= optional=yes since=1.0
+shape.CubesatFrameRow.vc type=i64 unit= optional=yes since=1.0
+shape.CubesatFrameRow.flags type=i64 unit= optional=yes since=1.0
+shape.CubesatFramingRow since=1.0
+shape.CubesatFramingRow.framing type=choice(ax25_afsk,ax25_g3ruh,ax25_nrzi,ax100_mode5,ax100_mode6,ccsds_rs,geoscan,lucky7,spino,erminaz,usp,ngham,u482c,mobitex,mobitex_nx,beesat1,beesat9,ccsds_concat) unit= optional=no since=1.0
+shape.CubesatFramingRow.frames type=i64 unit= optional=no since=1.0
+shape.CubesatFramingRow.sync_hits type=i64 unit= optional=yes since=1.0
+shape.CubesatFramingRow.decode_failed type=i64 unit= optional=yes since=1.0
+shape.CubesatCarrierRow since=1.0
+shape.CubesatCarrierRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.CubesatCarrierRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.CubesatFrameEvent since=1.0
+shape.CubesatFrameEvent.source type=text unit= optional=yes since=1.0
+shape.CubesatFrameEvent.text type=text unit= optional=yes since=1.0
+shape.CubesatFrameEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.CubesatFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.CubesatFrameEvent.framing type=choice(ax25_afsk,ax25_g3ruh,ax25_nrzi,ax100_mode5,ax100_mode6,ccsds_rs,geoscan,lucky7,spino,erminaz,usp,ngham,u482c,mobitex,mobitex_nx,beesat1,beesat9,ccsds_concat) unit= optional=no since=1.0
+shape.CubesatFrameEvent.norad type=i64 unit= optional=no since=1.0
+shape.CubesatFrameEvent.data type=bytes unit= optional=no since=1.0
+shape.CubesatKissEvent since=1.0
+shape.CubesatKissEvent.source type=text unit= optional=yes since=1.0
+shape.CubesatKissEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.CubesatKissEvent.kiss_frame type=bytes unit= optional=no since=1.0
+shape.CubesatTxEvent since=1.1
+shape.CubesatTxEvent.state type=text unit= optional=no since=1.1
+shape.CubesatTxEvent.reason type=text unit= optional=no since=1.1
+shape.CubesatTxEvent.target type=text unit= optional=no since=1.1
+shape.CubesatTxEvent.text type=text unit= optional=no since=1.1
+shape.CubesatTxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.1
+shape.FleetBroadcastFields since=1.0
+shape.FleetBroadcastFields.state type=i64 unit= optional=no since=1.0
+shape.FleetBroadcastFields.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.FleetBroadcastFields.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.FleetBroadcastFields.line_db type=f64 unit=dB optional=no since=1.0
+shape.FleetBroadcastFields.clock_ppm type=f64 unit=ppm optional=no since=1.0
+shape.FleetBroadcastFields.eye type=f64 unit= optional=no since=1.0
+shape.FleetBroadcastFields.snr_db type=f64 unit=dB optional=no since=1.0
+shape.FleetBroadcastFields.symbols type=i64 unit= optional=no since=1.0
+shape.FleetBroadcastFields.framed type=bool unit= optional=no since=1.0
+shape.FleetBroadcastFields.ambiguous type=bool unit= optional=no since=1.0
+shape.FleetBroadcastFields.sync_period type=i64 unit=frames optional=yes since=1.0
+shape.FleetBroadcastFields.sync_agreement type=f64 unit=% optional=yes since=1.0
+shape.FleetBroadcastFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.FleetBroadcastFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.FleetBroadcastFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.FleetBroadcastFields.classes type=text unit= optional=no since=1.0
+shape.FleetBroadcastFields.note type=text unit= optional=no since=1.0
+shape.FleetBroadcastChannelRow since=1.0
+shape.FleetBroadcastChannelRow.channel type=i64 unit= optional=no since=1.0
+shape.FleetBroadcastChannelRow.class type=text unit= optional=no since=1.0
+shape.FleetBroadcastChannelRow.activity_pct type=f64 unit=% optional=no since=1.0
+shape.FleetBroadcastChannelRow.ones_pct type=f64 unit=% optional=no since=1.0
+shape.FleetBroadcastChannelRow.sync_period type=i64 unit=frames optional=yes since=1.0
+shape.FleetBroadcastChannelRow.last_bits type=text unit= optional=no since=1.0
+shape.FleetBroadcastFrameRow since=1.0
+shape.FleetBroadcastFrameRow.word type=text unit= optional=no since=1.0
+shape.FleetBroadcastFrameRow.bits type=text unit= optional=no since=1.0
+shape.FleetBroadcastStateEvent since=1.0
+shape.FleetBroadcastStateEvent.text type=text unit= optional=no since=1.0
+shape.FleetBroadcastStateEvent.state type=i64 unit= optional=no since=1.0
+shape.BganFields since=1.0
+shape.BganFields.carriers type=i64 unit= optional=no since=1.0
+shape.BganFields.in_sync type=i64 unit= optional=no since=1.0
+shape.BganFields.decoded type=i64 unit= optional=no since=1.0
+shape.BganFields.gmr2 type=i64 unit= optional=no since=1.0
+shape.BganFields.networks type=text unit= optional=no since=1.0
+shape.BganFields.satellites_heard type=text unit= optional=no since=1.0
+shape.BganFields.blocks_ok type=i64 unit= optional=no since=1.0
+shape.BganFields.blocks_bad type=i64 unit= optional=no since=1.0
+shape.BganFields.connection_pdus type=i64 unit= optional=no since=1.0
+shape.BganFields.addressed_pdus type=i64 unit= optional=no since=1.0
+shape.BganFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.BganFields.note type=text unit= optional=no since=1.0
+shape.BganCarrierRow since=1.0
+shape.BganCarrierRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.BganCarrierRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.BganCarrierRow.width_hz type=hz unit=Hz optional=no since=1.0
+shape.BganCarrierRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.BganCarrierRow.kind type=text unit= optional=no since=1.0
+shape.BganCarrierRow.state type=text unit= optional=no since=1.0
+shape.BganCarrierRow.bearer type=text unit= optional=yes since=1.0
+shape.BganCarrierRow.subtype type=text unit= optional=yes since=1.0
+shape.BganCarrierRow.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.BganCarrierRow.cfo_hz type=hz unit=Hz optional=yes since=1.0
+shape.BganCarrierRow.cn0_dbhz type=f64 unit=dB-Hz optional=yes since=1.0
+shape.BganCarrierRow.frames type=i64 unit= optional=no since=1.0
+shape.BganCarrierRow.blocks_ok type=i64 unit= optional=no since=1.0
+shape.BganCarrierRow.blocks_bad type=i64 unit= optional=no since=1.0
+shape.BganCarrierRow.load_pct type=f64 unit=% optional=no since=1.0
+shape.BganCarrierRow.structure_only type=bool unit= optional=no since=1.0
+shape.BganCarrierRow.spot_beam type=i64 unit= optional=yes since=1.0
+shape.BganCarrierRow.rnc type=i64 unit= optional=yes since=1.0
+shape.BganCarrierRow.bct_id type=i64 unit= optional=yes since=1.0
+shape.BganCarrierRow.f_bearer type=i64 unit= optional=yes since=1.0
+shape.BganCarrierRow.beam_type type=text unit= optional=yes since=1.0
+shape.BganCarrierRow.network type=text unit= optional=yes since=1.0
+shape.BganCarrierRow.satellite type=text unit= optional=yes since=1.0
+shape.BganCarrierRow.last_seen type=duration unit=s optional=no since=1.0
+shape.BganBeamRow since=1.0
+shape.BganBeamRow.spot_beam type=i64 unit= optional=no since=1.0
+shape.BganBeamRow.beam_type type=text unit= optional=yes since=1.0
+shape.BganBeamRow.primary_hz type=hz unit=Hz optional=yes since=1.0
+shape.BganBeamRow.bearer_type type=text unit= optional=yes since=1.0
+shape.BganLogRow since=1.0
+shape.BganLogRow.at type=duration unit=s optional=no since=1.0
+shape.BganLogRow.text type=text unit= optional=no since=1.0
+shape.BganSignallingEvent since=1.0
+shape.BganSignallingEvent.text type=text unit= optional=no since=1.0
+shape.SatSurveyFields since=1.0
+shape.SatSurveyFields.text type=text unit= optional=no since=1.0
+shape.SatSurveyFields.method type=text unit= optional=no since=1.0
+shape.SatSurveyFields.threshold_in_force_db type=f64 unit=dB optional=no since=1.0
+shape.SatSurveyFields.bin_hz type=f64 unit=Hz optional=yes since=1.0
+shape.SatSurveyFields.catalogue type=i64 unit= optional=no since=1.0
+shape.SatSurveyFields.lines type=i64 unit= optional=yes since=1.0
+shape.SatSurveyFields.channels_active type=i64 unit= optional=yes since=1.0
+shape.SatSurveyFields.channels_seen type=i64 unit= optional=yes since=1.0
+shape.SatSurveyFields.frame_rate_hz type=f64 unit=Hz optional=yes since=1.0
+shape.SatSurveyFields.measured_rate_hz type=f64 unit=Hz optional=yes since=1.0
+shape.SatSurveyFields.frame_level_db type=f64 unit=dB optional=yes since=1.0
+shape.SatSurveyFields.detected type=bool unit= optional=yes since=1.0
+shape.SatSurveyFields.note type=text unit= optional=no since=1.0
+shape.SatSurveyCarrierRow since=1.0
+shape.SatSurveyCarrierRow.line type=i64 unit= optional=no since=1.0
+shape.SatSurveyCarrierRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.SatSurveyCarrierRow.mhz type=f64 unit=MHz optional=no since=1.0
+shape.SatSurveyCarrierRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.SatSurveyCarrierRow.duration_s type=duration unit=s optional=no since=1.0
+shape.SatSurveyCarrierRow.drift_hz_s type=f64 unit=Hz/s optional=yes since=1.0
+shape.SatSurveyCarrierRow.active type=bool unit= optional=no since=1.0
+shape.SatSurveyCarrierRow.channel type=text unit= optional=no since=1.0
+shape.SatSurveyCarrierRow.satellite type=text unit= optional=no since=1.0
+shape.SatSurveyCarrierRow.norad type=i64 unit= optional=yes since=1.0
+shape.SatSurveyCarrierRow.rms_hz type=f64 unit=Hz optional=yes since=1.0
+shape.SatSurveyCarrierRow.ambiguous type=bool unit= optional=no since=1.0
+shape.SatSurveyChannelRow since=1.0
+shape.SatSurveyChannelRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.SatSurveyChannelRow.frequency_hz type=hz unit=Hz optional=no since=1.0
+shape.SatSurveyChannelRow.width_hz type=f64 unit=Hz optional=no since=1.0
+shape.SatSurveyChannelRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.SatSurveyChannelRow.duty type=f64 unit= optional=no since=1.0
+shape.SatSurveyChannelRow.bursts type=i64 unit= optional=no since=1.0
+shape.SatSurveyChannelRow.last_seen_s type=f64 unit=s optional=no since=1.0
+shape.SatSurveyChannelRow.active type=bool unit= optional=no since=1.0
+shape.SatSurveyChannelRow.name type=text unit= optional=no since=1.0
+shape.SatSurveyCarrierEvent since=1.0
+shape.SatSurveyCarrierEvent.text type=text unit= optional=no since=1.0
+shape.SatSurveyCarrierEvent.line type=i64 unit= optional=no since=1.0
+shape.SatSurveyCarrierEvent.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.SatSurveyCarrierEvent.mhz type=f64 unit=MHz optional=no since=1.0
+shape.SatSurveyCarrierEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.SatSurveyCarrierEvent.duration_s type=duration unit=s optional=no since=1.0
+shape.SatSurveyCarrierEvent.drift_hz_s type=f64 unit=Hz/s optional=yes since=1.0
+shape.SatSurveyCarrierEvent.channel type=text unit= optional=no since=1.0
+shape.SatSurveyCarrierEvent.satellite type=text unit= optional=no since=1.0
+shape.SatSurveyCarrierEvent.norad type=i64 unit= optional=yes since=1.0
+shape.SatSurveyCarrierEvent.rms_hz type=f64 unit=Hz optional=yes since=1.0
+shape.SatSurveyCarrierEvent.ambiguous type=bool unit= optional=no since=1.0
+inmarsatc since=1.0
+inmarsatc.fields.InmarsatcFields since=1.0
+inmarsatc.fields.DecoderFields since=1.0
+inmarsatc.component.demod.dropped since=1.0
+inmarsatc.kept.messages since=1.0
+inmarsatc.kept.InmarsatcFields.message_count since=1.0
+inmarsatc.table.messages row=InmarsatcMessageRow cap=150 since=1.0
+inmarsatc.table.channels row=InmarsatcChannelRow cap=4 since=1.0
+inmarsatc.table.packet_counts row=InmarsatcPacketCountRow cap=64 since=1.0
+inmarsatc.event.inmarsatc.egc fields=InmarsatcEgcEvent since=1.0
+inmarsatc.setting.channel_search type=bool unit= since=1.0
+inmarsatc.setting.search_span_hz type=hz unit=Hz since=1.0
+inmarsatc.setting.satellite type=choice(none,alphasat,i4f3,i3f5,i4f1) unit= since=1.0
+inmarsatc.setting.min_priority type=choice(0,1,2,3) unit= since=1.0
+inmarsatc.setting.service_filter type=choice(all,safetynet,fleetnet) unit= since=1.0
+inmarsatc.setting.gen_invert type=bool unit= since=1.0
+inmarsatc.setting.gen_first_frame type=i64 unit= since=1.0
+inmarsatc.setting.gen_extra type=i64 unit= since=1.0
+inmarsatc.setting.gen_start_symbols type=i64 unit=symbols since=1.0
+inmarsatc.command.clear args= reply= since=1.0
+aero since=1.0
+aero.fields.AeroFields since=1.0
+aero.fields.DecoderFields since=1.0
+aero.component.receiver.dropped since=1.0
+aero.component.su.dropped since=1.0
+aero.kept.su_types since=1.0
+aero.kept.logons since=1.0
+aero.kept.messages since=1.0
+aero.kept.aircraft since=1.0
+aero.kept.facts since=1.0
+aero.kept.AeroFields.frames_ok since=1.0
+aero.kept.AeroFields.frames_bad since=1.0
+aero.kept.AeroFields.messages since=1.0
+aero.kept.AeroFields.positions since=1.0
+aero.kept.AeroFields.aircraft since=1.0
+aero.table.channels row=AeroChannelRow cap=12 since=1.0
+aero.table.su_types row=AeroSuTypeRow cap=64 since=1.0
+aero.table.logons row=AeroLogonRow cap=100 since=1.0
+aero.table.messages row=AeroMessageRow cap=200 since=1.0
+aero.table.aircraft row=AeroAircraftRow cap=100 since=1.0
+aero.table.facts row=AeroFactRow cap=24 since=1.0
+aero.event.aero.message fields=AeroMessageEvent since=1.0
+aero.event.aero.logon fields=AeroLogonEvent since=1.0
+aero.setting.search_limit_hz type=hz unit=Hz since=1.0
+aero.setting.satellite type=choice(none,alphasat,i4f3,i3f5,i6f1,i4f1) unit= since=1.0
+aero.setting.filter_label type=text unit= since=1.0
+aero.setting.filter_registration type=text unit= since=1.0
+aero.setting.show_failed type=bool unit= since=1.0
+aero.setting.gen_channels type=i64 unit= since=1.0
+aero.setting.gen_plain type=bool unit= since=1.0
+aero.command.clear args= reply= since=1.0
+aero.command.remove args=row:text reply= since=1.0
+inmarsat since=1.0
+inmarsat.fields.InmarsatFields since=1.0
+inmarsat.fields.DecoderFields since=1.0
+inmarsat.component.receiver.dropped since=1.0
+inmarsat.component.aero_display.fields.AeroFields shared=frames_ok;messages;positions since=1.0
+inmarsat.component.aero_display.dropped since=1.0
+inmarsat.component.egc.fields.InmarsatcFields shared=frames_ok since=1.0
+inmarsat.component.egc.dropped since=1.0
+inmarsat.kept.aero_display.su_types since=1.0
+inmarsat.kept.aero_display.logons since=1.0
+inmarsat.kept.aero_display.messages since=1.0
+inmarsat.kept.aero_display.aircraft since=1.0
+inmarsat.kept.aero_display.facts since=1.0
+inmarsat.kept.egc.messages since=1.0
+inmarsat.kept.InmarsatFields.frames_ok since=1.0
+inmarsat.kept.InmarsatFields.messages since=1.0
+inmarsat.kept.InmarsatFields.positions since=1.0
+inmarsat.kept.InmarsatFields.egc_frames since=1.0
+inmarsat.kept.AeroFields.frames_bad since=1.0
+inmarsat.kept.AeroFields.aircraft since=1.0
+inmarsat.kept.InmarsatcFields.message_count since=1.0
+inmarsat.table.carriers row=InmarsatCarrierRow cap=256 since=1.0
+inmarsat.table.candidates row=InmarsatCandidateRow cap=8 since=1.0
+inmarsat.table.candidate_reasons row=InmarsatCandidateReasonRow cap=128 since=1.0
+inmarsat.table.aero_display.channels row=AeroChannelRow cap=12 since=1.0
+inmarsat.table.aero_display.su_types row=AeroSuTypeRow cap=64 since=1.0
+inmarsat.table.aero_display.logons row=AeroLogonRow cap=100 since=1.0
+inmarsat.table.aero_display.messages row=AeroMessageRow cap=200 since=1.0
+inmarsat.table.aero_display.aircraft row=AeroAircraftRow cap=100 since=1.0
+inmarsat.table.aero_display.facts row=AeroFactRow cap=24 since=1.0
+inmarsat.table.egc.messages row=InmarsatcMessageRow cap=150 since=1.0
+inmarsat.table.egc.channels row=InmarsatcChannelRow cap=4 since=1.0
+inmarsat.table.egc.packet_counts row=InmarsatcPacketCountRow cap=64 since=1.0
+inmarsat.series.spectrum x_unit=Hz y_unit=dB since=1.0
+inmarsat.event.aero.message fields=AeroMessageEvent since=1.0
+inmarsat.event.aero.logon fields=AeroLogonEvent since=1.0
+inmarsat.event.inmarsatc.egc fields=InmarsatcEgcEvent since=1.0
+inmarsat.setting.inmarsat_c type=bool unit= since=1.0
+inmarsat.setting.budget type=f64 unit=units since=1.0
+inmarsat.setting.satellite type=choice(auto,Alphasat%2025E,Inmarsat-4%20F3%2098W,Inmarsat-3%20F5%2054W%20(AOR-W),Inmarsat-6%20F1%2083.5E,Inmarsat-4%20F1%20143.5E,Inmarsat%2015.5W%20(AOR-E),Inmarsat%2064.5E%20(IOR),Inmarsat%20178E%20(POR)) unit= since=1.0
+inmarsat.setting.gen_channels type=i64 unit= since=1.0
+inmarsat.setting.gen_plain type=bool unit= since=1.0
+inmarsat.command.clear args= reply= since=1.0
+inmarsat.command.carrier.focus args=row:text reply= since=1.0
+iridium since=1.0
+iridium.fields.IridiumFields since=1.0
+iridium.table.raw row=IridiumRawRow cap=200 since=1.0
+iridium.series.scatter_detected x_unit=s y_unit=Hz since=1.0
+iridium.series.scatter_uw x_unit=s y_unit=Hz since=1.0
+iridium.event.iridium.raw fields=IridiumRawEvent since=1.0
+iridium.setting.threshold_db type=f64 unit=dB since=1.0
+iridium.setting.raw_output type=bool unit= since=1.0
+iridium.setting.gen_burst_doppler type=bool unit= since=1.0
+iridium.setting.gen_bursts type=i64 unit= since=1.0
+iridium.setting.gen_centre_hz type=hz unit=Hz since=1.0
+iridium.command.clear args= reply= since=1.0
+globalstar since=1.0
+globalstar.fields.GlobalstarFields since=1.0
+globalstar.fields.DecoderFields since=1.0
+globalstar.component.channels.dropped since=1.0
+globalstar.table.channels row=GlobalstarChannelRow cap=13 since=1.0
+globalstar.table.activity row=GlobalstarActivityRow cap=200 since=1.0
+globalstar.series.doppler_01 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_02 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_03 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_04 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_05 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_06 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_07 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_08 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_09 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_10 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_11 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_12 x_unit=s y_unit=Hz since=1.0
+globalstar.series.doppler_13 x_unit=s y_unit=Hz since=1.0
+globalstar.event.globalstar.activity fields=GlobalstarActivityEvent since=1.0
+globalstar.setting.window_s type=duration unit=s since=1.0
+globalstar.setting.pass_overlay type=bool unit= since=1.0
+globalstar.setting.gen_scenario type=choice(pass,steady,silence) unit= since=1.0
+globalstar.setting.gen_channel type=i64 unit= since=1.0
+globalstar.setting.gen_time_scale type=f64 unit= since=1.0
+globalstar.setting.gen_centre_hz type=hz unit=Hz since=1.0
+globalstar.command.clear args= reply= since=1.0
+goes_dcs since=1.0
+goes_dcs.fields.GoesDcsFields since=1.0
+goes_dcs.fields.DecoderFields since=1.0
+goes_dcs.component.rx.dropped since=1.0
+goes_dcs.kept.reports since=1.0
+goes_dcs.kept.platforms since=1.0
+goes_dcs.kept.carriers since=1.0
+goes_dcs.kept.GoesDcsFields since=1.0
+goes_dcs.table.reports row=GoesDcsReportRow cap=300 since=1.0
+goes_dcs.table.platforms row=GoesDcsPlatformRow cap=300 since=1.0
+goes_dcs.table.carriers row=GoesDcsCarrierRow cap=8 since=1.0
+goes_dcs.series.spectrum x_unit=Hz y_unit=dB since=1.0
+goes_dcs.event.goes_dcs.report fields=GoesDcsReportEvent since=1.0
+goes_dcs.setting.threshold_db type=f64 unit=dB since=1.0
+goes_dcs.setting.gen_scenario type=choice(0,1,2,3) unit= since=1.0
+goes_dcs.command.clear args= reply= since=1.0
+goes_dcs.command.remove args=row:text reply= since=1.0
+argos since=1.0
+argos.fields.ArgosFields since=1.0
+argos.fields.DecoderFields since=1.0
+argos.component.rx.dropped since=1.0
+argos.kept.bursts since=1.0
+argos.kept.platforms since=1.0
+argos.kept.frames since=1.0
+argos.kept.ArgosFields since=1.0
+argos.table.bursts row=ArgosBurstRow cap=300 since=1.0
+argos.table.platforms row=ArgosPlatformRow cap=200 since=1.0
+argos.table.frames row=ArgosFrameRow cap=300 since=1.0
+argos.series.doppler x_unit=s y_unit=Hz since=1.0
+argos.event.argos.ptt fields=ArgosPttEvent since=1.0
+argos.event.argos.downlink_frame fields=ArgosDownlinkFrameEvent since=1.0
+argos.setting.link type=choice(auto,uplink,downlink) unit= since=1.0
+argos.setting.gen_downlink type=bool unit= since=1.0
+argos.setting.gen_gap_s type=duration unit=s since=1.0
+argos.setting.gen_step_hz type=hz unit=Hz since=1.0
+argos.setting.gen_other type=bool unit= since=1.0
+argos.setting.gen_pass_doppler_hz type=hz unit=Hz since=1.0
+argos.setting.gen_pass_tau_s type=duration unit=s since=1.0
+argos.setting.gen_pass_tca_s type=duration unit=s since=1.0
+argos.setting.gen_bpsk type=bool unit= since=1.0
+argos.setting.gen_nrzi type=bool unit= since=1.0
+argos.command.clear args= reply= since=1.0
+argos.command.remove args=row:text reply= since=1.0
+hrdcp since=1.0
+hrdcp.fields.HrdcpFields since=1.0
+hrdcp.fields.DecoderFields since=1.0
+hrdcp.component.rx.dropped since=1.0
+hrdcp.kept.reports since=1.0
+hrdcp.kept.platforms since=1.0
+hrdcp.kept.carriers since=1.0
+hrdcp.kept.HrdcpFields since=1.0
+hrdcp.table.reports row=HrdcpReportRow cap=300 since=1.0
+hrdcp.table.platforms row=HrdcpPlatformRow cap=300 since=1.0
+hrdcp.table.carriers row=HrdcpCarrierRow cap=6 since=1.0
+hrdcp.series.spectrum x_unit=Hz y_unit=dB since=1.0
+hrdcp.event.hrdcp.report fields=HrdcpReportEvent since=1.0
+hrdcp.setting.threshold_db type=f64 unit=dB since=1.0
+hrdcp.setting.channel_plan type=text unit= since=1.0
+hrdcp.setting.gen_scene type=choice(0,1) unit= since=1.0
+hrdcp.command.clear args= reply= since=1.0
+sarsat since=1.0
+sarsat.fields.SarsatFields since=1.0
+sarsat.fields.DecoderFields since=1.0
+sarsat.component.rx.dropped since=1.0
+sarsat.kept.bursts since=1.0
+sarsat.kept.beacons since=1.0
+sarsat.kept.SarsatFields since=1.0
+sarsat.table.bursts row=SarsatBurstRow cap=200 since=1.0
+sarsat.table.beacons row=SarsatBeaconRow cap=200 since=1.0
+sarsat.event.sarsat.beacon fields=SarsatBeaconEvent since=1.0
+sarsat.setting.wide_search type=bool unit= since=1.0
+sarsat.setting.repeat_combining type=bool unit= since=1.0
+sarsat.setting.repeat_min_s type=duration unit=s since=1.0
+sarsat.setting.repeat_max_s type=duration unit=s since=1.0
+sarsat.setting.gen_second_generation type=bool unit= since=1.0
+sarsat.setting.gen_beacon type=i64 unit= since=1.0
+sarsat.setting.gen_reverse type=bool unit= since=1.0
+sarsat.setting.gen_bitrate_pct type=f64 unit=% since=1.0
+sarsat.setting.gen_gap_s type=duration unit=s since=1.0
+sarsat.command.clear args= reply= since=1.0
+sarsat.command.remove args=row:text reply= since=1.0
+sarsat.command.preset.apply args=preset:choice(406.028,1544.500)? reply= since=1.0
+lora_sat since=1.0
+lora_sat.fields.LoraSatFields since=1.0
+lora_sat.fields.DecoderFields since=1.0
+lora_sat.component.receiver.dropped since=1.0
+lora_sat.table.frames row=LoraSatFrameRow cap=400 since=1.0
+lora_sat.table.demodulators row=LoraSatDemodulatorRow cap=64 since=1.0
+lora_sat.table.demodulator_syncs row=LoraSatDemodulatorSyncRow cap=256 since=1.0
+lora_sat.table.frames_per_sf row=LoraSatSfRow cap=16 since=1.0
+lora_sat.series.doppler x_unit=s y_unit=Hz since=1.0
+lora_sat.event.lora_sat.frame fields=LoraSatFrameEvent since=1.0
+lora_sat.setting.follow_dial type=bool unit= since=1.0
+lora_sat.setting.auto_sf type=bool unit= since=1.0
+lora_sat.setting.sf type=choice(7,8,9,10,11,12) unit= since=1.0
+lora_sat.setting.auto_bw type=bool unit= since=1.0
+lora_sat.setting.bw_khz type=choice(41.7,62.5,125,250,500) unit= since=1.0
+lora_sat.setting.sync type=choice(both,0x12,0x34,other) unit= since=1.0
+lora_sat.setting.sync_other type=i64 unit= since=1.0
+lora_sat.setting.preamble type=i64 unit=symbols since=1.0
+lora_sat.setting.doppler_max_hz type=hz unit=Hz since=1.0
+lora_sat.setting.track type=bool unit= since=1.0
+lora_sat.setting.offset_hz type=hz unit=Hz since=1.0
+lora_sat.setting.pass_satellite type=text unit= since=1.0
+lora_sat.setting.gen_band type=choice(436.8,868.1,137.055) unit= since=1.0
+lora_sat.setting.gen_sf type=choice(0,7,8,9,10,11,12) unit= since=1.0
+lora_sat.setting.gen_bw_khz type=choice(0,41.7,62.5,125,250,500) unit= since=1.0
+lora_sat.setting.gen_pass_doppler type=bool unit= since=1.0
+lora_sat.setting.gen_start_s type=duration unit=s since=1.0
+lora_sat.setting.gen_sync type=i64 unit= since=1.0
+lora_sat.command.clear args= reply= since=1.0
+orbcomm since=1.0
+orbcomm.fields.OrbcommFields since=1.0
+orbcomm.fields.DecoderFields since=1.0
+orbcomm.component.receiver.dropped since=1.0
+orbcomm.kept.satellites since=1.0
+orbcomm.kept.satellite_channels since=1.0
+orbcomm.kept.decoders since=1.0
+orbcomm.kept.packets since=1.0
+orbcomm.kept.packet_types since=1.0
+orbcomm.kept.OrbcommFields since=1.0
+orbcomm.table.satellites row=OrbcommSatelliteRow cap=64 since=1.0
+orbcomm.table.satellite_channels row=OrbcommSatelliteChannelRow cap=1024 since=1.0
+orbcomm.table.decoders row=OrbcommDecoderRow cap=2 since=1.0
+orbcomm.table.packets row=OrbcommPacketRow cap=500 since=1.0
+orbcomm.table.packet_types row=OrbcommPacketTypeRow cap=9 since=1.0
+orbcomm.series.constellation x_unit= y_unit= since=1.0
+orbcomm.event.orbcomm.message fields=OrbcommMessageEvent since=1.0
+orbcomm.setting.decoders type=choice(1,2) unit= since=1.0
+orbcomm.setting.follow type=bool unit= since=1.0
+orbcomm.setting.gen_downlinks type=i64 unit= since=1.0
+orbcomm.setting.gen_satellite_doppler_hz type=hz unit=Hz since=1.0
+orbcomm.setting.gen_ramp_hz type=hz unit=Hz since=1.0
+orbcomm.setting.gen_ramp_s type=duration unit=s since=1.0
+orbcomm.setting.gen_broken type=f64 unit= since=1.0
+orbcomm.setting.gen_centre_hz type=hz unit=Hz since=1.0
+orbcomm.command.clear args= reply= since=1.0
+orbcomm.command.preset.apply args=channel:choice(137.2500,137.2875,137.3125,137.4625,137.6625,137.7375,137.5)? reply= since=1.0
+orbcomm.command.remove args=row:text reply= since=1.0
+psk_demod since=1.0
+psk_demod.fields.PskDemodFields since=1.0
+psk_demod.fields.DecoderFields since=1.0
+psk_demod.component.receiver.dropped since=1.0
+psk_demod.component.bits.dropped since=1.0
+psk_demod.table.rates row=PskDemodRateRow cap=8 since=1.0
+psk_demod.table.trials row=PskDemodTrialRow cap=16 since=1.0
+psk_demod.table.syncs row=PskDemodSyncRow cap=64 since=1.0
+psk_demod.table.log row=PskDemodLogRow cap=100 since=1.0
+psk_demod.series.constellation x_unit= y_unit= since=1.0
+psk_demod.series.eye x_unit=samples y_unit= since=1.0
+psk_demod.series.envelope_spectrum x_unit=bins y_unit=dB since=1.0
+psk_demod.series.power_spectrum x_unit=bins y_unit=dB since=1.0
+psk_demod.event.psk_demod.lock fields=PskDemodLockEvent since=1.0
+psk_demod.event.psk_demod.bytes fields=PskDemodBytesEvent since=1.0
+psk_demod.setting.order type=choice(auto,bpsk,qpsk,oqpsk,8psk) unit= since=1.0
+psk_demod.setting.baud type=hz unit=Bd since=1.0
+psk_demod.setting.shape type=choice(auto,rect,0.2,0.25,0.35,0.5,0.8,1.0) unit= since=1.0
+psk_demod.setting.span type=text unit= since=1.0
+psk_demod.setting.snap_standard type=bool unit= since=1.0
+psk_demod.setting.follow_doppler type=bool unit= since=1.0
+psk_demod.setting.click_hz type=text unit=Hz since=1.0
+psk_demod.setting.differential type=choice(none,dpsk,nrzm,nrzs) unit= since=1.0
+psk_demod.setting.descrambler type=choice(none,g3ruh,ccsds) unit= since=1.0
+psk_demod.setting.sync type=text unit= since=1.0
+psk_demod.setting.invert type=bool unit= since=1.0
+psk_demod.setting.save_bits type=bool unit= since=1.0
+psk_demod.setting.gen_order type=choice(bpsk,qpsk,oqpsk,8psk) unit= since=1.0
+psk_demod.setting.gen_baud type=hz unit=Bd since=1.0
+psk_demod.setting.gen_rolloff type=f64 unit= since=1.0
+psk_demod.setting.gen_coding type=choice(none,dpsk,nrzm,nrzs,g3ruh,ccsds) unit= since=1.0
+psk_demod.setting.gen_sync type=text unit= since=1.0
+psk_demod.setting.gen_conjugate type=bool unit= since=1.0
+psk_demod.command.clear args= reply= since=1.0
+qo100 since=1.0
+qo100.fields.Qo100Fields since=1.0
+qo100.fields.DecoderFields since=1.0
+qo100.fields.Qo100TxFields since=1.2
+qo100.component.receiver.dropped since=1.0
+qo100.table.beacons row=Qo100BeaconRow cap=3 since=1.0
+qo100.table.signals row=Qo100SignalRow cap=256 since=1.0
+qo100.table.tracks row=Qo100TrackRow cap=256 since=1.0
+qo100.table.conversations row=Qo100ConversationRow cap=60 since=1.0
+qo100.table.conversation_callsigns row=Qo100CallsignRow cap=480 since=1.0
+qo100.table.datv row=Qo100DatvCarrierRow cap=32 since=1.0
+qo100.series.narrowband x_unit=Hz y_unit=dBFS since=1.0
+qo100.series.wideband x_unit=Hz y_unit=dBFS since=1.0
+qo100.series.lnb_error x_unit=s y_unit=Hz since=1.0
+qo100.event.qo100.lock fields=Qo100LockEvent since=1.0
+qo100.event.qo100.conversation fields=Qo100ConversationEvent since=1.0
+qo100.setting.lo type=choice(9750,9739,10000,10600,custom) unit= since=1.0
+qo100.setting.lo_custom_mhz type=f64 unit=MHz since=1.0
+qo100.setting.auto_correction type=bool unit= since=1.0
+qo100.setting.lnb_ppm type=f64 unit=ppm since=1.0
+qo100.setting.dial_hz type=hz unit=Hz since=1.0
+qo100.setting.auto_listen type=choice(off,loudest,newest) unit= since=1.0
+qo100.setting.conversation_gap_s type=duration unit=s since=1.0
+qo100.setting.tx_level type=f64 unit=of%20full%20scale since=1.2
+qo100.setting.tx_timeout type=duration unit=s since=1.2
+qo100.setting.gen_empty type=bool unit= since=1.0
+qo100.setting.gen_centre_mhz type=f64 unit=MHz since=1.0
+qo100.setting.gen_lo type=choice(9750,9739,10000,10600,custom) unit= since=1.0
+qo100.command.clear args= reply= since=1.0
+qo100.command.speech.text args=text:text reply= since=1.0
+qo100.command.conversation.listen args=row:text reply= since=1.0
+qo100.command.remove args=row:text reply= since=1.0
+qo100.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.2
+cubesat since=1.0
+cubesat.fields.CubesatFields since=1.0
+cubesat.fields.DecoderFields since=1.0
+cubesat.fields.CubesatTxFields since=1.1
+cubesat.component.receiver.dropped since=1.0
+cubesat.component.naming.dropped since=1.0
+cubesat.table.frames row=CubesatFrameRow cap=300 since=1.0
+cubesat.table.frames_per_framing row=CubesatFramingRow cap=32 since=1.0
+cubesat.table.carriers row=CubesatCarrierRow cap=16 since=1.0
+cubesat.event.cubesat.frame fields=CubesatFrameEvent since=1.0
+cubesat.event.cubesat.kiss fields=CubesatKissEvent since=1.0
+cubesat.event.cubesat.tx fields=CubesatTxEvent since=1.1
+cubesat.setting.search type=choice(table,smart) unit= since=1.0
+cubesat.setting.ccsds_length type=i64 unit=bytes since=1.0
+cubesat.setting.smart.max_channels type=i64 unit= since=1.0
+cubesat.setting.smart.min_snr_db type=f64 unit=dB since=1.0
+cubesat.setting.extra_bitrates type=text unit=bit/s since=1.0
+cubesat.setting.extra_ax25 type=choice(off,g3ruh,nrzi) unit= since=1.0
+cubesat.setting.afsk_carrier_hz type=f64 unit=Hz since=1.0
+cubesat.setting.afsk_bitrate type=choice(1200,2400,4800) unit= since=1.0
+cubesat.setting.geoscan_length type=choice(66,74) unit= since=1.0
+cubesat.setting.ccsds_basis type=choice(dual,conventional) unit= since=1.0
+cubesat.setting.concat.frame_bytes type=i64 unit=bytes since=1.0
+cubesat.setting.concat.interleave type=i64 unit= since=1.0
+cubesat.setting.concat.basis type=choice(dual,conventional) unit= since=1.0
+cubesat.setting.concat.code type=choice(ccsds,nasa_dsn,ccsds_uninverted,nasa_dsn_uninverted) unit= since=1.0
+cubesat.setting.concat.nrzm type=bool unit= since=1.0
+cubesat.setting.concat.randomiser type=bool unit= since=1.0
+cubesat.setting.mobitex_variant type=choice(mobitex_nx,beesat1,beesat9) unit= since=1.0
+cubesat.setting.satellites type=text unit= since=1.0
+cubesat.setting.tracked type=text unit= since=1.0
+cubesat.setting.kiss type=bool unit= since=1.0
+cubesat.setting.framing_filter type=choice(all,ax25_afsk,ax25_g3ruh,ax25_nrzi,ax100_mode5,ax100_mode6,ccsds_rs,geoscan,lucky7,spino,erminaz,usp,ngham,u482c,mobitex,ccsds_concat) unit= since=1.0
+cubesat.setting.tx_rate type=choice(1200,9600) unit= since=1.1
+cubesat.setting.tx_delay type=f64 unit=ms since=1.1
+cubesat.setting.tx_level type=f64 unit=of%20full%20scale since=1.1
+cubesat.setting.gen_framing type=choice(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15) unit= since=1.0
+cubesat.command.clear args= reply= since=1.0
+cubesat.command.send args=destination:text?;path:text?;text:text?;hex:text?;pid:i64? reply= transmits=text stop=halt since=1.1
+cubesat.command.halt args= reply= since=1.1
+fleet_broadcast since=1.0
+fleet_broadcast.fields.FleetBroadcastFields since=1.0
+fleet_broadcast.fields.DecoderFields since=1.0
+fleet_broadcast.table.channels row=FleetBroadcastChannelRow cap=16 since=1.0
+fleet_broadcast.table.frame_log row=FleetBroadcastFrameRow cap=24 since=1.0
+fleet_broadcast.event.fleet_broadcast.state fields=FleetBroadcastStateEvent since=1.0
+fleet_broadcast.setting.invert type=bool unit= since=1.0
+fleet_broadcast.setting.gen_scenario type=choice(0,1,2,3,4) unit= since=1.0
+fleet_broadcast.setting.gen_carrier_hz type=f64 unit=Hz since=1.0
+fleet_broadcast.setting.gen_fade_db type=f64 unit=dB since=1.0
+fleet_broadcast.setting.gen_invert type=bool unit= since=1.0
+fleet_broadcast.command.clear args= reply= since=1.0
+bgan since=1.0
+bgan.fields.BganFields since=1.0
+bgan.fields.DecoderFields since=1.0
+bgan.table.carrier_table row=BganCarrierRow cap=64 since=1.0
+bgan.table.beam_table row=BganBeamRow cap=256 since=1.0
+bgan.table.log row=BganLogRow cap=200 since=1.0
+bgan.event.bgan.signalling fields=BganSignallingEvent since=1.0
+bgan.setting.decode_all type=bool unit= since=1.0
+bgan.setting.bearer type=choice(auto,1,2,3,4,5,6,7,8,9,10,11,12,13) unit= since=1.0
+bgan.setting.uw_order type=choice(msb_first,lsb_first) unit= since=1.0
+bgan.setting.iq_labels type=choice(in_order,swapped) unit= since=1.0
+bgan.setting.satellites type=text unit= since=1.0
+bgan.setting.scan type=bool unit= since=1.0
+bgan.setting.scan_from_hz type=hz unit=Hz since=1.0
+bgan.setting.scan_to_hz type=hz unit=Hz since=1.0
+bgan.setting.gen_bearer type=choice(0,1,2,3,4,5,6,7,8,9,10,11,12,13) unit= since=1.0
+bgan.setting.gen_subtype type=choice(l8,l7,l6,l5,l4,l3,l2,l1,r,h1,h2,h3,h4,h5,h6) unit= since=1.0
+bgan.setting.gen_carrier_cn0 type=f64 unit=dB-Hz since=1.0
+bgan.setting.gen_carrier_offset_hz type=f64 unit=Hz since=1.0
+bgan.setting.gen_carrier_clock_ppm type=f64 unit=ppm since=1.0
+bgan.setting.gen_carrier_drift_hz_s type=f64 unit=Hz/s since=1.0
+bgan.setting.gen_fade_hz type=f64 unit=Hz since=1.0
+bgan.setting.gen_fade_depth type=f64 unit= since=1.0
+bgan.setting.gen_spot type=i64 unit= since=1.0
+bgan.command.clear args= reply= since=1.0
+sat_survey since=1.0
+sat_survey.fields.SatSurveyFields since=1.0
+sat_survey.fields.DecoderFields since=1.0
+sat_survey.table.carriers row=SatSurveyCarrierRow cap=64 since=1.0
+sat_survey.table.channels row=SatSurveyChannelRow cap=128 since=1.0
+sat_survey.series.spectrum x_unit=Hz y_unit=dB since=1.0
+sat_survey.event.survey.carrier fields=SatSurveyCarrierEvent since=1.0
+sat_survey.setting.threshold_db type=f64 unit=dB since=1.0
+sat_survey.setting.channels type=text unit= since=1.0
+sat_survey.setting.satellites type=text unit= since=1.0
+sat_survey.setting.start_utc type=f64 unit=s since=1.0
+sat_survey.setting.gen_signal type=bool unit= since=1.0
+sat_survey.setting.gen_level_db type=f64 unit=dB since=1.0
+sat_survey.setting.gen_carrier_hz type=hz unit=Hz since=1.0
+sat_survey.command.clear args= reply= since=1.0

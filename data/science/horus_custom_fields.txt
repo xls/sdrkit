@@ -1,0 +1,6 @@
+# Custom field formats of Horus Binary v2 (bytes 21 to 29): one format a line, the parts separated by "|": callsign, struct,
+# the fields as name:post-processing separated by commas, the RTTY sentence names separated by commas, other payload IDs
+# that share the format separated by commas, and a comment. Post-processing: none, battery_5v_byte, divide_by_10,
+# divide_by_100. Source: custom_field_list.json of the Project Horus horusdemodlib project and its wiki page "5 Customising a
+# Horus Binary v2 Packet". A host gives the lines to the stack as its setting custom_formats.
+4FSKTEST-V2|<hhBHxx|ascent_rate:divide_by_100,ext_temperature:divide_by_10,ext_humidity:none,ext_pressure:divide_by_10|||Default custom fields for RS41ng

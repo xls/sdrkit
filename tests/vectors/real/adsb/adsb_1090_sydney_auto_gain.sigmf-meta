@@ -1,0 +1,19 @@
+{
+  "annotations": [],
+  "captures": [
+    {
+      "core:datetime": "2026-11-08T09:38:21Z",
+      "core:frequency": 1090000000.0,
+      "core:sample_start": 0
+    }
+  ],
+  "global": {
+    "core:dataset": "adsb_1090_sydney_auto_gain.sigmf-data",
+    "core:datatype": "ci16_le",
+    "core:description": "Recorded off air in Sydney: ADS-B / Mode S at 1090 MHz, automatic gain as a fixed high gain (66 dB).",
+    "core:recorder": "sdrkit",
+    "core:sample_count": 25296896,
+    "core:sample_rate": 4000000.0,
+    "core:version": "1.0.0"
+  }
+}

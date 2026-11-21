@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 1000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic VHF ACARS, 2.0 s. One AM channel at 131.525 MHz (+25 kHz from the centre), 2400 bit/s MSK audio at 60 % AM depth, carrier-to-noise 30 dB in 7 kHz, transmitter offset within +-300 Hz. Three single-block downlinks from registration TST001, label H1, block ids 0, 1, 2, text 'M01ATEST01SYNTHETIC ACARS TEST BLOCK'.",
+    "core:recorder": "aviation data link test generator, noise seed 1",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 131500000.0
+    }
+  ],
+  "annotations": []
+}

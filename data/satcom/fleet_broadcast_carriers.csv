@@ -1,0 +1,7 @@
+# id: fleet_broadcast_carriers
+# name: Fleet Broadcast carriers a host may offer as the dial of the fleet_broadcast stack
+# verified: no; which satellite carries which carrier is not known
+carrier,frequency_hz
+1,250450000
+2,250550000
+3,250650000

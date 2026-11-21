@@ -1,0 +1,347 @@
+{
+ "note": "Synthetic recordings for specs/drones.md. Each was decoded back by an independent receiver before release. Times are seconds from the first sample. The receiver must publish its final results at the end of the stream (or the test feeds 0.3 s of the same noise level after the file, which carries no signal). Tolerances are in 'tolerance' of each recording.",
+ "recordings": {
+  "remoteid_2432_20m": {
+   "receiver": "mode remote_id, capture centre 2432 MHz (the file's capture frequency), 20 Msps",
+   "tolerance": {
+    "strings": "exact",
+    "lat_lon_deg": 1e-06,
+    "altitudes_m": 0.5,
+    "speed_ms": 0.25,
+    "direction_deg": 0.5,
+    "counts": "as stated (min / exact)",
+    "snr_db": 4,
+    "cfo_hz": 3000
+   },
+   "plan": {
+    "ble_channel": 38,
+    "ble_offset_hz": -6000000,
+    "wifi_channel": 6,
+    "wifi_offset_hz": 5000000
+   },
+   "counters": {
+    "ble_packets_good_min": 15,
+    "ble_remote_id_min": 14,
+    "ble_without_remote_id_min": 1,
+    "wifi_frames_good_min": 9,
+    "wifi_remote_id_min": 8,
+    "wifi_without_remote_id_min": 1,
+    "messages_decoded_min": 45,
+    "per_type_min": {
+     "basic_id": 10,
+     "location": 9,
+     "authentication": 1,
+     "self_id": 1,
+     "system": 9,
+     "operator_id": 9
+    }
+   },
+   "status": {
+    "state": "Remote ID heard",
+    "snr_db": 20,
+    "snr_remark": "the SNR each carrier was made with (core:description); an estimate within the tolerance passes",
+    "cfo_hz": 15000
+   },
+   "drones": [
+    {
+     "address": "C6:12:34:56:78:9A",
+     "via": "BLE",
+     "id_shown": "1581F5FKD229400B",
+     "serial": "1581F5FKD229400B",
+     "session_id": "SESSION-7F3A",
+     "caa_registration": "",
+     "ua_type": "multirotor / helicopter (2)",
+     "status": "airborne (2)",
+     "lat": 54.6872,
+     "lon": 25.2797,
+     "alt_geo_m": 245.0,
+     "alt_baro_m": 230.5,
+     "height_m": 120.0,
+     "height_type": "above take-off (0)",
+     "speed_ms": 8.5,
+     "vspeed_ms": 1.5,
+     "direction_deg": 90,
+     "horiz_acc": "< 10 m (10)",
+     "vert_acc": "< 10 m (4)",
+     "speed_acc": "< 1 m/s (3)",
+     "baro_acc": 3,
+     "timestamp_ds": 12345,
+     "ts_acc": 2,
+     "operator": {
+      "lat": 54.686,
+      "lon": 25.277,
+      "alt_m": 126.0,
+      "location_type": "live GNSS (1)",
+      "classification_type": "EU (1)",
+      "category": "open (1)",
+      "class": "C1 (2)",
+      "area_count": 1,
+      "area_radius_m": 0,
+      "system_timestamp_s_since_2019": 245000000
+     },
+     "operator_id": "LTUabcd1234efgh",
+     "self_id": "Survey flight",
+     "self_id_type": 0,
+     "authentication": {
+      "type": "UAS ID signature (1)",
+      "pages": 1
+     },
+     "message_types_heard": [
+      "Basic ID",
+      "Location",
+      "Authentication",
+      "Self-ID",
+      "System",
+      "Operator ID"
+     ],
+     "track_points": 1
+    },
+    {
+     "address": "60:60:1F:AA:BB:CC",
+     "via": "Wi-Fi",
+     "id_shown": "FIN87astrdge12k8",
+     "serial": "",
+     "session_id": "",
+     "caa_registration": "FIN87astrdge12k8",
+     "ua_type": "aeroplane (1)",
+     "status": "airborne (2)",
+     "lat": 54.7001,
+     "lon": 25.3002,
+     "alt_geo_m": 420.0,
+     "alt_baro_m": 410.0,
+     "height_m": 300.0,
+     "height_type": "above ground (1)",
+     "speed_ms": 69.75,
+     "vspeed": "unknown",
+     "direction_deg": 275,
+     "horiz_acc": "< 3 m (11)",
+     "vert_acc": "< 3 m (5)",
+     "speed_acc": "< 0.3 m/s (4)",
+     "timestamp_ds": 600,
+     "operator": {
+      "lat": 54.695,
+      "lon": 25.29,
+      "alt_m": 110.0,
+      "location_type": "take-off (0)",
+      "classification_type": "EU (1)",
+      "category": "specific (2)",
+      "class": "- (0)",
+      "system_timestamp_s_since_2019": 245000100
+     },
+     "operator_id": "FINop-998877",
+     "self_id": "",
+     "authentication": "none heard",
+     "message_types_heard": [
+      "Basic ID",
+      "Location",
+      "System",
+      "Operator ID"
+     ],
+     "track_points": 1,
+     "remark": "speed 70 m/s is sent with the multiplier bit (0.75 m/s steps above 63.75 m/s), so 69.75 is the exact decoded value"
+    }
+   ],
+   "not_drones": "the BLE advertiser D0:05:04:03:02:01 (name 'Thermo') and the access point 00:04:0E:11:22:33 (SSID 'Home') are counted as good packets without Remote ID and never become drones"
+  },
+  "droneid_2440_20m": {
+   "receiver": "mode dji_droneid, capture centre 2440 MHz, 20 Msps, DroneID decoding on",
+   "tolerance": {
+    "strings": "exact",
+    "raw_fields": "exact",
+    "lat_lon_deg": 1e-06,
+    "freq_mhz": 0.3,
+    "bw_mhz": 1.0,
+    "period_ms": 0.1,
+    "burst_us": 40,
+    "cfo_hz": 1000,
+    "snr_db": 4,
+    "confidence": 0.05
+   },
+   "frame_hex_seq_1000": "580002e803f31f5344524b5445535444524f4e45303031075b1300d8028900d60f31011d00540000007f00bd3ffd6080010000ee3a73000eaf11000d5b1300e00289003c000000000000000000000000000000000000000000373a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0c39b",
+   "bursts": [
+    {
+     "start_s": 0.03,
+     "symbols": 9,
+     "seq": 1000
+    },
+    {
+     "start_s": 0.09,
+     "symbols": 8,
+     "seq": 1001
+    },
+    {
+     "start_s": 0.15,
+     "symbols": 9,
+     "seq": 1002
+    }
+   ],
+   "counters": {
+    "droneid_decoded": 3,
+    "droneid_crc_failed": 0,
+    "bursts_measured_min": 95,
+    "bursts_ofdm_like_min": 95
+   },
+   "status": {
+    "state": "DroneID decoded (3)",
+    "summary": "DroneID: SDRKTESTDRONE001 (3 packets)",
+    "cfo_from_centre_hz": -4988000,
+    "burst_cfo_hz": 12000
+   },
+   "tracks": [
+    {
+     "class": "DJI DroneID",
+     "confidence_min": 0.99,
+     "freq_mhz": 2435.0,
+     "offset_mhz": -5.0,
+     "bw_mhz": 9.25,
+     "clipped": false,
+     "bursts": 3,
+     "period_ms": 60.0,
+     "regularity": 1.0,
+     "burst_us": 643,
+     "zc_seen": true,
+     "decoded": 3,
+     "failed": 0,
+     "band": "2.4 GHz"
+    },
+    {
+     "class": "DJI OcuSync-like",
+     "confidence_min": 0.9,
+     "freq_mhz": 2445.0,
+     "offset_mhz": 5.0,
+     "bw_mhz": 9.3,
+     "clipped": false,
+     "bursts_min": 90,
+     "period_ms": 2.0,
+     "regularity": 1.0,
+     "burst_us": 1003,
+     "duty": 0.51,
+     "ofdm_min": 0.9,
+     "band": "2.4 GHz",
+     "note_contains": "near a frequency reported for DroneID"
+    }
+   ],
+   "drones": [
+    {
+     "serial": "SDRKTESTDRONE001",
+     "packets": 3,
+     "last": {
+      "seq": 1002,
+      "state": "1FF3",
+      "version": 2,
+      "inner_crc16_ok": true,
+      "lat": 51.446837,
+      "lon": 7.267958,
+      "alt_m": 40.6,
+      "height_m": 3.07,
+      "alt_raw": 4060,
+      "height_raw": 307,
+      "v_north_raw": 29,
+      "v_east_raw": 84,
+      "v_up_raw": 0,
+      "yaw_raw": 127,
+      "gps_ms": 1650894651445,
+      "home_lat": 51.446843,
+      "home_lon": 7.26793,
+      "pilot_lat": 43.268203,
+      "pilot_lon": 6.640157,
+      "device_type": 60,
+      "uuid": ""
+     },
+     "trail_points": 3,
+     "freq_mhz": 2435.0,
+     "snr_db": 25,
+     "remark": "lat/lon are the sent radians x 1e7 truncated to integers, so 51.4468 + 2 x 0.00002 decodes as 51.446837"
+    }
+   ]
+  },
+  "flarm_868_1m": {
+   "receiver": "mode flarm, capture centre 868.3 MHz, 1 Msps, receiver position 54.70 N 25.30 E, key time from the recording (unix 1800000020 at the first sample, wall clock off), expiry 60 s",
+   "tolerance": {
+    "ids_types_flags": "exact",
+    "lat_lon_deg": 2e-05,
+    "alt_m": "exact",
+    "speed_kmh": 4,
+    "track_deg": 4,
+    "climb_ms": 0.3,
+    "distance_km": 0.05,
+    "bearing_deg": 1,
+    "level_db": 4
+   },
+   "counters": {
+    "v6_decoded": 6,
+    "bad": 1,
+    "syncs_min": 13,
+    "per_channel": [
+     6,
+     6
+    ],
+    "newer_protocol_packets": 2,
+    "newer_protocol_devices": 1,
+    "privacy_flagged_aircraft": 2,
+    "privacy_packets": 4,
+    "other_type": 0,
+    "aircraft": 3,
+    "with_position": 3,
+    "farthest_km": 5.01
+   },
+   "aircraft": [
+    {
+     "id": "DD1234",
+     "address_type": "FLARM (2)",
+     "type": "glider (1)",
+     "lat": 54.713651,
+     "lon": 25.268915,
+     "alt_m": 800,
+     "speed_kmh": 90,
+     "track_deg": 90,
+     "climb_ms": 1.0,
+     "distance_km": 2.508,
+     "bearing_deg": 307.3,
+     "channel": "868.4 MHz (last packet)",
+     "packets": 2,
+     "level_db": 20
+    },
+    {
+     "id": "DDA5B6",
+     "address_type": "FLARM (2)",
+     "type": "tow plane (2)",
+     "lat": 54.664064,
+     "lon": 25.347098,
+     "alt_m": 1020,
+     "speed_kmh": 136.8,
+     "track_deg": 180,
+     "climb_ms": 3.2,
+     "distance_km": 5.013,
+     "bearing_deg": 142.8,
+     "channel": "868.2 MHz (last packet)",
+     "packets": 2,
+     "level_db": 20
+    },
+    {
+     "id": "3F7C11",
+     "address_type": "ICAO (1)",
+     "type": "powered aircraft (8)",
+     "lat": 54.707187,
+     "lon": 25.312435,
+     "alt_m": 1140,
+     "speed_kmh": 180,
+     "track_deg": 270,
+     "climb_ms": -0.6,
+     "distance_km": 1.13,
+     "bearing_deg": 45.0,
+     "channel": "868.4 MHz (last packet)",
+     "packets": 2,
+     "level_db": 20
+    }
+   ],
+   "must_not_appear": [
+    "DD9999 (no-track)",
+    "DD8888 (stealth)",
+    "DD7777 (newer protocol: counted only)",
+    "DD5555 (bad CRC)"
+   ],
+   "remark": "No identifier, position or level of the no-track and stealth devices may appear in the table, the map, the log, the saved results or any event: only the two counts."
+  }
+ }
+}

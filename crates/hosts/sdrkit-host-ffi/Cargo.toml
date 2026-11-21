@@ -1,0 +1,67 @@
+[package]
+name = "sdrkit-host-ffi"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "The C API of sdrkit"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+# The detail of a radio's errors.
+sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core" }
+sdrkit-host-engine = { path = "../sdrkit-host-engine" }
+# The stacks and component kinds that an engine of the C API offers.
+sdrkit-host-catalog = { path = "../sdrkit-host-catalog", default-features = false }
+# The presets part of the C API (feature `presets`): the reader of a data folder and the types of its lookups.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets", optional = true }
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans", optional = true }
+sdrkit-svc-freqdb = { path = "../../svc/sdrkit-svc-freqdb", optional = true }
+
+[lib]
+name = "sdrkit"
+crate-type = ["staticlib", "rlib"]
+
+[dev-dependencies]
+# The writer of the family headers and the Swift files.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+
+# The stack families of the library: one feature for each, all on by default. Build with `--no-default-features` and
+# the families wanted for a smaller library.
+[features]
+default = ["all-families"]
+# The calls `sdrkit_presets_*` of `include/sdrkit_presets.h`. Off by default: a library without it reads no data
+# folder and holds no lookup by country.
+presets = ["dep:sdrkit-presets", "dep:sdrkit-data-plans", "dep:sdrkit-svc-freqdb"]
+all-families = ["sdrkit-host-catalog/default"]
+fm = ["sdrkit-host-catalog/fm"]
+general = ["sdrkit-host-catalog/general"]
+adsb = ["sdrkit-host-catalog/adsb"]
+dab = ["sdrkit-host-catalog/dab"]
+dvbt = ["sdrkit-host-catalog/dvbt"]
+dvoice = ["sdrkit-host-catalog/dvoice"]
+satimg = ["sdrkit-host-catalog/satimg"]
+lora = ["sdrkit-host-catalog/lora"]
+satcom = ["sdrkit-host-catalog/satcom"]
+wsjt = ["sdrkit-host-catalog/wsjt"]
+tvterr = ["sdrkit-host-catalog/tvterr"]
+dvbt2 = ["sdrkit-host-catalog/dvbt2"]
+broadcast = ["sdrkit-host-catalog/broadcast"]
+trunk = ["sdrkit-host-catalog/trunk"]
+avdata = ["sdrkit-host-catalog/avdata"]
+marine = ["sdrkit-host-catalog/marine"]
+dvbcs = ["sdrkit-host-catalog/dvbcs"]
+cell = ["sdrkit-host-catalog/cell"]
+analogtv = ["sdrkit-host-catalog/analogtv"]
+ism = ["sdrkit-host-catalog/ism"]
+hfkbd = ["sdrkit-host-catalog/hfkbd"]
+gnss = ["sdrkit-host-catalog/gnss"]
+drones = ["sdrkit-host-catalog/drones"]
+avnav = ["sdrkit-host-catalog/avnav"]
+hfdata = ["sdrkit-host-catalog/hfdata"]
+wlan = ["sdrkit-host-catalog/wlan"]
+science = ["sdrkit-host-catalog/science"]
+voice = ["sdrkit-host-catalog/voice"]
+road = ["sdrkit-host-catalog/road"]
+custom = ["sdrkit-host-catalog/custom"]

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 12000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic HF test signal, upper sideband, dial frequency at 0 Hz of the samples (audio frequency f appears at +f Hz). ARDOP frame script (ID, ConReq, ConAck, Ping, PingAck, 4FSK data, ACK, NAK, DISC, an 8PSK header), tone SNR 20 dB in 2.5 kHz, sent once. 24.0 s.",
+    "core:recorder": "HF keyboard-mode test generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14070000.0
+    }
+  ],
+  "annotations": []
+}

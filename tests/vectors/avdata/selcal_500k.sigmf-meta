@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 500000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic SELCAL on a VHF AM voice channel, 3.0 s. Channel 124.000 MHz, 50 kHz below the centre. Code AM-CP: tones 312.6 + 977.2 Hz from 0.4 to 1.4 s, 384.6 + 1083.9 Hz from 1.6 to 2.6 s, each tone at 40 % AM. Carrier-to-noise 30 dB in 6 kHz.",
+    "core:recorder": "aviation data link test generator, noise seed 13",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 124050000.0
+    }
+  ],
+  "annotations": []
+}

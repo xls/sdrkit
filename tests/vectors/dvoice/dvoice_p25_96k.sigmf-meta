@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 96000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic P25 test signal, 10.0 s, channel at the centre of the recording, carrier-to-noise 25 dB in the mode's channel width, rms about 0.22. P25 Phase 1 test schedule, NAC 293: 1.5 s of control channel (WACN BEE00, system 3A1, RFSS 1, site 5, control channel 1-0001, adjacent site 6 on 1-0009, identifier 1 base 851.00625 MHz spacing 12.5 kHz offset -45 MHz, identifier 2 VHF/UHF base 460 MHz offset +5 MHz, group voice grant TG 1201 from 1234567 on channel 1-0010), clear group call 1234567 -> TG 1201 (2.0 s), encrypted group call 7654321 -> TG 1300 (ALGID 84, key 1234, 1.5 s), a data packet header for LLID 2002, a unit-to-unit emergency call 2002 -> 2003 (1.0 s). C4FM; voice bits are a known pattern. See specs/dvoice.md, section 'Test vectors'.",
+    "core:recorder": "digital voice test generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 851012500.0
+    }
+  ],
+  "annotations": []
+}

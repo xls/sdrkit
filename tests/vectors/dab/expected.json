@@ -1,0 +1,114 @@
+{
+  "recording": "dab_ensemble_2048k.sigmf-meta",
+  "note": "Expected decode at the end of the recording, fed in blocks of 20 480 samples (10 ms); the results must not depend on the block size (4096 and 65 536 give the same counts, times move by less than one block). One run per selected sub-channel. The 't_' values are the first block end (seconds of signal) at which the item was reported. 'tolerance' gives the accepted range. Counts of access units and logical frames are for the selected sub-channel only.",
+  "signal": {
+    "state": "locked",
+    "sync": true,
+    "frames_decoded": 24,
+    "fib_ok": 288,
+    "fib_bad": 0,
+    "fib_ok_last_frame": 12,
+    "cfo_hz": 1200.0,
+    "snr_db": 21.3,
+    "sample_clock_ppm": 0.0,
+    "detection": "coherent",
+    "sync_losses": 0,
+    "erased_cifs": 0,
+    "impulses_blanked": 0
+  },
+  "ensemble": {
+    "eid": "C0DE",
+    "label": "Test Ensemble",
+    "short_label": "Test Ens",
+    "utc_seconds": 1700000002,
+    "subchannels": [
+      { "id": 1, "start_cu": 0,   "size_cu": 36, "protection": "EEP 3-A", "bitrate_kbps": 48 },
+      { "id": 2, "start_cu": 36,  "size_cu": 24, "protection": "EEP 3-A", "bitrate_kbps": 32 },
+      { "id": 3, "start_cu": 60,  "size_cu": 48, "protection": "EEP 3-A", "bitrate_kbps": 64 },
+      { "id": 4, "start_cu": 108, "size_cu": 96, "protection": "EEP 3-A", "bitrate_kbps": 128 }
+    ],
+    "services": [
+      { "sid": "C101", "label": "Test Tones 1", "short_label": "Test Ton", "kind": "DAB+", "ascty": 63, "subchannel": 1, "pty": 10, "pty_static": true, "language": 9 },
+      { "sid": "C102", "label": "Test Tones 2", "short_label": "Test Ton", "kind": "DAB+", "ascty": 63, "subchannel": 2, "pty": 10, "pty_static": true, "language": 9 },
+      { "sid": "C103", "label": "Test Melody",  "short_label": "Test Mel", "kind": "DAB+", "ascty": 63, "subchannel": 3, "pty": 10, "pty_static": true, "language": 9 },
+      { "sid": "C104", "label": "Test MP2",     "short_label": "Test MP2", "kind": "DAB",  "ascty": 0,  "subchannel": 4, "pty": 10, "pty_static": true, "language": 9 }
+    ]
+  },
+  "per_selection": {
+    "1": {
+      "codec": "aac", "fourcc": "aac ", "profile": "AAC-LC", "sample_rate": 48000, "channels": 2, "sbr": false, "ps": false,
+      "access_units_per_superframe": 6, "audio_specific_config_hex": "1194",
+      "logical_frames": 87, "superframes_ok": 17, "superframes_bad": 0, "rs_bytes_corrected": 0, "rs_uncorrectable": 0,
+      "access_units_ok": 102, "access_units_bad": 0, "concealed": 0,
+      "tones": { "left_hz": 1000, "right_hz": 3000, "amplitude": 0.5 },
+      "dynamic_label": "", "slide": null
+    },
+    "2": {
+      "codec": "aac", "fourcc": "aac ", "profile": "AAC-LC", "sample_rate": 32000, "channels": 2, "sbr": false, "ps": false,
+      "access_units_per_superframe": 4, "audio_specific_config_hex": "1294",
+      "logical_frames": 87, "superframes_ok": 17, "superframes_bad": 0, "rs_bytes_corrected": 0, "rs_uncorrectable": 0,
+      "access_units_ok": 68, "access_units_bad": 0, "concealed": 0,
+      "tones": { "left_hz": 2000, "right_hz": 500, "amplitude": 0.5 },
+      "dynamic_label": "", "slide": null
+    },
+    "3": {
+      "codec": "aac", "fourcc": "aac ", "profile": "AAC-LC", "sample_rate": 48000, "channels": 2, "sbr": false, "ps": false,
+      "access_units_per_superframe": 6, "audio_specific_config_hex": "1194",
+      "logical_frames": 87, "superframes_ok": 17, "superframes_bad": 0, "rs_bytes_corrected": 0, "rs_uncorrectable": 0,
+      "access_units_ok": 102, "access_units_bad": 0, "concealed": 0,
+      "tones": null,
+      "melody_notes_hz": [261.63, 293.66, 329.63, 349.23, 392.00],
+      "dynamic_label": "Test Melody - test tune",
+      "dynamic_label_charset": "EBU Latin (0)",
+      "dl_plus_tags": [],
+      "slide": {
+        "fourcc": "png ", "mot_content_type": 2, "mot_subtype": 3, "name": "Test slide",
+        "width": 80, "height": 60, "bytes": 1707,
+        "sha256": "d482b70193425b7e1e521f0f308286e696f4bb8bff53ff256a2b959824705553",
+        "file": "slide.png",
+        "pictures_counted": 1
+      }
+    },
+    "4": {
+      "codec": "mp2", "fourcc": ".mp2", "profile": "MPEG-1 Layer II", "sample_rate": 48000, "channels": 2,
+      "frame_bytes": 384, "bitrate_kbps": 128,
+      "logical_frames": 81, "mp2_frames": 81, "access_units_ok": 0,
+      "tones": { "left_hz": 1500, "right_hz": 750, "amplitude": 0.5 },
+      "dynamic_label": "", "slide": null
+    }
+  },
+  "timing_s": {
+    "t_lock": 0.17,
+    "t_first_fib": 0.17,
+    "t_ensemble_valid": 0.17,
+    "t_all_labels": 0.27,
+    "t_first_access_unit": 0.45,
+    "t_dynamic_label_sub3": 0.46,
+    "t_slide_sub3": 1.71
+  },
+  "tolerance": {
+    "eid_labels_ids_layout_pty": "exact",
+    "short_labels": "exact (from the character flag field 0xFF00: the first 8 characters)",
+    "fib_bad": "exactly 0",
+    "fib_ok": "at least 276 (23 frames x 12)",
+    "frames_decoded": [23, 25],
+    "cfo_hz": [1175, 1225],
+    "snr_db": "at least 18",
+    "sample_clock_ppm": [-5, 5],
+    "utc_seconds": [1700000000, 1700000003],
+    "logical_frames": "within 2 of the value given",
+    "superframes_ok": "at least 15; superframes_bad 0",
+    "access_units_ok": "at least 0.85 x the value given, at most the value given + 6 (sub 2: + 4); access_units_bad exactly 0",
+    "rs_bytes_corrected": "exactly 0",
+    "mp2_frames": "within 2 of the value given; every MP2 frame passes its header check",
+    "dynamic_label": "exact",
+    "slide": "exactly one picture counted; bytes identical to slide.png",
+    "tones": "frequency within 1 Hz; level within 0.3 dB of the amplitude (MP2: 1 dB); the other channel's tone at least 40 dB down; measured over the last 1.0 s of decoded audio with a Hann-windowed single-bin DFT. Only checked when an AAC (or MP2) decoder is available to the test.",
+    "melody": "in windows of 0.3 s the strongest tone between 200 and 900 Hz is one of the notes listed, or its octave, within 4 Hz, in at least 80 % of the windows (only with an AAC decoder)",
+    "t_lock": "at most 0.35",
+    "t_all_labels": "at most 0.5",
+    "t_first_access_unit": "at most 0.7",
+    "t_dynamic_label_sub3": "at most 1.0",
+    "t_slide_sub3": "at most 2.2"
+  }
+}

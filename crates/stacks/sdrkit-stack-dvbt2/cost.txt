@@ -1,0 +1,16 @@
+# stack variant stage calibration-units-per-second-of-signal (written by the cost test, do not edit)
+dvbt2 32k-256qam-2/3 ofdm 14656.2
+dvbt2 32k-256qam-2/3 fec 17740.6
+dvbt2 32k-256qam-2/3 ts 2741.8
+dvbt2 32k-64qam-2/3 ofdm 18110.4
+dvbt2 32k-64qam-2/3 fec 10318.1
+dvbt2 32k-64qam-2/3 ts 1914.4
+dvbt2 8k-256qam-2/3 ofdm 16259.3
+dvbt2 8k-256qam-2/3 fec 20139.4
+dvbt2 8k-256qam-2/3 ts 3062.4
+dvbt2 8k-64qam-2/3 ofdm 16310.4
+dvbt2 8k-64qam-2/3 fec 6535.2
+dvbt2 8k-64qam-2/3 ts 1748.8
+dvbt2 8k-qpsk-1/2 ofdm 9655.0
+dvbt2 8k-qpsk-1/2 fec 1916.7
+dvbt2 8k-qpsk-1/2 ts 184.7

@@ -1,0 +1,52 @@
+# The interface of the stack family tones. The registry test of the family writes this file.
+family tones version=1.0
+shape.SubAudioFields since=1.0
+shape.SubAudioFields.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.SubAudioFields.text type=text unit= optional=no since=1.0
+shape.SubAudioFields.kind type=choice(ctcss,dcs) unit= optional=no since=1.0
+shape.SubAudioFields.event type=choice(locked,released,turn_off) unit= optional=no since=1.0
+shape.SubAudioFields.tone_hz type=hz unit=Hz optional=yes since=1.0
+shape.SubAudioFields.eia type=bool unit= optional=yes since=1.0
+shape.SubAudioFields.motorola type=text unit= optional=yes since=1.0
+shape.SubAudioFields.measured_hz type=hz unit=Hz optional=yes since=1.0
+shape.SubAudioFields.code type=text unit= optional=yes since=1.0
+shape.SubAudioFields.standard type=bool unit= optional=yes since=1.0
+shape.SubAudioFields.alias type=text unit= optional=yes since=1.0
+shape.SubAudioFields.level_db type=f64 unit=dB optional=no since=1.0
+shape.DtmfFields since=1.0
+shape.DtmfFields.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.DtmfFields.text type=text unit= optional=no since=1.0
+shape.DtmfFields.key type=text unit= optional=no since=1.0
+shape.DtmfFields.down type=bool unit= optional=no since=1.0
+shape.DtmfFields.row_db type=f64 unit=dB optional=no since=1.0
+shape.DtmfFields.column_db type=f64 unit=dB optional=no since=1.0
+shape.SelcallFields since=1.0
+shape.SelcallFields.source type=text unit= optional=no since=1.0
+shape.SelcallFields.text type=text unit= optional=no since=1.0
+shape.SelcallFields.digits type=text unit= optional=no since=1.0
+shape.SelcallFields.sent type=text unit= optional=no since=1.0
+shape.SelcallFields.set type=text unit= optional=no since=1.0
+shape.SelcallFields.also_fits type=text unit= optional=yes since=1.0
+shape.SelcallFields.length_s type=duration unit=s optional=no since=1.0
+shape.SelcallFields.tone_s type=duration unit=s optional=no since=1.0
+shape.SelcalFields since=1.0
+shape.SelcalFields.source type=text unit= optional=no since=1.0
+shape.SelcalFields.text type=text unit= optional=no since=1.0
+shape.SelcalFields.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.SelcalFields.code type=text unit= optional=no since=1.0
+shape.SelcalFields.classic type=bool unit= optional=no since=1.0
+shape.SelcalFields.level_db type=f64 unit=dB optional=no since=1.0
+shape.SelcalFields.shift_hz type=hz unit=Hz optional=no since=1.0
+shape.TwoToneFields since=1.0
+shape.TwoToneFields.text type=text unit= optional=no since=1.0
+shape.TwoToneFields.a_hz type=hz unit=Hz optional=no since=1.0
+shape.TwoToneFields.b_hz type=hz unit=Hz optional=no since=1.0
+shape.TwoToneFields.a_s type=duration unit=s optional=no since=1.0
+shape.TwoToneFields.b_s type=duration unit=s optional=no since=1.0
+shape.TwoToneFields.ended type=bool unit= optional=no since=1.0
+tones since=1.0
+tones.event.tones.subaudio fields=SubAudioFields since=1.0
+tones.event.tones.dtmf fields=DtmfFields since=1.0
+tones.event.tones.selcall fields=SelcallFields since=1.0
+tones.event.tones.selcal fields=SelcalFields since=1.0
+tones.event.tones.two_tone fields=TwoToneFields since=1.0

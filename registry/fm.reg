@@ -1,0 +1,277 @@
+# The interface of the stack family fm. The registry test of the family writes this file.
+family fm version=1.2
+shape.FmFields since=1.0
+shape.FmFields.station type=text unit= optional=no since=1.0
+shape.FmFields.station_partial type=text unit= optional=no since=1.0
+shape.FmFields.text type=text unit= optional=no since=1.0
+shape.FmFields.text_complete type=bool unit= optional=no since=1.0
+shape.FmFields.programme type=text unit= optional=yes since=1.0
+shape.FmFields.pty type=i64 unit= optional=yes since=1.0
+shape.FmFields.pi type=text unit= optional=yes since=1.0
+shape.FmFields.call_letters type=text unit= optional=yes since=1.0
+shape.FmFields.rbds type=bool unit= optional=no since=1.0
+shape.FmFields.tp type=bool unit= optional=no since=1.0
+shape.FmFields.ta type=bool unit= optional=no since=1.0
+shape.FmFields.music type=bool unit= optional=no since=1.0
+shape.FmFields.ptyn type=text unit= optional=no since=1.0
+shape.FmFields.ecc type=i64 unit= optional=yes since=1.0
+shape.FmFields.language type=i64 unit= optional=yes since=1.0
+shape.FmFields.pin type=text unit= optional=yes since=1.0
+shape.FmFields.clock type=time unit= optional=yes since=1.0
+shape.FmFields.clock_offset type=duration unit=s optional=yes since=1.0
+shape.FmFields.ert type=text unit= optional=no since=1.0
+shape.FmFields.item_running type=bool unit= optional=no since=1.0
+shape.FmFields.rds_sync type=bool unit= optional=no since=1.0
+shape.FmFields.rds_ok_pct type=f64 unit=% optional=no since=1.0
+shape.FmFields.groups type=i64 unit= optional=no since=1.0
+shape.FmFields.blocks_good type=i64 unit= optional=no since=1.0
+shape.FmFields.blocks_corrected type=i64 unit= optional=no since=1.0
+shape.FmFields.blocks_bad type=i64 unit= optional=no since=1.0
+shape.FmFields.blocks_voted type=i64 unit= optional=no since=1.0
+shape.FmFields.snr_db type=f64 unit=dB optional=no since=1.0
+shape.FmFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.FmFields.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.FmFields.carrier type=bool unit= optional=no since=1.0
+shape.FmFields.stereo type=bool unit= optional=no since=1.0
+shape.FmFields.stereo_pct type=f64 unit=% optional=no since=1.0
+shape.FmFields.pilot_pct type=f64 unit=% optional=no since=1.0
+shape.FmFields.pilot_locked type=bool unit= optional=no since=1.0
+shape.FmFields.deviation_hz type=hz unit=Hz optional=no since=1.0
+shape.FmFields.multipath_pct type=f64 unit=% optional=no since=1.0
+shape.FmFields.equaliser type=bool unit= optional=no since=1.0
+shape.FmFields.squelched type=bool unit= optional=no since=1.0
+shape.FmFields.channel_width_hz type=hz unit=Hz optional=no since=1.0
+shape.FmFields.mpx_top_hz type=hz unit=Hz optional=no since=1.0
+shape.FmFields.signal_time type=duration unit=s optional=no since=1.0
+shape.FmFields.band_start_hz type=hz unit=Hz optional=no since=1.0
+shape.FmFields.band_end_hz type=hz unit=Hz optional=no since=1.0
+shape.FmFields.band_step_hz type=hz unit=Hz optional=no since=1.0
+shape.FmFields.band_first_hz type=hz unit=Hz optional=no since=1.0
+shape.FmFields.tmc_ltn type=i64 unit= optional=yes since=1.0
+shape.FmFields.tmc_sid type=i64 unit= optional=yes since=1.0
+shape.FmFields.tmc_afi type=bool unit= optional=no since=1.0
+shape.FmFields.tmc_enhanced_mode type=bool unit= optional=no since=1.0
+shape.FmFields.tmc_scope type=i64 unit= optional=no since=1.0
+shape.FmTxFields since=1.2
+shape.FmTxFields.transmitting type=bool unit= optional=no since=1.2
+shape.FmTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.2
+shape.FmTxFields.tx_peak_hz type=hz unit=Hz optional=yes since=1.2
+shape.FmTxFields.tx_mpx_power_db type=f64 unit=dB optional=yes since=1.2
+shape.FmTxFields.tx_groups type=i64 unit= optional=no since=1.2
+shape.AfRow since=1.0
+shape.AfRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.LabelTagRow since=1.0
+shape.LabelTagRow.code type=i64 unit= optional=no since=1.0
+shape.LabelTagRow.type type=text unit= optional=yes since=1.0
+shape.LabelTagRow.text type=text unit= optional=no since=1.0
+shape.OdaRow since=1.0
+shape.OdaRow.aid type=i64 unit= optional=no since=1.0
+shape.OdaRow.group type=text unit= optional=no since=1.0
+shape.EonRow since=1.0
+shape.EonRow.pi type=text unit= optional=no since=1.0
+shape.EonRow.name type=text unit= optional=no since=1.0
+shape.EonRow.tp type=bool unit= optional=no since=1.0
+shape.EonRow.ta type=bool unit= optional=no since=1.0
+shape.EonRow.pty type=i64 unit= optional=yes since=1.0
+shape.EonRow.pin type=text unit= optional=yes since=1.0
+shape.EonAfRow since=1.0
+shape.EonAfRow.network type=text unit= optional=no refers_to=eon since=1.0
+shape.EonAfRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.TmcRow since=1.0
+shape.TmcRow.event type=i64 unit= optional=no since=1.0
+shape.TmcRow.location type=i64 unit= optional=no since=1.0
+shape.TmcRow.negative_direction type=bool unit= optional=no since=1.0
+shape.TmcRow.extent type=i64 unit= optional=no since=1.0
+shape.TmcRow.diversion type=bool unit= optional=no since=1.0
+shape.TmcRow.duration type=i64 unit= optional=no since=1.0
+shape.TmcRow.repeats type=i64 unit= optional=no since=1.0
+shape.TmcRow.first type=time unit= optional=no since=1.0
+shape.TmcRow.last type=time unit= optional=no since=1.0
+shape.TmcRow.expires type=time unit= optional=no since=1.0
+shape.StationEvent since=1.0
+shape.StationEvent.source type=text unit= optional=no since=1.0
+shape.StationEvent.text type=text unit= optional=no since=1.0
+shape.StationEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.StlFields since=1.1
+shape.StlFields.link type=choice(nothing,composite,mono,digital_unknown,unknown) unit= optional=no since=1.1
+shape.StlFields.peak_deviation_hz type=hz unit=Hz optional=yes since=1.1
+shape.StlFields.modulation_pct type=f64 unit=% optional=yes since=1.1
+shape.StlFields.pilot_hz type=hz unit=Hz optional=yes since=1.1
+shape.StlFields.width_auto type=bool unit= optional=no since=1.1
+shape.StlFields.floor_measured type=bool unit= optional=no since=1.1
+shape.StlFields.occupied_width_hz type=hz unit=Hz optional=yes since=1.1
+shape.StlFields.over_floor_db type=f64 unit=dB optional=yes since=1.1
+shape.StlFields.flatness_db type=f64 unit=dB optional=yes since=1.1
+shape.StlFields.sca67_snr_db type=f64 unit=dB optional=yes since=1.1
+shape.StlFields.sca92_snr_db type=f64 unit=dB optional=yes since=1.1
+shape.StlFields.sound_peak_dbfs type=f64 unit=dBFS optional=yes since=1.1
+shape.StlFields.sound_rms_dbfs type=f64 unit=dBFS optional=yes since=1.1
+shape.RdsPart since=1.1
+shape.RdsPart.station type=text unit= optional=no since=1.1
+shape.RdsPart.station_partial type=text unit= optional=no since=1.1
+shape.RdsPart.text_complete type=bool unit= optional=no since=1.1
+shape.RdsPart.programme type=text unit= optional=yes since=1.1
+shape.RdsPart.pty type=i64 unit= optional=yes since=1.1
+shape.RdsPart.pi type=text unit= optional=yes since=1.1
+shape.RdsPart.call_letters type=text unit= optional=yes since=1.1
+shape.RdsPart.rbds type=bool unit= optional=no since=1.1
+shape.RdsPart.tp type=bool unit= optional=no since=1.1
+shape.RdsPart.ta type=bool unit= optional=no since=1.1
+shape.RdsPart.music type=bool unit= optional=no since=1.1
+shape.RdsPart.ptyn type=text unit= optional=no since=1.1
+shape.RdsPart.ecc type=i64 unit= optional=yes since=1.1
+shape.RdsPart.language type=i64 unit= optional=yes since=1.1
+shape.RdsPart.pin type=text unit= optional=yes since=1.1
+shape.RdsPart.clock type=time unit= optional=yes since=1.1
+shape.RdsPart.clock_offset type=duration unit=s optional=yes since=1.1
+shape.RdsPart.ert type=text unit= optional=no since=1.1
+shape.RdsPart.rds_sync type=bool unit= optional=no since=1.1
+shape.RdsPart.rds_ok_pct type=f64 unit=% optional=no since=1.1
+shape.RdsPart.groups type=i64 unit= optional=no since=1.1
+shape.RdsPart.blocks_good type=i64 unit= optional=no since=1.1
+shape.RdsPart.blocks_corrected type=i64 unit= optional=no since=1.1
+shape.RdsPart.blocks_bad type=i64 unit= optional=no since=1.1
+shape.RdsPart.blocks_voted type=i64 unit= optional=no since=1.1
+shape.RdsPart.snr_db type=f64 unit=dB optional=no since=1.1
+shape.RdsPart.level_dbfs type=f64 unit=dBFS optional=no since=1.1
+shape.RdsPart.offset_hz type=hz unit=Hz optional=no since=1.1
+shape.RdsPart.carrier type=bool unit= optional=no since=1.1
+shape.RdsPart.stereo type=bool unit= optional=no since=1.1
+shape.RdsPart.stereo_pct type=f64 unit=% optional=no since=1.1
+shape.RdsPart.pilot_pct type=f64 unit=% optional=no since=1.1
+shape.RdsPart.pilot_locked type=bool unit= optional=no since=1.1
+shape.RdsPart.deviation_hz type=hz unit=Hz optional=no since=1.1
+shape.RdsPart.multipath_pct type=f64 unit=% optional=no since=1.1
+shape.RdsPart.equaliser type=bool unit= optional=no since=1.1
+shape.RdsPart.squelched type=bool unit= optional=no since=1.1
+shape.RdsPart.channel_width_hz type=hz unit=Hz optional=no since=1.1
+shape.RdsPart.mpx_top_hz type=hz unit=Hz optional=no since=1.1
+shape.RdsPart.signal_time type=duration unit=s optional=no since=1.1
+shape.RdsPart.tmc_ltn type=i64 unit= optional=yes since=1.1
+shape.RdsPart.tmc_sid type=i64 unit= optional=yes since=1.1
+shape.RdsPart.tmc_afi type=bool unit= optional=no since=1.1
+shape.RdsPart.tmc_enhanced_mode type=bool unit= optional=no since=1.1
+shape.RdsPart.tmc_scope type=i64 unit= optional=no since=1.1
+shape.LabelFields since=1.1
+shape.LabelFields.text type=text unit= optional=yes since=1.1
+shape.LabelFields.item_running type=bool unit= optional=yes since=1.1
+shape.LinkRow since=1.1
+shape.LinkRow.time_s type=duration unit=s optional=no since=1.1
+shape.LinkRow.link type=choice(nothing,composite,mono,digital_unknown,unknown) unit= optional=no since=1.1
+shape.LinkRow.text type=text unit= optional=no since=1.1
+shape.LinkRow.over_floor_db type=f64 unit=dB optional=yes since=1.1
+shape.LinkEvent since=1.1
+shape.LinkEvent.link type=choice(nothing,composite,mono,digital_unknown,unknown) unit= optional=no since=1.1
+shape.LinkEvent.text type=text unit= optional=no since=1.1
+shape.LinkEvent.over_floor_db type=f64 unit=dB optional=yes since=1.1
+fm since=1.0
+fm.fields.FmFields since=1.0
+fm.fields.FmTxFields since=1.2
+fm.table.af row=AfRow cap=32 since=1.0
+fm.table.label_tags row=LabelTagRow cap=128 since=1.0
+fm.table.oda row=OdaRow cap=16 since=1.0
+fm.table.eon row=EonRow cap=16 since=1.0
+fm.table.eon_af row=EonAfRow cap=400 since=1.0
+fm.table.tmc row=TmcRow cap=64 since=1.0
+fm.series.mpx x_unit=Hz y_unit=dB since=1.0
+fm.series.rds_symbols x_unit= y_unit= since=1.0
+fm.event.fm.station fields=StationEvent since=1.0
+fm.event.fm.text fields=StationEvent since=1.0
+fm.setting.stereo type=choice(auto,mono,stereo) unit= since=1.0
+fm.setting.force_mono type=bool unit= since=1.0
+fm.setting.deemphasis type=choice(off,50,75) unit= since=1.0
+fm.setting.squelch type=f64 unit=dB since=1.0
+fm.setting.audio_bandwidth type=choice(0,12000,8000,5000) unit= since=1.0
+fm.setting.bass type=f64 unit=dB since=1.0
+fm.setting.treble type=f64 unit=dB since=1.0
+fm.setting.warm type=bool unit= since=1.0
+fm.setting.channel_width type=hz unit=Hz since=1.0
+fm.setting.channel_filter type=choice(standard,wide,narrow,custom) unit= since=1.0
+fm.setting.band_low_hz type=hz unit=Hz since=1.0
+fm.setting.band_high_hz type=hz unit=Hz since=1.0
+fm.setting.first_hz type=hz unit=Hz since=1.0
+fm.setting.raster_hz type=hz unit=Hz since=1.0
+fm.setting.scan_low type=f64 unit=MHz since=1.0
+fm.setting.scan_high type=f64 unit=MHz since=1.0
+fm.setting.scan_full_rds type=bool unit= since=1.0
+fm.setting.station_finder type=bool unit= since=1.0
+fm.setting.rds_variant type=choice(auto,rds,rbds) unit= since=1.0
+fm.setting.rds_correction type=choice(0,1,2) unit= since=1.0
+fm.setting.rds_voting type=bool unit= since=1.0
+fm.setting.rds_charset type=choice(0,1,2) unit= since=1.0
+fm.setting.gen_stereo type=bool unit= since=1.0
+fm.setting.gen_left_hz type=hz unit=Hz since=1.0
+fm.setting.gen_left_amp type=f64 unit= since=1.0
+fm.setting.gen_right_hz type=hz unit=Hz since=1.0
+fm.setting.gen_right_amp type=f64 unit= since=1.0
+fm.setting.gen_pilot type=f64 unit=% since=1.0
+fm.setting.gen_rds type=bool unit= since=1.0
+fm.setting.gen_rds_khz type=f64 unit=kHz since=1.0
+fm.setting.gen_ps type=text unit= since=1.0
+fm.setting.gen_rt type=text unit= since=1.0
+fm.setting.gen_pi type=text unit= since=1.0
+fm.setting.gen_pty type=i64 unit= since=1.0
+fm.setting.gen_tp type=bool unit= since=1.0
+fm.setting.gen_ta type=bool unit= since=1.0
+fm.setting.gen_music type=bool unit= since=1.0
+fm.setting.gen_preemphasis type=choice(0,50,75) unit= since=1.0
+fm.setting.gen_extra_groups type=text unit= since=1.0
+fm.setting.tx_pi type=text unit= since=1.2
+fm.setting.tx_ps type=text unit= since=1.2
+fm.setting.tx_rt type=text unit= since=1.2
+fm.setting.tx_pty type=i64 unit= since=1.2
+fm.setting.tx_tp type=bool unit= since=1.2
+fm.setting.tx_ta type=bool unit= since=1.2
+fm.setting.tx_music type=bool unit= since=1.2
+fm.setting.tx_af type=text unit= since=1.2
+fm.setting.tx_ct type=bool unit= since=1.2
+fm.setting.tx_ct_offset type=i64 unit=half%20hours since=1.2
+fm.setting.tx_stereo type=bool unit= since=1.2
+fm.setting.tx_preemphasis type=choice(0,50,75) unit= since=1.2
+fm.setting.tx_deviation type=hz unit=Hz since=1.2
+fm.setting.tx_pilot type=f64 unit=% since=1.2
+fm.setting.tx_rds_level type=f64 unit=kHz since=1.2
+fm.setting.tx_limiter type=bool unit= since=1.2
+fm.command.clear args= reply= since=1.0
+fm.command.start args= reply= transmits=file stop=stop since=1.2
+fm.command.stop args= reply= since=1.2
+stl since=1.1
+stl.fields.StlFields since=1.1
+stl.fields.RdsPart since=1.1
+stl.fields.LabelFields since=1.1
+stl.table.links row=LinkRow cap=64 since=1.1
+stl.table.af row=AfRow cap=32 since=1.1
+stl.table.label_tags row=LabelTagRow cap=128 since=1.1
+stl.table.oda row=OdaRow cap=16 since=1.1
+stl.table.eon row=EonRow cap=16 since=1.1
+stl.table.eon_af row=EonAfRow cap=400 since=1.1
+stl.table.tmc row=TmcRow cap=64 since=1.1
+stl.series.mpx x_unit=Hz y_unit=dB since=1.1
+stl.series.rds_symbols x_unit= y_unit= since=1.1
+stl.event.stl.link fields=LinkEvent since=1.1
+stl.event.fm.station fields=StationEvent since=1.1
+stl.event.fm.text fields=StationEvent since=1.1
+stl.setting.stereo type=choice(auto,mono,stereo) unit= since=1.1
+stl.setting.deemphasis type=choice(off,50,75) unit= since=1.1
+stl.setting.deviation type=hz unit=Hz since=1.1
+stl.setting.auto_width type=bool unit= since=1.1
+stl.setting.width type=hz unit=Hz since=1.1
+stl.setting.rds_variant type=choice(auto,rds,rbds) unit= since=1.1
+stl.setting.rds_correction type=choice(0,1,2) unit= since=1.1
+stl.setting.rds_voting type=bool unit= since=1.1
+stl.setting.rds_charset type=choice(0,1,2) unit= since=1.1
+stl.setting.gen_link type=choice(composite,mono,digital) unit= since=1.1
+stl.setting.gen_deviation type=hz unit=Hz since=1.1
+stl.setting.gen_sca type=bool unit= since=1.1
+stl.setting.gen_width type=hz unit=Hz since=1.1
+stl.setting.gen_left_hz type=hz unit=Hz since=1.1
+stl.setting.gen_left_amp type=f64 unit= since=1.1
+stl.setting.gen_right_hz type=hz unit=Hz since=1.1
+stl.setting.gen_right_amp type=f64 unit= since=1.1
+stl.setting.gen_rds type=bool unit= since=1.1
+stl.setting.gen_ps type=text unit= since=1.1
+stl.setting.gen_rt type=text unit= since=1.1
+stl.setting.gen_pi type=text unit= since=1.1
+stl.setting.gen_pty type=i64 unit= since=1.1
+stl.setting.gen_preemphasis type=choice(0,50,75) unit= since=1.1
+stl.command.clear args= reply= since=1.1

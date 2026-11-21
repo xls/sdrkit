@@ -1,0 +1,623 @@
+# The interface of the stack family avdata. The registry test of the family writes this file.
+family avdata version=1.1
+uses.tones major=1 since=1.0
+shape.AcarsFields since=1.0
+shape.AcarsFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.AcarsFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.AcarsFields.blocks_repaired type=i64 unit= optional=no since=1.0
+shape.AcarsFields.frames_started type=i64 unit= optional=no since=1.0
+shape.AcarsFields.positions type=i64 unit= optional=no since=1.0
+shape.AcarsFields.channels_active type=i64 unit= optional=no since=1.0
+shape.AcarsFields.aircraft type=i64 unit= optional=no since=1.0
+shape.AcarsFields.messages type=i64 unit= optional=no since=1.0
+shape.AcarsFields.good_pct type=f64 unit=% optional=yes since=1.0
+shape.AcarsFields.watching type=text unit= optional=no since=1.0
+shape.AcarsMessageRow since=1.0
+shape.AcarsMessageRow.time type=time unit= optional=yes since=1.0
+shape.AcarsMessageRow.signal_s type=f64 unit=s optional=no since=1.0
+shape.AcarsMessageRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.AcarsMessageRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.AcarsMessageRow.mode type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.registration type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.aircraft type=text unit= optional=yes refers_to=aircraft since=1.0
+shape.AcarsMessageRow.flight type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.label type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.label_meaning type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.block_id type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.msn type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.downlink type=bool unit= optional=no since=1.0
+shape.AcarsMessageRow.ack type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.text type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.reading type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.reading_kind type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.reading_category type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.cpdlc_imi type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.cpdlc_ground type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.cpdlc_aircraft type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.cpdlc_crc_ok type=bool unit= optional=yes since=1.0
+shape.AcarsMessageRow.cpdlc_parsed type=bool unit= optional=yes since=1.0
+shape.AcarsMessageRow.cpdlc_text type=text unit= optional=yes since=1.0
+shape.AcarsMessageRow.blocks type=i64 unit= optional=no since=1.0
+shape.AcarsMessageRow.bits_fixed type=i64 unit= optional=no since=1.0
+shape.AcarsMessageRow.position type=position unit= optional=yes since=1.0
+shape.AcarsMessageRow.alt_ft type=f64 unit=ft optional=yes since=1.0
+shape.AcarsAircraftRow since=1.0
+shape.AcarsAircraftRow.address type=text unit= optional=yes since=1.0
+shape.AcarsAircraftRow.registration type=text unit= optional=yes since=1.0
+shape.AcarsAircraftRow.country type=text unit= optional=yes since=1.0
+shape.AcarsAircraftRow.flight type=text unit= optional=yes since=1.0
+shape.AcarsAircraftRow.label type=text unit= optional=yes since=1.0
+shape.AcarsAircraftRow.messages type=i64 unit= optional=no since=1.0
+shape.AcarsAircraftRow.position type=position unit= optional=yes since=1.0
+shape.AcarsAircraftRow.alt_ft type=f64 unit=ft optional=yes since=1.0
+shape.AcarsAircraftRow.track_deg type=f64 unit=deg optional=yes since=1.0
+shape.AcarsAircraftRow.gs_kt type=f64 unit=kt optional=yes since=1.0
+shape.AcarsAircraftRow.vs_fpm type=f64 unit=ft/min optional=yes since=1.0
+shape.AcarsAircraftRow.last_heard type=time unit= optional=yes since=1.0
+shape.AcarsAircraftRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.AcarsAircraftRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.AcarsChannelRow since=1.0
+shape.AcarsChannelRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.AcarsChannelRow.level_db type=f64 unit=dB optional=yes since=1.0
+shape.AcarsChannelRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.AcarsChannelRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.AcarsChannelRow.active type=bool unit= optional=no since=1.0
+shape.AcarsChannelRow.good type=i64 unit= optional=no since=1.0
+shape.AcarsChannelRow.bad type=i64 unit= optional=no since=1.0
+shape.AcarsChannelRow.last_heard type=time unit= optional=yes since=1.0
+shape.AcarsMessageEvent since=1.0
+shape.AcarsMessageEvent.source type=text unit= optional=no since=1.0
+shape.AcarsMessageEvent.target type=text unit= optional=yes since=1.0
+shape.AcarsMessageEvent.text type=text unit= optional=no since=1.0
+shape.AcarsMessageEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.AcarsMessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.AcarsMessageEvent.flight type=text unit= optional=no since=1.0
+shape.AcarsMessageEvent.label type=text unit= optional=no since=1.0
+shape.AcarsMessageEvent.downlink type=bool unit= optional=no since=1.0
+shape.AcarsMessageEvent.msn type=text unit= optional=no since=1.0
+shape.AcarsMessageEvent.position type=position unit= optional=yes since=1.0
+shape.AcarsMessageEvent.alt_ft type=f64 unit=ft optional=yes since=1.0
+shape.Vdl2Fields since=1.0
+shape.Vdl2Fields.frames_ok type=i64 unit= optional=no since=1.0
+shape.Vdl2Fields.bursts_bad type=i64 unit= optional=no since=1.0
+shape.Vdl2Fields.octets_corrected type=i64 unit= optional=no since=1.0
+shape.Vdl2Fields.headers_fixed type=i64 unit= optional=no since=1.0
+shape.Vdl2Fields.fcs_bad type=i64 unit= optional=no since=1.0
+shape.Vdl2Fields.positions type=i64 unit= optional=no since=1.0
+shape.Vdl2Fields.tuning_error type=hz unit=Hz optional=yes since=1.0
+shape.Vdl2Fields.aircraft type=i64 unit= optional=no since=1.0
+shape.Vdl2Fields.ground_stations type=i64 unit= optional=no since=1.0
+shape.Vdl2Fields.messages type=i64 unit= optional=no since=1.0
+shape.Vdl2MessageRow since=1.0
+shape.Vdl2MessageRow.time type=time unit= optional=yes since=1.0
+shape.Vdl2MessageRow.signal_s type=f64 unit=s optional=no since=1.0
+shape.Vdl2MessageRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.Vdl2MessageRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.Vdl2MessageRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Vdl2MessageRow.from type=text unit= optional=no since=1.0
+shape.Vdl2MessageRow.from_type type=i64 unit= optional=no since=1.0
+shape.Vdl2MessageRow.to type=text unit= optional=no since=1.0
+shape.Vdl2MessageRow.to_type type=i64 unit= optional=no since=1.0
+shape.Vdl2MessageRow.frame_kind type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.frame type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.response type=bool unit= optional=no since=1.0
+shape.Vdl2MessageRow.protocol type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.summary type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.registration type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.flight type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.label type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.text type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.acars_ok type=bool unit= optional=no since=1.0
+shape.Vdl2MessageRow.blocks type=i64 unit= optional=yes since=1.0
+shape.Vdl2MessageRow.reading_kind type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.reading_category type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.cpdlc_imi type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.cpdlc_ground type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.cpdlc_aircraft type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.cpdlc_crc_ok type=bool unit= optional=yes since=1.0
+shape.Vdl2MessageRow.cpdlc_parsed type=bool unit= optional=yes since=1.0
+shape.Vdl2MessageRow.cpdlc_text type=text unit= optional=yes since=1.0
+shape.Vdl2MessageRow.position type=position unit= optional=yes since=1.0
+shape.Vdl2MessageRow.alt_ft type=f64 unit=ft optional=yes since=1.0
+shape.Vdl2MessageRow.detail type=text unit= optional=yes since=1.0
+shape.Vdl2AircraftRow since=1.0
+shape.Vdl2AircraftRow.address type=text unit= optional=yes since=1.0
+shape.Vdl2AircraftRow.registration type=text unit= optional=yes since=1.0
+shape.Vdl2AircraftRow.country type=text unit= optional=yes since=1.0
+shape.Vdl2AircraftRow.flight type=text unit= optional=yes since=1.0
+shape.Vdl2AircraftRow.label type=text unit= optional=yes since=1.0
+shape.Vdl2AircraftRow.messages type=i64 unit= optional=no since=1.0
+shape.Vdl2AircraftRow.position type=position unit= optional=yes since=1.0
+shape.Vdl2AircraftRow.alt_ft type=f64 unit=ft optional=yes since=1.0
+shape.Vdl2AircraftRow.track_deg type=f64 unit=deg optional=yes since=1.0
+shape.Vdl2AircraftRow.gs_kt type=f64 unit=kt optional=yes since=1.0
+shape.Vdl2AircraftRow.vs_fpm type=f64 unit=ft/min optional=yes since=1.0
+shape.Vdl2AircraftRow.last_heard type=time unit= optional=yes since=1.0
+shape.Vdl2AircraftRow.count type=i64 unit= optional=no since=1.0
+shape.Vdl2AircraftRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.Vdl2AircraftRow.ground_station type=text unit= optional=yes refers_to=ground_stations since=1.0
+shape.Vdl2AircraftRow.estimate type=position unit= optional=yes since=1.0
+shape.Vdl2AircraftRow.trail_points type=i64 unit= optional=no since=1.0
+shape.Vdl2StationRow since=1.0
+shape.Vdl2StationRow.address type=text unit= optional=no since=1.0
+shape.Vdl2StationRow.kind type=text unit= optional=no since=1.0
+shape.Vdl2StationRow.count type=i64 unit= optional=no since=1.0
+shape.Vdl2StationRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.Vdl2StationRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.Vdl2StationRow.last_heard type=time unit= optional=yes since=1.0
+shape.Vdl2StationRow.airports type=text unit= optional=yes since=1.0
+shape.Vdl2StationRow.position type=position unit= optional=yes since=1.0
+shape.Vdl2ChannelRow since=1.0
+shape.Vdl2ChannelRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.Vdl2ChannelRow.in_band type=bool unit= optional=no since=1.0
+shape.Vdl2ChannelRow.active type=bool unit= optional=no since=1.0
+shape.Vdl2ChannelRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.Vdl2ChannelRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Vdl2ChannelRow.found type=i64 unit= optional=no since=1.0
+shape.Vdl2ChannelRow.good type=i64 unit= optional=no since=1.0
+shape.Vdl2ChannelRow.bad type=i64 unit= optional=no since=1.0
+shape.Vdl2ChannelRow.frames type=i64 unit= optional=no since=1.0
+shape.Vdl2ChannelRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.Vdl2MessageEvent since=1.0
+shape.Vdl2MessageEvent.source type=text unit= optional=no since=1.0
+shape.Vdl2MessageEvent.target type=text unit= optional=no since=1.0
+shape.Vdl2MessageEvent.text type=text unit= optional=no since=1.0
+shape.Vdl2MessageEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.Vdl2MessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.Vdl2MessageEvent.from_air type=bool unit= optional=no since=1.0
+shape.Vdl2MessageEvent.protocol type=text unit= optional=no since=1.0
+shape.Vdl2MessageEvent.frame type=text unit= optional=no since=1.0
+shape.Vdl4Fields since=1.0
+shape.Vdl4Fields.frames type=i64 unit= optional=no since=1.0
+shape.Vdl4Fields.bad type=i64 unit= optional=no since=1.0
+shape.Vdl4Fields.aircraft type=i64 unit= optional=no since=1.0
+shape.Vdl4Fields.ground_stations type=i64 unit= optional=no since=1.0
+shape.Vdl4MessageRow since=1.0
+shape.Vdl4MessageRow.time type=time unit= optional=yes since=1.0
+shape.Vdl4MessageRow.signal_s type=f64 unit=s optional=no since=1.0
+shape.Vdl4MessageRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.Vdl4MessageRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.Vdl4MessageRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Vdl4MessageRow.address type=text unit= optional=no since=1.0
+shape.Vdl4MessageRow.address_kind type=text unit= optional=no since=1.0
+shape.Vdl4MessageRow.message type=text unit= optional=yes since=1.0
+shape.Vdl4MessageRow.summary type=text unit= optional=yes since=1.0
+shape.Vdl4MessageRow.dls_text type=text unit= optional=yes since=1.0
+shape.Vdl4MessageRow.position type=position unit= optional=yes since=1.0
+shape.Vdl4MessageRow.alt_ft type=f64 unit=ft optional=yes since=1.0
+shape.Vdl4AircraftRow since=1.0
+shape.Vdl4AircraftRow.address type=text unit= optional=yes since=1.0
+shape.Vdl4AircraftRow.registration type=text unit= optional=yes since=1.0
+shape.Vdl4AircraftRow.country type=text unit= optional=yes since=1.0
+shape.Vdl4AircraftRow.flight type=text unit= optional=yes since=1.0
+shape.Vdl4AircraftRow.label type=text unit= optional=yes since=1.0
+shape.Vdl4AircraftRow.messages type=i64 unit= optional=no since=1.0
+shape.Vdl4AircraftRow.position type=position unit= optional=yes since=1.0
+shape.Vdl4AircraftRow.alt_ft type=f64 unit=ft optional=yes since=1.0
+shape.Vdl4AircraftRow.track_deg type=f64 unit=deg optional=yes since=1.0
+shape.Vdl4AircraftRow.gs_kt type=f64 unit=kt optional=yes since=1.0
+shape.Vdl4AircraftRow.vs_fpm type=f64 unit=ft/min optional=yes since=1.0
+shape.Vdl4AircraftRow.last_heard type=time unit= optional=yes since=1.0
+shape.Vdl4AircraftRow.count type=i64 unit= optional=no since=1.0
+shape.Vdl4AircraftRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.Vdl4AircraftRow.trail_points type=i64 unit= optional=no since=1.0
+shape.Vdl4StationRow since=1.0
+shape.Vdl4StationRow.address type=text unit= optional=no since=1.0
+shape.Vdl4StationRow.count type=i64 unit= optional=no since=1.0
+shape.Vdl4StationRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.Vdl4StationRow.last_heard type=time unit= optional=yes since=1.0
+shape.Vdl4StationRow.position type=position unit= optional=yes since=1.0
+shape.Vdl4ChannelRow since=1.0
+shape.Vdl4ChannelRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.Vdl4ChannelRow.in_band type=bool unit= optional=no since=1.0
+shape.Vdl4ChannelRow.found type=i64 unit= optional=no since=1.0
+shape.Vdl4ChannelRow.good type=i64 unit= optional=no since=1.0
+shape.Vdl4ChannelRow.bad type=i64 unit= optional=no since=1.0
+shape.Vdl4ChannelRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.Vdl4ChannelRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Vdl4MessageEvent since=1.0
+shape.Vdl4MessageEvent.source type=text unit= optional=no since=1.0
+shape.Vdl4MessageEvent.text type=text unit= optional=no since=1.0
+shape.Vdl4MessageEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.Vdl4MessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.Vdl4MessageEvent.message type=text unit= optional=no since=1.0
+shape.Vdl4MessageEvent.position type=position unit= optional=yes since=1.0
+shape.SelcalCallRow since=1.0
+shape.SelcalCallRow.time type=time unit= optional=yes since=1.0
+shape.SelcalCallRow.signal_s type=f64 unit=s optional=no since=1.0
+shape.SelcalCallRow.code type=text unit= optional=no since=1.0
+shape.SelcalCallRow.code_row type=text unit= optional=no refers_to=codes since=1.0
+shape.SelcalCallRow.tones type=text unit=Hz optional=no since=1.0
+shape.SelcalCallRow.dial type=hz unit=Hz optional=yes since=1.0
+shape.SelcalCallRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.SelcalCallRow.aircraft type=text unit= optional=yes since=1.0
+shape.SelcalCodeRow since=1.0
+shape.SelcalCodeRow.code type=text unit= optional=no since=1.0
+shape.SelcalCodeRow.aircraft type=text unit= optional=yes since=1.0
+shape.SelcalCodeRow.heard type=i64 unit= optional=yes since=1.0
+shape.SelcalCodeRow.last_heard type=time unit= optional=yes since=1.0
+shape.SelcalCodeRow.dial type=hz unit=Hz optional=yes since=1.0
+shape.AirbandFields since=1.0
+shape.AirbandFields.channel_rate type=hz unit=Hz optional=no since=1.0
+shape.AirbandFields.tuning_error type=hz unit=Hz optional=yes since=1.0
+shape.AirbandFields.squelch_db type=f64 unit=dB optional=no since=1.0
+shape.AirbandFields.hang type=duration unit=s optional=no since=1.0
+shape.AirbandFields.scan type=bool unit= optional=no since=1.0
+shape.AirbandFields.scan_channel type=hz unit=Hz optional=yes since=1.0
+shape.AirbandFields.transmissions type=i64 unit= optional=no since=1.0
+shape.AirbandTxFields since=1.1
+shape.AirbandTxFields.transmitting type=bool unit= optional=no since=1.1
+shape.AirbandTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.1
+shape.AirbandTxFields.tx_time_s type=duration unit=s optional=yes since=1.1
+shape.AirbandTxFields.tx_mic_dbfs type=f64 unit=dBFS optional=yes since=1.1
+shape.AirbandTxFields.tx_depth type=f64 unit=% optional=yes since=1.1
+shape.AirbandChannelRow since=1.0
+shape.AirbandChannelRow.name type=text unit= optional=no since=1.0
+shape.AirbandChannelRow.label type=text unit= optional=yes since=1.0
+shape.AirbandChannelRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.AirbandChannelRow.in_band type=bool unit= optional=no since=1.0
+shape.AirbandChannelRow.cn_db type=f64 unit=dB optional=no since=1.0
+shape.AirbandChannelRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.AirbandChannelRow.squelch_db type=f64 unit=dB optional=yes since=1.0
+shape.AirbandChannelRow.open type=bool unit= optional=no since=1.0
+shape.AirbandChannelRow.playing type=bool unit= optional=no since=1.0
+shape.AirbandChannelRow.heterodyne type=bool unit= optional=no since=1.0
+shape.AirbandChannelRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.AirbandChannelRow.count type=i64 unit= optional=no since=1.0
+shape.AirbandSeenRow since=1.0
+shape.AirbandSeenRow.name type=text unit= optional=no since=1.0
+shape.AirbandSeenRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.AirbandSeenRow.is833 type=bool unit= optional=no since=1.0
+shape.AirbandSeenRow.excess_db type=f64 unit=dB optional=no since=1.0
+shape.AirbandSeenRow.reports type=i64 unit= optional=no since=1.0
+shape.AirbandSeenRow.active type=bool unit= optional=no since=1.0
+shape.AirbandSeenRow.approximate type=bool unit= optional=no since=1.0
+shape.AirbandSeenRow.last_s type=f64 unit=s optional=no since=1.0
+shape.AirbandActivityRow since=1.0
+shape.AirbandActivityRow.time type=time unit= optional=yes since=1.0
+shape.AirbandActivityRow.start_s type=f64 unit=s optional=no since=1.0
+shape.AirbandActivityRow.name type=text unit= optional=no since=1.0
+shape.AirbandActivityRow.label type=text unit= optional=yes since=1.0
+shape.AirbandActivityRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.AirbandActivityRow.length type=duration unit=s optional=no since=1.0
+shape.AirbandActivityRow.cn_db type=f64 unit=dB optional=no since=1.0
+shape.AirbandActivityRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.AirbandActivityRow.heterodyne type=bool unit= optional=no since=1.0
+shape.AirbandActivityEvent since=1.0
+shape.AirbandActivityEvent.source type=text unit= optional=yes since=1.0
+shape.AirbandActivityEvent.target type=text unit= optional=yes since=1.0
+shape.AirbandActivityEvent.channel type=text unit= optional=no since=1.0
+shape.AirbandActivityEvent.text type=text unit= optional=yes since=1.0
+shape.AirbandActivityEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.AirbandActivityEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.AirbandActivityEvent.length type=duration unit=s optional=no since=1.0
+shape.AirbandActivityEvent.cn_db type=f64 unit=dB optional=no since=1.0
+shape.HfdlFields since=1.0
+shape.HfdlFields.pdus type=i64 unit= optional=no since=1.0
+shape.HfdlFields.bursts_bad type=i64 unit= optional=no since=1.0
+shape.HfdlFields.squitters type=i64 unit= optional=no since=1.0
+shape.HfdlFields.lpdus type=i64 unit= optional=no since=1.0
+shape.HfdlFields.acars type=i64 unit= optional=no since=1.0
+shape.HfdlFields.positions type=i64 unit= optional=no since=1.0
+shape.HfdlFields.bursts_300 type=i64 unit= optional=no since=1.0
+shape.HfdlFields.bursts_600 type=i64 unit= optional=no since=1.0
+shape.HfdlFields.bursts_1200 type=i64 unit= optional=no since=1.0
+shape.HfdlFields.bursts_1800 type=i64 unit= optional=no since=1.0
+shape.HfdlFields.lost_preamble type=i64 unit= optional=no since=1.0
+shape.HfdlFields.lost_short type=i64 unit= optional=no since=1.0
+shape.HfdlFields.lost_squitter_fcs type=i64 unit= optional=no since=1.0
+shape.HfdlFields.lost_header_fcs type=i64 unit= optional=no since=1.0
+shape.HfdlFields.lost_lpdu_fcs type=i64 unit= optional=no since=1.0
+shape.HfdlFields.lost_lpdu_type type=i64 unit= optional=no since=1.0
+shape.HfdlFields.hopper type=text unit= optional=no since=1.0
+shape.HfdlFields.aircraft type=i64 unit= optional=no since=1.0
+shape.HfdlMessageRow since=1.0
+shape.HfdlMessageRow.time type=time unit= optional=yes since=1.0
+shape.HfdlMessageRow.signal_s type=f64 unit=s optional=no since=1.0
+shape.HfdlMessageRow.dial type=hz unit=Hz optional=no since=1.0
+shape.HfdlMessageRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.HfdlMessageRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.HfdlMessageRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.HfdlMessageRow.bps type=i64 unit=bit/s optional=no since=1.0
+shape.HfdlMessageRow.gs_id type=i64 unit= optional=no since=1.0
+shape.HfdlMessageRow.ground_station type=text unit= optional=no refers_to=ground_stations since=1.0
+shape.HfdlMessageRow.ac_id type=i64 unit= optional=yes since=1.0
+shape.HfdlMessageRow.kind type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.hfnpdu type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.uplink type=bool unit= optional=no since=1.0
+shape.HfdlMessageRow.summary type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.registration type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.flight type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.label type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.block_id type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.msn type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.text type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.acars_ok type=bool unit= optional=no since=1.0
+shape.HfdlMessageRow.reading_kind type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.reading_category type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.cpdlc_imi type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.cpdlc_ground type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.cpdlc_aircraft type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.cpdlc_crc_ok type=bool unit= optional=yes since=1.0
+shape.HfdlMessageRow.cpdlc_parsed type=bool unit= optional=yes since=1.0
+shape.HfdlMessageRow.cpdlc_text type=text unit= optional=yes since=1.0
+shape.HfdlMessageRow.position type=position unit= optional=yes since=1.0
+shape.HfdlMessageRow.detail type=text unit= optional=yes since=1.0
+shape.HfdlAircraftRow since=1.0
+shape.HfdlAircraftRow.key type=text unit= optional=no since=1.0
+shape.HfdlAircraftRow.address type=text unit= optional=yes since=1.0
+shape.HfdlAircraftRow.registration type=text unit= optional=yes since=1.0
+shape.HfdlAircraftRow.flight type=text unit= optional=yes since=1.0
+shape.HfdlAircraftRow.gs_id type=i64 unit= optional=no since=1.0
+shape.HfdlAircraftRow.ground_station type=text unit= optional=no refers_to=ground_stations since=1.0
+shape.HfdlAircraftRow.count type=i64 unit= optional=no since=1.0
+shape.HfdlAircraftRow.dial type=hz unit=Hz optional=no since=1.0
+shape.HfdlAircraftRow.last_heard type=time unit= optional=yes since=1.0
+shape.HfdlAircraftRow.logged_on type=bool unit= optional=no since=1.0
+shape.HfdlAircraftRow.position type=position unit= optional=yes since=1.0
+shape.HfdlAircraftRow.alt_ft type=f64 unit=ft optional=yes since=1.0
+shape.HfdlStationRow since=1.0
+shape.HfdlStationRow.gs_id type=i64 unit= optional=no since=1.0
+shape.HfdlStationRow.name type=text unit= optional=no since=1.0
+shape.HfdlStationRow.heard_direct type=bool unit= optional=no since=1.0
+shape.HfdlStationRow.utc_sync type=bool unit= optional=no since=1.0
+shape.HfdlStationRow.squitters type=i64 unit= optional=no since=1.0
+shape.HfdlStationRow.count type=i64 unit= optional=no since=1.0
+shape.HfdlStationRow.dial type=hz unit=Hz optional=no since=1.0
+shape.HfdlStationRow.last_heard type=time unit= optional=yes since=1.0
+shape.HfdlStationRow.frame_index type=i64 unit= optional=yes since=1.0
+shape.HfdlStationRow.active_khz type=text unit= optional=yes since=1.0
+shape.HfdlChannelRow since=1.0
+shape.HfdlChannelRow.dial type=hz unit=Hz optional=no since=1.0
+shape.HfdlChannelRow.name type=text unit= optional=yes since=1.0
+shape.HfdlChannelRow.ground_station type=text unit= optional=yes refers_to=ground_stations since=1.0
+shape.HfdlChannelRow.in_band type=bool unit= optional=no since=1.0
+shape.HfdlChannelRow.found type=i64 unit= optional=no since=1.0
+shape.HfdlChannelRow.good type=i64 unit= optional=no since=1.0
+shape.HfdlChannelRow.bad type=i64 unit= optional=no since=1.0
+shape.HfdlChannelRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.HfdlChannelRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.HfdlChannelRow.bps type=i64 unit=bit/s optional=no since=1.0
+shape.HfdlMessageEvent since=1.0
+shape.HfdlMessageEvent.source type=text unit= optional=no since=1.0
+shape.HfdlMessageEvent.target type=text unit= optional=yes since=1.0
+shape.HfdlMessageEvent.text type=text unit= optional=no since=1.0
+shape.HfdlMessageEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.HfdlMessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.HfdlMessageEvent.position type=position unit= optional=yes since=1.0
+shape.HfdlMessageEvent.kind type=text unit= optional=no since=1.0
+shape.HfdlMessageEvent.uplink type=bool unit= optional=no since=1.0
+shape.HfdlMessageEvent.gs_id type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields since=1.0
+shape.Vdl3Fields.rx_state type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.trainings type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.frames_ok type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.frames_bad type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.m_uplink type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.m_uplink_3t type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.handoff type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.poll_response type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.m_downlink type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.net_entry type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.vd_data type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.vd_voice type=i64 unit= optional=no since=1.0
+shape.Vdl3Fields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.Vdl3Fields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.Vdl3Fields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.Vdl3Fields.text type=text unit= optional=yes since=1.0
+shape.Vdl3Fields.note type=text unit= optional=no since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.Vdl3BurstRow since=1.0
+shape.Vdl3BurstRow.time_s type=f64 unit=s optional=no since=1.0
+shape.Vdl3BurstRow.kind type=choice(m_uplink,m_uplink_3t,handoff,poll_response,m_downlink,net_entry,vd_data,vd_voice) unit= optional=no since=1.0
+shape.Vdl3BurstRow.training type=choice(s1,s1*,s2,s2*) unit= optional=no since=1.0
+shape.Vdl3BurstRow.symbols type=i64 unit= optional=no since=1.0
+shape.Vdl3BurstRow.golay_ok type=bool unit= optional=no since=1.0
+shape.Vdl3BurstRow.golay_corrected type=i64 unit=bits optional=no since=1.0
+shape.Vdl3BurstRow.info type=text unit= optional=no since=1.0
+shape.Vdl3BurstRow.rs_ok type=bool unit= optional=no since=1.0
+shape.Vdl3BurstRow.rs_corrected type=i64 unit=octets optional=no since=1.0
+shape.Vdl3BurstRow.data_hex type=text unit= optional=no since=1.0
+shape.Vdl3BurstRow.data_text type=text unit= optional=no since=1.0
+shape.Vdl3BurstRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.Vdl3BurstRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Vdl3BurstRow.cfo_hz type=f64 unit=Hz optional=no since=1.0
+shape.Vdl3BurstRow.evm_pct type=f64 unit=% optional=no since=1.0
+shape.Vdl3BurstRow.summary type=text unit= optional=no since=1.0
+shape.GbasVdbFields since=1.0
+shape.GbasVdbFields.slots_busy type=i64 unit= optional=no since=1.0
+shape.GbasVdbFields.symbol_rate_seen type=bool unit= optional=no since=1.0
+shape.GbasVdbFields.bursts type=i64 unit= optional=no since=1.0
+shape.GbasVdbFields.length_ms type=f64 unit=ms optional=yes since=1.0
+shape.GbasVdbFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.GbasVdbFields.text type=text unit= optional=no since=1.0
+shape.GbasVdbFields.content type=text unit= optional=no since=1.0
+shape.GbasVdbFields.note type=text unit= optional=no since=1.0
+shape.GbasVdbBurstRow since=1.0
+shape.GbasVdbBurstRow.time_s type=f64 unit=s optional=no since=1.0
+shape.GbasVdbBurstRow.length_ms type=f64 unit=ms optional=no since=1.0
+shape.GbasVdbBurstRow.slots_busy type=i64 unit= optional=no since=1.0
+shape.GbasVdbBurstRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.OfdmShapeFields since=1.0
+shape.OfdmShapeFields.detected type=bool unit= optional=no since=1.0
+shape.OfdmShapeFields.symbol_us type=f64 unit=us optional=yes since=1.0
+shape.OfdmShapeFields.prefix_us type=f64 unit=us optional=yes since=1.0
+shape.OfdmShapeFields.timing type=i64 unit=samples optional=yes since=1.0
+shape.OfdmShapeFields.correlation type=f64 unit= optional=yes since=1.0
+shape.OfdmShapeFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.OfdmShapeFields.frame type=text unit= optional=yes since=1.0
+shape.OfdmShapeFields.content type=text unit= optional=no since=1.0
+shape.OfdmShapeFields.text type=text unit= optional=no since=1.0
+shape.OfdmShapeFields.note type=text unit= optional=no since=1.0
+shape.OfdmShapeDetectionRow since=1.0
+shape.OfdmShapeDetectionRow.time_s type=f64 unit=s optional=no since=1.0
+shape.OfdmShapeDetectionRow.symbol_us type=f64 unit=us optional=no since=1.0
+shape.OfdmShapeDetectionRow.prefix_us type=f64 unit=us optional=no since=1.0
+shape.OfdmShapeDetectionRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.OfdmShapeDetectionRow.correlation type=f64 unit= optional=no since=1.0
+shape.OfdmShapeDetectionRow.frame type=text unit= optional=yes since=1.0
+acars since=1.0
+acars.fields.AcarsFields since=1.0
+acars.kept.messages since=1.0
+acars.kept.aircraft since=1.0
+acars.kept.AcarsFields.aircraft since=1.0
+acars.kept.AcarsFields.messages since=1.0
+acars.table.messages row=AcarsMessageRow cap=200 since=1.0
+acars.table.aircraft row=AcarsAircraftRow cap=100 since=1.0
+acars.table.channels row=AcarsChannelRow cap=24 since=1.0
+acars.event.acars.message fields=AcarsMessageEvent since=1.0
+acars.setting.channels type=text unit= since=1.0
+acars.setting.threshold_db type=f64 unit=dB since=1.0
+acars.setting.join_blocks type=bool unit= since=1.0
+acars.setting.gen_aircraft type=i64 unit= since=1.0
+acars.setting.gen_rate_factor type=f64 unit= since=1.0
+acars.setting.gen_positions type=bool unit= since=1.0
+acars.command.clear args= reply= since=1.0
+vdl2 since=1.0
+vdl2.fields.Vdl2Fields since=1.0
+vdl2.kept.messages since=1.0
+vdl2.kept.aircraft since=1.0
+vdl2.kept.ground_stations since=1.0
+vdl2.kept.Vdl2Fields.aircraft since=1.0
+vdl2.kept.Vdl2Fields.ground_stations since=1.0
+vdl2.kept.Vdl2Fields.messages since=1.0
+vdl2.table.messages row=Vdl2MessageRow cap=400 since=1.0
+vdl2.table.aircraft row=Vdl2AircraftRow cap=200 since=1.0
+vdl2.table.ground_stations row=Vdl2StationRow cap=64 since=1.0
+vdl2.table.channels row=Vdl2ChannelRow cap=64 since=1.0
+vdl2.event.vdl2.message fields=Vdl2MessageEvent since=1.0
+vdl2.setting.channels type=text unit= since=1.0
+vdl2.setting.track_tuning type=bool unit= since=1.0
+vdl2.setting.tune_error_hz type=hz unit=Hz since=1.0
+vdl2.setting.gen_aircraft type=i64 unit= since=1.0
+vdl2.command.clear args= reply= since=1.0
+vdl2.command.remove args=row:text reply= since=1.0
+vdl4 since=1.0
+vdl4.fields.Vdl4Fields since=1.0
+vdl4.kept.messages since=1.0
+vdl4.kept.aircraft since=1.0
+vdl4.kept.ground_stations since=1.0
+vdl4.kept.Vdl4Fields.frames since=1.0
+vdl4.kept.Vdl4Fields.aircraft since=1.0
+vdl4.kept.Vdl4Fields.ground_stations since=1.0
+vdl4.table.messages row=Vdl4MessageRow cap=400 since=1.0
+vdl4.table.aircraft row=Vdl4AircraftRow cap=200 since=1.0
+vdl4.table.ground_stations row=Vdl4StationRow cap=64 since=1.0
+vdl4.table.channels row=Vdl4ChannelRow cap=64 since=1.0
+vdl4.event.vdl4.message fields=Vdl4MessageEvent since=1.0
+vdl4.setting.channels type=text unit= since=1.0
+vdl4.command.clear args= reply= since=1.0
+vdl4.command.remove args=row:text reply= since=1.0
+selcal since=1.0
+selcal.fields.SelcalFields since=1.0
+selcal.kept.calls since=1.0
+selcal.kept.codes since=1.0
+selcal.kept.SelcalFields.calls since=1.0
+selcal.kept.SelcalFields.codes since=1.0
+selcal.table.calls row=SelcalCallRow cap=300 since=1.0
+selcal.table.codes row=SelcalCodeRow cap=300 since=1.0
+selcal.series.spectrum x_unit=Hz y_unit=dB since=1.0
+selcal.event.tones.selcal fields=SelcalFields since=1.0
+selcal.setting.demod type=choice(auto,fm,usb,lsb,am) unit= since=1.0
+selcal.setting.listen type=bool unit= since=1.0
+selcal.setting.audio_input type=bool unit= since=1.0
+selcal.setting.aircraft_table type=text unit= since=1.0
+selcal.command.clear args= reply= since=1.0
+selcal.command.remove args=row:text reply= since=1.0
+airband since=1.0
+airband.fields.AirbandFields since=1.0
+airband.fields.AirbandTxFields since=1.1
+airband.kept.seen since=1.0
+airband.kept.activity since=1.0
+airband.kept.AirbandFields.transmissions since=1.0
+airband.table.channels row=AirbandChannelRow cap=256 since=1.0
+airband.table.seen row=AirbandSeenRow cap=200 since=1.0
+airband.table.activity row=AirbandActivityRow cap=300 since=1.0
+airband.event.airband.activity fields=AirbandActivityEvent since=1.0
+airband.setting.channels type=text unit= since=1.0
+airband.setting.squelch_db type=f64 unit=dB since=1.0
+airband.setting.hang_s type=duration unit=s since=1.0
+airband.setting.scan type=bool unit= since=1.0
+airband.setting.scan_hold type=bool unit= since=1.0
+airband.setting.noise_remover type=bool unit= since=1.0
+airband.setting.noise_remover_strength type=f64 unit=% since=1.0
+airband.setting.only_active type=bool unit= since=1.0
+airband.setting.listen type=bool unit= since=1.0
+airband.setting.tx_spacing type=choice(8.33,25) unit= since=1.1
+airband.setting.tx_am_depth type=f64 unit=% since=1.1
+airband.setting.tx_mic_gain type=f64 unit=dB since=1.1
+airband.setting.tx_timeout type=duration unit=s since=1.1
+airband.command.clear args= reply= since=1.0
+airband.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.1
+airband.command.halt args= reply= since=1.1
+hfdl since=1.0
+hfdl.fields.HfdlFields since=1.0
+hfdl.kept.messages since=1.0
+hfdl.kept.aircraft since=1.0
+hfdl.kept.ground_stations since=1.0
+hfdl.kept.HfdlFields.hopper since=1.0
+hfdl.kept.HfdlFields.aircraft since=1.0
+hfdl.table.messages row=HfdlMessageRow cap=400 since=1.0
+hfdl.table.aircraft row=HfdlAircraftRow cap=200 since=1.0
+hfdl.table.ground_stations row=HfdlStationRow cap=64 since=1.0
+hfdl.table.channels row=HfdlChannelRow cap=512 since=1.0
+hfdl.event.hfdl.message fields=HfdlMessageEvent since=1.0
+hfdl.setting.channels type=text unit= since=1.0
+hfdl.setting.whole_span type=bool unit= since=1.0
+hfdl.setting.shared_channeliser type=bool unit= since=1.0
+hfdl.setting.channel_filter_hz type=hz unit=Hz since=1.0
+hfdl.setting.follow_best_band type=bool unit= since=1.0
+hfdl.command.clear args= reply= since=1.0
+hfdl.command.remove args=row:text reply= since=1.0
+vdl3 since=1.0
+vdl3.fields.Vdl3Fields since=1.0
+vdl3.fields.DecoderFields since=1.0
+vdl3.kept.bursts since=1.0
+vdl3.kept.Vdl3Fields.trainings since=1.0
+vdl3.kept.Vdl3Fields.frames_ok since=1.0
+vdl3.kept.Vdl3Fields.frames_bad since=1.0
+vdl3.kept.Vdl3Fields.m_uplink since=1.0
+vdl3.kept.Vdl3Fields.m_uplink_3t since=1.0
+vdl3.kept.Vdl3Fields.handoff since=1.0
+vdl3.kept.Vdl3Fields.poll_response since=1.0
+vdl3.kept.Vdl3Fields.m_downlink since=1.0
+vdl3.kept.Vdl3Fields.net_entry since=1.0
+vdl3.kept.Vdl3Fields.vd_data since=1.0
+vdl3.kept.Vdl3Fields.vd_voice since=1.0
+vdl3.kept.Vdl3Fields.text since=1.0
+vdl3.table.bursts row=Vdl3BurstRow cap=400 since=1.0
+vdl3.setting.sync_threshold type=f64 unit= since=1.0
+vdl3.setting.evm_max type=f64 unit=%%20of%20pi/4 since=1.0
+vdl3.setting.rs_bit_order type=choice(lsb_first,msb_first) unit= since=1.0
+vdl3.setting.gen_adjacent type=bool unit= since=1.0
+vdl3.command.clear args= reply= since=1.0
+gbas_vdb since=1.0
+gbas_vdb.fields.GbasVdbFields since=1.0
+gbas_vdb.fields.DecoderFields since=1.0
+gbas_vdb.kept.bursts since=1.0
+gbas_vdb.kept.GbasVdbFields.bursts since=1.0
+gbas_vdb.table.bursts row=GbasVdbBurstRow cap=200 since=1.0
+gbas_vdb.setting.gen_slots type=text unit= since=1.0
+gbas_vdb.setting.gen_frames type=i64 unit= since=1.0
+gbas_vdb.command.clear args= reply= since=1.0
+ldacs since=1.0
+ldacs.fields.OfdmShapeFields since=1.0
+ldacs.fields.DecoderFields since=1.0
+ldacs.kept.detections since=1.0
+ldacs.table.detections row=OfdmShapeDetectionRow cap=100 since=1.0
+ldacs.setting.fft_len type=i64 unit=samples since=1.0
+ldacs.setting.prefix type=i64 unit=samples since=1.0
+ldacs.setting.frame_ms type=f64 unit=ms since=1.0
+ldacs.setting.gen_duty type=f64 unit=% since=1.0
+ldacs.command.clear args= reply= since=1.0
+aeromacs since=1.0
+aeromacs.fields.OfdmShapeFields since=1.0
+aeromacs.fields.DecoderFields since=1.0
+aeromacs.kept.detections since=1.0
+aeromacs.table.detections row=OfdmShapeDetectionRow cap=100 since=1.0
+aeromacs.setting.fft_len type=i64 unit=samples since=1.0
+aeromacs.setting.prefix type=i64 unit=samples since=1.0
+aeromacs.setting.frame_ms type=f64 unit=ms since=1.0
+aeromacs.setting.gen_duty type=f64 unit=% since=1.0
+aeromacs.command.clear args= reply= since=1.0

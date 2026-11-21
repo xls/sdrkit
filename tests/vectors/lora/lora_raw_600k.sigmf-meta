@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 600000.0,
+    "core:version": "1.0.0",
+    "core:description": "Plain LoRa frames (sync 0x12, preamble 8) on 868.1 MHz, 50 kHz above the capture centre: SF7 125 kHz 4/5, SF9 250 kHz 4/7, SF10 125 kHz 4/8 without CRC, and SF8 250 kHz 4/6 implicit header 12 bytes. Synthetic.",
+    "core:author": "sdrkit test vector generator",
+    "core:hw": "synthetic (no radio)"
+  },
+  "captures": [ { "core:sample_start": 0, "core:frequency": 868050000.0 } ],
+  "annotations": [
+    { "core:sample_start": 30000, "core:sample_count": 37018, "core:freq_lower_edge": 868039000.0, "core:freq_upper_edge": 868164000.0, "core:label": "LoRa SF7 125 kHz 4/5 CRC" },
+    { "core:sample_start": 97018, "core:sample_count": 67892, "core:freq_lower_edge": 867974200.0, "core:freq_upper_edge": 868224200.0, "core:label": "LoRa SF9 250 kHz 4/7 CRC" },
+    { "core:sample_start": 194909, "core:sample_count": 178176, "core:freq_lower_edge": 868037800.0, "core:freq_upper_edge": 868162800.0, "core:label": "LoRa SF10 125 kHz 4/8 no CRC" },
+    { "core:sample_start": 403085, "core:sample_count": 23501, "core:freq_lower_edge": 867976800.0, "core:freq_upper_edge": 868226800.0, "core:label": "LoRa SF8 250 kHz 4/6 implicit header 12 bytes CRC" }
+  ]
+}

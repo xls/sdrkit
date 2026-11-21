@@ -1,0 +1,32 @@
+# id: meshcore_presets
+# name: MeshCore community radio presets
+# stacks: mesh meshcore
+# source: the MeshCore community presets, read 2026-10-13
+# note: group is the part of the world of the preset. A host gives the stack the presets of a group in its setting channels as label=meshcore/frequency Hz/bandwidth Hz/SF/CR entries. note is the size of the path hash of the network.
+title,group,mhz,khz,sf,cr,note
+Australia,Oceania,915.8,250,10,5,
+Australia (Narrow),Oceania,916.575,62.5,7,7,
+Australia (Mid),Oceania,915.075,125,9,5,
+"Australia: SA, WA",Oceania,923.125,62.5,8,8,
+Australia: QLD,Oceania,923.125,62.5,8,5,
+Brazil,South America,923.125,62.5,8,8,
+Canada,North America,910.525,62.5,7,5,3B
+Costa Rica,North America,910.525,125,11,5,
+EU/UK (Narrow),Europe,869.618,62.5,8,8,
+EU/UK (Deprecated),Europe,869.525,250,11,5,
+Czech Republic (Narrow),Europe,869.432,62.5,7,5,2B
+EU 433MHz (Long Range),Europe,433.65,250,11,5,
+EU 433MHz (Narrow),Europe,433.65,62.5,8,8,
+Hungary,Europe,869.618,62.5,7,5,2B
+Netherlands,Europe,869.618,62.5,7,5,
+Netherlands (Limburg),Europe,869.618,62.5,8,8,2B
+New Zealand (Narrow),Oceania,917.375,62.5,7,5,2B
+New Zealand (Gisborne),Oceania,917.375,250,11,5,1B
+Portugal 433,Europe,433.375,62.5,9,6,
+Portugal 868,Europe,869.618,62.5,7,6,
+Slovakia,Europe,869.618,62.5,7,5,2B
+Switzerland,Europe,869.618,62.5,8,8,
+USA,North America,910.525,62.5,7,5,
+USA - Southern California,North America,927.875,62.5,7,5,3B
+Vietnam (Narrow),Asia,920.25,62.5,8,5,
+Vietnam (Deprecated),Asia,920.25,250,11,5,

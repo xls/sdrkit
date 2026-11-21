@@ -1,0 +1,33 @@
+# id: default_dials
+# name: Starting dials of the weak-signal stacks (the usual dial of one band for each mode and submode)
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+wsjt,,14074000
+ft8,,14074000
+ft4,,14080000
+ft2,,14084000
+wspr,,14095600
+jt65,,14076000
+jt65,jt65a,14076000
+jt65,jt65b,144120000
+jt65,jt65c,432065000
+jt9,,14078000
+jt4,,144120000
+jt4,jt4a,144120000
+jt4,jt4b,144120000
+jt4,jt4c,432065000
+jt4,jt4d,1296100000
+jt4,jt4e,1296100000
+jt4,jt4f,1296100000
+jt4,jt4g,1296100000
+q65,,50275000
+q65,q65-60a,50275000
+q65,q65-30a,50275000
+q65,q65-120e,10368200000
+fst4,,7038600
+fst4w,,14095600
+msk144,,50260000
+js8,,14078000
+js8,js8normal,14078000
+js8,js8fast,14078000
+js8,js8turbo,14078000

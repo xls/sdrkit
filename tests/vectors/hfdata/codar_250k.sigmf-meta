@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 250000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic HF ocean radar sweeps, 4 s, radio centre 13.000 MHz. Radar A: 50 kHz linear up-sweep centred -60 kHz from the centre, 0.5 s repetition (0.45 s sweep, 10 % blank). Radar B: 25 kHz down-sweep centred +50 kHz, 0.5 s, 3 dB weaker. Strongest radar 20 dB over the noise in a 1 ms bin.",
+    "core:recorder": "HF ocean radar test generator, seed 4",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 13000000.0
+    }
+  ],
+  "annotations": []
+}

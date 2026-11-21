@@ -1,0 +1,120 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "rpr_hf",
+      "name": "Robust Packet, HF amateur bands",
+      "kind": "amateur",
+      "source": {
+        "publisher": "Signal Identification Wiki",
+        "title": "Robust PACKET",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the frequencies are not compared with a band plan or a received signal; only the 30 m frequency has a named source",
+      "note": "The starting dials of the stack rpr. Each channel frequency is the dial (suppressed carrier) of upper sideband; the eight carriers lie 1290 to 1710 Hz above it.",
+      "bands": [
+        {
+          "name": "Robust Packet 30 m",
+          "service": "amateur",
+          "start_hz": 10147000,
+          "end_hz": 10150000,
+          "modes": [
+            "rpr"
+          ],
+          "modulation": "usb",
+          "channel_width_hz": 500,
+          "channels": [
+            {
+              "name": "RPR 10.1473 MHz",
+              "centre_hz": 10147300,
+              "width_hz": 500,
+              "note": "dial frequency; the 30 m Robust Packet frequency of the source"
+            }
+          ]
+        },
+        {
+          "name": "Robust Packet 80 m",
+          "service": "amateur",
+          "start_hz": 3609000,
+          "end_hz": 3612000,
+          "modes": [
+            "rpr"
+          ],
+          "modulation": "usb",
+          "channel_width_hz": 500,
+          "channels": [
+            {
+              "name": "RPR 3.610 MHz",
+              "centre_hz": 3610000,
+              "width_hz": 500,
+              "note": "dial frequency; no source named"
+            }
+          ]
+        },
+        {
+          "name": "Robust Packet 40 m",
+          "service": "amateur",
+          "start_hz": 7046000,
+          "end_hz": 7049000,
+          "modes": [
+            "rpr"
+          ],
+          "modulation": "usb",
+          "channel_width_hz": 500,
+          "channels": [
+            {
+              "name": "RPR 7.0473 MHz",
+              "centre_hz": 7047300,
+              "width_hz": 500,
+              "note": "dial frequency; no source named"
+            }
+          ]
+        },
+        {
+          "name": "Robust Packet 20 m",
+          "service": "amateur",
+          "start_hz": 14102000,
+          "end_hz": 14105000,
+          "modes": [
+            "rpr"
+          ],
+          "modulation": "usb",
+          "channel_width_hz": 500,
+          "channels": [
+            {
+              "name": "RPR 14.1033 MHz",
+              "centre_hz": 14103300,
+              "width_hz": 500,
+              "note": "dial frequency; no source named"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "rpr_hf"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "rpr_hf"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "rpr_hf"
+      ]
+    }
+  ]
+}

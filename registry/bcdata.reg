@@ -1,0 +1,54 @@
+# The interface of the stack family bcdata. The registry test of the family writes this file.
+family bcdata version=1.0
+shape.LabelFields since=1.0
+shape.LabelFields.text type=text unit= optional=yes since=1.0
+shape.LabelFields.item_running type=bool unit= optional=yes since=1.0
+shape.SlideFields since=1.0
+shape.SlideFields.slide_name type=text unit= optional=yes since=1.0
+shape.SlideFields.slide_category type=text unit= optional=yes since=1.0
+shape.SlideFields.slide_link type=text unit= optional=yes since=1.0
+shape.SlideFields.slide_alert type=bool unit= optional=no since=1.0
+shape.PlayoutFields since=1.0
+shape.PlayoutFields.concealed type=duration unit=s optional=yes since=1.0
+shape.PlayoutFields.muted type=duration unit=s optional=yes since=1.0
+shape.PlayoutFields.concealments type=i64 unit= optional=yes since=1.0
+shape.PlayoutFields.underruns type=i64 unit= optional=yes since=1.0
+shape.LabelTagRow since=1.0
+shape.LabelTagRow.code type=i64 unit= optional=no since=1.0
+shape.LabelTagRow.type type=text unit= optional=yes since=1.0
+shape.LabelTagRow.text type=text unit= optional=no since=1.0
+shape.GuideServiceRow since=1.0
+shape.GuideServiceRow.name type=text unit= optional=yes since=1.0
+shape.GuideServiceRow.short_name type=text unit= optional=yes since=1.0
+shape.GuideServiceRow.description type=text unit= optional=yes since=1.0
+shape.GuideServiceRow.sid type=i64 unit= optional=yes since=1.0
+shape.GuideServiceRow.eid type=i64 unit= optional=yes since=1.0
+shape.GuideServiceRow.genres type=text unit= optional=yes since=1.0
+shape.GuideServiceRow.logo_url type=text unit= optional=yes since=1.0
+shape.GuideProgrammeRow since=1.0
+shape.GuideProgrammeRow.crid type=text unit= optional=no since=1.0
+shape.GuideProgrammeRow.name type=text unit= optional=yes since=1.0
+shape.GuideProgrammeRow.start type=time unit=s optional=no since=1.0
+shape.GuideProgrammeRow.duration type=duration unit=s optional=no since=1.0
+shape.GuideProgrammeRow.description type=text unit= optional=yes since=1.0
+shape.GuideProgrammeRow.genres type=text unit= optional=yes since=1.0
+shape.GuideGroupRow since=1.0
+shape.GuideGroupRow.name type=text unit= optional=no since=1.0
+shape.SlideCategoryRow since=1.0
+shape.SlideCategoryRow.category type=i64 unit= optional=no since=1.0
+shape.SlideCategoryRow.title type=text unit= optional=yes since=1.0
+shape.SlideCategoryRow.slide type=i64 unit= optional=no since=1.0
+shape.SlideCategoryRow.name type=text unit= optional=no since=1.0
+shape.LogoRow since=1.0
+shape.LogoRow.png type=bytes unit= optional=yes since=1.0
+shape.LogoRow.jpeg type=bytes unit= optional=yes since=1.0
+bcdata since=1.0
+bcdata.fields.LabelFields since=1.0
+bcdata.fields.SlideFields since=1.0
+bcdata.component.playout.fields.PlayoutFields since=1.0
+bcdata.table.label_tags row=LabelTagRow cap=128 since=1.0
+bcdata.table.guide_services row=GuideServiceRow cap=256 since=1.0
+bcdata.table.guide_programmes row=GuideProgrammeRow cap=500 since=1.0
+bcdata.table.guide_groups row=GuideGroupRow cap=256 since=1.0
+bcdata.table.slide_categories row=SlideCategoryRow cap=4096 since=1.0
+bcdata.table.logos row=LogoRow cap=256 since=1.0

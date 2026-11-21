@@ -1,0 +1,8 @@
+# stack variant stage calibration-units-per-second-of-signal (written by the cost test, do not edit)
+atsc - front 33539.7
+atsc - equalise 9374.9
+atsc - fec 25953.2
+atsc - ts 158.4
+dtmb - front 29207.4
+dtmb - fec 15493.7
+dtmb - ts 191.1

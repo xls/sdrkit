@@ -1,0 +1,110 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 1000000.0,
+    "core:version": "1.0.0",
+    "core:description": "FLARM old (V6) air protocol on 868.2 and 868.4 MHz (100 kHz either side of the centre): GFSK +-50 kHz BT 0.5, 100 kchip/s Manchester. Six made-up devices each sending twice 0.9 s apart, plus one packet with a corrupted CRC. Payloads encrypted for the key time of the capture's datetime (unix 1800000020 at the first sample). Every transmitter: carrier offset +3 kHz, chip clock +20 ppm. SNR 20 dB in 200 kHz. 1.8 s. Synthetic.",
+    "core:author": "sdrkit test vector generator",
+    "core:hw": "synthetic (no radio)"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 868300000.0,
+      "core:datetime": "2027-01-15T08:00:20Z"
+    }
+  ],
+  "annotations": [
+    {
+      "core:sample_start": 50000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868140000.0,
+      "core:freq_upper_edge": 868260000.0,
+      "core:label": "V6 glider DD1234"
+    },
+    {
+      "core:sample_start": 170000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868340000.0,
+      "core:freq_upper_edge": 868460000.0,
+      "core:label": "V6 tow plane DDA5B6"
+    },
+    {
+      "core:sample_start": 290000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868140000.0,
+      "core:freq_upper_edge": 868260000.0,
+      "core:label": "V6 powered aircraft 3F7C11 (ICAO address)"
+    },
+    {
+      "core:sample_start": 410000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868340000.0,
+      "core:freq_upper_edge": 868460000.0,
+      "core:label": "V6 with the no-track flag"
+    },
+    {
+      "core:sample_start": 530000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868140000.0,
+      "core:freq_upper_edge": 868260000.0,
+      "core:label": "V6 with the stealth flag"
+    },
+    {
+      "core:sample_start": 650000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868340000.0,
+      "core:freq_upper_edge": 868460000.0,
+      "core:label": "newer protocol (type 2), random payload"
+    },
+    {
+      "core:sample_start": 770000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868140000.0,
+      "core:freq_upper_edge": 868260000.0,
+      "core:label": "V6 with a corrupted CRC"
+    },
+    {
+      "core:sample_start": 950000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868340000.0,
+      "core:freq_upper_edge": 868460000.0,
+      "core:label": "V6 glider DD1234"
+    },
+    {
+      "core:sample_start": 1070000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868140000.0,
+      "core:freq_upper_edge": 868260000.0,
+      "core:label": "V6 tow plane DDA5B6"
+    },
+    {
+      "core:sample_start": 1190000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868340000.0,
+      "core:freq_upper_edge": 868460000.0,
+      "core:label": "V6 powered aircraft 3F7C11 (ICAO address)"
+    },
+    {
+      "core:sample_start": 1310000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868140000.0,
+      "core:freq_upper_edge": 868260000.0,
+      "core:label": "V6 with the no-track flag"
+    },
+    {
+      "core:sample_start": 1430000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868340000.0,
+      "core:freq_upper_edge": 868460000.0,
+      "core:label": "V6 with the stealth flag"
+    },
+    {
+      "core:sample_start": 1550000,
+      "core:sample_count": 5020,
+      "core:freq_lower_edge": 868140000.0,
+      "core:freq_upper_edge": 868260000.0,
+      "core:label": "newer protocol (type 2), random payload"
+    }
+  ]
+}

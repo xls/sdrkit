@@ -1,0 +1,79 @@
+[package]
+name = "sdrkit-host-cli"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "The sdrkit console app: read and command every owner of the engine, run stacks, and test them from a terminal"
+
+[lib]
+name = "sdrkit_cli"
+path = "src/lib.rs"
+
+[[bin]]
+name = "sdrkit"
+path = "src/main.rs"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-host-engine = { path = "../sdrkit-host-engine" }
+sdrkit-host-catalog = { path = "../sdrkit-host-catalog", default-features = false }
+# The region data folder and the start of a stack from its preset.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }
+# The settings of the radios and of the test-signal driver.
+sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core" }
+# The recordings folder and the manifest of the recordings.
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-crypto = { path = "../../algo/sdrkit-algo-crypto" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+# Command line parsing: MIT OR Apache-2.0.
+clap = { version = "4", features = ["derive", "wrap_help"] }
+# Sound output: Apache-2.0.
+cpal = "0.15"
+# WAV files: Apache-2.0.
+hound = "3"
+# Ctrl-C: MIT OR Apache-2.0.
+ctrlc = "3"
+
+[dev-dependencies]
+# The fake board that transmits, for the test of the transmit audio.
+sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core", features = ["fake"] }
+
+# The stack families of the program: one feature for each, all on by default.
+[features]
+default = ["all-families"]
+all-families = ["sdrkit-host-catalog/default"]
+fm = ["sdrkit-host-catalog/fm"]
+general = ["sdrkit-host-catalog/general"]
+adsb = ["sdrkit-host-catalog/adsb"]
+dab = ["sdrkit-host-catalog/dab"]
+dvbt = ["sdrkit-host-catalog/dvbt"]
+dvoice = ["sdrkit-host-catalog/dvoice"]
+satimg = ["sdrkit-host-catalog/satimg"]
+lora = ["sdrkit-host-catalog/lora"]
+satcom = ["sdrkit-host-catalog/satcom"]
+wsjt = ["sdrkit-host-catalog/wsjt"]
+tvterr = ["sdrkit-host-catalog/tvterr"]
+dvbt2 = ["sdrkit-host-catalog/dvbt2"]
+broadcast = ["sdrkit-host-catalog/broadcast"]
+trunk = ["sdrkit-host-catalog/trunk"]
+avdata = ["sdrkit-host-catalog/avdata"]
+marine = ["sdrkit-host-catalog/marine"]
+dvbcs = ["sdrkit-host-catalog/dvbcs"]
+cell = ["sdrkit-host-catalog/cell"]
+analogtv = ["sdrkit-host-catalog/analogtv"]
+ism = ["sdrkit-host-catalog/ism"]
+hfkbd = ["sdrkit-host-catalog/hfkbd"]
+gnss = ["sdrkit-host-catalog/gnss"]
+drones = ["sdrkit-host-catalog/drones"]
+avnav = ["sdrkit-host-catalog/avnav"]
+hfdata = ["sdrkit-host-catalog/hfdata"]
+wlan = ["sdrkit-host-catalog/wlan"]
+science = ["sdrkit-host-catalog/science"]
+voice = ["sdrkit-host-catalog/voice"]
+road = ["sdrkit-host-catalog/road"]
+custom = ["sdrkit-host-catalog/custom"]

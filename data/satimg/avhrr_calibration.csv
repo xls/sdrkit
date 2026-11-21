@@ -1,0 +1,20 @@
+# id: avhrr_calibration
+# name: AVHRR calibration coefficients of the MetOp satellites (stack eodb, submode metop_dump)
+# stacks: eodb
+# source: no public document was read; the values are not confirmed by a public document. The method is that of the NOAA KLM User's Guide section 7 (not checked against the text).
+# note: channel rows: nu (cm-1), A, B, N_s, b0, b1, b2 of channels 3b, 4 and 5. prt rows: a0, a1, a2 of PRT 1 to 4. MetOp-A has no row.
+kind,satellite,key,v1,v2,v3,v4,v5,v6,v7
+channel,MetOp-B,3b,2664.32,1.763611,0.997018,0,0,0,0
+channel,MetOp-B,4,933.63,0.504183,0.998638,-4.75,4.85,-0.096771,0.00048091
+channel,MetOp-B,5,839.62,0.381279,0.998861,-4.39,4.36,-0.076635,0.00033524
+channel,MetOp-C,3b,2671.94,1.711878,0.997197,0,0,0,0
+channel,MetOp-C,4,930.31,0.5899,0.998403,-6.27,6.58,-0.13203,0.00065922
+channel,MetOp-C,5,828.6,0.378105,0.998854,-2.55,3.23,-0.05692,0.00024963
+prt,MetOp-B,1,276.5853,0.050933,1.54333e-06
+prt,MetOp-B,2,276.5335,0.051033,1.49751e-06
+prt,MetOp-B,3,276.5721,0.051097,1.42928e-06
+prt,MetOp-B,4,276.575,0.05102,1.50841e-06
+prt,MetOp-C,1,276.5862,0.051051,1.474208e-06
+prt,MetOp-C,2,276.6136,0.051029,1.472138e-06
+prt,MetOp-C,3,276.5975,0.051065,1.469268e-06
+prt,MetOp-C,4,276.4595,0.05099,1.506223e-06

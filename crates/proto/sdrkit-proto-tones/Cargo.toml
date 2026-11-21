@@ -1,0 +1,20 @@
+[package]
+name = "sdrkit-proto-tones"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Tone signalling for sdrkit: CTCSS, DCS, DTMF, sequential selcall, aviation SELCAL and two-tone paging decoders and generators, as plain types and components"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+num-complex.workspace = true
+
+[dev-dependencies]
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 96000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic DPMR test signal, 10.0 s, channel at the centre of the recording, carrier-to-noise 25 dB in the mode's channel width, rms about 0.22. dPMR mode 1 test schedule: group voice 1001 -> 200 (colour code 7, 2.0 s), status 17 from 1002 to 1001 (cc 7), short message 2005 -> 2001 'TEST MESSAGE ON CHANNEL ONE' (cc 12), packet data 2006 -> all (FFFFFF) 'PACKET DATA' (cc 12), individual emergency voice 2001 -> 2002 (cc 12, 1.5 s). Voice bits are a known pattern. See specs/dvoice.md, section 'Test vectors'.",
+    "core:recorder": "digital voice test generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 446103125.0
+    }
+  ],
+  "annotations": []
+}

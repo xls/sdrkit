@@ -1,0 +1,3 @@
+city,freq_mhz,bw_mhz,standard,network,services,snr_db,reports,first_seen,last_seen
+Sydney,104.9,0.2,,Triple M,Triple M,41.0,7,2026-03-01,2026-11-01
+Sydney,105.7,0.2,,Triple J,Triple J,,2,2026-03-01,2026-11-01

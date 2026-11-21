@@ -1,0 +1,21 @@
+[package]
+name = "sdrkit-svc-watch"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Watches and alerts for sdrkit: identities, field values, frequencies and words matched against events, emergency alerts, limits, quiet hours, history and pushes"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-svc-events = { path = "../sdrkit-svc-events" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+sdrkit-svc-outputs = { path = "../sdrkit-svc-outputs" }
+
+[dev-dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core", features = ["std-net"] }
+sdrkit-svc-store = { path = "../sdrkit-svc-store" }
+sdrkit-svc-automation = { path = "../sdrkit-svc-automation" }

@@ -1,0 +1,15 @@
+# id: senders_dials
+# name: Usual starting dials of the HF sender stacks
+# stacks: xpa crowd36 fsk200 gwfsk fsk_modems uvb76 vlf_msk
+# source: the UVB-76 frequency from Wikipedia "UVB-76" and the Buzzer Primer of priyom.org; the CHU frequencies from the Signal Identification Wiki page on CHU (which also says the station closed on 22 June 2026, not checked against a second document); the VLF dial is the NAA carrier of the VLF station list; the others are usage, not a schedule
+# note: Starting points only. The number stations move between frequencies. The dial is that of an upper-sideband radio except for uvb76 (the AM carrier) and vlf_msk (the tuned frequency).
+stack,submode,frequency_hz,low_hz,high_hz,dial
+xpa,xpa,8000000,1600000,30000000,upper sideband
+xpa,xpa2,8000000,1600000,30000000,upper sideband
+crowd36,,10000000,1600000,30000000,upper sideband
+fsk200,f01,9000000,1600000,30000000,upper sideband
+fsk200,f06,6000000,1600000,30000000,upper sideband
+gwfsk,,8400000,1600000,30000000,upper sideband
+fsk_modems,,7850000,100000,6000000000,either sideband (CHU on 3330000 and 14670000 too)
+uvb76,,4625000,4000000,5000000,AM carrier
+vlf_msk,,24000,10000,30000,tuned frequency

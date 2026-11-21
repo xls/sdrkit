@@ -1,0 +1,124 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "tv_au",
+      "name": "Australia (test rows)",
+      "kind": "tv",
+      "source": { "publisher": "Test", "title": "Fixture of sdrkit-presets", "date": "2026" },
+      "verified": false,
+      "unverified_reason": "test data",
+      "bands": [
+        {
+          "name": "VHF Band III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 230000000,
+          "modes": ["dvbt"],
+          "channel_width_hz": 7000000,
+          "channels": [
+            { "name": "6", "centre_hz": 177500000 },
+            { "name": "7", "centre_hz": 184500000 },
+            { "name": "8", "centre_hz": 191500000 },
+            { "name": "12", "centre_hz": 226500000 }
+          ]
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 526000000,
+          "end_hz": 540000000,
+          "modes": ["dvbt"],
+          "channel_width_hz": 7000000,
+          "channels": [
+            { "name": "28", "centre_hz": 529500000 },
+            { "name": "29", "centre_hz": 536500000 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tv_eu_uhf",
+      "name": "Europe UHF (test rows)",
+      "kind": "tv",
+      "source": { "publisher": "Test", "title": "Fixture of sdrkit-presets", "date": "2026" },
+      "verified": false,
+      "unverified_reason": "test data",
+      "bands": [
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 494000000,
+          "modes": ["dvbt", "dvbt2"],
+          "channel_width_hz": 8000000,
+          "numbering": { "first": 21, "last": 23, "first_centre_hz": 474000000, "step_hz": 8000000 }
+        }
+      ]
+    },
+    {
+      "id": "fm_europe",
+      "name": "Europe FM (test rows)",
+      "kind": "fm",
+      "source": { "publisher": "Test", "title": "Fixture of sdrkit-presets", "date": "2026" },
+      "verified": false,
+      "unverified_reason": "test data",
+      "bands": [
+        {
+          "name": "FM",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 108000000,
+          "modes": ["fm"],
+          "raster": { "first_hz": 87500000, "step_hz": 100000 }
+        }
+      ]
+    },
+    {
+      "id": "dab_band3",
+      "name": "DAB Band III (test rows)",
+      "kind": "dab",
+      "source": { "publisher": "Test", "title": "Fixture of sdrkit-presets", "date": "2026" },
+      "verified": false,
+      "unverified_reason": "test data",
+      "bands": [
+        {
+          "name": "Band III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 240000000,
+          "modes": ["dab"],
+          "channel_width_hz": 1536000,
+          "channels": [
+            { "name": "5A", "centre_hz": 174928000 },
+            { "name": "9A", "centre_hz": 202928000 }
+          ]
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": ["tv_au"],
+      "presets": { "fm_deemphasis_us": 50, "rds": "rds" },
+      "verified": false,
+      "unverified_reason": "test data"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "itu": 1,
+      "groups": ["tv_eu_uhf", "fm_europe"],
+      "presets": { "fm_deemphasis_us": 50, "rds": "rds" },
+      "verified": false,
+      "unverified_reason": "test data"
+    }
+  ],
+  "regions": [
+    { "itu": 1, "name": "ITU Region 1", "groups": ["dab_band3"] },
+    { "itu": 3, "name": "ITU Region 3", "groups": ["dab_band3", "fm_europe"] }
+  ]
+}

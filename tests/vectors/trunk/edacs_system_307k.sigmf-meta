@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 307200,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic EDACS site, 7.5 s, as one capture: the control channel (856.000 MHz, 100 kHz below the centre, 9600 bit/s, +-1400 Hz, amplitude 0.5; a site ID every 10th frame, idle filler words, assignments repeated every third frame) and analog FM voice channels from the table LCN n = 856.000 + 0.025 (n - 1) MHz: LCN 3 group 777 unit 4321, 1000 Hz tone, 1.0 to 3.0 s, with call end messages; LCN 6 group 888 unit 5555 emergency, 1600 Hz tone, 3.6 to 5.2 s, no call end message; LCN 8 a carrier with a 700 Hz tone, 6.0 to 7.0 s, never announced. Voice amplitude 0.4, 3 kHz deviation, 5 ms ramps. Complex Gaussian noise 0.02 per component. See specs/trunk.md section 5.",
+    "core:recorder": "sdrkit trunking, paging and tones test signal definition (specs/trunk.md), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 856100000.0
+    }
+  ],
+  "annotations": []
+}

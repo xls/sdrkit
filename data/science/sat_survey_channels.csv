@@ -1,0 +1,27 @@
+# id: sat_survey_channels
+# name: Channel tables of the satellite carrier survey (stack sat_survey), by submode
+# stacks: sat_survey
+# source: public satellite lists and press reports
+# note: Not checked against an operator's document. The AO-7 frequencies (145.970 and 435.106 MHz) and the IMAGE frequency (2272.500 MHz) are not confirmed. The usual dials are in science_dials.csv. Submodes without channels (doppler_id, gmr1, starlink, oneweb, gonets, tiantong) have no rows.
+submode,frequency_hz,name,norad
+zombie,145970000,AO-7 VHF beacon,7530
+zombie,435106000,AO-7 UHF beacon,7530
+zombie,136650000,Transit 5B-5,965
+zombie,237000000,LES-1,1002
+zombie,236750000,LES-5,2866
+zombie,2272500000,IMAGE,
+uhf_satcom,250650000,UFO voice,
+uhf_satcom,252150000,FLTSATCOM,
+tdrs,2106400000,MA forward,
+tiangong,2224075000,TT&C,
+tiangong,2224065000,Beacon,
+tiangong,2232220000,Telemetry,
+tiangong,2250720000,Telemetry,
+tiangong,145985000,Amateur,
+tiangong,436510000,Amateur,
+tsikada,150000000,Tsikada 150 MHz,
+tsikada,400000000,Tsikada 400 MHz,
+iss,145800000,FM voice / SSTV,
+iss,145825000,APRS,
+iss,437800000,Voice repeater,
+iss,437550000,UHF simplex,

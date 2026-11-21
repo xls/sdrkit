@@ -1,0 +1,157 @@
+# The interface of the stack family engine. The registry test of the family writes this file.
+family engine version=1.6
+shape.EngineFields since=1.2
+shape.EngineFields.engine.core_units type=f64 unit= optional=yes since=1.2
+shape.EngineFields.engine.core_units_slow type=f64 unit= optional=yes since=1.2
+shape.EngineFields.engine.cores_fast type=i64 unit= optional=yes since=1.2
+shape.EngineFields.engine.cores_slow type=i64 unit= optional=yes since=1.2
+shape.EngineFields.engine.cores_usable type=i64 unit= optional=no since=1.2
+shape.StackRow since=1.0
+shape.StackRow.name type=text unit= optional=no since=1.0
+shape.StackRow.group type=text unit= optional=no since=1.0
+shape.StackRow.blurb type=text unit= optional=no since=1.0
+shape.StackRow.min_hz type=hz unit=Hz optional=no since=1.0
+shape.StackRow.max_hz type=hz unit=Hz optional=no since=1.0
+shape.StackRow.default_hz type=hz unit=Hz optional=no since=1.0
+shape.StackRow.rate_hz type=hz unit=Hz optional=no since=1.0
+shape.StackRow.min_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.StackRow.bandwidth_hz type=hz unit=Hz optional=no since=1.0
+shape.StackRow.auto_gain type=choice(radio,high,hold) unit= optional=no since=1.0
+shape.StackRow.generator type=bool unit= optional=no since=1.0
+shape.StackRow.lock_settle_s type=duration unit=s optional=no since=1.0
+shape.StackRow.lock_timeout_s type=duration unit=s optional=no since=1.0
+shape.StackRow.lock_snr_db type=f64 unit=dB optional=no since=1.0
+shape.StackRow.lock_collect_s type=duration unit=s optional=no since=1.0
+shape.StackRow.transmit type=bool unit= optional=no since=1.3
+shape.StackRow.host_audio_channels type=i64 unit= optional=no since=1.6
+shape.SubmodeRow since=1.0
+shape.SubmodeRow.stack type=text unit= optional=no refers_to=stacks since=1.0
+shape.SubmodeRow.name type=text unit= optional=no since=1.0
+shape.SubmodeRow.default_hz type=hz unit=Hz optional=no since=1.0
+shape.StackSignalRow since=1.0
+shape.StackSignalRow.stack type=text unit= optional=no refers_to=stacks since=1.0
+shape.StackSignalRow.signal type=choice(carrier,am_voice,am_broadcast,narrow_fm_voice,keyed_voice,wide_fm,fm_broadcast,ssb_voice_upper,ssb_voice_lower,cw_morse,narrow_digital,digital,wide_digital,ads_b_mode_s,mode_a_c_replies,mode_s_interrogations,uat,dvb_t,dvb_t2,dab,isdb_t,isdb_tsb,dtmb,atsc_1_0,dmr,p25_phase_1,p25_phase_2,nxdn96,nxdn48,dpmr,yaesu_system_fusion,m17,d_star,tetra,pocsag,ais,lora,packet_afsk_1200,rtty,sitor,psk31,mfsk,dominoex,thor,olivia,contestia,mt63,fsq,ifkp,hellschreiber,sstv,ardop,ros,ft8,ft4,ft2,wspr,jt65,jt9,jt4,q65,fst4,fst4w,msk144,js8,dji_droneid,flarm,atsc_3_0,analog_tv,mac,fm_video,acars,selcal,hfdl,vdl_mode_2,vdl_mode_4,gnss,sbas,lbj,balise,gsm,nb_iot,lte,nr,dect,ant,ieee_802_15_4,nfc,nrf24,sigfox,wireless_m_bus,wi_sun,z_wave,dvb_s,dvb_s2,dvb_c,dvb_c2,isdb_s,tetrapol,freedv,mpt1327,ltr,edacs,multitone_paging,wifi,wifi_halow,bluetooth_le,ndb,vor,ils,dme,loran_c,dgps,lrit,hrit,hrpt,lrpt,s_vissr,dsc,weather_fax,vdes,atis,drm,hamdrm,hd_radio,cdr,pactor_1,pactor_2,pactor_3,pactor_4,hf_ocean_radar,ale_2g,radiosonde,same,time_signal,dcp,argos,cospas_sarsat_406,inmarsat_c,inmarsat_aero,orbcomm,iridium,globalstar) unit= optional=no since=1.0
+shape.DriverRow since=1.0
+shape.DriverRow.name type=text unit= optional=no since=1.0
+shape.DriverRow.address type=text unit= optional=no since=1.0
+shape.DriverRow.min_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.DriverRow.max_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.DriverRow.transmit type=bool unit= optional=no since=1.0
+shape.DriverRow.tx_max_rate_hz type=hz unit=Hz optional=yes since=1.3
+shape.ComponentKindRow since=1.0
+shape.ComponentKindRow.inputs type=i64 unit= optional=no since=1.0
+shape.ComponentKindRow.outputs type=i64 unit= optional=no since=1.0
+shape.ComponentKindRow.settings type=i64 unit= optional=no since=1.0
+shape.ServiceRow since=1.0
+shape.ServiceRow.name type=text unit= optional=no since=1.0
+shape.RadioRow since=1.0
+shape.RadioRow.driver type=text unit= optional=no refers_to=drivers since=1.0
+shape.RadioRow.address type=text unit= optional=no since=1.0
+shape.RadioRow.transmit type=bool unit= optional=no since=1.3
+shape.RadioRow.tx_min_hz type=hz unit=Hz optional=yes since=1.3
+shape.RadioRow.tx_max_hz type=hz unit=Hz optional=yes since=1.3
+shape.RadioRow.tx_max_rate_hz type=hz unit=Hz optional=yes since=1.3
+shape.SessionRow since=1.0
+shape.SessionRow.stack type=text unit= optional=yes refers_to=stacks since=1.0
+shape.SessionRow.radio type=text unit= optional=no refers_to=radios since=1.0
+shape.SessionRow.state type=choice(waiting,running,failed,stopped) unit= optional=no since=1.0
+shape.RequestRow since=1.0
+shape.RequestRow.from type=text unit= optional=no since=1.0
+shape.RequestRow.kind type=choice(retune,hop,follow,release,tune,store_memory,memory_hit,record,rewind,script,output) unit= optional=no since=1.0
+shape.RequestRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.RequestRow.done type=bool unit= optional=no since=1.0
+shape.RequestRow.refused type=text unit= optional=yes since=1.0
+shape.RequestRow.session type=text unit= optional=yes refers_to=sessions since=1.0
+shape.BenchmarkRow since=1.0
+shape.BenchmarkRow.stack type=text unit= optional=no refers_to=stacks since=1.0
+shape.BenchmarkRow.items_per_s type=f64 unit=1/s optional=no since=1.0
+shape.BenchmarkRow.cpu_share type=f64 unit= optional=no since=1.0
+shape.BenchmarkRow.threads type=i64 unit= optional=no since=1.2
+shape.BenchmarkRow.thread_cores type=f64 unit= optional=no since=1.2
+shape.BenchmarkRow.status type=text unit= optional=no since=1.2
+shape.BenchmarkComponentRow since=1.2
+shape.BenchmarkComponentRow.benchmark type=text unit= optional=no since=1.2
+shape.BenchmarkComponentRow.component type=text unit= optional=no since=1.2
+shape.BenchmarkComponentRow.section type=text unit= optional=no since=1.2
+shape.BenchmarkComponentRow.stage type=text unit= optional=no since=1.2
+shape.BenchmarkComponentRow.thread type=i64 unit= optional=no since=1.2
+shape.BenchmarkComponentRow.cost type=f64 unit= optional=no since=1.2
+shape.BenchmarkComponentRow.calls type=i64 unit= optional=no since=1.2
+shape.BenchmarkComponentRow.items_in type=i64 unit= optional=no since=1.2
+shape.BenchmarkComponentRow.items_out type=i64 unit= optional=no since=1.2
+shape.BenchmarkComponentRow.mean_us type=f64 unit=us optional=no since=1.2
+shape.BenchmarkComponentRow.worst_us type=f64 unit=us optional=no since=1.2
+shape.BenchmarkComponentRow.units type=f64 unit= optional=no since=1.2
+shape.BenchmarkStageRow since=1.2
+shape.BenchmarkStageRow.benchmark type=text unit= optional=no since=1.2
+shape.BenchmarkStageRow.stage type=text unit= optional=no since=1.2
+shape.BenchmarkStageRow.thread type=i64 unit= optional=no since=1.2
+shape.BenchmarkStageRow.cost type=f64 unit= optional=no since=1.2
+shape.BenchmarkStageRow.units type=f64 unit= optional=no since=1.2
+shape.BenchmarkStageRow.declared_units type=f64 unit= optional=yes since=1.2
+shape.BenchmarkConnectionRow since=1.2
+shape.BenchmarkConnectionRow.benchmark type=text unit= optional=no since=1.2
+shape.BenchmarkConnectionRow.from type=text unit= optional=no since=1.2
+shape.BenchmarkConnectionRow.output type=text unit= optional=no since=1.2
+shape.BenchmarkConnectionRow.to type=text unit= optional=no since=1.2
+shape.BenchmarkConnectionRow.input type=text unit= optional=no since=1.2
+shape.BenchmarkConnectionRow.format type=text unit= optional=no since=1.2
+shape.BenchmarkConnectionRow.stage type=text unit= optional=no since=1.2
+shape.BenchmarkConnectionRow.items_per_s type=f64 unit=1/s optional=no since=1.2
+shape.BenchmarkConnectionRow.bytes_per_s type=f64 unit=B/s optional=no since=1.2
+shape.BenchmarkConnectionRow.held_mean_bytes type=f64 unit=B optional=no since=1.2
+shape.BenchmarkConnectionRow.held_max_bytes type=i64 unit=B optional=no since=1.2
+shape.BenchmarkConnectionRow.capacity_bytes type=i64 unit=B optional=yes since=1.2
+shape.BenchmarkConnectionRow.wait_mean_us type=f64 unit=us optional=yes since=1.2
+shape.BenchmarkConnectionRow.wait_worst_us type=f64 unit=us optional=yes since=1.2
+shape.BenchmarkConnectionRow.full type=i64 unit= optional=no since=1.2
+shape.BenchmarkConnectionRow.empty type=i64 unit= optional=no since=1.2
+shape.BenchmarkConnectionRow.boundary type=bool unit= optional=no since=1.2
+shape.StackTransmitRow since=1.3
+shape.StackTransmitRow.stack type=text unit= optional=no refers_to=stacks since=1.3
+shape.StackTransmitRow.command type=text unit= optional=no since=1.3
+shape.StackTransmitRow.content type=choice(text,voice,beacon,file,frame,carrier) unit= optional=no since=1.3
+shape.StackTransmitRow.stopped_by type=text unit= optional=yes since=1.4
+shape.RequestEvent since=1.0
+shape.RequestEvent.from type=text unit= optional=no since=1.0
+shape.RequestEvent.kind type=choice(retune,hop,follow,release,tune,store_memory,memory_hit,record,rewind,script,output) unit= optional=no since=1.0
+shape.RequestEvent.done type=bool unit= optional=no since=1.0
+shape.RequestEvent.refused type=text unit= optional=yes since=1.0
+shape.RequestEvent.session type=text unit= optional=yes refers_to=sessions since=1.0
+shape.RequestEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.StateSaveReply since=1.0
+shape.StateSaveReply.state type=bytes unit= optional=no since=1.0
+engine since=1.0
+engine.fields.EngineFields since=1.2
+engine.table.stacks row=StackRow cap=4096 since=1.0
+engine.table.submodes row=SubmodeRow cap=4096 since=1.0
+engine.table.stack_signals row=StackSignalRow cap=4096 since=1.0
+engine.table.drivers row=DriverRow cap=4096 since=1.0
+engine.table.component_kinds row=ComponentKindRow cap=4096 since=1.0
+engine.table.services row=ServiceRow cap=4096 since=1.0
+engine.table.radios row=RadioRow cap=4096 since=1.0
+engine.table.sessions row=SessionRow cap=4096 since=1.0
+engine.table.requests row=RequestRow cap=256 since=1.0
+engine.table.benchmarks row=BenchmarkRow cap=4096 since=1.0
+engine.table.benchmark.components row=BenchmarkComponentRow cap=16384 since=1.2
+engine.table.benchmark.stages row=BenchmarkStageRow cap=4096 since=1.2
+engine.table.benchmark.connections row=BenchmarkConnectionRow cap=16384 since=1.2
+engine.table.stack_transmits row=StackTransmitRow cap=4096 since=1.3
+engine.event.engine.request fields=RequestEvent since=1.0
+engine.setting.callsign type=text unit= since=1.0
+engine.setting.locator type=text unit= since=1.0
+engine.setting.position type=position unit= since=1.0
+engine.setting.height_m type=f64 unit=m since=1.0
+engine.setting.time_zone type=i64 unit=min since=1.0
+engine.setting.requests_allowed type=bool unit= since=1.0
+engine.setting.transmit_allowed type=bool unit= since=1.0
+engine.setting.backend_fft type=choice(auto,accelerate,rustfft) unit= since=1.0
+engine.setting.backend_fir type=choice(auto,neon,plain) unit= since=1.0
+engine.setting.backend_resample type=choice(auto,neon,plain) unit= since=1.0
+engine.setting.backend_viterbi type=choice(auto,neon,plain) unit= since=1.0
+engine.setting.backend_rs type=choice(auto,neon,plain) unit= since=1.0
+engine.setting.backend_ldpc type=choice(auto,neon,plain) unit= since=1.0
+engine.setting.cores_max type=i64 unit= since=1.1
+engine.command.state.save args= reply=state:bytes since=1.0
+engine.command.state.restore args=state:bytes reply= since=1.0
+engine.command.benchmark.run args=seconds:f64?;only:text? reply= since=1.0

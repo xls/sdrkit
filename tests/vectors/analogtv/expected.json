@@ -1,0 +1,214 @@
+{
+  "note": "Expected decode of the two recordings by the analogue TV receiver (mode 'atv', modulation AM broadcast, every setting at its default: system and colour automatic, channel width 8 MHz, sound system automatic, dual sound first, detector automatic, weave, noise reduction automatic, snow off). Feed the samples in pieces of 50 000. Results are published every 0.25 s of input; the values are those of the last report. The keys are the result fields of the mode (src/results.rs). 'lock state' is the status lock state. 'picture' and 'bars' are read from the last picture published (graph output picture.out): 'bars' are the mean 8-bit R, G, B over the middle half (in both directions) of each of the eight EBU 100/0/75/0 bars of the test card (picture rows 40 to 172, columns 46 to 721, eight equal bars), white first. The audio values are amplitudes of single-bin DFTs over the last 9 600 samples (0.2 s) of the 48 kHz sound, full scale 1.0. 'timing_s' are report times in seconds of signal.",
+  "recordings": [
+    {
+      "recording": "atv_pal_i_nicam_10m.sigmf-meta",
+      "expected": {
+        "lock_state": "locked",
+        "system": "PAL I 625/50",
+        "colour_system": "PAL",
+        "colour": true,
+        "colour_killer": false,
+        "lines": 625,
+        "field_rate": 50.0,
+        "line_rate": 15625,
+        "line_error_ppm": 0.0,
+        "detector": "synchronous",
+        "vision_carrier": -2725000,
+        "sound_carrier": 3274600,
+        "sound_spacing": 6000000,
+        "offset_hz": 25000,
+        "level_dbfs": -7.9,
+        "carrier_to_noise_db": 39.8,
+        "snr_db": 31.6,
+        "sync_found_pct": 99.9,
+        "sync_depth_pct": 23.9,
+        "sync_compression_pct": 0.0,
+        "white_peak": 1.15,
+        "burst_pct": 102,
+        "burst_phase_error_deg": 3.2,
+        "sound_system": "NICAM stereo",
+        "sound_present": true,
+        "sound_deviation": 27000,
+        "audio_level_dbfs": -9.0,
+        "fields_ok": 7,
+        "fields_bad": 0,
+        "picture": {
+          "width": 768,
+          "height": 576,
+          "colour": true,
+          "field_rate": 50.0
+        },
+        "bars": [
+          [
+            253.6,
+            253.7,
+            252.6
+          ],
+          [
+            192.4,
+            191.8,
+            5.8
+          ],
+          [
+            4.3,
+            191.1,
+            191.9
+          ],
+          [
+            4.2,
+            190.0,
+            5.1
+          ],
+          [
+            190.5,
+            2.8,
+            190.4
+          ],
+          [
+            189.0,
+            2.6,
+            4.0
+          ],
+          [
+            2.7,
+            2.1,
+            188.5
+          ],
+          [
+            2.2,
+            1.9,
+            3.4
+          ]
+        ],
+        "audio_48k": {
+          "left_1khz_amp": 0.25,
+          "left_1500hz_amp": 0.0,
+          "right_1khz_amp": 0.0001,
+          "right_1500hz_amp": 0.25
+        },
+        "timing_s": {
+          "t_first_picture": 0.12,
+          "t_state_2": 0.25,
+          "t_colour": 0.25,
+          "t_nicam": 0.25
+        }
+      },
+      "tolerance": {
+        "system_colour_strings": "exact",
+        "lock_state": "exact",
+        "vision_carrier": 300,
+        "offset_hz": 300,
+        "sound_carrier": 3000,
+        "line_error_ppm": 6,
+        "field_rate": 0.005,
+        "carrier_to_noise_db": 1.5,
+        "snr_db": "at least 30",
+        "burst_pct": 12.0,
+        "sync_depth_pct": "24 +- 1.5 (system I has peak white at 20 % of the carrier, so blanking sits at 76 % and the sync is 24 % of the peak carrier)",
+        "fields_bad": "at most 2",
+        "bars": "every channel of every bar within 0.09 of full scale (23 in 8-bit units) of the EBU values 255 / 191 / 0",
+        "audio": "left 1 kHz and right 1.5 kHz 0.25 +- 0.03; the crossed tones at least 30 dB lower",
+        "t_state_2": "at most 0.5 (that is, the second report)",
+        "t_nicam": "at most 0.5"
+      }
+    },
+    {
+      "recording": "atv_secam_dk_10m.sigmf-meta",
+      "expected": {
+        "lock_state": "locked",
+        "system": "SECAM D/K 625/50",
+        "colour_system": "SECAM",
+        "colour": true,
+        "lines": 625,
+        "field_rate": 50.0,
+        "line_error_ppm": -0.1,
+        "detector": "synchronous",
+        "vision_carrier": -2790000,
+        "sound_carrier": 3710000,
+        "sound_spacing": 6500000,
+        "offset_hz": -40000,
+        "carrier_to_noise_db": 35.1,
+        "snr_db": 27.7,
+        "sync_depth_pct": 26.1,
+        "chroma_level_pct": 100,
+        "sound_system": "FM",
+        "sound_present": true,
+        "sound_deviation": 27900,
+        "audio_level_dbfs": -9.0,
+        "fields_ok": 7,
+        "fields_bad": 0,
+        "picture": {
+          "width": 768,
+          "height": 576,
+          "colour": true,
+          "field_rate": 50.0
+        },
+        "bars": [
+          [
+            252.1,
+            252.5,
+            251.8
+          ],
+          [
+            192.7,
+            191.9,
+            9.7
+          ],
+          [
+            13.3,
+            186.6,
+            194.6
+          ],
+          [
+            4.7,
+            192.1,
+            6.0
+          ],
+          [
+            186.4,
+            5.7,
+            192.9
+          ],
+          [
+            191.9,
+            3.8,
+            4.0
+          ],
+          [
+            4.5,
+            3.5,
+            190.3
+          ],
+          [
+            3.9,
+            4.0,
+            3.6
+          ]
+        ],
+        "audio_48k": {
+          "left_1khz_amp": 0.5,
+          "right_1khz_amp": 0.5
+        },
+        "timing_s": {
+          "t_first_picture": 0.12,
+          "t_state_2": 0.25,
+          "t_colour": 0.25
+        }
+      },
+      "tolerance": {
+        "system_colour_strings": "exact",
+        "vision_carrier": 600,
+        "offset_hz": 600,
+        "sound_carrier": 3000,
+        "carrier_to_noise_db": 1.5,
+        "snr_db": "at least 25",
+        "chroma_level_pct": 25.0,
+        "fields_bad": "at most 3",
+        "bars": "every channel of every bar within 0.08 of full scale (20 in 8-bit units)",
+        "audio": "1 kHz 0.5 +- 0.04 on both channels (mono FM sound)",
+        "t_state_2": "at most 0.5"
+      }
+    }
+  ]
+}

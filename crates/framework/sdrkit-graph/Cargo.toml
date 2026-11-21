@@ -1,0 +1,17 @@
+[package]
+name = "sdrkit-graph"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Components, streams, tags and graphs for sdrkit, with the standard components"
+
+[dependencies]
+sdrkit-core = { path = "../sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+num-complex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+rtrb = "0.3"

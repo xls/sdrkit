@@ -1,0 +1,142 @@
+{
+  "files": {
+    "recording": "dvbt_7mhz_2k_16qam_8msps.sigmf-meta",
+    "transport_stream": "mux_two_services.ts",
+    "sha256": {
+      "dvbt_7mhz_2k_16qam_8msps.sigmf-data": "5cd04a9593fa620bfde9ce4227048beaf35ce44b4a1db55cb7f97484107f60cb",
+      "mux_two_services.ts": "56b37e01053052e1f9d4a36eb36d4a6ca71404b45acc75d908a14b26d8f988c1"
+    }
+  },
+  "note": "Part 'dvbt' is the expected decode of the recording, fed to the DVB-T receiver in blocks of 16384 samples with the channel bandwidth set to 7 MHz (and again with bandwidth Auto, which must reach the same result). Part 'mux' is the expected demultiplex of mux_two_services.ts read from its first packet to its last; part 'mux_from_recording' is what the demultiplexer must find in the packets the receiver delivers from the recording. 'tolerance' gives the accepted range; 'exact' means equal.",
+
+  "dvbt": {
+    "bandwidth_mhz": 7,
+    "native_rate_hz": 8000000,
+    "fft": "2K",
+    "fft_size": 2048,
+    "guard_interval": "1/8",
+    "guard_samples": 256,
+    "constellation": "16-QAM",
+    "hierarchy": "none",
+    "code_rate_hp": "2/3",
+    "code_rate_lp": "2/3",
+    "cell_id": 0,
+    "tps_length_indicator": 23,
+    "net_bitrate_bps": 12901960.8,
+    "cfo_hz": 10078.125,
+    "snr_db": 24.0,
+    "state_at_end": "streaming",
+    "tps_locked": true,
+    "fec_sync": true,
+    "first_packet_s": 0.051,
+    "rs_blocks_decoded": 5996,
+    "rs_corrected": 0,
+    "rs_failed": 0,
+    "ts_packets_delivered": 5991,
+    "ts_packets_with_tei": 0,
+    "delivered_equals_source": "the delivered packets are packets k, k+1, ... of mux_two_services.ts, byte for byte, with no gap",
+    "first_source_packet_index_k": 352,
+    "source_packets_transmitted": 6416
+  },
+
+  "mux_from_recording": {
+    "packets": 5991,
+    "cc_errors": 0,
+    "pid_counts": {"0x0000": 8, "0x0010": 2, "0x0011": 3, "0x0012": 29, "0x0014": 4, "0x0100": 8, "0x0101": 8,
+                   "0x0200": 524, "0x0201": 64, "0x0202": 91, "0x0203": 182, "0x0204": 80, "0x1FFF": 4988},
+    "services_named": ["Test One", "Test Two"],
+    "network_name": "Test Network",
+    "now_next_known_for": [257, 258]
+  },
+
+  "mux": {
+    "packets": 26194,
+    "packet_size": 188,
+    "duration_s": 3.05,
+    "constant_rate_bps": 12901960,
+    "cc_errors": 0,
+    "tei_packets": 0,
+    "transport_stream_id": 257,
+    "original_network_id": 65281,
+    "network_id": 12289,
+    "network_name": "Test Network",
+    "pid_counts": {"0x0000": 39, "0x0010": 13, "0x0011": 16, "0x0012": 110, "0x0014": 12, "0x0100": 39, "0x0101": 39,
+                   "0x0200": 2821, "0x0201": 284, "0x0202": 408, "0x0203": 640, "0x0204": 400, "0x1FFF": 21373},
+    "pes_starts": {"0x0200": 75, "0x0201": 18, "0x0202": 32, "0x0203": 75, "0x0204": 25},
+    "first_pts_90khz": {"0x0200": 133200, "0x0201": 131280, "0x0202": 132720, "0x0203": 133200, "0x0204": 132298},
+    "pcr": {
+      "0x0200": {"count": 77, "first_27mhz": 18915921},
+      "0x0203": {"count": 84, "first_27mhz": 18912774}
+    },
+    "utc_first_tdt": "2026-01-15 09:30:00 UTC",
+    "utc_last_tdt": "2026-01-15 09:30:02 UTC",
+    "local_time_offset": {"country": "AUS", "region": 0, "offset_min": 600, "time_of_change": "2026-04-05 16:00:00 UTC", "next_offset_min": 600},
+    "terrestrial_delivery": {"frequency_hz": 529500000, "bandwidth_mhz": 7, "constellation": "16-QAM", "hierarchy": "none",
+                             "code_rate_hp": "2/3", "code_rate_lp": "2/3", "guard_interval": "1/8", "mode": "2K", "other_frequency": false},
+    "services": [
+      {
+        "service_id": 257, "name": "Test One", "provider": "Test Provider", "service_type": 25, "type_name": "TV",
+        "lcn": 1, "visible": true, "pmt_pid": 256, "pcr_pid": 512, "running_status": 4, "free_ca": false, "scrambled": false,
+        "eit_schedule": true, "eit_present_following": true,
+        "streams": [
+          {"pid": 512, "stream_type": 27, "kind": "video", "codec": "h264", "fourcc": "avc1", "packaging": "annexb",
+           "profile": "Main", "width": 640, "height": 360, "frame_rate": 25, "aspect": "16:9"},
+          {"pid": 513, "stream_type": 15, "kind": "audio", "codec": "aac", "fourcc": "aac ", "packaging": "adts", "lang": "eng",
+           "object_type": "AAC-LC", "sample_rate": 48000, "channels": 2},
+          {"pid": 514, "stream_type": 6, "descriptor": "AC-3 (0x6A)", "kind": "audio", "codec": "ac3", "fourcc": "ac-3", "lang": "eng",
+           "sample_rate": 48000, "channels": 2, "bitrate_kbps": 192}
+        ],
+        "now": "Morning Test Card", "next": "Test News"
+      },
+      {
+        "service_id": 258, "name": "Test Two", "provider": "Test Provider", "service_type": 1, "type_name": "TV",
+        "lcn": 2, "visible": true, "pmt_pid": 257, "pcr_pid": 515, "running_status": 4, "free_ca": false, "scrambled": false,
+        "eit_schedule": true, "eit_present_following": true,
+        "streams": [
+          {"pid": 515, "stream_type": 2, "kind": "video", "codec": "mpeg2video", "fourcc": "mp2v", "packaging": "elementary",
+           "profile": "Main", "width": 720, "height": 576, "frame_rate": 25, "aspect": "5:4 (square pixels)"},
+          {"pid": 516, "stream_type": 3, "kind": "audio", "codec": "mp2", "fourcc": ".mp2", "lang": "deu",
+           "sample_rate": 48000, "channels": 2, "bitrate_kbps": 192}
+        ],
+        "now": "Prüfbild", "next": "Nachrichten"
+      }
+    ],
+    "service_order": [257, 258],
+    "epg": {
+      "257": [
+        {"event_id": 4097, "start_utc": 1768467600, "duration_s": 3600, "running": 4, "genre_nibble": 9, "content_byte": 144, "parental_rating": {"AUS": 0},
+         "lang": "eng", "title": "Morning Test Card", "text": "Colour test pattern with a 1 kHz tone.",
+         "extended": "The extended description of the present event, sent in an extended event descriptor."},
+        {"event_id": 4098, "start_utc": 1768471200, "duration_s": 1800, "running": 1, "genre_nibble": 2, "content_byte": 32, "lang": "eng",
+         "title": "Test News", "text": "News programme placeholder.", "extended": ""},
+        {"event_id": 4099, "start_utc": 1768473000, "duration_s": 5400, "running": 1, "genre_nibble": 1, "content_byte": 16, "lang": "eng",
+         "parental_rating": {"AUS": 12}, "minimum_age": 15, "title": "Test Film", "text": "Feature film placeholder.", "extended": "", "schedule_only": true},
+        {"event_id": 4100, "start_utc": 1768478400, "duration_s": 2700, "running": 1, "genre_nibble": 4, "content_byte": 64, "lang": "eng",
+         "title": "Test Sport", "text": "Sport programme placeholder.", "extended": "", "schedule_only": true}
+      ],
+      "258": [
+        {"event_id": 8193, "start_utc": 1768468500, "duration_s": 2700, "running": 4, "genre_nibble": 9, "content_byte": 144, "lang": "deu",
+         "title": "Prüfbild", "text": "Farbbalken mit 440-Hz-Ton.", "extended": "", "text_encoding": "UTF-8 (prefix 0x15)"},
+        {"event_id": 8194, "start_utc": 1768471200, "duration_s": 3600, "running": 1, "genre_nibble": 2, "content_byte": 32, "lang": "deu",
+         "title": "Nachrichten", "text": "Platzhalter.", "extended": "", "text_encoding": "UTF-8 (prefix 0x15)"}
+      ]
+    },
+    "si_repetition_s": {"PAT": 0.1, "PMT": 0.1, "SDT": 0.2, "NIT": 0.25, "EIT_pf": 0.2, "EIT_schedule": 0.3, "TDT": 0.5, "TOT": 0.5},
+    "media_note": "Video and audio are short test patterns and tones from a software encoder. H.264 SPS/PPS precede each IDR picture (GOP 25, two B pictures); MPEG-2 GOP 12. The H.264 stream contains an encoder-information SEI, which the demultiplexer passes through untouched."
+  },
+
+  "tolerance": {
+    "fft_guard_constellation_code_rates_hierarchy_cell_id": "exact",
+    "cfo_hz": [10028, 10128],
+    "snr_db": [21.0, 28.0],
+    "first_packet_s": "at most 0.25",
+    "rs_failed": "exact (0)",
+    "rs_corrected": "at most 5",
+    "ts_packets_delivered": "at least 5500; every delivered packet byte-identical to the source packet at its position; no packet with transport_error_indicator set",
+    "first_source_packet_index_k": "any value from 0 to 1600 that is a multiple of 8 (the first packet of an energy-dispersal group)",
+    "rs_blocks_decoded": "at least ts_packets_delivered and at most ts_packets_delivered + 8",
+    "mux_from_recording.pid_counts": "exact when k = 352; otherwise recompute from the source slice",
+    "mux": "exact for every field, except 'duration_s' (±0.01) and the media properties, which a decoder may report with its own rounding",
+    "epg_order": "events of a service sorted by start time"
+  }
+}

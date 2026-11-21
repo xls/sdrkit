@@ -1,0 +1,33 @@
+[package]
+name = "sdrkit-stack-satcom"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Satellite communications: Inmarsat-C, Inmarsat Aero, Iridium, Orbcomm, Globalstar, COSPAS-SARSAT, GOES DCS, Meteosat HRDCP, Argos, CubeSat telemetry, Fleet Broadcast, LoRa satellites, QO-100 and a PSK demodulator; the CubeSat stack sends AX.25 for amateur satellite uplinks, every other stack receives only"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-proto-aero = { path = "../../proto/sdrkit-proto-aero" }
+sdrkit-proto-link = { path = "../../proto/sdrkit-proto-link" }
+sdrkit-proto-ccsds = { path = "../../proto/sdrkit-proto-ccsds" }
+sdrkit-proto-lora-phy = { path = "../../proto/sdrkit-proto-lora-phy" }
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The record of the declarations that a generic consumer reads.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }

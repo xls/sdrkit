@@ -1,0 +1,2 @@
+# stack variant stage calibration-units-per-second-of-signal (written by the cost test, do not edit)
+inmarsat - front 21940.2

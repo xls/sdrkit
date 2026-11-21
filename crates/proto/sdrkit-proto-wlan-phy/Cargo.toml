@@ -1,0 +1,18 @@
+[package]
+name = "sdrkit-proto-wlan-phy"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Wireless LAN physical layers for sdrkit: Bluetooth LE 1M advertising (link layer, advertising data, receiver), IEEE 802.11b DSSS, 802.11a/g OFDM, the 802.11ah S1G numerology, and 802.11 MAC framing"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+
+[dev-dependencies]
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }

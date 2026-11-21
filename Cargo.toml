@@ -1,0 +1,37 @@
+[workspace]
+resolver = "2"
+members = ["crates/*/sdrkit-*", "examples/rust"]
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+rust-version = "1.92"
+
+[workspace.dependencies]
+num-complex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+thiserror = "1"
+
+[profile.dev]
+# Incremental caches grew to tens of GB across the workspace's many crates; whole-crate rebuilds are fast enough.
+incremental = false
+
+[profile.test]
+opt-level = 1      # DSP tests run a lot of samples
+
+[profile.release]
+# Optimised but quick to build: used for release-mode tests, the console app and day-to-day benchmarks.
+debug = 1          # symbols for profiling
+
+[profile.shipped]
+# What tools/package.sh and tools/package.ps1 ship: release code without debug information.
+inherits = "release"
+debug = 0
+strip = "debuginfo"
+
+[profile.dist]
+# What ships (the iOS library, published benchmarks): whole-program optimisation, slow to build.
+inherits = "release"
+lto = "fat"
+codegen-units = 1

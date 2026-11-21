@@ -1,0 +1,18 @@
+[package]
+name = "sdrkit-svc-record"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Recording for sdrkit: audio, IQ and transport stream recordings, the rewind buffer, time-shift, scheduled recordings and disk space rules"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-proto-mpegts = { path = "../../proto/sdrkit-proto-mpegts" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 64000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic NOAA Weather Radio channel (narrow FM: the AFSK at 2.4 kHz peak deviation, the attention tone at 3.5 kHz) 16 kHz below the capture centre (the radio sits 16 kHz above 162.550 MHz), carrier +300 Hz off the channel, carrier-to-noise 25 dB in 25 kHz. Two SAME messages (520.83 baud AFSK, 16 x 0xAB preamble, each header sent three times 1 s apart): a tornado warning followed by a 1.5 s 1050 Hz attention tone and three end-of-message bursts, then a required weekly test with its end-of-message bursts. 25.4 s. See specs/science.md, SAME test vectors.",
+    "core:recorder": "SAME test-signal generator, noise seed 7",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 162566000.0
+    }
+  ],
+  "annotations": []
+}

@@ -1,0 +1,1152 @@
+# The interface of the stack family lora. The registry test of the family writes this file.
+family lora version=3.0
+shape.MeshFields since=1.0
+shape.MeshFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.MeshFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.MeshFields.preambles type=i64 unit= optional=no since=1.0
+shape.MeshFields.header_failed type=i64 unit= optional=no since=1.0
+shape.MeshFields.mt_nodes type=i64 unit= optional=no since=1.0
+shape.MeshFields.mc_nodes type=i64 unit= optional=no since=1.0
+shape.MeshFields.messages type=i64 unit= optional=no since=1.0
+shape.MeshFields.stations type=i64 unit= optional=no since=1.0
+shape.MeshFields.devices type=i64 unit= optional=no since=1.0
+shape.MeshFields.plan type=text unit= optional=no since=1.0
+shape.MeshFields.searching type=text unit= optional=no since=1.0
+shape.MeshFields.dial type=hz unit=Hz optional=no since=1.0
+shape.MeshFields.protocols type=text unit= optional=no since=1.0
+shape.MeshFields.custom type=bool unit= optional=no since=1.0
+shape.MeshFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.MeshFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.MeshFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.MeshMtFields since=1.0
+shape.MeshMtFields.mt_node_id type=text unit= optional=yes since=1.0
+shape.MeshMtFields.mt_public_key type=text unit= optional=yes since=1.0
+shape.MeshMtFields.mt_long_name type=text unit= optional=yes since=1.0
+shape.MeshMtFields.mt_short_name type=text unit= optional=yes since=1.0
+shape.MeshMtFields.mt_in_flight type=i64 unit= optional=yes since=1.0
+shape.MeshMtFields.mt_rebroadcasts type=i64 unit= optional=yes since=1.0
+shape.MeshMtFields.mt_warnings type=text unit= optional=yes since=1.0
+shape.MeshMtFields.mt_freq type=hz unit=Hz optional=yes since=1.0
+shape.MeshMcFields since=1.0
+shape.MeshMcFields.mc_public_key type=text unit= optional=yes since=1.0
+shape.MeshMcFields.mc_name type=text unit= optional=yes since=1.0
+shape.MeshMcFields.mc_contacts type=i64 unit= optional=yes since=1.0
+shape.MeshMcFields.mc_freq type=hz unit=Hz optional=yes since=1.0
+shape.HamFields since=1.0
+shape.HamFields.aprs_call type=text unit= optional=yes since=1.0
+shape.HamFields.aprs_freq type=hz unit=Hz optional=yes since=1.0
+shape.MeshTxFields since=1.0
+shape.MeshTxFields.tx_pending type=i64 unit= optional=no since=1.0
+shape.MeshTxFields.tx_sent type=i64 unit= optional=no since=1.0
+shape.GuardFields since=1.0
+shape.GuardFields.bad_samples type=i64 unit= optional=no since=1.0
+shape.ModulateFields since=1.0
+shape.ModulateFields.tx_bursts type=i64 unit= optional=no since=1.0
+shape.ModulateFields.tx_samples type=i64 unit= optional=no since=1.0
+shape.ModulateFields.tx_dropped type=i64 unit= optional=no since=1.0
+shape.MeshPacketRow since=1.0
+shape.MeshPacketRow.time_s type=f64 unit=s optional=no since=1.0
+shape.MeshPacketRow.net type=choice(meshtastic,meshcore,loraaprs,meshcom,lorawan,lora,aprs) unit= optional=no since=1.0
+shape.MeshPacketRow.type type=text unit= optional=yes since=1.0
+shape.MeshPacketRow.source type=text unit= optional=yes since=1.0
+shape.MeshPacketRow.target type=text unit= optional=yes since=1.0
+shape.MeshPacketRow.bytes type=i64 unit= optional=no since=1.0
+shape.MeshPacketRow.content type=text unit= optional=yes since=1.0
+shape.MeshPacketRow.hops type=i64 unit= optional=yes since=1.0
+shape.MeshPacketRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.MeshPacketRow.sf type=i64 unit= optional=no since=1.0
+shape.MeshPacketRow.bw type=hz unit=Hz optional=no since=1.0
+shape.MeshPacketRow.summary type=text unit= optional=yes since=1.0
+shape.MeshNodeRow since=1.0
+shape.MeshNodeRow.net type=choice(meshtastic,meshcore,loraaprs,meshcom,lorawan,lora,aprs) unit= optional=no since=1.0
+shape.MeshNodeRow.name type=text unit= optional=no since=1.0
+shape.MeshNodeRow.short type=text unit= optional=yes since=1.0
+shape.MeshNodeRow.id type=text unit= optional=no since=1.0
+shape.MeshNodeRow.hw type=text unit= optional=yes since=1.0
+shape.MeshNodeRow.role type=text unit= optional=yes since=1.0
+shape.MeshNodeRow.last_heard type=time unit= optional=yes since=1.0
+shape.MeshNodeRow.heard type=i64 unit= optional=yes since=1.0
+shape.MeshNodeRow.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.MeshNodeRow.hops type=i64 unit= optional=yes since=1.0
+shape.MeshNodeRow.battery_pct type=f64 unit=% optional=yes since=1.0
+shape.MeshNodeRow.voltage_v type=f64 unit=V optional=yes since=1.0
+shape.MeshNodeRow.position type=position unit= optional=yes since=1.0
+shape.MeshMessageRow since=1.0
+shape.MeshMessageRow.time_s type=f64 unit=s optional=no since=1.0
+shape.MeshMessageRow.net type=choice(meshtastic,meshcore,loraaprs,meshcom,lorawan,lora,aprs) unit= optional=no since=1.0
+shape.MeshMessageRow.channel type=text unit= optional=yes since=1.0
+shape.MeshMessageRow.source type=text unit= optional=yes since=1.0
+shape.MeshMessageRow.sender type=text unit= optional=yes since=1.0
+shape.MeshMessageRow.target type=text unit= optional=yes since=1.0
+shape.MeshMessageRow.text type=text unit= optional=no since=1.0
+shape.MeshMessageRow.hops type=i64 unit= optional=yes since=1.0
+shape.MeshMessageRow.state type=choice(queued,waiting,sent,acked_by_mesh,delivered,relayed,rejected,failed) unit= optional=yes since=1.0
+shape.MeshMessageRow.failure type=text unit= optional=yes since=1.0
+shape.MeshMessageRow.relays type=i64 unit= optional=yes since=1.0
+shape.MeshMessageRow.packet_id type=i64 unit= optional=yes since=1.0
+shape.MeshMessageRow.utc type=time unit= optional=yes since=1.0
+shape.MeshMessageRow.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.MeshMessageRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.MeshMessageRow.crc_ok type=bool unit= optional=yes since=1.0
+shape.MeshMessageRow.copies type=i64 unit= optional=yes since=1.0
+shape.MeshReadingRow since=1.0
+shape.MeshReadingRow.time_s type=f64 unit=s optional=no since=1.0
+shape.MeshReadingRow.node type=text unit= optional=no since=1.0
+shape.MeshReadingRow.battery_pct type=f64 unit=% optional=yes since=1.0
+shape.MeshReadingRow.voltage_v type=f64 unit=V optional=yes since=1.0
+shape.MeshReadingRow.ch_util_pct type=f64 unit=% optional=yes since=1.0
+shape.MeshReadingRow.air_tx_pct type=f64 unit=% optional=yes since=1.0
+shape.MeshReadingRow.temp_c type=f64 unit=°C optional=yes since=1.0
+shape.MeshReadingRow.humidity_pct type=f64 unit=% optional=yes since=1.0
+shape.MeshReadingRow.pressure_hpa type=f64 unit=hPa optional=yes since=1.0
+shape.MeshReadingRow.position type=position unit= optional=yes since=1.0
+shape.MeshReadingRow.alt_m type=f64 unit=m optional=yes since=1.0
+shape.MeshStationRow since=1.0
+shape.MeshStationRow.net type=choice(meshtastic,meshcore,loraaprs,meshcom,lorawan,lora,aprs) unit= optional=no since=1.0
+shape.MeshStationRow.call type=text unit= optional=no since=1.0
+shape.MeshStationRow.symbol type=text unit= optional=yes since=1.0
+shape.MeshStationRow.position type=position unit= optional=yes since=1.0
+shape.MeshStationRow.type type=text unit= optional=yes since=1.0
+shape.MeshStationRow.last_heard type=time unit= optional=yes since=1.0
+shape.MeshStationRow.heard type=i64 unit= optional=yes since=1.0
+shape.MeshStationRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.MeshStationRow.path type=text unit= optional=yes since=1.0
+shape.MeshStationRow.comment type=text unit= optional=yes since=1.0
+shape.MeshStationRow.battery_pct type=f64 unit=% optional=yes since=1.0
+shape.MeshDeviceRow since=1.0
+shape.MeshDeviceRow.id type=text unit= optional=no since=1.0
+shape.MeshDeviceRow.network type=text unit= optional=yes since=1.0
+shape.MeshDeviceRow.vendor type=text unit= optional=yes since=1.0
+shape.MeshDeviceRow.last_heard type=time unit= optional=yes since=1.0
+shape.MeshDeviceRow.heard type=i64 unit= optional=yes since=1.0
+shape.MeshDeviceRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.MeshDeviceRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.MeshDeviceRow.fcnt type=i64 unit= optional=yes since=1.0
+shape.MeshDeviceRow.missed type=i64 unit= optional=no since=1.0
+shape.MeshDeviceRow.sf type=i64 unit= optional=yes since=1.0
+shape.MeshDeviceRow.freq type=hz unit=Hz optional=no since=1.0
+shape.MeshDeviceRow.uplinks type=i64 unit= optional=no since=1.0
+shape.MeshDeviceRow.downlinks type=i64 unit= optional=no since=1.0
+shape.MeshDeviceRow.joins type=i64 unit= optional=no since=1.0
+shape.MeshDeviceRow.type type=text unit= optional=yes since=1.0
+shape.MeshDeviceRow.fport type=i64 unit= optional=yes since=1.0
+shape.MeshDeviceRow.mac type=text unit= optional=yes since=1.0
+shape.MeshTypeRow since=1.0
+shape.MeshTypeRow.net type=choice(meshtastic,meshcore,loraaprs,meshcom,lorawan,lora,aprs) unit= optional=no since=1.0
+shape.MeshTypeRow.type type=text unit= optional=no since=1.0
+shape.MeshTypeRow.count type=i64 unit= optional=no since=1.0
+shape.MeshDecoderRow since=1.0
+shape.MeshDecoderRow.net type=choice(meshtastic,meshcore,loraaprs,meshcom,lorawan,lora,aprs) unit= optional=no since=1.0
+shape.MeshDecoderRow.preset type=text unit= optional=no since=1.0
+shape.MeshDecoderRow.freq type=hz unit=Hz optional=no since=1.0
+shape.MeshDecoderRow.offset type=hz unit=Hz optional=no since=1.0
+shape.MeshDecoderRow.sf type=i64 unit= optional=no since=1.0
+shape.MeshDecoderRow.bw type=hz unit=Hz optional=no since=1.0
+shape.MeshDecoderRow.cr type=i64 unit= optional=no since=1.0
+shape.MeshDecoderRow.sync type=i64 unit= optional=no since=1.0
+shape.MeshDecoderRow.preamble type=i64 unit= optional=no since=1.0
+shape.MeshDecoderRow.ldro type=bool unit= optional=no since=1.0
+shape.MeshDecoderRow.in_band type=bool unit= optional=no since=1.0
+shape.MeshDecoderRow.frames type=i64 unit= optional=no since=1.0
+shape.MeshDecoderRow.errors type=i64 unit= optional=no since=1.0
+shape.MeshDecoderRow.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.MeshDecoderRow.cfo type=hz unit=Hz optional=yes since=1.0
+shape.MeshDecoderRow.last_s type=f64 unit=s optional=yes since=1.0
+shape.MeshContactRow since=1.0
+shape.MeshContactRow.name type=text unit= optional=no since=1.0
+shape.MeshContactRow.key type=text unit= optional=no since=1.0
+shape.MeshContactRow.last_heard type=time unit= optional=yes since=1.0
+shape.MeshContactRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.MeshContactRow.path type=text unit= optional=no since=1.0
+shape.MeshChannelRow since=1.0
+shape.MeshChannelRow.net type=choice(meshtastic,meshcore,loraaprs,meshcom,lorawan,lora,aprs) unit= optional=no since=1.0
+shape.MeshChannelRow.channel type=text unit= optional=no since=1.0
+shape.MeshChannelRow.key_set type=bool unit= optional=no since=1.0
+shape.MeshSlotRow since=1.0
+shape.MeshSlotRow.slot type=i64 unit= optional=no since=1.0
+shape.MeshSlotRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.MeshSlotRow.current type=bool unit= optional=no since=1.0
+shape.MeshSlotRow.preset_default type=bool unit= optional=no since=1.0
+shape.LoraPacketEvent since=1.0
+shape.LoraPacketEvent.net type=choice(meshtastic,meshcore,loraaprs,meshcom,lorawan,lora,aprs) unit= optional=no since=1.0
+shape.LoraPacketEvent.modulation type=choice(lora,fsk) unit= optional=no since=1.0
+shape.LoraPacketEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.LoraPacketEvent.sf type=i64 unit= optional=yes since=1.0
+shape.LoraPacketEvent.payload type=bytes unit= optional=no since=1.0
+shape.LoraPacketEvent.crc_ok type=bool unit= optional=no since=1.0
+shape.LoraPacketEvent.source type=text unit= optional=yes since=1.0
+shape.LoraPacketEvent.target type=text unit= optional=yes since=1.0
+shape.LoraPacketEvent.devaddr type=text unit= optional=yes since=1.0
+shape.LoraPacketEvent.iq_inverted type=bool unit= optional=yes since=1.0
+shape.LoraPacketEvent.crc type=bool unit= optional=yes since=1.0
+shape.LoraPacketEvent.bw type=hz unit=Hz optional=yes since=1.0
+shape.LoraPacketEvent.cr type=i64 unit= optional=yes since=1.0
+shape.LoraPacketEvent.implicit type=bool unit= optional=yes since=1.0
+shape.LoraPacketEvent.sync type=i64 unit= optional=yes since=1.0
+shape.LoraPacketEvent.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.LoraPacketEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.MeshTextEvent since=1.0
+shape.MeshTextEvent.source type=text unit= optional=no since=1.0
+shape.MeshTextEvent.target type=text unit= optional=no since=1.0
+shape.MeshTextEvent.channel type=text unit= optional=no since=1.0
+shape.MeshTextEvent.text type=text unit= optional=no since=1.0
+shape.MeshTextEvent.net type=choice(meshtastic,meshcore,loraaprs,meshcom,lorawan,lora,aprs) unit= optional=no since=1.0
+shape.MeshTextEvent.sender type=text unit= optional=yes since=1.0
+shape.MeshTextEvent.hops type=i64 unit= optional=yes since=1.0
+shape.MeshTextEvent.packet_id type=i64 unit= optional=no since=1.0
+shape.MeshTextEvent.reply_id type=i64 unit= optional=no since=1.0
+shape.MeshTextEvent.emoji type=i64 unit= optional=no since=1.0
+shape.MeshTextEvent.own type=bool unit= optional=no since=1.0
+shape.MeshTextEvent.state type=choice(queued,waiting,sent,acked_by_mesh,delivered,relayed,rejected,failed) unit= optional=yes since=1.0
+shape.MeshTextEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.MeshTextEvent.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.MeshTextEvent.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.MeshTextEvent.crc_ok type=bool unit= optional=yes since=1.0
+shape.MeshNodeEvent since=1.0
+shape.MeshNodeEvent.source type=text unit= optional=no since=1.0
+shape.MeshNodeEvent.name type=text unit= optional=yes since=1.0
+shape.MeshNodeEvent.position type=position unit= optional=yes since=1.0
+shape.MeshNodeEvent.net type=choice(meshtastic,meshcore,loraaprs,meshcom,lorawan,lora,aprs) unit= optional=no since=1.0
+shape.MeshNodeEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.TxRequestEvent since=1.0
+shape.TxRequestEvent.id type=i64 unit= optional=no since=1.0
+shape.TxRequestEvent.what type=choice(text,retransmission,ack,nodeinfo,position,traceroute,telemetry,rebroadcast,advert,local_advert,beacon,raw,cancel) unit= optional=no since=1.0
+shape.TxRequestEvent.payload type=bytes unit= optional=no since=1.0
+shape.TxRequestEvent.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.TxRequestEvent.not_before_s type=f64 unit=s optional=no since=1.0
+shape.TxRequestEvent.air_time type=duration unit=s optional=yes since=1.0
+shape.TxRequestEvent.message_key type=i64 unit= optional=yes since=1.0
+shape.TxRequestEvent.setting type=text unit= optional=yes since=1.0
+shape.TxRequestEvent.afsk_baud type=i64 unit=bit/s optional=yes since=1.0
+shape.MtSendReply since=1.0
+shape.MtSendReply.packet_id type=i64 unit= optional=no since=1.0
+shape.AprsSendReply since=1.0
+shape.AprsSendReply.packet_id type=i64 unit= optional=no since=1.0
+shape.WideFields since=1.0
+shape.WideFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.WideFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.WideFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.WideFields.preambles type=i64 unit= optional=no since=1.0
+shape.WideFields.header_failed type=i64 unit= optional=no since=1.0
+shape.WideFields.fsk_syncs type=i64 unit= optional=no since=1.0
+shape.WideFields.fsk_frames type=i64 unit= optional=no since=1.0
+shape.WideFields.fsk_crc_errors type=i64 unit= optional=no since=1.0
+shape.WideFields.demodulators type=i64 unit= optional=no since=1.0
+shape.WideFields.channels_listed type=i64 unit= optional=no since=1.0
+shape.WideFields.channels_decoded type=i64 unit= optional=no since=1.0
+shape.WideFields.note type=text unit= optional=no since=1.0
+shape.WideFields.plan type=text unit= optional=no since=1.0
+shape.WideFields.devices type=i64 unit= optional=no since=1.0
+shape.WideFrameRow since=1.0
+shape.WideFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.WideFrameRow.type type=text unit= optional=yes since=1.0
+shape.WideFrameRow.device type=text unit= optional=yes since=1.0
+shape.WideFrameRow.network type=text unit= optional=yes since=1.0
+shape.WideFrameRow.fcnt type=i64 unit= optional=yes since=1.0
+shape.WideFrameRow.fport type=i64 unit= optional=yes since=1.0
+shape.WideFrameRow.payload_bytes type=i64 unit=B optional=yes since=1.0
+shape.WideFrameRow.fctrl type=text unit= optional=yes since=1.0
+shape.WideFrameRow.mac_commands type=text unit= optional=yes since=1.0
+shape.WideFrameRow.mic type=text unit= optional=yes since=1.0
+shape.WideFrameRow.modulation type=choice(lora,fsk) unit= optional=no since=1.0
+shape.WideFrameRow.sf type=i64 unit= optional=yes since=1.0
+shape.WideFrameRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.WideFrameRow.freq type=hz unit=Hz optional=no since=1.0
+shape.WideFrameRow.summary type=text unit= optional=no since=1.0
+shape.WideChannelRow since=1.0
+shape.WideChannelRow.freq type=hz unit=Hz optional=no since=1.0
+shape.WideChannelRow.bw type=hz unit=Hz optional=no since=1.0
+shape.WideChannelRow.sf_min type=i64 unit= optional=no since=1.0
+shape.WideChannelRow.sf_max type=i64 unit= optional=no since=1.0
+shape.WideChannelRow.in_band type=bool unit= optional=no since=1.0
+shape.WideChannelRow.preambles type=i64 unit= optional=no since=1.0
+shape.WideChannelRow.frames type=i64 unit= optional=no since=1.0
+shape.WideChannelRow.crc_errors type=i64 unit= optional=no since=1.0
+shape.RawFields since=1.0
+shape.RawFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.RawFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.RawFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.RawFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.RawFields.preambles type=i64 unit= optional=no since=1.0
+shape.RawFields.header_failed type=i64 unit= optional=no since=1.0
+shape.RawFields.searching type=text unit= optional=no since=1.0
+shape.RawFields.dial type=hz unit=Hz optional=no since=1.0
+shape.RawFields.tx_sent type=i64 unit= optional=no since=1.0
+shape.RawFields.sf5 type=i64 unit= optional=no since=1.0
+shape.RawFields.sf6 type=i64 unit= optional=no since=1.0
+shape.RawFields.sf7 type=i64 unit= optional=no since=1.0
+shape.RawFields.sf8 type=i64 unit= optional=no since=1.0
+shape.RawFields.sf9 type=i64 unit= optional=no since=1.0
+shape.RawFields.sf10 type=i64 unit= optional=no since=1.0
+shape.RawFields.sf11 type=i64 unit= optional=no since=1.0
+shape.RawFields.sf12 type=i64 unit= optional=no since=1.0
+shape.RawFields.bw125 type=i64 unit= optional=no since=1.0
+shape.RawFields.bw250 type=i64 unit= optional=no since=1.0
+shape.RawFields.bw500 type=i64 unit= optional=no since=1.0
+shape.RawFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.RawFrameRow since=1.0
+shape.RawFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.RawFrameRow.sf type=i64 unit= optional=no since=1.0
+shape.RawFrameRow.bw type=hz unit=Hz optional=no since=1.0
+shape.RawFrameRow.cr type=i64 unit= optional=no since=1.0
+shape.RawFrameRow.len type=i64 unit=B optional=no since=1.0
+shape.RawFrameRow.crc type=choice(ok,bad,none) unit= optional=no since=1.0
+shape.RawFrameRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.RawFrameRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.RawFrameRow.cfo type=hz unit=Hz optional=no since=1.0
+shape.RawFrameRow.payload type=bytes unit= optional=no since=1.0
+shape.RawFrameRow.text type=text unit= optional=no since=1.0
+shape.RawDecoderRow since=1.0
+shape.RawDecoderRow.sf type=i64 unit= optional=no since=1.0
+shape.RawDecoderRow.bw type=hz unit=Hz optional=no since=1.0
+shape.RawDecoderRow.syncs type=text unit= optional=no since=1.0
+shape.RawDecoderRow.in_band type=bool unit= optional=no since=1.0
+shape.RawDecoderRow.preambles type=i64 unit= optional=no since=1.0
+shape.RawDecoderRow.frames type=i64 unit= optional=no since=1.0
+shape.RawDecoderRow.crc_errors type=i64 unit= optional=no since=1.0
+shape.RawDecoderRow.header_failed type=i64 unit= optional=no since=1.0
+shape.RawDecoderRow.sync_failed type=i64 unit= optional=no since=1.0
+shape.AprsFields since=1.0
+shape.AprsFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.AprsFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.AprsFields.frames_1200 type=i64 unit= optional=no since=1.0
+shape.AprsFields.frames_9600 type=i64 unit= optional=no since=1.0
+shape.AprsFields.aprs_frames type=i64 unit= optional=no since=1.0
+shape.AprsFields.copies type=i64 unit= optional=no since=1.0
+shape.AprsFields.not_ax25 type=i64 unit= optional=no since=1.0
+shape.AprsFields.stations type=i64 unit= optional=no since=1.0
+shape.AprsFields.carrier type=bool unit= optional=no since=1.0
+shape.AprsFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.AprsFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.AprsFrameRow since=1.0
+shape.AprsFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.AprsFrameRow.source type=text unit= optional=no since=1.0
+shape.AprsFrameRow.target type=text unit= optional=no since=1.0
+shape.AprsFrameRow.path type=text unit= optional=no since=1.0
+shape.AprsFrameRow.type type=text unit= optional=no since=1.0
+shape.AprsFrameRow.text type=text unit= optional=no since=1.0
+shape.AprsFrameRow.bit_rate type=hz unit=bit/s optional=no since=1.0
+shape.AprsStationRow since=1.0
+shape.AprsStationRow.call type=text unit= optional=no since=1.0
+shape.AprsStationRow.symbol type=text unit= optional=no since=1.0
+shape.AprsStationRow.position type=position unit= optional=yes since=1.0
+shape.AprsStationRow.last_heard type=time unit= optional=yes since=1.0
+shape.AprsStationRow.heard type=i64 unit= optional=yes since=1.0
+shape.AprsStationRow.course_deg type=f64 unit=° optional=yes since=1.0
+shape.AprsStationRow.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.AprsStationRow.alt_m type=f64 unit=m optional=yes since=1.0
+shape.AprsStationRow.comment type=text unit= optional=no since=1.0
+shape.AprsStationRow.via type=text unit= optional=no since=1.0
+shape.AprsPacketEvent since=1.0
+shape.AprsPacketEvent.source type=text unit= optional=no since=1.0
+shape.AprsPacketEvent.target type=text unit= optional=no since=1.0
+shape.AprsPacketEvent.path type=text unit= optional=no since=1.0
+shape.AprsPacketEvent.info type=text unit= optional=no since=1.0
+shape.AprsPacketEvent.type type=text unit= optional=no since=1.0
+shape.AprsPacketEvent.text type=text unit= optional=no since=1.0
+shape.AprsPacketEvent.position type=position unit= optional=yes since=1.0
+shape.AprsPacketEvent.tnc2 type=text unit= optional=no since=1.0
+shape.AprsPacketEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.FanetFields since=1.0
+shape.FanetFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.FanetFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.FanetFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.FanetFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.FanetFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.FanetFields.listening type=text unit= optional=no since=1.0
+shape.FanetFields.stations_heard type=i64 unit= optional=no since=1.0
+shape.FanetFrameRow since=1.0
+shape.FanetFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.FanetFrameRow.kind type=choice(tracking,ground,name,message,service,thermal,other) unit= optional=no since=1.0
+shape.FanetFrameRow.source type=text unit= optional=no since=1.0
+shape.FanetFrameRow.target type=text unit= optional=no since=1.0
+shape.FanetFrameRow.decoded type=text unit= optional=no since=1.0
+shape.FanetFrameRow.position type=position unit= optional=yes since=1.0
+shape.FanetFrameRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.FanetFrameRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.FanetStationRow since=1.0
+shape.FanetStationRow.source type=text unit= optional=no since=1.0
+shape.FanetStationRow.name type=text unit= optional=no since=1.0
+shape.FanetStationRow.kind type=choice(aircraft,person,weather,other) unit= optional=no since=1.0
+shape.FanetStationRow.aircraft type=text unit= optional=yes since=1.0
+shape.FanetStationRow.position type=position unit= optional=yes since=1.0
+shape.FanetStationRow.alt_m type=f64 unit=m optional=yes since=1.0
+shape.FanetStationRow.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.FanetStationRow.climb_m_s type=f64 unit=m/s optional=yes since=1.0
+shape.FanetStationRow.course_deg type=f64 unit=° optional=yes since=1.0
+shape.FanetStationRow.weather type=text unit= optional=no since=1.0
+shape.FanetStationRow.heard type=i64 unit= optional=yes since=1.0
+shape.FanetStationRow.first_heard type=time unit= optional=yes since=1.0
+shape.FanetStationRow.last_heard type=time unit= optional=yes since=1.0
+shape.FanetTrackRow since=1.0
+shape.FanetTrackRow.station type=text unit= optional=no refers_to=stations since=1.0
+shape.FanetTrackRow.position type=position unit= optional=no since=1.0
+shape.FanetTrackRow.time_s type=f64 unit=s optional=no since=1.0
+shape.FanetStationEvent since=1.0
+shape.FanetStationEvent.source type=text unit= optional=no since=1.0
+shape.FanetStationEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.FanetMessageEvent since=1.0
+shape.FanetMessageEvent.source type=text unit= optional=no since=1.0
+shape.FanetMessageEvent.target type=text unit= optional=no since=1.0
+shape.FanetMessageEvent.text type=text unit= optional=no since=1.0
+shape.FanetMessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.FanetDistressEvent since=1.0
+shape.FanetDistressEvent.source type=text unit= optional=no since=1.0
+shape.FanetDistressEvent.text type=text unit= optional=no since=1.0
+shape.FanetDistressEvent.position type=position unit= optional=yes since=1.0
+shape.FanetDistressEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.FanetDistressEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.RnsFields since=1.0
+shape.RnsFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.RnsFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.RnsFields.preambles type=i64 unit= optional=no since=1.0
+shape.RnsFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.RnsFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.RnsFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.RnsFields.searching type=text unit= optional=no since=1.0
+shape.RnsFields.destinations_heard type=i64 unit= optional=no since=1.0
+shape.RnsPacketRow since=1.0
+shape.RnsPacketRow.utc type=time unit= optional=yes since=1.0
+shape.RnsPacketRow.time_s type=f64 unit=s optional=no since=1.0
+shape.RnsPacketRow.destination type=text unit= optional=no since=1.0
+shape.RnsPacketRow.type type=choice(data,announce,linkrequest,proof) unit= optional=no since=1.0
+shape.RnsPacketRow.content type=text unit= optional=no since=1.0
+shape.RnsPacketRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.RnsPacketRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.RnsPacketRow.encrypted type=bool unit= optional=no since=1.0
+shape.RnsPacketRow.hex type=bytes unit= optional=no since=1.0
+shape.RnsPacketRow.setting type=text unit= optional=no since=1.0
+shape.RnsDestinationRow since=1.0
+shape.RnsDestinationRow.destination type=text unit= optional=no since=1.0
+shape.RnsDestinationRow.type type=choice(data,announce,linkrequest,proof) unit= optional=no since=1.0
+shape.RnsDestinationRow.content type=text unit= optional=no since=1.0
+shape.RnsDestinationRow.packets type=i64 unit= optional=yes since=1.0
+shape.RnsDestinationRow.identity type=text unit= optional=no since=1.0
+shape.RnsDestinationRow.app_text type=text unit= optional=no since=1.0
+shape.RnsDestinationRow.first_heard type=time unit= optional=yes since=1.0
+shape.RnsDestinationRow.last_heard type=time unit= optional=yes since=1.0
+shape.RnsDestinationEvent since=1.0
+shape.RnsDestinationEvent.source type=text unit= optional=no since=1.0
+shape.RnsDestinationEvent.text type=text unit= optional=no since=1.0
+shape.RnsDestinationEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.RnsAnnounceEvent since=1.0
+shape.RnsAnnounceEvent.source type=text unit= optional=no since=1.0
+shape.RnsAnnounceEvent.identity type=text unit= optional=no since=1.0
+shape.RnsAnnounceEvent.text type=text unit= optional=no since=1.0
+shape.RnsAnnounceEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ElrsFields since=1.0
+shape.ElrsFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.ElrsFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.ElrsFields.preambles type=i64 unit= optional=no since=1.0
+shape.ElrsFields.phrase_set type=bool unit= optional=no since=1.0
+shape.ElrsFields.hop_channels_inside type=i64 unit= optional=no since=1.0
+shape.ElrsFields.hop_channels type=i64 unit= optional=no since=1.0
+shape.ElrsFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.ElrsFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.ElrsFields.links_heard type=i64 unit= optional=no since=1.0
+shape.ElrsFields.note type=text unit= optional=no since=1.0
+shape.ElrsFrameRow since=1.0
+shape.ElrsFrameRow.utc type=time unit= optional=yes since=1.0
+shape.ElrsFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.ElrsFrameRow.link type=text unit= optional=no refers_to=links since=1.0
+shape.ElrsFrameRow.kind type=choice(sync,data,rc) unit= optional=no since=1.0
+shape.ElrsFrameRow.content type=text unit= optional=no since=1.0
+shape.ElrsFrameRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.ElrsFrameRow.hop_channel type=i64 unit= optional=no since=1.0
+shape.ElrsFrameRow.sf type=i64 unit= optional=no since=1.0
+shape.ElrsFrameRow.bytes type=i64 unit= optional=no since=1.0
+shape.ElrsFrameRow.inverted type=bool unit= optional=no since=1.0
+shape.ElrsFrameRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.ElrsFrameRow.encrypted type=bool unit= optional=no since=1.0
+shape.ElrsFrameRow.hex type=text unit= optional=no since=1.0
+shape.ElrsLinkRow since=1.0
+shape.ElrsLinkRow.source type=text unit= optional=no since=1.0
+shape.ElrsLinkRow.kind type=choice(sync,data,rc) unit= optional=no since=1.0
+shape.ElrsLinkRow.content type=text unit= optional=no since=1.0
+shape.ElrsLinkRow.frames type=i64 unit= optional=no since=1.0
+shape.ElrsLinkRow.sync_frames type=i64 unit= optional=no since=1.0
+shape.ElrsLinkRow.rate type=text unit= optional=no since=1.0
+shape.ElrsLinkRow.hop_index type=i64 unit= optional=yes since=1.0
+shape.ElrsLinkRow.heard_on type=text unit= optional=no since=1.0
+shape.ElrsLinkRow.first_heard type=time unit= optional=yes since=1.0
+shape.ElrsLinkRow.last_heard type=time unit= optional=yes since=1.0
+shape.ElrsLinkEvent since=1.0
+shape.ElrsLinkEvent.source type=text unit= optional=no since=1.0
+shape.ElrsLinkEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+mesh since=1.0
+mesh.fields.MeshFields since=1.0
+mesh.fields.MeshMtFields since=1.0
+mesh.fields.MeshMcFields since=1.0
+mesh.fields.HamFields since=1.0
+mesh.fields.MeshTxFields since=1.0
+mesh.fields.GuardFields writer=receiver since=1.0
+mesh.component.modulate.fields.ModulateFields since=1.0
+mesh.kept.packets since=1.0
+mesh.kept.nodes since=1.0
+mesh.kept.messages since=1.0
+mesh.kept.readings since=1.0
+mesh.kept.stations since=1.0
+mesh.kept.devices since=1.0
+mesh.kept.types since=1.0
+mesh.kept.contacts since=1.0
+mesh.kept.channels since=1.0
+mesh.kept.slots since=1.0
+mesh.kept.MeshFields.mt_nodes since=1.0
+mesh.kept.MeshFields.mc_nodes since=1.0
+mesh.kept.MeshFields.messages since=1.0
+mesh.kept.MeshFields.stations since=1.0
+mesh.kept.MeshFields.devices since=1.0
+mesh.kept.MeshFields.preambles since=1.0
+mesh.kept.MeshFields.header_failed since=1.0
+mesh.kept.MeshMtFields.mt_node_id since=1.0
+mesh.kept.MeshMtFields.mt_public_key since=1.0
+mesh.kept.MeshMtFields.mt_long_name since=1.0
+mesh.kept.MeshMtFields.mt_short_name since=1.0
+mesh.kept.MeshMtFields.mt_in_flight since=1.0
+mesh.kept.MeshMtFields.mt_rebroadcasts since=1.0
+mesh.kept.MeshMtFields.mt_warnings since=1.0
+mesh.kept.MeshMcFields.mc_public_key since=1.0
+mesh.kept.MeshMcFields.mc_name since=1.0
+mesh.kept.MeshMcFields.mc_contacts since=1.0
+mesh.kept.MeshTxFields since=1.0
+mesh.table.packets row=MeshPacketRow cap=100 since=1.0
+mesh.table.nodes row=MeshNodeRow cap=150 since=1.0
+mesh.table.messages row=MeshMessageRow cap=100 since=1.0
+mesh.table.readings row=MeshReadingRow cap=200 since=1.0
+mesh.table.stations row=MeshStationRow cap=150 since=1.0
+mesh.table.devices row=MeshDeviceRow cap=200 since=1.0
+mesh.table.types row=MeshTypeRow cap=200 since=1.0
+mesh.table.decoders row=MeshDecoderRow cap=400 since=1.0
+mesh.table.contacts row=MeshContactRow cap=200 since=1.0
+mesh.table.channels row=MeshChannelRow cap=64 since=1.0
+mesh.table.slots row=MeshSlotRow cap=1024 since=1.0
+mesh.event.lora.packet fields=LoraPacketEvent since=1.0
+mesh.event.mesh.text fields=MeshTextEvent since=1.0
+mesh.event.mesh.node fields=MeshNodeEvent since=1.0
+mesh.event.tx.request fields=TxRequestEvent since=1.0
+mesh.setting.dial_freq type=hz unit=Hz since=1.0
+mesh.setting.protocols type=i64 unit= since=1.0
+mesh.setting.preset_search type=bool unit= since=1.0
+mesh.setting.mt_slot_start type=hz unit=Hz since=1.0
+mesh.setting.mt_slot_end type=hz unit=Hz since=1.0
+mesh.setting.channels type=text unit= since=1.0
+mesh.setting.lw_channels type=text unit= since=1.0
+mesh.setting.mt_preset type=choice(LongFast,LongSlow,MediumSlow,MediumFast,ShortSlow,ShortFast,LongModerate,ShortTurbo,LongTurbo,EdgeFastLow) unit= since=1.0
+mesh.setting.mt_channel_name type=text unit= since=1.0
+mesh.setting.mt_channel_num type=i64 unit= since=1.0
+mesh.setting.mt_override_freq type=hz unit=Hz since=1.0
+mesh.setting.mt_freq_offset type=hz unit=Hz since=1.0
+mesh.setting.custom type=bool unit= since=1.0
+mesh.setting.custom_freq type=hz unit=Hz since=1.0
+mesh.setting.custom_bw type=choice(7812.5,10417,15625,20833,31250,41667,62500,125000,250000,500000,812500,1625000) unit= since=1.0
+mesh.setting.custom_sf type=i64 unit= since=1.0
+mesh.setting.custom_cr type=choice(5,6,7,8) unit= since=1.0
+mesh.setting.custom_sync type=i64 unit= since=1.0
+mesh.setting.custom_preamble type=i64 unit= since=1.0
+mesh.setting.jump_search type=bool unit= since=1.0
+mesh.setting.jump_chips type=f64 unit=chips since=1.0
+mesh.setting.raw type=bool unit= since=1.0
+mesh.setting.clock0 type=f64 unit=s since=1.0
+mesh.setting.mt_node_id type=text unit= since=1.0
+mesh.setting.mt_long_name type=text unit= since=1.0
+mesh.setting.mt_short_name type=text unit= since=1.0
+mesh.setting.mt_role type=choice(CLIENT,CLIENT_MUTE,CLIENT_HIDDEN) unit= since=1.0
+mesh.setting.mt_licensed type=bool unit= since=1.0
+mesh.setting.mt_callsign_prefix type=bool unit= since=1.0
+mesh.setting.mt_hop_limit type=i64 unit= since=1.0
+mesh.setting.mt_nodeinfo_interval type=f64 unit=s since=1.0
+mesh.setting.mt_position_mode type=choice(off,station) unit= since=1.0
+mesh.setting.mt_position_interval type=f64 unit=s since=1.0
+mesh.setting.mt_ack_broadcast type=bool unit= since=1.0
+mesh.setting.mc_name type=text unit= since=1.0
+mesh.setting.mc_share_location type=bool unit= since=1.0
+mesh.setting.mc_advert_interval type=f64 unit=s since=1.0
+mesh.setting.aprs_ssid type=i64 unit= since=1.0
+mesh.setting.aprs_tocall type=text unit= since=1.0
+mesh.setting.aprs_path type=text unit= since=1.0
+mesh.setting.aprs_symbol type=text unit= since=1.0
+mesh.setting.aprs_comment type=text unit= since=1.0
+mesh.setting.duty_limit type=bool unit= since=1.0
+mesh.setting.duty_bands type=text unit= since=1.0
+mesh.setting.gen_scene type=choice(auto,texting,amateur,lorawan) unit= since=1.0
+mesh.setting.gen_damaged_copy type=bool unit= since=1.0
+mesh.command.mt.send args=text:text;channel:text?;to:text?;reply_id:i64?;emoji:i64?;want_ack:choice(setting,yes,no)?;hop_limit:i64? reply=packet_id:i64 transmits=text since=1.0
+mesh.command.mc.send args=text:text;channel:text?;to:text? reply= transmits=text since=1.0
+mesh.command.aprs.send args=to:text;text:text reply=packet_id:i64 transmits=text since=1.0
+mesh.command.mt.channel.add args=name:text;key:text? reply= since=1.0
+mesh.command.mc.channel.add args=name:text;key:text? reply= since=1.0
+mesh.command.channel.remove args=row:text reply= since=1.0
+mesh.command.mc.advert args=scope:choice(flood,local)? reply= transmits=beacon since=1.0
+mesh.command.mc.contact.add args=key:text;name:text? reply= since=1.0
+mesh.command.aprs.beacon args= reply= transmits=beacon since=1.0
+mesh.command.mt.request args=node:text;what:choice(nodeinfo,position,traceroute,telemetry)? reply= transmits=frame since=1.0
+mesh.command.clear args= reply= since=1.0
+mesh.command.remove args=row:text reply= since=1.0
+mesh.command.reset args= reply= since=1.0
+mesh.command.mt.channel args=index:i64?;name:text;key:text?;precision:i64? reply= since=1.0
+mesh.command.mt.identity args=key:text reply= since=1.0
+mesh.command.mc.identity args=key:text reply= since=1.0
+meshtastic since=1.0
+meshtastic.fields.MeshFields since=1.0
+meshtastic.fields.MeshMtFields since=1.0
+meshtastic.fields.MeshMcFields since=1.0
+meshtastic.fields.HamFields since=1.0
+meshtastic.fields.MeshTxFields since=1.0
+meshtastic.fields.GuardFields writer=receiver since=1.0
+meshtastic.component.modulate.fields.ModulateFields since=1.0
+meshtastic.kept.packets since=1.0
+meshtastic.kept.nodes since=1.0
+meshtastic.kept.messages since=1.0
+meshtastic.kept.readings since=1.0
+meshtastic.kept.stations since=1.0
+meshtastic.kept.devices since=1.0
+meshtastic.kept.types since=1.0
+meshtastic.kept.contacts since=1.0
+meshtastic.kept.channels since=1.0
+meshtastic.kept.slots since=1.0
+meshtastic.kept.MeshFields.mt_nodes since=1.0
+meshtastic.kept.MeshFields.mc_nodes since=1.0
+meshtastic.kept.MeshFields.messages since=1.0
+meshtastic.kept.MeshFields.stations since=1.0
+meshtastic.kept.MeshFields.devices since=1.0
+meshtastic.kept.MeshFields.preambles since=1.0
+meshtastic.kept.MeshFields.header_failed since=1.0
+meshtastic.kept.MeshMtFields.mt_node_id since=1.0
+meshtastic.kept.MeshMtFields.mt_public_key since=1.0
+meshtastic.kept.MeshMtFields.mt_long_name since=1.0
+meshtastic.kept.MeshMtFields.mt_short_name since=1.0
+meshtastic.kept.MeshMtFields.mt_in_flight since=1.0
+meshtastic.kept.MeshMtFields.mt_rebroadcasts since=1.0
+meshtastic.kept.MeshMtFields.mt_warnings since=1.0
+meshtastic.kept.MeshMcFields.mc_public_key since=1.0
+meshtastic.kept.MeshMcFields.mc_name since=1.0
+meshtastic.kept.MeshMcFields.mc_contacts since=1.0
+meshtastic.kept.MeshTxFields since=1.0
+meshtastic.table.packets row=MeshPacketRow cap=100 since=1.0
+meshtastic.table.nodes row=MeshNodeRow cap=150 since=1.0
+meshtastic.table.messages row=MeshMessageRow cap=100 since=1.0
+meshtastic.table.readings row=MeshReadingRow cap=200 since=1.0
+meshtastic.table.stations row=MeshStationRow cap=150 since=1.0
+meshtastic.table.devices row=MeshDeviceRow cap=200 since=1.0
+meshtastic.table.types row=MeshTypeRow cap=200 since=1.0
+meshtastic.table.decoders row=MeshDecoderRow cap=400 since=1.0
+meshtastic.table.contacts row=MeshContactRow cap=200 since=1.0
+meshtastic.table.channels row=MeshChannelRow cap=64 since=1.0
+meshtastic.table.slots row=MeshSlotRow cap=1024 since=1.0
+meshtastic.event.lora.packet fields=LoraPacketEvent since=1.0
+meshtastic.event.mesh.text fields=MeshTextEvent since=1.0
+meshtastic.event.mesh.node fields=MeshNodeEvent since=1.0
+meshtastic.event.tx.request fields=TxRequestEvent since=1.0
+meshtastic.setting.dial_freq type=hz unit=Hz since=1.0
+meshtastic.setting.preset_search type=bool unit= since=1.0
+meshtastic.setting.mt_slot_start type=hz unit=Hz since=1.0
+meshtastic.setting.mt_slot_end type=hz unit=Hz since=1.0
+meshtastic.setting.mt_preset type=choice(LongFast,LongSlow,MediumSlow,MediumFast,ShortSlow,ShortFast,LongModerate,ShortTurbo,LongTurbo,EdgeFastLow) unit= since=1.0
+meshtastic.setting.mt_channel_name type=text unit= since=1.0
+meshtastic.setting.mt_channel_num type=i64 unit= since=1.0
+meshtastic.setting.mt_override_freq type=hz unit=Hz since=1.0
+meshtastic.setting.mt_freq_offset type=hz unit=Hz since=1.0
+meshtastic.setting.custom type=bool unit= since=1.0
+meshtastic.setting.custom_freq type=hz unit=Hz since=1.0
+meshtastic.setting.custom_bw type=choice(7812.5,10417,15625,20833,31250,41667,62500,125000,250000,500000,812500,1625000) unit= since=1.0
+meshtastic.setting.custom_sf type=i64 unit= since=1.0
+meshtastic.setting.custom_cr type=choice(5,6,7,8) unit= since=1.0
+meshtastic.setting.custom_sync type=i64 unit= since=1.0
+meshtastic.setting.custom_preamble type=i64 unit= since=1.0
+meshtastic.setting.jump_search type=bool unit= since=1.0
+meshtastic.setting.jump_chips type=f64 unit=chips since=1.0
+meshtastic.setting.raw type=bool unit= since=1.0
+meshtastic.setting.clock0 type=f64 unit=s since=1.0
+meshtastic.setting.mt_node_id type=text unit= since=1.0
+meshtastic.setting.mt_long_name type=text unit= since=1.0
+meshtastic.setting.mt_short_name type=text unit= since=1.0
+meshtastic.setting.mt_role type=choice(CLIENT,CLIENT_MUTE,CLIENT_HIDDEN) unit= since=1.0
+meshtastic.setting.mt_licensed type=bool unit= since=1.0
+meshtastic.setting.mt_callsign_prefix type=bool unit= since=1.0
+meshtastic.setting.mt_hop_limit type=i64 unit= since=1.0
+meshtastic.setting.mt_nodeinfo_interval type=f64 unit=s since=1.0
+meshtastic.setting.mt_position_mode type=choice(off,station) unit= since=1.0
+meshtastic.setting.mt_position_interval type=f64 unit=s since=1.0
+meshtastic.setting.mt_ack_broadcast type=bool unit= since=1.0
+meshtastic.setting.duty_limit type=bool unit= since=1.0
+meshtastic.setting.duty_bands type=text unit= since=1.0
+meshtastic.setting.gen_scene type=choice(auto,texting,amateur,lorawan) unit= since=1.0
+meshtastic.setting.gen_damaged_copy type=bool unit= since=1.0
+meshtastic.command.mt.send args=text:text;channel:text?;to:text?;reply_id:i64?;emoji:i64?;want_ack:choice(setting,yes,no)?;hop_limit:i64? reply=packet_id:i64 transmits=text since=1.0
+meshtastic.command.mt.channel.add args=name:text;key:text? reply= since=1.0
+meshtastic.command.channel.remove args=row:text reply= since=1.0
+meshtastic.command.mt.request args=node:text;what:choice(nodeinfo,position,traceroute,telemetry)? reply= transmits=frame since=1.0
+meshtastic.command.clear args= reply= since=1.0
+meshtastic.command.remove args=row:text reply= since=1.0
+meshtastic.command.reset args= reply= since=1.0
+meshtastic.command.mt.channel args=index:i64?;name:text;key:text?;precision:i64? reply= since=1.0
+meshtastic.command.mt.identity args=key:text reply= since=1.0
+meshcore since=1.0
+meshcore.fields.MeshFields since=1.0
+meshcore.fields.MeshMtFields since=1.0
+meshcore.fields.MeshMcFields since=1.0
+meshcore.fields.HamFields since=1.0
+meshcore.fields.MeshTxFields since=1.0
+meshcore.fields.GuardFields writer=receiver since=1.0
+meshcore.component.modulate.fields.ModulateFields since=1.0
+meshcore.kept.packets since=1.0
+meshcore.kept.nodes since=1.0
+meshcore.kept.messages since=1.0
+meshcore.kept.readings since=1.0
+meshcore.kept.stations since=1.0
+meshcore.kept.devices since=1.0
+meshcore.kept.types since=1.0
+meshcore.kept.contacts since=1.0
+meshcore.kept.channels since=1.0
+meshcore.kept.slots since=1.0
+meshcore.kept.MeshFields.mt_nodes since=1.0
+meshcore.kept.MeshFields.mc_nodes since=1.0
+meshcore.kept.MeshFields.messages since=1.0
+meshcore.kept.MeshFields.stations since=1.0
+meshcore.kept.MeshFields.devices since=1.0
+meshcore.kept.MeshFields.preambles since=1.0
+meshcore.kept.MeshFields.header_failed since=1.0
+meshcore.kept.MeshMtFields.mt_node_id since=1.0
+meshcore.kept.MeshMtFields.mt_public_key since=1.0
+meshcore.kept.MeshMtFields.mt_long_name since=1.0
+meshcore.kept.MeshMtFields.mt_short_name since=1.0
+meshcore.kept.MeshMtFields.mt_in_flight since=1.0
+meshcore.kept.MeshMtFields.mt_rebroadcasts since=1.0
+meshcore.kept.MeshMtFields.mt_warnings since=1.0
+meshcore.kept.MeshMcFields.mc_public_key since=1.0
+meshcore.kept.MeshMcFields.mc_name since=1.0
+meshcore.kept.MeshMcFields.mc_contacts since=1.0
+meshcore.kept.MeshTxFields since=1.0
+meshcore.table.packets row=MeshPacketRow cap=100 since=1.0
+meshcore.table.nodes row=MeshNodeRow cap=150 since=1.0
+meshcore.table.messages row=MeshMessageRow cap=100 since=1.0
+meshcore.table.readings row=MeshReadingRow cap=200 since=1.0
+meshcore.table.stations row=MeshStationRow cap=150 since=1.0
+meshcore.table.devices row=MeshDeviceRow cap=200 since=1.0
+meshcore.table.types row=MeshTypeRow cap=200 since=1.0
+meshcore.table.decoders row=MeshDecoderRow cap=400 since=1.0
+meshcore.table.contacts row=MeshContactRow cap=200 since=1.0
+meshcore.table.channels row=MeshChannelRow cap=64 since=1.0
+meshcore.table.slots row=MeshSlotRow cap=1024 since=1.0
+meshcore.event.lora.packet fields=LoraPacketEvent since=1.0
+meshcore.event.mesh.text fields=MeshTextEvent since=1.0
+meshcore.event.mesh.node fields=MeshNodeEvent since=1.0
+meshcore.event.tx.request fields=TxRequestEvent since=1.0
+meshcore.setting.dial_freq type=hz unit=Hz since=1.0
+meshcore.setting.mt_slot_start type=hz unit=Hz since=1.0
+meshcore.setting.mt_slot_end type=hz unit=Hz since=1.0
+meshcore.setting.channels type=text unit= since=1.0
+meshcore.setting.custom type=bool unit= since=1.0
+meshcore.setting.custom_freq type=hz unit=Hz since=1.0
+meshcore.setting.custom_bw type=choice(7812.5,10417,15625,20833,31250,41667,62500,125000,250000,500000,812500,1625000) unit= since=1.0
+meshcore.setting.custom_sf type=i64 unit= since=1.0
+meshcore.setting.custom_cr type=choice(5,6,7,8) unit= since=1.0
+meshcore.setting.custom_sync type=i64 unit= since=1.0
+meshcore.setting.custom_preamble type=i64 unit= since=1.0
+meshcore.setting.jump_search type=bool unit= since=1.0
+meshcore.setting.jump_chips type=f64 unit=chips since=1.0
+meshcore.setting.raw type=bool unit= since=1.0
+meshcore.setting.clock0 type=f64 unit=s since=1.0
+meshcore.setting.mc_name type=text unit= since=1.0
+meshcore.setting.mc_share_location type=bool unit= since=1.0
+meshcore.setting.mc_advert_interval type=f64 unit=s since=1.0
+meshcore.setting.duty_limit type=bool unit= since=1.0
+meshcore.setting.duty_bands type=text unit= since=1.0
+meshcore.setting.gen_scene type=choice(auto,texting,amateur,lorawan) unit= since=1.0
+meshcore.command.mc.send args=text:text;channel:text?;to:text? reply= transmits=text since=1.0
+meshcore.command.mc.channel.add args=name:text;key:text? reply= since=1.0
+meshcore.command.channel.remove args=row:text reply= since=1.0
+meshcore.command.mc.advert args=scope:choice(flood,local)? reply= transmits=beacon since=1.0
+meshcore.command.mc.contact.add args=key:text;name:text? reply= since=1.0
+meshcore.command.clear args= reply= since=1.0
+meshcore.command.remove args=row:text reply= since=1.0
+meshcore.command.reset args= reply= since=1.0
+meshcore.command.mc.identity args=key:text reply= since=1.0
+lorawan since=1.0
+lorawan.fields.MeshFields since=1.0
+lorawan.fields.MeshMtFields since=1.0
+lorawan.fields.MeshMcFields since=1.0
+lorawan.fields.HamFields since=1.0
+lorawan.fields.MeshTxFields since=1.0
+lorawan.fields.GuardFields writer=receiver since=1.0
+lorawan.component.modulate.fields.ModulateFields since=1.0
+lorawan.kept.packets since=1.0
+lorawan.kept.nodes since=1.0
+lorawan.kept.messages since=1.0
+lorawan.kept.readings since=1.0
+lorawan.kept.stations since=1.0
+lorawan.kept.devices since=1.0
+lorawan.kept.types since=1.0
+lorawan.kept.contacts since=1.0
+lorawan.kept.channels since=1.0
+lorawan.kept.slots since=1.0
+lorawan.kept.MeshFields.mt_nodes since=1.0
+lorawan.kept.MeshFields.mc_nodes since=1.0
+lorawan.kept.MeshFields.messages since=1.0
+lorawan.kept.MeshFields.stations since=1.0
+lorawan.kept.MeshFields.devices since=1.0
+lorawan.kept.MeshFields.preambles since=1.0
+lorawan.kept.MeshFields.header_failed since=1.0
+lorawan.kept.MeshMtFields.mt_node_id since=1.0
+lorawan.kept.MeshMtFields.mt_public_key since=1.0
+lorawan.kept.MeshMtFields.mt_long_name since=1.0
+lorawan.kept.MeshMtFields.mt_short_name since=1.0
+lorawan.kept.MeshMtFields.mt_in_flight since=1.0
+lorawan.kept.MeshMtFields.mt_rebroadcasts since=1.0
+lorawan.kept.MeshMtFields.mt_warnings since=1.0
+lorawan.kept.MeshMcFields.mc_public_key since=1.0
+lorawan.kept.MeshMcFields.mc_name since=1.0
+lorawan.kept.MeshMcFields.mc_contacts since=1.0
+lorawan.kept.MeshTxFields since=1.0
+lorawan.table.packets row=MeshPacketRow cap=100 since=1.0
+lorawan.table.nodes row=MeshNodeRow cap=150 since=1.0
+lorawan.table.messages row=MeshMessageRow cap=100 since=1.0
+lorawan.table.readings row=MeshReadingRow cap=200 since=1.0
+lorawan.table.stations row=MeshStationRow cap=150 since=1.0
+lorawan.table.devices row=MeshDeviceRow cap=200 since=1.0
+lorawan.table.types row=MeshTypeRow cap=200 since=1.0
+lorawan.table.decoders row=MeshDecoderRow cap=400 since=1.0
+lorawan.table.contacts row=MeshContactRow cap=200 since=1.0
+lorawan.table.channels row=MeshChannelRow cap=64 since=1.0
+lorawan.table.slots row=MeshSlotRow cap=1024 since=1.0
+lorawan.event.lora.packet fields=LoraPacketEvent since=1.0
+lorawan.event.mesh.text fields=MeshTextEvent since=1.0
+lorawan.event.mesh.node fields=MeshNodeEvent since=1.0
+lorawan.event.tx.request fields=TxRequestEvent since=1.0
+lorawan.setting.dial_freq type=hz unit=Hz since=1.0
+lorawan.setting.lw_channels type=text unit= since=1.0
+lorawan.setting.custom type=bool unit= since=1.0
+lorawan.setting.custom_freq type=hz unit=Hz since=1.0
+lorawan.setting.custom_bw type=choice(7812.5,10417,15625,20833,31250,41667,62500,125000,250000,500000,812500,1625000) unit= since=1.0
+lorawan.setting.custom_sf type=i64 unit= since=1.0
+lorawan.setting.custom_cr type=choice(5,6,7,8) unit= since=1.0
+lorawan.setting.custom_sync type=i64 unit= since=1.0
+lorawan.setting.custom_preamble type=i64 unit= since=1.0
+lorawan.setting.jump_search type=bool unit= since=1.0
+lorawan.setting.jump_chips type=f64 unit=chips since=1.0
+lorawan.setting.raw type=bool unit= since=1.0
+lorawan.setting.clock0 type=f64 unit=s since=1.0
+lorawan.setting.gen_scene type=choice(auto,texting,amateur,lorawan) unit= since=1.0
+lorawan.command.clear args= reply= since=1.0
+lorawan.command.remove args=row:text reply= since=1.0
+lorawan.command.reset args= reply= since=1.0
+loraaprs since=1.0
+loraaprs.fields.MeshFields since=1.0
+loraaprs.fields.MeshMtFields since=1.0
+loraaprs.fields.MeshMcFields since=1.0
+loraaprs.fields.HamFields since=1.0
+loraaprs.fields.MeshTxFields since=1.0
+loraaprs.fields.GuardFields writer=receiver since=1.0
+loraaprs.component.modulate.fields.ModulateFields since=1.0
+loraaprs.kept.packets since=1.0
+loraaprs.kept.nodes since=1.0
+loraaprs.kept.messages since=1.0
+loraaprs.kept.readings since=1.0
+loraaprs.kept.stations since=1.0
+loraaprs.kept.devices since=1.0
+loraaprs.kept.types since=1.0
+loraaprs.kept.contacts since=1.0
+loraaprs.kept.channels since=1.0
+loraaprs.kept.slots since=1.0
+loraaprs.kept.MeshFields.mt_nodes since=1.0
+loraaprs.kept.MeshFields.mc_nodes since=1.0
+loraaprs.kept.MeshFields.messages since=1.0
+loraaprs.kept.MeshFields.stations since=1.0
+loraaprs.kept.MeshFields.devices since=1.0
+loraaprs.kept.MeshFields.preambles since=1.0
+loraaprs.kept.MeshFields.header_failed since=1.0
+loraaprs.kept.MeshMtFields.mt_node_id since=1.0
+loraaprs.kept.MeshMtFields.mt_public_key since=1.0
+loraaprs.kept.MeshMtFields.mt_long_name since=1.0
+loraaprs.kept.MeshMtFields.mt_short_name since=1.0
+loraaprs.kept.MeshMtFields.mt_in_flight since=1.0
+loraaprs.kept.MeshMtFields.mt_rebroadcasts since=1.0
+loraaprs.kept.MeshMtFields.mt_warnings since=1.0
+loraaprs.kept.MeshMcFields.mc_public_key since=1.0
+loraaprs.kept.MeshMcFields.mc_name since=1.0
+loraaprs.kept.MeshMcFields.mc_contacts since=1.0
+loraaprs.kept.MeshTxFields since=1.0
+loraaprs.table.packets row=MeshPacketRow cap=100 since=1.0
+loraaprs.table.nodes row=MeshNodeRow cap=150 since=1.0
+loraaprs.table.messages row=MeshMessageRow cap=100 since=1.0
+loraaprs.table.readings row=MeshReadingRow cap=200 since=1.0
+loraaprs.table.stations row=MeshStationRow cap=150 since=1.0
+loraaprs.table.devices row=MeshDeviceRow cap=200 since=1.0
+loraaprs.table.types row=MeshTypeRow cap=200 since=1.0
+loraaprs.table.decoders row=MeshDecoderRow cap=400 since=1.0
+loraaprs.table.contacts row=MeshContactRow cap=200 since=1.0
+loraaprs.table.channels row=MeshChannelRow cap=64 since=1.0
+loraaprs.table.slots row=MeshSlotRow cap=1024 since=1.0
+loraaprs.event.lora.packet fields=LoraPacketEvent since=1.0
+loraaprs.event.mesh.text fields=MeshTextEvent since=1.0
+loraaprs.event.mesh.node fields=MeshNodeEvent since=1.0
+loraaprs.event.tx.request fields=TxRequestEvent since=1.0
+loraaprs.setting.dial_freq type=hz unit=Hz since=1.0
+loraaprs.setting.channels type=text unit= since=1.0
+loraaprs.setting.custom type=bool unit= since=1.0
+loraaprs.setting.custom_freq type=hz unit=Hz since=1.0
+loraaprs.setting.custom_bw type=choice(7812.5,10417,15625,20833,31250,41667,62500,125000,250000,500000,812500,1625000) unit= since=1.0
+loraaprs.setting.custom_sf type=i64 unit= since=1.0
+loraaprs.setting.custom_cr type=choice(5,6,7,8) unit= since=1.0
+loraaprs.setting.custom_sync type=i64 unit= since=1.0
+loraaprs.setting.custom_preamble type=i64 unit= since=1.0
+loraaprs.setting.jump_search type=bool unit= since=1.0
+loraaprs.setting.jump_chips type=f64 unit=chips since=1.0
+loraaprs.setting.raw type=bool unit= since=1.0
+loraaprs.setting.clock0 type=f64 unit=s since=1.0
+loraaprs.setting.aprs_ssid type=i64 unit= since=1.0
+loraaprs.setting.aprs_tocall type=text unit= since=1.0
+loraaprs.setting.aprs_path type=text unit= since=1.0
+loraaprs.setting.aprs_symbol type=text unit= since=1.0
+loraaprs.setting.aprs_comment type=text unit= since=1.0
+loraaprs.setting.duty_limit type=bool unit= since=1.0
+loraaprs.setting.duty_bands type=text unit= since=1.0
+loraaprs.setting.gen_scene type=choice(auto,texting,amateur,lorawan) unit= since=1.0
+loraaprs.command.aprs.send args=to:text;text:text reply=packet_id:i64 transmits=text since=1.0
+loraaprs.command.aprs.beacon args= reply= transmits=beacon since=1.0
+loraaprs.command.clear args= reply= since=1.0
+loraaprs.command.remove args=row:text reply= since=1.0
+loraaprs.command.reset args= reply= since=1.0
+meshcom since=1.0
+meshcom.fields.MeshFields since=1.0
+meshcom.fields.MeshMtFields since=1.0
+meshcom.fields.MeshMcFields since=1.0
+meshcom.fields.HamFields since=1.0
+meshcom.fields.MeshTxFields since=1.0
+meshcom.fields.GuardFields writer=receiver since=1.0
+meshcom.component.modulate.fields.ModulateFields since=1.0
+meshcom.kept.packets since=1.0
+meshcom.kept.nodes since=1.0
+meshcom.kept.messages since=1.0
+meshcom.kept.readings since=1.0
+meshcom.kept.stations since=1.0
+meshcom.kept.devices since=1.0
+meshcom.kept.types since=1.0
+meshcom.kept.contacts since=1.0
+meshcom.kept.channels since=1.0
+meshcom.kept.slots since=1.0
+meshcom.kept.MeshFields.mt_nodes since=1.0
+meshcom.kept.MeshFields.mc_nodes since=1.0
+meshcom.kept.MeshFields.messages since=1.0
+meshcom.kept.MeshFields.stations since=1.0
+meshcom.kept.MeshFields.devices since=1.0
+meshcom.kept.MeshFields.preambles since=1.0
+meshcom.kept.MeshFields.header_failed since=1.0
+meshcom.kept.MeshMtFields.mt_node_id since=1.0
+meshcom.kept.MeshMtFields.mt_public_key since=1.0
+meshcom.kept.MeshMtFields.mt_long_name since=1.0
+meshcom.kept.MeshMtFields.mt_short_name since=1.0
+meshcom.kept.MeshMtFields.mt_in_flight since=1.0
+meshcom.kept.MeshMtFields.mt_rebroadcasts since=1.0
+meshcom.kept.MeshMtFields.mt_warnings since=1.0
+meshcom.kept.MeshMcFields.mc_public_key since=1.0
+meshcom.kept.MeshMcFields.mc_name since=1.0
+meshcom.kept.MeshMcFields.mc_contacts since=1.0
+meshcom.kept.MeshTxFields since=1.0
+meshcom.table.packets row=MeshPacketRow cap=100 since=1.0
+meshcom.table.nodes row=MeshNodeRow cap=150 since=1.0
+meshcom.table.messages row=MeshMessageRow cap=100 since=1.0
+meshcom.table.readings row=MeshReadingRow cap=200 since=1.0
+meshcom.table.stations row=MeshStationRow cap=150 since=1.0
+meshcom.table.devices row=MeshDeviceRow cap=200 since=1.0
+meshcom.table.types row=MeshTypeRow cap=200 since=1.0
+meshcom.table.decoders row=MeshDecoderRow cap=400 since=1.0
+meshcom.table.contacts row=MeshContactRow cap=200 since=1.0
+meshcom.table.channels row=MeshChannelRow cap=64 since=1.0
+meshcom.table.slots row=MeshSlotRow cap=1024 since=1.0
+meshcom.event.lora.packet fields=LoraPacketEvent since=1.0
+meshcom.event.mesh.text fields=MeshTextEvent since=1.0
+meshcom.event.mesh.node fields=MeshNodeEvent since=1.0
+meshcom.event.tx.request fields=TxRequestEvent since=1.0
+meshcom.setting.dial_freq type=hz unit=Hz since=1.0
+meshcom.setting.channels type=text unit= since=1.0
+meshcom.setting.custom type=bool unit= since=1.0
+meshcom.setting.custom_freq type=hz unit=Hz since=1.0
+meshcom.setting.custom_bw type=choice(7812.5,10417,15625,20833,31250,41667,62500,125000,250000,500000,812500,1625000) unit= since=1.0
+meshcom.setting.custom_sf type=i64 unit= since=1.0
+meshcom.setting.custom_cr type=choice(5,6,7,8) unit= since=1.0
+meshcom.setting.custom_sync type=i64 unit= since=1.0
+meshcom.setting.custom_preamble type=i64 unit= since=1.0
+meshcom.setting.jump_search type=bool unit= since=1.0
+meshcom.setting.jump_chips type=f64 unit=chips since=1.0
+meshcom.setting.raw type=bool unit= since=1.0
+meshcom.setting.clock0 type=f64 unit=s since=1.0
+meshcom.setting.gen_scene type=choice(auto,texting,amateur,lorawan) unit= since=1.0
+meshcom.command.clear args= reply= since=1.0
+meshcom.command.remove args=row:text reply= since=1.0
+meshcom.command.reset args= reply= since=1.0
+lorawanwide since=1.0
+lorawanwide.fields.WideFields since=1.0
+lorawanwide.fields.GuardFields writer=receiver since=1.0
+lorawanwide.kept.frames since=1.0
+lorawanwide.kept.devices since=1.0
+lorawanwide.kept.types since=1.0
+lorawanwide.kept.WideFields.frames_ok since=1.0
+lorawanwide.kept.WideFields.frames_bad since=1.0
+lorawanwide.kept.WideFields.preambles since=1.0
+lorawanwide.kept.WideFields.header_failed since=1.0
+lorawanwide.kept.WideFields.devices since=1.0
+lorawanwide.table.frames row=WideFrameRow cap=600 since=1.0
+lorawanwide.table.channels row=WideChannelRow cap=200 since=1.0
+lorawanwide.table.devices row=MeshDeviceRow cap=200 since=1.0
+lorawanwide.table.types row=MeshTypeRow cap=200 since=1.0
+lorawanwide.event.lora.packet fields=LoraPacketEvent since=1.0
+lorawanwide.setting.dial_freq type=hz unit=Hz since=1.0
+lorawanwide.setting.lw_channels type=text unit= since=1.0
+lorawanwide.setting.downlinks type=bool unit= since=1.0
+lorawanwide.setting.defaults_only type=bool unit= since=1.0
+lorawanwide.setting.private_sync type=bool unit= since=1.0
+lorawanwide.setting.max_channels type=i64 unit= since=1.0
+lorawanwide.setting.wide_channels type=bool unit= since=1.0
+lorawanwide.setting.fsk type=bool unit= since=1.0
+lorawanwide.setting.fsk_freq type=hz unit=Hz since=1.0
+lorawanwide.setting.clock0 type=f64 unit=s since=1.0
+lorawanwide.command.clear args= reply= since=1.0
+lorawanwide.command.reset args= reply= since=1.0
+loraraw since=1.0
+loraraw.fields.RawFields since=1.0
+loraraw.fields.GuardFields writer=receiver since=1.0
+loraraw.component.modulate.fields.ModulateFields since=1.0
+loraraw.kept.frames since=1.0
+loraraw.kept.RawFields.frames_ok since=1.0
+loraraw.kept.RawFields.frames_bad since=1.0
+loraraw.kept.RawFields.preambles since=1.0
+loraraw.kept.RawFields.header_failed since=1.0
+loraraw.kept.RawFields.tx_sent since=1.0
+loraraw.kept.RawFields.sf5 since=1.0
+loraraw.kept.RawFields.sf6 since=1.0
+loraraw.kept.RawFields.sf7 since=1.0
+loraraw.kept.RawFields.sf8 since=1.0
+loraraw.kept.RawFields.sf9 since=1.0
+loraraw.kept.RawFields.sf10 since=1.0
+loraraw.kept.RawFields.sf11 since=1.0
+loraraw.kept.RawFields.sf12 since=1.0
+loraraw.kept.RawFields.bw125 since=1.0
+loraraw.kept.RawFields.bw250 since=1.0
+loraraw.kept.RawFields.bw500 since=1.0
+loraraw.table.frames row=RawFrameRow cap=500 since=1.0
+loraraw.table.decoders row=RawDecoderRow cap=100 since=1.0
+loraraw.event.lora.packet fields=LoraPacketEvent since=1.0
+loraraw.event.tx.request fields=TxRequestEvent since=1.0
+loraraw.setting.auto_sf type=bool unit= since=1.0
+loraraw.setting.sf type=i64 unit= since=1.0
+loraraw.setting.auto_bw type=bool unit= since=1.0
+loraraw.setting.bw type=choice(7812.5,10417,15625,20833,31250,41667,62500,125000,250000,500000,812500,1625000) unit= since=1.0
+loraraw.setting.implicit type=bool unit= since=1.0
+loraraw.setting.cr type=i64 unit= since=1.0
+loraraw.setting.crc type=bool unit= since=1.0
+loraraw.setting.length type=i64 unit=bytes since=1.0
+loraraw.setting.sync type=choice(0x12,0x34,0x2B,any,custom) unit= since=1.0
+loraraw.setting.sync_custom type=i64 unit= since=1.0
+loraraw.setting.preamble type=i64 unit= since=1.0
+loraraw.setting.ldro type=choice(auto,off,on) unit= since=1.0
+loraraw.setting.offset type=hz unit=Hz since=1.0
+loraraw.setting.jump_search type=bool unit= since=1.0
+loraraw.setting.tx_repeat_s type=duration unit=s since=1.0
+loraraw.setting.clock0 type=f64 unit=s since=1.0
+loraraw.setting.gen_implicit type=bool unit= since=1.0
+loraraw.command.clear args= reply= since=1.0
+loraraw.command.reset args= reply= since=1.0
+loraraw.command.send args=payload:bytes reply= transmits=frame since=1.0
+aprs since=1.0
+aprs.fields.AprsFields since=1.0
+aprs.fields.HamFields since=1.0
+aprs.fields.GuardFields writer=receiver since=1.0
+aprs.component.modulate.fields.ModulateFields since=1.0
+aprs.kept.frames since=1.0
+aprs.kept.stations since=1.0
+aprs.kept.messages since=1.0
+aprs.kept.AprsFields.frames_ok since=1.0
+aprs.kept.AprsFields.frames_bad since=1.0
+aprs.kept.AprsFields.frames_1200 since=1.0
+aprs.kept.AprsFields.frames_9600 since=1.0
+aprs.kept.AprsFields.aprs_frames since=1.0
+aprs.kept.AprsFields.copies since=1.0
+aprs.kept.AprsFields.not_ax25 since=1.0
+aprs.kept.AprsFields.stations since=1.0
+aprs.table.frames row=AprsFrameRow cap=200 since=1.0
+aprs.table.stations row=AprsStationRow cap=300 since=1.0
+aprs.table.messages row=MeshMessageRow cap=100 since=1.0
+aprs.event.aprs.packet fields=AprsPacketEvent since=1.0
+aprs.event.tx.request fields=TxRequestEvent since=1.0
+aprs.setting.narrow type=bool unit= since=1.0
+aprs.setting.emphasis type=choice(auto,de,pre) unit= since=1.0
+aprs.setting.audio_input type=bool unit= since=1.0
+aprs.setting.listen type=bool unit= since=1.0
+aprs.setting.aprs_ssid type=i64 unit= since=1.0
+aprs.setting.aprs_tocall type=text unit= since=1.0
+aprs.setting.aprs_path type=text unit= since=1.0
+aprs.setting.aprs_symbol type=text unit= since=1.0
+aprs.setting.aprs_comment type=text unit= since=1.0
+aprs.setting.tx_baud type=choice(1200,9600) unit= since=1.0
+aprs.setting.tx_delay type=f64 unit=s since=1.0
+aprs.setting.tx_pre_emphasis type=bool unit= since=1.0
+aprs.setting.beacon_interval type=f64 unit=s since=1.0
+aprs.setting.match_ssid type=bool unit= since=1.0
+aprs.setting.wide_input type=bool unit= since=1.0
+aprs.setting.gen_option type=choice(both,1200,9600) unit= since=1.0
+aprs.command.aprs.send args=to:text;text:text reply=packet_id:i64 transmits=text since=1.0
+aprs.command.aprs.beacon args= reply= transmits=beacon since=1.0
+aprs.command.clear args= reply= since=1.0
+aprs.command.remove args=row:text reply= since=1.0
+fanet since=1.0
+fanet.fields.FanetFields since=1.0
+fanet.fields.GuardFields writer=receiver since=1.0
+fanet.kept.frames since=1.0
+fanet.kept.stations since=1.0
+fanet.kept.station_tracks since=1.0
+fanet.kept.FanetFields.frames_ok since=1.0
+fanet.kept.FanetFields.frames_bad since=1.0
+fanet.kept.FanetFields.stations_heard since=1.0
+fanet.table.frames row=FanetFrameRow cap=500 since=1.0
+fanet.table.stations row=FanetStationRow cap=500 since=1.0
+fanet.table.station_tracks row=FanetTrackRow cap=4000 since=1.0
+fanet.event.fanet.station fields=FanetStationEvent since=1.0
+fanet.event.fanet.message fields=FanetMessageEvent since=1.0
+fanet.event.fanet.distress fields=FanetDistressEvent since=1.0
+fanet.setting.bandwidth type=choice(125,250,500) unit= since=1.0
+fanet.setting.expiry_s type=f64 unit=s since=1.0
+fanet.setting.gen_centre type=position unit= since=1.0
+fanet.setting.gen_stations type=i64 unit= since=1.0
+fanet.setting.gen_bad_crc type=i64 unit= since=1.0
+fanet.command.clear args= reply= since=1.0
+reticulum since=1.0
+reticulum.fields.RnsFields since=1.0
+reticulum.fields.GuardFields writer=receiver since=1.0
+reticulum.kept.packets since=1.0
+reticulum.kept.destinations since=1.0
+reticulum.kept.RnsFields.frames_ok since=1.0
+reticulum.kept.RnsFields.frames_bad since=1.0
+reticulum.kept.RnsFields.preambles since=1.0
+reticulum.kept.RnsFields.destinations_heard since=1.0
+reticulum.table.packets row=RnsPacketRow cap=300 since=1.0
+reticulum.table.destinations row=RnsDestinationRow cap=100 since=1.0
+reticulum.event.reticulum.destination fields=RnsDestinationEvent since=1.0
+reticulum.event.reticulum.announce fields=RnsAnnounceEvent since=1.0
+reticulum.setting.auto_plan type=bool unit= since=1.0
+reticulum.setting.bw type=choice(62500,125000,250000,500000) unit= since=1.0
+reticulum.setting.sf type=i64 unit= since=1.0
+reticulum.setting.gen_split type=bool unit= since=1.0
+reticulum.setting.gen_tampered type=bool unit= since=1.0
+reticulum.command.clear args= reply= since=1.0
+elrs since=1.0
+elrs.fields.ElrsFields since=1.0
+elrs.fields.GuardFields writer=receiver since=1.0
+elrs.kept.frames since=1.0
+elrs.kept.links since=1.0
+elrs.kept.ElrsFields.frames_ok since=1.0
+elrs.kept.ElrsFields.frames_bad since=1.0
+elrs.kept.ElrsFields.preambles since=1.0
+elrs.kept.ElrsFields.links_heard since=1.0
+elrs.table.frames row=ElrsFrameRow cap=300 since=1.0
+elrs.table.links row=ElrsLinkRow cap=100 since=1.0
+elrs.event.elrs.link fields=ElrsLinkEvent since=1.0
+elrs.setting.hop_channels type=i64 unit= since=1.0
+elrs.setting.hop_step_hz type=hz unit=Hz since=1.0
+elrs.setting.packet_rate type=choice(all,200,100,50,25,100full) unit= since=1.0
+elrs.setting.binding_phrase type=text unit= since=1.0
+elrs.setting.gen_phrase type=text unit= since=1.0
+elrs.setting.gen_row type=i64 unit= since=1.0
+elrs.setting.gen_inverted_iq type=bool unit= since=1.0
+elrs.setting.gen_second_link type=bool unit= since=1.0
+elrs.command.clear args= reply= since=1.0

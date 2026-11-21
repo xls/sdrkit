@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 24000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic HF waveform for identification, 8 s, upper sideband with the dial at 0 Hz: 8-PSK at 2400 baud on an 1800 Hz sub-carrier, root-raised-cosine (0.35), frames of 256 symbols whose first 80 are a fixed sequence (STANAG 4285-like). SNR 10 dB in 3 kHz.",
+    "core:recorder": "HF waveform test generator, seed 7",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 8000000.0
+    }
+  ],
+  "annotations": []
+}

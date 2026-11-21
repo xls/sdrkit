@@ -1,0 +1,16 @@
+/target/
+# The installed copies that tools/package.sh and tools/package.ps1 lay out.
+/dist/
+
+# Recordings and other sample data never go into git. Synthetic ones are regenerated (sdrkit vectors); real ones live in
+# $SDRKIT_RECORDINGS (default ../sdrkit-recordings). The repo keeps only their descriptions, expected results and checksums.
+tests/vectors/**/*.sigmf-data
+tests/vectors/**/*.ts
+tests/vectors/**/*.cf32
+tests/vectors/**/*.iq
+tests/vectors/**/*.wav
+tests/vectors/**/*.pgm
+tests/vectors/**/*.lrit
+tests/vectors/**/*.png
+tests/vectors/**/*.jpg
+tests/vectors/**/*.bin

@@ -1,0 +1,7 @@
+# id: default_dials
+# name: Starting dials of the aircraft data link stacks
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+acars,,131500000
+vdl2,,136850000
+vdl4,,136850000

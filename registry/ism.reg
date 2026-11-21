@@ -1,0 +1,1097 @@
+# The interface of the stack family ism. The registry test of the family writes this file.
+family ism version=1.0
+uses.ookdev major=1 since=1.0
+shape.IsmDetectFields since=1.0
+shape.IsmDetectFields.bursts_detected type=i64 unit= optional=no since=1.0
+shape.IsmDetectFields.noise_floor_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.IsmDetectFields.input_level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.SigfoxFinderFields since=1.0
+shape.SigfoxFinderFields.carriers type=i64 unit= optional=no since=1.0
+shape.GuardFields since=1.0
+shape.GuardFields.bad_samples type=i64 unit= optional=no since=1.0
+shape.IsmFields since=1.0
+shape.IsmFields.devices type=i64 unit= optional=no since=1.0
+shape.IsmFields.packets_decoded type=i64 unit= optional=no since=1.0
+shape.IsmFields.unknown_bursts type=i64 unit= optional=no since=1.0
+shape.IsmFields.sigfox_messages type=i64 unit= optional=no since=1.0
+shape.IsmPulseFields since=1.0
+shape.IsmPulseFields.line_code type=choice(pwm,ppm,manchester,pcm) unit= optional=yes since=1.0
+shape.IsmPulseFields.bits type=i64 unit= optional=yes since=1.0
+shape.IsmPulseFields.bits_bin type=text unit= optional=yes since=1.0
+shape.IsmPulseFields.bits_hex type=text unit= optional=yes since=1.0
+shape.IsmPulseFields.short_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFields.long_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFields.pulse_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFields.period_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFields.half_bit_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFields.unit_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFields.bit_rate type=f64 unit=bit/s optional=yes since=1.0
+shape.IsmPulseFields.pulses type=i64 unit= optional=yes since=1.0
+shape.IsmPulseFields.frame_ms type=f64 unit=ms optional=yes since=1.0
+shape.IsmPulseFields.repeats type=i64 unit= optional=yes since=1.0
+shape.IsmPulseFields.frames_seen type=i64 unit= optional=no since=1.0
+shape.IsmPulseFields.frames_good type=i64 unit= optional=no since=1.0
+shape.IsmDeviceRow since=1.0
+shape.IsmDeviceRow.model type=text unit= optional=no since=1.0
+shape.IsmDeviceRow.kind type=text unit= optional=no since=1.0
+shape.IsmDeviceRow.id type=text unit= optional=no since=1.0
+shape.IsmDeviceRow.channel type=text unit= optional=yes since=1.0
+shape.IsmDeviceRow.battery_ok type=bool unit= optional=yes since=1.0
+shape.IsmDeviceRow.readings type=text unit= optional=no since=1.0
+shape.IsmDeviceRow.history type=text unit= optional=yes since=1.0
+shape.IsmDeviceRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.IsmDeviceRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.IsmDeviceRow.last_heard type=time unit= optional=yes since=1.0
+shape.IsmDeviceRow.count type=i64 unit= optional=no since=1.0
+shape.IsmDeviceRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.IsmDeviceRow.check type=choice(crc,checksum,parity,repeat,manchester) unit= optional=no since=1.0
+shape.IsmZwaveRow since=1.0
+shape.IsmZwaveRow.home_id type=text unit= optional=yes since=1.0
+shape.IsmZwaveRow.node type=i64 unit= optional=yes since=1.0
+shape.IsmZwaveRow.rate type=text unit= optional=no since=1.0
+shape.IsmZwaveRow.last_heard type=time unit= optional=yes since=1.0
+shape.IsmZwaveRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.IsmZwaveRow.count type=i64 unit= optional=no since=1.0
+shape.IsmZwaveRow.command type=text unit= optional=yes since=1.0
+shape.IsmZwaveRow.value type=text unit= optional=yes since=1.0
+shape.IsmLogRow since=1.0
+shape.IsmLogRow.time_s type=f64 unit=s optional=no since=1.0
+shape.IsmLogRow.model type=text unit= optional=no since=1.0
+shape.IsmLogRow.id type=text unit= optional=no since=1.0
+shape.IsmLogRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.IsmLogRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.IsmLogRow.text type=text unit= optional=no since=1.0
+shape.IsmUnknownRow since=1.0
+shape.IsmUnknownRow.time_s type=f64 unit=s optional=no since=1.0
+shape.IsmUnknownRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.IsmUnknownRow.modulation type=text unit= optional=no since=1.0
+shape.IsmUnknownRow.line_code type=text unit= optional=no since=1.0
+shape.IsmUnknownRow.pulses type=i64 unit= optional=no since=1.0
+shape.IsmUnknownRow.short_us type=f64 unit=µs optional=no since=1.0
+shape.IsmUnknownRow.long_us type=f64 unit=µs optional=no since=1.0
+shape.IsmUnknownRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.IsmUnknownRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.IsmUnknownRow.copy type=text unit= optional=no since=1.0
+shape.IsmSigfoxRow since=1.0
+shape.IsmSigfoxRow.time_s type=f64 unit=s optional=no since=1.0
+shape.IsmSigfoxRow.device_id type=text unit= optional=no since=1.0
+shape.IsmSigfoxRow.seq type=i64 unit= optional=no since=1.0
+shape.IsmSigfoxRow.payload type=text unit= optional=no since=1.0
+shape.IsmSigfoxRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.IsmSigfoxRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.IsmSigfoxRow.reps type=i64 unit= optional=no since=1.0
+shape.IsmSigfoxRow.mac_crc type=text unit= optional=no since=1.0
+shape.IsmPulseFrameRow since=1.0
+shape.IsmPulseFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.IsmPulseFrameRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.IsmPulseFrameRow.line_code type=choice(pwm,ppm,manchester,pcm) unit= optional=no since=1.0
+shape.IsmPulseFrameRow.bits type=i64 unit= optional=no since=1.0
+shape.IsmPulseFrameRow.bits_bin type=text unit= optional=no since=1.0
+shape.IsmPulseFrameRow.bits_hex type=text unit= optional=no since=1.0
+shape.IsmPulseFrameRow.short_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFrameRow.long_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFrameRow.pulse_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFrameRow.period_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFrameRow.half_bit_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFrameRow.unit_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFrameRow.bit_rate type=f64 unit=bit/s optional=yes since=1.0
+shape.IsmPulseFrameRow.pulses type=i64 unit= optional=no since=1.0
+shape.IsmPulseFrameRow.frame_ms type=f64 unit=ms optional=no since=1.0
+shape.IsmPulseFrameRow.repeats type=i64 unit= optional=no since=1.0
+shape.IsmPulseFrameRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.IsmDeviceEvent since=1.0
+shape.IsmDeviceEvent.source type=text unit= optional=no since=1.0
+shape.IsmDeviceEvent.text type=text unit= optional=no since=1.0
+shape.IsmDeviceEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.IsmDeviceEvent.model type=text unit= optional=no since=1.0
+shape.IsmDeviceEvent.id type=text unit= optional=no since=1.0
+shape.SigfoxMessageEvent since=1.0
+shape.SigfoxMessageEvent.source type=text unit= optional=no since=1.0
+shape.SigfoxMessageEvent.text type=text unit= optional=no since=1.0
+shape.SigfoxMessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.SigfoxMessageEvent.device_id type=text unit= optional=no since=1.0
+shape.SigfoxMessageEvent.seq type=i64 unit= optional=no since=1.0
+shape.SigfoxMessageEvent.payload type=text unit= optional=no since=1.0
+shape.IsmPulseFrameEvent since=1.0
+shape.IsmPulseFrameEvent.text type=text unit= optional=no since=1.0
+shape.IsmPulseFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.IsmPulseFrameEvent.line_code type=choice(pwm,ppm,manchester,pcm) unit= optional=no since=1.0
+shape.IsmPulseFrameEvent.bits type=i64 unit= optional=no since=1.0
+shape.IsmPulseFrameEvent.bits_hex type=text unit= optional=no since=1.0
+shape.IsmPulseFrameEvent.repeats type=i64 unit= optional=no since=1.0
+shape.IsmPulseFrameEvent.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.WmbusFields since=1.0
+shape.WmbusFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.WmbusFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.WmbusFields.meters type=i64 unit= optional=no since=1.0
+shape.WmbusFields.syncs type=i64 unit= optional=no since=1.0
+shape.WmbusFields.false_syncs type=i64 unit= optional=no since=1.0
+shape.WmbusFields.encrypted_frames type=i64 unit= optional=no since=1.0
+shape.WmbusMeterRow since=1.0
+shape.WmbusMeterRow.maker type=text unit= optional=no since=1.0
+shape.WmbusMeterRow.meter_id type=text unit= optional=no since=1.0
+shape.WmbusMeterRow.device_type type=text unit= optional=no since=1.0
+shape.WmbusMeterRow.phy type=text unit= optional=no since=1.0
+shape.WmbusMeterRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.WmbusMeterRow.heard type=i64 unit= optional=yes since=1.0
+shape.WmbusMeterRow.last_heard type=time unit= optional=yes since=1.0
+shape.WmbusMeterRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.WmbusMeterRow.encrypted type=bool unit= optional=no since=1.0
+shape.WmbusMeterRow.last_reading type=text unit= optional=no since=1.0
+shape.WmbusMeterRow.status type=text unit= optional=no since=1.0
+shape.WmbusRecordRow since=1.0
+shape.WmbusRecordRow.meter type=text unit= optional=no refers_to=meters since=1.0
+shape.WmbusRecordRow.index type=i64 unit= optional=no since=1.0
+shape.WmbusRecordRow.quantity type=text unit= optional=no since=1.0
+shape.WmbusRecordRow.value type=text unit= optional=no since=1.0
+shape.WmbusRecordRow.notes type=text unit= optional=yes since=1.0
+shape.WmbusFrameRow since=1.0
+shape.WmbusFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.WmbusFrameRow.time type=time unit= optional=yes since=1.0
+shape.WmbusFrameRow.phy type=text unit= optional=no since=1.0
+shape.WmbusFrameRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.WmbusFrameRow.meter type=text unit= optional=yes since=1.0
+shape.WmbusFrameRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.WmbusFrameRow.crc_ok type=bool unit= optional=no since=1.0
+shape.WmbusFrameRow.encrypted type=bool unit= optional=no since=1.0
+shape.WmbusFrameRow.result type=text unit= optional=no since=1.0
+shape.WmbusFrameRow.frame type=text unit= optional=no since=1.0
+shape.WmbusChannelRow since=1.0
+shape.WmbusChannelRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.WmbusChannelRow.phy type=text unit= optional=no since=1.0
+shape.WmbusChannelRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.WmbusChannelRow.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.WmbusChannelRow.frames type=i64 unit= optional=no since=1.0
+shape.WmbusChannelRow.crc_failures type=i64 unit= optional=no since=1.0
+shape.WmbusFrameEvent since=1.0
+shape.WmbusFrameEvent.source type=text unit= optional=no since=1.0
+shape.WmbusFrameEvent.text type=text unit= optional=no since=1.0
+shape.WmbusFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.WmbusFrameEvent.maker type=text unit= optional=no since=1.0
+shape.WmbusFrameEvent.meter_id type=text unit= optional=no since=1.0
+shape.WmbusFrameEvent.device_type type=text unit= optional=no since=1.0
+shape.WmbusFrameEvent.phy type=text unit= optional=no since=1.0
+shape.WmbusFrameEvent.encrypted type=bool unit= optional=no since=1.0
+shape.WmbusFrameEvent.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ZwaveFields since=1.0
+shape.ZwaveFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.ZwaveFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.ZwaveFields.networks type=i64 unit= optional=no since=1.0
+shape.ZwaveFields.nodes type=i64 unit= optional=no since=1.0
+shape.ZwaveFields.frames_r1 type=i64 unit= optional=no since=1.0
+shape.ZwaveFields.frames_r2 type=i64 unit= optional=no since=1.0
+shape.ZwaveFields.frames_r3 type=i64 unit= optional=no since=1.0
+shape.ZwaveFields.s0_frames type=i64 unit= optional=no since=1.0
+shape.ZwaveFields.s2_frames type=i64 unit= optional=no since=1.0
+shape.ZwaveFields.acks type=i64 unit= optional=no since=1.0
+shape.ZwaveFrameRow since=1.0
+shape.ZwaveFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.ZwaveFrameRow.time type=time unit= optional=yes since=1.0
+shape.ZwaveFrameRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.ZwaveFrameRow.rate type=text unit= optional=no since=1.0
+shape.ZwaveFrameRow.home_id type=text unit= optional=no since=1.0
+shape.ZwaveFrameRow.route type=text unit= optional=no since=1.0
+shape.ZwaveFrameRow.frame_type type=text unit= optional=no since=1.0
+shape.ZwaveFrameRow.seq type=i64 unit= optional=no since=1.0
+shape.ZwaveFrameRow.ack_requested type=bool unit= optional=no since=1.0
+shape.ZwaveFrameRow.encryption type=text unit= optional=no since=1.0
+shape.ZwaveFrameRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ZwaveFrameRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.ZwaveFrameRow.command type=text unit= optional=no since=1.0
+shape.ZwaveFrameRow.mpdu type=text unit= optional=no since=1.0
+shape.ZwaveNodeRow since=1.0
+shape.ZwaveNodeRow.home_id type=text unit= optional=no refers_to=networks since=1.0
+shape.ZwaveNodeRow.node type=i64 unit= optional=no since=1.0
+shape.ZwaveNodeRow.role type=text unit= optional=no since=1.0
+shape.ZwaveNodeRow.sent type=i64 unit= optional=no since=1.0
+shape.ZwaveNodeRow.addressed type=i64 unit= optional=no since=1.0
+shape.ZwaveNodeRow.encrypted type=i64 unit= optional=no since=1.0
+shape.ZwaveNodeRow.rate type=text unit= optional=no since=1.0
+shape.ZwaveNodeRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ZwaveNodeRow.last_heard type=time unit= optional=yes since=1.0
+shape.ZwaveNodeRow.last_class type=text unit= optional=no since=1.0
+shape.ZwaveNodeRow.beaming type=bool unit= optional=no since=1.0
+shape.ZwaveNodeRow.low_power type=bool unit= optional=no since=1.0
+shape.ZwaveNetworkRow since=1.0
+shape.ZwaveNetworkRow.home_id type=text unit= optional=no since=1.0
+shape.ZwaveNetworkRow.nodes type=i64 unit= optional=no since=1.0
+shape.ZwaveNetworkRow.controller type=bool unit= optional=no since=1.0
+shape.ZwaveNetworkRow.heard type=i64 unit= optional=yes since=1.0
+shape.ZwaveNetworkRow.encrypted type=i64 unit= optional=no since=1.0
+shape.ZwaveNetworkRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ZwaveNetworkRow.first_heard type=time unit= optional=yes since=1.0
+shape.ZwaveNetworkRow.last_heard type=time unit= optional=yes since=1.0
+shape.ZwaveChannelRow since=1.0
+shape.ZwaveChannelRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.ZwaveChannelRow.rate type=text unit= optional=no since=1.0
+shape.ZwaveChannelRow.covered type=bool unit= optional=no since=1.0
+shape.ZwaveChannelRow.frames type=i64 unit= optional=no since=1.0
+shape.ZwaveChannelRow.failed_checks type=i64 unit= optional=no since=1.0
+shape.ZwaveClassRow since=1.0
+shape.ZwaveClassRow.class type=text unit= optional=no since=1.0
+shape.ZwaveClassRow.count type=i64 unit= optional=no since=1.0
+shape.ZwaveFrameEvent since=1.0
+shape.ZwaveFrameEvent.source type=text unit= optional=no since=1.0
+shape.ZwaveFrameEvent.target type=text unit= optional=yes since=1.0
+shape.ZwaveFrameEvent.text type=text unit= optional=no since=1.0
+shape.ZwaveFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ZwaveFrameEvent.home_id type=text unit= optional=no since=1.0
+shape.ZwaveFrameEvent.route type=text unit= optional=no since=1.0
+shape.ZwaveFrameEvent.rate type=text unit= optional=no since=1.0
+shape.ZwaveFrameEvent.frame_type type=text unit= optional=no since=1.0
+shape.ZwaveFrameEvent.encryption type=text unit= optional=no since=1.0
+shape.ZwaveFrameEvent.command type=text unit= optional=no since=1.0
+shape.ZwaveFrameEvent.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ZwaveFrameEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.ZwaveStateEvent since=1.0
+shape.ZwaveStateEvent.text type=text unit= optional=no since=1.0
+shape.ZwaveStateEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ZigbeeFields since=1.0
+shape.ZigbeeFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.ZigbeeFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.ZigbeeFields.candidates type=i64 unit= optional=no since=1.0
+shape.ZigbeeFields.encrypted_frames type=i64 unit= optional=no since=1.0
+shape.ZigbeeFields.networks type=i64 unit= optional=no since=1.0
+shape.ZigbeeFields.devices type=i64 unit= optional=no since=1.0
+shape.ZigbeeFields.channel type=i64 unit= optional=no since=1.0
+shape.ZigbeeFields.frames_per_s type=i64 unit= optional=no since=1.0
+shape.ZigbeeFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.ZigbeeFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.ZigbeeNetworkRow since=1.0
+shape.ZigbeeNetworkRow.pan type=text unit= optional=no since=1.0
+shape.ZigbeeNetworkRow.ext_pan type=text unit= optional=yes since=1.0
+shape.ZigbeeNetworkRow.ch type=i64 unit= optional=no since=1.0
+shape.ZigbeeNetworkRow.coordinator type=text unit= optional=yes since=1.0
+shape.ZigbeeNetworkRow.devices type=i64 unit= optional=no since=1.0
+shape.ZigbeeNetworkRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ZigbeeNetworkRow.heard type=i64 unit= optional=yes since=1.0
+shape.ZigbeeNetworkRow.last_heard type=time unit= optional=yes since=1.0
+shape.PanDeviceRow since=1.0
+shape.PanDeviceRow.short type=text unit= optional=yes since=1.0
+shape.PanDeviceRow.extended type=text unit= optional=yes since=1.0
+shape.PanDeviceRow.vendor type=text unit= optional=yes since=1.0
+shape.PanDeviceRow.pan type=text unit= optional=yes since=1.0
+shape.PanDeviceRow.ch type=i64 unit= optional=no since=1.0
+shape.PanDeviceRow.role type=text unit= optional=no since=1.0
+shape.PanDeviceRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.PanDeviceRow.heard type=i64 unit= optional=yes since=1.0
+shape.PanDeviceRow.last_heard type=time unit= optional=yes since=1.0
+shape.PanDeviceRow.last_frame type=text unit= optional=no since=1.0
+shape.ZigbeeFrameRow since=1.0
+shape.ZigbeeFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.ZigbeeFrameRow.ch type=i64 unit= optional=no since=1.0
+shape.ZigbeeFrameRow.type type=text unit= optional=no since=1.0
+shape.ZigbeeFrameRow.route type=text unit= optional=no since=1.0
+shape.ZigbeeFrameRow.pan type=text unit= optional=yes since=1.0
+shape.ZigbeeFrameRow.len type=i64 unit= optional=no since=1.0
+shape.ZigbeeFrameRow.encrypted type=bool unit= optional=no since=1.0
+shape.ZigbeeFrameRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ZigbeeFrameRow.details type=text unit= optional=no since=1.0
+shape.ZigbeePanEvent since=1.0
+shape.ZigbeePanEvent.source type=text unit= optional=no since=1.0
+shape.ZigbeePanEvent.text type=text unit= optional=no since=1.0
+shape.ZigbeePanEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ZigbeePanEvent.pan type=text unit= optional=no since=1.0
+shape.ZigbeePanEvent.ch type=i64 unit= optional=no since=1.0
+shape.SigfoxFields since=1.0
+shape.SigfoxFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.SigfoxFields.messages type=i64 unit= optional=no since=1.0
+shape.SigfoxFields.zone type=text unit= optional=yes since=1.0
+shape.SigfoxDemodFields since=1.0
+shape.SigfoxDemodFields.carriers_bad type=i64 unit= optional=no since=1.0
+shape.SigfoxMessageRow since=1.0
+shape.SigfoxMessageRow.time_s type=f64 unit=s optional=no since=1.0
+shape.SigfoxMessageRow.device_id type=text unit= optional=no since=1.0
+shape.SigfoxMessageRow.seq type=i64 unit= optional=no since=1.0
+shape.SigfoxMessageRow.payload type=text unit= optional=no since=1.0
+shape.SigfoxMessageRow.payload_bytes type=i64 unit= optional=no since=1.0
+shape.SigfoxMessageRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.SigfoxMessageRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.SigfoxMessageRow.reps type=i64 unit= optional=no since=1.0
+shape.SigfoxMessageRow.ranks type=i64 unit= optional=no since=1.0
+shape.SigfoxMessageRow.bit_rate type=hz unit=bit/s optional=no since=1.0
+shape.SigfoxMessageRow.auth type=text unit= optional=no since=1.0
+shape.SigfoxMessageRow.crc type=text unit= optional=no since=1.0
+shape.SigfoxMessageRow.frame_type type=text unit= optional=no since=1.0
+shape.SigfoxMessageRow.li type=i64 unit= optional=no since=1.0
+shape.SigfoxMessageRow.container_bytes type=i64 unit=bytes optional=no since=1.0
+shape.SigfoxMessageRow.downlink type=bool unit= optional=no since=1.0
+shape.SigfoxMessageRow.control type=bool unit= optional=no since=1.0
+shape.AntFields since=1.0
+shape.AntFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.AntFields.sensors type=i64 unit= optional=no since=1.0
+shape.AntFields.heart_rate_bpm type=f64 unit=bpm optional=yes since=1.0
+shape.AntFields.deviation type=hz unit=Hz optional=yes since=1.0
+shape.AntFields.channel type=hz unit=Hz optional=no since=1.0
+shape.AntDemodFields since=1.0
+shape.AntDemodFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.AntDemodFields.syncs type=i64 unit= optional=no since=1.0
+shape.AntSensorRow since=1.0
+shape.AntSensorRow.device type=i64 unit= optional=no since=1.0
+shape.AntSensorRow.type type=text unit= optional=no since=1.0
+shape.AntSensorRow.marker type=text unit= optional=no since=1.0
+shape.AntSensorRow.manufacturer type=text unit= optional=yes since=1.0
+shape.AntSensorRow.serial type=i64 unit= optional=yes since=1.0
+shape.AntSensorRow.value type=text unit= optional=no since=1.0
+shape.AntSensorRow.battery type=text unit= optional=yes since=1.0
+shape.AntSensorRow.period type=duration unit=s optional=yes since=1.0
+shape.AntSensorRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.AntSensorRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.AntSensorRow.heard type=i64 unit= optional=yes since=1.0
+shape.AntSensorRow.last_heard type=time unit= optional=yes since=1.0
+shape.AntFrameRow since=1.0
+shape.AntFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.AntFrameRow.device type=i64 unit= optional=no since=1.0
+shape.AntFrameRow.type type=text unit= optional=no since=1.0
+shape.AntFrameRow.tx_type type=i64 unit= optional=no since=1.0
+shape.AntFrameRow.marker type=text unit= optional=no since=1.0
+shape.AntFrameRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.AntFrameRow.payload type=text unit= optional=no since=1.0
+shape.AntFrameRow.text type=text unit= optional=no since=1.0
+shape.AntSensorEvent since=1.0
+shape.AntSensorEvent.source type=text unit= optional=no since=1.0
+shape.AntSensorEvent.text type=text unit= optional=no since=1.0
+shape.AntSensorEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.AntSensorEvent.device type=i64 unit= optional=no since=1.0
+shape.AntSensorEvent.type type=text unit= optional=no since=1.0
+shape.AntSensorEvent.marker type=text unit= optional=no since=1.0
+shape.NrfFields since=1.0
+shape.NrfFields.frames type=i64 unit= optional=no since=1.0
+shape.NrfFields.bad_bursts type=i64 unit= optional=no since=1.0
+shape.NrfFields.bursts type=i64 unit= optional=no since=1.0
+shape.NrfFields.crc16_frames type=i64 unit= optional=no since=1.0
+shape.NrfFields.crc8_frames type=i64 unit= optional=no since=1.0
+shape.NrfFields.addresses type=i64 unit= optional=no since=1.0
+shape.NrfFields.channel type=i64 unit= optional=no since=1.0
+shape.NrfFrameRow since=1.0
+shape.NrfFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.NrfFrameRow.bit_rate type=hz unit=bit/s optional=no since=1.0
+shape.NrfFrameRow.address type=text unit= optional=no since=1.0
+shape.NrfFrameRow.address_len type=i64 unit= optional=no since=1.0
+shape.NrfFrameRow.length type=i64 unit= optional=no since=1.0
+shape.NrfFrameRow.pid type=i64 unit= optional=no since=1.0
+shape.NrfFrameRow.no_ack type=bool unit= optional=no since=1.0
+shape.NrfFrameRow.crc_bits type=i64 unit= optional=no since=1.0
+shape.NrfFrameRow.payload type=text unit= optional=no since=1.0
+shape.NrfFrameRow.text type=text unit= optional=no since=1.0
+shape.NrfFrameRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.NrfFrameRow.repeats type=i64 unit= optional=no since=1.0
+shape.NrfAddressRow since=1.0
+shape.NrfAddressRow.address type=text unit= optional=no since=1.0
+shape.NrfAddressRow.address_len type=i64 unit= optional=no since=1.0
+shape.NrfAddressRow.bit_rate type=hz unit=bit/s optional=no since=1.0
+shape.NrfAddressRow.crc_bits type=i64 unit= optional=no since=1.0
+shape.NrfAddressRow.length type=i64 unit= optional=no since=1.0
+shape.NrfAddressRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.NrfAddressRow.heard type=i64 unit= optional=yes since=1.0
+shape.NrfAddressRow.last_heard type=time unit= optional=yes since=1.0
+shape.NrfBadBurstRow since=1.0
+shape.NrfBadBurstRow.time_s type=f64 unit=s optional=no since=1.0
+shape.NrfBadBurstRow.duration_us type=f64 unit=µs optional=no since=1.0
+shape.NrfBadBurstRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.NrfAddressEvent since=1.0
+shape.NrfAddressEvent.source type=text unit= optional=no since=1.0
+shape.NrfAddressEvent.text type=text unit= optional=no since=1.0
+shape.NrfAddressEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.NrfAddressEvent.bit_rate type=hz unit=bit/s optional=no since=1.0
+shape.NrfAddressEvent.crc_bits type=i64 unit= optional=no since=1.0
+shape.SubghzchatFields since=1.0
+shape.SubghzchatFields.messages type=i64 unit= optional=no since=1.0
+shape.SubghzchatFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.SubghzchatFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.SubghzchatFields.bursts type=i64 unit= optional=no since=1.0
+shape.SubghzchatFields.decrypted type=i64 unit= optional=no since=1.0
+shape.SubghzchatFields.unreadable type=i64 unit= optional=no since=1.0
+shape.SubghzchatFields.repeats type=i64 unit= optional=no since=1.0
+shape.SubghzchatFields.sent type=i64 unit= optional=no since=1.0
+shape.SubghzchatFields.key_set type=bool unit= optional=no since=1.0
+shape.SubghzchatFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.SubghzchatFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.SubghzchatLineRow since=1.0
+shape.SubghzchatLineRow.time_s type=f64 unit=s optional=no since=1.0
+shape.SubghzchatLineRow.direction type=text unit= optional=no since=1.0
+shape.SubghzchatLineRow.kind type=choice(plain,decrypted,encrypted,repeat,octets) unit= optional=no since=1.0
+shape.SubghzchatLineRow.text type=text unit= optional=no since=1.0
+shape.SubghzchatLineRow.packets type=i64 unit= optional=no since=1.0
+shape.SubghzchatLineRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.SubghzchatLineRow.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.SubghzchatLineRow.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.SubghzchatLineRow.run type=text unit= optional=yes since=1.0
+shape.SubghzchatPacketRow since=1.0
+shape.SubghzchatPacketRow.time_s type=f64 unit=s optional=no since=1.0
+shape.SubghzchatPacketRow.length type=i64 unit=octets optional=no since=1.0
+shape.SubghzchatPacketRow.crc_ok type=bool unit= optional=no since=1.0
+shape.SubghzchatPacketRow.inverted type=bool unit= optional=no since=1.0
+shape.SubghzchatPacketRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.SubghzchatPacketRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.SubghzchatPacketRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.SubghzchatPacketRow.hex type=text unit= optional=no since=1.0
+shape.SubghzchatLineEvent since=1.0
+shape.SubghzchatLineEvent.text type=text unit= optional=no since=1.0
+shape.SubghzchatLineEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.SubghzchatLineEvent.kind type=choice(plain,decrypted,encrypted,repeat,octets) unit= optional=no since=1.0
+shape.SubghzchatLineEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.SubghzchatStateEvent since=1.0
+shape.SubghzchatStateEvent.text type=text unit= optional=no since=1.0
+shape.SubghzchatStateEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.DectFields since=1.0
+shape.DectFields.bases type=i64 unit= optional=no since=1.0
+shape.DectFields.base_bursts type=i64 unit= optional=no since=1.0
+shape.DectFields.handset_bursts type=i64 unit= optional=no since=1.0
+shape.DectFields.carrier type=hz unit=Hz optional=no since=1.0
+shape.DectFields.band type=text unit= optional=yes since=1.0
+shape.DectFields.carrier_number type=i64 unit= optional=yes since=1.0
+shape.DectDemodFields since=1.0
+shape.DectDemodFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.DectDemodFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.DectBaseRow since=1.0
+shape.DectBaseRow.rfpi type=text unit= optional=no since=1.0
+shape.DectBaseRow.arc type=text unit= optional=no since=1.0
+shape.DectBaseRow.emc type=i64 unit= optional=yes since=1.0
+shape.DectBaseRow.fpn type=i64 unit= optional=yes since=1.0
+shape.DectBaseRow.rpn type=i64 unit= optional=yes since=1.0
+shape.DectBaseRow.slots type=text unit= optional=no since=1.0
+shape.DectBaseRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.DectBaseRow.frequency type=hz unit=Hz optional=no since=1.0
+shape.DectBaseRow.last_qt type=text unit= optional=yes since=1.0
+shape.DectBaseRow.system_info type=text unit= optional=yes since=1.0
+shape.DectBaseRow.heard type=i64 unit= optional=yes since=1.0
+shape.DectBaseRow.last_heard type=time unit= optional=yes since=1.0
+shape.DectBurstRow since=1.0
+shape.DectBurstRow.time_s type=f64 unit=s optional=no since=1.0
+shape.DectBurstRow.from type=text unit= optional=no since=1.0
+shape.DectBurstRow.tail_type type=text unit= optional=no since=1.0
+shape.DectBurstRow.tail type=text unit= optional=no since=1.0
+shape.DectBurstRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.DectBaseEvent since=1.0
+shape.DectBaseEvent.source type=text unit= optional=no since=1.0
+shape.DectBaseEvent.text type=text unit= optional=no since=1.0
+shape.DectBaseEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.DectBaseEvent.rfpi type=text unit= optional=no since=1.0
+shape.DectBaseEvent.emc type=i64 unit= optional=yes since=1.0
+shape.NfcFields since=1.0
+shape.NfcFields.frames type=i64 unit= optional=no since=1.0
+shape.NfcFields.tags type=i64 unit= optional=no since=1.0
+shape.NfcFields.failures type=i64 unit= optional=no since=1.0
+shape.NfcFields.tag_frames type=i64 unit= optional=no since=1.0
+shape.NfcDetectFields since=1.0
+shape.NfcDetectFields.field_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.NfcDetectFields.subcarrier_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.NfcTagRow since=1.0
+shape.NfcTagRow.uid type=text unit= optional=no since=1.0
+shape.NfcTagRow.type type=text unit= optional=no since=1.0
+shape.NfcTagRow.hint type=text unit= optional=yes since=1.0
+shape.NfcTagRow.atqa type=text unit= optional=yes since=1.0
+shape.NfcTagRow.sak type=text unit= optional=yes since=1.0
+shape.NfcTagRow.historical type=text unit= optional=yes since=1.0
+shape.NfcTagRow.app_data type=text unit= optional=yes since=1.0
+shape.NfcTagRow.system type=text unit= optional=yes since=1.0
+shape.NfcTagRow.heard type=i64 unit= optional=yes since=1.0
+shape.NfcTagRow.last_heard type=time unit= optional=yes since=1.0
+shape.NfcFrameRow since=1.0
+shape.NfcFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.NfcFrameRow.direction type=text unit= optional=no since=1.0
+shape.NfcFrameRow.link type=text unit= optional=no since=1.0
+shape.NfcFrameRow.hex type=text unit= optional=no since=1.0
+shape.NfcFrameRow.name type=text unit= optional=no since=1.0
+shape.NfcFrameRow.crc type=text unit= optional=no since=1.0
+shape.NfcFrameRow.parity_ok type=bool unit= optional=no since=1.0
+shape.NfcFrameRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.NfcTagEvent since=1.0
+shape.NfcTagEvent.source type=text unit= optional=no since=1.0
+shape.NfcTagEvent.text type=text unit= optional=no since=1.0
+shape.NfcTagEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.NfcTagEvent.uid type=text unit= optional=no since=1.0
+shape.WisunFields since=1.0
+shape.WisunFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.WisunFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.WisunFields.corrected_frames type=i64 unit= optional=no since=1.0
+shape.WisunFields.fec_frames type=i64 unit= optional=no since=1.0
+shape.WisunFields.mode_switches type=i64 unit= optional=no since=1.0
+shape.WisunFields.encrypted_frames type=i64 unit= optional=no since=1.0
+shape.WisunFields.networks type=i64 unit= optional=no since=1.0
+shape.WisunFields.nodes type=i64 unit= optional=no since=1.0
+shape.WisunFields.links type=i64 unit= optional=no since=1.0
+shape.WisunNetworkRow since=1.0
+shape.WisunNetworkRow.name type=text unit= optional=yes since=1.0
+shape.WisunNetworkRow.border_router type=text unit= optional=yes since=1.0
+shape.WisunNetworkRow.size type=i64 unit= optional=yes since=1.0
+shape.WisunNetworkRow.nodes type=i64 unit= optional=no since=1.0
+shape.WisunNetworkRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.WisunNetworkRow.heard type=i64 unit= optional=yes since=1.0
+shape.WisunNetworkRow.last_heard type=time unit= optional=yes since=1.0
+shape.WisunNetworkRow.schedule type=text unit= optional=yes since=1.0
+shape.WisunNodeRow since=1.0
+shape.WisunNodeRow.vendor type=text unit= optional=yes since=1.0
+shape.WisunNodeRow.role type=text unit= optional=no since=1.0
+shape.WisunNodeRow.pan type=text unit= optional=yes refers_to=networks since=1.0
+shape.WisunNodeRow.cost type=i64 unit= optional=yes since=1.0
+shape.WisunNodeRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.WisunNodeRow.frames type=i64 unit= optional=no since=1.0
+shape.WisunNodeRow.last_heard type=time unit= optional=yes since=1.0
+shape.WisunNodeRow.freq type=hz unit=Hz optional=no since=1.0
+shape.WisunNodeRow.authenticator type=text unit= optional=yes since=1.0
+shape.WisunNodeRow.eap type=text unit= optional=yes since=1.0
+shape.WisunNodeRow.last type=text unit= optional=no since=1.0
+shape.WisunLinkRow since=1.0
+shape.WisunLinkRow.from type=text unit= optional=no refers_to=nodes since=1.0
+shape.WisunLinkRow.to type=text unit= optional=no refers_to=nodes since=1.0
+shape.WisunLinkRow.frames type=i64 unit= optional=no since=1.0
+shape.WisunLinkRow.acks type=i64 unit= optional=no since=1.0
+shape.WisunLinkRow.rsl_dbm type=f64 unit=dBm optional=yes since=1.0
+shape.WisunLinkRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.WisunLinkRow.last_heard type=time unit= optional=yes since=1.0
+shape.WisunFrameRow since=1.0
+shape.WisunFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.WisunFrameRow.freq type=hz unit=Hz optional=no since=1.0
+shape.WisunFrameRow.ch type=text unit= optional=yes since=1.0
+shape.WisunFrameRow.kbps type=i64 unit= optional=no since=1.0
+shape.WisunFrameRow.type type=text unit= optional=no since=1.0
+shape.WisunFrameRow.route type=text unit= optional=no since=1.0
+shape.WisunFrameRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.WisunFrameRow.details type=text unit= optional=no since=1.0
+shape.WisunFrameRow.mpdu type=text unit= optional=no since=1.0
+shape.WisunPanEvent since=1.0
+shape.WisunPanEvent.source type=text unit= optional=no since=1.0
+shape.WisunPanEvent.text type=text unit= optional=no since=1.0
+shape.WisunPanEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.WisunPanEvent.pan type=text unit= optional=no since=1.0
+shape.ThreadFields since=1.0
+shape.ThreadFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.ThreadFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.ThreadFields.encrypted_frames type=i64 unit= optional=no since=1.0
+shape.ThreadFields.beacons type=i64 unit= optional=no since=1.0
+shape.ThreadFields.data_frames type=i64 unit= optional=no since=1.0
+shape.ThreadFields.acks type=i64 unit= optional=no since=1.0
+shape.ThreadFields.commands type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch11 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch12 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch13 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch14 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch15 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch16 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch17 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch18 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch19 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch20 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch21 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch22 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch23 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch24 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch25 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.ch26 type=i64 unit= optional=no since=1.0
+shape.ThreadFields.frames_per_s type=i64 unit= optional=no since=1.0
+shape.ThreadFields.channel type=i64 unit= optional=no since=1.0
+shape.ThreadFields.scanning type=bool unit= optional=no since=1.0
+shape.ThreadFields.networks type=i64 unit= optional=no since=1.0
+shape.ThreadFields.devices type=i64 unit= optional=no since=1.0
+shape.ThreadFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.ThreadFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.ThreadFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.ThreadNetworkRow since=1.0
+shape.ThreadNetworkRow.pan type=text unit= optional=no since=1.0
+shape.ThreadNetworkRow.ch type=i64 unit= optional=no since=1.0
+shape.ThreadNetworkRow.network_name type=text unit= optional=yes since=1.0
+shape.ThreadNetworkRow.ext_pan type=text unit= optional=yes since=1.0
+shape.ThreadNetworkRow.version type=i64 unit= optional=yes since=1.0
+shape.ThreadNetworkRow.joining_open type=bool unit= optional=no since=1.0
+shape.ThreadNetworkRow.thread_seen type=bool unit= optional=no since=1.0
+shape.ThreadNetworkRow.coordinator type=text unit= optional=yes since=1.0
+shape.ThreadNetworkRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ThreadNetworkRow.heard type=i64 unit= optional=yes since=1.0
+shape.ThreadNetworkRow.last_heard type=time unit= optional=yes since=1.0
+shape.ThreadFrameRow since=1.0
+shape.ThreadFrameRow.utc type=time unit= optional=yes since=1.0
+shape.ThreadFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.ThreadFrameRow.ch type=i64 unit= optional=no since=1.0
+shape.ThreadFrameRow.type type=text unit= optional=no since=1.0
+shape.ThreadFrameRow.source type=text unit= optional=no since=1.0
+shape.ThreadFrameRow.target type=text unit= optional=no since=1.0
+shape.ThreadFrameRow.pan type=text unit= optional=yes since=1.0
+shape.ThreadFrameRow.len type=i64 unit= optional=no since=1.0
+shape.ThreadFrameRow.encrypted type=bool unit= optional=no since=1.0
+shape.ThreadFrameRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ThreadFrameRow.seq type=i64 unit= optional=yes since=1.0
+shape.ThreadFrameRow.ack_request type=bool unit= optional=no since=1.0
+shape.ThreadFrameRow.details type=text unit= optional=no since=1.0
+shape.ThreadNetworkEvent since=1.0
+shape.ThreadNetworkEvent.source type=text unit= optional=no since=1.0
+shape.ThreadNetworkEvent.text type=text unit= optional=no since=1.0
+shape.ThreadNetworkEvent.network_name type=text unit= optional=no since=1.0
+shape.ThreadNetworkEvent.ext_pan type=text unit= optional=no since=1.0
+shape.ThreadNetworkEvent.ch type=i64 unit= optional=no since=1.0
+shape.ThreadNetworkEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ThreadDeviceEvent since=1.0
+shape.ThreadDeviceEvent.source type=text unit= optional=no since=1.0
+shape.ThreadDeviceEvent.pan type=text unit= optional=yes since=1.0
+shape.ThreadDeviceEvent.ch type=i64 unit= optional=no since=1.0
+shape.ThreadDeviceEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.MiotyFields since=1.0
+shape.MiotyFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.MiotyFields.bursts_detected type=i64 unit= optional=no since=1.0
+shape.MiotyFields.failed_hypotheses type=i64 unit= optional=no since=1.0
+shape.MiotyFields.devices type=i64 unit= optional=no since=1.0
+shape.MiotyFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.MiotyFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.MiotyFields.note type=text unit= optional=no since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.MiotyFrameRow since=1.0
+shape.MiotyFrameRow.utc type=time unit= optional=yes since=1.0
+shape.MiotyFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.MiotyFrameRow.id type=text unit= optional=no since=1.0
+shape.MiotyFrameRow.pattern type=text unit= optional=no since=1.0
+shape.MiotyFrameRow.psi type=i64 unit= optional=no since=1.0
+shape.MiotyFrameRow.mmode type=i64 unit= optional=no since=1.0
+shape.MiotyFrameRow.mac type=text unit= optional=no since=1.0
+shape.MiotyFrameRow.mpdu type=text unit= optional=no since=1.0
+shape.MiotyFrameRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.MiotyFrameRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.MiotyFrameRow.bursts_matched type=i64 unit=of%2024 optional=no since=1.0
+shape.MiotyDeviceRow since=1.0
+shape.MiotyDeviceRow.id type=text unit= optional=no since=1.0
+shape.MiotyDeviceRow.frames type=i64 unit= optional=no since=1.0
+shape.MiotyDeviceRow.counter type=i64 unit= optional=no since=1.0
+shape.MiotyDeviceRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.MiotyDeviceRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.MiotyDeviceRow.first_heard type=time unit= optional=yes since=1.0
+shape.MiotyDeviceRow.last_heard type=time unit= optional=yes since=1.0
+shape.MiotyFrameEvent since=1.0
+shape.MiotyFrameEvent.id type=text unit= optional=no since=1.0
+shape.MiotyFrameEvent.pattern type=text unit= optional=no since=1.0
+shape.MiotyFrameEvent.psi type=i64 unit= optional=no since=1.0
+shape.MiotyFrameEvent.mac type=text unit= optional=no since=1.0
+shape.MiotyFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.NrPlusFields since=1.0
+shape.NrPlusFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.NrPlusFields.stf_detections type=i64 unit= optional=no since=1.0
+shape.NrPlusFields.devices type=i64 unit= optional=no since=1.0
+shape.NrPlusFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.NrPlusFields.cfo_hz type=f64 unit=Hz optional=yes since=1.0
+shape.NrPlusFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.NrPlusFields.note type=text unit= optional=no since=1.0
+shape.NrPlusPacketRow since=1.0
+shape.NrPlusPacketRow.utc type=time unit= optional=yes since=1.0
+shape.NrPlusPacketRow.time_s type=f64 unit=s optional=no since=1.0
+shape.NrPlusPacketRow.id type=text unit= optional=no since=1.0
+shape.NrPlusPacketRow.type type=text unit= optional=no since=1.0
+shape.NrPlusPacketRow.text type=text unit= optional=no since=1.0
+shape.NrPlusPacketRow.cfo_hz type=f64 unit=Hz optional=no since=1.0
+shape.NrPlusPacketRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.NrPlusDeviceRow since=1.0
+shape.NrPlusDeviceRow.transmitter type=text unit= optional=no since=1.0
+shape.NrPlusDeviceRow.id type=text unit= optional=no since=1.0
+shape.NrPlusDeviceRow.packets type=i64 unit= optional=no since=1.0
+shape.NrPlusDeviceRow.text type=text unit= optional=no since=1.0
+shape.NrPlusDeviceRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.NrPlusDeviceRow.first_heard type=time unit= optional=yes since=1.0
+shape.NrPlusDeviceRow.last_heard type=time unit= optional=yes since=1.0
+shape.NrPlusPacketEvent since=1.0
+shape.NrPlusPacketEvent.id type=text unit= optional=no since=1.0
+shape.NrPlusPacketEvent.type type=text unit= optional=no since=1.0
+shape.NrPlusPacketEvent.text type=text unit= optional=no since=1.0
+shape.NrPlusPacketEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.NprFields since=1.0
+shape.NprFields.sync_words type=i64 unit= optional=no since=1.0
+shape.NprFields.rates_searched type=text unit=ksym/s optional=no since=1.0
+shape.NprFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.NprFields.note type=text unit= optional=no since=1.0
+shape.NprFrameRow since=1.0
+shape.NprFrameRow.utc type=time unit= optional=yes since=1.0
+shape.NprFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.NprFrameRow.network type=text unit= optional=no since=1.0
+shape.NprFrameRow.symbol_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.NprFrameRow.sync type=text unit= optional=no since=1.0
+shape.NprFrameRow.tuning_hz type=f64 unit=Hz optional=no since=1.0
+shape.NprFrameRow.payload type=text unit= optional=no since=1.0
+shape.NprNetworkRow since=1.0
+shape.NprNetworkRow.network type=text unit= optional=no since=1.0
+shape.NprNetworkRow.frames type=i64 unit= optional=no since=1.0
+shape.NprNetworkRow.symbol_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.NprNetworkRow.first_heard type=time unit= optional=yes since=1.0
+shape.NprNetworkRow.last_heard type=time unit= optional=yes since=1.0
+shape.NprFrameEvent since=1.0
+shape.NprFrameEvent.network type=text unit= optional=no since=1.0
+shape.NprFrameEvent.symbol_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.NprFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.DsrcFields since=1.0
+shape.DsrcFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.DsrcFields.broadcast_frames type=i64 unit= optional=no since=1.0
+shape.DsrcFields.private_frames type=i64 unit= optional=no since=1.0
+shape.DsrcFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.DsrcFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.DsrcFields.note type=text unit= optional=no since=1.0
+shape.DsrcFrameRow since=1.0
+shape.DsrcFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.DsrcFrameRow.kind type=text unit= optional=no since=1.0
+shape.DsrcFrameRow.bytes type=i64 unit= optional=no since=1.0
+shape.DsrcFrameRow.control type=text unit= optional=yes since=1.0
+shape.DsrcFrameRow.identifier type=text unit= optional=no since=1.0
+shape.DsrcFrameEvent since=1.0
+shape.DsrcFrameEvent.kind type=text unit= optional=no since=1.0
+shape.DsrcFrameEvent.bytes type=i64 unit= optional=no since=1.0
+shape.DsrcFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+ism since=1.0
+ism.fields.IsmDetectFields since=1.0
+ism.fields.DecodeFields since=1.0
+ism.fields.SigfoxFinderFields since=1.0
+ism.fields.GuardFields writer=receiver since=1.0
+ism.fields.IsmFields since=1.0
+ism.fields.IsmPulseFields since=1.0
+ism.component.burstdetect.fields.IsmDetectFields shared=bursts_detected;noise_floor_dbfs;input_level_dbfs since=1.0
+ism.component.decode.fields.DecodeFields shared=readings;unknown_trains since=1.0
+ism.component.sfx_finder.fields.SigfoxFinderFields shared=carriers since=1.0
+ism.kept.devices since=1.0
+ism.kept.zwave since=1.0
+ism.kept.log since=1.0
+ism.kept.unknown since=1.0
+ism.kept.sigfox since=1.0
+ism.kept.pulse_frames since=1.0
+ism.kept.IsmFields since=1.0
+ism.kept.DecodeFields since=1.0
+ism.kept.SigfoxFinderFields since=1.0
+ism.kept.IsmDetectFields.bursts_detected since=1.0
+ism.table.devices row=IsmDeviceRow cap=300 since=1.0
+ism.table.zwave row=IsmZwaveRow cap=300 since=1.0
+ism.table.log row=IsmLogRow cap=400 since=1.0
+ism.table.unknown row=IsmUnknownRow cap=60 since=1.0
+ism.table.sigfox row=IsmSigfoxRow cap=300 since=1.0
+ism.table.pulse_frames row=IsmPulseFrameRow cap=500 since=1.0
+ism.series.sfx_finder.waterfall x_unit=column y_unit=level since=1.0
+ism.event.ism.device fields=IsmDeviceEvent since=1.0
+ism.event.sigfox.message fields=SigfoxMessageEvent since=1.0
+ism.event.ookdev.reading fields=ReadingFields since=1.0
+ism.event.ism.pulse_frame fields=IsmPulseFrameEvent since=1.0
+ism.setting.threshold type=f64 unit=dB since=1.0
+ism.setting.gen_scene type=choice(0,1,2) unit= since=1.0
+ism.setting.gen_carrier type=bool unit= since=1.0
+ism.setting.submode type=choice(devices,pulse_analyser) unit= since=1.0
+ism.setting.frame_gap_ms type=f64 unit=ms since=1.0
+ism.setting.min_pulses type=i64 unit= since=1.0
+ism.setting.cluster_ratio type=f64 unit= since=1.0
+ism.setting.gen_pattern type=choice(pwm,ppm,manchester) unit= since=1.0
+ism.setting.gen_bits type=text unit= since=1.0
+ism.setting.gen_t_us type=f64 unit=µs since=1.0
+ism.setting.gen_pulse_us type=f64 unit=µs since=1.0
+ism.setting.gen_gap0_us type=f64 unit=µs since=1.0
+ism.setting.gen_gap1_us type=f64 unit=µs since=1.0
+ism.setting.gen_jitter type=f64 unit= since=1.0
+ism.setting.gen_frames type=i64 unit= since=1.0
+ism.setting.gen_frame_gap_s type=f64 unit=s since=1.0
+ism.command.clear args= reply= since=1.0
+ism.command.remove args=row:text reply= since=1.0
+wmbus since=1.0
+wmbus.fields.WmbusFields since=1.0
+wmbus.fields.GuardFields writer=receiver since=1.0
+wmbus.kept.meters since=1.0
+wmbus.kept.meter_records since=1.0
+wmbus.kept.frames since=1.0
+wmbus.kept.WmbusFields since=1.0
+wmbus.table.meters row=WmbusMeterRow cap=300 since=1.0
+wmbus.table.meter_records row=WmbusRecordRow cap=3000 since=1.0
+wmbus.table.frames row=WmbusFrameRow cap=200 since=1.0
+wmbus.table.channels row=WmbusChannelRow cap=16 since=1.0
+wmbus.series.level_history x_unit=s y_unit=dBFS since=1.0
+wmbus.series.trace x_unit=chip y_unit= since=1.0
+wmbus.event.wmbus.frame fields=WmbusFrameEvent since=1.0
+wmbus.setting.gen_plan type=choice(868,169) unit= since=1.0
+wmbus.setting.gen_phy type=choice(all,S1,T1,C1A,C1B,R2,N1) unit= since=1.0
+wmbus.setting.gen_encrypted type=bool unit= since=1.0
+wmbus.setting.gen_silence type=bool unit= since=1.0
+wmbus.command.clear args= reply= since=1.0
+wmbus.command.remove args=row:text reply= since=1.0
+zwave since=1.0
+zwave.fields.ZwaveFields since=1.0
+zwave.fields.GuardFields writer=receiver since=1.0
+zwave.kept.frames since=1.0
+zwave.kept.nodes since=1.0
+zwave.kept.networks since=1.0
+zwave.kept.classes since=1.0
+zwave.kept.ZwaveFields.frames_ok since=1.0
+zwave.kept.ZwaveFields.frames_bad since=1.0
+zwave.kept.ZwaveFields.networks since=1.0
+zwave.kept.ZwaveFields.nodes since=1.0
+zwave.kept.ZwaveFields.frames_r1 since=1.0
+zwave.kept.ZwaveFields.frames_r2 since=1.0
+zwave.kept.ZwaveFields.frames_r3 since=1.0
+zwave.kept.ZwaveFields.s0_frames since=1.0
+zwave.kept.ZwaveFields.s2_frames since=1.0
+zwave.kept.ZwaveFields.acks since=1.0
+zwave.table.frames row=ZwaveFrameRow cap=600 since=1.0
+zwave.table.nodes row=ZwaveNodeRow cap=1000 since=1.0
+zwave.table.networks row=ZwaveNetworkRow cap=64 since=1.0
+zwave.table.channels row=ZwaveChannelRow cap=32 since=1.0
+zwave.table.classes row=ZwaveClassRow cap=256 since=1.0
+zwave.event.zwave.frame fields=ZwaveFrameEvent since=1.0
+zwave.event.zwave.state fields=ZwaveStateEvent since=1.0
+zwave.setting.channels type=text unit= since=1.0
+zwave.setting.sof_f0_r3 type=bool unit= since=1.0
+zwave.setting.gen_centre_hz type=hz unit=Hz since=1.0
+zwave.command.clear args= reply= since=1.0
+zwave.command.remove args=row:text reply= since=1.0
+zigbee since=1.0
+zigbee.fields.ZigbeeFields since=1.0
+zigbee.fields.GuardFields writer=receiver since=1.0
+zigbee.kept.networks since=1.0
+zigbee.kept.devices since=1.0
+zigbee.kept.frames since=1.0
+zigbee.kept.ZigbeeFields.frames_ok since=1.0
+zigbee.kept.ZigbeeFields.frames_bad since=1.0
+zigbee.kept.ZigbeeFields.candidates since=1.0
+zigbee.kept.ZigbeeFields.encrypted_frames since=1.0
+zigbee.kept.ZigbeeFields.networks since=1.0
+zigbee.kept.ZigbeeFields.devices since=1.0
+zigbee.table.networks row=ZigbeeNetworkRow cap=100 since=1.0
+zigbee.table.devices row=PanDeviceRow cap=600 since=1.0
+zigbee.table.frames row=ZigbeeFrameRow cap=600 since=1.0
+zigbee.series.frames_per_second x_unit=s y_unit=frames since=1.0
+zigbee.event.zigbee.pan fields=ZigbeePanEvent since=1.0
+zigbee.setting.channel type=i64 unit= since=1.0
+zigbee.setting.scan type=bool unit= since=1.0
+zigbee.setting.dwell type=duration unit=s since=1.0
+zigbee.setting.gen_bad_fcs type=bool unit= since=1.0
+zigbee.setting.gen_interferer_db type=f64 unit=dB since=1.0
+zigbee.setting.gen_interferer_hz type=hz unit=Hz since=1.0
+zigbee.command.clear args= reply= since=1.0
+zigbee.command.remove args=row:text reply= since=1.0
+sigfox since=1.0
+sigfox.fields.SigfoxFields since=1.0
+sigfox.fields.SigfoxFinderFields since=1.0
+sigfox.fields.SigfoxDemodFields since=1.0
+sigfox.fields.GuardFields writer=receiver since=1.0
+sigfox.component.finder.fields.SigfoxFinderFields shared=carriers since=1.0
+sigfox.component.demod.fields.SigfoxDemodFields shared=carriers_bad since=1.0
+sigfox.kept.sigfox since=1.0
+sigfox.kept.SigfoxFields.frames_ok since=1.0
+sigfox.kept.SigfoxFields.messages since=1.0
+sigfox.kept.SigfoxFinderFields since=1.0
+sigfox.kept.SigfoxDemodFields since=1.0
+sigfox.table.sigfox row=SigfoxMessageRow cap=300 since=1.0
+sigfox.series.waterfall x_unit=column y_unit=level since=1.0
+sigfox.event.sigfox.message fields=SigfoxMessageEvent since=1.0
+sigfox.setting.gen_bit_rate type=choice(100,600) unit= since=1.0
+sigfox.setting.gen_reps type=choice(3,1) unit= since=1.0
+sigfox.setting.gen_gap type=duration unit=s since=1.0
+sigfox.command.clear args= reply= since=1.0
+ant since=1.0
+ant.fields.AntFields since=1.0
+ant.fields.AntDemodFields since=1.0
+ant.component.demod.fields.AntDemodFields shared=frames_bad;syncs since=1.0
+ant.component.demod.dropped since=1.0
+ant.kept.sensors since=1.0
+ant.kept.frames since=1.0
+ant.kept.AntFields.frames_ok since=1.0
+ant.kept.AntFields.sensors since=1.0
+ant.kept.AntFields.heart_rate_bpm since=1.0
+ant.kept.AntDemodFields since=1.0
+ant.table.sensors row=AntSensorRow cap=100 since=1.0
+ant.table.frames row=AntFrameRow cap=400 since=1.0
+ant.series.history x_unit=s y_unit= since=1.0
+ant.event.ant.sensor fields=AntSensorEvent since=1.0
+ant.setting.other_networks type=bool unit= since=1.0
+ant.setting.wheel_mm type=f64 unit=mm since=1.0
+ant.setting.gen_sensors type=choice(all,strap,none) unit= since=1.0
+ant.command.clear args= reply= since=1.0
+ant.command.remove args=row:text reply= since=1.0
+nrf24 since=1.0
+nrf24.fields.NrfFields since=1.0
+nrf24.component.demod.dropped since=1.0
+nrf24.kept.frames since=1.0
+nrf24.kept.addresses since=1.0
+nrf24.kept.bad_bursts since=1.0
+nrf24.kept.NrfFields.frames since=1.0
+nrf24.kept.NrfFields.bad_bursts since=1.0
+nrf24.kept.NrfFields.bursts since=1.0
+nrf24.kept.NrfFields.crc16_frames since=1.0
+nrf24.kept.NrfFields.crc8_frames since=1.0
+nrf24.kept.NrfFields.addresses since=1.0
+nrf24.table.frames row=NrfFrameRow cap=300 since=1.0
+nrf24.table.addresses row=NrfAddressRow cap=100 since=1.0
+nrf24.table.bad_bursts row=NrfBadBurstRow cap=60 since=1.0
+nrf24.event.nrf24.address fields=NrfAddressEvent since=1.0
+nrf24.setting.channel type=i64 unit= since=1.0
+nrf24.setting.gen_rate type=choice(1000,2000,250,all) unit= since=1.0
+nrf24.setting.gen_crc type=choice(16,8,both) unit= since=1.0
+nrf24.setting.gen_random type=bool unit= since=1.0
+nrf24.command.clear args= reply= since=1.0
+nrf24.command.remove args=row:text reply= since=1.0
+subghzchat since=1.0
+subghzchat.fields.SubghzchatFields since=1.0
+subghzchat.fields.GuardFields writer=receiver since=1.0
+subghzchat.kept.chat since=1.0
+subghzchat.kept.packets since=1.0
+subghzchat.kept.SubghzchatFields.messages since=1.0
+subghzchat.kept.SubghzchatFields.frames_ok since=1.0
+subghzchat.kept.SubghzchatFields.frames_bad since=1.0
+subghzchat.kept.SubghzchatFields.bursts since=1.0
+subghzchat.kept.SubghzchatFields.decrypted since=1.0
+subghzchat.kept.SubghzchatFields.unreadable since=1.0
+subghzchat.kept.SubghzchatFields.repeats since=1.0
+subghzchat.kept.SubghzchatFields.sent since=1.0
+subghzchat.kept.SubghzchatFields.key_set since=1.0
+subghzchat.table.chat row=SubghzchatLineRow cap=500 since=1.0
+subghzchat.table.packets row=SubghzchatPacketRow cap=200 since=1.0
+subghzchat.event.subghzchat.line fields=SubghzchatLineEvent since=1.0
+subghzchat.event.subghzchat.state fields=SubghzchatStateEvent since=1.0
+subghzchat.setting.name type=text unit= since=1.0
+subghzchat.setting.encryption type=choice(off,password,hex) unit= since=1.0
+subghzchat.setting.password type=text unit= since=1.0
+subghzchat.setting.key type=text unit= since=1.0
+subghzchat.setting.frequency type=choice(433.92,315.00,390.00,868.35,915.00) unit= since=1.0
+subghzchat.command.clear args= reply= since=1.0
+dect since=1.0
+dect.fields.DectFields since=1.0
+dect.fields.DectDemodFields since=1.0
+dect.component.demod.fields.DectDemodFields shared=frames_ok;frames_bad since=1.0
+dect.component.demod.dropped since=1.0
+dect.kept.bases since=1.0
+dect.kept.bursts since=1.0
+dect.kept.DectFields.bases since=1.0
+dect.kept.DectFields.base_bursts since=1.0
+dect.kept.DectFields.handset_bursts since=1.0
+dect.kept.DectDemodFields since=1.0
+dect.table.bases row=DectBaseRow cap=60 since=1.0
+dect.table.bursts row=DectBurstRow cap=300 since=1.0
+dect.event.dect.base fields=DectBaseEvent since=1.0
+dect.setting.band type=choice(eu,us,br,la,ism900) unit= since=1.0
+dect.setting.scan type=bool unit= since=1.0
+dect.setting.dwell type=duration unit=s since=1.0
+dect.setting.gen_option type=choice(0,1,2) unit= since=1.0
+dect.command.clear args= reply= since=1.0
+dect.command.remove args=row:text reply= since=1.0
+nfc since=1.0
+nfc.fields.NfcFields since=1.0
+nfc.fields.NfcDetectFields since=1.0
+nfc.fields.GuardFields writer=receiver since=1.0
+nfc.component.detect.fields.NfcDetectFields shared=field_dbfs;subcarrier_dbfs since=1.0
+nfc.kept.tags since=1.0
+nfc.kept.frames since=1.0
+nfc.kept.NfcFields since=1.0
+nfc.table.tags row=NfcTagRow cap=100 since=1.0
+nfc.table.frames row=NfcFrameRow cap=200 since=1.0
+nfc.event.nfc.tag fields=NfcTagEvent since=1.0
+nfc.command.clear args= reply= since=1.0
+nfc.command.remove args=row:text reply= since=1.0
+wisun since=1.0
+wisun.fields.WisunFields since=1.0
+wisun.fields.GuardFields writer=receiver since=1.0
+wisun.kept.networks since=1.0
+wisun.kept.nodes since=1.0
+wisun.kept.links since=1.0
+wisun.kept.frames since=1.0
+wisun.kept.WisunFields.frames_ok since=1.0
+wisun.kept.WisunFields.frames_bad since=1.0
+wisun.kept.WisunFields.corrected_frames since=1.0
+wisun.kept.WisunFields.fec_frames since=1.0
+wisun.kept.WisunFields.mode_switches since=1.0
+wisun.kept.WisunFields.encrypted_frames since=1.0
+wisun.kept.WisunFields.networks since=1.0
+wisun.kept.WisunFields.nodes since=1.0
+wisun.kept.WisunFields.links since=1.0
+wisun.table.networks row=WisunNetworkRow cap=64 since=1.0
+wisun.table.nodes row=WisunNodeRow cap=2000 since=1.0
+wisun.table.links row=WisunLinkRow cap=4000 since=1.0
+wisun.table.frames row=WisunFrameRow cap=800 since=1.0
+wisun.series.hops x_unit=s y_unit=MHz since=1.0
+wisun.event.wisun.pan fields=WisunPanEvent since=1.0
+wisun.setting.ranges type=text unit= since=1.0
+wisun.setting.classes type=text unit= since=1.0
+wisun.setting.gen_span type=hz unit=Hz since=1.0
+wisun.setting.gen_centre_hz type=hz unit=Hz since=1.0
+wisun.command.clear args= reply= since=1.0
+wisun.command.remove args=row:text reply= since=1.0
+thread since=1.0
+thread.fields.ThreadFields since=1.0
+thread.fields.GuardFields writer=receiver since=1.0
+thread.kept.networks since=1.0
+thread.kept.devices since=1.0
+thread.kept.frames since=1.0
+thread.kept.ThreadFields.frames_ok since=1.0
+thread.kept.ThreadFields.frames_bad since=1.0
+thread.kept.ThreadFields.encrypted_frames since=1.0
+thread.kept.ThreadFields.beacons since=1.0
+thread.kept.ThreadFields.data_frames since=1.0
+thread.kept.ThreadFields.acks since=1.0
+thread.kept.ThreadFields.commands since=1.0
+thread.kept.ThreadFields.ch11 since=1.0
+thread.kept.ThreadFields.ch12 since=1.0
+thread.kept.ThreadFields.ch13 since=1.0
+thread.kept.ThreadFields.ch14 since=1.0
+thread.kept.ThreadFields.ch15 since=1.0
+thread.kept.ThreadFields.ch16 since=1.0
+thread.kept.ThreadFields.ch17 since=1.0
+thread.kept.ThreadFields.ch18 since=1.0
+thread.kept.ThreadFields.ch19 since=1.0
+thread.kept.ThreadFields.ch20 since=1.0
+thread.kept.ThreadFields.ch21 since=1.0
+thread.kept.ThreadFields.ch22 since=1.0
+thread.kept.ThreadFields.ch23 since=1.0
+thread.kept.ThreadFields.ch24 since=1.0
+thread.kept.ThreadFields.ch25 since=1.0
+thread.kept.ThreadFields.ch26 since=1.0
+thread.kept.ThreadFields.networks since=1.0
+thread.kept.ThreadFields.devices since=1.0
+thread.table.networks row=ThreadNetworkRow cap=100 since=1.0
+thread.table.devices row=PanDeviceRow cap=600 since=1.0
+thread.table.frames row=ThreadFrameRow cap=600 since=1.0
+thread.event.thread.network fields=ThreadNetworkEvent since=1.0
+thread.event.thread.device fields=ThreadDeviceEvent since=1.0
+thread.setting.channel type=i64 unit= since=1.0
+thread.setting.scan type=bool unit= since=1.0
+thread.setting.dwell type=duration unit=s since=1.0
+thread.setting.gen_network_name type=text unit= since=1.0
+thread.setting.gen_bad_fcs type=bool unit= since=1.0
+thread.setting.gen_interferer_db type=f64 unit=dB since=1.0
+thread.setting.gen_interferer_hz type=hz unit=Hz since=1.0
+thread.command.clear args= reply= since=1.0
+thread.command.remove args=row:text reply= since=1.0
+mioty since=1.0
+mioty.fields.MiotyFields since=1.0
+mioty.fields.DecoderFields since=1.0
+mioty.kept.frames since=1.0
+mioty.kept.devices since=1.0
+mioty.kept.MiotyFields.frames_ok since=1.0
+mioty.kept.MiotyFields.bursts_detected since=1.0
+mioty.kept.MiotyFields.failed_hypotheses since=1.0
+mioty.kept.MiotyFields.devices since=1.0
+mioty.table.frames row=MiotyFrameRow cap=200 since=1.0
+mioty.table.devices row=MiotyDeviceRow cap=200 since=1.0
+mioty.event.mioty.frame fields=MiotyFrameEvent since=1.0
+mioty.setting.min_bursts type=i64 unit=count since=1.0
+mioty.command.clear args= reply= since=1.0
+dect_nrplus since=1.0
+dect_nrplus.fields.NrPlusFields since=1.0
+dect_nrplus.fields.DecoderFields since=1.0
+dect_nrplus.kept.packets since=1.0
+dect_nrplus.kept.devices since=1.0
+dect_nrplus.kept.NrPlusFields.frames_ok since=1.0
+dect_nrplus.kept.NrPlusFields.stf_detections since=1.0
+dect_nrplus.kept.NrPlusFields.devices since=1.0
+dect_nrplus.table.packets row=NrPlusPacketRow cap=300 since=1.0
+dect_nrplus.table.devices row=NrPlusDeviceRow cap=200 since=1.0
+dect_nrplus.event.dect_nrplus.packet fields=NrPlusPacketEvent since=1.0
+dect_nrplus.command.clear args= reply= since=1.0
+npr70 since=1.0
+npr70.fields.NprFields since=1.0
+npr70.fields.DecoderFields since=1.0
+npr70.kept.frames since=1.0
+npr70.kept.networks since=1.0
+npr70.kept.NprFields.sync_words since=1.0
+npr70.table.frames row=NprFrameRow cap=300 since=1.0
+npr70.table.networks row=NprNetworkRow cap=16 since=1.0
+npr70.event.npr70.frame fields=NprFrameEvent since=1.0
+npr70.setting.rates type=text unit=ksym/s since=1.0
+npr70.command.clear args= reply= since=1.0
+dsrc_toll since=1.0
+dsrc_toll.fields.DsrcFields since=1.0
+dsrc_toll.fields.DecoderFields since=1.0
+dsrc_toll.kept.frames since=1.0
+dsrc_toll.kept.DsrcFields.frames_ok since=1.0
+dsrc_toll.kept.DsrcFields.broadcast_frames since=1.0
+dsrc_toll.kept.DsrcFields.private_frames since=1.0
+dsrc_toll.kept.DsrcFields.frames_bad since=1.0
+dsrc_toll.table.frames row=DsrcFrameRow cap=300 since=1.0
+dsrc_toll.event.dsrc_toll.frame fields=DsrcFrameEvent since=1.0
+dsrc_toll.setting.bit_rate type=hz unit=Hz since=1.0
+dsrc_toll.setting.gen_depth type=f64 unit= since=1.0
+dsrc_toll.command.clear args= reply= since=1.0

@@ -1,0 +1,10 @@
+[package]
+name = "sdrkit-dev-interface"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "What is written from the interface description of a stack family: the registry record and its check, the C header and the Swift file"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }

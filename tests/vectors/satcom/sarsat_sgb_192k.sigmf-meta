@@ -1,0 +1,14 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 192000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic COSPAS-SARSAT second-generation beacon bursts (C/S T.018), 8.3 s. 1.0 s of noise, then four made-up test beacons in turn, each a 1 s DSSS OQPSK burst (38 400 chips/s, normal-mode PRN segments, 250-bit message with BCH(250,202)), 0.8 s apart. The carrier is 2 kHz above the capture centre, i.e. at 406.050 MHz (22 kHz above the 406.028 MHz dial, which sits 20 kHz below the centre). Signal-to-noise 25 dB in 2.4 kHz equivalent. See specs/satcom.md, COSPAS-SARSAT section.",
+    "core:recorder": "satcom test generator, noise seed 9",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    { "core:sample_start": 0, "core:frequency": 406048000.0 }
+  ],
+  "annotations": []
+}

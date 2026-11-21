@@ -1,0 +1,2153 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "pmr446",
+      "name": "PMR446 (16 analogue channels)",
+      "kind": "personal",
+      "source": {
+        "publisher": "CEPT ECC",
+        "title": "ECC Decision on PMR446",
+        "number": "ECC/DEC/(15)05",
+        "date": "2015-07-03",
+        "clause": "decides 1 and 3",
+        "url": "https://docdb.cept.org/download/2782"
+      },
+      "also": [
+        {
+          "publisher": "Ofcom",
+          "title": "IR 2030: UK Interface Requirements for licence exempt short range devices",
+          "number": "IR 2030",
+          "date": "2026-04-07",
+          "clause": "IR2030/1/10-13, IR2030/34/1"
+        },
+        {
+          "publisher": "BNetzA",
+          "title": "Frequenzplan gemaess Paragraph 90 TKG",
+          "date": "2026-08",
+          "clause": "entry 248011",
+          "url": "https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Downloads/DE/Sachgebiete/Telekommunikation/Unternehmen_Institutionen/Frequenzen/202608_Frequenzplan.pdf"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "PMR446",
+          "service": "land_mobile",
+          "start_hz": 446000000,
+          "end_hz": 446200000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "numbering": {
+            "first": 1,
+            "last": 16,
+            "first_centre_hz": 446006250,
+            "step_hz": 12500,
+            "prefix": "PMR "
+          }
+        }
+      ]
+    },
+    {
+      "id": "dpmr446",
+      "name": "dPMR446 and DMR tier I (32 digital channels)",
+      "kind": "personal",
+      "source": {
+        "publisher": "CEPT ECC",
+        "title": "ECC Decision on PMR446",
+        "number": "ECC/DEC/(15)05",
+        "date": "2015-07-03",
+        "clause": "decides 1 and 3",
+        "url": "https://docdb.cept.org/download/2782"
+      },
+      "verified": true,
+      "bands": [
+        {
+          "name": "PMR446 digital",
+          "service": "land_mobile",
+          "start_hz": 446000000,
+          "end_hz": 446200000,
+          "modes": [
+            "dpmr",
+            "dmr"
+          ],
+          "channel_width_hz": 6250,
+          "numbering": {
+            "first": 1,
+            "last": 32,
+            "first_centre_hz": 446003125,
+            "step_hz": 6250,
+            "prefix": "dPMR "
+          }
+        }
+      ]
+    },
+    {
+      "id": "frs_gmrs",
+      "name": "FRS and GMRS (22 channels)",
+      "kind": "personal",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47",
+        "number": "47 CFR 95.563",
+        "date": "2026-11-05",
+        "url": "https://www.ecfr.gov/current/title-47/section-95.563"
+      },
+      "also": [
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 95.1763",
+          "date": "2026-11-05",
+          "clause": "(a)-(d)",
+          "url": "https://www.ecfr.gov/current/title-47/section-95.1763"
+        },
+        {
+          "publisher": "ISED Canada",
+          "title": "RSS-210: Licence-Exempt Radio Apparatus",
+          "number": "RSS-210 Issue 11",
+          "date": "2024-06-25",
+          "clause": "Annex E, Table E1"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "FRS and GMRS",
+          "service": "land_mobile",
+          "start_hz": 462537500,
+          "end_hz": 467718750,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            {
+              "name": "FRS 15",
+              "centre_hz": 462550000,
+              "pair_hz": 467550000,
+              "note": "GMRS main channel; repeater input 5 MHz above"
+            },
+            {
+              "name": "FRS 1",
+              "centre_hz": 462562500
+            },
+            {
+              "name": "FRS 16",
+              "centre_hz": 462575000,
+              "pair_hz": 467575000,
+              "note": "GMRS main channel; repeater input 5 MHz above"
+            },
+            {
+              "name": "FRS 2",
+              "centre_hz": 462587500
+            },
+            {
+              "name": "FRS 17",
+              "centre_hz": 462600000,
+              "pair_hz": 467600000,
+              "note": "GMRS main channel; repeater input 5 MHz above"
+            },
+            {
+              "name": "FRS 3",
+              "centre_hz": 462612500
+            },
+            {
+              "name": "FRS 18",
+              "centre_hz": 462625000,
+              "pair_hz": 467625000,
+              "note": "GMRS main channel; repeater input 5 MHz above"
+            },
+            {
+              "name": "FRS 4",
+              "centre_hz": 462637500
+            },
+            {
+              "name": "FRS 19",
+              "centre_hz": 462650000,
+              "pair_hz": 467650000,
+              "note": "GMRS main channel; repeater input 5 MHz above"
+            },
+            {
+              "name": "FRS 5",
+              "centre_hz": 462662500
+            },
+            {
+              "name": "FRS 20",
+              "centre_hz": 462675000,
+              "pair_hz": 467675000,
+              "note": "GMRS main channel; repeater input 5 MHz above"
+            },
+            {
+              "name": "FRS 6",
+              "centre_hz": 462687500
+            },
+            {
+              "name": "FRS 21",
+              "centre_hz": 462700000,
+              "pair_hz": 467700000,
+              "note": "GMRS main channel; repeater input 5 MHz above"
+            },
+            {
+              "name": "FRS 7",
+              "centre_hz": 462712500
+            },
+            {
+              "name": "FRS 22",
+              "centre_hz": 462725000,
+              "pair_hz": 467725000,
+              "note": "GMRS main channel; repeater input 5 MHz above"
+            },
+            {
+              "name": "FRS 8",
+              "centre_hz": 467562500
+            },
+            {
+              "name": "FRS 9",
+              "centre_hz": 467587500
+            },
+            {
+              "name": "FRS 10",
+              "centre_hz": 467612500
+            },
+            {
+              "name": "FRS 11",
+              "centre_hz": 467637500
+            },
+            {
+              "name": "FRS 12",
+              "centre_hz": 467662500
+            },
+            {
+              "name": "FRS 13",
+              "centre_hz": 467687500
+            },
+            {
+              "name": "FRS 14",
+              "centre_hz": 467712500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "murs",
+      "name": "MURS (5 channels)",
+      "kind": "personal",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47",
+        "number": "47 CFR 95.2763",
+        "date": "2026-11-05",
+        "url": "https://www.ecfr.gov/current/title-47/section-95.2763"
+      },
+      "also": [
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 95.2773",
+          "date": "2026-11-05",
+          "url": "https://www.ecfr.gov/current/title-47/section-95.2773"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "MURS",
+          "service": "land_mobile",
+          "start_hz": 151810000,
+          "end_hz": 154610000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channels": [
+            {
+              "name": "MURS 1",
+              "centre_hz": 151820000,
+              "width_hz": 11250
+            },
+            {
+              "name": "MURS 2",
+              "centre_hz": 151880000,
+              "width_hz": 11250
+            },
+            {
+              "name": "MURS 3",
+              "centre_hz": 151940000,
+              "width_hz": 11250
+            },
+            {
+              "name": "MURS 4",
+              "centre_hz": 154570000,
+              "width_hz": 20000
+            },
+            {
+              "name": "MURS 5",
+              "centre_hz": 154600000,
+              "width_hz": 20000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cb40",
+      "name": "CB 40 channels (CEPT, FCC, ACMA)",
+      "kind": "personal",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47",
+        "number": "47 CFR 95.963",
+        "date": "2026-11-05",
+        "url": "https://www.ecfr.gov/current/title-47/section-95.963"
+      },
+      "also": [
+        {
+          "publisher": "CEPT ECC",
+          "title": "ECC Decision on CB radio equipment",
+          "number": "ECC/DEC/(11)03",
+          "date": "2011-06-24",
+          "clause": "decides 2",
+          "url": "https://docdb.cept.org/download/2672"
+        },
+        {
+          "publisher": "Australian Government",
+          "title": "Radiocommunications (Citizen Band Radio Stations) Class Licence 2025",
+          "number": "F2025L01088",
+          "date": "2025-10-01",
+          "clause": "s. 7, Schedule 1",
+          "url": "https://www.legislation.gov.au/F2025L01088"
+        }
+      ],
+      "verified": true,
+      "note": "channel 23 is out of order, between 22 and 24",
+      "bands": [
+        {
+          "name": "CB",
+          "service": "land_mobile",
+          "start_hz": 26960000,
+          "end_hz": 27410000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "am",
+          "channel_width_hz": 10000,
+          "channels": [
+            {
+              "name": "CB 1",
+              "centre_hz": 26965000
+            },
+            {
+              "name": "CB 2",
+              "centre_hz": 26975000
+            },
+            {
+              "name": "CB 3",
+              "centre_hz": 26985000
+            },
+            {
+              "name": "CB 4",
+              "centre_hz": 27005000
+            },
+            {
+              "name": "CB 5",
+              "centre_hz": 27015000
+            },
+            {
+              "name": "CB 6",
+              "centre_hz": 27025000
+            },
+            {
+              "name": "CB 7",
+              "centre_hz": 27035000
+            },
+            {
+              "name": "CB 8",
+              "centre_hz": 27055000
+            },
+            {
+              "name": "CB 9",
+              "centre_hz": 27065000,
+              "note": "emergency (United States, Australia)"
+            },
+            {
+              "name": "CB 10",
+              "centre_hz": 27075000
+            },
+            {
+              "name": "CB 11",
+              "centre_hz": 27085000
+            },
+            {
+              "name": "CB 12",
+              "centre_hz": 27105000
+            },
+            {
+              "name": "CB 13",
+              "centre_hz": 27115000
+            },
+            {
+              "name": "CB 14",
+              "centre_hz": 27125000
+            },
+            {
+              "name": "CB 15",
+              "centre_hz": 27135000
+            },
+            {
+              "name": "CB 16",
+              "centre_hz": 27155000
+            },
+            {
+              "name": "CB 17",
+              "centre_hz": 27165000
+            },
+            {
+              "name": "CB 18",
+              "centre_hz": 27175000
+            },
+            {
+              "name": "CB 19",
+              "centre_hz": 27185000,
+              "note": "road and calling"
+            },
+            {
+              "name": "CB 20",
+              "centre_hz": 27205000
+            },
+            {
+              "name": "CB 21",
+              "centre_hz": 27215000
+            },
+            {
+              "name": "CB 22",
+              "centre_hz": 27225000
+            },
+            {
+              "name": "CB 23",
+              "centre_hz": 27255000
+            },
+            {
+              "name": "CB 24",
+              "centre_hz": 27235000
+            },
+            {
+              "name": "CB 25",
+              "centre_hz": 27245000
+            },
+            {
+              "name": "CB 26",
+              "centre_hz": 27265000
+            },
+            {
+              "name": "CB 27",
+              "centre_hz": 27275000
+            },
+            {
+              "name": "CB 28",
+              "centre_hz": 27285000
+            },
+            {
+              "name": "CB 29",
+              "centre_hz": 27295000
+            },
+            {
+              "name": "CB 30",
+              "centre_hz": 27305000
+            },
+            {
+              "name": "CB 31",
+              "centre_hz": 27315000
+            },
+            {
+              "name": "CB 32",
+              "centre_hz": 27325000
+            },
+            {
+              "name": "CB 33",
+              "centre_hz": 27335000
+            },
+            {
+              "name": "CB 34",
+              "centre_hz": 27345000
+            },
+            {
+              "name": "CB 35",
+              "centre_hz": 27355000
+            },
+            {
+              "name": "CB 36",
+              "centre_hz": 27365000
+            },
+            {
+              "name": "CB 37",
+              "centre_hz": 27375000
+            },
+            {
+              "name": "CB 38",
+              "centre_hz": 27385000
+            },
+            {
+              "name": "CB 39",
+              "centre_hz": 27395000
+            },
+            {
+              "name": "CB 40",
+              "centre_hz": 27405000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cb80_de",
+      "name": "CB 80 channels (Germany)",
+      "kind": "personal",
+      "source": {
+        "publisher": "BNetzA",
+        "title": "Allgemeinzuteilung von Frequenzen fuer den CB-Funk",
+        "number": "Vfg. 21/2021",
+        "date": "2021",
+        "clause": "Paragraph 1, table"
+      },
+      "also": [
+        {
+          "publisher": "BNetzA",
+          "title": "Frequenzplan gemaess Paragraph 90 TKG",
+          "date": "2026-08",
+          "clause": "entry 180004",
+          "url": "https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Downloads/DE/Sachgebiete/Telekommunikation/Unternehmen_Institutionen/Frequenzen/202608_Frequenzplan.pdf"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "CB",
+          "service": "land_mobile",
+          "start_hz": 26960000,
+          "end_hz": 27410000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 10000,
+          "channels": [
+            {
+              "name": "CB 1",
+              "centre_hz": 26965000
+            },
+            {
+              "name": "CB 2",
+              "centre_hz": 26975000
+            },
+            {
+              "name": "CB 3",
+              "centre_hz": 26985000
+            },
+            {
+              "name": "CB 4",
+              "centre_hz": 27005000
+            },
+            {
+              "name": "CB 5",
+              "centre_hz": 27015000
+            },
+            {
+              "name": "CB 6",
+              "centre_hz": 27025000
+            },
+            {
+              "name": "CB 7",
+              "centre_hz": 27035000
+            },
+            {
+              "name": "CB 8",
+              "centre_hz": 27055000
+            },
+            {
+              "name": "CB 9",
+              "centre_hz": 27065000,
+              "note": "emergency (United States, Australia)"
+            },
+            {
+              "name": "CB 10",
+              "centre_hz": 27075000
+            },
+            {
+              "name": "CB 11",
+              "centre_hz": 27085000
+            },
+            {
+              "name": "CB 12",
+              "centre_hz": 27105000
+            },
+            {
+              "name": "CB 13",
+              "centre_hz": 27115000
+            },
+            {
+              "name": "CB 14",
+              "centre_hz": 27125000
+            },
+            {
+              "name": "CB 15",
+              "centre_hz": 27135000
+            },
+            {
+              "name": "CB 16",
+              "centre_hz": 27155000
+            },
+            {
+              "name": "CB 17",
+              "centre_hz": 27165000
+            },
+            {
+              "name": "CB 18",
+              "centre_hz": 27175000
+            },
+            {
+              "name": "CB 19",
+              "centre_hz": 27185000,
+              "note": "road and calling"
+            },
+            {
+              "name": "CB 20",
+              "centre_hz": 27205000
+            },
+            {
+              "name": "CB 21",
+              "centre_hz": 27215000
+            },
+            {
+              "name": "CB 22",
+              "centre_hz": 27225000
+            },
+            {
+              "name": "CB 23",
+              "centre_hz": 27255000
+            },
+            {
+              "name": "CB 24",
+              "centre_hz": 27235000
+            },
+            {
+              "name": "CB 25",
+              "centre_hz": 27245000
+            },
+            {
+              "name": "CB 26",
+              "centre_hz": 27265000
+            },
+            {
+              "name": "CB 27",
+              "centre_hz": 27275000
+            },
+            {
+              "name": "CB 28",
+              "centre_hz": 27285000
+            },
+            {
+              "name": "CB 29",
+              "centre_hz": 27295000
+            },
+            {
+              "name": "CB 30",
+              "centre_hz": 27305000
+            },
+            {
+              "name": "CB 31",
+              "centre_hz": 27315000
+            },
+            {
+              "name": "CB 32",
+              "centre_hz": 27325000
+            },
+            {
+              "name": "CB 33",
+              "centre_hz": 27335000
+            },
+            {
+              "name": "CB 34",
+              "centre_hz": 27345000
+            },
+            {
+              "name": "CB 35",
+              "centre_hz": 27355000
+            },
+            {
+              "name": "CB 36",
+              "centre_hz": 27365000
+            },
+            {
+              "name": "CB 37",
+              "centre_hz": 27375000
+            },
+            {
+              "name": "CB 38",
+              "centre_hz": 27385000
+            },
+            {
+              "name": "CB 39",
+              "centre_hz": 27395000
+            },
+            {
+              "name": "CB 40",
+              "centre_hz": 27405000
+            }
+          ]
+        },
+        {
+          "name": "CB 41-80",
+          "service": "land_mobile",
+          "start_hz": 26560000,
+          "end_hz": 26960000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 10000,
+          "numbering": {
+            "first": 41,
+            "last": 80,
+            "first_centre_hz": 26565000,
+            "step_hz": 10000,
+            "prefix": "CB "
+          }
+        }
+      ]
+    },
+    {
+      "id": "cb_uk",
+      "name": "CB 27/81 and CEPT (United Kingdom)",
+      "kind": "personal",
+      "source": {
+        "publisher": "Ofcom",
+        "title": "IR 2027: UK Interface Requirement for Citizens' Band radio",
+        "number": "IR 2027",
+        "date": "2018-01",
+        "clause": "Tables 3.1 and 3.2"
+      },
+      "also": [
+        {
+          "publisher": "Ofcom",
+          "title": "UK Frequency Allocation Table",
+          "number": "Issue 19 v1.1",
+          "date": "2026-07-03",
+          "clause": "footnote UK28"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "CB (CEPT)",
+          "service": "land_mobile",
+          "start_hz": 26960000,
+          "end_hz": 27410000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 10000,
+          "channels": [
+            {
+              "name": "CB 1",
+              "centre_hz": 26965000
+            },
+            {
+              "name": "CB 2",
+              "centre_hz": 26975000
+            },
+            {
+              "name": "CB 3",
+              "centre_hz": 26985000
+            },
+            {
+              "name": "CB 4",
+              "centre_hz": 27005000
+            },
+            {
+              "name": "CB 5",
+              "centre_hz": 27015000
+            },
+            {
+              "name": "CB 6",
+              "centre_hz": 27025000
+            },
+            {
+              "name": "CB 7",
+              "centre_hz": 27035000
+            },
+            {
+              "name": "CB 8",
+              "centre_hz": 27055000
+            },
+            {
+              "name": "CB 9",
+              "centre_hz": 27065000
+            },
+            {
+              "name": "CB 10",
+              "centre_hz": 27075000
+            },
+            {
+              "name": "CB 11",
+              "centre_hz": 27085000
+            },
+            {
+              "name": "CB 12",
+              "centre_hz": 27105000
+            },
+            {
+              "name": "CB 13",
+              "centre_hz": 27115000
+            },
+            {
+              "name": "CB 14",
+              "centre_hz": 27125000
+            },
+            {
+              "name": "CB 15",
+              "centre_hz": 27135000
+            },
+            {
+              "name": "CB 16",
+              "centre_hz": 27155000
+            },
+            {
+              "name": "CB 17",
+              "centre_hz": 27165000
+            },
+            {
+              "name": "CB 18",
+              "centre_hz": 27175000
+            },
+            {
+              "name": "CB 19",
+              "centre_hz": 27185000
+            },
+            {
+              "name": "CB 20",
+              "centre_hz": 27205000
+            },
+            {
+              "name": "CB 21",
+              "centre_hz": 27215000
+            },
+            {
+              "name": "CB 22",
+              "centre_hz": 27225000
+            },
+            {
+              "name": "CB 23",
+              "centre_hz": 27255000
+            },
+            {
+              "name": "CB 24",
+              "centre_hz": 27235000
+            },
+            {
+              "name": "CB 25",
+              "centre_hz": 27245000
+            },
+            {
+              "name": "CB 26",
+              "centre_hz": 27265000
+            },
+            {
+              "name": "CB 27",
+              "centre_hz": 27275000
+            },
+            {
+              "name": "CB 28",
+              "centre_hz": 27285000
+            },
+            {
+              "name": "CB 29",
+              "centre_hz": 27295000
+            },
+            {
+              "name": "CB 30",
+              "centre_hz": 27305000
+            },
+            {
+              "name": "CB 31",
+              "centre_hz": 27315000
+            },
+            {
+              "name": "CB 32",
+              "centre_hz": 27325000
+            },
+            {
+              "name": "CB 33",
+              "centre_hz": 27335000
+            },
+            {
+              "name": "CB 34",
+              "centre_hz": 27345000
+            },
+            {
+              "name": "CB 35",
+              "centre_hz": 27355000
+            },
+            {
+              "name": "CB 36",
+              "centre_hz": 27365000
+            },
+            {
+              "name": "CB 37",
+              "centre_hz": 27375000
+            },
+            {
+              "name": "CB 38",
+              "centre_hz": 27385000
+            },
+            {
+              "name": "CB 39",
+              "centre_hz": 27395000
+            },
+            {
+              "name": "CB 40",
+              "centre_hz": 27405000
+            }
+          ]
+        },
+        {
+          "name": "CB 27/81",
+          "service": "land_mobile",
+          "start_hz": 27596250,
+          "end_hz": 27996250,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 10000,
+          "numbering": {
+            "first": 1,
+            "last": 40,
+            "first_centre_hz": 27601250,
+            "step_hz": 10000,
+            "prefix": "UK "
+          }
+        }
+      ]
+    },
+    {
+      "id": "uhf_cb",
+      "name": "UHF CB (Australia, 77 channels)",
+      "kind": "personal",
+      "source": {
+        "publisher": "Australian Government",
+        "title": "Radiocommunications (Citizen Band Radio Stations) Class Licence 2025",
+        "number": "F2025L01088",
+        "date": "2025-10-01",
+        "clause": "s. 7, Schedule 1",
+        "url": "https://www.legislation.gov.au/F2025L01088"
+      },
+      "verified": true,
+      "note": "channels 61-63 are not in the class licence table",
+      "bands": [
+        {
+          "name": "UHF CB",
+          "service": "land_mobile",
+          "start_hz": 476418750,
+          "end_hz": 477418750,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            {
+              "name": "UHF 1",
+              "centre_hz": 476425000,
+              "pair_hz": 477175000,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 41",
+              "centre_hz": 476437500,
+              "pair_hz": 477187500,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 2",
+              "centre_hz": 476450000,
+              "pair_hz": 477200000,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 42",
+              "centre_hz": 476462500,
+              "pair_hz": 477212500,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 3",
+              "centre_hz": 476475000,
+              "pair_hz": 477225000,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 43",
+              "centre_hz": 476487500,
+              "pair_hz": 477237500,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 4",
+              "centre_hz": 476500000,
+              "pair_hz": 477250000,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 44",
+              "centre_hz": 476512500,
+              "pair_hz": 477262500,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 5",
+              "centre_hz": 476525000,
+              "pair_hz": 477275000,
+              "note": "emergency"
+            },
+            {
+              "name": "UHF 45",
+              "centre_hz": 476537500,
+              "pair_hz": 477287500,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 6",
+              "centre_hz": 476550000,
+              "pair_hz": 477300000,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 46",
+              "centre_hz": 476562500,
+              "pair_hz": 477312500,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 7",
+              "centre_hz": 476575000,
+              "pair_hz": 477325000,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 47",
+              "centre_hz": 476587500,
+              "pair_hz": 477337500,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 8",
+              "centre_hz": 476600000,
+              "pair_hz": 477350000,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 48",
+              "centre_hz": 476612500,
+              "pair_hz": 477362500,
+              "note": "repeater output"
+            },
+            {
+              "name": "UHF 9",
+              "centre_hz": 476625000
+            },
+            {
+              "name": "UHF 49",
+              "centre_hz": 476637500
+            },
+            {
+              "name": "UHF 10",
+              "centre_hz": 476650000
+            },
+            {
+              "name": "UHF 50",
+              "centre_hz": 476662500
+            },
+            {
+              "name": "UHF 11",
+              "centre_hz": 476675000
+            },
+            {
+              "name": "UHF 51",
+              "centre_hz": 476687500
+            },
+            {
+              "name": "UHF 12",
+              "centre_hz": 476700000
+            },
+            {
+              "name": "UHF 52",
+              "centre_hz": 476712500
+            },
+            {
+              "name": "UHF 13",
+              "centre_hz": 476725000
+            },
+            {
+              "name": "UHF 53",
+              "centre_hz": 476737500
+            },
+            {
+              "name": "UHF 14",
+              "centre_hz": 476750000
+            },
+            {
+              "name": "UHF 54",
+              "centre_hz": 476762500
+            },
+            {
+              "name": "UHF 15",
+              "centre_hz": 476775000
+            },
+            {
+              "name": "UHF 55",
+              "centre_hz": 476787500
+            },
+            {
+              "name": "UHF 16",
+              "centre_hz": 476800000
+            },
+            {
+              "name": "UHF 56",
+              "centre_hz": 476812500
+            },
+            {
+              "name": "UHF 17",
+              "centre_hz": 476825000
+            },
+            {
+              "name": "UHF 57",
+              "centre_hz": 476837500
+            },
+            {
+              "name": "UHF 18",
+              "centre_hz": 476850000
+            },
+            {
+              "name": "UHF 58",
+              "centre_hz": 476862500
+            },
+            {
+              "name": "UHF 19",
+              "centre_hz": 476875000
+            },
+            {
+              "name": "UHF 59",
+              "centre_hz": 476887500
+            },
+            {
+              "name": "UHF 20",
+              "centre_hz": 476900000
+            },
+            {
+              "name": "UHF 60",
+              "centre_hz": 476912500
+            },
+            {
+              "name": "UHF 21",
+              "centre_hz": 476925000
+            },
+            {
+              "name": "UHF 22",
+              "centre_hz": 476950000,
+              "note": "telemetry only, no speech"
+            },
+            {
+              "name": "UHF 23",
+              "centre_hz": 476975000,
+              "note": "telemetry only, no speech"
+            },
+            {
+              "name": "UHF 24",
+              "centre_hz": 477000000
+            },
+            {
+              "name": "UHF 64",
+              "centre_hz": 477012500
+            },
+            {
+              "name": "UHF 25",
+              "centre_hz": 477025000
+            },
+            {
+              "name": "UHF 65",
+              "centre_hz": 477037500
+            },
+            {
+              "name": "UHF 26",
+              "centre_hz": 477050000
+            },
+            {
+              "name": "UHF 66",
+              "centre_hz": 477062500
+            },
+            {
+              "name": "UHF 27",
+              "centre_hz": 477075000
+            },
+            {
+              "name": "UHF 67",
+              "centre_hz": 477087500
+            },
+            {
+              "name": "UHF 28",
+              "centre_hz": 477100000
+            },
+            {
+              "name": "UHF 68",
+              "centre_hz": 477112500
+            },
+            {
+              "name": "UHF 29",
+              "centre_hz": 477125000
+            },
+            {
+              "name": "UHF 69",
+              "centre_hz": 477137500
+            },
+            {
+              "name": "UHF 30",
+              "centre_hz": 477150000
+            },
+            {
+              "name": "UHF 70",
+              "centre_hz": 477162500
+            },
+            {
+              "name": "UHF 31",
+              "centre_hz": 477175000,
+              "pair_hz": 476425000,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 71",
+              "centre_hz": 477187500,
+              "pair_hz": 476437500,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 32",
+              "centre_hz": 477200000,
+              "pair_hz": 476450000,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 72",
+              "centre_hz": 477212500,
+              "pair_hz": 476462500,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 33",
+              "centre_hz": 477225000,
+              "pair_hz": 476475000,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 73",
+              "centre_hz": 477237500,
+              "pair_hz": 476487500,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 34",
+              "centre_hz": 477250000,
+              "pair_hz": 476500000,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 74",
+              "centre_hz": 477262500,
+              "pair_hz": 476512500,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 35",
+              "centre_hz": 477275000,
+              "pair_hz": 476525000,
+              "note": "emergency"
+            },
+            {
+              "name": "UHF 75",
+              "centre_hz": 477287500,
+              "pair_hz": 476537500,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 36",
+              "centre_hz": 477300000,
+              "pair_hz": 476550000,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 76",
+              "centre_hz": 477312500,
+              "pair_hz": 476562500,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 37",
+              "centre_hz": 477325000,
+              "pair_hz": 476575000,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 77",
+              "centre_hz": 477337500,
+              "pair_hz": 476587500,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 38",
+              "centre_hz": 477350000,
+              "pair_hz": 476600000,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 78",
+              "centre_hz": 477362500,
+              "pair_hz": 476612500,
+              "note": "repeater input"
+            },
+            {
+              "name": "UHF 39",
+              "centre_hz": 477375000
+            },
+            {
+              "name": "UHF 79",
+              "centre_hz": 477387500
+            },
+            {
+              "name": "UHF 40",
+              "centre_hz": 477400000
+            },
+            {
+              "name": "UHF 80",
+              "centre_hz": 477412500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prs_nz",
+      "name": "PRS 476 MHz (New Zealand, 80 channels)",
+      "kind": "personal",
+      "source": {
+        "publisher": "New Zealand Gazette",
+        "title": "Radiocommunications Regulations (General User Radio Licence for Citizen Band Radio) Notice 2011",
+        "number": "2011-go3629",
+        "date": "2011-06-02",
+        "clause": "Schedule",
+        "url": "https://gazette.govt.nz/notice/id/2011-go3629"
+      },
+      "verified": true,
+      "bands": [
+        {
+          "name": "PRS",
+          "service": "land_mobile",
+          "start_hz": 476418750,
+          "end_hz": 477418750,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            {
+              "name": "PRS 1",
+              "centre_hz": 476425000
+            },
+            {
+              "name": "PRS 41",
+              "centre_hz": 476437500
+            },
+            {
+              "name": "PRS 2",
+              "centre_hz": 476450000
+            },
+            {
+              "name": "PRS 42",
+              "centre_hz": 476462500
+            },
+            {
+              "name": "PRS 3",
+              "centre_hz": 476475000
+            },
+            {
+              "name": "PRS 43",
+              "centre_hz": 476487500
+            },
+            {
+              "name": "PRS 4",
+              "centre_hz": 476500000
+            },
+            {
+              "name": "PRS 44",
+              "centre_hz": 476512500
+            },
+            {
+              "name": "PRS 5",
+              "centre_hz": 476525000
+            },
+            {
+              "name": "PRS 45",
+              "centre_hz": 476537500
+            },
+            {
+              "name": "PRS 6",
+              "centre_hz": 476550000
+            },
+            {
+              "name": "PRS 46",
+              "centre_hz": 476562500
+            },
+            {
+              "name": "PRS 7",
+              "centre_hz": 476575000
+            },
+            {
+              "name": "PRS 47",
+              "centre_hz": 476587500
+            },
+            {
+              "name": "PRS 8",
+              "centre_hz": 476600000
+            },
+            {
+              "name": "PRS 48",
+              "centre_hz": 476612500
+            },
+            {
+              "name": "PRS 9",
+              "centre_hz": 476625000
+            },
+            {
+              "name": "PRS 49",
+              "centre_hz": 476637500
+            },
+            {
+              "name": "PRS 10",
+              "centre_hz": 476650000
+            },
+            {
+              "name": "PRS 50",
+              "centre_hz": 476662500
+            },
+            {
+              "name": "PRS 11",
+              "centre_hz": 476675000
+            },
+            {
+              "name": "PRS 51",
+              "centre_hz": 476687500
+            },
+            {
+              "name": "PRS 12",
+              "centre_hz": 476700000
+            },
+            {
+              "name": "PRS 52",
+              "centre_hz": 476712500
+            },
+            {
+              "name": "PRS 13",
+              "centre_hz": 476725000
+            },
+            {
+              "name": "PRS 53",
+              "centre_hz": 476737500
+            },
+            {
+              "name": "PRS 14",
+              "centre_hz": 476750000
+            },
+            {
+              "name": "PRS 54",
+              "centre_hz": 476762500
+            },
+            {
+              "name": "PRS 15",
+              "centre_hz": 476775000
+            },
+            {
+              "name": "PRS 55",
+              "centre_hz": 476787500
+            },
+            {
+              "name": "PRS 16",
+              "centre_hz": 476800000
+            },
+            {
+              "name": "PRS 56",
+              "centre_hz": 476812500
+            },
+            {
+              "name": "PRS 17",
+              "centre_hz": 476825000
+            },
+            {
+              "name": "PRS 57",
+              "centre_hz": 476837500
+            },
+            {
+              "name": "PRS 18",
+              "centre_hz": 476850000
+            },
+            {
+              "name": "PRS 58",
+              "centre_hz": 476862500
+            },
+            {
+              "name": "PRS 19",
+              "centre_hz": 476875000
+            },
+            {
+              "name": "PRS 59",
+              "centre_hz": 476887500
+            },
+            {
+              "name": "PRS 20",
+              "centre_hz": 476900000
+            },
+            {
+              "name": "PRS 60",
+              "centre_hz": 476912500
+            },
+            {
+              "name": "PRS 21",
+              "centre_hz": 476925000
+            },
+            {
+              "name": "PRS 61",
+              "centre_hz": 476937500
+            },
+            {
+              "name": "PRS 22",
+              "centre_hz": 476950000,
+              "note": "telemetry and telecommand only"
+            },
+            {
+              "name": "PRS 62",
+              "centre_hz": 476962500
+            },
+            {
+              "name": "PRS 23",
+              "centre_hz": 476975000,
+              "note": "telemetry and telecommand only"
+            },
+            {
+              "name": "PRS 63",
+              "centre_hz": 476987500
+            },
+            {
+              "name": "PRS 24",
+              "centre_hz": 477000000
+            },
+            {
+              "name": "PRS 64",
+              "centre_hz": 477012500
+            },
+            {
+              "name": "PRS 25",
+              "centre_hz": 477025000
+            },
+            {
+              "name": "PRS 65",
+              "centre_hz": 477037500
+            },
+            {
+              "name": "PRS 26",
+              "centre_hz": 477050000
+            },
+            {
+              "name": "PRS 66",
+              "centre_hz": 477062500
+            },
+            {
+              "name": "PRS 27",
+              "centre_hz": 477075000
+            },
+            {
+              "name": "PRS 67",
+              "centre_hz": 477087500
+            },
+            {
+              "name": "PRS 28",
+              "centre_hz": 477100000
+            },
+            {
+              "name": "PRS 68",
+              "centre_hz": 477112500
+            },
+            {
+              "name": "PRS 29",
+              "centre_hz": 477125000
+            },
+            {
+              "name": "PRS 69",
+              "centre_hz": 477137500
+            },
+            {
+              "name": "PRS 30",
+              "centre_hz": 477150000
+            },
+            {
+              "name": "PRS 70",
+              "centre_hz": 477162500
+            },
+            {
+              "name": "PRS 31",
+              "centre_hz": 477175000
+            },
+            {
+              "name": "PRS 71",
+              "centre_hz": 477187500
+            },
+            {
+              "name": "PRS 32",
+              "centre_hz": 477200000
+            },
+            {
+              "name": "PRS 72",
+              "centre_hz": 477212500
+            },
+            {
+              "name": "PRS 33",
+              "centre_hz": 477225000
+            },
+            {
+              "name": "PRS 73",
+              "centre_hz": 477237500
+            },
+            {
+              "name": "PRS 34",
+              "centre_hz": 477250000
+            },
+            {
+              "name": "PRS 74",
+              "centre_hz": 477262500
+            },
+            {
+              "name": "PRS 35",
+              "centre_hz": 477275000
+            },
+            {
+              "name": "PRS 75",
+              "centre_hz": 477287500
+            },
+            {
+              "name": "PRS 36",
+              "centre_hz": 477300000
+            },
+            {
+              "name": "PRS 76",
+              "centre_hz": 477312500
+            },
+            {
+              "name": "PRS 37",
+              "centre_hz": 477325000
+            },
+            {
+              "name": "PRS 77",
+              "centre_hz": 477337500
+            },
+            {
+              "name": "PRS 38",
+              "centre_hz": 477350000
+            },
+            {
+              "name": "PRS 78",
+              "centre_hz": 477362500
+            },
+            {
+              "name": "PRS 39",
+              "centre_hz": 477375000
+            },
+            {
+              "name": "PRS 79",
+              "centre_hz": 477387500
+            },
+            {
+              "name": "PRS 40",
+              "centre_hz": 477400000
+            },
+            {
+              "name": "PRS 80",
+              "centre_hz": 477412500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cb_nz",
+      "name": "CB 27 MHz (New Zealand, CBL and CBU)",
+      "kind": "personal",
+      "source": {
+        "publisher": "New Zealand Gazette",
+        "title": "Radiocommunications Regulations (General User Radio Licence for Citizen Band Radio) Notice 2011",
+        "number": "2011-go3629",
+        "date": "2011-06-02",
+        "clause": "Schedule",
+        "url": "https://gazette.govt.nz/notice/id/2011-go3629"
+      },
+      "verified": false,
+      "unverified_reason": "the band edges are confirmed; the CBL frequencies are taken as the CBU frequencies less 635 kHz, not yet compared channel by channel",
+      "bands": [
+        {
+          "name": "CBL",
+          "service": "land_mobile",
+          "start_hz": 26325000,
+          "end_hz": 26775000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "am",
+          "channel_width_hz": 10000,
+          "channels": [
+            {
+              "name": "CBL 1",
+              "centre_hz": 26330000
+            },
+            {
+              "name": "CBL 2",
+              "centre_hz": 26340000
+            },
+            {
+              "name": "CBL 3",
+              "centre_hz": 26350000
+            },
+            {
+              "name": "CBL 4",
+              "centre_hz": 26370000
+            },
+            {
+              "name": "CBL 5",
+              "centre_hz": 26380000
+            },
+            {
+              "name": "CBL 6",
+              "centre_hz": 26390000
+            },
+            {
+              "name": "CBL 7",
+              "centre_hz": 26400000
+            },
+            {
+              "name": "CBL 8",
+              "centre_hz": 26420000
+            },
+            {
+              "name": "CBL 9",
+              "centre_hz": 26430000
+            },
+            {
+              "name": "CBL 10",
+              "centre_hz": 26440000
+            },
+            {
+              "name": "CBL 11",
+              "centre_hz": 26450000
+            },
+            {
+              "name": "CBL 12",
+              "centre_hz": 26470000
+            },
+            {
+              "name": "CBL 13",
+              "centre_hz": 26480000
+            },
+            {
+              "name": "CBL 14",
+              "centre_hz": 26490000
+            },
+            {
+              "name": "CBL 15",
+              "centre_hz": 26500000
+            },
+            {
+              "name": "CBL 16",
+              "centre_hz": 26520000
+            },
+            {
+              "name": "CBL 17",
+              "centre_hz": 26530000
+            },
+            {
+              "name": "CBL 18",
+              "centre_hz": 26540000
+            },
+            {
+              "name": "CBL 19",
+              "centre_hz": 26550000
+            },
+            {
+              "name": "CBL 20",
+              "centre_hz": 26570000
+            },
+            {
+              "name": "CBL 21",
+              "centre_hz": 26580000
+            },
+            {
+              "name": "CBL 22",
+              "centre_hz": 26590000
+            },
+            {
+              "name": "CBL 23",
+              "centre_hz": 26620000
+            },
+            {
+              "name": "CBL 24",
+              "centre_hz": 26600000
+            },
+            {
+              "name": "CBL 25",
+              "centre_hz": 26610000
+            },
+            {
+              "name": "CBL 26",
+              "centre_hz": 26630000
+            },
+            {
+              "name": "CBL 27",
+              "centre_hz": 26640000
+            },
+            {
+              "name": "CBL 28",
+              "centre_hz": 26650000
+            },
+            {
+              "name": "CBL 29",
+              "centre_hz": 26660000
+            },
+            {
+              "name": "CBL 30",
+              "centre_hz": 26670000
+            },
+            {
+              "name": "CBL 31",
+              "centre_hz": 26680000
+            },
+            {
+              "name": "CBL 32",
+              "centre_hz": 26690000
+            },
+            {
+              "name": "CBL 33",
+              "centre_hz": 26700000
+            },
+            {
+              "name": "CBL 34",
+              "centre_hz": 26710000
+            },
+            {
+              "name": "CBL 35",
+              "centre_hz": 26720000
+            },
+            {
+              "name": "CBL 36",
+              "centre_hz": 26730000
+            },
+            {
+              "name": "CBL 37",
+              "centre_hz": 26740000
+            },
+            {
+              "name": "CBL 38",
+              "centre_hz": 26750000
+            },
+            {
+              "name": "CBL 39",
+              "centre_hz": 26760000
+            },
+            {
+              "name": "CBL 40",
+              "centre_hz": 26770000
+            }
+          ]
+        },
+        {
+          "name": "CBU",
+          "service": "land_mobile",
+          "start_hz": 26960000,
+          "end_hz": 27410000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "am",
+          "channel_width_hz": 10000,
+          "channels": [
+            {
+              "name": "CBU 1",
+              "centre_hz": 26965000
+            },
+            {
+              "name": "CBU 2",
+              "centre_hz": 26975000
+            },
+            {
+              "name": "CBU 3",
+              "centre_hz": 26985000
+            },
+            {
+              "name": "CBU 4",
+              "centre_hz": 27005000
+            },
+            {
+              "name": "CBU 5",
+              "centre_hz": 27015000
+            },
+            {
+              "name": "CBU 6",
+              "centre_hz": 27025000
+            },
+            {
+              "name": "CBU 7",
+              "centre_hz": 27035000
+            },
+            {
+              "name": "CBU 8",
+              "centre_hz": 27055000
+            },
+            {
+              "name": "CBU 9",
+              "centre_hz": 27065000
+            },
+            {
+              "name": "CBU 10",
+              "centre_hz": 27075000
+            },
+            {
+              "name": "CBU 11",
+              "centre_hz": 27085000
+            },
+            {
+              "name": "CBU 12",
+              "centre_hz": 27105000
+            },
+            {
+              "name": "CBU 13",
+              "centre_hz": 27115000
+            },
+            {
+              "name": "CBU 14",
+              "centre_hz": 27125000
+            },
+            {
+              "name": "CBU 15",
+              "centre_hz": 27135000
+            },
+            {
+              "name": "CBU 16",
+              "centre_hz": 27155000
+            },
+            {
+              "name": "CBU 17",
+              "centre_hz": 27165000
+            },
+            {
+              "name": "CBU 18",
+              "centre_hz": 27175000
+            },
+            {
+              "name": "CBU 19",
+              "centre_hz": 27185000
+            },
+            {
+              "name": "CBU 20",
+              "centre_hz": 27205000
+            },
+            {
+              "name": "CBU 21",
+              "centre_hz": 27215000
+            },
+            {
+              "name": "CBU 22",
+              "centre_hz": 27225000
+            },
+            {
+              "name": "CBU 23",
+              "centre_hz": 27255000
+            },
+            {
+              "name": "CBU 24",
+              "centre_hz": 27235000
+            },
+            {
+              "name": "CBU 25",
+              "centre_hz": 27245000
+            },
+            {
+              "name": "CBU 26",
+              "centre_hz": 27265000
+            },
+            {
+              "name": "CBU 27",
+              "centre_hz": 27275000
+            },
+            {
+              "name": "CBU 28",
+              "centre_hz": 27285000
+            },
+            {
+              "name": "CBU 29",
+              "centre_hz": 27295000
+            },
+            {
+              "name": "CBU 30",
+              "centre_hz": 27305000
+            },
+            {
+              "name": "CBU 31",
+              "centre_hz": 27315000
+            },
+            {
+              "name": "CBU 32",
+              "centre_hz": 27325000
+            },
+            {
+              "name": "CBU 33",
+              "centre_hz": 27335000
+            },
+            {
+              "name": "CBU 34",
+              "centre_hz": 27345000
+            },
+            {
+              "name": "CBU 35",
+              "centre_hz": 27355000
+            },
+            {
+              "name": "CBU 36",
+              "centre_hz": 27365000
+            },
+            {
+              "name": "CBU 37",
+              "centre_hz": 27375000
+            },
+            {
+              "name": "CBU 38",
+              "centre_hz": 27385000
+            },
+            {
+              "name": "CBU 39",
+              "centre_hz": 27395000
+            },
+            {
+              "name": "CBU 40",
+              "centre_hz": 27405000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cb_jp",
+      "name": "CB 27 MHz (Japan, 8 channels)",
+      "kind": "personal",
+      "source": {
+        "publisher": "Government of Japan (e-Gov)",
+        "title": "Radio Act Enforcement Regulations",
+        "date": "2025",
+        "clause": "Article 6, paragraph 3"
+      },
+      "verified": true,
+      "note": "the channel numbers are in frequency order; the regulation lists frequencies only",
+      "bands": [
+        {
+          "name": "CB",
+          "service": "land_mobile",
+          "start_hz": 26900000,
+          "end_hz": 27200000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "am",
+          "channel_width_hz": 6000,
+          "channels": [
+            {
+              "name": "1",
+              "centre_hz": 26968000
+            },
+            {
+              "name": "2",
+              "centre_hz": 26976000
+            },
+            {
+              "name": "3",
+              "centre_hz": 27040000
+            },
+            {
+              "name": "4",
+              "centre_hz": 27080000
+            },
+            {
+              "name": "5",
+              "centre_hz": 27088000
+            },
+            {
+              "name": "6",
+              "centre_hz": 27112000
+            },
+            {
+              "name": "7",
+              "centre_hz": 27120000
+            },
+            {
+              "name": "8",
+              "centre_hz": 27144000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lpd433",
+      "name": "LPD433 (69 channels)",
+      "kind": "personal",
+      "source": {
+        "publisher": "CEPT ERC",
+        "title": "ERC Recommendation 70-03 (short range devices)",
+        "number": "ERC/REC 70-03",
+        "date": "2024",
+        "clause": "Annex 1"
+      },
+      "verified": false,
+      "unverified_reason": "ERC/REC 70-03 gives the band, not a 69-channel plan; the channel plan is a common receiver convention",
+      "bands": [
+        {
+          "name": "LPD433",
+          "service": "short_range",
+          "start_hz": 433050000,
+          "end_hz": 434790000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 25000,
+          "numbering": {
+            "first": 1,
+            "last": 69,
+            "first_centre_hz": 433075000,
+            "step_hz": 25000,
+            "prefix": "LPD "
+          }
+        }
+      ]
+    }
+  ]
+}

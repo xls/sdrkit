@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 4000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic Bluetooth LE advertising, 0.3 s. LE 1M PHY GFSK (BT 0.5, h 0.5), packets 1 MHz below the capture centre (the radio sits 1 MHz above the advertising channel). Eleven PDUs in a loop, whitened in turn for channels 37, 38, 39 but all placed at the same RF offset (the receiver finds the channel from the whitening): ADV_IND with name, tx power, 16-bit UUIDs and manufacturer data; an iBeacon; SCAN_REQ; SCAN_RSP with the complete name 'Test phone'; Eddystone URL, TLM and UID; an Exposure Notification; ADV_SCAN_IND with Apple Nearby Info; CONNECT_IND; ADV_EXT_IND with ADI and AuxPtr. Carrier to noise 25 dB in 1 MHz, packet amplitude 0.3, per-packet carrier offsets 0 to +-30 kHz. See specs/wlan.md section 7.",
+    "core:recorder": "Bluetooth LE advertising test generator, noise seed 11",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 2403000000.0
+    }
+  ],
+  "annotations": []
+}

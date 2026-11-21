@@ -1,0 +1,15 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 400000.0,
+    "core:version": "1.0.0",
+    "core:description": "VDES: two ASM bursts (161.975, 162.025 MHz) and three VDE-TER bursts in the 161.8 MHz channel (25 kHz pi/4-QPSK, 50 kHz 8PSK, 100 kHz 16QAM), 25 dB SNR",
+    "core:author": "sdrkit test vectors",
+    "core:license": "CC0-1.0",
+    "core:recorder": "synthetic"
+  },
+  "captures": [
+    {"core:sample_start": 0, "core:frequency": 161900000.0}
+  ],
+  "annotations": []
+}

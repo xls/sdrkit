@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 240000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic LTR repeater channel, 3.55 s: 40 alternating lead-in bits, then six 40-bit words sent three times (12 filler bits after each), 300 bit/s sub-audible NRZ (bit 1 = higher frequency) at +-600 Hz deviation, smoothed by a one-pole 150 Hz low-pass, with a 1000 Hz voice tone at 1.5 kHz deviation on top; then 0.3 s of nothing. The channel (460.000 MHz) is 50 kHz below the centre; the carrier is 500 Hz above it. Amplitude 0.5, complex Gaussian noise 0.05 per component. See specs/trunk.md section 4.",
+    "core:recorder": "sdrkit trunking, paging and tones test signal definition (specs/trunk.md), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 460050000.0
+    }
+  ],
+  "annotations": []
+}

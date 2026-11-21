@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 24000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic meteor-scatter scene: a CW beacon 420 Hz above the capture centre, 40 dB over the noise in 100 Hz, and four Doppler-shifted echoes placed at 8.0, 15.0, 22.0 and 31.0 s (three underdense, one 2.5 s overdense). Sample 0 is at 2026-06-01 00:00:00 UTC. 36 s. See specs/science.md, meteor scatter test vectors.",
+    "core:recorder": "meteor-scatter test-signal generator, fixed pings, noise seed 5",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 143050000.0
+    }
+  ],
+  "annotations": []
+}

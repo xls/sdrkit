@@ -1,0 +1,13 @@
+# id: cquam_presets
+# name: Medium wave channels of AM stereo stations for the presets of the C-QUAM stack
+# stacks: cquam
+# source: C-QUAM receiver presets (section 5.6 of the specification of the stack)
+# note: 1570 kHz lies between two channels of the 9 kHz raster; the stack pulls it in.
+freq_khz
+531
+810
+999
+1170
+1368
+1570
+1602

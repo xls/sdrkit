@@ -1,0 +1,862 @@
+# The interface of the stack family dvoice. The registry test of the family writes this file.
+family dvoice version=1.4
+shape.SharedFields since=1.0
+shape.SharedFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.SharedFields.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.SharedFields.cnr_db type=f64 unit=dB optional=yes since=1.0
+shape.SharedFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.SharedFields.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.SharedFields.deviation_hz type=hz unit=Hz optional=no since=1.0
+shape.SharedFields.clock_ppm type=f64 unit=ppm optional=no since=1.0
+shape.SharedFields.ber type=f64 unit= optional=no since=1.0
+shape.SharedFields.inverted type=bool unit= optional=no since=1.0
+shape.SharedFields.blocks_ok type=i64 unit= optional=no since=1.0
+shape.SharedFields.blocks_bad type=i64 unit= optional=no since=1.0
+shape.SharedFields.frames type=i64 unit= optional=no since=1.0
+shape.SharedFields.syncs type=i64 unit= optional=no since=1.0
+shape.SharedFields.reports type=i64 unit= optional=no since=1.0
+shape.SharedFields.verdict type=choice(no_input,no_sync,identity,fec,marginal,decoding) unit= optional=no since=1.0
+shape.DmrFields since=1.0
+shape.DmrFields.colour_code type=i64 unit= optional=yes since=1.0
+shape.DmrFields.link type=choice(base_station,mobile,direct_mode) unit= optional=yes since=1.0
+shape.DmrFields.slots_locked type=i64 unit= optional=no since=1.0
+shape.DmrFields.cach_activity_1 type=choice(none,group_csbk,private_csbk,group_voice,private_voice,private_data,group_data,emergency_group_voice,emergency_private_voice,other) unit= optional=yes since=1.0
+shape.DmrFields.cach_activity_2 type=choice(none,group_csbk,private_csbk,group_voice,private_voice,private_data,group_data,emergency_group_voice,emergency_private_voice,other) unit= optional=yes since=1.0
+shape.DmrFields.cach_activity_last_1 type=choice(none,group_csbk,private_csbk,group_voice,private_voice,private_data,group_data,emergency_group_voice,emergency_private_voice,other) unit= optional=yes since=1.0
+shape.DmrFields.cach_activity_last_2 type=choice(none,group_csbk,private_csbk,group_voice,private_voice,private_data,group_data,emergency_group_voice,emergency_private_voice,other) unit= optional=yes since=1.0
+shape.DmrFields.talker_alias_1 type=text unit= optional=no since=1.0
+shape.DmrFields.talker_alias_2 type=text unit= optional=no since=1.0
+shape.MonitorFields since=1.0
+shape.MonitorFields.playing type=text unit= optional=yes refers_to=calls since=1.0
+shape.MonitorFields.held type=text unit= optional=yes since=1.0
+shape.MonitorFields.codec type=text unit= optional=yes since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.DataTxFields since=1.3
+shape.DataTxFields.transmitting type=bool unit= optional=no since=1.3
+shape.DataTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.3
+shape.DataTxFields.tx_kind type=choice(text) unit= optional=yes since=1.3
+shape.DataTxFields.tx_frames type=i64 unit= optional=no since=1.3
+shape.DataTxFields.tx_note type=text unit= optional=no since=1.3
+shape.CallRow since=1.0
+shape.CallRow.id type=i64 unit= optional=no since=1.0
+shape.CallRow.start_s type=f64 unit=s optional=no since=1.0
+shape.CallRow.duration type=duration unit=s optional=no since=1.0
+shape.CallRow.slot type=i64 unit= optional=no since=1.0
+shape.CallRow.kind type=choice(voice,group_voice,private_voice,all_call,data,packet,status,short_message,short_data,control,grant) unit= optional=no since=1.0
+shape.CallRow.src type=text unit= optional=no since=1.0
+shape.CallRow.dst type=text unit= optional=no since=1.0
+shape.CallRow.group type=bool unit= optional=no since=1.0
+shape.CallRow.emergency type=bool unit= optional=no since=1.0
+shape.CallRow.access_kind type=choice(colour_code,nac,ran,can,squelch_code) unit= optional=yes since=1.0
+shape.CallRow.access_code type=i64 unit= optional=yes since=1.0
+shape.CallRow.encryption type=choice(unknown,clear,encrypted,decrypted) unit= optional=no since=1.0
+shape.CallRow.algorithm type=text unit= optional=no since=1.0
+shape.CallRow.alg_id type=i64 unit= optional=yes since=1.0
+shape.CallRow.enc_key_id type=i64 unit= optional=yes since=1.0
+shape.CallRow.alias type=text unit= optional=no since=1.0
+shape.CallRow.text type=text unit= optional=no since=1.0
+shape.CallRow.voice_frames type=i64 unit= optional=no since=1.0
+shape.CallRow.media_frames type=i64 unit= optional=no since=1.0
+shape.CallRow.ber type=f64 unit= optional=no since=1.0
+shape.CallRow.active type=bool unit= optional=no since=1.0
+shape.CallRow.late_entry type=bool unit= optional=no since=1.0
+shape.CallRow.end_seen type=bool unit= optional=no since=1.0
+shape.CallRow.signal_lost type=bool unit= optional=no since=1.0
+shape.CallRow.carrier_hz type=hz unit=Hz optional=no since=1.0
+shape.CallRow.end type=choice(active,terminator,hang_time,replaced,closed,single) unit= optional=no since=1.0
+shape.CallDetailRow since=1.0
+shape.CallDetailRow.call type=text unit= optional=no refers_to=calls since=1.0
+shape.CallDetailRow.detail type=choice(baud,call_type,comm_mode,status,channel,freq_hz,sap,blocks,my,suffix,ur,rpt1,rpt2,flag1,flags,header_ok,header_from_slow_data,squelch,position,stream_type,encryption_type,lsf_from_lich,signed,data,frames,protocol,fid,service_options,note,opcode,format,crc_ok,dpf,downlink,uplink,data_type,call_id,address,mcc,mnc) unit= optional=no since=1.0
+shape.CallDetailRow.value type=any unit= optional=no since=1.0
+shape.MessageRow since=1.0
+shape.MessageRow.time_s type=f64 unit=s optional=no since=1.0
+shape.MessageRow.src type=text unit= optional=no since=1.0
+shape.MessageRow.dst type=text unit= optional=no since=1.0
+shape.MessageRow.group type=bool unit= optional=no since=1.0
+shape.MessageRow.format type=choice(short_data,packet_data,slow_data,sms,meta_text,freedv_text,ysf_text,short_message,packet) unit= optional=no since=1.0
+shape.MessageRow.data_format type=i64 unit= optional=yes since=1.0
+shape.MessageRow.text type=text unit= optional=no since=1.0
+shape.MessageRow.crc_ok type=bool unit= optional=no since=1.0
+shape.MessageRow.slot type=i64 unit= optional=no since=1.0
+shape.MessageRow.sms type=bool unit= optional=no since=1.0
+shape.PositionRow since=1.0
+shape.PositionRow.time_s type=f64 unit=s optional=no since=1.0
+shape.PositionRow.src type=text unit= optional=no since=1.0
+shape.PositionRow.position type=position unit= optional=no since=1.0
+shape.PositionRow.height_m type=f64 unit=m optional=yes since=1.0
+shape.PositionRow.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.PositionRow.course_deg type=f64 unit=° optional=yes since=1.0
+shape.PositionRow.accuracy_m type=f64 unit=m optional=yes since=1.0
+shape.PositionRow.format type=choice(lrrp,nmea,dprs,m17_gnss,ysf_gps,dmr_gps) unit= optional=no since=1.0
+shape.PositionRow.comment type=text unit= optional=no since=1.0
+shape.PositionRow.station_type type=choice(fixed,mobile,handheld,other) unit= optional=yes since=1.0
+shape.PositionRow.data_source type=i64 unit= optional=yes since=1.0
+shape.SiteRow since=1.0
+shape.SiteRow.time_s type=f64 unit=s optional=no since=1.0
+shape.SiteRow.valid type=bool unit= optional=no since=1.0
+shape.SiteRow.system type=i64 unit= optional=yes since=1.0
+shape.SiteRow.wacn type=i64 unit= optional=yes since=1.0
+shape.SiteRow.rfss type=i64 unit= optional=yes since=1.0
+shape.SiteRow.site type=i64 unit= optional=yes since=1.0
+shape.SiteRow.nac type=i64 unit= optional=yes since=1.0
+shape.SiteRow.control_channel type=text unit= optional=yes since=1.0
+shape.SiteRow.location type=i64 unit= optional=yes since=1.0
+shape.SiteRow.ran type=i64 unit= optional=yes since=1.0
+shape.SiteRow.country type=i64 unit= optional=yes since=1.0
+shape.SiteRow.network type=i64 unit= optional=yes since=1.0
+shape.SiteRow.base_station type=i64 unit= optional=yes since=1.0
+shape.SiteRow.channel type=i64 unit= optional=yes since=1.0
+shape.SiteRow.colour_code type=i64 unit= optional=yes since=1.0
+shape.SiteRow.location_area type=i64 unit= optional=yes since=1.0
+shape.SiteRow.main_carrier type=i64 unit= optional=yes since=1.0
+shape.SiteRow.band type=i64 unit= optional=yes since=1.0
+shape.SiteRow.main_carrier_hz type=hz unit=Hz optional=yes since=1.0
+shape.GrantRow since=1.0
+shape.GrantRow.time_s type=f64 unit=s optional=no since=1.0
+shape.GrantRow.target type=i64 unit= optional=no since=1.0
+shape.GrantRow.group type=bool unit= optional=no since=1.0
+shape.GrantRow.source_id type=i64 unit= optional=no since=1.0
+shape.GrantRow.channel_number type=i64 unit= optional=no since=1.0
+shape.GrantRow.channel type=text unit= optional=no since=1.0
+shape.GrantRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.GrantRow.slot type=i64 unit= optional=yes since=1.0
+shape.GrantRow.emergency type=bool unit= optional=no since=1.0
+shape.GrantRow.encrypted type=bool unit= optional=no since=1.0
+shape.GrantRow.priority type=i64 unit= optional=no since=1.0
+shape.GrantRow.update type=bool unit= optional=no since=1.0
+shape.TalkgroupRow since=1.0
+shape.TalkgroupRow.talkgroup type=i64 unit= optional=no since=1.0
+shape.TalkgroupRow.grants type=i64 unit= optional=no since=1.0
+shape.TalkgroupRow.calls type=i64 unit= optional=no since=1.0
+shape.TalkgroupRow.encrypted type=bool unit= optional=no since=1.0
+shape.TalkgroupRow.last_heard type=time unit= optional=yes since=1.0
+shape.HistoryRow since=1.0
+shape.HistoryRow.call type=text unit= optional=no refers_to=calls since=1.0
+shape.HistoryRow.start_s type=f64 unit=s optional=no since=1.0
+shape.HistoryRow.src type=text unit= optional=no since=1.0
+shape.HistoryRow.dst type=text unit= optional=no since=1.0
+shape.HistoryRow.label type=text unit= optional=no since=1.0
+shape.HistoryRow.verdict type=choice(play,busy,lower_priority,muted,filtered,not_held,squelched,encrypted,no_codec) unit= optional=no since=1.0
+shape.HistoryRow.played_frames type=i64 unit= optional=no since=1.0
+shape.HistoryRow.encrypted type=bool unit= optional=no since=1.0
+shape.HistoryRow.active type=bool unit= optional=no since=1.0
+shape.HeardRow since=1.0
+shape.HeardRow.src type=text unit= optional=no since=1.0
+shape.HeardRow.calls type=i64 unit= optional=no since=1.0
+shape.HeardRow.airtime type=duration unit=s optional=no since=1.0
+shape.HeardRow.last_s type=f64 unit=s optional=no since=1.0
+shape.HeardRow.mean_ber type=f64 unit= optional=no since=1.0
+shape.HeardRow.emergency type=bool unit= optional=no since=1.0
+shape.CallEvent since=1.0
+shape.CallEvent.source type=text unit= optional=no since=1.0
+shape.CallEvent.target type=text unit= optional=no since=1.0
+shape.CallEvent.channel type=text unit= optional=yes since=1.0
+shape.CallEvent.text type=text unit= optional=yes since=1.0
+shape.CallEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.CallEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.CallEvent.private type=bool unit= optional=no since=1.0
+shape.CallEvent.id type=i64 unit= optional=no since=1.0
+shape.CallEvent.kind type=choice(voice,group_voice,private_voice,all_call,data,packet,status,short_message,short_data,control,grant) unit= optional=no since=1.0
+shape.CallEvent.group type=bool unit= optional=no since=1.0
+shape.CallEvent.end type=choice(active,terminator,hang_time,replaced,closed,single) unit= optional=no since=1.0
+shape.CallEvent.duration type=duration unit=s optional=yes since=1.0
+shape.MessageEvent since=1.0
+shape.MessageEvent.source type=text unit= optional=no since=1.0
+shape.MessageEvent.target type=text unit= optional=no since=1.0
+shape.MessageEvent.text type=text unit= optional=no since=1.0
+shape.MessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.MessageEvent.format type=choice(short_data,packet_data,slow_data,sms,meta_text,freedv_text,ysf_text,short_message,packet) unit= optional=no since=1.0
+shape.MessageEvent.group type=bool unit= optional=no since=1.0
+shape.PositionEvent since=1.0
+shape.PositionEvent.source type=text unit= optional=no since=1.0
+shape.PositionEvent.position type=position unit= optional=no since=1.0
+shape.PositionEvent.height_m type=f64 unit=m optional=yes since=1.0
+shape.PositionEvent.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.PositionEvent.course_deg type=f64 unit=° optional=yes since=1.0
+shape.PositionEvent.text type=text unit= optional=yes since=1.0
+shape.PositionEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.PositionEvent.format type=choice(lrrp,nmea,dprs,m17_gnss,ysf_gps,dmr_gps) unit= optional=no since=1.0
+shape.P25Fields since=1.0
+shape.P25Fields.nac type=i64 unit= optional=yes since=1.0
+shape.P25Fields.p25_frames type=i64 unit= optional=no since=1.0
+shape.IdentifierRow since=1.0
+shape.IdentifierRow.id type=i64 unit= optional=no since=1.0
+shape.IdentifierRow.vhf_uhf type=bool unit= optional=no since=1.0
+shape.IdentifierRow.base_hz type=hz unit=Hz optional=no since=1.0
+shape.IdentifierRow.spacing_hz type=hz unit=Hz optional=no since=1.0
+shape.IdentifierRow.tx_offset_hz type=hz unit=Hz optional=no since=1.0
+shape.IdentifierRow.bandwidth_hz type=hz unit=Hz optional=no since=1.0
+shape.AdjacentRow since=1.0
+shape.AdjacentRow.system type=i64 unit= optional=no since=1.0
+shape.AdjacentRow.rfss type=i64 unit= optional=no since=1.0
+shape.AdjacentRow.site type=i64 unit= optional=no since=1.0
+shape.AdjacentRow.channel type=text unit= optional=no since=1.0
+shape.AdjacentRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.M17Fields since=1.0
+shape.M17Fields.lsf_ok type=i64 unit= optional=no since=1.0
+shape.M17Fields.stream_frames type=i64 unit= optional=no since=1.0
+shape.M17Fields.packets_ok type=i64 unit= optional=no since=1.0
+shape.M17TxFields since=1.1
+shape.M17TxFields.transmitting type=bool unit= optional=no since=1.1
+shape.M17TxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.1
+shape.M17TxFields.tx_kind type=choice(voice,packet) unit= optional=yes since=1.1
+shape.M17TxFields.tx_frames type=i64 unit= optional=no since=1.1
+shape.DstarFields since=1.0
+shape.DstarFields.headers_ok type=i64 unit= optional=no since=1.0
+shape.DstarFields.dstar_voice_frames type=i64 unit= optional=no since=1.0
+shape.DstarFields.sync_inverted type=bool unit= optional=no since=1.0
+shape.DstarTxFields since=1.3
+shape.DstarTxFields.transmitting type=bool unit= optional=no since=1.3
+shape.DstarTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.3
+shape.DstarTxFields.tx_kind type=choice(text) unit= optional=yes since=1.3
+shape.DstarTxFields.tx_frames type=i64 unit= optional=no since=1.3
+shape.DstarTxFields.tx_note type=text unit= optional=no since=1.3
+shape.NxdnFields since=1.0
+shape.NxdnFields.ran type=i64 unit= optional=yes since=1.0
+shape.NxdnFields.nxdn_frames type=i64 unit= optional=no since=1.0
+shape.NxdnFields.crc_ok type=i64 unit= optional=no since=1.0
+shape.NxdnFields.crc_bad type=i64 unit= optional=no since=1.0
+shape.DpmrFields since=1.0
+shape.DpmrFields.colour_code type=i64 unit= optional=yes since=1.0
+shape.YsfFields since=1.0
+shape.YsfFields.data_type type=text unit= optional=no since=1.0
+shape.P25p2Fields since=1.0
+shape.P25p2Fields.location type=i64 unit= optional=no since=1.0
+shape.TetrapolFields since=1.0
+shape.TetrapolFields.tetrapol_voice_frames type=i64 unit= optional=no since=1.0
+shape.TetrapolFields.tetrapol_signalling_frames type=i64 unit= optional=no since=1.0
+shape.TetraFields since=1.0
+shape.TetraFields.bursts type=i64 unit= optional=no since=1.0
+shape.TetraDmoFields since=1.0
+shape.TetraDmoFields.dsb type=i64 unit= optional=no since=1.0
+shape.TetraDmoFields.dnb type=i64 unit= optional=no since=1.0
+shape.TetraDmoFields.data_blocks type=i64 unit= optional=no since=1.0
+shape.TetraDmoFields.sync_blocks_bad type=i64 unit= optional=no since=1.0
+shape.TetraDmoFields.traffic_bursts type=i64 unit= optional=no since=1.0
+shape.TetraDmoFields.traffic_refused type=i64 unit= optional=no since=1.0
+shape.TetraDmoFields.comm_type type=i64 unit= optional=yes since=1.0
+shape.TetraDmoFields.frame type=i64 unit= optional=yes since=1.0
+shape.TetraDmoFields.slot type=i64 unit= optional=yes since=1.0
+shape.TetraDmoFields.aie_state type=i64 unit= optional=yes since=1.0
+shape.TetraDmoFields.last_source type=text unit= optional=yes since=1.0
+shape.TetraDmoFields.last_destination type=text unit= optional=yes since=1.0
+shape.TetraDmoFields.mni type=text unit= optional=yes since=1.0
+shape.TetraDmoFields.note type=text unit= optional=no since=1.0
+shape.FreedvFields since=1.0
+shape.FreedvFields.submode type=text unit= optional=no since=1.0
+shape.FreedvFields.sync_700d type=text unit= optional=no since=1.2
+shape.FreedvFields.sync_700e type=text unit= optional=no since=1.2
+shape.FreedvFields.sync_1600 type=text unit= optional=no since=1.2
+shape.FreedvFields.confirmed type=bool unit= optional=no since=1.2
+shape.FreedvFields.freq_offset_hz type=f64 unit=Hz optional=no since=1.2
+shape.FreedvFields.clock_offset_ppm type=f64 unit=ppm optional=no since=1.2
+shape.FreedvFields.timing_metric type=f64 unit= optional=no since=1.2
+shape.FreedvFields.uw_ber_pct type=f64 unit=% optional=no since=1.2
+shape.FreedvFields.ldpc_failed_frames type=i64 unit= optional=no since=1.2
+shape.FreedvFields.freedv_frames type=i64 unit= optional=no since=1.0
+shape.FreedvFields.speech_frames type=i64 unit= optional=no since=1.2
+shape.FreedvFields.callsign type=text unit= optional=no since=1.0
+shape.FreedvTxFields since=1.3
+shape.FreedvTxFields.transmitting type=bool unit= optional=no since=1.3
+shape.FreedvTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.3
+shape.FreedvTxFields.tx_kind type=choice(700D,700E,1600) unit= optional=yes since=1.3
+shape.FreedvTxFields.tx_frames type=i64 unit= optional=no since=1.3
+shape.AutoFields since=1.0
+shape.AutoFields.detected type=choice(dmr,nxdn,dpmr,p25,ysf,m17) unit= optional=yes since=1.0
+shape.SeenRow since=1.0
+shape.SeenRow.stack type=choice(dmr,nxdn,dpmr,p25,ysf,m17) unit= optional=no since=1.0
+shape.SeenRow.blocks type=i64 unit= optional=no since=1.0
+shape.SeenRow.last_s type=f64 unit=s optional=no since=1.0
+shape.DcrFields since=1.0
+shape.DcrFields.dcr_frames type=i64 unit= optional=no since=1.0
+shape.DcrFields.sacch_ok type=i64 unit= optional=no since=1.0
+shape.DcrFields.sacch_bad type=i64 unit= optional=no since=1.0
+shape.DcrFields.rich_bad type=i64 unit= optional=no since=1.0
+shape.DcrFields.pich_ok type=i64 unit= optional=no since=1.0
+shape.DcrFields.data_ok type=i64 unit= optional=no since=1.0
+shape.DcrFields.data_bad type=i64 unit= optional=no since=1.0
+shape.DcrFields.voice_frames type=i64 unit= optional=no since=1.0
+shape.DcrFields.calls type=i64 unit= optional=no since=1.0
+shape.DcrFields.ber_pct type=f64 unit=% optional=no since=1.0
+shape.DcrFields.last_user_code type=i64 unit= optional=yes since=1.0
+shape.DcrFields.last_call_sign type=text unit= optional=yes since=1.0
+shape.DcrFields.channel type=text unit= optional=yes since=1.0
+shape.DcrFields.scan_channels type=i64 unit= optional=no since=1.0
+shape.DcrFields.scan_decoders type=i64 unit= optional=no since=1.0
+shape.DcrFields.scan_decoding type=i64 unit= optional=no since=1.0
+shape.DcrFields.note type=text unit= optional=no since=1.0
+shape.DcrEventRow since=1.0
+shape.DcrEventRow.time_s type=f64 unit=s optional=no since=1.0
+shape.DcrEventRow.kind type=choice(call,call_end,call_sign,data,manufacturer_message,idle,unknown_message) unit= optional=no since=1.0
+shape.DcrEventRow.identity type=text unit= optional=no since=1.0
+shape.DcrEventRow.text type=text unit= optional=no since=1.0
+shape.DcrEventRow.channel type=text unit= optional=yes since=1.0
+dmr since=1.0
+dmr.fields.SharedFields since=1.0
+dmr.fields.DmrFields since=1.0
+dmr.fields.MonitorFields since=1.0
+dmr.fields.DecoderFields since=1.0
+dmr.fields.DataTxFields since=1.3
+dmr.table.calls row=CallRow cap=100 since=1.0
+dmr.table.call_details row=CallDetailRow cap=3000 since=1.0
+dmr.table.messages row=MessageRow cap=100 since=1.0
+dmr.table.positions row=PositionRow cap=512 since=1.0
+dmr.table.sites row=SiteRow cap=1 since=1.0
+dmr.table.grants row=GrantRow cap=300 since=1.0
+dmr.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+dmr.table.history row=HistoryRow cap=500 since=1.0
+dmr.table.heard row=HeardRow cap=200 since=1.0
+dmr.series.eye x_unit= y_unit= since=1.0
+dmr.series.levels x_unit= y_unit= since=1.0
+dmr.series.spectrum x_unit=Hz y_unit=dB since=1.0
+dmr.series.snr_history x_unit= y_unit=dB since=1.0
+dmr.series.ber_history x_unit= y_unit= since=1.0
+dmr.event.dvoice.call fields=CallEvent since=1.0
+dmr.event.dvoice.message fields=MessageEvent since=1.0
+dmr.event.dvoice.position fields=PositionEvent since=1.0
+dmr.setting.squelch_pct type=f64 unit=% since=1.0
+dmr.setting.allow_only type=bool unit= since=1.0
+dmr.setting.allow type=text unit= since=1.0
+dmr.setting.mute_list type=text unit= since=1.0
+dmr.setting.priority type=text unit= since=1.0
+dmr.setting.hold type=text unit= since=1.0
+dmr.setting.labels type=text unit= since=1.0
+dmr.setting.hold_timeout_s type=f64 unit=s since=1.0
+dmr.setting.hang_s type=f64 unit=s since=1.0
+dmr.setting.listen type=bool unit= since=1.0
+dmr.setting.gen_cc type=i64 unit= since=1.0
+dmr.setting.radio_id type=i64 unit= since=1.3
+dmr.setting.called_id type=i64 unit= since=1.3
+dmr.setting.talkgroup type=i64 unit= since=1.3
+dmr.setting.colour_code type=i64 unit= since=1.3
+dmr.setting.slot type=choice(1,2) unit= since=1.3
+dmr.setting.tx_split type=hz unit=Hz since=1.3
+dmr.command.clear args= reply= since=1.0
+dmr.command.hold_current args= reply= since=1.0
+dmr.command.release args= reply= since=1.0
+dmr.command.remove args=row:text reply= since=1.0
+dmr.command.send args=text:text reply= transmits=text stop=halt since=1.3
+dmr.command.halt args= reply= since=1.3
+p25 since=1.0
+p25.fields.SharedFields since=1.0
+p25.fields.P25Fields since=1.0
+p25.fields.MonitorFields since=1.0
+p25.fields.DecoderFields since=1.0
+p25.table.calls row=CallRow cap=300 since=1.0
+p25.table.call_details row=CallDetailRow cap=3000 since=1.0
+p25.table.messages row=MessageRow cap=100 since=1.0
+p25.table.positions row=PositionRow cap=512 since=1.0
+p25.table.sites row=SiteRow cap=1 since=1.0
+p25.table.grants row=GrantRow cap=300 since=1.0
+p25.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+p25.table.identifiers row=IdentifierRow cap=16 since=1.0
+p25.table.adjacent_sites row=AdjacentRow cap=64 since=1.0
+p25.table.history row=HistoryRow cap=500 since=1.0
+p25.table.heard row=HeardRow cap=200 since=1.0
+p25.series.eye x_unit= y_unit= since=1.0
+p25.series.levels x_unit= y_unit= since=1.0
+p25.series.spectrum x_unit=Hz y_unit=dB since=1.0
+p25.series.snr_history x_unit= y_unit=dB since=1.0
+p25.series.ber_history x_unit= y_unit= since=1.0
+p25.event.dvoice.call fields=CallEvent since=1.0
+p25.event.dvoice.message fields=MessageEvent since=1.0
+p25.event.dvoice.position fields=PositionEvent since=1.0
+p25.setting.squelch_pct type=f64 unit=% since=1.0
+p25.setting.allow_only type=bool unit= since=1.0
+p25.setting.allow type=text unit= since=1.0
+p25.setting.mute_list type=text unit= since=1.0
+p25.setting.priority type=text unit= since=1.0
+p25.setting.hold type=text unit= since=1.0
+p25.setting.labels type=text unit= since=1.0
+p25.setting.hold_timeout_s type=f64 unit=s since=1.0
+p25.setting.hang_s type=f64 unit=s since=1.0
+p25.setting.listen type=bool unit= since=1.0
+p25.setting.gen_nac type=i64 unit= since=1.0
+p25.command.clear args= reply= since=1.0
+p25.command.hold_current args= reply= since=1.0
+p25.command.release args= reply= since=1.0
+p25.command.remove args=row:text reply= since=1.0
+m17 since=1.0
+m17.fields.SharedFields since=1.0
+m17.fields.M17Fields since=1.0
+m17.fields.MonitorFields since=1.0
+m17.fields.DecoderFields since=1.0
+m17.fields.M17TxFields since=1.1
+m17.table.calls row=CallRow cap=300 since=1.0
+m17.table.call_details row=CallDetailRow cap=3000 since=1.0
+m17.table.messages row=MessageRow cap=100 since=1.0
+m17.table.positions row=PositionRow cap=512 since=1.0
+m17.table.sites row=SiteRow cap=1 since=1.0
+m17.table.grants row=GrantRow cap=300 since=1.0
+m17.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+m17.table.history row=HistoryRow cap=500 since=1.0
+m17.table.heard row=HeardRow cap=200 since=1.0
+m17.series.eye x_unit= y_unit= since=1.0
+m17.series.levels x_unit= y_unit= since=1.0
+m17.series.spectrum x_unit=Hz y_unit=dB since=1.0
+m17.series.snr_history x_unit= y_unit=dB since=1.0
+m17.series.ber_history x_unit= y_unit= since=1.0
+m17.event.dvoice.call fields=CallEvent since=1.0
+m17.event.dvoice.message fields=MessageEvent since=1.0
+m17.event.dvoice.position fields=PositionEvent since=1.0
+m17.setting.squelch_pct type=f64 unit=% since=1.0
+m17.setting.allow_only type=bool unit= since=1.0
+m17.setting.allow type=text unit= since=1.0
+m17.setting.mute_list type=text unit= since=1.0
+m17.setting.priority type=text unit= since=1.0
+m17.setting.hold type=text unit= since=1.0
+m17.setting.labels type=text unit= since=1.0
+m17.setting.hold_timeout_s type=f64 unit=s since=1.0
+m17.setting.hang_s type=f64 unit=s since=1.0
+m17.setting.listen type=bool unit= since=1.0
+m17.setting.callsign type=text unit= since=1.1
+m17.setting.destination type=text unit= since=1.1
+m17.setting.can type=i64 unit= since=1.1
+m17.setting.voice_mode type=choice(3200) unit= since=1.1
+m17.setting.meta_text type=text unit= since=1.1
+m17.setting.tx_split type=hz unit=Hz since=1.1
+m17.setting.tx_timeout type=duration unit=s since=1.1
+m17.command.clear args= reply= since=1.0
+m17.command.hold_current args= reply= since=1.0
+m17.command.release args= reply= since=1.0
+m17.command.remove args=row:text reply= since=1.0
+m17.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.1
+m17.command.send args=text:text reply= transmits=text stop=halt since=1.1
+m17.command.send_data args=protocol:i64;data:bytes reply= transmits=frame stop=halt since=1.1
+m17.command.halt args= reply= since=1.1
+dstar since=1.0
+dstar.fields.SharedFields since=1.0
+dstar.fields.DstarFields since=1.0
+dstar.fields.MonitorFields since=1.0
+dstar.fields.DecoderFields since=1.0
+dstar.fields.DstarTxFields since=1.3
+dstar.table.calls row=CallRow cap=300 since=1.0
+dstar.table.call_details row=CallDetailRow cap=3000 since=1.0
+dstar.table.messages row=MessageRow cap=100 since=1.0
+dstar.table.positions row=PositionRow cap=512 since=1.0
+dstar.table.sites row=SiteRow cap=1 since=1.0
+dstar.table.grants row=GrantRow cap=300 since=1.0
+dstar.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+dstar.table.history row=HistoryRow cap=500 since=1.0
+dstar.table.heard row=HeardRow cap=200 since=1.0
+dstar.series.eye x_unit= y_unit= since=1.0
+dstar.series.levels x_unit= y_unit= since=1.0
+dstar.series.spectrum x_unit=Hz y_unit=dB since=1.0
+dstar.series.snr_history x_unit= y_unit=dB since=1.0
+dstar.series.ber_history x_unit= y_unit= since=1.0
+dstar.event.dvoice.call fields=CallEvent since=1.0
+dstar.event.dvoice.message fields=MessageEvent since=1.0
+dstar.event.dvoice.position fields=PositionEvent since=1.0
+dstar.setting.squelch_pct type=f64 unit=% since=1.0
+dstar.setting.allow_only type=bool unit= since=1.0
+dstar.setting.allow type=text unit= since=1.0
+dstar.setting.mute_list type=text unit= since=1.0
+dstar.setting.priority type=text unit= since=1.0
+dstar.setting.hold type=text unit= since=1.0
+dstar.setting.labels type=text unit= since=1.0
+dstar.setting.hold_timeout_s type=f64 unit=s since=1.0
+dstar.setting.hang_s type=f64 unit=s since=1.0
+dstar.setting.listen type=bool unit= since=1.0
+dstar.setting.callsign type=text unit= since=1.3
+dstar.setting.suffix type=text unit= since=1.3
+dstar.setting.your_call type=text unit= since=1.3
+dstar.setting.rpt1 type=text unit= since=1.3
+dstar.setting.rpt2 type=text unit= since=1.3
+dstar.setting.via_repeater type=bool unit= since=1.3
+dstar.setting.tx_split type=hz unit=Hz since=1.3
+dstar.command.clear args= reply= since=1.0
+dstar.command.hold_current args= reply= since=1.0
+dstar.command.release args= reply= since=1.0
+dstar.command.remove args=row:text reply= since=1.0
+dstar.command.send args=text:text reply= transmits=text stop=halt since=1.3
+dstar.command.halt args= reply= since=1.3
+nxdn since=1.0
+nxdn.fields.SharedFields since=1.0
+nxdn.fields.NxdnFields since=1.0
+nxdn.fields.MonitorFields since=1.0
+nxdn.fields.DecoderFields since=1.0
+nxdn.table.calls row=CallRow cap=300 since=1.0
+nxdn.table.call_details row=CallDetailRow cap=3000 since=1.0
+nxdn.table.messages row=MessageRow cap=100 since=1.0
+nxdn.table.positions row=PositionRow cap=512 since=1.0
+nxdn.table.sites row=SiteRow cap=1 since=1.0
+nxdn.table.grants row=GrantRow cap=300 since=1.0
+nxdn.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+nxdn.table.history row=HistoryRow cap=500 since=1.0
+nxdn.table.heard row=HeardRow cap=200 since=1.0
+nxdn.series.eye x_unit= y_unit= since=1.0
+nxdn.series.levels x_unit= y_unit= since=1.0
+nxdn.series.spectrum x_unit=Hz y_unit=dB since=1.0
+nxdn.series.snr_history x_unit= y_unit=dB since=1.0
+nxdn.series.ber_history x_unit= y_unit= since=1.0
+nxdn.event.dvoice.call fields=CallEvent since=1.0
+nxdn.event.dvoice.message fields=MessageEvent since=1.0
+nxdn.event.dvoice.position fields=PositionEvent since=1.0
+nxdn.setting.squelch_pct type=f64 unit=% since=1.0
+nxdn.setting.allow_only type=bool unit= since=1.0
+nxdn.setting.allow type=text unit= since=1.0
+nxdn.setting.mute_list type=text unit= since=1.0
+nxdn.setting.priority type=text unit= since=1.0
+nxdn.setting.hold type=text unit= since=1.0
+nxdn.setting.labels type=text unit= since=1.0
+nxdn.setting.hold_timeout_s type=f64 unit=s since=1.0
+nxdn.setting.hang_s type=f64 unit=s since=1.0
+nxdn.setting.listen type=bool unit= since=1.0
+nxdn.command.clear args= reply= since=1.0
+nxdn.command.hold_current args= reply= since=1.0
+nxdn.command.release args= reply= since=1.0
+nxdn.command.remove args=row:text reply= since=1.0
+dpmr since=1.0
+dpmr.fields.SharedFields since=1.0
+dpmr.fields.DpmrFields since=1.0
+dpmr.fields.MonitorFields since=1.0
+dpmr.fields.DecoderFields since=1.0
+dpmr.table.calls row=CallRow cap=300 since=1.0
+dpmr.table.call_details row=CallDetailRow cap=3000 since=1.0
+dpmr.table.messages row=MessageRow cap=100 since=1.0
+dpmr.table.positions row=PositionRow cap=512 since=1.0
+dpmr.table.sites row=SiteRow cap=1 since=1.0
+dpmr.table.grants row=GrantRow cap=300 since=1.0
+dpmr.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+dpmr.table.history row=HistoryRow cap=500 since=1.0
+dpmr.table.heard row=HeardRow cap=200 since=1.0
+dpmr.series.eye x_unit= y_unit= since=1.0
+dpmr.series.levels x_unit= y_unit= since=1.0
+dpmr.series.spectrum x_unit=Hz y_unit=dB since=1.0
+dpmr.series.snr_history x_unit= y_unit=dB since=1.0
+dpmr.series.ber_history x_unit= y_unit= since=1.0
+dpmr.event.dvoice.call fields=CallEvent since=1.0
+dpmr.event.dvoice.message fields=MessageEvent since=1.0
+dpmr.event.dvoice.position fields=PositionEvent since=1.0
+dpmr.setting.squelch_pct type=f64 unit=% since=1.0
+dpmr.setting.allow_only type=bool unit= since=1.0
+dpmr.setting.allow type=text unit= since=1.0
+dpmr.setting.mute_list type=text unit= since=1.0
+dpmr.setting.priority type=text unit= since=1.0
+dpmr.setting.hold type=text unit= since=1.0
+dpmr.setting.labels type=text unit= since=1.0
+dpmr.setting.hold_timeout_s type=f64 unit=s since=1.0
+dpmr.setting.hang_s type=f64 unit=s since=1.0
+dpmr.setting.listen type=bool unit= since=1.0
+dpmr.command.clear args= reply= since=1.0
+dpmr.command.hold_current args= reply= since=1.0
+dpmr.command.release args= reply= since=1.0
+dpmr.command.remove args=row:text reply= since=1.0
+ysf since=1.0
+ysf.fields.SharedFields since=1.0
+ysf.fields.YsfFields since=1.0
+ysf.fields.MonitorFields since=1.0
+ysf.fields.DecoderFields since=1.0
+ysf.table.calls row=CallRow cap=300 since=1.0
+ysf.table.call_details row=CallDetailRow cap=3000 since=1.0
+ysf.table.messages row=MessageRow cap=100 since=1.0
+ysf.table.positions row=PositionRow cap=512 since=1.0
+ysf.table.sites row=SiteRow cap=1 since=1.0
+ysf.table.grants row=GrantRow cap=300 since=1.0
+ysf.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+ysf.table.history row=HistoryRow cap=500 since=1.0
+ysf.table.heard row=HeardRow cap=200 since=1.0
+ysf.series.eye x_unit= y_unit= since=1.0
+ysf.series.levels x_unit= y_unit= since=1.0
+ysf.series.spectrum x_unit=Hz y_unit=dB since=1.0
+ysf.series.snr_history x_unit= y_unit=dB since=1.0
+ysf.series.ber_history x_unit= y_unit= since=1.0
+ysf.event.dvoice.call fields=CallEvent since=1.0
+ysf.event.dvoice.message fields=MessageEvent since=1.0
+ysf.event.dvoice.position fields=PositionEvent since=1.0
+ysf.setting.squelch_pct type=f64 unit=% since=1.0
+ysf.setting.allow_only type=bool unit= since=1.0
+ysf.setting.allow type=text unit= since=1.0
+ysf.setting.mute_list type=text unit= since=1.0
+ysf.setting.priority type=text unit= since=1.0
+ysf.setting.hold type=text unit= since=1.0
+ysf.setting.labels type=text unit= since=1.0
+ysf.setting.hold_timeout_s type=f64 unit=s since=1.0
+ysf.setting.hang_s type=f64 unit=s since=1.0
+ysf.setting.listen type=bool unit= since=1.0
+ysf.command.clear args= reply= since=1.0
+ysf.command.hold_current args= reply= since=1.0
+ysf.command.release args= reply= since=1.0
+ysf.command.remove args=row:text reply= since=1.0
+p25p2 since=1.0
+p25p2.fields.SharedFields since=1.0
+p25p2.fields.P25p2Fields since=1.0
+p25p2.fields.MonitorFields since=1.0
+p25p2.fields.DecoderFields since=1.0
+p25p2.table.calls row=CallRow cap=300 since=1.0
+p25p2.table.call_details row=CallDetailRow cap=3000 since=1.0
+p25p2.table.messages row=MessageRow cap=100 since=1.0
+p25p2.table.positions row=PositionRow cap=512 since=1.0
+p25p2.table.sites row=SiteRow cap=1 since=1.0
+p25p2.table.grants row=GrantRow cap=300 since=1.0
+p25p2.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+p25p2.table.history row=HistoryRow cap=500 since=1.0
+p25p2.table.heard row=HeardRow cap=200 since=1.0
+p25p2.series.eye x_unit= y_unit= since=1.0
+p25p2.series.levels x_unit= y_unit= since=1.0
+p25p2.series.spectrum x_unit=Hz y_unit=dB since=1.0
+p25p2.series.snr_history x_unit= y_unit=dB since=1.0
+p25p2.series.ber_history x_unit= y_unit= since=1.0
+p25p2.event.dvoice.call fields=CallEvent since=1.0
+p25p2.event.dvoice.message fields=MessageEvent since=1.0
+p25p2.event.dvoice.position fields=PositionEvent since=1.0
+p25p2.setting.squelch_pct type=f64 unit=% since=1.0
+p25p2.setting.allow_only type=bool unit= since=1.0
+p25p2.setting.allow type=text unit= since=1.0
+p25p2.setting.mute_list type=text unit= since=1.0
+p25p2.setting.priority type=text unit= since=1.0
+p25p2.setting.hold type=text unit= since=1.0
+p25p2.setting.labels type=text unit= since=1.0
+p25p2.setting.hold_timeout_s type=f64 unit=s since=1.0
+p25p2.setting.hang_s type=f64 unit=s since=1.0
+p25p2.setting.listen type=bool unit= since=1.0
+p25p2.command.clear args= reply= since=1.0
+p25p2.command.hold_current args= reply= since=1.0
+p25p2.command.release args= reply= since=1.0
+p25p2.command.remove args=row:text reply= since=1.0
+tetrapol since=1.0
+tetrapol.fields.SharedFields since=1.0
+tetrapol.fields.TetrapolFields since=1.0
+tetrapol.fields.MonitorFields since=1.0
+tetrapol.fields.DecoderFields since=1.0
+tetrapol.table.calls row=CallRow cap=300 since=1.0
+tetrapol.table.call_details row=CallDetailRow cap=3000 since=1.0
+tetrapol.table.messages row=MessageRow cap=100 since=1.0
+tetrapol.table.positions row=PositionRow cap=512 since=1.0
+tetrapol.table.sites row=SiteRow cap=1 since=1.0
+tetrapol.table.grants row=GrantRow cap=300 since=1.0
+tetrapol.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+tetrapol.table.history row=HistoryRow cap=500 since=1.0
+tetrapol.table.heard row=HeardRow cap=200 since=1.0
+tetrapol.series.eye x_unit= y_unit= since=1.0
+tetrapol.series.levels x_unit= y_unit= since=1.0
+tetrapol.series.spectrum x_unit=Hz y_unit=dB since=1.0
+tetrapol.series.snr_history x_unit= y_unit=dB since=1.0
+tetrapol.series.ber_history x_unit= y_unit= since=1.0
+tetrapol.event.dvoice.call fields=CallEvent since=1.0
+tetrapol.event.dvoice.message fields=MessageEvent since=1.0
+tetrapol.event.dvoice.position fields=PositionEvent since=1.0
+tetrapol.setting.squelch_pct type=f64 unit=% since=1.0
+tetrapol.setting.allow_only type=bool unit= since=1.0
+tetrapol.setting.allow type=text unit= since=1.0
+tetrapol.setting.mute_list type=text unit= since=1.0
+tetrapol.setting.priority type=text unit= since=1.0
+tetrapol.setting.hold type=text unit= since=1.0
+tetrapol.setting.labels type=text unit= since=1.0
+tetrapol.setting.hold_timeout_s type=f64 unit=s since=1.0
+tetrapol.setting.hang_s type=f64 unit=s since=1.0
+tetrapol.setting.listen type=bool unit= since=1.0
+tetrapol.command.clear args= reply= since=1.0
+tetrapol.command.hold_current args= reply= since=1.0
+tetrapol.command.release args= reply= since=1.0
+tetrapol.command.remove args=row:text reply= since=1.0
+tetra since=1.0
+tetra.fields.SharedFields since=1.0
+tetra.fields.TetraFields since=1.0
+tetra.fields.MonitorFields since=1.0
+tetra.fields.DecoderFields since=1.0
+tetra.table.calls row=CallRow cap=300 since=1.0
+tetra.table.call_details row=CallDetailRow cap=3000 since=1.0
+tetra.table.messages row=MessageRow cap=100 since=1.0
+tetra.table.positions row=PositionRow cap=512 since=1.0
+tetra.table.sites row=SiteRow cap=1 since=1.0
+tetra.table.grants row=GrantRow cap=300 since=1.0
+tetra.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+tetra.table.history row=HistoryRow cap=500 since=1.0
+tetra.table.heard row=HeardRow cap=200 since=1.0
+tetra.series.eye x_unit= y_unit= since=1.0
+tetra.series.levels x_unit= y_unit= since=1.0
+tetra.series.spectrum x_unit=Hz y_unit=dB since=1.0
+tetra.series.snr_history x_unit= y_unit=dB since=1.0
+tetra.series.ber_history x_unit= y_unit= since=1.0
+tetra.event.dvoice.call fields=CallEvent since=1.0
+tetra.event.dvoice.message fields=MessageEvent since=1.0
+tetra.event.dvoice.position fields=PositionEvent since=1.0
+tetra.setting.squelch_pct type=f64 unit=% since=1.0
+tetra.setting.allow_only type=bool unit= since=1.0
+tetra.setting.allow type=text unit= since=1.0
+tetra.setting.mute_list type=text unit= since=1.0
+tetra.setting.priority type=text unit= since=1.0
+tetra.setting.hold type=text unit= since=1.0
+tetra.setting.labels type=text unit= since=1.0
+tetra.setting.hold_timeout_s type=f64 unit=s since=1.0
+tetra.setting.hang_s type=f64 unit=s since=1.0
+tetra.setting.listen type=bool unit= since=1.0
+tetra.command.clear args= reply= since=1.0
+tetra.command.hold_current args= reply= since=1.0
+tetra.command.release args= reply= since=1.0
+tetra.command.remove args=row:text reply= since=1.0
+tetra_dmo since=1.0
+tetra_dmo.fields.SharedFields since=1.0
+tetra_dmo.fields.TetraDmoFields since=1.0
+tetra_dmo.fields.MonitorFields since=1.0
+tetra_dmo.fields.DecoderFields since=1.0
+tetra_dmo.table.calls row=CallRow cap=300 since=1.0
+tetra_dmo.table.call_details row=CallDetailRow cap=3000 since=1.0
+tetra_dmo.table.messages row=MessageRow cap=100 since=1.0
+tetra_dmo.table.positions row=PositionRow cap=512 since=1.0
+tetra_dmo.table.sites row=SiteRow cap=1 since=1.0
+tetra_dmo.table.grants row=GrantRow cap=300 since=1.0
+tetra_dmo.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+tetra_dmo.table.history row=HistoryRow cap=500 since=1.0
+tetra_dmo.table.heard row=HeardRow cap=200 since=1.0
+tetra_dmo.series.eye x_unit= y_unit= since=1.0
+tetra_dmo.series.levels x_unit= y_unit= since=1.0
+tetra_dmo.series.spectrum x_unit=Hz y_unit=dB since=1.0
+tetra_dmo.series.snr_history x_unit= y_unit=dB since=1.0
+tetra_dmo.series.ber_history x_unit= y_unit= since=1.0
+tetra_dmo.event.dvoice.call fields=CallEvent since=1.0
+tetra_dmo.event.dvoice.message fields=MessageEvent since=1.0
+tetra_dmo.event.dvoice.position fields=PositionEvent since=1.0
+tetra_dmo.setting.squelch_pct type=f64 unit=% since=1.0
+tetra_dmo.setting.allow_only type=bool unit= since=1.0
+tetra_dmo.setting.allow type=text unit= since=1.0
+tetra_dmo.setting.mute_list type=text unit= since=1.0
+tetra_dmo.setting.priority type=text unit= since=1.0
+tetra_dmo.setting.hold type=text unit= since=1.0
+tetra_dmo.setting.labels type=text unit= since=1.0
+tetra_dmo.setting.hold_timeout_s type=f64 unit=s since=1.0
+tetra_dmo.setting.hang_s type=f64 unit=s since=1.0
+tetra_dmo.setting.listen type=bool unit= since=1.0
+tetra_dmo.setting.gen_comm_type type=i64 unit= since=1.0
+tetra_dmo.setting.gen_group type=bool unit= since=1.0
+tetra_dmo.setting.gen_ai_enc type=i64 unit= since=1.0
+tetra_dmo.setting.gen_e2e type=bool unit= since=1.0
+tetra_dmo.setting.gen_traffic_frames type=i64 unit= since=1.0
+tetra_dmo.setting.gen_setup_repeats type=i64 unit= since=1.0
+tetra_dmo.command.clear args= reply= since=1.0
+tetra_dmo.command.hold_current args= reply= since=1.0
+tetra_dmo.command.release args= reply= since=1.0
+tetra_dmo.command.remove args=row:text reply= since=1.0
+freedv since=1.0
+freedv.fields.SharedFields since=1.0
+freedv.fields.FreedvFields since=1.0
+freedv.fields.MonitorFields since=1.0
+freedv.fields.DecoderFields since=1.0
+freedv.fields.FreedvTxFields since=1.3
+freedv.table.calls row=CallRow cap=300 since=1.0
+freedv.table.call_details row=CallDetailRow cap=3000 since=1.0
+freedv.table.messages row=MessageRow cap=100 since=1.0
+freedv.table.positions row=PositionRow cap=512 since=1.0
+freedv.table.sites row=SiteRow cap=1 since=1.0
+freedv.table.grants row=GrantRow cap=300 since=1.0
+freedv.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+freedv.table.history row=HistoryRow cap=500 since=1.0
+freedv.table.heard row=HeardRow cap=200 since=1.0
+freedv.series.eye x_unit= y_unit= since=1.0
+freedv.series.levels x_unit= y_unit= since=1.0
+freedv.series.spectrum x_unit=Hz y_unit=dB since=1.0
+freedv.series.snr_history x_unit= y_unit=dB since=1.0
+freedv.series.ber_history x_unit= y_unit= since=1.0
+freedv.event.dvoice.call fields=CallEvent since=1.0
+freedv.event.dvoice.message fields=MessageEvent since=1.0
+freedv.event.dvoice.position fields=PositionEvent since=1.0
+freedv.setting.squelch_pct type=f64 unit=% since=1.0
+freedv.setting.allow_only type=bool unit= since=1.0
+freedv.setting.allow type=text unit= since=1.0
+freedv.setting.mute_list type=text unit= since=1.0
+freedv.setting.priority type=text unit= since=1.0
+freedv.setting.hold type=text unit= since=1.0
+freedv.setting.labels type=text unit= since=1.0
+freedv.setting.hold_timeout_s type=f64 unit=s since=1.0
+freedv.setting.hang_s type=f64 unit=s since=1.0
+freedv.setting.listen type=bool unit= since=1.0
+freedv.setting.gen_clip type=bool unit= since=1.2
+freedv.setting.callsign type=text unit= since=1.3
+freedv.setting.tx_clip type=bool unit= since=1.3
+freedv.setting.tx_filter type=bool unit= since=1.3
+freedv.setting.tx_split type=hz unit=Hz since=1.3
+freedv.setting.tx_timeout type=duration unit=s since=1.3
+freedv.command.clear args= reply= since=1.0
+freedv.command.hold_current args= reply= since=1.0
+freedv.command.release args= reply= since=1.0
+freedv.command.remove args=row:text reply= since=1.0
+freedv.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.3
+freedv.command.halt args= reply= since=1.3
+dvoice-auto since=1.0
+dvoice-auto.fields.SharedFields since=1.0
+dvoice-auto.fields.AutoFields since=1.0
+dvoice-auto.fields.DmrFields since=1.0
+dvoice-auto.fields.NxdnFields since=1.0
+dvoice-auto.fields.P25Fields since=1.0
+dvoice-auto.fields.YsfFields since=1.0
+dvoice-auto.fields.M17Fields since=1.0
+dvoice-auto.fields.MonitorFields since=1.0
+dvoice-auto.fields.DecoderFields since=1.0
+dvoice-auto.table.calls row=CallRow cap=300 since=1.0
+dvoice-auto.table.call_details row=CallDetailRow cap=3000 since=1.0
+dvoice-auto.table.messages row=MessageRow cap=100 since=1.0
+dvoice-auto.table.positions row=PositionRow cap=512 since=1.0
+dvoice-auto.table.sites row=SiteRow cap=1 since=1.0
+dvoice-auto.table.grants row=GrantRow cap=300 since=1.0
+dvoice-auto.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+dvoice-auto.table.modes_seen row=SeenRow cap=16 since=1.0
+dvoice-auto.table.identifiers row=IdentifierRow cap=16 since=1.0
+dvoice-auto.table.adjacent_sites row=AdjacentRow cap=64 since=1.0
+dvoice-auto.table.history row=HistoryRow cap=500 since=1.0
+dvoice-auto.table.heard row=HeardRow cap=200 since=1.0
+dvoice-auto.series.eye x_unit= y_unit= since=1.0
+dvoice-auto.series.levels x_unit= y_unit= since=1.0
+dvoice-auto.series.spectrum x_unit=Hz y_unit=dB since=1.0
+dvoice-auto.series.snr_history x_unit= y_unit=dB since=1.0
+dvoice-auto.series.ber_history x_unit= y_unit= since=1.0
+dvoice-auto.event.dvoice.call fields=CallEvent since=1.0
+dvoice-auto.event.dvoice.message fields=MessageEvent since=1.0
+dvoice-auto.event.dvoice.position fields=PositionEvent since=1.0
+dvoice-auto.setting.squelch_pct type=f64 unit=% since=1.0
+dvoice-auto.setting.allow_only type=bool unit= since=1.0
+dvoice-auto.setting.allow type=text unit= since=1.0
+dvoice-auto.setting.mute_list type=text unit= since=1.0
+dvoice-auto.setting.priority type=text unit= since=1.0
+dvoice-auto.setting.hold type=text unit= since=1.0
+dvoice-auto.setting.labels type=text unit= since=1.0
+dvoice-auto.setting.hold_timeout_s type=f64 unit=s since=1.0
+dvoice-auto.setting.hang_s type=f64 unit=s since=1.0
+dvoice-auto.setting.listen type=bool unit= since=1.0
+dvoice-auto.command.clear args= reply= since=1.0
+dvoice-auto.command.hold_current args= reply= since=1.0
+dvoice-auto.command.release args= reply= since=1.0
+dvoice-auto.command.remove args=row:text reply= since=1.0
+dcr since=1.0
+dcr.fields.SharedFields since=1.0
+dcr.fields.DcrFields since=1.0
+dcr.fields.MonitorFields since=1.0
+dcr.fields.DecoderFields since=1.0
+dcr.table.calls row=CallRow cap=300 since=1.0
+dcr.table.call_details row=CallDetailRow cap=3000 since=1.0
+dcr.table.messages row=MessageRow cap=100 since=1.0
+dcr.table.positions row=PositionRow cap=512 since=1.0
+dcr.table.sites row=SiteRow cap=1 since=1.0
+dcr.table.grants row=GrantRow cap=300 since=1.0
+dcr.table.talkgroups row=TalkgroupRow cap=500 since=1.0
+dcr.table.events row=DcrEventRow cap=500 since=1.0
+dcr.table.history row=HistoryRow cap=500 since=1.0
+dcr.table.heard row=HeardRow cap=200 since=1.0
+dcr.series.eye x_unit= y_unit= since=1.0
+dcr.series.levels x_unit= y_unit= since=1.0
+dcr.series.spectrum x_unit=Hz y_unit=dB since=1.0
+dcr.series.snr_history x_unit= y_unit=dB since=1.0
+dcr.series.ber_history x_unit= y_unit= since=1.0
+dcr.event.dvoice.call fields=CallEvent since=1.0
+dcr.event.dvoice.message fields=MessageEvent since=1.0
+dcr.event.dvoice.position fields=PositionEvent since=1.0
+dcr.setting.squelch_pct type=f64 unit=% since=1.0
+dcr.setting.allow_only type=bool unit= since=1.0
+dcr.setting.allow type=text unit= since=1.0
+dcr.setting.mute_list type=text unit= since=1.0
+dcr.setting.priority type=text unit= since=1.0
+dcr.setting.hold type=text unit= since=1.0
+dcr.setting.labels type=text unit= since=1.0
+dcr.setting.hold_timeout_s type=f64 unit=s since=1.0
+dcr.setting.hang_s type=f64 unit=s since=1.0
+dcr.setting.listen type=bool unit= since=1.0
+dcr.setting.plan type=text unit= since=1.0
+dcr.setting.scan type=bool unit= since=1.0
+dcr.setting.max_channels type=i64 unit= since=1.0
+dcr.setting.gen_content type=choice(user_code_1,user_code_2,user_code_3,privacy,sweep,messages) unit= since=1.0
+dcr.setting.gen_deviation_scale type=f64 unit= since=1.0
+dcr.command.clear args= reply= since=1.0
+dcr.command.hold_current args= reply= since=1.0
+dcr.command.release args= reply= since=1.0
+dcr.command.remove args=row:text reply= since=1.0

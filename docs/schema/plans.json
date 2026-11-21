@@ -1,0 +1,670 @@
+{
+  "$defs": {
+    "analog": {
+      "additionalProperties": false,
+      "description": "The parameters of an analogue TV system.",
+      "properties": {
+        "am_sound": {
+          "description": "The sound is amplitude modulated (system L).",
+          "type": "boolean"
+        },
+        "colour": {
+          "description": "The colour systems used with it (\"PAL\", \"SECAM\", \"NTSC\").",
+          "type": "string"
+        },
+        "sound_spacing_hz": {
+          "description": "The main sound carrier above the vision carrier, Hz.",
+          "type": "number"
+        },
+        "system": {
+          "description": "The system letters (\"B/G\", \"I\", \"M\").",
+          "type": "string"
+        },
+        "vision_above_lower_hz": {
+          "description": "The vision carrier above the lower channel edge, Hz.",
+          "type": "number"
+        }
+      },
+      "required": [
+        "system",
+        "colour",
+        "vision_above_lower_hz",
+        "sound_spacing_hz"
+      ],
+      "type": "object"
+    },
+    "band": {
+      "additionalProperties": false,
+      "description": "One band of a group: its edges, the modes that receive it, and its channels or tuning raster.",
+      "properties": {
+        "cellular": {
+          "$ref": "#/$defs/cellular",
+          "description": "The channel numbers of a cellular band."
+        },
+        "channel_width_hz": {
+          "description": "The width of each channel, Hz.",
+          "exclusiveMinimum": 0,
+          "maximum": 100000000.0,
+          "type": "number"
+        },
+        "channels": {
+          "description": "Channels listed one by one.",
+          "items": {
+            "$ref": "#/$defs/channel"
+          },
+          "type": "array"
+        },
+        "end_hz": {
+          "description": "The upper edge, Hz.",
+          "exclusiveMinimum": 0,
+          "maximum": 300000000000.0,
+          "type": "number"
+        },
+        "in_use": {
+          "default": true,
+          "description": "False when the band moved to another service.",
+          "type": "boolean"
+        },
+        "modes": {
+          "description": "The sdrkit stack ids that receive the band, in the order to try. Empty when no stack does.",
+          "items": {
+            "pattern": "^[a-z0-9_-]{1,64}$",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "modulation": {
+          "description": "The usual modulation there, as a modulation id (\"am\", \"usb\", \"nfm\", \"wfm\").",
+          "type": "string"
+        },
+        "name": {
+          "description": "Its name (\"VHF Band III\", \"40 m\").",
+          "type": "string"
+        },
+        "note": {
+          "description": "A note (required when in_use is false).",
+          "type": "string"
+        },
+        "numbering": {
+          "$ref": "#/$defs/numbering",
+          "description": "Numbered channels on a regular raster."
+        },
+        "raster": {
+          "$ref": "#/$defs/raster",
+          "description": "The tuning raster of a band without channels."
+        },
+        "service": {
+          "description": "The radio service, after the ITU Radio Regulations Article 1.",
+          "enum": [
+            "broadcasting",
+            "mobile",
+            "land_mobile",
+            "maritime_mobile",
+            "aeronautical_mobile",
+            "aeronautical_radionavigation",
+            "amateur",
+            "radio_astronomy",
+            "ism",
+            "short_range",
+            "cable"
+          ]
+        },
+        "start_hz": {
+          "description": "The lower edge, Hz.",
+          "exclusiveMinimum": 0,
+          "maximum": 300000000000.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "service",
+        "start_hz",
+        "end_hz"
+      ],
+      "type": "object"
+    },
+    "cell_numbers": {
+      "additionalProperties": false,
+      "description": "A range of downlink channel numbers: number n (first to last, in steps of step) is at first_hz + (n - first) * hz_per_number.",
+      "properties": {
+        "first": {
+          "description": "The first number.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "first_hz": {
+          "description": "The frequency of number first, Hz.",
+          "exclusiveMinimum": 0,
+          "maximum": 300000000000.0,
+          "type": "number"
+        },
+        "hz_per_number": {
+          "description": "The frequency difference between two numbers, Hz.",
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "last": {
+          "description": "The last number.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scs_khz": {
+          "description": "The subcarrier spacing the range is for, kHz (NR bands with a 15 or 30 kHz channel raster).",
+          "type": "integer"
+        },
+        "step": {
+          "default": 1,
+          "description": "The numbers between two usable channels (NR: 20 for the 100 kHz raster).",
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "first",
+        "last",
+        "first_hz",
+        "hz_per_number"
+      ],
+      "type": "object"
+    },
+    "cellular": {
+      "additionalProperties": false,
+      "description": "The channel numbers of a cellular band (3GPP). The band edges are the downlink edges.",
+      "properties": {
+        "band": {
+          "description": "The band number (n78 is 78). GSM uses the band name (900, 1800).",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "duplex": {
+          "description": "How the band uses its frequencies: FDD, TDD or supplementary downlink.",
+          "enum": [
+            "fdd",
+            "tdd",
+            "sdl"
+          ]
+        },
+        "numbers": {
+          "description": "The downlink channel numbers.",
+          "items": {
+            "$ref": "#/$defs/cell_numbers"
+          },
+          "type": "array"
+        },
+        "sync": {
+          "description": "The NR synchronisation raster, one range for each SSB spacing.",
+          "items": {
+            "$ref": "#/$defs/sync_raster"
+          },
+          "type": "array"
+        },
+        "system": {
+          "description": "The system: GSM (ARFCN), LTE (EARFCN) or NR (NR-ARFCN and GSCN).",
+          "enum": [
+            "gsm",
+            "lte",
+            "nr"
+          ]
+        }
+      },
+      "required": [
+        "system",
+        "band",
+        "duplex",
+        "numbers"
+      ],
+      "type": "object"
+    },
+    "channel": {
+      "additionalProperties": false,
+      "description": "One listed channel.",
+      "properties": {
+        "centre_hz": {
+          "description": "Its centre frequency, Hz.",
+          "exclusiveMinimum": 0,
+          "maximum": 300000000000.0,
+          "type": "number"
+        },
+        "in_use": {
+          "default": true,
+          "description": "False for a channel kept out of use.",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "Its name as the plan prints it (\"9A\", \"16\").",
+          "type": "string"
+        },
+        "note": {
+          "description": "A short note.",
+          "type": "string"
+        },
+        "pair_hz": {
+          "description": "The other frequency of a duplex pair, Hz.",
+          "exclusiveMinimum": 0,
+          "maximum": 300000000000.0,
+          "type": "number"
+        },
+        "width_hz": {
+          "description": "Its width, Hz (default: the band's channel_width_hz).",
+          "exclusiveMinimum": 0,
+          "maximum": 100000000.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "centre_hz"
+      ],
+      "type": "object"
+    },
+    "country": {
+      "additionalProperties": false,
+      "description": "One country: the groups it uses and its presets. For each kind, a country that lists no group of that kind uses its ITU region's groups, unless the kind is absent.",
+      "properties": {
+        "absent": {
+          "description": "Plan kinds the country has none of.",
+          "items": {
+            "enum": [
+              "fm",
+              "dab",
+              "tv",
+              "analog_tv",
+              "cable",
+              "amateur",
+              "broadcast",
+              "marine",
+              "aviation",
+              "personal",
+              "ism",
+              "other"
+            ]
+          },
+          "type": "array"
+        },
+        "code": {
+          "description": "ISO 3166-1 alpha-2 code.",
+          "pattern": "^[A-Z]{2}$",
+          "type": "string"
+        },
+        "groups": {
+          "description": "The ids of the groups it uses, the default of each kind first.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "itu": {
+          "description": "ITU region (required in the one entry of a set of files that names the country).",
+          "maximum": 3,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "name": {
+          "description": "English short name (required in the one entry of a set of files that names the country).",
+          "type": "string"
+        },
+        "note": {
+          "description": "A note.",
+          "type": "string"
+        },
+        "presets": {
+          "$ref": "#/$defs/presets",
+          "description": "Its presets."
+        },
+        "sources": {
+          "description": "The documents that say which plans the country uses and its presets.",
+          "items": {
+            "$ref": "#/$defs/source"
+          },
+          "type": "array"
+        },
+        "unverified_reason": {
+          "description": "Why the groups and presets are not verified.",
+          "type": "string"
+        },
+        "verified": {
+          "default": false,
+          "description": "The groups and presets have been compared with the sources.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "type": "object"
+    },
+    "group": {
+      "additionalProperties": false,
+      "description": "A band group: a named set of bands from one published plan.",
+      "properties": {
+        "also": {
+          "description": "More documents that give some of its values.",
+          "items": {
+            "$ref": "#/$defs/source"
+          },
+          "type": "array"
+        },
+        "analog": {
+          "$ref": "#/$defs/analog",
+          "description": "The analogue TV system, for analogue TV groups."
+        },
+        "bands": {
+          "description": "The bands.",
+          "items": {
+            "$ref": "#/$defs/band"
+          },
+          "type": "array"
+        },
+        "ended": {
+          "description": "The date the service of this group ended (YYYY, YYYY-MM or YYYY-MM-DD). Absent while the service is live.",
+          "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+          "type": "string"
+        },
+        "id": {
+          "description": "1 to 64 lower-case letters, digits, '_' or '-'.",
+          "pattern": "^[a-z0-9_-]{1,64}$",
+          "type": "string"
+        },
+        "include": {
+          "description": "Groups whose bands come first, before this group's own bands.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "kind": {
+          "description": "What the group is for.",
+          "enum": [
+            "fm",
+            "dab",
+            "tv",
+            "analog_tv",
+            "cable",
+            "amateur",
+            "broadcast",
+            "marine",
+            "aviation",
+            "personal",
+            "ism",
+            "other"
+          ]
+        },
+        "name": {
+          "description": "The name shown.",
+          "type": "string"
+        },
+        "note": {
+          "description": "A note for the picker.",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/source",
+          "description": "The published document its values come from."
+        },
+        "unverified_reason": {
+          "description": "Why it is not verified (required when verified is false).",
+          "type": "string"
+        },
+        "verified": {
+          "description": "Every value has been compared with the source.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "source",
+        "verified"
+      ],
+      "type": "object"
+    },
+    "numbering": {
+      "additionalProperties": false,
+      "description": "Numbered channels: channel n is centred on first_centre_hz + (n - first) * step_hz + offset_hz.",
+      "properties": {
+        "first": {
+          "description": "The first channel number.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "first_centre_hz": {
+          "description": "The centre of the first channel, without offset_hz, Hz.",
+          "exclusiveMinimum": 0,
+          "maximum": 300000000000.0,
+          "type": "number"
+        },
+        "last": {
+          "description": "The last channel number.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "names": {
+          "description": "How each channel is named: the prefix and the number, or the ICAO name of an 8.33 kHz channel.",
+          "enum": [
+            "number",
+            "icao_8_33"
+          ]
+        },
+        "offset_hz": {
+          "description": "A fixed offset added to every centre, Hz (ISDB-T: one seventh of a MHz).",
+          "type": "number"
+        },
+        "prefix": {
+          "description": "Text put before each number (\"E\", \"R\", \"PMR \").",
+          "type": "string"
+        },
+        "step_hz": {
+          "description": "The spacing of the channels, Hz.",
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "first",
+        "last",
+        "first_centre_hz",
+        "step_hz"
+      ],
+      "type": "object"
+    },
+    "presets": {
+      "additionalProperties": false,
+      "description": "The region presets that no band group holds.",
+      "properties": {
+        "fm_deemphasis_us": {
+          "description": "The FM pre-emphasis time constant, microseconds.",
+          "maximum": 1000,
+          "minimum": 0,
+          "type": "number"
+        },
+        "rds": {
+          "description": "How FM receivers read RDS: RDS (IEC 62106) or RBDS (NRSC-4-B).",
+          "enum": [
+            "rds",
+            "rbds"
+          ]
+        },
+        "tv_standard": {
+          "description": "The stack id of the digital TV standard to try first.",
+          "pattern": "^[a-z0-9_-]{1,64}$",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "raster": {
+      "additionalProperties": false,
+      "description": "The tuning raster of a band without channels.",
+      "properties": {
+        "first_hz": {
+          "description": "The first point, Hz.",
+          "exclusiveMinimum": 0,
+          "maximum": 300000000000.0,
+          "type": "number"
+        },
+        "step_hz": {
+          "description": "The spacing, Hz.",
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "first_hz",
+        "step_hz"
+      ],
+      "type": "object"
+    },
+    "region": {
+      "additionalProperties": false,
+      "description": "One ITU region: the groups and presets of a country that gives none of its own.",
+      "properties": {
+        "groups": {
+          "description": "The ids of the groups used there, the default of each kind first.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "itu": {
+          "description": "The ITU region.",
+          "maximum": 3,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "name": {
+          "description": "Its name.",
+          "type": "string"
+        },
+        "note": {
+          "description": "A note.",
+          "type": "string"
+        },
+        "presets": {
+          "$ref": "#/$defs/presets",
+          "description": "Its presets."
+        }
+      },
+      "required": [
+        "itu",
+        "name"
+      ],
+      "type": "object"
+    },
+    "source": {
+      "additionalProperties": false,
+      "description": "A published document that data comes from.",
+      "properties": {
+        "clause": {
+          "description": "The clause, table or page the values come from.",
+          "type": "string"
+        },
+        "date": {
+          "description": "Its date or version (\"2026-07\").",
+          "type": "string"
+        },
+        "number": {
+          "description": "Its number, edition or legal id (\"47 CFR 73.603\", \"ECC/DEC/(15)05\").",
+          "type": "string"
+        },
+        "publisher": {
+          "description": "Who publishes it (\"ACMA\", \"ITU\", \"FCC\", \"Ofcom\", \"BNetzA\").",
+          "type": "string"
+        },
+        "title": {
+          "description": "Its title.",
+          "type": "string"
+        },
+        "url": {
+          "description": "Where to read it.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "title",
+        "date"
+      ],
+      "type": "object"
+    },
+    "sync_raster": {
+      "additionalProperties": false,
+      "description": "The GSCN range of an NR band for one SSB subcarrier spacing.",
+      "properties": {
+        "first": {
+          "description": "The first GSCN.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "last": {
+          "description": "The last GSCN.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scs_khz": {
+          "description": "The SSB subcarrier spacing, kHz.",
+          "enum": [
+            15,
+            30,
+            120,
+            240
+          ]
+        },
+        "step": {
+          "default": 1,
+          "description": "The GSCN step.",
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scs_khz",
+        "first",
+        "last"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A plan file of sdrkit, format version 1: band groups, countries and ITU regions. The plan files a host loads and user files use this format. Generated from the model types of sdrkit-data-plans; do not edit.",
+  "properties": {
+    "$schema": {
+      "description": "The schema the file follows, for editors.",
+      "type": "string"
+    },
+    "countries": {
+      "description": "Countries.",
+      "items": {
+        "$ref": "#/$defs/country"
+      },
+      "type": "array"
+    },
+    "format": {
+      "const": 1,
+      "description": "The format version."
+    },
+    "groups": {
+      "description": "Band groups.",
+      "items": {
+        "$ref": "#/$defs/group"
+      },
+      "type": "array"
+    },
+    "regions": {
+      "description": "ITU regions.",
+      "items": {
+        "$ref": "#/$defs/region"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "format"
+  ],
+  "title": "sdrkit band plans",
+  "type": "object"
+}

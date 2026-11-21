@@ -1,0 +1,32 @@
+# The interface of the stack family graph. The registry test of the family writes this file.
+family graph version=1.0
+shape.DcRemovalFields since=1.0
+shape.DcRemovalFields.dc_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.IqCorrectionFields since=1.0
+shape.IqCorrectionFields.gain_error_db type=f64 unit=dB optional=yes since=1.0
+shape.IqCorrectionFields.phase_error_deg type=f64 unit=° optional=yes since=1.0
+shape.NoiseBlankerFields since=1.0
+shape.NoiseBlankerFields.blanked_pct type=f64 unit=% optional=yes since=1.0
+shape.NoiseBlankerFields.blank_events type=i64 unit= optional=yes since=1.0
+shape.PowerMeterFields since=1.0
+shape.PowerMeterFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.PowerMeterFields.peak_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.SquelchFields since=1.0
+shape.SquelchFields.open type=bool unit= optional=yes since=1.0
+shape.SquelchFields.level_db type=f64 unit=dB optional=yes since=1.0
+shape.AmDemodFields since=1.0
+shape.AmDemodFields.carrier_offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.StackGeneratorFields since=1.0
+shape.StackGeneratorFields.ended type=bool unit= optional=yes since=1.0
+shape.NetSinkFields since=1.0
+shape.NetSinkFields.sent_bytes type=i64 unit=B optional=yes since=1.0
+shape.NetSinkFields.failed type=i64 unit= optional=yes since=1.0
+graph since=1.0
+graph.component.dc_removal.fields.DcRemovalFields since=1.0
+graph.component.iq_correction.fields.IqCorrectionFields since=1.0
+graph.component.noise_blanker.fields.NoiseBlankerFields since=1.0
+graph.component.power_meter.fields.PowerMeterFields since=1.0
+graph.component.squelch.fields.SquelchFields since=1.0
+graph.component.am.fields.AmDemodFields since=1.0
+graph.component.generator.fields.StackGeneratorFields since=1.0
+graph.component.net_sink.fields.NetSinkFields since=1.0

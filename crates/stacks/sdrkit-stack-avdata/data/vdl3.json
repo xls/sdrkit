@@ -1,0 +1,37 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "vdl3_vhf",
+      "name": "VDL Mode 3, VHF aeronautical band",
+      "kind": "aviation",
+      "source": {
+        "publisher": "ICAO",
+        "title": "Annex 10 Volume III Part I, chapter 6 (VHF digital link)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the channel range is from general knowledge; the Annex was not read; VDL Mode 3 was trialled and never deployed",
+      "bands": [
+        {
+          "name": "VDL Mode 3 channels",
+          "service": "aeronautical_mobile",
+          "start_hz": 117987500.0,
+          "end_hz": 136987500.0,
+          "modes": [
+            "vdl3"
+          ],
+          "modulation": "D8PSK, 10 500 symbol/s, TDMA",
+          "channel_width_hz": 25000.0,
+          "numbering": {
+            "first": 0,
+            "last": 759,
+            "first_centre_hz": 118000000.0,
+            "step_hz": 25000.0
+          },
+          "note": "stack vdl3; 25 kHz channels 118.000 to 136.975 MHz; the test signal is at 136.900 MHz"
+        }
+      ]
+    }
+  ]
+}

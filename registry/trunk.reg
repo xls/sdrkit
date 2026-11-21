@@ -1,0 +1,691 @@
+# The interface of the stack family trunk. The registry test of the family writes this file.
+family trunk version=1.2
+uses.tones major=1 since=1.0
+shape.Mpt1327Fields since=1.0
+shape.Mpt1327Fields.locked type=bool unit= optional=no since=1.0
+shape.Mpt1327Fields.codewords_good type=i64 unit= optional=no since=1.0
+shape.Mpt1327Fields.codewords_repaired type=i64 unit= optional=no since=1.0
+shape.Mpt1327Fields.codewords_bad type=i64 unit= optional=no since=1.0
+shape.Mpt1327Fields.ccscs type=i64 unit= optional=no since=1.0
+shape.Mpt1327Fields.messages type=i64 unit= optional=no since=1.0
+shape.Mpt1327Fields.system_identity type=i64 unit= optional=yes since=1.0
+shape.Mpt1327Fields.sync_check_off type=bool unit= optional=no since=1.0
+shape.Mpt1327Fields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.Mpt1327MessageRow since=1.0
+shape.Mpt1327MessageRow.time_s type=f64 unit=s optional=no since=1.0
+shape.Mpt1327MessageRow.type type=choice(GTC,ALH,ALHS,ALHD,ALHE,ALHR,ALHX,ALHF,ACK,ACKI,ACKQ,ACKX,ACKV,ACKE,ACKT,ACKB,AHY,AHYX,AHYP,AHYQ,AHYC,MARK,MAINT,CLEAR,MOVE,BCAST,HEAD,SAM,STDDATA,STDACK,spare,RSVD) unit= optional=no since=1.0
+shape.Mpt1327MessageRow.caller type=text unit= optional=no since=1.0
+shape.Mpt1327MessageRow.called type=text unit= optional=no since=1.0
+shape.Mpt1327MessageRow.channel type=i64 unit= optional=yes since=1.0
+shape.Mpt1327MessageRow.meaning type=text unit= optional=no since=1.0
+shape.Mpt1327ChannelRow since=1.0
+shape.Mpt1327ChannelRow.channel type=i64 unit= optional=no since=1.0
+shape.Mpt1327ChannelRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.Mpt1327ChannelRow.use type=choice(control,traffic) unit= optional=no since=1.0
+shape.Mpt1327ChannelRow.seen type=i64 unit= optional=no since=1.0
+shape.Mpt1327ChannelRow.last_called type=text unit= optional=yes since=1.0
+shape.Mpt1327ChannelRow.last_caller type=text unit= optional=yes since=1.0
+shape.Mpt1327MessageEvent since=1.0
+shape.Mpt1327MessageEvent.type type=choice(GTC,ALH,ALHS,ALHD,ALHE,ALHR,ALHX,ALHF,ACK,ACKI,ACKQ,ACKX,ACKV,ACKE,ACKT,ACKB,AHY,AHYX,AHYP,AHYQ,AHYC,MARK,MAINT,CLEAR,MOVE,BCAST,HEAD,SAM,STDDATA,STDACK,spare,RSVD) unit= optional=no since=1.0
+shape.Mpt1327MessageEvent.source type=text unit= optional=yes since=1.0
+shape.Mpt1327MessageEvent.target type=text unit= optional=yes since=1.0
+shape.Mpt1327MessageEvent.channel type=text unit= optional=yes since=1.0
+shape.Mpt1327MessageEvent.text type=text unit= optional=no since=1.0
+shape.Mpt1327MessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.FollowEvent since=1.0
+shape.FollowEvent.action type=choice(follow,skipped,release) unit= optional=no since=1.0
+shape.FollowEvent.reason type=choice(encrypted,no_frequency,not_listed,busy,ended,replaced,off) unit= optional=yes since=1.0
+shape.FollowEvent.source type=text unit= optional=yes since=1.0
+shape.FollowEvent.target type=text unit= optional=yes since=1.0
+shape.FollowEvent.channel type=text unit= optional=yes since=1.0
+shape.FollowEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.FollowEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.LtrFields since=1.0
+shape.LtrFields.locked type=bool unit= optional=no since=1.0
+shape.LtrFields.words_good type=i64 unit= optional=no since=1.0
+shape.LtrFields.words_bad type=i64 unit= optional=no since=1.0
+shape.LtrFields.syncs type=i64 unit= optional=no since=1.0
+shape.LtrFields.area type=i64 unit= optional=yes since=1.0
+shape.LtrFields.repeaters type=i64 unit= optional=no since=1.0
+shape.LtrFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.LtrFields.swing_hz type=hz unit=Hz optional=no since=1.0
+shape.LtrFields.data_valid type=bool unit= optional=no since=1.0
+shape.LtrWordRow since=1.0
+shape.LtrWordRow.talkgroup type=text unit= optional=no since=1.0
+shape.LtrWordRow.area type=i64 unit= optional=no since=1.0
+shape.LtrWordRow.goto type=i64 unit= optional=no since=1.0
+shape.LtrWordRow.home type=i64 unit= optional=no since=1.0
+shape.LtrWordRow.id type=i64 unit= optional=no since=1.0
+shape.LtrWordRow.free type=i64 unit= optional=no since=1.0
+shape.LtrWordRow.check type=i64 unit= optional=no since=1.0
+shape.LtrWordRow.kind type=choice(call,idle,callsign_id,busy,token) unit= optional=no since=1.0
+shape.LtrWordRow.time_s type=f64 unit=s optional=no since=1.0
+shape.LtrRepeaterRow since=1.0
+shape.LtrRepeaterRow.repeater type=i64 unit= optional=no since=1.0
+shape.LtrRepeaterRow.as_goto type=i64 unit= optional=no since=1.0
+shape.LtrRepeaterRow.as_home type=i64 unit= optional=no since=1.0
+shape.LtrRepeaterRow.as_free type=i64 unit= optional=no since=1.0
+shape.LtrRepeaterRow.last_heard type=time unit= optional=yes since=1.0
+shape.LtrWordEvent since=1.0
+shape.LtrWordEvent.target type=text unit= optional=no since=1.0
+shape.LtrWordEvent.area type=i64 unit= optional=no since=1.0
+shape.LtrWordEvent.goto type=i64 unit= optional=no since=1.0
+shape.LtrWordEvent.home type=i64 unit= optional=no since=1.0
+shape.LtrWordEvent.id type=i64 unit= optional=no since=1.0
+shape.LtrWordEvent.free type=i64 unit= optional=no since=1.0
+shape.LtrWordEvent.kind type=choice(call,idle,callsign_id,busy,token) unit= optional=no since=1.0
+shape.LtrWordEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.EdacsFields since=1.0
+shape.EdacsFields.locked type=bool unit= optional=no since=1.0
+shape.EdacsFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.EdacsFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.EdacsFields.polarity type=choice(normal,inverted) unit= optional=no since=1.0
+shape.EdacsFields.site type=i64 unit= optional=yes since=1.0
+shape.EdacsFields.area type=i64 unit= optional=yes since=1.0
+shape.EdacsFields.control_lcn type=i64 unit= optional=yes since=1.0
+shape.EdacsFields.highest_lcn type=i64 unit= optional=yes since=1.0
+shape.EdacsFields.words type=i64 unit= optional=no since=1.0
+shape.EdacsFields.words_known type=i64 unit= optional=no since=1.0
+shape.EdacsFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.EdacsFields.swing_hz type=hz unit=Hz optional=no since=1.0
+shape.EdacsFields.following_lcn type=i64 unit= optional=yes since=1.0
+shape.EdacsFields.following type=choice(idle,listening,waiting,no_table,no_centre,outside_capture) unit= optional=no since=1.0
+shape.EdacsCallRow since=1.0
+shape.EdacsCallRow.source type=text unit= optional=yes since=1.0
+shape.EdacsCallRow.target type=text unit= optional=yes since=1.0
+shape.EdacsCallRow.channel type=text unit= optional=no since=1.0
+shape.EdacsCallRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.EdacsCallRow.group type=bool unit= optional=no since=1.0
+shape.EdacsCallRow.start_s type=f64 unit=s optional=no since=1.0
+shape.EdacsCallRow.duration type=duration unit=s optional=no since=1.0
+shape.EdacsCallRow.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.EdacsCallRow.digital type=bool unit= optional=no since=1.0
+shape.EdacsCallRow.carrier_only type=bool unit= optional=no since=1.0
+shape.EdacsCallRow.end type=choice(active,terminator,hang_time,replaced,closed,single) unit= optional=no since=1.0
+shape.EdacsCallRow.followed type=bool unit= optional=no since=1.0
+shape.EdacsTalkgroupRow since=1.0
+shape.EdacsTalkgroupRow.gid type=i64 unit= optional=no since=1.0
+shape.EdacsTalkgroupRow.calls type=i64 unit= optional=no since=1.0
+shape.EdacsTalkgroupRow.last_unit type=i64 unit= optional=yes since=1.0
+shape.EdacsTalkgroupRow.last_lcn type=i64 unit= optional=no since=1.0
+shape.EdacsTalkgroupRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.EdacsTalkgroupRow.active type=bool unit= optional=no since=1.0
+shape.EdacsTalkgroupRow.last_heard type=time unit= optional=yes since=1.0
+shape.EdacsChannelRow since=1.0
+shape.EdacsChannelRow.lcn type=i64 unit= optional=no since=1.0
+shape.EdacsChannelRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.EdacsChannelRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.EdacsChannelRow.floor_db type=f64 unit=dB optional=no since=1.0
+shape.EdacsChannelRow.in_capture type=bool unit= optional=no since=1.0
+shape.EdacsChannelRow.carrier type=bool unit= optional=no since=1.0
+shape.EdacsChannelRow.control type=bool unit= optional=no since=1.0
+shape.EdacsFrameRow since=1.0
+shape.EdacsFrameRow.a type=i64 unit= optional=no since=1.0
+shape.EdacsFrameRow.b type=i64 unit= optional=no since=1.0
+shape.EdacsFrameRow.err_a type=i64 unit= optional=no since=1.0
+shape.EdacsFrameRow.err_b type=i64 unit= optional=no since=1.0
+shape.EdacsFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.EdacsFrameRow.text type=text unit= optional=no since=1.0
+shape.EdacsWordRow since=1.0
+shape.EdacsWordRow.word type=i64 unit= optional=no since=1.0
+shape.EdacsWordRow.count type=i64 unit= optional=no since=1.0
+shape.EdacsCallEvent since=1.0
+shape.EdacsCallEvent.end type=choice(active,terminator,hang_time,replaced,closed,single) unit= optional=no since=1.0
+shape.EdacsCallEvent.source type=text unit= optional=yes since=1.0
+shape.EdacsCallEvent.target type=text unit= optional=yes since=1.0
+shape.EdacsCallEvent.channel type=text unit= optional=no since=1.0
+shape.EdacsCallEvent.group type=bool unit= optional=no since=1.0
+shape.EdacsCallEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.EdacsCallEvent.carrier_only type=bool unit= optional=no since=1.0
+shape.EdacsCallEvent.duration type=duration unit=s optional=no since=1.0
+shape.EdacsCallEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.TonesFields since=1.0
+shape.TonesFields.audio_db type=f64 unit=dB optional=no since=1.0
+shape.TonesFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.TonesFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.TonesFields.carrier_recent type=bool unit= optional=yes since=1.0
+shape.TonesFields.ctcss_hz type=hz unit=Hz optional=yes since=1.0
+shape.TonesFields.dcs type=text unit= optional=yes since=1.0
+shape.TonesFields.dcs_alias type=text unit= optional=yes since=1.0
+shape.TonesFields.strongest_hz type=hz unit=Hz optional=yes since=1.0
+shape.TonesFields.dtmf type=text unit= optional=no since=1.0
+shape.TonesFields.gate_open type=bool unit= optional=no since=1.0
+shape.TonesFields.input_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.TonesFields.audio_input type=bool unit= optional=no since=1.0
+shape.TonesFields.demod type=choice(auto,fm,usb,lsb,am) unit= optional=no since=1.0
+shape.TonesFields.detections type=i64 unit= optional=no since=1.0
+shape.TonesFields.ctcss_count type=i64 unit= optional=no since=1.0
+shape.TonesFields.dcs_count type=i64 unit= optional=no since=1.0
+shape.TonesFields.dtmf_count type=i64 unit= optional=no since=1.0
+shape.TonesFields.selcall_count type=i64 unit= optional=no since=1.0
+shape.TonesFields.selcal_count type=i64 unit= optional=no since=1.0
+shape.TonesFields.two_tone_count type=i64 unit= optional=no since=1.0
+shape.TonesHeardRow since=1.0
+shape.TonesHeardRow.start_s type=f64 unit=s optional=no since=1.0
+shape.TonesHeardRow.kind type=choice(ctcss,dcs,dtmf,selcall,selcal,two_tone) unit= optional=no since=1.0
+shape.TonesHeardRow.text type=text unit= optional=no since=1.0
+shape.TonesHeardRow.length type=duration unit=s optional=no since=1.0
+shape.TonesHeardRow.detail type=text unit= optional=no since=1.0
+shape.TonesHeardRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.TonesHeardRow.active type=bool unit= optional=no since=1.0
+shape.PagerFields since=1.0
+shape.PagerFields.receiving type=bool unit= optional=no since=1.0
+shape.PagerFields.carrier type=bool unit= optional=no since=1.0
+shape.PagerFields.locked type=bool unit= optional=no since=1.0
+shape.PagerFields.last_speed type=text unit= optional=no since=1.0
+shape.PagerFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.PagerFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.PagerFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.PagerFields.pages type=i64 unit= optional=no since=1.0
+shape.PagerFields.codewords_good type=i64 unit= optional=no since=1.0
+shape.PagerFields.codewords_repaired type=i64 unit= optional=no since=1.0
+shape.PagerFields.codewords_lost type=i64 unit= optional=no since=1.0
+shape.PagerFields.pages_refused type=i64 unit= optional=no since=1.0
+shape.PagerTxFields since=1.2
+shape.PagerTxFields.tx_sending type=bool unit= optional=no since=1.2
+shape.PagerTxFields.tx_sent type=i64 unit= optional=no since=1.2
+shape.PagerTxFields.tx_waiting type=i64 unit= optional=no since=1.2
+shape.PagerPageRow since=1.0
+shape.PagerPageRow.time_s type=f64 unit=s optional=no since=1.0
+shape.PagerPageRow.protocol type=text unit= optional=no since=1.0
+shape.PagerPageRow.address type=i64 unit= optional=no since=1.0
+shape.PagerPageRow.function type=i64 unit= optional=yes since=1.0
+shape.PagerPageRow.type type=choice(tone,numeric,alpha,secure,binary,instruction,selcall) unit= optional=no since=1.0
+shape.PagerPageRow.message type=text unit= optional=no since=1.0
+shape.PagerPageRow.damaged type=bool unit= optional=no since=1.0
+shape.PagerPageRow.bits_repaired type=i64 unit= optional=no since=1.0
+shape.PagerPageRow.copies type=i64 unit= optional=no since=1.0
+shape.PagerPageRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.PagerSpeedRow since=1.0
+shape.PagerSpeedRow.speed type=text unit= optional=no since=1.0
+shape.PagerSpeedRow.good type=i64 unit= optional=no since=1.0
+shape.PagerSpeedRow.repaired type=i64 unit= optional=no since=1.0
+shape.PagerSpeedRow.lost type=i64 unit= optional=no since=1.0
+shape.PagerSpeedRow.pages type=i64 unit= optional=no since=1.0
+shape.PagerSpeedRow.transmissions type=i64 unit= optional=no since=1.0
+shape.PagerSpeedRow.refused type=i64 unit= optional=no since=1.0
+shape.PagerHeardRow since=1.0
+shape.PagerHeardRow.address type=i64 unit= optional=no since=1.0
+shape.PagerHeardRow.protocol type=choice(pocsag,flex) unit= optional=no since=1.0
+shape.PagerHeardRow.pages type=i64 unit= optional=no since=1.0
+shape.PagerHeardRow.speed type=text unit= optional=no since=1.0
+shape.PagerHeardRow.last_text type=text unit= optional=yes since=1.0
+shape.PagerHeardRow.last_heard type=time unit= optional=yes since=1.0
+shape.PocsagPageEvent since=1.0
+shape.PocsagPageEvent.source type=text unit= optional=no since=1.0
+shape.PocsagPageEvent.text type=text unit= optional=no since=1.0
+shape.PocsagPageEvent.function type=i64 unit= optional=yes since=1.0
+shape.PocsagPageEvent.baud type=i64 unit=bit/s optional=yes since=1.0
+shape.PocsagPageEvent.type type=choice(tone,numeric,alpha,secure,binary,instruction,selcall) unit= optional=no since=1.0
+shape.PocsagPageEvent.damaged type=bool unit= optional=no since=1.0
+shape.PocsagPageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.FlexPageEvent since=1.0
+shape.FlexPageEvent.source type=text unit= optional=no since=1.0
+shape.FlexPageEvent.text type=text unit= optional=no since=1.0
+shape.FlexPageEvent.speed type=text unit= optional=no since=1.0
+shape.FlexPageEvent.type type=choice(tone,numeric,alpha,secure,binary,instruction,selcall) unit= optional=no since=1.0
+shape.FlexPageEvent.damaged type=bool unit= optional=no since=1.0
+shape.FlexPageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.PagerTxEvent since=1.2
+shape.PagerTxEvent.state type=text unit= optional=no since=1.2
+shape.PagerTxEvent.reason type=text unit= optional=no since=1.2
+shape.PagerTxEvent.target type=text unit= optional=no since=1.2
+shape.PagerTxEvent.text type=text unit= optional=no since=1.2
+shape.PagerTxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.2
+shape.ErmesFields since=1.0
+shape.ErmesFields.batches type=i64 unit= optional=no since=1.0
+shape.ErmesFields.bad_batches type=i64 unit= optional=no since=1.0
+shape.ErmesFields.addresses type=i64 unit= optional=no since=1.0
+shape.ErmesFields.messages type=i64 unit= optional=no since=1.0
+shape.ErmesFields.words_repaired type=i64 unit= optional=no since=1.0
+shape.ErmesFields.syncs type=i64 unit= optional=no since=1.0
+shape.ErmesFields.network type=text unit= optional=yes since=1.0
+shape.ErmesFields.carrier type=bool unit= optional=yes since=1.0
+shape.ErmesFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.ErmesFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.ErmesFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.ErmesFields.note type=text unit= optional=no since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.ErmesEntryRow since=1.0
+shape.ErmesEntryRow.time_s type=f64 unit=s optional=no since=1.0
+shape.ErmesEntryRow.kind type=text unit= optional=no since=1.0
+shape.ErmesEntryRow.batch type=text unit= optional=no since=1.0
+shape.ErmesEntryRow.address type=i64 unit= optional=yes since=1.0
+shape.ErmesEntryRow.category type=text unit= optional=yes since=1.0
+shape.ErmesEntryRow.text type=text unit= optional=no since=1.0
+shape.ErmesBatchEvent since=1.0
+shape.ErmesBatchEvent.batch type=text unit= optional=no since=1.0
+shape.ErmesBatchEvent.network type=text unit= optional=no since=1.0
+shape.ErmesBatchEvent.text type=text unit= optional=no since=1.0
+shape.ErmesBatchEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ErmesMessageEvent since=1.0
+shape.ErmesMessageEvent.target type=text unit= optional=yes since=1.0
+shape.ErmesMessageEvent.category type=text unit= optional=yes since=1.0
+shape.ErmesMessageEvent.text type=text unit= optional=no since=1.0
+shape.ErmesMessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.MultitoneFields since=1.0
+shape.MultitoneFields.carrier type=bool unit= optional=no since=1.0
+shape.MultitoneFields.transmissions type=i64 unit= optional=no since=1.0
+shape.MultitoneFields.bursts type=i64 unit= optional=no since=1.0
+shape.MultitoneFields.valid_words type=i64 unit= optional=no since=1.0
+shape.MultitoneFields.other_words type=i64 unit= optional=no since=1.0
+shape.MultitoneFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.MultitoneTransmissionRow since=1.0
+shape.MultitoneTransmissionRow.time_s type=f64 unit=s optional=no since=1.0
+shape.MultitoneTransmissionRow.duration type=duration unit=s optional=no since=1.0
+shape.MultitoneTransmissionRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.MultitoneTransmissionRow.deviation_hz type=hz unit=Hz optional=no since=1.0
+shape.MultitoneTransmissionRow.kind type=choice(ffsk_data,fsk_data,tone_sequence,repeating,multi_tone,other) unit= optional=no since=1.0
+shape.MultitoneTransmissionRow.period_ms type=f64 unit=ms optional=yes since=1.0
+shape.MultitoneTransmissionRow.burst type=i64 unit= optional=yes since=1.0
+shape.MultitoneToneRow since=1.0
+shape.MultitoneToneRow.transmission type=text unit= optional=no refers_to=transmissions since=1.0
+shape.MultitoneToneRow.hz type=hz unit=Hz optional=no since=1.0
+shape.MultitoneToneRow.seconds type=duration unit=s optional=no since=1.0
+shape.MultitoneToneRow.start type=duration unit=s optional=no since=1.0
+shape.MultitoneLineRow since=1.0
+shape.MultitoneLineRow.transmission type=text unit= optional=no refers_to=transmissions since=1.0
+shape.MultitoneLineRow.hz type=hz unit=Hz optional=no since=1.0
+shape.MultitoneLineRow.db type=f64 unit=dB optional=no since=1.0
+shape.MultitoneHeardRow since=1.0
+shape.MultitoneHeardRow.hz type=hz unit=Hz optional=no since=1.0
+shape.MultitoneHeardRow.count type=i64 unit= optional=no since=1.0
+shape.MultitoneHeardRow.seconds type=duration unit=s optional=no since=1.0
+shape.MultitoneHeardRow.last_s type=f64 unit=s optional=no since=1.0
+shape.MultitoneBurstRow since=1.0
+shape.MultitoneBurstRow.burst type=i64 unit= optional=no since=1.0
+shape.MultitoneBurstRow.kind type=choice(ffsk,fsk) unit= optional=no since=1.0
+shape.MultitoneBurstRow.baud type=f64 unit= optional=no since=1.0
+shape.MultitoneBurstRow.bits type=i64 unit= optional=no since=1.0
+shape.MultitoneBurstRow.bch_valid type=i64 unit= optional=no since=1.0
+shape.MultitoneBurstRow.bch_total type=i64 unit= optional=no since=1.0
+shape.MultitoneBurstRow.verdict type=text unit= optional=no since=1.0
+shape.MultitoneTransmissionEvent since=1.0
+shape.MultitoneTransmissionEvent.kind type=choice(ffsk_data,fsk_data,tone_sequence,repeating,multi_tone,other) unit= optional=no since=1.0
+shape.MultitoneTransmissionEvent.duration type=duration unit=s optional=no since=1.0
+shape.MultitoneTransmissionEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.MultitoneTransmissionEvent.deviation_hz type=hz unit=Hz optional=no since=1.0
+shape.MultitoneTransmissionEvent.text type=text unit= optional=no since=1.0
+shape.MultitoneTransmissionEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.MultitoneBurstEvent since=1.0
+shape.MultitoneBurstEvent.kind type=choice(ffsk,fsk) unit= optional=no since=1.0
+shape.MultitoneBurstEvent.baud type=f64 unit= optional=no since=1.0
+shape.MultitoneBurstEvent.bits type=i64 unit= optional=no since=1.0
+shape.MultitoneBurstEvent.bch_valid type=i64 unit= optional=no since=1.0
+shape.MultitoneBurstEvent.text type=text unit= optional=no since=1.0
+shape.MultitoneBurstEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.MotorolaType2Fields since=1.0
+shape.MotorolaType2Fields.locked type=bool unit= optional=no since=1.0
+shape.MotorolaType2Fields.rx_state type=i64 unit= optional=no since=1.0
+shape.MotorolaType2Fields.good_words type=i64 unit= optional=no since=1.0
+shape.MotorolaType2Fields.bad_words type=i64 unit= optional=no since=1.0
+shape.MotorolaType2Fields.bits_repaired type=i64 unit= optional=no since=1.0
+shape.MotorolaType2Fields.messages type=i64 unit= optional=no since=1.0
+shape.MotorolaType2Fields.messages_known type=i64 unit= optional=no since=1.0
+shape.MotorolaType2Fields.system type=text unit= optional=yes since=1.0
+shape.MotorolaType2Fields.site_id type=i64 unit= optional=yes since=1.0
+shape.MotorolaType2Fields.features type=text unit= optional=yes since=1.0
+shape.MotorolaType2Fields.control_channel_hz type=hz unit=Hz optional=yes since=1.0
+shape.MotorolaType2Fields.system_type type=text unit= optional=yes since=1.0
+shape.MotorolaType2Fields.network type=text unit= optional=no since=1.0
+shape.MotorolaType2Fields.inverted type=bool unit= optional=no since=1.0
+shape.MotorolaType2Fields.swing_hz type=f64 unit=Hz optional=no since=1.0
+shape.MotorolaType2Fields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.MotorolaType2Fields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.MotorolaType2Fields.plan type=text unit= optional=yes since=1.0
+shape.MotorolaType2Fields.note type=text unit= optional=no since=1.0
+shape.MotorolaType2MessageRow since=1.0
+shape.MotorolaType2MessageRow.time_s type=f64 unit=s optional=no since=1.0
+shape.MotorolaType2MessageRow.address type=text unit= optional=no since=1.0
+shape.MotorolaType2MessageRow.group type=bool unit= optional=no since=1.0
+shape.MotorolaType2MessageRow.command type=text unit= optional=no since=1.0
+shape.MotorolaType2MessageRow.text type=text unit= optional=no since=1.0
+shape.MotorolaType2TalkgroupRow since=1.0
+shape.MotorolaType2TalkgroupRow.talkgroup type=text unit= optional=no since=1.0
+shape.MotorolaType2TalkgroupRow.calls type=i64 unit= optional=no since=1.0
+shape.MotorolaType2TalkgroupRow.last_source type=i64 unit= optional=yes since=1.0
+shape.MotorolaType2TalkgroupRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.MotorolaType2TalkgroupRow.last_s type=f64 unit=s optional=no since=1.0
+shape.MotorolaType2TalkgroupRow.active type=bool unit= optional=no since=1.0
+shape.MotorolaType2TalkgroupRow.digital type=bool unit= optional=no since=1.0
+shape.MotorolaType2TalkgroupRow.encrypted type=bool unit= optional=no since=1.0
+shape.MotorolaType2TalkgroupRow.patched type=bool unit= optional=no since=1.0
+shape.MotorolaType2SiteRow since=1.0
+shape.MotorolaType2SiteRow.system type=text unit= optional=no since=1.0
+shape.MotorolaType2SiteRow.site type=i64 unit= optional=no since=1.0
+shape.MotorolaType2SiteRow.band type=i64 unit= optional=no since=1.0
+shape.MotorolaType2SiteRow.features type=text unit= optional=no since=1.0
+shape.MotorolaType2SiteRow.control_channel_hz type=hz unit=Hz optional=yes since=1.0
+shape.MotorolaType2SiteRow.adjacent type=bool unit= optional=no since=1.0
+shape.MotorolaType2PatchRow since=1.0
+shape.MotorolaType2PatchRow.talkgroup type=text unit= optional=no since=1.0
+shape.MotorolaType2PatchRow.member type=text unit= optional=no since=1.0
+shape.MotorolaType2PatchRow.last_s type=f64 unit=s optional=no since=1.0
+shape.MotorolaType2CallRow since=1.0
+shape.MotorolaType2CallRow.talkgroup type=text unit= optional=no since=1.0
+shape.MotorolaType2CallRow.source_unit type=i64 unit= optional=no since=1.0
+shape.MotorolaType2CallRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.MotorolaType2CallRow.digital type=bool unit= optional=no since=1.0
+shape.MotorolaType2CallRow.emergency type=bool unit= optional=no since=1.0
+shape.MotorolaType2CallRow.encrypted type=bool unit= optional=no since=1.0
+shape.MotorolaType2CallRow.start_s type=f64 unit=s optional=no since=1.0
+shape.MotorolaType2CallRow.duration_s type=f64 unit=s optional=no since=1.0
+shape.MotorolaType2CallRow.state type=text unit= optional=no since=1.0
+shape.MotorolaType2CallRow.note type=text unit= optional=yes since=1.0
+shape.MotorolaType2MessageEvent since=1.0
+shape.MotorolaType2MessageEvent.address type=text unit= optional=no since=1.0
+shape.MotorolaType2MessageEvent.group type=bool unit= optional=no since=1.0
+shape.MotorolaType2MessageEvent.command type=text unit= optional=no since=1.0
+shape.MotorolaType2MessageEvent.text type=text unit= optional=no since=1.0
+shape.MotorolaType2MessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.GrantEvent since=1.0
+shape.GrantEvent.target type=text unit= optional=no since=1.0
+shape.GrantEvent.source type=text unit= optional=yes since=1.0
+shape.GrantEvent.channel type=text unit= optional=no since=1.0
+shape.GrantEvent.group type=bool unit= optional=no since=1.0
+shape.GrantEvent.emergency type=bool unit= optional=no since=1.0
+shape.GrantEvent.encrypted type=bool unit= optional=no since=1.0
+shape.GrantEvent.digital type=bool unit= optional=no since=1.0
+shape.GrantEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.GrantEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.OpenskyFields since=1.0
+shape.OpenskyFields.rx_state type=i64 unit= optional=no since=1.0
+shape.OpenskyFields.blocks type=i64 unit= optional=no since=1.0
+shape.OpenskyFields.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.OpenskyFields.line_db type=f64 unit=dB optional=yes since=1.0
+shape.OpenskyFields.levels type=i64 unit= optional=yes since=1.0
+shape.OpenskyFields.deviation_hz type=f64 unit=Hz optional=yes since=1.0
+shape.OpenskyFields.burst_ms type=f64 unit=ms optional=yes since=1.0
+shape.OpenskyFields.duty type=f64 unit= optional=yes since=1.0
+shape.OpenskyFields.width_hz type=f64 unit=Hz optional=yes since=1.0
+shape.OpenskyFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.OpenskyFields.verdict type=choice(consistent,other) unit= optional=yes since=1.0
+shape.OpenskyFields.text type=text unit= optional=yes since=1.0
+shape.OpenskyFields.note type=text unit= optional=no since=1.0
+shape.OpenskyBlockRow since=1.0
+shape.OpenskyBlockRow.time_s type=f64 unit=s optional=no since=1.0
+shape.OpenskyBlockRow.symbol_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.OpenskyBlockRow.levels type=i64 unit= optional=no since=1.0
+shape.OpenskyBlockRow.width_hz type=f64 unit=Hz optional=no since=1.0
+shape.OpenskyBlockRow.burst_ms type=f64 unit=ms optional=no since=1.0
+shape.OpenskyBlockRow.verdict type=choice(consistent,other) unit= optional=no since=1.0
+shape.OpenskyBlockRow.text type=text unit= optional=no since=1.0
+shape.OpenskyVerdictEvent since=1.0
+shape.OpenskyVerdictEvent.verdict type=choice(consistent,other) unit= optional=no since=1.0
+shape.OpenskyVerdictEvent.symbol_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.OpenskyVerdictEvent.levels type=i64 unit= optional=no since=1.0
+shape.OpenskyVerdictEvent.deviation_hz type=f64 unit=Hz optional=no since=1.0
+shape.OpenskyVerdictEvent.burst_ms type=f64 unit=ms optional=no since=1.0
+shape.OpenskyVerdictEvent.width_hz type=f64 unit=Hz optional=no since=1.0
+shape.OpenskyVerdictEvent.text type=text unit= optional=no since=1.0
+shape.OpenskyVerdictEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.GscFields since=1.1
+shape.GscFields.pages type=i64 unit= optional=no since=1.1
+shape.GscFields.tone_pages type=i64 unit= optional=no since=1.1
+shape.GscFields.numeric_pages type=i64 unit= optional=no since=1.1
+shape.GscFields.alpha_pages type=i64 unit= optional=no since=1.1
+shape.GscFields.voice_pages type=i64 unit= optional=no since=1.1
+shape.GscFields.preambles type=i64 unit= optional=no since=1.1
+shape.GscFields.locked type=bool unit= optional=no since=1.1
+shape.GscFields.preamble type=i64 unit= optional=yes since=1.1
+shape.GscFields.call type=text unit= optional=yes since=1.1
+shape.GscFields.inverted type=bool unit= optional=no since=1.1
+shape.GscFields.deviation_hz type=hz unit=Hz optional=yes since=1.1
+shape.GscFields.offset_hz type=hz unit=Hz optional=yes since=1.1
+shape.GscFields.clock_ppm type=f64 unit=ppm optional=yes since=1.1
+shape.GscFields.quality_db type=f64 unit=dB optional=yes since=1.1
+shape.GscFields.carrier type=bool unit= optional=yes since=1.1
+shape.GscFields.snr_db type=f64 unit=dB optional=yes since=1.1
+shape.GscFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.1
+shape.GscFields.note type=text unit= optional=no since=1.1
+shape.GscPageRow since=1.1
+shape.GscPageRow.time_s type=f64 unit=s optional=no since=1.1
+shape.GscPageRow.kind type=text unit= optional=no since=1.1
+shape.GscPageRow.code type=text unit= optional=no since=1.1
+shape.GscPageRow.function type=i64 unit= optional=no since=1.1
+shape.GscPageRow.words type=text unit= optional=no since=1.1
+shape.GscPageRow.preamble type=i64 unit= optional=yes since=1.1
+shape.GscPageRow.call type=text unit= optional=no since=1.1
+shape.GscPageRow.text type=text unit= optional=no since=1.1
+shape.GscPageRow.blocks type=i64 unit= optional=yes since=1.1
+shape.GscPageRow.note type=text unit= optional=yes since=1.1
+shape.GscPageRow.bits_corrected type=i64 unit= optional=no since=1.1
+shape.GscPageRow.word type=i64 unit= optional=yes since=1.1
+shape.GscPageRow.voice_s type=f64 unit=s optional=yes since=1.1
+shape.GscPageEvent since=1.1
+shape.GscPageEvent.target type=text unit= optional=no since=1.1
+shape.GscPageEvent.kind type=text unit= optional=no since=1.1
+shape.GscPageEvent.function type=i64 unit= optional=no since=1.1
+shape.GscPageEvent.text type=text unit= optional=no since=1.1
+shape.GscPageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.1
+shape.ScadaFields since=1.1
+shape.ScadaFields.locked type=bool unit= optional=no since=1.1
+shape.ScadaFields.link type=text unit= optional=yes since=1.1
+shape.ScadaFields.messages type=i64 unit= optional=no since=1.1
+shape.ScadaFields.modbus type=i64 unit= optional=no since=1.1
+shape.ScadaFields.dnp3 type=i64 unit= optional=no since=1.1
+shape.ScadaFields.unknown type=i64 unit= optional=no since=1.1
+shape.ScadaFields.crc_failures type=i64 unit= optional=no since=1.1
+shape.ScadaFields.encrypted type=i64 unit= optional=no since=1.1
+shape.ScadaFields.not_recognised type=i64 unit= optional=no since=1.1
+shape.ScadaFields.devices type=i64 unit= optional=no since=1.1
+shape.ScadaFields.offset_hz type=hz unit=Hz optional=yes since=1.1
+shape.ScadaFields.deviation_hz type=hz unit=Hz optional=yes since=1.1
+shape.ScadaFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.1
+shape.ScadaFields.note type=text unit= optional=no since=1.1
+shape.ScadaMessageRow since=1.1
+shape.ScadaMessageRow.id type=i64 unit= optional=no since=1.1
+shape.ScadaMessageRow.time_s type=f64 unit=s optional=no since=1.1
+shape.ScadaMessageRow.wall_clock_utc type=time unit= optional=yes since=1.1
+shape.ScadaMessageRow.link type=text unit= optional=no since=1.1
+shape.ScadaMessageRow.protocol type=text unit= optional=no since=1.1
+shape.ScadaMessageRow.from type=text unit= optional=no since=1.1
+shape.ScadaMessageRow.to type=text unit= optional=no since=1.1
+shape.ScadaMessageRow.function type=text unit= optional=no since=1.1
+shape.ScadaMessageRow.summary type=text unit= optional=no since=1.1
+shape.ScadaMessageRow.crc type=text unit= optional=no since=1.1
+shape.ScadaMessageRow.direction type=text unit= optional=yes since=1.1
+shape.ScadaMessageRow.pair_id type=i64 unit= optional=yes since=1.1
+shape.ScadaMessageRow.response_ms type=f64 unit=ms optional=yes since=1.1
+shape.ScadaMessageRow.encrypted type=bool unit= optional=no since=1.1
+shape.ScadaMessageRow.raw_hex type=text unit= optional=no since=1.1
+shape.ScadaMessageRow.quality_db type=f64 unit=dB optional=no since=1.1
+shape.ScadaDeviceRow since=1.1
+shape.ScadaDeviceRow.protocol type=text unit= optional=no since=1.1
+shape.ScadaDeviceRow.address type=i64 unit= optional=no since=1.1
+shape.ScadaDeviceRow.role type=text unit= optional=no since=1.1
+shape.ScadaDeviceRow.first_heard type=time unit= optional=yes since=1.1
+shape.ScadaDeviceRow.last_heard type=time unit= optional=yes since=1.1
+shape.ScadaDeviceRow.first_s type=f64 unit=s optional=no since=1.1
+shape.ScadaDeviceRow.last_s type=f64 unit=s optional=no since=1.1
+shape.ScadaDeviceRow.last_poll_s type=f64 unit=s optional=yes since=1.1
+shape.ScadaDeviceRow.polls type=i64 unit= optional=no since=1.1
+shape.ScadaDeviceRow.replies type=i64 unit= optional=no since=1.1
+shape.ScadaDeviceRow.unanswered type=i64 unit= optional=no since=1.1
+shape.ScadaDeviceRow.exceptions type=i64 unit= optional=no since=1.1
+shape.ScadaDeviceRow.unsolicited type=i64 unit= optional=no since=1.1
+shape.ScadaDeviceRow.crc_failures type=i64 unit= optional=no since=1.1
+shape.ScadaDeviceRow.mean_response_ms type=f64 unit=ms optional=yes since=1.1
+shape.ScadaDeviceRow.last_iin type=text unit= optional=yes since=1.1
+shape.ScadaDeviceRow.peers type=text unit= optional=no since=1.1
+shape.ScadaDeviceRow.points type=text unit= optional=no since=1.1
+shape.ScadaMessageEvent since=1.1
+shape.ScadaMessageEvent.source type=text unit= optional=no since=1.1
+shape.ScadaMessageEvent.target type=text unit= optional=no since=1.1
+shape.ScadaMessageEvent.protocol type=text unit= optional=no since=1.1
+shape.ScadaMessageEvent.function type=text unit= optional=no since=1.1
+shape.ScadaMessageEvent.text type=text unit= optional=no since=1.1
+shape.ScadaMessageEvent.crc type=text unit= optional=no since=1.1
+shape.ScadaMessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.1
+shape.ScadaDeviceEvent since=1.1
+shape.ScadaDeviceEvent.protocol type=text unit= optional=no since=1.1
+shape.ScadaDeviceEvent.address type=i64 unit= optional=no since=1.1
+shape.ScadaDeviceEvent.role type=text unit= optional=no since=1.1
+shape.ScadaDeviceEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.1
+shape.ScadaCsvReply since=1.1
+shape.ScadaCsvReply.csv type=text unit= optional=no since=1.1
+mpt1327 since=1.0
+mpt1327.fields.Mpt1327Fields since=1.0
+mpt1327.table.messages row=Mpt1327MessageRow cap=200 since=1.0
+mpt1327.table.channels row=Mpt1327ChannelRow cap=2048 since=1.0
+mpt1327.event.mpt1327.message fields=Mpt1327MessageEvent since=1.0
+mpt1327.event.trunk.follow fields=FollowEvent since=1.0
+mpt1327.setting.framing type=choice(standard,tolerant,auto) unit= since=1.0
+mpt1327.setting.control_channel type=i64 unit= since=1.0
+mpt1327.setting.spacing_khz type=f64 unit=kHz since=1.0
+mpt1327.setting.follow type=bool unit= since=1.0
+mpt1327.setting.follow_groups type=text unit= since=1.0
+mpt1327.setting.follow_max_s type=duration unit=s since=1.0
+ltr since=1.0
+ltr.fields.LtrFields since=1.0
+ltr.table.words row=LtrWordRow cap=400 since=1.0
+ltr.table.repeaters row=LtrRepeaterRow cap=20 since=1.0
+ltr.event.ltr.word fields=LtrWordEvent since=1.0
+ltr.event.trunk.follow fields=FollowEvent since=1.0
+ltr.setting.follow type=bool unit= since=1.0
+ltr.setting.follow_groups type=text unit= since=1.0
+ltr.setting.follow_max_s type=duration unit=s since=1.0
+ltr.command.clear args= reply= since=1.0
+edacs since=1.0
+edacs.fields.EdacsFields since=1.0
+edacs.table.calls row=EdacsCallRow cap=200 since=1.0
+edacs.table.talkgroups row=EdacsTalkgroupRow cap=200 since=1.0
+edacs.table.channels row=EdacsChannelRow cap=64 since=1.0
+edacs.table.frames row=EdacsFrameRow cap=400 since=1.0
+edacs.table.words row=EdacsWordRow cap=24 since=1.0
+edacs.event.edacs.call fields=EdacsCallEvent since=1.0
+edacs.event.trunk.follow fields=FollowEvent since=1.0
+edacs.setting.extended type=bool unit= since=1.0
+edacs.setting.esk type=bool unit= since=1.0
+edacs.setting.lcn_table type=text unit= since=1.0
+edacs.setting.follow type=bool unit= since=1.0
+edacs.setting.follow_carriers type=bool unit= since=1.0
+edacs.setting.follow_groups type=text unit= since=1.0
+edacs.command.clear args= reply= since=1.0
+tones since=1.0
+tones.fields.TonesFields since=1.0
+tones.kept.events since=1.0
+tones.kept.TonesFields since=1.0
+tones.table.events row=TonesHeardRow cap=300 since=1.0
+tones.series.spectrum x_unit=Hz y_unit=dB since=1.0
+tones.event.tones.subaudio fields=SubAudioFields since=1.0
+tones.event.tones.dtmf fields=DtmfFields since=1.0
+tones.event.tones.selcall fields=SelcallFields since=1.0
+tones.event.tones.selcal fields=SelcalFields since=1.0
+tones.event.tones.two_tone fields=TwoToneFields since=1.0
+tones.setting.demod type=choice(auto,fm,usb,lsb,am) unit= since=1.0
+tones.setting.audio_input type=bool unit= since=1.0
+tones.setting.gate type=choice(always,any,chosen) unit= since=1.0
+tones.setting.gate_kind type=choice(ctcss,dcs) unit= since=1.0
+tones.setting.gate_tone type=choice(67.0,69.3,71.9,74.4,77.0,79.7,82.5,85.4,88.5,91.5,94.8,97.4,100.0,103.5,107.2,110.9,114.8,118.8,123.0,127.3,131.8,136.5,141.3,146.2,151.4,156.7,159.8,162.2,165.5,167.9,171.3,173.8,177.3,179.9,183.5,186.2,189.9,192.8,196.6,199.5,203.5,206.5,210.7,218.1,225.7,229.1,233.6,241.8,250.3,254.1) unit= since=1.0
+tones.setting.gate_code type=choice(023,025,026,031,032,043,047,051,054,065,071,072,073,074,114,115,116,125,131,132,134,143,152,155,156,162,165,172,174,205,223,226,243,244,245,251,261,263,265,271,306,311,315,331,343,346,351,364,365,371,411,412,413,423,431,432,445,464,465,466,503,506,516,532,546,565,606,612,624,627,631,632,654,662,664,703,712,723,731,732,734,743,754) unit= since=1.0
+tones.setting.gate_inverted type=bool unit= since=1.0
+tones.setting.listen type=bool unit= since=1.0
+tones.command.clear args= reply= since=1.0
+pager since=1.0
+pager.fields.PagerFields since=1.0
+pager.fields.PagerTxFields since=1.2
+pager.kept.pages since=1.0
+pager.kept.speeds since=1.0
+pager.kept.heard since=1.0
+pager.kept.PagerFields since=1.0
+pager.table.pages row=PagerPageRow cap=2000 since=1.0
+pager.table.speeds row=PagerSpeedRow cap=16 since=1.0
+pager.table.heard row=PagerHeardRow cap=1000 since=1.0
+pager.event.pocsag.page fields=PocsagPageEvent since=1.0
+pager.event.flex.page fields=FlexPageEvent since=1.0
+pager.event.tones.selcall fields=SelcallFields since=1.0
+pager.event.pager.tx fields=PagerTxEvent since=1.2
+pager.setting.pocsag type=bool unit= since=1.0
+pager.setting.flex type=bool unit= since=1.0
+pager.setting.pocsag_512 type=bool unit= since=1.0
+pager.setting.pocsag_1200 type=bool unit= since=1.0
+pager.setting.pocsag_2400 type=bool unit= since=1.0
+pager.setting.selcall type=bool unit= since=1.0
+pager.setting.channel type=choice(25k,12.5k) unit= since=1.0
+pager.setting.narrow_decoder type=bool unit= since=1.0
+pager.setting.combine type=bool unit= since=1.0
+pager.setting.read type=choice(auto,function,alpha,numeric) unit= since=1.0
+pager.setting.read_by_address type=text unit= since=1.0
+pager.setting.charset type=choice(ascii,german) unit= since=1.0
+pager.setting.wide_input type=bool unit= since=1.0
+pager.setting.protocol type=choice(pocsag,flex) unit= since=1.2
+pager.setting.pocsag_rate type=choice(512,1200,2400) unit= since=1.2
+pager.setting.deviation type=hz unit=Hz since=1.2
+pager.setting.polarity type=choice(normal,inverted) unit= since=1.2
+pager.setting.tx_level type=f64 unit=of%20full%20scale since=1.2
+pager.command.clear args= reply= since=1.0
+pager.command.send args=address:i64;function:i64?;page_type:choice(tone,numeric,alpha)?;text:text? reply= transmits=text stop=halt since=1.2
+pager.command.halt args= reply= since=1.2
+ermes since=1.0
+ermes.fields.ErmesFields since=1.0
+ermes.fields.DecoderFields since=1.0
+ermes.component.modem.dropped since=1.0
+ermes.table.rows row=ErmesEntryRow cap=400 since=1.0
+ermes.event.ermes.batch fields=ErmesBatchEvent since=1.0
+ermes.event.ermes.message fields=ErmesMessageEvent since=1.0
+ermes.setting.gen_last_batch type=bool unit= since=1.0
+ermes.command.clear args= reply= since=1.0
+multitone since=1.0
+multitone.fields.MultitoneFields since=1.0
+multitone.table.transmissions row=MultitoneTransmissionRow cap=200 since=1.0
+multitone.table.tx_tones row=MultitoneToneRow cap=2000 since=1.0
+multitone.table.tx_lines row=MultitoneLineRow cap=2000 since=1.0
+multitone.table.tones_heard row=MultitoneHeardRow cap=24 since=1.0
+multitone.table.bursts row=MultitoneBurstRow cap=100 since=1.0
+multitone.event.multitone.transmission fields=MultitoneTransmissionEvent since=1.0
+multitone.event.multitone.burst fields=MultitoneBurstEvent since=1.0
+multitone.command.clear args= reply= since=1.0
+motorola_type2 since=1.0
+motorola_type2.fields.MotorolaType2Fields since=1.0
+motorola_type2.fields.DecoderFields since=1.0
+motorola_type2.table.messages row=MotorolaType2MessageRow cap=400 since=1.0
+motorola_type2.table.talkgroups row=MotorolaType2TalkgroupRow cap=200 since=1.0
+motorola_type2.table.sites row=MotorolaType2SiteRow cap=64 since=1.0
+motorola_type2.table.patches row=MotorolaType2PatchRow cap=256 since=1.0
+motorola_type2.table.calls row=MotorolaType2CallRow cap=200 since=1.0
+motorola_type2.event.type2.message fields=MotorolaType2MessageEvent since=1.0
+motorola_type2.event.trunk.grant fields=GrantEvent since=1.0
+motorola_type2.event.trunk.follow fields=FollowEvent since=1.0
+motorola_type2.setting.plan type=text unit= since=1.0
+motorola_type2.setting.follow type=bool unit= since=1.0
+motorola_type2.setting.follow_private type=bool unit= since=1.0
+motorola_type2.setting.follow_groups type=text unit= since=1.0
+motorola_type2.setting.follow_max_s type=duration unit=s since=1.0
+motorola_type2.setting.gen_deviation_hz type=hz unit=Hz since=1.0
+motorola_type2.setting.gen_invert type=bool unit= since=1.0
+motorola_type2.setting.gen_word_errors type=f64 unit= since=1.0
+motorola_type2.setting.gen_idle_inside type=bool unit= since=1.0
+motorola_type2.command.clear args= reply= since=1.0
+opensky since=1.0
+opensky.fields.OpenskyFields since=1.0
+opensky.fields.DecoderFields since=1.0
+opensky.table.blocks row=OpenskyBlockRow cap=100 since=1.0
+opensky.event.opensky.verdict fields=OpenskyVerdictEvent since=1.0
+opensky.setting.gen_shape type=choice(opensky,p25,edacs,3600) unit= since=1.0
+opensky.command.clear args= reply= since=1.0
+gsc since=1.1
+gsc.fields.GscFields since=1.1
+gsc.fields.DecoderFields since=1.1
+gsc.component.modem.dropped since=1.1
+gsc.table.pages row=GscPageRow cap=400 since=1.1
+gsc.event.gsc.page fields=GscPageEvent since=1.1
+gsc.setting.gen_pages type=choice(all,tone,numeric,alpha,voice) unit= since=1.1
+gsc.setting.gen_batch type=bool unit= since=1.1
+gsc.setting.gen_no_preamble type=bool unit= since=1.1
+gsc.setting.gen_deviation_hz type=f64 unit=Hz since=1.1
+gsc.command.clear args= reply= since=1.1
+scada since=1.1
+scada.fields.ScadaFields since=1.1
+scada.fields.DecoderFields since=1.1
+scada.component.modem.dropped since=1.1
+scada.table.messages row=ScadaMessageRow cap=1000 since=1.1
+scada.table.devices row=ScadaDeviceRow cap=256 since=1.1
+scada.event.scada.message fields=ScadaMessageEvent since=1.1
+scada.event.scada.device fields=ScadaDeviceEvent since=1.1
+scada.setting.gen_link type=choice(bell202,v23,fsk2_4800,fsk2_9600,fsk2_19200,fsk4_4800,fsk4_9600,fsk4_19200) unit= since=1.1
+scada.setting.gen_framing type=choice(8e1,8o1,8n1,8n2,hdlc_nrz,hdlc_nrzi) unit= since=1.1
+scada.setting.gen_traffic type=choice(modbus,modbus_ascii,dnp3) unit= since=1.1
+scada.command.clear args= reply= since=1.1
+scada.command.export_csv args= reply=csv:text since=1.1

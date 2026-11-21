@@ -1,0 +1,16 @@
+# id: transmitter_tests
+# name: Usual starting dials and rates of the transmitter test stacks
+# stacks: freq_accuracy phase_noise mer ssb_test sinad nfm_meter afsk_tuner tx_stability cw_keying fsk_analyser
+# source: usage, not a band plan; 144.390 MHz is the APRS channel of North America, other regions use 144.800 MHz (Europe and much of Africa), 145.175 MHz (Australia), 144.640 MHz (China) and 144.660 MHz (Japan); 146.520 MHz is the 2 m FM calling frequency of the United States; 10 MHz is a frequency of standard time stations (none of these checked against a published plan)
+# note: Starting points only; each stack measures the signal at the dial and takes plain settings. phase_noise starts at 200 ksps: its channel filter needs twice its 100 kHz pass edge. The deviation limits of nfm_meter (limit_narrow_hz, limit_wide_hz) are regional: 2500 and 5000 Hz for 12.5 and 25 kHz channels in many regions. The sensitivity mark of sinad (sinad_mark_db) is 12 dB by the TIA-603 convention. Carriers of known frequency for freq_accuracy, by general knowledge and not checked: WWV 2.5, 5, 10, 15, 20 and 25 MHz; WWVH 2.5, 5, 10 and 15 MHz; CHU 3.330, 7.850 and 14.670 MHz; BPM 2.5, 5, 10 and 15 MHz; RWM 4.996, 9.996 and 14.996 MHz; DCF77 77.5 kHz; MSF 60 kHz; WWVB 60 kHz; JJY 40 and 60 kHz.
+stack,frequency_hz,low_hz,high_hz,rate_hz,least_rate_hz,width_hz
+freq_accuracy,10000000,100000,6000000000,48000,16000,6000
+phase_noise,10000000,100000,6000000000,250000,200000,100000
+mer,435000000,100000,6000000000,250000,96000,90000
+ssb_test,14200000,100000,500000000,48000,12000,4000
+sinad,146520000,26000000,6000000000,48000,24000,16000
+nfm_meter,146520000,26000000,6000000000,48000,24000,16000
+afsk_tuner,144390000,26000000,6000000000,48000,24000,16000
+tx_stability,146520000,26000000,6000000000,48000,24000,16000
+cw_keying,7030000,100000,500000000,48000,12000,4000
+fsk_analyser,433920000,100000,6000000000,250000,48000,100000

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 3840000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic 5G NR SS/PBCH bursts, 80 ms (16 half frames from SFN 100), 15 kHz SSB, Lmax 4 (SSB 0-3 sent, beam gains -3, -1.5, 0, -1.5 dB), PCI 222, 20 ms burst period. MIB: scs15or60, k_SSB 6, DMRS type A position 2, CORESET#0 index 3, search space 0 index 0, not barred, intra-frequency reselection allowed. Random QPSK around the SSB. SS_REF (GSCN 1990, n28) is 3 kHz below the carrier, which sits at +3 kHz. Noise 6 dB below the SSB symbol power. See specs/cell.md section 5.",
+    "core:recorder": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 795850000.0
+    }
+  ],
+  "annotations": []
+}

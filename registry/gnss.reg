@@ -1,0 +1,294 @@
+# The interface of the stack family gnss. The registry test of the family writes this file.
+family gnss version=1.0
+shape.GnssFields since=1.0
+shape.GnssFields.centre_hz type=hz unit=Hz optional=no since=1.0
+shape.GnssFields.input_rate type=hz unit=Hz optional=no since=1.0
+shape.GnssFields.search_system type=choice(gps,qzss,sbas,galileo,beidou,glonass) unit= optional=yes since=1.0
+shape.GnssFields.search_prn type=i64 unit= optional=yes since=1.0
+shape.GnssFields.search_progress_pct type=f64 unit=% optional=yes since=1.0
+shape.GnssFields.search_round type=i64 unit= optional=yes since=1.0
+shape.GnssFields.search_centre type=hz unit=Hz optional=yes since=1.0
+shape.GnssFields.search_half_width type=hz unit=Hz optional=yes since=1.0
+shape.GnssFields.search_integration_ms type=f64 unit=ms optional=yes since=1.0
+shape.GnssFields.frequency_error type=hz unit=Hz optional=yes since=1.0
+shape.GnssFields.frequency_error_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.GnssFields.frequency_source type=choice(measured,search_centre,unknown) unit= optional=no since=1.0
+shape.GnssFields.first_lock type=duration unit=s optional=yes since=1.0
+shape.GnssFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.GnssFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.GnssFields.sbas_messages type=i64 unit= optional=no since=1.0
+shape.GnssFields.glonass_tau_gps_s type=f64 unit=s optional=yes since=1.0
+shape.GnssFields.glonass_tau_c_s type=f64 unit=s optional=yes since=1.0
+shape.GnssFields.bdt_gps_s type=f64 unit=s optional=yes since=1.0
+shape.GnssFields.almanac_satellites type=i64 unit= optional=no since=1.0
+shape.GnssFields.iono_broadcast type=bool unit= optional=no since=1.0
+shape.GnssFields.leap_seconds type=i64 unit=s optional=yes since=1.0
+shape.GnssFields.leap_seconds_broadcast type=bool unit= optional=no since=1.0
+shape.GnssFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.GnssFields.clipped_pct type=f64 unit=% optional=no since=1.0
+shape.GnssFields.dc_i type=f64 unit= optional=no since=1.0
+shape.GnssFields.dc_q type=f64 unit= optional=no since=1.0
+shape.GnssFields.signal type=duration unit=s optional=no since=1.0
+shape.GnssFields.progress type=text unit= optional=no since=1.0
+shape.GnssFields.position type=position unit= optional=yes since=1.0
+shape.GnssFields.height_m type=f64 unit=m optional=yes since=1.0
+shape.GnssFields.error_h_m type=f64 unit=m optional=yes since=1.0
+shape.GnssFields.error_v_m type=f64 unit=m optional=yes since=1.0
+shape.GnssFields.hdop type=f64 unit= optional=yes since=1.0
+shape.GnssFields.vdop type=f64 unit= optional=yes since=1.0
+shape.GnssFields.pdop type=f64 unit= optional=yes since=1.0
+shape.GnssFields.satellites_used type=i64 unit= optional=yes since=1.0
+shape.GnssFields.satellites_tracked type=i64 unit= optional=no since=1.0
+shape.GnssFields.utc type=time unit= optional=yes since=1.0
+shape.GnssFields.gps_week type=i64 unit= optional=yes since=1.0
+shape.GnssFields.gps_tow_s type=f64 unit=s optional=yes since=1.0
+shape.GnssFields.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.GnssFields.course_deg type=f64 unit=° optional=yes since=1.0
+shape.GnssFields.clock_bias_m type=f64 unit=m optional=yes since=1.0
+shape.GnssFields.first_fix type=duration unit=s optional=yes since=1.0
+shape.InterferenceFields since=1.0
+shape.InterferenceFields.interference type=choice(clear,raised_noise,interference) unit= optional=no since=1.0
+shape.InterferenceFields.swept type=bool unit= optional=no since=1.0
+shape.InterferenceFields.pulsed type=bool unit= optional=no since=1.0
+shape.InterferenceFields.narrowband type=bool unit= optional=no since=1.0
+shape.InterferenceFields.wideband type=bool unit= optional=no since=1.0
+shape.InterferenceFields.interference_reason type=text unit= optional=no since=1.0
+shape.InterferenceFields.noise_floor_dbfs type=f64 unit=dBFS/Hz optional=no since=1.0
+shape.InterferenceFields.band_power_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.InterferenceFields.flatness type=f64 unit= optional=no since=1.0
+shape.InterferenceFields.spoofing type=bool unit= optional=no since=1.0
+shape.InterferenceFields.spoofing_reason type=text unit= optional=yes since=1.0
+shape.GuardFields since=1.0
+shape.GuardFields.bad_samples type=i64 unit= optional=no since=1.0
+shape.GnssSystemRow since=1.0
+shape.GnssSystemRow.system type=choice(gps,qzss,sbas,galileo,beidou,glonass) unit= optional=no since=1.0
+shape.GnssSystemRow.wanted type=bool unit= optional=no since=1.0
+shape.GnssSystemRow.active type=bool unit= optional=no since=1.0
+shape.GnssSystemRow.searched type=bool unit= optional=no since=1.0
+shape.GnssFixSystemRow since=1.0
+shape.GnssFixSystemRow.system type=choice(gps,qzss,sbas,galileo,beidou,glonass) unit= optional=no since=1.0
+shape.GnssFixSystemRow.satellites type=i64 unit= optional=no since=1.0
+shape.GnssFixSystemRow.clock_m type=f64 unit=m optional=no since=1.0
+shape.GnssSatelliteRow since=1.0
+shape.GnssSatelliteRow.system type=choice(gps,qzss,sbas,galileo,beidou,glonass) unit= optional=yes since=1.0
+shape.GnssSatelliteRow.prn type=i64 unit= optional=yes since=1.0
+shape.GnssSatelliteRow.glo_channel type=i64 unit= optional=yes since=1.0
+shape.GnssSatelliteRow.tracked type=bool unit= optional=no since=1.0
+shape.GnssSatelliteRow.state type=choice(pull_in,locked,bit_sync,frame_sync,ephemeris) unit= optional=yes since=1.0
+shape.GnssSatelliteRow.cn0_dbhz type=f64 unit=dB-Hz optional=yes since=1.0
+shape.GnssSatelliteRow.doppler type=hz unit=Hz optional=yes since=1.0
+shape.GnssSatelliteRow.code_chips type=f64 unit=chips optional=yes since=1.0
+shape.GnssSatelliteRow.azimuth_deg type=f64 unit=° optional=yes since=1.0
+shape.GnssSatelliteRow.elevation_deg type=f64 unit=° optional=yes since=1.0
+shape.GnssSatelliteRow.locked_for type=duration unit=s optional=yes since=1.0
+shape.GnssSatelliteRow.frames_good type=i64 unit= optional=yes since=1.0
+shape.GnssSatelliteRow.frames type=i64 unit= optional=yes since=1.0
+shape.GnssSatelliteRow.residual_m type=f64 unit=m optional=yes since=1.0
+shape.GnssSatelliteRow.healthy type=bool unit= optional=yes since=1.0
+shape.GnssSatelliteRow.used type=bool unit= optional=no since=1.0
+shape.GnssSatelliteRow.ephemeris type=choice(held,collecting,waiting,not_used) unit= optional=yes since=1.0
+shape.GnssSatelliteRow.parts type=i64 unit= optional=yes since=1.0
+shape.GnssSatelliteRow.parts_of type=i64 unit= optional=yes since=1.0
+shape.GnssSatelliteRow.seconds_left type=duration unit=s optional=yes since=1.0
+shape.GnssSatelliteRow.iod type=i64 unit= optional=yes since=1.0
+shape.GnssSatelliteRow.data_age type=duration unit=s optional=yes since=1.0
+shape.GnssSatelliteRow.week type=i64 unit= optional=yes since=1.0
+shape.GnssSatelliteRow.tow_s type=f64 unit=s optional=yes since=1.0
+shape.GnssSatelliteRow.af0_s type=f64 unit=s optional=yes since=1.0
+shape.GnssSatelliteRow.sub_point type=position unit=° optional=yes since=1.0
+shape.GnssSatelliteRow.height_km type=f64 unit=km optional=yes since=1.0
+shape.GnssSatelliteRow.orbit type=choice(ephemeris,almanac) unit= optional=yes since=1.0
+shape.InterferenceLineRow since=1.0
+shape.InterferenceLineRow.offset type=hz unit=Hz optional=no since=1.0
+shape.InterferenceLineRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.InterferenceLineRow.known type=bool unit= optional=no since=1.0
+shape.InterferenceEventRow since=1.0
+shape.InterferenceEventRow.at type=duration unit=s optional=no since=1.0
+shape.InterferenceEventRow.level type=choice(info,warning,alarm) unit= optional=no since=1.0
+shape.InterferenceEventRow.text type=text unit= optional=no since=1.0
+shape.GnssFixEvent since=1.0
+shape.GnssFixEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.GnssFixEvent.position type=position unit= optional=no since=1.0
+shape.GnssFixEvent.height_m type=f64 unit=m optional=no since=1.0
+shape.GnssFixEvent.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.GnssFixEvent.course_deg type=f64 unit=° optional=yes since=1.0
+shape.GnssFixEvent.satellites_used type=i64 unit= optional=no since=1.0
+shape.NmeaEvent since=1.0
+shape.NmeaEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.NmeaEvent.text type=text unit= optional=no since=1.0
+shape.SbasFields since=1.0
+shape.SbasFields.data_valid type=bool unit= optional=no since=1.0
+shape.SbasFields.sbas_messages type=i64 unit= optional=no since=1.0
+shape.SbasFields.messages_missed type=i64 unit= optional=no since=1.0
+shape.SbasFields.help type=text unit= optional=yes since=1.0
+shape.SbasFields.selected type=i64 unit= optional=yes since=1.0
+shape.SbasFields.geo_iodn type=i64 unit= optional=yes since=1.0
+shape.SbasFields.geo_t0_s type=f64 unit=s optional=yes since=1.0
+shape.SbasFields.geo_ura type=i64 unit= optional=yes since=1.0
+shape.SbasFields.geo_radius_m type=f64 unit=m optional=yes since=1.0
+shape.SbasFields.geo_longitude_deg type=f64 unit=° optional=yes since=1.0
+shape.SbasFields.sbas_week type=i64 unit= optional=yes since=1.0
+shape.SbasFields.sbas_tow_s type=i64 unit=s optional=yes since=1.0
+shape.SbasFields.sbas_leap_s type=i64 unit=s optional=yes since=1.0
+shape.SbasFields.sbas_leap_next_s type=i64 unit=s optional=yes since=1.0
+shape.SbasFields.utc_a0_s type=f64 unit=s optional=yes since=1.0
+shape.SbasFields.utc_a1 type=f64 unit=s/s optional=yes since=1.0
+shape.SbasFields.utc_id type=i64 unit= optional=yes since=1.0
+shape.SbasSatelliteRow since=1.0
+shape.SbasSatelliteRow.prn type=i64 unit= optional=no since=1.0
+shape.SbasSatelliteRow.service type=choice(egnos,waas,msas,gagan,sdcm,bdsbas,kass) unit= optional=yes since=1.0
+shape.SbasSatelliteRow.state type=choice(pull_in,locked,bit_sync,frame_sync,ephemeris) unit= optional=yes since=1.0
+shape.SbasSatelliteRow.cn0_dbhz type=f64 unit=dB-Hz optional=no since=1.0
+shape.SbasSatelliteRow.doppler type=hz unit=Hz optional=no since=1.0
+shape.SbasSatelliteRow.messages type=i64 unit= optional=no since=1.0
+shape.SbasSatelliteRow.messages_missed type=i64 unit= optional=no since=1.0
+shape.SbasSatelliteTypeRow since=1.0
+shape.SbasSatelliteTypeRow.prn type=i64 unit= optional=no refers_to=sbas_satellites since=1.0
+shape.SbasSatelliteTypeRow.message_type type=i64 unit= optional=no since=1.0
+shape.SbasTypeRow since=1.0
+shape.SbasTypeRow.message_type type=i64 unit= optional=no since=1.0
+shape.SbasTypeRow.name type=text unit= optional=yes since=1.0
+shape.SbasTypeRow.count type=i64 unit= optional=no since=1.0
+shape.SbasMessageRow since=1.0
+shape.SbasMessageRow.at type=duration unit=s optional=no since=1.0
+shape.SbasMessageRow.prn type=i64 unit= optional=no refers_to=sbas_satellites since=1.0
+shape.SbasMessageRow.message_type type=i64 unit= optional=no since=1.0
+shape.SbasMessageRow.text type=text unit= optional=no since=1.0
+shape.SbasFastCorrectionRow since=1.0
+shape.SbasFastCorrectionRow.slot type=i64 unit= optional=no since=1.0
+shape.SbasFastCorrectionRow.system type=choice(gps,qzss,sbas,galileo,beidou,glonass) unit= optional=yes since=1.0
+shape.SbasFastCorrectionRow.prn type=i64 unit= optional=yes since=1.0
+shape.SbasFastCorrectionRow.correction_m type=f64 unit=m optional=yes since=1.0
+shape.SbasFastCorrectionRow.udrei type=i64 unit= optional=no since=1.0
+shape.SbasFastCorrectionRow.udre_sigma_m type=f64 unit=m optional=yes since=1.0
+shape.SbasFastCorrectionRow.iodf type=i64 unit= optional=no since=1.0
+shape.SbasFastCorrectionRow.iodp type=i64 unit= optional=no since=1.0
+shape.SbasFastCorrectionRow.iodp_current type=bool unit= optional=no since=1.0
+shape.SbasFastCorrectionRow.degradation type=f64 unit=m/s² optional=yes since=1.0
+shape.SbasIonosphereRow since=1.0
+shape.SbasIonosphereRow.band type=i64 unit= optional=no since=1.0
+shape.SbasIonosphereRow.iodi type=i64 unit= optional=no since=1.0
+shape.SbasIonosphereRow.points type=i64 unit= optional=no since=1.0
+shape.SbasIonosphereRow.blocks_seen type=i64 unit= optional=no since=1.0
+shape.SbasIonosphereRow.blocks_needed type=i64 unit= optional=no since=1.0
+shape.SbasIonosphereRow.values type=i64 unit= optional=no since=1.0
+shape.SbasIonosphereRow.not_monitored type=i64 unit= optional=no since=1.0
+shape.SbasIonosphereRow.min_m type=f64 unit=m optional=no since=1.0
+shape.SbasIonosphereRow.mean_m type=f64 unit=m optional=no since=1.0
+shape.SbasIonosphereRow.max_m type=f64 unit=m optional=no since=1.0
+shape.SbasIonosphereRow.worst_givei type=i64 unit= optional=no since=1.0
+shape.NavicFields since=1.0
+shape.NavicFields.state type=i64 unit= optional=no since=1.0
+shape.NavicFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.NavicFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.NavicFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.NavicFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.NavicFields.searching_prn type=i64 unit= optional=no since=1.0
+shape.NavicFields.note type=text unit= optional=no since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.NavicSatelliteRow since=1.0
+shape.NavicSatelliteRow.prn type=i64 unit= optional=no since=1.0
+shape.NavicSatelliteRow.state type=i64 unit= optional=no since=1.0
+shape.NavicSatelliteRow.cn0_dbhz type=f64 unit=dB-Hz optional=no since=1.0
+shape.NavicSatelliteRow.doppler_hz type=hz unit=Hz optional=no since=1.0
+shape.NavicSatelliteRow.subframes_ok type=i64 unit= optional=no since=1.0
+shape.NavicSatelliteRow.subframes_bad type=i64 unit= optional=no since=1.0
+shape.NavicSatelliteRow.subframe_id type=i64 unit= optional=yes since=1.0
+shape.NavicSatelliteRow.towc type=i64 unit= optional=yes since=1.0
+shape.NavicSatelliteRow.wn type=i64 unit= optional=yes since=1.0
+shape.NavicSatelliteRow.alert type=bool unit= optional=yes since=1.0
+shape.NavicSubframeEvent since=1.0
+shape.NavicSubframeEvent.prn type=i64 unit= optional=no since=1.0
+shape.NavicSubframeEvent.subframe_id type=i64 unit= optional=no since=1.0
+shape.NavicSubframeEvent.towc type=i64 unit= optional=no since=1.0
+shape.NavicSubframeEvent.wn type=i64 unit= optional=yes since=1.0
+shape.NavicSubframeEvent.message_id type=i64 unit= optional=yes since=1.0
+shape.NavicSubframeEvent.prn_id type=i64 unit= optional=yes since=1.0
+shape.NavicSubframeEvent.alert type=bool unit= optional=no since=1.0
+shape.NavicSubframeEvent.autonav type=bool unit= optional=no since=1.0
+gnss since=1.0
+gnss.fields.GnssFields since=1.0
+gnss.fields.InterferenceFields since=1.0
+gnss.fields.GuardFields writer=receiver since=1.0
+gnss.table.systems row=GnssSystemRow cap=6 since=1.0
+gnss.table.fix_systems row=GnssFixSystemRow cap=6 since=1.0
+gnss.table.satellites row=GnssSatelliteRow cap=160 since=1.0
+gnss.table.interference_lines row=InterferenceLineRow cap=16 since=1.0
+gnss.table.interference_events row=InterferenceEventRow cap=200 since=1.0
+gnss.series.acquisition x_unit= y_unit= since=1.0
+gnss.series.scatter x_unit= y_unit= since=1.0
+gnss.series.level x_unit=s y_unit=dBFS since=1.0
+gnss.series.best_cn0 x_unit=s y_unit=dB-Hz since=1.0
+gnss.series.clock_offset x_unit=s y_unit=ms since=1.0
+gnss.series.spectrum x_unit=bin y_unit=dB since=1.0
+gnss.series.history x_unit=s y_unit=dBFS/Hz since=1.0
+gnss.event.gnss.fix fields=GnssFixEvent since=1.0
+gnss.event.text.nmea fields=NmeaEvent since=1.0
+gnss.setting.tune type=choice(l1,b1i,glo,all,custom) unit= since=1.0
+gnss.setting.sys_gps type=bool unit= since=1.0
+gnss.setting.sys_qzss type=bool unit= since=1.0
+gnss.setting.sys_sbas type=bool unit= since=1.0
+gnss.setting.sys_galileo type=bool unit= since=1.0
+gnss.setting.sys_beidou type=bool unit= since=1.0
+gnss.setting.sys_glonass type=bool unit= since=1.0
+gnss.setting.elevation_mask type=f64 unit=° since=1.0
+gnss.setting.search_half_width type=hz unit=Hz since=1.0
+gnss.setting.frequency_hint type=hz unit=Hz since=1.0
+gnss.setting.frequency_hint_valid type=bool unit= since=1.0
+gnss.setting.acquisition_effort type=f64 unit=FFT/ms since=1.0
+gnss.setting.known_week type=i64 unit= since=1.0
+gnss.setting.clock_compare type=bool unit= since=1.0
+gnss.setting.galileo_codes type=text unit= since=1.0
+gnss.setting.gen_gps type=bool unit= since=1.0
+gnss.setting.gen_qzss type=bool unit= since=1.0
+gnss.setting.gen_sbas type=bool unit= since=1.0
+gnss.setting.gen_galileo type=bool unit= since=1.0
+gnss.setting.gen_beidou type=bool unit= since=1.0
+gnss.setting.gen_glonass type=bool unit= since=1.0
+gnss.setting.gen_sats type=i64 unit= since=1.0
+gnss.setting.gen_cold type=bool unit= since=1.0
+gnss.command.reset args= reply= since=1.0
+sbas since=1.0
+sbas.fields.SbasFields since=1.0
+sbas.fields.InterferenceFields since=1.0
+sbas.fields.GuardFields writer=receiver since=1.0
+sbas.component.rx.fields.GnssFields shared=sbas_messages since=1.0
+sbas.kept.messages since=1.0
+sbas.kept.types since=1.0
+sbas.kept.sbas_satellite_types since=1.0
+sbas.kept.SbasFields.sbas_messages since=1.0
+sbas.kept.SbasFields.messages_missed since=1.0
+sbas.table.sbas_satellites row=SbasSatelliteRow cap=39 since=1.0
+sbas.table.sbas_satellite_types row=SbasSatelliteTypeRow cap=2496 since=1.0
+sbas.table.types row=SbasTypeRow cap=64 since=1.0
+sbas.table.messages row=SbasMessageRow cap=100 since=1.0
+sbas.table.fast_corrections row=SbasFastCorrectionRow cap=51 since=1.0
+sbas.table.ionosphere row=SbasIonosphereRow cap=11 since=1.0
+sbas.table.interference_lines row=InterferenceLineRow cap=16 since=1.0
+sbas.table.interference_events row=InterferenceEventRow cap=200 since=1.0
+sbas.table.rx.systems row=GnssSystemRow cap=6 since=1.0
+sbas.table.rx.fix_systems row=GnssFixSystemRow cap=6 since=1.0
+sbas.table.rx.satellites row=GnssSatelliteRow cap=160 since=1.0
+sbas.series.spectrum x_unit=bin y_unit=dB since=1.0
+sbas.series.history x_unit=s y_unit=dBFS/Hz since=1.0
+sbas.series.rx.acquisition x_unit= y_unit= since=1.0
+sbas.series.rx.scatter x_unit= y_unit= since=1.0
+sbas.series.rx.level x_unit=s y_unit=dBFS since=1.0
+sbas.series.rx.best_cn0 x_unit=s y_unit=dB-Hz since=1.0
+sbas.series.rx.clock_offset x_unit=s y_unit=ms since=1.0
+sbas.setting.search_half_width type=hz unit=Hz since=1.0
+sbas.setting.frequency_hint type=hz unit=Hz since=1.0
+sbas.setting.frequency_hint_valid type=bool unit= since=1.0
+sbas.setting.acquisition_effort type=f64 unit=FFT/ms since=1.0
+sbas.command.reset args= reply= since=1.0
+sbas.command.select args=row:text reply= since=1.0
+sbas.command.clear args= reply= since=1.0
+navic since=1.0
+navic.fields.NavicFields since=1.0
+navic.fields.DecoderFields since=1.0
+navic.table.satellites row=NavicSatelliteRow cap=14 since=1.0
+navic.event.navic.subframe fields=NavicSubframeEvent since=1.0
+navic.setting.gen_sats type=i64 unit= since=1.0
+navic.setting.gen_sat_doppler_hz type=f64 unit=Hz since=1.0
+navic.command.clear args= reply= since=1.0

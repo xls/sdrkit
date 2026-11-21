@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 2000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic DVB-S (EN 300 421) carrier, 0.8 s. QPSK, code rate 3/4, 1 Msym/s, roll-off 0.35, carrier 20 kHz above the centre, Es/N0 10 dB, normal spectrum, rms level about 0.2. Payload: a checkable transport stream. Packet n (n = 0, 1, 2, ... counted from the start of the transmitter) is: 0x47, 0x00, 0x20 (PID 0x0020, no flags), 0x10 | (n mod 16) (payload only, continuity counter n mod 16), then n as a 32-bit big-endian number in bytes 4 to 7, then byte i (8 to 187) = (7 n + 13 i) mod 256.",
+    "core:recorder": "sdrkit dvbcs test generator (synthetic), noise seed 7",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 1500000000.0
+    }
+  ],
+  "annotations": []
+}

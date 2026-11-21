@@ -1,0 +1,18 @@
+[package]
+name = "sdrkit-svc-freqdb"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "A frequency database of well-known frequencies with stacks, tags and scopes, user entries, import and export, and spectrum labels, as an sdrkit owner"
+
+[dependencies]
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }

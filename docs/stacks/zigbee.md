@@ -1,0 +1,209 @@
+<!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
+# Zigbee / 802.15.4
+
+IEEE 802.15.4 frames on 2.4 GHz channels 11 to 26: MAC headers, beacons, Zigbee NWK and APS headers and device announcements; secured payloads shown as encrypted.
+
+Stack id: `zigbee`. Group: IoT, 2.4 GHz.
+
+Zigbee and IEEE 802.15.4 on 2.4 GHz : O-QPSK chips, frames with their FCS, the MAC, Zigbee NWK and APS headers, beacons and device announcements. Secured payloads are shown as encrypted, and no key is used.
+
+Standard: IEEE 802.15.4-2020 clause 12 (2450 MHz O-QPSK) and clause 7 (MAC frames), Zigbee specification R22 (NWK, APS).
+
+Signal types: IEEE 802.15.4.
+
+## Tuning
+
+| Property | Value |
+|---|---|
+| Default frequency | 2.405 GHz |
+| Tuning range | 2.405 GHz to 2.48 GHz |
+| Sample rate | 4 MHz |
+| Smallest sample rate | 4 MHz |
+| Signal bandwidth | 2 MHz |
+| Offset from the signal | 1 MHz |
+| Automatic gain | Radio AGC |
+
+## Settings
+
+Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:zigbee` prints this table with every option.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `channel` | Channel | whole number | 11 | 11 to 26 | Asks the host to tune 2405 + 5 (k - 11) MHz. |
+| `scan` | Scan channels 11 to 26 | yes or no | false |  | Asks the host to visit each channel in turn. |
+| `dwell` | Scan dwell | duration (s) | 5 s | 1 to 60 |  |
+
+Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `gen_bad_fcs` | Every frame with a bad FCS | yes or no | false |  |  |
+| `gen_interferer_db` | Adjacent transmitter level (0 off) | number (dB) | 0 | 0 to 50 |  |
+| `gen_interferer_hz` | Adjacent transmitter offset | frequency | 5 MHz | -10 MHz to 10 MHz |  |
+
+## Result fields
+
+| Key | Label | Kind |
+|---|---|---|
+| `frames_ok` | Frames good | whole number |
+| `frames_bad` | Frames bad | whole number |
+| `candidates` | Preamble candidates | whole number |
+| `encrypted_frames` | Encrypted frames | whole number |
+| `networks` | Networks | whole number |
+| `devices` | Devices | whole number |
+| `channel` | Channel | whole number |
+| `frames_per_s` | Frames in the last second | whole number |
+| `snr_db` | SNR | number (dB) |
+| `offset_hz` | Offset | frequency |
+| `bad_samples` | Bad samples | whole number |
+
+## Result tables
+
+| Key | Label | Columns |
+|---|---|---|
+| `networks` | Networks | `pan` (text), `ext_pan` (text), `ch` (whole number), `coordinator` (text), `devices` (whole number), `level_dbfs` (number (dBFS)), `heard` (whole number), `last_heard` (time) |
+| `devices` | Devices | `short` (text), `extended` (text), `vendor` (text), `pan` (text), `ch` (whole number), `role` (text), `level_dbfs` (number (dBFS)), `heard` (whole number), `last_heard` (time), `last_frame` (text) |
+| `frames` | Frames | `time_s` (number (s)), `ch` (whole number), `type` (text), `route` (text), `pan` (text), `len` (whole number), `encrypted` (yes or no), `level_dbfs` (number (dBFS)), `details` (text) |
+
+## Result series
+
+| Key | Label | X unit | Y unit |
+|---|---|---|---|
+| `frames_per_second` | Frames per second | s | frames |
+
+## Events
+
+| Kind | Label | Fields |
+|---|---|---|
+| `zigbee.pan` | New Zigbee PAN | `source` (text), `text` (text), `family` (choice), `pan` (text), `ch` (whole number) |
+
+## Commands
+
+| Key | Label | Arguments | Reply | Help |
+|---|---|---|---|---|
+| `clear` | Clear |  |  | Forgets everything heard so far. Favourites stay. |
+| `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
+
+## Typed interface
+
+The stack is in the family `ism`, version 1.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+### Result fields
+
+Struct `ZigbeeFields`. The result fields of the Zigbee stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `frames_ok` | whole number | always | 1.0 | Good frames. |
+| `frames_bad` | whole number | always | 1.0 | Frames whose SFD was found and whose FCS failed. |
+| `candidates` | whole number | always | 1.0 | Preamble candidates. |
+| `encrypted_frames` | whole number | always | 1.0 | Frames with an encrypted payload. |
+| `networks` | whole number | always | 1.0 | The networks in the table. |
+| `devices` | whole number | always | 1.0 | The devices in the table. |
+| `channel` | whole number | always | 1.0 | The channel listened to (0 when not known). |
+| `frames_per_s` | whole number | always | 1.0 | Good frames in the last second. |
+| `snr_db` | number (dB) | optional | 1.0 | The SNR of the last frame since the last change of frequency. |
+| `offset_hz` | frequency | optional | 1.0 | The carrier offset of the last frame since the last change of frequency. |
+
+### Result fields
+
+Struct `GuardFields`. The result set that a [`StackGraph`] writes itself. The description of a stack that shows it lists it with [`StackShape::receiver_fields`], at its place among the result sets.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `bad_samples` | whole number | always | 1.0 | Input samples replaced because they were not finite or far beyond full scale. |
+
+### Table `networks`
+
+Struct `ZigbeeNetworkRow`. A row of the Zigbee networks. The row key is the PAN and the channel as one number.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `pan` | text | always | 1.0 | The PAN id. |
+| `ext_pan` | text | optional | 1.0 | The extended PAN id, if a beacon gave it. |
+| `ch` | whole number | always | 1.0 | The channel. |
+| `coordinator` | text | optional | 1.0 | The coordinator, if known. |
+| `devices` | whole number | always | 1.0 | The devices in the PAN. |
+| `level_dbfs` | number (dBFS) | always | 1.0 | The level of the last frame. |
+| `heard` | whole number | optional | 1.0 | The times heard. |
+| `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+
+### Table `devices`
+
+Struct `PanDeviceRow`. A row of the devices of an IEEE 802.15.4 stack. The row key is the number of the device.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `short` | text | optional | 1.0 | The short address, if heard. |
+| `extended` | text | optional | 1.0 | The extended address, if heard. |
+| `vendor` | text | optional | 1.0 | The vendor of the extended address. |
+| `pan` | text | optional | 1.0 | The PAN id, if known. |
+| `ch` | whole number | always | 1.0 | The channel. |
+| `role` | text | always | 1.0 | "coordinator", "router" or "device". |
+| `level_dbfs` | number (dBFS) | always | 1.0 | The level of the last frame. |
+| `heard` | whole number | optional | 1.0 | The times heard. |
+| `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+| `last_frame` | text | always | 1.0 | The description of the last frame. |
+
+### Table `frames`
+
+Struct `ZigbeeFrameRow`. A row of the Zigbee frame log. The row key is the number of the frame in the log.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `time_s` | number (s) | always | 1.0 | The signal time of the frame. |
+| `ch` | whole number | always | 1.0 | The channel. |
+| `type` | text | always | 1.0 | The MAC frame type. |
+| `route` | text | always | 1.0 | "source > destination". |
+| `pan` | text | optional | 1.0 | The PAN id, if known. |
+| `len` | whole number | always | 1.0 | The PSDU length with the FCS. |
+| `encrypted` | yes or no | always | 1.0 | Some payload is encrypted. |
+| `level_dbfs` | number (dBFS) | always | 1.0 | The level of the frame. |
+| `details` | text | always | 1.0 | The description. |
+
+### Event `zigbee.pan`
+
+Struct `ZigbeePanEvent`. The fields of a new PAN event.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `source` | text | always | 1.0 | The PAN id. |
+| `text` | text | always | 1.0 | The text of the event. |
+| `family` | choice | always | 1.0 | The family of the event. |
+| `pan` | text | always | 1.0 | The PAN id. |
+| `ch` | whole number | always | 1.0 | The channel. |
+
+### Commands
+
+| Key | C function | Arguments struct | Reply struct |
+|---|---|---|---|
+| `clear` | `sdrkit_zigbee_clear` | none | none |
+| `remove` | `sdrkit_zigbee_remove` | `sdrkit_ism_pan_device_args` | none |
+
+### Settings
+
+| Key | C getter | C setter |
+|---|---|---|
+| `channel` | `sdrkit_zigbee_get_channel` | `sdrkit_zigbee_set_channel` |
+| `scan` | `sdrkit_zigbee_get_scan` | `sdrkit_zigbee_set_scan` |
+| `dwell` | `sdrkit_zigbee_get_dwell` | `sdrkit_zigbee_set_dwell` |
+
+### Settings of the test signal generator
+
+| Key | C getter | C setter |
+|---|---|---|
+| `gen_bad_fcs` | `sdrkit_zigbee_gen_get_bad_fcs` | `sdrkit_zigbee_gen_set_bad_fcs` |
+| `gen_interferer_db` | `sdrkit_zigbee_gen_get_interferer_db` | `sdrkit_zigbee_gen_set_interferer_db` |
+| `gen_interferer_hz` | `sdrkit_zigbee_gen_get_interferer_hz` | `sdrkit_zigbee_gen_set_interferer_hz` |
+
+## Try it
+
+```sh
+sdrkit run zigbee --source synth:zigbee
+sdrkit run zigbee --source iiod:192.168.2.1 --freq 2405
+```
+<!-- generated: end -->
+
+## Settings: notes
+
+Advanced settings. The owner works without any of them set.

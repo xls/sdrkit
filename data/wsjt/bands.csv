@@ -1,0 +1,17 @@
+# id: wsjt_bands
+# name: Amateur HF and 6 m bands of the multi-band monitor of the weak-signal stacks, in monitor order
+# stacks: ft8 ft4 ft2 wspr wsjt
+# source: the usual band edges; they are not the allocation of one ITU region (the edges differ by ITU region and country)
+# note: A host joins rows as name=low_hz-high_hz entries separated by semicolons into the setting band_edges, in this order (band b is bits 4b to 4b+3 of the monitor selection). A dial belongs to a band from 3 kHz below its lower edge to its upper edge.
+band,low_mhz,high_mhz
+160m,1.810,2.000
+80m,3.500,3.800
+60m,5.3515,5.3665
+40m,7.000,7.200
+30m,10.100,10.150
+20m,14.000,14.350
+17m,18.068,18.168
+15m,21.000,21.450
+12m,24.890,24.990
+10m,28.000,29.700
+6m,50.000,54.000

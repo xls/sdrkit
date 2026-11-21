@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 1920000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic NB-IoT standalone carrier, 1.0 s: PCI 100, one NRS port, MIB-NB (schedulingInfoSIB1 1, value tag 5, hyper-SFN LSBs 1, no access barring), SIB1-NB (PLMN 001-01, TAC 0x1A2B, cell identity 0x0123456, band 8, q-RxLevMin -128 dBm, q-QualMin -20 dB, p-Max 23 dBm, hyper-SFN MSBs 3). The carrier is 6.5 kHz above the capture centre (2.5 kHz raster offset plus 4 kHz tuning error). Random QPSK load in the other downlink subframes. SNR 15 dB per resource element. See specs/cell.md section 6.",
+    "core:recorder": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 945000000.0
+    }
+  ],
+  "annotations": []
+}

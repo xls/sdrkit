@@ -1,0 +1,7 @@
+# id: test_beacons
+# name: Test downlinks of two stacks
+# kind: other
+# modes: noaa_apt goes_gvar
+band,name,centre_mhz,width_mhz,note
+noaa_apt,"Series A, low orbit",137.1,0.05,"a note, with a comma"
+goes_gvar,GOES,1685.7,4.22,geostationary

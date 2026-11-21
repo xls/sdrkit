@@ -1,0 +1,14 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 500000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic FM broadcast station (stereo, RDS), 4.0 s. Produced by the FM test generator; see engine/specs/fm.md, section 'Test signal generator' and 'Test vectors'. Carrier 1500 Hz above the centre, carrier-to-noise 35 dB in 200 kHz, peak amplitude about 0.3. Left 1 kHz and right 3 kHz tones at 0.5 each, 50 us pre-emphasis, pilot 9 %, RDS 2 kHz injection: PI 4A21, PS 'TUNEIT  ', RT 'Tuneit FM test signal', PTY 10, TP 1, TA 0, music.",
+    "core:recorder": "FM test generator, noise seed 1",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    { "core:sample_start": 0, "core:frequency": 100000000.0 }
+  ],
+  "annotations": []
+}

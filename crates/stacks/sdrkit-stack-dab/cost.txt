@@ -1,0 +1,4 @@
+# stack variant stage calibration-units-per-second-of-signal (written by the cost test, do not edit)
+dab - ofdm 2441.9
+dab - decode 83.1
+dab - media 9.4

@@ -1,0 +1,13 @@
+# id: wisun_plan_of_frequency
+# name: The Wi-SUN band plan that a host takes for a tuned frequency
+# stacks: wisun
+# source: the list that the wisun stack held in code; where plans overlap (902 to 928 MHz) it prefers ANZ above 914.5 MHz and NA below
+# note: One row for each range of tuned frequencies, low_mhz inclusive and high_mhz exclusive. id names a plan of wisun_bands.csv. A frequency in no range has no plan.
+low_mhz,high_mhz,id
+914.5,930,ANZ
+900,914.5,NA
+862,870,EU863
+870,877,EU870
+469,511,CN470
+778,788,CN779
+2399,2485,WW

@@ -1,0 +1,19 @@
+{
+  "annotations": [],
+  "captures": [
+    {
+      "core:datetime": "2026-11-08T08:38:58Z",
+      "core:frequency": 104900000.0,
+      "core:sample_start": 0
+    }
+  ],
+  "global": {
+    "core:dataset": "fm_triplem_1049_sydney.sigmf-data",
+    "core:datatype": "ci16_le",
+    "core:description": "fm",
+    "core:recorder": "sdrkit",
+    "core:sample_count": 14745600,
+    "core:sample_rate": 2399999.0,
+    "core:version": "1.0.0"
+  }
+}

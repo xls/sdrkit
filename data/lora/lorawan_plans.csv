@@ -1,0 +1,14 @@
+# id: lorawan_plans
+# name: LoRaWAN regional channel plans: the centre of the plan and its FSK channel
+# source: LoRaWAN Regional Parameters (RP002)
+# stacks: lorawan lorawanwide
+# note: A host tunes to centre_mhz and sets centre_freq to it, and sets fsk_freq to fsk_mhz in Hz (0 when the plan has none). The channels of each plan are the rows of lorawan_channels.csv.
+plan,centre_mhz,fsk_mhz
+EU868,868.3,868.8
+US915,904.6,
+AU915,917.5,
+AS923-1,923.9,924.8
+AS923-2,922.1,
+AS923-3,917.3,
+AS923-4,918,
+EU433,433.9,

@@ -1,0 +1,13 @@
+[package]
+name = "sdrkit-svc-events"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Observations of sdrkit events with their standard fields, and name resolution for user rules"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+serde.workspace = true
+thiserror.workspace = true

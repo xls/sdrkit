@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 12000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic HF test signal, upper sideband, dial frequency at 0 Hz of the samples (audio frequency f appears at +f Hz). SITOR-B (FEC) 100 Bd, 170 Hz shift, centre 1700 Hz, mark (B) the lower tone, phasing then the text, SNR about 15 dB. 25.0 s.",
+    "core:recorder": "HF keyboard-mode test generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14070000.0
+    }
+  ],
+  "annotations": []
+}

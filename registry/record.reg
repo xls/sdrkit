@@ -1,0 +1,69 @@
+# The interface of the stack family record. The registry test of the family writes this file.
+family record version=1.1
+shape.RunningRow since=1.0
+shape.RunningRow.kind type=choice(audio,iq,ts) unit= optional=no since=1.0
+shape.RunningRow.session type=text unit= optional=no refers_to=sessions since=1.0
+shape.RunningRow.state type=choice(recording,waiting,ending,failed) unit= optional=no since=1.0
+shape.RunningRow.file type=text unit= optional=yes refers_to=recordings since=1.0
+shape.RunningRow.files type=i64 unit= optional=no since=1.0
+shape.RunningRow.frames type=i64 unit= optional=no since=1.0
+shape.RunningRow.dropped type=i64 unit= optional=no since=1.0
+shape.RunningRow.bytes type=i64 unit=B optional=no since=1.0
+shape.RunningRow.problem type=choice(none,no_space,not_found,denied,already_exists,invalid_path,io) unit= optional=no since=1.0
+shape.RunningRow.started type=time unit=s optional=no since=1.0
+shape.RecordingRow since=1.0
+shape.RecordingRow.kind type=choice(audio,iq,ts) unit= optional=no since=1.0
+shape.RecordingRow.container type=choice(wav,flac,sigmf,raw,ts) unit= optional=no since=1.0
+shape.RecordingRow.bytes type=i64 unit=B optional=no since=1.0
+shape.RecordingRow.seconds type=duration unit=s optional=yes since=1.0
+shape.RecordingRow.rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.RecordingRow.centre_hz type=hz unit=Hz optional=yes since=1.0
+shape.RecordingRow.channels type=i64 unit= optional=no since=1.0
+shape.RecordingRow.modified type=time unit=s optional=yes since=1.0
+shape.AudioStartReply since=1.0
+shape.AudioStartReply.recording type=text unit= optional=no refers_to=running since=1.0
+shape.IqStartReply since=1.0
+shape.IqStartReply.recording type=text unit= optional=no refers_to=running since=1.0
+shape.TsStartReply since=1.0
+shape.TsStartReply.recording type=text unit= optional=no refers_to=running since=1.0
+record since=1.0
+record.table.running row=RunningRow cap=64 since=1.0
+record.table.recordings row=RecordingRow cap=100000 since=1.0
+record.setting.folder type=text unit= since=1.0
+record.setting.prefix type=text unit= since=1.0
+record.setting.utc_offset_min type=i64 unit=min since=1.0
+record.setting.reserve_bytes type=i64 unit=B since=1.0
+record.setting.budget_bytes type=i64 unit=B since=1.0
+record.setting.queue_bytes type=i64 unit=B since=1.0
+record.setting.audio_container type=choice(wav,flac) unit= since=1.0
+record.setting.mono type=bool unit= since=1.0
+record.setting.split type=choice(whole,transmission) unit= since=1.0
+record.setting.gate type=choice(squelch,level,always) unit= since=1.0
+record.setting.open_db type=f64 unit=dBFS since=1.0
+record.setting.close_db type=f64 unit=dBFS since=1.0
+record.setting.preroll type=duration unit=s since=1.0
+record.setting.hang type=duration unit=s since=1.0
+record.setting.min_length type=duration unit=s since=1.0
+record.setting.max_file type=duration unit=s since=1.0
+record.setting.log type=bool unit= since=1.0
+record.setting.title type=text unit= since=1.0
+record.setting.comment type=text unit= since=1.0
+record.setting.channel_iq type=bool unit= since=1.0
+record.setting.iq_container type=choice(sigmf,raw) unit= since=1.0
+record.setting.iq_sample type=choice(cs8,cs16,cf32) unit= since=1.0
+record.setting.ts_drop_null type=bool unit= since=1.0
+record.setting.ts_max_bytes type=i64 unit=B since=1.0
+record.setting.ts_sidecar type=bool unit= since=1.0
+record.setting.rewind type=bool unit= since=1.0
+record.setting.rewind_bytes type=i64 unit=B since=1.0
+record.setting.rewind_long_factor type=i64 unit= since=1.0
+record.setting.rewind_long_bytes type=i64 unit=B since=1.0
+record.setting.timeshift_bytes type=i64 unit=B since=1.0
+record.setting.timeshift_segment_bytes type=i64 unit=B since=1.0
+record.command.audio.start args=session:text;label:text?;seconds:duration? reply=recording:text since=1.0
+record.command.audio.stop args=row:text reply= since=1.0
+record.command.iq.start args=session:text;seconds:duration? reply=recording:text since=1.0
+record.command.iq.stop args=row:text reply= since=1.0
+record.command.ts.start args=session:text;services:text? reply=recording:text since=1.0
+record.command.ts.stop args=row:text reply= since=1.0
+record.command.delete args=row:text reply= since=1.1

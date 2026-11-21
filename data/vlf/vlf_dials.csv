@@ -1,0 +1,10 @@
+# id: vlf_dials
+# name: Usual dials of the VLF and lightning monitors
+# stacks: sferics lightning_tdoa supersid schumann whistler
+# note: Usage, not a published plan. schumann and whistler take sound-card input, so their dial is 0.
+stack,frequency_hz,note
+sferics,3000000,"any frequency below 30 MHz"
+lightning_tdoa,100000,"the timing transmitter must fall inside the capture"
+supersid,22000,"the middle of the European VLF transmitters"
+schumann,0,"sound-card input"
+whistler,0,"sound-card input"

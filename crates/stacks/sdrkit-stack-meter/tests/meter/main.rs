@@ -1,0 +1,34 @@
+//! The test program of the `meter` family: one module for each stack.
+
+mod am_monitor;
+mod bench;
+mod birdie;
+mod burst_finder;
+mod fm_monitor;
+mod freq_accuracy;
+mod hopper;
+mod noise_floor;
+mod noise_locator;
+mod obw;
+mod occupancy;
+mod ptt_log;
+mod sinad;
+mod nfm_meter;
+mod tx_stability;
+mod ssb_test;
+mod afsk_tuner;
+mod phase_noise;
+mod cw_keying;
+mod fsk_analyser;
+mod mer;
+mod papr;
+mod input_health;
+mod noise_figure;
+mod kurtosis;
+mod glitch;
+mod intermod;
+mod spur;
+mod fading;
+mod beacon_monitor;
+mod retune;
+mod stream;

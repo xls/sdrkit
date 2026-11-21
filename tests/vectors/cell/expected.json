@@ -1,0 +1,445 @@
+{
+ "note": "Expected results of the cellular and rail modes (specs/cell.md) on the recordings in this folder. Every recording is cf32_le. The capture centre is core:frequency of the recording; the receiver must be told it (setCenter) unless stated. Settings are the mode defaults. Any feed block size must give the same results. Times are signal seconds from the first sample. 'tol' gives the allowed absolute error of a number.",
+ "recordings": {
+  "lte_5mhz_7680k": {
+   "mode": "cell",
+   "center_hz": 1815000000.0,
+   "cells": [
+    {
+     "pci": 301,
+     "duplex": "FDD",
+     "cyclic_prefix": "normal",
+     "frequency_hz": 1815000000.0,
+     "earfcn": 1300,
+     "band": 3,
+     "band_confirmed": true,
+     "carrier_offset_hz": 2300,
+     "carrier_offset_tol": 100,
+     "clock_ppm": 0,
+     "clock_ppm_tol": 1,
+     "mib": {
+      "n_rb": 25,
+      "bandwidth_mhz": 5.0,
+      "ports": 4,
+      "phich_duration": "normal",
+      "phich_ng_index": 1,
+      "sfn_first_whole_frame": [
+       60,
+       61
+      ]
+     },
+     "sib1": {
+      "plmns": [
+       "001-01"
+      ],
+      "operator": "Test network",
+      "tac": 6700,
+      "cell_id": 1792257,
+      "enb": 7001,
+      "sector": 1,
+      "band": 3,
+      "barred": false,
+      "q_rx_lev_min_dbm": -124,
+      "p_max_dbm": 23,
+      "si_window_ms": 20,
+      "value_tag": 5,
+      "scheduling": [
+       {
+        "period_frames": 16,
+        "sibs": []
+       },
+       {
+        "period_frames": 32,
+        "sibs": [
+         3
+        ]
+       },
+       {
+        "period_frames": 64,
+        "sibs": [
+         4,
+         5
+        ]
+       }
+      ]
+     },
+     "sib2": {
+      "ref_signal_power_dbm": 15,
+      "p_b": 1,
+      "ul_earfcn": 19300,
+      "ul_bw_rb": 25,
+      "ra_preambles": 52,
+      "mod_period_coeff": 4,
+      "paging_cycle_frames": 128,
+      "t300_ms": 1000,
+      "t310_ms": 1000,
+      "n310": 10,
+      "time_alignment": "infinity",
+      "ac_barring": false
+     },
+     "sib3": {
+      "q_hyst_db": 4,
+      "priority": 5,
+      "s_intra_search_db": 62,
+      "s_non_intra_search_db": 8,
+      "thresh_serving_low_db": 6,
+      "t_reselection_s": 1
+     },
+     "sib4_intra_neighbours": [
+      {
+       "pci": 302,
+       "q_offset_db": 0
+      },
+      {
+       "pci": 303,
+       "q_offset_db": 2
+      },
+      {
+       "pci": 17,
+       "q_offset_db": -2
+      }
+     ],
+     "sib5_inter_frequencies": [
+      {
+       "earfcn": 1300,
+       "bw_rb": 75,
+       "priority": 6,
+       "thresh_high_db": 10,
+       "thresh_low_db": 4,
+       "q_rx_lev_min_dbm": -124,
+       "cells": [
+        88
+       ]
+      },
+      {
+       "earfcn": 3500,
+       "bw_rb": 50,
+       "priority": 3,
+       "thresh_high_db": 12,
+       "thresh_low_db": 2,
+       "q_rx_lev_min_dbm": -120,
+       "cells": []
+      }
+     ],
+     "sibs_seen": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "sinr_db_min": 8,
+     "rsrq_db_range": [
+      -14,
+      -7
+     ],
+     "si_crc_failures": 0
+    }
+   ],
+   "other_cells": 0,
+   "must_not": "no paging (P-RNTI) message is decoded or shown"
+  },
+  "nr_n28_15khz_3840k": {
+   "mode": "nr",
+   "center_hz": 795850000.0,
+   "cells": [
+    {
+     "pci": 222,
+     "nid1": 74,
+     "nid2": 0,
+     "ssb_scs_khz": 15,
+     "gscn": 1990,
+     "band": 28,
+     "frequency_hz": 795850000.0,
+     "carrier_offset_hz": 3000,
+     "carrier_offset_tol": 300,
+     "mib": {
+      "sfn": [
+       100,
+       107
+      ],
+      "scs_common_khz": 15,
+      "k_ssb": 6,
+      "dmrs_type_a_position": 2,
+      "coreset0": 3,
+      "search_space0": 0,
+      "barred": false,
+      "intra_freq_reselection": true
+     },
+     "sib1_scheduled": true,
+     "coreset0_rbs": 24,
+     "coreset0_symbols": 3,
+     "coreset0_offset_rb": 0,
+     "lmax": 4,
+     "strongest_ssb": 2,
+     "beam_rsrp_order": "SSB 2 strongest; SSB 1 and 3 within 3 dB of it; SSB 0 between 1 and 5 dB under SSB 2",
+     "sinr_db_min": 3,
+     "beams_listed": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "beams_rule": "only SSB indices below Lmax (4) are listed; indices 4 to 7 must not appear"
+    }
+   ],
+   "other_cells": 0
+  },
+  "nbiot_standalone_1920k": {
+   "mode": "nbiot",
+   "center_hz": 945000000.0,
+   "cells": [
+    {
+     "pci": 100,
+     "frequency_hz": 945000000.0,
+     "earfcn": 3650,
+     "band": 8,
+     "raster_offset_khz": 2.5,
+     "raster_offset_tol_khz": 1.0,
+     "tuning_error_hz": 4000,
+     "tuning_error_tol_hz": 200,
+     "total_carrier_offset_hz": 6500,
+     "total_carrier_offset_tol_hz": 150,
+     "mib": {
+      "operation_mode": "standalone",
+      "nrs_ports": 1,
+      "scheduling_info_sib1": 1,
+      "value_tag": 5,
+      "hsfn_lsb": 1,
+      "access_barring": false
+     },
+     "sib1": {
+      "plmns": [
+       "001-01"
+      ],
+      "tac": 6699,
+      "cell_id": 1193046,
+      "enb": 4660,
+      "sector": 86,
+      "band": 8,
+      "barred": false,
+      "q_rx_lev_min_dbm": -128,
+      "q_qual_min_db": -20,
+      "p_max_dbm": 23,
+      "hsfn_msb": 3
+     },
+     "snr_db": 15,
+     "snr_tol_db": 3
+    }
+   ],
+   "other_cells": 0
+  },
+  "gsmr_1cell_1000k": {
+   "mode": "gsmr",
+   "center_hz": 922200000.0,
+   "cells": [
+    {
+     "arfcn": 960,
+     "frequency_hz": 922200000.0,
+     "railway_band": true,
+     "bsic": 10,
+     "ncc": 1,
+     "bcc": 2,
+     "carrier_offset_hz": 3000,
+     "carrier_offset_tol": 400,
+     "lai": {
+      "plmn": "001-01",
+      "operator": "Test network",
+      "lac": 4711
+     },
+     "si3": {
+      "cell_id": 12001,
+      "attach": true,
+      "bs_ag_blks_res": 1,
+      "ccch_conf": 0,
+      "bs_pa_mfrms": 3,
+      "t3212_decihours": 10,
+      "radio_link_timeout_index": 11,
+      "dtx": 2,
+      "pwrc": false,
+      "cell_reselect_hysteresis_db": 4,
+      "ms_txpwr_max_cch": 5,
+      "rxlev_access_min": 12,
+      "neci": true,
+      "acs": false,
+      "max_retrans": 3,
+      "tx_integer": 9,
+      "cell_bar_access": false,
+      "access_classes_barred": 0
+     },
+     "si1_cell_allocation": [
+      958,
+      960,
+      962
+     ],
+     "si2_neighbours": [
+      955,
+      958,
+      961,
+      967,
+      970,
+      973
+     ],
+     "ncc_permitted": 255,
+     "types_seen": [
+      "SI2ter (0x03)",
+      "SI1 (0x19)",
+      "SI2 (0x1A)",
+      "SI3 (0x1B)",
+      "SI4 (0x1C)"
+     ],
+     "si_messages_min": 8,
+     "si_failed": 0,
+     "snr_db_min": 10
+    }
+   ],
+   "blocks_searched": 1,
+   "other_cells": 0
+  },
+  "lbj_256k": {
+   "mode": "lbj",
+   "center_hz": 821287500.0,
+   "channel_offset_hz": -50000,
+   "messages_newest_first": [
+    {
+     "t": 2.14,
+     "t_tol": 0.2,
+     "address": 1234002,
+     "train": "K123",
+     "prefix": "K",
+     "train_digits": "123",
+     "direction": "down",
+     "speed_kmh": "23",
+     "km_post": "12.3",
+     "locomotive": "HXD3C-0931",
+     "loco_code": "2390",
+     "loco_serial": "0931",
+     "cab_end_raw": "30",
+     "route": "津山线",
+     "tail_raw": "000",
+     "position": {
+      "valid": true,
+      "latitude": 39.0891083,
+      "longitude": 117.3487983,
+      "tol": 1e-06
+     },
+     "paired": true,
+     "detailed": true,
+     "clean": true
+    },
+    {
+     "t": 2.14,
+     "t_tol": 0.2,
+     "address": 1234000,
+     "train": "123",
+     "direction": "down",
+     "speed_kmh": "23",
+     "km_post": "12.3",
+     "paired": false,
+     "detailed": false,
+     "clean": true
+    },
+    {
+     "t": 0.81,
+     "t_tol": 0.2,
+     "address": 1234000,
+     "train": "19533",
+     "direction": "down",
+     "speed_kmh": "67",
+     "km_post": "38.2",
+     "paired": false,
+     "detailed": false,
+     "clean": true
+    }
+   ],
+   "counters": {
+    "bursts": 2,
+    "messages": 3,
+    "failed_checks": 0,
+    "blank_frames": 0
+   },
+   "carrier_offset_hz": 600,
+   "carrier_offset_tol": 150
+  },
+  "ebicab_4000k": {
+   "mode": "ebicab",
+   "center_hz": 5234000.0,
+   "uplink_offset_hz": -1000000.0,
+   "telegrams_min": 24,
+   "long_min": 9,
+   "short_min": 12,
+   "inverted": 0,
+   "bursts": 6,
+   "bursts_without_telegram": 0,
+   "bit_rate": 564480,
+   "bit_rate_tol": 8000,
+   "carrier_offset_hz": 12000,
+   "carrier_offset_tol": 2000,
+   "balises": [
+    {
+     "nid_c": 466,
+     "nid_bg": 1201,
+     "n_pig": 0,
+     "n_total": 2,
+     "group_size_shown": 3,
+     "m_version": 33,
+     "m_version_shown": "2.1"
+    },
+    {
+     "nid_c": 466,
+     "nid_bg": 1201,
+     "n_pig": 1,
+     "n_total": 2,
+     "group_size_shown": 3,
+     "m_version": 33,
+     "m_version_shown": "2.1"
+    },
+    {
+     "nid_c": 466,
+     "nid_bg": 1202,
+     "n_pig": 0,
+     "n_total": 2,
+     "group_size_shown": 3,
+     "m_version": 33,
+     "m_version_shown": "2.1"
+    }
+   ],
+   "telegram_rows": [
+    {
+     "length": 1023,
+     "nid_bg": 1201,
+     "n_pig": 0,
+     "q_updown": 1,
+     "m_mcount": 255,
+     "q_link": 1,
+     "first_packet": 255,
+     "user_bits_hex_prefix": "A1047FBA4258FFEF0182260EF6504A84A48A34E3",
+     "copies_per_burst": 3
+    },
+    {
+     "length": 1023,
+     "nid_bg": 1201,
+     "n_pig": 1,
+     "q_updown": 1,
+     "m_mcount": 255,
+     "q_link": 1,
+     "first_packet": 255,
+     "user_bits_hex_prefix": "A1147FBA4258FFEF78108A9A119E6C5D70F155F9",
+     "copies_per_burst": 3
+    },
+    {
+     "length": 341,
+     "nid_bg": 1202,
+     "n_pig": 0,
+     "q_updown": 1,
+     "m_mcount": 255,
+     "q_link": 1,
+     "first_packet": 255,
+     "user_bits_hex_prefix": "A1047FBA42597FC80BBF7C1D7314FF9198C54F5B",
+     "copies_per_burst": 9
+    }
+   ],
+   "copies_tol": 1
+  }
+ }
+}

@@ -1,0 +1,32 @@
+[package]
+name = "sdrkit-stack-science"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Science and time stacks: radiosondes, time signals, e-Czas, NOAA SAME, meteor scatter, SSDV pictures, radio astronomy and ionospheric sounders"
+
+[dependencies]
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo", features = ["serde"] }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-codec-image = { path = "../../codec/sdrkit-codec-image" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-crypto = { path = "../../algo/sdrkit-algo-crypto" }
+sdrkit-algo-locate = { path = "../../algo/sdrkit-algo-locate" }
+sdrkit-codec-fits = { path = "../../codec/sdrkit-codec-fits" }
+serde.workspace = true
+serde_json.workspace = true
+num-complex.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The record of the declarations that a generic consumer reads.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }

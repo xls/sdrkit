@@ -1,0 +1,620 @@
+{
+ "note": "Expected decode of each recording, fed in pieces of 16384 (BLE) or 65536 (Wi-Fi) samples with no channel hint (a file: centre unknown for BLE; for Wi-Fi the band and channel come from core:frequency). Counts are those at the end of the recording after the end-of-stream report. 'tolerance' gives the accepted range; text fields are exact. Levels are dBFS of the radio stream, not calibrated dBm.",
+ "ble_adv_4m": {
+  "mode": "ble",
+  "settings": {
+   "channel": "file (no hint)"
+  },
+  "signal_offset_hz": -1000000,
+  "counters": {
+   "packets_ok": 84,
+   "crc_failures": 0,
+   "aa_hits_min": 84,
+   "per_pdu_type": {
+    "ADV_IND": 8,
+    "ADV_DIRECT_IND": 0,
+    "ADV_NONCONN_IND": 39,
+    "SCAN_REQ": 7,
+    "SCAN_RSP": 8,
+    "CONNECT_IND": 7,
+    "ADV_SCAN_IND": 8,
+    "ADV_EXT_IND": 7
+   },
+   "per_channel": {
+    "37": 31,
+    "38": 30,
+    "39": 23
+   }
+  },
+  "measurements": {
+   "snr_db": 18.3,
+   "deviation_hz": 185000,
+   "level_dbfs": -27.5,
+   "packet_level_dbfs": -10.5
+  },
+  "devices": [
+   {
+    "addr": "C0:FF:EE:12:34:56",
+    "random": true,
+    "kind": "random static",
+    "name": "Test phone",
+    "vendor": "company 0xFFFF",
+    "company": 65535,
+    "mfr_hex": "01020304",
+    "services": "Battery (0x180F), Heart Rate (0x180D)",
+    "tx_power_dbm": 4,
+    "flags": 6,
+    "connectable": true,
+    "scannable": true,
+    "extended": false,
+    "scanned": true,
+    "pdu_types": [
+     "ADV_IND",
+     "SCAN_RSP"
+    ],
+    "channels": [
+     37
+    ],
+    "packets": 16
+   },
+   {
+    "addr": "00:0B:A1:5E:00:01",
+    "random": false,
+    "kind": "public",
+    "vendor": "Apple: iBeacon",
+    "company": 76,
+    "beacon": "iBeacon E2C56DB5-DFFB-48D2-B060-D0F5A71096E0 major 100 minor 7, -59 dBm at 1 m",
+    "flags": 4,
+    "connectable": false,
+    "scannable": false,
+    "pdu_types": [
+     "ADV_NONCONN_IND"
+    ],
+    "channels": [
+     38
+    ],
+    "packets": 8
+   },
+   {
+    "addr": "66:55:44:33:22:11",
+    "random": true,
+    "kind": "resolvable private",
+    "name": "",
+    "pdu_types": [
+     "SCAN_REQ",
+     "CONNECT_IND"
+    ],
+    "channels": [
+     37,
+     39
+    ],
+    "packets": 14
+   },
+   {
+    "addr": "3A:55:44:33:22:02",
+    "random": true,
+    "kind": "non-resolvable private",
+    "services": "Google LLC (0xFEAA)",
+    "flags": 6,
+    "beacon_last": "Eddystone UID EDD1EBEAC04E5DEFA017 / 000000000001, -20 dBm at 0 m",
+    "pdu_types": [
+     "ADV_NONCONN_IND"
+    ],
+    "channels": [
+     37,
+     38,
+     39
+    ],
+    "packets": 24
+   },
+   {
+    "addr": "5B:12:34:56:78:9A",
+    "random": true,
+    "kind": "resolvable private",
+    "vendor": "Apple: Nearby Info",
+    "company": 76,
+    "mfr_hex": "10050118442211",
+    "beacon": "Exposure Notification, RPI 3C1A09775E42810DC62B94F06E13A558",
+    "services": "Apple, Inc. (0xFD6F)",
+    "flags": 26,
+    "scannable": true,
+    "pdu_types": [
+     "ADV_NONCONN_IND",
+     "ADV_SCAN_IND"
+    ],
+    "channels": [
+     38,
+     39
+    ],
+    "packets": 15
+   }
+  ],
+  "first_log_lines": [
+   {
+    "t": 0.00205,
+    "ch": 37,
+    "pdu": "ADV_IND",
+    "addr": "C0:FF:EE:12:34:56",
+    "len": 35,
+    "info": "\"TestDev\", company 0xFFFF, tx 4 dBm, Battery (0x180F), Heart Rate (0x180D)"
+   },
+   {
+    "t": 0.00541,
+    "ch": 38,
+    "pdu": "ADV_NONCONN_IND",
+    "addr": "00:0B:A1:5E:00:01",
+    "len": 36,
+    "info": "Apple: iBeacon, iBeacon E2C56DB5-DFFB-48D2-B060-D0F5A71096E0 major 100 minor 7, -59 dBm at 1 m"
+   },
+   {
+    "t": 0.00979,
+    "ch": 39,
+    "pdu": "SCAN_REQ",
+    "addr": "66:55:44:33:22:11",
+    "len": 12,
+    "info": "scan request from 66:55:44:33:22:11"
+   },
+   {
+    "t": 0.01017,
+    "ch": 37,
+    "pdu": "SCAN_RSP",
+    "addr": "C0:FF:EE:12:34:56",
+    "len": 18,
+    "info": "\"Test phone\""
+   },
+   {
+    "t": 0.0134,
+    "ch": 38,
+    "pdu": "ADV_NONCONN_IND",
+    "addr": "3A:55:44:33:22:02",
+    "len": 28,
+    "info": "Eddystone URL https://example.com, -20 dBm at 0 m, Google LLC (0xFEAA)"
+   },
+   {
+    "t": 0.01671,
+    "ch": 39,
+    "pdu": "ADV_NONCONN_IND",
+    "addr": "3A:55:44:33:22:02",
+    "len": 28,
+    "info": "Eddystone TLM 3000 mV, 21.5 C, 1234 adverts, up 5679 s, Google LLC (0xFEAA)"
+   },
+   {
+    "t": 0.02002,
+    "ch": 37,
+    "pdu": "ADV_NONCONN_IND",
+    "addr": "3A:55:44:33:22:02",
+    "len": 34,
+    "info": "Eddystone UID EDD1EBEAC04E5DEFA017 / 000000000001, -20 dBm at 0 m, Google LLC (0xFEAA)"
+   },
+   {
+    "t": 0.02338,
+    "ch": 38,
+    "pdu": "ADV_NONCONN_IND",
+    "addr": "5B:12:34:56:78:9A",
+    "len": 37,
+    "info": "Exposure Notification, RPI 3C1A09775E42810DC62B94F06E13A558, Apple, Inc. (0xFD6F)"
+   },
+   {
+    "t": 0.02776,
+    "ch": 39,
+    "pdu": "ADV_SCAN_IND",
+    "addr": "5B:12:34:56:78:9A",
+    "len": 20,
+    "info": "Apple: Nearby Info"
+   },
+   {
+    "t": 0.031,
+    "ch": 37,
+    "pdu": "CONNECT_IND",
+    "addr": "66:55:44:33:22:11",
+    "len": 34,
+    "info": "connection request from 66:55:44:33:22:11 (not followed)"
+   },
+   {
+    "t": 0.03536,
+    "ch": 38,
+    "pdu": "ADV_EXT_IND",
+    "addr": "",
+    "len": 7,
+    "info": "extended, data on channel 12 (2M PHY, not followed), set 2"
+   }
+  ],
+  "tolerance": {
+   "packets_ok": [
+    80,
+    88
+   ],
+   "crc_failures": "at most 1",
+   "per_pdu_type": "each within 1",
+   "per_channel": "each within 2",
+   "device_packets": "each within 2",
+   "devices": "exactly these 5 (ADV_EXT_IND carries no AdvA and makes no device)",
+   "text_fields": "exact",
+   "snr_db": "at least 14",
+   "deviation_hz": [
+    160000,
+    210000
+   ],
+   "log_t": "within 0.0005 s",
+   "packet_level_dbfs": [
+    -12,
+    -9
+   ]
+  }
+ },
+ "ble_trackers_4m": {
+  "mode": "bletracker",
+  "settings": {
+   "alert_after_min": 10,
+   "near_dbfs": -60
+  },
+  "signal_offset_hz": -1000000,
+  "counters": {
+   "packets_ok": 50,
+   "crc_failures": 0,
+   "tracker_packets": 42,
+   "following_now": 0,
+   "alerts": 0
+  },
+  "summary": "5 trackers nearby",
+  "last_minute_by_kind": {
+   "Find My": 1,
+   "Tile": 1,
+   "Chipolo": 1,
+   "SmartTag": 1,
+   "Google": 1
+  },
+  "trackers": [
+   {
+    "label": "Find My ..31:5A",
+    "kind": "Apple Find My (AirTag or compatible)",
+    "separated": true,
+    "status": 16,
+    "level_dbfs": -10.5,
+    "proximity": "near",
+    "packets": 9,
+    "addresses": 1,
+    "following": false
+   },
+   {
+    "label": "Tile ..43:21",
+    "kind": "Tile",
+    "separated": false,
+    "level_dbfs": -14.9,
+    "proximity": "near",
+    "packets": 9,
+    "addresses": 1
+   },
+   {
+    "label": "SmartTag ..55:66",
+    "kind": "Samsung SmartTag",
+    "level_dbfs": -12.3,
+    "proximity": "near",
+    "packets": 8,
+    "addresses": 1
+   },
+   {
+    "label": "Google ..0B:0A",
+    "kind": "Google Find My Device tag",
+    "level_dbfs": -16.5,
+    "proximity": "near",
+    "packets": 8,
+    "addresses": 1
+   },
+   {
+    "label": "Chipolo ..22:11",
+    "kind": "Chipolo",
+    "level_dbfs": -19.4,
+    "proximity": "near",
+    "packets": 8,
+    "addresses": 1
+   }
+  ],
+  "not_a_tracker": "the phone CC:BB:AA:99:88:77 (Apple Nearby Info) must not appear",
+  "tolerance": {
+   "packets_ok": [
+    46,
+    52
+   ],
+   "tracker_packets": [
+    39,
+    44
+   ],
+   "trackers": "exactly these 5, none other",
+   "tracker_packets_each": "within 1",
+   "levels": "within 1.5 dB",
+   "labels": "exact (kind short name, two dots, the last two address bytes)"
+  }
+ },
+ "wifi_24g_dsss_20m": {
+  "mode": "wifi",
+  "band": "2.4 GHz",
+  "channel": 6,
+  "counters": {
+   "frames_ok": 14,
+   "fcs_failures": 0,
+   "headers_ok": 14,
+   "headers_bad": 0,
+   "other_rate": 0,
+   "beacons": 7,
+   "probe_responses": 3,
+   "fils": 0,
+   "per_type": {
+    "management": 10,
+    "control": 0,
+    "data": 4
+   },
+   "ofdm_frames": 0
+  },
+  "measurements": {
+   "snr_db": 37.4,
+   "cfo_hz_last": 0
+  },
+  "networks": [
+   {
+    "bssid": "00:04:0E:12:34:56",
+    "ssid": "Test-Home",
+    "vendor": "AVM GmbH",
+    "channel": 6,
+    "heard_on": 6,
+    "band": "2.4 GHz",
+    "width_mhz": 20,
+    "standard": "g",
+    "security": "WPA2",
+    "ciphers": "CCMP",
+    "akm": "PSK",
+    "pmf": "no",
+    "rates": "1 2 5.5 11 6 9 12 18 24 36 48 54",
+    "interval_tu": 100,
+    "capability": "0431",
+    "beacons": 4,
+    "probe_responses": 3
+   },
+   {
+    "bssid": "FC:EC:DA:AB:CD:EF",
+    "ssid": "Test-Cafe",
+    "vendor": "Ubiquiti Inc",
+    "channel": 6,
+    "security": "WPA2/WPA3",
+    "ciphers": "CCMP",
+    "akm": "PSK, SAE",
+    "pmf": "capable",
+    "rates": "1 2 5.5 11 6 9 12 18 24 36 48 54",
+    "interval_tu": 100,
+    "beacons": 2
+   },
+   {
+    "bssid": "02:11:22:33:44:55",
+    "ssid": "",
+    "hidden": true,
+    "vendor": "local",
+    "channel": 6,
+    "security": "Open",
+    "rates": "1 2 5.5 11",
+    "interval_tu": 200,
+    "capability": "0421",
+    "beacons": 1
+   }
+  ],
+  "first_log_lines": [
+   {
+    "t": 0.00114,
+    "ch": 6,
+    "bssid": "00:04:0E:12:34:56",
+    "len": 98,
+    "info": "beacon \"Test-Home\", ch 6, WPA2, 100 TU"
+   },
+   {
+    "t": 0.00412,
+    "ch": 6,
+    "bssid": "FC:EC:DA:AB:CD:EF",
+    "len": 102,
+    "info": "beacon \"Test-Cafe\", ch 6, WPA2/WPA3, 100 TU"
+   },
+   {
+    "ch": 6,
+    "bssid": "00:04:0E:12:34:56",
+    "len": 92,
+    "info": "probe resp \"Test-Home\", ch 6, WPA2, 100 TU"
+   },
+   {
+    "ch": 6,
+    "bssid": "02:11:22:33:44:55",
+    "len": 57,
+    "info": "beacon (hidden), ch 6, Open, 200 TU"
+   }
+  ],
+  "tolerance": {
+   "frames_ok": [
+    13,
+    15
+   ],
+   "fcs_failures": 0,
+   "networks": "exactly these 3",
+   "counts": "each within 1",
+   "snr_db": "at least 20",
+   "text_fields": "exact"
+  }
+ },
+ "wifi_5g_ofdm_20m": {
+  "mode": "wifi",
+  "band": "5 GHz",
+  "channel": 36,
+  "counters": {
+   "frames_ok": 27,
+   "fcs_failures": 0,
+   "ofdm_preambles_min": 27,
+   "ofdm_signal_ok": 27,
+   "ofdm_signal_bad": 0,
+   "ofdm_other_rate": 0,
+   "ofdm_bad_fcs": 0,
+   "beacons": 21,
+   "probe_responses": 6,
+   "duplicates": 0,
+   "sub_channels": 1
+  },
+  "measurements": {
+   "snr_db": 22.1,
+   "cfo_hz_last": 9240,
+   "note": "the last frame is from Test-ac, whose own offset is -20 kHz on top of the common +30 kHz"
+  },
+  "networks": [
+   {
+    "bssid": "24:A4:3C:50:00:01",
+    "ssid": "Test-5G",
+    "vendor": "Ubiquiti Inc",
+    "channel": 36,
+    "heard_on": 36,
+    "band": "5 GHz",
+    "width_mhz": 80,
+    "standard": "a/n/ac/ax",
+    "security": "WPA2/WPA3",
+    "ciphers": "CCMP",
+    "akm": "PSK, SAE",
+    "pmf": "capable",
+    "rates": "6 9 12 18 24 36 48 54",
+    "interval_tu": 100,
+    "bss_color": 17,
+    "twt": true,
+    "country": "DE ",
+    "power_constraint_db": 3,
+    "mobility_domain": "1234",
+    "caps": "Wi-Fi 6 (HE) 2x2, up to 80 MHz wide, up to 1201 Mbit/s, TWT, BSS color 17",
+    "neighbors": "6 GHz ch 5 24:A4:3C:60:00:01 (co-located) (unsolicited probe responses) short SSID F7DFD03E",
+    "beacons": 7,
+    "probe_responses": 6
+   },
+   {
+    "bssid": "00:04:0E:77:88:99",
+    "ssid": "Test-Old",
+    "vendor": "AVM GmbH",
+    "channel": 36,
+    "width_mhz": 20,
+    "standard": "a/n",
+    "security": "WPA2",
+    "akm": "PSK",
+    "caps": "Wi-Fi 4 (HT) 3x3, up to 20 MHz wide, up to 216 Mbit/s",
+    "beacons": 7
+   },
+   {
+    "bssid": "FC:EC:DA:12:34:56",
+    "ssid": "Test-ac",
+    "vendor": "Ubiquiti Inc",
+    "channel": 36,
+    "width_mhz": 40,
+    "standard": "a/n/ac",
+    "security": "WPA2",
+    "caps": "Wi-Fi 5 (VHT) 4x4, up to 80 MHz wide, up to 1733 Mbit/s",
+    "beacons": 7
+   }
+  ],
+  "tolerance": {
+   "frames_ok": [
+    25,
+    28
+   ],
+   "fcs_failures": 0,
+   "networks": "exactly these 3",
+   "counts": "each within 1",
+   "snr_db": "at least 18",
+   "cfo_hz_last": "within 3000 of 10000",
+   "text_fields": "exact"
+  }
+ },
+ "wifi_6g_ofdm_20m": {
+  "mode": "wifi",
+  "band": "6 GHz",
+  "channel": 37,
+  "counters": {
+   "frames_ok": 29,
+   "fcs_failures": 0,
+   "ofdm_signal_ok": 29,
+   "ofdm_signal_bad": 0,
+   "beacons": 15,
+   "probe_responses": 9,
+   "fils": 5,
+   "duplicates": 0
+  },
+  "measurements": {
+   "snr_db": 22.3,
+   "cfo_hz_last": -40040
+  },
+  "networks": [
+   {
+    "bssid": "24:A4:3C:60:00:01",
+    "ssid": "Test-6E",
+    "vendor": "Ubiquiti Inc",
+    "channel": 37,
+    "heard_on": 37,
+    "band": "6 GHz",
+    "width_mhz": 80,
+    "standard": "ax/be",
+    "security": "WPA3",
+    "akm": "SAE",
+    "pmf": "required",
+    "bss_color": 17,
+    "twt": true,
+    "eht": true,
+    "country": "DE ",
+    "power_constraint_db": 3,
+    "mobility_domain": "1234",
+    "ap_power": "indoor AP",
+    "fils": true,
+    "fils_frames": 5,
+    "unsolicited_probe_responses": true,
+    "caps": "Wi-Fi 7 (EHT), up to 80 MHz wide, TWT, BSS color 17",
+    "beacons": 5,
+    "probe_responses": 9
+   },
+   {
+    "bssid": "00:04:0E:77:88:99",
+    "ssid": "Test-6E-Open",
+    "vendor": "AVM GmbH",
+    "channel": 37,
+    "width_mhz": 20,
+    "standard": "ax",
+    "security": "OWE (Enhanced Open)",
+    "akm": "OWE",
+    "pmf": "required",
+    "bss_color": 33,
+    "ap_power": "standard power AP",
+    "caps": "Wi-Fi 6 (HE) 1x1, up to 20 MHz wide, up to 143 Mbit/s, BSS color 33",
+    "beacons": 5
+   },
+   {
+    "bssid": "FC:EC:DA:12:34:56",
+    "ssid": "",
+    "hidden": true,
+    "vendor": "Ubiquiti Inc",
+    "channel": 37,
+    "width_mhz": 40,
+    "standard": "ax",
+    "security": "WPA3",
+    "akm": "SAE",
+    "pmf": "required",
+    "caps": "Wi-Fi 6 (HE) 4x4, up to 20 MHz wide, up to 573 Mbit/s, BSS color 0 (disabled)",
+    "beacons": 5
+   }
+  ],
+  "log_examples": [
+   "beacon \"Test-6E\", ch 37, WPA3, 100 TU",
+   "beacon \"Test-6E-Open\", ch 37, OWE (Enhanced Open), 100 TU",
+   "beacon (hidden), ch 37, WPA3, 100 TU",
+   "probe resp \"Test-6E\", ch 37, WPA3, 100 TU",
+   "FILS discovery \"Test-6E\", 100 TU"
+  ],
+  "tolerance": {
+   "frames_ok": [
+    27,
+    30
+   ],
+   "fcs_failures": 0,
+   "networks": "exactly these 3",
+   "counts": "each within 1",
+   "snr_db": "at least 18",
+   "cfo_hz_last": "within 3000",
+   "text_fields": "exact"
+  }
+ },
+ "halow": "No HaLow recording is provided: see specs/wlan.md section 10.13 for the test cases and why."
+}

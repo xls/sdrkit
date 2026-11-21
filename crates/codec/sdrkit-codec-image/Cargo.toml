@@ -1,0 +1,30 @@
+[package]
+name = "sdrkit-codec-image"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Pictures for sdrkit: growing line images, strip pictures, views and LUTs, colour conversion, thumbnails, PNG, baseline JPEG, JPEG 2000 decoding and encoding, bitmap fonts and the pictures component"
+
+[features]
+default = ["jpeg2000"]
+# JPEG 2000 decoding through hayro-jpeg2000 (pure Rust, Apache-2.0 OR MIT). It needs Rust 1.92 or later.
+jpeg2000 = ["dep:hayro-jpeg2000"]
+# JPEG 2000 encoding through j2k-native (pure Rust, MIT OR Apache-2.0), for generators of test pictures. Off by default. It
+# needs Rust 1.99 or later.
+jpeg2000-encode = ["jpeg2000", "dep:j2k-native"]
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+# PNG encoder and decoder: MIT OR Apache-2.0.
+png = "0.18"
+hayro-jpeg2000 = { version = "0.5", default-features = false, features = ["std", "simd"], optional = true }
+j2k-native = { version = "0.13", default-features = false, features = ["std"], optional = true }
+
+[dev-dependencies]
+# An independent JPEG decoder, to compare against: MIT OR Apache-2.0 OR Zlib.
+zune-jpeg = "0.5"

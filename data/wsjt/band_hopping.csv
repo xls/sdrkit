@@ -1,0 +1,17 @@
+# id: wsjt_band_hopping
+# name: Band numbers and the coordinated cycle of band hopping
+# stacks: ft8 ft4 ft2 wspr
+# source: the band hopping table of the WSJT-X user guide; the cycle order is unconfirmed against the published table
+# note: A host sets hop.bands to the bands in bit order and hop.cycle to the bands that have a place, in place order. Bit b of a mask of hop.hours is band b.
+bit,band,cycle
+0,160m,0
+1,80m,1
+2,60m,2
+3,40m,3
+4,30m,4
+5,20m,5
+6,17m,6
+7,15m,7
+8,12m,8
+9,10m,9
+10,6m,

@@ -1,0 +1,343 @@
+# The interface of the stack family adsb. The registry test of the family writes this file.
+family adsb version=1.1
+shape.TrackerFields since=1.0
+shape.TrackerFields.aircraft_count type=i64 unit= optional=no since=1.0
+shape.TrackerFields.with_position type=i64 unit= optional=no since=1.0
+shape.TrackerFields.message_rate type=hz unit=Hz optional=no since=1.0
+shape.TrackerFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.TrackerFields.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.TrackerFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.TrackerFields.max_range_m type=f64 unit=m optional=yes since=1.0
+shape.TrackerFields.report type=i64 unit= optional=no since=1.0
+shape.TrackerFields.time_s type=f64 unit=s optional=no since=1.0
+shape.TrackerFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.TrackerFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.TrackerFields.repaired type=i64 unit= optional=no since=1.0
+shape.TrackerFields.loud type=i64 unit= optional=no since=1.0
+shape.TrackerFields.candidates type=i64 unit= optional=no since=1.0
+shape.TrackerFields.effort type=i64 unit= optional=no since=1.0
+shape.TrackerFields.position_hint type=position unit=° optional=yes since=1.0
+shape.TrackerFields.coverage_positions type=i64 unit= optional=no since=1.0
+shape.TrackerFields.coverage_max_alt_ft type=i64 unit=ft optional=yes since=1.0
+shape.FeedFields since=1.0
+shape.FeedFields.feed_messages type=i64 unit= optional=no since=1.0
+shape.ModeAcFields since=1.0
+shape.ModeAcFields.modeac_replies type=i64 unit= optional=no since=1.0
+shape.ModeAcFields.modeac_codes type=i64 unit= optional=no since=1.0
+shape.AircraftRow since=1.0
+shape.AircraftRow.icao type=text unit= optional=no since=1.0
+shape.AircraftRow.callsign type=text unit= optional=yes since=1.0
+shape.AircraftRow.registration type=text unit= optional=yes since=1.0
+shape.AircraftRow.country type=text unit= optional=yes since=1.0
+shape.AircraftRow.category type=text unit= optional=yes since=1.0
+shape.AircraftRow.squawk type=text unit= optional=yes since=1.0
+shape.AircraftRow.emergency type=i64 unit= optional=no since=1.0
+shape.AircraftRow.emergency_name type=text unit= optional=yes since=1.0
+shape.AircraftRow.on_ground type=bool unit= optional=yes since=1.0
+shape.AircraftRow.alert type=bool unit= optional=no since=1.0
+shape.AircraftRow.spi type=bool unit= optional=no since=1.0
+shape.AircraftRow.position type=position unit=° optional=yes since=1.0
+shape.AircraftRow.fix type=choice(global,local,local_from_receiver,cpr_pair,cpr_even,cpr_odd) unit= optional=yes since=1.0
+shape.AircraftRow.position_time type=time unit= optional=yes since=1.0
+shape.AircraftRow.alt_ft type=i64 unit=ft optional=yes since=1.0
+shape.AircraftRow.gnss_alt_ft type=i64 unit=ft optional=yes since=1.0
+shape.AircraftRow.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.AircraftRow.speed_kind type=choice(ground,ias,tas) unit= optional=yes since=1.0
+shape.AircraftRow.heading_deg type=f64 unit=° optional=yes since=1.0
+shape.AircraftRow.heading_is_track type=bool unit= optional=yes since=1.0
+shape.AircraftRow.vertical_rate_fpm type=i64 unit=ft/min optional=yes since=1.0
+shape.AircraftRow.gnss_minus_baro_ft type=i64 unit=ft optional=yes since=1.0
+shape.AircraftRow.selected_alt_ft type=i64 unit=ft optional=yes since=1.0
+shape.AircraftRow.selected_heading_deg type=f64 unit=° optional=yes since=1.0
+shape.AircraftRow.baro_setting_hpa type=f64 unit=hPa optional=yes since=1.0
+shape.AircraftRow.adsb_version type=i64 unit= optional=yes since=1.0
+shape.AircraftRow.nacp type=i64 unit= optional=yes since=1.0
+shape.AircraftRow.sil type=i64 unit= optional=yes since=1.0
+shape.AircraftRow.nic type=i64 unit= optional=yes since=1.0
+shape.AircraftRow.ias_kt type=f64 unit=kt optional=yes since=1.0
+shape.AircraftRow.mach type=f64 unit= optional=yes since=1.0
+shape.AircraftRow.roll_deg type=f64 unit=° optional=yes since=1.0
+shape.AircraftRow.wind_derived_from_deg type=f64 unit=° optional=yes since=1.0
+shape.AircraftRow.wind_derived_kt type=f64 unit=kt optional=yes since=1.0
+shape.AircraftRow.wind_reported_from_deg type=f64 unit=° optional=yes since=1.0
+shape.AircraftRow.wind_reported_kt type=f64 unit=kt optional=yes since=1.0
+shape.AircraftRow.sat_derived_c type=f64 unit=°C optional=yes since=1.0
+shape.AircraftRow.sat_reported_c type=f64 unit=°C optional=yes since=1.0
+shape.AircraftRow.pressure_hpa type=f64 unit=hPa optional=yes since=1.0
+shape.AircraftRow.humidity_pct type=f64 unit=% optional=yes since=1.0
+shape.AircraftRow.hazards type=text unit= optional=yes since=1.0
+shape.AircraftRow.advisory type=text unit= optional=yes since=1.0
+shape.AircraftRow.advisory_threat type=text unit= optional=yes since=1.0
+shape.AircraftRow.advisory_time type=time unit= optional=yes since=1.0
+shape.AircraftRow.subnetwork_version type=i64 unit= optional=yes since=1.0
+shape.AircraftRow.acas_ra_capable type=bool unit= optional=yes since=1.0
+shape.AircraftRow.gicb type=text unit= optional=yes since=1.0
+shape.AircraftRow.datalink type=bool unit= optional=no since=1.0
+shape.AircraftRow.tisb type=bool unit= optional=no since=1.0
+shape.AircraftRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.AircraftRow.distance_m type=f64 unit=m optional=yes since=1.0
+shape.AircraftRow.bearing_deg type=f64 unit=° optional=yes since=1.0
+shape.AircraftRow.source type=text unit= optional=no refers_to=sources since=1.0
+shape.AircraftRow.trail type=bytes unit= optional=no since=1.0
+shape.AircraftRow.heard type=i64 unit= optional=yes since=1.0
+shape.AircraftRow.last_heard type=time unit= optional=yes since=1.0
+shape.MessageRow since=1.0
+shape.MessageRow.time_s type=f64 unit=s optional=no since=1.0
+shape.MessageRow.hex type=text unit= optional=no since=1.0
+shape.MessageRow.icao type=text unit= optional=no since=1.0
+shape.MessageRow.df type=i64 unit= optional=no since=1.0
+shape.MessageRow.fixed_bits type=i64 unit= optional=no since=1.0
+shape.MessageRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.MessageRow.message type=text unit= optional=no since=1.0
+shape.SourceRow since=1.0
+shape.SourceRow.name type=text unit= optional=no since=1.0
+shape.SourceRow.format type=choice(beast,sbs,asterix) unit= optional=yes since=1.0
+shape.SourceRow.connected type=bool unit= optional=no since=1.0
+shape.SourceRow.messages type=i64 unit= optional=no since=1.0
+shape.SourceRow.aircraft type=i64 unit= optional=no since=1.0
+shape.SourceRow.error type=text unit= optional=yes since=1.0
+shape.CountRow since=1.0
+shape.CountRow.format_number type=i64 unit= optional=no since=1.0
+shape.CountRow.count type=i64 unit= optional=no since=1.0
+shape.GpsCellRow since=1.0
+shape.GpsCellRow.corner type=position unit=° optional=no since=1.0
+shape.GpsCellRow.aircraft type=i64 unit= optional=no since=1.0
+shape.GpsCellRow.level type=i64 unit= optional=no since=1.0
+shape.FeedRow since=1.0
+shape.FeedRow.name type=text unit= optional=no since=1.0
+shape.FeedRow.port type=i64 unit= optional=yes since=1.0
+shape.FeedRow.clients type=i64 unit= optional=yes since=1.0
+shape.FeedRow.dropped type=i64 unit= optional=yes since=1.0
+shape.FeedRow.connected type=bool unit= optional=yes since=1.0
+shape.FeedRow.error type=text unit= optional=yes since=1.0
+shape.ModeAcRow since=1.0
+shape.ModeAcRow.code type=text unit= optional=no since=1.0
+shape.ModeAcRow.squawk type=text unit= optional=no since=1.0
+shape.ModeAcRow.alt_ft type=i64 unit=ft optional=yes since=1.0
+shape.ModeAcRow.replies type=i64 unit= optional=yes since=1.0
+shape.ModeAcRow.spi type=bool unit= optional=no since=1.0
+shape.ModeAcRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ModeAcRow.last_heard type=time unit= optional=yes since=1.0
+shape.AircraftSeen since=1.0
+shape.AircraftSeen.event type=choice(new,update) unit= optional=no since=1.0
+shape.AircraftSeen.source type=text unit= optional=no since=1.0
+shape.AircraftSeen.callsign type=text unit= optional=yes since=1.0
+shape.AircraftSeen.registration type=text unit= optional=yes since=1.0
+shape.AircraftSeen.category type=text unit= optional=yes since=1.0
+shape.AircraftSeen.squawk type=text unit= optional=yes since=1.0
+shape.AircraftSeen.emergency type=i64 unit= optional=no since=1.0
+shape.AircraftSeen.on_ground type=bool unit= optional=yes since=1.0
+shape.AircraftSeen.altitude_ft type=i64 unit=ft optional=yes since=1.0
+shape.AircraftSeen.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.AircraftSeen.course_deg type=f64 unit=° optional=yes since=1.0
+shape.AircraftSeen.vertical_rate_fpm type=i64 unit=ft/min optional=yes since=1.0
+shape.AircraftSeen.position type=position unit= optional=yes since=1.0
+shape.AircraftSeen.distance_km type=f64 unit=km optional=yes since=1.0
+shape.AircraftSeen.messages type=i64 unit= optional=no since=1.0
+shape.AircraftSeen.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.AircraftSeen.text type=text unit= optional=yes since=1.0
+shape.AircraftSeen.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.UatFields since=1.0
+shape.UatFields.aircraft_count type=i64 unit= optional=no since=1.0
+shape.UatFields.with_position type=i64 unit= optional=no since=1.0
+shape.UatFields.message_rate type=hz unit=Hz optional=no since=1.0
+shape.UatFields.fisb_products type=i64 unit= optional=no since=1.0
+shape.UatFields.tisb_recent type=i64 unit= optional=no since=1.0
+shape.UatFields.fisb_pending type=i64 unit= optional=no since=1.0
+shape.UatFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.UatFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.UatFields.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.UatFields.report type=i64 unit= optional=no since=1.0
+shape.UatFields.time_s type=f64 unit=s optional=no since=1.0
+shape.UatAircraftRow since=1.0
+shape.UatAircraftRow.icao type=text unit= optional=no since=1.0
+shape.UatAircraftRow.address_qualifier type=i64 unit= optional=no since=1.0
+shape.UatAircraftRow.callsign type=text unit= optional=yes since=1.0
+shape.UatAircraftRow.registration type=text unit= optional=yes since=1.0
+shape.UatAircraftRow.country type=text unit= optional=yes since=1.0
+shape.UatAircraftRow.squawk type=text unit= optional=yes since=1.0
+shape.UatAircraftRow.position type=position unit=° optional=yes since=1.0
+shape.UatAircraftRow.alt_ft type=i64 unit=ft optional=yes since=1.0
+shape.UatAircraftRow.geo_alt_ft type=i64 unit=ft optional=yes since=1.0
+shape.UatAircraftRow.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.UatAircraftRow.heading_deg type=f64 unit=° optional=yes since=1.0
+shape.UatAircraftRow.vertical_rate_fpm type=i64 unit=ft/min optional=yes since=1.0
+shape.UatAircraftRow.on_ground type=bool unit= optional=no since=1.0
+shape.UatAircraftRow.tisb type=bool unit= optional=no since=1.0
+shape.UatAircraftRow.nic type=i64 unit= optional=no since=1.0
+shape.UatAircraftRow.category type=i64 unit= optional=yes since=1.0
+shape.UatAircraftRow.emergency type=i64 unit= optional=no since=1.0
+shape.UatAircraftRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.UatAircraftRow.distance_m type=f64 unit=m optional=yes since=1.0
+shape.UatAircraftRow.bearing_deg type=f64 unit=° optional=yes since=1.0
+shape.UatAircraftRow.heard type=i64 unit= optional=yes since=1.0
+shape.UatAircraftRow.last_heard type=time unit= optional=yes since=1.0
+shape.FisbProductRow since=1.0
+shape.FisbProductRow.time_s type=f64 unit=s optional=no since=1.0
+shape.FisbProductRow.product_id type=i64 unit= optional=no since=1.0
+shape.FisbProductRow.name type=text unit= optional=no since=1.0
+shape.FisbProductRow.stamp type=text unit= optional=no since=1.0
+shape.FisbProductRow.text type=text unit= optional=no since=1.0
+shape.FisbProductRow.records type=i64 unit= optional=no since=1.0
+shape.FisbProductRow.blocks type=i64 unit= optional=no since=1.0
+shape.FisbRecordRow since=1.0
+shape.FisbRecordRow.product type=text unit= optional=no refers_to=fisb_products since=1.0
+shape.FisbRecordRow.time_s type=f64 unit=s optional=no since=1.0
+shape.FisbRecordRow.product_id type=i64 unit= optional=no since=1.0
+shape.FisbRecordRow.name type=text unit= optional=no since=1.0
+shape.FisbRecordRow.report type=i64 unit= optional=no since=1.0
+shape.FisbRecordRow.kind type=choice(text,graphic) unit= optional=no since=1.0
+shape.FisbRecordRow.active type=bool unit= optional=yes since=1.0
+shape.FisbRecordRow.label type=text unit= optional=yes since=1.0
+shape.FisbRecordRow.overlay type=i64 unit= optional=yes since=1.0
+shape.FisbRecordRow.start type=text unit= optional=yes since=1.0
+shape.FisbRecordRow.end type=text unit= optional=yes since=1.0
+shape.FisbRecordRow.geometry type=choice(polygon,polyline,circle,point,other) unit= optional=yes since=1.0
+shape.FisbRecordRow.position type=position unit=° optional=yes since=1.0
+shape.FisbRecordRow.vertices type=i64 unit= optional=yes since=1.0
+shape.FisbRecordRow.radius_m type=f64 unit=m optional=yes since=1.0
+shape.FisbRecordRow.alt_bottom_ft type=i64 unit=ft optional=yes since=1.0
+shape.FisbRecordRow.alt_top_ft type=i64 unit=ft optional=yes since=1.0
+shape.FisbRecordRow.text type=text unit= optional=yes since=1.0
+shape.FisbBlockRow since=1.0
+shape.FisbBlockRow.product type=text unit= optional=no refers_to=fisb_products since=1.0
+shape.FisbBlockRow.time_s type=f64 unit=s optional=no since=1.0
+shape.FisbBlockRow.product_id type=i64 unit= optional=no since=1.0
+shape.FisbBlockRow.name type=text unit= optional=no since=1.0
+shape.FisbBlockRow.block type=i64 unit= optional=no since=1.0
+shape.FisbBlockRow.south type=bool unit= optional=no since=1.0
+shape.FisbBlockRow.scale type=i64 unit= optional=no since=1.0
+shape.FisbBlockRow.corner type=position unit=° optional=no since=1.0
+shape.FisbBlockRow.lat_size_deg type=f64 unit=° optional=no since=1.0
+shape.FisbBlockRow.lon_size_deg type=f64 unit=° optional=no since=1.0
+shape.FisbBlockRow.max_bin type=i64 unit= optional=no since=1.0
+shape.FisbBlockRow.bins type=text unit= optional=yes since=1.0
+shape.FisbVertexRow since=1.0
+shape.FisbVertexRow.record type=text unit= optional=no refers_to=fisb_records since=1.0
+shape.FisbVertexRow.index type=i64 unit= optional=no since=1.0
+shape.FisbVertexRow.position type=position unit=° optional=no since=1.0
+shape.FisbVertexRow.alt_ft type=i64 unit=ft optional=no since=1.0
+shape.UatLogRow since=1.0
+shape.UatLogRow.time_s type=f64 unit=s optional=no since=1.0
+shape.UatLogRow.kind type=choice(adsb,tisb,fisb,uat) unit= optional=no since=1.0
+shape.UatLogRow.address type=text unit= optional=yes since=1.0
+shape.UatLogRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.UatLogRow.summary type=text unit= optional=no since=1.0
+shape.UatMessage since=1.0
+shape.UatMessage.text type=text unit= optional=no since=1.0
+shape.UatMessage.kind type=choice(adsb,tisb,fisb,uat) unit= optional=no since=1.0
+shape.UatMessage.source type=text unit= optional=yes since=1.0
+shape.UatMessage.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.UatMessage.position type=position unit= optional=yes since=1.0
+shape.UatMessage.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.UatMessage.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ModeAcReplyEvent since=1.0
+shape.ModeAcReplyEvent.code type=text unit= optional=no since=1.0
+shape.ModeAcReplyEvent.squawk type=text unit= optional=no since=1.0
+shape.ModeAcReplyEvent.altitude_ft type=i64 unit=ft optional=yes since=1.0
+shape.ModeAcReplyEvent.spi type=bool unit= optional=no since=1.0
+shape.ModeAcReplyEvent.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ModeAcReplyEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.UplinkFields since=1.0
+shape.UplinkFields.interrogations type=i64 unit= optional=no since=1.0
+shape.UplinkFields.mode_a type=i64 unit= optional=no since=1.0
+shape.UplinkFields.mode_c type=i64 unit= optional=no since=1.0
+shape.UplinkFields.mode_s type=i64 unit= optional=no since=1.0
+shape.UplinkFields.all_call_a type=i64 unit= optional=no since=1.0
+shape.UplinkFields.all_call_c type=i64 unit= optional=no since=1.0
+shape.UplinkFields.ac_only_all_call type=i64 unit= optional=no since=1.0
+shape.AddressedRow since=1.0
+shape.AddressedRow.icao type=text unit= optional=no since=1.0
+shape.AddressedRow.interrogations type=i64 unit= optional=yes since=1.0
+shape.AddressedRow.formats type=text unit= optional=no since=1.0
+shape.AddressedRow.last type=text unit= optional=no since=1.0
+shape.AddressedRow.last_heard type=time unit= optional=yes since=1.0
+shape.InterrogatorRow since=1.0
+shape.InterrogatorRow.code type=text unit= optional=no since=1.0
+shape.InterrogatorRow.all_calls type=i64 unit= optional=yes since=1.0
+shape.InterrogatorRow.last_heard type=time unit= optional=yes since=1.0
+shape.InterrogationEvent since=1.0
+shape.InterrogationEvent.kind type=choice(mode_a,mode_c,all_call_a,all_call_c,ac_only_all_call,mode_s) unit= optional=no since=1.0
+shape.InterrogationEvent.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.InterrogationEvent.p2 type=bool unit= optional=no since=1.0
+shape.InterrogationEvent.uf type=i64 unit= optional=yes since=1.0
+shape.InterrogationEvent.hex type=text unit= optional=yes since=1.0
+shape.InterrogationEvent.target type=text unit= optional=yes since=1.0
+shape.InterrogationEvent.confirmed type=bool unit= optional=yes since=1.1
+shape.InterrogationEvent.text type=text unit= optional=yes since=1.0
+shape.InterrogationEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+adsb since=1.0
+adsb.fields.TrackerFields since=1.0
+adsb.fields.FeedFields since=1.0
+adsb.fields.ModeAcFields since=1.0
+adsb.table.aircraft row=AircraftRow cap=160 since=1.0
+adsb.table.messages row=MessageRow cap=64 since=1.0
+adsb.table.sources row=SourceRow cap=32 since=1.0
+adsb.table.by_df row=CountRow cap=32 since=1.0
+adsb.table.gps_cells row=GpsCellRow cap=4096 since=1.0
+adsb.table.feeds row=FeedRow cap=64 since=1.0
+adsb.table.modeac row=ModeAcRow cap=256 since=1.0
+adsb.series.coverage_range x_unit=° y_unit=m since=1.0
+adsb.series.coverage_histogram x_unit=m y_unit= since=1.0
+adsb.series.coverage_rate x_unit=s y_unit=Hz since=1.0
+adsb.event.adsb.aircraft fields=AircraftSeen since=1.0
+adsb.setting.correction type=choice(off,1bit,3bits) unit= since=1.0
+adsb.setting.repair_unknown type=bool unit= since=1.0
+adsb.setting.expiry_s type=f64 unit=s since=1.0
+adsb.setting.effort type=choice(auto,2,1,0) unit= since=1.0
+adsb.setting.modeac type=bool unit= since=1.0
+adsb.setting.feeds_in type=text unit= since=1.0
+adsb.setting.allow_remote type=bool unit= since=1.0
+adsb.setting.beast_server type=bool unit= since=1.0
+adsb.setting.beast_port type=i64 unit= since=1.0
+adsb.setting.sbs_server type=bool unit= since=1.0
+adsb.setting.sbs_port type=i64 unit= since=1.0
+adsb.setting.asterix_server type=bool unit= since=1.0
+adsb.setting.asterix_port type=i64 unit= since=1.0
+adsb.setting.asterix_cat type=choice(all,21,48,62) unit= since=1.0
+adsb.setting.sac type=i64 unit= since=1.0
+adsb.setting.sic type=i64 unit= since=1.0
+adsb.setting.allow_lan type=bool unit= since=1.0
+adsb.setting.targets type=text unit= since=1.0
+adsb.setting.drop_s type=f64 unit=s since=1.0
+adsb.setting.gps_layer type=bool unit= since=1.0
+adsb.setting.gen_aircraft type=i64 unit= since=1.0
+adsb.setting.gen_replies type=bool unit= since=1.0
+adsb.setting.gen_emergency type=bool unit= since=1.0
+adsb.setting.gen_rate type=f64 unit= since=1.0
+adsb.setting.gen_filter_mhz type=f64 unit=MHz since=1.0
+adsb.setting.gen_centre_lat type=f64 unit=° since=1.0
+adsb.setting.gen_centre_lon type=f64 unit=° since=1.0
+adsb.command.clear args= reply= since=1.0
+adsb.command.reset_stats args= reply= since=1.0
+uat since=1.0
+uat.fields.UatFields since=1.0
+uat.table.aircraft row=UatAircraftRow cap=128 since=1.0
+uat.table.fisb_products row=FisbProductRow cap=64 since=1.0
+uat.table.fisb_records row=FisbRecordRow cap=512 since=1.0
+uat.table.fisb_blocks row=FisbBlockRow cap=2048 since=1.0
+uat.table.fisb_vertices row=FisbVertexRow cap=8192 since=1.0
+uat.table.log row=UatLogRow cap=64 since=1.0
+uat.event.uat.message fields=UatMessage since=1.0
+uat.setting.expiry_s type=f64 unit=s since=1.0
+uat.setting.gen_aircraft type=i64 unit= since=1.0
+uat.setting.gen_uplink type=bool unit= since=1.0
+uat.setting.gen_example type=bool unit= since=1.0
+uat.setting.gen_bursts type=i64 unit= since=1.0
+uat.command.clear args= reply= since=1.0
+modeac since=1.0
+modeac.fields.ModeAcFields since=1.0
+modeac.table.modeac row=ModeAcRow cap=256 since=1.0
+modeac.event.modeac.reply fields=ModeAcReplyEvent since=1.0
+modeac.setting.expiry_s type=f64 unit=s since=1.0
+modeac.setting.min_replies type=i64 unit= since=1.0
+modeac.setting.gen_targets type=i64 unit= since=1.0
+modeac.command.clear args= reply= since=1.0
+uplink1030 since=1.0
+uplink1030.fields.UplinkFields since=1.0
+uplink1030.table.addressed row=AddressedRow cap=256 since=1.0
+uplink1030.table.interrogators row=InterrogatorRow cap=64 since=1.0
+uplink1030.table.by_uf row=CountRow cap=32 since=1.0
+uplink1030.event.uplink.interrogation fields=InterrogationEvent since=1.0
+uplink1030.setting.expiry_s type=f64 unit=s since=1.0
+uplink1030.command.clear args= reply= since=1.0

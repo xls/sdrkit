@@ -1,0 +1,14 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 4000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic GNSS sky on the L1/E1 band, 1.5 s. Made by the GNSS test generator (specs/gnss.md, sections 'Test signal generator' and 'Test vectors'). Synthetic satellites with GPS-shaped orbits, not today's constellation. Receiver at 25.2 N 55.36 E, 10 m. GPS L1 C/A (8 satellites), QZSS L1 C/A (3), SBAS L1 (PRN 123, 127, 128), Galileo E1-B data component (8). Zenith C/N0 44 dB-Hz, weaker towards the horizon. Radio oscillator error +2500 Hz at L1 with the sample clock following it (-1.587 ppm). Noise 0.14 rms per component. Warm start: GPS time of week 354502.0 at the first sample, GPS week 2400.",
+    "core:recorder": "GNSS test generator, constellation seed 1, noise seed 1",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    { "core:sample_start": 0, "core:frequency": 1575420000.0 }
+  ],
+  "annotations": []
+}

@@ -1,0 +1,17 @@
+[package]
+name = "sdrkit-proto-lora-phy"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "The LoRa physical layer for sdrkit: parameters, coding, chirp modulation and demodulation, frame detection, recovery searches, the channel bank, and LoRaWAN FSK"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+serde.workspace = true

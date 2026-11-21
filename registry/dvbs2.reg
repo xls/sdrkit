@@ -1,0 +1,76 @@
+# The interface of the stack family dvbs2. The registry test of the family writes this file.
+family dvbs2 version=1.0
+shape.Dvbs2Fields since=1.0
+shape.Dvbs2Fields.standard type=choice(dvbs,dvbs2) unit= optional=yes since=1.0
+shape.Dvbs2Fields.signal_note type=choice(no_carrier,not_decoded) unit= optional=yes since=1.0
+shape.Dvbs2Fields.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.Dvbs2Fields.spectrum_rate type=hz unit=Hz optional=yes since=1.0
+shape.Dvbs2Fields.clock_ppm type=f64 unit=ppm optional=no since=1.0
+shape.Dvbs2Fields.manual_rate type=bool unit= optional=no since=1.0
+shape.Dvbs2Fields.spectrum_snr_db type=f64 unit=dB optional=yes since=1.0
+shape.Dvbs2Fields.misfit type=f64 unit= optional=yes since=1.0
+shape.Dvbs2Fields.edge_low type=hz unit=Hz optional=yes since=1.0
+shape.Dvbs2Fields.edge_high type=hz unit=Hz optional=yes since=1.0
+shape.Dvbs2Fields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.Dvbs2Fields.inverted type=bool unit= optional=no since=1.0
+shape.Dvbs2Fields.roll_off type=f64 unit= optional=no since=1.0
+shape.Dvbs2Fields.roll_off_source type=choice(assumed,measured,signalled) unit= optional=no since=1.0
+shape.Dvbs2Fields.modulation type=choice(QPSK,8PSK,16APSK,32APSK) unit= optional=yes since=1.0
+shape.Dvbs2Fields.code_rate type=choice(1/4,1/3,2/5,1/2,3/5,2/3,3/4,4/5,5/6,7/8,8/9,9/10) unit= optional=yes since=1.0
+shape.Dvbs2Fields.modcod type=i64 unit= optional=yes since=1.0
+shape.Dvbs2Fields.frame type=choice(normal,short) unit= optional=yes since=1.0
+shape.Dvbs2Fields.pilots type=bool unit= optional=no since=1.0
+shape.Dvbs2Fields.vcm type=bool unit= optional=no since=1.0
+shape.Dvbs2Fields.single_stream type=bool unit= optional=no since=1.0
+shape.Dvbs2Fields.pl_scrambling_code type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.plframes type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.dummy_frames type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.unsupported_frames type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.other_modcod_frames type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.pilot_mismatch type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.bbheader_bad type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.net_bit_rate type=f64 unit=bit/s optional=no since=1.0
+shape.Dvbs2Fields.esn0_db type=f64 unit=dB optional=yes since=1.0
+shape.Dvbs2Fields.mer_db type=f64 unit=dB optional=yes since=1.0
+shape.Dvbs2Fields.ebn0_db type=f64 unit=dB optional=yes since=1.0
+shape.Dvbs2Fields.margin_to_qef_db type=f64 unit=dB optional=yes since=1.0
+shape.Dvbs2Fields.ldpc_iterations type=f64 unit= optional=no since=1.0
+shape.Dvbs2Fields.bch_ok type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.bch_bad type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.rs_clean type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.rs_corrected type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.rs_failed type=i64 unit= optional=no since=1.0
+shape.Dvbs2Fields.carrier_lock type=bool unit= optional=no since=1.0
+shape.Dvbs2Fields.timing_lock type=bool unit= optional=no since=1.0
+shape.Dvbs2Fields.frame_lock type=bool unit= optional=no since=1.0
+shape.Dvbs2Fields.fec_lock type=bool unit= optional=no since=1.0
+shape.Dvbs2Fields.ts_lock type=bool unit= optional=no since=1.0
+shape.Dvbs2Fields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.Dvbs2Fields.lnb_mismatch type=bool unit= optional=no since=1.0
+shape.Dvbs2CarrierRow since=1.0
+shape.Dvbs2CarrierRow.offset type=hz unit=Hz optional=no since=1.0
+shape.Dvbs2CarrierRow.symbol_rate type=hz unit=Hz optional=no since=1.0
+shape.Dvbs2CarrierRow.roll_off type=f64 unit= optional=no since=1.0
+shape.Dvbs2CarrierRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Dvbs2CarrierRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.Dvbs2CarrierRow.decoded type=bool unit= optional=no since=1.0
+shape.Dvbs2StreamRow since=1.0
+shape.Dvbs2StreamRow.isi type=i64 unit= optional=no since=1.0
+shape.Dvbs2StreamRow.carries type=choice(ts,gse,gse_hem,ts_generic,packets) unit= optional=no since=1.0
+shape.Dvbs2StreamRow.packet_bytes type=i64 unit=bytes optional=yes since=1.0
+shape.Dvbs2StreamRow.sync_byte type=i64 unit= optional=yes since=1.0
+shape.Dvbs2StreamRow.ccm type=bool unit= optional=no since=1.0
+shape.Dvbs2StreamRow.frames type=i64 unit= optional=no since=1.0
+shape.Dvbs2StreamRow.bits type=i64 unit= optional=no since=1.0
+shape.Dvbs2StreamModcodRow since=1.0
+shape.Dvbs2StreamModcodRow.stream type=text unit= optional=no refers_to=streams since=1.0
+shape.Dvbs2StreamModcodRow.modcod type=i64 unit= optional=no since=1.0
+shape.Dvbs2StreamModcodRow.modulation type=choice(QPSK,8PSK,16APSK,32APSK) unit= optional=no since=1.0
+shape.Dvbs2StreamModcodRow.code_rate type=choice(1/4,1/3,2/5,1/2,3/5,2/3,3/4,4/5,5/6,7/8,8/9,9/10) unit= optional=yes since=1.0
+shape.Dvbs2StreamModcodRow.frames type=i64 unit= optional=no since=1.0
+shape.Dvbs2StreamModcodRow.share_pct type=f64 unit=% optional=no since=1.0
+dvbs2 since=1.0
+dvbs2.fields.Dvbs2Fields since=1.0
+dvbs2.table.carriers row=Dvbs2CarrierRow cap=32 since=1.0
+dvbs2.table.streams row=Dvbs2StreamRow cap=256 since=1.0
+dvbs2.table.stream_modcods row=Dvbs2StreamModcodRow cap=1024 since=1.0

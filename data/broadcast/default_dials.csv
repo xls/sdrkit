@@ -1,0 +1,5 @@
+# id: default_dials
+# name: Starting dial of HamDRM (the usual 20 m picture channel)
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+hamdrm,,14233000

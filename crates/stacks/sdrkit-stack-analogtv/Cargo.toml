@@ -1,0 +1,31 @@
+[package]
+name = "sdrkit-stack-analogtv"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Analogue video: analogue TV (PAL, NTSC, SECAM, NICAM, A2, FM video, NBTV), D2-MAC and D-MAC, analogue FPV video"
+
+[dependencies]
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-codec-image = { path = "../../codec/sdrkit-codec-image" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-proto-mpegts = { path = "../../proto/sdrkit-proto-mpegts" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+# The channel label rule (`normalise_name`) that the plan files use.
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+serde_json.workspace = true
+num-complex.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The channel plans of the data folder, for the tests that set channels.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }

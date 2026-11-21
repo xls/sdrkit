@@ -1,0 +1,13 @@
+[package]
+name = "sdrkit-driver-hpsdr"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "HPSDR / OpenHPSDR network transceiver driver for sdrkit (protocol 1 and protocol 2: Hermes-Lite 2, Red Pitaya, ANAN)"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-driver-core = { path = "../sdrkit-driver-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+thiserror.workspace = true

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 250000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic CW signal, 1.5 s. Noise only for the first 0.25 s, then a steady unmodulated carrier of amplitude 0.3. The carrier is 50 kHz below the centre (14.030 MHz). White Gaussian noise, carrier-to-noise 30 dB in 12.5 kHz. See specs/general.md, section 14.",
+    "core:recorder": "sdrkit general-receiver test signal definition (specs/general.md section 13), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14080000.0
+    }
+  ],
+  "annotations": []
+}

@@ -1,0 +1,285 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "dsrc_toll_europe",
+      "name": "DSRC road toll, Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "CEN",
+        "title": "EN 12253, Road transport and traffic telematics; DSRC; physical layer using microwave at 5.8 GHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "EN 12253 was not read; the four channels in 5.795 to 5.815 GHz are not confirmed",
+      "bands": [
+        {
+          "name": "DSRC channel 5797.5 MHz",
+          "service": "short_range",
+          "start_hz": 5795000000,
+          "end_hz": 5800000000,
+          "modes": [
+            "dsrc_toll"
+          ],
+          "note": "stack dsrc_toll"
+        },
+        {
+          "name": "DSRC channel 5802.5 MHz",
+          "service": "short_range",
+          "start_hz": 5800000000,
+          "end_hz": 5805000000,
+          "modes": [
+            "dsrc_toll"
+          ],
+          "note": "stack dsrc_toll"
+        },
+        {
+          "name": "DSRC channel 5807.5 MHz",
+          "service": "short_range",
+          "start_hz": 5805000000,
+          "end_hz": 5810000000,
+          "modes": [
+            "dsrc_toll"
+          ],
+          "note": "stack dsrc_toll"
+        },
+        {
+          "name": "DSRC channel 5812.5 MHz",
+          "service": "short_range",
+          "start_hz": 5810000000,
+          "end_hz": 5815000000,
+          "modes": [
+            "dsrc_toll"
+          ],
+          "note": "stack dsrc_toll"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "LI",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "dsrc_toll_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 5795 to 5815 MHz is designated for road transport telematics; not compared with the national rules or with the toll systems in use"
+    }
+  ]
+}

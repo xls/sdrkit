@@ -1,0 +1,11 @@
+[package]
+name = "sdrkit-codec-bzip2"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "bzip2 for sdrkit: a decoder of single and joined streams with block and stream CRCs and an output limit, and an encoder"
+
+[dependencies]
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+thiserror.workspace = true

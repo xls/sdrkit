@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 24000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic PACTOR-I ARQ exchange, 11.55 s. Dial at 0 Hz, FSK centre 1500 Hz above the dial plus a +33 Hz tuning error (tones 1433 / 1633 Hz), 200 Hz shift, 100 and 200 baud, tone polarity swapped every second 1.25 s cycle. Tone SNR 14 dB in 2.5 kHz. Connect packet, speed change, data both ways, a repeat after a reject, a changeover, QRT.",
+    "core:recorder": "PACTOR-I test generator, seed 7",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14080000.0
+    }
+  ],
+  "annotations": []
+}

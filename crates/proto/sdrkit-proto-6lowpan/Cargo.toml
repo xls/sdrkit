@@ -1,0 +1,9 @@
+[package]
+name = "sdrkit-proto-6lowpan"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "6LoWPAN header reader: mesh and fragment headers (RFC 4944), IPHC and next-header compression with UDP (RFC 6282), and the CoAP message header (RFC 7252)"
+
+[dependencies]

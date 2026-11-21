@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 24000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic PACTOR-I unproto (FEC) broadcast, 25.0 s. Dial at 0 Hz, FSK centre 1500 Hz minus a 40 Hz tuning error, every packet sent three times in a row with no control signals; two texts, the first in plain ASCII at 200 baud, the second Huffman coded at 100 baud. Tone SNR 20 dB in 2.5 kHz.",
+    "core:recorder": "PACTOR-I test generator, seed 7",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14080000.0
+    }
+  ],
+  "annotations": []
+}

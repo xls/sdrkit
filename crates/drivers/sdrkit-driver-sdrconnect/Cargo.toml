@@ -1,0 +1,20 @@
+[package]
+name = "sdrkit-driver-sdrconnect"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "SDRconnect client driver for sdrkit: the IQ stream of an SDRplay radio served by SDRconnect over its WebSocket API"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-driver-core = { path = "../sdrkit-driver-core", features = ["tls"] }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+# The fake server's TLS side and the test certificate (Apache-2.0 / ISC / MIT).
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+sdrkit-algo-crypto = { path = "../../algo/sdrkit-algo-crypto" }

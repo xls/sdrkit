@@ -1,0 +1,9 @@
+# id: default_dials
+# name: Starting dials of the LBJ, GSM-R, NB-IoT, NR and LTE stacks
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+lbj,,821237500
+gsmr,,922800000
+nbiot,,806000000
+nr,,3541440000
+cell,,806000000

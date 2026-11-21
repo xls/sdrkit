@@ -1,0 +1,9 @@
+# id: slow_dials
+# name: Dials a host may offer as the starting dial of the slow keyboard, picture and WINMOR stacks, with the dial range of each
+# verified: no; usual operating dials (upper sideband), not a regional plan
+stack,submode,dial_hz,min_hz,max_hz,note
+qrss,qrss,10140000,100000,30000000,the 30 m QRSS window
+qrss,dfcw,137500,100000,30000000,the 2200 m band
+throb,,14075000,1800000,30000000,
+cp16,,7050000,1800000,30000000,the club announces its own exercise frequencies; either sideband is read
+winmor,,7100000,1000000,30000000,a dial in the upper sideband

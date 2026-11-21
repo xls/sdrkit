@@ -1,0 +1,25 @@
+[package]
+name = "sdrkit-stack-tvterr"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Terrestrial TV beyond DVB: ISDB-T (all modes, layers, one-seg), ATSC 1.0 (8-VSB), ATSC 3.0, DTMB, and TV (auto) standard detection"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-proto-mpegts = { path = "../../proto/sdrkit-proto-mpegts" }
+sdrkit-proto-ipcast = { path = "../../proto/sdrkit-proto-ipcast" }
+num-complex.workspace = true
+thiserror.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }

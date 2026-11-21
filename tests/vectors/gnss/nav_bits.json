@@ -1,0 +1,348 @@
+{
+ "lnav": {
+  "prn": 3,
+  "week": 2400,
+  "note": "300-bit subframes as transmitted (parity included), most significant bit first, 75 hex digits. subframe_index is counted from the start of the GPS week (6 s each). The two bits before subframe 1 (D29*, D30*) are 0.",
+  "subframes": [
+   {
+    "subframe_index": 59080,
+    "id": 1,
+    "tow_count": 59081,
+    "sv_id": -1,
+    "hex": "8B68AC7E326D6B058120082AAAAABCAAAAAAF2AAAAABCAAAA0256EEA7753FF0011D409EBCD0"
+   },
+   {
+    "subframe_index": 59081,
+    "id": 2,
+    "tow_count": 59082,
+    "sv_id": -1,
+    "hex": "8B68AC7E326B52044061AF763CD2D69F49F5E7E3A3EEA4A7D0F90035E85FF30791915889F94"
+   },
+   {
+    "subframe_index": 59082,
+    "id": 3,
+    "tow_count": 59083,
+    "sv_id": -1,
+    "hex": "8B68AC7E32694A800174A5AAAAAAC6FFBA275F46E772B1831B1219DF144B00532E5EEC06710"
+   },
+   {
+    "subframe_index": 59083,
+    "id": 4,
+    "tow_count": 59084,
+    "sv_id": 55,
+    "hex": "8B68AC7E326735877AAAAAD55555435555550D55555435555550D55555435555550D5555510"
+   },
+   {
+    "subframe_index": 59084,
+    "id": 5,
+    "tow_count": 59085,
+    "sv_id": 17,
+    "hex": "8B68AC7E32652D05160C4A15C21478FD3B00257BBC27D3555A13E2201420C9B9BBC807FFCCC"
+   },
+   {
+    "subframe_index": 59088,
+    "id": 4,
+    "tow_count": 59089,
+    "sv_id": 56,
+    "hex": "8B68AC7E325D394780D0253FFFCB0DFC01033000000F6FFFFFFABF83D82BED9FF858480007C"
+   }
+  ],
+  "ephemeris": {
+   "wn10": 352,
+   "ura_index": 2,
+   "health": 0,
+   "iodc": 68,
+   "iode": 68,
+   "tgd": 9.313225746154785e-10,
+   "toc": 352800.0,
+   "af0": -1.89230777323246e-05,
+   "af1": -2.046363078989089e-12,
+   "af2": 0.0,
+   "toe": 352800.0,
+   "sqrtA": 5153.62130355835,
+   "e": 0.00838080223184079,
+   "m0": -1.850049006561331,
+   "delta_n": 3.570148711024055e-09,
+   "omega0": 1.832595715081685,
+   "i0": 0.9616404730999245,
+   "omega": 1.924329581971167,
+   "omega_dot": -7.605673949705606e-09,
+   "idot": -3.714440435639273e-11,
+   "cuc": 3.380700945854187e-06,
+   "cus": 4.004687070846558e-07,
+   "crc": -193.5625,
+   "crs": 48.8125,
+   "cic": 4.284083843231201e-08,
+   "cis": -1.30385160446167e-07,
+   "fit": 0,
+   "complete": true,
+   "units": "IS-GPS-200 units: seconds, radians (semicircles converted with pi = 3.1415926535898), metres"
+  },
+  "iono": {
+   "valid": true,
+   "alpha": [
+    1.210719e-08,
+    1.490116e-08,
+    -5.960464e-08,
+    -5.960464e-08
+   ],
+   "beta": [
+    90112.0,
+    49152.0,
+    -131072.0,
+    -262144.0
+   ]
+  },
+  "utc": {
+   "valid": true,
+   "a0": -1.862645e-09,
+   "a1": 2.664535e-15,
+   "tot": 61440,
+   "wnt": 96,
+   "dtls": 18,
+   "wnlsf": 96,
+   "dn": 7,
+   "dtlsf": 18
+  }
+ },
+ "sbas": {
+  "prn": 131,
+  "note": "250-bit messages (preamble, type, 212 data bits, CRC-24Q), MSB first, 63 hex digits (the last digit padded with two zero bits). symbols_hex: the 500 rate-1/2 symbols of the first message (G1 symbol first, G1 = 171 octal, G2 = 133 octal, encoder state before the message = the last six bits of the preceding message in the rotation).",
+  "messages": [
+   {
+    "n": 0,
+    "type": 9,
+    "preamble_index": 0,
+    "hex": "532444000543526382981059C0000780000000000000000000000940E8DFD98"
+   },
+   {
+    "n": 1,
+    "type": 2,
+    "preamble_index": 1,
+    "hex": "9A097F13F6FFC80240800DFF5BFB401006C0CBF47FA0048D159E26AC1370BF8",
+    "symbols_hex": "1A819D2C96232501E4135F8FF2841C0ECA07EF1C00D7BE3F1E29F8C4DA7703BC7035E21BD439881D4153C75DC03B28CB64F4E70A540417F918B10B3A5288C"
+   },
+   {
+    "n": 2,
+    "type": 3,
+    "preamble_index": 2,
+    "hex": "C60D7FFC0580B7F33F8FFE80440A3F1FF7BFD403008C48D159E26AC074E7D04"
+   },
+   {
+    "n": 3,
+    "type": 4,
+    "preamble_index": 0,
+    "hex": "531140EBF67FC001C0780D7F53FAC0080640C3F3FF988D159E26AC049E92FB8"
+   },
+   {
+    "n": 4,
+    "type": 5,
+    "preamble_index": 1,
+    "hex": "9A157FF40500AFF2BF87FE003C09BF17F73FCC028084D159E26AC048D6816F8"
+   },
+   {
+    "n": 5,
+    "type": 18,
+    "preamble_index": 2,
+    "hex": "C64880F7BDEF7BDEF7BDEF7BC00000000000000000000000000000001503710"
+   },
+   {
+    "n": 6,
+    "type": 26,
+    "preamble_index": 0,
+    "hex": "5368003001910D106CC3881D50F307DC41021011088C848625413280043A7A8"
+   },
+   {
+    "n": 7,
+    "type": 25,
+    "preamble_index": 1,
+    "hex": "9A64090833F203050221FE027FDF8A0000000000000000000000000035011D0"
+   },
+   {
+    "n": 8,
+    "type": 7,
+    "preamble_index": 2,
+    "hex": "C61CD0048D159E26AF37BC048D159E26AF37BC048D159E26AF37BC049D9F9D4"
+   },
+   {
+    "n": 9,
+    "type": 10,
+    "preamble_index": 0,
+    "hex": "5328500503C2D03C3C0A0143214963203200000000000000000000002A91AF4"
+   },
+   {
+    "n": 10,
+    "type": 12,
+    "preamble_index": 1,
+    "hex": "9A3000001FFFFFEED0159049901C48800053200000000000000000002896C98"
+   },
+   {
+    "n": 11,
+    "type": 17,
+    "preamble_index": 2,
+    "hex": "C64478007D002EE002000F200ABE09C4004001E800BB81B5800800E12839CA4"
+   },
+   {
+    "n": 12,
+    "type": 24,
+    "preamble_index": 0,
+    "hex": "5363FB3FD7FF801C040064048D1510000000000000000000000000000887394"
+   },
+   {
+    "n": 13,
+    "type": 27,
+    "preamble_index": 1,
+    "hex": "9A6C00000000000000000000000000000000000000000000000000001BCD68C"
+   },
+   {
+    "n": 14,
+    "type": 28,
+    "preamble_index": 2,
+    "hex": "C67000000000000000000000000000000000000000000000000000001FE0FEC"
+   },
+   {
+    "n": 15,
+    "type": 1,
+    "preamble_index": 0,
+    "hex": "5307FFF00000000000000000000000000000800000000000000000005854660"
+   },
+   {
+    "n": 16,
+    "type": 9,
+    "preamble_index": 1,
+    "hex": "9A2444020543526382981059C00007800000000000000000000009C0C05F664"
+   },
+   {
+    "n": 17,
+    "type": 2,
+    "preamble_index": 2,
+    "hex": "C6097F1FF7BFD403008C0EBF67FC001C0780D7F53FAC048D159E26AC3C1A464"
+   },
+   {
+    "n": 18,
+    "type": 3,
+    "preamble_index": 0,
+    "hex": "530D40080640C3F3FF9BFF40500AFF2BF87FE003C09848D159E26AC045BA7F8"
+   },
+   {
+    "n": 19,
+    "type": 4,
+    "preamble_index": 1,
+    "hex": "9A117F17F73FCC0280840E3F5FFB80140700CFF4BFA48D159E26AC049465140"
+   },
+   {
+    "n": 20,
+    "type": 5,
+    "preamble_index": 2,
+    "hex": "C615400005C0BBF37F93FEC0480A7F23F7FFD8034090D159E26AC048F7CE918"
+   },
+   {
+    "n": 21,
+    "type": 18,
+    "preamble_index": 0,
+    "hex": "534880F7BDEF7BDEF7BDEF7BC00000000000000000000000000000001CDF510"
+   },
+   {
+    "n": 22,
+    "type": 26,
+    "preamble_index": 1,
+    "hex": "9A68043601C10E9078C3E820510B089C47024012889884E628414A8007398BC"
+   },
+   {
+    "n": 23,
+    "type": 25,
+    "preamble_index": 2,
+    "hex": "C664090833F203050221FE027FDF8A0000000000000000000000000021DA7C8"
+   },
+   {
+    "n": 24,
+    "type": 7,
+    "preamble_index": 0,
+    "hex": "531CD0048D159E26AF37BC048D159E26AF37BC048D159E26AF37BC049443BD4"
+   },
+   {
+    "n": 25,
+    "type": 10,
+    "preamble_index": 1,
+    "hex": "9A28500503C2D03C3C0A0143214963203200000000000000000000003796EEC"
+   },
+   {
+    "n": 26,
+    "type": 12,
+    "preamble_index": 2,
+    "hex": "C63000001FFFFFEED0159049901C488000D3200000000000000000000F79FA8"
+   },
+   {
+    "n": 27,
+    "type": 17,
+    "preamble_index": 0,
+    "hex": "534478007D002EE002000F200ABE09C4004001E800BB81B5800800E121E5EA4"
+   },
+   {
+    "n": 28,
+    "type": 24,
+    "preamble_index": 1,
+    "hex": "9A63FB7FDBFFC020044068048D1510000000000000000000000000003C0A4CC"
+   },
+   {
+    "n": 29,
+    "type": 27,
+    "preamble_index": 2,
+    "hex": "C66C00000000000000000000000000000000000000000000000000000F16094"
+   },
+   {
+    "n": 30,
+    "type": 28,
+    "preamble_index": 0,
+    "hex": "53700000000000000000000000000000000000000000000000000000163CDEC"
+   },
+   {
+    "n": 31,
+    "type": 1,
+    "preamble_index": 1,
+    "hex": "9A07FFF00000000000000000000000000000800000000000000000004553278"
+   }
+  ],
+  "decoded_after_all": {
+   "messages": 32,
+   "mask_valid": true,
+   "iodp": 1,
+   "masked": 15,
+   "slot1_prn": 1,
+   "slot14_prn": 14,
+   "slot15_prn": 131,
+   "fast_slots": 51,
+   "usable": 51,
+   "slot1_prc_m": -2.375,
+   "slot1_udrei": 0,
+   "t_lat_s": 3,
+   "geo_iodn": 17,
+   "geo_ura": 2,
+   "geo_pos_m": [
+    -31654944.0,
+    27852857.44,
+    48.0
+   ],
+   "utc_dtls": 18,
+   "utc_wn": 400,
+   "utc_id": 1,
+   "utc_a0_s": -1.024455e-06,
+   "almanac_prns": [
+    120,
+    121,
+    122
+   ],
+   "almanac0_x_m": 41600000.0,
+   "iono_band0_igps": 60,
+   "iono_band0_blocks_needed": 4,
+   "iono_band0_values": 30,
+   "iono_band0_min_m": 3.0,
+   "iono_band0_max_m": 5.125,
+   "deg_brrc": 80,
+   "deg_cer": 10,
+   "deg_ciono_ramp": 50,
+   "long_term_slots": 2
+  }
+ },
+ "description": "Navigation message bit vectors made by the GNSS test generator (synthetic satellites, not real ones). LNAV: one frame of satellite G03 plus subframe 4 page 18 (SV ID 56, ionosphere and UTC). SBAS: 32 messages of PRN 131 with the structured test content, and the decoded state expected after all 32 have been fed in order (receiver times 0..31 s). See specs/gnss.md, section 'Test vectors'."
+}

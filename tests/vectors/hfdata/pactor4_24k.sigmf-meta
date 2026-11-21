@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 24000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic PACTOR-IV physical layer, 15 s: one QPSK carrier, 1800 baud, root-raised-cosine pulses (roll-off 0.35), nominal 1500 Hz above the dial plus a +20 Hz tuning error, SNR 25 dB in 2.5 kHz.",
+    "core:recorder": "PACTOR-II/III/IV physical layer test generator, seed 3",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14072000.0
+    }
+  ],
+  "annotations": []
+}

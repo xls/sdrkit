@@ -1,0 +1,18 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 250000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic Meteor-M LRPT, OQPSK 72 ksym/s with NRZ-M (N2-3/N2-4 kind), Es/N0 12 dB, carrier +1200 Hz, symbol clock +20 ppm, channels 1, 2, 3; 10.0 s",
+    "core:author": "sdrkit test vectors",
+    "core:license": "CC0-1.0",
+    "core:recorder": "synthetic generator"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 137900000.0
+    }
+  ],
+  "annotations": []
+}

@@ -1,0 +1,185 @@
+# cbindgen settings for include/sdrkit.h. Write the header again from the workspace root after a change of the C API:
+#   cbindgen --config crates/hosts/sdrkit-host-ffi/cbindgen.toml --crate sdrkit-host-ffi --output crates/hosts/sdrkit-host-ffi/include/sdrkit.h
+language = "C"
+include_guard = "SDRKIT_H"
+cpp_compat = true
+usize_is_size_t = true
+documentation = true
+documentation_style = "c99"
+style = "both"
+autogen_warning = "/* Written by cbindgen from crates/hosts/sdrkit-host-ffi/src. Do not edit. cbindgen.toml says how to write it again. */"
+header = """/*
+ * sdrkit: a software-defined radio engine. MIT licence.
+ *
+ * Start here. A receiver needs these calls, in this order. The folder examples/ of the repository holds whole
+ * programs; examples/c/fm_audio.c is the shortest receiver.
+ *
+ *     sdrkit_engine_new(folder, &engine)              makes the engine; NULL keeps its files in memory
+ *     sdrkit_radio_open(engine, "synth:fm", NULL, &radio)   opens a radio; "synth:<stack>" is a test signal
+ *     sdrkit_input_radio(radio)                       returns the input of a session that reads the radio
+ *     sdrkit_stack_start(engine, "fm", &options, &input, &session)   starts the stack at options.centre_hz
+ *     sdrkit_fm_set_force_mono(session, true)         sets one setting; the function is in sdrkit/fm.h
+ *     sdrkit_audio_read(session, buffer, capacity, &got)    copies the audio that waits; call it again and again
+ *     sdrkit_snapshot_read(session, 0, &snapshot)     takes one copy of the results into the handle
+ *     sdrkit_fm_fields_read(session, &fields)         reads the result fields of the copy as a struct
+ *     sdrkit_fm_af_rows(session, rows, capacity, &listed)   reads a table of the copy as structs
+ *     sdrkit_events_take(session, &count)             takes the new events into the handle
+ *     sdrkit_fm_text_event_read(session, n, &event)   reads event n as a struct; SDRKIT_E_WRONG_TYPE for another type
+ *     sdrkit_session_set_tuned_hz(session, hz)        changes the frequency of the running session
+ *     sdrkit_session_stop(session), sdrkit_session_close(session), sdrkit_radio_close(radio)
+ *     sdrkit_free(engine)                             frees the engine and every handle of it
+ *
+ * Check the code of every call. After an error, sdrkit_error_message(handle, &text) returns one sentence.
+ *
+ * Typed headers. sdrkit/<family>.h (sdrkit/fm.h, sdrkit/adsb.h, ...) holds the structs and functions of the stacks of
+ * one family: result fields, table rows, events, settings and commands. sdrkit/session.h, sdrkit/radio.h and
+ * sdrkit/engine.h hold those of every session, every radio and the engine; this header includes them. A typed function
+ * is the first choice: the compiler checks its name and its types. The calls of this header that take an id or a key
+ * (sdrkit_setting_set(), sdrkit_snapshot_cell(), sdrkit_set(), ...) reach the same things from their declarations, for
+ * a program that shows any stack.
+ *
+ * Handles. An SDRKIT_HANDLE is a number for an engine, an object of an engine, a graph or a host feed. 0 is never a
+ * handle. sdrkit_engine_new() makes an engine; with a NULL folder, the engine keeps its files in memory.
+ * sdrkit_object_find() and the other sdrkit_object_*() calls return object handles, sdrkit_radio_open() and
+ * sdrkit_stack_start() return the handle of the new radio or session, sdrkit_graph_new() returns a graph and
+ * sdrkit_feed_open() a host feed. sdrkit_free() frees any handle. Freeing the engine stops every session and frees
+ * every handle of the engine. A call on a freed handle, or on a handle whose object no longer exists, returns
+ * SDRKIT_E_NO_SUCH_OBJECT.
+ *
+ * Error codes. Every function returns an int32_t code, except the sdrkit_input_*() constructors and sdrkit_code_name().
+ * SDRKIT_OK (0) is success; the SDRKIT_E_* constants are errors, and sdrkit_code_name() returns the name of a code. A
+ * call writes its out parameters only on success. After an error, sdrkit_error_detail() fills a struct with the ids,
+ * numbers and names of the error, and sdrkit_error_message() returns one sentence for a log. For a call that takes no
+ * handle (sdrkit_engine_new()), read the error with handle 0.
+ *
+ * Pointers. An out parameter must not be NULL: the call returns SDRKIT_E_NULL_POINTER, unless the comment of the
+ * function says that the parameter can be NULL. A buffer pointer must be valid for the capacity or count passed with
+ * it. A const char* is a NUL-terminated UTF-8 string.
+ *
+ * Structs with a size. Every options and info struct begins with `uint32_t size`, the number of bytes of the struct.
+ * Declare each with its initialiser of sdrkit/init.h, which sets `size` and makes every other member 0:
+ *
+ *     sdrkit_audio_info got = SDRKIT_AUDIO_INFO_INIT;
+ *
+ * A struct of a typed header that the library fills (sdrkit_fm_fields, a row, an event) needs no initialiser: its
+ * function passes the size. A struct only grows at its end. For a struct that the caller passes (sdrkit_stack_options, sdrkit_input), the
+ * library reads the bytes that both sides know and takes 0, the default, for the members that the caller does not
+ * have. For a struct that the library fills, the library writes at most `size` bytes and sets `size` to the number
+ * that it wrote, so a member that an older library does not know stays 0. A `size` below 4 is SDRKIT_E_BAD_ARGUMENT.
+ * sdrkit_string, sdrkit_bytes, sdrkit_position, sdrkit_variant and sdrkit_arg are plain values without a size.
+ *
+ * Memory. The library owns everything that it returns. A call that returns a string, bytes or an array
+ * (sdrkit_string, sdrkit_bytes and the pointers in an info struct) returns a view into a buffer of the handle. The
+ * view is valid until the next call on the same handle. Copy what you keep, and free nothing but handles. A string is
+ * UTF-8 and has no NUL at the end. The library copies what the caller passes before the call returns.
+ *
+ * Snapshots. Each handle holds one snapshot of the results, one list of taken events, one command reply and one object
+ * list. sdrkit_snapshot_read(), sdrkit_events_take(), sdrkit_command_invoke() and sdrkit_objects() replace them, and the
+ * calls that read them read the copy in the handle. Use a handle from one thread at a time. A second thread opens its
+ * own handle of the same object with sdrkit_object_find().
+ *
+ * Object keys, for sdrkit_object_find(): "engine", "radio.r<n>", "session.s<n>", "stack.<id>", "service.<key>",
+ * "driver.<key>", "component.<type>". sdrkit_objects() and sdrkit_object() list the live objects. The stack of a session
+ * and a component of a session have no key: sdrkit_object_stack() and sdrkit_object_component() return them. The row
+ * keys of the engine's tables "radios" and "sessions" are the object keys of the radios and sessions.
+ *
+ * Ids. Settings, arguments, fields, columns, tables, series, rasters, commands, event types and taps have an
+ * sdrkit_id. The ids of a list go from 0 to its count - 1. The *_find() calls return the id of a key. The components
+ * of a graph have names: sdrkit_graph_add() names a component, and the other graph calls take that name.
+ */"""
+sys_includes = ["stdbool.h", "stdint.h", "stddef.h"]
+trailer = """/*
+ * The initialisers of the structs with a size, then the typed settings, results, events and commands of the objects
+ * that every host has. Each header is written from the declarations of its object.
+ *
+ * A change of frequency. sdrkit_session_set_tuned_hz(session, hz) tunes a running session. If the frequency lies inside
+ * the samples of the input, only the session moves. If it lies outside, the radio of the session moves its centre.
+ * The handle of the session stays valid and the session keeps running. sdrkit_session_get_tuned_hz() returns the
+ * frequency. What the change does to the results, the tables and the events of the session:
+ *
+ * - From the return of the call until the receiver has taken the frequency, a snapshot holds no result of the stack:
+ *   its fields have no value, and its tables, series, rasters, map points and log are empty. A result of the
+ *   frequency before is never in a snapshot with the count of changes of before.
+ * - After that, a snapshot holds what the receiver holds. The receiver forgets what it decoded on the frequency
+ *   before: each component of the stack that has a "clear" command runs it, so its results start empty and fill from
+ *   the new signal. A table or a result set that the description of the stack marks as kept (a scan list, a
+ *   database of stations) stays: it is in the snapshot again, with every row marked as changed. The registry record
+ *   of the family lists the kept items of a stack as "<stack>.kept.<key>". A component without a "clear" command
+ *   keeps its results.
+ * - The fields of the session itself (sdrkit_session_fields) stay, and its counts go on. The member `retunes` counts
+ *   the changes of frequency that the receiver has taken: those of the host, of a service and of the stack itself.
+ *   A session on a radio counts its first tuning at the start. If the radio moves its centre for the change, the receiver is told again
+ *   when the samples of the new centre arrive, and clears again; `retunes` does not count that.
+ * - Events stay. Each event holds the frequency of its signal (`freq_hz`), and the events that were not yet taken are
+ *   taken as before.
+ * - Audio that waits is not removed.
+ *
+ * A change of frequency by a service (a scan) or by the stack itself reaches the receiver without the first step and
+ * without the second: the results stay in view, and the stack clears what it must. A change of the centre of the
+ * radio alone (sdrkit_radio_set_centre_hz()) is a change by the host for a session that follows the centre (its
+ * setting "tuned" is 0): the receiver forgets as in the second step, without the first step. A session with a
+ * frequency of its own keeps that frequency and its results.
+ */
+#include "sdrkit/init.h"
+#include "sdrkit/session.h"
+#include "sdrkit/scan.h"
+#include "sdrkit/record.h"
+#include "sdrkit/radio.h"
+#include "sdrkit/engine.h"
+"""
+no_includes = true
+
+[export.rename]
+"Handle" = "SDRKIT_HANDLE"
+"Id" = "sdrkit_id"
+"Str" = "sdrkit_string"
+"Bytes" = "sdrkit_bytes"
+"Position" = "sdrkit_position"
+"Variant" = "sdrkit_variant"
+"Arg" = "sdrkit_arg"
+"ErrorDetail" = "sdrkit_error_info"
+"Input" = "sdrkit_input"
+"StackOptions" = "sdrkit_stack_options"
+"StackNeed" = "sdrkit_stack_need_info"
+"RadioOptions" = "sdrkit_radio_options"
+"Decl" = "sdrkit_decl"
+"EnumOption" = "sdrkit_option"
+"CommandInfo" = "sdrkit_command_info"
+"ResultsInfo" = "sdrkit_results_info"
+"TableInfo" = "sdrkit_table_info"
+"PlotInfo" = "sdrkit_plot_info"
+"SnapshotInfo" = "sdrkit_snapshot_info"
+"RowsInfo" = "sdrkit_rows_info"
+"Point" = "sdrkit_point"
+"SeriesInfo" = "sdrkit_series_info"
+"RasterInfo" = "sdrkit_raster_info"
+"EventTypeInfo" = "sdrkit_event_type_info"
+"EventInfo" = "sdrkit_event_info"
+"PortInfo" = "sdrkit_port_info"
+"ReportInfo" = "sdrkit_report_info"
+"ReportPort" = "sdrkit_report_port"
+"ReportAdapter" = "sdrkit_report_adapter"
+"AudioInfo" = "sdrkit_audio_info"
+"IqInfo" = "sdrkit_iq_info"
+"MediaInfo" = "sdrkit_media_info"
+"SpectrumFrame" = "sdrkit_spectrum_frame"
+"TapInfo" = "sdrkit_tap_info"
+"HostEntry" = "sdrkit_store_entry"
+"HostStorage" = "sdrkit_storage"
+"OpenFn" = "sdrkit_open_fn"
+"ReadFn" = "sdrkit_read_fn"
+"WriteFn" = "sdrkit_write_fn"
+"LenFn" = "sdrkit_len_fn"
+"SetLenFn" = "sdrkit_set_len_fn"
+"SyncFn" = "sdrkit_sync_fn"
+"CloseFn" = "sdrkit_close_fn"
+"RemoveFn" = "sdrkit_remove_fn"
+"RenameFn" = "sdrkit_rename_fn"
+"AddEntryFn" = "sdrkit_add_entry_fn"
+"ListFn" = "sdrkit_list_fn"
+"StatFn" = "sdrkit_stat_fn"
+"FreeSpaceFn" = "sdrkit_free_space_fn"
+"ReleaseFn" = "sdrkit_release_fn"
+
+[parse]
+parse_deps = false

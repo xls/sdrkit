@@ -1,0 +1,209 @@
+# The interface of the stack family tags. The registry test of the family writes this file.
+family tags version=1.0
+shape.TagsStatusFields since=1.0
+shape.TagsStatusFields.text type=text unit= optional=no since=1.0
+shape.TagsStatusFields.state type=choice(no_signal,energy,decoding) unit= optional=no since=1.0
+shape.TagsStatusFields.good type=i64 unit= optional=no since=1.0
+shape.TagsStatusFields.bad type=i64 unit= optional=no since=1.0
+shape.TagsStatusFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.TagsStatusFields.note type=text unit= optional=no since=1.0
+shape.RfidLfFields since=1.0
+shape.RfidLfFields.carrier_db type=f64 unit=dB optional=yes since=1.0
+shape.RfidLfFields.depth_pct type=f64 unit=% optional=yes since=1.0
+shape.RfidLfFields.tags type=i64 unit= optional=no since=1.0
+shape.RfidLfFields.reads type=i64 unit= optional=no since=1.0
+shape.RfidLfFields.refused type=i64 unit= optional=no since=1.0
+shape.RfidLfFields.bit_rate type=choice(rf64,rf32) unit= optional=yes since=1.0
+shape.RfidLfFields.coding type=choice(manchester,biphase) unit= optional=yes since=1.0
+shape.RfidLfFields.last_tag type=text unit= optional=yes since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.RfidLfTagRow since=1.0
+shape.RfidLfTagRow.time_s type=duration unit=s optional=no since=1.0
+shape.RfidLfTagRow.tag type=text unit= optional=no since=1.0
+shape.RfidLfTagRow.version type=i64 unit= optional=no since=1.0
+shape.RfidLfTagRow.number type=i64 unit= optional=no since=1.0
+shape.RfidLfTagRow.number_hi type=i64 unit= optional=no since=1.0
+shape.RfidLfTagRow.number_lo type=i64 unit= optional=no since=1.0
+shape.RfidLfTagRow.bit_rate type=choice(rf64,rf32) unit= optional=no since=1.0
+shape.RfidLfTagRow.coding type=choice(manchester,biphase) unit= optional=no since=1.0
+shape.RfidLfTagRow.reads type=i64 unit= optional=no since=1.0
+shape.RfidLfTagRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.RfidTagEvent since=1.0
+shape.RfidTagEvent.time_s type=duration unit=s optional=no since=1.0
+shape.RfidTagEvent.tag type=text unit= optional=no since=1.0
+shape.RfidTagEvent.version type=i64 unit= optional=no since=1.0
+shape.RfidTagEvent.number type=i64 unit= optional=no since=1.0
+shape.RfidTagEvent.number_hi type=i64 unit= optional=no since=1.0
+shape.RfidTagEvent.number_lo type=i64 unit= optional=no since=1.0
+shape.RfidTagEvent.bit_rate type=choice(rf64,rf32) unit= optional=no since=1.0
+shape.RfidTagEvent.coding type=choice(manchester,biphase) unit= optional=no since=1.0
+shape.RfidTagEvent.reads type=i64 unit= optional=no since=1.0
+shape.RfidTagEvent.level_db type=f64 unit=dB optional=no since=1.0
+shape.QiFields since=1.0
+shape.QiFields.power_signal_db type=f64 unit=dB optional=yes since=1.0
+shape.QiFields.load_modulation_pct type=f64 unit=% optional=yes since=1.0
+shape.QiFields.packets_ok type=i64 unit= optional=no since=1.0
+shape.QiFields.packets_failed type=i64 unit= optional=no since=1.0
+shape.QiFields.bit_rate type=f64 unit=bit/s optional=yes since=1.0
+shape.QiFields.last_message type=choice(signal_strength,end_power_transfer,control_error,received_power,charge_status,hold_off,general_request,renegotiate,specific_request,fod_status,received_power_24,configuration,wpid,identification,extended_identification,proprietary,other) unit= optional=yes since=1.0
+shape.QiPacketRow since=1.0
+shape.QiPacketRow.time_s type=duration unit=s optional=no since=1.0
+shape.QiPacketRow.header type=text unit= optional=no since=1.0
+shape.QiPacketRow.message type=choice(signal_strength,end_power_transfer,control_error,received_power,charge_status,hold_off,general_request,renegotiate,specific_request,fod_status,received_power_24,configuration,wpid,identification,extended_identification,proprietary,other) unit= optional=no since=1.0
+shape.QiPacketRow.bytes type=text unit= optional=no since=1.0
+shape.QiPacketRow.value type=i64 unit= optional=yes since=1.0
+shape.QiPacketRow.end_reason type=text unit= optional=yes since=1.0
+shape.QiPacketRow.charge type=text unit= optional=yes since=1.0
+shape.QiPacketRow.power_class type=i64 unit= optional=yes since=1.0
+shape.QiPacketRow.max_power type=i64 unit= optional=yes since=1.0
+shape.QiPacketRow.version type=text unit= optional=yes since=1.0
+shape.QiPacketRow.manufacturer type=text unit= optional=yes since=1.0
+shape.QiPacketRow.device_id type=text unit= optional=yes since=1.0
+shape.QiPacketRow.extended type=bool unit= optional=yes since=1.0
+shape.QiPacketRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.QiPacketEvent since=1.0
+shape.QiPacketEvent.time_s type=duration unit=s optional=no since=1.0
+shape.QiPacketEvent.header type=text unit= optional=no since=1.0
+shape.QiPacketEvent.message type=choice(signal_strength,end_power_transfer,control_error,received_power,charge_status,hold_off,general_request,renegotiate,specific_request,fod_status,received_power_24,configuration,wpid,identification,extended_identification,proprietary,other) unit= optional=no since=1.0
+shape.QiPacketEvent.bytes type=text unit= optional=no since=1.0
+shape.QiPacketEvent.value type=i64 unit= optional=yes since=1.0
+shape.QiPacketEvent.end_reason type=text unit= optional=yes since=1.0
+shape.QiPacketEvent.charge type=text unit= optional=yes since=1.0
+shape.QiPacketEvent.power_class type=i64 unit= optional=yes since=1.0
+shape.QiPacketEvent.max_power type=i64 unit= optional=yes since=1.0
+shape.QiPacketEvent.version type=text unit= optional=yes since=1.0
+shape.QiPacketEvent.manufacturer type=text unit= optional=yes since=1.0
+shape.QiPacketEvent.device_id type=text unit= optional=yes since=1.0
+shape.QiPacketEvent.extended type=bool unit= optional=yes since=1.0
+shape.QiPacketEvent.level_db type=f64 unit=dB optional=no since=1.0
+shape.RfidUhfFields since=1.0
+shape.RfidUhfFields.tari_us type=f64 unit=us optional=yes since=1.0
+shape.RfidUhfFields.rtcal_us type=f64 unit=us optional=yes since=1.0
+shape.RfidUhfFields.rtcal_tari type=f64 unit= optional=yes since=1.0
+shape.RfidUhfFields.trcal_us type=f64 unit=us optional=yes since=1.0
+shape.RfidUhfFields.blf_dr8_khz type=f64 unit=kHz optional=yes since=1.0
+shape.RfidUhfFields.blf_dr643_khz type=f64 unit=kHz optional=yes since=1.0
+shape.RfidUhfFields.commands_ok type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.commands_failed type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_query type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_query_rep type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_query_adjust type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_ack type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_nak type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_select type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_req_rn type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_read type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_write type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_kill type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_lock type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.count_access type=i64 unit= optional=no since=1.0
+shape.RfidUhfFields.reader_carrier type=bool unit= optional=no since=1.0
+shape.RfidUhfCommandRow since=1.0
+shape.RfidUhfCommandRow.time_s type=duration unit=s optional=no since=1.0
+shape.RfidUhfCommandRow.command type=choice(query,query_rep,query_adjust,ack,nak,select,req_rn,read,write,kill,lock,access) unit= optional=no since=1.0
+shape.RfidUhfCommandRow.session type=i64 unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.q type=i64 unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.slots type=i64 unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.target type=text unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.sel type=text unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.coding type=text unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.pilot type=bool unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.dr type=text unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.updn type=text unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.rn16 type=text unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.bank type=text unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.pointer type=i64 unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.word_count type=i64 unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.mask type=text unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.truncate type=bool unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.action type=i64 unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.lock_payload type=text unit= optional=yes since=1.0
+shape.RfidUhfCommandRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.RfidCommandEvent since=1.0
+shape.RfidCommandEvent.time_s type=duration unit=s optional=no since=1.0
+shape.RfidCommandEvent.command type=choice(query,query_rep,query_adjust,ack,nak,select,req_rn,read,write,kill,lock,access) unit= optional=no since=1.0
+shape.RfidCommandEvent.session type=i64 unit= optional=yes since=1.0
+shape.RfidCommandEvent.q type=i64 unit= optional=yes since=1.0
+shape.RfidCommandEvent.slots type=i64 unit= optional=yes since=1.0
+shape.RfidCommandEvent.target type=text unit= optional=yes since=1.0
+shape.RfidCommandEvent.sel type=text unit= optional=yes since=1.0
+shape.RfidCommandEvent.coding type=text unit= optional=yes since=1.0
+shape.RfidCommandEvent.pilot type=bool unit= optional=yes since=1.0
+shape.RfidCommandEvent.dr type=text unit= optional=yes since=1.0
+shape.RfidCommandEvent.updn type=text unit= optional=yes since=1.0
+shape.RfidCommandEvent.rn16 type=text unit= optional=yes since=1.0
+shape.RfidCommandEvent.bank type=text unit= optional=yes since=1.0
+shape.RfidCommandEvent.pointer type=i64 unit= optional=yes since=1.0
+shape.RfidCommandEvent.word_count type=i64 unit= optional=yes since=1.0
+shape.RfidCommandEvent.mask type=text unit= optional=yes since=1.0
+shape.RfidCommandEvent.truncate type=bool unit= optional=yes since=1.0
+shape.RfidCommandEvent.action type=i64 unit= optional=yes since=1.0
+shape.RfidCommandEvent.lock_payload type=text unit= optional=yes since=1.0
+shape.RfidCommandEvent.level_db type=f64 unit=dB optional=no since=1.0
+rfid_lf since=1.0
+rfid_lf.fields.TagsStatusFields since=1.0
+rfid_lf.fields.RfidLfFields since=1.0
+rfid_lf.fields.DecoderFields since=1.0
+rfid_lf.kept.tags since=1.0
+rfid_lf.kept.RfidLfFields.tags since=1.0
+rfid_lf.kept.RfidLfFields.reads since=1.0
+rfid_lf.kept.RfidLfFields.refused since=1.0
+rfid_lf.kept.RfidLfFields.last_tag since=1.0
+rfid_lf.table.tags row=RfidLfTagRow cap=500 since=1.0
+rfid_lf.event.rfid.tag fields=RfidTagEvent since=1.0
+rfid_lf.setting.bit_rates type=choice(both,rf64,rf32) unit= since=1.0
+rfid_lf.setting.codes type=choice(both,manchester,biphase) unit= since=1.0
+rfid_lf.setting.same_tag_s type=f64 unit=s since=1.0
+rfid_lf.setting.gate_sigmas type=f64 unit=sigma since=1.0
+rfid_lf.setting.gen_id type=text unit= since=1.0
+rfid_lf.setting.gen_id_s type=f64 unit=s since=1.0
+rfid_lf.setting.gen_depth type=f64 unit= since=1.0
+rfid_lf.setting.gen_rf_div type=choice(rf64,rf32) unit= since=1.0
+rfid_lf.setting.gen_coding type=choice(manchester,biphase) unit= since=1.0
+rfid_lf.setting.gen_bit_clock_ppm type=f64 unit=ppm since=1.0
+rfid_lf.setting.gen_start_s type=f64 unit=s since=1.0
+rfid_lf.setting.gen_invert type=bool unit= since=1.0
+rfid_lf.command.clear args= reply= since=1.0
+rfid_lf.command.reset args= reply= since=1.0
+qi since=1.0
+qi.fields.TagsStatusFields since=1.0
+qi.fields.QiFields since=1.0
+qi.fields.DecoderFields since=1.0
+qi.kept.packets since=1.0
+qi.kept.QiFields.packets_ok since=1.0
+qi.kept.QiFields.packets_failed since=1.0
+qi.kept.QiFields.last_message since=1.0
+qi.table.packets row=QiPacketRow cap=500 since=1.0
+qi.event.qi.packet fields=QiPacketEvent since=1.0
+qi.setting.gate_sigmas type=f64 unit=sigma since=1.0
+qi.setting.clock_tolerance_pct type=f64 unit=% since=1.0
+qi.setting.gen_depth type=f64 unit= since=1.0
+qi.setting.gen_bit_clock_ppm type=f64 unit=ppm since=1.0
+qi.setting.gen_wander_hz type=f64 unit=Hz since=1.0
+qi.setting.gen_wander_depth type=f64 unit= since=1.0
+qi.setting.gen_gap_s type=f64 unit=s since=1.0
+qi.setting.gen_preamble type=i64 unit=bits since=1.0
+qi.setting.gen_packets type=text unit= since=1.0
+qi.setting.gen_end_edge_bits type=f64 unit=bit since=1.0
+qi.command.clear args= reply= since=1.0
+qi.command.reset args= reply= since=1.0
+rfid_uhf since=1.0
+rfid_uhf.fields.TagsStatusFields since=1.0
+rfid_uhf.fields.RfidUhfFields since=1.0
+rfid_uhf.fields.DecoderFields since=1.0
+rfid_uhf.kept.commands since=1.0
+rfid_uhf.table.commands row=RfidUhfCommandRow cap=500 since=1.0
+rfid_uhf.event.rfid.command fields=RfidCommandEvent since=1.0
+rfid_uhf.setting.list_unchecked type=bool unit= since=1.0
+rfid_uhf.setting.gen_tari_us type=f64 unit=us since=1.0
+rfid_uhf.setting.gen_data1_tari type=f64 unit=Tari since=1.0
+rfid_uhf.setting.gen_pw_tari type=f64 unit=Tari since=1.0
+rfid_uhf.setting.gen_depth type=f64 unit= since=1.0
+rfid_uhf.setting.gen_trcal_rtcal type=f64 unit=RTcal since=1.0
+rfid_uhf.setting.gen_reader_clock_ppm type=f64 unit=ppm since=1.0
+rfid_uhf.setting.gen_gap_s type=f64 unit=s since=1.0
+rfid_uhf.setting.gen_lead_s type=f64 unit=s since=1.0
+rfid_uhf.setting.gen_commands type=text unit= since=1.0
+rfid_uhf.command.clear args= reply= since=1.0
+rfid_uhf.command.reset args= reply= since=1.0

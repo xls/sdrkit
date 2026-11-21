@@ -1,0 +1,1061 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "marine_intl",
+      "name": "Marine VHF, international",
+      "kind": "marine",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 2, Appendix 18 (REV.WRC-19) (Table of transmitting frequencies in the VHF maritime mobile band)",
+        "number": "Edition of 2024",
+        "date": "2024",
+        "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/1.49.48.en.102.pdf"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Recommendation ITU-R M.1371-6 (AIS)",
+          "date": "2026-02",
+          "clause": "Message 22",
+          "url": "https://www.itu.int/dms_pubrec/itu-r/rec/m/R-REC-M.1371-6-202602-I!!PDF-E.pdf"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "Marine VHF",
+          "service": "maritime_mobile",
+          "start_hz": 156000000,
+          "end_hz": 162037500,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 25000,
+          "channels": [
+            {
+              "name": "60",
+              "centre_hz": 156025000,
+              "pair_hz": 160625000,
+              "note": "ship"
+            },
+            {
+              "name": "1",
+              "centre_hz": 156050000,
+              "pair_hz": 160650000,
+              "note": "ship"
+            },
+            {
+              "name": "61",
+              "centre_hz": 156075000,
+              "pair_hz": 160675000,
+              "note": "ship"
+            },
+            {
+              "name": "2",
+              "centre_hz": 156100000,
+              "pair_hz": 160700000,
+              "note": "ship"
+            },
+            {
+              "name": "62",
+              "centre_hz": 156125000,
+              "pair_hz": 160725000,
+              "note": "ship"
+            },
+            {
+              "name": "3",
+              "centre_hz": 156150000,
+              "pair_hz": 160750000,
+              "note": "ship"
+            },
+            {
+              "name": "63",
+              "centre_hz": 156175000,
+              "pair_hz": 160775000,
+              "note": "ship"
+            },
+            {
+              "name": "4",
+              "centre_hz": 156200000,
+              "pair_hz": 160800000,
+              "note": "ship"
+            },
+            {
+              "name": "64",
+              "centre_hz": 156225000,
+              "pair_hz": 160825000,
+              "note": "ship"
+            },
+            {
+              "name": "5",
+              "centre_hz": 156250000,
+              "pair_hz": 160850000,
+              "note": "ship"
+            },
+            {
+              "name": "65",
+              "centre_hz": 156275000,
+              "pair_hz": 160875000,
+              "note": "ship"
+            },
+            {
+              "name": "6",
+              "centre_hz": 156300000,
+              "note": "intership, search and rescue"
+            },
+            {
+              "name": "66",
+              "centre_hz": 156325000,
+              "pair_hz": 160925000,
+              "note": "ship"
+            },
+            {
+              "name": "7",
+              "centre_hz": 156350000,
+              "pair_hz": 160950000,
+              "note": "ship"
+            },
+            {
+              "name": "67",
+              "centre_hz": 156375000,
+              "note": "small craft safety (some countries)"
+            },
+            {
+              "name": "8",
+              "centre_hz": 156400000
+            },
+            {
+              "name": "68",
+              "centre_hz": 156425000
+            },
+            {
+              "name": "9",
+              "centre_hz": 156450000
+            },
+            {
+              "name": "69",
+              "centre_hz": 156475000
+            },
+            {
+              "name": "10",
+              "centre_hz": 156500000
+            },
+            {
+              "name": "70",
+              "centre_hz": 156525000,
+              "note": "DSC only, no voice"
+            },
+            {
+              "name": "11",
+              "centre_hz": 156550000
+            },
+            {
+              "name": "71",
+              "centre_hz": 156575000
+            },
+            {
+              "name": "12",
+              "centre_hz": 156600000
+            },
+            {
+              "name": "72",
+              "centre_hz": 156625000
+            },
+            {
+              "name": "13",
+              "centre_hz": 156650000,
+              "note": "bridge to bridge, navigation safety"
+            },
+            {
+              "name": "73",
+              "centre_hz": 156675000
+            },
+            {
+              "name": "14",
+              "centre_hz": 156700000
+            },
+            {
+              "name": "74",
+              "centre_hz": 156725000
+            },
+            {
+              "name": "15",
+              "centre_hz": 156750000
+            },
+            {
+              "name": "75",
+              "centre_hz": 156775000,
+              "note": "low power, navigation"
+            },
+            {
+              "name": "16",
+              "centre_hz": 156800000,
+              "note": "distress, safety and calling"
+            },
+            {
+              "name": "76",
+              "centre_hz": 156825000,
+              "note": "low power, navigation"
+            },
+            {
+              "name": "17",
+              "centre_hz": 156850000
+            },
+            {
+              "name": "77",
+              "centre_hz": 156875000
+            },
+            {
+              "name": "18",
+              "centre_hz": 156900000,
+              "pair_hz": 161500000,
+              "note": "ship"
+            },
+            {
+              "name": "78",
+              "centre_hz": 156925000,
+              "pair_hz": 161525000,
+              "note": "ship"
+            },
+            {
+              "name": "19",
+              "centre_hz": 156950000,
+              "pair_hz": 161550000,
+              "note": "ship"
+            },
+            {
+              "name": "79",
+              "centre_hz": 156975000,
+              "pair_hz": 161575000,
+              "note": "ship"
+            },
+            {
+              "name": "20",
+              "centre_hz": 157000000,
+              "pair_hz": 161600000,
+              "note": "ship"
+            },
+            {
+              "name": "80",
+              "centre_hz": 157025000,
+              "pair_hz": 161625000,
+              "note": "ship"
+            },
+            {
+              "name": "21",
+              "centre_hz": 157050000,
+              "pair_hz": 161650000,
+              "note": "ship"
+            },
+            {
+              "name": "81",
+              "centre_hz": 157075000,
+              "pair_hz": 161675000,
+              "note": "ship"
+            },
+            {
+              "name": "22",
+              "centre_hz": 157100000,
+              "pair_hz": 161700000,
+              "note": "ship"
+            },
+            {
+              "name": "82",
+              "centre_hz": 157125000,
+              "pair_hz": 161725000,
+              "note": "ship"
+            },
+            {
+              "name": "23",
+              "centre_hz": 157150000,
+              "pair_hz": 161750000,
+              "note": "ship"
+            },
+            {
+              "name": "83",
+              "centre_hz": 157175000,
+              "pair_hz": 161775000,
+              "note": "ship"
+            },
+            {
+              "name": "24",
+              "centre_hz": 157200000,
+              "pair_hz": 161800000,
+              "note": "ship"
+            },
+            {
+              "name": "84",
+              "centre_hz": 157225000,
+              "pair_hz": 161825000,
+              "note": "ship"
+            },
+            {
+              "name": "25",
+              "centre_hz": 157250000,
+              "pair_hz": 161850000,
+              "note": "ship"
+            },
+            {
+              "name": "85",
+              "centre_hz": 157275000,
+              "pair_hz": 161875000,
+              "note": "ship"
+            },
+            {
+              "name": "26",
+              "centre_hz": 157300000,
+              "pair_hz": 161900000,
+              "note": "ship"
+            },
+            {
+              "name": "86",
+              "centre_hz": 157325000,
+              "pair_hz": 161925000,
+              "note": "ship"
+            },
+            {
+              "name": "27",
+              "centre_hz": 157350000,
+              "note": "simplex (1027 in Appendix 18)"
+            },
+            {
+              "name": "87",
+              "centre_hz": 157375000
+            },
+            {
+              "name": "28",
+              "centre_hz": 157400000,
+              "note": "simplex (1028 in Appendix 18)"
+            },
+            {
+              "name": "88",
+              "centre_hz": 157425000
+            },
+            {
+              "name": "60",
+              "centre_hz": 160625000,
+              "pair_hz": 156025000,
+              "note": "coast station"
+            },
+            {
+              "name": "1",
+              "centre_hz": 160650000,
+              "pair_hz": 156050000,
+              "note": "coast station"
+            },
+            {
+              "name": "61",
+              "centre_hz": 160675000,
+              "pair_hz": 156075000,
+              "note": "coast station"
+            },
+            {
+              "name": "2",
+              "centre_hz": 160700000,
+              "pair_hz": 156100000,
+              "note": "coast station"
+            },
+            {
+              "name": "62",
+              "centre_hz": 160725000,
+              "pair_hz": 156125000,
+              "note": "coast station"
+            },
+            {
+              "name": "3",
+              "centre_hz": 160750000,
+              "pair_hz": 156150000,
+              "note": "coast station"
+            },
+            {
+              "name": "63",
+              "centre_hz": 160775000,
+              "pair_hz": 156175000,
+              "note": "coast station"
+            },
+            {
+              "name": "4",
+              "centre_hz": 160800000,
+              "pair_hz": 156200000,
+              "note": "coast station"
+            },
+            {
+              "name": "64",
+              "centre_hz": 160825000,
+              "pair_hz": 156225000,
+              "note": "coast station"
+            },
+            {
+              "name": "5",
+              "centre_hz": 160850000,
+              "pair_hz": 156250000,
+              "note": "coast station"
+            },
+            {
+              "name": "65",
+              "centre_hz": 160875000,
+              "pair_hz": 156275000,
+              "note": "coast station"
+            },
+            {
+              "name": "66",
+              "centre_hz": 160925000,
+              "pair_hz": 156325000,
+              "note": "coast station"
+            },
+            {
+              "name": "7",
+              "centre_hz": 160950000,
+              "pair_hz": 156350000,
+              "note": "coast station"
+            },
+            {
+              "name": "18",
+              "centre_hz": 161500000,
+              "pair_hz": 156900000,
+              "note": "coast station"
+            },
+            {
+              "name": "78",
+              "centre_hz": 161525000,
+              "pair_hz": 156925000,
+              "note": "coast station"
+            },
+            {
+              "name": "19",
+              "centre_hz": 161550000,
+              "pair_hz": 156950000,
+              "note": "coast station"
+            },
+            {
+              "name": "79",
+              "centre_hz": 161575000,
+              "pair_hz": 156975000,
+              "note": "coast station"
+            },
+            {
+              "name": "20",
+              "centre_hz": 161600000,
+              "pair_hz": 157000000,
+              "note": "coast station"
+            },
+            {
+              "name": "80",
+              "centre_hz": 161625000,
+              "pair_hz": 157025000,
+              "note": "coast station"
+            },
+            {
+              "name": "21",
+              "centre_hz": 161650000,
+              "pair_hz": 157050000,
+              "note": "coast station"
+            },
+            {
+              "name": "81",
+              "centre_hz": 161675000,
+              "pair_hz": 157075000,
+              "note": "coast station"
+            },
+            {
+              "name": "22",
+              "centre_hz": 161700000,
+              "pair_hz": 157100000,
+              "note": "coast station"
+            },
+            {
+              "name": "82",
+              "centre_hz": 161725000,
+              "pair_hz": 157125000,
+              "note": "coast station"
+            },
+            {
+              "name": "23",
+              "centre_hz": 161750000,
+              "pair_hz": 157150000,
+              "note": "coast station"
+            },
+            {
+              "name": "83",
+              "centre_hz": 161775000,
+              "pair_hz": 157175000,
+              "note": "coast station"
+            },
+            {
+              "name": "24",
+              "centre_hz": 161800000,
+              "pair_hz": 157200000,
+              "note": "coast station"
+            },
+            {
+              "name": "84",
+              "centre_hz": 161825000,
+              "pair_hz": 157225000,
+              "note": "coast station"
+            },
+            {
+              "name": "25",
+              "centre_hz": 161850000,
+              "pair_hz": 157250000,
+              "note": "coast station"
+            },
+            {
+              "name": "85",
+              "centre_hz": 161875000,
+              "pair_hz": 157275000,
+              "note": "coast station"
+            },
+            {
+              "name": "26",
+              "centre_hz": 161900000,
+              "pair_hz": 157300000,
+              "note": "coast station"
+            },
+            {
+              "name": "86",
+              "centre_hz": 161925000,
+              "pair_hz": 157325000,
+              "note": "coast station"
+            }
+          ]
+        },
+        {
+          "name": "AIS",
+          "service": "maritime_mobile",
+          "start_hz": 161962500,
+          "end_hz": 162037500,
+          "modes": [
+            "ais"
+          ],
+          "channel_width_hz": 25000,
+          "channels": [
+            {
+              "name": "AIS 1",
+              "centre_hz": 161975000,
+              "note": "AIS channel A (2087)"
+            },
+            {
+              "name": "AIS 2",
+              "centre_hz": 162025000,
+              "note": "AIS channel B (2088)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "marine_us",
+      "name": "Marine VHF, United States",
+      "kind": "marine",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47",
+        "number": "47 CFR 80.373",
+        "date": "2026-11-05",
+        "clause": "(f)",
+        "url": "https://www.ecfr.gov/current/title-47/section-80.373"
+      },
+      "also": [
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 80.371",
+          "date": "2026-11-05",
+          "clause": "(c)(1)(i)",
+          "url": "https://www.ecfr.gov/current/title-47/section-80.371"
+        },
+        {
+          "publisher": "NOAA National Weather Service",
+          "title": "NOAA Weather Radio FAQ",
+          "date": "2026",
+          "url": "https://www.weather.gov/phi/nwrfaq"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the simplex A channels and the weather channels are confirmed; channels not used in US waters are not yet marked",
+      "bands": [
+        {
+          "name": "Marine VHF",
+          "service": "maritime_mobile",
+          "start_hz": 156000000,
+          "end_hz": 162037500,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 25000,
+          "channels": [
+            {
+              "name": "60",
+              "centre_hz": 156025000,
+              "pair_hz": 160625000,
+              "note": "ship"
+            },
+            {
+              "name": "1A",
+              "centre_hz": 156050000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "61",
+              "centre_hz": 156075000,
+              "pair_hz": 160675000,
+              "note": "ship"
+            },
+            {
+              "name": "2",
+              "centre_hz": 156100000,
+              "pair_hz": 160700000,
+              "note": "ship"
+            },
+            {
+              "name": "62",
+              "centre_hz": 156125000,
+              "pair_hz": 160725000,
+              "note": "ship"
+            },
+            {
+              "name": "3",
+              "centre_hz": 156150000,
+              "pair_hz": 160750000,
+              "note": "ship"
+            },
+            {
+              "name": "63A",
+              "centre_hz": 156175000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "4",
+              "centre_hz": 156200000,
+              "pair_hz": 160800000,
+              "note": "ship"
+            },
+            {
+              "name": "64",
+              "centre_hz": 156225000,
+              "pair_hz": 160825000,
+              "note": "ship"
+            },
+            {
+              "name": "5A",
+              "centre_hz": 156250000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "65A",
+              "centre_hz": 156275000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "6",
+              "centre_hz": 156300000,
+              "note": "intership, search and rescue"
+            },
+            {
+              "name": "66A",
+              "centre_hz": 156325000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "7A",
+              "centre_hz": 156350000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "67",
+              "centre_hz": 156375000,
+              "note": "small craft safety (some countries)"
+            },
+            {
+              "name": "8",
+              "centre_hz": 156400000
+            },
+            {
+              "name": "68",
+              "centre_hz": 156425000
+            },
+            {
+              "name": "9",
+              "centre_hz": 156450000
+            },
+            {
+              "name": "69",
+              "centre_hz": 156475000
+            },
+            {
+              "name": "10",
+              "centre_hz": 156500000
+            },
+            {
+              "name": "70",
+              "centre_hz": 156525000,
+              "note": "DSC only, no voice"
+            },
+            {
+              "name": "11",
+              "centre_hz": 156550000
+            },
+            {
+              "name": "71",
+              "centre_hz": 156575000
+            },
+            {
+              "name": "12",
+              "centre_hz": 156600000
+            },
+            {
+              "name": "72",
+              "centre_hz": 156625000
+            },
+            {
+              "name": "13",
+              "centre_hz": 156650000,
+              "note": "bridge to bridge, navigation safety"
+            },
+            {
+              "name": "73",
+              "centre_hz": 156675000
+            },
+            {
+              "name": "14",
+              "centre_hz": 156700000
+            },
+            {
+              "name": "74",
+              "centre_hz": 156725000
+            },
+            {
+              "name": "15",
+              "centre_hz": 156750000
+            },
+            {
+              "name": "75",
+              "centre_hz": 156775000,
+              "note": "low power, navigation"
+            },
+            {
+              "name": "16",
+              "centre_hz": 156800000,
+              "note": "distress, safety and calling"
+            },
+            {
+              "name": "76",
+              "centre_hz": 156825000,
+              "note": "low power, navigation"
+            },
+            {
+              "name": "17",
+              "centre_hz": 156850000
+            },
+            {
+              "name": "77",
+              "centre_hz": 156875000
+            },
+            {
+              "name": "18A",
+              "centre_hz": 156900000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "78A",
+              "centre_hz": 156925000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "19A",
+              "centre_hz": 156950000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "79A",
+              "centre_hz": 156975000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "20A",
+              "centre_hz": 157000000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "80A",
+              "centre_hz": 157025000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "21",
+              "centre_hz": 157050000,
+              "pair_hz": 161650000,
+              "note": "ship"
+            },
+            {
+              "name": "81",
+              "centre_hz": 157075000,
+              "pair_hz": 161675000,
+              "note": "ship"
+            },
+            {
+              "name": "22A",
+              "centre_hz": 157100000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "82",
+              "centre_hz": 157125000,
+              "pair_hz": 161725000,
+              "note": "ship"
+            },
+            {
+              "name": "23",
+              "centre_hz": 157150000,
+              "pair_hz": 161750000,
+              "note": "ship"
+            },
+            {
+              "name": "83",
+              "centre_hz": 157175000,
+              "pair_hz": 161775000,
+              "note": "ship"
+            },
+            {
+              "name": "24",
+              "centre_hz": 157200000,
+              "pair_hz": 161800000,
+              "note": "ship"
+            },
+            {
+              "name": "84",
+              "centre_hz": 157225000,
+              "pair_hz": 161825000,
+              "note": "ship"
+            },
+            {
+              "name": "25",
+              "centre_hz": 157250000,
+              "pair_hz": 161850000,
+              "note": "ship"
+            },
+            {
+              "name": "85",
+              "centre_hz": 157275000,
+              "pair_hz": 161875000,
+              "note": "ship"
+            },
+            {
+              "name": "26",
+              "centre_hz": 157300000,
+              "pair_hz": 161900000,
+              "note": "ship"
+            },
+            {
+              "name": "86",
+              "centre_hz": 157325000,
+              "pair_hz": 161925000,
+              "note": "ship"
+            },
+            {
+              "name": "27",
+              "centre_hz": 157350000,
+              "note": "simplex (1027 in Appendix 18)"
+            },
+            {
+              "name": "87",
+              "centre_hz": 157375000
+            },
+            {
+              "name": "28",
+              "centre_hz": 157400000,
+              "note": "simplex (1028 in Appendix 18)"
+            },
+            {
+              "name": "88A",
+              "centre_hz": 157425000,
+              "note": "simplex on the ship frequency (47 CFR 80.373(f))"
+            },
+            {
+              "name": "60",
+              "centre_hz": 160625000,
+              "pair_hz": 156025000,
+              "note": "coast station"
+            },
+            {
+              "name": "61",
+              "centre_hz": 160675000,
+              "pair_hz": 156075000,
+              "note": "coast station"
+            },
+            {
+              "name": "2",
+              "centre_hz": 160700000,
+              "pair_hz": 156100000,
+              "note": "coast station"
+            },
+            {
+              "name": "62",
+              "centre_hz": 160725000,
+              "pair_hz": 156125000,
+              "note": "coast station"
+            },
+            {
+              "name": "3",
+              "centre_hz": 160750000,
+              "pair_hz": 156150000,
+              "note": "coast station"
+            },
+            {
+              "name": "4",
+              "centre_hz": 160800000,
+              "pair_hz": 156200000,
+              "note": "coast station"
+            },
+            {
+              "name": "64",
+              "centre_hz": 160825000,
+              "pair_hz": 156225000,
+              "note": "coast station"
+            },
+            {
+              "name": "21",
+              "centre_hz": 161650000,
+              "pair_hz": 157050000,
+              "note": "coast station"
+            },
+            {
+              "name": "81",
+              "centre_hz": 161675000,
+              "pair_hz": 157075000,
+              "note": "coast station"
+            },
+            {
+              "name": "82",
+              "centre_hz": 161725000,
+              "pair_hz": 157125000,
+              "note": "coast station"
+            },
+            {
+              "name": "23",
+              "centre_hz": 161750000,
+              "pair_hz": 157150000,
+              "note": "coast station"
+            },
+            {
+              "name": "83",
+              "centre_hz": 161775000,
+              "pair_hz": 157175000,
+              "note": "coast station"
+            },
+            {
+              "name": "24",
+              "centre_hz": 161800000,
+              "pair_hz": 157200000,
+              "note": "coast station"
+            },
+            {
+              "name": "84",
+              "centre_hz": 161825000,
+              "pair_hz": 157225000,
+              "note": "coast station"
+            },
+            {
+              "name": "25",
+              "centre_hz": 161850000,
+              "pair_hz": 157250000,
+              "note": "coast station"
+            },
+            {
+              "name": "85",
+              "centre_hz": 161875000,
+              "pair_hz": 157275000,
+              "note": "coast station"
+            },
+            {
+              "name": "26",
+              "centre_hz": 161900000,
+              "pair_hz": 157300000,
+              "note": "coast station"
+            },
+            {
+              "name": "86",
+              "centre_hz": 161925000,
+              "pair_hz": 157325000,
+              "note": "coast station"
+            }
+          ]
+        },
+        {
+          "name": "AIS",
+          "service": "maritime_mobile",
+          "start_hz": 161962500,
+          "end_hz": 162037500,
+          "modes": [
+            "ais"
+          ],
+          "channel_width_hz": 25000,
+          "channels": [
+            {
+              "name": "AIS 1",
+              "centre_hz": 161975000,
+              "note": "AIS channel A (2087)"
+            },
+            {
+              "name": "AIS 2",
+              "centre_hz": 162025000,
+              "note": "AIS channel B (2088)"
+            }
+          ]
+        },
+        {
+          "name": "NOAA Weather Radio",
+          "service": "broadcasting",
+          "start_hz": 162387500,
+          "end_hz": 162562500,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "channel_width_hz": 25000,
+          "channels": [
+            {
+              "name": "WX2",
+              "centre_hz": 162400000,
+              "note": "weather radio"
+            },
+            {
+              "name": "WX4",
+              "centre_hz": 162425000,
+              "note": "weather radio"
+            },
+            {
+              "name": "WX5",
+              "centre_hz": 162450000,
+              "note": "weather radio"
+            },
+            {
+              "name": "WX3",
+              "centre_hz": 162475000,
+              "note": "weather radio"
+            },
+            {
+              "name": "WX6",
+              "centre_hz": 162500000,
+              "note": "weather radio"
+            },
+            {
+              "name": "WX7",
+              "centre_hz": 162525000,
+              "note": "weather radio"
+            },
+            {
+              "name": "WX1",
+              "centre_hz": 162550000,
+              "note": "weather radio"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

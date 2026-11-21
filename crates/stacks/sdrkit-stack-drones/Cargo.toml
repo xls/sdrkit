@@ -1,0 +1,28 @@
+[package]
+name = "sdrkit-stack-drones"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Drones and glider tracking: Drone Remote ID (Bluetooth LE and Wi-Fi), DJI DroneID and drone link shapes, FLARM, ADS-L, OGN, 2.4 GHz radio-control links, MAVLink on SiK radios"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-proto-wlan-phy = { path = "../../proto/sdrkit-proto-wlan-phy" }
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The record of the declarations that a generic consumer reads.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }

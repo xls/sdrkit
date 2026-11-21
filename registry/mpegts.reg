@@ -1,0 +1,213 @@
+# The interface of the stack family mpegts. The registry test of the family writes this file.
+family mpegts version=1.1
+shape.TsMonitorFields since=1.0
+shape.TsMonitorFields.packets type=i64 unit= optional=no since=1.0
+shape.TsMonitorFields.flagged type=i64 unit= optional=no since=1.0
+shape.TsMonitorFields.scrambled type=i64 unit= optional=no since=1.0
+shape.TsMonitorFields.numbered_good type=i64 unit= optional=no since=1.0
+shape.TsMonitorFields.numbered_wrong type=i64 unit= optional=no since=1.0
+shape.TsMonitorFields.numbered_gaps type=i64 unit= optional=no since=1.0
+shape.TsMonitorFields.bitrate_bps type=f64 unit=bit/s optional=no since=1.0
+shape.TsMonitorFields.pat_seen type=bool unit= optional=no since=1.0
+shape.TsMonitorFields.services type=text unit= optional=no since=1.0
+shape.TsDemuxFields since=1.0
+shape.TsDemuxFields.packets type=i64 unit= optional=no since=1.0
+shape.TsDemuxFields.null_packets type=i64 unit= optional=no since=1.0
+shape.TsDemuxFields.tei_packets type=i64 unit= optional=no since=1.0
+shape.TsDemuxFields.cc_errors type=i64 unit= optional=no since=1.0
+shape.TsDemuxFields.mux_kbps type=f64 unit=kbit/s optional=no since=1.0
+shape.TsDemuxFields.null_kbps type=f64 unit=kbit/s optional=no since=1.0
+shape.TsDemuxFields.selected_service type=i64 unit= optional=yes since=1.0
+shape.TsDemuxFields.selected_audio type=i64 unit= optional=yes since=1.0
+shape.TsDemuxFields.selected_subtitle type=i64 unit= optional=yes since=1.0
+shape.TsDemuxFields.player_status type=choice(starting,playing,scrambled,no_service) unit= optional=no since=1.0
+shape.TsDemuxFields.audio_decoded type=bool unit= optional=yes since=1.1
+shape.PsiSiFields since=1.0
+shape.PsiSiFields.network_name type=text unit= optional=no since=1.0
+shape.PsiSiFields.network_id type=i64 unit= optional=no since=1.0
+shape.PsiSiFields.onid type=i64 unit= optional=no since=1.0
+shape.PsiSiFields.tsid type=i64 unit= optional=no since=1.0
+shape.PsiSiFields.service_count type=i64 unit= optional=no since=1.0
+shape.PsiSiFields.utc type=time unit= optional=yes since=1.0
+shape.PsiSiFields.local_offset_min type=i64 unit=min optional=yes since=1.0
+shape.DvbSubtitleFields since=1.0
+shape.DvbSubtitleFields.display_sets type=i64 unit= optional=no since=1.0
+shape.TeletextStreamFields since=1.0
+shape.TeletextStreamFields.data_units type=i64 unit= optional=no since=1.0
+shape.TeletextStreamFields.pages type=i64 unit= optional=no since=1.0
+shape.TeletextStreamFields.page type=i64 unit= optional=no since=1.0
+shape.TeletextStreamFields.page_text type=text unit= optional=yes since=1.0
+shape.PesVideoFields since=1.0
+shape.PesVideoFields.codec type=choice(mpeg1video,mpeg2video,h264,hevc,avs,avs2,avs3,mp2,aac,ac3,eac3,ac4,dts,dra,lpcm,opus,teletext,dvbsub,data) unit= optional=no since=1.0
+shape.PesVideoFields.pid type=i64 unit= optional=no since=1.0
+shape.PesVideoFields.width type=i64 unit=px optional=no since=1.0
+shape.PesVideoFields.height type=i64 unit=px optional=no since=1.0
+shape.PesVideoFields.frame_rate type=f64 unit=Hz optional=yes since=1.0
+shape.PesAudioFields since=1.0
+shape.PesAudioFields.codec type=choice(mpeg1video,mpeg2video,h264,hevc,avs,avs2,avs3,mp2,aac,ac3,eac3,ac4,dts,dra,lpcm,opus,teletext,dvbsub,data) unit= optional=no since=1.0
+shape.PesAudioFields.pid type=i64 unit= optional=no since=1.0
+shape.PesAudioFields.sample_rate type=hz unit=Hz optional=no since=1.0
+shape.PesAudioFields.channels type=i64 unit= optional=no since=1.0
+shape.TeletextPageRow since=1.0
+shape.TeletextPageRow.page type=i64 unit= optional=no since=1.0
+shape.TeletextPageRow.subpages type=i64 unit= optional=no since=1.0
+shape.TeletextSubpageRow since=1.0
+shape.TeletextSubpageRow.page_row type=text unit= optional=no refers_to=teletext_pages since=1.0
+shape.TeletextSubpageRow.subcode type=i64 unit= optional=no since=1.0
+shape.TeletextSubpageRow.version type=i64 unit= optional=no since=1.0
+shape.TsServiceRow since=1.0
+shape.TsServiceRow.service_id type=i64 unit= optional=no since=1.0
+shape.TsServiceRow.name type=text unit= optional=no since=1.0
+shape.TsServiceRow.provider type=text unit= optional=no since=1.0
+shape.TsServiceRow.service_type type=i64 unit= optional=no since=1.0
+shape.TsServiceRow.kind type=choice(tv,radio,data,teletext,other,unknown) unit= optional=no since=1.0
+shape.TsServiceRow.lcn type=i64 unit= optional=no since=1.0
+shape.TsServiceRow.visible type=bool unit= optional=no since=1.0
+shape.TsServiceRow.scrambled type=bool unit= optional=no since=1.0
+shape.TsServiceRow.ca_state type=choice(unknown,clear,flagged_clear,scrambled) unit= optional=no since=1.0
+shape.TsServiceRow.pmt_pid type=i64 unit= optional=no since=1.0
+shape.TsServiceRow.pcr_pid type=i64 unit= optional=no since=1.0
+shape.TsServiceRow.running_status type=i64 unit= optional=no since=1.0
+shape.TsServiceRow.in_pat type=bool unit= optional=no since=1.0
+shape.TsServiceRow.eit_schedule type=bool unit= optional=no since=1.0
+shape.TsServiceRow.eit_present_following type=bool unit= optional=no since=1.0
+shape.TsServiceRow.onid type=i64 unit= optional=no since=1.0
+shape.TsServiceRow.tsid type=i64 unit= optional=no since=1.0
+shape.TsServiceRow.now_title type=text unit= optional=yes since=1.0
+shape.TsServiceRow.now_text type=text unit= optional=yes since=1.0
+shape.TsServiceRow.now_start type=time unit= optional=yes since=1.0
+shape.TsServiceRow.now_duration type=duration unit=s optional=yes since=1.0
+shape.TsServiceRow.next_title type=text unit= optional=yes since=1.0
+shape.TsServiceRow.next_text type=text unit= optional=yes since=1.0
+shape.TsServiceRow.next_start type=time unit= optional=yes since=1.0
+shape.TsServiceRow.next_duration type=duration unit=s optional=yes since=1.0
+shape.TsTrackRow since=1.0
+shape.TsTrackRow.service type=text unit= optional=no refers_to=services since=1.0
+shape.TsTrackRow.pid type=i64 unit= optional=no since=1.0
+shape.TsTrackRow.stream_type type=i64 unit= optional=no since=1.0
+shape.TsTrackRow.kind type=choice(video,audio,subtitles,teletext,data) unit= optional=yes since=1.0
+shape.TsTrackRow.codec type=choice(mpeg1video,mpeg2video,h264,hevc,avs,avs2,avs3,mp2,aac,ac3,eac3,ac4,dts,dra,lpcm,opus,teletext,dvbsub,data) unit= optional=yes since=1.0
+shape.TsTrackRow.packaging type=choice(annexb,elementary,adts,latm,frames,smpte302m,pes,none) unit= optional=yes since=1.0
+shape.TsTrackRow.fourcc type=text unit= optional=yes since=1.0
+shape.TsTrackRow.lang type=text unit= optional=no since=1.0
+shape.TsTrackRow.audio_type type=i64 unit= optional=no since=1.0
+shape.TsTrackRow.audio_description type=bool unit= optional=no since=1.0
+shape.TsTrackRow.hard_of_hearing type=bool unit= optional=no since=1.0
+shape.TsTrackRow.component_tag type=i64 unit= optional=yes since=1.0
+shape.TsTrackRow.kbps type=f64 unit=kbit/s optional=no since=1.0
+shape.TsTrackRow.scrambled type=bool unit= optional=no since=1.0
+shape.TsTrackRow.profile type=text unit= optional=yes since=1.0
+shape.TsTrackRow.level type=text unit= optional=yes since=1.0
+shape.TsTrackRow.width type=i64 unit=px optional=yes since=1.0
+shape.TsTrackRow.height type=i64 unit=px optional=yes since=1.0
+shape.TsTrackRow.frame_rate type=f64 unit=Hz optional=yes since=1.0
+shape.TsTrackRow.aspect type=text unit= optional=yes since=1.0
+shape.TsTrackRow.interlaced type=bool unit= optional=yes since=1.0
+shape.TsTrackRow.sample_rate type=hz unit=Hz optional=yes since=1.0
+shape.TsTrackRow.channels type=i64 unit= optional=yes since=1.0
+shape.TsTrackRow.layout type=text unit= optional=yes since=1.0
+shape.TsTrackRow.bitrate_kbps type=i64 unit=kbit/s optional=yes since=1.0
+shape.TsTrackRow.object_type type=text unit= optional=yes since=1.0
+shape.TsTrackRow.entry_type type=i64 unit= optional=yes since=1.0
+shape.TsTrackRow.composition_page type=i64 unit= optional=yes since=1.0
+shape.TsTrackRow.ancillary_page type=i64 unit= optional=yes since=1.0
+shape.TsTrackRow.magazine type=i64 unit= optional=yes since=1.0
+shape.TsTrackRow.teletext_page type=i64 unit= optional=yes since=1.0
+shape.TsGuideRow since=1.0
+shape.TsGuideRow.service type=text unit= optional=no refers_to=services since=1.0
+shape.TsGuideRow.onid type=i64 unit= optional=no since=1.0
+shape.TsGuideRow.tsid type=i64 unit= optional=no since=1.0
+shape.TsGuideRow.service_id type=i64 unit= optional=no since=1.0
+shape.TsGuideRow.event_id type=i64 unit= optional=no since=1.0
+shape.TsGuideRow.start type=time unit= optional=no since=1.0
+shape.TsGuideRow.duration type=duration unit=s optional=no since=1.0
+shape.TsGuideRow.running_status type=i64 unit= optional=no since=1.0
+shape.TsGuideRow.title type=text unit= optional=no since=1.0
+shape.TsGuideRow.text type=text unit= optional=no since=1.0
+shape.TsGuideRow.extended type=text unit= optional=no since=1.0
+shape.TsGuideRow.lang type=text unit= optional=no since=1.0
+shape.TsGuideRow.genre type=i64 unit= optional=yes since=1.0
+shape.TsGuideRow.content type=bytes unit= optional=no since=1.0
+shape.TsGuideRow.min_age type=i64 unit= optional=no since=1.0
+shape.TsGuideRow.crid_programme type=text unit= optional=no since=1.0
+shape.TsGuideRow.crid_series type=text unit= optional=no since=1.0
+shape.TsGuideRow.free_ca type=bool unit= optional=no since=1.0
+shape.TsGuideRow.other_ts type=bool unit= optional=no since=1.0
+shape.TsGuideRow.schedule type=bool unit= optional=no since=1.0
+shape.TsGuideRatingRow since=1.0
+shape.TsGuideRatingRow.event type=text unit= optional=no refers_to=guide since=1.0
+shape.TsGuideRatingRow.country type=text unit= optional=no since=1.0
+shape.TsGuideRatingRow.rating type=i64 unit= optional=no since=1.0
+shape.TsPidRow since=1.0
+shape.TsPidRow.pid type=i64 unit= optional=no since=1.0
+shape.TsPidRow.label type=text unit= optional=no since=1.0
+shape.TsPidRow.packets type=i64 unit= optional=no since=1.0
+shape.TsPidRow.cc_errors type=i64 unit= optional=no since=1.0
+shape.TsPidRow.tei type=i64 unit= optional=no since=1.0
+shape.TsPidRow.kbps type=f64 unit=kbit/s optional=no since=1.0
+shape.TsPidRow.scrambled type=bool unit= optional=no since=1.0
+shape.TsSectionRow since=1.0
+shape.TsSectionRow.accepted type=i64 unit= optional=no since=1.0
+shape.TsSectionRow.crc type=i64 unit= optional=no since=1.0
+shape.TsSectionRow.length type=i64 unit= optional=no since=1.0
+shape.TsSectionRow.other type=i64 unit= optional=no since=1.0
+shape.TeletextPageEvent since=1.0
+shape.TeletextPageEvent.page type=i64 unit= optional=no since=1.0
+shape.TeletextPageEvent.subcode type=i64 unit= optional=no since=1.0
+shape.TeletextPageEvent.version type=i64 unit= optional=no since=1.0
+shape.TeletextPageEvent.text type=text unit= optional=no since=1.0
+shape.TsServiceListEvent since=1.0
+shape.TsServiceListEvent.tsid type=i64 unit= optional=no since=1.0
+shape.TsServiceListEvent.onid type=i64 unit= optional=no since=1.0
+shape.TsServiceListEvent.network_id type=i64 unit= optional=no since=1.0
+shape.TsServiceListEvent.network_name type=text unit= optional=no since=1.0
+shape.TsServiceListEvent.service_count type=i64 unit= optional=no since=1.0
+shape.TsGuideEvent since=1.0
+shape.TsGuideEvent.onid type=i64 unit= optional=no since=1.0
+shape.TsGuideEvent.tsid type=i64 unit= optional=no since=1.0
+shape.TsGuideEvent.service_id type=i64 unit= optional=no since=1.0
+shape.TsGuideEvent.event_id type=i64 unit= optional=no since=1.0
+shape.TsGuideEvent.start type=time unit= optional=no since=1.0
+shape.TsGuideEvent.duration type=duration unit=s optional=no since=1.0
+shape.TsGuideEvent.title type=text unit= optional=no since=1.0
+shape.TsTimeEvent since=1.0
+shape.TsTimeEvent.utc type=time unit= optional=no since=1.0
+shape.TsTimeEvent.local_offset_min type=i64 unit=min optional=yes since=1.0
+shape.TsNetworkEvent since=1.0
+shape.TsNetworkEvent.network_id type=i64 unit= optional=no since=1.0
+shape.TsNetworkEvent.network_name type=text unit= optional=no since=1.0
+shape.TsNetworkEvent.onid type=i64 unit= optional=no since=1.0
+shape.TsNetworkEvent.tsid type=i64 unit= optional=no since=1.0
+shape.DvbSubtitleEvent since=1.0
+shape.DvbSubtitleEvent.pts type=i64 unit= optional=yes since=1.0
+shape.DvbSubtitleEvent.timeout_s type=duration unit=s optional=no since=1.0
+shape.DvbSubtitleEvent.width type=i64 unit=px optional=no since=1.0
+shape.DvbSubtitleEvent.height type=i64 unit=px optional=no since=1.0
+shape.DvbSubtitleEvent.seq type=i64 unit= optional=no since=1.0
+shape.DvbSubtitleEvent.region_count type=i64 unit= optional=no since=1.0
+mpegts since=1.0
+mpegts.fields.TsMonitorFields since=1.0
+mpegts.component.monitor.fields.TsMonitorFields shared=packets;flagged;scrambled;numbered_good;numbered_wrong;numbered_gaps;bitrate_bps;pat_seen;services since=1.0
+mpegts.component.ts_demux.fields.TsDemuxFields shared=packets since=1.0
+mpegts.component.psi_si.fields.PsiSiFields since=1.0
+mpegts.component.dvb_subtitle.fields.DvbSubtitleFields since=1.0
+mpegts.component.teletext.fields.TeletextStreamFields since=1.0
+mpegts.component.pes_video.fields.PesVideoFields since=1.0
+mpegts.component.pes_audio.fields.PesAudioFields since=1.0
+mpegts.table.teletext_pages row=TeletextPageRow cap=800 writers=teletext since=1.0
+mpegts.table.teletext_subpages row=TeletextSubpageRow cap=8192 writers=teletext since=1.0
+mpegts.table.services row=TsServiceRow cap=1000 writers=ts_demux since=1.0
+mpegts.table.tracks row=TsTrackRow cap=8192 writers=ts_demux since=1.0
+mpegts.table.guide row=TsGuideRow cap=20000 writers=psi_si since=1.0
+mpegts.table.guide_ratings row=TsGuideRatingRow cap=40000 writers=psi_si since=1.0
+mpegts.table.ts_demux.pids row=TsPidRow cap=8192 since=1.0
+mpegts.table.psi_si.sections row=TsSectionRow cap=64 since=1.0
+mpegts.event.teletext.page fields=TeletextPageEvent since=1.0
+mpegts.event.service.list fields=TsServiceListEvent since=1.0
+mpegts.event.epg.event fields=TsGuideEvent since=1.0
+mpegts.event.ts.time fields=TsTimeEvent since=1.0
+mpegts.event.ts.network fields=TsNetworkEvent since=1.0
+mpegts.event.dvb.subtitle fields=DvbSubtitleEvent since=1.0
+mpegts.command.service.select args=row:text reply= since=1.0
+mpegts.command.track.select args=row:text reply= since=1.0
+mpegts.command.teletext.select args=row:text reply= since=1.0

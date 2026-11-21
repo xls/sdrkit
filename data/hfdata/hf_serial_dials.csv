@@ -1,0 +1,10 @@
+# id: hf_serial_dials
+# name: Dials a host may offer as the starting dial of the HF serial-tone and naval HF stacks, with the dial range of each
+# verified: no; a usual starting dial (upper sideband), not a station or a regional plan
+stack,dial_hz,min_hz,max_hz
+ms110,7000000,100000,30000000
+s4285,7000000,100000,30000000
+s4539,7000000,100000,30000000
+ale3g,7000000,100000,30000000
+link11,7000000,100000,30000000
+s4481,7000000,100000,30000000

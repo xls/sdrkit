@@ -1,0 +1,26 @@
+# id: default_dials
+# name: Starting dials of the HF keyboard and picture stacks (usual 20 m dials)
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+rtty,,14080000
+psk,,14070000
+cw,,14020000
+mfsk,,14078500
+dominoex,,14071500
+thor,,14077000
+olivia,,14106500
+contestia,,14109500
+mt63,,14109500
+fsq,,14105000
+ifkp,,14083000
+hell,,14063000
+sstv,,14230000
+ardop,,14103000
+ros,,14080000
+ros,ros16,14080000
+ros,ros8,14080000
+ros,ros4,14080000
+ros,ros1,14080000
+ros,rosmf,472500
+ros,roseme,144120000
+ros,ros500,14080000

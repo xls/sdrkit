@@ -1,0 +1,999 @@
+{
+ "note": "Expected results of the trunking, paging and tone modes (specs/trunk.md) on the recordings in this folder. Every recording is cf32_le. Feed in blocks of at most 4096 samples (any block size must give the same results). Times are signal seconds from the first sample. Settings are the mode defaults unless listed.",
+ "recordings": {
+  "mpt1327_cc_240k": {
+   "mode": "mpt1327",
+   "signal_offset_hz": -50000,
+   "settings": {
+    "framing": "auto"
+   },
+   "final": {
+    "state": "locked",
+    "system_identity": 20001,
+    "messages": 8,
+    "codewords_good": 16,
+    "codewords_bad": 1
+   },
+   "messages": [
+    {
+     "t": 0.581,
+     "type": "GTC",
+     "called": "5/1234",
+     "caller": "ident 2003",
+     "channel": 17,
+     "meaning": "go to channel 17, speech"
+    },
+    {
+     "t": 0.687,
+     "type": "ALH",
+     "called": "DUMMYI",
+     "caller": "-",
+     "channel": -1,
+     "meaning": "any single codeword message invited, control channel (low 4 bits) 3, wait 2, address bits 8, aloha number 1"
+    },
+    {
+     "t": 0.794,
+     "type": "ACK",
+     "called": "5/77",
+     "caller": "ident 4321",
+     "channel": -1,
+     "meaning": "acknowledgement, qualifier 0"
+    },
+    {
+     "t": 0.901,
+     "type": "AHY",
+     "called": "9/100",
+     "caller": "DUMMYI",
+     "channel": -1,
+     "meaning": "availability check of the called unit, speech"
+    },
+    {
+     "t": 1.007,
+     "type": "BCAST",
+     "called": "-",
+     "caller": "-",
+     "channel": 3,
+     "meaning": "control channel announced, system 20001, control channel 3"
+    },
+    {
+     "t": 1.114,
+     "type": "BCAST",
+     "called": "-",
+     "caller": "-",
+     "channel": 9,
+     "meaning": "adjacent site control channel, system 20001, control channel 9, site 2"
+    },
+    {
+     "t": 1.221,
+     "type": "GTC",
+     "called": "100/8000",
+     "caller": "ident 8100",
+     "channel": 1023,
+     "meaning": "go to channel 1023, data (audio muted)"
+    },
+    {
+     "t": 1.327,
+     "type": "ACKX",
+     "called": "ALLI",
+     "caller": "ident 1",
+     "channel": -1,
+     "meaning": "message rejected, qualifier 1"
+    }
+   ],
+   "channel_table": [
+    {
+     "channel": 3,
+     "use": "control channel",
+     "seen": 1,
+     "last_called": "",
+     "last_caller": ""
+    },
+    {
+     "channel": 9,
+     "use": "control channel",
+     "seen": 1,
+     "last_called": "",
+     "last_caller": ""
+    },
+    {
+     "channel": 17,
+     "use": "traffic",
+     "seen": 1,
+     "last_called": "5/1234",
+     "last_caller": "ident 2003"
+    },
+    {
+     "channel": 1023,
+     "use": "traffic",
+     "seen": 1,
+     "last_called": "100/8000",
+     "last_caller": "ident 8100"
+    }
+   ],
+   "tolerance": {
+    "messages": "exactly these 8 rows, in this order, with these texts; no other row",
+    "t": 0.02,
+    "codewords_good": "16 (8 address codewords and 8 CCSCs)",
+    "codewords_bad": "0 to 2 (the final codeword after the last CCSC is cut by the end of the transmission)"
+   }
+  },
+  "ltr_240k": {
+   "mode": "ltr",
+   "signal_offset_hz": -50000,
+   "final": {
+    "locked": true,
+    "words_good": 18,
+    "words_bad": 0,
+    "area": 0
+   },
+   "words_unique": [
+    {
+     "talkgroup": "0-03-017",
+     "area": 0,
+     "goto": 3,
+     "home": 3,
+     "id": 17,
+     "free": 5,
+     "check": "55",
+     "kind": ""
+    },
+    {
+     "talkgroup": "0-01-101",
+     "area": 0,
+     "goto": 5,
+     "home": 1,
+     "id": 101,
+     "free": 7,
+     "check": "5C",
+     "kind": ""
+    },
+    {
+     "talkgroup": "1-12-254",
+     "area": 1,
+     "goto": 12,
+     "home": 12,
+     "id": 254,
+     "free": 2,
+     "check": "31",
+     "kind": "callsign ID"
+    },
+    {
+     "talkgroup": "0-08-255",
+     "area": 0,
+     "goto": 0,
+     "home": 8,
+     "id": 255,
+     "free": 9,
+     "check": "04",
+     "kind": "idle"
+    },
+    {
+     "talkgroup": "0-02-033",
+     "area": 0,
+     "goto": 7,
+     "home": 2,
+     "id": 33,
+     "free": 20,
+     "check": "05",
+     "kind": ""
+    },
+    {
+     "talkgroup": "0-19-200",
+     "area": 0,
+     "goto": 19,
+     "home": 19,
+     "id": 200,
+     "free": 1,
+     "check": "1B",
+     "kind": ""
+    }
+   ],
+   "repeaters": [
+    {
+     "repeater": 1,
+     "as_goto": 0,
+     "as_home": 3,
+     "as_free": 3
+    },
+    {
+     "repeater": 2,
+     "as_goto": 0,
+     "as_home": 3,
+     "as_free": 3
+    },
+    {
+     "repeater": 3,
+     "as_goto": 3,
+     "as_home": 3,
+     "as_free": 0
+    },
+    {
+     "repeater": 5,
+     "as_goto": 3,
+     "as_home": 0,
+     "as_free": 3
+    },
+    {
+     "repeater": 7,
+     "as_goto": 3,
+     "as_home": 0,
+     "as_free": 3
+    },
+    {
+     "repeater": 8,
+     "as_goto": 0,
+     "as_home": 3,
+     "as_free": 0
+    },
+    {
+     "repeater": 9,
+     "as_goto": 0,
+     "as_home": 0,
+     "as_free": 3
+    },
+    {
+     "repeater": 12,
+     "as_goto": 3,
+     "as_home": 3,
+     "as_free": 0
+    },
+    {
+     "repeater": 19,
+     "as_goto": 3,
+     "as_home": 3,
+     "as_free": 0
+    },
+    {
+     "repeater": 20,
+     "as_goto": 0,
+     "as_home": 0,
+     "as_free": 3
+    }
+   ],
+   "tolerance": {
+    "words_good": "at least 12 (every word at least twice), at most 18",
+    "words_unique": "all six, no other talkgroup",
+    "repeaters": "the ten repeaters listed and no other; the counts as listed when all 18 words are heard (each word adds one to its go-to, home and free repeater)",
+    "words_bad": "at most 1"
+   }
+  },
+  "edacs_system_307k": {
+   "mode": "edacs",
+   "signal_offset_hz": -100000,
+   "centre_hz": 856100000,
+   "settings": {
+    "layout": "standard",
+    "esk": false,
+    "lcn_table_mhz": [
+     856.0,
+     856.025,
+     856.05,
+     856.075,
+     856.1,
+     856.125,
+     856.15,
+     856.175,
+     856.2,
+     856.225
+    ],
+    "follow": true,
+    "follow_carriers": true
+   },
+   "final": {
+    "site": 5,
+    "area": -1,
+    "control_lcn": 1,
+    "highest_lcn": 6,
+    "polarity": "normal",
+    "frames_good": 247,
+    "frames_bad": 1,
+    "words": 247,
+    "words_known": 63
+   },
+   "calls": [
+    {
+     "lcn": 8,
+     "freq_hz": 856175000,
+     "group": 1,
+     "gid": -1,
+     "lid": -1,
+     "emergency": 0,
+     "carrier_only": 1,
+     "start_s": 6.26,
+     "dur_s": 1.0,
+     "active": 1
+    },
+    {
+     "lcn": 6,
+     "freq_hz": 856125000,
+     "group": 1,
+     "gid": 888,
+     "lid": 5555,
+     "emergency": 1,
+     "carrier_only": 0,
+     "start_s": 3.61,
+     "dur_s": 1.53,
+     "active": 0
+    },
+    {
+     "lcn": 3,
+     "freq_hz": 856050000,
+     "group": 1,
+     "gid": 777,
+     "lid": 4321,
+     "emergency": 0,
+     "carrier_only": 0,
+     "start_s": 1.0,
+     "dur_s": 2.1,
+     "active": 0
+    }
+   ],
+   "talkgroups": [
+    {
+     "gid": 888,
+     "calls": 1,
+     "last_unit": 5555,
+     "last_lcn": 6
+    },
+    {
+     "gid": 777,
+     "calls": 1,
+     "last_unit": 4321,
+     "last_lcn": 3
+    }
+   ],
+   "frame_texts_first_seen": [
+    {
+     "t": 0.072,
+     "a": "FD01205",
+     "b": "08C7CDB",
+     "text": "site 5, control channel LCN 1, priority 1"
+    },
+    {
+     "t": 1.002,
+     "a": "0843309",
+     "b": "0C20000",
+     "text": "group call, LCN 3, group 777, unit 4321"
+    },
+    {
+     "t": 3.102,
+     "a": "F88C000",
+     "b": "0000000",
+     "text": "call end (drop), LCN 3"
+    },
+    {
+     "t": 3.612,
+     "a": "2AC6378",
+     "b": "0660000",
+     "text": "group call, LCN 6, group 888, unit 5555, emergency"
+    }
+   ],
+   "tolerance": {
+    "frames_good": "at least 240",
+    "frames_bad": "at most 3",
+    "calls": "three calls: LCN 3 group 777 unit 4321 start 0.8-1.2 s lasting 1.7-2.4 s ended; LCN 6 group 888 unit 5555 emergency start 3.4-3.9 s lasting 1.3-3.5 s ended; LCN 8 carrier only start 5.8-6.4 s",
+    "followed_frequencies_hz": "each one is asked of the host (HostRequest::Follow); the host decodes and records the audio"
+   },
+   "followed_frequencies_hz": [
+    856050000,
+    856125000,
+    856175000
+   ]
+  },
+  "tones_audio_16k": {
+   "mode": "tones",
+   "settings": {
+    "audio_input": true
+   },
+   "events": [
+    {
+     "t": 1.3,
+     "kind": "CTCSS",
+     "text": "123.0 Hz",
+     "detail": "EIA tone, Motorola 3Z",
+     "dur_s": 7.73
+    },
+    {
+     "t": 9.03,
+     "kind": "DCS",
+     "text": "D023N",
+     "detail": "standard code; the same waveform reads as D047I",
+     "dur_s": 6.08
+    },
+    {
+     "t": 14.04,
+     "kind": "DTMF",
+     "text": "159#",
+     "detail": "697 + 1209 Hz",
+     "dur_s": 3.28
+    },
+    {
+     "t": 15.5,
+     "kind": "Selcall",
+     "text": "12345",
+     "detail": "ZVEI1, 5 tones of about 72 ms; the tones also fit ZVEI2, ZVEI3, PZVEI, DZVEI, PDZVEI",
+     "dur_s": 0.37
+    },
+    {
+     "t": 17.05,
+     "kind": "SELCAL",
+     "text": "AM-CP",
+     "detail": "312.6 / 977.2 / 384.6 / 1083.9 Hz",
+     "dur_s": 2.15
+    },
+    {
+     "t": 21.49,
+     "kind": "2-tone",
+     "text": "682.3 + 1000.0 Hz",
+     "detail": "tone A 1.0 s, tone B 3.0 s",
+     "dur_s": 4.05
+    },
+    {
+     "t": 26.0,
+     "kind": "Selcall",
+     "text": "46802",
+     "detail": "CCIR1, 5 tones of about 104 ms; the tones also fit CCIR2, PCCIR, EEA",
+     "dur_s": 0.52
+    },
+    {
+     "t": 28.04,
+     "kind": "DCS",
+     "text": "D712N",
+     "detail": "standard code; the same waveform reads as D114I",
+     "dur_s": 5.06
+    }
+   ],
+   "tolerance": {
+    "events": "exactly these 8 events in this order with these texts; detail strings as listed",
+    "t": "within 0.3 s; t is the start of the signal (a CTCSS or DCS row starts at its lock)",
+    "dur_s": "within 0.3 s, except the CTCSS and DCS lengths within 0.6 s",
+    "two_tone": "frequencies within 4 Hz"
+   }
+  },
+  "pager_cycle_192k": {
+   "mode": "pager",
+   "signal_offset_hz": -50000,
+   "settings": {
+    "wide_input": true,
+    "protocols": "both",
+    "pocsag_bauds": "all",
+    "combine": true,
+    "channel": "25 kHz",
+    "read": "auto"
+   },
+   "final": {
+    "cfo_hz": 718.1,
+    "codewords_good": 872,
+    "codewords_lost": 0,
+    "pages": 27
+   },
+   "pages": [
+    {
+     "t": 2.2,
+     "protocol": "POCSAG 512",
+     "address": 1234561,
+     "function": 0,
+     "type": "numeric",
+     "text": "555-0123 U 45",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 2.2,
+     "protocol": "POCSAG 512",
+     "address": 1234563,
+     "function": 3,
+     "type": "alpha",
+     "text": "Test page 512: hello",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 3.62,
+     "protocol": "POCSAG 1200",
+     "address": 1234561,
+     "function": 0,
+     "type": "numeric",
+     "text": "12345 U 678",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 3.83,
+     "protocol": "POCSAG 1200",
+     "address": 1234562,
+     "function": 2,
+     "type": "tone",
+     "text": "",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 4.33,
+     "protocol": "POCSAG 1200",
+     "address": 1234567,
+     "function": 3,
+     "type": "alpha",
+     "text": "Test page 1200: hello",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 5.5,
+     "protocol": "POCSAG 2400",
+     "address": 1234561,
+     "function": 0,
+     "type": "numeric",
+     "text": "2400-9876",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 5.5,
+     "protocol": "POCSAG 2400",
+     "address": 1234563,
+     "function": 3,
+     "type": "alpha",
+     "text": "Test page 2400: hello",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 7.92,
+     "protocol": "FLEX 1600/2",
+     "address": 1234567,
+     "function": -1,
+     "type": "alpha",
+     "text": "Test page 1600/2: hello",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 7.92,
+     "protocol": "FLEX 1600/2",
+     "address": 1234568,
+     "function": -1,
+     "type": "numeric",
+     "text": "555-0123 U 45",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 7.92,
+     "protocol": "FLEX 1600/2",
+     "address": 1234569,
+     "function": -1,
+     "type": "tone",
+     "text": "",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 7.92,
+     "protocol": "FLEX 1600/2",
+     "address": 1234570,
+     "function": -1,
+     "type": "alpha",
+     "text": "Second page 1600/2",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 7.92,
+     "protocol": "FLEX 1600/2",
+     "address": 2201234,
+     "function": -1,
+     "type": "alpha",
+     "text": "Long address 1600/2",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 10.32,
+     "protocol": "FLEX 3200/2",
+     "address": 1234567,
+     "function": -1,
+     "type": "alpha",
+     "text": "Test page 3200/2: hello",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 10.32,
+     "protocol": "FLEX 3200/2",
+     "address": 1234569,
+     "function": -1,
+     "type": "tone",
+     "text": "",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 10.32,
+     "protocol": "FLEX 3200/2",
+     "address": 2201234,
+     "function": -1,
+     "type": "alpha",
+     "text": "Long address 3200/2",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 10.32,
+     "protocol": "FLEX 3200/2",
+     "address": 1234568,
+     "function": -1,
+     "type": "numeric",
+     "text": "555-0123 U 45",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 10.32,
+     "protocol": "FLEX 3200/2",
+     "address": 1234570,
+     "function": -1,
+     "type": "alpha",
+     "text": "Second page 3200/2",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 12.75,
+     "protocol": "FLEX 3200/4",
+     "address": 1234567,
+     "function": -1,
+     "type": "alpha",
+     "text": "Test page 3200/4: hello",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 12.75,
+     "protocol": "FLEX 3200/4",
+     "address": 1234569,
+     "function": -1,
+     "type": "tone",
+     "text": "",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 12.75,
+     "protocol": "FLEX 3200/4",
+     "address": 2201234,
+     "function": -1,
+     "type": "alpha",
+     "text": "Long address 3200/4",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 12.75,
+     "protocol": "FLEX 3200/4",
+     "address": 1234568,
+     "function": -1,
+     "type": "numeric",
+     "text": "555-0123 U 45",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 12.75,
+     "protocol": "FLEX 3200/4",
+     "address": 1234570,
+     "function": -1,
+     "type": "alpha",
+     "text": "Second page 3200/4",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 15.18,
+     "protocol": "FLEX 6400/4",
+     "address": 1234567,
+     "function": -1,
+     "type": "alpha",
+     "text": "Test page 6400/4: hello",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 15.18,
+     "protocol": "FLEX 6400/4",
+     "address": 2201234,
+     "function": -1,
+     "type": "alpha",
+     "text": "Long address 6400/4",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 15.18,
+     "protocol": "FLEX 6400/4",
+     "address": 1234568,
+     "function": -1,
+     "type": "numeric",
+     "text": "555-0123 U 45",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 15.18,
+     "protocol": "FLEX 6400/4",
+     "address": 1234569,
+     "function": -1,
+     "type": "tone",
+     "text": "",
+     "damaged": 0,
+     "fixed_bits": 0
+    },
+    {
+     "t": 15.18,
+     "protocol": "FLEX 6400/4",
+     "address": 1234570,
+     "function": -1,
+     "type": "alpha",
+     "text": "Second page 6400/4",
+     "damaged": 0,
+     "fixed_bits": 0
+    }
+   ],
+   "speeds": [
+    {
+     "speed": "POCSAG 512",
+     "good": 16,
+     "repaired": 0,
+     "lost": 0,
+     "pages": 2,
+     "transmissions": 1
+    },
+    {
+     "speed": "POCSAG 1200",
+     "good": 48,
+     "repaired": 0,
+     "lost": 0,
+     "pages": 3,
+     "transmissions": 3
+    },
+    {
+     "speed": "POCSAG 2400",
+     "good": 16,
+     "repaired": 0,
+     "lost": 0,
+     "pages": 2,
+     "transmissions": 1
+    },
+    {
+     "speed": "FLEX 1600/2",
+     "good": 88,
+     "repaired": 0,
+     "lost": 0,
+     "pages": 5,
+     "transmissions": 1
+    },
+    {
+     "speed": "FLEX 3200/2",
+     "good": 176,
+     "repaired": 0,
+     "lost": 0,
+     "pages": 5,
+     "transmissions": 1
+    },
+    {
+     "speed": "FLEX 3200/4",
+     "good": 176,
+     "repaired": 0,
+     "lost": 0,
+     "pages": 5,
+     "transmissions": 1
+    },
+    {
+     "speed": "FLEX 6400/4",
+     "good": 352,
+     "repaired": 0,
+     "lost": 0,
+     "pages": 5,
+     "transmissions": 1
+    }
+   ],
+   "sent": [
+    {
+     "protocol": "POCSAG 512",
+     "address": 1234561,
+     "function": 0,
+     "type": "numeric",
+     "text": "555-0123 U 45"
+    },
+    {
+     "protocol": "POCSAG 512",
+     "address": 1234563,
+     "function": 3,
+     "type": "alpha",
+     "text": "Test page 512: hello"
+    },
+    {
+     "protocol": "POCSAG 1200",
+     "address": 1234561,
+     "function": 0,
+     "type": "numeric",
+     "text": "12345 U 678"
+    },
+    {
+     "protocol": "POCSAG 1200",
+     "address": 1234562,
+     "function": 2,
+     "type": "tone",
+     "text": ""
+    },
+    {
+     "protocol": "POCSAG 1200",
+     "address": 1234567,
+     "function": 3,
+     "type": "alpha",
+     "text": "Test page 1200: hello"
+    },
+    {
+     "protocol": "POCSAG 2400",
+     "address": 1234561,
+     "function": 0,
+     "type": "numeric",
+     "text": "2400-9876"
+    },
+    {
+     "protocol": "POCSAG 2400",
+     "address": 1234563,
+     "function": 3,
+     "type": "alpha",
+     "text": "Test page 2400: hello"
+    },
+    {
+     "protocol": "FLEX 1600/2",
+     "address": 1234567,
+     "function": -1,
+     "type": "alpha",
+     "text": "Test page 1600/2: hello"
+    },
+    {
+     "protocol": "FLEX 1600/2",
+     "address": 1234568,
+     "function": -1,
+     "type": "numeric",
+     "text": "555-0123 U 45"
+    },
+    {
+     "protocol": "FLEX 1600/2",
+     "address": 1234569,
+     "function": -1,
+     "type": "tone",
+     "text": ""
+    },
+    {
+     "protocol": "FLEX 1600/2",
+     "address": 1234570,
+     "function": -1,
+     "type": "alpha",
+     "text": "Second page 1600/2"
+    },
+    {
+     "protocol": "FLEX 1600/2",
+     "address": 2201234,
+     "function": -1,
+     "type": "alpha",
+     "text": "Long address 1600/2"
+    },
+    {
+     "protocol": "FLEX 3200/2",
+     "address": 1234567,
+     "function": -1,
+     "type": "alpha",
+     "text": "Test page 3200/2: hello"
+    },
+    {
+     "protocol": "FLEX 3200/2",
+     "address": 1234568,
+     "function": -1,
+     "type": "numeric",
+     "text": "555-0123 U 45"
+    },
+    {
+     "protocol": "FLEX 3200/2",
+     "address": 1234569,
+     "function": -1,
+     "type": "tone",
+     "text": ""
+    },
+    {
+     "protocol": "FLEX 3200/2",
+     "address": 1234570,
+     "function": -1,
+     "type": "alpha",
+     "text": "Second page 3200/2"
+    },
+    {
+     "protocol": "FLEX 3200/2",
+     "address": 2201234,
+     "function": -1,
+     "type": "alpha",
+     "text": "Long address 3200/2"
+    },
+    {
+     "protocol": "FLEX 3200/4",
+     "address": 1234567,
+     "function": -1,
+     "type": "alpha",
+     "text": "Test page 3200/4: hello"
+    },
+    {
+     "protocol": "FLEX 3200/4",
+     "address": 1234568,
+     "function": -1,
+     "type": "numeric",
+     "text": "555-0123 U 45"
+    },
+    {
+     "protocol": "FLEX 3200/4",
+     "address": 1234569,
+     "function": -1,
+     "type": "tone",
+     "text": ""
+    },
+    {
+     "protocol": "FLEX 3200/4",
+     "address": 1234570,
+     "function": -1,
+     "type": "alpha",
+     "text": "Second page 3200/4"
+    },
+    {
+     "protocol": "FLEX 3200/4",
+     "address": 2201234,
+     "function": -1,
+     "type": "alpha",
+     "text": "Long address 3200/4"
+    },
+    {
+     "protocol": "FLEX 6400/4",
+     "address": 1234567,
+     "function": -1,
+     "type": "alpha",
+     "text": "Test page 6400/4: hello"
+    },
+    {
+     "protocol": "FLEX 6400/4",
+     "address": 1234568,
+     "function": -1,
+     "type": "numeric",
+     "text": "555-0123 U 45"
+    },
+    {
+     "protocol": "FLEX 6400/4",
+     "address": 1234569,
+     "function": -1,
+     "type": "tone",
+     "text": ""
+    },
+    {
+     "protocol": "FLEX 6400/4",
+     "address": 1234570,
+     "function": -1,
+     "type": "alpha",
+     "text": "Second page 6400/4"
+    },
+    {
+     "protocol": "FLEX 6400/4",
+     "address": 2201234,
+     "function": -1,
+     "type": "alpha",
+     "text": "Long address 6400/4"
+    }
+   ],
+   "tolerance": {
+    "pages": "all 27 pages of 'sent' with exact address, function, type and text, not damaged; no other page",
+    "cfo_hz": "within 250 Hz of 700",
+    "codewords_lost": "below a tenth of the good ones",
+    "t": 0.3
+   }
+  }
+ }
+}

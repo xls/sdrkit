@@ -1,0 +1,977 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "an_bg",
+      "name": "PAL B/G (Europe, Asia, Africa, Middle East)",
+      "kind": "analog_tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Recommendation ITU-R BT.1701-1 (characteristics of radiated signals of conventional analogue television systems)",
+        "date": "2005-08",
+        "clause": "Table, items 2, 3 and 9",
+        "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1701-1-200508-I!!PDF-E.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "analogue broadcasting has ended in most countries",
+      "analog": {
+        "system": "B/G",
+        "colour": "PAL, SECAM",
+        "vision_above_lower_hz": 1250000,
+        "sound_spacing_hz": 5500000
+      },
+      "bands": [
+        {
+          "name": "VHF I",
+          "service": "broadcasting",
+          "start_hz": 47000000,
+          "end_hz": 68000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 7000000,
+          "numbering": {
+            "first": 2,
+            "last": 4,
+            "first_centre_hz": 50500000,
+            "step_hz": 7000000,
+            "prefix": "E"
+          }
+        },
+        {
+          "name": "VHF III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 230000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 7000000,
+          "numbering": {
+            "first": 5,
+            "last": 12,
+            "first_centre_hz": 177500000,
+            "step_hz": 7000000,
+            "prefix": "E"
+          }
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 862000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 69,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "an_it",
+      "name": "PAL B/G (Italy)",
+      "kind": "analog_tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Recommendation ITU-R BT.1701-1 (characteristics of radiated signals of conventional analogue television systems)",
+        "date": "2005-08",
+        "clause": "Table, items 2, 3 and 9",
+        "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1701-1-200508-I!!PDF-E.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "analogue broadcasting has ended in most countries",
+      "analog": {
+        "system": "B/G",
+        "colour": "PAL",
+        "vision_above_lower_hz": 1250000,
+        "sound_spacing_hz": 5500000
+      },
+      "bands": [
+        {
+          "name": "VHF",
+          "service": "broadcasting",
+          "start_hz": 52500000,
+          "end_hz": 230000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 7000000,
+          "channels": [
+            {
+              "name": "A",
+              "centre_hz": 56000000
+            },
+            {
+              "name": "B",
+              "centre_hz": 64500000
+            },
+            {
+              "name": "C",
+              "centre_hz": 84500000
+            },
+            {
+              "name": "D",
+              "centre_hz": 177500000
+            },
+            {
+              "name": "E",
+              "centre_hz": 186000000
+            },
+            {
+              "name": "F",
+              "centre_hz": 194500000
+            },
+            {
+              "name": "G",
+              "centre_hz": 203500000
+            },
+            {
+              "name": "H",
+              "centre_hz": 212500000
+            },
+            {
+              "name": "H1",
+              "centre_hz": 219500000
+            },
+            {
+              "name": "H2",
+              "centre_hz": 226500000
+            }
+          ]
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 862000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 69,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "an_i",
+      "name": "PAL I (United Kingdom, Ireland, Southern Africa, Hong Kong)",
+      "kind": "analog_tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Recommendation ITU-R BT.1701-1 (characteristics of radiated signals of conventional analogue television systems)",
+        "date": "2005-08",
+        "clause": "Table, items 2, 3 and 9",
+        "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1701-1-200508-I!!PDF-E.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "analogue broadcasting has ended in most countries",
+      "analog": {
+        "system": "I",
+        "colour": "PAL",
+        "vision_above_lower_hz": 1250000,
+        "sound_spacing_hz": 5999600
+      },
+      "bands": [
+        {
+          "name": "VHF",
+          "service": "broadcasting",
+          "start_hz": 44500000,
+          "end_hz": 222000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "channels": [
+            {
+              "name": "A",
+              "centre_hz": 48500000
+            },
+            {
+              "name": "B",
+              "centre_hz": 56500000
+            },
+            {
+              "name": "C",
+              "centre_hz": 64500000
+            },
+            {
+              "name": "D",
+              "centre_hz": 178000000
+            },
+            {
+              "name": "E",
+              "centre_hz": 186000000
+            },
+            {
+              "name": "F",
+              "centre_hz": 194000000
+            },
+            {
+              "name": "G",
+              "centre_hz": 202000000
+            },
+            {
+              "name": "H",
+              "centre_hz": 210000000
+            },
+            {
+              "name": "J",
+              "centre_hz": 218000000
+            }
+          ]
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 862000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 69,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "an_dk",
+      "name": "D/K (Russia, Eastern Europe, Central Asia)",
+      "kind": "analog_tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Recommendation ITU-R BT.1701-1 (characteristics of radiated signals of conventional analogue television systems)",
+        "date": "2005-08",
+        "clause": "Table, items 2, 3 and 9",
+        "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1701-1-200508-I!!PDF-E.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "analogue broadcasting has ended in most countries",
+      "analog": {
+        "system": "D/K",
+        "colour": "SECAM, PAL",
+        "vision_above_lower_hz": 1250000,
+        "sound_spacing_hz": 6500000
+      },
+      "bands": [
+        {
+          "name": "VHF I and II",
+          "service": "broadcasting",
+          "start_hz": 48500000,
+          "end_hz": 100000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "channels": [
+            {
+              "name": "R1",
+              "centre_hz": 52500000
+            },
+            {
+              "name": "R2",
+              "centre_hz": 62000000
+            },
+            {
+              "name": "R3",
+              "centre_hz": 80000000
+            },
+            {
+              "name": "R4",
+              "centre_hz": 88000000
+            },
+            {
+              "name": "R5",
+              "centre_hz": 96000000
+            }
+          ]
+        },
+        {
+          "name": "VHF III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 230000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 6,
+            "last": 12,
+            "first_centre_hz": 178000000,
+            "step_hz": 8000000,
+            "prefix": "R"
+          }
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 862000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 69,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "an_cn",
+      "name": "PAL D/K (China)",
+      "kind": "analog_tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Recommendation ITU-R BT.1701-1 (characteristics of radiated signals of conventional analogue television systems)",
+        "date": "2005-08",
+        "clause": "Table, items 2, 3 and 9",
+        "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1701-1-200508-I!!PDF-E.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "analogue broadcasting has ended in most countries",
+      "analog": {
+        "system": "D/K",
+        "colour": "PAL",
+        "vision_above_lower_hz": 1250000,
+        "sound_spacing_hz": 6500000
+      },
+      "bands": [
+        {
+          "name": "VHF I",
+          "service": "broadcasting",
+          "start_hz": 48500000,
+          "end_hz": 92000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "channels": [
+            {
+              "name": "1",
+              "centre_hz": 52500000
+            },
+            {
+              "name": "2",
+              "centre_hz": 60500000
+            },
+            {
+              "name": "3",
+              "centre_hz": 68500000
+            },
+            {
+              "name": "4",
+              "centre_hz": 80000000
+            },
+            {
+              "name": "5",
+              "centre_hz": 88000000
+            }
+          ]
+        },
+        {
+          "name": "VHF III",
+          "service": "broadcasting",
+          "start_hz": 167000000,
+          "end_hz": 223000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 6,
+            "last": 12,
+            "first_centre_hz": 171000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "UHF IV",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 566000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 13,
+            "last": 24,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        },
+        {
+          "name": "UHF V",
+          "service": "broadcasting",
+          "start_hz": 606000000,
+          "end_hz": 958000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 25,
+            "last": 68,
+            "first_centre_hz": 610000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "an_l",
+      "name": "SECAM L (France, UHF)",
+      "kind": "analog_tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Recommendation ITU-R BT.1701-1 (characteristics of radiated signals of conventional analogue television systems)",
+        "date": "2005-08",
+        "clause": "Table, items 2, 3 and 9",
+        "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1701-1-200508-I!!PDF-E.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "analogue broadcasting has ended in most countries",
+      "analog": {
+        "system": "L",
+        "colour": "SECAM",
+        "vision_above_lower_hz": 1250000,
+        "sound_spacing_hz": 6500000,
+        "am_sound": true
+      },
+      "bands": [
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 862000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 21,
+            "last": 69,
+            "first_centre_hz": 474000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "an_m",
+      "name": "System M: NTSC M and PAL M (Americas, Korea, Philippines)",
+      "kind": "analog_tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Recommendation ITU-R BT.1701-1 (characteristics of radiated signals of conventional analogue television systems)",
+        "date": "2005-08",
+        "clause": "Table, items 2, 3 and 9",
+        "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1701-1-200508-I!!PDF-E.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "analogue broadcasting has ended in most countries",
+      "analog": {
+        "system": "M",
+        "colour": "NTSC, PAL",
+        "vision_above_lower_hz": 1250000,
+        "sound_spacing_hz": 4500000
+      },
+      "bands": [
+        {
+          "name": "VHF low (2-4)",
+          "service": "broadcasting",
+          "start_hz": 54000000,
+          "end_hz": 72000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 2,
+            "last": 4,
+            "first_centre_hz": 57000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF low (5-6)",
+          "service": "broadcasting",
+          "start_hz": 76000000,
+          "end_hz": 88000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 5,
+            "last": 6,
+            "first_centre_hz": 79000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF high",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 216000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 7,
+            "last": 13,
+            "first_centre_hz": 177000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 806000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 14,
+            "last": 69,
+            "first_centre_hz": 473000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "UHF (old 70-83)",
+          "service": "broadcasting",
+          "start_hz": 806000000,
+          "end_hz": 890000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 70,
+            "last": 83,
+            "first_centre_hz": 809000000,
+            "step_hz": 6000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "an_n",
+      "name": "PAL N (Argentina, Paraguay, Uruguay)",
+      "kind": "analog_tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Recommendation ITU-R BT.1701-1 (characteristics of radiated signals of conventional analogue television systems)",
+        "date": "2005-08",
+        "clause": "Table, items 2, 3 and 9",
+        "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1701-1-200508-I!!PDF-E.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "analogue broadcasting has ended in most countries",
+      "analog": {
+        "system": "N",
+        "colour": "PAL",
+        "vision_above_lower_hz": 1250000,
+        "sound_spacing_hz": 4500000
+      },
+      "bands": [
+        {
+          "name": "VHF low (2-4)",
+          "service": "broadcasting",
+          "start_hz": 54000000,
+          "end_hz": 72000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 2,
+            "last": 4,
+            "first_centre_hz": 57000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF low (5-6)",
+          "service": "broadcasting",
+          "start_hz": 76000000,
+          "end_hz": 88000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 5,
+            "last": 6,
+            "first_centre_hz": 79000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "VHF high",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 216000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 7,
+            "last": 13,
+            "first_centre_hz": 177000000,
+            "step_hz": 6000000
+          }
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 806000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 14,
+            "last": 69,
+            "first_centre_hz": 473000000,
+            "step_hz": 6000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "an_j",
+      "name": "NTSC-J (Japan)",
+      "kind": "analog_tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Recommendation ITU-R BT.1701-1 (characteristics of radiated signals of conventional analogue television systems)",
+        "date": "2005-08",
+        "clause": "Table, items 2, 3 and 9",
+        "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1701-1-200508-I!!PDF-E.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "analogue broadcasting has ended in most countries",
+      "analog": {
+        "system": "M",
+        "colour": "NTSC",
+        "vision_above_lower_hz": 1250000,
+        "sound_spacing_hz": 4500000
+      },
+      "bands": [
+        {
+          "name": "VHF",
+          "service": "broadcasting",
+          "start_hz": 90000000,
+          "end_hz": 222000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 6000000,
+          "channels": [
+            {
+              "name": "1",
+              "centre_hz": 93000000
+            },
+            {
+              "name": "2",
+              "centre_hz": 99000000
+            },
+            {
+              "name": "3",
+              "centre_hz": 105000000
+            },
+            {
+              "name": "4",
+              "centre_hz": 173000000
+            },
+            {
+              "name": "5",
+              "centre_hz": 179000000
+            },
+            {
+              "name": "6",
+              "centre_hz": 185000000
+            },
+            {
+              "name": "7",
+              "centre_hz": 191000000
+            },
+            {
+              "name": "8",
+              "centre_hz": 195000000
+            },
+            {
+              "name": "9",
+              "centre_hz": 201000000
+            },
+            {
+              "name": "10",
+              "centre_hz": 207000000
+            },
+            {
+              "name": "11",
+              "centre_hz": 213000000
+            },
+            {
+              "name": "12",
+              "centre_hz": 219000000
+            }
+          ]
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 470000000,
+          "end_hz": 770000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 6000000,
+          "numbering": {
+            "first": 13,
+            "last": 62,
+            "first_centre_hz": 473000000,
+            "step_hz": 6000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "an_au",
+      "name": "PAL B (Australia)",
+      "kind": "analog_tv",
+      "source": {
+        "publisher": "ITU",
+        "title": "Recommendation ITU-R BT.1701-1 (characteristics of radiated signals of conventional analogue television systems)",
+        "date": "2005-08",
+        "clause": "Table, items 2, 3 and 9",
+        "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1701-1-200508-I!!PDF-E.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "note": "analogue TV ended in Australia on 10 December 2013",
+      "ended": "2013-12-10",
+      "analog": {
+        "system": "B/G",
+        "colour": "PAL",
+        "vision_above_lower_hz": 1250000,
+        "sound_spacing_hz": 5500000
+      },
+      "bands": [
+        {
+          "name": "VHF",
+          "service": "broadcasting",
+          "start_hz": 45000000,
+          "end_hz": 229000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 7000000,
+          "channels": [
+            {
+              "name": "0",
+              "centre_hz": 48500000
+            },
+            {
+              "name": "1",
+              "centre_hz": 59500000
+            },
+            {
+              "name": "2",
+              "centre_hz": 66500000
+            },
+            {
+              "name": "3",
+              "centre_hz": 88500000
+            },
+            {
+              "name": "4",
+              "centre_hz": 97500000
+            },
+            {
+              "name": "5",
+              "centre_hz": 104500000
+            },
+            {
+              "name": "5A",
+              "centre_hz": 140500000
+            },
+            {
+              "name": "6",
+              "centre_hz": 177500000
+            },
+            {
+              "name": "7",
+              "centre_hz": 184500000
+            },
+            {
+              "name": "8",
+              "centre_hz": 191500000
+            },
+            {
+              "name": "9",
+              "centre_hz": 198500000
+            },
+            {
+              "name": "9A",
+              "centre_hz": 205500000
+            },
+            {
+              "name": "10",
+              "centre_hz": 211500000
+            },
+            {
+              "name": "11",
+              "centre_hz": 218500000
+            },
+            {
+              "name": "12",
+              "centre_hz": 225500000
+            }
+          ]
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 526000000,
+          "end_hz": 820000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 7000000,
+          "numbering": {
+            "first": 28,
+            "last": 69,
+            "first_centre_hz": 529500000,
+            "step_hz": 7000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "an_nz",
+      "name": "PAL B/G (New Zealand)",
+      "kind": "analog_tv",
+      "source": {
+        "publisher": "Microsoft",
+        "title": "International Analog TV Tuning: New Zealand (DirectShow frequency tables)",
+        "date": "2023-04-26",
+        "clause": "New Zealand Broadcast Assignments (VHF 1 to 11, UHF 27 to 62) and Cable Assignments (UHF 25 and 26), Windows 7 and later",
+        "url": "https://learn.microsoft.com/en-us/windows/win32/directshow/new-zealand"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Recommendation ITU-R BT.1701-1 (characteristics of radiated signals of conventional analogue television systems)",
+          "date": "2005-08",
+          "clause": "Table, items 2, 3 and 9",
+          "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.1701-1-200508-I!!PDF-E.pdf"
+        }
+      ],
+      "verified": true,
+      "note": "analogue TV ended in New Zealand on 1 December 2013; channel n is centred 2.25 MHz (VHF) or 2.75 MHz (UHF) above its vision carrier",
+      "ended": "2013-12-01",
+      "analog": {
+        "system": "B/G",
+        "colour": "PAL",
+        "vision_above_lower_hz": 1250000,
+        "sound_spacing_hz": 5500000
+      },
+      "bands": [
+        {
+          "name": "VHF I",
+          "service": "broadcasting",
+          "start_hz": 44000000,
+          "end_hz": 68000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 7000000,
+          "channels": [
+            {
+              "name": "1",
+              "centre_hz": 47500000
+            },
+            {
+              "name": "2",
+              "centre_hz": 57500000
+            },
+            {
+              "name": "3",
+              "centre_hz": 64500000
+            }
+          ]
+        },
+        {
+          "name": "VHF III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 230000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 7000000,
+          "numbering": {
+            "first": 4,
+            "last": 11,
+            "first_centre_hz": 177500000,
+            "step_hz": 7000000
+          }
+        },
+        {
+          "name": "UHF",
+          "service": "broadcasting",
+          "start_hz": 502000000,
+          "end_hz": 806000000,
+          "modes": [
+            "atv"
+          ],
+          "channel_width_hz": 8000000,
+          "numbering": {
+            "first": 25,
+            "last": 62,
+            "first_centre_hz": 506000000,
+            "step_hz": 8000000
+          }
+        }
+      ]
+    }
+  ]
+}

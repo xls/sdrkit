@@ -1,0 +1,41 @@
+stack v2x
+setting SettingDecl { field: FieldDecl { key: "gen_rate", label: "Test signal data rate", unit: "", kind: Choice, choices: [ChoiceDecl { key: "3", label: "3 Mbit/s (BPSK 1/2)" }, ChoiceDecl { key: "6", label: "6 Mbit/s (QPSK 1/2)" }], refers_to: None, content: None }, range: None, default: Choice(1), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "safety_messages", label: "Safety messages", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "denm", label: "Hazard warnings", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "vehicles", label: "Vehicles", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "preambles", label: "Preambles", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "vehicles" "Vehicles" cap 256
+  column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "bsm", label: "BSM" }, ChoiceDecl { key: "cam", label: "CAM" }, ChoiceDecl { key: "denm", label: "DENM" }, ChoiceDecl { key: "wsmp", label: "WSMP" }, ChoiceDecl { key: "geonetworking", label: "GeoNetworking" }], refers_to: None, content: None }
+  column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "speed_kt", label: "Speed", unit: "kt", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "course_deg", label: "Course", unit: "°", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "frames", label: "Messages", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "first_heard", label: "First heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+table "frames" "Frames" cap 300
+  column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "bsm", label: "BSM" }, ChoiceDecl { key: "cam", label: "CAM" }, ChoiceDecl { key: "denm", label: "DENM" }, ChoiceDecl { key: "wsmp", label: "WSMP" }, ChoiceDecl { key: "geonetworking", label: "GeoNetworking" }], refers_to: None, content: None }
+  column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+points "Vehicles"
+event "v2x.vehicle" "V2X vehicle"
+  field FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "bsm", label: "BSM" }, ChoiceDecl { key: "cam", label: "CAM" }, ChoiceDecl { key: "denm", label: "DENM" }, ChoiceDecl { key: "wsmp", label: "WSMP" }, ChoiceDecl { key: "geonetworking", label: "GeoNetworking" }], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything decoded so far."
+command "remove" "Remove" "Forgets one object, a favourite too."
+  argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "vehicles" }), content: None }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key of the object, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] } }

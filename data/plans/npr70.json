@@ -1,0 +1,29 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "npr70_amateur_70cm",
+      "name": "New Packet Radio, amateur 70 cm",
+      "kind": "amateur",
+      "source": {
+        "publisher": "not published",
+        "title": "New Packet Radio protocol description",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "national band plans differ; the band is not confirmed for any country",
+      "bands": [
+        {
+          "name": "Amateur 70 cm, New Packet Radio",
+          "service": "amateur",
+          "start_hz": 430000000,
+          "end_hz": 440000000,
+          "modes": [
+            "npr70"
+          ],
+          "note": "stack npr70; the usual dial 437 MHz"
+        }
+      ]
+    }
+  ]
+}

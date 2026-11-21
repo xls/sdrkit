@@ -1,0 +1,13 @@
+# id: cubesat_dials
+# name: Frequencies a host may offer as the starting dial of a cubesat submode
+# verified: no; not checked against the operators' publications
+stack,submode,entry,frequency_hz
+cubesat,geoscan,StratoSat-TK1,435870000
+cubesat,geoscan,RTU-MIREA1,436200000
+cubesat,geoscan,TUSUR-GO,437730000
+cubesat,geoscan,VIZARD-ION,436870000
+cubesat,geoscan,COLIBRI-S,436835000
+cubesat,geoscan,HORIZON,435430000
+cubesat,lucky7,Lucky-7,437525000
+cubesat,spino,Spino (INSPIRE-SAT 7 payload),435200000
+cubesat,erminaz,ERMINAZ UHF,435775000

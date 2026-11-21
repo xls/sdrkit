@@ -1,0 +1,14 @@
+[package]
+name = "sdrkit-proto-ccsds"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "CCSDS space link layers for sdrkit: attached sync markers, code and frame synchronisation, the randomisers, Reed-Solomon channel frames, TM and AOS transfer frames with virtual channel demultiplexing, space packets, the xRIT file layer and Rice (CCSDS 121.0) compression"
+
+[dependencies]
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+
+[dev-dependencies]
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }

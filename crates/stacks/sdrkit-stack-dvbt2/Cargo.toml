@@ -1,0 +1,23 @@
+[package]
+name = "sdrkit-stack-dvbt2"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "DVB-T2 (EN 302 755): T2-base and T2-Lite, 1K to 32K with extended carriers, every guard and pilot pattern, rotated QPSK to 256-QAM, LDPC 16K and 64K, single and multiple PLPs, SISO and MISO, P1 detection beside DVB-T"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-proto-ipcast = { path = "../../proto/sdrkit-proto-ipcast" }
+sdrkit-proto-mpegts = { path = "../../proto/sdrkit-proto-mpegts" }
+
+[dev-dependencies]
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }

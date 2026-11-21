@@ -1,0 +1,292 @@
+stack slotted_voice
+setting SettingDecl { field: FieldDecl { key: "listen_rate", label: "Symbol rates", unit: "", kind: Choice, choices: [ChoiceDecl { key: "both", label: "8000 and 16000 symbols a second" }, ChoiceDecl { key: "8000", label: "8000 symbols a second" }, ChoiceDecl { key: "16000", label: "16000 symbols a second" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "callsign", label: "Station callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "Sent in the sweep (up to 6 characters and a suffix such as /P) and in the beacon (up to 9 characters).", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "grid", label: "Grid locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "Six characters such as KO26ab. Empty sends AA00aa.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "lat", label: "Latitude", unit: "°", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: -90.0, max: 90.0, step: 0.0 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "lon", label: "Longitude", unit: "°", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: -180.0, max: 180.0, step: 0.0 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "power_dbm", label: "Beacon power value", unit: "dBm", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: -40.0, max: 87.5, step: 0.5 }), default: F64(10.0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "link", label: "Link quality value", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 255.0, step: 1.0 }), default: I64(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "beacon", label: "Beacon", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "beacon_text", label: "Beacon text", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "Up to 100 bytes, sent every 10 s in version 3 and in the control channel in version 4.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "frame_version", label: "Frame version", unit: "", kind: Choice, choices: [ChoiceDecl { key: "3", label: "Version 3 (one voice stream)" }, ChoiceDecl { key: "4", label: "Version 4 (four slots)" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "bit_rate", label: "Bit rate", unit: "", kind: Choice, choices: [ChoiceDecl { key: "12", label: "12 kbit/s" }, ChoiceDecl { key: "16", label: "16 kbit/s" }, ChoiceDecl { key: "24", label: "24 kbit/s" }, ChoiceDecl { key: "32", label: "32 kbit/s" }], refers_to: None, content: None }, range: None, default: Choice(1), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "voice_slots", label: "Voice slots", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 4.0, step: 1.0 }), default: I64(1), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "voice_profile", label: "Voice profile", unit: "", kind: Choice, choices: [ChoiceDecl { key: "v80", label: "8.0 kbit/s" }, ChoiceDecl { key: "v60", label: "6.0 kbit/s" }, ChoiceDecl { key: "v48", label: "4.8 kbit/s" }, ChoiceDecl { key: "v32r", label: "3.2 kbit/s robust" }], refers_to: None, content: None }, range: None, default: Choice(1), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "robust_data", label: "Robust data slots", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "speech_file", label: "Speech file", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "A 16-bit PCM WAV file that `send` speaks. Empty speaks a test vowel.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_bit_rate", label: "Test signal bit rate", unit: "", kind: Choice, choices: [ChoiceDecl { key: "12", label: "12 kbit/s" }, ChoiceDecl { key: "16", label: "16 kbit/s" }, ChoiceDecl { key: "24", label: "24 kbit/s" }, ChoiceDecl { key: "32", label: "32 kbit/s" }], refers_to: None, content: None }, range: None, default: Choice(1), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_frame_version", label: "Test signal frame version", unit: "", kind: Choice, choices: [ChoiceDecl { key: "3", label: "Version 3 (one voice stream)" }, ChoiceDecl { key: "4", label: "Version 4 (four slots)" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "locked", label: "Locked", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "frame_version", label: "Frame version", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "voice_kbps", label: "Voice bit rate", unit: "kbit/s", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "symbol_rate_hz", label: "Symbol rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "sweep_id", label: "Sweep identity", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "sweep_db", label: "Sweep level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "stations" "Stations heard" cap 200
+  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "link", label: "Link quality", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+points ""
+event "voice.station" "Station beacon"
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "voice.tx" "Voice transmission"
+  field FieldDecl { key: "state", label: "State", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "reason", label: "Reason", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything decoded so far."
+command "send" "Send" "Speaks the speech file (or the test vowel) once with the station's settings. Transmit must be on." transmits "voice" stopped_by "stop"
+command "stop" "Stop" "Ends the transmission at the next frame."
+stack qam_video
+setting SettingDecl { field: FieldDecl { key: "listen_profile", label: "Listen profile", unit: "", kind: Choice, choices: [ChoiceDecl { key: "a", label: "A: 700 ksym/s" }, ChoiceDecl { key: "b", label: "B: 1050 ksym/s" }, ChoiceDecl { key: "cd", label: "C and D: 1400 ksym/s" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "callsign", label: "Station callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "1 to 7 characters of A-Z, 0-9 and /. Empty sends the demonstration callsign TEST1.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "station_tag", label: "Station tag", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "Hex bytes that start the station identification text, before \" de \" and the callsign. The bytes that other stations of this signal send are a row of data/custom/custom_tags.csv.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "profile", label: "Profile", unit: "", kind: Choice, choices: [ChoiceDecl { key: "a", label: "A: 700 ksym/s, 16-QAM" }, ChoiceDecl { key: "b", label: "B: 1050 ksym/s, 16-QAM" }, ChoiceDecl { key: "c", label: "C: 1400 ksym/s, 16-QAM" }, ChoiceDecl { key: "d", label: "D: 1400 ksym/s, 64-QAM" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "fec", label: "FEC profile", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 7.0, step: 1.0 }), default: I64(1), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "0: 4 data cells; 1: 14 + 2; 2: 12 + 4; 3: 28 + 4; 4: 24 + 8; 5: 6 + 2; 6: 56 + 8; 7: 48 + 16.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "file", label: "File", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "A file sent as Data packets of stream 1. Empty sends the synthetic test stream.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "media_s", label: "Synthetic stream", unit: "s", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 600.0, step: 0.0 }), default: F64(5.0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "locked", label: "Locked", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "profile", label: "Profile", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "esn0_db", label: "Es/N0", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "blocks_bad", label: "Blocks bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "groups_restored", label: "Groups restored", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "groups_lost", label: "Groups lost", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "packets", label: "Packets", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "symbol_rate_hz", label: "Symbol rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "streams" "Streams" cap 64
+  column FieldDecl { key: "stream", label: "Stream", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "packets", label: "Packets", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+points ""
+event "video.tx" "Video link transmission"
+  field FieldDecl { key: "state", label: "State", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "reason", label: "Reason", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything decoded so far."
+command "send" "Send" "Sends the file (or the synthetic test stream) once with the station's settings. Transmit must be on." transmits "file" stopped_by "stop"
+command "stop" "Stop" "Ends the transmission at once."
+stack picture_burst
+setting SettingDecl { field: FieldDecl { key: "callsign", label: "Station callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "Up to 9 characters of A-Z, 0-9, /, - and . Empty sends the demonstration callsign TEST1.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "profile", label: "Profile", unit: "", kind: Choice, choices: [ChoiceDecl { key: "0", label: "0: Balanced" }, ChoiceDecl { key: "1", label: "1: Robust" }, ChoiceDecl { key: "2", label: "2: Quality" }, ChoiceDecl { key: "3", label: "3: Direct" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "picture", label: "Picture", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "A binary PPM (P6, maxval 255) picture. Empty sends a test picture. A picture above 1920 x 1080 is shrunk.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "header_ok", label: "Header good", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "profile", label: "Profile", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "layers", label: "Layers decoded", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "layers_sent", label: "Layers sent", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "clock_ppm", label: "Clock error", unit: "ppm", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "bursts", label: "Bursts seen", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "bursts_decoded", label: "Bursts decoded", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "locked", label: "Locked", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "pictures" "Pictures" cap 100
+  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "size", label: "Size", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "layers", label: "Layers decoded", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+points ""
+event "picture.burst" "Picture received"
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "size", label: "Size", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "layers", label: "Layers decoded", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+event "picture.tx" "Picture transmission"
+  field FieldDecl { key: "state", label: "State", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "reason", label: "Reason", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything decoded so far."
+command "send" "Send" "Sends the picture (or the test picture) once in a burst of 10 s. Transmit must be on." transmits "file" stopped_by "stop"
+command "stop" "Stop" "Ends the transmission at once."
+stack arq_packet
+setting SettingDecl { field: FieldDecl { key: "callsign", label: "Station callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "1 to 7 characters of A-Z, 0-9 and /. Empty sends the demonstration callsign TEST1.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "profile", label: "Profile", unit: "", kind: Choice, choices: [ChoiceDecl { key: "0", label: "0: BPSK 1/4" }, ChoiceDecl { key: "1", label: "1: QPSK 1/4" }, ChoiceDecl { key: "2", label: "2: QPSK 1/2" }, ChoiceDecl { key: "3", label: "3: QPSK 3/4" }, ChoiceDecl { key: "4", label: "4: 16-QAM 1/2" }, ChoiceDecl { key: "5", label: "5: 16-QAM 3/4" }, ChoiceDecl { key: "6", label: "6: 64-QAM 2/3" }, ChoiceDecl { key: "7", label: "7: 256-QAM 3/4" }, ChoiceDecl { key: "8", label: "8: 1024-QAM 5/6" }], refers_to: None, content: None }, range: None, default: Choice(2), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "passes", label: "Passes", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 9.0, step: 1.0 }), default: I64(2), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "link", label: "Link", unit: "", kind: Choice, choices: [ChoiceDecl { key: "one_way", label: "One way, repeated passes" }, ChoiceDecl { key: "two_way", label: "Two way, selective repeat" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "The text to send. Empty sends a test text, unless a file is set.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "file", label: "File", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "A file of 1 byte to 8 MiB to send in place of the text.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "blocks_good", label: "Blocks good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "blocks_bad", label: "Blocks bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "profile", label: "Profile", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "bursts", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "messages", label: "Messages", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "repeats", label: "Repeats", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "acks_heard", label: "Acknowledgements heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "locked", label: "Locked", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "sequence", label: "Sequence", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "messages" "Messages" cap 200
+  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "sequence", label: "Sequence", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "length", label: "Length", unit: "bytes", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+points ""
+event "packet.message" "Message received"
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "sequence", label: "Sequence", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "length", label: "Length", unit: "bytes", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "packet.ack_out" "Acknowledgement to send"
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "sequence", label: "Sequence", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "blocks", label: "Blocks", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "blocks_acked", label: "Blocks acknowledged", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+event "packet.ack_in" "Acknowledgement heard"
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "sequence", label: "Sequence", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "blocks_acked", label: "Blocks acknowledged", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+event "packet.tx" "Packet transmission"
+  field FieldDecl { key: "state", label: "State", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "reason", label: "Reason", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything decoded so far."
+command "send" "Send" "Sends the message (the text, the file or a test text) once. Transmit must be on." transmits "text" stopped_by "stop"
+command "stop" "Stop" "Ends the transmission after the burst on the air."
+stack file_transfer
+setting SettingDecl { field: FieldDecl { key: "callsign", label: "Station callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "1 to 6 characters of A-Z, 0-9, /, - and . that the sender sends; empty sends TEST1. When set, the stack takes only a file sent to this callsign or to CQ.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "widths", label: "Widths searched", unit: "", kind: Choice, choices: [ChoiceDecl { key: "all", label: "All widths" }, ChoiceDecl { key: "1m", label: "1 MHz only" }, ChoiceDecl { key: "500k", label: "500 kHz only" }, ChoiceDecl { key: "200k", label: "200 kHz only" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Receive", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "folder", label: "Folder", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text("file_transfer"), required: false, restart: false, fixed: false, section: "Receive", advanced: false, help: "The folder in the host's storage where received files are saved. Empty saves at the top.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "width", label: "Width", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1m", label: "1 MHz" }, ChoiceDecl { key: "500k", label: "500 kHz" }, ChoiceDecl { key: "200k", label: "200 kHz" }], refers_to: None, content: None }, range: None, default: Choice(2), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "profile", label: "Profile", unit: "", kind: Choice, choices: [ChoiceDecl { key: "0", label: "0: BPSK 1/4" }, ChoiceDecl { key: "1", label: "1: QPSK 1/4" }, ChoiceDecl { key: "2", label: "2: QPSK 1/2" }, ChoiceDecl { key: "3", label: "3: QPSK 3/4" }, ChoiceDecl { key: "4", label: "4: 16-QAM 3/4" }, ChoiceDecl { key: "5", label: "5: 64-QAM 3/4" }, ChoiceDecl { key: "6", label: "6: 256-QAM 3/4" }, ChoiceDecl { key: "7", label: "7: 256-QAM 5/6" }, ChoiceDecl { key: "8", label: "8: 1024-QAM 5/6" }, ChoiceDecl { key: "9", label: "9: 1024-QAM 9/10" }], refers_to: None, content: None }, range: None, default: Choice(2), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "passes", label: "Passes", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 9.0, step: 1.0 }), default: I64(2), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "link", label: "Link", unit: "", kind: Choice, choices: [ChoiceDecl { key: "one_way", label: "One way, repeated passes" }, ChoiceDecl { key: "two_way", label: "Two way, acknowledged" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "file", label: "File", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "A file in the host's storage, 1 byte to 256 MiB. Empty sends a short test text.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "recipient", label: "Recipient", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text("CQ"), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "The callsign of the receiving station of a two-way session; CQ for anyone.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "session", label: "Session id", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 65000.0, step: 1.0 }), default: I64(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "1 to 65000; 0 takes a number from the clock.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "fixed_profile", label: "Fixed profile", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "Off: a two-way sender takes the profile that the receiver asks for.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "session", label: "Session", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "blocks_good", label: "Blocks good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "blocks_bad", label: "Blocks bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "frames", label: "Frames", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "progress", label: "Progress", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "hash_ok", label: "Hash good", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "profile", label: "Profile", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "width", label: "Width", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "files", label: "Files", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "held_bytes", label: "Bytes held", unit: "bytes", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "acks_heard", label: "Acknowledgements heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "locked", label: "Locked", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "files" "Files" cap 200
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "size", label: "Size", unit: "bytes", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hash", label: "Hash", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "state", label: "State", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+points ""
+event "file.received" "File received"
+  field FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "size", label: "Size", unit: "bytes", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "hash", label: "Hash", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "path", label: "Path", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "file.open" "Transfer announced"
+  field FieldDecl { key: "session", label: "Session", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "size", label: "Size", unit: "bytes", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "held_bytes", label: "Bytes held", unit: "bytes", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "file.tx" "File transmission"
+  field FieldDecl { key: "state", label: "State", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "reason", label: "Reason", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything decoded so far."
+command "send" "Send" "Sends the file (or a test text) one way or in a two-way session. Transmit must be on." transmits "file" stopped_by "stop"
+command "stop" "Stop" "Ends the transmission after the frame or burst on the air."
+stack hf_chat
+setting SettingDecl { field: FieldDecl { key: "listen", label: "Profiles searched", unit: "", kind: Choice, choices: [ChoiceDecl { key: "all", label: "All profiles" }, ChoiceDecl { key: "0", label: "Profile 0" }, ChoiceDecl { key: "1", label: "Profile 1" }, ChoiceDecl { key: "2", label: "Profile 2" }, ChoiceDecl { key: "3", label: "Profile 3" }, ChoiceDecl { key: "4", label: "Profile 4" }, ChoiceDecl { key: "5", label: "Profile 5" }, ChoiceDecl { key: "6", label: "Profile 6" }, ChoiceDecl { key: "7", label: "Profile 7" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Receive", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "callsign", label: "Station callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "1 to 9 characters of A-Z, 0-9, '-', '/' and '.'. Empty sends the demonstration callsign TEST1.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "profile", label: "Profile", unit: "", kind: Choice, choices: [ChoiceDecl { key: "0", label: "0: Abyss, chirp SF 10, rate 1/4 x 3" }, ChoiceDecl { key: "1", label: "1: Deep, chirp SF 10, rate 1/4" }, ChoiceDecl { key: "2", label: "2: Weak, chirp SF 9, rate 1/3" }, ChoiceDecl { key: "3", label: "3: Chat, chirp SF 8, rate 1/2" }, ChoiceDecl { key: "4", label: "4: Mid, chirp SF 6, rate 1/2" }, ChoiceDecl { key: "5", label: "5: Fast data, OFDM BPSK, rate 1/4" }, ChoiceDecl { key: "6", label: "6: Voice-700, OFDM QPSK" }, ChoiceDecl { key: "7", label: "7: Voice-1200, OFDM QPSK" }], refers_to: None, content: None }, range: None, default: Choice(3), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "kind", label: "Message", unit: "", kind: Choice, choices: [ChoiceDecl { key: "chat", label: "Chat" }, ChoiceDecl { key: "short_beacon", label: "Short beacon" }, ChoiceDecl { key: "full_beacon", label: "Full beacon" }, ChoiceDecl { key: "data", label: "Data" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "to", label: "Recipient", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text("CQ"), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "A callsign; empty sends to CQ.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "Up to 100 characters for a chat, 10 for a full beacon. Empty sends a test text.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "Six characters, AA00AA.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "lat", label: "Latitude", unit: "°", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: -90.0, max: 90.0, step: 0.0 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "lon", label: "Longitude", unit: "°", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: -180.0, max: 180.0, step: 0.0 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "power_step", label: "Power step", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 255.0, step: 1.0 }), default: I64(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "EIRP dBm = -40 + 0.5 x step; a short beacon takes 0 to 63.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "file", label: "File", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "The bytes of a data message.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "passes", label: "Passes", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 9.0, step: 1.0 }), default: I64(2), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "link", label: "Link", unit: "", kind: Choice, choices: [ChoiceDecl { key: "one_way", label: "One way, repeated passes" }, ChoiceDecl { key: "two_way", label: "Two way, acknowledged" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "profile", label: "Profile", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "clock_error_s", label: "Clock error", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "bursts", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "blocks_good", label: "Blocks good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "blocks_bad", label: "Blocks bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "messages", label: "Messages", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "beacons", label: "Beacons", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "acks_heard", label: "Acknowledgements heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "voice_blocks", label: "Voice blocks", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "locked", label: "Locked", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "message_id", label: "Message id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "messages" "Messages" cap 200
+  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "to", label: "To", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+table "beacons" "Beacons" cap 200
+  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+points ""
+event "chat.message" "Message received"
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "to", label: "To", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "chat.beacon" "Beacon received"
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "chat.ack" "Acknowledgement heard"
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "message_id", label: "Message id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "blocks_acked", label: "Blocks acknowledged", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "profile", label: "Profile", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+event "chat.voice" "Voice heard"
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "call", label: "Call", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "profile", label: "Profile", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+event "chat.tx" "Chat transmission"
+  field FieldDecl { key: "state", label: "State", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "reason", label: "Reason", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything decoded so far."
+command "send" "Send" "Sends the message in the next caller slots. Transmit must be on." transmits "text" stopped_by "stop"
+command "stop" "Stop" "Ends the transmission after the burst on the air."

@@ -1,0 +1,42 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "countries": [
+    {
+      "code": "US",
+      "groups": ["stl_us"],
+      "unverified_reason": "the aural STL band of 47 CFR 74.502 was read from the text that a law library site publishes"
+    }
+  ],
+  "groups": [
+    {
+      "id": "stl_us",
+      "name": "Aural studio-to-transmitter links, United States",
+      "kind": "other",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47, Part 74, Subpart E (aural broadcast auxiliary stations)",
+        "date": "not recorded",
+        "clause": "74.502(b)"
+      },
+      "verified": false,
+      "unverified_reason": "the values were read from the text of 47 CFR 74.502 as a law library site publishes it, not from the eCFR itself",
+      "bands": [
+        {
+          "name": "Aural STL and intercity relay, 944 to 952 MHz",
+          "service": "broadcasting",
+          "start_hz": 944000000,
+          "end_hz": 952000000,
+          "modes": ["stl"],
+          "modulation": "wfm",
+          "channel_width_hz": 25000,
+          "raster": {
+            "first_hz": 944012500,
+            "step_hz": 25000
+          },
+          "note": "stack stl; the raster is the 25 kHz segments, the first centred on 944.0125 MHz; a link stacks segments to at most 300 kHz, or 500 kHz for twenty segments; 942 to 944 MHz is kept for stations licensed before 21 November 1984 and is not in this band"
+        }
+      ]
+    }
+  ]
+}

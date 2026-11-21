@@ -1,0 +1,341 @@
+# The interface of the stack family dvbt. The registry test of the family writes this file.
+family dvbt version=2.5
+uses.mpegts major=1 since=1.0
+shape.DvbtFields since=1.0
+shape.DvbtFields.detect_level type=i64 unit= optional=no since=1.0
+shape.DvbtFields.channel_width type=hz unit=Hz optional=no since=1.0
+shape.DvbtFields.bandwidth_auto type=bool unit= optional=no since=1.0
+shape.DvbtFields.bandwidth_from type=choice(setting,guess,measured,tried) unit= optional=yes since=1.0
+shape.DvbtFields.measured_width type=hz unit=Hz optional=yes since=1.0
+shape.DvbtFields.occupancy_db type=f64 unit=dB optional=yes since=1.0
+shape.DvbtFields.input_rate type=hz unit=Hz optional=no since=1.0
+shape.DvbtFields.natural_rate type=hz unit=Hz optional=no since=1.0
+shape.DvbtFields.resampling type=bool unit= optional=no since=1.0
+shape.DvbtFields.rate_ok type=bool unit= optional=no since=1.0
+shape.DvbtFields.fft type=choice(2K,8K) unit= optional=yes since=1.0
+shape.DvbtFields.fft_size type=i64 unit= optional=yes since=1.0
+shape.DvbtFields.guard type=choice(1/32,1/16,1/8,1/4) unit= optional=yes since=1.0
+shape.DvbtFields.guard_samples type=i64 unit= optional=yes since=1.0
+shape.DvbtFields.carriers type=i64 unit= optional=yes since=1.0
+shape.DvbtFields.constellation type=choice(QPSK,16-QAM,64-QAM) unit= optional=yes since=1.0
+shape.DvbtFields.hierarchy type=choice(none,1,2,4) unit= optional=yes since=1.0
+shape.DvbtFields.code_rate_hp type=choice(1/2,2/3,3/4,5/6,7/8) unit= optional=yes since=1.0
+shape.DvbtFields.code_rate_lp type=choice(1/2,2/3,3/4,5/6,7/8) unit= optional=yes since=1.0
+shape.DvbtFields.stream type=choice(hp,lp) unit= optional=no since=1.0
+shape.DvbtFields.cell_id type=i64 unit= optional=yes since=1.0
+shape.DvbtFields.tps_length type=i64 unit= optional=yes since=1.0
+shape.DvbtFields.dvbh_flags type=i64 unit= optional=yes since=1.0
+shape.DvbtFields.frame type=i64 unit= optional=yes since=1.0
+shape.DvbtFields.symbol type=i64 unit= optional=yes since=1.0
+shape.DvbtFields.frame_duration type=duration unit=s optional=yes since=1.0
+shape.DvbtFields.net_bitrate_bps type=f64 unit=bit/s optional=yes since=1.0
+shape.DvbtFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.DvbtFields.integer_offset type=i64 unit=carriers optional=yes since=1.0
+shape.DvbtFields.locator_hz type=hz unit=Hz optional=no since=1.0
+shape.DvbtFields.clock_ppm type=f64 unit=ppm optional=no since=1.0
+shape.DvbtFields.spectrum_inverted type=bool unit= optional=no since=1.0
+shape.DvbtFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.DvbtFields.mer_db type=f64 unit=dB optional=yes since=1.0
+shape.DvbtFields.ber_pre_viterbi type=f64 unit= optional=no since=1.0
+shape.DvbtFields.ber_post_viterbi type=f64 unit= optional=no since=1.0
+shape.DvbtFields.viterbi_margin type=f64 unit= optional=no since=1.0
+shape.DvbtFields.puncture_phase type=i64 unit= optional=yes since=1.0
+shape.DvbtFields.rs_blocks type=i64 unit= optional=no since=1.0
+shape.DvbtFields.rs_clean type=i64 unit= optional=no since=1.0
+shape.DvbtFields.rs_corrected type=i64 unit= optional=no since=1.0
+shape.DvbtFields.rs_failed type=i64 unit= optional=no since=1.0
+shape.DvbtFields.rs_bytes_corrected type=i64 unit= optional=no since=1.0
+shape.DvbtFields.packets type=i64 unit= optional=no since=1.0
+shape.DvbtFields.fec_sync type=bool unit= optional=no since=1.0
+shape.DvbtFields.resyncs type=i64 unit= optional=no since=1.0
+shape.DvbtFields.since_tps type=duration unit=s optional=yes since=1.0
+shape.DvbtFields.quality_pct type=f64 unit=% optional=no since=1.0
+shape.DvbtFields.quality_label type=choice(excellent,good,marginal,poor,no_lock) unit= optional=no since=1.0
+shape.DvbtFields.required_cn_db type=f64 unit=dB optional=yes since=1.0
+shape.DvbtFields.margin_db type=f64 unit=dB optional=yes since=1.0
+shape.DvbtFields.unsupported type=text unit= optional=yes since=1.0
+shape.DvbtFields.data_valid type=bool unit= optional=no since=1.0
+shape.DvbtFields.first_packet type=duration unit=s optional=yes since=1.0
+shape.DvbtFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.DvbtMultiplexFields since=1.0
+shape.DvbtMultiplexFields.network_name type=text unit= optional=no since=1.0
+shape.DvbtMultiplexFields.network_id type=i64 unit= optional=no since=1.0
+shape.DvbtMultiplexFields.service_count type=i64 unit= optional=no since=1.0
+shape.DvbtMultiplexFields.utc type=time unit= optional=yes since=1.0
+shape.DvbtMultiplexFields.selected_service type=i64 unit= optional=yes since=1.0
+shape.DvbtMultiplexFields.player_status type=choice(starting,playing,scrambled,no_service) unit= optional=no since=1.0
+shape.DvbtMultiplexFields.mux_kbps type=f64 unit=kbit/s optional=no since=1.0
+shape.DvbtTxFields since=2.4
+shape.DvbtTxFields.transmitting type=bool unit= optional=no since=2.4
+shape.DvbtTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=2.4
+shape.DvbtTxFields.tx_bitrate_bps type=f64 unit=bit/s optional=no since=2.4
+shape.DvbtTxFields.tx_bitrate_lp_bps type=f64 unit=bit/s optional=yes since=2.4
+shape.DvbtTxFields.tx_packets type=i64 unit= optional=no since=2.4
+shape.DvbtTxFields.tx_nulls type=i64 unit= optional=no since=2.4
+shape.DvbtTxFields.tx_queue type=i64 unit= optional=no since=2.4
+shape.DvbtTxFields.tx_queue_lp type=i64 unit= optional=no since=2.4
+shape.DvbtTxFields.tx_queue_s type=duration unit=s optional=no since=2.4
+shape.DvbtTxFields.tx_pcr_restamped type=i64 unit= optional=no since=2.4
+shape.SyncFields since=1.0
+shape.SyncFields.timing type=f64 unit=samples optional=yes since=1.0
+shape.SyncFields.rho type=f64 unit= optional=yes since=1.0
+shape.SyncFields.frac type=f64 unit=carriers optional=yes since=1.0
+shape.FftFields since=1.0
+shape.FftFields.integer_offset type=i64 unit=carriers optional=yes since=1.0
+shape.FftFields.spectrum_inverted type=bool unit= optional=no since=1.0
+shape.TpsFields since=1.0
+shape.TpsFields.tps_frames_ok type=i64 unit= optional=no since=1.0
+shape.TpsFields.tps_frames_failed type=i64 unit= optional=no since=1.0
+shape.EqFields since=1.0
+shape.EqFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.EqFields.mer_db type=f64 unit=dB optional=yes since=1.0
+shape.EqFields.alpha type=f64 unit= optional=no since=1.0
+shape.EqFields.delay_window_centre type=f64 unit=samples optional=no since=1.0
+shape.EqFields.delay_window_half type=f64 unit=samples optional=no since=1.0
+shape.EqFields.delay_spread type=f64 unit=samples optional=no since=1.0
+shape.FecFields since=1.0
+shape.FecFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.FecFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.DvbTerrestrialFields since=1.0
+shape.DvbTerrestrialFields.standard type=choice(dvbt2,dvbt) unit= optional=no since=1.0
+shape.DvbshFields since=1.0
+shape.DvbshFields.waveform type=choice(ofdm,tdm) unit= optional=no since=1.0
+shape.DvbshFields.width_mhz type=f64 unit=MHz optional=no since=1.0
+shape.DvbshFields.lock type=i64 unit= optional=no since=1.0
+shape.DvbshFields.cfo_hz type=hz unit=Hz optional=yes since=1.0
+shape.DvbshFields.fft_size type=i64 unit= optional=yes since=1.0
+shape.DvbshFields.guard_samples type=i64 unit= optional=yes since=1.0
+shape.DvbshFields.mode type=text unit= optional=yes since=1.0
+shape.DvbshFields.guard type=text unit= optional=yes since=1.0
+shape.DvbshFields.constellation type=text unit= optional=yes since=1.0
+shape.DvbshFields.hierarchy type=text unit= optional=yes since=1.0
+shape.DvbshFields.rate_hp type=text unit= optional=yes since=1.0
+shape.DvbshFields.rate_lp type=text unit= optional=yes since=1.0
+shape.DvbshFields.stream type=text unit= optional=no since=1.0
+shape.DvbshFields.interleaver type=text unit= optional=yes since=1.0
+shape.DvbshFields.interleaver_s type=duration unit=s optional=yes since=1.0
+shape.DvbshFields.interleaver_mb type=f64 unit=MB optional=yes since=1.0
+shape.DvbshFields.refused type=text unit= optional=yes since=1.0
+shape.DvbshFields.cell_id type=i64 unit= optional=yes since=1.0
+shape.DvbshFields.superframe type=i64 unit= optional=yes since=1.0
+shape.DvbshFields.codewords_ok type=i64 unit= optional=no since=1.0
+shape.DvbshFields.codewords_bad type=i64 unit= optional=no since=1.0
+shape.DvbshFields.packets_ok type=i64 unit= optional=no since=1.0
+shape.DvbshFields.packets_bad type=i64 unit= optional=no since=1.0
+shape.DvbshFields.turbo_iterations type=f64 unit= optional=yes since=1.0
+shape.DvbshFields.first_packet_s type=duration unit=s optional=yes since=1.0
+shape.DvbshFields.note type=text unit= optional=no since=1.0
+shape.DvbshFields.clock_ppm type=f64 unit=ppm optional=no since=1.0
+shape.DvbshFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.DvbshFields.tdm_modulation type=text unit= optional=yes since=2.5
+shape.DvbshFields.tdm_symbol_rate type=f64 unit=sym/s optional=yes since=2.5
+shape.DvbshFields.tdm_rolloff type=f64 unit= optional=yes since=2.5
+shape.DvbshFields.tdm_frame_width_cu type=i64 unit=CU optional=yes since=2.5
+shape.DvbshFields.tdm_mer_db type=f64 unit=dB optional=yes since=2.5
+shape.DvbshFields.tdm_slots_erased type=i64 unit= optional=no since=2.5
+shape.DvbshFields.tdm_signalling_failed type=i64 unit= optional=no since=2.5
+shape.DvbshChainFields since=1.0
+shape.DvbshChainFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.DvbshChainFields.tps_frames_ok type=i64 unit= optional=no since=1.0
+shape.DvbshChainFields.tps_frames_failed type=i64 unit= optional=no since=1.0
+dvbt since=1.0
+dvbt.fields.DvbtFields since=1.0
+dvbt.fields.DvbtMultiplexFields since=1.0
+dvbt.fields.DvbtTxFields since=2.4
+dvbt.component.sync.fields.SyncFields since=1.0
+dvbt.component.fft.fields.FftFields shared=integer_offset;spectrum_inverted since=1.0
+dvbt.component.tps.fields.TpsFields since=1.0
+dvbt.component.eq.fields.EqFields shared=snr_db;mer_db since=1.0
+dvbt.component.fec.fields.FecFields since=1.0
+dvbt.component.ts_demux.fields.TsDemuxFields shared=packets;mux_kbps;selected_service;player_status since=1.0
+dvbt.component.psi_si.fields.PsiSiFields shared=network_name;network_id;service_count;utc since=1.0
+dvbt.component.teletext.fields.TeletextStreamFields since=1.0
+dvbt.component.dvb_subtitle.fields.DvbSubtitleFields since=1.0
+dvbt.kept.guide since=1.0
+dvbt.kept.guide_ratings since=1.0
+dvbt.table.services row=TsServiceRow cap=1000 writers=ts_demux since=1.0
+dvbt.table.tracks row=TsTrackRow cap=8192 writers=ts_demux since=1.0
+dvbt.table.guide row=TsGuideRow cap=20000 writers=psi_si since=1.0
+dvbt.table.guide_ratings row=TsGuideRatingRow cap=40000 writers=psi_si since=1.0
+dvbt.table.teletext_pages row=TeletextPageRow cap=800 writers=teletext since=1.0
+dvbt.table.teletext_subpages row=TeletextSubpageRow cap=8192 writers=teletext since=1.0
+dvbt.table.ts_demux.pids row=TsPidRow cap=8192 since=1.0
+dvbt.table.psi_si.sections row=TsSectionRow cap=64 since=1.0
+dvbt.series.constellation x_unit= y_unit= since=1.0
+dvbt.series.pilots x_unit= y_unit= since=1.0
+dvbt.series.tps x_unit= y_unit= since=1.0
+dvbt.series.channel_db x_unit=carrier y_unit=dB since=1.0
+dvbt.series.channel_phase x_unit=carrier y_unit=rad since=1.0
+dvbt.series.impulse_db x_unit=sample y_unit=dB since=1.0
+dvbt.event.service.list fields=TsServiceListEvent since=1.0
+dvbt.event.epg.event fields=TsGuideEvent since=1.0
+dvbt.event.ts.time fields=TsTimeEvent since=1.0
+dvbt.event.ts.network fields=TsNetworkEvent since=1.0
+dvbt.event.teletext.page fields=TeletextPageEvent since=1.0
+dvbt.event.dvb.subtitle fields=DvbSubtitleEvent since=1.0
+dvbt.setting.bandwidth type=choice(auto,8,7,6,5) unit= since=1.0
+dvbt.setting.stream type=choice(hp,lp) unit= since=1.0
+dvbt.setting.viterbi type=choice(auto,exact,fast) unit= since=1.0
+dvbt.setting.time_interp type=bool unit= since=1.0
+dvbt.setting.interferer_erase type=bool unit= since=1.0
+dvbt.setting.standard type=choice(auto,dvbt) unit= since=1.0
+dvbt.setting.channels type=text unit= since=1.0
+dvbt.setting.audio_lang type=text unit= since=1.0
+dvbt.setting.audio_description type=bool unit= since=1.0
+dvbt.setting.downmix type=bool unit= since=2.1
+dvbt.setting.decode_video type=bool unit= since=2.2
+dvbt.setting.subtitle_lang type=text unit= since=1.0
+dvbt.setting.hard_of_hearing type=bool unit= since=1.0
+dvbt.setting.country type=text unit= since=1.0
+dvbt.setting.guide_lang type=text unit= since=1.0
+dvbt.setting.test_flat_csi type=bool unit= since=1.0
+dvbt.setting.test_full_window type=bool unit= since=1.0
+dvbt.setting.test_peak_only type=bool unit= since=1.0
+dvbt.setting.gen_mode type=choice(2K,8K) unit= since=1.0
+dvbt.setting.gen_guard type=choice(1/32,1/16,1/8,1/4) unit= since=1.0
+dvbt.setting.gen_constellation type=choice(QPSK,16-QAM,64-QAM) unit= since=1.0
+dvbt.setting.gen_hierarchy type=choice(none,1,2,4) unit= since=1.0
+dvbt.setting.gen_rate_hp type=choice(1/2,2/3,3/4,5/6,7/8) unit= since=1.0
+dvbt.setting.gen_rate_lp type=choice(1/2,2/3,3/4,5/6,7/8) unit= since=1.0
+dvbt.setting.gen_bandwidth type=choice(auto,8,7,6,5) unit= since=1.0
+dvbt.setting.gen_cell_id type=i64 unit= since=1.0
+dvbt.setting.gen_length type=choice(23,31) unit= since=1.0
+dvbt.setting.gen_phase type=i64 unit= since=1.0
+dvbt.setting.gen_service type=i64 unit= since=1.0
+dvbt.setting.gen_name type=text unit= since=1.0
+dvbt.setting.gen_source type=choice(builtin,pattern,null) unit= since=1.0
+dvbt.setting.tx_bandwidth type=choice(5,6,7,8) unit= since=2.4
+dvbt.setting.tx_mode type=choice(2K,8K) unit= since=2.4
+dvbt.setting.tx_guard type=choice(1/32,1/16,1/8,1/4) unit= since=2.4
+dvbt.setting.tx_constellation type=choice(QPSK,16-QAM,64-QAM) unit= since=2.4
+dvbt.setting.tx_hierarchy type=choice(none,1,2,4) unit= since=2.4
+dvbt.setting.tx_rate_hp type=choice(1/2,2/3,3/4,5/6,7/8) unit= since=2.4
+dvbt.setting.tx_rate_lp type=choice(1/2,2/3,3/4,5/6,7/8) unit= since=2.4
+dvbt.setting.tx_cell_id type=i64 unit= since=2.4
+dvbt.command.service.select args=row:text reply= since=1.0
+dvbt.command.teletext.select args=row:text reply= since=1.0
+dvbt.command.track.select args=row:text reply= since=1.0
+dvbt.command.start args= reply= transmits=file stop=stop since=2.4
+dvbt.command.stop args= reply= since=2.4
+dvbt.command.append args=packets:bytes reply= since=2.4
+dvbt.command.append_lp args=packets:bytes reply= since=2.4
+dvb_terrestrial since=1.0
+dvb_terrestrial.fields.DvbtFields since=1.0
+dvb_terrestrial.fields.DvbtMultiplexFields since=1.0
+dvb_terrestrial.fields.DvbTerrestrialFields since=1.0
+dvb_terrestrial.component.sync.fields.SyncFields since=1.0
+dvb_terrestrial.component.fft.fields.FftFields shared=integer_offset;spectrum_inverted since=1.0
+dvb_terrestrial.component.tps.fields.TpsFields since=1.0
+dvb_terrestrial.component.eq.fields.EqFields shared=snr_db;mer_db since=1.0
+dvb_terrestrial.component.fec.fields.FecFields since=1.0
+dvb_terrestrial.component.ts_demux.fields.TsDemuxFields shared=packets;mux_kbps;selected_service;player_status since=1.0
+dvb_terrestrial.component.psi_si.fields.PsiSiFields shared=network_name;network_id;service_count;utc since=1.0
+dvb_terrestrial.component.teletext.fields.TeletextStreamFields since=1.0
+dvb_terrestrial.component.dvb_subtitle.fields.DvbSubtitleFields since=1.0
+dvb_terrestrial.kept.guide since=1.0
+dvb_terrestrial.kept.guide_ratings since=1.0
+dvb_terrestrial.table.services row=TsServiceRow cap=1000 writers=ts_demux since=1.0
+dvb_terrestrial.table.tracks row=TsTrackRow cap=8192 writers=ts_demux since=1.0
+dvb_terrestrial.table.guide row=TsGuideRow cap=20000 writers=psi_si since=1.0
+dvb_terrestrial.table.guide_ratings row=TsGuideRatingRow cap=40000 writers=psi_si since=1.0
+dvb_terrestrial.table.teletext_pages row=TeletextPageRow cap=800 writers=teletext since=1.0
+dvb_terrestrial.table.teletext_subpages row=TeletextSubpageRow cap=8192 writers=teletext since=1.0
+dvb_terrestrial.table.ts_demux.pids row=TsPidRow cap=8192 since=1.0
+dvb_terrestrial.table.psi_si.sections row=TsSectionRow cap=64 since=1.0
+dvb_terrestrial.series.constellation x_unit= y_unit= since=1.0
+dvb_terrestrial.series.pilots x_unit= y_unit= since=1.0
+dvb_terrestrial.series.tps x_unit= y_unit= since=1.0
+dvb_terrestrial.series.channel_db x_unit=carrier y_unit=dB since=1.0
+dvb_terrestrial.series.channel_phase x_unit=carrier y_unit=rad since=1.0
+dvb_terrestrial.series.impulse_db x_unit=sample y_unit=dB since=1.0
+dvb_terrestrial.event.service.list fields=TsServiceListEvent since=1.0
+dvb_terrestrial.event.epg.event fields=TsGuideEvent since=1.0
+dvb_terrestrial.event.ts.time fields=TsTimeEvent since=1.0
+dvb_terrestrial.event.ts.network fields=TsNetworkEvent since=1.0
+dvb_terrestrial.event.teletext.page fields=TeletextPageEvent since=1.0
+dvb_terrestrial.event.dvb.subtitle fields=DvbSubtitleEvent since=1.0
+dvb_terrestrial.setting.bandwidth type=choice(auto,8,7,6,5) unit= since=1.0
+dvb_terrestrial.setting.stream type=choice(hp,lp) unit= since=1.0
+dvb_terrestrial.setting.viterbi type=choice(auto,exact,fast) unit= since=1.0
+dvb_terrestrial.setting.time_interp type=bool unit= since=1.0
+dvb_terrestrial.setting.interferer_erase type=bool unit= since=1.0
+dvb_terrestrial.setting.standard type=choice(auto,dvbt) unit= since=1.0
+dvb_terrestrial.setting.channels type=text unit= since=1.0
+dvb_terrestrial.setting.audio_lang type=text unit= since=1.0
+dvb_terrestrial.setting.audio_description type=bool unit= since=1.0
+dvb_terrestrial.setting.downmix type=bool unit= since=2.1
+dvb_terrestrial.setting.decode_video type=bool unit= since=2.2
+dvb_terrestrial.setting.subtitle_lang type=text unit= since=1.0
+dvb_terrestrial.setting.hard_of_hearing type=bool unit= since=1.0
+dvb_terrestrial.setting.country type=text unit= since=1.0
+dvb_terrestrial.setting.guide_lang type=text unit= since=1.0
+dvb_terrestrial.setting.test_flat_csi type=bool unit= since=1.0
+dvb_terrestrial.setting.test_full_window type=bool unit= since=1.0
+dvb_terrestrial.setting.test_peak_only type=bool unit= since=1.0
+dvb_terrestrial.setting.gen_mode type=choice(2K,8K) unit= since=1.0
+dvb_terrestrial.setting.gen_guard type=choice(1/32,1/16,1/8,1/4) unit= since=1.0
+dvb_terrestrial.setting.gen_constellation type=choice(QPSK,16-QAM,64-QAM) unit= since=1.0
+dvb_terrestrial.setting.gen_hierarchy type=choice(none,1,2,4) unit= since=1.0
+dvb_terrestrial.setting.gen_rate_hp type=choice(1/2,2/3,3/4,5/6,7/8) unit= since=1.0
+dvb_terrestrial.setting.gen_rate_lp type=choice(1/2,2/3,3/4,5/6,7/8) unit= since=1.0
+dvb_terrestrial.setting.gen_bandwidth type=choice(auto,8,7,6,5) unit= since=1.0
+dvb_terrestrial.setting.gen_cell_id type=i64 unit= since=1.0
+dvb_terrestrial.setting.gen_length type=choice(23,31) unit= since=1.0
+dvb_terrestrial.setting.gen_phase type=i64 unit= since=1.0
+dvb_terrestrial.setting.gen_service type=i64 unit= since=1.0
+dvb_terrestrial.setting.gen_name type=text unit= since=1.0
+dvb_terrestrial.setting.gen_source type=choice(builtin,pattern,null) unit= since=1.0
+dvb_terrestrial.command.service.select args=row:text reply= since=1.0
+dvb_terrestrial.command.teletext.select args=row:text reply= since=1.0
+dvb_terrestrial.command.track.select args=row:text reply= since=1.0
+dvbsh since=1.0
+dvbsh.fields.DvbshFields since=1.0
+dvbsh.fields.DvbshChainFields since=1.0
+dvbsh.component.sync.fields.SyncFields since=1.0
+dvbsh.component.fft.fields.FftFields since=1.0
+dvbsh.component.tps.fields.TpsFields shared=tps_frames_ok;tps_frames_failed since=1.0
+dvbsh.component.eq.fields.EqFields shared=snr_db since=1.0
+dvbsh.component.ts_demux.fields.TsDemuxFields since=1.0
+dvbsh.component.psi_si.fields.PsiSiFields since=1.0
+dvbsh.kept.guide since=1.0
+dvbsh.kept.guide_ratings since=1.0
+dvbsh.table.services row=TsServiceRow cap=1000 writers=ts_demux since=1.0
+dvbsh.table.tracks row=TsTrackRow cap=8192 writers=ts_demux since=1.0
+dvbsh.table.guide row=TsGuideRow cap=20000 writers=psi_si since=1.0
+dvbsh.table.guide_ratings row=TsGuideRatingRow cap=40000 writers=psi_si since=1.0
+dvbsh.table.ts_demux.pids row=TsPidRow cap=8192 since=1.0
+dvbsh.table.psi_si.sections row=TsSectionRow cap=64 since=1.0
+dvbsh.series.constellation x_unit= y_unit= since=1.0
+dvbsh.series.pilots x_unit= y_unit= since=1.0
+dvbsh.series.tps x_unit= y_unit= since=1.0
+dvbsh.series.channel_db x_unit=carrier y_unit=dB since=1.0
+dvbsh.series.channel_phase x_unit=carrier y_unit=rad since=1.0
+dvbsh.series.impulse_db x_unit=sample y_unit=dB since=1.0
+dvbsh.event.service.list fields=TsServiceListEvent since=1.0
+dvbsh.event.epg.event fields=TsGuideEvent since=1.0
+dvbsh.event.ts.time fields=TsTimeEvent since=1.0
+dvbsh.event.ts.network fields=TsNetworkEvent since=1.0
+dvbsh.setting.width type=choice(auto,5,8,7,6,1.7) unit= since=1.0
+dvbsh.setting.low_priority type=bool unit= since=1.0
+dvbsh.setting.max_interleaver_mb type=f64 unit=MB since=1.0
+dvbsh.setting.turbo_iterations type=i64 unit= since=1.0
+dvbsh.setting.decode_video type=bool unit= since=2.3
+dvbsh.setting.gen_width type=choice(auto,5,8,7,6,1.7) unit= since=1.0
+dvbsh.setting.gen_mode type=choice(1k,2k,4k,8k) unit= since=1.0
+dvbsh.setting.gen_constellation type=choice(qpsk,16qam) unit= since=1.0
+dvbsh.setting.gen_hierarchy type=choice(none,1,2,4) unit= since=1.0
+dvbsh.setting.gen_guard type=choice(1/32,1/16,1/8,1/4) unit= since=1.0
+dvbsh.setting.gen_rate type=choice(1/5,2/9,1/4,2/7,1/3,1/3c,2/5,2/5c,1/2,1/2c,2/3,2/3c) unit= since=1.0
+dvbsh.setting.gen_rate_lp type=choice(1/5,2/9,1/4,2/7,1/3,1/3c,2/5,2/5c,1/2,1/2c,2/3,2/3c) unit= since=1.0
+dvbsh.setting.gen_ti_cm type=i64 unit= since=1.0
+dvbsh.setting.gen_ti_lt type=i64 unit= since=1.0
+dvbsh.setting.gen_ti_ns type=i64 unit= since=1.0
+dvbsh.setting.gen_ti_sd type=i64 unit= since=1.0
+dvbsh.setting.gen_ti_nli type=i64 unit= since=1.0
+dvbsh.setting.waveform type=choice(auto,ofdm,tdm) unit= since=2.5
+dvbsh.setting.tdm_gold type=i64 unit= since=2.5
+dvbsh.setting.tdm_symbol_rate type=f64 unit=sym/s since=2.5
+dvbsh.setting.gen_waveform type=choice(ofdm,tdm_qpsk,tdm_8psk,tdm_16apsk) unit= since=2.5
+dvbsh.setting.gen_rolloff type=choice(0.15,0.25,0.35) unit= since=2.5
+dvbsh.command.service.select args=row:text reply= since=1.0
+dvbsh.command.track.select args=row:text reply= since=1.0

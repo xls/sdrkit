@@ -1,0 +1,310 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "ism_r1",
+      "name": "ISM and short-range devices, Region 1",
+      "kind": "ism",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, footnotes 5.138 and 5.150 (ISM bands)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "also": [
+        {
+          "publisher": "CEPT ERC",
+          "title": "ERC Recommendation 70-03",
+          "number": "ERC/REC 70-03",
+          "date": "2024"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 15.247",
+          "date": "2026",
+          "url": "https://www.ecfr.gov/current/title-47/section-15.247"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the ISM bands are confirmed (RR 5.138, 5.150); the short-range device bands are not yet compared with ERC/REC 70-03 and national rules",
+      "bands": [
+        {
+          "name": "ISM 6.78 MHz",
+          "service": "ism",
+          "start_hz": 6765000,
+          "end_hz": 6795000
+        },
+        {
+          "name": "ISM 13.56 MHz",
+          "service": "ism",
+          "start_hz": 13553000,
+          "end_hz": 13567000
+        },
+        {
+          "name": "ISM 27 MHz",
+          "service": "ism",
+          "start_hz": 26957000,
+          "end_hz": 27283000
+        },
+        {
+          "name": "ISM 40.68 MHz",
+          "service": "ism",
+          "start_hz": 40660000,
+          "end_hz": 40700000
+        },
+        {
+          "name": "SRD 169 MHz",
+          "service": "short_range",
+          "start_hz": 169400000,
+          "end_hz": 169812500,
+          "note": "meters, paging"
+        },
+        {
+          "name": "ISM 433 MHz",
+          "service": "ism",
+          "start_hz": 433050000,
+          "end_hz": 434790000,
+          "modes": [
+            "ism"
+          ],
+          "note": "remote controls, sensors"
+        },
+        {
+          "name": "SRD 863-870 MHz",
+          "service": "short_range",
+          "start_hz": 863000000,
+          "end_hz": 870000000,
+          "modes": [
+            "lorawan",
+            "ism"
+          ],
+          "note": "SRD 868: LoRaWAN, alarms, meters"
+        },
+        {
+          "name": "ISM 2.4 GHz",
+          "service": "ism",
+          "start_hz": 2400000000,
+          "end_hz": 2500000000
+        },
+        {
+          "name": "ISM 5.8 GHz",
+          "service": "ism",
+          "start_hz": 5725000000,
+          "end_hz": 5875000000
+        },
+        {
+          "name": "ISM 24 GHz",
+          "service": "ism",
+          "start_hz": 24000000000,
+          "end_hz": 24250000000
+        },
+        {
+          "name": "ISM 61 GHz",
+          "service": "ism",
+          "start_hz": 61000000000,
+          "end_hz": 61500000000
+        }
+      ]
+    },
+    {
+      "id": "ism_r2",
+      "name": "ISM and short-range devices, Region 2",
+      "kind": "ism",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, footnotes 5.138 and 5.150 (ISM bands)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "also": [
+        {
+          "publisher": "CEPT ERC",
+          "title": "ERC Recommendation 70-03",
+          "number": "ERC/REC 70-03",
+          "date": "2024"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 15.247",
+          "date": "2026",
+          "url": "https://www.ecfr.gov/current/title-47/section-15.247"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the ISM bands are confirmed (RR 5.138, 5.150); the short-range device bands are not yet compared with ERC/REC 70-03 and national rules",
+      "bands": [
+        {
+          "name": "ISM 6.78 MHz",
+          "service": "ism",
+          "start_hz": 6765000,
+          "end_hz": 6795000
+        },
+        {
+          "name": "ISM 13.56 MHz",
+          "service": "ism",
+          "start_hz": 13553000,
+          "end_hz": 13567000
+        },
+        {
+          "name": "ISM 27 MHz",
+          "service": "ism",
+          "start_hz": 26957000,
+          "end_hz": 27283000
+        },
+        {
+          "name": "ISM 40.68 MHz",
+          "service": "ism",
+          "start_hz": 40660000,
+          "end_hz": 40700000
+        },
+        {
+          "name": "ISM 902-928 MHz",
+          "service": "ism",
+          "start_hz": 902000000,
+          "end_hz": 928000000,
+          "modes": [
+            "lorawan",
+            "ism"
+          ],
+          "note": "LoRaWAN US915, meters, sensors"
+        },
+        {
+          "name": "ISM 2.4 GHz",
+          "service": "ism",
+          "start_hz": 2400000000,
+          "end_hz": 2500000000
+        },
+        {
+          "name": "ISM 5.8 GHz",
+          "service": "ism",
+          "start_hz": 5725000000,
+          "end_hz": 5875000000
+        },
+        {
+          "name": "ISM 24 GHz",
+          "service": "ism",
+          "start_hz": 24000000000,
+          "end_hz": 24250000000
+        },
+        {
+          "name": "ISM 61 GHz",
+          "service": "ism",
+          "start_hz": 61000000000,
+          "end_hz": 61500000000
+        }
+      ]
+    },
+    {
+      "id": "ism_r3",
+      "name": "ISM and short-range devices, Region 3",
+      "kind": "ism",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, footnotes 5.138 and 5.150 (ISM bands)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "also": [
+        {
+          "publisher": "CEPT ERC",
+          "title": "ERC Recommendation 70-03",
+          "number": "ERC/REC 70-03",
+          "date": "2024"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47",
+          "number": "47 CFR 15.247",
+          "date": "2026",
+          "url": "https://www.ecfr.gov/current/title-47/section-15.247"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the ISM bands are confirmed (RR 5.138, 5.150); the short-range device bands are not yet compared with ERC/REC 70-03 and national rules",
+      "bands": [
+        {
+          "name": "ISM 6.78 MHz",
+          "service": "ism",
+          "start_hz": 6765000,
+          "end_hz": 6795000
+        },
+        {
+          "name": "ISM 13.56 MHz",
+          "service": "ism",
+          "start_hz": 13553000,
+          "end_hz": 13567000
+        },
+        {
+          "name": "ISM 27 MHz",
+          "service": "ism",
+          "start_hz": 26957000,
+          "end_hz": 27283000
+        },
+        {
+          "name": "ISM 40.68 MHz",
+          "service": "ism",
+          "start_hz": 40660000,
+          "end_hz": 40700000
+        },
+        {
+          "name": "ISM 433 MHz",
+          "service": "ism",
+          "start_hz": 433050000,
+          "end_hz": 434790000,
+          "modes": [
+            "ism"
+          ],
+          "note": "national: Australia, New Zealand, China, others"
+        },
+        {
+          "name": "SRD 915-928 MHz",
+          "service": "short_range",
+          "start_hz": 915000000,
+          "end_hz": 928000000,
+          "modes": [
+            "lorawan",
+            "ism"
+          ],
+          "note": "Australia, New Zealand (AU915, AS923)"
+        },
+        {
+          "name": "SRD 920-925 MHz",
+          "service": "short_range",
+          "start_hz": 920000000,
+          "end_hz": 925000000,
+          "modes": [
+            "lorawan"
+          ],
+          "note": "Asia (AS923)"
+        },
+        {
+          "name": "ISM 2.4 GHz",
+          "service": "ism",
+          "start_hz": 2400000000,
+          "end_hz": 2500000000
+        },
+        {
+          "name": "ISM 5.8 GHz",
+          "service": "ism",
+          "start_hz": 5725000000,
+          "end_hz": 5875000000
+        },
+        {
+          "name": "ISM 24 GHz",
+          "service": "ism",
+          "start_hz": 24000000000,
+          "end_hz": 24250000000
+        },
+        {
+          "name": "ISM 61 GHz",
+          "service": "ism",
+          "start_hz": 61000000000,
+          "end_hz": 61500000000
+        }
+      ]
+    }
+  ]
+}

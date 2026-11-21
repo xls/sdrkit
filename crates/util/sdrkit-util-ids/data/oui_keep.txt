@@ -1,0 +1,88 @@
+# Organisations kept in data/oui.tsv whatever their number of assignments: radio, network and IoT makers often heard on the air.
+# One text per line; an organisation is kept when its IEEE name contains the text (case is ignored).
+AVM GmbH
+AVM Audiovisuelles
+Routerboard.com
+MikroTik
+Ubiquiti
+Raspberry Pi
+Nordic Semiconductor
+Dragino
+Milesight
+RAK Wireless
+RAKwireless
+Netvox
+Tektelic
+Seeed Technology
+Semtech
+STMicroelectronics
+Elsys
+Microchip Technology
+Realtek
+MediaTek
+Broadcom
+Qualcomm
+Ralink
+Atheros
+ALFA, INC
+Tuya
+Morse Micro
+Sonos
+Meraki
+Aruba
+Fortinet
+Palo Alto Networks
+BUFFALO
+Belkin
+Zyxel
+D-Link
+Linksys
+NETGEAR
+Wi-Fi Alliance
+Espressif
+Silicon Laboratories
+Texas Instruments
+u-blox
+Garmin
+DJI
+Parrot SA
+Murata
+Laird
+Sierra Wireless
+Quectel
+Telit
+Teltonika
+Kerlink
+Multi-Tech
+Cambium Networks
+Ruckus
+Hytera
+Sepura
+Icom Inc
+JVC KENWOOD
+Yaesu
+Motorola Solutions
+Analog Devices
+Ettus
+Arduino
+Adafruit
+Particle Industries
+Shelly
+Allterco
+Signify
+IKEA
+Fitbit
+Tile, Inc
+# IEEE 802.15.4 (Zigbee, Thread) radio makers heard on the air; their IEEE names differ from the brand names.
+Ember Corporation
+Energy Micro
+Philips Lighting
+Jennic
+XIAOMI Electronics
+Lumi United
+SAMJIN
+SmartThings
+MaxStream
+Itron
+dresden-elektronik
+Telegesis

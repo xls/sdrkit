@@ -1,0 +1,12 @@
+[package]
+name = "sdrkit-util-text"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Text codes for sdrkit: ITA2, CCIR 476 with FEC-B, varicodes, Morse, IA5, 6-bit sets, base-40/64/91, EBU Latin, ISO 6937, DVB SI text, teletext, callsigns and a decoded-text store"
+
+[dependencies]
+# Multi-byte and ISO 8859 tables of DVB SI text and GB 2312 in RDS: (Apache-2.0 OR MIT) AND BSD-3-Clause.
+encoding_rs = "0.8"
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }

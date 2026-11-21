@@ -1,0 +1,28 @@
+[package]
+name = "sdrkit-stack-dvbt"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "DVB-T (EN 300 744): 2K and 8K, every guard, constellation, code rate and hierarchy, 5 to 8 MHz, and the channel scan"
+
+[dependencies]
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-proto-mpegts = { path = "../../proto/sdrkit-proto-mpegts" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+
+[dev-dependencies]
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The reader of the DVB-SH plan file, for the test that loads it.
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+# The Layer II decoder, for the test that the sound of the test signal plays.
+sdrkit-codec-mpa = { path = "../../codec/sdrkit-codec-mpa" }
+# The TV channels of the data folder, for the tests that set a channel list.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }

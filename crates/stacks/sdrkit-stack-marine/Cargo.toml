@@ -1,0 +1,33 @@
+[package]
+name = "sdrkit-stack-marine"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Marine stacks: AIS, DSC, NAVTEX, HF weather fax, VDES, marine VHF voice and ATIS"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-codec-image = { path = "../../codec/sdrkit-codec-image" }
+sdrkit-proto-link = { path = "../../proto/sdrkit-proto-link" }
+sdrkit-proto-channels = { path = "../../proto/sdrkit-proto-channels" }
+num-complex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+# The record of the declarations.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The channel plans of the data folder, for the tests of the VHF stacks.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }

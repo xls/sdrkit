@@ -1,0 +1,51 @@
+{
+  "note": "Expected results of the general receiver (specs/general.md) on the four recordings in this folder. Every recording is 250 000 samples/s cf32_le, centre 50 kHz above the tuned frequency, so the receiver is configured with the signal at -50 000 Hz. Settings are the mode defaults unless listed: squelch on, Auto; AGC on; de-emphasis off; CW pitch 700 Hz; filter = the demodulator's default width. Feed in blocks of 25 000 samples (0.1 s); one report per 0.1 s of input. 'audio' values are measured on the 48 kHz mono audio after the squelch, before the volume: a single-bin DFT over the last 0.5 s, peak amplitude, full scale 1.0. Levels are dBFS (a complex sample of magnitude 1 is 0 dBFS power). 'squelch_timeline' has one character per report: '.' closed (state 1), 'O' open (state 2).",
+  "recordings": {
+    "general_am_250k": {
+      "tuned_hz": 145500000,
+      "demod": "am",
+      "settings": { "width_hz": 9000, "am_detector": "envelope", "am_auto_quality": false },
+      "filter_hz": [-4500, 4500],
+      "squelch_timeline": "..OOOOOOOOOOOOO",
+      "final": { "state": 2, "squelch_open": true, "level_dbfs": -10.0, "noise_dbfs": -42.0, "snr_db": 32.0, "squelch_threshold_dbfs": -36.0 },
+      "audio": { "tone_hz": 1000, "tone_amp": 0.250, "rms_while_closed": 0.0, "audio_dbfs_rms": -15.0 },
+      "tolerance": { "squelch_timeline": "closed in the first two reports, open from the fourth on", "level_dbfs": 1.0, "noise_dbfs": 2.0, "snr_db": "at least 26", "tone_amp": [0.22, 0.28], "rms_while_closed": "below 1e-4" }
+    },
+    "general_nfm_ctcss_250k": {
+      "tuned_hz": 145500000,
+      "demod": "nfm",
+      "settings": { "width_hz": 12500, "deemphasis_us": 0 },
+      "filter_hz": [-6250, 6250],
+      "squelch_timeline": ".....OOOOOOOOOOOOOOOOOOOO",
+      "final": { "state": 2, "squelch_open": true, "level_dbfs": -10.5, "noise_dbfs": -40.7, "snr_db": 30.2, "squelch_threshold_dbfs": -34.7, "offset_hz": -3.4 },
+      "audio": { "tone_hz": 1000, "tone_amp": 0.250, "ctcss_amp_in_audio": 0.0588, "rms_while_closed": 0.0, "audio_dbfs_rms": -14.8 },
+      "ctcss": {
+        "detected_hz": 88.5,
+        "note": "The strongest of the 50 tones over the last 1 s of audio is 88.5 Hz (amplitude 0.0586).",
+        "tone_squelch_88_5": { "timeline_per_0_1s_of_audio": "......OOOOOOOOOOOOOOOOOOO", "out_1khz_amp": 0.2495, "out_88_5hz_amp": 0.0068 },
+        "tone_squelch_100_0": { "timeline_per_0_1s_of_audio": ".........................", "out_1khz_amp": 0.0 }
+      },
+      "tolerance": { "squelch_timeline": "closed in the first five reports, open from the seventh on", "level_dbfs": 1.0, "snr_db": "at least 24", "offset_hz": "within +-50 (the 88.5 Hz tone makes the 0.1 s mean swing about +-10 Hz)", "tone_amp": [0.22, 0.28], "ctcss_amp_in_audio": [0.045, 0.07], "detected_hz": "exact (88.5)", "tone_squelch_88_5": "open from at most 0.9 s of audio to the end; the 88.5 Hz tone in the output at least 15 dB below its level in the input", "tone_squelch_100_0": "never open" }
+    },
+    "general_usb_250k": {
+      "tuned_hz": 14200000,
+      "demod": "usb",
+      "settings": { "width_hz": 2700 },
+      "filter_hz": [300, 3000],
+      "squelch_timeline": "..OOOOOOOOOOOOO",
+      "final": { "state": 2, "squelch_open": true, "level_dbfs": -10.5, "noise_dbfs": -44.6, "snr_db": 34.2, "squelch_threshold_dbfs": -38.6 },
+      "audio": { "tone_hz": 1000, "tone_amp": 0.488, "rms_while_closed": 0.0, "audio_dbfs_rms": -9.2 },
+      "tolerance": { "squelch_timeline": "closed in the first two reports, open from the fourth on", "level_dbfs": 1.0, "noise_dbfs": "within 3 (the in-band median is used: the tone takes some bins)", "snr_db": "at least 28", "tone_amp": [0.44, 0.55], "rms_while_closed": "below 1e-4" }
+    },
+    "general_cw_250k": {
+      "tuned_hz": 14030000,
+      "demod": "cw",
+      "settings": { "width_hz": 500, "pitch_hz": 700 },
+      "filter_hz": [-250, 250],
+      "squelch_timeline": "..OOOOOOOOOOOOO",
+      "final": { "state": 2, "squelch_open": true, "level_dbfs": -10.5, "noise_dbfs": -54.6, "snr_db": 44.2, "squelch_threshold_dbfs": -48.6 },
+      "audio": { "tone_hz": 700, "tone_amp": 0.495, "rms_while_closed": 0.0, "audio_dbfs_rms": -9.1 },
+      "tolerance": { "squelch_timeline": "closed in the first two reports, open from the fourth on", "level_dbfs": 1.0, "noise_dbfs": 2.0, "snr_db": "at least 38", "tone_amp": [0.44, 0.55], "rms_while_closed": "below 1e-4" }
+    }
+  }
+}

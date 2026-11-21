@@ -1,0 +1,14 @@
+# id: watcher_dials
+# name: Usual starting dials of the spectrum watcher stacks
+# stacks: occupancy noise_floor birdie burst_finder hopper ptt_log obw noise_locator
+# source: usage, not a band plan; the 146.52 MHz dial of ptt_log is the 2 m FM calling frequency of the United States (not checked against a published plan)
+# note: Starting points only. Every stack measures the span or the channel at the dial. The channel width of occupancy (grid_khz) and of ptt_log (channel_khz) is regional: 12.5, 20 or 25 kHz rasters, and 6.25 kHz. The mains frequency of noise_locator (mains_hz) is 50 or 60 Hz by country; the stack tests both unless the host sets one.
+stack,frequency_hz,low_hz,high_hz
+occupancy,145000000,100000,6000000000
+noise_floor,145000000,100000,6000000000
+birdie,145000000,100000,6000000000
+obw,145000000,100000,6000000000
+burst_finder,433920000,100000,6000000000
+hopper,433900000,100000,6000000000
+ptt_log,146520000,100000,6000000000
+noise_locator,7100000,100000,1000000000

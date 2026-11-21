@@ -1,0 +1,15 @@
+# id: default_dials
+# name: Starting dials of the voice channel, MDC-1200, FleetSync and wireless microphone stacks
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+voice_channels,,27210000
+voice_channels,cb,27210000
+voice_channels,frs,462643750
+voice_channels,pmr446,446100000
+voice_channels,ham_repeaters,145643750
+voice_channels,hfvoice,11187000
+mdc1200,,155000000
+fleetsync,,155000000
+wmic,,590000000
+hfpacket,,14100000
+voice_inversion,,145500000

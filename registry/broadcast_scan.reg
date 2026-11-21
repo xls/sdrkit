@@ -1,0 +1,18 @@
+# The interface of the stack family broadcast_scan. The registry test of the family writes this file.
+family broadcast_scan version=1.0
+shape.ProgressFields since=1.0
+shape.ProgressFields.progress type=text unit= optional=no since=1.0
+shape.ProgressFields.centre type=hz unit=Hz optional=no since=1.0
+shape.ProgressFields.found type=i64 unit= optional=no since=1.0
+shape.ProgressFields.tune_to type=hz unit=Hz optional=yes since=1.0
+shape.ProgressFields.done type=bool unit= optional=no since=1.0
+shape.StationRow since=1.0
+shape.StationRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.StationRow.state type=choice(decoded,found) unit= optional=no since=1.0
+shape.StationRow.name type=text unit= optional=no since=1.0
+shape.StationRow.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.StationRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.StationRow.over_floor_db type=f64 unit=dB optional=no since=1.0
+broadcast_scan since=1.0
+broadcast_scan.fields.ProgressFields since=1.0
+broadcast_scan.table.stations row=StationRow cap=256 since=1.0

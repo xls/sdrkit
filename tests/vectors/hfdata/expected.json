@@ -1,0 +1,701 @@
+{
+ "note": "Expected results of the recordings in this folder (specs/hfdata.md, section 9). Each recording is fed from its start in pieces of 0.1 s of signal (2400 samples at 24 ksps, 25000 at 250 ksps); at the end the receiver is told the recording has ended (any transmission or burst in progress is closed), then the results are read. The PACTOR-II, -III, -IV and HF ID modes analyse on their own schedule (every 4 s and every 2 s of signal): their results are those of the last analysis. Times are seconds of signal from the first sample; with no clock the stream time starts at 0. 'tolerance' gives accepted ranges; a value without one is exact. The radio centre is the SigMF capture frequency; the tune offset is 0 (the dial is the capture centre) for every recording except codar_250k and datawell_2fsk_24k, whose signals sit away from the centre.",
+ "ale_24k.sigmf-meta": {
+  "mode": "ale",
+  "settings": {
+   "nets": "",
+   "listen": false,
+   "demod": "usb",
+   "dial_hz": 14109000
+  },
+  "events": [
+   {
+    "t_s": 0.608,
+    "type": "Sounding",
+    "from": "TSTA",
+    "to": "",
+    "tis": false,
+    "words": 8
+   },
+   {
+    "t_s": 4.944,
+    "type": "Individual",
+    "from": "TSTA",
+    "to": "TSTB",
+    "tis": true,
+    "cmd": "LQA BER 2 SINAD 24 MP 1",
+    "words": 15
+   },
+   {
+    "t_s": 12.024,
+    "type": "Response",
+    "from": "TSTB",
+    "to": "TSTA",
+    "tis": true,
+    "cmd": "LQA BER 1 SINAD 26 MP 0",
+    "words": 7
+   },
+   {
+    "t_s": 15.968,
+    "type": "Ack",
+    "from": "TSTA",
+    "to": "TSTB",
+    "tis": false,
+    "words": 6
+   },
+   {
+    "t_s": 19.52,
+    "type": "Net",
+    "from": "NETC",
+    "to": "NET",
+    "tis": true,
+    "words": 8
+   },
+   {
+    "t_s": 23.856,
+    "type": "Net response",
+    "from": "MEMA",
+    "to": "NETC",
+    "tis": true,
+    "words": 6
+   },
+   {
+    "t_s": 27.408,
+    "type": "Net response",
+    "from": "MEMB",
+    "to": "NETC",
+    "tis": true,
+    "words": 6
+   },
+   {
+    "t_s": 30.96,
+    "type": "Net",
+    "from": "NETC",
+    "to": "NET",
+    "tis": false,
+    "words": 4
+   },
+   {
+    "t_s": 33.728,
+    "type": "Individual",
+    "from": "TSTD",
+    "to": "TSTA",
+    "tis": true,
+    "amd": "QSY 14109 USB PSE",
+    "words": 20
+   },
+   {
+    "t_s": 42.768,
+    "type": "Group",
+    "from": "GRPE",
+    "to": "GRPF, GRPG",
+    "tis": true,
+    "words": 10
+   },
+   {
+    "t_s": 47.888,
+    "type": "Sounding",
+    "from": "LONGADDR1",
+    "to": "",
+    "tis": true,
+    "words": 9
+   }
+  ],
+  "stations": [
+   {
+    "address": "LONGADDR1",
+    "count": 1,
+    "last": "Sounding"
+   },
+   {
+    "address": "GRPE",
+    "count": 1,
+    "last": "Group"
+   },
+   {
+    "address": "TSTD",
+    "count": 1,
+    "last": "Individual"
+   },
+   {
+    "address": "NETC",
+    "count": 2,
+    "last": "Net"
+   },
+   {
+    "address": "MEMB",
+    "count": 1,
+    "last": "Net response"
+   },
+   {
+    "address": "MEMA",
+    "count": 1,
+    "last": "Net response"
+   },
+   {
+    "address": "TSTA",
+    "count": 3,
+    "last": "Ack"
+   },
+   {
+    "address": "TSTB",
+    "count": 1,
+    "last": "Response"
+   }
+  ],
+  "learned_nets": [
+   "NET"
+  ],
+  "counters": {
+   "words_ok": 99,
+   "words_missed": 22
+  },
+  "state_at_end": "searching",
+  "tolerance": {
+   "events": "exactly these eleven, in this order, every field exact",
+   "t_s": 0.02,
+   "words": "+-1",
+   "words_ok": [
+    96,
+    104
+   ],
+   "words_missed": "any (the two misses that end each transmission are counted)",
+   "cfo_hz": [
+    35,
+    45
+   ],
+   "snr_db_per_event": [
+    12,
+    18
+   ],
+   "ber_per_event": [
+    0.003,
+    0.02
+   ],
+   "stations": "exactly these, newest first"
+  }
+ },
+ "pactor1_arq_24k.sigmf-meta": {
+  "mode": "pactor1",
+  "settings": {
+   "listen": false,
+   "demod": "usb"
+  },
+  "frames_oldest_first": [
+   {
+    "t_s": 0.505,
+    "kind": "connect",
+    "baud": 100,
+    "header": "55",
+    "count": 0,
+    "call": "XX1AA",
+    "inverted": false,
+    "side": 1
+   },
+   {
+    "t_s": 1.636,
+    "kind": "CS4",
+    "text": "speed change",
+    "side": 1
+   },
+   {
+    "t_s": 1.756,
+    "kind": "data",
+    "baud": 200,
+    "header": "AA",
+    "count": 1,
+    "huffman": false,
+    "text": "XX2BB de XX1AA",
+    "inverted": true,
+    "side": 1
+   },
+   {
+    "t_s": 2.885,
+    "kind": "CS1",
+    "text": "acknowledge"
+   },
+   {
+    "t_s": 3.005,
+    "kind": "data",
+    "baud": 100,
+    "header": "55",
+    "count": 2,
+    "huffman": true,
+    "text": "tea set at sea",
+    "inverted": false,
+    "side": 1
+   },
+   {
+    "t_s": 4.135,
+    "kind": "CS2",
+    "text": "reject / busy"
+   },
+   {
+    "t_s": 4.255,
+    "kind": "data",
+    "baud": 100,
+    "header": "55",
+    "count": 2,
+    "huffman": true,
+    "text": "tea set at sea",
+    "repeat": true,
+    "fec": false,
+    "inverted": true
+   },
+   {
+    "t_s": 5.385,
+    "kind": "CS1"
+   },
+   {
+    "t_s": 5.506,
+    "kind": "data",
+    "baud": 200,
+    "header": "AA",
+    "count": 3,
+    "huffman": false,
+    "text": "ASCII at 200 baud 73"
+   },
+   {
+    "t_s": 6.635,
+    "kind": "CS3",
+    "text": "changeover (the other side sends next)",
+    "side": 1
+   },
+   {
+    "t_s": 6.755,
+    "kind": "data",
+    "baud": 100,
+    "header": "55",
+    "count": 0,
+    "huffman": true,
+    "break_in": true,
+    "text": "a tea set",
+    "side": 2
+   },
+   {
+    "t_s": 7.885,
+    "kind": "CS1",
+    "side": 2
+   },
+   {
+    "t_s": 8.005,
+    "kind": "QRT",
+    "baud": 100,
+    "header": "AA",
+    "count": 1,
+    "qrt": true,
+    "side": 2
+   },
+   {
+    "t_s": 9.135,
+    "kind": "CS1",
+    "side": 2
+   }
+  ],
+  "stations": [
+   {
+    "call": "XX2BB",
+    "count": 1,
+    "how": "named in text"
+   },
+   {
+    "call": "XX1AA",
+    "count": 2,
+    "how": "called in a connect packet"
+   }
+  ],
+  "text": "[1] XX2BB de XX1AAtea set at sea ASCII at 200 baud 73\n[2] a tea set",
+  "counters": {
+   "packets_ok": 7,
+   "packets_bad": 0,
+   "control_signals": 7,
+   "memory_arq_saves": 0,
+   "repeats": 1,
+   "fast": 2,
+   "slow": 5,
+   "changeovers": 1,
+   "connects": 1
+  },
+  "fec_mode": false,
+  "tone_pair_low_hz": 1433.0,
+  "cfo_hz": 33.0,
+  "tolerance": {
+   "frames": "exactly these fourteen",
+   "t_s": 0.01,
+   "tone_pair_low_hz": 3,
+   "cfo_hz": 3,
+   "text": "compared after runs of spaces are collapsed to one (Huffman packets are padded with spaces)",
+   "snr_db": "any; packets 7 to 12 dB"
+  }
+ },
+ "pactor1_fec_24k.sigmf-meta": {
+  "mode": "pactor1",
+  "counters": {
+   "packets_ok": 17,
+   "packets_bad": 1,
+   "control_signals": 0,
+   "repeats": 11,
+   "fast": 6,
+   "slow": 11
+  },
+  "fec_mode": true,
+  "tone_pair_low_hz": 1360.0,
+  "text_contains": [
+   "CQ CQ DE XX2BB XX2BB PSE K"
+  ],
+  "text_once": "CQ CQ DE",
+  "huffman_pieces": [
+   "eat te",
+   "a set",
+   "at sea",
+   "sea"
+  ],
+  "repeat_flags": "every repeat is marked repeat and unproto / FEC (no control signal between)",
+  "tolerance": {
+   "packets_ok": "at least 17 (all 18 is better)",
+   "packets_bad": "at most 1",
+   "repeats": "at least 10",
+   "tone_pair_low_hz": 3,
+   "text": "the CQ text appears exactly once"
+  }
+ },
+ "pactor2_24k.sigmf-meta": {
+  "mode": "pactor2",
+  "variant": 2,
+  "carriers": 2,
+  "carrier_hz": [
+   797.1,
+   997.1
+  ],
+  "orders": [
+   4,
+   4
+  ],
+  "spacing_hz": 200.0,
+  "centre_hz": 898.5,
+  "cfo_hz": 13.5,
+  "baud": 100.01,
+  "clock_ppm": 99,
+  "frame_period_symbols": 362,
+  "frame_period_s": 3.62,
+  "sync_len": 40,
+  "sync_hex": "951A659E7E2766BFD3D7",
+  "state": 2,
+  "summary": "PACTOR-II: 2 carriers, frame 3.62 s",
+  "tolerance": {
+   "carrier_hz": 3,
+   "centre_hz": [
+    892,
+    904
+   ],
+   "cfo_hz": [
+    6,
+    19
+   ],
+   "baud": 0.05,
+   "clock_ppm": [
+    60,
+    140
+   ],
+   "sync_len": [
+    38,
+    42
+   ],
+   "sync_hex": "not compared (depends on the symbol origin)",
+   "frame_period_symbols": "exact"
+  }
+ },
+ "pactor3_24k.sigmf-meta": {
+  "mode": "pactor3",
+  "variant": 3,
+  "carriers": 14,
+  "level": 4,
+  "first_carrier_hz": 727.1,
+  "last_carrier_hz": 2287.2,
+  "orders": "all 4",
+  "spacing_hz": 120.0,
+  "centre_hz": 1508.0,
+  "cfo_hz": 8.0,
+  "baud": 100.01,
+  "clock_ppm": 98,
+  "frame_period_symbols": 362,
+  "state": 2,
+  "summary": "PACTOR-III: 14 carriers, frame 3.62 s",
+  "same_recording_in_pactor2_mode": {
+   "variant": 3,
+   "summary": "PACTOR-II: this looks like PACTOR-III"
+  },
+  "tolerance": {
+   "carrier_hz": 3,
+   "centre_hz": 4,
+   "baud": 0.05,
+   "clock_ppm": [
+    60,
+    140
+   ]
+  }
+ },
+ "pactor4_24k.sigmf-meta": {
+  "mode": "pactor4",
+  "variant": 4,
+  "baud": 1800.0,
+  "centre_hz": 1520.0,
+  "constellation": 4,
+  "state": 1,
+  "frame_period_symbols": 0,
+  "summary": "PACTOR-IV: 1800 baud single carrier, constellation estimated",
+  "tolerance": {
+   "centre_hz": 12,
+   "baud": 1,
+   "clock_line_db": "at least 12"
+  }
+ },
+ "wfid_4285_24k.sigmf-meta": {
+  "mode": "hfid",
+  "best": "STANAG 4285",
+  "best_confidence": 0.95,
+  "also": [
+   "2400 Bd serial-tone PSK family"
+  ],
+  "measured": {
+   "baud_hz": 2400.0,
+   "centre_hz": 1799,
+   "band_hz": [
+    463,
+    3135
+   ],
+   "repeat_symbols": 256,
+   "repeat_ms": 106.7
+  },
+  "tolerance": {
+   "baud_hz": 5,
+   "centre_hz": 40,
+   "band_hz": 120,
+   "repeat_symbols": 1,
+   "best_confidence": "at least 0.6"
+  }
+ },
+ "wfid_110a_24k.sigmf-meta": {
+  "mode": "hfid",
+  "best": "MIL-STD-188-110A serial tone",
+  "measured": {
+   "baud_hz": 2400.0,
+   "repeat_symbols": 48
+  },
+  "tolerance": {
+   "baud_hz": 5,
+   "best_confidence": "at least 0.6"
+  }
+ },
+ "wfid_link11_24k.sigmf-meta": {
+  "mode": "hfid",
+  "best": "Link 11 CLEW (parallel tones)",
+  "measured": {
+   "tone_605_hz": true,
+   "tone_2915_hz": true,
+   "tones": 14,
+   "spacing_hz": 109.7
+  },
+  "tolerance": {
+   "tones": "12 to 16",
+   "spacing_hz": 3
+  }
+ },
+ "wfid_mfsk12_24k.sigmf-meta": {
+  "mode": "hfid",
+  "best": "Multi-tone MFSK (CIS-12 / Chinese-style, unverified)",
+  "measured": {
+   "tones": 12,
+   "spacing_hz": 99.5
+  },
+  "tolerance": {
+   "tones": "10 to 14",
+   "spacing_hz": 3
+  }
+ },
+ "codar_250k.sigmf-meta": {
+  "mode": "hfradar",
+  "settings": {
+   "scan": false
+  },
+  "radars": [
+   {
+    "centre_mhz": 12.9406,
+    "offset_khz": -59.4,
+    "width_khz": 51,
+    "rate_khz_s": 111.1,
+    "period_s": 0.5,
+    "dir": 1,
+    "band": "12 - 14 MHz",
+    "hint_starts": "possible SeaSonde-like radar"
+   },
+   {
+    "centre_mhz": 13.05,
+    "offset_khz": 50.0,
+    "width_khz": 25.0,
+    "rate_khz_s": 55.6,
+    "period_s": 0.5,
+    "dir": -1,
+    "band": "12 - 14 MHz",
+    "hint_starts": "possible SeaSonde-like radar"
+   }
+  ],
+  "band_now": "12 - 14 MHz",
+  "state": 1,
+  "counters": {
+   "sweeps_ok": 15,
+   "tracks_bad": 0,
+   "wide_bursts": 0
+  },
+  "events": 2,
+  "callsign": "none",
+  "tolerance": {
+   "radars": "exactly two (their numbers are not compared)",
+   "centre_mhz": 0.004,
+   "width_khz": "+-15 %",
+   "rate_khz_s": "+-12 %",
+   "period_s": 0.02,
+   "sweeps_ok": "at least 12",
+   "snr_db": [
+    14,
+    24
+   ]
+  }
+ },
+ "datawell_2fsk_24k.sigmf-meta": {
+  "mode": "wavebuoy",
+  "settings": {
+   "format": "auto"
+  },
+  "format": "2FSK",
+  "state": 2,
+  "channel": "Default",
+  "freq_mhz": 30.475,
+  "offset_hz": 1500,
+  "baud": 81.92,
+  "tone_step_hz": 129,
+  "hxv": {
+   "locked": true,
+   "inverted": false,
+   "vectors": 36,
+   "lost": 0,
+   "repaired": 0,
+   "blocks": 2
+  },
+  "system": {
+   "words_present": [
+    1,
+    2
+   ],
+   "hs_m": 3.4,
+   "hrms_m": 0.85,
+   "tz_s": 7.142857
+  },
+  "spectrum_points": [
+   {
+    "n": 4,
+    "hz": 0.045,
+    "dir_deg": 73.125,
+    "spread_deg": 15.218,
+    "m2": 0.2051,
+    "n2": -0.1055,
+    "rpsd": 0.2725,
+    "k": 1.04
+   },
+   {
+    "n": 5,
+    "hz": 0.05,
+    "dir_deg": 77.344,
+    "spread_deg": 15.778,
+    "m2": 0.2148,
+    "n2": -0.0957,
+    "rpsd": 0.2231,
+    "k": 1.05
+   },
+   {
+    "n": 6,
+    "hz": 0.055,
+    "dir_deg": 81.5625,
+    "spread_deg": 16.337,
+    "m2": 0.2246,
+    "n2": -0.0938,
+    "rpsd": 0.1827,
+    "k": 1.06
+   },
+   {
+    "n": 7,
+    "hz": 0.06,
+    "dir_deg": 85.781,
+    "spread_deg": 16.897,
+    "m2": 0.2266,
+    "n2": -0.084,
+    "rpsd": 0.1496,
+    "k": 1.07
+   }
+  ],
+  "displacements": "heave within +-80 cm, north within +-30, west within +-25; consecutive samples differ smoothly",
+  "summary": "HXV buoy data, Hs 3.40 m, Tz 7.1 s, 36 vectors, 0 repaired",
+  "tolerance": {
+   "offset_hz": 30,
+   "baud": 0.3,
+   "tone_step_hz": 10,
+   "vectors": "at least 33",
+   "lost": "at most 1",
+   "system values": "exact (1e-9)",
+   "spectrum_points": "at least these four, values exact to 1e-3",
+   "bw_hz": [
+    115,
+    195
+   ],
+   "snr_db": [
+    20,
+    28
+   ]
+  }
+ },
+ "hfbeacon_letters_24k.sigmf-meta": {
+  "mode": "hfbeacons",
+  "settings": {
+   "list": "built-in",
+   "ppm": 0,
+   "clock_offset_s": 0,
+   "hop": false
+  },
+  "in_span": [
+   "D 3594.7",
+   "P 3594.8",
+   "S 3594.9",
+   "C 3595.0",
+   "A 3595.1",
+   "F 3595.2",
+   "K 3595.3",
+   "M 3595.4"
+  ],
+  "channels": 8,
+  "heard": [
+   {
+    "beacon": "D Sevastopol 3594.7",
+    "conf": 2,
+    "snr_db": 10.8
+   },
+   {
+    "beacon": "S Severomorsk 3594.9",
+    "conf": 2,
+    "snr_db": 9.6
+   }
+  ],
+  "not_heard": [
+   "P 3594.8",
+   "C 3595.0 (steady carrier: not a keyed letter)",
+   "K 3595.3 (keyed, but the letter is D)",
+   "A",
+   "F",
+   "M"
+  ],
+  "heard_now": 2,
+  "tolerance": {
+   "snr_db": "D: 9 to 14 (sent 12); S: 7 to 11.5 (sent 9)",
+   "not_heard": "never heard; conf 1 (energy, keying not matched) is allowed for C, A and K"
+  }
+ }
+}

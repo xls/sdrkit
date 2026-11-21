@@ -1,0 +1,102 @@
+[package]
+name = "sdrkit-host-catalog"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "The registry of the stacks and the component kinds of sdrkit"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-stack-fm = { path = "../../stacks/sdrkit-stack-fm", optional = true }
+sdrkit-stack-general = { path = "../../stacks/sdrkit-stack-general", optional = true }
+sdrkit-stack-adsb = { path = "../../stacks/sdrkit-stack-adsb", optional = true }
+sdrkit-stack-dab = { path = "../../stacks/sdrkit-stack-dab", optional = true }
+sdrkit-stack-dvbt = { path = "../../stacks/sdrkit-stack-dvbt", optional = true }
+sdrkit-stack-dvoice = { path = "../../stacks/sdrkit-stack-dvoice", optional = true }
+sdrkit-stack-satimg = { path = "../../stacks/sdrkit-stack-satimg", optional = true }
+sdrkit-stack-lora = { path = "../../stacks/sdrkit-stack-lora", optional = true }
+sdrkit-stack-satcom = { path = "../../stacks/sdrkit-stack-satcom", optional = true }
+sdrkit-stack-wsjt = { path = "../../stacks/sdrkit-stack-wsjt", optional = true }
+sdrkit-stack-tvterr = { path = "../../stacks/sdrkit-stack-tvterr", optional = true }
+sdrkit-stack-dvbt2 = { path = "../../stacks/sdrkit-stack-dvbt2", optional = true }
+sdrkit-stack-broadcast = { path = "../../stacks/sdrkit-stack-broadcast", optional = true }
+sdrkit-stack-trunk = { path = "../../stacks/sdrkit-stack-trunk", optional = true }
+sdrkit-stack-avdata = { path = "../../stacks/sdrkit-stack-avdata", optional = true }
+sdrkit-stack-marine = { path = "../../stacks/sdrkit-stack-marine", optional = true }
+sdrkit-stack-dvbcs = { path = "../../stacks/sdrkit-stack-dvbcs", optional = true }
+sdrkit-stack-cell = { path = "../../stacks/sdrkit-stack-cell", optional = true }
+sdrkit-stack-analogtv = { path = "../../stacks/sdrkit-stack-analogtv", optional = true }
+sdrkit-stack-ism = { path = "../../stacks/sdrkit-stack-ism", optional = true }
+sdrkit-stack-hfkbd = { path = "../../stacks/sdrkit-stack-hfkbd", optional = true }
+sdrkit-stack-gnss = { path = "../../stacks/sdrkit-stack-gnss", optional = true }
+sdrkit-stack-drones = { path = "../../stacks/sdrkit-stack-drones", optional = true }
+sdrkit-stack-avnav = { path = "../../stacks/sdrkit-stack-avnav", optional = true }
+sdrkit-stack-hfdata = { path = "../../stacks/sdrkit-stack-hfdata", optional = true }
+sdrkit-stack-wlan = { path = "../../stacks/sdrkit-stack-wlan", optional = true }
+sdrkit-stack-science = { path = "../../stacks/sdrkit-stack-science", optional = true }
+sdrkit-stack-voice = { path = "../../stacks/sdrkit-stack-voice", optional = true }
+sdrkit-stack-road = { path = "../../stacks/sdrkit-stack-road", optional = true }
+sdrkit-stack-custom = { path = "../../stacks/sdrkit-stack-custom", optional = true }
+sdrkit-stack-meter = { path = "../../stacks/sdrkit-stack-meter", optional = true }
+sdrkit-stack-tags = { path = "../../stacks/sdrkit-stack-tags", optional = true }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-host-engine = { path = "../sdrkit-host-engine" }
+# The standard component kinds.
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+
+# The codec plug-ins.
+sdrkit-codec-mpa = { path = "../../codec/sdrkit-codec-mpa" }
+sdrkit-codec-aac = { path = "../../codec/sdrkit-codec-aac" }
+
+# The component kinds of the channel bank and the recorders.
+sdrkit-svc-bank = { path = "../../svc/sdrkit-svc-bank" }
+sdrkit-svc-record = { path = "../../svc/sdrkit-svc-record" }
+
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+sdrkit-codec-apple = { path = "../../codec/sdrkit-codec-apple" }
+
+[dev-dependencies]
+# The registry check of the families.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core", features = ["fake"] }
+# The reader of the data folder, for the tests that run a stack with the rows of a data file.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }
+
+# One feature for each stack family. A host that needs fewer families builds without the default features and names
+# the ones it wants.
+[features]
+default = ["fm", "general", "adsb", "dab", "dvbt", "dvoice", "satimg", "lora", "satcom", "wsjt", "tvterr", "dvbt2", "broadcast", "trunk", "avdata", "marine", "dvbcs", "cell", "analogtv", "ism", "hfkbd", "gnss", "drones", "avnav", "hfdata", "wlan", "science", "voice", "road", "custom", "meter", "tags"]
+fm = ["dep:sdrkit-stack-fm"]
+general = ["dep:sdrkit-stack-general"]
+adsb = ["dep:sdrkit-stack-adsb"]
+dab = ["dep:sdrkit-stack-dab"]
+dvbt = ["dep:sdrkit-stack-dvbt", "dvbt2"]
+dvoice = ["dep:sdrkit-stack-dvoice"]
+satimg = ["dep:sdrkit-stack-satimg"]
+lora = ["dep:sdrkit-stack-lora"]
+satcom = ["dep:sdrkit-stack-satcom"]
+wsjt = ["dep:sdrkit-stack-wsjt"]
+tvterr = ["dep:sdrkit-stack-tvterr"]
+dvbt2 = ["dep:sdrkit-stack-dvbt2"]
+broadcast = ["dep:sdrkit-stack-broadcast"]
+trunk = ["dep:sdrkit-stack-trunk"]
+avdata = ["dep:sdrkit-stack-avdata"]
+marine = ["dep:sdrkit-stack-marine"]
+dvbcs = ["dep:sdrkit-stack-dvbcs"]
+cell = ["dep:sdrkit-stack-cell"]
+analogtv = ["dep:sdrkit-stack-analogtv"]
+ism = ["dep:sdrkit-stack-ism"]
+hfkbd = ["dep:sdrkit-stack-hfkbd"]
+gnss = ["dep:sdrkit-stack-gnss"]
+drones = ["dep:sdrkit-stack-drones"]
+avnav = ["dep:sdrkit-stack-avnav"]
+hfdata = ["dep:sdrkit-stack-hfdata"]
+wlan = ["dep:sdrkit-stack-wlan"]
+science = ["dep:sdrkit-stack-science"]
+voice = ["dep:sdrkit-stack-voice"]
+road = ["dep:sdrkit-stack-road"]
+custom = ["dep:sdrkit-stack-custom"]
+meter = ["dep:sdrkit-stack-meter"]
+tags = ["dep:sdrkit-stack-tags"]

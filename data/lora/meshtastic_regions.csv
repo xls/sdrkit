@@ -1,0 +1,31 @@
+# id: meshtastic_regions
+# name: Meshtastic regions: the band in which the name of the primary channel chooses the frequency slot
+# stacks: mesh meshtastic
+# note: A host sets mt_slot_start and mt_slot_end to start_mhz and end_mhz in Hz. The column fixed names a preset that has its own frequency in the region, as preset=MHz; the host sets mt_override_freq to it when that preset is the primary one. In a band at or above 2.4 GHz the stack takes the wide LoRa bandwidths.
+region,start_mhz,end_mhz,fixed
+US,902,928,
+EU_433,433,434,
+EU_868,869.4,869.65,EdgeFastLow=869.431274
+CN,470,510,
+JP,920.5,923.5,
+ANZ,915,928,
+ANZ_433,433.05,434.79,
+RU,868.7,869.2,
+KR,920,923,
+TW,920,925,
+IN,865,867,
+NZ_865,864,868,
+TH,920,925,
+UA_433,433,434.7,
+UA_868,868,868.6,
+MY_433,433,435,
+MY_919,919,924,
+SG_923,917,925,
+PH_433,433,434.7,
+PH_868,868,869.4,
+PH_915,915,918,
+KZ_433,433.075,434.775,
+KZ_863,863,868,
+NP_865,865,868,
+BR_902,902,907.5,
+LORA_24,2400,2483.5,

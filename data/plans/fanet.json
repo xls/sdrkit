@@ -1,0 +1,300 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "fanet_r1",
+      "name": "FANET ITU Region 1 (plan EU868)",
+      "kind": "ism",
+      "source": {
+        "publisher": "Skytraxx",
+        "title": "FANET protocol",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the protocol document marks its regional table as work in progress; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "FANET ITU Region 1 (plan EU868)",
+          "service": "short_range",
+          "start_hz": 868075000,
+          "end_hz": 868325000,
+          "modulation": "LoRa SF7, explicit header, CRC, sync word 0xF1",
+          "channel_width_hz": 250000,
+          "note": "stack settings: frequency 868.2 MHz, bandwidth=250"
+        }
+      ]
+    },
+    {
+      "id": "fanet_us",
+      "name": "FANET Americas (plan US920)",
+      "kind": "ism",
+      "source": {
+        "publisher": "Skytraxx",
+        "title": "FANET protocol",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the protocol document marks its regional table as work in progress; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "FANET Americas (plan US920)",
+          "service": "short_range",
+          "start_hz": 920550000,
+          "end_hz": 921050000,
+          "modulation": "LoRa SF7, explicit header, CRC, sync word 0xF1",
+          "channel_width_hz": 500000,
+          "note": "stack settings: frequency 920.8 MHz, bandwidth=500"
+        }
+      ]
+    },
+    {
+      "id": "fanet_au",
+      "name": "FANET Australia (plan AU920)",
+      "kind": "ism",
+      "source": {
+        "publisher": "Skytraxx",
+        "title": "FANET protocol",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the protocol document marks its regional table as work in progress; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "FANET Australia (plan AU920)",
+          "service": "short_range",
+          "start_hz": 920550000,
+          "end_hz": 921050000,
+          "modulation": "LoRa SF7, explicit header, CRC, sync word 0xF1",
+          "channel_width_hz": 500000,
+          "note": "stack settings: frequency 920.8 MHz, bandwidth=500"
+        }
+      ]
+    },
+    {
+      "id": "fanet_nz",
+      "name": "FANET New Zealand (plan AU920)",
+      "kind": "ism",
+      "source": {
+        "publisher": "Skytraxx",
+        "title": "FANET protocol",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the protocol document marks its regional table as work in progress; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "FANET New Zealand (plan AU920)",
+          "service": "short_range",
+          "start_hz": 920550000,
+          "end_hz": 921050000,
+          "modulation": "LoRa SF7, explicit header, CRC, sync word 0xF1",
+          "channel_width_hz": 500000,
+          "note": "stack settings: frequency 920.8 MHz, bandwidth=500"
+        }
+      ]
+    },
+    {
+      "id": "fanet_cn_jp",
+      "name": "FANET China and Japan (zone 2)",
+      "kind": "ism",
+      "source": {
+        "publisher": "Skytraxx",
+        "title": "FANET protocol",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the protocol document marks its regional table as work in progress; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "FANET China and Japan (zone 2)",
+          "service": "short_range",
+          "start_hz": 920550000,
+          "end_hz": 921050000,
+          "modulation": "LoRa SF7, explicit header, CRC, sync word 0xF1",
+          "channel_width_hz": 500000,
+          "note": "stack settings: frequency 920.8 MHz, bandwidth=500"
+        }
+      ]
+    },
+    {
+      "id": "fanet_in",
+      "name": "FANET India (plan IN866)",
+      "kind": "ism",
+      "source": {
+        "publisher": "Skytraxx",
+        "title": "FANET protocol",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the protocol document marks its regional table as work in progress; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "FANET India (plan IN866)",
+          "service": "short_range",
+          "start_hz": 866075000,
+          "end_hz": 866325000,
+          "modulation": "LoRa SF7, explicit header, CRC, sync word 0xF1",
+          "channel_width_hz": 250000,
+          "note": "stack settings: frequency 866.2 MHz, bandwidth=250"
+        }
+      ]
+    },
+    {
+      "id": "fanet_kr",
+      "name": "FANET South Korea (plan KR923)",
+      "kind": "ism",
+      "source": {
+        "publisher": "Skytraxx",
+        "title": "FANET protocol",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the protocol document marks its regional table as work in progress; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "FANET South Korea (plan KR923)",
+          "service": "short_range",
+          "start_hz": 923137500,
+          "end_hz": 923262500,
+          "modulation": "LoRa SF7, explicit header, CRC, sync word 0xF1",
+          "channel_width_hz": 125000,
+          "note": "stack settings: frequency 923.2 MHz, bandwidth=125"
+        }
+      ]
+    },
+    {
+      "id": "fanet_il",
+      "name": "FANET Israel (plan IL918)",
+      "kind": "ism",
+      "source": {
+        "publisher": "Skytraxx",
+        "title": "FANET protocol",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the protocol document marks its regional table as work in progress; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "FANET Israel (plan IL918)",
+          "service": "short_range",
+          "start_hz": 918437500,
+          "end_hz": 918562500,
+          "modulation": "LoRa SF7, explicit header, CRC, sync word 0xF1",
+          "channel_width_hz": 125000,
+          "note": "stack settings: frequency 918.5 MHz, bandwidth=125"
+        }
+      ]
+    },
+    {
+      "id": "fanet_as920",
+      "name": "FANET plan AS920 (no country named)",
+      "kind": "ism",
+      "source": {
+        "publisher": "Skytraxx",
+        "title": "FANET protocol",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the protocol document marks its regional table as work in progress; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "FANET plan AS920 (no country named)",
+          "service": "short_range",
+          "start_hz": 923137500,
+          "end_hz": 923262500,
+          "modulation": "LoRa SF7, explicit header, CRC, sync word 0xF1",
+          "channel_width_hz": 125000,
+          "note": "stack settings: frequency 923.2 MHz, bandwidth=125"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AU",
+      "groups": [
+        "fanet_au"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is from the protocol document, which marks its regional table as work in progress"
+    },
+    {
+      "code": "NZ",
+      "groups": [
+        "fanet_nz"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is from the protocol document, which marks its regional table as work in progress"
+    },
+    {
+      "code": "CN",
+      "groups": [
+        "fanet_cn_jp"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is from the protocol document, which marks its regional table as work in progress"
+    },
+    {
+      "code": "JP",
+      "groups": [
+        "fanet_cn_jp"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is from the protocol document, which marks its regional table as work in progress"
+    },
+    {
+      "code": "US",
+      "groups": [
+        "fanet_us"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is from the protocol document, which marks its regional table as work in progress"
+    },
+    {
+      "code": "CA",
+      "groups": [
+        "fanet_us"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is from the protocol document, which marks its regional table as work in progress"
+    },
+    {
+      "code": "IN",
+      "groups": [
+        "fanet_in"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is from the protocol document, which marks its regional table as work in progress"
+    },
+    {
+      "code": "KR",
+      "groups": [
+        "fanet_kr"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is from the protocol document, which marks its regional table as work in progress"
+    },
+    {
+      "code": "IL",
+      "groups": [
+        "fanet_il"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is from the protocol document, which marks its regional table as work in progress"
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "fanet_r1"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "fanet_us"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "fanet_au"
+      ]
+    }
+  ]
+}

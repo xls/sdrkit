@@ -1,0 +1,14 @@
+[package]
+name = "sdrkit-svc-memory"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Memory channels, groups, tags, bookmarks, per-stack presets, atomic files, and import and export for sdrkit"
+
+[dependencies]
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

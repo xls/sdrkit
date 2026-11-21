@@ -1,0 +1,21 @@
+[package]
+name = "sdrkit-stack-tags"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Short-range tags and charging: EM4100 LF tags, EPC Gen2 reader commands and Qi wireless charging packets"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+# The record of the declarations that a generic consumer reads.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }

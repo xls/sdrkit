@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 96000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic M17 test signal, 11.0 s, channel at the centre of the recording, carrier-to-noise 25 dB in the mode's channel width, rms about 0.22. M17 test schedule: voice stream N0CALL -> @ALL, CAN 0, voice 3200, META text 'Test signal one, 73', 3.0 s; packet SMS N0CALL -> TEST1 'Hello from the test signal'; voice + data 1600 stream N0CALL/P -> ECHO, CAN 3, META GNSS 48.2085 N 16.3725 E, 180 m, 36 km/h, bearing 90, mobile station, 2.4 s, data bytes carry repeated text 'M17 data stream from the test signal. '; an AES-256 encrypted voice 3200 stream N0CALL -> @ALL, CAN 5, 1.2 s. Stream payloads are a known byte pattern (no Codec 2). See specs/dvoice.md, section 'Test vectors'.",
+    "core:recorder": "digital voice test generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 433475000.0
+    }
+  ],
+  "annotations": []
+}

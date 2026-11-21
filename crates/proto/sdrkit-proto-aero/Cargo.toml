@@ -1,0 +1,19 @@
+[package]
+name = "sdrkit-proto-aero"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Aeronautical data link messages for sdrkit: ACARS (ARINC 618/620) blocks, check and repair, multi-block assembly, label meanings, OOOI and media advisory readings, positions in text, ADS-C and FANS-1/A CPDLC in ARINC 622 envelopes, the per-aircraft message log, an aircraft table with trails, and air data (ICAO standard atmosphere, wind triangle, magnetic declination)"
+
+[dependencies]
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo", features = ["serde"] }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+serde.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

@@ -1,0 +1,48 @@
+# id: general_band_keys
+# name: Band keys of a phone screen for the general stack, by demodulator
+# verified: no; usual calling and activity frequencies, several of them used in one region or country only (PMR 446, UHF CB 477 MHz, the 2 m and 70 cm calling frequencies, the 9 kHz medium wave raster)
+# note: group is the demodulator key whose band row shows the key (usb for the USB and LSB rows), or mw for the medium-wave keys of the AM broadcast submode. In the am group the host puts the shortwave broadcast bands after MW. demod is the demodulator key that the key sets.
+group,label,freq_mhz,demod
+usb,160 m,1.9,lsb
+usb,80 m,3.75,lsb
+usb,40 m,7.15,lsb
+usb,30 m,10.125,usb
+usb,20 m,14.2,usb
+usb,17 m,18.13,usb
+usb,15 m,21.3,usb
+usb,12 m,24.95,usb
+usb,10 m,28.5,usb
+usb,6 m,50.15,usb
+usb,2 m,144.2,usb
+usb,70 cm,432.2,usb
+cw,1.83,1.83,cw
+cw,3.53,3.53,cw
+cw,7.03,7.03,cw
+cw,10.12,10.12,cw
+cw,14.03,14.03,cw
+cw,18.08,18.08,cw
+cw,21.03,21.03,cw
+cw,24.91,24.91,cw
+cw,28.03,28.03,cw
+cw,50.09,50.09,cw
+cw,144.05,144.05,cw
+cw,432.05,432.05,cw
+nfm,10M,29.6,nfm
+nfm,6M,52.525,nfm
+nfm,2M,145.5,nfm
+nfm,MARINE,156.8,nfm
+nfm,70CM,439,nfm
+nfm,PMR,446.1,nfm
+nfm,UHF CB,477,nfm
+wfm,88.1,88.1,wfm
+wfm,92.1,92.1,wfm
+wfm,96.1,96.1,wfm
+wfm,100.1,100.1,wfm
+wfm,104.1,104.1,wfm
+wfm,107.1,107.1,wfm
+am,MW,0.999,am
+am,AIR,120.5,am
+mw,531,0.531,am
+mw,999,0.999,am
+mw,1368,1.368,am
+mw,1566,1.566,am

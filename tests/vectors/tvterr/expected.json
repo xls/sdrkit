@@ -1,0 +1,101 @@
+{
+  "note": "Values are what the generator was given. Each recording was decoded once; the ATSC counts were measured with a Reed-Solomon stage that only detected errors (no correction), so a correcting decoder must meet them with margin. Tolerances are the acceptance limits of specs/tvterr.md section 10; packet counts are lower bounds over the whole recording; flagged_share_max is the largest share of delivered packets that may carry the transport_error_indicator.",
+  "files": {
+    "atsc-8vsb-clean.sigmf-meta": {
+      "mode": "atsc",
+      "packets": {
+        "pid": 256,
+        "description": "packet n: byte0 0x47; bytes1-2 0x01 0x00 (PID 0x100, no error, no PUSI); byte3 0x10 | (n mod 16) (payload only, continuity counter n mod 16); bytes4-7 n as a 32-bit big-endian number; byte i for i = 8..187 = (7 n + 13 i) mod 256",
+        "check": "every packet delivered without the transport_error_indicator must match this pattern for its own n; n must increase by exactly 1 between consecutive delivered packets except across packets flagged in error"
+      },
+      "expect": {
+        "pilot_locked": true,
+        "segment_sync": true,
+        "field_sync": true,
+        "equaliser_trained": true,
+        "ts_flowing": true,
+        "offset_hz": {
+          "value": 0,
+          "tolerance": 300
+        },
+        "clock_ppm": {
+          "value": 0,
+          "tolerance": 5
+        },
+        "snr_db_min": 25,
+        "first_packet_within_s": 0.2,
+        "good_packets_min": 2600,
+        "wrong_packets_max": 0,
+        "packet_rate_per_s": {
+          "value": 12893.9,
+          "tolerance_pct": 0.5
+        },
+        "flagged_share_max": 0.15
+      }
+    },
+    "atsc-8vsb-impaired.sigmf-meta": {
+      "mode": "atsc",
+      "packets": {
+        "pid": 256,
+        "description": "packet n: byte0 0x47; bytes1-2 0x01 0x00 (PID 0x100, no error, no PUSI); byte3 0x10 | (n mod 16) (payload only, continuity counter n mod 16); bytes4-7 n as a 32-bit big-endian number; byte i for i = 8..187 = (7 n + 13 i) mod 256",
+        "check": "every packet delivered without the transport_error_indicator must match this pattern for its own n; n must increase by exactly 1 between consecutive delivered packets except across packets flagged in error"
+      },
+      "expect": {
+        "field_sync": true,
+        "ts_flowing": true,
+        "offset_hz": {
+          "value": 10000,
+          "tolerance": 300
+        },
+        "clock_ppm": {
+          "value": 30,
+          "tolerance": 10
+        },
+        "snr_db": {
+          "value": 23,
+          "tolerance": 4
+        },
+        "first_packet_within_s": 0.22,
+        "good_packets_min": 1300,
+        "wrong_packets_max": 3,
+        "flagged_share_max": 0.3
+      }
+    },
+    "dtmb-pn420-16qam.sigmf-meta": {
+      "mode": "dtmb",
+      "packets": {
+        "pid": 256,
+        "description": "packet n: byte0 0x47; bytes1-2 0x01 0x00 (PID 0x100, no error, no PUSI); byte3 0x10 | (n mod 16) (payload only, continuity counter n mod 16); bytes4-7 n as a 32-bit big-endian number; byte i for i = 8..187 = (7 n + 13 i) mod 256",
+        "check": "every packet delivered without the transport_error_indicator must match this pattern for its own n; n must increase by exactly 1 between consecutive delivered packets except across packets flagged in error"
+      },
+      "expect": {
+        "header": "PN420",
+        "pn_phase_rotates": true,
+        "carriers": 3780,
+        "si_index": 13,
+        "mapping": "16QAM",
+        "code_rate": "0.6",
+        "interleaver": "mode 1 (M = 240)",
+        "net_bitrate_mbps": {
+          "value": 16.243,
+          "tolerance": 0.01
+        },
+        "packets_per_frame": 6,
+        "offset_hz": {
+          "value": 3000,
+          "tolerance": 40
+        },
+        "cn_db": {
+          "value": 28,
+          "tolerance": 1.5
+        },
+        "first_packet_within_s": 0.2,
+        "good_packets_min": 2800,
+        "wrong_packets_max": 0,
+        "ldpc_bad_max": 0,
+        "ts_lock": true,
+        "packets_in_order_without_gaps": true
+      }
+    }
+  }
+}

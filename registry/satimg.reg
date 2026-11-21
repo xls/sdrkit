@@ -1,0 +1,978 @@
+# The interface of the stack family satimg. The registry test of the family writes this file.
+family satimg version=1.1
+uses.image major=1 since=1.0
+uses.dvbs2 major=1 since=1.0
+uses.ipcast major=1 since=1.0
+shape.LinkFields since=1.0
+shape.LinkFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.LinkFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.LinkFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.LinkFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.LinkFields.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.LinkFields.frames_ok type=i64 unit= optional=yes since=1.0
+shape.LinkFields.frames_bad type=i64 unit= optional=yes since=1.0
+shape.LinkFields.ber type=f64 unit= optional=yes since=1.0
+shape.LinkFields.signal_time type=duration unit=s optional=no since=1.0
+shape.LinkFields.input_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.LinkFields.lock_metric type=f64 unit= optional=yes since=1.0
+shape.LinkFields.phase_ambiguity type=i64 unit= optional=yes since=1.0
+shape.LinkFields.code_locked type=bool unit= optional=yes since=1.0
+shape.LinkFields.nrzm type=bool unit= optional=yes since=1.0
+shape.LinkFields.marker_errors type=i64 unit= optional=yes since=1.0
+shape.LinkFields.bytes_corrected type=i64 unit= optional=yes since=1.0
+shape.LinkFields.markers type=i64 unit= optional=yes since=1.0
+shape.LinkFields.spacecraft type=i64 unit= optional=yes since=1.0
+shape.LinkFields.vcid type=i64 unit= optional=yes since=1.0
+shape.LinkFields.frame_count type=i64 unit= optional=yes since=1.0
+shape.LinkFields.packets type=i64 unit= optional=yes since=1.0
+shape.LinkFields.packets_lost type=i64 unit= optional=yes since=1.0
+shape.MeteorLrptFields since=1.0
+shape.MeteorLrptFields.modulation type=choice(oqpsk72,qpsk72,oqpsk80) unit= optional=no since=1.0
+shape.MeteorLrptFields.modulation_setting type=choice(auto,oqpsk72,qpsk72,oqpsk80) unit= optional=no since=1.0
+shape.MeteorLrptFields.interleaver_locked type=bool unit= optional=no since=1.0
+shape.MeteorLrptFields.onboard_time type=duration unit=s optional=yes since=1.0
+shape.MeteorLrptFields.quality type=i64 unit= optional=yes since=1.0
+shape.MeteorLrptFields.picture_rows type=i64 unit= optional=no since=1.0
+shape.MeteorLrptFields.picture_lines type=i64 unit= optional=no since=1.0
+shape.MeteorLrptFields.row_time type=duration unit=s optional=yes since=1.0
+shape.MeteorLrptFields.first_decoding type=duration unit=s optional=yes since=1.0
+shape.MeteorLrptFields.colour_channels type=text unit= optional=yes since=1.0
+shape.MeteorLrptChannelRow since=1.0
+shape.MeteorLrptChannelRow.channel type=text unit= optional=no since=1.0
+shape.MeteorLrptChannelRow.packets type=i64 unit= optional=no since=1.0
+shape.ImageRow since=1.0
+shape.ImageRow.product type=text unit= optional=no since=1.0
+shape.ImageRow.channel type=text unit= optional=yes since=1.0
+shape.ImageRow.time type=duration unit=s optional=yes since=1.0
+shape.ImageRow.width type=i64 unit=px optional=no since=1.0
+shape.ImageRow.height type=i64 unit=px optional=yes since=1.0
+shape.XritFields since=1.0
+shape.XritFields.link type=text unit= optional=no since=1.0
+shape.XritFields.carrier_locked type=bool unit= optional=yes since=1.0
+shape.XritFields.symbol_rate_measured_hz type=hz unit=Hz optional=yes since=1.0
+shape.XritFields.g2_inverted type=bool unit= optional=yes since=1.0
+shape.XritFields.rs_basis type=choice(dual,conventional) unit= optional=yes since=1.0
+shape.XritFields.byte_errors_pct type=f64 unit=% optional=yes since=1.0
+shape.XritFields.transfer_frames type=i64 unit= optional=yes since=1.0
+shape.XritFields.fill_frames type=i64 unit= optional=yes since=1.0
+shape.XritFields.frame_gaps type=i64 unit= optional=yes since=1.0
+shape.XritFields.crc_errors type=i64 unit= optional=yes since=1.0
+shape.XritFields.files type=i64 unit= optional=yes since=1.0
+shape.XritFields.file_errors type=i64 unit= optional=yes since=1.0
+shape.XritFields.length_errors type=i64 unit= optional=yes since=1.0
+shape.XritFields.products type=i64 unit= optional=yes since=1.0
+shape.XritFields.keys type=i64 unit= optional=yes since=1.0
+shape.XritFields.segments_locked type=i64 unit= optional=yes since=1.0
+shape.XritFields.hint type=text unit= optional=no since=1.0
+shape.XritFields.first_decoding type=duration unit=s optional=yes since=1.0
+shape.XritFields.cadus_imported type=i64 unit= optional=yes since=1.0
+shape.XritFields.ggak_frames type=i64 unit= optional=yes since=1.0
+shape.XritFields.ggak_good type=i64 unit= optional=yes since=1.0
+shape.XritFields.ggak_bad type=i64 unit= optional=yes since=1.0
+shape.XritFields.ggak_marker type=i64 unit= optional=yes since=1.0
+shape.XritFields.ggak_field type=f64 unit= optional=yes since=1.0
+shape.VirtualChannelRow since=1.0
+shape.VirtualChannelRow.vcid type=i64 unit= optional=no since=1.0
+shape.VirtualChannelRow.frames type=i64 unit= optional=no since=1.0
+shape.ProductRow since=1.0
+shape.ProductRow.product type=text unit= optional=no since=1.0
+shape.ProductRow.kind type=choice(admin_message,dcs,emwin,mesoscale,full_disk,conus,image,text,other) unit= optional=no since=1.0
+shape.ProductRow.done type=text unit= optional=no since=1.0
+shape.ProductEvent since=1.0
+shape.ProductEvent.source type=text unit= optional=no since=1.0
+shape.ProductEvent.text type=text unit= optional=no since=1.0
+shape.ProductEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ProductEvent.id type=i64 unit= optional=no since=1.0
+shape.ProductEvent.kind type=choice(admin_message,dcs,emwin,mesoscale,full_disk,conus,image,text,other) unit= optional=no since=1.0
+shape.ProductEvent.name type=text unit= optional=no since=1.0
+shape.ProductEvent.vcid type=i64 unit= optional=no since=1.0
+shape.ProductEvent.apid type=i64 unit= optional=no since=1.0
+shape.ProductEvent.rows type=i64 unit= optional=no since=1.0
+shape.ProductEvent.width type=i64 unit= optional=no since=1.0
+shape.ProductEvent.height type=i64 unit= optional=no since=1.0
+shape.ProductEvent.segments type=i64 unit= optional=no since=1.0
+shape.ProductEvent.segments_total type=i64 unit= optional=no since=1.0
+shape.ProductEvent.complete type=bool unit= optional=no since=1.0
+shape.ProductEvent.errors type=bool unit= optional=no since=1.0
+shape.ProductEvent.version type=i64 unit= optional=no since=1.0
+shape.ProductEvent.note type=text unit= optional=yes since=1.0
+shape.TextEvent since=1.0
+shape.TextEvent.source type=text unit= optional=no since=1.0
+shape.TextEvent.text type=text unit= optional=no since=1.0
+shape.TextEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.TextEvent.name type=text unit= optional=no since=1.0
+shape.TextEvent.inner_name type=text unit= optional=yes since=1.0
+shape.TextEvent.id type=i64 unit= optional=no since=1.0
+shape.Fy2SvissrFields since=1.0
+shape.Fy2SvissrFields.lines type=i64 unit= optional=no since=1.0
+shape.Fy2SvissrFields.syncs type=i64 unit= optional=no since=1.0
+shape.Fy2SvissrFields.rejected type=i64 unit= optional=no since=1.0
+shape.Fy2SvissrFields.usable type=i64 unit= optional=no since=1.0
+shape.Fy2SvissrFields.preamble_ber type=f64 unit= optional=no since=1.0
+shape.Fy2SvissrFields.data_ber type=f64 unit= optional=no since=1.0
+shape.Fy2SvissrFields.line_counter type=i64 unit= optional=yes since=1.0
+shape.Fy2SvissrFields.pictures_started type=i64 unit= optional=no since=1.0
+shape.Fy2SvissrFields.imported type=i64 unit= optional=no since=1.0
+shape.Fy2SvissrFields.hint type=text unit= optional=no since=1.0
+shape.Fy3Fields since=1.0
+shape.Fy3Fields.product type=choice(ahrpt,mpt) unit= optional=no since=1.0
+shape.Fy3Fields.preset type=text unit= optional=no since=1.0
+shape.Fy3Fields.satellite type=text unit= optional=yes since=1.0
+shape.Fy3Fields.measured_symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.Fy3Fields.rails_locked type=bool unit= optional=yes since=1.0
+shape.Fy3Fields.rail_i_quality type=f64 unit= optional=yes since=1.0
+shape.Fy3Fields.rail_q_quality type=f64 unit= optional=yes since=1.0
+shape.Fy3Fields.differential_hypothesis type=i64 unit= optional=yes since=1.0
+shape.Fy3Fields.picture_rows type=i64 unit= optional=no since=1.0
+shape.Fy3Fields.hint type=text unit= optional=no since=1.0
+shape.Fy3InstrumentRow since=1.0
+shape.Fy3InstrumentRow.instrument type=text unit= optional=no since=1.0
+shape.Fy3InstrumentRow.frames type=i64 unit= optional=no since=1.0
+shape.Fy3InstrumentRow.rows type=i64 unit= optional=no since=1.0
+shape.NoaaAptFields since=1.0
+shape.NoaaAptFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.NoaaAptFields.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.NoaaAptFields.clock_ppm type=f64 unit=ppm optional=no since=1.0
+shape.NoaaAptFields.signal_time type=duration unit=s optional=no since=1.0
+shape.NoaaAptFields.input_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.NoaaAptFields.locked type=bool unit= optional=no since=1.0
+shape.NoaaAptFields.lines type=i64 unit= optional=no since=1.0
+shape.NoaaAptFields.lines_missed type=i64 unit= optional=no since=1.0
+shape.NoaaAptFields.subcarrier_level type=f64 unit= optional=no since=1.0
+shape.NoaaAptFields.sync_quality type=f64 unit= optional=no since=1.0
+shape.NoaaAptFields.word_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.NoaaAptFields.note type=text unit= optional=no since=1.0
+shape.NoaaDsbFields since=1.0
+shape.NoaaDsbFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.NoaaDsbFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.NoaaDsbFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.NoaaDsbFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.NoaaDsbFields.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.NoaaDsbFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.NoaaDsbFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.NoaaDsbFields.signal_time type=duration unit=s optional=no since=1.0
+shape.NoaaDsbFields.input_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.NoaaDsbFields.lock_metric type=f64 unit= optional=yes since=1.0
+shape.NoaaDsbFields.spacecraft type=i64 unit= optional=yes since=1.0
+shape.NoaaDsbFields.sync_hits type=i64 unit= optional=no since=1.0
+shape.NoaaDsbFields.tip_frames type=i64 unit= optional=no since=1.0
+shape.NoaaDsbFields.lines type=i64 unit= optional=no since=1.0
+shape.NoaaDsbFields.minor_frame type=i64 unit= optional=yes since=1.0
+shape.NoaaDsbFields.chip_pairing type=i64 unit= optional=yes since=1.0
+shape.NoaaDsbFields.inverted type=bool unit= optional=no since=1.0
+shape.NoaaDsbFields.hirs_parity_errors type=i64 unit= optional=no since=1.0
+shape.NoaaDsbFields.note type=text unit= optional=no since=1.0
+shape.GoesGvarFields since=1.0
+shape.GoesGvarFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.GoesGvarFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.GoesGvarFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.GoesGvarFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.GoesGvarFields.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.GoesGvarFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.GoesGvarFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.GoesGvarFields.signal_time type=duration unit=s optional=no since=1.0
+shape.GoesGvarFields.input_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.GoesGvarFields.lock_metric type=f64 unit= optional=yes since=1.0
+shape.GoesGvarFields.spacecraft type=i64 unit= optional=yes since=1.0
+shape.GoesGvarFields.sync_hits type=i64 unit= optional=no since=1.0
+shape.GoesGvarFields.idle_blocks type=i64 unit= optional=no since=1.0
+shape.GoesGvarFields.data_crc_errors type=i64 unit= optional=no since=1.0
+shape.GoesGvarFields.block_id type=i64 unit= optional=yes since=1.0
+shape.GoesGvarFields.block_count type=i64 unit= optional=yes since=1.0
+shape.GoesGvarFields.scan type=i64 unit= optional=no since=1.0
+shape.GoesGvarFields.frame_starts type=i64 unit= optional=no since=1.0
+shape.GoesGvarFields.visible_rows type=i64 unit= optional=no since=1.0
+shape.GoesGvarFields.infrared_rows type=i64 unit= optional=no since=1.0
+shape.GoesGvarFields.records_refused type=i64 unit= optional=no since=1.0
+shape.GoesGvarFields.note type=text unit= optional=no since=1.0
+shape.GoesGvarBlockRow since=1.0
+shape.GoesGvarBlockRow.block_count type=i64 unit= optional=no since=1.0
+shape.GoesGvarBlockRow.block_id type=i64 unit= optional=no since=1.0
+shape.GoesGvarBlockRow.word_size type=i64 unit=bit optional=no since=1.0
+shape.GoesGvarBlockRow.word_count type=i64 unit= optional=no since=1.0
+shape.GoesGvarBlockRow.header_ok type=bool unit= optional=no since=1.0
+shape.GoesGvarBlockRow.data_ok type=bool unit= optional=no since=1.0
+shape.AwsFields since=1.0
+shape.AwsFields.lines type=i64 unit= optional=no since=1.0
+shape.AwsFields.science_packets type=i64 unit= optional=no since=1.0
+shape.AwsFields.packet_crc_errors type=i64 unit= optional=no since=1.0
+shape.AwsFields.odd_records type=i64 unit= optional=no since=1.0
+shape.AwsFields.idle_frames type=i64 unit= optional=no since=1.0
+shape.AwsFields.note type=text unit= optional=no since=1.0
+shape.AwsVirtualChannelRow since=1.0
+shape.AwsVirtualChannelRow.vcid type=i64 unit= optional=no since=1.0
+shape.AwsVirtualChannelRow.frames type=i64 unit= optional=no since=1.0
+shape.AwsApidRow since=1.0
+shape.AwsApidRow.apid type=i64 unit= optional=no since=1.0
+shape.AwsApidRow.packets type=i64 unit= optional=no since=1.0
+shape.NoaaGacFields since=1.0
+shape.NoaaGacFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.NoaaGacFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.NoaaGacFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.NoaaGacFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.NoaaGacFields.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.NoaaGacFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.NoaaGacFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.NoaaGacFields.signal_time type=duration unit=s optional=no since=1.0
+shape.NoaaGacFields.input_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.NoaaGacFields.lock_metric type=f64 unit= optional=yes since=1.0
+shape.NoaaGacFields.frame_lock type=bool unit= optional=no since=1.0
+shape.NoaaGacFields.spacecraft type=i64 unit= optional=yes since=1.0
+shape.NoaaGacFields.id_code type=i64 unit= optional=yes since=1.0
+shape.NoaaGacFields.sync_hits type=i64 unit= optional=no since=1.0
+shape.NoaaGacFields.tip_frames type=i64 unit= optional=no since=1.0
+shape.NoaaGacFields.lines type=i64 unit= optional=no since=1.0
+shape.NoaaGacFields.hirs_lines type=i64 unit= optional=no since=1.0
+shape.NoaaGacFields.inverted type=bool unit= optional=no since=1.0
+shape.NoaaGacFields.note type=text unit= optional=no since=1.0
+shape.MsgRawFields since=1.0
+shape.MsgRawFields.satellite_number type=i64 unit= optional=yes since=1.0
+shape.MsgRawFields.lines type=i64 unit= optional=no since=1.0
+shape.MsgRawFields.channel_rows type=i64 unit= optional=no since=1.0
+shape.MsgRawFields.hrv_rows type=i64 unit= optional=no since=1.0
+shape.MsgRawFields.seviri_packets type=i64 unit= optional=no since=1.0
+shape.MsgRawFields.packets_refused type=i64 unit= optional=no since=1.0
+shape.MsgRawFields.discs type=i64 unit= optional=no since=1.0
+shape.MsgRawFields.note type=text unit= optional=no since=1.0
+shape.FrameTableFields since=1.0
+shape.FrameTableFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.FrameTableFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.FrameTableFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.FrameTableFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.FrameTableFields.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.FrameTableFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.FrameTableFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.FrameTableFields.signal_time type=duration unit=s optional=no since=1.0
+shape.FrameTableFields.input_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.FrameTableFields.lock_metric type=f64 unit= optional=yes since=1.0
+shape.FrameTableFields.frame_lock type=bool unit= optional=no since=1.0
+shape.FrameTableFields.sync_hits type=i64 unit= optional=no since=1.0
+shape.FrameTableFields.bytes_corrected type=i64 unit= optional=no since=1.0
+shape.FrameTableFields.spacecraft type=i64 unit= optional=yes since=1.0
+shape.FrameTableFields.vcid type=i64 unit= optional=yes since=1.0
+shape.FrameTableFields.stream type=i64 unit= optional=yes since=1.0
+shape.FrameTableFields.inverted type=bool unit= optional=no since=1.0
+shape.FrameTableFields.note type=text unit= optional=no since=1.0
+shape.FrameRow since=1.0
+shape.FrameRow.time type=duration unit=s optional=no since=1.0
+shape.FrameRow.spacecraft type=i64 unit= optional=yes since=1.0
+shape.FrameRow.vcid type=i64 unit= optional=yes since=1.0
+shape.FrameRow.bytes type=i64 unit= optional=no since=1.0
+shape.FrameRow.check type=text unit= optional=no since=1.0
+shape.FrameRow.hex type=text unit= optional=no since=1.0
+shape.SbandCcsdsFields since=1.0
+shape.SbandCcsdsFields.link type=text unit= optional=no since=1.0
+shape.SbandCcsdsFields.carrier_locked type=bool unit= optional=yes since=1.0
+shape.SbandCcsdsFields.code_locked type=bool unit= optional=yes since=1.0
+shape.SbandCcsdsFields.phase_ambiguity type=i64 unit= optional=yes since=1.0
+shape.SbandCcsdsFields.hint type=text unit= optional=no since=1.0
+shape.RdasFields since=1.0
+shape.RdasFields.carrier_locked type=bool unit= optional=no since=1.0
+shape.RdasFields.packets type=i64 unit= optional=no since=1.0
+shape.RdasFields.lines_ir type=i64 unit= optional=no since=1.0
+shape.RdasFields.lines_visible type=i64 unit= optional=no since=1.0
+shape.RdasFields.gate_skipped type=i64 unit= optional=yes since=1.0
+shape.RdasFields.gate_skipped_pct type=f64 unit=% optional=yes since=1.0
+shape.RdasFields.gate_line type=f64 unit= optional=yes since=1.0
+shape.RdasFields.hint type=text unit= optional=no since=1.0
+shape.CaduFields since=1.0
+shape.CaduFields.cadus type=i64 unit= optional=no since=1.0
+shape.CaduFields.spacecraft type=i64 unit= optional=yes since=1.0
+shape.CaduFields.vcid type=i64 unit= optional=yes since=1.0
+shape.CaduFields.frames_per_vc type=text unit= optional=no since=1.0
+shape.CaduFields.space_packets type=i64 unit= optional=no since=1.0
+shape.CaduFields.packets_lost type=i64 unit= optional=no since=1.0
+shape.CaduFields.field_breaks type=i64 unit= optional=no since=1.0
+shape.UhritFields since=1.0
+shape.UhritFields.frames_crc_bad type=i64 unit= optional=no since=1.0
+shape.UhritFields.packets_crc_bad type=i64 unit= optional=no since=1.0
+shape.UhritFields.files type=i64 unit= optional=no since=1.0
+shape.UhritFields.last_file type=text unit= optional=no since=1.0
+shape.UhritFields.products type=i64 unit= optional=yes since=1.0
+shape.UhritFields.hint type=text unit= optional=no since=1.0
+shape.UhritFields.note type=text unit= optional=no since=1.0
+shape.UhritApidRow since=1.0
+shape.UhritApidRow.apid type=i64 unit= optional=no since=1.0
+shape.UhritApidRow.packets type=i64 unit= optional=no since=1.0
+shape.UhritFrameRow since=1.0
+shape.UhritFrameRow.vcid type=i64 unit= optional=no since=1.0
+shape.UhritFrameRow.frames type=i64 unit= optional=no since=1.0
+shape.Fy4Fields since=1.0
+shape.Fy4Fields.link type=text unit= optional=no since=1.0
+shape.Fy4Fields.signal type=text unit= optional=no since=1.0
+shape.Fy4Fields.ts_packets type=i64 unit= optional=no since=1.0
+shape.Fy4Fields.ts_errors type=i64 unit= optional=no since=1.0
+shape.Fy4Fields.cadus type=i64 unit= optional=no since=1.0
+shape.Fy4Fields.cadus_imported type=i64 unit= optional=no since=1.0
+shape.Fy4Fields.transfer_frames type=i64 unit= optional=yes since=1.0
+shape.Fy4Fields.fill_frames type=i64 unit= optional=yes since=1.0
+shape.Fy4Fields.frame_gaps type=i64 unit= optional=yes since=1.0
+shape.Fy4Fields.packets type=i64 unit= optional=yes since=1.0
+shape.Fy4Fields.files type=i64 unit= optional=yes since=1.0
+shape.Fy4Fields.file_errors type=i64 unit= optional=yes since=1.0
+shape.Fy4Fields.encrypted_files type=i64 unit= optional=yes since=1.0
+shape.Fy4Fields.image_segments type=i64 unit= optional=yes since=1.0
+shape.Fy4Fields.pictures_complete type=i64 unit= optional=yes since=1.0
+shape.Fy4Fields.products type=i64 unit= optional=yes since=1.0
+shape.Fy4Fields.hint type=text unit= optional=no since=1.0
+shape.Fy4Fields.signal_time type=duration unit=s optional=no since=1.0
+shape.GrbFields since=1.0
+shape.GrbFields.packets_crc_bad type=i64 unit= optional=no since=1.0
+shape.GrbFields.payloads type=i64 unit= optional=no since=1.0
+shape.GrbFields.picture_blocks type=i64 unit= optional=no since=1.0
+shape.GrbFields.j2k_failures type=i64 unit= optional=no since=1.0
+shape.GrbFields.files type=i64 unit= optional=no since=1.0
+shape.GrbFields.picture_lines type=i64 unit= optional=no since=1.0
+shape.GrbFields.shown_product type=text unit= optional=no since=1.0
+shape.GrbFields.hint type=text unit= optional=no since=1.0
+shape.GrbFields.note type=text unit= optional=no since=1.0
+shape.GlmFields since=1.1
+shape.GlmFields.glm_payloads type=i64 unit= optional=no since=1.1
+shape.GlmFields.glm_dropped type=i64 unit= optional=no since=1.1
+shape.GlmFields.glm_packets_lost type=i64 unit= optional=no since=1.1
+shape.GlmFields.glm_not_decoded type=i64 unit= optional=no since=1.1
+shape.GlmFields.glm_bad_length type=i64 unit= optional=no since=1.1
+shape.GlmFields.glm_group_bad_length type=i64 unit= optional=no since=1.1
+shape.GlmFields.flash_count type=i64 unit= optional=no since=1.1
+shape.GlmFields.group_count type=i64 unit= optional=no since=1.1
+shape.GlmFields.event_count type=i64 unit= optional=no since=1.1
+shape.GlmFields.glm_rejected type=i64 unit= optional=no since=1.1
+shape.GlmFields.newest_flash type=time unit= optional=yes since=1.1
+shape.GlmFields.flash_rate type=f64 unit=1/min optional=no since=1.1
+shape.GrbProductRow since=1.0
+shape.GrbProductRow.apid type=i64 unit= optional=no since=1.0
+shape.GrbProductRow.name type=text unit= optional=no since=1.0
+shape.GrbProductRow.updated type=duration unit=s optional=no since=1.0
+shape.GrbApidRow since=1.0
+shape.GrbApidRow.apid type=i64 unit= optional=no since=1.0
+shape.GrbApidRow.name type=text unit= optional=no since=1.0
+shape.GrbApidRow.packets type=i64 unit= optional=no since=1.0
+shape.GlmFlashRow since=1.1
+shape.GlmFlashRow.flash type=i64 unit= optional=no since=1.1
+shape.GlmFlashRow.time type=time unit= optional=no since=1.1
+shape.GlmFlashRow.duration type=duration unit=s optional=no since=1.1
+shape.GlmFlashRow.position type=position unit=° optional=no since=1.1
+shape.GlmFlashRow.area_km2 type=f64 unit=km² optional=yes since=1.1
+shape.GlmFlashRow.energy_fj type=f64 unit=fJ optional=yes since=1.1
+shape.GlmFlashRow.quality type=choice(good,time_order,event_count,duration) unit= optional=yes since=1.1
+shape.GlmFlashRow.groups type=i64 unit= optional=no since=1.1
+shape.GlmFlashRow.events type=i64 unit= optional=no since=1.1
+shape.GlmGroupRow since=1.1
+shape.GlmGroupRow.group type=i64 unit= optional=no since=1.1
+shape.GlmGroupRow.time type=time unit= optional=no since=1.1
+shape.GlmGroupRow.position type=position unit=° optional=no since=1.1
+shape.GlmGroupRow.area_km2 type=f64 unit=km² optional=yes since=1.1
+shape.GlmGroupRow.energy_fj type=f64 unit=fJ optional=yes since=1.1
+shape.GlmGroupRow.flash type=i64 unit= optional=no since=1.1
+shape.GlmGroupRow.quality type=choice(good,time_order,event_count,duration) unit= optional=yes since=1.1
+shape.GlmGroupRow.events type=i64 unit= optional=no since=1.1
+shape.FilecastFields since=1.0
+shape.FilecastFields.pid type=i64 unit= optional=no since=1.0
+shape.FilecastFields.pid_packets type=i64 unit= optional=no since=1.0
+shape.FilecastFields.datagrams type=i64 unit= optional=no since=1.0
+shape.FilecastFields.not_udp type=i64 unit= optional=no since=1.0
+shape.FilecastFields.broadcast_packets type=i64 unit= optional=no since=1.0
+shape.FilecastFields.bad_packets type=i64 unit= optional=no since=1.0
+shape.FilecastFields.files_complete type=i64 unit= optional=no since=1.0
+shape.FilecastFields.files_incomplete type=i64 unit= optional=no since=1.0
+shape.FilecastFields.files_failed type=i64 unit= optional=no since=1.0
+shape.FilecastFields.files_dropped type=i64 unit= optional=no since=1.0
+shape.FilecastFields.bytes type=i64 unit= optional=no since=1.0
+shape.FilecastFields.open_files type=i64 unit= optional=no since=1.0
+shape.FilecastFields.last_error type=text unit= optional=no since=1.0
+shape.FilecastFields.pictures_finished type=i64 unit= optional=no since=1.0
+shape.FilecastFields.hint type=text unit= optional=no since=1.0
+shape.FilecastFields.note type=text unit= optional=no since=1.0
+shape.RecentFileRow since=1.0
+shape.RecentFileRow.name type=text unit= optional=no since=1.0
+shape.RecentFileRow.size type=i64 unit=bytes optional=no since=1.0
+shape.RecentFileRow.parts type=i64 unit= optional=no since=1.0
+shape.RecentFileRow.received type=i64 unit= optional=no since=1.0
+shape.RecentFileRow.complete type=bool unit= optional=no since=1.0
+shape.FilecastPictureRow since=1.0
+shape.FilecastPictureRow.channel type=text unit= optional=no since=1.0
+shape.FilecastPictureRow.stamp type=text unit= optional=no since=1.0
+shape.FilecastPictureRow.width type=i64 unit=px optional=no since=1.0
+shape.FilecastPictureRow.height type=i64 unit=px optional=no since=1.0
+shape.FilecastPictureRow.segments type=i64 unit= optional=no since=1.0
+shape.FilecastPictureRow.total type=i64 unit= optional=no since=1.0
+shape.GgakFrameEvent since=1.0
+shape.GgakFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.GgakFrameEvent.marker type=i64 unit= optional=no since=1.0
+shape.GgakFrameEvent.subframe type=i64 unit= optional=no since=1.0
+shape.GgakFrameEvent.timestamp type=i64 unit= optional=no since=1.0
+shape.GgakFrameEvent.crc_ok type=bool unit= optional=no since=1.0
+shape.GgakFrameEvent.inverted type=bool unit= optional=no since=1.0
+shape.GgakFrameEvent.bx type=i64 unit= optional=no since=1.0
+shape.GgakFrameEvent.by type=i64 unit= optional=no since=1.0
+shape.GgakFrameEvent.bz type=i64 unit= optional=no since=1.0
+shape.HrptFields since=1.0
+shape.HrptFields.variant type=choice(metop,fy3,noaa) unit= optional=no since=1.0
+shape.HrptFields.variant_setting type=choice(auto,metop,fy3,noaa) unit= optional=no since=1.0
+shape.HrptFields.phase_ambiguity_mirrored type=bool unit= optional=yes since=1.0
+shape.HrptFields.noaa_rotation type=i64 unit= optional=yes since=1.0
+shape.HrptFields.packets_apid_103 type=i64 unit= optional=no since=1.0
+shape.HrptFields.packets_apid_104 type=i64 unit= optional=no since=1.0
+shape.HrptFields.other_packets type=i64 unit= optional=no since=1.0
+shape.HrptFields.noaa_frames type=i64 unit= optional=no since=1.0
+shape.HrptFields.avhrr_lines type=i64 unit= optional=no since=1.0
+shape.HrptFields.picture_lines type=i64 unit= optional=no since=1.0
+shape.HrptFields.onboard_time type=duration unit=s optional=yes since=1.0
+shape.HrptFields.hirs_lines type=i64 unit= optional=no since=1.0
+shape.HrptFields.hirs_valid type=i64 unit= optional=no since=1.0
+shape.HrptFields.hirs_parity_errors type=i64 unit= optional=no since=1.0
+shape.EodbFields since=1.0
+shape.EodbFields.carrier_locked type=bool unit= optional=no since=1.0
+shape.EodbFields.packets type=i64 unit= optional=no since=1.0
+shape.EodbFields.packets_lost type=i64 unit= optional=no since=1.0
+shape.EodbFields.instrument_packets type=i64 unit= optional=no since=1.0
+shape.EodbFields.lines type=i64 unit= optional=no since=1.0
+shape.EodbFields.satellite type=text unit= optional=no since=1.0
+shape.EodbFields.hypothesis type=text unit= optional=no since=1.0
+shape.EodbFields.rate_too_low type=bool unit= optional=no since=1.0
+shape.EodbFields.imported type=i64 unit= optional=no since=1.0
+shape.EodbFields.gate_skipped type=i64 unit= optional=yes since=1.0
+shape.EodbFields.gate_skipped_pct type=f64 unit=% optional=yes since=1.0
+shape.EodbFields.gate_line type=f64 unit= optional=yes since=1.0
+shape.EodbFields.hint type=text unit= optional=no since=1.0
+meteor_lrpt since=1.0
+meteor_lrpt.fields.LinkFields since=1.0
+meteor_lrpt.fields.MeteorLrptFields since=1.0
+meteor_lrpt.fields.PictureFields since=1.0
+meteor_lrpt.kept.images since=1.0
+meteor_lrpt.table.channels row=MeteorLrptChannelRow cap=16 since=1.0
+meteor_lrpt.table.images row=ImageRow cap=80 since=1.0
+meteor_lrpt.series.esn0 x_unit=s y_unit=dB since=1.0
+meteor_lrpt.series.byte_errors x_unit=s y_unit=% since=1.0
+meteor_lrpt.series.frames_per_s x_unit=s y_unit= since=1.0
+meteor_lrpt.series.constellation x_unit= y_unit= since=1.0
+meteor_lrpt.setting.frequency_preset type=choice(137.900,137.100) unit= since=1.0
+meteor_lrpt.setting.modulation type=choice(auto,oqpsk72,qpsk72,oqpsk80) unit= since=1.0
+meteor_lrpt.setting.view type=choice(auto,rgb123,rgb125,ch1,ch2,ch3,ch4,ch5,ch6) unit= since=1.0
+meteor_lrpt.setting.enhance type=choice(none,stretch,brighten,thermal,satellite) unit= since=1.0
+meteor_lrpt.setting.follow type=bool unit= since=1.0
+meteor_lrpt.setting.gen_modulation type=choice(oqpsk72,qpsk72,oqpsk80) unit= since=1.0
+meteor_lrpt.setting.gen_night type=bool unit= since=1.0
+meteor_lrpt.setting.gen_rows type=i64 unit= since=1.0
+meteor_lrpt.command.clear args= reply= since=1.0
+goes_hrit since=1.0
+goes_hrit.fields.LinkFields since=1.0
+goes_hrit.fields.XritFields since=1.0
+goes_hrit.kept.products since=1.0
+goes_hrit.kept.images since=1.0
+goes_hrit.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+goes_hrit.table.products row=ProductRow cap=80 writers=products since=1.0
+goes_hrit.table.images row=ImageRow cap=80 writers=products since=1.0
+goes_hrit.series.esn0 x_unit=s y_unit=dB since=1.0
+goes_hrit.series.byte_errors x_unit=s y_unit=% since=1.0
+goes_hrit.series.frames_per_s x_unit=s y_unit= since=1.0
+goes_hrit.series.constellation x_unit= y_unit= since=1.0
+goes_hrit.event.satimg.product fields=ProductEvent since=1.0
+goes_hrit.event.satimg.text fields=TextEvent since=1.0
+goes_hrit.setting.filter type=choice(all,images,text) unit= since=1.0
+goes_hrit.setting.follow_newest type=bool unit= since=1.0
+goes_hrit.setting.gen_invert_g2 type=bool unit= since=1.0
+goes_hrit.setting.gen_nrzm type=bool unit= since=1.0
+goes_hrit.setting.gen_basis type=choice(dual,conventional) unit= since=1.0
+goes_hrit.setting.gen_fill type=i64 unit= since=1.0
+goes_hrit.setting.gen_once type=bool unit= since=1.0
+goes_hrit.setting.gen_counter type=i64 unit= since=1.0
+goes_hrit.command.open_cadu args=path:text reply= since=1.0
+goes_hrit.command.clear args= reply= since=1.0
+gk2a_lrit since=1.0
+gk2a_lrit.fields.LinkFields since=1.0
+gk2a_lrit.fields.XritFields since=1.0
+gk2a_lrit.kept.products since=1.0
+gk2a_lrit.kept.images since=1.0
+gk2a_lrit.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+gk2a_lrit.table.products row=ProductRow cap=80 writers=products since=1.0
+gk2a_lrit.table.images row=ImageRow cap=80 writers=products since=1.0
+gk2a_lrit.series.esn0 x_unit=s y_unit=dB since=1.0
+gk2a_lrit.series.byte_errors x_unit=s y_unit=% since=1.0
+gk2a_lrit.series.frames_per_s x_unit=s y_unit= since=1.0
+gk2a_lrit.series.constellation x_unit= y_unit= since=1.0
+gk2a_lrit.event.satimg.product fields=ProductEvent since=1.0
+gk2a_lrit.event.satimg.text fields=TextEvent since=1.0
+gk2a_lrit.setting.filter type=choice(all,images,text) unit= since=1.0
+gk2a_lrit.setting.follow_newest type=bool unit= since=1.0
+gk2a_lrit.setting.gen_invert_g2 type=bool unit= since=1.0
+gk2a_lrit.setting.gen_nrzm type=bool unit= since=1.0
+gk2a_lrit.setting.gen_basis type=choice(dual,conventional) unit= since=1.0
+gk2a_lrit.setting.gen_fill type=i64 unit= since=1.0
+gk2a_lrit.setting.gen_once type=bool unit= since=1.0
+gk2a_lrit.setting.gen_counter type=i64 unit= since=1.0
+gk2a_lrit.setting.gen_encrypt type=bool unit= since=1.0
+gk2a_lrit.command.open_cadu args=path:text reply= since=1.0
+gk2a_lrit.command.clear args= reply= since=1.0
+gk2a_lrit.command.import_keys args=path:text reply= since=1.0
+gk2a_lrit.command.add_keys args=keys:text reply= since=1.0
+gk2a_hrit since=1.0
+gk2a_hrit.fields.LinkFields since=1.0
+gk2a_hrit.fields.XritFields since=1.0
+gk2a_hrit.kept.products since=1.0
+gk2a_hrit.kept.images since=1.0
+gk2a_hrit.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+gk2a_hrit.table.products row=ProductRow cap=80 writers=products since=1.0
+gk2a_hrit.table.images row=ImageRow cap=80 writers=products since=1.0
+gk2a_hrit.series.esn0 x_unit=s y_unit=dB since=1.0
+gk2a_hrit.series.byte_errors x_unit=s y_unit=% since=1.0
+gk2a_hrit.series.frames_per_s x_unit=s y_unit= since=1.0
+gk2a_hrit.series.constellation x_unit= y_unit= since=1.0
+gk2a_hrit.event.satimg.product fields=ProductEvent since=1.0
+gk2a_hrit.event.satimg.text fields=TextEvent since=1.0
+gk2a_hrit.setting.filter type=choice(all,images,text) unit= since=1.0
+gk2a_hrit.setting.follow_newest type=bool unit= since=1.0
+gk2a_hrit.setting.gen_invert_g2 type=bool unit= since=1.0
+gk2a_hrit.setting.gen_nrzm type=bool unit= since=1.0
+gk2a_hrit.setting.gen_basis type=choice(dual,conventional) unit= since=1.0
+gk2a_hrit.setting.gen_fill type=i64 unit= since=1.0
+gk2a_hrit.setting.gen_once type=bool unit= since=1.0
+gk2a_hrit.setting.gen_counter type=i64 unit= since=1.0
+gk2a_hrit.setting.gen_encrypt type=bool unit= since=1.0
+gk2a_hrit.command.open_cadu args=path:text reply= since=1.0
+gk2a_hrit.command.clear args= reply= since=1.0
+gk2a_hrit.command.import_keys args=path:text reply= since=1.0
+gk2a_hrit.command.add_keys args=keys:text reply= since=1.0
+fy2_svissr since=1.0
+fy2_svissr.fields.LinkFields since=1.0
+fy2_svissr.fields.Fy2SvissrFields since=1.0
+fy2_svissr.fields.PictureFields since=1.0
+fy2_svissr.kept.images since=1.0
+fy2_svissr.table.images row=ImageRow cap=80 since=1.0
+fy2_svissr.series.esn0 x_unit=s y_unit=dB since=1.0
+fy2_svissr.series.byte_errors x_unit=s y_unit=% since=1.0
+fy2_svissr.series.frames_per_s x_unit=s y_unit= since=1.0
+fy2_svissr.series.constellation x_unit= y_unit= since=1.0
+fy2_svissr.setting.symbol_rate type=f64 unit=ksym/s since=1.0
+fy2_svissr.setting.follow type=bool unit= since=1.0
+fy2_svissr.setting.gen_symbol_rate type=hz unit=Hz since=1.0
+fy2_svissr.setting.gen_first_line type=i64 unit= since=1.0
+fy2_svissr.setting.gen_lines type=i64 unit= since=1.0
+fy2_svissr.command.open_svissr args=path:text reply= since=1.0
+fy2_svissr.command.clear args= reply= since=1.0
+fy3_ahrpt since=1.0
+fy3_ahrpt.fields.LinkFields since=1.0
+fy3_ahrpt.fields.Fy3Fields since=1.0
+fy3_ahrpt.fields.PictureFields since=1.0
+fy3_ahrpt.kept.images since=1.0
+fy3_ahrpt.table.instruments row=Fy3InstrumentRow cap=32 since=1.0
+fy3_ahrpt.table.images row=ImageRow cap=80 since=1.0
+fy3_ahrpt.series.esn0 x_unit=s y_unit=dB since=1.0
+fy3_ahrpt.series.byte_errors x_unit=s y_unit=% since=1.0
+fy3_ahrpt.series.frames_per_s x_unit=s y_unit= since=1.0
+fy3_ahrpt.series.constellation x_unit= y_unit= since=1.0
+fy3_ahrpt.setting.preset type=choice(auto,fy3c,fy3ab,fy3g,fy3d,fy3f,fy3eh) unit= since=1.0
+fy3_ahrpt.setting.symbol_rate type=f64 unit=Msym/s since=1.0
+fy3_ahrpt.setting.roll_off type=f64 unit= since=1.0
+fy3_ahrpt.setting.instrument type=choice(VIRR,MERSI,MERSI-II,MERSI-3,MERSI-LL,MERSI-RM,MWRI,MWRI-2) unit= since=1.0
+fy3_ahrpt.setting.view type=choice(true,false,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,ch12,ch13,ch14,ch15,ch16,ch17,ch18,ch19,ch20,ch21,ch22,ch23,ch24,ch25,ch26) unit= since=1.0
+fy3_ahrpt.setting.follow type=bool unit= since=1.0
+fy3_ahrpt.setting.gen_satellite type=i64 unit= since=1.0
+fy3_ahrpt.setting.gen_symbol_rate type=f64 unit=Msym/s since=1.0
+fy3_ahrpt.setting.gen_qneg type=bool unit= since=1.0
+fy3_ahrpt.setting.gen_swap type=bool unit= since=1.0
+fy3_ahrpt.setting.gen_fill_every type=i64 unit= since=1.0
+fy3_ahrpt.command.clear args= reply= since=1.0
+fy3_mpt since=1.0
+fy3_mpt.fields.LinkFields since=1.0
+fy3_mpt.fields.Fy3Fields since=1.0
+fy3_mpt.fields.PictureFields since=1.0
+fy3_mpt.kept.images since=1.0
+fy3_mpt.table.instruments row=Fy3InstrumentRow cap=32 since=1.0
+fy3_mpt.table.images row=ImageRow cap=80 since=1.0
+fy3_mpt.series.esn0 x_unit=s y_unit=dB since=1.0
+fy3_mpt.series.byte_errors x_unit=s y_unit=% since=1.0
+fy3_mpt.series.frames_per_s x_unit=s y_unit= since=1.0
+fy3_mpt.series.constellation x_unit= y_unit= since=1.0
+fy3_mpt.setting.preset type=choice(auto,mpt_ab,mpt_c) unit= since=1.0
+fy3_mpt.setting.symbol_rate type=f64 unit=Msym/s since=1.0
+fy3_mpt.setting.roll_off type=f64 unit= since=1.0
+fy3_mpt.setting.instrument type=choice(MERSI,MERSI-II,MERSI-3,MERSI-LL,MERSI-RM,VIRR,MWRI,MWRI-2) unit= since=1.0
+fy3_mpt.setting.view type=choice(true,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,ch12,ch13,ch14,ch15,ch16,ch17,ch18,ch19,ch20,ch21,ch22,ch23,ch24,ch25,false,ch26) unit= since=1.0
+fy3_mpt.setting.follow type=bool unit= since=1.0
+fy3_mpt.setting.gen_satellite type=i64 unit= since=1.0
+fy3_mpt.setting.gen_symbol_rate type=f64 unit=Msym/s since=1.0
+fy3_mpt.setting.gen_qneg type=bool unit= since=1.0
+fy3_mpt.setting.gen_swap type=bool unit= since=1.0
+fy3_mpt.setting.gen_fill_every type=i64 unit= since=1.0
+fy3_mpt.command.clear args= reply= since=1.0
+noaa_apt since=1.0
+noaa_apt.fields.NoaaAptFields since=1.0
+noaa_apt.fields.PictureFields since=1.0
+noaa_apt.kept.images since=1.0
+noaa_apt.table.images row=ImageRow cap=80 since=1.0
+noaa_apt.setting.picture type=choice(APT,APT%20channel%20A,APT%20channel%20B) unit= since=1.0
+noaa_apt.setting.follow type=bool unit= since=1.0
+noaa_apt.setting.line_filter type=bool unit= since=1.0
+noaa_apt.setting.gen_lines type=i64 unit= since=1.0
+noaa_apt.command.clear args= reply= since=1.0
+noaa_dsb since=1.0
+noaa_dsb.fields.NoaaDsbFields since=1.0
+noaa_dsb.fields.PictureFields since=1.0
+noaa_dsb.kept.images since=1.0
+noaa_dsb.table.images row=ImageRow cap=80 since=1.0
+noaa_dsb.series.esn0 x_unit=s y_unit=dB since=1.0
+noaa_dsb.series.byte_errors x_unit=s y_unit=% since=1.0
+noaa_dsb.series.frames_per_s x_unit=s y_unit= since=1.0
+noaa_dsb.series.constellation x_unit= y_unit= since=1.0
+noaa_dsb.setting.view type=choice(rgb214,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,ch12,ch13,ch14,ch15,ch16,ch17,ch18,ch19,ch20) unit= since=1.0
+noaa_dsb.setting.follow type=bool unit= since=1.0
+noaa_dsb.setting.gen_scid type=i64 unit= since=1.0
+noaa_dsb.setting.gen_pm_index type=f64 unit=deg since=1.0
+noaa_dsb.setting.gen_lines type=i64 unit= since=1.0
+noaa_dsb.command.clear args= reply= since=1.0
+goes_gvar since=1.0
+goes_gvar.fields.GoesGvarFields since=1.0
+goes_gvar.fields.PictureFields since=1.0
+goes_gvar.kept.images since=1.0
+goes_gvar.table.blocks row=GoesGvarBlockRow cap=64 since=1.0
+goes_gvar.table.images row=ImageRow cap=80 since=1.0
+goes_gvar.series.esn0 x_unit=s y_unit=dB since=1.0
+goes_gvar.series.byte_errors x_unit=s y_unit=% since=1.0
+goes_gvar.series.frames_per_s x_unit=s y_unit= since=1.0
+goes_gvar.series.constellation x_unit= y_unit= since=1.0
+goes_gvar.setting.picture type=choice(Imager%20visible,Imager%20infrared) unit= since=1.0
+goes_gvar.setting.view type=choice(visible,ir2,ir3,ir4,ir6) unit= since=1.0
+goes_gvar.setting.follow type=bool unit= since=1.0
+goes_gvar.setting.gen_lines type=i64 unit= since=1.0
+goes_gvar.command.clear args= reply= since=1.0
+aws since=1.0
+aws.fields.LinkFields since=1.0
+aws.fields.AwsFields since=1.0
+aws.fields.PictureFields since=1.0
+aws.kept.images since=1.0
+aws.table.virtual_channels row=AwsVirtualChannelRow cap=8 since=1.0
+aws.table.apids row=AwsApidRow cap=32 since=1.0
+aws.table.images row=ImageRow cap=80 since=1.0
+aws.series.esn0 x_unit=s y_unit=dB since=1.0
+aws.series.byte_errors x_unit=s y_unit=% since=1.0
+aws.series.frames_per_s x_unit=s y_unit= since=1.0
+aws.series.constellation x_unit= y_unit= since=1.0
+aws.setting.view type=choice(ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,ch12,ch13,ch14,ch15,ch16,ch17,ch18,ch19) unit= since=1.0
+aws.setting.follow type=bool unit= since=1.0
+aws.setting.gen_lines type=i64 unit= since=1.0
+aws.command.clear args= reply= since=1.0
+noaa_gac since=1.0
+noaa_gac.fields.NoaaGacFields since=1.0
+noaa_gac.fields.PictureFields since=1.0
+noaa_gac.kept.images since=1.0
+noaa_gac.table.images row=ImageRow cap=80 since=1.0
+noaa_gac.series.esn0 x_unit=s y_unit=dB since=1.0
+noaa_gac.series.byte_errors x_unit=s y_unit=% since=1.0
+noaa_gac.series.frames_per_s x_unit=s y_unit= since=1.0
+noaa_gac.series.constellation x_unit= y_unit= since=1.0
+noaa_gac.setting.picture type=choice(AVHRR%20GAC,HIRS) unit= since=1.0
+noaa_gac.setting.view type=choice(rgb214,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,ch12,ch13,ch14,ch15,ch16,ch17,ch18,ch19,ch20) unit= since=1.0
+noaa_gac.setting.follow type=bool unit= since=1.0
+noaa_gac.setting.gen_scid type=i64 unit= since=1.0
+noaa_gac.setting.gen_lines type=i64 unit= since=1.0
+noaa_gac.command.clear args= reply= since=1.0
+msg_raw since=1.0
+msg_raw.fields.LinkFields since=1.0
+msg_raw.fields.MsgRawFields since=1.0
+msg_raw.fields.PictureFields since=1.0
+msg_raw.kept.images since=1.0
+msg_raw.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+msg_raw.table.images row=ImageRow cap=80 since=1.0
+msg_raw.series.esn0 x_unit=s y_unit=dB since=1.0
+msg_raw.series.byte_errors x_unit=s y_unit=% since=1.0
+msg_raw.series.frames_per_s x_unit=s y_unit= since=1.0
+msg_raw.series.constellation x_unit= y_unit= since=1.0
+msg_raw.setting.picture type=choice(SEVIRI,SEVIRI%20HRV) unit= since=1.0
+msg_raw.setting.view type=choice(rgb214,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,hrv) unit= since=1.0
+msg_raw.setting.follow type=bool unit= since=1.0
+msg_raw.setting.gen_scid type=i64 unit= since=1.0
+msg_raw.setting.gen_lines type=i64 unit= since=1.0
+msg_raw.setting.gen_start type=i64 unit= since=1.0
+msg_raw.command.clear args= reply= since=1.0
+goes_cda since=1.0
+goes_cda.fields.FrameTableFields since=1.0
+goes_cda.table.frames row=FrameRow cap=64 since=1.0
+goes_cda.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+goes_cda.series.esn0 x_unit=s y_unit=dB since=1.0
+goes_cda.series.byte_errors x_unit=s y_unit=% since=1.0
+goes_cda.series.frames_per_s x_unit=s y_unit= since=1.0
+goes_cda.series.constellation x_unit= y_unit= since=1.0
+goes_cda.setting.gen_pm_index type=f64 unit=deg since=1.0
+goes_cda.command.clear args= reply= since=1.0
+goes_mdl since=1.0
+goes_mdl.fields.FrameTableFields since=1.0
+goes_mdl.table.frames row=FrameRow cap=64 since=1.0
+goes_mdl.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+goes_mdl.series.esn0 x_unit=s y_unit=dB since=1.0
+goes_mdl.series.byte_errors x_unit=s y_unit=% since=1.0
+goes_mdl.series.frames_per_s x_unit=s y_unit= since=1.0
+goes_mdl.series.constellation x_unit= y_unit= since=1.0
+goes_mdl.command.clear args= reply= since=1.0
+gk2a_cdas since=1.0
+gk2a_cdas.fields.FrameTableFields since=1.0
+gk2a_cdas.table.frames row=FrameRow cap=64 since=1.0
+gk2a_cdas.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+gk2a_cdas.series.esn0 x_unit=s y_unit=dB since=1.0
+gk2a_cdas.series.byte_errors x_unit=s y_unit=% since=1.0
+gk2a_cdas.series.frames_per_s x_unit=s y_unit= since=1.0
+gk2a_cdas.series.constellation x_unit= y_unit= since=1.0
+gk2a_cdas.command.clear args= reply= since=1.0
+sband_ccsds since=1.0
+sband_ccsds.fields.FrameTableFields since=1.0
+sband_ccsds.fields.SbandCcsdsFields since=1.0
+sband_ccsds.table.frames row=FrameRow cap=64 since=1.0
+sband_ccsds.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+sband_ccsds.series.esn0 x_unit=s y_unit=dB since=1.0
+sband_ccsds.series.byte_errors x_unit=s y_unit=% since=1.0
+sband_ccsds.series.frames_per_s x_unit=s y_unit= since=1.0
+sband_ccsds.series.constellation x_unit= y_unit= since=1.0
+sband_ccsds.setting.link_name type=text unit= since=1.0
+sband_ccsds.setting.modulation type=choice(bpsk,qpsk,oqpsk,pm,fsk) unit= since=1.0
+sband_ccsds.setting.symbol_rate type=hz unit=Hz since=1.0
+sband_ccsds.setting.roll_off type=f64 unit= since=1.0
+sband_ccsds.setting.conv type=bool unit= since=1.0
+sband_ccsds.setting.frame_bits type=i64 unit=bits since=1.0
+sband_ccsds.setting.sync_word type=text unit= since=1.0
+sband_ccsds.setting.nrzm type=bool unit= since=1.0
+sband_ccsds.setting.randomiser type=choice(none,frame,inside) unit= since=1.0
+sband_ccsds.setting.rs type=choice(none,255_223,255_239) unit= since=1.0
+sband_ccsds.setting.rs_interleave type=i64 unit= since=1.0
+sband_ccsds.setting.rs_basis type=choice(dual,conventional) unit= since=1.0
+sband_ccsds.command.clear args= reply= since=1.0
+rdas since=1.0
+rdas.fields.FrameTableFields since=1.0
+rdas.fields.RdasFields since=1.0
+rdas.fields.PictureFields since=1.0
+rdas.table.frames row=FrameRow cap=64 since=1.0
+rdas.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+rdas.series.esn0 x_unit=s y_unit=dB since=1.0
+rdas.series.byte_errors x_unit=s y_unit=% since=1.0
+rdas.series.frames_per_s x_unit=s y_unit= since=1.0
+rdas.series.constellation x_unit= y_unit= since=1.0
+rdas.setting.symbol_rate type=hz unit=Hz since=1.0
+rdas.setting.roll_off type=f64 unit= since=1.0
+rdas.command.clear args= reply= since=1.0
+gk2a_uhrit since=1.0
+gk2a_uhrit.fields.Dvbs2Fields since=1.0
+gk2a_uhrit.fields.CaduFields since=1.0
+gk2a_uhrit.fields.UhritFields since=1.0
+gk2a_uhrit.component.s2_report.fields.Dvbs2Fields shared=standard;signal_note;symbol_rate_hz;spectrum_rate;clock_ppm;manual_rate;spectrum_snr_db;misfit;edge_low;edge_high;offset_hz;inverted;roll_off;roll_off_source;modulation;code_rate;modcod;frame;pilots;vcm;single_stream;pl_scrambling_code;plframes;dummy_frames;unsupported_frames;other_modcod_frames;pilot_mismatch;bbheader_bad;net_bit_rate;esn0_db;mer_db;ebn0_db;margin_to_qef_db;ldpc_iterations;bch_ok;bch_bad;rs_clean;rs_corrected;rs_failed;carrier_lock;timing_lock;frame_lock;fec_lock;ts_lock;level_dbfs;lnb_mismatch since=1.0
+gk2a_uhrit.kept.products since=1.0
+gk2a_uhrit.kept.images since=1.0
+gk2a_uhrit.table.carriers row=Dvbs2CarrierRow cap=32 writers=s2_report since=1.0
+gk2a_uhrit.table.streams row=Dvbs2StreamRow cap=256 writers=s2_report since=1.0
+gk2a_uhrit.table.stream_modcods row=Dvbs2StreamModcodRow cap=1024 writers=s2_report since=1.0
+gk2a_uhrit.table.packets_by_apid row=UhritApidRow cap=32 since=1.0
+gk2a_uhrit.table.frames row=UhritFrameRow cap=64 since=1.0
+gk2a_uhrit.table.products row=ProductRow cap=80 writers=products since=1.0
+gk2a_uhrit.table.images row=ImageRow cap=80 writers=products since=1.0
+gk2a_uhrit.series.constellation x_unit= y_unit= since=1.0
+gk2a_uhrit.series.spectrum x_unit=bin y_unit=dB since=1.0
+gk2a_uhrit.series.mer_history x_unit=frame y_unit=dB since=1.0
+gk2a_uhrit.event.satimg.product fields=ProductEvent since=1.0
+gk2a_uhrit.event.satimg.text fields=TextEvent since=1.0
+gk2a_uhrit.setting.symbol_rate type=hz unit=Hz since=1.0
+gk2a_uhrit.setting.roll_off type=choice(auto,0.35,0.25,0.20,0.15,0.10,0.05) unit= since=1.0
+gk2a_uhrit.setting.carrier_offset type=text unit=Hz since=1.0
+gk2a_uhrit.setting.uncounted_secondary type=i64 unit=bytes since=1.0
+gk2a_uhrit.setting.filter type=choice(all,images,text) unit= since=1.0
+gk2a_uhrit.setting.follow_newest type=bool unit= since=1.0
+gk2a_uhrit.setting.modcod_rule type=choice(any,fixed,set) unit= since=1.0
+gk2a_uhrit.setting.modcod type=i64 unit= since=1.0
+gk2a_uhrit.setting.modcods type=text unit= since=1.0
+gk2a_uhrit.setting.frame_length type=choice(any,normal,short) unit= since=1.0
+gk2a_uhrit.setting.pilots type=choice(any,on,off) unit= since=1.0
+gk2a_uhrit.setting.pl_scrambling type=i64 unit= since=1.0
+gk2a_uhrit.command.import_keys args=path:text reply= since=1.0
+gk2a_uhrit.command.add_keys args=keys:text reply= since=1.0
+gk2a_uhrit.command.clear args= reply= since=1.0
+fy4_lrit since=1.0
+fy4_lrit.fields.Dvbs2Fields since=1.0
+fy4_lrit.fields.Fy4Fields since=1.0
+fy4_lrit.component.s2_report.fields.Dvbs2Fields shared=standard;signal_note;symbol_rate_hz;spectrum_rate;clock_ppm;manual_rate;spectrum_snr_db;misfit;edge_low;edge_high;offset_hz;inverted;roll_off;roll_off_source;modulation;code_rate;modcod;frame;pilots;vcm;single_stream;pl_scrambling_code;plframes;dummy_frames;unsupported_frames;other_modcod_frames;pilot_mismatch;bbheader_bad;net_bit_rate;esn0_db;mer_db;ebn0_db;margin_to_qef_db;ldpc_iterations;bch_ok;bch_bad;rs_clean;rs_corrected;rs_failed;carrier_lock;timing_lock;frame_lock;fec_lock;ts_lock;level_dbfs;lnb_mismatch since=1.0
+fy4_lrit.component.s2_bbframe.fields.BbFrameFields shared=ts_packets since=1.0
+fy4_lrit.kept.products since=1.0
+fy4_lrit.kept.images since=1.0
+fy4_lrit.table.carriers row=Dvbs2CarrierRow cap=32 writers=s2_report since=1.0
+fy4_lrit.table.streams row=Dvbs2StreamRow cap=256 writers=s2_report since=1.0
+fy4_lrit.table.stream_modcods row=Dvbs2StreamModcodRow cap=1024 writers=s2_report since=1.0
+fy4_lrit.table.products row=ProductRow cap=80 writers=products since=1.0
+fy4_lrit.table.images row=ImageRow cap=80 writers=products since=1.0
+fy4_lrit.series.constellation x_unit= y_unit= since=1.0
+fy4_lrit.series.spectrum x_unit=bin y_unit=dB since=1.0
+fy4_lrit.series.mer_history x_unit=frame y_unit=dB since=1.0
+fy4_lrit.event.satimg.product fields=ProductEvent since=1.0
+fy4_lrit.event.satimg.text fields=TextEvent since=1.0
+fy4_lrit.setting.satellite type=choice(fy4a,fy4b) unit= since=1.0
+fy4_lrit.setting.symbol_rate type=hz unit=Hz since=1.0
+fy4_lrit.setting.roll_off type=choice(auto,0.35,0.25,0.20,0.15,0.10,0.05) unit= since=1.0
+fy4_lrit.setting.carrier_offset type=text unit=Hz since=1.0
+fy4_lrit.setting.isi type=i64 unit= since=1.0
+fy4_lrit.setting.modcod_rule type=choice(any,fixed,set) unit= since=1.0
+fy4_lrit.setting.modcod type=i64 unit= since=1.0
+fy4_lrit.setting.modcods type=text unit= since=1.0
+fy4_lrit.setting.frame_length type=choice(any,normal,short) unit= since=1.0
+fy4_lrit.setting.pilots type=choice(any,on,off) unit= since=1.0
+fy4_lrit.setting.pl_scrambling type=i64 unit= since=1.0
+fy4_lrit.setting.filter type=choice(all,images,text) unit= since=1.0
+fy4_lrit.setting.follow_newest type=bool unit= since=1.0
+fy4_lrit.command.open_cadu args=path:text reply= since=1.0
+fy4_lrit.command.clear args= reply= since=1.0
+fy4a_hrit since=1.0
+fy4a_hrit.fields.Dvbs2Fields since=1.0
+fy4a_hrit.fields.Fy4Fields since=1.0
+fy4a_hrit.component.s2_report.fields.Dvbs2Fields shared=standard;signal_note;symbol_rate_hz;spectrum_rate;clock_ppm;manual_rate;spectrum_snr_db;misfit;edge_low;edge_high;offset_hz;inverted;roll_off;roll_off_source;modulation;code_rate;modcod;frame;pilots;vcm;single_stream;pl_scrambling_code;plframes;dummy_frames;unsupported_frames;other_modcod_frames;pilot_mismatch;bbheader_bad;net_bit_rate;esn0_db;mer_db;ebn0_db;margin_to_qef_db;ldpc_iterations;bch_ok;bch_bad;rs_clean;rs_corrected;rs_failed;carrier_lock;timing_lock;frame_lock;fec_lock;ts_lock;level_dbfs;lnb_mismatch since=1.0
+fy4a_hrit.component.s2_bbframe.fields.BbFrameFields shared=ts_packets since=1.0
+fy4a_hrit.kept.products since=1.0
+fy4a_hrit.kept.images since=1.0
+fy4a_hrit.table.carriers row=Dvbs2CarrierRow cap=32 writers=s2_report since=1.0
+fy4a_hrit.table.streams row=Dvbs2StreamRow cap=256 writers=s2_report since=1.0
+fy4a_hrit.table.stream_modcods row=Dvbs2StreamModcodRow cap=1024 writers=s2_report since=1.0
+fy4a_hrit.table.products row=ProductRow cap=80 writers=products since=1.0
+fy4a_hrit.table.images row=ImageRow cap=80 writers=products since=1.0
+fy4a_hrit.series.constellation x_unit= y_unit= since=1.0
+fy4a_hrit.series.spectrum x_unit=bin y_unit=dB since=1.0
+fy4a_hrit.series.mer_history x_unit=frame y_unit=dB since=1.0
+fy4a_hrit.event.satimg.product fields=ProductEvent since=1.0
+fy4a_hrit.event.satimg.text fields=TextEvent since=1.0
+fy4a_hrit.setting.symbol_rate type=hz unit=Hz since=1.0
+fy4a_hrit.setting.roll_off type=choice(auto,0.35,0.25,0.20,0.15,0.10,0.05) unit= since=1.0
+fy4a_hrit.setting.carrier_offset type=text unit=Hz since=1.0
+fy4a_hrit.setting.isi type=i64 unit= since=1.0
+fy4a_hrit.setting.modcod_rule type=choice(any,fixed,set) unit= since=1.0
+fy4a_hrit.setting.modcod type=i64 unit= since=1.0
+fy4a_hrit.setting.modcods type=text unit= since=1.0
+fy4a_hrit.setting.frame_length type=choice(any,normal,short) unit= since=1.0
+fy4a_hrit.setting.pilots type=choice(any,on,off) unit= since=1.0
+fy4a_hrit.setting.pl_scrambling type=i64 unit= since=1.0
+fy4a_hrit.setting.filter type=choice(all,images,text) unit= since=1.0
+fy4a_hrit.setting.follow_newest type=bool unit= since=1.0
+fy4a_hrit.command.open_cadu args=path:text reply= since=1.0
+fy4a_hrit.command.clear args= reply= since=1.0
+goes_grb since=1.0
+goes_grb.fields.Dvbs2Fields since=1.0
+goes_grb.fields.CaduFields since=1.0
+goes_grb.fields.GrbFields since=1.0
+goes_grb.fields.GlmFields since=1.1
+goes_grb.component.s2_report.fields.Dvbs2Fields shared=standard;signal_note;symbol_rate_hz;spectrum_rate;clock_ppm;manual_rate;spectrum_snr_db;misfit;edge_low;edge_high;offset_hz;inverted;roll_off;roll_off_source;modulation;code_rate;modcod;frame;pilots;vcm;single_stream;pl_scrambling_code;plframes;dummy_frames;unsupported_frames;other_modcod_frames;pilot_mismatch;bbheader_bad;net_bit_rate;esn0_db;mer_db;ebn0_db;margin_to_qef_db;ldpc_iterations;bch_ok;bch_bad;rs_clean;rs_corrected;rs_failed;carrier_lock;timing_lock;frame_lock;fec_lock;ts_lock;level_dbfs;lnb_mismatch since=1.0
+goes_grb.kept.grb_products since=1.0
+goes_grb.kept.flashes since=1.1
+goes_grb.kept.groups since=1.1
+goes_grb.table.carriers row=Dvbs2CarrierRow cap=32 writers=s2_report since=1.0
+goes_grb.table.streams row=Dvbs2StreamRow cap=256 writers=s2_report since=1.0
+goes_grb.table.stream_modcods row=Dvbs2StreamModcodRow cap=1024 writers=s2_report since=1.0
+goes_grb.table.grb_products row=GrbProductRow cap=256 since=1.0
+goes_grb.table.packets_by_apid row=GrbApidRow cap=32 since=1.0
+goes_grb.table.frames row=UhritFrameRow cap=64 since=1.0
+goes_grb.table.flashes row=GlmFlashRow cap=64 since=1.1
+goes_grb.table.groups row=GlmGroupRow cap=64 since=1.1
+goes_grb.series.constellation x_unit= y_unit= since=1.0
+goes_grb.series.spectrum x_unit=bin y_unit=dB since=1.0
+goes_grb.series.mer_history x_unit=frame y_unit=dB since=1.0
+goes_grb.setting.symbol_rate type=hz unit=Hz since=1.0
+goes_grb.setting.roll_off type=choice(auto,0.35,0.25,0.20,0.15,0.10,0.05) unit= since=1.0
+goes_grb.setting.carrier_offset type=text unit=Hz since=1.0
+goes_grb.setting.product type=i64 unit= since=1.0
+goes_grb.setting.channels type=text unit= since=1.0
+goes_grb.setting.modcod_rule type=choice(any,fixed,set) unit= since=1.0
+goes_grb.setting.modcod type=i64 unit= since=1.0
+goes_grb.setting.modcods type=text unit= since=1.0
+goes_grb.setting.frame_length type=choice(any,normal,short) unit= since=1.0
+goes_grb.setting.pilots type=choice(any,on,off) unit= since=1.0
+goes_grb.setting.pl_scrambling type=i64 unit= since=1.0
+goes_grb.command.clear args= reply= since=1.0
+sat_filecast since=1.0
+sat_filecast.fields.Dvbs2Fields since=1.0
+sat_filecast.fields.FilecastFields since=1.0
+sat_filecast.component.s2_report.fields.Dvbs2Fields shared=standard;signal_note;symbol_rate_hz;spectrum_rate;clock_ppm;manual_rate;spectrum_snr_db;misfit;edge_low;edge_high;offset_hz;inverted;roll_off;roll_off_source;modulation;code_rate;modcod;frame;pilots;vcm;single_stream;pl_scrambling_code;plframes;dummy_frames;unsupported_frames;other_modcod_frames;pilot_mismatch;bbheader_bad;net_bit_rate;esn0_db;mer_db;ebn0_db;margin_to_qef_db;ldpc_iterations;bch_ok;bch_bad;rs_clean;rs_corrected;rs_failed;carrier_lock;timing_lock;frame_lock;fec_lock;ts_lock;level_dbfs;lnb_mismatch since=1.0
+sat_filecast.component.s2_bbframe.fields.BbFrameFields since=1.0
+sat_filecast.kept.recent_files since=1.0
+sat_filecast.kept.pictures since=1.0
+sat_filecast.table.carriers row=Dvbs2CarrierRow cap=32 writers=s2_report since=1.0
+sat_filecast.table.streams row=Dvbs2StreamRow cap=256 writers=s2_report since=1.0
+sat_filecast.table.stream_modcods row=Dvbs2StreamModcodRow cap=1024 writers=s2_report since=1.0
+sat_filecast.table.recent_files row=RecentFileRow cap=60 since=1.0
+sat_filecast.table.pictures row=FilecastPictureRow cap=64 since=1.0
+sat_filecast.series.constellation x_unit= y_unit= since=1.0
+sat_filecast.series.spectrum x_unit=bin y_unit=dB since=1.0
+sat_filecast.series.mer_history x_unit=frame y_unit=dB since=1.0
+sat_filecast.setting.symbol_rate type=hz unit=Hz since=1.0
+sat_filecast.setting.roll_off type=choice(auto,0.35,0.25,0.20,0.15,0.10,0.05) unit= since=1.0
+sat_filecast.setting.carrier_offset type=text unit=Hz since=1.0
+sat_filecast.setting.pid type=i64 unit= since=1.0
+sat_filecast.setting.part_bytes type=i64 unit=bytes since=1.0
+sat_filecast.setting.max_silence type=f64 unit=s since=1.0
+sat_filecast.setting.name_tag type=i64 unit=characters since=1.0
+sat_filecast.setting.isi type=i64 unit= since=1.0
+sat_filecast.setting.modcod_rule type=choice(any,fixed,set) unit= since=1.0
+sat_filecast.setting.modcod type=i64 unit= since=1.0
+sat_filecast.setting.modcods type=text unit= since=1.0
+sat_filecast.setting.frame_length type=choice(any,normal,short) unit= since=1.0
+sat_filecast.setting.pilots type=choice(any,on,off) unit= since=1.0
+sat_filecast.setting.pl_scrambling type=i64 unit= since=1.0
+sat_filecast.setting.gen_symbol_rate type=hz unit=Hz since=1.0
+sat_filecast.command.clear args= reply= since=1.0
+elektro_l since=1.0
+elektro_l.fields.LinkFields since=1.0
+elektro_l.fields.XritFields since=1.0
+elektro_l.kept.products since=1.0
+elektro_l.kept.images since=1.0
+elektro_l.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+elektro_l.table.products row=ProductRow cap=80 writers=products since=1.0
+elektro_l.table.images row=ImageRow cap=80 writers=products since=1.0
+elektro_l.series.esn0 x_unit=s y_unit=dB since=1.0
+elektro_l.series.byte_errors x_unit=s y_unit=% since=1.0
+elektro_l.series.frames_per_s x_unit=s y_unit= since=1.0
+elektro_l.series.constellation x_unit= y_unit= since=1.0
+elektro_l.event.satimg.product fields=ProductEvent since=1.0
+elektro_l.event.satimg.text fields=TextEvent since=1.0
+elektro_l.event.satimg.ggak_frame fields=GgakFrameEvent since=1.0
+elektro_l.setting.craft type=choice(n3,n4,n5) unit= since=1.0
+elektro_l.setting.link type=choice(hrit665,hrit1000,lrit128,lrit64,ggak) unit= since=1.0
+elektro_l.setting.filter type=choice(all,images,text) unit= since=1.0
+elektro_l.setting.follow_newest type=bool unit= since=1.0
+elektro_l.setting.gen_invert_g2 type=bool unit= since=1.0
+elektro_l.setting.gen_nrzm type=bool unit= since=1.0
+elektro_l.setting.gen_basis type=choice(dual,conventional) unit= since=1.0
+elektro_l.setting.gen_fill type=i64 unit= since=1.0
+elektro_l.setting.gen_once type=bool unit= since=1.0
+elektro_l.setting.gen_counter type=i64 unit= since=1.0
+elektro_l.setting.gen_link type=choice(hrit665,hrit1000,lrit128,lrit64,ggak) unit= since=1.0
+elektro_l.command.open_cadu args=path:text reply= since=1.0
+elektro_l.command.clear args= reply= since=1.0
+hrpt since=1.0
+hrpt.fields.LinkFields since=1.0
+hrpt.fields.HrptFields since=1.0
+hrpt.fields.PictureFields since=1.0
+hrpt.kept.images since=1.0
+hrpt.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+hrpt.table.images row=ImageRow cap=80 since=1.0
+hrpt.series.esn0 x_unit=s y_unit=dB since=1.0
+hrpt.series.byte_errors x_unit=s y_unit=% since=1.0
+hrpt.series.frames_per_s x_unit=s y_unit= since=1.0
+hrpt.series.constellation x_unit= y_unit= since=1.0
+hrpt.setting.frequency_preset type=choice(1701.300,1701.400,1698.000,1702.500,1707.000) unit= since=1.0
+hrpt.setting.variant type=choice(auto,metop,fy3,noaa) unit= since=1.0
+hrpt.setting.view type=choice(rgb214,ch1,ch2,ch3,ch4,ch5) unit= since=1.0
+hrpt.setting.hirs_view type=choice(rgb214,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,ch12,ch13,ch14,ch15,ch16,ch17,ch18,ch19,ch20) unit= since=1.0
+hrpt.setting.follow type=bool unit= since=1.0
+hrpt.setting.gen_variant type=choice(metop,fy3,noaa) unit= since=1.0
+hrpt.setting.gen_3b type=bool unit= since=1.0
+hrpt.setting.gen_lines type=i64 unit= since=1.0
+hrpt.setting.gen_polarity type=bool unit= since=1.0
+hrpt.setting.gen_pm_index type=f64 unit=deg since=1.0
+hrpt.command.clear args= reply= since=1.0
+eodb since=1.0
+eodb.fields.FrameTableFields since=1.0
+eodb.fields.EodbFields since=1.0
+eodb.fields.PictureFields since=1.0
+eodb.table.frames row=FrameRow cap=64 since=1.0
+eodb.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
+eodb.series.esn0 x_unit=s y_unit=dB since=1.0
+eodb.series.byte_errors x_unit=s y_unit=% since=1.0
+eodb.series.frames_per_s x_unit=s y_unit= since=1.0
+eodb.series.constellation x_unit= y_unit= since=1.0
+eodb.setting.symbol_rate type=hz unit=Hz since=1.0
+eodb.setting.roll_off type=f64 unit= since=1.0
+eodb.setting.satellites type=text unit= since=1.0
+eodb.setting.avhrr_calibration type=text unit= since=1.0
+eodb.setting.gen_ambiguity type=i64 unit= since=1.0
+eodb.command.clear args= reply= since=1.0
+eodb.command.open_frames args=path:text reply= since=1.0
+eodb.command.product args=product:text;width:i64? reply= since=1.0

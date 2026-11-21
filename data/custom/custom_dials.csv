@@ -1,0 +1,12 @@
+# id: custom_dials
+# name: Usual dials and ranges of the custom stacks
+# stacks: slotted_voice qam_video picture_burst arq_packet file_transfer hf_chat
+# source: the private description of these signals; no frequency is allocated to them
+# note: Usage, not a published plan. The frequency of hf_chat is the upper-sideband dial.
+stack,frequency_hz,min_hz,max_hz,note
+slotted_voice,433000000,100000,6000000000,"no allocated frequency"
+qam_video,1290000000,100000000,6000000000,"amateur video bands"
+picture_burst,433000000,100000,6000000000,"no allocated frequency"
+arq_packet,433000000,30000000,6000000000,"no allocated frequency"
+file_transfer,1290000000,100000000,6000000000,"amateur video bands"
+hf_chat,14100000,1800000,30000000,"upper-sideband dial"

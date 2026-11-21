@@ -1,0 +1,365 @@
+# The interface of the stack family voice. The registry test of the family writes this file.
+family voice version=1.1
+uses.tones major=1 since=1.0
+shape.DetectorFields since=1.0
+shape.DetectorFields.state type=choice(searching,signal,confirmed) unit= optional=no since=1.0
+shape.DetectorFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.DetectorFields.quality_db type=f64 unit=dB optional=yes since=1.0
+shape.DetectorFields.signal_time_s type=duration unit=s optional=no since=1.0
+shape.DetectorFields.input_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.DetectorFields.good type=i64 unit= optional=no since=1.0
+shape.DetectorFields.bad type=i64 unit= optional=no since=1.0
+shape.HfpacketFields since=1.0
+shape.HfpacketFields.tone_offset_hz type=hz unit=Hz optional=no since=1.0
+shape.HfpacketFields.stations type=i64 unit= optional=no since=1.0
+shape.HfpacketFields.last_frame type=text unit= optional=yes since=1.0
+shape.GuardFields since=1.0
+shape.GuardFields.bad_samples type=i64 unit= optional=no since=1.0
+shape.DetectorEventRow since=1.0
+shape.DetectorEventRow.time_utc type=time unit= optional=yes since=1.0
+shape.DetectorEventRow.signal_time_s type=duration unit=s optional=no since=1.0
+shape.DetectorEventRow.text type=text unit= optional=no since=1.0
+shape.HfpacketFrameRow since=1.0
+shape.HfpacketFrameRow.time_utc type=time unit= optional=yes since=1.0
+shape.HfpacketFrameRow.source type=text unit= optional=no since=1.0
+shape.HfpacketFrameRow.destination type=text unit= optional=no since=1.0
+shape.HfpacketFrameRow.path type=text unit= optional=no since=1.0
+shape.HfpacketFrameRow.type type=text unit= optional=no since=1.0
+shape.HfpacketFrameRow.pid type=i64 unit= optional=yes since=1.0
+shape.HfpacketFrameRow.info type=text unit= optional=no since=1.0
+shape.HfpacketFrameRow.tone_offset_hz type=hz unit=Hz optional=no since=1.0
+shape.HfpacketFrameEvent since=1.0
+shape.HfpacketFrameEvent.text type=text unit= optional=no since=1.0
+shape.HfpacketFrameEvent.source type=text unit= optional=no since=1.0
+shape.HfpacketFrameEvent.destination type=text unit= optional=no since=1.0
+shape.HfpacketFrameEvent.path type=text unit= optional=no since=1.0
+shape.HfpacketFrameEvent.type type=text unit= optional=no since=1.0
+shape.HfpacketFrameEvent.info type=text unit= optional=no since=1.0
+shape.HfpacketFrameEvent.tone_offset_hz type=hz unit=Hz optional=no since=1.0
+shape.HfpacketStationEvent since=1.0
+shape.HfpacketStationEvent.text type=text unit= optional=no since=1.0
+shape.HfpacketStationEvent.source type=text unit= optional=no since=1.0
+shape.Elt121Fields since=1.0
+shape.Elt121Fields.confirmed type=bool unit= optional=no since=1.0
+shape.Elt121Fields.sweep_rate_hz type=f64 unit=Hz optional=yes since=1.0
+shape.Elt121Fields.sweep_top_hz type=hz unit=Hz optional=yes since=1.0
+shape.Elt121Fields.sweep_bottom_hz type=hz unit=Hz optional=yes since=1.0
+shape.Elt121Fields.depth_pct type=f64 unit=% optional=yes since=1.0
+shape.Elt121FoundEvent since=1.0
+shape.Elt121FoundEvent.text type=text unit= optional=no since=1.0
+shape.Elt121FoundEvent.sweep_rate_hz type=f64 unit=Hz optional=no since=1.0
+shape.Elt121FoundEvent.sweep_top_hz type=hz unit=Hz optional=no since=1.0
+shape.Elt121FoundEvent.sweep_bottom_hz type=hz unit=Hz optional=no since=1.0
+shape.Elt121EndedEvent since=1.0
+shape.Elt121EndedEvent.text type=text unit= optional=no since=1.0
+shape.VoiceInversionFields since=1.0
+shape.VoiceInversionFields.inverted type=bool unit= optional=no since=1.0
+shape.VoiceInversionFields.carrier_hz type=hz unit=Hz optional=yes since=1.0
+shape.VoiceInversionFields.fit_heard type=f64 unit= optional=yes since=1.0
+shape.VoiceInversionFields.fit_inverted type=f64 unit= optional=yes since=1.0
+shape.VoiceInversionFoundEvent since=1.0
+shape.VoiceInversionFoundEvent.text type=text unit= optional=no since=1.0
+shape.VoiceInversionFoundEvent.carrier_hz type=hz unit=Hz optional=no since=1.0
+shape.VoiceInversionClearEvent since=1.0
+shape.VoiceInversionClearEvent.text type=text unit= optional=no since=1.0
+shape.VoiceChannelsFields since=1.0
+shape.VoiceChannelsFields.submode type=choice(cb,frs,pmr446,ham_repeaters,hfvoice) unit= optional=yes since=1.0
+shape.VoiceChannelsFields.plan type=text unit= optional=yes since=1.0
+shape.VoiceChannelsFields.plan_channels type=i64 unit= optional=no since=1.0
+shape.VoiceChannelsFields.raster_step_hz type=hz unit=Hz optional=no since=1.0
+shape.VoiceChannelsFields.carriers type=i64 unit= optional=no since=1.0
+shape.VoiceChannelsFields.active_channels type=i64 unit= optional=no since=1.0
+shape.VoiceChannelsFields.open_channels type=i64 unit= optional=no since=1.0
+shape.VoiceChannelsFields.playing type=text unit= optional=yes since=1.0
+shape.VoiceChannelsFields.playing_hz type=hz unit=Hz optional=yes since=1.0
+shape.VoiceChannelsFields.scan type=bool unit= optional=no since=1.0
+shape.VoiceChannelsFields.scan_state type=choice(idle,priority,priority_probe,scanning,holding) unit= optional=no since=1.0
+shape.VoiceChannelsFields.single_tuner type=bool unit= optional=no since=1.0
+shape.VoiceChannelsFields.tune_hz type=hz unit=Hz optional=yes since=1.0
+shape.VoiceChannelsFields.multi_channel type=bool unit= optional=no since=1.0
+shape.VoiceChannelsFields.calls type=i64 unit= optional=no since=1.0
+shape.VoiceChannelsFields.input_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.VoiceChannelsFields.centre_hz type=hz unit=Hz optional=no since=1.0
+shape.VoiceChannelsFields.signal_time_s type=duration unit=s optional=no since=1.0
+shape.VoiceChannelsFields.reports type=i64 unit= optional=no since=1.0
+shape.CallRow since=1.0
+shape.CallRow.serial type=i64 unit= optional=no since=1.0
+shape.CallRow.time_utc type=time unit= optional=yes since=1.0
+shape.CallRow.key type=i64 unit= optional=no since=1.0
+shape.CallRow.number type=i64 unit= optional=no since=1.0
+shape.CallRow.label type=text unit= optional=no since=1.0
+shape.CallRow.hz type=hz unit=Hz optional=no since=1.0
+shape.CallRow.start_s type=duration unit=s optional=no since=1.0
+shape.CallRow.duration_s type=duration unit=s optional=no since=1.0
+shape.CallRow.peak_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.CallRow.mean_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.CallRow.demod type=text unit= optional=no since=1.0
+shape.CallRow.tone type=text unit= optional=no since=1.0
+shape.CallRow.open type=bool unit= optional=no since=1.0
+shape.ChannelRow since=1.0
+shape.ChannelRow.key type=i64 unit= optional=no since=1.0
+shape.ChannelRow.number type=i64 unit= optional=no since=1.0
+shape.ChannelRow.label type=text unit= optional=no since=1.0
+shape.ChannelRow.name type=text unit= optional=no since=1.0
+shape.ChannelRow.hz type=hz unit=Hz optional=no since=1.0
+shape.ChannelRow.input_hz type=hz unit=Hz optional=yes since=1.0
+shape.ChannelRow.active type=bool unit= optional=no since=1.0
+shape.ChannelRow.open type=bool unit= optional=no since=1.0
+shape.ChannelRow.playing type=bool unit= optional=no since=1.0
+shape.ChannelRow.in_scan type=bool unit= optional=no since=1.0
+shape.ChannelRow.on_air type=bool unit= optional=no since=1.0
+shape.ChannelRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.ChannelRow.demod type=choice(fm,am,usb,lsb) unit= optional=no since=1.0
+shape.ChannelRow.tone type=text unit= optional=no since=1.0
+shape.ChannelRow.tone_alias type=text unit= optional=no since=1.0
+shape.ChannelRow.last_tone type=text unit= optional=no since=1.0
+shape.ChannelRow.calls type=i64 unit= optional=no since=1.0
+shape.ChannelRow.total_s type=duration unit=s optional=no since=1.0
+shape.ChannelRow.last_heard_s type=duration unit=s optional=yes since=1.0
+shape.ChannelRow.last_heard_utc type=time unit= optional=yes since=1.0
+shape.ChannelRow.peak_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.VoiceChannelsCallEvent since=1.0
+shape.VoiceChannelsCallEvent.serial type=i64 unit= optional=no since=1.0
+shape.VoiceChannelsCallEvent.key type=i64 unit= optional=no since=1.0
+shape.VoiceChannelsCallEvent.number type=i64 unit= optional=no since=1.0
+shape.VoiceChannelsCallEvent.label type=text unit= optional=no since=1.0
+shape.VoiceChannelsCallEvent.start_s type=duration unit=s optional=no since=1.0
+shape.VoiceChannelsCallEvent.duration_s type=duration unit=s optional=no since=1.0
+shape.VoiceChannelsCallEvent.peak_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.VoiceChannelsCallEvent.mean_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.VoiceChannelsCallEvent.demod type=text unit= optional=no since=1.0
+shape.VoiceChannelsCallEvent.tone type=text unit= optional=no since=1.0
+shape.Mdc1200Fields since=1.0
+shape.Mdc1200Fields.bursts type=i64 unit= optional=no since=1.0
+shape.Mdc1200Fields.check_failures type=i64 unit= optional=no since=1.0
+shape.Mdc1200BurstRow since=1.0
+shape.Mdc1200BurstRow.serial type=i64 unit= optional=no since=1.0
+shape.Mdc1200BurstRow.time_utc type=time unit= optional=yes since=1.0
+shape.Mdc1200BurstRow.hz type=hz unit=Hz optional=no since=1.0
+shape.Mdc1200BurstRow.label type=text unit= optional=no since=1.0
+shape.Mdc1200BurstRow.unit_id type=text unit= optional=no since=1.0
+shape.Mdc1200BurstRow.op type=text unit= optional=no since=1.0
+shape.Mdc1200BurstRow.arg type=text unit= optional=no since=1.0
+shape.Mdc1200BurstRow.double type=bool unit= optional=no since=1.0
+shape.Mdc1200BurstRow.extra type=text unit= optional=no since=1.0
+shape.Mdc1200BurstRow.text type=text unit= optional=no since=1.0
+shape.Mdc1200CallEvent since=1.0
+shape.Mdc1200CallEvent.serial type=i64 unit= optional=no since=1.0
+shape.Mdc1200CallEvent.key type=i64 unit= optional=no since=1.0
+shape.Mdc1200CallEvent.number type=i64 unit= optional=no since=1.0
+shape.Mdc1200CallEvent.label type=text unit= optional=no since=1.0
+shape.Mdc1200CallEvent.start_s type=duration unit=s optional=no since=1.0
+shape.Mdc1200CallEvent.duration_s type=duration unit=s optional=no since=1.0
+shape.Mdc1200CallEvent.peak_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.Mdc1200CallEvent.mean_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.Mdc1200CallEvent.demod type=text unit= optional=no since=1.0
+shape.Mdc1200CallEvent.tone type=text unit= optional=no since=1.0
+shape.Mdc1200BurstEvent since=1.0
+shape.Mdc1200BurstEvent.serial type=i64 unit= optional=no since=1.0
+shape.Mdc1200BurstEvent.time_utc type=time unit= optional=yes since=1.0
+shape.Mdc1200BurstEvent.hz type=hz unit=Hz optional=no since=1.0
+shape.Mdc1200BurstEvent.label type=text unit= optional=no since=1.0
+shape.Mdc1200BurstEvent.unit_id type=text unit= optional=no since=1.0
+shape.Mdc1200BurstEvent.op type=text unit= optional=no since=1.0
+shape.Mdc1200BurstEvent.arg type=text unit= optional=no since=1.0
+shape.Mdc1200BurstEvent.double type=bool unit= optional=no since=1.0
+shape.Mdc1200BurstEvent.extra type=text unit= optional=no since=1.0
+shape.Mdc1200BurstEvent.text type=text unit= optional=no since=1.0
+shape.WmicFields since=1.0
+shape.WmicFields.candidates type=i64 unit= optional=no since=1.0
+shape.WmicFields.plan type=text unit= optional=yes since=1.0
+shape.WmicFields.input_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.WmicFields.centre_hz type=hz unit=Hz optional=no since=1.0
+shape.WmicFields.signal_time_s type=duration unit=s optional=no since=1.0
+shape.WmicFields.reports type=i64 unit= optional=no since=1.0
+shape.WmicCandidateRow since=1.0
+shape.WmicCandidateRow.id type=i64 unit= optional=no since=1.0
+shape.WmicCandidateRow.hz type=hz unit=Hz optional=no since=1.0
+shape.WmicCandidateRow.width_hz type=hz unit=Hz optional=no since=1.0
+shape.WmicCandidateRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.WmicCandidateRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.WmicCandidateRow.deviation_hz type=hz unit=Hz optional=yes since=1.0
+shape.WmicCandidateRow.fm type=bool unit= optional=no since=1.0
+shape.WmicCandidateRow.active type=bool unit= optional=no since=1.0
+shape.WmicCandidateRow.listening type=bool unit= optional=no since=1.0
+shape.WmicCandidateRow.age_s type=duration unit=s optional=no since=1.0
+shape.WmicCandidateRow.band type=text unit= optional=no since=1.0
+shape.WmicCandidateEvent since=1.0
+shape.WmicCandidateEvent.id type=i64 unit= optional=no since=1.0
+shape.WmicCandidateEvent.hz type=hz unit=Hz optional=no since=1.0
+shape.WmicCandidateEvent.width_hz type=hz unit=Hz optional=no since=1.0
+shape.WmicCandidateEvent.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.WmicCandidateEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.WmicCandidateEvent.deviation_hz type=hz unit=Hz optional=yes since=1.0
+shape.WmicCandidateEvent.fm type=bool unit= optional=no since=1.0
+shape.WmicCandidateEvent.band type=text unit= optional=no since=1.0
+shape.FleetsyncFields since=1.1
+shape.FleetsyncFields.bursts type=i64 unit= optional=no since=1.1
+shape.FleetsyncFields.check_failures type=i64 unit= optional=no since=1.1
+shape.FleetsyncFields.units type=i64 unit= optional=no since=1.1
+shape.FleetsyncBurstRow since=1.1
+shape.FleetsyncBurstRow.serial type=i64 unit= optional=no since=1.1
+shape.FleetsyncBurstRow.time_utc type=time unit= optional=yes since=1.1
+shape.FleetsyncBurstRow.hz type=hz unit=Hz optional=no since=1.1
+shape.FleetsyncBurstRow.label type=text unit= optional=no since=1.1
+shape.FleetsyncBurstRow.fleet type=i64 unit= optional=no since=1.1
+shape.FleetsyncBurstRow.unit type=i64 unit= optional=no since=1.1
+shape.FleetsyncBurstRow.in_range type=bool unit= optional=no since=1.1
+shape.FleetsyncBurstRow.kind type=text unit= optional=no since=1.1
+shape.FleetsyncBurstRow.bit_rate type=i64 unit=bit/s optional=no since=1.1
+shape.FleetsyncBurstRow.word1 type=text unit= optional=no since=1.1
+shape.FleetsyncBurstRow.word2 type=text unit= optional=no since=1.1
+shape.FleetsyncBurstRow.raw type=text unit= optional=no since=1.1
+shape.FleetsyncBurstRow.check type=text unit= optional=no since=1.1
+shape.FleetsyncBurstRow.text type=text unit= optional=no since=1.1
+shape.FleetsyncUnitRow since=1.1
+shape.FleetsyncUnitRow.fleet type=i64 unit= optional=no since=1.1
+shape.FleetsyncUnitRow.unit type=i64 unit= optional=no since=1.1
+shape.FleetsyncUnitRow.in_range type=bool unit= optional=no since=1.1
+shape.FleetsyncUnitRow.heard type=i64 unit= optional=yes since=1.1
+shape.FleetsyncUnitRow.last_heard type=time unit= optional=yes since=1.1
+shape.FleetsyncUnitRow.hz type=hz unit=Hz optional=no since=1.1
+shape.FleetsyncUnitRow.kind type=text unit= optional=no since=1.1
+hfpacket since=1.0
+hfpacket.fields.DetectorFields since=1.0
+hfpacket.fields.HfpacketFields since=1.0
+hfpacket.component.guard.fields.GuardFields since=1.0
+hfpacket.kept.events since=1.0
+hfpacket.kept.frames since=1.0
+hfpacket.kept.DetectorFields.good since=1.0
+hfpacket.kept.DetectorFields.bad since=1.0
+hfpacket.kept.HfpacketFields.stations since=1.0
+hfpacket.kept.HfpacketFields.last_frame since=1.0
+hfpacket.table.events row=DetectorEventRow cap=60 since=1.0
+hfpacket.table.frames row=HfpacketFrameRow cap=200 since=1.0
+hfpacket.event.hfpacket.frame fields=HfpacketFrameEvent since=1.0
+hfpacket.event.hfpacket.station fields=HfpacketStationEvent since=1.0
+hfpacket.setting.sideband type=choice(usb,lsb) unit= since=1.0
+hfpacket.setting.gen_frames type=i64 unit= since=1.0
+hfpacket.setting.gen_lead_s type=duration unit=s since=1.0
+hfpacket.setting.gen_tail_s type=duration unit=s since=1.0
+hfpacket.setting.gen_mark_hz type=hz unit=Hz since=1.0
+hfpacket.setting.gen_space_hz type=hz unit=Hz since=1.0
+hfpacket.command.clear args= reply= since=1.0
+elt121 since=1.0
+elt121.fields.DetectorFields since=1.0
+elt121.fields.Elt121Fields since=1.0
+elt121.component.guard.fields.GuardFields since=1.0
+elt121.kept.events since=1.0
+elt121.table.events row=DetectorEventRow cap=60 since=1.0
+elt121.event.elt121.found fields=Elt121FoundEvent since=1.0
+elt121.event.elt121.ended fields=Elt121EndedEvent since=1.0
+elt121.setting.gen_sweep_hz type=f64 unit=Hz since=1.0
+elt121.setting.gen_duty_pct type=f64 unit=% since=1.0
+elt121.setting.gen_top_hz type=hz unit=Hz since=1.0
+elt121.setting.gen_bottom_hz type=hz unit=Hz since=1.0
+elt121.setting.gen_depth type=f64 unit= since=1.0
+elt121.setting.gen_seconds type=duration unit=s since=1.0
+elt121.command.clear args= reply= since=1.0
+voice_inversion since=1.0
+voice_inversion.fields.DetectorFields since=1.0
+voice_inversion.fields.VoiceInversionFields since=1.0
+voice_inversion.component.guard.fields.GuardFields since=1.0
+voice_inversion.kept.events since=1.0
+voice_inversion.table.events row=DetectorEventRow cap=60 since=1.0
+voice_inversion.series.spectrum x_unit=Hz y_unit=dB since=1.0
+voice_inversion.event.voice_inversion.found fields=VoiceInversionFoundEvent since=1.0
+voice_inversion.event.voice_inversion.clear fields=VoiceInversionClearEvent since=1.0
+voice_inversion.setting.carrier_hz type=hz unit=Hz since=1.0
+voice_inversion.setting.gen_invert_hz type=hz unit=Hz since=1.0
+voice_inversion.setting.gen_seconds type=duration unit=s since=1.0
+voice_inversion.setting.gen_deviation_hz type=hz unit=Hz since=1.0
+voice_inversion.command.clear args= reply= since=1.0
+voice_channels since=1.0
+voice_channels.fields.VoiceChannelsFields since=1.0
+voice_channels.kept.calls since=1.0
+voice_channels.kept.channels since=1.0
+voice_channels.kept.VoiceChannelsFields since=1.0
+voice_channels.table.calls row=CallRow cap=600 since=1.0
+voice_channels.table.channels row=ChannelRow cap=512 since=1.0
+voice_channels.event.voice_channels.call fields=VoiceChannelsCallEvent since=1.0
+voice_channels.event.tones.subaudio fields=SubAudioFields since=1.0
+voice_channels.setting.plan type=text unit= since=1.0
+voice_channels.setting.raster_step_hz type=hz unit=Hz since=1.0
+voice_channels.setting.raster_origin_hz type=hz unit=Hz since=1.0
+voice_channels.setting.channel_width_hz type=hz unit=Hz since=1.0
+voice_channels.setting.channel type=text unit= since=1.0
+voice_channels.setting.demod type=choice(auto,fm,am,usb,lsb) unit= since=1.0
+voice_channels.setting.squelch type=f64 unit=% since=1.0
+voice_channels.setting.deemphasis type=bool unit= since=1.0
+voice_channels.setting.scan type=bool unit= since=1.0
+voice_channels.setting.scan_channels type=text unit= since=1.0
+voice_channels.setting.scan_dwell_s type=duration unit=s since=1.0
+voice_channels.setting.scan_hang_s type=duration unit=s since=1.0
+voice_channels.setting.carriers type=i64 unit= since=1.0
+voice_channels.setting.show_heard type=bool unit= since=1.0
+voice_channels.setting.time_base type=time unit= since=1.0
+voice_channels.setting.gen_cnr_db type=f64 unit=dB since=1.0
+voice_channels.setting.gen_scene type=choice(auto,mixed,am_fm_ssb,fm_tones,sideband) unit= since=1.0
+voice_channels.command.clear args= reply= since=1.0
+mdc1200 since=1.0
+mdc1200.fields.VoiceChannelsFields since=1.0
+mdc1200.fields.Mdc1200Fields since=1.0
+mdc1200.kept.calls since=1.0
+mdc1200.kept.channels since=1.0
+mdc1200.kept.bursts since=1.0
+mdc1200.kept.VoiceChannelsFields since=1.0
+mdc1200.kept.Mdc1200Fields since=1.0
+mdc1200.table.calls row=CallRow cap=600 since=1.0
+mdc1200.table.channels row=ChannelRow cap=512 since=1.0
+mdc1200.table.bursts row=Mdc1200BurstRow cap=400 since=1.0
+mdc1200.event.mdc1200.call fields=Mdc1200CallEvent since=1.0
+mdc1200.event.mdc1200.burst fields=Mdc1200BurstEvent since=1.0
+mdc1200.event.tones.subaudio fields=SubAudioFields since=1.0
+mdc1200.setting.raster_step_hz type=hz unit=Hz since=1.0
+mdc1200.setting.raster_origin_hz type=hz unit=Hz since=1.0
+mdc1200.setting.channel_width_hz type=hz unit=Hz since=1.0
+mdc1200.setting.squelch type=f64 unit=% since=1.0
+mdc1200.setting.deemphasis type=bool unit= since=1.0
+mdc1200.setting.carriers type=i64 unit= since=1.0
+mdc1200.setting.time_base type=time unit= since=1.0
+mdc1200.setting.gen_cnr_db type=f64 unit=dB since=1.0
+mdc1200.command.clear args= reply= since=1.0
+wmic since=1.0
+wmic.fields.WmicFields since=1.0
+wmic.table.candidates row=WmicCandidateRow cap=64 since=1.0
+wmic.event.wmic.candidate fields=WmicCandidateEvent since=1.0
+wmic.setting.plan type=text unit= since=1.0
+wmic.setting.raster_step_hz type=hz unit=Hz since=1.0
+wmic.setting.raster_origin_hz type=hz unit=Hz since=1.0
+wmic.setting.squelch type=f64 unit=% since=1.0
+wmic.setting.carriers type=i64 unit= since=1.0
+wmic.setting.listen type=i64 unit= since=1.0
+wmic.setting.gen_cnr_db type=f64 unit=dB since=1.0
+wmic.command.clear args= reply= since=1.0
+wmic.command.listen args=id:i64 reply= since=1.0
+fleetsync since=1.1
+fleetsync.fields.VoiceChannelsFields since=1.1
+fleetsync.fields.FleetsyncFields since=1.1
+fleetsync.kept.calls since=1.1
+fleetsync.kept.channels since=1.1
+fleetsync.kept.bursts since=1.1
+fleetsync.kept.units since=1.1
+fleetsync.kept.VoiceChannelsFields since=1.1
+fleetsync.kept.FleetsyncFields since=1.1
+fleetsync.table.calls row=CallRow cap=600 since=1.1
+fleetsync.table.channels row=ChannelRow cap=512 since=1.1
+fleetsync.table.bursts row=FleetsyncBurstRow cap=400 since=1.1
+fleetsync.table.units row=FleetsyncUnitRow cap=400 since=1.1
+fleetsync.event.fleetsync.call fields=VoiceChannelsCallEvent since=1.1
+fleetsync.event.fleetsync.burst fields=FleetsyncBurstRow since=1.1
+fleetsync.event.tones.subaudio fields=SubAudioFields since=1.1
+fleetsync.setting.raster_step_hz type=hz unit=Hz since=1.1
+fleetsync.setting.raster_origin_hz type=hz unit=Hz since=1.1
+fleetsync.setting.channel_width_hz type=hz unit=Hz since=1.1
+fleetsync.setting.squelch type=f64 unit=% since=1.1
+fleetsync.setting.deemphasis type=bool unit= since=1.1
+fleetsync.setting.carriers type=i64 unit= since=1.1
+fleetsync.setting.bit_rate type=choice(auto,1200,2400) unit= since=1.1
+fleetsync.setting.time_base type=time unit= since=1.1
+fleetsync.setting.gen_cnr_db type=f64 unit=dB since=1.1
+fleetsync.setting.gen_fleet type=i64 unit= since=1.1
+fleetsync.setting.gen_unit type=i64 unit= since=1.1
+fleetsync.setting.gen_bit_rate type=choice(1200,2400) unit= since=1.1
+fleetsync.setting.gen_frame type=choice(both,plain,fs2) unit= since=1.1
+fleetsync.command.clear args= reply= since=1.1

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 16000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic tone signalling audio, 33 s, as sound-card audio: real samples in the I channel, Q = 0; 1.0 = 5 kHz FM deviation. CTCSS 123.0 Hz (0.12) 0-8 s with speech-like audio 2.0-4.2 s; DCS 023 normal 8.5-13.5 s (0.15); DTMF 159# at 14.0 s (120 ms tones, 100 ms gaps); ZVEI1 12345 at 15.5 s (70 ms tones); SELCAL AM-CP at 17.0 s (1 s pairs, 0.2 s gap); two-tone page 682.5 Hz 1.0 s then 1000 Hz 3.0 s at 21.5 s; CCIR 46802 at 26.0 s (100 ms tones); DCS 114 sent inverted 27.5-31.5 s (0.14); Gaussian noise 0.02 rms throughout. Feed with the audio-input setting on. See specs/trunk.md section 6.",
+    "core:recorder": "sdrkit trunking, paging and tones test signal definition (specs/trunk.md), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 0.0
+    }
+  ],
+  "annotations": []
+}

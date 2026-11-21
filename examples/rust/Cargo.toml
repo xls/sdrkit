@@ -1,0 +1,36 @@
+[package]
+name = "sdrkit-examples"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Small programs that use the Rust crates of sdrkit directly"
+
+# Each program runs on a test signal by default: `cargo run -p sdrkit-examples --example fm_audio`.
+[[example]]
+name = "fm_audio"
+path = "fm_audio.rs"
+
+[[example]]
+name = "meshtastic"
+path = "meshtastic.rs"
+
+[[example]]
+name = "any_stack"
+path = "any_stack.rs"
+
+[[test]]
+name = "run"
+path = "tests/run.rs"
+
+[dependencies]
+sdrkit-core = { path = "../../crates/framework/sdrkit-core" }
+sdrkit-host-engine = { path = "../../crates/hosts/sdrkit-host-engine" }
+# The engine with every stack family.
+sdrkit-host-catalog = { path = "../../crates/hosts/sdrkit-host-catalog" }
+# The regional settings of a stack from the data folder.
+sdrkit-presets = { path = "../../crates/helpers/sdrkit-presets" }
+# The typed results of the stacks that the programs read.
+sdrkit-stack-fm = { path = "../../crates/stacks/sdrkit-stack-fm" }
+sdrkit-stack-lora = { path = "../../crates/stacks/sdrkit-stack-lora" }

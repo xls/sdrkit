@@ -1,0 +1,186 @@
+# The frequencies that a rule or a published convention sets for a service. No station lists.
+# scope: where a row applies, as tags apart by spaces: itu1 to itu3 for an ITU region, two letters for a country. Empty: everywhere.
+slug,name,mhz,upper_mhz,bandwidth_hz,stack,submode,category,tags,scope,notes,source
+ft8-160,FT8 160 m,1.84,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft8-80,FT8 80 m,3.573,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft8-60,FT8 60 m,5.357,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft8-40,FT8 40 m,7.074,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft8-30,FT8 30 m,10.136,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft8-20,FT8 20 m,14.074,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft8-17,FT8 17 m,18.1,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft8-15,FT8 15 m,21.074,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft8-12,FT8 12 m,24.915,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft8-10,FT8 10 m,28.074,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft8-6,FT8 6 m,50.313,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft8-2,FT8 2 m,144.174,0,3000,general,usb,amateur,ft8 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft4-80,FT4 80 m,3.575,0,3000,general,usb,amateur,ft4 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft4-40,FT4 40 m,7.0475,0,3000,general,usb,amateur,ft4 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft4-30,FT4 30 m,10.14,0,3000,general,usb,amateur,ft4 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft4-20,FT4 20 m,14.08,0,3000,general,usb,amateur,ft4 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft4-17,FT4 17 m,18.104,0,3000,general,usb,amateur,ft4 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft4-15,FT4 15 m,21.14,0,3000,general,usb,amateur,ft4 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft4-12,FT4 12 m,24.919,0,3000,general,usb,amateur,ft4 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft4-10,FT4 10 m,28.18,0,3000,general,usb,amateur,ft4 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+ft4-6,FT4 6 m,50.318,0,3000,general,usb,amateur,ft4 digital,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+wspr-160,WSPR 160 m,1.8366,0,3000,general,usb,amateur,wspr digital beacon,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+wspr-80,WSPR 80 m,3.5686,0,3000,general,usb,amateur,wspr digital beacon,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+wspr-40,WSPR 40 m,7.0386,0,3000,general,usb,amateur,wspr digital beacon,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+wspr-30,WSPR 30 m,10.1387,0,3000,general,usb,amateur,wspr digital beacon,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+wspr-20,WSPR 20 m,14.0956,0,3000,general,usb,amateur,wspr digital beacon,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+wspr-17,WSPR 17 m,18.1046,0,3000,general,usb,amateur,wspr digital beacon,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+wspr-15,WSPR 15 m,21.0946,0,3000,general,usb,amateur,wspr digital beacon,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+wspr-12,WSPR 12 m,24.9246,0,3000,general,usb,amateur,wspr digital beacon,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+wspr-10,WSPR 10 m,28.1246,0,3000,general,usb,amateur,wspr digital beacon,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+wspr-6,WSPR 6 m,50.293,0,3000,general,usb,amateur,wspr digital beacon,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+wspr-2,WSPR 2 m,144.489,0,3000,general,usb,amateur,wspr digital beacon,,"dial frequency, USB","IARU band plans; the FT8, FT4 and WSPR operating convention"
+psk31-20,PSK31 20 m,14.07,0,3000,general,usb,amateur,psk digital,,"dial frequency, USB",IARU band plans
+sstv-20,SSTV 20 m,14.23,0,3000,general,usb,amateur,sstv picture,,,IARU band plans
+sstv-15,SSTV 15 m,21.34,0,3000,general,usb,amateur,sstv picture,,,IARU band plans
+sstv-10,SSTV 10 m,28.68,0,3000,general,usb,amateur,sstv picture,,,IARU band plans
+qrp-40,CW QRP 40 m,7.03,0,500,general,cw,amateur,cw qrp,,,IARU band plans
+qrp-20,CW QRP 20 m,14.06,0,500,general,cw,amateur,cw qrp,,,IARU band plans
+call-10fm,10 m FM calling,29.6,0,12500,general,nfm,amateur,calling fm,,,IARU band plans
+call-6ssb-r1,6 m SSB calling,50.15,0,3000,general,usb,amateur,calling ssb,itu1,,IARU Region 1 band plan
+call-6ssb-r2,6 m SSB calling,50.125,0,3000,general,usb,amateur,calling ssb,itu2,,IARU Region 2 band plan
+call-6fm-r2,6 m FM calling,52.525,0,12500,general,nfm,amateur,calling fm,itu2,,IARU Region 2 band plan
+call-2ssb-r1,2 m SSB calling,144.3,0,3000,general,usb,amateur,calling ssb,itu1,,IARU Region 1 band plan
+call-2ssb-r2,2 m SSB calling,144.2,0,3000,general,usb,amateur,calling ssb,itu2,,IARU Region 2 band plan
+call-2fm-r1,2 m FM calling,145.5,0,12500,general,nfm,amateur,calling fm,itu1,,IARU Region 1 band plan
+call-2fm-us,2 m FM calling,146.52,0,12500,general,nfm,amateur,calling fm,itu2,,IARU Region 2 band plan
+call-2fm-au,2 m FM calling,146.5,0,12500,general,nfm,amateur,calling fm,AU,,IARU Region 3 band plan
+call-70ssb-r1,70 cm SSB calling,432.2,0,3000,general,usb,amateur,calling ssb,itu1,,IARU Region 1 band plan
+call-70ssb-r2,70 cm SSB calling,432.1,0,3000,general,usb,amateur,calling ssb,itu2,,IARU Region 2 band plan
+call-70fm-r1,70 cm FM calling,433.5,0,12500,general,nfm,amateur,calling fm,itu1,,IARU Region 1 band plan
+call-70fm-us,70 cm FM calling,446,0,12500,general,nfm,amateur,calling fm,itu2,,IARU Region 2 band plan
+aprs-r1,APRS,144.8,0,12500,aprs,,amateur,aprs packet,itu1,AFSK 1200 baud,IARU Region 1 band plan
+aprs-na,APRS,144.39,0,12500,aprs,,amateur,aprs packet,US CA MX CO CL PE,AFSK 1200 baud,IARU Region 2 band plan
+aprs-au,APRS,145.175,0,12500,aprs,,amateur,aprs packet,AU,AFSK 1200 baud,IARU Region 3 band plan
+aprs-nz,APRS,144.575,0,12500,aprs,,amateur,aprs packet,NZ,AFSK 1200 baud,IARU Region 3 band plan
+aprs-jp,APRS,144.64,0,12500,aprs,,amateur,aprs packet,JP CN TW,AFSK 1200 baud,IARU Region 3 band plan
+aprs-br,APRS,145.57,0,12500,aprs,,amateur,aprs packet,BR,AFSK 1200 baud,IARU Region 2 band plan
+lora-aprs,LoRa APRS,433.775,0,125000,loraaprs,,amateur,lora aprs,itu1,,IARU Region 1 band plan (LoRa APRS convention)
+ncdxf-20,NCDXF/IARU beacons 20 m,14.1,0,500,general,cw,beacon,beacon propagation,,"18 beacons in turn, 10 s each",IARU International Beacon Project
+ncdxf-17,NCDXF/IARU beacons 17 m,18.11,0,500,general,cw,beacon,beacon propagation,,"18 beacons in turn, 10 s each",IARU International Beacon Project
+ncdxf-15,NCDXF/IARU beacons 15 m,21.15,0,500,general,cw,beacon,beacon propagation,,"18 beacons in turn, 10 s each",IARU International Beacon Project
+ncdxf-12,NCDXF/IARU beacons 12 m,24.93,0,500,general,cw,beacon,beacon propagation,,"18 beacons in turn, 10 s each",IARU International Beacon Project
+ncdxf-10,NCDXF/IARU beacons 10 m,28.2,0,500,general,cw,beacon,beacon propagation,,"18 beacons in turn, 10 s each",IARU International Beacon Project
+iss-voice,ISS voice and SSTV downlink,145.8,0,12500,general,nfm,satellite,iss amateur sstv,,Doppler +/- 3.5 kHz,ARISS published frequencies
+iss-aprs,ISS APRS digipeater,145.825,0,12500,aprs,,satellite,iss amateur aprs,,Doppler +/- 3.5 kHz,ARISS published frequencies
+iss-rpt,ISS cross-band repeater downlink,437.8,0,12500,general,nfm,satellite,iss amateur repeater,,Doppler +/- 10 kHz,ARISS published frequencies
+dcf77,DCF77,0.0775,0,0,general,am,time,time longwave,,"Mainflingen, Germany",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+msf,MSF,0.06,0,0,general,cw,time,time longwave,,"Anthorn, United Kingdom",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+wwvb,WWVB,0.06,0,0,general,cw,time,time longwave,,"Fort Collins, United States",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+jjy40,JJY 40 kHz,0.04,0,0,general,cw,time,time longwave,,"Mount Otakadoya, Japan",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+jjy60,JJY 60 kHz,0.06,0,0,general,cw,time,time longwave,,"Mount Hagane, Japan",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+bpc,BPC,0.0685,0,0,general,cw,time,time longwave,,"Shangqiu, China",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+tdf,TDF (ALS162),0.162,0,0,general,am,time,time longwave,,"Allouis, France; phase-modulated time code",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+rbu,RBU,0.066666,0,0,general,cw,time,time longwave,,"Moscow, Russia",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+wwv-2m5,WWV and WWVH 2.5 MHz,2.5,0,6000,general,am,time,time shortwave,,"Fort Collins and Kauai, United States",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+wwv-5m,"WWV, WWVH, BPM 5 MHz",5,0,6000,general,am,time,time shortwave,,,BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+wwv-10m,"WWV, WWVH, BPM 10 MHz",10,0,6000,general,am,time,time shortwave,,,BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+wwv-15m,"WWV, WWVH, BPM 15 MHz",15,0,6000,general,am,time,time shortwave,,,BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+wwv-20m,WWV 20 MHz,20,0,6000,general,am,time,time shortwave,,,BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+wwv-25m,WWV 25 MHz,25,0,6000,general,am,time,time shortwave,,,BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+chu-3,CHU 3330 kHz,3.33,0,6000,general,am,time,time shortwave,,"Ottawa, Canada",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+chu-7,CHU 7850 kHz,7.85,0,6000,general,am,time,time shortwave,,"Ottawa, Canada",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+chu-14,CHU 14670 kHz,14.67,0,6000,general,am,time,time shortwave,,"Ottawa, Canada",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+rwm-5,RWM 4996 kHz,4.996,0,500,general,cw,time,time shortwave,,"Moscow, Russia",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+rwm-10,RWM 9996 kHz,9.996,0,500,general,cw,time,time shortwave,,"Moscow, Russia",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+rwm-15,RWM 14996 kHz,14.996,0,500,general,cw,time,time shortwave,,"Moscow, Russia",BIPM and ITU-R TF.768 (standard-frequency and time-signal stations)
+air-121m5,Aeronautical emergency,121.5,0,25000,general,am,emergency,distress aviation guard,,also emergency beacons (homing),ITU Radio Regulations Appendix 15
+air-243,Military aeronautical emergency,243,0,25000,general,am,emergency,distress aviation guard,,,ITU Radio Regulations Appendix 15
+air-123m45,Air-to-air,123.45,0,25000,general,am,aviation,air-to-air,itu1 itu3,oceanic and remote areas,ICAO Annex 10
+air-122m75,Air-to-air,122.75,0,25000,general,am,aviation,air-to-air,US CA,,FAA AIM 4-1-11
+adsb-1090,ADS-B and Mode S replies,1090,0,2000000,adsb,,aviation,adsb mode-s,,,ICAO Annex 10 Volume IV
+ssr-1030,SSR interrogations,1030,0,2000000,uplink1030,,aviation,ssr mode-s,,,ICAO Annex 10 Volume IV
+uat-978,"UAT (ADS-B, FIS-B, TIS-B)",978,0,1300000,uat,,aviation,adsb uat fis-b,US,,RTCA DO-282 and 14 CFR 91.227
+acars-131m55,ACARS primary,131.55,0,25000,acars,,aviation,acars datalink,,,ARINC 618 and 620
+acars-131m725,ACARS Europe,131.725,0,25000,acars,,aviation,acars datalink,itu1,,ARINC 618 and 620
+acars-131m825,ACARS Europe,131.825,0,25000,acars,,aviation,acars datalink,itu1,,ARINC 618 and 620
+acars-136m9,ACARS Europe,136.9,0,25000,acars,,aviation,acars datalink,itu1,,ARINC 618 and 620
+acars-129m125,ACARS North America,129.125,0,25000,acars,,aviation,acars datalink,US CA,,ARINC 618 and 620
+acars-130m025,ACARS North America,130.025,0,25000,acars,,aviation,acars datalink,US CA,,ARINC 618 and 620
+acars-130m45,ACARS North America,130.45,0,25000,acars,,aviation,acars datalink,US CA,,ARINC 618 and 620
+acars-131m125,ACARS North America,131.125,0,25000,acars,,aviation,acars datalink,US CA,,ARINC 618 and 620
+vdl2-csc,VDL mode 2 common signalling channel,136.975,0,25000,vdl2,,aviation,vdl2 datalink,,,ICAO Annex 10 Volume III
+vdl2-136m725,VDL mode 2,136.725,0,25000,vdl2,,aviation,vdl2 datalink,itu1,,EUROCONTROL VDL2 frequency plan
+vdl2-136m775,VDL mode 2,136.775,0,25000,vdl2,,aviation,vdl2 datalink,itu1,,EUROCONTROL VDL2 frequency plan
+vdl2-136m875,VDL mode 2,136.875,0,25000,vdl2,,aviation,vdl2 datalink,itu1,,EUROCONTROL VDL2 frequency plan
+volmet-shannon-3,Shannon VOLMET,3.413,0,3000,general,usb,weather,volmet aviation weather,,,ICAO Annex 10; ICAO EUR VOLMET plan
+volmet-shannon-5,Shannon VOLMET,5.505,0,3000,general,usb,weather,volmet aviation weather,,,ICAO Annex 10; ICAO EUR VOLMET plan
+volmet-shannon-8,Shannon VOLMET,8.957,0,3000,general,usb,weather,volmet aviation weather,,,ICAO Annex 10; ICAO EUR VOLMET plan
+volmet-shannon-13,Shannon VOLMET,13.264,0,3000,general,usb,weather,volmet aviation weather,,,ICAO Annex 10; ICAO EUR VOLMET plan
+volmet-nat-6,New York and Gander VOLMET,6.604,0,3000,general,usb,weather,volmet aviation weather,,,ICAO Annex 10; ICAO NAT VOLMET plan
+air-ndb,NDB band,0.19,0.535,0,general,cw,navigation,ndb beacon aviation,,"non-directional beacons, CW identifiers",ITU Radio Regulations
+air-vor,VOR and ILS localiser band,108,117.975,0,general,am,navigation,vor ils aviation,,,ICAO Annex 10
+marine-16,Marine channel 16,156.8,0,25000,marine,,emergency,distress calling marine,,"distress, safety and calling",ITU Radio Regulations Appendix 18
+marine-70,Marine channel 70 (DSC),156.525,0,25000,dsc,,marine,dsc distress,,digital selective calling,ITU Radio Regulations Appendix 18
+ais-1,AIS 1,161.975,0,25000,ais,,marine,ais ships,,channel 2087,ITU-R M.1371
+ais-2,AIS 2,162.025,0,25000,ais,,marine,ais ships,,channel 2088,ITU-R M.1371
+marine-2182,2182 kHz distress,2.182,0,3000,general,usb,emergency,distress marine,,MF radiotelephony distress and calling,ITU Radio Regulations Appendix 15
+dsc-2187,DSC 2187.5 kHz,2.1875,0,500,dsc,,emergency,dsc distress marine,,,ITU Radio Regulations Appendix 15
+dsc-4207,DSC 4207.5 kHz,4.2075,0,500,dsc,,emergency,dsc distress marine,,,ITU Radio Regulations Appendix 15
+dsc-6312,DSC 6312 kHz,6.312,0,500,dsc,,emergency,dsc distress marine,,,ITU Radio Regulations Appendix 15
+dsc-8414,DSC 8414.5 kHz,8.4145,0,500,dsc,,emergency,dsc distress marine,,,ITU Radio Regulations Appendix 15
+dsc-12577,DSC 12577 kHz,12.577,0,500,dsc,,emergency,dsc distress marine,,,ITU Radio Regulations Appendix 15
+dsc-16804,DSC 16804.5 kHz,16.8045,0,500,dsc,,emergency,dsc distress marine,,,ITU Radio Regulations Appendix 15
+navtex-518,NAVTEX international,0.518,0,500,navtex,,marine,navtex safety,,"English, 100 baud SITOR-B",IMO NAVTEX Manual; ITU-R M.540
+navtex-490,NAVTEX national,0.49,0,500,navtex,,marine,navtex safety,,national language,IMO NAVTEX Manual; ITU-R M.540
+navtex-4209,NAVTEX HF,4.2095,0,500,navtex,,marine,navtex safety,,,IMO NAVTEX Manual; ITU-R M.540
+dgps,Marine radiobeacon band (DGNSS),0.2835,0.325,0,general,cw,navigation,dgps beacon marine,,,ITU Radio Regulations
+wefax-ddh-3,DWD Hamburg weather fax,3.855,0,3000,wefax,,weather,wefax weather marine,,assigned frequency; in USB tune 1.9 kHz lower,WMO No. 9 Volume D
+wefax-ddh-7,DWD Hamburg weather fax,7.88,0,3000,wefax,,weather,wefax weather marine,,assigned frequency; in USB tune 1.9 kHz lower,WMO No. 9 Volume D
+wefax-ddh-13,DWD Hamburg weather fax,13.8825,0,3000,wefax,,weather,wefax weather marine,,assigned frequency; in USB tune 1.9 kHz lower,WMO No. 9 Volume D
+wefax-nmf-6,Boston weather fax,6.3405,0,3000,wefax,,weather,wefax weather marine,,assigned frequency; in USB tune 1.9 kHz lower,NWS Worldwide Marine Radiofacsimile Broadcast Schedules
+wefax-nmf-9,Boston weather fax,9.11,0,3000,wefax,,weather,wefax weather marine,,assigned frequency; in USB tune 1.9 kHz lower,NWS Worldwide Marine Radiofacsimile Broadcast Schedules
+wefax-nmc-8,Point Reyes weather fax,8.682,0,3000,wefax,,weather,wefax weather marine,,assigned frequency; in USB tune 1.9 kHz lower,NWS Worldwide Marine Radiofacsimile Broadcast Schedules
+wefax-nmc-12,Point Reyes weather fax,12.786,0,3000,wefax,,weather,wefax weather marine,,assigned frequency; in USB tune 1.9 kHz lower,NWS Worldwide Marine Radiofacsimile Broadcast Schedules
+epirb-406,Emergency beacons 406 MHz,406,406.1,0,,,emergency,epirb plb elt cospas-sarsat,,"Cospas-Sarsat distress beacons, 400 bit/s bursts",ITU Radio Regulations 5.266; Cospas-Sarsat C/S T.001
+noaa15,NOAA 15 APT,137.62,0,40000,general,wfm,satellite,apt weather noaa,,operations ended in 2025,NOAA KLM User's Guide
+noaa18,NOAA 18 APT,137.9125,0,40000,general,wfm,satellite,apt weather noaa,,operations ended in 2025,NOAA KLM User's Guide
+noaa19,NOAA 19 APT,137.1,0,40000,general,wfm,satellite,apt weather noaa,,operations ended in 2025,NOAA KLM User's Guide
+meteor-lrpt-1,Meteor-M LRPT,137.1,0,150000,,,satellite,lrpt weather meteor,,QPSK 72 kbit/s,Roscosmos/Planeta Meteor-M LRPT description
+meteor-lrpt-2,Meteor-M LRPT,137.9,0,150000,,,satellite,lrpt weather meteor,,QPSK 72 kbit/s,Roscosmos/Planeta Meteor-M LRPT description
+orbcomm,Orbcomm downlinks,137,138,0,,,satellite,orbcomm,,,ITU Radio Regulations
+goes-hrit,GOES HRIT/EMWIN,1694.1,0,1200000,goes_hrit,,satellite,goes weather geostationary,itu2,,NOAA GOES-R HRIT/EMWIN specification
+gk2a-lrit,GK-2A LRIT,1692.14,0,600000,gk2a_lrit,,satellite,gk2a weather geostationary,itu3,,KMA GK-2A LRIT/HRIT mission specification
+gk2a-hrit,GK-2A HRIT,1695.4,0,5000000,gk2a_hrit,,satellite,gk2a weather geostationary,itu3,,KMA GK-2A LRIT/HRIT mission specification
+hrpt,Polar weather HRPT band,1698,1708,0,hrpt,,satellite,hrpt weather polar,,,ITU Radio Regulations
+inmarsat-l,Inmarsat L-band downlinks,1525,1559,0,,,satellite,inmarsat aero std-c,,,ITU Radio Regulations
+iridium,Iridium,1616,1626.5,0,,,satellite,iridium,,,ITU Radio Regulations
+gps-l1,GPS L1 and Galileo E1,1575.42,0,2046000,,,navigation,gnss gps galileo,,,IS-GPS-200; Galileo OS SIS ICD
+gps-l2,GPS L2,1227.6,0,2046000,,,navigation,gnss gps,,,IS-GPS-200
+gps-l5,GPS L5 and Galileo E5a,1176.45,0,20460000,,,navigation,gnss gps galileo,,,IS-GPS-705; Galileo OS SIS ICD
+galileo-e6,Galileo E6,1278.75,0,10230000,,,navigation,gnss galileo,,,Galileo HAS SIS ICD
+glonass-l1,GLONASS L1,1602,0,8000000,,,navigation,gnss glonass,,"FDMA, 0.5625 MHz per channel number",GLONASS ICD
+beidou-b1i,BeiDou B1I,1561.098,0,4092000,,,navigation,gnss beidou,,,BeiDou SIS ICD B1I
+hydrogen,Hydrogen line,1420.405752,0,0,,,science,radio-astronomy,,protected for radio astronomy (1400-1427 MHz),ITU Radio Regulations 5.340
+paging-us,Paging 929-932 MHz,929,932,0,,,paging,pocsag flex,US CA,,47 CFR 22.531 and 90.494
+paging-eu-169,Paging and meters 169.4-169.8125 MHz,169.4,169.8125,0,,,paging,ermes pocsag wmbus,itu1,,ECC/DEC/(05)02
+ism-433m92,433.92 MHz devices,433.92,0,200000,,,ism,ook sensors remotes,itu1 itu3,"remote controls, weather sensors, tyre pressure",CEPT ERC/REC 70-03
+ism-315,315 MHz devices,315,0,200000,,,ism,ook remotes,US CA JP KR,"remote controls, tyre pressure",47 CFR 15.231
+srd-868m3,868.3 MHz devices,868.3,0,200000,,,ism,srd sensors,itu1,,CEPT ERC/REC 70-03
+wmbus-868m95,Wireless M-Bus T and S,868.95,0,200000,,,ism,wmbus meters,itu1,,EN 13757-4
+zwave-eu,Z-Wave,868.42,0,100000,,,ism,zwave home,itu1,,ITU-T G.9959
+zwave-us,Z-Wave,908.42,0,100000,,,ism,zwave home,US CA,,ITU-T G.9959
+lorawan-eu-1,LoRaWAN EU868 default,868.1,0,125000,lorawan,,mesh,lorawan lora,itu1,,LoRa Alliance RP002 regional parameters
+lorawan-eu-2,LoRaWAN EU868 default,868.3,0,125000,lorawan,,mesh,lorawan lora,itu1,,LoRa Alliance RP002 regional parameters
+lorawan-eu-3,LoRaWAN EU868 default,868.5,0,125000,lorawan,,mesh,lorawan lora,itu1,,LoRa Alliance RP002 regional parameters
+lorawan-eu-rx2,LoRaWAN EU868 RX2,869.525,0,125000,lorawan,,mesh,lorawan lora,itu1,downlink window 2,LoRa Alliance RP002 regional parameters
+lorawan-us,LoRaWAN US915 uplinks,902.3,914.9,0,lorawan,,mesh,lorawan lora,US CA,"64 channels of 125 kHz, 200 kHz apart",LoRa Alliance RP002 regional parameters
+lorawan-us-dn,LoRaWAN US915 downlinks,923.3,927.5,0,lorawan,,mesh,lorawan lora,US CA,"8 channels of 500 kHz, 600 kHz apart",LoRa Alliance RP002 regional parameters
+lorawan-au,LoRaWAN AU915 uplinks,915.2,927.8,0,lorawan,,mesh,lorawan lora,AU NZ,,LoRa Alliance RP002 regional parameters
+lorawan-as923-1,LoRaWAN AS923 default,923.2,0,125000,lorawan,,mesh,lorawan lora,JP SG MY TH TW HK,,LoRa Alliance RP002 regional parameters
+lorawan-as923-2,LoRaWAN AS923 default,923.4,0,125000,lorawan,,mesh,lorawan lora,JP SG MY TH TW HK,,LoRa Alliance RP002 regional parameters
+lorawan-in,LoRaWAN IN865 default,865.0625,0,125000,lorawan,,mesh,lorawan lora,IN,,LoRa Alliance RP002 regional parameters
+mesh-eu,Meshtastic default (EU_868),869.525,0,250000,meshtastic,,mesh,meshtastic lora mesh,itu1,"LongFast preset, default slot",Meshtastic radio settings documentation
+mesh-us,Meshtastic default (US),906.875,0,250000,meshtastic,,mesh,meshtastic lora mesh,itu2,"LongFast preset, default slot",Meshtastic radio settings documentation
+mesh-anz,Meshtastic default (ANZ),919.875,0,250000,meshtastic,,mesh,meshtastic lora mesh,AU NZ,"LongFast preset, default slot",Meshtastic radio settings documentation
+meshcom,MeshCom,433.175,0,250000,meshcom,,mesh,meshcom lora mesh amateur,itu1,,MeshCom project documentation (amateur LoRa)
+bc-fm,FM broadcast band,87.5,108,0,fm,,broadcast,fm broadcast,itu1 itu3,,ITU Radio Regulations
+bc-fm-us,FM broadcast band,88,108,0,fm,,broadcast,fm broadcast,itu2,,ITU Radio Regulations
+bc-fm-jp,FM broadcast band (Japan),76,95,0,fm,,broadcast,fm broadcast,JP,,MIC frequency allocation table
+bc-dab,DAB Band III,174,240,0,dab,,broadcast,dab broadcast,itu1 itu3,,ETSI EN 300 401
+bc-mw,Medium wave,0.5265,1.6065,0,general,am,broadcast,mw am broadcast,itu1 itu3,9 kHz raster,ITU Radio Regulations
+bc-mw-r2,Medium wave,0.525,1.705,0,general,am,broadcast,mw am broadcast,itu2,10 kHz raster,ITU Radio Regulations
+bc-lw,Long wave,0.1485,0.2835,0,general,am,broadcast,lw am broadcast,itu1,9 kHz raster,ITU Radio Regulations

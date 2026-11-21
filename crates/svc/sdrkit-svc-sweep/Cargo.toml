@@ -1,0 +1,14 @@
+[package]
+name = "sdrkit-svc-sweep"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Wide-band sweeps, band surveys, the interference hunter and the station health check, as an sdrkit owner"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+serde_json.workspace = true
+thiserror.workspace = true

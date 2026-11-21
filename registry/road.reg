@@ -1,0 +1,52 @@
+# The interface of the stack family road. The registry test of the family writes this file.
+family road version=1.0
+shape.V2xFields since=1.0
+shape.V2xFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.V2xFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.V2xFields.safety_messages type=i64 unit= optional=no since=1.0
+shape.V2xFields.denm type=i64 unit= optional=no since=1.0
+shape.V2xFields.vehicles type=i64 unit= optional=no since=1.0
+shape.V2xFields.preambles type=i64 unit= optional=no since=1.0
+shape.V2xFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.V2xFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.V2xFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.V2xFields.text type=text unit= optional=no since=1.0
+shape.V2xFields.note type=text unit= optional=no since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.V2xVehicleRow since=1.0
+shape.V2xVehicleRow.kind type=choice(bsm,cam,denm,wsmp,geonetworking) unit= optional=no since=1.0
+shape.V2xVehicleRow.source type=text unit= optional=no since=1.0
+shape.V2xVehicleRow.position type=position unit= optional=yes since=1.0
+shape.V2xVehicleRow.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.V2xVehicleRow.course_deg type=f64 unit=° optional=yes since=1.0
+shape.V2xVehicleRow.text type=text unit= optional=no since=1.0
+shape.V2xVehicleRow.frames type=i64 unit= optional=no since=1.0
+shape.V2xVehicleRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.V2xVehicleRow.first_heard type=time unit= optional=yes since=1.0
+shape.V2xVehicleRow.last_heard type=time unit= optional=yes since=1.0
+shape.V2xFrameRow since=1.0
+shape.V2xFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.V2xFrameRow.kind type=choice(bsm,cam,denm,wsmp,geonetworking) unit= optional=no since=1.0
+shape.V2xFrameRow.source type=text unit= optional=no since=1.0
+shape.V2xFrameRow.text type=text unit= optional=no since=1.0
+shape.V2xFrameRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.V2xVehicleEvent since=1.0
+shape.V2xVehicleEvent.kind type=choice(bsm,cam,denm,wsmp,geonetworking) unit= optional=no since=1.0
+shape.V2xVehicleEvent.source type=text unit= optional=no since=1.0
+shape.V2xVehicleEvent.position type=position unit= optional=yes since=1.0
+shape.V2xVehicleEvent.text type=text unit= optional=no since=1.0
+shape.V2xVehicleEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+v2x since=1.0
+v2x.fields.V2xFields since=1.0
+v2x.fields.DecoderFields since=1.0
+v2x.kept.vehicles since=1.0
+v2x.kept.frames since=1.0
+v2x.kept.V2xFields since=1.0
+v2x.kept.DecoderFields since=1.0
+v2x.table.vehicles row=V2xVehicleRow cap=256 since=1.0
+v2x.table.frames row=V2xFrameRow cap=300 since=1.0
+v2x.event.v2x.vehicle fields=V2xVehicleEvent since=1.0
+v2x.setting.gen_rate type=choice(3,6) unit= since=1.0
+v2x.command.clear args= reply= since=1.0
+v2x.command.remove args=row:text reply= since=1.0

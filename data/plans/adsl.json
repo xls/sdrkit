@@ -1,0 +1,380 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "adsl_srd860",
+      "name": "ADS-L, European short-range-device band 863 to 870 MHz",
+      "kind": "ism",
+      "source": {
+        "publisher": "EASA",
+        "title": "Technical Specification for ADS-L transmissions using SRD-860 frequency band (ADS-L 4 SRD-860)",
+        "number": "Issue 2, annex to ED Decision 2022/024/R",
+        "date": "2025-12-01"
+      },
+      "verified": false,
+      "unverified_reason": "the list of countries is from general knowledge of the CEPT members; ADS-L has no allocation outside this band plan",
+      "bands": [
+        {
+          "name": "M-band 1",
+          "service": "short_range",
+          "start_hz": 868100000,
+          "end_hz": 868300000,
+          "modulation": "2-GFSK, 100 kchip/s, Manchester",
+          "channel_width_hz": 200000,
+          "note": "stack setting m1_hz"
+        },
+        {
+          "name": "M-band 2",
+          "service": "short_range",
+          "start_hz": 868300000,
+          "end_hz": 868500000,
+          "modulation": "2-GFSK, 100 kchip/s, Manchester",
+          "channel_width_hz": 200000,
+          "note": "stack setting m2_hz"
+        },
+        {
+          "name": "O-band LDR",
+          "service": "short_range",
+          "start_hz": 869400000,
+          "end_hz": 869650000,
+          "modulation": "2-GFSK, 38.4 kchip/s",
+          "channel_width_hz": 250000,
+          "note": "stack setting o_hz"
+        },
+        {
+          "name": "O-band HDR",
+          "service": "short_range",
+          "start_hz": 869400000,
+          "end_hz": 869650000,
+          "modulation": "GMSK, 200 kchip/s",
+          "channel_width_hz": 250000,
+          "note": "stack setting o_hz"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AD",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "AL",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "AT",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "AZ",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "BA",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "GE",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "LI",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "MC",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "MD",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "ME",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "MK",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "RS",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "SM",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "TR",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "UA",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    },
+    {
+      "code": "VA",
+      "groups": [
+        "adsl_srd860"
+      ],
+      "unverified_reason": "the list of the countries that apply the 863 to 870 MHz band plan is from general knowledge"
+    }
+  ]
+}

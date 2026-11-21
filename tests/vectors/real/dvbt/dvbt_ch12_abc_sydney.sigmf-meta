@@ -1,0 +1,19 @@
+{
+  "annotations": [],
+  "captures": [
+    {
+      "core:datetime": "2026-11-08T08:38:34Z",
+      "core:frequency": 226500000.0,
+      "core:sample_start": 0
+    }
+  ],
+  "global": {
+    "core:dataset": "dvbt_ch12_abc_sydney.sigmf-data",
+    "core:datatype": "ci16_le",
+    "core:description": "dvbt",
+    "core:recorder": "sdrkit",
+    "core:sample_count": 19398656,
+    "core:sample_rate": 9142856.0,
+    "core:version": "1.0.0"
+  }
+}

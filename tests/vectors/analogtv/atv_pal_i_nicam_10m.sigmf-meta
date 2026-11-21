@@ -1,0 +1,14 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 10000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic analogue television channel, PAL system I (625 lines, 50 Hz), 0.4 s. Made by the analogue TV test generator of specs/analogtv.md section 9: test card with the ident 'TEST CARD', negative vision modulation through the vestigial-sideband filter, transmitter group-delay pre-correction 170 ns, FM sound carrier 6.0 MHz above the vision carrier with a continuous 1 kHz tone at half deviation (50 us pre-emphasis), NICAM-728 stereo carrier 6.552 MHz above the vision carrier (left 1 kHz, right 1.5 kHz, each 0.25 of full scale). Centre of the 8 MHz channel at 0 Hz; vision carrier at -2.75 MHz plus a 25 kHz offset. Carrier-to-noise 40 dB (peak vision carrier against the noise in 5 MHz). Peak carrier amplitude 0.4.",
+    "core:recorder": "analogue TV test generator, noise seed 1",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    { "core:sample_start": 0, "core:frequency": 474000000.0 }
+  ],
+  "annotations": []
+}

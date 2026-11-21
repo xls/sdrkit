@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 12000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic HF test signal, upper sideband, dial frequency at 0 Hz of the samples (audio frequency f appears at +f Hz). ROS-like grid: one random tone of 144 on a 15.625 Hz grid at 16 baud, centred 1550 Hz, SNR 10 dB in 2.5 kHz (not ROS encoding). 20.0 s.",
+    "core:recorder": "HF keyboard-mode test generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14070000.0
+    }
+  ],
+  "annotations": []
+}

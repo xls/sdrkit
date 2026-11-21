@@ -1,0 +1,934 @@
+//! ATSC 3.0 tests: bootstraps in the test signal at several rates, offsets and cuts, noise only, the rate rule,
+//! and the delivery chain of the receiver graph fed with baseband packets.
+
+use super::common::{self, chain, impair};
+use sdrkit_core::{Complex32, ConfigError, InputInfo, Output, Owner, Results, Values};
+use sdrkit_graph::{
+    no_values, Component, ComponentInfo, Format, GraphBuilder, Io, Kind, PacketPool, Port,
+};
+use sdrkit_proto_ipcast::alp::{write_bbp_header, write_single, BbpExtension, PacketType};
+use sdrkit_proto_ipcast::ip::write_ipv4_udp;
+use sdrkit_proto_ipcast::lct::LctBuilder;
+use sdrkit_proto_ipcast::mp4::write_box;
+use sdrkit_stack_tvterr::atsc3::svc::{build_lls, build_signed_lls, LLS_ADDR, LLS_PORT};
+use sdrkit_stack_tvterr::atsc3::{delivery, results, Atsc3GenParams, Atsc3Generator, DESCRIPTOR};
+use sdrkit_stack_tvterr::typed::{
+    Atsc3ComponentRow as C, Atsc3Fields as F, Atsc3ServiceRow as S, ATSC3_COMPONENTS,
+    ATSC3_SERVICES,
+};
+use std::net::Ipv4Addr;
+
+#[test]
+fn bootstraps_at_rates_offsets_and_cuts() {
+    for (rate, cfo, snr, chunk) in [
+        (6.144e6, 0.0, 25.0, 65536),
+        (8e6, 3_000.0, 15.0, 4096),
+        (10e6, -3_000.0, 25.0, 7),
+        (20e6, 0.0, 25.0, 65536),
+    ] {
+        let x = common::generate(
+            Atsc3Generator::new(Atsc3GenParams {
+                rate_hz: rate,
+                ..Default::default()
+            })
+            .unwrap(),
+            0.55,
+        );
+        let x = impair(&x, rate, &chain(cfo, 0.0, Some(snr), 6.144e6));
+        let mut rx = common::receiver(&DESCRIPTOR, &[]);
+        let r = common::run(rx.as_mut(), rate, &x, chunk, "");
+        let n = r.f("bootstraps");
+        assert!(n >= 4.0, "{rate} {cfo}: {n} bootstraps");
+        assert!(
+            (r.f("offset_hz") - cfo).abs() < 300.0,
+            "{rate}: cfo {}",
+            r.f("offset_hz")
+        );
+        assert_eq!(r.f("preamble_structure"), 3.0);
+        assert!(
+            (r.f("min_time_next") - 0.15).abs() < 1e-9,
+            "{}",
+            r.f("min_time_next")
+        );
+    }
+}
+
+#[test]
+fn noise_finds_no_bootstrap_and_rates_are_checked() {
+    let x = common::noise(4_000_000, 0.09, 3);
+    let mut rx = common::receiver(&DESCRIPTOR, &[]);
+    let r = common::run(rx.as_mut(), 8e6, &x, 65536, "");
+    assert_eq!(r.f("bootstraps"), 0.0);
+    assert!(rx.configure(&InputInfo::new(6e6, 539e6, 539e6)).is_err());
+    assert!(rx.configure(&InputInfo::new(6.144e6, 539e6, 539e6)).is_ok());
+}
+
+/// Half a second of the test signal at the declared rate, default settings: the stack is Locked, every frame whose samples
+/// are in is decoded, and the baseband packets carry the datagrams of the generator.
+#[test]
+fn the_test_signal_locks_the_stack_within_half_a_second() {
+    let rate = DESCRIPTOR.tuning.rate_hz;
+    let x = common::generate(
+        Atsc3Generator::new(Atsc3GenParams {
+            rate_hz: rate,
+            ..Default::default()
+        })
+        .unwrap(),
+        0.5,
+    );
+    let mut rx = common::receiver(&DESCRIPTOR, &[]);
+    let r = common::run(rx.as_mut(), rate, &x, 65536, "");
+    assert_eq!(
+        r.results.status().lock_state,
+        sdrkit_core::LockState::Locked
+    );
+    assert!(r.f("frames_ok") >= 3.0, "{} frames", r.f("frames_ok"));
+    assert_eq!(r.f("frames_failed"), 0.0);
+    assert_eq!(r.f("fft_size"), 8192.0);
+    assert_eq!(r.f("guard_samples"), 192.0);
+    assert_eq!((r.f("l1_basic_mode"), r.f("l1_detail_mode")), (4.0, 2.0));
+    assert_eq!((r.f("preamble_symbols"), r.f("subframes")), (1.0, 1.0));
+    assert_eq!(r.f("subframe_symbols"), 72.0);
+    assert_eq!((r.f("pilot_dx"), r.f("pilot_dy")), (16.0, 2.0));
+    assert_eq!((r.f("plps"), r.f("plp_id")), (1.0, 0.0));
+    assert_eq!(
+        (
+            r.f("plp_points"),
+            r.f("plp_code_rate"),
+            r.f("plp_ldpc_bits")
+        ),
+        (4.0, 8.0, 64800.0)
+    );
+    assert_eq!(r.rows("plps"), 1);
+    assert!(
+        r.f("baseband_packets") >= 44.0,
+        "{}",
+        r.f("baseband_packets")
+    );
+    assert_eq!(r.f("baseband_packets_bad"), 0.0);
+    assert!(r.f("mer_db") > 25.0, "{}", r.f("mer_db"));
+    // A baseband packet of 4296 bytes holds three ALP packets and a half; each is one datagram of the generator.
+    assert!(
+        r.f("alp.alp_packets") >= 3.0 * 44.0,
+        "{}",
+        r.f("alp.alp_packets")
+    );
+    assert_eq!(r.f("alp.alp_dropped"), 0.0);
+    assert!(
+        r.f("ip.ip_packets") >= 3.0 * 44.0,
+        "{}",
+        r.f("ip.ip_packets")
+    );
+    assert_eq!(r.f("ip.ip_bad"), 0.0);
+}
+
+/// The test signal fed in pieces of 16384 samples at the declared rate: the state is Locked before 0.3 s of signal are in.
+/// A frame is 0.1016 s long and the results are published every 0.1 s.
+#[test]
+fn the_stack_locks_within_three_tenths_of_a_second() {
+    let rate = DESCRIPTOR.tuning.rate_hz;
+    let x = common::generate(
+        Atsc3Generator::new(Atsc3GenParams {
+            rate_hz: rate,
+            ..Default::default()
+        })
+        .unwrap(),
+        0.5,
+    );
+    let mut rx = common::receiver(&DESCRIPTOR, &[]);
+    rx.configure(&InputInfo::new(rate, 539e6, 539e6).recording())
+        .unwrap();
+    let mut out = Output::default();
+    let mut locked_at = None;
+    for (k, c) in x.chunks(16384).enumerate() {
+        rx.feed(c, &mut out);
+        out.clear();
+        let state = Owner::results(rx.as_ref()).status().lock_state;
+        if state == sdrkit_core::LockState::Locked {
+            locked_at = Some((k + 1) as f64 * 16384.0 / rate);
+            break;
+        }
+    }
+    let t = locked_at.expect("the stack locks");
+    assert!(t <= 0.3, "locked after {t} s");
+}
+
+/// The test signal 3 kHz off in noise of 10 dB (in 6.144 MHz), at 8 and at 20 Msps: at least 8 of the 9 frames of one
+/// second decode and no baseband packet is bad.
+#[test]
+fn frames_decode_with_a_carrier_offset_in_noise_at_two_rates() {
+    for (rate, cfo, chunk) in [(8e6, 3_000.0, 4096), (20e6, -3_000.0, 65536)] {
+        let x = common::generate(
+            Atsc3Generator::new(Atsc3GenParams {
+                rate_hz: rate,
+                ..Default::default()
+            })
+            .unwrap(),
+            1.0,
+        );
+        let x = impair(&x, rate, &chain(cfo, 0.0, Some(10.0), 6.144e6));
+        let mut rx = common::receiver(&DESCRIPTOR, &[]);
+        let r = common::run(rx.as_mut(), rate, &x, chunk, "");
+        assert_eq!(
+            r.results.status().lock_state,
+            sdrkit_core::LockState::Locked
+        );
+        assert!(
+            r.f("frames_ok") >= 8.0,
+            "{rate}: {} frames",
+            r.f("frames_ok")
+        );
+        assert_eq!(r.f("frames_failed"), 0.0, "{rate}");
+        assert_eq!(r.f("baseband_packets_bad"), 0.0, "{rate}");
+        assert!(
+            (r.f("offset_hz") - cfo).abs() < 300.0,
+            "{rate}: {}",
+            r.f("offset_hz")
+        );
+        assert!(
+            (r.f("mer_db") - 10.7).abs() < 2.5,
+            "{rate}: MER {}",
+            r.f("mer_db")
+        );
+        assert_eq!(r.f("ip.ip_bad"), 0.0);
+    }
+}
+
+/// Time-aligned frames with an L1-Detail of two coded blocks in four Preamble symbols, a PLP that begins after 1000 dummy
+/// cells, and samples after the last symbol of each frame: the FEC blocks that cross from frame to frame are joined.
+#[test]
+fn time_aligned_frames_follow_each_other() {
+    let rate = 6.144e6;
+    let p = Atsc3GenParams {
+        rate_hz: rate,
+        fields: sdrkit_stack_tvterr::atsc3::bootstrap::Fields {
+            preamble: 1,
+            ..Atsc3GenParams::default().fields
+        },
+        symbols: 20,
+        l1_detail_mode: 1,
+        l1_detail_reserved: 400,
+        time_aligned: true,
+        plp_start: 1000,
+        ..Default::default()
+    };
+    let x = common::generate(Atsc3Generator::new(p).unwrap(), 0.5);
+    let mut rx = common::receiver(&DESCRIPTOR, &[]);
+    let r = common::run(rx.as_mut(), rate, &x, 65536, "");
+    assert_eq!(
+        r.results.status().lock_state,
+        sdrkit_core::LockState::Locked
+    );
+    // A frame is 35 ms; 13 are whole in 0.5 s with the delay of the search.
+    assert!(r.f("frames_ok") >= 12.0, "{} frames", r.f("frames_ok"));
+    assert_eq!(r.f("frames_failed"), 0.0);
+    assert_eq!((r.f("preamble_symbols"), r.f("l1_detail_mode")), (4.0, 1.0));
+    assert!(
+        (r.f("frame_length") - 0.035).abs() < 1e-5,
+        "{}",
+        r.f("frame_length")
+    );
+    // 131 731 cells of the PLP a frame are 4.07 blocks, and most frames begin with the end of a block: without the join of
+    // the crossing block about 3.1 blocks a frame would decode.
+    let per_frame = r.f("baseband_packets") / r.f("frames_ok");
+    assert!(per_frame >= 3.9, "{per_frame} packets a frame");
+    assert_eq!(r.f("baseband_packets_bad"), 0.0);
+}
+
+/// When the signal stops, the state returns to Searching: 0.45 s of the test signal, then 1 s of noise.
+#[test]
+fn the_state_returns_to_searching_when_the_signal_stops() {
+    let rate = DESCRIPTOR.tuning.rate_hz;
+    let mut x = common::generate(
+        Atsc3Generator::new(Atsc3GenParams {
+            rate_hz: rate,
+            ..Default::default()
+        })
+        .unwrap(),
+        0.45,
+    );
+    let mut rx = common::receiver(&DESCRIPTOR, &[]);
+    rx.configure(&InputInfo::new(rate, 539e6, 539e6).recording())
+        .unwrap();
+    let mut out = Output::default();
+    for c in x.chunks(65536) {
+        rx.feed(c, &mut out);
+        out.clear();
+    }
+    assert_eq!(
+        Owner::results(rx.as_ref()).status().lock_state,
+        sdrkit_core::LockState::Locked
+    );
+    x = common::noise(rate as usize, 0.01, 5);
+    for c in x.chunks(65536) {
+        rx.feed(c, &mut out);
+        out.clear();
+    }
+    let r = Owner::results(rx.as_ref());
+    assert_eq!(r.status().lock_state, sdrkit_core::LockState::Searching);
+    let f = sdrkit_stack_tvterr::typed::Atsc3Fields::BOOTSTRAP_SEEN;
+    assert_eq!(r.fields().at(&f), Some(false));
+}
+
+/// One second of the test signal through the receiver on one thread (`cut` false) or with the stage of the FEC blocks on
+/// its own thread: the stage names, the frames decoded and the baseband packets.
+fn staged_run(cut: bool) -> (Vec<String>, Option<i64>, Option<i64>) {
+    let rate = DESCRIPTOR.tuning.rate_hz;
+    let x = common::generate(
+        Atsc3Generator::new(Atsc3GenParams {
+            rate_hz: rate,
+            ..Default::default()
+        })
+        .unwrap(),
+        1.0,
+    );
+    let settings = Values::defaults(&(DESCRIPTOR.settings)());
+    let mut rx = sdrkit_stack_tvterr::atsc3::receiver(&sdrkit_core::StackConfig::new(settings))
+        .expect("the receiver builds");
+    sdrkit_core::Receiver::configure(&mut rx, &InputInfo::new(rate, 539e6, 539e6).recording())
+        .expect("the rate");
+    let threads: Vec<_> = sdrkit_core::Receiver::staged(&mut rx)
+        .expect("stages")
+        .cut(u32::from(cut))
+        .into_iter()
+        .map(|w| std::thread::spawn(move || w.run()))
+        .collect();
+    assert_eq!(threads.len(), usize::from(cut));
+    let mut out = Output::default();
+    for c in x.chunks(16_384) {
+        sdrkit_core::Receiver::feed(&mut rx, c, &mut out);
+        out.clear();
+    }
+    let st = sdrkit_core::Receiver::staged(&mut rx).expect("stages");
+    st.drain(&mut out);
+    let mut loads = Vec::new();
+    st.stage_loads(&mut loads);
+    drop(st.cut(0));
+    for t in threads {
+        t.join().expect("a stage thread");
+    }
+    let r = Owner::results(&rx);
+    (
+        loads.iter().map(|l| l.name.clone()).collect(),
+        r.fields()
+            .at(&sdrkit_stack_tvterr::typed::Atsc3Fields::FRAMES_OK),
+        r.fields()
+            .at(&sdrkit_stack_tvterr::typed::Atsc3FrameFields::BASEBAND_PACKETS),
+    )
+}
+
+/// The stages are `front` (bootstraps, OFDM and signalling) and `fec` (the FEC blocks and all after them). With `fec` on its
+/// own thread the frames and the baseband packets are those of one thread.
+#[test]
+fn the_fec_stage_on_its_own_thread_gives_the_same_frames() {
+    let whole = staged_run(false);
+    assert_eq!(whole.0, ["front", "fec"]);
+    assert!(whole.1 >= Some(8), "{:?} frames", whole.1);
+    assert!(whole.2 >= Some(8 * 14), "{:?} packets", whole.2);
+    assert_eq!(staged_run(true), whole);
+}
+
+/// A FEC block of 16200 bits: QPSK at 8/15 with BCH, or 16 points at 6/15 with a CRC.
+fn short_coding(sixteen: bool) -> sdrkit_stack_tvterr::atsc3::bicm::PlpCoding {
+    use sdrkit_stack_tvterr::atsc3::bicm::{Outer, PlpCoding};
+    PlpCoding {
+        ldpc_bits: 16200,
+        rate: if sixteen { 6 } else { 8 },
+        bits: if sixteen { 4 } else { 2 },
+        outer: if sixteen { Outer::Crc } else { Outer::Bch },
+    }
+}
+
+/// The receiver with setting `plp` at `plp`.
+fn receiver_of_plp(plp: i64) -> Box<dyn sdrkit_core::Receiver> {
+    let schema = (DESCRIPTOR.settings)();
+    let mut v = Values::defaults(&schema);
+    let id = schema.id("plp").expect("the setting");
+    v.set(id, &sdrkit_core::Value::I64(plp))
+        .expect("a PLP id");
+    (DESCRIPTOR.make_receiver)(&sdrkit_core::StackConfig::new(v)).expect("the receiver builds")
+}
+
+/// A PLP through each time interleaver, through the whole stack: 0.6 s of the test signal with the convolutional time
+/// interleaver of 724 rows, whose lines fill in two frames, with the hybrid time interleaver of 3 TI blocks with the
+/// cell interleaver, and with the hybrid time interleaver over 3 subframes. The stack locks, and no baseband packet is bad.
+#[test]
+fn the_stack_decodes_time_interleaved_plps() {
+    use sdrkit_stack_tvterr::atsc3::gen::GenTi;
+    let rate = 6.144e6;
+    for (time_interleaver, least) in [
+        (
+            GenTi::Convolutional {
+                depth: 1,
+                extended: false,
+            },
+            2.0 * 59.0,
+        ),
+        (
+            GenTi::Hybrid {
+                inter_subframe: true,
+                ti_blocks: 3,
+                cell_interleaver: true,
+                spare: 0,
+            },
+            2.0 * 59.0,
+        ),
+        (
+            GenTi::Hybrid {
+                inter_subframe: false,
+                ti_blocks: 3,
+                cell_interleaver: true,
+                spare: 4,
+            },
+            4.0 * 59.0,
+        ),
+    ] {
+        let p = Atsc3GenParams {
+            rate_hz: rate,
+            coding: short_coding(false),
+            time_interleaver,
+            ..Default::default()
+        };
+        let x = common::generate(Atsc3Generator::new(p).unwrap(), 0.6);
+        let mut rx = common::receiver(&DESCRIPTOR, &[]);
+        let r = common::run(rx.as_mut(), rate, &x, 65536, "");
+        assert_eq!(
+            r.results.status().lock_state,
+            sdrkit_core::LockState::Locked,
+            "{time_interleaver:?}"
+        );
+        assert_eq!(r.f("frames_failed"), 0.0, "{time_interleaver:?}");
+        assert!(
+            r.f("baseband_packets") >= least,
+            "{time_interleaver:?}: {} packets",
+            r.f("baseband_packets")
+        );
+        assert_eq!(r.f("baseband_packets_bad"), 0.0, "{time_interleaver:?}");
+        assert_eq!(r.f("fec_blocks"), r.f("fec_blocks_good"));
+        assert_eq!(r.f("ip.ip_bad"), 0.0);
+    }
+}
+
+/// Two PLPs in one subframe, the second dispersed in 4 subslices: without the setting the stack decodes the first, with
+/// `plp` at 1 the second, and with `plp` at 5, an id that the subframe does not hold, no frame decodes.
+#[test]
+fn the_setting_chooses_the_plp() {
+    use sdrkit_stack_tvterr::atsc3::gen::{GenPlp, GenTi};
+    let rate = 6.144e6;
+    let p = Atsc3GenParams {
+        rate_hz: rate,
+        coding: short_coding(false),
+        plp_cells: Some(200_000),
+        more_plps: vec![GenPlp {
+            coding: short_coding(true),
+            seed: 9,
+            start: 200_000,
+            cells: Some(240_000),
+            subslices: 4,
+            interval: 70_000,
+            time_interleaver: GenTi::None,
+            lls: false,
+        }],
+        ..Default::default()
+    };
+    let x = common::generate(Atsc3Generator::new(p).unwrap(), 0.5);
+    for (plp, id, points, per_frame) in [(-1, 0.0, 4.0, 24.0), (0, 0.0, 4.0, 24.0), (1, 1.0, 16.0, 59.0)] {
+        let mut rx = receiver_of_plp(plp);
+        let r = common::run(rx.as_mut(), rate, &x, 65536, "");
+        assert_eq!(
+            r.results.status().lock_state,
+            sdrkit_core::LockState::Locked,
+            "plp {plp}"
+        );
+        assert_eq!((r.f("plps"), r.f("plp_id")), (2.0, id), "plp {plp}");
+        assert_eq!(r.f("plp_points"), points, "plp {plp}");
+        assert_eq!(r.rows("plps"), 2);
+        assert_eq!(r.f("frames_failed"), 0.0, "plp {plp}");
+        assert!(r.f("frames_ok") >= 3.0, "plp {plp}");
+        let packets = r.f("baseband_packets") / r.f("frames_ok");
+        assert!(packets >= per_frame, "plp {plp}: {packets} packets a frame");
+        assert_eq!(r.f("baseband_packets_bad"), 0.0, "plp {plp}");
+    }
+    let mut rx = receiver_of_plp(5);
+    let r = common::run(rx.as_mut(), rate, &x, 65536, "");
+    assert_eq!(r.f("frames_ok"), 0.0);
+    assert_eq!(r.t("not_decoded"), "plp");
+    assert!(receiver_of_plp(63).configure(&InputInfo::new(rate, 539e6, 539e6)).is_ok());
+}
+
+/// Frames of three subframes (8K, 16K and 32K FFT). A PLP through the convolutional time interleaver continues in every
+/// subframe: the stack locks and no baseband packet is bad. A second PLP that only the second subframe carries is decoded
+/// when the setting names it.
+#[test]
+fn the_stack_takes_every_subframe_of_a_frame() {
+    use sdrkit_stack_tvterr::atsc3::gen::{GenPlace, GenPlp, GenSubframe, GenTi};
+    use sdrkit_stack_tvterr::atsc3::layout::FftSize;
+    let rate = 6.144e6;
+    let place = |plp, start, cells| GenPlace {
+        plp,
+        start,
+        cells,
+        subslices: 1,
+        interval: 0,
+    };
+    let p = Atsc3GenParams {
+        rate_hz: rate,
+        symbols: 24,
+        coding: short_coding(false),
+        time_interleaver: GenTi::Convolutional {
+            depth: 0,
+            extended: false,
+        },
+        more_plps: vec![GenPlp {
+            coding: short_coding(true),
+            seed: 3,
+            start: 0,
+            cells: Some(0),
+            subslices: 1,
+            interval: 0,
+            time_interleaver: GenTi::None,
+            lls: false,
+        }],
+        more_subframes: vec![
+            GenSubframe {
+                fft: FftSize::K16,
+                guard: 768,
+                symbols: 16,
+                reduced_carriers: 0,
+                pilots: (16, 4),
+                pilot_boost: 0,
+                frequency_interleaver: true,
+                boundary: (true, true),
+                plps: vec![place(0, 0, Some(100_000)), place(1, 100_000, None)],
+            },
+            GenSubframe {
+                fft: FftSize::K32,
+                guard: 2048,
+                symbols: 9,
+                reduced_carriers: 4,
+                pilots: (12, 2),
+                pilot_boost: 4,
+                frequency_interleaver: false,
+                boundary: (true, true),
+                plps: vec![place(0, 0, None)],
+            },
+        ],
+        ..Default::default()
+    };
+    // A frame is 0.1318 s: 7 whole frames in 1 s.
+    let x = common::generate(Atsc3Generator::new(p).unwrap(), 1.0);
+    for (plp, id, per_frame) in [(-1, 0.0, 50.0), (1, 1.0, 20.0)] {
+        let mut rx = receiver_of_plp(plp);
+        let r = common::run(rx.as_mut(), rate, &x, 65536, "");
+        assert_eq!(
+            r.results.status().lock_state,
+            sdrkit_core::LockState::Locked,
+            "plp {plp}"
+        );
+        assert_eq!(r.f("subframes"), 3.0);
+        assert_eq!(r.f("plp_id"), id, "plp {plp}");
+        assert!(r.f("frames_ok") >= 6.0, "plp {plp}: {}", r.f("frames_ok"));
+        assert_eq!(r.f("frames_failed"), 0.0, "plp {plp}");
+        assert_eq!(r.f("baseband_packets_bad"), 0.0, "plp {plp}");
+        // The lines of 512 rows fill in the first frame.
+        let packets = r.f("baseband_packets") / (r.f("frames_ok") - 1.0);
+        assert!(packets >= per_frame, "plp {plp}: {packets} packets a frame");
+        assert_eq!(r.f("fec_blocks"), r.f("fec_blocks_good"));
+    }
+}
+
+/// The share of one core that each stage takes on 3 s of the test signal at 8 Msps with a time interleaver.
+#[test]
+#[ignore = "a measurement: run it alone in an optimised build"]
+fn the_share_of_each_stage_with_a_time_interleaver() {
+    use sdrkit_stack_tvterr::atsc3::gen::GenTi;
+    let rate = DESCRIPTOR.tuning.rate_hz;
+    let seconds = 3.0;
+    for time_interleaver in [
+        GenTi::None,
+        GenTi::Convolutional {
+            depth: 3,
+            extended: false,
+        },
+        GenTi::Convolutional {
+            depth: 3,
+            extended: true,
+        },
+        GenTi::Hybrid {
+            inter_subframe: true,
+            ti_blocks: 4,
+            cell_interleaver: true,
+            spare: 0,
+        },
+        GenTi::Hybrid {
+            inter_subframe: false,
+            ti_blocks: 4,
+            cell_interleaver: true,
+            spare: 2,
+        },
+        GenTi::None,
+    ] {
+        let p = Atsc3GenParams {
+            rate_hz: rate,
+            time_interleaver,
+            ..Default::default()
+        };
+        let x = common::generate(Atsc3Generator::new(p).unwrap(), seconds);
+        let settings = Values::defaults(&(DESCRIPTOR.settings)());
+        let mut rx = sdrkit_stack_tvterr::atsc3::receiver(&sdrkit_core::StackConfig::new(settings))
+            .expect("the receiver builds");
+        sdrkit_core::Receiver::configure(&mut rx, &InputInfo::new(rate, 539e6, 539e6).recording())
+            .expect("the rate");
+        let mut out = Output::default();
+        for c in x.chunks(16_384) {
+            sdrkit_core::Receiver::feed(&mut rx, c, &mut out);
+            out.clear();
+        }
+        let st = sdrkit_core::Receiver::staged(&mut rx).expect("stages");
+        st.drain(&mut out);
+        let mut loads = Vec::new();
+        st.stage_loads(&mut loads);
+        let shares: Vec<(String, f64)> = loads
+            .iter()
+            .map(|l| (l.name.clone(), l.busy_ns as f64 / 1e9 / seconds))
+            .collect();
+        let r = Owner::results(&rx);
+        eprintln!(
+            "{time_interleaver:?}: share per stage {shares:.3?}, packets {:?}, bad {:?}",
+            r.fields()
+                .at(&sdrkit_stack_tvterr::typed::Atsc3FrameFields::BASEBAND_PACKETS),
+            r.fields()
+                .at(&sdrkit_stack_tvterr::typed::Atsc3FrameFields::BASEBAND_PACKETS_BAD),
+        );
+    }
+}
+
+/// A test source: passes its baseband packets to the graph, one call's worth at a time.
+struct Bbps {
+    packets: Vec<Vec<u8>>,
+    at: usize,
+    pool: PacketPool,
+}
+
+impl Component for Bbps {
+    fn info(&self) -> ComponentInfo {
+        ComponentInfo::processor("test.bbp", vec![Port::iq("in")], vec![Port::bytes("out")])
+    }
+    fn values(&self) -> Values {
+        no_values()
+    }
+    fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
+        Ok(vec![Format::new(Kind::Bytes, 0.0)])
+    }
+    fn process(&mut self, io: &mut Io) {
+        let n = io.iq(0).len();
+        for _ in 0..n.min(4) {
+            let Some(p) = self.packets.get(self.at) else {
+                return;
+            };
+            self.at += 1;
+            let t = self.at as f64 * 1e-3;
+            io.bytes_out(0)
+                .push(self.pool.make(p.len(), t, |b| b.copy_from_slice(p)));
+        }
+    }
+}
+
+fn full(version: u8, flags: u32, rest: &[u8]) -> Vec<u8> {
+    let mut v = vec![
+        version,
+        (flags >> 16) as u8,
+        (flags >> 8) as u8,
+        flags as u8,
+    ];
+    v.extend_from_slice(rest);
+    v
+}
+
+/// An HEVC init segment of track 1 at 90 kHz, `trex` default duration 3600.
+fn init() -> Vec<u8> {
+    let mut out = Vec::new();
+    write_box(&mut out, b"ftyp", b"iso6\0\0\0\0iso6dash");
+    let mut tkhd = vec![0u8; 80];
+    tkhd[12..16].copy_from_slice(&1u32.to_be_bytes());
+    let mut mdhd = vec![0u8; 24];
+    mdhd[12..16].copy_from_slice(&90_000u32.to_be_bytes());
+    let mut se = vec![0u8; 78];
+    write_box(&mut se, b"hvcC", &[1, 2, 3]);
+    let mut stsd = full(0, 0, &1u32.to_be_bytes());
+    write_box(&mut stsd, b"hvc1", &se);
+    let mut stbl = Vec::new();
+    write_box(&mut stbl, b"stsd", &stsd);
+    let mut minf = Vec::new();
+    write_box(&mut minf, b"stbl", &stbl);
+    let mut mdia = Vec::new();
+    write_box(&mut mdia, b"mdhd", &mdhd);
+    write_box(&mut mdia, b"minf", &minf);
+    let mut trak = Vec::new();
+    write_box(&mut trak, b"tkhd", &tkhd);
+    write_box(&mut trak, b"mdia", &mdia);
+    let mut trex = full(0, 0, &1u32.to_be_bytes());
+    trex.extend_from_slice(&[0, 0, 0, 1, 0, 0, 0x0E, 0x10, 0, 0, 0, 0, 0, 1, 0, 0]);
+    let mut mvex = Vec::new();
+    write_box(&mut mvex, b"trex", &trex);
+    let mut moov = Vec::new();
+    write_box(&mut moov, b"trak", &trak);
+    write_box(&mut moov, b"mvex", &mvex);
+    write_box(&mut out, b"moov", &moov);
+    out
+}
+
+/// A media segment of two samples (3 and 2 bytes) at decoding time `dts`.
+fn media(dts: u64) -> Vec<u8> {
+    let mut seg = Vec::new();
+    write_box(&mut seg, b"styp", b"msdh\0\0\0\0msdh");
+    let tfhd = full(0, 0x020000, &1u32.to_be_bytes());
+    let tfdt = full(1, 0, &dts.to_be_bytes());
+    let mut trun = full(0, 0x01 | 0x04 | 0x200, &2u32.to_be_bytes());
+    let off_at = trun.len();
+    trun.extend_from_slice(&0u32.to_be_bytes());
+    trun.extend_from_slice(&0u32.to_be_bytes());
+    trun.extend_from_slice(&3u32.to_be_bytes());
+    trun.extend_from_slice(&2u32.to_be_bytes());
+    let build = |trun: &[u8]| {
+        let mut traf = Vec::new();
+        write_box(&mut traf, b"tfhd", &tfhd);
+        write_box(&mut traf, b"tfdt", &tfdt);
+        write_box(&mut traf, b"trun", trun);
+        let mut moof_body = Vec::new();
+        write_box(&mut moof_body, b"traf", &traf);
+        let mut moof = Vec::new();
+        write_box(&mut moof, b"moof", &moof_body);
+        moof
+    };
+    let moof_len = build(&trun).len();
+    let moof_at = seg.len();
+    let data_at = moof_at + moof_len + 8;
+    trun[off_at..off_at + 4].copy_from_slice(&((data_at - moof_at) as u32).to_be_bytes());
+    seg.extend(build(&trun));
+    write_box(&mut seg, b"mdat", &[0xA, 0xB, 0xC, 0xD, 0xE]);
+    seg
+}
+
+/// The baseband packets of a service list and one ROUTE service (init and two media segments), in IPv4 and UDP and ALP. With
+/// `bad_checksum`, the IPv4 header checksum of the LLS packet is wrong.
+fn delivery_packets(bad_checksum: bool) -> Vec<Vec<u8>> {
+    delivery_packets_with(bad_checksum, false, 0, 0, false)
+}
+
+/// As [`delivery_packets`]; with `signed` the service list and a system time come in a signed multi-table, `sls` signalling
+/// objects go to TSI 0 of the service's session (and as many to another session), and `compressed` ALP packets of compressed IP
+/// follow. With `signed_package` each signalling object is a signed package of two documents.
+fn delivery_packets_with(
+    bad_checksum: bool,
+    signed: bool,
+    sls: u32,
+    compressed: usize,
+    signed_package: bool,
+) -> Vec<Vec<u8>> {
+    let xml = r#"<SLT bsid="1"><Service serviceId="1001" majorChannelNo="7" minorChannelNo="1" serviceCategory="1" shortServiceName="TEST"><BroadcastSvcSignaling slsProtocol="1" slsDestinationIpAddress="239.255.1.1" slsDestinationUdpPort="5000" slsSourceIpAddress="10.1.1.1"/></Service></SLT>"#;
+    let src = Ipv4Addr::new(10, 1, 1, 1);
+    let mut alp = Vec::new();
+    let mut ip = Vec::new();
+    let mut id = 0u16;
+    let mut send = |dst: Ipv4Addr, port: u16, payload: &[u8], corrupt: bool, alp: &mut Vec<u8>| {
+        ip.clear();
+        id += 1;
+        let mut ranges = Vec::new();
+        write_ipv4_udp(&mut ip, src, dst, id, 1500, 1, port, payload, |r| {
+            ranges.push(r)
+        })
+        .unwrap_or_else(|e| panic!("{e}"));
+        for r in ranges {
+            let mut pkt = ip[r].to_vec();
+            if corrupt {
+                pkt[10] ^= 0x55;
+            }
+            write_single(PacketType::Ipv4, None, &pkt, alp).unwrap_or_else(|e| panic!("{e}"));
+        }
+    };
+    let time = r#"<SystemTime currentUtcOffset="37" utcLocalOffset="-PT5H"/>"#;
+    let lls = if signed {
+        build_signed_lls(0, 1, &[(1, 1, xml), (3, 1, time)], &[0x5A; 32])
+    } else {
+        build_lls(1, 0, 1, xml)
+    };
+    send(
+        Ipv4Addr::from(LLS_ADDR),
+        LLS_PORT,
+        &lls,
+        bad_checksum,
+        &mut alp,
+    );
+    let service = Ipv4Addr::new(239, 255, 1, 1);
+    let other = Ipv4Addr::new(239, 255, 1, 9);
+    // The signature part holds filler bytes: the receiver does not check it.
+    let sls_object = if signed_package {
+        b"Content-Type: multipart/signed; boundary=s\r\n\r\n--s\r\nContent-Type: multipart/related; boundary=b\r\n\r\n\
+--b\r\nContent-Type: application/route-usd+xml\r\n\r\n<BundleDescription/>\r\n\
+--b\r\nContent-Type: application/route-s-tsid+xml\r\n\r\n<S-TSID/>\r\n--b--\r\n\
+--s\r\nContent-Type: application/pkcs7-signature\r\n\r\n\x30\x00\xA5\r\n--s--\r\n"
+            .to_vec()
+    } else {
+        b"--b\r\nContent-Type: application/route-usd+xml\r\n\r\n<BundleDescription/>\r\n--b--\r\n"
+            .to_vec()
+    };
+    let objects = [(2u32, 1u32, init()), (2, 2, media(0)), (2, 3, media(7200))]
+        .into_iter()
+        .chain((0..sls).map(|k| (0, 100 + k, sls_object.clone())));
+    for (tsi, toi, obj) in objects {
+        for (dst, copy) in [(service, true), (other, tsi == 0)] {
+            if !copy {
+                continue;
+            }
+            for (k, c) in obj.chunks(500).enumerate() {
+                let mut p = Vec::new();
+                LctBuilder {
+                    tsi,
+                    toi,
+                    codepoint: 0,
+                    transfer_len: Some(obj.len() as u64),
+                    close_object: false,
+                }
+                .write(&mut p)
+                .unwrap_or_else(|e| panic!("{e}"));
+                p.extend_from_slice(&((k * 500) as u32).to_be_bytes());
+                p.extend_from_slice(c);
+                send(dst, 5000, &p, false, &mut alp);
+            }
+        }
+    }
+    for _ in 0..compressed {
+        write_single(PacketType::CompressedIp, None, &[0xFD; 24], &mut alp)
+            .unwrap_or_else(|e| panic!("{e}"));
+    }
+    alp.chunks(1000)
+        .enumerate()
+        .map(|(k, c)| {
+            let mut bb = Vec::new();
+            write_bbp_header(if k == 0 { 0 } else { 8191 }, BbpExtension::None, &mut bb)
+                .unwrap_or_else(|e| panic!("{e}"));
+            bb.extend_from_slice(c);
+            bb
+        })
+        .collect()
+}
+
+/// The delivery chain of the receiver graph, fed by a test source instead of the frame decoder.
+fn run_delivery(packets: Vec<Vec<u8>>) -> Results {
+    let b = GraphBuilder::new()
+        .add(
+            "source",
+            Bbps {
+                packets,
+                at: 0,
+                pool: PacketPool::default(),
+            },
+        )
+        .add("report", results::Report::default())
+        .input("source.in")
+        .status_from("report");
+    let mut g = delivery(b, "source.out")
+        .build()
+        .unwrap_or_else(|e| panic!("{e}"));
+    g.declare(&results::declaration());
+    g.configure_input(Format::iq(8e6, 539e6, 539e6))
+        .unwrap_or_else(|e| panic!("{e}"));
+    let mut out = Output::default();
+    for _ in 0..100 {
+        g.process(&[Complex32::new(0.0, 0.0); 64], &mut out);
+        out.clear();
+    }
+    g.finish(&mut out);
+    g.refresh_results();
+    Owner::results(&g).clone()
+}
+
+#[test]
+fn the_delivery_chain_runs_in_the_receiver_graph() {
+    let r = run_delivery(delivery_packets(false));
+    let f = r.fields();
+    assert_eq!(f.at(&F::LLS_TABLES), Some(1), "{f:?}");
+    assert_eq!(f.at(&F::SERVICE_RECEIVED), Some(1001));
+    assert_eq!(f.at(&F::ROUTE_OBJECTS), Some(3));
+    assert_eq!(f.at(&F::MEDIA_SAMPLES), Some(4));
+    let table = |key: &str| {
+        r.decl()
+            .table_id(key)
+            .and_then(|id| r.table(id))
+            .expect("a declared table")
+    };
+    let comp = table(ATSC3_COMPONENTS.key);
+    assert_eq!(comp.len(), 1);
+    let (_, c) = comp.rows_newest_first().next().expect("a component");
+    assert_eq!(c.at(&C::FOURCC), Some("hvc1"));
+    let row = table(ATSC3_SERVICES.key).row("1001").expect("service 1001");
+    assert_eq!(row.at(&S::MAJOR), Some(7));
+    assert_eq!(row.at(&S::MINOR), Some(1));
+    assert_eq!(row.at(&S::NAME), Some("TEST"));
+    assert_eq!(row.at(&S::ACTION), Some(results::ServiceAction::Receiving));
+}
+
+#[test]
+fn a_bad_ip_header_checksum_is_refused() {
+    // The service list sent with a wrong IPv4 header checksum: a receiver must not read it.
+    let r = run_delivery(delivery_packets(true));
+    let f = r.fields();
+    assert_eq!(f.at(&F::LLS_TABLES), Some(0), "{f:?}");
+    assert_eq!(
+        f.at(&F::ROUTE_OBJECTS),
+        Some(3),
+        "the other packets still pass"
+    );
+}
+
+#[test]
+fn signed_signalling_sls_objects_and_compressed_ip_are_reported() {
+    // Plain signalling, no signalling objects, no compressed IP.
+    let r = run_delivery(delivery_packets(false));
+    let f = r.fields();
+    assert_eq!(f.at(&F::SIGNED_SIGNALLING), Some(false));
+    assert_eq!(f.at(&F::LEAP_SECONDS), None);
+    // The service list and the system time in a signed multi-table, 3 signalling objects for the service (and 3 to another
+    // session), 5 ALP packets of compressed IP.
+    let r = run_delivery(delivery_packets_with(false, true, 3, 5, false));
+    let f = r.fields();
+    assert_eq!(f.at(&F::LLS_TABLES), Some(2), "{f:?}");
+    assert_eq!(f.at(&F::SIGNED_SIGNALLING), Some(true));
+    assert_eq!(f.at(&F::LEAP_SECONDS), Some(37));
+    assert_eq!(f.at(&F::SERVICE_RECEIVED), Some(1001));
+    assert_eq!(
+        f.at(&F::MEDIA_SAMPLES),
+        Some(4),
+        "signalling objects are not media"
+    );
+    let id = f.decl().id("alp.compressed_ip").expect("the ALP count");
+    assert_eq!(f.value(id), Some(&sdrkit_core::Value::I64(5)));
+    assert!(r
+        .log_lines()
+        .iter()
+        .any(|l| l.ends_with(sdrkit_proto_ipcast::components::COMPRESSED_IP_NOTE)));
+    let row = r
+        .decl()
+        .table_id(ATSC3_SERVICES.key)
+        .and_then(|id| r.table(id))
+        .and_then(|t| t.row("1001"))
+        .expect("service 1001")
+        .clone();
+    assert_eq!(row.at(&S::SLS_OBJECTS), Some(3));
+    assert_eq!(row.at(&S::SLS_DOCUMENTS), Some(3));
+    assert_eq!(row.at(&S::SLS_SIGNED_PACKAGES), Some(0));
+    // Plain low-level signalling, 2 signalling objects that are signed packages of two documents each: the station signs.
+    let r = run_delivery(delivery_packets_with(false, false, 2, 0, true));
+    assert_eq!(r.fields().at(&F::SIGNED_SIGNALLING), Some(true));
+    let row = r
+        .decl()
+        .table_id(ATSC3_SERVICES.key)
+        .and_then(|id| r.table(id))
+        .and_then(|t| t.row("1001"))
+        .expect("service 1001")
+        .clone();
+    assert_eq!(row.at(&S::SLS_OBJECTS), Some(2));
+    assert_eq!(row.at(&S::SLS_DOCUMENTS), Some(4));
+    assert_eq!(row.at(&S::SLS_SIGNED_PACKAGES), Some(2));
+}

@@ -1,0 +1,13 @@
+# id: hf_teleprinter_dials
+# name: Dials a host may offer as the starting dial of the HF teleprinter and CIS stacks (stack or stack:submode), with the dial range of each
+# verified: no; a usual starting dial (upper sideband), not a station or a regional plan
+stack,dial_hz,min_hz,max_hz
+arqe,7000000,100000,30000000
+arqe:arqn,7000000,100000,30000000
+autospec,7000000,100000,30000000
+autospec:spread,7000000,100000,30000000
+piccolo,7000000,100000,30000000
+coquelet,7000000,100000,30000000
+gtor,14000000,100000,30000000
+efr,127600,100000,30000000
+cis_hf,8000000,1500000,30000000

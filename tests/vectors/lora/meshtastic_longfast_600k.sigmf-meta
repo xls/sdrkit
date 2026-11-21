@@ -1,0 +1,18 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 600000.0,
+    "core:version": "1.0.0",
+    "core:description": "Meshtastic LongFast (SF11, 250 kHz, CR 4/5, sync 0x2B, preamble 16) on 869.525 MHz, 100 kHz above the capture centre. Synthetic.",
+    "core:author": "sdrkit test vector generator",
+    "core:hw": "synthetic (no radio)"
+  },
+  "captures": [ { "core:sample_start": 0, "core:frequency": 869425000.0 } ],
+  "annotations": [
+    { "core:sample_start": 30000, "core:sample_count": 409191, "core:freq_lower_edge": 869401200.0, "core:freq_upper_edge": 869651200.0, "core:label": "Meshtastic NODEINFO_APP" },
+    { "core:sample_start": 475190, "core:sample_count": 335463, "core:freq_lower_edge": 869401200.0, "core:freq_upper_edge": 869651200.0, "core:label": "Meshtastic TEXT_MESSAGE_APP" },
+    { "core:sample_start": 846653, "core:sample_count": 335463, "core:freq_lower_edge": 869401200.0, "core:freq_upper_edge": 869651200.0, "core:label": "Meshtastic POSITION_APP" },
+    { "core:sample_start": 1218115, "core:sample_count": 310887, "core:freq_lower_edge": 869397700.0, "core:freq_upper_edge": 869647700.0, "core:label": "Meshtastic TEXT_MESSAGE_APP relayed once" },
+    { "core:sample_start": 1565002, "core:sample_count": 310887, "core:freq_lower_edge": 869400400.0, "core:freq_upper_edge": 869650400.0, "core:label": "Meshtastic direct message, public-key encrypted" }
+  ]
+}

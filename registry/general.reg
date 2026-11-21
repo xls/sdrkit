@@ -1,0 +1,154 @@
+# The interface of the stack family general. The registry test of the family writes this file.
+family general version=1.2
+uses.tones major=1 since=1.0
+shape.AmFields since=1.0
+shape.AmFields.am_active type=bool unit= optional=no since=1.0
+shape.AmFields.am_carrier_found type=bool unit= optional=no since=1.0
+shape.AmFields.am_locked type=bool unit= optional=no since=1.0
+shape.AmFields.am_carrier_offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.AmFields.am_carrier_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.AmFields.am_programme_snr_db type=f64 unit=dB optional=yes since=1.0
+shape.AmFields.am_detector type=choice(envelope,synchronous,upper,lower) unit= optional=yes since=1.0
+shape.AmFields.am_one_side type=bool unit= optional=no since=1.0
+shape.AmFields.am_interference_upper type=f64 unit= optional=yes since=1.0
+shape.AmFields.am_interference_lower type=f64 unit= optional=yes since=1.0
+shape.AmFields.am_bandwidth_hz type=hz unit=Hz optional=yes since=1.0
+shape.AmFields.am_nr_floor_db type=f64 unit=dB optional=yes since=1.0
+shape.AmFields.am_blanked_pct type=f64 unit=% optional=yes since=1.0
+shape.AmFields.am_blanker_db type=f64 unit=dB optional=yes since=1.0
+shape.AmFields.am_hum_hz type=hz unit=Hz optional=yes since=1.0
+shape.AmFields.am_fading type=bool unit= optional=no since=1.0
+shape.AmFields.am_enhanced type=bool unit= optional=no since=1.0
+shape.AmFields.am_leveller_db type=f64 unit=dB optional=yes since=1.0
+shape.AmFields.am_status type=text unit= optional=yes since=1.0
+shape.GeneralFields since=1.0
+shape.GeneralFields.demod type=choice(nfm,wfm,am,usb,lsb,cw) unit= optional=no since=1.0
+shape.GeneralFields.width_hz type=hz unit=Hz optional=no since=1.0
+shape.GeneralFields.input_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.GeneralFields.demod_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.GeneralFields.channel_offset_hz type=hz unit=Hz optional=no since=1.0
+shape.GeneralFields.dial_hz type=hz unit=Hz optional=no since=1.0
+shape.GeneralFields.listening_hz type=hz unit=Hz optional=no since=1.0
+shape.GeneralFields.filter_lo_hz type=hz unit=Hz optional=no since=1.0
+shape.GeneralFields.filter_hi_hz type=hz unit=Hz optional=no since=1.0
+shape.GeneralFields.passband_lo_hz type=hz unit=Hz optional=no since=1.0
+shape.GeneralFields.passband_hi_hz type=hz unit=Hz optional=no since=1.0
+shape.GeneralFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.GeneralFields.noise_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.GeneralFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.GeneralFields.squelch_threshold_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.GeneralFields.squelch_open type=bool unit= optional=no since=1.0
+shape.GeneralFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.GeneralFields.audio_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.GeneralFields.blocks_open type=i64 unit= optional=yes since=1.0
+shape.GeneralFields.blocks_closed type=i64 unit= optional=yes since=1.0
+shape.GeneralFields.blanked_pct type=f64 unit=% optional=no since=1.0
+shape.GeneralFields.speech_probability type=f64 unit= optional=no since=1.0
+shape.GeneralFields.needle type=f64 unit= optional=yes since=1.0
+shape.GeneralFields.ctcss_hz type=hz unit=Hz optional=yes since=1.0
+shape.GeneralFields.ctcss_measured_hz type=hz unit=Hz optional=yes since=1.0
+shape.GeneralFields.ctcss_db type=f64 unit=dB optional=yes since=1.0
+shape.GeneralFields.dcs type=text unit= optional=yes since=1.0
+shape.GeneralFields.dcs_alias type=text unit= optional=yes since=1.0
+shape.GeneralFields.tone type=text unit= optional=yes since=1.0
+shape.GeneralFields.tone_gate_open type=bool unit= optional=no since=1.0
+shape.TransmitFields since=1.1
+shape.TransmitFields.transmitting type=bool unit= optional=no since=1.1
+shape.TransmitFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.1
+shape.TransmitFields.tx_kind type=choice(voice,text,carrier) unit= optional=yes since=1.1
+shape.TransmitFields.tx_time_s type=duration unit=s optional=yes since=1.1
+shape.TransmitFields.tx_mic_dbfs type=f64 unit=dBFS optional=yes since=1.1
+shape.TransmitFields.tx_peak_db type=f64 unit=dB optional=yes since=1.1
+shape.TransmitFields.tx_level_db type=f64 unit=dB optional=yes since=1.1
+shape.TransmitFields.tx_limit_db type=f64 unit=dB optional=yes since=1.1
+shape.WidthPresetRow since=1.0
+shape.WidthPresetRow.width_hz type=hz unit=Hz optional=no since=1.0
+shape.PresetRow since=1.0
+shape.PresetRow.name type=text unit= optional=no since=1.0
+shape.PresetRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.PresetRow.demod type=choice(nfm,wfm,am,usb,lsb,cw) unit= optional=no since=1.0
+shape.PresetRow.width type=hz unit=Hz optional=no since=1.0
+shape.PresetRow.squelch type=choice(off,auto,level) unit= optional=no since=1.0
+shape.ChannelRow since=1.0
+shape.ChannelRow.channel type=text unit= optional=no since=1.0
+shape.ChannelRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.ChannelRow.demod type=choice(nfm,wfm,am,usb,lsb,cw) unit= optional=yes since=1.0
+shape.ChannelRow.squelch_open type=bool unit= optional=yes since=1.0
+shape.ChannelRow.summary type=text unit= optional=no since=1.0
+general since=1.0
+general.fields.AmFields since=1.0
+general.fields.GeneralFields since=1.0
+general.fields.TransmitFields since=1.1
+general.kept.width_presets since=1.0
+general.kept.presets since=1.0
+general.table.width_presets row=WidthPresetRow cap=32 since=1.0
+general.table.presets row=PresetRow cap=64 since=1.0
+general.table.channels row=ChannelRow cap=4 since=1.0
+general.series.whistles x_unit= y_unit=Hz since=1.0
+general.event.tones.subaudio fields=SubAudioFields since=1.0
+general.event.tones.dtmf fields=DtmfFields since=1.0
+general.setting.demod type=choice(nfm,wfm,am,usb,lsb,cw) unit= since=1.0
+general.setting.width type=hz unit=Hz since=1.0
+general.setting.channel_offset type=hz unit=Hz since=1.0
+general.setting.step type=hz unit=Hz since=1.0
+general.setting.custom_filter type=text unit= since=1.0
+general.setting.squelch type=choice(off,auto,level) unit= since=1.0
+general.setting.squelch_level type=f64 unit=dBFS since=1.0
+general.setting.agc type=bool unit= since=1.0
+general.setting.gain type=f64 unit=dB since=1.0
+general.setting.deemph_nfm type=choice(off,50,75,750) unit= since=1.0
+general.setting.deemph_wfm type=choice(off,50,75,750) unit= since=1.0
+general.setting.nfm_lowpass type=choice(3khz,4khz) unit= since=1.0
+general.setting.cw_pitch type=hz unit=Hz since=1.0
+general.setting.am_auto type=bool unit= since=1.0
+general.setting.am_detector type=choice(auto,envelope,synchronous,upper,lower) unit= since=1.0
+general.setting.am_nr type=choice(auto,off,gentle,strong) unit= since=1.0
+general.setting.am_bandwidth type=hz unit=Hz since=1.0
+general.setting.am_enhance type=bool unit= since=1.0
+general.setting.nb type=bool unit= since=1.0
+general.setting.nb_threshold type=f64 unit=dB since=1.0
+general.setting.af_highpass type=hz unit=Hz since=1.0
+general.setting.af_lowpass type=hz unit=Hz since=1.0
+general.setting.af_notch type=hz unit=Hz since=1.0
+general.setting.voice_nr type=bool unit= since=1.0
+general.setting.voice_nr_strength type=f64 unit=% since=1.0
+general.setting.presets type=text unit= since=1.0
+general.setting.tone_gate type=text unit= since=1.0
+general.setting.listen_channel type=i64 unit= since=1.0
+general.setting.extra1 type=bool unit= since=1.0
+general.setting.extra1_offset type=hz unit=Hz since=1.0
+general.setting.extra1_demod type=choice(nfm,wfm,am,usb,lsb,cw) unit= since=1.0
+general.setting.extra1_width type=hz unit=Hz since=1.0
+general.setting.extra2 type=bool unit= since=1.0
+general.setting.extra2_offset type=hz unit=Hz since=1.0
+general.setting.extra2_demod type=choice(nfm,wfm,am,usb,lsb,cw) unit= since=1.0
+general.setting.extra2_width type=hz unit=Hz since=1.0
+general.setting.extra3 type=bool unit= since=1.0
+general.setting.extra3_offset type=hz unit=Hz since=1.0
+general.setting.extra3_demod type=choice(nfm,wfm,am,usb,lsb,cw) unit= since=1.0
+general.setting.extra3_width type=hz unit=Hz since=1.0
+general.setting.tx_split type=hz unit=Hz since=1.1
+general.setting.tx_deviation type=hz unit=Hz since=1.1
+general.setting.tx_preemphasis type=choice(off,50,75,750) unit= since=1.1
+general.setting.tx_ctcss type=hz unit=Hz since=1.1
+general.setting.tx_am_depth type=f64 unit=% since=1.1
+general.setting.tx_ssb_method type=choice(filter,phasing) unit= since=1.1
+general.setting.tx_ssb_band type=choice(fixed,filter) unit= since=1.1
+general.setting.tx_compression type=f64 unit=dB since=1.1
+general.setting.tx_timeout type=duration unit=s since=1.1
+general.setting.tx_cw_wpm type=f64 unit=WPM since=1.1
+general.setting.tx_cw_farnsworth type=f64 unit=WPM since=1.1
+general.setting.tx_tune_limit type=duration unit=s since=1.1
+general.setting.gen_noise_only type=bool unit= since=1.0
+general.setting.gen_tune_offset type=hz unit=Hz since=1.0
+general.setting.gen_tone type=hz unit=Hz since=1.0
+general.setting.gen_mod type=f64 unit= since=1.0
+general.setting.gen_ctcss type=hz unit=Hz since=1.0
+general.setting.gen_ctcss_dev type=hz unit=Hz since=1.0
+general.setting.gen_dcs type=text unit= since=1.0
+general.setting.gen_audio type=choice(tone,voice) unit= since=1.2
+general.command.preset.apply args=row:text reply= since=1.0
+general.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.1
+general.command.send args=text:text reply= transmits=text stop=halt since=1.1
+general.command.tune args= reply= transmits=carrier stop=halt since=1.1
+general.command.halt args= reply= since=1.1

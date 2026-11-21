@@ -1,0 +1,23 @@
+# id: supersid_transmitters
+# name: VLF transmitters for the SuperSID monitor and the VLF MSK monitor (stacks supersid and vlf_msk)
+# stacks: supersid vlf_msk
+# source: WP-VLF Wikipedia "List of VLF transmitters"; STAN Stanford Solar Center VLF transmitter list of 22 February 2005; WP-HWU Wikipedia "HWU transmitter"; WP-NAA Wikipedia "VLF Transmitter Cutler"; WP-NLK Wikipedia "Naval Radio Station Jim Creek"; WP-NML Wikipedia "Naval Radio Transmitter Facility LaMoure"; WP-DHO Wikipedia "VLF transmitter DHO38"; AAVSO VLF Station List
+# note: The column support names the documents of each row; position_source names the document of the position, or csv for a position kept from the earlier list. HWU 20.9 kHz is contested (WP-VLF lists 20.9 kHz under FTA). No document gives the bit rate of each station, so the file holds none. The call sign GBZ is not listed at Anthorn: WP-VLF gives it at Criggion, 15.2 kHz, demolished in 2003. Check against a current public list before relying on a row.
+label,frequency_hz,site,lat,lon,position_source,support
+NAA,24000,"Cutler, Maine, USA",44.6450,-67.2825,WP-NAA,WP-NAA WP-VLF STAN
+NLK,24800,"Jim Creek, Washington, USA",48.2037,-121.9167,WP-NLK,WP-NLK WP-VLF STAN
+NML,25200,"LaMoure, North Dakota, USA",46.3660,-98.3358,WP-NML,STAN AAVSO
+NPM,21400,"Lualualei, Hawaii, USA",21.4203,-158.1539,csv,WP-VLF STAN
+NWC,19800,"Exmouth, Australia",-21.8164,114.1656,csv,WP-VLF STAN
+HWU,15100,"Rosnay, France",46.7131,1.2442,csv,WP-VLF STAN
+HWU,18300,"Rosnay, France",46.7131,1.2442,csv,WP-HWU WP-VLF STAN
+HWU,20900,"Rosnay, France",46.7131,1.2442,csv,WP-HWU only (WP-VLF lists 20.9 kHz under FTA)
+HWU,21750,"Rosnay, France",46.7131,1.2442,csv,WP-VLF (WP-HWU: 21.7 kHz)
+GQD,19580,"Anthorn, United Kingdom",54.9117,-3.2786,csv,WP-VLF STAN
+GQD,22100,"Anthorn, United Kingdom",54.9117,-3.2786,csv,WP-VLF
+DHO38,23400,"Rhauderfehn, Germany",53.0819,7.6164,WP-DHO,WP-DHO WP-VLF STAN
+ICV,20270,"Tavolara, Italy",40.9228,9.7319,csv,WP-VLF STAN
+ICV,20760,"Tavolara, Italy",40.9228,9.7319,csv,WP-VLF
+JXN,16400,"Novik, Norway",66.9822,13.8725,csv,WP-VLF STAN
+TBB,26700,"Bafa, Turkey",37.4094,27.3253,csv,WP-VLF STAN
+JJI,22200,"Ebino, Japan",32.0922,130.8292,csv (timing file),WP-VLF (22.2 or 22.1)

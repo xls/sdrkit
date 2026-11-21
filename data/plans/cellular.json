@@ -1,0 +1,2529 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "cell_gsm",
+      "name": "GSM bands (ARFCN)",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "Radio transmission and reception (GSM/EDGE)",
+        "number": "TS 45.005",
+        "date": "Release 17",
+        "clause": "clause 2 (frequency bands and channel arrangement)",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/45_series/45.005/"
+      },
+      "verified": false,
+      "unverified_reason": "values taken over from the receiver's band tables and checked by the formula tests; not yet compared line by line with the cited release",
+      "note": "downlink edges; DCS 1800 and PCS 1900 share ARFCNs 512 to 810, and a lookup by number finds DCS 1800 first",
+      "bands": [
+        {
+          "name": "P-GSM 900",
+          "service": "mobile",
+          "start_hz": 935000000,
+          "end_hz": 960000000,
+          "modes": [
+            "gsmr"
+          ],
+          "cellular": {
+            "system": "gsm",
+            "band": 900,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 1,
+                "last": 124,
+                "first_hz": 935200000,
+                "hz_per_number": 200000
+              }
+            ]
+          }
+        },
+        {
+          "name": "E-GSM 900 extension",
+          "service": "mobile",
+          "start_hz": 925000000,
+          "end_hz": 935000000,
+          "modes": [
+            "gsmr"
+          ],
+          "cellular": {
+            "system": "gsm",
+            "band": 900,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 975,
+                "last": 1023,
+                "first_hz": 925200000,
+                "hz_per_number": 200000
+              },
+              {
+                "first": 0,
+                "last": 0,
+                "first_hz": 935000000,
+                "hz_per_number": 200000
+              }
+            ]
+          }
+        },
+        {
+          "name": "R-GSM 900 extension",
+          "service": "mobile",
+          "start_hz": 921000000,
+          "end_hz": 925000000,
+          "modes": [
+            "gsmr"
+          ],
+          "cellular": {
+            "system": "gsm",
+            "band": 900,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 955,
+                "last": 974,
+                "first_hz": 921200000,
+                "hz_per_number": 200000
+              }
+            ]
+          }
+        },
+        {
+          "name": "GSM 850",
+          "service": "mobile",
+          "start_hz": 869000000,
+          "end_hz": 894000000,
+          "modes": [
+            "gsmr"
+          ],
+          "cellular": {
+            "system": "gsm",
+            "band": 850,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 128,
+                "last": 251,
+                "first_hz": 869200000,
+                "hz_per_number": 200000
+              }
+            ]
+          }
+        },
+        {
+          "name": "DCS 1800",
+          "service": "mobile",
+          "start_hz": 1805000000,
+          "end_hz": 1880000000,
+          "modes": [
+            "gsmr"
+          ],
+          "cellular": {
+            "system": "gsm",
+            "band": 1800,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 512,
+                "last": 885,
+                "first_hz": 1805200000,
+                "hz_per_number": 200000
+              }
+            ]
+          }
+        },
+        {
+          "name": "PCS 1900",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1990000000,
+          "modes": [],
+          "cellular": {
+            "system": "gsm",
+            "band": 1900,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 512,
+                "last": 810,
+                "first_hz": 1930200000,
+                "hz_per_number": 200000
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cell_lte",
+      "name": "LTE bands (EARFCN)",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA User Equipment (UE) radio transmission and reception",
+        "number": "TS 36.101",
+        "date": "Release 17",
+        "clause": "table 5.5-1 (operating bands), table 5.7.3-1 (EARFCN)",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "unverified_reason": "values taken over from the receiver's band tables and checked by the formula tests; not yet compared line by line with the cited release",
+      "note": "downlink edges and downlink EARFCNs",
+      "bands": [
+        {
+          "name": "LTE band 1 (IMT 2100)",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2170000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 1,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 0,
+                "last": 599,
+                "first_hz": 2110000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 2 (PCS 1900)",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1990000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 2,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 600,
+                "last": 1199,
+                "first_hz": 1930000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 3 (DCS 1800)",
+          "service": "mobile",
+          "start_hz": 1805000000,
+          "end_hz": 1880000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 3,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 1200,
+                "last": 1949,
+                "first_hz": 1805000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 4 (AWS-1)",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2155000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 4,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 1950,
+                "last": 2399,
+                "first_hz": 2110000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 5 (CLR 850)",
+          "service": "mobile",
+          "start_hz": 869000000,
+          "end_hz": 894000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 5,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 2400,
+                "last": 2649,
+                "first_hz": 869000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 6 (UMTS 800)",
+          "service": "mobile",
+          "start_hz": 875000000,
+          "end_hz": 885000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 6,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 2650,
+                "last": 2749,
+                "first_hz": 875000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 7 (IMT-E 2600)",
+          "service": "mobile",
+          "start_hz": 2620000000,
+          "end_hz": 2690000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 7,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 2750,
+                "last": 3449,
+                "first_hz": 2620000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 8 (E-GSM 900)",
+          "service": "mobile",
+          "start_hz": 925000000,
+          "end_hz": 960000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 8,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 3450,
+                "last": 3799,
+                "first_hz": 925000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 9 (UMTS 1700)",
+          "service": "mobile",
+          "start_hz": 1844900000,
+          "end_hz": 1879900000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 9,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 3800,
+                "last": 4149,
+                "first_hz": 1844900000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 10 (E-AWS)",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2170000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 10,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 4150,
+                "last": 4749,
+                "first_hz": 2110000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 11 (Lower 1500)",
+          "service": "mobile",
+          "start_hz": 1475900000,
+          "end_hz": 1495900000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 11,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 4750,
+                "last": 4949,
+                "first_hz": 1475900000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 12 (Lower 700)",
+          "service": "mobile",
+          "start_hz": 729000000,
+          "end_hz": 746000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 12,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 5010,
+                "last": 5179,
+                "first_hz": 729000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 13 (Upper 700 C)",
+          "service": "mobile",
+          "start_hz": 746000000,
+          "end_hz": 756000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 13,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 5180,
+                "last": 5279,
+                "first_hz": 746000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 14 (Upper 700 D)",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 768000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 14,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 5280,
+                "last": 5379,
+                "first_hz": 758000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 17 (Lower 700 B/C)",
+          "service": "mobile",
+          "start_hz": 734000000,
+          "end_hz": 746000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 17,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 5730,
+                "last": 5849,
+                "first_hz": 734000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 18 (Lower 800)",
+          "service": "mobile",
+          "start_hz": 860000000,
+          "end_hz": 875000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 18,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 5850,
+                "last": 5999,
+                "first_hz": 860000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 19 (Upper 800)",
+          "service": "mobile",
+          "start_hz": 875000000,
+          "end_hz": 890000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 19,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 6000,
+                "last": 6149,
+                "first_hz": 875000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 20 (EU 800 DD)",
+          "service": "mobile",
+          "start_hz": 791000000,
+          "end_hz": 821000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 20,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 6150,
+                "last": 6449,
+                "first_hz": 791000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 21 (Upper 1500)",
+          "service": "mobile",
+          "start_hz": 1495900000,
+          "end_hz": 1510900000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 21,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 6450,
+                "last": 6599,
+                "first_hz": 1495900000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 22 (3500 FDD)",
+          "service": "mobile",
+          "start_hz": 3510000000,
+          "end_hz": 3590000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 22,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 6600,
+                "last": 7399,
+                "first_hz": 3510000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 23 (S-band)",
+          "service": "mobile",
+          "start_hz": 2180000000,
+          "end_hz": 2200000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 23,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 7500,
+                "last": 7699,
+                "first_hz": 2180000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 24 (L-band 1600)",
+          "service": "mobile",
+          "start_hz": 1525000000,
+          "end_hz": 1559000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 24,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 7700,
+                "last": 8039,
+                "first_hz": 1525000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 25 (E-PCS 1900)",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1995000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 25,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 8040,
+                "last": 8689,
+                "first_hz": 1930000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 26 (E-CLR 850)",
+          "service": "mobile",
+          "start_hz": 859000000,
+          "end_hz": 894000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 26,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 8690,
+                "last": 9039,
+                "first_hz": 859000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 27 (SMR 800)",
+          "service": "mobile",
+          "start_hz": 852000000,
+          "end_hz": 869000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 27,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 9040,
+                "last": 9209,
+                "first_hz": 852000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 28 (APT 700)",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 803000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 28,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 9210,
+                "last": 9659,
+                "first_hz": 758000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 29 (700 SDL)",
+          "service": "mobile",
+          "start_hz": 717000000,
+          "end_hz": 728000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 29,
+            "duplex": "sdl",
+            "numbers": [
+              {
+                "first": 9660,
+                "last": 9769,
+                "first_hz": 717000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 30 (WCS 2300)",
+          "service": "mobile",
+          "start_hz": 2350000000,
+          "end_hz": 2360000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 30,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 9770,
+                "last": 9869,
+                "first_hz": 2350000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 31 (450 MHz)",
+          "service": "mobile",
+          "start_hz": 462500000,
+          "end_hz": 467500000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 31,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 9870,
+                "last": 9919,
+                "first_hz": 462500000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 32 (L-band SDL)",
+          "service": "mobile",
+          "start_hz": 1452000000,
+          "end_hz": 1496000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 32,
+            "duplex": "sdl",
+            "numbers": [
+              {
+                "first": 9920,
+                "last": 10359,
+                "first_hz": 1452000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 33 (TDD 2000)",
+          "service": "mobile",
+          "start_hz": 1900000000,
+          "end_hz": 1920000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 33,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 36000,
+                "last": 36199,
+                "first_hz": 1900000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 34 (TDD 2000)",
+          "service": "mobile",
+          "start_hz": 2010000000,
+          "end_hz": 2025000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 34,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 36200,
+                "last": 36349,
+                "first_hz": 2010000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 35 (TDD PCS)",
+          "service": "mobile",
+          "start_hz": 1850000000,
+          "end_hz": 1910000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 35,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 36350,
+                "last": 36949,
+                "first_hz": 1850000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 36 (TDD PCS)",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1990000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 36,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 36950,
+                "last": 37549,
+                "first_hz": 1930000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 37 (TDD PCS)",
+          "service": "mobile",
+          "start_hz": 1910000000,
+          "end_hz": 1930000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 37,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 37550,
+                "last": 37749,
+                "first_hz": 1910000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 38 (TDD 2600)",
+          "service": "mobile",
+          "start_hz": 2570000000,
+          "end_hz": 2620000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 38,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 37750,
+                "last": 38249,
+                "first_hz": 2570000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 39 (TDD 1900)",
+          "service": "mobile",
+          "start_hz": 1880000000,
+          "end_hz": 1920000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 39,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 38250,
+                "last": 38649,
+                "first_hz": 1880000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 40 (TDD 2300)",
+          "service": "mobile",
+          "start_hz": 2300000000,
+          "end_hz": 2400000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 40,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 38650,
+                "last": 39649,
+                "first_hz": 2300000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 41 (TDD 2500)",
+          "service": "mobile",
+          "start_hz": 2496000000,
+          "end_hz": 2690000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 41,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 39650,
+                "last": 41589,
+                "first_hz": 2496000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 42 (TDD 3500)",
+          "service": "mobile",
+          "start_hz": 3400000000,
+          "end_hz": 3600000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 42,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 41590,
+                "last": 43589,
+                "first_hz": 3400000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 43 (TDD 3700)",
+          "service": "mobile",
+          "start_hz": 3600000000,
+          "end_hz": 3800000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 43,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 43590,
+                "last": 45589,
+                "first_hz": 3600000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 44 (TDD 700)",
+          "service": "mobile",
+          "start_hz": 703000000,
+          "end_hz": 803000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 44,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 45590,
+                "last": 46589,
+                "first_hz": 703000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 45 (TDD 1500)",
+          "service": "mobile",
+          "start_hz": 1447000000,
+          "end_hz": 1467000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 45,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 46590,
+                "last": 46789,
+                "first_hz": 1447000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 46 (LAA 5 GHz)",
+          "service": "mobile",
+          "start_hz": 5150000000,
+          "end_hz": 5925000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 46,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 46790,
+                "last": 54539,
+                "first_hz": 5150000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 47 (V2X 5.9 GHz)",
+          "service": "mobile",
+          "start_hz": 5855000000,
+          "end_hz": 5925000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 47,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 54540,
+                "last": 55239,
+                "first_hz": 5855000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 48 (CBRS)",
+          "service": "mobile",
+          "start_hz": 3550000000,
+          "end_hz": 3700000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 48,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 55240,
+                "last": 56739,
+                "first_hz": 3550000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 49 (CBRS LAA)",
+          "service": "mobile",
+          "start_hz": 3550000000,
+          "end_hz": 3700000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 49,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 56740,
+                "last": 58239,
+                "first_hz": 3550000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 50 (TDD 1500)",
+          "service": "mobile",
+          "start_hz": 1432000000,
+          "end_hz": 1517000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 50,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 58240,
+                "last": 59089,
+                "first_hz": 1432000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 51 (TDD 1500-)",
+          "service": "mobile",
+          "start_hz": 1427000000,
+          "end_hz": 1432000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 51,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 59090,
+                "last": 59139,
+                "first_hz": 1427000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 52 (TDD 3300)",
+          "service": "mobile",
+          "start_hz": 3300000000,
+          "end_hz": 3400000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 52,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 59140,
+                "last": 60139,
+                "first_hz": 3300000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 53 (TDD 2.4 GHz)",
+          "service": "mobile",
+          "start_hz": 2483500000,
+          "end_hz": 2495000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 53,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 60140,
+                "last": 60254,
+                "first_hz": 2483500000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 65 (E-IMT 2100)",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2200000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 65,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 65536,
+                "last": 66435,
+                "first_hz": 2110000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 66 (AWS-3)",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2200000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 66,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 66436,
+                "last": 67335,
+                "first_hz": 2110000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 67 (EU 700 SDL)",
+          "service": "mobile",
+          "start_hz": 738000000,
+          "end_hz": 758000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 67,
+            "duplex": "sdl",
+            "numbers": [
+              {
+                "first": 67336,
+                "last": 67535,
+                "first_hz": 738000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 68 (ME 700)",
+          "service": "mobile",
+          "start_hz": 753000000,
+          "end_hz": 783000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 68,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 67536,
+                "last": 67835,
+                "first_hz": 753000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 69 (2600 SDL)",
+          "service": "mobile",
+          "start_hz": 2570000000,
+          "end_hz": 2620000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 69,
+            "duplex": "sdl",
+            "numbers": [
+              {
+                "first": 67836,
+                "last": 68335,
+                "first_hz": 2570000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 70 (AWS-4)",
+          "service": "mobile",
+          "start_hz": 1995000000,
+          "end_hz": 2020000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 70,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 68336,
+                "last": 68585,
+                "first_hz": 1995000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 71 (600 MHz)",
+          "service": "mobile",
+          "start_hz": 617000000,
+          "end_hz": 652000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 71,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 68586,
+                "last": 68935,
+                "first_hz": 617000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 72 (PMR 450)",
+          "service": "mobile",
+          "start_hz": 461000000,
+          "end_hz": 466000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 72,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 68936,
+                "last": 68985,
+                "first_hz": 461000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 73 (450 APAC)",
+          "service": "mobile",
+          "start_hz": 460000000,
+          "end_hz": 465000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 73,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 68986,
+                "last": 69035,
+                "first_hz": 460000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 74 (L-band)",
+          "service": "mobile",
+          "start_hz": 1475000000,
+          "end_hz": 1518000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 74,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 69036,
+                "last": 69465,
+                "first_hz": 1475000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 75 (L-band SDL)",
+          "service": "mobile",
+          "start_hz": 1432000000,
+          "end_hz": 1517000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 75,
+            "duplex": "sdl",
+            "numbers": [
+              {
+                "first": 69466,
+                "last": 70315,
+                "first_hz": 1432000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 76 (L-band SDL-)",
+          "service": "mobile",
+          "start_hz": 1427000000,
+          "end_hz": 1432000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 76,
+            "duplex": "sdl",
+            "numbers": [
+              {
+                "first": 70316,
+                "last": 70365,
+                "first_hz": 1427000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 85 (Lower 700 A)",
+          "service": "mobile",
+          "start_hz": 728000000,
+          "end_hz": 746000000,
+          "modes": [
+            "cell",
+            "nbiot"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 85,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 70366,
+                "last": 70545,
+                "first_hz": 728000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 87 (410 MHz)",
+          "service": "mobile",
+          "start_hz": 420000000,
+          "end_hz": 425000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 87,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 70546,
+                "last": 70595,
+                "first_hz": 420000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        },
+        {
+          "name": "LTE band 88 (410 MHz)",
+          "service": "mobile",
+          "start_hz": 422000000,
+          "end_hz": 427000000,
+          "modes": [
+            "cell"
+          ],
+          "cellular": {
+            "system": "lte",
+            "band": 88,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 70596,
+                "last": 70645,
+                "first_hz": 422000000,
+                "hz_per_number": 100000
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cell_nr",
+      "name": "NR bands (NR-ARFCN, GSCN)",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "NR Base Station (BS) radio transmission and reception",
+        "number": "TS 38.104",
+        "date": "Release 19",
+        "clause": "table 5.2-1 (FR1 bands), table 5.4.2.3-1 (NR-ARFCN per band), table 5.4.3.3-1 (GSCN per band)",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.104/"
+      },
+      "also": [
+        {
+          "publisher": "3GPP",
+          "title": "NR User Equipment (UE) radio transmission and reception, Part 1: Range 1 Standalone",
+          "number": "TS 38.101-1",
+          "date": "Release 19",
+          "clause": "table 5.2-1, table 5.4.2.3-1, table 5.4.3.3-1 and its notes",
+          "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.101-1/"
+        }
+      ],
+      "verified": true,
+      "note": "downlink edges; the NR-ARFCN and GSCN formulas are in sdrkit_data_plans::cellular",
+      "bands": [
+        {
+          "name": "NR band n1 (IMT 2100)",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2170000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 1,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 422000,
+                "last": 434000,
+                "step": 20,
+                "first_hz": 2110000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 5279,
+                "last": 5419
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n2 (PCS 1900)",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1990000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 2,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 386000,
+                "last": 398000,
+                "step": 20,
+                "first_hz": 1930000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 4829,
+                "last": 4969
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n3 (DCS 1800)",
+          "service": "mobile",
+          "start_hz": 1805000000,
+          "end_hz": 1880000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 3,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 361000,
+                "last": 376000,
+                "step": 20,
+                "first_hz": 1805000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 4517,
+                "last": 4693
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n5 (CLR 850)",
+          "service": "mobile",
+          "start_hz": 869000000,
+          "end_hz": 894000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 5,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 173800,
+                "last": 178800,
+                "step": 20,
+                "first_hz": 869000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 2177,
+                "last": 2230
+              },
+              {
+                "scs_khz": 30,
+                "first": 2183,
+                "last": 2224
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n7 (IMT-E 2600)",
+          "service": "mobile",
+          "start_hz": 2620000000,
+          "end_hz": 2690000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 7,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 524000,
+                "last": 538000,
+                "step": 20,
+                "first_hz": 2620000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 6554,
+                "last": 6718
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n8 (E-GSM 900)",
+          "service": "mobile",
+          "start_hz": 925000000,
+          "end_hz": 960000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 8,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 185000,
+                "last": 192000,
+                "step": 20,
+                "first_hz": 925000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 2318,
+                "last": 2395
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n12 (Lower 700)",
+          "service": "mobile",
+          "start_hz": 729000000,
+          "end_hz": 746000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 12,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 145800,
+                "last": 149200,
+                "step": 20,
+                "first_hz": 729000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 1828,
+                "last": 1858
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n20 (EU 800 DD)",
+          "service": "mobile",
+          "start_hz": 791000000,
+          "end_hz": 821000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 20,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 158200,
+                "last": 164200,
+                "step": 20,
+                "first_hz": 791000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 1982,
+                "last": 2047
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n25 (E-PCS 1900)",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1995000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 25,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 386000,
+                "last": 399000,
+                "step": 20,
+                "first_hz": 1930000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 4829,
+                "last": 4981
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n28 (APT 700)",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 803000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 28,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 151600,
+                "last": 160600,
+                "step": 20,
+                "first_hz": 758000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 1901,
+                "last": 2002
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n34 (TDD 2000)",
+          "service": "mobile",
+          "start_hz": 2010000000,
+          "end_hz": 2025000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 34,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 402000,
+                "last": 405000,
+                "step": 20,
+                "first_hz": 2010000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 5032,
+                "last": 5032
+              },
+              {
+                "scs_khz": 15,
+                "first": 5043,
+                "last": 5043
+              },
+              {
+                "scs_khz": 15,
+                "first": 5054,
+                "last": 5054
+              },
+              {
+                "scs_khz": 30,
+                "first": 5036,
+                "last": 5050
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n38 (TDD 2600)",
+          "service": "mobile",
+          "start_hz": 2570000000,
+          "end_hz": 2620000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 38,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 514000,
+                "last": 524000,
+                "step": 20,
+                "first_hz": 2570000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 6432,
+                "last": 6432
+              },
+              {
+                "scs_khz": 15,
+                "first": 6443,
+                "last": 6443
+              },
+              {
+                "scs_khz": 15,
+                "first": 6457,
+                "last": 6457
+              },
+              {
+                "scs_khz": 15,
+                "first": 6468,
+                "last": 6468
+              },
+              {
+                "scs_khz": 15,
+                "first": 6479,
+                "last": 6479
+              },
+              {
+                "scs_khz": 15,
+                "first": 6493,
+                "last": 6493
+              },
+              {
+                "scs_khz": 15,
+                "first": 6507,
+                "last": 6507
+              },
+              {
+                "scs_khz": 15,
+                "first": 6518,
+                "last": 6518
+              },
+              {
+                "scs_khz": 15,
+                "first": 6532,
+                "last": 6532
+              },
+              {
+                "scs_khz": 15,
+                "first": 6543,
+                "last": 6543
+              },
+              {
+                "scs_khz": 30,
+                "first": 6437,
+                "last": 6538
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n39 (TDD 1900)",
+          "service": "mobile",
+          "start_hz": 1880000000,
+          "end_hz": 1920000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 39,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 376000,
+                "last": 384000,
+                "step": 20,
+                "first_hz": 1880000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 4707,
+                "last": 4707
+              },
+              {
+                "scs_khz": 15,
+                "first": 4715,
+                "last": 4715
+              },
+              {
+                "scs_khz": 15,
+                "first": 4718,
+                "last": 4718
+              },
+              {
+                "scs_khz": 15,
+                "first": 4729,
+                "last": 4729
+              },
+              {
+                "scs_khz": 15,
+                "first": 4732,
+                "last": 4732
+              },
+              {
+                "scs_khz": 15,
+                "first": 4743,
+                "last": 4743
+              },
+              {
+                "scs_khz": 15,
+                "first": 4747,
+                "last": 4747
+              },
+              {
+                "scs_khz": 15,
+                "first": 4754,
+                "last": 4754
+              },
+              {
+                "scs_khz": 15,
+                "first": 4761,
+                "last": 4761
+              },
+              {
+                "scs_khz": 15,
+                "first": 4768,
+                "last": 4768
+              },
+              {
+                "scs_khz": 15,
+                "first": 4772,
+                "last": 4772
+              },
+              {
+                "scs_khz": 15,
+                "first": 4782,
+                "last": 4782
+              },
+              {
+                "scs_khz": 15,
+                "first": 4786,
+                "last": 4786
+              },
+              {
+                "scs_khz": 15,
+                "first": 4793,
+                "last": 4793
+              },
+              {
+                "scs_khz": 30,
+                "first": 4712,
+                "last": 4789
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n40 (TDD 2300)",
+          "service": "mobile",
+          "start_hz": 2300000000,
+          "end_hz": 2400000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 40,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 460000,
+                "last": 480000,
+                "step": 20,
+                "first_hz": 2300000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 30,
+                "first": 5762,
+                "last": 5989
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n41 (TDD 2500)",
+          "service": "mobile",
+          "start_hz": 2496000000,
+          "end_hz": 2690000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 41,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 499200,
+                "last": 537999,
+                "step": 3,
+                "first_hz": 2496000000,
+                "hz_per_number": 5000,
+                "scs_khz": 15
+              },
+              {
+                "first": 499200,
+                "last": 537996,
+                "step": 6,
+                "first_hz": 2496000000,
+                "hz_per_number": 5000,
+                "scs_khz": 30
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 6246,
+                "last": 6717,
+                "step": 3
+              },
+              {
+                "scs_khz": 30,
+                "first": 6252,
+                "last": 6714,
+                "step": 3
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n48 (CBRS)",
+          "service": "mobile",
+          "start_hz": 3550000000,
+          "end_hz": 3700000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 48,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 636667,
+                "last": 646666,
+                "first_hz": 3550005000,
+                "hz_per_number": 15000,
+                "scs_khz": 15
+              },
+              {
+                "first": 636668,
+                "last": 646666,
+                "step": 2,
+                "first_hz": 3550020000,
+                "hz_per_number": 15000,
+                "scs_khz": 30
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 30,
+                "first": 7884,
+                "last": 7982
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n50 (TDD 1500)",
+          "service": "mobile",
+          "start_hz": 1432000000,
+          "end_hz": 1517000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 50,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 286400,
+                "last": 303400,
+                "step": 20,
+                "first_hz": 1432000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 30,
+                "first": 3590,
+                "last": 3781
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n66 (AWS-3)",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2200000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 66,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 422000,
+                "last": 440000,
+                "step": 20,
+                "first_hz": 2110000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 5279,
+                "last": 5494
+              },
+              {
+                "scs_khz": 30,
+                "first": 5285,
+                "last": 5488
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n71 (600 MHz)",
+          "service": "mobile",
+          "start_hz": 617000000,
+          "end_hz": 652000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 71,
+            "duplex": "fdd",
+            "numbers": [
+              {
+                "first": 123400,
+                "last": 130400,
+                "step": 20,
+                "first_hz": 617000000,
+                "hz_per_number": 5000
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 15,
+                "first": 1547,
+                "last": 1624
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n77 (C-band TDD)",
+          "service": "mobile",
+          "start_hz": 3300000000,
+          "end_hz": 4200000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 77,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 620000,
+                "last": 680000,
+                "first_hz": 3300000000,
+                "hz_per_number": 15000,
+                "scs_khz": 15
+              },
+              {
+                "first": 620000,
+                "last": 680000,
+                "step": 2,
+                "first_hz": 3300000000,
+                "hz_per_number": 15000,
+                "scs_khz": 30
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 30,
+                "first": 7711,
+                "last": 8329
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n78 (3.5 GHz TDD)",
+          "service": "mobile",
+          "start_hz": 3300000000,
+          "end_hz": 3800000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 78,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 620000,
+                "last": 653333,
+                "first_hz": 3300000000,
+                "hz_per_number": 15000,
+                "scs_khz": 15
+              },
+              {
+                "first": 620000,
+                "last": 653332,
+                "step": 2,
+                "first_hz": 3300000000,
+                "hz_per_number": 15000,
+                "scs_khz": 30
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 30,
+                "first": 7711,
+                "last": 8051
+              }
+            ]
+          }
+        },
+        {
+          "name": "NR band n79 (4.7 GHz TDD)",
+          "service": "mobile",
+          "start_hz": 4400000000,
+          "end_hz": 5000000000,
+          "modes": [
+            "nr"
+          ],
+          "cellular": {
+            "system": "nr",
+            "band": 79,
+            "duplex": "tdd",
+            "numbers": [
+              {
+                "first": 693334,
+                "last": 733333,
+                "first_hz": 4400010000,
+                "hz_per_number": 15000,
+                "scs_khz": 15
+              },
+              {
+                "first": 693334,
+                "last": 733332,
+                "step": 2,
+                "first_hz": 4400010000,
+                "hz_per_number": 15000,
+                "scs_khz": 30
+              }
+            ],
+            "sync": [
+              {
+                "scs_khz": 30,
+                "first": 8480,
+                "last": 8880,
+                "step": 16
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 96000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic NXDN test signal, 9.0 s, channel at the centre of the recording, carrier-to-noise 25 dB in the mode's channel width, rms about 0.22. NXDN test schedule: a trunked site control channel (NXDN96, CAC SITE_INFO, RAN 5, location 0A4C2B), an NXDN48 group voice call 1001 -> talkgroup 200 (RAN 1, 2.0 s), an NXDN48 status 17 from 1002 to unit 1001, an NXDN96 short data call 2005 -> 2001 with the text 'TEST MESSAGE 96', an NXDN96 individual voice call 2001 -> 2002 (RAN 5, 1.5 s). 4FSK raised cosine 0.2, voice bits are a known pattern (not speech). See specs/dvoice.md, section 'Test vectors'.",
+    "core:recorder": "digital voice test generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 446106250.0
+    }
+  ],
+  "annotations": []
+}

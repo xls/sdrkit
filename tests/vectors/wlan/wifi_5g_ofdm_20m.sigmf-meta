@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 20000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic 5 GHz Wi-Fi, channel 36, 30 ms. Non-HT OFDM 6 Mbit/s beacons (clause 17): 'Test-5G' (HT/VHT/HE, 80 MHz, WPA2/WPA3, BSS color 17, TWT, country DE, power constraint 3 dB, mobility domain 0x1234, a Reduced Neighbor Report naming a co-located 6 GHz AP), 'Test-Old' (HT only, 3 streams, WPA2), 'Test-ac' (VHT, 4 streams, 40 MHz, WPA2) and a probe response of 'Test-5G'. Common carrier offset +30 kHz plus per-AP 0, +15, -20 kHz. Signal to noise 25 dB in 20 MHz. See specs/wlan.md section 9.",
+    "core:recorder": "Wi-Fi beacon test generator, noise seed 5",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 5180000000.0
+    }
+  ],
+  "annotations": []
+}

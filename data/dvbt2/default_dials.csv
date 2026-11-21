@@ -1,0 +1,5 @@
+# id: default_dials
+# name: Starting dial of DVB-T2 (UHF channel 21 of the 8 MHz raster)
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+dvbt2,,474000000

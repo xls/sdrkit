@@ -1,0 +1,10 @@
+# id: inmarsat_satellites
+# name: Names of the Inmarsat satellites by orbital longitude, and the forward band in use (stack bgan)
+# stacks: bgan
+# source: no public document was read; the names and longitudes are not confirmed by a public document
+# note: The stack bgan takes the rows as its setting satellites (lon_deg,name) and names a SatelliteLocation within 1.5 degrees. The forward band in use is 1525 to 1559 MHz; ETSI TS 102 744-2-1 clause 5.1.2 allows 1518 to 1559 MHz.
+lon_deg,name
+-98.0,Inmarsat-4 F3 (Americas)
+24.9,"Alphasat (Europe, Middle East and Africa)"
+63.9,Inmarsat-4 F2 (Middle East and Asia)
+143.5,Inmarsat-4 F1 (Asia-Pacific)

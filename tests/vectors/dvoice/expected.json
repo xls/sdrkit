@@ -1,0 +1,108 @@
+{
+  "note": "Expected decode of each recording, read at the end after the whole file plus 2 s of zeros has been fed in blocks of 4800 samples (any block size must give the same result). The channel is at 0 Hz (no tune offset). 'start_s' and 'dur_s' are signal seconds from the start of the file. Call lists are given oldest first. Voice frames are not speech: they are known bit patterns (DMR: random), so no audio is expected; the counts are of coded frames handed to the media output (one per vocoder frame). Unless a tolerance says otherwise, identities, texts, flags and kinds are exact.",
+  "tolerance": {
+    "start_s": 0.2,
+    "dur_s": 0.2,
+    "voice_frames": "within 3 % or 6 frames of the value, whichever is larger",
+    "offset_hz": [-150, 150],
+    "snr_db": "at least the value minus 3 dB",
+    "lat_lon_deg": 0.0005,
+    "blocks_bad": "at most the value given (0 means none)",
+    "false_entries": "no log entry that is not listed here"
+  },
+  "dvoice_nxdn_96k.sigmf-meta": {
+    "mode": "nxdn",
+    "site": { "valid": true, "location": "0A4C2B", "system": 659, "site": 43, "ran": 5 },
+    "calls": [
+      { "kind": "voice", "baud": 2400, "src": 1001, "dst": 200, "call_type": "group", "ran": 1, "late_entry": false, "end_seen": true, "voice_frames": 96, "start_s": 2.20, "dur_s": 2.00 },
+      { "kind": "status", "baud": 2400, "src": 1002, "dst": 1001, "call_type": "individual", "ran": 1, "text": "status 17", "start_s": 5.09 },
+      { "kind": "short_data", "baud": 4800, "src": 2005, "dst": 2001, "call_type": "individual", "ran": 5, "text": "TEST MESSAGE 96", "start_s": 5.93 },
+      { "kind": "voice", "baud": 4800, "src": 2001, "dst": 2002, "call_type": "individual", "ran": 5, "late_entry": false, "end_seen": true, "voice_frames": 144, "start_s": 6.82, "dur_s": 1.48 }
+    ],
+    "measurements": { "offset_hz": 0, "snr_db": 19.7, "frames": 102, "crc_ok": 106, "crc_bad_max": 20 },
+    "note_crc_bad": "a few CAC / SACCH CRC failures occur at the starts of transmissions while the receiver acquires; none may produce a log entry"
+  },
+  "dvoice_dpmr_96k.sigmf-meta": {
+    "mode": "dpmr",
+    "calls": [
+      { "kind": "voice", "src": 1001, "dst": 200, "call_type": "group", "comm_mode": "voice", "colour_code": 7, "emergency": false, "late_entry": false, "end_seen": true, "voice_frames": 96, "start_s": 0.38, "dur_s": 1.95 },
+      { "kind": "status", "src": 1002, "dst": 1001, "call_type": "individual", "comm_mode": "data type 1", "colour_code": 7, "text": "status 17", "start_s": 3.21 },
+      { "kind": "short_message", "src": 2005, "dst": 2001, "call_type": "individual", "comm_mode": "data type 2", "colour_code": 12, "text": "TEST MESSAGE ON CHANNEL ONE", "start_s": 4.11 },
+      { "kind": "packet", "src": 2006, "dst": "ALL (FFFFFF)", "call_type": "all call", "comm_mode": "packet data", "colour_code": 12, "text": "PACKET DATA", "start_s": 5.18 },
+      { "kind": "voice", "src": 2001, "dst": 2002, "call_type": "individual", "comm_mode": "voice", "colour_code": 12, "emergency": true, "late_entry": false, "end_seen": true, "voice_frames": 80, "start_s": 6.16, "dur_s": 1.62 }
+    ],
+    "measurements": { "offset_hz": 0, "snr_db": 19.8, "frames": 57, "crc_ok": 60, "crc_bad_max": 0 }
+  },
+  "dvoice_p25_96k.sigmf-meta": {
+    "mode": "p25",
+    "nac": "293",
+    "site": { "valid": true, "wacn": "BEE00", "system": "3A1", "rfss": 1, "site": 5, "nac": "293" },
+    "adjacent_sites": [ { "site": 6 } ],
+    "identifiers": [
+      { "id": 1, "base_hz": 851006250, "spacing_hz": 12500, "tx_offset_hz": -45000000 },
+      { "id": 2, "vhf_uhf": true, "base_hz": 460000000, "tx_offset_hz": 5000000 }
+    ],
+    "calls": [
+      { "kind": "grant", "group": true, "src": 1234567, "dst": 1201, "channel": "1-0010", "freq_hz": 851206250, "start_s": 0.45 },
+      { "kind": "voice", "group": true, "src": 1234567, "dst": 1201, "encrypted": false, "alg_id": "80", "nac": "293", "late_entry": false, "end_seen": true, "voice_frames": 108, "clear_frames": 108, "start_s": 2.48, "dur_s": 2.20 },
+      { "kind": "voice", "group": true, "src": 7654321, "dst": 1300, "encrypted": true, "alg_id": "84", "key_id": "1234", "late_entry": false, "end_seen": true, "voice_frames": 72, "clear_frames": 0, "start_s": 5.39, "dur_s": 1.49 },
+      { "kind": "data", "dst": 2002, "start_s": 7.56 },
+      { "kind": "voice", "group": false, "src": 2002, "dst": 2003, "emergency": true, "encrypted": false, "end_seen": true, "voice_frames": 54, "clear_frames": 54, "start_s": 8.21, "dur_s": 1.12 }
+    ],
+    "talkgroups": [ { "tg": 1201, "grants": 1, "calls": 1, "encrypted": false }, { "tg": 1300, "grants": 0, "calls": 1, "encrypted": true } ],
+    "media": "the 108 + 54 clear IMBE frames reach the media output; none of the 72 frames of the encrypted call does",
+    "measurements": { "offset_hz": 0, "snr_db": 25.7, "frames": 56, "blocks_ok": 148, "blocks_bad_max": 0 }
+  },
+  "dvoice_dstar_96k.sigmf-meta": {
+    "mode": "dstar",
+    "calls": [
+      { "my": "N0CALL", "suffix": "ID51", "ur": "CQCQCQ", "rpt1": "N0RPT  B", "rpt2": "N0RPT  G", "flag1_hex": "40", "flags": "via repeater", "header_ok": true, "header_from_slow_data": false, "late_entry": false, "end_seen": true, "text": "TEST SIGNAL ONE 73", "squelch": null, "voice_frames": 200, "position": [54.68720, 25.27970], "start_s": 0.30, "dur_s": 4.00 },
+      { "my": "N1TEST", "suffix": "", "ur": "CQCQCQ", "rpt1": "DIRECT", "rpt2": "DIRECT", "flag1_hex": "00", "flags": "simplex", "header_ok": true, "header_from_slow_data": false, "late_entry": false, "end_seen": true, "text": "Hello via simplex", "squelch": 12, "voice_frames": 150, "position": [54.89850, 23.90360], "start_s": 5.26, "dur_s": 3.00 }
+    ],
+    "positions": [
+      { "call": "N0CALL", "source": "NMEA", "lat": 54.68720, "lon": 25.27970, "alt_m": 112, "speed_kmh": 36, "course_deg": 90 },
+      { "call": "N0CALL-7", "source": "D-PRS", "lat": 54.89850, "lon": 23.90360, "comment": "test position" }
+    ],
+    "tolerance_extra": { "speed_kmh": 0.5, "alt_m": 1, "dprs_lon_deg": "0.0002 (D-PRS carries hundredths of a minute)" },
+    "measurements": { "headers_ok": 2, "voice_frames": 350, "offset_hz": 0, "snr_db": 13.5, "inverted": false }
+  },
+  "dvoice_dmr_96k.sigmf-meta": {
+    "mode": "dmr",
+    "channel": { "colour_code": 1, "link": "base station", "slots_locked": 2 },
+    "cach_activity_last": "slot 1 none, slot 2 group voice",
+    "calls": [
+      { "slot": 1, "kind": "group voice", "src": 3101234, "dst": 91, "alias": "Ops Desk", "voice_frames": 72, "terminated": true, "late_entry": false, "start_s": 0.03, "end_s": 1.89 },
+      { "slot": 2, "kind": "control", "src": 2145016, "dst": 2145007, "note": "preamble CSBK (opcode 3D)", "start_s": 0.06 },
+      { "slot": 2, "kind": "data", "src": 2145016, "dst": 2145007, "format": "short data, ISO 8859-1", "text": "Battery low on unit 7 #1", "start_s": 0.12 },
+      { "slot": 2, "kind": "group voice", "src": 2504105, "dst": 2149, "alias": "Station Two", "voice_frames": 108, "terminated": true, "start_s": 0.72, "end_s": 3.30 },
+      { "slot": 1, "kind": "group voice", "src": 2623266, "dst": 2149, "voice_frames": 54, "terminated": true, "start_s": 2.07, "end_s": 3.57 },
+      { "slot": 1, "kind": "private voice", "src": 2623266, "dst": 250997, "voice_frames": 54, "terminated": true, "start_s": 3.75, "end_s": 5.25 },
+      { "slot": 2, "kind": "group voice", "src": 2621042, "dst": 9, "voice_frames": 72, "terminated": true, "start_s": 3.96, "end_s": 5.82 },
+      { "slot": 1, "kind": "all call", "src": 3101234, "dst": 16777215, "voice_frames": 90, "terminated": true, "start_s": 5.49, "end_s": 7.71 },
+      { "slot": 2, "kind": "data", "src": 250997, "dst": 2308155, "text": "Status: all clear #2", "start_s": 6.54 },
+      { "slot": 2, "kind": "data", "src": 2504105, "dst": 2145016, "text": "Meeting at the main gate at 14:30 #3", "start_s": 7.02 },
+      { "slot": 2, "kind": "group voice", "src": 3101234, "dst": 91, "voice_frames": 36, "terminated": true, "start_s": 7.62, "end_s": 8.76 },
+      { "slot": 1, "kind": "data", "src": 3101234, "dst": 2504105, "text": "Status: all clear #1", "start_s": 8.07 },
+      { "slot": 1, "kind": "data", "src": 2145016, "dst": 250997, "text": "Café is open, 20% off today #2", "start_s": 8.73 },
+      { "slot": 1, "kind": "group voice", "src": 2145016, "dst": 9, "voice_frames": 54, "terminated": true, "start_s": 9.45, "end_s": 10.95 },
+      { "slot": 1, "kind": "data", "src": 250997, "dst": 2145016, "text": "Status: all clear #3", "start_s": 11.19 },
+      { "slot": 2, "kind": "all call", "src": 3101234, "dst": 16777215, "alias": "Base North", "voice_frames": 126, "terminated": true, "start_s": 9.06, "end_s": 11.70 }
+    ],
+    "control_entries": "every 'data' entry is preceded on its slot by a 'control' entry for its preamble CSBK (opcode 3D), same source and destination, 0.06 s earlier",
+    "messages_count": 6,
+    "measurements": { "offset_hz": 0, "snr_db": 30.6, "deviation_hz": 1934, "deviation_tolerance_hz": 60, "blocks_ok_min": 500, "blocks_bad_max": 0 },
+    "note": "This expected result was established at a 1 Msps rendering of the same transmissions; the 96 ksps file carries the identical schedule (same seed). sdrkit's DMR receiver must accept 96 ksps (see specs/dvoice.md, DMR rates)."
+  },
+  "dvoice_m17_96k.sigmf-meta": {
+    "mode": "m17",
+    "transmissions": [
+      { "src": "N0CALL", "dst": "@ALL", "can": 0, "type": "voice 3200", "encryption": "", "text": "Test signal one, 73", "frames": 75, "lsf_from_lich": false, "start_s": 0.34, "dur_s": 3.04 },
+      { "src": "N0CALL", "dst": "TEST1", "can": 0, "type": "packet", "sms": "Hello from the test signal", "frames": 2, "start_s": 4.26 },
+      { "src": "N0CALL/P", "dst": "ECHO", "can": 3, "type": "voice + data 1600", "encryption": "", "gnss": { "lat": 48.2085, "lon": 16.3725, "alt_m": 180, "speed_kmh": 36, "bearing_deg": 90, "station": "mobile" }, "data_contains": "M17 data stream from the test signal.", "frames": 60, "start_s": 5.26, "dur_s": 2.44 },
+      { "src": "N0CALL", "dst": "@ALL", "can": 5, "type": "voice 3200", "encryption": "AES-256", "frames": 30, "media_frames": 0, "start_s": 8.59, "dur_s": 1.24 }
+    ],
+    "messages": [ { "src": "N0CALL", "dst": "@ALL", "sms": false, "text": "Test signal one, 73" }, { "src": "N0CALL", "dst": "TEST1", "sms": true, "text": "Hello from the test signal" } ],
+    "tolerance_extra": { "gnss_lon_deg": 0.0005, "positions": "one position entry per GNSS META received (about one per 6 stream frames); all within the tolerance" },
+    "measurements": { "lsf_ok": 4, "stream_frames": 165, "packets_ok": 1, "offset_hz": 0, "snr_db": 27.4, "deviation_hz": 2351, "deviation_tolerance_hz": 150 }
+  }
+}

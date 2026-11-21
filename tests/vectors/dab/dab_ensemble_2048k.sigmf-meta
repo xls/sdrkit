@@ -1,0 +1,18 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 2048000,
+    "core:version": "1.0.0",
+    "core:sha512": "17129a2f2e7d4b71463ca69be20d6ce6ffc30657c3237b58b147a0f48bef22439f9a4f290cc2cef45c8171f28c0981fd38e5bb25ffcea86b821434ff55022d11",
+    "core:description": "Synthetic DAB transmission mode I ensemble, 2.4 s (4 915 200 samples). Produced by the DAB test generator; see specs/dab.md, sections 'Test signal generator' and 'Test vector'. Ensemble 'Test Ensemble', EId 0xC0DE, four services (three DAB+ AAC-LC, one MPEG-1 Layer II), all EEP 3-A. The recording starts 50 000 samples into the first transmission frame. Carrier offset +1200 Hz, carrier-to-noise 20 dB measured over the 2.048 MHz sample band (21.25 dB over the 1.536 MHz of the signal), rms about 0.2, peaks clipped at 0.9. FIG 0/10 time of frame 0: 1 700 000 000 s (2023-11-14 22:13:20 UTC). Service 'Test Melody' (sub-channel 3) carries a dynamic label and a PNG slide in its PAD.",
+    "core:recorder": "DAB test generator, noise seed 1",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 225648000.0
+    }
+  ],
+  "annotations": []
+}

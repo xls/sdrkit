@@ -1,0 +1,37 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "gbas_vdb",
+      "name": "GBAS VHF data broadcast",
+      "kind": "aviation",
+      "source": {
+        "publisher": "ICAO",
+        "title": "Annex 10 Volume I, Appendix B 3.6 (GBAS VHF data broadcast)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the channel range is from general knowledge; the Annex was not read; the channel of an airport is in its aeronautical publication",
+      "bands": [
+        {
+          "name": "GBAS VDB channels",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 108012500.0,
+          "end_hz": 117962500.0,
+          "modes": [
+            "gbas_vdb"
+          ],
+          "modulation": "D8PSK, 10 500 symbol/s, 8 slots of 62.5 ms",
+          "channel_width_hz": 25000.0,
+          "numbering": {
+            "first": 0,
+            "last": 397,
+            "first_centre_hz": 108025000.0,
+            "step_hz": 25000.0
+          },
+          "note": "stack gbas_vdb; 25 kHz channels 108.025 to 117.950 MHz; the test signal is at 113.0 MHz"
+        }
+      ]
+    }
+  ]
+}

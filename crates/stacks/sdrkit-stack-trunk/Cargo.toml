@@ -1,0 +1,34 @@
+[package]
+name = "sdrkit-stack-trunk"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Trunking (MPT 1327, LTR, EDACS), tone signalling (CTCSS, DCS, DTMF, selcall, two-tone), pagers (POCSAG, FLEX, GSC), ERMES, Multitone and SCADA telemetry (Modbus, DNP3)"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-svc-bank = { path = "../../svc/sdrkit-svc-bank" }
+sdrkit-proto-pager = { path = "../../proto/sdrkit-proto-pager" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-proto-tones = { path = "../../proto/sdrkit-proto-tones" }
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+serde.workspace = true
+serde_json.workspace = true
+num-complex.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The record of the declarations that a generic consumer reads.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+

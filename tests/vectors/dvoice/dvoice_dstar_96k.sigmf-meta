@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 96000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic D-STAR test signal, 10.0 s, channel at the centre of the recording, carrier-to-noise 25 dB in the mode's channel width, rms about 0.22. D-STAR DV test schedule: call 1 via repeater (flag byte 0 = 40), MY N0CALL/ID51, UR CQCQCQ, RPT1 'N0RPT  B', RPT2 'N0RPT  G', slow data message 'TEST SIGNAL ONE 73', NMEA RMC + GGA at 54.68720 N 25.27970 E, 36 km/h course 90, altitude 112 m, 4.0 s; call 2 simplex, MY N1TEST, UR CQCQCQ, RPT1/RPT2 DIRECT, message 'Hello via simplex', D-PRS position N0CALL-7 at 54.89850 N 23.90360 E comment 'test position', digital code squelch 12, 3.0 s. GMSK BT 0.5; voice bits are a known pattern. See specs/dvoice.md, section 'Test vectors'.",
+    "core:recorder": "digital voice test generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 145375000.0
+    }
+  ],
+  "annotations": []
+}

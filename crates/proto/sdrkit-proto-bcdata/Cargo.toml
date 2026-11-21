@@ -1,0 +1,23 @@
+[package]
+name = "sdrkit-proto-bcdata"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Broadcast data and audio packaging shared by DAB, DRM and HD Radio: MSC data groups, packet mode, MOT and slideshow, Journaline, SPI, dynamic label and DL Plus / RT+ tags, AAC configuration with LATM/LOAS and ADTS, DAB Layer II framing, and one audio playout with concealment"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-codec-mpa = { path = "../../codec/sdrkit-codec-mpa" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+thiserror.workspace = true
+# Deflate for compressed Journaline objects: MIT OR Zlib OR Apache-2.0.
+miniz_oxide = "0.8"
+
+[dev-dependencies]
+sdrkit-components = { path = "../../framework/sdrkit-components" }

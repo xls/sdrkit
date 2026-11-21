@@ -1,0 +1,56 @@
+# id: wefax_broadcasts
+# name: Sample broadcast times of the HF radiofax stations
+# stacks: marine
+# source: NOAA Worldwide Marine Radiofacsimile Broadcast Schedules and the stations' own schedules
+# note: station is the id of a row of wefax_stations.csv. utc is the start time of day. approximate is true for a time known only roughly. Stations change frequencies and times.
+station,utc,lpm,ioc,product,approximate
+DDK,04:30,120,576,"Surface analysis, North Atlantic and Europe",true
+DDK,10:30,120,576,Surface analysis,true
+DDK,16:30,120,576,Surface analysis,true
+DDK,22:30,120,576,Surface analysis,true
+DDK,09:00,120,576,Sea state / wave forecast,true
+GYA,03:00,120,576,Surface analysis,true
+GYA,09:00,120,576,Surface analysis,true
+GYA,15:00,120,576,Surface analysis,true
+GYA,21:00,120,576,Surface analysis,true
+GYA,10:00,120,576,Sea and swell forecast,true
+SVJ4,09:00,120,576,"Surface analysis, Mediterranean",true
+SVJ4,16:00,120,576,Surface forecast,true
+NMF,02:30,120,576,"Surface analysis, Atlantic",true
+NMF,08:15,120,576,Surface analysis,true
+NMF,14:00,120,576,Surface analysis,true
+NMF,19:45,120,576,Surface analysis,true
+NMG,00:00,120,576,Tropical surface analysis,true
+NMG,06:00,120,576,Tropical surface analysis,true
+NMG,12:00,120,576,Tropical surface analysis,true
+NMG,18:00,120,576,Tropical surface analysis,true
+NMC,01:40,120,576,"Surface analysis, Pacific",true
+NMC,07:40,120,576,Surface analysis,true
+NMC,13:40,120,576,Surface analysis,true
+NMC,19:40,120,576,Surface analysis,true
+NOJ,04:00,120,576,"Surface analysis, Alaska",true
+NOJ,16:00,120,576,Surface analysis,true
+KVM70,01:30,120,576,"Surface analysis, Pacific",true
+KVM70,13:30,120,576,Surface analysis,true
+CFH,03:00,120,576,Surface analysis,true
+CFH,15:00,120,576,Surface analysis,true
+JMH,03:00,120,576,Asia surface analysis,true
+JMH,09:00,120,576,Asia surface analysis,true
+JMH,15:00,120,576,Asia surface analysis,true
+JMH,21:00,120,576,Asia surface analysis,true
+JJC,00:00,60,576,Weather charts and news,true
+HLL2,03:30,120,576,Surface analysis,true
+HLL2,15:30,120,576,Surface analysis,true
+BMF,02:00,120,576,Surface analysis,true
+VMC,01:30,120,576,"MSL analysis, Australia",true
+VMC,07:30,120,576,MSL analysis,true
+VMC,13:30,120,576,MSL analysis,true
+VMC,19:30,120,576,MSL analysis,true
+VMW,02:00,120,576,"MSL analysis, Indian Ocean",true
+VMW,14:00,120,576,MSL analysis,true
+ZKLF,01:00,120,576,"MSL analysis, Southwest Pacific",true
+ZKLF,13:00,120,576,MSL analysis,true
+CBV,11:00,120,576,"Surface analysis, Southeast Pacific",true
+CBV,23:00,120,576,Surface analysis,true
+ZSJ,06:00,120,576,"Surface analysis, South Atlantic",true
+ZSJ,18:00,120,576,Surface analysis,true

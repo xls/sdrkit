@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 7680000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic LTE FDD cell, 200 ms (20 radio frames from SFN 60): 5 MHz (25 RB), 4 CRS ports, PCI 301, normal cyclic prefix, PHICH normal duration Ng 1/2, CFI 2. SI-RNTI carries SIB1 (PLMN 001-01, TAC 0x1A2C, cell identity 0x1B5901 = eNB 7001 sector 1, band 3, q-RxLevMin -124 dBm, p-Max 23 dBm, SI periods 16/32/64 frames with SIB3 and SIB4+SIB5, SI window 20 ms, value tag 5), SIB2, SIB3, SIB4 and SIB5 (SIB4/5 by DCI 1C); a P-RNTI DCI in subframe 9 and random QPSK load elsewhere. The carrier (EARFCN 1300) is 2.3 kHz above the capture centre. White Gaussian noise at 10 dB below the mean signal power over the whole sample band. See specs/cell.md section 3.",
+    "core:recorder": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 1815000000.0
+    }
+  ],
+  "annotations": []
+}

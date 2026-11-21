@@ -1,0 +1,555 @@
+# The interface of the stack family drones. The registry test of the family writes this file.
+family drones version=1.0
+shape.RemoteIdFields since=1.0
+shape.RemoteIdFields.ble_channel type=i64 unit= optional=yes since=1.0
+shape.RemoteIdFields.ble_offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.RemoteIdFields.wifi_channel type=i64 unit= optional=yes since=1.0
+shape.RemoteIdFields.wifi_offset_hz type=hz unit=Hz optional=no since=1.0
+shape.RemoteIdFields.band type=choice(2432,2437,2412,2462,2403,2426,2478) unit= optional=yes since=1.0
+shape.RemoteIdFields.drones type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.ble_good type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.ble_remote_id type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.wifi_good type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.wifi_remote_id type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.basic_id_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.location_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.authentication_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.self_id_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.system_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.operator_id_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.RemoteIdFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.RemoteIdFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.RemoteIdDroneRow since=1.0
+shape.RemoteIdDroneRow.source type=text unit= optional=no since=1.0
+shape.RemoteIdDroneRow.address type=text unit= optional=no since=1.0
+shape.RemoteIdDroneRow.serial type=text unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.session_id type=text unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.caa_registration type=text unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.utm_uuid type=text unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.ua_type type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.status type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.position type=position unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.alt_geo_m type=f64 unit=m optional=yes since=1.0
+shape.RemoteIdDroneRow.alt_baro_m type=f64 unit=m optional=yes since=1.0
+shape.RemoteIdDroneRow.height_m type=f64 unit=m optional=yes since=1.0
+shape.RemoteIdDroneRow.height_type type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.RemoteIdDroneRow.vspeed_m_s type=f64 unit=m/s optional=yes since=1.0
+shape.RemoteIdDroneRow.course_deg type=f64 unit=° optional=yes since=1.0
+shape.RemoteIdDroneRow.horiz_acc type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.vert_acc type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.speed_acc type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.timestamp_ds type=i64 unit=0.1%20s optional=yes since=1.0
+shape.RemoteIdDroneRow.operator_position type=position unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.operator_alt_m type=f64 unit=m optional=yes since=1.0
+shape.RemoteIdDroneRow.location_type type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.classification type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.category type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.class type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.system_timestamp_s type=i64 unit=s optional=yes since=1.0
+shape.RemoteIdDroneRow.operator_id type=text unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.self_id type=text unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.authentication type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.authentication_pages type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.basic_id_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdDroneRow.location_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdDroneRow.authentication_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdDroneRow.self_id_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdDroneRow.system_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdDroneRow.operator_id_messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdDroneRow.track_points type=i64 unit= optional=no since=1.0
+shape.RemoteIdDroneRow.via type=choice(ble,wifi,both) unit= optional=no since=1.0
+shape.RemoteIdDroneRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.RemoteIdDroneRow.last_heard type=time unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.heard type=i64 unit= optional=yes since=1.0
+shape.RemoteIdMessageRow since=1.0
+shape.RemoteIdMessageRow.time_s type=f64 unit=s optional=no since=1.0
+shape.RemoteIdMessageRow.time type=time unit= optional=yes since=1.0
+shape.RemoteIdMessageRow.via type=choice(ble,wifi) unit= optional=no since=1.0
+shape.RemoteIdMessageRow.radio_channel type=i64 unit= optional=yes since=1.0
+shape.RemoteIdMessageRow.address type=text unit= optional=no since=1.0
+shape.RemoteIdMessageRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.RemoteIdMessageRow.type type=choice(basic_id,location,authentication,self_id,system,operator_id) unit= optional=no since=1.0
+shape.RemoteIdMessageRow.message type=text unit= optional=no since=1.0
+shape.DroneTrackRow since=1.0
+shape.DroneTrackRow.drone type=text unit= optional=no refers_to=drones since=1.0
+shape.DroneTrackRow.position type=position unit= optional=no since=1.0
+shape.DroneTrackRow.time_s type=f64 unit=s optional=no since=1.0
+shape.RemoteIdDroneEvent since=1.0
+shape.RemoteIdDroneEvent.source type=text unit= optional=no since=1.0
+shape.RemoteIdDroneEvent.address type=text unit= optional=no since=1.0
+shape.RemoteIdDroneEvent.position type=position unit= optional=no since=1.0
+shape.RemoteIdDroneEvent.alt_geo_m type=f64 unit=m optional=yes since=1.0
+shape.RemoteIdDroneEvent.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.RemoteIdDroneEvent.course_deg type=f64 unit=° optional=yes since=1.0
+shape.RemoteIdDroneEvent.operator_position type=position unit= optional=yes since=1.0
+shape.RemoteIdDroneEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.RemoteIdDroneEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.DjiDroneidFields since=1.0
+shape.DjiDroneidFields.bursts_measured type=i64 unit= optional=no since=1.0
+shape.DjiDroneidFields.bursts_ofdm_like type=i64 unit= optional=no since=1.0
+shape.DjiDroneidFields.droneid_decoded type=i64 unit= optional=no since=1.0
+shape.DjiDroneidFields.droneid_crc_failed type=i64 unit= optional=no since=1.0
+shape.DjiDroneidFields.droneid_tried type=i64 unit= optional=no since=1.0
+shape.DjiDroneidFields.centre_hz type=hz unit=Hz optional=yes since=1.0
+shape.DjiDroneidFields.burst_cfo_hz type=hz unit=Hz optional=yes since=1.0
+shape.DjiDroneidFields.drones type=i64 unit= optional=no since=1.0
+shape.DjiDroneidFields.signal type=text unit= optional=yes refers_to=signals since=1.0
+shape.DjiDroneidFields.noise_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.DjiDroneidFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.DjiDroneidFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.DjiDroneidFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.DjiDroneidSignalRow since=1.0
+shape.DjiDroneidSignalRow.track type=i64 unit= optional=no since=1.0
+shape.DjiDroneidSignalRow.class type=choice(other_wideband,unknown_ofdm,ocusync_like,lightbridge_like,droneid) unit= optional=no since=1.0
+shape.DjiDroneidSignalRow.confidence_pct type=f64 unit=% optional=no since=1.0
+shape.DjiDroneidSignalRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.DjiDroneidSignalRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.DjiDroneidSignalRow.width_hz type=hz unit=Hz optional=no since=1.0
+shape.DjiDroneidSignalRow.clipped type=bool unit= optional=no since=1.0
+shape.DjiDroneidSignalRow.burst type=duration unit=s optional=no since=1.0
+shape.DjiDroneidSignalRow.period type=duration unit=s optional=yes since=1.0
+shape.DjiDroneidSignalRow.duty_pct type=f64 unit=% optional=no since=1.0
+shape.DjiDroneidSignalRow.regularity_pct type=f64 unit=% optional=no since=1.0
+shape.DjiDroneidSignalRow.ofdm_pct type=f64 unit=% optional=no since=1.0
+shape.DjiDroneidSignalRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.DjiDroneidSignalRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.DjiDroneidSignalRow.bursts type=i64 unit= optional=no since=1.0
+shape.DjiDroneidSignalRow.zc_seen type=bool unit= optional=no since=1.0
+shape.DjiDroneidSignalRow.decoded type=i64 unit= optional=no since=1.0
+shape.DjiDroneidSignalRow.failed type=i64 unit= optional=no since=1.0
+shape.DjiDroneidSignalRow.band type=choice(2g4,5g8,5g2) unit= optional=yes since=1.0
+shape.DjiDroneidSignalRow.reason type=choice(decoded,zc_only,every_ms,periodic,other_period,irregular,too_few,not_ofdm) unit= optional=no since=1.0
+shape.DjiDroneidSignalRow.near_droneid type=bool unit= optional=no since=1.0
+shape.DjiDroneidSignalRow.last_s type=f64 unit=s optional=no since=1.0
+shape.DjiDroneidDroneRow since=1.0
+shape.DjiDroneidDroneRow.source type=text unit= optional=no since=1.0
+shape.DjiDroneidDroneRow.position type=position unit= optional=yes since=1.0
+shape.DjiDroneidDroneRow.alt_m type=f64 unit=m optional=no since=1.0
+shape.DjiDroneidDroneRow.height_m type=f64 unit=m optional=no since=1.0
+shape.DjiDroneidDroneRow.speed_kt type=f64 unit=kt optional=no since=1.0
+shape.DjiDroneidDroneRow.course_deg type=f64 unit=° optional=no since=1.0
+shape.DjiDroneidDroneRow.home type=position unit= optional=yes since=1.0
+shape.DjiDroneidDroneRow.pilot type=position unit= optional=yes since=1.0
+shape.DjiDroneidDroneRow.seq type=i64 unit= optional=no since=1.0
+shape.DjiDroneidDroneRow.state_info type=i64 unit= optional=no since=1.0
+shape.DjiDroneidDroneRow.version type=i64 unit= optional=no since=1.0
+shape.DjiDroneidDroneRow.inner_crc_ok type=bool unit= optional=no since=1.0
+shape.DjiDroneidDroneRow.v_north type=i64 unit=cm/s optional=no since=1.0
+shape.DjiDroneidDroneRow.v_east type=i64 unit=cm/s optional=no since=1.0
+shape.DjiDroneidDroneRow.v_up type=i64 unit=cm/s optional=no since=1.0
+shape.DjiDroneidDroneRow.yaw type=i64 unit= optional=no since=1.0
+shape.DjiDroneidDroneRow.gps_time type=time unit= optional=no since=1.0
+shape.DjiDroneidDroneRow.device_type type=i64 unit= optional=no since=1.0
+shape.DjiDroneidDroneRow.uuid type=text unit= optional=yes since=1.0
+shape.DjiDroneidDroneRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.DjiDroneidDroneRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.DjiDroneidDroneRow.track type=i64 unit= optional=no since=1.0
+shape.DjiDroneidDroneRow.trail_points type=i64 unit= optional=no since=1.0
+shape.DjiDroneidDroneRow.last_heard type=time unit= optional=yes since=1.0
+shape.DjiDroneidDroneRow.heard type=i64 unit= optional=yes since=1.0
+shape.DjiDroneidBurstRow since=1.0
+shape.DjiDroneidBurstRow.time_s type=f64 unit=s optional=no since=1.0
+shape.DjiDroneidBurstRow.time type=time unit= optional=yes since=1.0
+shape.DjiDroneidBurstRow.track type=i64 unit= optional=no since=1.0
+shape.DjiDroneidBurstRow.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.DjiDroneidBurstRow.width_hz type=hz unit=Hz optional=no since=1.0
+shape.DjiDroneidBurstRow.burst type=duration unit=s optional=no since=1.0
+shape.DjiDroneidBurstRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.DjiDroneidBurstRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.DjiDroneidBurstRow.ofdm_pct type=f64 unit=% optional=no since=1.0
+shape.DjiDroneidBurstRow.droneid type=choice(not_tried,no_droneid,crc_failed,decoded) unit= optional=no since=1.0
+shape.DjiDroneidEvent since=1.0
+shape.DjiDroneidEvent.source type=text unit= optional=no since=1.0
+shape.DjiDroneidEvent.position type=position unit= optional=yes since=1.0
+shape.DjiDroneidEvent.alt_m type=f64 unit=m optional=no since=1.0
+shape.DjiDroneidEvent.height_m type=f64 unit=m optional=no since=1.0
+shape.DjiDroneidEvent.speed_kt type=f64 unit=kt optional=no since=1.0
+shape.DjiDroneidEvent.course_deg type=f64 unit=° optional=no since=1.0
+shape.DjiDroneidEvent.home type=position unit= optional=yes since=1.0
+shape.DjiDroneidEvent.pilot type=position unit= optional=yes since=1.0
+shape.DjiDroneidEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.FlarmFields since=1.0
+shape.FlarmFields.v6_decoded type=i64 unit= optional=no since=1.0
+shape.FlarmFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.FlarmFields.syncs type=i64 unit= optional=no since=1.0
+shape.FlarmFields.frames_868_2 type=i64 unit= optional=no since=1.0
+shape.FlarmFields.frames_868_4 type=i64 unit= optional=no since=1.0
+shape.FlarmFields.newer_packets type=i64 unit= optional=no since=1.0
+shape.FlarmFields.newer_devices type=i64 unit= optional=no since=1.0
+shape.FlarmFields.other_type type=i64 unit= optional=no since=1.0
+shape.FlarmFields.privacy_aircraft type=i64 unit= optional=no since=1.0
+shape.FlarmFields.privacy_packets type=i64 unit= optional=no since=1.0
+shape.FlarmFields.aircraft type=i64 unit= optional=no since=1.0
+shape.FlarmFields.with_position type=i64 unit= optional=no since=1.0
+shape.FlarmFields.farthest_km type=f64 unit=km optional=no since=1.0
+shape.FlarmFields.packets_per_s type=f64 unit= optional=no since=1.0
+shape.FlarmFields.key_time type=choice(clock,start_plus_signal) unit= optional=no since=1.0
+shape.FlarmFields.needs_station type=bool unit= optional=no since=1.0
+shape.FlarmFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.FlarmFields.noise_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.FlarmAircraftRow since=1.0
+shape.FlarmAircraftRow.source type=text unit= optional=no since=1.0
+shape.FlarmAircraftRow.address_type type=i64 unit= optional=no since=1.0
+shape.FlarmAircraftRow.type type=i64 unit= optional=no since=1.0
+shape.FlarmAircraftRow.position type=position unit= optional=yes since=1.0
+shape.FlarmAircraftRow.alt_m type=f64 unit=m optional=no since=1.0
+shape.FlarmAircraftRow.speed_kt type=f64 unit=kt optional=no since=1.0
+shape.FlarmAircraftRow.course_deg type=f64 unit=° optional=no since=1.0
+shape.FlarmAircraftRow.climb_m_s type=f64 unit=m/s optional=no since=1.0
+shape.FlarmAircraftRow.distance_km type=f64 unit=km optional=yes since=1.0
+shape.FlarmAircraftRow.bearing_deg type=f64 unit=° optional=yes since=1.0
+shape.FlarmAircraftRow.channel_hz type=hz unit=Hz optional=no since=1.0
+shape.FlarmAircraftRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.FlarmAircraftRow.airborne type=bool unit= optional=no since=1.0
+shape.FlarmAircraftRow.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.FlarmAircraftRow.last_heard type=time unit= optional=yes since=1.0
+shape.FlarmAircraftRow.heard type=i64 unit= optional=yes since=1.0
+shape.AircraftTrackRow since=1.0
+shape.AircraftTrackRow.aircraft type=text unit= optional=no refers_to=aircraft since=1.0
+shape.AircraftTrackRow.position type=position unit= optional=no since=1.0
+shape.AircraftTrackRow.time_s type=f64 unit=s optional=no since=1.0
+shape.FlarmAircraftEvent since=1.0
+shape.FlarmAircraftEvent.source type=text unit= optional=no since=1.0
+shape.FlarmAircraftEvent.type type=i64 unit= optional=no since=1.0
+shape.FlarmAircraftEvent.position type=position unit= optional=no since=1.0
+shape.FlarmAircraftEvent.alt_m type=f64 unit=m optional=no since=1.0
+shape.FlarmAircraftEvent.speed_kt type=f64 unit=kt optional=no since=1.0
+shape.FlarmAircraftEvent.course_deg type=f64 unit=° optional=no since=1.0
+shape.FlarmAircraftEvent.climb_m_s type=f64 unit=m/s optional=no since=1.0
+shape.FlarmAircraftEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.FlarmAircraftEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.AdslFields since=1.0
+shape.AdslFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.AdslFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.AdslFields.packets_868_2 type=i64 unit= optional=no since=1.0
+shape.AdslFields.packets_868_4 type=i64 unit= optional=no since=1.0
+shape.AdslFields.packets_ldr type=i64 unit= optional=no since=1.0
+shape.AdslFields.packets_hdr type=i64 unit= optional=no since=1.0
+shape.AdslFields.on_868_2 type=bool unit= optional=no since=1.0
+shape.AdslFields.on_868_4 type=bool unit= optional=no since=1.0
+shape.AdslFields.on_ldr type=bool unit= optional=no since=1.0
+shape.AdslFields.on_hdr type=bool unit= optional=no since=1.0
+shape.AdslFields.traffic type=i64 unit= optional=no since=1.0
+shape.AdslFields.status type=i64 unit= optional=no since=1.0
+shape.AdslFields.uplink type=i64 unit= optional=no since=1.0
+shape.AdslFields.fis_b type=i64 unit= optional=no since=1.0
+shape.AdslFields.remote_id type=i64 unit= optional=no since=1.0
+shape.AdslFields.other type=i64 unit= optional=no since=1.0
+shape.AdslFields.encrypted type=i64 unit= optional=no since=1.0
+shape.AdslFields.signed type=i64 unit= optional=no since=1.0
+shape.AdslFields.corrected type=i64 unit= optional=no since=1.0
+shape.AdslFields.syncs type=i64 unit= optional=no since=1.0
+shape.AdslFields.noise_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.AdslFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.AdslFields.packets_per_s type=f64 unit= optional=no since=1.0
+shape.AdslFields.aircraft type=i64 unit= optional=no since=1.0
+shape.AdslFields.with_position type=i64 unit= optional=no since=1.0
+shape.AdslFields.max_range_km type=f64 unit=km optional=no since=1.0
+shape.AdslFields.flarm_packets type=i64 unit= optional=no since=1.0
+shape.AdslAircraftRow since=1.0
+shape.AdslAircraftRow.source type=text unit= optional=no since=1.0
+shape.AdslAircraftRow.address_source type=text unit= optional=no since=1.0
+shape.AdslAircraftRow.category type=text unit= optional=no since=1.0
+shape.AdslAircraftRow.flight_state type=text unit= optional=no since=1.0
+shape.AdslAircraftRow.emergency type=text unit= optional=no since=1.0
+shape.AdslAircraftRow.position type=position unit= optional=yes since=1.0
+shape.AdslAircraftRow.alt_m type=f64 unit=m optional=yes since=1.0
+shape.AdslAircraftRow.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.AdslAircraftRow.course_deg type=f64 unit=° optional=yes since=1.0
+shape.AdslAircraftRow.climb_m_s type=f64 unit=m/s optional=yes since=1.0
+shape.AdslAircraftRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.AdslAircraftRow.distance_km type=f64 unit=km optional=yes since=1.0
+shape.AdslAircraftRow.bearing_deg type=f64 unit=° optional=yes since=1.0
+shape.AdslAircraftRow.channel_hz type=hz unit=Hz optional=no since=1.0
+shape.AdslAircraftRow.channel type=text unit= optional=no since=1.0
+shape.AdslAircraftRow.relayed type=bool unit= optional=no since=1.0
+shape.AdslAircraftRow.nic type=i64 unit= optional=no since=1.0
+shape.AdslAircraftRow.hfom type=i64 unit= optional=no since=1.0
+shape.AdslAircraftRow.vfom type=i64 unit= optional=no since=1.0
+shape.AdslAircraftRow.velocity_accuracy type=i64 unit= optional=no since=1.0
+shape.AdslAircraftRow.capabilities type=text unit= optional=no since=1.0
+shape.AdslAircraftRow.private type=bool unit= optional=no since=1.0
+shape.AdslAircraftRow.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.AdslAircraftRow.last_heard type=time unit= optional=yes since=1.0
+shape.AdslAircraftRow.heard type=i64 unit= optional=yes since=1.0
+shape.AdslAircraftEvent since=1.0
+shape.AdslAircraftEvent.source type=text unit= optional=no since=1.0
+shape.AdslAircraftEvent.address_source type=text unit= optional=no since=1.0
+shape.AdslAircraftEvent.category type=text unit= optional=no since=1.0
+shape.AdslAircraftEvent.position type=position unit= optional=no since=1.0
+shape.AdslAircraftEvent.private type=bool unit= optional=no since=1.0
+shape.AdslAircraftEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.AdslEmergencyEvent since=1.0
+shape.AdslEmergencyEvent.source type=text unit= optional=no since=1.0
+shape.AdslEmergencyEvent.text type=text unit= optional=no since=1.0
+shape.AdslEmergencyEvent.position type=position unit= optional=yes since=1.0
+shape.AdslEmergencyEvent.private type=bool unit= optional=no since=1.0
+shape.AdslEmergencyEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.AdslEmergencyEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.OgnFields since=1.0
+shape.OgnFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.OgnFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.OgnFields.syncs type=i64 unit= optional=no since=1.0
+shape.OgnFields.corrected type=i64 unit= optional=no since=1.0
+shape.OgnFields.encrypted type=i64 unit= optional=no since=1.0
+shape.OgnFields.trackers type=i64 unit= optional=no since=1.0
+shape.OgnFields.channels_on type=i64 unit= optional=no since=1.0
+shape.OgnFields.channels type=text unit= optional=no since=1.0
+shape.OgnFields.noise_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.OgnFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.OgnFields.note type=text unit= optional=no since=1.0
+shape.OgnPacketRow since=1.0
+shape.OgnPacketRow.time_s type=f64 unit=s optional=no since=1.0
+shape.OgnPacketRow.kind type=choice(position,status,encrypted) unit= optional=no since=1.0
+shape.OgnPacketRow.id type=text unit= optional=no since=1.0
+shape.OgnPacketRow.decoded type=text unit= optional=no since=1.0
+shape.OgnPacketRow.position type=position unit= optional=yes since=1.0
+shape.OgnPacketRow.channel_hz type=hz unit=Hz optional=no since=1.0
+shape.OgnPacketRow.repaired type=bool unit= optional=no since=1.0
+shape.OgnPacketRow.hex type=text unit= optional=no since=1.0
+shape.OgnAircraftRow since=1.0
+shape.OgnAircraftRow.source type=text unit= optional=no since=1.0
+shape.OgnAircraftRow.address_type type=text unit= optional=no since=1.0
+shape.OgnAircraftRow.aircraft_type type=text unit= optional=yes since=1.0
+shape.OgnAircraftRow.position type=position unit= optional=yes since=1.0
+shape.OgnAircraftRow.alt_m type=f64 unit=m optional=yes since=1.0
+shape.OgnAircraftRow.speed_kt type=f64 unit=kt optional=yes since=1.0
+shape.OgnAircraftRow.course_deg type=f64 unit=° optional=yes since=1.0
+shape.OgnAircraftRow.climb_m_s type=f64 unit=m/s optional=yes since=1.0
+shape.OgnAircraftRow.turn_deg_s type=f64 unit=°/s optional=yes since=1.0
+shape.OgnAircraftRow.relay type=i64 unit= optional=no since=1.0
+shape.OgnAircraftRow.stealth type=bool unit= optional=yes since=1.0
+shape.OgnAircraftRow.fix_quality type=i64 unit= optional=yes since=1.0
+shape.OgnAircraftRow.second type=i64 unit= optional=yes since=1.0
+shape.OgnAircraftRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.OgnAircraftRow.channel_hz type=hz unit=Hz optional=no since=1.0
+shape.OgnAircraftRow.private type=bool unit= optional=no since=1.0
+shape.OgnAircraftRow.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.OgnAircraftRow.heard type=i64 unit= optional=yes since=1.0
+shape.OgnAircraftRow.first_heard type=time unit= optional=yes since=1.0
+shape.OgnAircraftRow.last_heard type=time unit= optional=yes since=1.0
+shape.OgnTrackerEvent since=1.0
+shape.OgnTrackerEvent.source type=text unit= optional=no since=1.0
+shape.OgnTrackerEvent.address_type type=text unit= optional=no since=1.0
+shape.OgnTrackerEvent.aircraft_type type=text unit= optional=no since=1.0
+shape.OgnTrackerEvent.position type=position unit= optional=no since=1.0
+shape.OgnTrackerEvent.private type=bool unit= optional=no since=1.0
+shape.OgnTrackerEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.OgnEmergencyEvent since=1.0
+shape.OgnEmergencyEvent.source type=text unit= optional=no since=1.0
+shape.OgnEmergencyEvent.text type=text unit= optional=no since=1.0
+shape.OgnEmergencyEvent.position type=position unit= optional=yes since=1.0
+shape.OgnEmergencyEvent.private type=bool unit= optional=no since=1.0
+shape.OgnEmergencyEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.OgnEmergencyEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.LinkFields since=1.0
+shape.LinkFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.LinkFields.bursts type=i64 unit= optional=no since=1.0
+shape.LinkFields.bursts_without_frame type=i64 unit= optional=no since=1.0
+shape.LinkFields.state type=i64 unit= optional=no since=1.0
+shape.LinkFields.links_heard type=i64 unit= optional=no since=1.0
+shape.LinkFields.covered type=text unit= optional=no since=1.0
+shape.LinkFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.LinkFields.note type=text unit= optional=no since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.RcLinksPpmFields since=1.0
+shape.RcLinksPpmFields.channels type=i64 unit= optional=yes since=1.0
+shape.RcLinksPpmFields.frame_ms type=f64 unit=ms optional=yes since=1.0
+shape.RcLinksPpmFields.frame_rate_hz type=f64 unit=Hz optional=yes since=1.0
+shape.RcLinksPpmFields.pulse_state type=choice(carrier_low,carrier_high) unit= optional=yes since=1.0
+shape.RcLinksPpmFields.channel_ms type=text unit=ms optional=yes since=1.0
+shape.RcLinksPpmFields.channel_pct type=text unit=% optional=yes since=1.0
+shape.RcLinksPpmFields.ppm_frames_ok type=i64 unit= optional=no since=1.0
+shape.RcLinksPpmFields.ppm_frames_bad type=i64 unit= optional=no since=1.0
+shape.HeardLinkRow since=1.0
+shape.HeardLinkRow.link type=text unit= optional=no since=1.0
+shape.HeardLinkRow.id type=text unit= optional=no since=1.0
+shape.HeardLinkRow.frames type=i64 unit= optional=no since=1.0
+shape.HeardLinkRow.first_heard type=time unit= optional=yes since=1.0
+shape.HeardLinkRow.last_heard type=time unit= optional=yes since=1.0
+shape.HeardLinkRow.last_type type=text unit= optional=no since=1.0
+shape.HeardLinkRow.last_detail type=text unit= optional=no since=1.0
+shape.HeardLinkRow.position type=position unit= optional=yes since=1.0
+shape.HeardLinkRow.alt_m type=f64 unit=m optional=yes since=1.0
+shape.LinkFrameRow since=1.0
+shape.LinkFrameRow.utc type=time unit= optional=yes since=1.0
+shape.LinkFrameRow.time_s type=f64 unit=s optional=no since=1.0
+shape.LinkFrameRow.link type=text unit= optional=no since=1.0
+shape.LinkFrameRow.id type=text unit= optional=no since=1.0
+shape.LinkFrameRow.type type=text unit= optional=no since=1.0
+shape.LinkFrameRow.detail type=text unit= optional=no since=1.0
+shape.LinkFrameRow.hex type=text unit= optional=no since=1.0
+shape.LinkFrameRow.freq_hz type=f64 unit=Hz optional=no since=1.0
+shape.LinkFrameRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.LinkFrameRow.encrypted type=bool unit= optional=no since=1.0
+shape.RcLinksPpmFrameRow since=1.0
+shape.RcLinksPpmFrameRow.time_s type=duration unit=s optional=no since=1.0
+shape.RcLinksPpmFrameRow.channels type=i64 unit= optional=no since=1.0
+shape.RcLinksPpmFrameRow.values_ms type=text unit=ms optional=no since=1.0
+shape.RcLinksPpmFrameRow.frame_ms type=f64 unit=ms optional=no since=1.0
+shape.RcLinksPpmFrameRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.RcLinksLinkEvent since=1.0
+shape.RcLinksLinkEvent.source type=text unit= optional=no since=1.0
+shape.RcLinksLinkEvent.link type=text unit= optional=no since=1.0
+shape.RcLinksLinkEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.RcPpmFrameEvent since=1.0
+shape.RcPpmFrameEvent.time_s type=duration unit=s optional=no since=1.0
+shape.RcPpmFrameEvent.channels type=i64 unit= optional=no since=1.0
+shape.RcPpmFrameEvent.values_ms type=text unit=ms optional=no since=1.0
+shape.RcPpmFrameEvent.frame_ms type=f64 unit=ms optional=no since=1.0
+shape.RcPpmFrameEvent.level_db type=f64 unit=dB optional=no since=1.0
+shape.MavlinkSikVehicleEvent since=1.0
+shape.MavlinkSikVehicleEvent.source type=text unit= optional=no since=1.0
+shape.MavlinkSikVehicleEvent.link type=text unit= optional=no since=1.0
+shape.MavlinkSikVehicleEvent.position type=position unit= optional=yes since=1.0
+shape.MavlinkSikVehicleEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+remote_id since=1.0
+remote_id.fields.RemoteIdFields since=1.0
+remote_id.kept.drones since=1.0
+remote_id.kept.messages since=1.0
+remote_id.kept.drone_tracks since=1.0
+remote_id.kept.RemoteIdFields since=1.0
+remote_id.table.drones row=RemoteIdDroneRow cap=200 since=1.0
+remote_id.table.messages row=RemoteIdMessageRow cap=400 since=1.0
+remote_id.table.drone_tracks row=DroneTrackRow cap=24000 since=1.0
+remote_id.event.remote_id.drone fields=RemoteIdDroneEvent since=1.0
+remote_id.setting.band type=choice(2432,2437,2412,2462,2403,2426,2478) unit= since=1.0
+remote_id.setting.ble type=bool unit= since=1.0
+remote_id.setting.wifi_ofdm type=bool unit= since=1.0
+remote_id.setting.gen_carriers type=choice(both,ble,wifi) unit= since=1.0
+remote_id.setting.gen_centre_mhz type=f64 unit=MHz since=1.0
+remote_id.setting.gen_wifi_phy type=choice(dsss,ofdm) unit= since=1.0
+remote_id.command.clear args= reply= since=1.0
+remote_id.command.remove args=row:text reply= since=1.0
+dji_droneid since=1.0
+dji_droneid.fields.DjiDroneidFields since=1.0
+dji_droneid.kept.signals since=1.0
+dji_droneid.kept.drones since=1.0
+dji_droneid.kept.bursts since=1.0
+dji_droneid.kept.drone_tracks since=1.0
+dji_droneid.kept.DjiDroneidFields since=1.0
+dji_droneid.table.signals row=DjiDroneidSignalRow cap=24 since=1.0
+dji_droneid.table.drones row=DjiDroneidDroneRow cap=50 since=1.0
+dji_droneid.table.bursts row=DjiDroneidBurstRow cap=300 since=1.0
+dji_droneid.table.drone_tracks row=DroneTrackRow cap=6000 since=1.0
+dji_droneid.series.level x_unit=s y_unit=dBFS since=1.0
+dji_droneid.event.dji.droneid fields=DjiDroneidEvent since=1.0
+dji_droneid.setting.decode_droneid type=bool unit= since=1.0
+dji_droneid.setting.wall_clock type=bool unit= since=1.0
+dji_droneid.setting.gen_scenario type=choice(0,1,2,3,4,5) unit= since=1.0
+dji_droneid.setting.gen_period_s type=f64 unit=s since=1.0
+dji_droneid.setting.gen_eight_symbols type=bool unit= since=1.0
+dji_droneid.setting.gen_wide type=bool unit= since=1.0
+dji_droneid.command.clear args= reply= since=1.0
+dji_droneid.command.remove args=row:text reply= since=1.0
+flarm since=1.0
+flarm.fields.FlarmFields since=1.0
+flarm.kept.aircraft since=1.0
+flarm.kept.aircraft_tracks since=1.0
+flarm.kept.FlarmFields since=1.0
+flarm.table.aircraft row=FlarmAircraftRow cap=128 since=1.0
+flarm.table.aircraft_tracks row=AircraftTrackRow cap=25600 since=1.0
+flarm.event.flarm.aircraft fields=FlarmAircraftEvent since=1.0
+flarm.setting.wall_clock type=bool unit= since=1.0
+flarm.setting.start_time type=f64 unit=s since=1.0
+flarm.setting.expiry_s type=f64 unit=s since=1.0
+flarm.setting.gen_centre type=position unit= since=1.0
+flarm.command.clear args= reply= since=1.0
+flarm.command.remove args=row:text reply= since=1.0
+adsl since=1.0
+adsl.fields.AdslFields since=1.0
+adsl.kept.aircraft since=1.0
+adsl.kept.aircraft_tracks since=1.0
+adsl.kept.AdslFields since=1.0
+adsl.table.aircraft row=AdslAircraftRow cap=128 since=1.0
+adsl.table.aircraft_tracks row=AircraftTrackRow cap=25600 since=1.0
+adsl.event.adsl.aircraft fields=AdslAircraftEvent since=1.0
+adsl.event.adsl.emergency fields=AdslEmergencyEvent since=1.0
+adsl.setting.m1_hz type=hz unit=Hz since=1.0
+adsl.setting.m2_hz type=hz unit=Hz since=1.0
+adsl.setting.o_hz type=hz unit=Hz since=1.0
+adsl.setting.expiry_s type=f64 unit=s since=1.0
+adsl.setting.with_flarm type=bool unit= since=1.0
+adsl.setting.tone_chips type=bool unit= since=1.0
+adsl.setting.wall_clock type=bool unit= since=1.0
+adsl.setting.start_time type=f64 unit=s since=1.0
+adsl.setting.gen_centre type=position unit= since=1.0
+adsl.setting.gen_aircraft type=i64 unit= since=1.0
+adsl.setting.gen_key_index type=i64 unit= since=1.0
+adsl.setting.gen_fec type=bool unit= since=1.0
+adsl.setting.gen_preamble type=i64 unit= since=1.0
+adsl.setting.gen_bad_bit type=i64 unit= since=1.0
+adsl.command.clear args= reply= since=1.0
+adsl.command.remove args=row:text reply= since=1.0
+ogn since=1.0
+ogn.fields.OgnFields since=1.0
+ogn.kept.packets since=1.0
+ogn.kept.aircraft since=1.0
+ogn.kept.aircraft_tracks since=1.0
+ogn.kept.OgnFields since=1.0
+ogn.table.packets row=OgnPacketRow cap=500 since=1.0
+ogn.table.aircraft row=OgnAircraftRow cap=256 since=1.0
+ogn.table.aircraft_tracks row=AircraftTrackRow cap=51200 since=1.0
+ogn.event.ogn.tracker fields=OgnTrackerEvent since=1.0
+ogn.event.ogn.emergency fields=OgnEmergencyEvent since=1.0
+ogn.setting.channels type=i64 unit= since=1.0
+ogn.setting.channel_step_hz type=hz unit=Hz since=1.0
+ogn.setting.expiry_s type=f64 unit=s since=1.0
+ogn.setting.gen_centre type=position unit= since=1.0
+ogn.setting.gen_trackers type=i64 unit= since=1.0
+ogn.setting.gen_bad_bits type=i64 unit= since=1.0
+ogn.setting.gen_emergency type=bool unit= since=1.0
+ogn.command.clear args= reply= since=1.0
+ogn.command.remove args=row:text reply= since=1.0
+rc_links since=1.0
+rc_links.fields.LinkFields since=1.0
+rc_links.fields.DecoderFields since=1.0
+rc_links.fields.RcLinksPpmFields since=1.0
+rc_links.kept.links since=1.0
+rc_links.kept.frames since=1.0
+rc_links.kept.LinkFields since=1.0
+rc_links.kept.DecoderFields since=1.0
+rc_links.kept.ppm_frames since=1.0
+rc_links.table.links row=HeardLinkRow cap=100 since=1.0
+rc_links.table.frames row=LinkFrameRow cap=300 since=1.0
+rc_links.table.ppm_frames row=RcLinksPpmFrameRow cap=500 since=1.0
+rc_links.event.rc_links.link fields=RcLinksLinkEvent since=1.0
+rc_links.event.rc.ppm_frame fields=RcPpmFrameEvent since=1.0
+rc_links.setting.submode type=choice(all,frsky,flysky,sfhss,dsm,ppm72) unit= since=1.0
+rc_links.setting.threshold_db type=f64 unit=dB since=1.0
+rc_links.setting.flysky_bit_order type=choice(both,msb,lsb) unit= since=1.0
+rc_links.setting.dsm_chip_polarity type=choice(high,low) unit= since=1.0
+rc_links.setting.sfhss_crc type=choice(either,ccitt,cc2500) unit= since=1.0
+rc_links.setting.ppm_sync_ms type=f64 unit=ms since=1.0
+rc_links.setting.ppm_channel_min_ms type=f64 unit=ms since=1.0
+rc_links.setting.ppm_channel_max_ms type=f64 unit=ms since=1.0
+rc_links.setting.ppm_centre_ms type=f64 unit=ms since=1.0
+rc_links.setting.ppm_row_s type=f64 unit=s since=1.0
+rc_links.setting.gen_channels_ms type=text unit=ms since=1.0
+rc_links.setting.gen_frame_ms type=f64 unit=ms since=1.0
+rc_links.setting.gen_pulse_us type=f64 unit=us since=1.0
+rc_links.setting.gen_jitter_us type=f64 unit=us since=1.0
+rc_links.setting.gen_ppm_clock_ppm type=f64 unit=ppm since=1.0
+rc_links.setting.gen_ppm_depth type=f64 unit= since=1.0
+rc_links.setting.gen_ppm_invert type=bool unit= since=1.0
+rc_links.command.clear args= reply= since=1.0
+rc_links.command.remove args=row:text reply= since=1.0
+mavlink_sik since=1.0
+mavlink_sik.fields.LinkFields since=1.0
+mavlink_sik.fields.DecoderFields since=1.0
+mavlink_sik.kept.links since=1.0
+mavlink_sik.kept.frames since=1.0
+mavlink_sik.kept.LinkFields since=1.0
+mavlink_sik.kept.DecoderFields since=1.0
+mavlink_sik.table.links row=HeardLinkRow cap=100 since=1.0
+mavlink_sik.table.frames row=LinkFrameRow cap=300 since=1.0
+mavlink_sik.event.mavlink_sik.vehicle fields=MavlinkSikVehicleEvent since=1.0
+mavlink_sik.setting.air_rate type=choice(auto,2,4,8,16,19,24,32,48,64,96,128,192,250) unit= since=1.0
+mavlink_sik.setting.threshold_db type=f64 unit=dB since=1.0
+mavlink_sik.command.clear args= reply= since=1.0
+mavlink_sik.command.remove args=row:text reply= since=1.0

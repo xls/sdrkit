@@ -1,0 +1,18 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 2000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic GOES-R HRIT, BPSK 927 ksym/s, roll-off 0.5, Es/N0 8 dB, carrier +25 kHz, symbol clock +20 ppm; five LRIT files repeated with 12 fill VCDUs between rounds; 1.4 s",
+    "core:author": "sdrkit test vectors",
+    "core:license": "CC0-1.0",
+    "core:recorder": "synthetic generator"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 1694100000.0
+    }
+  ],
+  "annotations": []
+}

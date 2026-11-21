@@ -1,0 +1,28 @@
+# id: weather_satellites
+# name: Weather satellite downlinks of the stacks noaa_apt, noaa_dsb, goes_gvar, aws, noaa_gac, hrpt, msg_raw, goes_cda, goes_mdl and elektro_l
+# kind: other
+# modes: noaa_apt noaa_dsb goes_gvar aws noaa_gac hrpt msg_raw goes_cda goes_mdl elektro_l
+# source: NOAA KLM User's Guide Tables 1.2.5-1, 1.2.6-2, 1.2.7-2, 4.1.2-1, 4.2.2-1 and 4.3.2-1; WMO OSCAR satellite pages; AWS-OSE-ICD-0083 section 4.1; GOES OGE Interface Specification DRL 504-02; GOES-R Series Data Book section 19; GOES N Series Data Book section 19
+# note: The documents list the frequencies for the NOAA KLM series, not for each satellite. No public document gives a frequency for the link of the stack gk2a_cdas. The frequency of the Arktika-M GGAK link is not confirmed by a public document. Read on 2026-11-12.
+band,name,centre_mhz,width_mhz,note
+noaa_apt,NOAA KLM series,137.1,0.05,"right-hand circular; low orbit; NOAA-15 18 and 19 decommissioned in 2025 (WMO OSCAR)"
+noaa_apt,NOAA KLM series,137.5,0.05,"right-hand circular; low orbit; KLM guide Table 4.2.2-1"
+noaa_apt,NOAA KLM series,137.62,0.05,"right-hand circular; low orbit; KLM guide Table 4.2.2-1"
+noaa_apt,NOAA KLM series,137.9125,0.05,"right-hand circular; low orbit; NOAA-15 18 and 19 decommissioned in 2025 (WMO OSCAR)"
+noaa_dsb,NOAA KLM series,137.35,0.05,"right-hand circular; low orbit; KLM guide Table 4.3.2-1; satellites decommissioned in 2025"
+noaa_dsb,NOAA KLM series,137.77,0.05,"right-hand circular; low orbit; KLM guide Table 4.3.2-1; satellites decommissioned in 2025"
+goes_gvar,GOES-13,1685.7,3.2,"linear; geostationary; sub-satellite longitude 61.5 E; inactive (WMO OSCAR)"
+goes_gvar,GOES-14,1685.7,3.2,"linear; geostationary; sub-satellite longitude not checked"
+goes_gvar,GOES-15,1685.7,3.2,"linear; geostationary; sub-satellite longitude not checked"
+aws,Arctic Weather Satellite,1707,3.4,"right-hand circular; low orbit; AWS-OSE-ICD-0083 sections 4.1.1 and 4.1.2"
+noaa_gac,NOAA KLM series,1698,3.73,"right-hand circular; low orbit; transmitter 1; GAC playback (KLM guide Tables 1.2.7-2 and 4.1.2-1)"
+noaa_gac,NOAA KLM series,1702.5,3.73,"left-hand circular; low orbit; transmitter 2; GAC playback (KLM guide Tables 1.2.7-2 and 4.1.2-1)"
+noaa_gac,NOAA KLM series,1707,3.73,"right-hand circular; low orbit; transmitter 3; GAC playback (KLM guide Tables 1.2.7-2 and 4.1.2-1)"
+noaa_gac,NOAA KLM series,2247.5,3.73,"right-hand circular; low orbit; S-band transmitter; 2660 kbit/s global and local data (WMO OSCAR); link parameters not confirmed"
+hrpt,Meteor-M N2-3,1700,1.86,"right-hand circular; low orbit; Meteor HRPT (submode meteor); 665.4 kbit/s (WMO OSCAR)"
+hrpt,Meteor-M N2-3,1705,1.86,"right-hand circular; low orbit; Meteor HRPT (submode meteor); 665.4 kbit/s (WMO OSCAR)"
+msg_raw,Meteosat Second Generation,1686.83,5.4,"linear; geostationary; raw data 3270 kbit/s; bandwidth 5400 kHz (WMO OSCAR)"
+goes_cda,GOES-R series,1693,0.08,"right-hand circular; geostationary; telemetry, submodes r40 and r4 (GOES-R Series Data Book section 19)"
+goes_cda,GOES-N series,1694,0.026,"right-hand circular; geostationary; telemetry 4 kbit/s, submode n (GOES N Series Data Book section 19; WMO OSCAR)"
+goes_mdl,GOES-N series,1681.478,0.4,"linear; geostationary; multi-use data link, bandwidth 400 kHz (GOES N Series Data Book section 19; WMO OSCAR)"
+elektro_l,Arktika-M,1703,0.01,"GGAK telemetry 5000 symbols/s, submode arktika_ggak; frequency not confirmed by a public document"

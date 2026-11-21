@@ -1,0 +1,26 @@
+[package]
+name = "sdrkit-stack-dvbcs"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Cable and satellite TV (DVB-C, DVB-S, DVB-S2, ISDB-S) and the TV satellite beacon decoder"
+
+[dependencies]
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-proto-dvbs2 = { path = "../../proto/sdrkit-proto-dvbs2" }
+sdrkit-proto-ipcast = { path = "../../proto/sdrkit-proto-ipcast" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-proto-mpegts = { path = "../../proto/sdrkit-proto-mpegts" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }

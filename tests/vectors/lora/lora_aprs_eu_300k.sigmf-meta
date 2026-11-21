@@ -1,0 +1,15 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 300000.0,
+    "core:version": "1.0.0",
+    "core:description": "LoRa APRS EU (SF12, 125 kHz, CR 4/5, sync 0x12, preamble 8, low data rate optimisation) on 433.775 MHz, 40 kHz above the capture centre. Synthetic.",
+    "core:author": "sdrkit test vector generator",
+    "core:hw": "synthetic (no radio)"
+  },
+  "captures": [ { "core:sample_start": 0, "core:frequency": 433735000.0 } ],
+  "annotations": [
+    { "core:sample_start": 15000, "core:sample_count": 838042, "core:freq_lower_edge": 433711600.0, "core:freq_upper_edge": 433836600.0, "core:label": "LoRa APRS position" },
+    { "core:sample_start": 868042, "core:sample_count": 641434, "core:freq_lower_edge": 433711600.0, "core:freq_upper_edge": 433836600.0, "core:label": "LoRa APRS message" }
+  ]
+}

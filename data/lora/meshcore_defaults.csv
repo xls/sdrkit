@@ -1,0 +1,15 @@
+# id: meshcore_defaults
+# name: The MeshCore radio setting of a network code, for a group without presets
+# stacks: mesh meshcore
+# note: code EU is the setting of every other code.
+code,mhz,khz,sf,cr
+NL,869.618,62.5,7,5
+PT,869.618,62.5,7,6
+EU433,433.65,62.5,8,8
+EU_DEPRECATED,869.525,250,11,5
+US,910.525,62.5,7,5
+CA,910.525,62.5,7,5
+AU,915.8,250,10,5
+NZ,917.375,62.5,7,5
+ANZ_MID,915.075,125,9,5
+EU,869.618,62.5,8,8

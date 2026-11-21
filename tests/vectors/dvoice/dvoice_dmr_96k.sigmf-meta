@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 96000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic DMR test signal, 12.0 s, channel at the centre of the recording, carrier-to-noise 25 dB in the mode's channel width, rms about 0.22. DMR Tier II base station downlink, colour code 1, both time slots, busy traffic (seed 1): group, private and all calls with full LC headers, embedded LC, talker aliases and terminators; CSBK preambles; short data text messages (ISO 8859-1). Voice bits are random (not AMBE+2 speech). See specs/dvoice.md, section 'Test vectors'.",
+    "core:recorder": "digital voice test generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 446106250.0
+    }
+  ],
+  "annotations": []
+}

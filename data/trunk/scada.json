@@ -1,0 +1,67 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "scada_mas_us",
+      "name": "SCADA telemetry: US multiple address systems",
+      "kind": "other",
+      "source": {
+        "publisher": "not recorded",
+        "title": "the multiple address system (MAS) bands of the United States: masters 952 to 953 MHz, remotes 928 to 929 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the bands are not compared with the FCC rules; no channel table was read",
+      "bands": [
+        {
+          "name": "MAS masters 952 to 953 MHz",
+          "service": "land_mobile",
+          "start_hz": 952000000,
+          "end_hz": 953000000,
+          "modes": ["scada"],
+          "channel_width_hz": 25000,
+          "note": "stack scada; the masters' transmissions; the default dial 952.0125 MHz"
+        },
+        {
+          "name": "MAS remotes 928 to 929 MHz",
+          "service": "land_mobile",
+          "start_hz": 928000000,
+          "end_hz": 929000000,
+          "modes": ["scada"],
+          "channel_width_hz": 25000,
+          "note": "stack scada; the remotes' replies"
+        }
+      ]
+    },
+    {
+      "id": "scada_data_radios",
+      "name": "SCADA telemetry: licensed data radios",
+      "kind": "other",
+      "source": {
+        "publisher": "not recorded",
+        "title": "licensed narrowband data radios at 450 MHz and 900 MHz",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "no region and no channel table are known; the ranges only show where such radios work",
+      "bands": [
+        {
+          "name": "Data radios 450 to 470 MHz",
+          "service": "land_mobile",
+          "start_hz": 450000000,
+          "end_hz": 470000000,
+          "modes": ["scada"],
+          "note": "stack scada; licensed data radio channels of 12.5 or 25 kHz; no channel table"
+        },
+        {
+          "name": "Data radios 896 to 960 MHz",
+          "service": "land_mobile",
+          "start_hz": 896000000,
+          "end_hz": 960000000,
+          "modes": ["scada"],
+          "note": "stack scada; licensed data radio channels of 12.5 or 25 kHz; no channel table"
+        }
+      ]
+    }
+  ]
+}

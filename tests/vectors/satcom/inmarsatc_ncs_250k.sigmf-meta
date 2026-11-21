@@ -1,0 +1,14 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 250000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic Inmarsat-C NCS common channel (TDM, 1200 symbol/s BPSK, root raised cosine roll-off 1), 17.68 s: two complete 8.64 s frames (frame numbers 1000 and 1001) from the first sample, then 0.4 s of the next. The channel sits 50 kHz below the capture centre (dial 1537.100 MHz). Eb/N0 10 dB counting information bits, noise over the whole sampled band, total rms 0.2. Each frame holds a bulletin board, a signalling channel packet and three EGC packets of a made-up NAVAREA IX warning. See specs/satcom.md, Inmarsat-C section.",
+    "core:recorder": "satcom test generator, seed 1",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    { "core:sample_start": 0, "core:frequency": 1537150000.0 }
+  ],
+  "annotations": []
+}

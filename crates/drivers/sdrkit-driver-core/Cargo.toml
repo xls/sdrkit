@@ -1,0 +1,35 @@
+[package]
+name = "sdrkit-driver-core"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Radio sources for sdrkit: the source contract, the sample ring, rate choice and the drivers"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+num-complex.workspace = true
+thiserror.workspace = true
+rtrb = "0.3"
+serde_json.workspace = true
+roxmltree = "0.20"
+# TLS for wss (Apache-2.0 / ISC / MIT); ring is the crypto provider (Apache-2.0 AND ISC).
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"], optional = true }
+# SHA-1 of the WebSocket handshake, SHA-256 of a pinned server certificate.
+sdrkit-algo-crypto = { path = "../../algo/sdrkit-algo-crypto" }
+
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+# The system's trust evaluation for wss (MIT OR Apache-2.0).
+security-framework = { version = "3", optional = true }
+
+[features]
+# The fake iiod server (`iiod::fake`), for tests in other crates.
+fake = []
+# wss:// for the shared WebSocket client (`ws::tls`).
+tls = ["dep:rustls", "dep:security-framework"]
+
+[dev-dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core", features = ["std-net"] }
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }

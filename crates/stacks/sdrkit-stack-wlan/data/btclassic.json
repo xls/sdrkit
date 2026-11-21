@@ -1,0 +1,29 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "bluetooth_br_edr",
+      "name": "Bluetooth BR/EDR channels",
+      "kind": "other",
+      "source": {
+        "publisher": "Bluetooth SIG",
+        "title": "Bluetooth Core Specification, Vol 2 Part A (Radio)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the 79 channels are a constant of the standard; which of them a country allows was not checked",
+      "bands": [
+        {
+          "name": "Bluetooth BR/EDR, channels 0 to 78",
+          "service": "short_range",
+          "start_hz": 2401500000,
+          "end_hz": 2480500000,
+          "modes": [
+            "btclassic"
+          ],
+          "note": "stack btclassic; the usual dial 2441 MHz, the middle of the 79 channels; a 20 Msps capture covers 19 of them"
+        }
+      ]
+    }
+  ]
+}

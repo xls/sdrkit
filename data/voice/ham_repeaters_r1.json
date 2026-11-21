@@ -1,0 +1,92 @@
+{
+  "$schema": "../../../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "voice_ham_repeaters_r1",
+      "name": "Amateur FM repeaters, IARU Region 1",
+      "kind": "amateur",
+      "source": {
+        "publisher": "IARU Region 1",
+        "title": "VHF and UHF band plans",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the repeater grids are not compared with the band plans",
+      "bands": [
+        {
+          "name": "Amateur FM repeaters, IARU Region 1 145.4938 to 145.7937 MHz",
+          "service": "amateur",
+          "start_hz": 145493750,
+          "end_hz": 145793750,
+          "modes": ["voice_channels"],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            { "name": "V40", "centre_hz": 145500000, "note": "Calling" },
+            { "name": "RV48", "centre_hz": 145600000, "pair_hz": 145000000, "note": "Repeater output" },
+            { "name": "RV49", "centre_hz": 145612500, "pair_hz": 145012500, "note": "Repeater output" },
+            { "name": "RV50", "centre_hz": 145625000, "pair_hz": 145025000, "note": "Repeater output" },
+            { "name": "RV51", "centre_hz": 145637500, "pair_hz": 145037500, "note": "Repeater output" },
+            { "name": "RV52", "centre_hz": 145650000, "pair_hz": 145050000, "note": "Repeater output" },
+            { "name": "RV53", "centre_hz": 145662500, "pair_hz": 145062500, "note": "Repeater output" },
+            { "name": "RV54", "centre_hz": 145675000, "pair_hz": 145075000, "note": "Repeater output" },
+            { "name": "RV55", "centre_hz": 145687500, "pair_hz": 145087500, "note": "Repeater output" },
+            { "name": "RV56", "centre_hz": 145700000, "pair_hz": 145100000, "note": "Repeater output" },
+            { "name": "RV57", "centre_hz": 145712500, "pair_hz": 145112500, "note": "Repeater output" },
+            { "name": "RV58", "centre_hz": 145725000, "pair_hz": 145125000, "note": "Repeater output" },
+            { "name": "RV59", "centre_hz": 145737500, "pair_hz": 145137500, "note": "Repeater output" },
+            { "name": "RV60", "centre_hz": 145750000, "pair_hz": 145150000, "note": "Repeater output" },
+            { "name": "RV61", "centre_hz": 145762500, "pair_hz": 145162500, "note": "Repeater output" },
+            { "name": "RV62", "centre_hz": 145775000, "pair_hz": 145175000, "note": "Repeater output" },
+            { "name": "RV63", "centre_hz": 145787500, "pair_hz": 145187500, "note": "Repeater output" }
+          ]
+        },
+        {
+          "name": "Amateur FM repeaters, IARU Region 1 433.4937 to 439.4312 MHz",
+          "service": "amateur",
+          "start_hz": 433493750,
+          "end_hz": 439431250,
+          "modes": ["voice_channels"],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            { "name": "U272", "centre_hz": 433500000, "note": "Calling" },
+            { "name": "438.650", "centre_hz": 438650000, "pair_hz": 431050000, "note": "Repeater output" },
+            { "name": "438.675", "centre_hz": 438675000, "pair_hz": 431075000, "note": "Repeater output" },
+            { "name": "438.700", "centre_hz": 438700000, "pair_hz": 431100000, "note": "Repeater output" },
+            { "name": "438.725", "centre_hz": 438725000, "pair_hz": 431125000, "note": "Repeater output" },
+            { "name": "438.750", "centre_hz": 438750000, "pair_hz": 431150000, "note": "Repeater output" },
+            { "name": "438.775", "centre_hz": 438775000, "pair_hz": 431175000, "note": "Repeater output" },
+            { "name": "438.800", "centre_hz": 438800000, "pair_hz": 431200000, "note": "Repeater output" },
+            { "name": "438.825", "centre_hz": 438825000, "pair_hz": 431225000, "note": "Repeater output" },
+            { "name": "438.850", "centre_hz": 438850000, "pair_hz": 431250000, "note": "Repeater output" },
+            { "name": "438.875", "centre_hz": 438875000, "pair_hz": 431275000, "note": "Repeater output" },
+            { "name": "438.900", "centre_hz": 438900000, "pair_hz": 431300000, "note": "Repeater output" },
+            { "name": "438.925", "centre_hz": 438925000, "pair_hz": 431325000, "note": "Repeater output" },
+            { "name": "438.950", "centre_hz": 438950000, "pair_hz": 431350000, "note": "Repeater output" },
+            { "name": "438.975", "centre_hz": 438975000, "pair_hz": 431375000, "note": "Repeater output" },
+            { "name": "439.000", "centre_hz": 439000000, "pair_hz": 431400000, "note": "Repeater output" },
+            { "name": "439.025", "centre_hz": 439025000, "pair_hz": 431425000, "note": "Repeater output" },
+            { "name": "439.050", "centre_hz": 439050000, "pair_hz": 431450000, "note": "Repeater output" },
+            { "name": "439.075", "centre_hz": 439075000, "pair_hz": 431475000, "note": "Repeater output" },
+            { "name": "439.100", "centre_hz": 439100000, "pair_hz": 431500000, "note": "Repeater output" },
+            { "name": "439.125", "centre_hz": 439125000, "pair_hz": 431525000, "note": "Repeater output" },
+            { "name": "439.150", "centre_hz": 439150000, "pair_hz": 431550000, "note": "Repeater output" },
+            { "name": "439.175", "centre_hz": 439175000, "pair_hz": 431575000, "note": "Repeater output" },
+            { "name": "439.200", "centre_hz": 439200000, "pair_hz": 431600000, "note": "Repeater output" },
+            { "name": "439.225", "centre_hz": 439225000, "pair_hz": 431625000, "note": "Repeater output" },
+            { "name": "439.250", "centre_hz": 439250000, "pair_hz": 431650000, "note": "Repeater output" },
+            { "name": "439.275", "centre_hz": 439275000, "pair_hz": 431675000, "note": "Repeater output" },
+            { "name": "439.300", "centre_hz": 439300000, "pair_hz": 431700000, "note": "Repeater output" },
+            { "name": "439.325", "centre_hz": 439325000, "pair_hz": 431725000, "note": "Repeater output" },
+            { "name": "439.350", "centre_hz": 439350000, "pair_hz": 431750000, "note": "Repeater output" },
+            { "name": "439.375", "centre_hz": 439375000, "pair_hz": 431775000, "note": "Repeater output" },
+            { "name": "439.400", "centre_hz": 439400000, "pair_hz": 431800000, "note": "Repeater output" },
+            { "name": "439.425", "centre_hz": 439425000, "pair_hz": 431825000, "note": "Repeater output" }
+          ]
+        }
+      ]
+    }
+  ]
+}

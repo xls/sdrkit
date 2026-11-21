@@ -1,0 +1,24 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 6500000.0,
+    "core:version": "1.0.0",
+    "core:description": "ATSC 1.0 8-VSB, 6 MHz channel centred, numbered test packets, no impairment",
+    "core:author": "sdrkit test vectors",
+    "core:license": "CC0-1.0",
+    "core:hw": "synthetic (generated, never transmitted)"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 539000000.0
+    }
+  ],
+  "annotations": [
+    {
+      "core:sample_start": 0,
+      "core:sample_count": 1950000,
+      "core:comment": "0.30 s of signal; starts at a field boundary"
+    }
+  ]
+}

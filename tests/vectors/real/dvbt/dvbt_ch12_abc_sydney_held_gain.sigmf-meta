@@ -1,0 +1,19 @@
+{
+  "annotations": [],
+  "captures": [
+    {
+      "core:datetime": "2026-11-08T09:38:09Z",
+      "core:frequency": 226500000.0,
+      "core:sample_start": 0
+    }
+  ],
+  "global": {
+    "core:dataset": "dvbt_ch12_abc_sydney_held_gain.sigmf-data",
+    "core:datatype": "ci16_le",
+    "core:description": "Recorded off air in Sydney: DVB-T ABC Sydney multiplex, Australian VHF channel 12 (226.5 MHz, 7 MHz channel, 8K 1/16 64-QAM 3/4), automatic gain held at 26 dB, about 33 dB SNR.",
+    "core:recorder": "sdrkit",
+    "core:sample_count": 24037960,
+    "core:sample_rate": 9142856.0,
+    "core:version": "1.0.0"
+  }
+}

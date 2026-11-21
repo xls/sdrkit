@@ -1,0 +1,14 @@
+[package]
+name = "sdrkit-driver-soapyremote"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "SoapyRemote client driver for sdrkit: the SoapyRemote protocol spoken directly, with no SoapySDR library"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-driver-core = { path = "../sdrkit-driver-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+rtrb = "0.3"
+thiserror.workspace = true

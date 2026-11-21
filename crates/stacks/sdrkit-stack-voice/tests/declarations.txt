@@ -1,0 +1,494 @@
+stack hfpacket
+setting SettingDecl { field: FieldDecl { key: "sideband", label: "Sideband", unit: "", kind: Choice, choices: [ChoiceDecl { key: "usb", label: "Upper sideband" }, ChoiceDecl { key: "lsb", label: "Lower sideband" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Where the dial sits: below the tones (upper sideband) or above them (lower sideband).", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_frames", label: "Test signal: frames", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 64.0, step: 1.0 }), default: I64(4), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_lead_s", label: "Test signal: lead", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 5.0, step: 0.0 }), default: Duration(0.3), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_tail_s", label: "Test signal: tail", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 5.0, step: 0.0 }), default: Duration(0.3), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_mark_hz", label: "Test signal: mark", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 300.0, max: 3000.0, step: 0.0 }), default: Hz(1600.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_space_hz", label: "Test signal: space", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 300.0, max: 3000.0, step: 0.0 }), default: Hz(1800.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "searching", label: "Searching" }, ChoiceDecl { key: "signal", label: "Signal found" }, ChoiceDecl { key: "confirmed", label: "Decoded or confirmed" }], refers_to: None, content: None }
+field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "quality_db", label: "Quality", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "input_rate_hz", label: "Input rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "good", label: "Good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "bad", label: "Bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tone_offset_hz", label: "Tone offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "stations", label: "Stations", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "last_frame", label: "Last frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "guard.bad_samples", label: "Bad samples", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "events" "Events" cap 60
+  column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+table "frames" "Frames" cap 200
+  column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "path", label: "Path", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "pid", label: "PID", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "info", label: "Information", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "tone_offset_hz", label: "Tone offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+points ""
+event "hfpacket.frame" "Frame"
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "path", label: "Path", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "info", label: "Information", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "tone_offset_hz", label: "Tone offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+event "hfpacket.station" "Station"
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything decoded so far."
+stack elt121
+setting SettingDecl { field: FieldDecl { key: "gen_sweep_hz", label: "Test signal: sweeps a second", unit: "Hz", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.5, max: 10.0, step: 0.0 }), default: F64(3.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_duty_pct", label: "Test signal: duty", unit: "%", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 10.0, max: 100.0, step: 0.0 }), default: F64(60.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_top_hz", label: "Test signal: from", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 100.0, max: 4000.0, step: 0.0 }), default: Hz(1600.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "A value below the end frequency makes an upward sweep.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_bottom_hz", label: "Test signal: to", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 100.0, max: 4000.0, step: 0.0 }), default: Hz(300.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_depth", label: "Test signal: depth", unit: "", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 1.0, step: 0.0 }), default: F64(0.9), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_seconds", label: "Test signal: length", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 600.0, step: 0.0 }), default: Duration(6.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "searching", label: "Searching" }, ChoiceDecl { key: "signal", label: "Signal found" }, ChoiceDecl { key: "confirmed", label: "Decoded or confirmed" }], refers_to: None, content: None }
+field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "quality_db", label: "Quality", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "input_rate_hz", label: "Input rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "good", label: "Good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "bad", label: "Bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "confirmed", label: "Confirmed", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "sweep_rate_hz", label: "Sweep rate", unit: "Hz", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "sweep_top_hz", label: "Sweep from", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "sweep_bottom_hz", label: "Sweep to", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "depth_pct", label: "Modulation", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "guard.bad_samples", label: "Bad samples", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "events" "Events" cap 60
+  column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+points ""
+event "elt121.found" "ELT tone found"
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "sweep_rate_hz", label: "Sweep rate", unit: "Hz", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "sweep_top_hz", label: "Sweep from", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "sweep_bottom_hz", label: "Sweep to", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+event "elt121.ended" "ELT tone ended"
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything decoded so far."
+stack voice_inversion
+setting SettingDecl { field: FieldDecl { key: "carrier_hz", label: "Carrier (Hz, 0 = automatic)", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 4300.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "0 uses the carrier that the detector finds. A carrier is from 2000 to 4300 Hz.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_invert_hz", label: "Test signal: inversion carrier", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 4300.0, step: 0.0 }), default: Hz(3000.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "0 sends clear speech.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_seconds", label: "Test signal: length", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }, range: Some(Range { min: 2.0, max: 120.0, step: 0.0 }), default: Duration(12.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_deviation_hz", label: "Test signal: deviation", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 100.0, max: 5000.0, step: 0.0 }), default: Hz(2500.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "searching", label: "Searching" }, ChoiceDecl { key: "signal", label: "Signal found" }, ChoiceDecl { key: "confirmed", label: "Decoded or confirmed" }], refers_to: None, content: None }
+field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "quality_db", label: "Quality", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "input_rate_hz", label: "Input rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "good", label: "Good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "bad", label: "Bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "inverted", label: "Inverted", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "carrier_hz", label: "Carrier", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "fit_heard", label: "Fit as heard", unit: "", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "fit_inverted", label: "Fit inverted", unit: "", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "guard.bad_samples", label: "Bad samples", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "events" "Events" cap 60
+  column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+series SeriesDecl { key: "spectrum", label: "Long-term spectrum", x_unit: "Hz", y_unit: "dB" }
+points ""
+event "voice_inversion.found" "Inverted speech found"
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "carrier_hz", label: "Carrier", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+event "voice_inversion.clear" "Speech, not inverted"
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything decoded so far."
+stack voice_channels
+setting SettingDecl { field: FieldDecl { key: "plan", label: "Channel plan", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The path of a plan file in the host's storage, in a format that plans.import takes (docs/schema/plans.json). Empty for no plan: every carrier is then labelled by its frequency. A change forgets the carriers and the channel statistics.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "raster_step_hz", label: "Raster step", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 200000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The spacing of the frequencies a carrier is searched on. 0 takes the narrowest channel of the plan, and without a plan the step that the stack or its submode fixes.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "raster_origin_hz", label: "Raster origin", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 300000000000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "A frequency the raster passes through. 0 takes the first channel of the plan, and without a plan the multiples of the step from 0 Hz.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "channel_width_hz", label: "Channel width", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 50000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The width of a channel that no plan describes. 0 takes the width that the stack or its submode fixes.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text("auto"), required: false, restart: false, fixed: false, section: "", advanced: false, help: "A channel label of the plan, or auto for the strongest open channel. A label that the plan does not have is as auto.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "demod", label: "Demodulator", unit: "", kind: Choice, choices: [ChoiceDecl { key: "auto", label: "Automatic" }, ChoiceDecl { key: "fm", label: "FM" }, ChoiceDecl { key: "am", label: "AM" }, ChoiceDecl { key: "usb", label: "USB" }, ChoiceDecl { key: "lsb", label: "LSB" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Automatic uses the demodulator of the plan channel, else the one of the submode: FM, upper sideband, or for CB the one the signal shows.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "squelch", label: "Squelch", unit: "%", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100.0, step: 1.0 }), default: F64(50.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "0 opens at the weakest signal.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "deemphasis", label: "De-emphasis", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "scan", label: "Scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "scan_channels", label: "Channels", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Channel labels of the plan. Empty scans every channel of the plan. Without a plan the scan has no channels.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "scan_dwell_s", label: "Dwell", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.1, max: 5.0, step: 0.0 }), default: Duration(0.4), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "scan_hang_s", label: "Hang", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 6.0, step: 0.0 }), default: Duration(2.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "carriers", label: "Carriers at once", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 24.0, step: 1.0 }), default: I64(10), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "show_heard", label: "Only heard", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Lists only the channels that are active now or had a call.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time of the first sample", unit: "", kind: Time, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_cnr_db", label: "Test signal C/N", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 80.0, step: 0.0 }), default: F64(30.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The carrier-to-noise ratio of the test signal in 10 kHz.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_scene", label: "Test signal scene", unit: "", kind: Choice, choices: [ChoiceDecl { key: "auto", label: "Automatic" }, ChoiceDecl { key: "mixed", label: "Mixed" }, ChoiceDecl { key: "am_fm_ssb", label: "AM, FM and SSB" }, ChoiceDecl { key: "fm_tones", label: "FM with tones" }, ChoiceDecl { key: "sideband", label: "Upper sideband" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The transmissions of the test signal, at fixed offsets from the centre of the capture. Automatic takes the scene of the submode, and the mixed scene when the generator is given no submode.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "submode", label: "Service", unit: "", kind: Choice, choices: [ChoiceDecl { key: "cb", label: "CB radio" }, ChoiceDecl { key: "frs", label: "FRS / GMRS" }, ChoiceDecl { key: "pmr446", label: "PMR446 analog" }, ChoiceDecl { key: "ham_repeaters", label: "Ham FM repeaters" }, ChoiceDecl { key: "hfvoice", label: "HFGCS / HF voice" }], refers_to: None, content: None }
+field FieldDecl { key: "plan", label: "Channel plan", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "plan_channels", label: "Plan channels", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "raster_step_hz", label: "Raster step", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "carriers", label: "Carriers", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "active_channels", label: "Active channels", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "open_channels", label: "Open channels", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "playing", label: "Playing", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "playing_hz", label: "Playing frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "scan", label: "Scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "scan_state", label: "Scan state", unit: "", kind: Choice, choices: [ChoiceDecl { key: "idle", label: "Idle" }, ChoiceDecl { key: "priority", label: "Priority channel" }, ChoiceDecl { key: "priority_probe", label: "Looking at the priority channel" }, ChoiceDecl { key: "scanning", label: "Scanning" }, ChoiceDecl { key: "holding", label: "Holding" }], refers_to: None, content: None }
+field FieldDecl { key: "single_tuner", label: "Scan steps the radio", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tune_hz", label: "Radio on", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "multi_channel", label: "Whole span", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "calls", label: "Calls", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "input_rate_hz", label: "Input rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "centre_hz", label: "Centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "calls" "Calls" cap 600
+  column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "start_s", label: "Start", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "duration_s", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "mean_dbfs", label: "Mean", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "demod", label: "Demodulator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+table "channels" "Channels" cap 512
+  column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "name", label: "Use", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "input_hz", label: "Repeater input", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "active", label: "Active", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "playing", label: "Playing", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "in_scan", label: "In scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "on_air", label: "On the air", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "demod", label: "Demodulator", unit: "", kind: Choice, choices: [ChoiceDecl { key: "fm", label: "FM" }, ChoiceDecl { key: "am", label: "AM" }, ChoiceDecl { key: "usb", label: "USB" }, ChoiceDecl { key: "lsb", label: "LSB" }], refers_to: None, content: None }
+  column FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "tone_alias", label: "Tone alias", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_tone", label: "Last tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "calls", label: "Calls", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "total_s", label: "Time open", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_heard_s", label: "Last heard", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_heard_utc", label: "Last heard at", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+points ""
+event "voice_channels.call" "Call"
+  field FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "start_s", label: "Start", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "duration_s", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "mean_dbfs", label: "Mean", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "demod", label: "Demodulator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "tones.subaudio" "CTCSS or DCS"
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ctcss", label: "CTCSS" }, ChoiceDecl { key: "dcs", label: "DCS" }], refers_to: None, content: None }
+  field FieldDecl { key: "event", label: "Change", unit: "", kind: Choice, choices: [ChoiceDecl { key: "locked", label: "Locked" }, ChoiceDecl { key: "released", label: "Released" }, ChoiceDecl { key: "turn_off", label: "Turn-off" }], refers_to: None, content: None }
+  field FieldDecl { key: "tone_hz", label: "Tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "eia", label: "EIA tone", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "motorola", label: "Motorola code", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "measured_hz", label: "Measured", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "code", label: "Code", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "standard", label: "Standard code", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "alias", label: "Alias", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything heard so far. Favourites stay."
+stack mdc1200
+setting SettingDecl { field: FieldDecl { key: "raster_step_hz", label: "Raster step", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 200000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The spacing of the frequencies a carrier is searched on. 0 takes the narrowest channel of the plan, and without a plan the step that the stack or its submode fixes.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "raster_origin_hz", label: "Raster origin", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 300000000000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "A frequency the raster passes through. 0 takes the first channel of the plan, and without a plan the multiples of the step from 0 Hz.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "channel_width_hz", label: "Channel width", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 50000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The width of a channel that no plan describes. 0 takes the width that the stack or its submode fixes.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "squelch", label: "Squelch", unit: "%", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100.0, step: 1.0 }), default: F64(50.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "0 opens at the weakest signal.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "deemphasis", label: "De-emphasis", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "carriers", label: "Carriers at once", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 24.0, step: 1.0 }), default: I64(10), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time of the first sample", unit: "", kind: Time, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_cnr_db", label: "Test signal C/N", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 80.0, step: 0.0 }), default: F64(30.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The carrier-to-noise ratio of the test signal in 10 kHz.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "submode", label: "Service", unit: "", kind: Choice, choices: [ChoiceDecl { key: "cb", label: "CB radio" }, ChoiceDecl { key: "frs", label: "FRS / GMRS" }, ChoiceDecl { key: "pmr446", label: "PMR446 analog" }, ChoiceDecl { key: "ham_repeaters", label: "Ham FM repeaters" }, ChoiceDecl { key: "hfvoice", label: "HFGCS / HF voice" }], refers_to: None, content: None }
+field FieldDecl { key: "plan", label: "Channel plan", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "plan_channels", label: "Plan channels", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "raster_step_hz", label: "Raster step", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "carriers", label: "Carriers", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "active_channels", label: "Active channels", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "open_channels", label: "Open channels", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "playing", label: "Playing", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "playing_hz", label: "Playing frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "scan", label: "Scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "scan_state", label: "Scan state", unit: "", kind: Choice, choices: [ChoiceDecl { key: "idle", label: "Idle" }, ChoiceDecl { key: "priority", label: "Priority channel" }, ChoiceDecl { key: "priority_probe", label: "Looking at the priority channel" }, ChoiceDecl { key: "scanning", label: "Scanning" }, ChoiceDecl { key: "holding", label: "Holding" }], refers_to: None, content: None }
+field FieldDecl { key: "single_tuner", label: "Scan steps the radio", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tune_hz", label: "Radio on", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "multi_channel", label: "Whole span", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "calls", label: "Calls", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "input_rate_hz", label: "Input rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "centre_hz", label: "Centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "bursts", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "check_failures", label: "Check failures", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "calls" "Calls" cap 600
+  column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "start_s", label: "Start", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "duration_s", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "mean_dbfs", label: "Mean", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "demod", label: "Demodulator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+table "channels" "Channels" cap 512
+  column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "name", label: "Use", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "input_hz", label: "Repeater input", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "active", label: "Active", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "playing", label: "Playing", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "in_scan", label: "In scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "on_air", label: "On the air", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "demod", label: "Demodulator", unit: "", kind: Choice, choices: [ChoiceDecl { key: "fm", label: "FM" }, ChoiceDecl { key: "am", label: "AM" }, ChoiceDecl { key: "usb", label: "USB" }, ChoiceDecl { key: "lsb", label: "LSB" }], refers_to: None, content: None }
+  column FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "tone_alias", label: "Tone alias", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_tone", label: "Last tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "calls", label: "Calls", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "total_s", label: "Time open", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_heard_s", label: "Last heard", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_heard_utc", label: "Last heard at", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+table "bursts" "Bursts" cap 400
+  column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "unit_id", label: "Unit", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "op", label: "Operation", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "arg", label: "Argument", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "double", label: "Double", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "extra", label: "Extra bytes", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Meaning", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+points ""
+event "mdc1200.call" "Call"
+  field FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "start_s", label: "Start", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "duration_s", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "mean_dbfs", label: "Mean", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "demod", label: "Demodulator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "mdc1200.burst" "Burst"
+  field FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "unit_id", label: "Unit", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "op", label: "Operation", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "arg", label: "Argument", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "double", label: "Double", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "extra", label: "Extra bytes", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "text", label: "Meaning", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "tones.subaudio" "CTCSS or DCS"
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ctcss", label: "CTCSS" }, ChoiceDecl { key: "dcs", label: "DCS" }], refers_to: None, content: None }
+  field FieldDecl { key: "event", label: "Change", unit: "", kind: Choice, choices: [ChoiceDecl { key: "locked", label: "Locked" }, ChoiceDecl { key: "released", label: "Released" }, ChoiceDecl { key: "turn_off", label: "Turn-off" }], refers_to: None, content: None }
+  field FieldDecl { key: "tone_hz", label: "Tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "eia", label: "EIA tone", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "motorola", label: "Motorola code", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "measured_hz", label: "Measured", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "code", label: "Code", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "standard", label: "Standard code", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "alias", label: "Alias", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything heard so far. Favourites stay."
+stack fleetsync
+setting SettingDecl { field: FieldDecl { key: "raster_step_hz", label: "Raster step", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 200000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The spacing of the frequencies a carrier is searched on. 0 takes the narrowest channel of the plan, and without a plan the step that the stack or its submode fixes.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "raster_origin_hz", label: "Raster origin", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 300000000000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "A frequency the raster passes through. 0 takes the first channel of the plan, and without a plan the multiples of the step from 0 Hz.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "channel_width_hz", label: "Channel width", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 50000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The width of a channel that no plan describes. 0 takes the width that the stack or its submode fixes.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "squelch", label: "Squelch", unit: "%", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100.0, step: 1.0 }), default: F64(50.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "0 opens at the weakest signal.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "deemphasis", label: "De-emphasis", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "carriers", label: "Carriers at once", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 24.0, step: 1.0 }), default: I64(10), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "bit_rate", label: "Signalling rate", unit: "", kind: Choice, choices: [ChoiceDecl { key: "auto", label: "Automatic" }, ChoiceDecl { key: "1200", label: "1200 bit/s" }, ChoiceDecl { key: "2400", label: "2400 bit/s" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Automatic reads 1200 and 2400 bit/s at once. The tones at 2400 bit/s (1200 and 2400 Hz) are not confirmed by a public document.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time of the first sample", unit: "", kind: Time, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_cnr_db", label: "Test signal C/N", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 80.0, step: 0.0 }), default: F64(30.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The carrier-to-noise ratio of the test signal in 10 kHz.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_fleet", label: "Test signal fleet", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 99.0, max: 354.0, step: 1.0 }), default: I64(107), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The maker's manuals allow 100 to 349; the frame carries 99 to 354.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_unit", label: "Test signal unit", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 999.0, max: 5094.0, step: 1.0 }), default: I64(1772), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The unit of the first carrier; the second carrier sends the next unit. The maker's manuals allow 1000 to 4999; the frame carries 999 to 5094.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_bit_rate", label: "Test signal rate", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1200", label: "1200 bit/s" }, ChoiceDecl { key: "2400", label: "2400 bit/s" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_frame", label: "Test signal frames", unit: "", kind: Choice, choices: [ChoiceDecl { key: "both", label: "Both" }, ChoiceDecl { key: "plain", label: "FleetSync" }, ChoiceDecl { key: "fs2", label: "FleetSync II" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "submode", label: "Service", unit: "", kind: Choice, choices: [ChoiceDecl { key: "cb", label: "CB radio" }, ChoiceDecl { key: "frs", label: "FRS / GMRS" }, ChoiceDecl { key: "pmr446", label: "PMR446 analog" }, ChoiceDecl { key: "ham_repeaters", label: "Ham FM repeaters" }, ChoiceDecl { key: "hfvoice", label: "HFGCS / HF voice" }], refers_to: None, content: None }
+field FieldDecl { key: "plan", label: "Channel plan", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "plan_channels", label: "Plan channels", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "raster_step_hz", label: "Raster step", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "carriers", label: "Carriers", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "active_channels", label: "Active channels", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "open_channels", label: "Open channels", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "playing", label: "Playing", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "playing_hz", label: "Playing frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "scan", label: "Scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "scan_state", label: "Scan state", unit: "", kind: Choice, choices: [ChoiceDecl { key: "idle", label: "Idle" }, ChoiceDecl { key: "priority", label: "Priority channel" }, ChoiceDecl { key: "priority_probe", label: "Looking at the priority channel" }, ChoiceDecl { key: "scanning", label: "Scanning" }, ChoiceDecl { key: "holding", label: "Holding" }], refers_to: None, content: None }
+field FieldDecl { key: "single_tuner", label: "Scan steps the radio", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tune_hz", label: "Radio on", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "multi_channel", label: "Whole span", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "calls", label: "Calls", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "input_rate_hz", label: "Input rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "centre_hz", label: "Centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "bursts", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "check_failures", label: "Check failures", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "units", label: "Units", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "calls" "Calls" cap 600
+  column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "start_s", label: "Start", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "duration_s", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "mean_dbfs", label: "Mean", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "demod", label: "Demodulator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+table "channels" "Channels" cap 512
+  column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "name", label: "Use", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "input_hz", label: "Repeater input", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "active", label: "Active", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "playing", label: "Playing", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "in_scan", label: "In scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "on_air", label: "On the air", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "demod", label: "Demodulator", unit: "", kind: Choice, choices: [ChoiceDecl { key: "fm", label: "FM" }, ChoiceDecl { key: "am", label: "AM" }, ChoiceDecl { key: "usb", label: "USB" }, ChoiceDecl { key: "lsb", label: "LSB" }], refers_to: None, content: None }
+  column FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "tone_alias", label: "Tone alias", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_tone", label: "Last tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "calls", label: "Calls", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "total_s", label: "Time open", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_heard_s", label: "Last heard", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_heard_utc", label: "Last heard at", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+table "bursts" "Bursts" cap 400
+  column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "fleet", label: "Fleet", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "unit", label: "Unit", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "in_range", label: "Valid identity", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "kind", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "bit_rate", label: "Rate", unit: "bit/s", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "word1", label: "Word 1", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "word2", label: "Word 2", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "raw", label: "Raw fields", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "check", label: "Check", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+table "units" "Units" cap 400
+  column FieldDecl { key: "fleet", label: "Fleet", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "unit", label: "Unit", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "in_range", label: "Valid identity", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "kind", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+points ""
+event "fleetsync.call" "Call"
+  field FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "start_s", label: "Start", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "duration_s", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "mean_dbfs", label: "Mean", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "demod", label: "Demodulator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "fleetsync.burst" "Burst"
+  field FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "fleet", label: "Fleet", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "unit", label: "Unit", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "in_range", label: "Valid identity", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "kind", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "bit_rate", label: "Rate", unit: "bit/s", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "word1", label: "Word 1", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "word2", label: "Word 2", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "raw", label: "Raw fields", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "check", label: "Check", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "tones.subaudio" "CTCSS or DCS"
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ctcss", label: "CTCSS" }, ChoiceDecl { key: "dcs", label: "DCS" }], refers_to: None, content: None }
+  field FieldDecl { key: "event", label: "Change", unit: "", kind: Choice, choices: [ChoiceDecl { key: "locked", label: "Locked" }, ChoiceDecl { key: "released", label: "Released" }, ChoiceDecl { key: "turn_off", label: "Turn-off" }], refers_to: None, content: None }
+  field FieldDecl { key: "tone_hz", label: "Tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "eia", label: "EIA tone", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "motorola", label: "Motorola code", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "measured_hz", label: "Measured", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "code", label: "Code", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "standard", label: "Standard code", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "alias", label: "Alias", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything heard so far. Favourites stay."
+stack wmic
+setting SettingDecl { field: FieldDecl { key: "plan", label: "Band plan", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The path of a plan file in the host's storage, in a format that plans.import takes (docs/schema/plans.json). Its bands name the band of each candidate. Empty for no plan: the band of a candidate is then empty.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "raster_step_hz", label: "Raster step", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 200000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The spacing of the frequencies a carrier is searched on. 0 takes the narrowest channel of the plan, and without a plan the step that the stack or its submode fixes.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "raster_origin_hz", label: "Raster origin", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 300000000000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "A frequency the raster passes through. 0 takes the first channel of the plan, and without a plan the multiples of the step from 0 Hz.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "squelch", label: "Squelch", unit: "%", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100.0, step: 1.0 }), default: F64(50.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "0 opens at the weakest signal.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "carriers", label: "Carriers at once", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 24.0, step: 1.0 }), default: I64(10), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "listen", label: "Listen", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 1000000000.0, step: 1.0 }), default: I64(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The id of the candidate that plays. 0 plays nothing.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_cnr_db", label: "Test signal C/N", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 80.0, step: 0.0 }), default: F64(30.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The carrier-to-noise ratio of the test signal in 10 kHz.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "candidates", label: "Candidates", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "plan", label: "Band plan", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "input_rate_hz", label: "Input rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "centre_hz", label: "Centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "candidates" "Candidates" cap 64
+  column FieldDecl { key: "id", label: "Id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "width_hz", label: "Width", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "deviation_hz", label: "Deviation", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "fm", label: "FM", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "active", label: "Active", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "listening", label: "Listening", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "age_s", label: "Age", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+points ""
+event "wmic.candidate" "Candidate"
+  field FieldDecl { key: "id", label: "Id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "width_hz", label: "Width", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "deviation_hz", label: "Deviation", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "fm", label: "FM", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+command "clear" "Clear" "Forgets everything heard so far. Favourites stay."
+command "listen" "Listen" "Plays a candidate. The candidate that plays stops."
+  argument SettingDecl { field: FieldDecl { key: "id", label: "Candidate", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The id of a candidate.", zero_means: "", common: Common { values: [], by: "", sets: [] } }

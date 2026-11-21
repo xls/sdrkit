@@ -1,0 +1,259 @@
+{
+  "note": "Expected decode of the science-family vectors. Feed each recording in pieces of 4096 samples. Values marked exact must match; ranges are inclusive. Times are UTC epoch seconds. See specs/science.md, section 16.",
+  "same_two_alerts_64k": {
+    "mode": "same",
+    "signal_offset_hz": -16000,
+    "country": "us",
+    "messages": [
+      {
+        "raw": "ZCZC-WXR-TOR-048201-348113-029047+0030-1301530-KHGX/NWS-",
+        "valid": true,
+        "eom": false,
+        "originator": "WXR",
+        "originator_name": "National Weather Service",
+        "event": "TOR",
+        "event_name": "Tornado Warning",
+        "event_kind": "warning",
+        "locations": [
+          {
+            "code": "048201",
+            "pca": 0,
+            "state": 48,
+            "state_name": "Texas",
+            "county": 201,
+            "text": "County FIPS 201, Texas"
+          },
+          {
+            "code": "348113",
+            "pca": 3,
+            "pca_name": "northeast",
+            "state": 48,
+            "county": 113,
+            "text": "Northeast part of county FIPS 113, Texas"
+          },
+          {
+            "code": "029047",
+            "pca": 0,
+            "state": 29,
+            "state_name": "Missouri",
+            "county": 47
+          }
+        ],
+        "purge_min": 30,
+        "issue_day": 130,
+        "issue_hour": 15,
+        "issue_min": 30,
+        "callsign": "KHGX/NWS",
+        "bursts": 3,
+        "agreeing": 3,
+        "attention_tone_s": 1.5
+      },
+      {
+        "raw": "NNNN",
+        "valid": true,
+        "eom": true
+      },
+      {
+        "raw": "ZCZC-WXR-RWT-029047+0015-1301545-KEAX/NWS-",
+        "valid": true,
+        "eom": false,
+        "event": "RWT",
+        "event_name": "Required Weekly Test",
+        "event_kind": "test",
+        "purge_min": 15,
+        "issue_day": 130,
+        "issue_hour": 15,
+        "issue_min": 45,
+        "callsign": "KEAX/NWS",
+        "bursts": 3,
+        "attention_tone_s": 0
+      },
+      {
+        "raw": "NNNN",
+        "valid": true,
+        "eom": true
+      }
+    ],
+    "messages_ok": 4,
+    "messages_bad": 0,
+    "tones": 1,
+    "tolerance": {
+      "raw": "exact",
+      "order": "exact (newest first in the results list means the reverse order there)",
+      "messages_ok": "exact 4",
+      "messages_bad": "exact 0",
+      "bursts": "at least 2",
+      "agreeing": "at least 2",
+      "attention_tone_s": [
+        1.0,
+        2.1
+      ],
+      "tones": "exact 1",
+      "carrier_offset_hz": [
+        200,
+        400
+      ]
+    }
+  },
+  "eczas_225k_48k": {
+    "mode": "eczas",
+    "signal_offset_hz": -12000,
+    "clock_mode": "none (a file)",
+    "time_packets": [
+      {
+        "signal_time_s": 5.0,
+        "utc": 1780272012,
+        "utc_text": "2026-06-01 00:00:12",
+        "tz_hours": 2,
+        "leap_announce": false,
+        "leap_subtract": false,
+        "dst_change_soon": false,
+        "tx_state": 0,
+        "bytes": "55 55 60 A2 00 B9 4F 0B 00 00 00 4E"
+      },
+      {
+        "signal_time_s": 17.0,
+        "utc": 1780272024,
+        "utc_text": "2026-06-01 00:00:24",
+        "tz_hours": 2,
+        "bytes": "55 55 60 A2 00 B9 49 0B 00 00 00 30"
+      },
+      {
+        "signal_time_s": 29.0,
+        "utc": 1780272036,
+        "utc_text": "2026-06-01 00:00:36",
+        "tz_hours": 2,
+        "bytes": "55 55 60 A2 00 B9 4B 0B 00 00 00 1A"
+      }
+    ],
+    "other_slot_frames": "8 (slots 3, 5, 6, 7, 9, 10, 11, 13 of the minute; header byte 0x40 + slot)",
+    "state": 2,
+    "confirmed": true,
+    "carrier_offset_hz": 20.0,
+    "snr_db": 30.0,
+    "tolerance": {
+      "time_packets": "exact utc and fields; at least 3 decoded, 0 with a bad CRC accepted",
+      "signal_time_s": "within 0.03 s of the start of the frame's first bit",
+      "carrier_offset_hz": [
+        17.0,
+        23.0
+      ],
+      "snr_db": [
+        27.0,
+        33.0
+      ],
+      "other_slot_frames": "at least 5",
+      "syncs": "at least 8"
+    }
+  },
+  "mscatter_beacon_24k": {
+    "mode": "mscatter",
+    "start_utc": 1780272000,
+    "centre_hz": 143050000,
+    "threshold_db": 13,
+    "beacon_offset_hz": 420.0,
+    "beacon_snr_db_per_bin": 52.3,
+    "pings": [
+      {
+        "id": 1,
+        "start_s": 8.0,
+        "duration_s": 0.4,
+        "doppler_hz": 120.0,
+        "peak_snr_db": 25.0,
+        "kind": "underdense"
+      },
+      {
+        "id": 2,
+        "start_s": 15.0,
+        "duration_s": 0.25,
+        "doppler_hz": -80.0,
+        "peak_snr_db": 20.0,
+        "kind": "underdense"
+      },
+      {
+        "id": 3,
+        "start_s": 22.0,
+        "duration_s": 2.5,
+        "doppler_hz": 60.0,
+        "peak_snr_db": 30.0,
+        "kind": "overdense"
+      },
+      {
+        "id": 4,
+        "start_s": 31.0,
+        "duration_s": 0.5,
+        "doppler_hz": -150.0,
+        "peak_snr_db": 22.0,
+        "kind": "underdense"
+      }
+    ],
+    "rejected_bursts": 0,
+    "state": 2,
+    "tolerance": {
+      "count": "exact 4",
+      "beacon_offset_hz": [
+        412,
+        428
+      ],
+      "beacon_snr_db_per_bin": [
+        48.8,
+        55.8
+      ],
+      "start_s": "-0.35 .. +0.25 s of the value",
+      "doppler_hz": "within 9 Hz",
+      "peak_snr_db": "from 7 dB below to 4 dB above the value",
+      "duration_s": "between 0.6 x and 1.8 x the value + 0.4 s",
+      "kind": "exact",
+      "utc_of_start": "start_utc + start_s, whole seconds, within 1 s"
+    }
+  },
+  "sonde_rs41_250k": {
+    "mode": "sonde",
+    "centre_mhz": 403.0,
+    "note": "the capture is narrower than the 2 Msps the mode asks for; the band searched is the +-0.45 x rate around the centre",
+    "sondes": [
+      {
+        "type": "RS41",
+        "subtype": "RS41-SG",
+        "serial": "N4750123",
+        "frequency_hz": 403000000,
+        "frames_ok": 6,
+        "frames_bad": 0,
+        "last_frame": 950,
+        "lat": 25.2,
+        "lon": 55.3605,
+        "alt_m": 12025,
+        "v_speed_ms": 5.0,
+        "h_speed_ms": 10.0,
+        "heading_deg": 90.0,
+        "sats": 9,
+        "last_time_utc": 1780272005,
+        "battery_v": 2.9,
+        "calibration": "6/51",
+        "note": "calibrating 6/51",
+        "temperature": "not shown (calibration incomplete)",
+        "burst_kill_s": "not sent yet (calibration subframe 2 needed)"
+      }
+    ],
+    "state": 2,
+    "carriers": 1,
+    "tolerance": {
+      "serial": "exact",
+      "type": "exact",
+      "frames_ok": "at least 5",
+      "frames_bad": "at most 1",
+      "frequency_hz": "within 800 Hz",
+      "lat": "within 0.0005 deg",
+      "lon": "within 0.001 deg",
+      "alt_m": "within 30 m",
+      "v_speed_ms": "within 0.1",
+      "h_speed_ms": "within 0.1",
+      "heading_deg": "within 1",
+      "sats": "exact",
+      "last_time_utc": "within 1 s",
+      "battery_v": "within 0.05",
+      "calibration": "collected subframes = frames decoded (5 or 6)",
+      "last_frame": "within 1 of the value"
+    }
+  }
+}

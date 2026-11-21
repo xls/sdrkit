@@ -1,0 +1,28 @@
+[package]
+name = "sdrkit-presets"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Presets for hosts: reads a data folder and starts a stack with the settings of a country and a city"
+
+[dependencies]
+# The values of settings.
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+# The formats of the plan files.
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+# The engine that `start` drives through its public calls.
+sdrkit-host-engine = { path = "../../hosts/sdrkit-host-engine" }
+# The Meshtastic presets and slot arithmetic, for the slots of a region.
+sdrkit-proto-meshtastic = { path = "../../proto/sdrkit-proto-meshtastic" }
+# The entries of the frequency database.
+sdrkit-svc-freqdb = { path = "../../svc/sdrkit-svc-freqdb" }
+# The type of the channels of a scan.
+sdrkit-svc-scan = { path = "../../svc/sdrkit-svc-scan" }
+# The CSV reader.
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+thiserror.workspace = true
+
+[dev-dependencies]
+# An engine with every stack, for the test that starts a stack.
+sdrkit-host-catalog = { path = "../../hosts/sdrkit-host-catalog" }

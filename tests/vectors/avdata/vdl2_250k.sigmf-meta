@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 250000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic VDL Mode 2, 3.0 s. D8PSK bursts (10500 symbols/s, raised cosine roll-off 0.6) on 136.900 MHz (+50 kHz) and 136.775 MHz (-75 kHz). Es/N0 25 dB for a 0 dB burst. Ground station 10A000 and aircraft 4CA2B1: GSIF, link establishment XID, ACARS H1 text, ACARS B6 ADS-C basic report, X.25 call request, RR plus ACARS uplink in one burst.",
+    "core:recorder": "aviation data link test generator, noise seed 11",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 136850000.0
+    }
+  ],
+  "annotations": []
+}

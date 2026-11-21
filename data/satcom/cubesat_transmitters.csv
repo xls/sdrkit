@@ -1,0 +1,67 @@
+# id: cubesat_transmitters
+# name: Transmitters of the burst framings of the cubesat stack (all but USP, which has its own file)
+# use: a host copies a row into the cubesat settings: framing to the submode, a bit rate other than 9600 or 4800 to extra_bitrates, the audio carrier to afsk_carrier_hz and afsk_bitrate, the CCSDS parameters to concat.*, the Geoscan frame size to geoscan_length
+# verified: no; frequencies and link parameters are not checked against the operators' publications
+satellite,norad,transmitter,frequency_hz,modulation,bit_rate,framing,frame_bytes,interleave,basis,code,nrzm,deviation_hz,audio_carrier_hz,callsign
+BEESAT-1,35933,4k8 FSK downlink,435950000,FSK,4800,BEESAT-1,,,,,,,,DP0BEE
+BEESAT-1,35933,9k6 FSK downlink,435950000,FSK,9600,BEESAT-1,,,,,,,,DP0BEE
+BEESAT-9,44412,4k8 FSK downlink,435950000,FSK,4800,BEESAT-9,,,,,,1800,,DP0BEM
+ASRTU-1,61781,9k6 BPSK downlink,435400000,BPSK,9600,CCSDS Concatenated,223,1,conventional,CCSDS,yes,,,
+BY70-1,41909,9k6 BPSK downlink,436200000,BPSK,9600,CCSDS Concatenated,114,1,conventional,CCSDS,yes,,,
+EIRSAT-1,58472,9k6 GMSK convolutional downlink,437100000,FSK,9600,CCSDS Concatenated,892,4,dual,CCSDS uninverted,,-3500,,
+KS-1Q,41847,20k FSK downlink,436500000,FSK,20000,CCSDS Concatenated,223,1,dual,CCSDS,,,,
+LilacSat-2,40908,9k6 BPSK downlink,437200000,BPSK,9600,CCSDS Concatenated,114,1,conventional,CCSDS,yes,,,
+LilacSat-2,40908,4k8 FSK downlink,437225000,FSK,4800,CCSDS Concatenated,114,1,conventional,CCSDS,,4000,,
+TRISAT,46280,9766 baud FSK downlink,435612500,FSK,9766,CCSDS Concatenated,223,1,dual,NASA-DSN,,,,
+TRISAT-R,53108,1k baud FSK downlink,435612500,FSK,1000,CCSDS Concatenated,223,1,dual,NASA-DSN,,,,
+TRISAT-R,53108,2k baud FSK downlink,435612500,FSK,2000,CCSDS Concatenated,223,1,dual,NASA-DSN,,,,
+TRISAT-R,53108,3k baud FSK downlink,435612500,FSK,3000,CCSDS Concatenated,223,1,dual,NASA-DSN,,,,
+TRISAT-R,53108,5k baud FSK downlink,435612500,FSK,5000,CCSDS Concatenated,223,1,dual,NASA-DSN,,,,
+ERMINAZ-1U,99999,9k6 FSK CCSDS TMTC SPP downlink,435775000,FSK,9600,CCSDS Reed-Solomon,128,1,conventional,none,,4800,,
+239Alferov,64881,9k6 FSK downlink,436270000,FSK,9600,GEOSCAN,74,,,,,,,
+COLIBRI-S,61746,9k6 FSK downlink,436835000,FSK,9600,GEOSCAN,74,,,,,4800,,
+GEOSCAN-EDELVEIS,53385,9k6 FSK downlink,436200000,FSK,9600,GEOSCAN,66,,,,,,,
+Geoscan-1,64880,9k6 FSK downlink,435970000,FSK,9600,GEOSCAN,74,,,,,,,
+Geoscan-2,64890,9k6 FSK downlink,436160000,FSK,9600,GEOSCAN,74,,,,,,,
+Geoscan-3,64893,9k6 FSK downlink,435740000,FSK,9600,GEOSCAN,74,,,,,,,
+Geoscan-4,64892,9k6 FSK downlink,435335000,FSK,9600,GEOSCAN,74,,,,,,,
+Geoscan-5,64891,9k6 FSK downlink,436660000,FSK,9600,GEOSCAN,74,,,,,,,
+Geoscan-6,64879,9k6 FSK downlink,436940000,FSK,9600,GEOSCAN,74,,,,,,,
+HORIZON,61757,9k6 FSK downlink,435430000,FSK,9600,GEOSCAN,74,,,,,4800,,
+InnoSat16,64878,9k6 FSK downlink,435830000,FSK,9600,GEOSCAN,74,,,,,,,
+InnoSat3,64894,9k6 FSK downlink,436436000,FSK,9600,GEOSCAN,74,,,,,,,
+RTU-MIREA1,61785,9k6 FSK downlink,436200000,FSK,9600,GEOSCAN,74,,,,,4800,,
+STRATOSAT-TK1,57167,9k6 FSK downlink,435870000,FSK,9600,GEOSCAN,66,,,,,4800,,
+TUSUR-GO,61782,9k6 FSK downlink,437730000,FSK,9600,GEOSCAN,74,,,,,4800,,
+VIZARD-ION,61749,9k6 FSK downlink,436870000,FSK,9600,GEOSCAN,74,,,,,4800,,
+Lucky-7,44406,4k8 FSK downlink,437525000,FSK,4800,Lucky-7,,,,,,4800,,
+AMGU-1,44394,4k8 FSK downlink,436250000,FSK,4800,Mobitex,,,,,,,,
+D-STAR ONE LightSat,44393,4k8 FSK downlink,435700000,FSK,4800,Mobitex,,,,,,1200,,
+D-STAR ONE Sparrow,43881,4k8 FSK downlink,435700000,FSK,4800,Mobitex,,,,,,1200,,
+D-STAR ONE iSat,43879,4k8 FSK downlink,435700000,FSK,4800,Mobitex,,,,,,1200,,
+DEKART,46493,4k8 FSK downlink,437000000,FSK,4800,Mobitex,,,,,,1200,,
+JAISAT-1,44419,4k8 FSK downlink,435700000,FSK,4800,Mobitex,,,,,,1200,,
+SOKRAT,44404,4k8 FSK downlink,436000000,FSK,4800,Mobitex,,,,,,,,
+VDNH-80,44392,4k8 FSK downlink,436500000,FSK,4800,Mobitex,,,,,,1200,,
+BEESAT-2,39136,4k8 FSK downlink,435950000,FSK,4800,Mobitex-NX,,,,,,1800,,
+BEESAT-4,41619,4k8 FSK downlink,435950000,FSK,4800,Mobitex-NX,,,,,,,,
+NANOFF-A,58810,4k8 FSK downlink,435950000,FSK,4800,Mobitex-NX,,,,,,1200,,DP0NFA
+NANOFF-A,58810,9k6 FSK downlink,435950000,FSK,9600,Mobitex-NX,,,,,,1200,,DP0NFA
+NANOFF-B,58755,4k8 FSK downlink,435950000,FSK,4800,Mobitex-NX,,,,,,1200,,DP0NFB
+NANOFF-B,58755,9k6 FSK downlink,435950000,FSK,9600,Mobitex-NX,,,,,,1200,,DP0NFB
+TECHNOSAT,42829,4k8 FSK downlink,435950000,FSK,4800,Mobitex-NX,,,,,,,,DP0TBA
+TUBIN,48900,4k8 FSK downlink,435950000,FSK,4800,Mobitex-NX,,,,,,1200,,DP0TBN
+FloripaSat-1,44885,1k2 FSK beacon,145900000,FSK,1200,NGHam no Reed Solomon,,,,,,,,
+FloripaSat-1,44885,2k4 FSK downlink,436100000,FSK,2400,NGHam no Reed Solomon,,,,,,,,
+ERMINAZ-1U,99999,9k6 FSK downlink,435775000,FSK,9600,QUBIK,,,,,,3000,,
+INSPIRE-SAT 7,56211,2k4 2FSK SPINO payload,435200000,FSK,2400,SPINO,,,,,,1200,,
+INSPIRE-SAT 7,56211,9k6 2FSK SPINO payload,435200000,FSK,9600,SPINO,,,,,,,,
+AISAT,40054,4k8 AFSK downlink,437250000,AFSK,4800,U482C,,,,,,-1200,3600,
+ATHENOXAT-1,41168,4k8 AFSK downlink,437485000,AFSK,4800,U482C,,,,,,-1200,3600,
+AU02,42723,4k8 AFSK downlink,436525000,AFSK,4800,U482C,,,,,,-1200,3600,
+AU03,42731,4k8 AFSK downlink,436330000,AFSK,4800,U482C,,,,,,-1200,3600,
+CZ02,42790,4k8 AFSK downlink,437240000,AFSK,4800,U482C,,,,,,-1200,3600,
+D-SAT,42794,4k8 AFSK downlink,437505000,AFSK,4800,U482C,,,,,,-1200,3600,
+GALASSIA,41170,4k8 AFSK downlink,436400000,AFSK,4800,U482C,,,,,,-1200,3600,
+GOMX-1,39430,4k8 AFSK downlink,437250000,AFSK,4800,U482C,,,,,,-1200,3600,
+HUMSAT-D,39433,1k2 AFSK telemetry downlink,437325000,AFSK,1200,U482C,,,,,,-300,1500,

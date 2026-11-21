@@ -1,0 +1,28 @@
+//! The tests of the satellite picture stacks: one module for each stack, and the shared layers.
+
+mod apt;
+mod arktika;
+mod aws;
+mod common;
+mod dsb;
+mod eodb;
+mod filecast;
+mod frames;
+mod fy2;
+mod fy3;
+mod fy4;
+mod gac;
+mod glm;
+mod grb;
+mod gvar;
+mod hrpt;
+mod hrpt_meteor;
+mod link_cases;
+mod meteor;
+mod msg;
+mod rdas;
+mod sband;
+mod settings;
+mod uhrit;
+mod vectors;
+mod xrit;

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 4000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic Eurobalise up-link, 0.15 s: bursts of 6 ms repeating one telegram each (two long telegrams of balise group 1201 positions 0 and 1, one short telegram of group 1202 position 0, in turn), 20 ms gaps, FSK 3.951 / 4.516 MHz at 564.48 kbit/s. The up-link centre 4.234 MHz sits 1 MHz below the capture centre; carrier offset +12 kHz. Eb/N0 20 dB. See specs/cell.md section 8.",
+    "core:recorder": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 5234000.0
+    }
+  ],
+  "annotations": []
+}

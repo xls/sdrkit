@@ -1,0 +1,15 @@
+# id: interference_health
+# name: Usual starting dials and rates of the interference and instrument health stacks
+# stacks: intermod spur kurtosis input_health glitch papr noise_figure fading beacon_monitor
+# source: usage, not a band plan; 145.000 MHz is a 2 m frequency, 144.400 MHz lies in the 2 m beacon sub-band of IARU Region 1 (not checked against a published plan)
+# note: Starting points only; each stack measures what reaches it and takes plain settings. The source ENR values of noise_figure (enr_db) are 5, 6.5, 15 and 25 dB for common noise sources. The level limits of input_health are rules of thumb: an RMS level of about -30 to -15 dBFS for an 8-bit radio and -40 to -20 dBFS for 12 bits and more on a quiet band (low_dbfs -50, high_dbfs -10, overload_ppm 100, clip_level 0.985). The fixed spur grid of spur (spur_grid) is the rate over 16, a property of converters. Beacons of beacon_monitor are on 28, 50, 144 and 432 MHz; the beacon sub-bands and lists are regional band-plan data and not given here.
+stack,frequency_hz,low_hz,high_hz,rate_hz,least_rate_hz,width_hz
+intermod,145000000,100000,6000000000,2000000,500000,2000000
+spur,145000000,100000,6000000000,2000000,500000,2000000
+kurtosis,145000000,100000,6000000000,2000000,250000,2000000
+input_health,145000000,100000,6000000000,2000000,100000,2000000
+glitch,145000000,100000,6000000000,2000000,100000,2000000
+papr,145000000,100000,6000000000,1000000,100000,500000
+noise_figure,145000000,100000,6000000000,2000000,250000,200000
+fading,144400000,100000,6000000000,48000,8000,6000
+beacon_monitor,144400000,28000000,450000000,250000,8000,4000

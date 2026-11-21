@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 1000000.0,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic Z-Wave (ITU-T G.9959) R1, R2 and R3 frames around 868.4 MHz, 30 dB C/N in 100 kHz, dial at 0 Hz.",
+    "core:recorder": "sdrkit test-signal generator (synthetic)",
+    "core:license": "CC0-1.0"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 868400000.0
+    }
+  ],
+  "annotations": []
+}

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 240000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic MPT 1327 control channel, 1.88 s: 0.5 s of carrier only, the control channel transmission (16 bit preamble, SYNC, 8 address codewords each followed by a CCSC of system 20001, a final CCSC), 0.5 s of carrier only. 1200 bit/s FFSK (bit 1 = 1200 Hz, bit 0 = 1800 Hz, continuous phase) at 1.5 kHz deviation. The channel (170.000 MHz) is 50 kHz below the centre; the carrier is 400 Hz above the channel. Carrier amplitude 0.5, complex Gaussian noise 0.1 per component. See specs/trunk.md section 3.",
+    "core:recorder": "sdrkit trunking, paging and tones test signal definition (specs/trunk.md), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 170050000.0
+    }
+  ],
+  "annotations": []
+}

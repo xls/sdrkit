@@ -1,0 +1,10 @@
+# id: hf_band_presets
+# name: HF band presets a host may offer with the HF serial-tone, naval HF and HF teleprinter stacks
+# verified: no; amateur band dials, not a regional plan
+name,dial_hz
+80 m,3600000
+40 m,7000000
+30 m,10140000
+20 m,14080000
+17 m,18100000
+15 m,21090000

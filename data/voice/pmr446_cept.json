@@ -1,0 +1,47 @@
+{
+  "$schema": "../../../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "voice_pmr446_cept",
+      "name": "PMR446 analogue, 16 channels",
+      "kind": "personal",
+      "source": {
+        "publisher": "CEPT ECC",
+        "title": "ECC Decision (15)05",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "not compared with the source",
+      "bands": [
+        {
+          "name": "PMR446 analogue, 16 channels 446.0000 to 446.2000 MHz",
+          "service": "land_mobile",
+          "start_hz": 446000000,
+          "end_hz": 446200000,
+          "modes": ["voice_channels"],
+          "modulation": "nfm",
+          "channel_width_hz": 12500,
+          "channels": [
+            { "name": "1", "centre_hz": 446006250 },
+            { "name": "2", "centre_hz": 446018750 },
+            { "name": "3", "centre_hz": 446031250 },
+            { "name": "4", "centre_hz": 446043750 },
+            { "name": "5", "centre_hz": 446056250 },
+            { "name": "6", "centre_hz": 446068750 },
+            { "name": "7", "centre_hz": 446081250 },
+            { "name": "8", "centre_hz": 446093750 },
+            { "name": "9", "centre_hz": 446106250, "note": "Also used by digital PMR446" },
+            { "name": "10", "centre_hz": 446118750, "note": "Also used by digital PMR446" },
+            { "name": "11", "centre_hz": 446131250, "note": "Also used by digital PMR446" },
+            { "name": "12", "centre_hz": 446143750, "note": "Also used by digital PMR446" },
+            { "name": "13", "centre_hz": 446156250, "note": "Also used by digital PMR446" },
+            { "name": "14", "centre_hz": 446168750, "note": "Also used by digital PMR446" },
+            { "name": "15", "centre_hz": 446181250, "note": "Also used by digital PMR446" },
+            { "name": "16", "centre_hz": 446193750, "note": "Also used by digital PMR446" }
+          ]
+        }
+      ]
+    }
+  ]
+}

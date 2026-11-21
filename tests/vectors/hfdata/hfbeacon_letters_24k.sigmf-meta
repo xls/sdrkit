@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 24000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic HF single-letter beacons, 30 s, radio centre 3.5897 MHz. 'D' keyed on 3594.7 kHz (12 dB in 100 Hz, 80 ms unit), 'S' keyed on 3594.9 kHz (9 dB, 110 ms unit), a steady carrier on 3595.0 kHz (15 dB), and a 'D' keyed on 3595.3 kHz (12 dB) where the list expects 'K'. Complex Gaussian noise.",
+    "core:recorder": "HF beacon test generator, seed 2",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 3589700.0
+    }
+  ],
+  "annotations": []
+}

@@ -1,0 +1,19 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 8000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic FT8, 2 slots of 15 s, 9 stations (one sent on the lower sideband, so heard upside down). The centre frequency is the dial (suppressed carrier) frequency of an upper sideband receiver: an audio tone at f Hz lies f Hz above the centre. White noise of 0.05 rms per real audio sample over 0 to 4 kHz (only positive frequencies are present in this complex file); station SNRs are in 2500 Hz. The first sample is the start of a UTC slot (2026-01-01T00:00:00Z). See specs/wsjt.md, section 'Test vectors'.",
+    "core:recorder": "weak-signal test generator",
+    "core:hw": "synthetic",
+    "core:datetime": "2026-01-01T00:00:00Z"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 14074000.0,
+      "core:datetime": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "annotations": []
+}

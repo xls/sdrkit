@@ -1,0 +1,2300 @@
+{
+ "about": "Every recording the tests read. The files live in $SDRKIT_RECORDINGS (default ../sdrkit-recordings beside the workspace), never in git; the repository keeps their .sigmf-meta, expected results and this list. `sdrkit vectors list` shows what is present, `sdrkit vectors verify` checks sizes and checksums, `sdrkit vectors generate` makes the regenerable ones again.",
+ "version": 1,
+ "recordings": [
+  {
+   "path": "adsb/adsb_airspace_2m.sigmf-data",
+   "size": 16000000,
+   "sha256": "2171603f3c831454d5a06ae4857f2cfa5ef669779c72718bd267d7e65f9e06a8",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "ADS-B test generator, seed 3",
+    "stack": "adsb",
+    "settings": "core:description of tests/vectors/adsb/adsb_airspace_2m.sigmf-meta",
+    "seed": 3,
+    "spec": "specs/adsb.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/adsb.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "analogtv/atv_pal_i_nicam_10m.sigmf-data",
+   "size": 32000000,
+   "sha256": "96186424fbae59b62751534572e73bd4f5eaa009898c399e11aa3ee4d3927302",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "analogue TV test generator, noise seed 1",
+    "stack": "analogtv",
+    "settings": "core:description of tests/vectors/analogtv/atv_pal_i_nicam_10m.sigmf-meta",
+    "seed": 1,
+    "spec": "specs/analogtv.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/analogtv.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "analogtv/atv_secam_dk_10m.sigmf-data",
+   "size": 24000000,
+   "sha256": "3705038d985eb9569e5435a9f780d6a43ed390fcfbfd286d1b8805b77ebe4422",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "analogue TV test generator, noise seed 1",
+    "stack": "analogtv",
+    "settings": "core:description of tests/vectors/analogtv/atv_secam_dk_10m.sigmf-meta",
+    "seed": 1,
+    "spec": "specs/analogtv.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/analogtv.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "avdata/acars_1m.sigmf-data",
+   "size": 16000000,
+   "sha256": "47581191636a25f8e44e5d1e8aabebedc89541cbf1ad50705655c91f3bad3a36",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "aviation data link test generator, noise seed 1",
+    "stack": "avdata",
+    "settings": "core:description of tests/vectors/avdata/acars_1m.sigmf-meta",
+    "seed": 1,
+    "spec": "specs/avdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/avdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "avdata/airband_250k.sigmf-data",
+   "size": 12000000,
+   "sha256": "be9bc69bc36b348b5efcb9572d70b82e916317c313ea6507dd2e53cc70fd3ac7",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "aviation data link test generator, noise seed 3",
+    "stack": "avdata",
+    "settings": "core:description of tests/vectors/avdata/airband_250k.sigmf-meta",
+    "seed": 3,
+    "spec": "specs/avdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/avdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "avdata/hfdl_48k.sigmf-data",
+   "size": 3456000,
+   "sha256": "ecf38141a7867f3a3d2cd75d1d6d637c806853c944d7faba667f562e2f2e8680",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "aviation data link test generator, noise seed 12",
+    "stack": "avdata",
+    "settings": "core:description of tests/vectors/avdata/hfdl_48k.sigmf-meta",
+    "seed": 12,
+    "spec": "specs/avdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/avdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "avdata/selcal_500k.sigmf-data",
+   "size": 12000000,
+   "sha256": "2fc951bad08f5f25ffe8436c76b4170e02a08f83f80b9a007d171184c8af8f4e",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "aviation data link test generator, noise seed 13",
+    "stack": "avdata",
+    "settings": "core:description of tests/vectors/avdata/selcal_500k.sigmf-meta",
+    "seed": 13,
+    "spec": "specs/avdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/avdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "avdata/vdl2_250k.sigmf-data",
+   "size": 6000000,
+   "sha256": "f1f5b03fd3651e10980539a19b45b5992ebb20dc6d750008ffa9444d0d950764",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "aviation data link test generator, noise seed 11",
+    "stack": "avdata",
+    "settings": "core:description of tests/vectors/avdata/vdl2_250k.sigmf-meta",
+    "seed": 11,
+    "spec": "specs/avdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/avdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "broadcast/am_mono_250k.sigmf-data",
+   "size": 12000000,
+   "sha256": "d8d588243a557cfb4c65121dce8182882a64316f219f1c97356c9f916ea955e6",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "independent C-QUAM generator, noise seed 2",
+    "stack": "broadcast",
+    "settings": "core:description of tests/vectors/broadcast/am_mono_250k.sigmf-meta",
+    "seed": 2,
+    "spec": "specs/broadcast.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/broadcast.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "broadcast/cquam_stereo_250k.sigmf-data",
+   "size": 16000000,
+   "sha256": "39071e484aab4b479d967fbe05d258f9b408e90673a41530c000708fc1541fe2",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "independent C-QUAM generator, noise seed 1",
+    "stack": "broadcast",
+    "settings": "core:description of tests/vectors/broadcast/cquam_stereo_250k.sigmf-meta",
+    "seed": 1,
+    "spec": "specs/broadcast.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/broadcast.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "cell/ebicab_4000k.sigmf-data",
+   "size": 4800000,
+   "sha256": "1d174b05fffc0fbd80e190106d798f4ac1357198a26852813fb5a7f2f02f1aa0",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "stack": "cell",
+    "settings": "core:description of tests/vectors/cell/ebicab_4000k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/cell.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/cell.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "cell/gsmr_1cell_1000k.sigmf-data",
+   "size": 17759488,
+   "sha256": "6dc36c6135299adf93e84b3b1dba3d019a1b6d7afa69fd0f6e7331ec2d7ba1ce",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "stack": "cell",
+    "settings": "core:description of tests/vectors/cell/gsmr_1cell_1000k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/cell.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/cell.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "cell/lbj_256k.sigmf-data",
+   "size": 6075728,
+   "sha256": "31463b8a998372930a7235c52ae67d0e8cc8e5e4c7de1c27d7fba09eff45c7c5",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "stack": "cell",
+    "settings": "core:description of tests/vectors/cell/lbj_256k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/cell.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/cell.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "cell/lte_5mhz_7680k.sigmf-data",
+   "size": 12288000,
+   "sha256": "379952e0c958df0d9c3643e18cb87f6fcc0024b9f1f92bfefaadb68ee67eca6b",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "stack": "cell",
+    "settings": "core:description of tests/vectors/cell/lte_5mhz_7680k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/cell.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/cell.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "cell/nbiot_standalone_1920k.sigmf-data",
+   "size": 15360000,
+   "sha256": "f8f96ae967483208da60291f324b83b09f02ee8ae081cfd704d81964bf97843a",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "stack": "cell",
+    "settings": "core:description of tests/vectors/cell/nbiot_standalone_1920k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/cell.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/cell.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "cell/nr_n28_15khz_3840k.sigmf-data",
+   "size": 2457600,
+   "sha256": "f8ed92d894b222d36a3659fc4f4cfd112ddc8b57bf5b76f2924281206cd3fc7c",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "stack": "cell",
+    "settings": "core:description of tests/vectors/cell/nr_n28_15khz_3840k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/cell.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/cell.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dab/dab_ensemble_2048k.sigmf-data",
+   "size": 39321600,
+   "sha256": "65197d7efadb5ddb57edca33b7ead9b5d216118527c7f5d8ef409bb0e5c8ed55",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "DAB test generator, noise seed 1",
+    "stack": "dab",
+    "settings": "core:description of tests/vectors/dab/dab_ensemble_2048k.sigmf-meta",
+    "seed": 1,
+    "spec": "specs/dab.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dab.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dab/slide.png",
+   "size": 1707,
+   "sha256": "d482b70193425b7e1e521f0f308286e696f4bb8bff53ff256a2b959824705553",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of dab/dab_ensemble_2048k",
+    "stack": "dab",
+    "settings": "the slide the DAB recording carries, byte for byte",
+    "seed": null,
+    "spec": "specs/dab.md"
+   },
+   "regenerate": false,
+   "how": "Made with dab/dab_ensemble_2048k by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "drones/droneid_2440_20m.sigmf-data",
+   "size": 32000000,
+   "sha256": "df7d45f90ede39cc37f21f7589466f8a8e4633bd56b144af2869ec38538df20b",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "drones",
+    "settings": "core:description of tests/vectors/drones/droneid_2440_20m.sigmf-meta",
+    "seed": null,
+    "spec": "specs/drones.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/drones.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "drones/flarm_868_1m.sigmf-data",
+   "size": 14400000,
+   "sha256": "63107c3287f33bf31773e1e84ce9df4412c8fe324ab550fe66a8d049542b6e7e",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "drones",
+    "settings": "core:description of tests/vectors/drones/flarm_868_1m.sigmf-meta",
+    "seed": null,
+    "spec": "specs/drones.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/drones.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "drones/remoteid_2432_20m.sigmf-data",
+   "size": 8000000,
+   "sha256": "409ce0d570dc7a93e02c2950e72219720a6d4769bb2e5508d8370ca7d9e3041a",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "drones",
+    "settings": "core:description of tests/vectors/drones/remoteid_2432_20m.sigmf-meta",
+    "seed": null,
+    "spec": "specs/drones.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/drones.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvbcs/dvbc_64qam_5361k_7msps.sigmf-data",
+   "size": 11200000,
+   "sha256": "7f0a3327b5cafc14c673fd3fe1de8d52862c384a12ff6c19e6bcb313b9d49f79",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit dvbcs test generator (synthetic), noise seed 7",
+    "stack": "dvbcs",
+    "settings": "core:description of tests/vectors/dvbcs/dvbc_64qam_5361k_7msps.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/dvbcs.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dvbcs.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvbcs/dvbs2_qpsk35_1msym_2msps.sigmf-data",
+   "size": 9600000,
+   "sha256": "c747fa844b5ba9115bc5209d273e121e0a53139c3b9695c37a63dca675f5c516",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit dvbcs test generator (synthetic), noise seed 7",
+    "stack": "dvbcs",
+    "settings": "core:description of tests/vectors/dvbcs/dvbs2_qpsk35_1msym_2msps.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/dvbcs.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dvbcs.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvbcs/dvbs_qpsk34_1msym_2msps.sigmf-data",
+   "size": 12800000,
+   "sha256": "9f1c8b6ae5ced8c103ea9d28cf64ecf4d82d640d87b4a548282826e3dcd8b9a4",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit dvbcs test generator (synthetic), noise seed 7",
+    "stack": "dvbcs",
+    "settings": "core:description of tests/vectors/dvbcs/dvbs_qpsk34_1msym_2msps.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/dvbcs.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dvbcs.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvbcs/tvbeacon_biphase4800_250ksps.sigmf-data",
+   "size": 24000000,
+   "sha256": "d2f5debbce28720fc32902d6e797cc37aec25f0b2bc77324b73771c1795be67c",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit dvbcs test generator (synthetic), noise seed 7",
+    "stack": "dvbcs",
+    "settings": "core:description of tests/vectors/dvbcs/tvbeacon_biphase4800_250ksps.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/dvbcs.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dvbcs.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvbt/dvbt_7mhz_2k_16qam_8msps.sigmf-data",
+   "size": 48000000,
+   "sha256": "5cd04a9593fa620bfde9ce4227048beaf35ce44b4a1db55cb7f97484107f60cb",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "synthetic DVB-T transmitter, noise seed 20260115",
+    "stack": "dvbt",
+    "settings": "core:description of tests/vectors/dvbt/dvbt_7mhz_2k_16qam_8msps.sigmf-meta",
+    "seed": 20260115,
+    "spec": "specs/dvbt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dvbt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvbt/mux_two_services.ts",
+   "size": 4924472,
+   "sha256": "56b37e01053052e1f9d4a36eb36d4a6ca71404b45acc75d908a14b26d8f988c1",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of dvbt/dvbt_7mhz_2k_16qam_8msps",
+    "stack": "dvbt",
+    "settings": "the MPEG transport stream the DVB-T recording carries, also read on its own by the demultiplexer tests",
+    "seed": null,
+    "spec": "specs/dvbt.md section 16 and specs/mpegts.md"
+   },
+   "regenerate": false,
+   "how": "Made with dvbt/dvbt_7mhz_2k_16qam_8msps by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvoice/dvoice_dmr_96k.sigmf-data",
+   "size": 9216000,
+   "sha256": "4d4716039d0827ae36859ed67c3720b9bcbe77ee0367bcc0b0195ea43e4bbea7",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "digital voice test generator",
+    "stack": "dvoice",
+    "settings": "core:description of tests/vectors/dvoice/dvoice_dmr_96k.sigmf-meta",
+    "seed": 1,
+    "spec": "specs/dvoice.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dvoice.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvoice/dvoice_dpmr_96k.sigmf-data",
+   "size": 7680000,
+   "sha256": "f324b37764b4a7f28ad7b55019eaf6dada2bf16a7254eab3d35bf7a01642c958",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "digital voice test generator",
+    "stack": "dvoice",
+    "settings": "core:description of tests/vectors/dvoice/dvoice_dpmr_96k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/dvoice.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dvoice.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvoice/dvoice_dstar_96k.sigmf-data",
+   "size": 7680000,
+   "sha256": "3518a805157d26d9cc1901c0c31c101170fe862f78d10aa4c04541dbaa30fb42",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "digital voice test generator",
+    "stack": "dvoice",
+    "settings": "core:description of tests/vectors/dvoice/dvoice_dstar_96k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/dvoice.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dvoice.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvoice/dvoice_m17_96k.sigmf-data",
+   "size": 8448000,
+   "sha256": "c89ee6fd094ce8321bee77a6a3328144959937ec1a95ed5cbfea0d9e9e09533b",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "digital voice test generator",
+    "stack": "dvoice",
+    "settings": "core:description of tests/vectors/dvoice/dvoice_m17_96k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/dvoice.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dvoice.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvoice/dvoice_nxdn_96k.sigmf-data",
+   "size": 6912000,
+   "sha256": "8b59a1b7dba8aa4b61738dcf7829ecb11e0706b9ff18bec44db77a65f9f4f03c",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "digital voice test generator",
+    "stack": "dvoice",
+    "settings": "core:description of tests/vectors/dvoice/dvoice_nxdn_96k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/dvoice.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dvoice.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "dvoice/dvoice_p25_96k.sigmf-data",
+   "size": 7680000,
+   "sha256": "d3aa6d53fdbba5424959b05169435a2aef6fce41513057acfa5b4c29c4948273",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "digital voice test generator",
+    "stack": "dvoice",
+    "settings": "core:description of tests/vectors/dvoice/dvoice_p25_96k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/dvoice.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/dvoice.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "fm/fm_stereo_rds_500k.sigmf-data",
+   "size": 16000000,
+   "sha256": "da9092ba561344447f01459fc998ca7e3f21ce694744808b0b6bd6852dae2cd2",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "FM test generator, noise seed 1",
+    "stack": "fm",
+    "settings": "core:description of tests/vectors/fm/fm_stereo_rds_500k.sigmf-meta",
+    "seed": 1,
+    "spec": "specs/fm.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/fm.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "general/general_am_250k.sigmf-data",
+   "size": 3000000,
+   "sha256": "44b061985a01c9d40b7fdb1bdc5793b332407e803f2e2a3b861de0ed0e459aa9",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit general-receiver test signal definition (specs/general.md section 13), noise from a seeded Gaussian generator",
+    "stack": "general",
+    "settings": "core:description of tests/vectors/general/general_am_250k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/general.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/general.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "general/general_cw_250k.sigmf-data",
+   "size": 3000000,
+   "sha256": "caf057eee35690b7591117f896704a851f0f4298d9162d6b80e18b9b6b9ca2f7",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit general-receiver test signal definition (specs/general.md section 13), noise from a seeded Gaussian generator",
+    "stack": "general",
+    "settings": "core:description of tests/vectors/general/general_cw_250k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/general.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/general.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "general/general_nfm_ctcss_250k.sigmf-data",
+   "size": 5000000,
+   "sha256": "0c714e8b76883d0b1dffcc50c4f5fc6437a964798ef73f35905a2026f042ccef",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit general-receiver test signal definition (specs/general.md section 13), noise from a seeded Gaussian generator",
+    "stack": "general",
+    "settings": "core:description of tests/vectors/general/general_nfm_ctcss_250k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/general.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/general.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "general/general_usb_250k.sigmf-data",
+   "size": 3000000,
+   "sha256": "6a39198c421d992b7c009d54d2759542c72f44b875769f306593e22a0b75d3a4",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit general-receiver test signal definition (specs/general.md section 13), noise from a seeded Gaussian generator",
+    "stack": "general",
+    "settings": "core:description of tests/vectors/general/general_usb_250k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/general.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/general.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "gnss/gnss_l1_multi_4m.sigmf-data",
+   "size": 48000000,
+   "sha256": "efdbf32931301409c22021faf792307dc57855ee5610da853ee4a7dc4e3105fb",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "GNSS test generator, constellation seed 1, noise seed 1",
+    "stack": "gnss",
+    "settings": "core:description of tests/vectors/gnss/gnss_l1_multi_4m.sigmf-meta",
+    "seed": 1,
+    "spec": "specs/gnss.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/gnss.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/ale_24k.sigmf-data",
+   "size": 10176000,
+   "sha256": "4655a2bfabf5207e9f781201a19dbc5cc33bfa18ee0e76ff149eea657520ab33",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF ALE test generator, seed 2",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/ale_24k.sigmf-meta",
+    "seed": 2,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/codar_250k.sigmf-data",
+   "size": 8000000,
+   "sha256": "ea95ff6af64678e9d5cf320ad47607c3b30d191aca77db918551765468e9d1fd",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF ocean radar test generator, seed 4",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/codar_250k.sigmf-meta",
+    "seed": 4,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/datawell_2fsk_24k.sigmf-data",
+   "size": 6144000,
+   "sha256": "099849ed8f69101209e05ce0154b79dee446ab5a449587acdd213dfb27b3e546",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "wave-buoy link test generator, seed 3",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/datawell_2fsk_24k.sigmf-meta",
+    "seed": 3,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/hfbeacon_letters_24k.sigmf-data",
+   "size": 5760000,
+   "sha256": "145e9979ecf1a3fc9636dfa095d0b88fd6d38496d36537413907a0eea8103fd5",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF beacon test generator, seed 2",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/hfbeacon_letters_24k.sigmf-meta",
+    "seed": 2,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/pactor1_arq_24k.sigmf-data",
+   "size": 2227200,
+   "sha256": "e3c6446ee5a6b0a26776183f1a562808c19c9692fb2d9900c67e38a5a6e398fa",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "PACTOR-I test generator, seed 7",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/pactor1_arq_24k.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/pactor1_fec_24k.sigmf-data",
+   "size": 4819200,
+   "sha256": "81560ebde8e1b3e96e8bf94d76d028eb1c0a22151dc08d89dbc4b744e13f5d56",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "PACTOR-I test generator, seed 7",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/pactor1_fec_24k.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/pactor2_24k.sigmf-data",
+   "size": 4608000,
+   "sha256": "9e132e1c15f274fe48163f1d1e2ded433f3ba91a56410ad7e1ce0e4613cd4441",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "PACTOR-II/III/IV physical layer test generator, seed 3",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/pactor2_24k.sigmf-meta",
+    "seed": 3,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/pactor3_24k.sigmf-data",
+   "size": 4608000,
+   "sha256": "edcf3b26a0bc1ac636d3be2c3d3b25ef6baff7d9476f6f2407bd4975f7704da1",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "PACTOR-II/III/IV physical layer test generator, seed 3",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/pactor3_24k.sigmf-meta",
+    "seed": 3,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/pactor4_24k.sigmf-data",
+   "size": 2880000,
+   "sha256": "04c57459ee22f9a1888418fde226cb4d994aab83e42fc8b9c7919d5fe1a51776",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "PACTOR-II/III/IV physical layer test generator, seed 3",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/pactor4_24k.sigmf-meta",
+    "seed": 3,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/wfid_110a_24k.sigmf-data",
+   "size": 1536000,
+   "sha256": "022ad890f7b4585b7b92e62f5d457f45281706e8bd90e1a02a273d908fc6b7f1",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF waveform test generator, seed 7",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/wfid_110a_24k.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/wfid_4285_24k.sigmf-data",
+   "size": 1536000,
+   "sha256": "51f167a80cbf6fe72cd1f7fa34715d1553901d3174ae7fe1934d6f156552ad93",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF waveform test generator, seed 7",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/wfid_4285_24k.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/wfid_link11_24k.sigmf-data",
+   "size": 1536000,
+   "sha256": "d4adf0a54fef4ae859be207c35528b12b7049bf0a3d6a71d9a088cab2de86b1b",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF waveform test generator, seed 7",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/wfid_link11_24k.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfdata/wfid_mfsk12_24k.sigmf-data",
+   "size": 1536000,
+   "sha256": "ee9abd43f3eb04d2900970a748c56cf004088b6da6f84c727c368fd57d1f371b",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF waveform test generator, seed 7",
+    "stack": "hfdata",
+    "settings": "core:description of tests/vectors/hfdata/wfid_mfsk12_24k.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/hfdata.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfdata.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/feldhell_received.png",
+   "size": 2601,
+   "sha256": "76918a37d60bc777b8746f677ea657316f5c042131fd0239552eb46e9787b967",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of hfkbd/hfkbd_feldhell_12k",
+    "stack": "hfkbd",
+    "settings": "the picture a Feld Hell receiver should draw from the recording",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Made with hfkbd/hfkbd_feldhell_12k by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_ardop_12k.sigmf-data",
+   "size": 2304000,
+   "sha256": "ed22ef5cdd65e121ec03d4adf8c8e3056fdda4e1964219ddc5658c215d99ecb2",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_ardop_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_contestia_16_500_12k.sigmf-data",
+   "size": 1728000,
+   "sha256": "f6cc6d174c5d855654c3b30843679bfd1c17b3f1e6974d08c2677db7a89c58d5",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_contestia_16_500_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_cw_12k.sigmf-data",
+   "size": 2400000,
+   "sha256": "ae51b5797a9b2b54d1eecd7ebe30c0fe37a2616db4f496ced24e0c0fc7552421",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_cw_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_dominoex11_12k.sigmf-data",
+   "size": 1920000,
+   "sha256": "5c7c0cdaba7502836a4f77080510307df75744e21bf3fbf7d0fa6fbf9393364f",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_dominoex11_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_feldhell_12k.sigmf-data",
+   "size": 1440000,
+   "sha256": "78a3c24cf4492ea2accfccbe18c95516b6836e61334a58297376bd7680aaa323",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_feldhell_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_fsq3_12k.sigmf-data",
+   "size": 3840000,
+   "sha256": "961a57f66fcf9439bd41594f8a117e2287fa6fe5fd5cb725968fa94359f741c8",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_fsq3_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_ifkp1_12k.sigmf-data",
+   "size": 2880000,
+   "sha256": "610e1c97351fc4a9857a2e69f504713445a6c6cdbb8b5663963a2fd836a134dd",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_ifkp1_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_mfsk16_12k.sigmf-data",
+   "size": 2400000,
+   "sha256": "c510291bb62b2c5e69c2750f4265d1cb6eb57031441b793f11ae0ce406bd4c04",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_mfsk16_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_mfsk32_picture_12k.sigmf-data",
+   "size": 1920000,
+   "sha256": "d9af4e234770a7731c0211b0c95d9974b9549edb06e27792b5404e2a1d9758fd",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_mfsk32_picture_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_mt63_1000_12k.sigmf-data",
+   "size": 2400000,
+   "sha256": "9892fc2d3ad61793bc66e02a302181bd7ba375212f799d4680346fcaf9d4daf9",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_mt63_1000_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_olivia_32_1000_12k.sigmf-data",
+   "size": 2400000,
+   "sha256": "5881debd6afb7e0e0347c195e05583f358df848d33fa1730c4ba3689df0f80c5",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_olivia_32_1000_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_psk31_12k.sigmf-data",
+   "size": 2400000,
+   "sha256": "bc5b1c61d47ac41f8c94a26f4ee5592d2bdae1029b1f565baad685dcea602f65",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_psk31_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_qpsk31_12k.sigmf-data",
+   "size": 1440000,
+   "sha256": "5cc5e54d9ab4eaac1b235e26ef9b383427bd9db7c7c077fe676d34f7a50ba6ec",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_qpsk31_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_ros16_12k.sigmf-data",
+   "size": 1920000,
+   "sha256": "d30297a61c817d8f444f20d2b7482a12522516871f2df4578d9468cb434b1fa3",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_ros16_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_rtty_45_170_12k.sigmf-data",
+   "size": 1440000,
+   "sha256": "6010c9a0696cbbcb2cb15de7765d1097d7dc67f21c64b85663502331353609cf",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_rtty_45_170_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_sitorb_12k.sigmf-data",
+   "size": 2400000,
+   "sha256": "dea23fc050013aacb92176c938cfb7707b9deab46d7b68e65339cb2c4701b55f",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_sitorb_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_sstv_robot36_12k.sigmf-data",
+   "size": 3840000,
+   "sha256": "809d5e8835ec1515014d7a5bbc292cedbc29efa4b4228adbf154d8ead8d1d498",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_sstv_robot36_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/hfkbd_thor16_12k.sigmf-data",
+   "size": 2400000,
+   "sha256": "0dda6f6bec89f1f43faee8707b65488a5294655d39284be243dba8a7a6bd9012",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "HF keyboard-mode test generator",
+    "stack": "hfkbd",
+    "settings": "core:description of tests/vectors/hfkbd/hfkbd_thor16_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/hfkbd.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/mfsk32_picture_sent.png",
+   "size": 93,
+   "sha256": "3f164ed3d69aca4767a51a60e42f4bf3a3f6ef5e4c7996cab656c3313c530b77",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of hfkbd/hfkbd_mfsk32_picture_12k",
+    "stack": "hfkbd",
+    "settings": "the picture sent in the MFSK32 recording",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Made with hfkbd/hfkbd_mfsk32_picture_12k by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "hfkbd/sstv_robot36_sent.png",
+   "size": 2051,
+   "sha256": "84b561bd11267b9302159651c89a79d11dc8aab6fc6888e9f80d7393aac395e4",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of hfkbd/hfkbd_sstv_robot36_12k",
+    "stack": "hfkbd",
+    "settings": "the picture sent in the SSTV recording",
+    "seed": null,
+    "spec": "specs/hfkbd.md"
+   },
+   "regenerate": false,
+   "how": "Made with hfkbd/hfkbd_sstv_robot36_12k by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "ism/ism_433_scene_1msps.sigmf-data",
+   "size": 26646512,
+   "sha256": "135f7a9f7f8d1337de6849ea734fab55083d8c5a3aebacacba7b8be8639fcc89",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit test-signal generator (synthetic)",
+    "stack": "ism",
+    "settings": "core:description of tests/vectors/ism/ism_433_scene_1msps.sigmf-meta",
+    "seed": null,
+    "spec": "specs/ism.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/ism.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "ism/ism_868_scene_1msps.sigmf-data",
+   "size": 3323200,
+   "sha256": "c0495e4845a3774b86d6c88c2e60ca5f363edd747f6bcf40159d4ce2e03a2bc8",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit test-signal generator (synthetic)",
+    "stack": "ism",
+    "settings": "core:description of tests/vectors/ism/ism_868_scene_1msps.sigmf-meta",
+    "seed": null,
+    "spec": "specs/ism.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/ism.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "ism/sigfox_rc1_400k.sigmf-data",
+   "size": 6080000,
+   "sha256": "dd153a20eadc345e57b35b622e100f9a11bae72ff4897fceded741aa43f313ff",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit test-signal generator (synthetic)",
+    "stack": "ism",
+    "settings": "core:description of tests/vectors/ism/sigfox_rc1_400k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/ism.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/ism.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "ism/wmbus_868_625_1200k.sigmf-data",
+   "size": 14400000,
+   "sha256": "fd676405f7f38cb4fe62fb50f10ec776111380b74434e7bddc052bd4cd5ca40c",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit test-signal generator (synthetic)",
+    "stack": "ism",
+    "settings": "core:description of tests/vectors/ism/wmbus_868_625_1200k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/ism.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/ism.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "ism/zwave_868_4_1msps.sigmf-data",
+   "size": 2488256,
+   "sha256": "f1727fe542558cae1299305d001d57564a2169eacf53265c625b782522282fcc",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit test-signal generator (synthetic)",
+    "stack": "ism",
+    "settings": "core:description of tests/vectors/ism/zwave_868_4_1msps.sigmf-meta",
+    "seed": null,
+    "spec": "specs/ism.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/ism.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "lora/aprs_afsk1200_240k.sigmf-data",
+   "size": 5451200,
+   "sha256": "d0f38fcd7489f2743ebbd86721005086c473860fd00ae55d21548d779a526467",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "lora",
+    "settings": "core:description of tests/vectors/lora/aprs_afsk1200_240k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/lora.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/lora.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "lora/lora_aprs_eu_300k.sigmf-data",
+   "size": 12435800,
+   "sha256": "898918be41e1910e6e35156be0672e1c116fced0f5a5456fd89da1fe31c07548",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "lora",
+    "settings": "core:description of tests/vectors/lora/lora_aprs_eu_300k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/lora.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/lora.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "lora/lora_raw_600k.sigmf-data",
+   "size": 4132680,
+   "sha256": "f70563e777828095927497ccbbce667b3c93596198da6b39dfc7ca192144e3c7",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "lora",
+    "settings": "core:description of tests/vectors/lora/lora_raw_600k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/lora.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/lora.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "lora/lorawan_eu868_700k.sigmf-data",
+   "size": 6313840,
+   "sha256": "a6b58bd530b226b95ef8aea83e22d3a9e65e5e34accd8111f82065eae146be0c",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "lora",
+    "settings": "core:description of tests/vectors/lora/lorawan_eu868_700k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/lora.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/lora.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "lora/meshcom_eu_600k.sigmf-data",
+   "size": 10342272,
+   "sha256": "6abb850a8e3cbed135466754dc1fd34e7e68d34e4cd6bce30fe689cbe4278bd5",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "lora",
+    "settings": "core:description of tests/vectors/lora/meshcom_eu_600k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/lora.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/lora.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "lora/meshcore_eu_narrow_250k.sigmf-data",
+   "size": 5423032,
+   "sha256": "39e4e0f1f0ab8f0169fe33137dd4049edd5d0aeb0e00ec735be1763eb3daffac",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "lora",
+    "settings": "core:description of tests/vectors/lora/meshcore_eu_narrow_250k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/lora.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/lora.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "lora/meshtastic_longfast_600k.sigmf-data",
+   "size": 15775104,
+   "sha256": "5673fde1a5b0ff8e206eba0b87c303ca6688437fcf1e4339d79e0bfd229d4450",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "lora",
+    "settings": "core:description of tests/vectors/lora/meshtastic_longfast_600k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/lora.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/lora.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "lora/meshtastic_anz_tbeam_2m.sigmf-data",
+   "size": 24000000,
+   "sha256": "aca26b5a09d5fcd4382e56b0c1f554656676dc11c54e22866d88a28c563b5335",
+   "origin": {
+    "kind": "real",
+    "generator": "ANTSDR (Pluto family), live recording of 2026-11-10",
+    "stack": "lora",
+    "settings": "core:description of tests/vectors/lora/meshtastic_anz_tbeam_2m.sigmf-meta",
+    "seed": null,
+    "spec": "specs/lora.md"
+   },
+   "regenerate": false,
+   "how": "A live recording; it cannot be made again. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "marine/ais_gpsd_250k.sigmf-data",
+   "size": 3400000,
+   "sha256": "4eabde605e15bf6241e14373269d62ecbe7755633719a359802d47a6cd1d4c40",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "synthetic",
+    "stack": "marine",
+    "settings": "core:description of tests/vectors/marine/ais_gpsd_250k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/marine.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/marine.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "marine/atis_inland_48k.sigmf-data",
+   "size": 4607800,
+   "sha256": "4741828455514d697cb9cc10eff4e6e2eaf6e9cec83eb01d8eadecdd070a0ba0",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "synthetic",
+    "stack": "marine",
+    "settings": "core:description of tests/vectors/marine/atis_inland_48k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/marine.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/marine.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "marine/dsc_mfhf_12k.sigmf-data",
+   "size": 3839952,
+   "sha256": "e2667e7a1b9763149f4430c0e6614afb13a7bea6c39853ddb46b79833bf06a8e",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "synthetic",
+    "stack": "marine",
+    "settings": "core:description of tests/vectors/marine/dsc_mfhf_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/marine.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/marine.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "marine/dsc_vhf_ch70_48k.sigmf-data",
+   "size": 3071800,
+   "sha256": "38314718b0ef7180273b38e5865b716ca39563582334f40bdc30e64e34702049",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "synthetic",
+    "stack": "marine",
+    "settings": "core:description of tests/vectors/marine/dsc_vhf_ch70_48k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/marine.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/marine.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "marine/fax_chart_sent.pgm",
+   "size": 72375,
+   "sha256": "3ca079784d4bb15a1e6c4bd49cbb447156b40920f68b107c70535e8a2d1b575c",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of marine/wefax_ioc576_120lpm_12k",
+    "stack": "marine",
+    "settings": "the chart sent in the weather fax recording",
+    "seed": null,
+    "spec": "specs/marine.md"
+   },
+   "regenerate": false,
+   "how": "Made with marine/wefax_ioc576_120lpm_12k by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "marine/navtex_518k_12k.sigmf-data",
+   "size": 3839952,
+   "sha256": "862ffe48216c3cfb2927c5c2419794534d6ff36fd2ded57a8bbb089a938b8689",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "synthetic",
+    "stack": "marine",
+    "settings": "core:description of tests/vectors/marine/navtex_518k_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/marine.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/marine.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "marine/vdes_asm_vdeter_400k.sigmf-data",
+   "size": 1920000,
+   "sha256": "6760ebf188983fcc2fabe2a153df6246b4b431e311487eb30b87e6435b495bdd",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "synthetic",
+    "stack": "marine",
+    "settings": "core:description of tests/vectors/marine/vdes_asm_vdeter_400k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/marine.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/marine.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "marine/wefax_ioc576_120lpm_12k.sigmf-data",
+   "size": 4703952,
+   "sha256": "8f3d69e6f359f189666d6a7280a3e05e18ae70377ab9c67e9dcf98bdc33c9b8c",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "synthetic",
+    "stack": "marine",
+    "settings": "core:description of tests/vectors/marine/wefax_ioc576_120lpm_12k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/marine.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/marine.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "real/adsb/adsb_1090_sydney.sigmf-data",
+   "size": 98566144,
+   "sha256": "14bb6238f54569fce056aacc804dad8f5d0d99acd3c240ca8062430e79bf9326",
+   "origin": {
+    "kind": "real",
+    "where": "Sydney, Australia (off air)",
+    "when": "2026-11-08T08:38:36Z",
+    "recorder": "sdrkit",
+    "frequency_hz": 1090000000.0,
+    "sample_rate_hz": 4000000.0,
+    "datatype": "ci16_le",
+    "description": "adsb"
+   },
+   "regenerate": false,
+   "how": "Recorded off air; it cannot be made again. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "real/adsb/adsb_1090_sydney_auto_gain.sigmf-data",
+   "size": 101187584,
+   "sha256": "c95cae617d14d920aaa06ecb1663bd2bdfef960e629fdddec31fff8bcaaa6786",
+   "origin": {
+    "kind": "real",
+    "where": "Sydney, Australia (off air)",
+    "when": "2026-11-08T09:38:21Z",
+    "recorder": "sdrkit",
+    "frequency_hz": 1090000000.0,
+    "sample_rate_hz": 4000000.0,
+    "datatype": "ci16_le",
+    "description": "Recorded off air in Sydney: ADS-B / Mode S at 1090 MHz, automatic gain as a fixed high gain (66 dB)."
+   },
+   "regenerate": false,
+   "how": "Recorded off air; it cannot be made again. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "real/dab/dab_9a_sydney.sigmf-data",
+   "size": 34771008,
+   "sha256": "4ae17c0f2515b8a9363e82917b12ab4cde38d2e40fd052fe9401198b16638cac",
+   "origin": {
+    "kind": "real",
+    "where": "Sydney, Australia (off air)",
+    "when": "2026-11-08T08:38:29Z",
+    "recorder": "sdrkit",
+    "frequency_hz": 202928000.0,
+    "sample_rate_hz": 2100000.0,
+    "datatype": "ci16_le",
+    "description": "dab"
+   },
+   "regenerate": false,
+   "how": "Recorded off air; it cannot be made again. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "real/dvbt/dvbt_ch12_abc_sydney.sigmf-data",
+   "size": 77594624,
+   "sha256": "07c22993aa62242d52a6e2cdf2d8020e019067f9b1b15d8988b8388134b08335",
+   "origin": {
+    "kind": "real",
+    "where": "Sydney, Australia (off air)",
+    "when": "2026-11-08T08:38:34Z",
+    "recorder": "sdrkit",
+    "frequency_hz": 226500000.0,
+    "sample_rate_hz": 9142856.0,
+    "datatype": "ci16_le",
+    "description": "dvbt"
+   },
+   "regenerate": false,
+   "how": "Recorded off air; it cannot be made again. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "real/dvbt/dvbt_ch12_abc_sydney_held_gain.sigmf-data",
+   "size": 96151840,
+   "sha256": "08c95bfbd02d94536176f1c8235f93853a28807df52d828de55fb6983e603037",
+   "origin": {
+    "kind": "real",
+    "where": "Sydney, Australia (off air)",
+    "when": "2026-11-08T09:38:09Z",
+    "recorder": "sdrkit",
+    "frequency_hz": 226500000.0,
+    "sample_rate_hz": 9142856.0,
+    "datatype": "ci16_le",
+    "description": "Recorded off air in Sydney: DVB-T ABC Sydney multiplex, Australian VHF channel 12 (226.5 MHz, 7 MHz channel, 8K 1/16 64-QAM 3/4), automatic gain held at 26 dB, about 33 dB SNR."
+   },
+   "regenerate": false,
+   "how": "Recorded off air; it cannot be made again. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "real/fm/fm_band_20m_sydney.sigmf-data",
+   "size": 58720256,
+   "sha256": "eb6f5debb314e031bfa391c4e6677ea06ef95d224d8579788609599ccbcef7e8",
+   "origin": {
+    "kind": "real",
+    "where": "Sydney, Australia (off air)",
+    "when": "2026-11-08T08:38:43Z",
+    "recorder": "sdrkit",
+    "frequency_hz": 98000000.0,
+    "sample_rate_hz": 20000000.0,
+    "datatype": "ci16_le",
+    "description": "fm"
+   },
+   "regenerate": false,
+   "how": "Recorded off air; it cannot be made again. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "real/fm/fm_triplem_1049_sydney.sigmf-data",
+   "size": 58982400,
+   "sha256": "83ff4a85e5b4f2327e9838422d859200636f8dea7d6f89ab915a2da4f7e8cfd1",
+   "origin": {
+    "kind": "real",
+    "where": "Sydney, Australia (off air)",
+    "when": "2026-11-08T08:38:58Z",
+    "recorder": "sdrkit",
+    "frequency_hz": 104900000.0,
+    "sample_rate_hz": 2399999.0,
+    "datatype": "ci16_le",
+    "description": "fm"
+   },
+   "regenerate": false,
+   "how": "Recorded off air; it cannot be made again. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satcom/inmarsatc_ncs_250k.sigmf-data",
+   "size": 35360000,
+   "sha256": "d383f558cd019e7fe47105f1276501b8a960de3dae0ba64f51e532a25e69ae76",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "satcom test generator, seed 1",
+    "stack": "satcom",
+    "settings": "core:description of tests/vectors/satcom/inmarsatc_ncs_250k.sigmf-meta",
+    "seed": 1,
+    "spec": "specs/satcom.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/satcom.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satcom/sarsat_fgb_128k.sigmf-data",
+   "size": 8701440,
+   "sha256": "5a03c4056180ffd63817e063cec99414c7b684f0ccdff7cdc15da8ef5a35eae5",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "satcom test generator, noise seed 7",
+    "stack": "satcom",
+    "settings": "core:description of tests/vectors/satcom/sarsat_fgb_128k.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/satcom.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/satcom.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satcom/sarsat_sgb_192k.sigmf-data",
+   "size": 12684288,
+   "sha256": "a667d79f9a97fea141716cea341c2d73517a7cee4d5d6f19b3e68daa59ccf9dd",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "satcom test generator, noise seed 9",
+    "stack": "satcom",
+    "settings": "core:description of tests/vectors/satcom/sarsat_sgb_192k.sigmf-meta",
+    "seed": 9,
+    "spec": "specs/satcom.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/satcom.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/ahrpt_ch1.pgm",
+   "size": 6158,
+   "sha256": "cb2919e86806527e7c01508244ddd41fdef978ad193ec566d55e8ba2523ea44e",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/ahrpt_metop_4m",
+    "stack": "satimg",
+    "settings": "the expected picture of AVHRR channel 1 from the AHRPT recording",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/ahrpt_metop_4m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/ahrpt_ch2.pgm",
+   "size": 6158,
+   "sha256": "8efe8ee39ae3580a1dcf8f1e126c9cf94b2fc01ddbe77359ded7d4eff3de080f",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/ahrpt_metop_4m",
+    "stack": "satimg",
+    "settings": "the expected picture of AVHRR channel 2 from the AHRPT recording",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/ahrpt_metop_4m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/ahrpt_ch3.pgm",
+   "size": 6158,
+   "sha256": "ecd17fc08567023581f3659fdbff3f98b1d7c7b020665fe2ebf5cc92d2bcb884",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/ahrpt_metop_4m",
+    "stack": "satimg",
+    "settings": "the expected picture of AVHRR channel 3 from the AHRPT recording",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/ahrpt_metop_4m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/ahrpt_ch4.pgm",
+   "size": 6158,
+   "sha256": "5619a5beebf2aa5563b0712dcca5cbefc25d9c165982d06862a9df9707e17e32",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/ahrpt_metop_4m",
+    "stack": "satimg",
+    "settings": "the expected picture of AVHRR channel 4 from the AHRPT recording",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/ahrpt_metop_4m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/ahrpt_ch5.pgm",
+   "size": 6158,
+   "sha256": "a1ef13048e70695f5b3317d58dfaa97c2a57cc2f0c6395258379269eaa5f3afc",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/ahrpt_metop_4m",
+    "stack": "satimg",
+    "settings": "the expected picture of AVHRR channel 5 from the AHRPT recording",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/ahrpt_metop_4m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/ahrpt_metop_4m.sigmf-data",
+   "size": 14400000,
+   "sha256": "f4c91f633bbd2cf0f03bef94bfa96eb72ed50e105ea64d9aaf39e796170aeb53",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "synthetic generator",
+    "stack": "satimg",
+    "settings": "core:description of tests/vectors/satimg/ahrpt_metop_4m.sigmf-meta",
+    "seed": null,
+    "spec": "specs/satimg.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/satimg.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/goes_13.pgm",
+   "size": 6414,
+   "sha256": "be41b64e0985cc7e2652bba13b31b5bc0d9a99670c2d4461ab50a552504caeca",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/goes_hrit_2m",
+    "stack": "satimg",
+    "settings": "an expected picture from the GOES HRIT recording",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/goes_hrit_2m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/goes_2.pgm",
+   "size": 2413,
+   "sha256": "c1b8cd25d274426343d01cd40b939bbf99a6021c582cb2e4a36624ff75e15b8e",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/goes_hrit_2m",
+    "stack": "satimg",
+    "settings": "an expected picture from the GOES HRIT recording",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/goes_hrit_2m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/goes_file0.lrit",
+   "size": 1614,
+   "sha256": "29fb692226b69b92568212a5116421161f2e4285d6e8a8237f6288358ff6de7c",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/goes_hrit_2m",
+    "stack": "satimg",
+    "settings": "a file the GOES HRIT recording carries, byte for byte",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/goes_hrit_2m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/goes_file1.lrit",
+   "size": 1584,
+   "sha256": "7299b3e3967438c9ad59c35d2d84666e7a14516571444539d1693defed2b4dd1",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/goes_hrit_2m",
+    "stack": "satimg",
+    "settings": "a file the GOES HRIT recording carries, byte for byte",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/goes_hrit_2m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/goes_file2.lrit",
+   "size": 2531,
+   "sha256": "4050d7aba1b9d79cf4bd151ecdbd66fb68f250defdb643faf92b0e6f2fcd67f8",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/goes_hrit_2m",
+    "stack": "satimg",
+    "settings": "a file the GOES HRIT recording carries, byte for byte",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/goes_hrit_2m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/goes_file3.lrit",
+   "size": 1560,
+   "sha256": "3a63c084c4e976693cd501740b122d2782652b278363a7ecaa05b0fd7eae1152",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/goes_hrit_2m",
+    "stack": "satimg",
+    "settings": "a file the GOES HRIT recording carries, byte for byte",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/goes_hrit_2m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/goes_file4.lrit",
+   "size": 191,
+   "sha256": "5076fc2fb7aee90564875d0fad8e0c50851b6ec8ec0e8b469014110e6648e1c0",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/goes_hrit_2m",
+    "stack": "satimg",
+    "settings": "a file the GOES HRIT recording carries, byte for byte",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/goes_hrit_2m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/goes_hrit_2m.sigmf-data",
+   "size": 22400000,
+   "sha256": "cd124a832152d9caa1917ff99757a227676393bcd190e673b3c133558ae93243",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "synthetic generator",
+    "stack": "satimg",
+    "settings": "core:description of tests/vectors/satimg/goes_hrit_2m.sigmf-meta",
+    "seed": null,
+    "spec": "specs/satimg.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/satimg.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/goes_relay.jpg",
+   "size": 1484,
+   "sha256": "78c926012aefc0f7ed6c7d21b1b909843f460e55cc5d3b3f07607fb4778a198c",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/goes_hrit_2m",
+    "stack": "satimg",
+    "settings": "a file the GOES HRIT recording carries, byte for byte",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/goes_hrit_2m by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/meteor_ch1.pgm",
+   "size": 301072,
+   "sha256": "1b368462cdc1667a0f1eab8b617db56897faa0ba59d42525fa79b43457a77eb4",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/meteor_lrpt_oqpsk72k_250k",
+    "stack": "satimg",
+    "settings": "the expected picture of channel 1 from the Meteor LRPT recording",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/meteor_lrpt_oqpsk72k_250k by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/meteor_ch2.pgm",
+   "size": 301072,
+   "sha256": "b92a9d92e21da81054d95e1b61b4cafc1ba41cc56158aa7fe75df2f3c65ba070",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/meteor_lrpt_oqpsk72k_250k",
+    "stack": "satimg",
+    "settings": "the expected picture of channel 2 from the Meteor LRPT recording",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/meteor_lrpt_oqpsk72k_250k by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/meteor_ch3.pgm",
+   "size": 301072,
+   "sha256": "a2f52261fe6fdc545ec72cb9958eccd7454a9d0349cf58d40b52bd1ea96d6372",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "the generator of satimg/meteor_lrpt_oqpsk72k_250k",
+    "stack": "satimg",
+    "settings": "the expected picture of channel 3 from the Meteor LRPT recording",
+    "seed": null,
+    "spec": "tests/vectors/satimg/expected.json"
+   },
+   "regenerate": false,
+   "how": "Made with satimg/meteor_lrpt_oqpsk72k_250k by the same independent generator; not regenerable. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "satimg/meteor_lrpt_oqpsk72k_250k.sigmf-data",
+   "size": 20000000,
+   "sha256": "4738c29a1378867abfd2d7ed12e24571b961948d174528f2cbccb6de23394133",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "synthetic generator",
+    "stack": "satimg",
+    "settings": "core:description of tests/vectors/satimg/meteor_lrpt_oqpsk72k_250k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/satimg.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/satimg.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "science/eczas_225k_48k.sigmf-data",
+   "size": 13824000,
+   "sha256": "2ad9e28510c4b5afd79aacddcb07c7f384b40442528d8710a0826d8e31299749",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "e-Czas test-signal generator, noise seed 3",
+    "stack": "science",
+    "settings": "core:description of tests/vectors/science/eczas_225k_48k.sigmf-meta",
+    "seed": 3,
+    "spec": "specs/science.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/science.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "science/mscatter_beacon_24k.sigmf-data",
+   "size": 6912000,
+   "sha256": "b7ba5a109969f4ff442f857e5ac3450584741502f86592c9c471bf2b92ec0fe7",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "meteor-scatter test-signal generator, fixed pings, noise seed 5",
+    "stack": "science",
+    "settings": "core:description of tests/vectors/science/mscatter_beacon_24k.sigmf-meta",
+    "seed": 5,
+    "spec": "specs/science.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/science.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "science/same_two_alerts_64k.sigmf-data",
+   "size": 13021984,
+   "sha256": "a9d408126359b24798441cf2cbf63ad2d7b8a37964f2297c86ee0541910ab3e0",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "SAME test-signal generator, noise seed 7",
+    "stack": "science",
+    "settings": "core:description of tests/vectors/science/same_two_alerts_64k.sigmf-meta",
+    "seed": 7,
+    "spec": "specs/science.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/science.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "science/sonde_rs41_250k.sigmf-data",
+   "size": 12999480,
+   "sha256": "0a8a0920fe37d2845ee5d2541167caa8b8251a77613f5ff284ee496dc4ead9de",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "radiosonde test-signal generator, seed 1",
+    "stack": "science",
+    "settings": "core:description of tests/vectors/science/sonde_rs41_250k.sigmf-meta",
+    "seed": 1,
+    "spec": "specs/science.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/science.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "trunk/edacs_system_307k.sigmf-data",
+   "size": 18432000,
+   "sha256": "9c99e63487e33d8279d57266c62385865184a8a0a516411215209b3426ce695a",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit trunking, paging and tones test signal definition (specs/trunk.md), noise from a seeded Gaussian generator",
+    "stack": "trunk",
+    "settings": "core:description of tests/vectors/trunk/edacs_system_307k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/trunk.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/trunk.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "trunk/ltr_240k.sigmf-data",
+   "size": 6822400,
+   "sha256": "049c5da14d000d2661e2c6851ac8f84525cbd7f6ec1e9430abbbee4cd18ffe27",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit trunking, paging and tones test signal definition (specs/trunk.md), noise from a seeded Gaussian generator",
+    "stack": "trunk",
+    "settings": "core:description of tests/vectors/trunk/ltr_240k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/trunk.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/trunk.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "trunk/mpt1327_cc_240k.sigmf-data",
+   "size": 3609600,
+   "sha256": "9a4189062a7647139a67f13c557ca2cdaa251062b66a88039716b3925791b9c5",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit trunking, paging and tones test signal definition (specs/trunk.md), noise from a seeded Gaussian generator",
+    "stack": "trunk",
+    "settings": "core:description of tests/vectors/trunk/mpt1327_cc_240k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/trunk.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/trunk.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "trunk/pager_cycle_192k.sigmf-data",
+   "size": 24505600,
+   "sha256": "bb6bb5480dea035b51f9d6e8b60422bced4bf1542e29d305600050274dfa715b",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit trunking, paging and tones test signal definition (specs/trunk.md), noise from a seeded Gaussian generator",
+    "stack": "trunk",
+    "settings": "core:description of tests/vectors/trunk/pager_cycle_192k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/trunk.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/trunk.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "trunk/tones_audio_16k.sigmf-data",
+   "size": 4224000,
+   "sha256": "3e94717edb7e6e1ec77562d6b3d41bd3c9c845d36e951ed89bb5725e3eadb0ea",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "sdrkit trunking, paging and tones test signal definition (specs/trunk.md), noise from a seeded Gaussian generator",
+    "stack": "trunk",
+    "settings": "core:description of tests/vectors/trunk/tones_audio_16k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/trunk.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/trunk.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "tvterr/atsc-8vsb-clean.sigmf-data",
+   "size": 15600000,
+   "sha256": "d5fd841e0be0145bdd3cd1be9c3272ca9eece684c10805444e534b92badd99aa",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "tvterr",
+    "settings": "core:description of tests/vectors/tvterr/atsc-8vsb-clean.sigmf-meta",
+    "seed": null,
+    "spec": "specs/tvterr.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/tvterr.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "tvterr/atsc-8vsb-impaired.sigmf-data",
+   "size": 13000000,
+   "sha256": "8b66bda0bda44f42c06ca8d3da5e0aac9f0024ce1e3c0779fcea0b5b10ee12d2",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "tvterr",
+    "settings": "core:description of tests/vectors/tvterr/atsc-8vsb-impaired.sigmf-meta",
+    "seed": null,
+    "spec": "specs/tvterr.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/tvterr.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "tvterr/dtmb-pn420-16qam.sigmf-data",
+   "size": 25600000,
+   "sha256": "748613e2f7953a1f957a8ddcbe4e3b4b9196cbf46356155da6e4c6946088c690",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "",
+    "stack": "tvterr",
+    "settings": "core:description of tests/vectors/tvterr/dtmb-pn420-16qam.sigmf-meta",
+    "seed": null,
+    "spec": "specs/tvterr.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/tvterr.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wlan/ble_adv_4m.sigmf-data",
+   "size": 9600000,
+   "sha256": "7cd243f8ef681ddce8058d0d31c44423ba16d8b9de3e7209cf926f411845be68",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "Bluetooth LE advertising test generator, noise seed 11",
+    "stack": "wlan",
+    "settings": "core:description of tests/vectors/wlan/ble_adv_4m.sigmf-meta",
+    "seed": 11,
+    "spec": "specs/wlan.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wlan.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wlan/ble_trackers_4m.sigmf-data",
+   "size": 9600000,
+   "sha256": "4976eafe3758d0e6dbfded9bb92b1acd7948e4163a9f9ede6ae4bba210412703",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "Bluetooth LE advertising test generator, noise seed 11",
+    "stack": "wlan",
+    "settings": "core:description of tests/vectors/wlan/ble_trackers_4m.sigmf-meta",
+    "seed": 11,
+    "spec": "specs/wlan.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wlan.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wlan/wifi_24g_dsss_20m.sigmf-data",
+   "size": 9600000,
+   "sha256": "4f2b744d305ed01e084212cc8815c1aee4d5b2de20cc189b36b84c978b84400b",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "Wi-Fi beacon test generator, noise seed 5",
+    "stack": "wlan",
+    "settings": "core:description of tests/vectors/wlan/wifi_24g_dsss_20m.sigmf-meta",
+    "seed": 5,
+    "spec": "specs/wlan.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wlan.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wlan/wifi_5g_ofdm_20m.sigmf-data",
+   "size": 4800000,
+   "sha256": "496bdd57c31123cfbc3ef9778db3866e63763a1abe80cfc3c26564ca4812cb6b",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "Wi-Fi beacon test generator, noise seed 5",
+    "stack": "wlan",
+    "settings": "core:description of tests/vectors/wlan/wifi_5g_ofdm_20m.sigmf-meta",
+    "seed": 5,
+    "spec": "specs/wlan.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wlan.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wlan/wifi_6g_ofdm_20m.sigmf-data",
+   "size": 4800000,
+   "sha256": "99be26eeacdcfb4718f89fca2f32dab660cbe80c161608718838e111fe677eb8",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "Wi-Fi beacon test generator, noise seed 5",
+    "stack": "wlan",
+    "settings": "core:description of tests/vectors/wlan/wifi_6g_ofdm_20m.sigmf-meta",
+    "seed": 5,
+    "spec": "specs/wlan.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wlan.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_fst4_60_8k.sigmf-data",
+   "size": 4096000,
+   "sha256": "0cdbd91a0b8b3fc9261f56c03b7a0981086ec5d838c98ae7d296b7f0f680f2a2",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_fst4_60_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_fst4w_120_8k.sigmf-data",
+   "size": 7936000,
+   "sha256": "eb95eb3e24a8e449e105767dbd1cd3805f1f21f45d54e0b1c83af521bb6cf9af",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_fst4w_120_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_ft2_8k.sigmf-data",
+   "size": 736000,
+   "sha256": "795cb718f495776ae1329341a222cfd5e91a3b5238648c2de7404e6e0f70fee1",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_ft2_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_ft4_8k.sigmf-data",
+   "size": 1216000,
+   "sha256": "ab29a0394a2077c736d82dcfb9350439f1b4df12ca4fcaeb4d1cc435dc1a45fe",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_ft4_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_ft8_8k.sigmf-data",
+   "size": 2176000,
+   "sha256": "ec93e25165798b75669be08de78399d7d51074181dd730c5f23a8402b456d474",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_ft8_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_js8_8k.sigmf-data",
+   "size": 3968000,
+   "sha256": "4c9bfffa651a9a1dd019148edf3613983f04c8e750fa712a13d7d85b288ba2cf",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_js8_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_jt4a_8k.sigmf-data",
+   "size": 4096000,
+   "sha256": "63a723e6e86147b906daab60597543978a39a08e21277d552561b39915365a94",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_jt4a_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_jt65a_8k.sigmf-data",
+   "size": 4096000,
+   "sha256": "50465f354b9431f8cf7744f24dacd88a95668c82366bcee03211afe8891c04af",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_jt65a_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_jt9_8k.sigmf-data",
+   "size": 4096000,
+   "sha256": "dba29542ef0f8ffdb5dc36aa2e3a9a18f9a1715247e5fdd3ad6d2a44adb7672a",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_jt9_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_msk144_15_8k.sigmf-data",
+   "size": 1216000,
+   "sha256": "2a355d5ee450cc1364004990a628e20b98d3a8935cac6dbcfd4a6c3096d0eb77",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_msk144_15_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_q65_60a_8k.sigmf-data",
+   "size": 4096000,
+   "sha256": "6d964dcf928f73842940fdf8f7285d016fc9918f1ae34a0a01154a870383b83c",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_q65_60a_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  },
+  {
+   "path": "wsjt/wsjt_wspr_8k.sigmf-data",
+   "size": 7936000,
+   "sha256": "b9bd5e72c1e6a9c83e8e3499449fecf5faf5a2b678d9262788b9461049fce4e5",
+   "origin": {
+    "kind": "synthetic",
+    "generator": "weak-signal test generator",
+    "stack": "wsjt",
+    "settings": "core:description of tests/vectors/wsjt/wsjt_wspr_8k.sigmf-meta",
+    "seed": null,
+    "spec": "specs/wsjt.md"
+   },
+   "regenerate": false,
+   "how": "Not regenerable byte for byte: made by an independent test generator that is not part of this repository (on purpose, so a receiver is not checked against its own transmitter). Its signal is described in its .sigmf-meta and in specs/wsjt.md. Keep a copy of the recordings folder."
+  }
+ ]
+}

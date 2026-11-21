@@ -1,0 +1,55 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "ldacs",
+      "name": "LDACS (planned)",
+      "kind": "aviation",
+      "source": {
+        "publisher": "EUROCONTROL / SESAR",
+        "title": "LDACS A/G specification (D3.3.030)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the link ranges are from general knowledge; the specification was not read",
+      "bands": [
+        {
+          "name": "LDACS dial range",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 960000000.0,
+          "end_hz": 1215000000.0,
+          "modes": [
+            "ldacs"
+          ],
+          "modulation": "OFDM, 64 carriers of 9.765625 kHz",
+          "channel_width_hz": 500000.0,
+          "note": "stack ldacs; the test signal is at 1000.0 MHz; the L band of aeronautical radionavigation is 960 to 1164 MHz"
+        },
+        {
+          "name": "LDACS forward link",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 985500000.0,
+          "end_hz": 1008500000.0,
+          "modes": [
+            "ldacs"
+          ],
+          "modulation": "OFDM",
+          "channel_width_hz": 500000.0,
+          "note": "about 985.5 to 1008.5 MHz, 500 kHz channels"
+        },
+        {
+          "name": "LDACS reverse link",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 1048500000.0,
+          "end_hz": 1071500000.0,
+          "modes": [
+            "ldacs"
+          ],
+          "modulation": "OFDM",
+          "channel_width_hz": 500000.0,
+          "note": "about 1048.5 to 1071.5 MHz, 500 kHz channels"
+        }
+      ]
+    }
+  ]
+}

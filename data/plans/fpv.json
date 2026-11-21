@@ -1,0 +1,370 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "fpv_video",
+      "name": "Analogue FPV video channels",
+      "kind": "other",
+      "source": {
+        "publisher": "ImmersionRC",
+        "title": "Raceband 5.8 GHz video transmitter channel chart",
+        "date": "undated",
+        "clause": "bands R and F"
+      },
+      "also": [
+        {
+          "publisher": "Fat Shark",
+          "title": "5.8 GHz video receiver channel chart",
+          "date": "undated",
+          "clause": "band F"
+        },
+        {
+          "publisher": "Boscam",
+          "title": "5.8 GHz 32-channel video transmitter channel table",
+          "date": "undated",
+          "clause": "bands A, B and E"
+        },
+        {
+          "publisher": "Team BlackSheep",
+          "title": "TBS Unify Pro32 video transmitter manual",
+          "date": "undated",
+          "clause": "frequency table, bands A, B, E, F, R and L"
+        },
+        {
+          "publisher": "Lawmate",
+          "title": "1.2 GHz 8-channel video transmitter channel table",
+          "date": "undated",
+          "clause": "channels 1 to 8"
+        },
+        {
+          "publisher": "Oscar Liang",
+          "title": "5.8GHz FPV channels and frequency chart",
+          "date": "2025",
+          "clause": "all FPV channels in a table, bands A, B, E, F and R",
+          "url": "https://oscarliang.com/fpv-channels/"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "bands A, B, E, F and R agree with the published charts; the low race band (L) has two layouts from different makers, and the published charts of the 1.2 GHz channels disagree",
+      "note": "the band letter and channel number name a channel (R5); several bands share some frequencies",
+      "bands": [
+        {
+          "name": "A (Boscam A)",
+          "service": "short_range",
+          "start_hz": 5715000000,
+          "end_hz": 5875000000,
+          "modes": [
+            "fpv"
+          ],
+          "modulation": "wfm",
+          "channel_width_hz": 20000000,
+          "channels": [
+            {
+              "name": "A1",
+              "centre_hz": 5865000000
+            },
+            {
+              "name": "A2",
+              "centre_hz": 5845000000
+            },
+            {
+              "name": "A3",
+              "centre_hz": 5825000000
+            },
+            {
+              "name": "A4",
+              "centre_hz": 5805000000
+            },
+            {
+              "name": "A5",
+              "centre_hz": 5785000000
+            },
+            {
+              "name": "A6",
+              "centre_hz": 5765000000
+            },
+            {
+              "name": "A7",
+              "centre_hz": 5745000000
+            },
+            {
+              "name": "A8",
+              "centre_hz": 5725000000
+            }
+          ]
+        },
+        {
+          "name": "B (Boscam B)",
+          "service": "short_range",
+          "start_hz": 5723000000,
+          "end_hz": 5876000000,
+          "modes": [
+            "fpv"
+          ],
+          "modulation": "wfm",
+          "channel_width_hz": 20000000,
+          "channels": [
+            {
+              "name": "B1",
+              "centre_hz": 5733000000
+            },
+            {
+              "name": "B2",
+              "centre_hz": 5752000000
+            },
+            {
+              "name": "B3",
+              "centre_hz": 5771000000
+            },
+            {
+              "name": "B4",
+              "centre_hz": 5790000000
+            },
+            {
+              "name": "B5",
+              "centre_hz": 5809000000
+            },
+            {
+              "name": "B6",
+              "centre_hz": 5828000000
+            },
+            {
+              "name": "B7",
+              "centre_hz": 5847000000
+            },
+            {
+              "name": "B8",
+              "centre_hz": 5866000000
+            }
+          ]
+        },
+        {
+          "name": "E (Boscam E, Lumenier)",
+          "service": "short_range",
+          "start_hz": 5635000000,
+          "end_hz": 5955000000,
+          "modes": [
+            "fpv"
+          ],
+          "modulation": "wfm",
+          "channel_width_hz": 20000000,
+          "channels": [
+            {
+              "name": "E1",
+              "centre_hz": 5705000000
+            },
+            {
+              "name": "E2",
+              "centre_hz": 5685000000
+            },
+            {
+              "name": "E3",
+              "centre_hz": 5665000000
+            },
+            {
+              "name": "E4",
+              "centre_hz": 5645000000
+            },
+            {
+              "name": "E5",
+              "centre_hz": 5885000000
+            },
+            {
+              "name": "E6",
+              "centre_hz": 5905000000
+            },
+            {
+              "name": "E7",
+              "centre_hz": 5925000000
+            },
+            {
+              "name": "E8",
+              "centre_hz": 5945000000
+            }
+          ]
+        },
+        {
+          "name": "F (Fatshark)",
+          "service": "short_range",
+          "start_hz": 5730000000,
+          "end_hz": 5890000000,
+          "modes": [
+            "fpv"
+          ],
+          "modulation": "wfm",
+          "channel_width_hz": 20000000,
+          "channels": [
+            {
+              "name": "F1",
+              "centre_hz": 5740000000
+            },
+            {
+              "name": "F2",
+              "centre_hz": 5760000000
+            },
+            {
+              "name": "F3",
+              "centre_hz": 5780000000
+            },
+            {
+              "name": "F4",
+              "centre_hz": 5800000000
+            },
+            {
+              "name": "F5",
+              "centre_hz": 5820000000
+            },
+            {
+              "name": "F6",
+              "centre_hz": 5840000000
+            },
+            {
+              "name": "F7",
+              "centre_hz": 5860000000
+            },
+            {
+              "name": "F8",
+              "centre_hz": 5880000000
+            }
+          ]
+        },
+        {
+          "name": "R (Raceband)",
+          "service": "short_range",
+          "start_hz": 5648000000,
+          "end_hz": 5927000000,
+          "modes": [
+            "fpv"
+          ],
+          "modulation": "wfm",
+          "channel_width_hz": 20000000,
+          "channels": [
+            {
+              "name": "R1",
+              "centre_hz": 5658000000
+            },
+            {
+              "name": "R2",
+              "centre_hz": 5695000000
+            },
+            {
+              "name": "R3",
+              "centre_hz": 5732000000
+            },
+            {
+              "name": "R4",
+              "centre_hz": 5769000000
+            },
+            {
+              "name": "R5",
+              "centre_hz": 5806000000
+            },
+            {
+              "name": "R6",
+              "centre_hz": 5843000000
+            },
+            {
+              "name": "R7",
+              "centre_hz": 5880000000
+            },
+            {
+              "name": "R8",
+              "centre_hz": 5917000000
+            }
+          ]
+        },
+        {
+          "name": "L (Low race)",
+          "service": "short_range",
+          "start_hz": 5352000000,
+          "end_hz": 5631000000,
+          "modes": [
+            "fpv"
+          ],
+          "modulation": "wfm",
+          "channel_width_hz": 20000000,
+          "channels": [
+            {
+              "name": "L1",
+              "centre_hz": 5362000000
+            },
+            {
+              "name": "L2",
+              "centre_hz": 5399000000
+            },
+            {
+              "name": "L3",
+              "centre_hz": 5436000000
+            },
+            {
+              "name": "L4",
+              "centre_hz": 5473000000
+            },
+            {
+              "name": "L5",
+              "centre_hz": 5510000000
+            },
+            {
+              "name": "L6",
+              "centre_hz": 5547000000
+            },
+            {
+              "name": "L7",
+              "centre_hz": 5584000000
+            },
+            {
+              "name": "L8",
+              "centre_hz": 5621000000
+            }
+          ]
+        },
+        {
+          "name": "1.2 GHz",
+          "service": "amateur",
+          "start_hz": 1070000000,
+          "end_hz": 1370000000,
+          "modes": [
+            "fpv"
+          ],
+          "modulation": "wfm",
+          "channel_width_hz": 20000000,
+          "channels": [
+            {
+              "name": "G1",
+              "centre_hz": 1080000000
+            },
+            {
+              "name": "G2",
+              "centre_hz": 1120000000
+            },
+            {
+              "name": "G3",
+              "centre_hz": 1160000000
+            },
+            {
+              "name": "G4",
+              "centre_hz": 1200000000
+            },
+            {
+              "name": "G5",
+              "centre_hz": 1240000000
+            },
+            {
+              "name": "G6",
+              "centre_hz": 1280000000
+            },
+            {
+              "name": "G7",
+              "centre_hz": 1320000000
+            },
+            {
+              "name": "G8",
+              "centre_hz": 1360000000
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 24000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic wave-buoy HF link, 2FSK (HXV real-time format), 32 s. Radio centre 30.4735 MHz, signal centre +1500 Hz (30.4750 MHz), tones 129 Hz apart, 81.92 baud, 64-bit vectors with BCH(63,51) parity, sync word 7FFF, system file words and spectrum words of a fixed test sea state, sinusoidal displacements. SNR 24 dB in 100 Hz.",
+    "core:recorder": "wave-buoy link test generator, seed 3",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 30473500.0
+    }
+  ],
+  "annotations": []
+}

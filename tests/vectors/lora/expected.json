@@ -1,0 +1,223 @@
+{
+  "note": "Synthetic recordings for specs/lora.md. Each frame was modulated as a LoRa (or AFSK) frame, placed at the stated offset with the stated carrier offset, added to complex white Gaussian noise (power 0.002 per sample), and decoded back by an independent demodulator before release. 'snr_db' is the SNR in the LoRa bandwidth that was set; 'cfo_hz' is the carrier offset of the frame from the nominal channel centre. 'start_s' is the first sample of the preamble (seconds from the first sample). Payloads are hex, first byte sent first. Times and payloads are exact; tolerances are in 'tolerance'.",
+  "tolerance": {
+    "payload_hex": "exact",
+    "decoded_fields": "exact (strings, numbers, flags)",
+    "start_s": "within one symbol time of the setting",
+    "cfo_hz": "within 150 Hz",
+    "snr_db": "within 2 dB",
+    "frames": "every listed frame decoded with a good CRC (or, where 'crc' is false, no CRC), no other frame reported, no CRC error counted"
+  },
+  "recordings": {
+    "meshtastic_longfast_600k": {
+      "receiver": "mode meshtastic, region EU_868, preset LongFast, dial 869.525 MHz, capture centre 869.425 MHz (the channel is 100 kHz above the centre), default channel only",
+      "lora": { "sf": 11, "bw_hz": 250000, "cr": "4/5", "sync": "0x2B", "preamble": 16, "ldro": false, "channel_hz": 869525000 },
+      "frames": [
+        { "start_s": 0.0500, "cfo_hz": 1200, "snr_db": 12, "len": 59, "payload": "ffffffffd4c3b2a101100000630800d4f60976433fb7ecd6c64867b04e286e72a4a349d263382e647eddabf6ac5f36868fb03b08f5401209adcfa7",
+          "header": { "to": "^all", "from": "!a1b2c3d4", "id": "0x00001001", "hop_limit": 3, "hop_start": 3, "want_ack": false, "via_mqtt": false, "channel_hash": "0x08", "next_hop": 0, "relay_node": "0xd4" },
+          "decrypted": true, "channel": "LongFast", "port": "NODEINFO_APP (4)",
+          "node": { "id": "!a1b2c3d4", "long_name": "Test Node Alpha", "short_name": "TNA", "hw_model": "HELTEC_V3", "role": "CLIENT" } },
+        { "start_s": 0.7920, "cfo_hz": 1200, "snr_db": 12, "len": 39, "payload": "ffffffffd4c3b2a102100000630800d4d9dfee778e6e996b861436769ad7fbe1d38231358622e6",
+          "header": { "to": "^all", "from": "!a1b2c3d4", "id": "0x00001002", "hop_limit": 3, "hop_start": 3, "channel_hash": "0x08" },
+          "decrypted": true, "channel": "LongFast", "port": "TEXT_MESSAGE_APP (1)",
+          "message": { "channel": "LongFast", "from": "!a1b2c3d4", "from_name": "Test Node Alpha", "to": "^all", "text": "Hello from sdrkit", "hops": 0, "packet_id": "0x00001002" } },
+        { "start_s": 1.4111, "cfo_hz": 1200, "snr_db": 12, "len": 39, "payload": "ffffffffd4c3b2a103100000630800d44180d9a2a9c124ead056e0524b00d6a1aab980319b9f4b",
+          "header": { "to": "^all", "from": "!a1b2c3d4", "id": "0x00001003", "hop_limit": 3, "hop_start": 3, "channel_hash": "0x08" },
+          "decrypted": true, "channel": "LongFast", "port": "POSITION_APP (3)",
+          "position": { "lat": 52.3702, "lon": 4.8952, "alt_m": 12, "time": 1760000000 } },
+        { "start_s": 2.0302, "cfo_hz": -2300, "snr_db": 6, "len": 35, "payload": "ffffffff0df0ad0b012000006208000dc8e6bc45a810579099773b76ea55bdd324439f",
+          "header": { "to": "^all", "from": "!0badf00d", "id": "0x00002001", "hop_limit": 2, "hop_start": 3, "channel_hash": "0x08", "relay_node": "0x0d" },
+          "decrypted": true, "channel": "LongFast", "port": "TEXT_MESSAGE_APP (1)",
+          "message": { "from": "!0badf00d", "to": "^all", "text": "relayed reply", "hops": 1 } },
+        { "start_s": 2.6083, "cfo_hz": 400, "snr_db": 10, "len": 38, "payload": "8c646d7a2909000062d6b2136b00000040df24abfcc30a17a3d9046726099e796a1c036a792b",
+          "header": { "to": "!7a6d648c", "from": "!00000929", "id": "0x13b2d662", "hop_limit": 3, "hop_start": 3, "want_ack": true, "via_mqtt": false, "channel_hash": "0x00" },
+          "decrypted": false, "type": "ENCRYPTED", "note": "encrypted (direct)",
+          "remark": "The public-key (PKI) direct message of the Meshtastic firmware's own crypto test. Without the recipient's private key it stays encrypted: the receiver must list it as a direct message it cannot read, and must not invent a text." }
+      ],
+      "tables_at_end": {
+        "nodes": [
+          { "id": "!a1b2c3d4", "long_name": "Test Node Alpha", "short_name": "TNA", "hw_model": "HELTEC_V3", "role": "CLIENT", "position": [52.3702, 4.8952, 12], "hops_away": 0, "packets": 3 },
+          { "id": "!0badf00d", "hops_away": 1, "packets": 1 },
+          { "id": "!00000929", "hops_away": 0, "packets": 1, "encrypted": 1 }
+        ],
+        "messages": 2,
+        "type_counts": { "NODEINFO_APP": 1, "TEXT_MESSAGE_APP": 2, "POSITION_APP": 1, "ENCRYPTED": 1 },
+        "crc_errors": 0
+      }
+    },
+    "meshcore_eu_narrow_250k": {
+      "receiver": "mode meshcore, preset EU/UK (Narrow), dial 869.618 MHz, capture centre 869.568 MHz (channel 50 kHz above). For the third frame add the hashtag channel '#test' with an empty secret.",
+      "lora": { "sf": 8, "bw_hz": 62500, "cr": "4/8", "sync": "0x12", "preamble": 32, "ldro": false, "channel_hz": 869618000 },
+      "frames": [
+        { "start_s": 0.0500, "cfo_hz": 800, "snr_db": 10, "len": 124,
+          "payload": "110081e1aef4531ceaa9f15212f162c7d0d65bbaec10b6c3bf865f79813fedab6ee70078e76821800d6435ee8c75819fe2ce7837b2ffb3e425c7b98f9ecb25353bc02641953d2d471a7fc95c3676d616c24704ba94672fe6c1cff55b43d9318c4a424abf200b92181b1f03e0b14a0054657374205265706561746572",
+          "header": { "route": "flood (1)", "payload_type": "ADVERT (4)", "version": 0, "path_hashes": 0 },
+          "advert": { "public_key": "81e1aef4531ceaa9f15212f162c7d0d65bbaec10b6c3bf865f79813fedab6ee7", "node_id": "81e1aef4531c", "timestamp": 1760000000, "role": "Repeater", "lat": 52.3702, "lon": 4.8952, "name": "Test Repeater", "signature": "valid" } },
+        { "start_s": 1.3298, "cfo_hz": 800, "snr_db": 10, "len": 53,
+          "payload": "150011066c0833f884e4e2cb9cc7b5c0cd97dc12f2418a29b19484b643eba8dbfd7b7f346f67834e672c209b22502041e32a4710cf",
+          "header": { "route": "flood (1)", "payload_type": "GRP_TXT (5)", "version": 0, "path_hashes": 0 },
+          "decrypted": true, "channel": "Public", "channel_hash": "0x11",
+          "message": { "channel": "Public", "from": "Test Repeater", "text": "hello from sdrkit", "sender_time": 1760000060, "hops": 0 } },
+        { "start_s": 2.0198, "cfo_hz": -600, "snr_db": 8, "len": 39,
+          "payload": "15025ac3d9a37dcde5d1cdf21cfc553d319959e15dae4b15665b7f133d8cfd1d0785c55477b7e3",
+          "header": { "route": "flood (1)", "payload_type": "GRP_TXT (5)", "version": 0, "path_hashes": 2, "path": "5a,c3" },
+          "without_channel": { "decrypted": false, "note": "unknown channel 0xd9" },
+          "with_channel_#test": { "decrypted": true, "channel": "#test", "message": { "from": "Sara", "text": "channel talk", "sender_time": 1760000120, "hops": 2 } } }
+      ]
+    },
+    "lora_aprs_eu_300k": {
+      "receiver": "mode loraaprs, preset LoRa APRS EU, dial 433.775 MHz, capture centre 433.735 MHz (channel 40 kHz above)",
+      "lora": { "sf": 12, "bw_hz": 125000, "cr": "4/5", "sync": "0x12", "preamble": 8, "ldro": true, "channel_hz": 433775000 },
+      "frames": [
+        { "start_s": 0.0500, "cfo_hz": -900, "snr_db": 0, "len": 63, "payload": "3cff014e3043414c4c2d373e41504c5254312c57494445312d313a21353232322e32314e2f30303435332e3731453e7364726b6974204c6f52612041505253",
+          "tnc2": "N0CALL-7>APLRT1,WIDE1-1:!5222.21N/00453.71E>sdrkit LoRa APRS",
+          "aprs": { "type": "Position", "source": "N0CALL-7", "dest": "APLRT1", "path": "WIDE1-1", "lat": 52.370167, "lon": 4.895167, "symbol": "/>", "comment": "sdrkit LoRa APRS" } },
+        { "start_s": 2.8935, "cfo_hz": -900, "snr_db": 0, "len": 45, "payload": "3cff014e3043414c4c2d373e41504c5254313a3a4e3043414c4c2d39203a54657374206d6573736167657b3031",
+          "tnc2": "N0CALL-7>APLRT1::N0CALL-9 :Test message{01",
+          "aprs": { "type": "Message", "source": "N0CALL-7", "addressee": "N0CALL-9", "text": "Test message", "msg_no": "01" } }
+      ],
+      "tables_at_end": { "stations": [ { "call": "N0CALL-7", "lat": 52.370167, "lon": 4.895167, "symbol": "/>", "frames": 2, "last_type": "Message" } ], "messages": 1 }
+    },
+    "meshcom_eu_600k": {
+      "receiver": "mode meshcom, preset MeshCom EU, dial 433.175 MHz, capture centre 433.075 MHz (channel 100 kHz above)",
+      "lora": { "sf": 11, "bw_hz": 250000, "cr": "4/6", "sync": "0x2B", "preamble": 32, "ldro": false, "channel_hz": 433175000 },
+      "frames": [
+        { "start_s": 0.0500, "cfo_hz": 500, "snr_db": 10, "len": 43, "payload": "3a44332211154e3043414c4c2d323e2a3a68656c6c6f2066726f6d207364726b69740004030a342384617e",
+          "meshcom": { "type": "TEXT", "msg_id": "0x11223344", "max_hop": 5, "flags": ["mesh"], "source": "N0CALL-2", "relays": "", "dest": "*", "channel": "MeshCom all", "text": "hello from sdrkit", "hw": 4, "mod": 3, "country": 0, "fw": 35, "checksum": "ok" } },
+        { "start_s": 0.8557, "cfo_hz": 500, "snr_db": 10, "len": 83, "payload": "2145332211144e3043414c4c2d322c4e3043414c4c2d313e2a21353232322e32314e2f30303435332e373145234d657368436f6d206e6f6465202f423d303634202f413d303030313233000403112d2384617e",
+          "meshcom": { "type": "POSITION", "msg_id": "0x11223345", "max_hop": 4, "source": "N0CALL-2", "relays": "N0CALL-1", "dest": "*", "lat": 52.370167, "lon": 4.895167, "symbol": "/#", "battery_pct": 64, "alt_m": 37.49, "checksum": "ok" } }
+      ]
+    },
+    "lorawan_eu868_700k": {
+      "receiver": "mode lorawanwide, plan EU868, downlinks on, capture centre 868.3 MHz; the mode lorawan (one channel) at 868.1 MHz hears the first frame only",
+      "lora": { "bw_hz": 125000, "cr": "4/5", "sync": "0x34", "preamble": 8 },
+      "frames": [
+        { "start_s": 0.0500, "channel_hz": 868100000, "sf": 7, "cfo_hz": 1300, "snr_db": 12, "len": 21, "crc": true, "iq": "normal", "payload": "4034120b26806400011011121314151617a1b2c3d4",
+          "mac": { "type": "Unconfirmed up", "devaddr": "260B1234", "devaddr_type": 0, "nwkid": "0x13", "network": "The Things Network", "flags": "ADR", "fcnt": 100, "fport": 1, "frm_len": 8, "mic": "A1B2C3D4" } },
+        { "start_s": 0.1566, "channel_hz": 868300000, "sf": 9, "cfo_hz": -2100, "snr_db": 10, "len": 20, "crc": true, "iq": "normal", "payload": "8034120b26c40700064f0a020a01020355aa55aa",
+          "mac": { "type": "Confirmed up", "devaddr": "260B1234", "flags": "ADR, ADRACKReq", "fopts_len": 4, "mac_commands": ["DevStatusAns (battery 31 %, margin 10 dB)", "LinkCheckReq"], "fcnt": 7, "fport": 10, "frm_len": 3, "mic": "55AA55AA" } },
+        { "start_s": 0.3919, "channel_hz": 868500000, "sf": 10, "cfo_hz": 600, "snr_db": 8, "len": 23, "crc": true, "iq": "normal", "payload": "00010000d07ed5b370563412d07ed5b3702b4a12345678",
+          "mac": { "type": "Join request", "join_eui": "70B3D57ED0000001", "dev_eui": "70B3D57ED0123456", "vendor": "The Things Network block", "dev_nonce": "0x4A2B", "mic": "12345678" } },
+        { "start_s": 0.8126, "channel_hz": 868300000, "sf": 9, "cfo_hz": 0, "snr_db": 14, "len": 17, "crc": false, "iq": "inverted", "payload": "6034120b262503000351070001deadbeef",
+          "mac": { "type": "Unconfirmed down", "devaddr": "260B1234", "flags": "ACK", "fopts_len": 5, "mac_commands": ["LinkADRReq (DR5, TX power 1, channel mask 0x0007)"], "fcnt": 3, "fport": null, "mic": "DEADBEEF" } }
+      ],
+      "tables_at_end": {
+        "devices": [
+          { "id": "260B1234", "network": "The Things Network", "uplinks": 2, "downlinks": 1, "confirmed": 1, "joins": 0, "last_fcnt": 7, "missed": 0, "battery_byte": 79, "margin_db": 10 },
+          { "id": "DevEUI 70B3D57ED0123456", "dev_eui": "70B3D57ED0123456", "join_eui": "70B3D57ED0000001", "joins": 1 }
+        ],
+        "per_type": { "Unconfirmed up": 1, "Confirmed up": 1, "Join request": 1, "Unconfirmed down": 1 }
+      }
+    },
+    "lora_raw_600k": {
+      "receiver": "mode loraraw, dial 868.1 MHz, capture centre 868.05 MHz (channel 50 kHz above), sync 0x12, SF and bandwidth Auto, explicit header: the first three frames. The fourth needs the implicit header setting: SF8, 250 kHz, CR 4/6, CRC on, length 12.",
+      "frames": [
+        { "start_s": 0.0500, "sf": 7, "bw_hz": 125000, "cr": "4/5", "crc": true, "cfo_hz": 1500, "snr_db": 10, "len": 24, "payload": "7364726b6974204c6f52612072617720534637203132356b", "text": "sdrkit LoRa raw SF7 125k" },
+        { "start_s": 0.1617, "sf": 9, "bw_hz": 250000, "cr": "4/7", "crc": true, "cfo_hz": -800, "snr_db": 6, "len": 19, "payload": "7364726b69742072617720534639203235306b", "text": "sdrkit raw SF9 250k" },
+        { "start_s": 0.3248, "sf": 10, "bw_hz": 125000, "cr": "4/8", "crc": false, "cfo_hz": 300, "snr_db": 4, "len": 11, "payload": "53463130206e6f20637263", "text": "SF10 no crc" },
+        { "start_s": 0.6718, "sf": 8, "bw_hz": 250000, "cr": "4/6", "crc": true, "implicit": true, "cfo_hz": 1800, "snr_db": 10, "len": 12, "payload": "696d706c6963697420303031", "text": "implicit 001" }
+      ]
+    },
+    "aprs_afsk1200_240k": {
+      "receiver": "mode aprs, dial 144.800 MHz, capture centre 144.850 MHz (the carrier is 50 kHz below the centre), 25 kHz channel, fix bits off",
+      "signal": "narrow FM, 3 kHz peak deviation, Bell 202 AFSK (mark 1200 Hz, space 2200 Hz), 1200 bit/s, NRZI, 40 flags before each frame, no pre-emphasis, C/N 20 dB in 25 kHz, carrier only while keyed",
+      "frames": [
+        { "start_s": 0.1000, "fcs_ok": true, "hex": "82a0a4a64040609c608682989872ae92888a6240e2ae92888a64406303f021353232322e32314e2f30303435332e3731453e3038382f3033362f413d3030303332387364726b6974204146534b2074657374786d",
+          "tnc2": "N0CALL-9>APRS,WIDE1-1*,WIDE2-1:!5222.21N/00453.71E>088/036/A=000328sdrkit AFSK test",
+          "aprs": { "type": "Position", "lat": 52.370167, "lon": 4.895167, "symbol": "/>", "course_deg": 88, "speed_kn": 36, "alt_m": 99.97, "comment": "sdrkit AFSK test" } },
+        { "start_s": 1.1983, "fcs_ok": true, "hex": "82a0a4a64040609c60868298986303f03a4e3043414c4c2d39203a54657374206d6573736167657b343259bd",
+          "tnc2": "N0CALL-1>APRS::N0CALL-9 :Test message{42",
+          "aprs": { "type": "Message", "addressee": "N0CALL-9", "text": "Test message", "msg_no": "42" } },
+        { "start_s": 2.0283, "fcs_ok": true, "hex": "82a0a4a64040609c608682989872ae92888a62406303f03a4e3043414c4c2d31203a61636b3432f053",
+          "tnc2": "N0CALL-9>APRS,WIDE1-1::N0CALL-1 :ack42",
+          "aprs": { "type": "Message", "is_ack": true, "addressee": "N0CALL-1", "msg_no": "42" } }
+      ],
+      "tables_at_end": { "stations": [ { "call": "N0CALL-9", "lat": 52.370167, "lon": 4.895167, "frames": 2 }, { "call": "N0CALL-1", "frames": 1 } ], "frames_ok": 3, "frames_bad": 0, "ok1200": 3, "message_acked": "42" }
+    },
+    "meshtastic_anz_tbeam_2m": {
+      "receiver": "stack meshtastic, region ANZ, preset LongFast, dial 919.875 MHz, capture centre 919.875 MHz, default channel only",
+      "note": "A live recording made on 2026-11-10 with an ANTSDR (Pluto family) at 919.875 MHz. The second frame is the same text heard again with hop count 1, sent by a second node. Both frames carry the plain-nibble form of the second sync symbol. 'cfo_hz' and 'snr_db' are as the receiver measured them.",
+      "lora": {
+        "sf": 11,
+        "bw_hz": 250000,
+        "cr": "4/5",
+        "sync": "0x2B",
+        "preamble": 16,
+        "ldro": false,
+        "channel_hz": 919875000
+      },
+      "frames": [
+        {
+          "start_s": 0.388,
+          "cfo_hz": 199,
+          "snr_db": 13.97,
+          "len": 27,
+          "payload": "ffffffff34f06b7ad62b48db63080034cfcc3564e4562f20ecd14a",
+          "header": {
+            "to": "^all",
+            "from": "!7a6bf034",
+            "id": "0xdb482bd6",
+            "hop_limit": 3,
+            "hop_start": 3,
+            "channel_hash": "0x08",
+            "next_hop": 0,
+            "relay_node": "0x34"
+          },
+          "decrypted": true,
+          "channel": "LongFast",
+          "port": "TEXT_MESSAGE_APP (1)",
+          "message": {
+            "channel": "LongFast",
+            "from": "!7a6bf034",
+            "to": "^all",
+            "text": "Hello",
+            "hops": 0,
+            "packet_id": "0xdb482bd6"
+          }
+        },
+        {
+          "start_s": 2.267,
+          "cfo_hz": 4351,
+          "snr_db": 21.94,
+          "len": 27,
+          "payload": "ffffffff34f06b7ad62b48db62080044cfcc3564e4562f20ecd14a",
+          "header": {
+            "to": "^all",
+            "from": "!7a6bf034",
+            "id": "0xdb482bd6",
+            "hop_limit": 2,
+            "hop_start": 3,
+            "channel_hash": "0x08",
+            "next_hop": 0,
+            "relay_node": "0x44"
+          },
+          "decrypted": true,
+          "channel": "LongFast",
+          "port": "TEXT_MESSAGE_APP (1)",
+          "message": {
+            "channel": "LongFast",
+            "from": "!7a6bf034",
+            "to": "^all",
+            "text": "Hello",
+            "hops": 1,
+            "packet_id": "0xdb482bd6"
+          }
+        }
+      ],
+      "tables_at_end": {
+        "nodes": [
+          {
+            "id": "!7a6bf034",
+            "hops_away": 1,
+            "packets": 2
+          }
+        ],
+        "messages": 1,
+        "type_counts": {
+          "TEXT_MESSAGE_APP": 2
+        },
+        "crc_errors": 0
+      }
+    }
+  }
+}

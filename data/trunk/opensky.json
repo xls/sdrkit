@@ -1,0 +1,29 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "opensky_identifier",
+      "name": "OpenSky identifier: dial range",
+      "kind": "other",
+      "source": {
+        "publisher": "not published",
+        "title": "OpenSky air interface",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "no public document describes the air interface; the bands are not confirmed",
+      "bands": [
+        {
+          "name": "OpenSky identifier dial range",
+          "service": "land_mobile",
+          "start_hz": 30000000,
+          "end_hz": 1000000000,
+          "modes": [
+            "opensky"
+          ],
+          "note": "stack opensky; the default dial 851.0125 MHz; OpenSky systems are said to use the 700, 800 and 900 MHz bands"
+        }
+      ]
+    }
+  ]
+}

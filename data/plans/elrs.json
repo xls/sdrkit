@@ -1,0 +1,343 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "elrs_au915",
+      "name": "ExpressLRS hop plan AU915",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Hop plans of ExpressLRS on 900 MHz and 433 MHz. The user documentation of the ExpressLRS project names the regulatory domains and gives no frequency",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the edges and the channel counts are not published; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "ExpressLRS AU915",
+          "service": "short_range",
+          "start_hz": 915250000.0,
+          "end_hz": 927150000.0,
+          "modulation": "LoRa 500 kHz, implicit header, sync word 0x12, frequency hopping",
+          "channel_width_hz": 500000,
+          "numbering": {
+            "first": 0,
+            "last": 19,
+            "first_centre_hz": 915500000.0,
+            "step_hz": 600000.0
+          },
+          "note": "stack settings: frequency 921.2 MHz (the middle of the plan), hop_channels=20, hop_step_hz=600000; the whole plan needs a sample rate above 13.28 Msps"
+        }
+      ]
+    },
+    {
+      "id": "elrs_fcc915",
+      "name": "ExpressLRS hop plan FCC915",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Hop plans of ExpressLRS on 900 MHz and 433 MHz. The user documentation of the ExpressLRS project names the regulatory domains and gives no frequency",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the edges and the channel counts are not published; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "ExpressLRS FCC915",
+          "service": "short_range",
+          "start_hz": 903250000.0,
+          "end_hz": 927150000.0,
+          "modulation": "LoRa 500 kHz, implicit header, sync word 0x12, frequency hopping",
+          "channel_width_hz": 500000,
+          "numbering": {
+            "first": 0,
+            "last": 39,
+            "first_centre_hz": 903500000.0,
+            "step_hz": 600000.0
+          },
+          "note": "stack settings: frequency 915.2 MHz (the middle of the plan), hop_channels=40, hop_step_hz=600000; the whole plan needs a sample rate above 26.61 Msps"
+        }
+      ]
+    },
+    {
+      "id": "elrs_eu868",
+      "name": "ExpressLRS hop plan EU868",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Hop plans of ExpressLRS on 900 MHz and 433 MHz. The user documentation of the ExpressLRS project names the regulatory domains and gives no frequency",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the edges and the channel counts are not published; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "ExpressLRS EU868",
+          "service": "short_range",
+          "start_hz": 863025000.0,
+          "end_hz": 869825000.0,
+          "modulation": "LoRa 500 kHz, implicit header, sync word 0x12, frequency hopping",
+          "channel_width_hz": 500000,
+          "numbering": {
+            "first": 0,
+            "last": 12,
+            "first_centre_hz": 863275000.0,
+            "step_hz": 525000.0
+          },
+          "note": "stack settings: frequency 866.425 MHz (the middle of the plan), hop_channels=13, hop_step_hz=525000; the whole plan needs a sample rate above 7.61 Msps"
+        }
+      ]
+    },
+    {
+      "id": "elrs_in866",
+      "name": "ExpressLRS hop plan IN866",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Hop plans of ExpressLRS on 900 MHz and 433 MHz. The user documentation of the ExpressLRS project names the regulatory domains and gives no frequency",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the edges and the channel counts are not published; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "ExpressLRS IN866",
+          "service": "short_range",
+          "start_hz": 865125000.0,
+          "end_hz": 867200000.0,
+          "modulation": "LoRa 500 kHz, implicit header, sync word 0x12, frequency hopping",
+          "channel_width_hz": 500000,
+          "numbering": {
+            "first": 0,
+            "last": 3,
+            "first_centre_hz": 865375000.0,
+            "step_hz": 525000.0
+          },
+          "note": "stack settings: frequency 866.1625 MHz (the middle of the plan), hop_channels=4, hop_step_hz=525000; the whole plan needs a sample rate above 2.36 Msps"
+        }
+      ]
+    },
+    {
+      "id": "elrs_th920",
+      "name": "ExpressLRS hop plan TH920",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Hop plans of ExpressLRS on 900 MHz and 433 MHz. The user documentation of the ExpressLRS project names the regulatory domains and gives no frequency",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the edges and the channel counts are not published; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "ExpressLRS TH920",
+          "service": "short_range",
+          "start_hz": 920250000.0,
+          "end_hz": 924950000.0,
+          "modulation": "LoRa 500 kHz, implicit header, sync word 0x12, frequency hopping",
+          "channel_width_hz": 500000,
+          "numbering": {
+            "first": 0,
+            "last": 7,
+            "first_centre_hz": 920500000.0,
+            "step_hz": 600000.0
+          },
+          "note": "stack settings: frequency 922.6 MHz (the middle of the plan), hop_channels=8, hop_step_hz=600000; the whole plan needs a sample rate above 5.28 Msps"
+        }
+      ]
+    },
+    {
+      "id": "elrs_au433",
+      "name": "ExpressLRS hop plan AU433",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Hop plans of ExpressLRS on 900 MHz and 433 MHz. The user documentation of the ExpressLRS project names the regulatory domains and gives no frequency",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the edges and the channel counts are not published; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "ExpressLRS AU433",
+          "service": "short_range",
+          "start_hz": 433170000.0,
+          "end_hz": 434670000.0,
+          "modulation": "LoRa 500 kHz, implicit header, sync word 0x12, frequency hopping",
+          "channel_width_hz": 500000,
+          "numbering": {
+            "first": 0,
+            "last": 2,
+            "first_centre_hz": 433420000.0,
+            "step_hz": 500000.0
+          },
+          "note": "stack settings: frequency 433.92 MHz (the middle of the plan), hop_channels=3, hop_step_hz=500000; the whole plan needs a sample rate above 1.72 Msps"
+        }
+      ]
+    },
+    {
+      "id": "elrs_eu433",
+      "name": "ExpressLRS hop plan EU433",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Hop plans of ExpressLRS on 900 MHz and 433 MHz. The user documentation of the ExpressLRS project names the regulatory domains and gives no frequency",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the edges and the channel counts are not published; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "ExpressLRS EU433",
+          "service": "short_range",
+          "start_hz": 432850000.0,
+          "end_hz": 434700000.0,
+          "modulation": "LoRa 500 kHz, implicit header, sync word 0x12, frequency hopping",
+          "channel_width_hz": 500000,
+          "numbering": {
+            "first": 0,
+            "last": 2,
+            "first_centre_hz": 433100000.0,
+            "step_hz": 675000.0
+          },
+          "note": "stack settings: frequency 433.775 MHz (the middle of the plan), hop_channels=3, hop_step_hz=675000; the whole plan needs a sample rate above 2.11 Msps"
+        }
+      ]
+    },
+    {
+      "id": "elrs_us433",
+      "name": "ExpressLRS hop plan US433",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Hop plans of ExpressLRS on 900 MHz and 433 MHz. The user documentation of the ExpressLRS project names the regulatory domains and gives no frequency",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the edges and the channel counts are not published; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "ExpressLRS US433",
+          "service": "short_range",
+          "start_hz": 433000000.0,
+          "end_hz": 438250000.0,
+          "modulation": "LoRa 500 kHz, implicit header, sync word 0x12, frequency hopping",
+          "channel_width_hz": 500000,
+          "numbering": {
+            "first": 0,
+            "last": 7,
+            "first_centre_hz": 433250000.0,
+            "step_hz": 678571.429
+          },
+          "note": "stack settings: frequency 435.625 MHz (the middle of the plan), hop_channels=8, hop_step_hz=678571.429; the whole plan needs a sample rate above 5.89 Msps"
+        }
+      ]
+    },
+    {
+      "id": "elrs_us433w",
+      "name": "ExpressLRS hop plan US433W",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Hop plans of ExpressLRS on 900 MHz and 433 MHz. The user documentation of the ExpressLRS project names the regulatory domains and gives no frequency",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the edges and the channel counts are not published; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "ExpressLRS US433W",
+          "service": "short_range",
+          "start_hz": 423250000.0,
+          "end_hz": 438250000.0,
+          "modulation": "LoRa 500 kHz, implicit header, sync word 0x12, frequency hopping",
+          "channel_width_hz": 500000,
+          "numbering": {
+            "first": 0,
+            "last": 19,
+            "first_centre_hz": 423500000.0,
+            "step_hz": 763157.895
+          },
+          "note": "stack settings: frequency 430.75 MHz (the middle of the plan), hop_channels=20, hop_step_hz=763157.895; the whole plan needs a sample rate above 16.72 Msps"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AU",
+      "groups": [
+        "elrs_au915",
+        "elrs_au433"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is not confirmed by a public document"
+    },
+    {
+      "code": "NZ",
+      "groups": [
+        "elrs_au915",
+        "elrs_au433"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is not confirmed by a public document; which plan New Zealand uses is not determined"
+    },
+    {
+      "code": "US",
+      "groups": [
+        "elrs_fcc915",
+        "elrs_us433",
+        "elrs_us433w"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is not confirmed by a public document"
+    },
+    {
+      "code": "CA",
+      "groups": [
+        "elrs_fcc915",
+        "elrs_us433",
+        "elrs_us433w"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is not confirmed by a public document"
+    },
+    {
+      "code": "IN",
+      "groups": [
+        "elrs_in866"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is not confirmed by a public document"
+    },
+    {
+      "code": "TH",
+      "groups": [
+        "elrs_th920"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is not confirmed by a public document"
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "elrs_eu868",
+        "elrs_eu433"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "elrs_fcc915",
+        "elrs_us433"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "elrs_au915",
+        "elrs_au433"
+      ],
+      "note": "the plan of a Region 3 country without its own entry is not confirmed"
+    }
+  ]
+}

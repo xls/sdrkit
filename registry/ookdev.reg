@@ -1,0 +1,107 @@
+# The interface of the stack family ookdev. The registry test of the family writes this file.
+family ookdev version=1.0
+shape.PulsesFields since=1.0
+shape.PulsesFields.trains type=i64 unit= optional=no since=1.0
+shape.BurstPulsesFields since=1.0
+shape.BurstPulsesFields.trains type=i64 unit= optional=no since=1.0
+shape.BurstPulsesFields.dropped type=i64 unit= optional=no since=1.0
+shape.DecodeFields since=1.0
+shape.DecodeFields.readings type=i64 unit= optional=no since=1.0
+shape.DecodeFields.unknown_trains type=i64 unit= optional=no since=1.0
+shape.ReadingFields since=1.0
+shape.ReadingFields.source type=text unit= optional=no since=1.0
+shape.ReadingFields.text type=text unit= optional=no since=1.0
+shape.ReadingFields.channel type=text unit= optional=yes since=1.0
+shape.ReadingFields.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ReadingFields.model type=text unit= optional=no since=1.0
+shape.ReadingFields.device_kind type=text unit= optional=no since=1.0
+shape.ReadingFields.id type=text unit= optional=no since=1.0
+shape.ReadingFields.battery_ok type=bool unit= optional=yes since=1.0
+shape.ReadingFields.check type=choice(crc,checksum,parity,repeat,manchester) unit= optional=no since=1.0
+shape.ReadingFields.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.ReadingFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.ReadingFields.snr_db type=f64 unit=dB optional=no since=1.0
+shape.ReadingFields.temperature_c type=f64 unit=°C optional=yes since=1.0
+shape.ReadingFields.temperature_1_c type=f64 unit=°C optional=yes since=1.0
+shape.ReadingFields.temperature_2_c type=f64 unit=°C optional=yes since=1.0
+shape.ReadingFields.globe_temperature_c type=f64 unit=°C optional=yes since=1.0
+shape.ReadingFields.humidity_pct type=f64 unit=% optional=yes since=1.0
+shape.ReadingFields.absolute_humidity_g_m3 type=f64 unit=g/m³ optional=yes since=1.0
+shape.ReadingFields.moisture_pct type=f64 unit=% optional=yes since=1.0
+shape.ReadingFields.pressure_kpa type=f64 unit=kPa optional=yes since=1.0
+shape.ReadingFields.wind_speed_m_s type=f64 unit=m/s optional=yes since=1.0
+shape.ReadingFields.wind_gust_m_s type=f64 unit=m/s optional=yes since=1.0
+shape.ReadingFields.wind_dir_deg type=f64 unit=° optional=yes since=1.0
+shape.ReadingFields.rain_mm type=f64 unit=mm optional=yes since=1.0
+shape.ReadingFields.uv_index type=f64 unit= optional=yes since=1.0
+shape.ReadingFields.light_lux type=f64 unit=lux optional=yes since=1.0
+shape.ReadingFields.battery_level_pct type=f64 unit=% optional=yes since=1.0
+shape.ReadingFields.level_pct type=f64 unit=% optional=yes since=1.0
+shape.ReadingFields.power_0_w type=f64 unit=W optional=yes since=1.0
+shape.ReadingFields.power_1_w type=f64 unit=W optional=yes since=1.0
+shape.ReadingFields.power_2_w type=f64 unit=W optional=yes since=1.0
+shape.ReadingFields.power_w type=f64 unit=W optional=yes since=1.0
+shape.ReadingFields.current_a type=f64 unit=A optional=yes since=1.0
+shape.ReadingFields.voltage_v type=f64 unit=V optional=yes since=1.0
+shape.ReadingFields.energy_kwh type=f64 unit=kWh optional=yes since=1.0
+shape.ReadingFields.gas_volume_m3 type=f64 unit=m³ optional=yes since=1.0
+shape.ReadingFields.water_volume_m3 type=f64 unit=m³ optional=yes since=1.0
+shape.ReadingFields.luminance_pct type=f64 unit=% optional=yes since=1.0
+shape.ReadingFields.co2_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.ReadingFields.hcho_ppb type=f64 unit=ppb optional=yes since=1.0
+shape.ReadingFields.pm2_5_ug_m3 type=f64 unit=µg/m³ optional=yes since=1.0
+shape.ReadingFields.pm10_ug_m3 type=f64 unit=µg/m³ optional=yes since=1.0
+shape.ReadingFields.value type=f64 unit= optional=yes since=1.0
+shape.ReadingFields.interval type=duration unit=s optional=yes since=1.0
+shape.ReadingFields.wake_up_interval type=duration unit=s optional=yes since=1.0
+shape.ReadingFields.consumption type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.last_consumption type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.interval_count type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.counter type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.sequence type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.repeat type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.transmit_offset type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.level type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.voc_level type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.alarm type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.alarm_type type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.alarm_level type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.status type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.flags type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.event type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.heartbeat type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.sensor_type type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.packet_type type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.ert_type type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.version type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.app_version type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.battery_bits type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.source_node type=i64 unit= optional=yes since=1.0
+shape.ReadingFields.length_bytes type=i64 unit=bytes optional=yes since=1.0
+shape.ReadingFields.new_battery type=bool unit= optional=yes since=1.0
+shape.ReadingFields.learning type=bool unit= optional=yes since=1.0
+shape.ReadingFields.ack_requested type=bool unit= optional=yes since=1.0
+shape.ReadingFields.moving type=bool unit= optional=yes since=1.0
+shape.ReadingFields.tamper type=bool unit= optional=yes since=1.0
+shape.ReadingFields.physical_tamper type=bool unit= optional=yes since=1.0
+shape.ReadingFields.encoder_tamper type=bool unit= optional=yes since=1.0
+shape.ReadingFields.door_open type=bool unit= optional=yes since=1.0
+shape.ReadingFields.switch_on type=bool unit= optional=yes since=1.0
+shape.ReadingFields.state type=text unit= optional=yes since=1.0
+shape.ReadingFields.tri_state type=text unit= optional=yes since=1.0
+shape.ReadingFields.mode type=text unit= optional=yes since=1.0
+shape.ReadingFields.type type=text unit= optional=yes since=1.0
+shape.ReadingFields.button type=text unit= optional=yes since=1.0
+shape.ReadingFields.code type=text unit= optional=yes since=1.0
+shape.ReadingFields.command type=text unit= optional=yes since=1.0
+shape.ReadingFields.command_class type=text unit= optional=yes since=1.0
+shape.ReadingFields.manufacturer type=text unit= optional=yes since=1.0
+shape.ReadingFields.home_id type=text unit= optional=yes since=1.0
+shape.ReadingFields.destination type=text unit= optional=yes since=1.0
+shape.ReadingFields.frame type=text unit= optional=yes since=1.0
+shape.ReadingFields.c_field type=text unit= optional=yes since=1.0
+ookdev since=1.0
+ookdev.component.pulses.fields.PulsesFields since=1.0
+ookdev.component.burst_pulses.fields.BurstPulsesFields since=1.0
+ookdev.component.decode.fields.DecodeFields since=1.0
+ookdev.event.ookdev.reading fields=ReadingFields since=1.0

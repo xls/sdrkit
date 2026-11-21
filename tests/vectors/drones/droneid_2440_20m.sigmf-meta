@@ -1,0 +1,46 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 20000000.0,
+    "core:version": "1.0.0",
+    "core:description": "DJI DroneID-structured OFDM bursts (9 symbols at 15.36 Msps, 600 carriers, Zadoff-Chu roots 600 and 147, LTE turbo code K=1408) 5 MHz below the centre at 30, 90 and 150 ms (the 90 ms burst without its first symbol), and an OcuSync-like stand-in (14-symbol random-QPSK OFDM, 1 ms on every 2 ms) 5 MHz above. Every signal 0.16 rms while on, carrier offset +12 kHz, complex white noise 22 dB below. 200 ms. Synthetic; the OcuSync-like train is not the real protocol.",
+    "core:author": "sdrkit test vector generator",
+    "core:hw": "synthetic (no radio)"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 2440000000.0
+    }
+  ],
+  "annotations": [
+    {
+      "core:sample_start": 600000,
+      "core:sample_count": 12865,
+      "core:freq_lower_edge": 2430500000.0,
+      "core:freq_upper_edge": 2439500000.0,
+      "core:label": "DroneID burst seq 1000"
+    },
+    {
+      "core:sample_start": 1800000,
+      "core:sample_count": 11425,
+      "core:freq_lower_edge": 2430500000.0,
+      "core:freq_upper_edge": 2439500000.0,
+      "core:label": "DroneID burst seq 1001"
+    },
+    {
+      "core:sample_start": 3000000,
+      "core:sample_count": 12865,
+      "core:freq_lower_edge": 2430500000.0,
+      "core:freq_upper_edge": 2439500000.0,
+      "core:label": "DroneID burst seq 1002"
+    },
+    {
+      "core:sample_start": 200000,
+      "core:sample_count": 3800000,
+      "core:freq_lower_edge": 2440500000.0,
+      "core:freq_upper_edge": 2449500000.0,
+      "core:label": "OcuSync-like burst train"
+    }
+  ]
+}

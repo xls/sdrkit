@@ -1,0 +1,19 @@
+[package]
+name = "sdrkit-proto-ipcast"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "IP over broadcast for sdrkit: DVB-S2/T2 baseband headers and mode adaptation, GSE, ATSC 3.0 baseband packets and ALP, IPv4 and IPv6 with UDP, fragment reassembly, flow statistics, PCAP, LCT and ROUTE objects, MIME packages, fragmented MP4 and gzip"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-proto-mpegts = { path = "../sdrkit-proto-mpegts" }
+thiserror.workspace = true
+# DEFLATE for gzip (RFC 1951, 1952): MIT OR Zlib OR Apache-2.0.
+miniz_oxide = "0.8"
+
+[dev-dependencies]
+sdrkit-components = { path = "../../framework/sdrkit-components" }

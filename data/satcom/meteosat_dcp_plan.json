@@ -1,0 +1,50 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "meteosat_dcp",
+      "name": "Meteosat DCP channels",
+      "kind": "other",
+      "source": {
+        "publisher": "EUMETSAT",
+        "title": "Meteosat Data Collection and Distribution Service, TD 16, EUM/OPS/DOC/08/0325, table 11",
+        "date": "2008"
+      },
+      "verified": false,
+      "unverified_reason": "the channel numbering is not checked against the published table",
+      "note": "the high-rate (HRDCP) channels lie between 402.2005 and 402.4345 MHz; stack hrdcp, setting channel_plan",
+      "bands": [
+        {
+          "name": "Meteosat DCP channels 1 to 267",
+          "service": "mobile",
+          "start_hz": 402034750,
+          "end_hz": 402435250,
+          "modes": ["hrdcp"],
+          "note": "the uplink of the meteorological-satellite service, which the format has no service name for",
+          "channel_width_hz": 1500,
+          "numbering": {
+            "first": 1,
+            "last": 267,
+            "first_centre_hz": 402035500,
+            "step_hz": 1500
+          }
+        },
+        {
+          "name": "Meteosat DCP channels 268 to 289",
+          "service": "mobile",
+          "start_hz": 402001750,
+          "end_hz": 402034750,
+          "modes": ["hrdcp"],
+          "note": "the uplink of the meteorological-satellite service, which the format has no service name for",
+          "channel_width_hz": 1500,
+          "numbering": {
+            "first": 268,
+            "last": 289,
+            "first_centre_hz": 402002500,
+            "step_hz": 1500
+          }
+        }
+      ]
+    }
+  ]
+}

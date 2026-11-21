@@ -1,0 +1,10 @@
+[package]
+name = "sdrkit-util-ids"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Identity tables for sdrkit: ICAO aircraft addresses, MID and MMSI, MCC/MNC, IEEE OUI, Bluetooth company ids and UUIDs, LoRaWAN NetIDs, programme types, languages, tone tables (CTCSS, DCS, DTMF, selcall, SELCAL), and id-to-name list import"
+build = "build.rs"
+
+[dependencies]

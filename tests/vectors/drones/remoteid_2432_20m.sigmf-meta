@@ -1,0 +1,32 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 20000000.0,
+    "core:version": "1.0.0",
+    "core:description": "Drone Remote ID (ASTM F3411-22a): one drone in Bluetooth LE legacy advertising on channel 38 (2426 MHz, 6 MHz below the centre) and one in 802.11b 1 Mbit/s beacons on Wi-Fi channel 6 (2437 MHz, 5 MHz above), plus one BLE advertiser and one access point without Remote ID. Each carrier 20 dB SNR in its own bandwidth, carrier offset +15 kHz, passed through a 0.45 x rate low-pass as a 20 MHz radio would. 50 ms. Synthetic.",
+    "core:author": "sdrkit test vector generator",
+    "core:hw": "synthetic (no radio)"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 2432000000.0
+    }
+  ],
+  "annotations": [
+    {
+      "core:sample_start": 0,
+      "core:sample_count": 1000000,
+      "core:freq_lower_edge": 2425000000.0,
+      "core:freq_upper_edge": 2427000000.0,
+      "core:label": "BLE ch 38 Remote ID (address C6:12:34:56:78:9A) and one non-Remote-ID advertiser"
+    },
+    {
+      "core:sample_start": 0,
+      "core:sample_count": 1000000,
+      "core:freq_lower_edge": 2426000000.0,
+      "core:freq_upper_edge": 2448000000.0,
+      "core:label": "Wi-Fi ch 6 beacons with Remote ID message packs (source 60:60:1F:AA:BB:CC) and one plain beacon"
+    }
+  ]
+}

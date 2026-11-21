@@ -1,0 +1,437 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "dab_band3",
+      "name": "DAB Band III (5A-13F)",
+      "kind": "dab",
+      "source": {
+        "publisher": "ITU",
+        "title": "Final Acts of the Regional Radiocommunication Conference RRC-06 (GE06)",
+        "date": "2006",
+        "clause": "Annex 2, chapter 3, Appendix 3.1, Table A.3.1-15",
+        "url": "https://www.itu.int/dms_pub/itu-r/opb/act/R-ACT-RRC.14-2006-PDF-E.pdf"
+      },
+      "also": [
+        {
+          "publisher": "CEPT",
+          "title": "Special Arrangement for T-DAB, Wiesbaden 1995, as revised at Constanta 2007 (WI95revCO07)",
+          "date": "2007-07-04",
+          "clause": "Annex 2, section 3, Table 2"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "Band III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 230000000,
+          "modes": [
+            "dab"
+          ],
+          "channel_width_hz": 1536000,
+          "channels": [
+            {
+              "name": "5A",
+              "centre_hz": 174928000
+            },
+            {
+              "name": "5B",
+              "centre_hz": 176640000
+            },
+            {
+              "name": "5C",
+              "centre_hz": 178352000
+            },
+            {
+              "name": "5D",
+              "centre_hz": 180064000
+            },
+            {
+              "name": "6A",
+              "centre_hz": 181936000
+            },
+            {
+              "name": "6B",
+              "centre_hz": 183648000
+            },
+            {
+              "name": "6C",
+              "centre_hz": 185360000
+            },
+            {
+              "name": "6D",
+              "centre_hz": 187072000
+            },
+            {
+              "name": "7A",
+              "centre_hz": 188928000
+            },
+            {
+              "name": "7B",
+              "centre_hz": 190640000
+            },
+            {
+              "name": "7C",
+              "centre_hz": 192352000
+            },
+            {
+              "name": "7D",
+              "centre_hz": 194064000
+            },
+            {
+              "name": "8A",
+              "centre_hz": 195936000
+            },
+            {
+              "name": "8B",
+              "centre_hz": 197648000
+            },
+            {
+              "name": "8C",
+              "centre_hz": 199360000
+            },
+            {
+              "name": "8D",
+              "centre_hz": 201072000
+            },
+            {
+              "name": "9A",
+              "centre_hz": 202928000
+            },
+            {
+              "name": "9B",
+              "centre_hz": 204640000
+            },
+            {
+              "name": "9C",
+              "centre_hz": 206352000
+            },
+            {
+              "name": "9D",
+              "centre_hz": 208064000
+            },
+            {
+              "name": "10A",
+              "centre_hz": 209936000
+            },
+            {
+              "name": "10B",
+              "centre_hz": 211648000
+            },
+            {
+              "name": "10C",
+              "centre_hz": 213360000
+            },
+            {
+              "name": "10D",
+              "centre_hz": 215072000
+            },
+            {
+              "name": "11A",
+              "centre_hz": 216928000
+            },
+            {
+              "name": "11B",
+              "centre_hz": 218640000
+            },
+            {
+              "name": "11C",
+              "centre_hz": 220352000
+            },
+            {
+              "name": "11D",
+              "centre_hz": 222064000
+            },
+            {
+              "name": "12A",
+              "centre_hz": 223936000
+            },
+            {
+              "name": "12B",
+              "centre_hz": 225648000
+            },
+            {
+              "name": "12C",
+              "centre_hz": 227360000
+            },
+            {
+              "name": "12D",
+              "centre_hz": 229072000
+            }
+          ]
+        },
+        {
+          "name": "Band III, channel 13",
+          "service": "broadcasting",
+          "start_hz": 230000000,
+          "end_hz": 240000000,
+          "modes": [
+            "dab"
+          ],
+          "channel_width_hz": 1536000,
+          "channels": [
+            {
+              "name": "13A",
+              "centre_hz": 230784000
+            },
+            {
+              "name": "13B",
+              "centre_hz": 232496000
+            },
+            {
+              "name": "13C",
+              "centre_hz": 234208000
+            },
+            {
+              "name": "13D",
+              "centre_hz": 235776000
+            },
+            {
+              "name": "13E",
+              "centre_hz": 237488000
+            },
+            {
+              "name": "13F",
+              "centre_hz": 239200000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dab_band3_lband",
+      "name": "DAB Band III and L-band",
+      "kind": "dab",
+      "source": {
+        "publisher": "CEPT",
+        "title": "Maastricht 2002 Special Arrangement (L-band T-DAB), as revised at Constanta 2007",
+        "date": "2007"
+      },
+      "verified": false,
+      "unverified_reason": "the L-band block table is not yet compared with the arrangement; no country in the data uses L-band DAB now",
+      "include": [
+        "dab_band3"
+      ],
+      "bands": [
+        {
+          "name": "L-band",
+          "service": "broadcasting",
+          "start_hz": 1452000000,
+          "end_hz": 1492000000,
+          "modes": [
+            "dab"
+          ],
+          "note": "1452-1492 MHz is mobile downlink in most of Europe (ECC/DEC/(13)03); Canada ended L-band DAB in 2012",
+          "channel_width_hz": 1536000,
+          "channels": [
+            {
+              "name": "LA",
+              "centre_hz": 1452960000
+            },
+            {
+              "name": "LB",
+              "centre_hz": 1454672000
+            },
+            {
+              "name": "LC",
+              "centre_hz": 1456384000
+            },
+            {
+              "name": "LD",
+              "centre_hz": 1458096000
+            },
+            {
+              "name": "LE",
+              "centre_hz": 1459808000
+            },
+            {
+              "name": "LF",
+              "centre_hz": 1461520000
+            },
+            {
+              "name": "LG",
+              "centre_hz": 1463232000
+            },
+            {
+              "name": "LH",
+              "centre_hz": 1464944000
+            },
+            {
+              "name": "LI",
+              "centre_hz": 1466656000
+            },
+            {
+              "name": "LJ",
+              "centre_hz": 1468368000
+            },
+            {
+              "name": "LK",
+              "centre_hz": 1470080000
+            },
+            {
+              "name": "LL",
+              "centre_hz": 1471792000
+            },
+            {
+              "name": "LM",
+              "centre_hz": 1473504000
+            },
+            {
+              "name": "LN",
+              "centre_hz": 1475216000
+            },
+            {
+              "name": "LO",
+              "centre_hz": 1476928000
+            },
+            {
+              "name": "LP",
+              "centre_hz": 1478640000
+            },
+            {
+              "name": "LQ",
+              "centre_hz": 1480352000
+            },
+            {
+              "name": "LR",
+              "centre_hz": 1482064000
+            },
+            {
+              "name": "LS",
+              "centre_hz": 1483776000
+            },
+            {
+              "name": "LT",
+              "centre_hz": 1485488000
+            },
+            {
+              "name": "LU",
+              "centre_hz": 1487200000
+            },
+            {
+              "name": "LV",
+              "centre_hz": 1488912000
+            },
+            {
+              "name": "LW",
+              "centre_hz": 1490624000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dab_tdmb_kr",
+      "name": "T-DMB Korea (7A-13C)",
+      "kind": "dab",
+      "source": {
+        "publisher": "TTA",
+        "title": "T-DMB channel table (Korea)",
+        "date": "2005"
+      },
+      "verified": false,
+      "unverified_reason": "not yet compared with the national or regional plan it comes from",
+      "bands": [
+        {
+          "name": "VHF Band III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 216000000,
+          "modes": [
+            "dab"
+          ],
+          "channel_width_hz": 1536000,
+          "channels": [
+            {
+              "name": "7A",
+              "centre_hz": 175280000
+            },
+            {
+              "name": "7B",
+              "centre_hz": 177008000
+            },
+            {
+              "name": "7C",
+              "centre_hz": 178736000
+            },
+            {
+              "name": "8A",
+              "centre_hz": 181280000
+            },
+            {
+              "name": "8B",
+              "centre_hz": 183008000
+            },
+            {
+              "name": "8C",
+              "centre_hz": 184736000
+            },
+            {
+              "name": "9A",
+              "centre_hz": 187280000
+            },
+            {
+              "name": "9B",
+              "centre_hz": 189008000
+            },
+            {
+              "name": "9C",
+              "centre_hz": 190736000
+            },
+            {
+              "name": "10A",
+              "centre_hz": 193280000
+            },
+            {
+              "name": "10B",
+              "centre_hz": 195008000
+            },
+            {
+              "name": "10C",
+              "centre_hz": 196736000
+            },
+            {
+              "name": "11A",
+              "centre_hz": 199280000
+            },
+            {
+              "name": "11B",
+              "centre_hz": 201008000
+            },
+            {
+              "name": "11C",
+              "centre_hz": 202736000
+            },
+            {
+              "name": "12A",
+              "centre_hz": 205280000
+            },
+            {
+              "name": "12B",
+              "centre_hz": 207008000
+            },
+            {
+              "name": "12C",
+              "centre_hz": 208736000
+            },
+            {
+              "name": "13A",
+              "centre_hz": 211280000
+            },
+            {
+              "name": "13B",
+              "centre_hz": 213008000
+            },
+            {
+              "name": "13C",
+              "centre_hz": 214736000
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

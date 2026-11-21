@@ -1,0 +1,532 @@
+{
+ "note": "Expected decode of each recording in this folder, fed from the start in pieces of any size (results must not depend on the piece size). All recordings: cf32_le, 12 000 samples/s, the dial (suppressed carrier of an upper sideband receiver) at 0 Hz of the samples, so an audio tone of f Hz is at +f Hz. Times are seconds of signal. 'contains' means the decoded text must contain that string; 'exact' fields must match; numeric ranges are inclusive. Unless stated, the mode's settings are its defaults, with automatic signal finding on. Garbage characters before the first lock are allowed (they are not checked), except where 'max_chars' or 'no_text' is given.",
+ "recordings": {
+  "hfkbd_olivia_32_1000_12k": {
+   "mode": "olivia",
+   "settings": {
+    "tones": 32,
+    "bandwidth": 1000,
+    "centre_hz": 1500
+   },
+   "sent_text_repeated": "CQ CQ DE K0TST K0TST TEST MESSAGE 0123456789 K ",
+   "expect": {
+    "contains": "CQ CQ DE K0TST K0TST TEST MESSAGE 01234",
+    "callsign": "K0TST",
+    "state": "locked",
+    "offset_hz": [
+     -8,
+     8
+    ],
+    "snr_db": [
+     10,
+     30
+    ]
+   },
+   "measured": {
+    "chars": 43,
+    "centre_hz": 1500,
+    "snr_db": 18.3
+   },
+   "tolerance": "the text must appear by the end of the 25 s file (SNR 0 dB in 2.5 kHz)"
+  },
+  "hfkbd_contestia_16_500_12k": {
+   "mode": "contestia",
+   "settings": {
+    "tones": 16,
+    "bandwidth": 500,
+    "centre_hz": 1200
+   },
+   "sent_text_repeated": "CQ CQ DE K0TST K0TST TEST MESSAGE 0123456789 K ",
+   "expect": {
+    "contains": "CQ CQ DE K0TST K0TST TEST MESSAGE 0123456789 K",
+    "callsign": "K0TST",
+    "state": "locked"
+   },
+   "measured": {
+    "chars": 55,
+    "snr_db": 15.8
+   }
+  },
+  "hfkbd_mfsk16_12k": {
+   "mode": "mfsk",
+   "settings": {
+    "variant": "MFSK16",
+    "centre_hz": 1500
+   },
+   "sent_text_repeated": "CQ CQ DE K0TST K0TST TEST MESSAGE 0123456789 K ",
+   "expect": {
+    "contains": "CQ CQ DE K0TST K0TST TEST MESSAGE 0123456789 K CQ CQ DE K0TST",
+    "callsign": "K0TST",
+    "state": "locked"
+   },
+   "measured": {
+    "chars": 86,
+    "snr_db": 30.5
+   }
+  },
+  "hfkbd_mfsk32_picture_12k": {
+   "mode": "mfsk",
+   "settings": {
+    "variant": "MFSK32",
+    "centre_hz": 1500
+   },
+   "sent_text_repeated": "CQ CQ DE K0TST PICTURE TEST K ",
+   "picture_sent": {
+    "after_chars": 20,
+    "header_text": "\nSending Pic:40x30;",
+    "width": 40,
+    "height": 30,
+    "colour": false,
+    "samples_per_pixel": 8,
+    "file": "mfsk32_picture_sent.png"
+   },
+   "expect": {
+    "contains": [
+     "Pic:40x30;",
+     "PICTURE TEST K CQ CQ DE K0TST"
+    ],
+    "pictures_finished": 1,
+    "picture": {
+     "width": 40,
+     "height": 30,
+     "colour": false,
+     "done": true,
+     "mean_abs_error_max": 25
+    }
+   },
+   "measured": {
+    "picture_mean_abs_error": 14.93,
+    "chars": 112
+   }
+  },
+  "hfkbd_thor16_12k": {
+   "mode": "thor",
+   "settings": {
+    "variant": "THOR 16",
+    "centre_hz": 1500
+   },
+   "sent_text_repeated": "CQ CQ DE K0TST K0TST TEST MESSAGE 0123456789 K ",
+   "expect": {
+    "contains": "CQ CQ DE K0TST K0TST TEST MESSAGE 0123456789 K CQ CQ",
+    "callsign": "K0TST",
+    "state": "locked"
+   },
+   "measured": {
+    "chars": 83,
+    "snr_db": 21.8
+   }
+  },
+  "hfkbd_dominoex11_12k": {
+   "mode": "dominoex",
+   "settings": {
+    "variant": "DominoEX 11",
+    "centre_hz": 1500
+   },
+   "sent_text_repeated": "CQ CQ DE K0TST K0TST TEST MESSAGE 0123456789 K ",
+   "expect": {
+    "contains": "CQ CQ DE K0TST K0TST TEST MESSAGE 0123456789 K CQ CQ DE K0TST",
+    "callsign": "K0TST",
+    "state": "locked"
+   },
+   "measured": {
+    "chars": 111,
+    "snr_db": 22.2
+   }
+  },
+  "hfkbd_feldhell_12k": {
+   "mode": "hell",
+   "settings": {
+    "variant": "Feld Hell",
+    "centre_hz": 1000,
+    "find_signal": false
+   },
+   "sent_text_repeated": "K0TST TEST 73 ",
+   "expect": {
+    "text_chars": 0,
+    "picture_columns": [
+     240,
+     280
+    ],
+    "received_picture": "feldhell_received.png",
+    "pixel_agreement_min": 0.9,
+    "how": "threshold both pictures at 128; slide the last 60 columns of the decoded picture over the reference and take the best share of equal pixels"
+   },
+   "measured": {
+    "columns": 260
+   }
+  },
+  "hfkbd_rtty_45_170_12k": {
+   "mode": "rtty",
+   "settings": {
+    "baud": 45.45,
+    "shift_hz": 170,
+    "reverse": false
+   },
+   "sent_text_repeated": "RYRYRY CQ DE K0TST TEST 0123456789 1/2 -.:? THE QUICK BROWN FOX\n",
+   "expect": {
+    "contains": "RYRYRY CQ DE K0TST TEST 0123456789 1/2 -.:? THE QUICK BROWN FOX\n",
+    "mark_hz": [
+     2117,
+     2133
+    ],
+    "space_hz": [
+     2287,
+     2303
+    ],
+    "framing_errors_max": 6,
+    "quality_min": 0.2,
+    "state": "receiving"
+   },
+   "measured": {
+    "mark_hz": 2125.4,
+    "space_hz": 2295.4,
+    "framing_errors": 0,
+    "quality": 0.74,
+    "chars": 75
+   }
+  },
+  "hfkbd_sstv_robot36_12k": {
+   "mode": "sstv",
+   "sent_picture": "sstv_robot36_sent.png",
+   "expect": {
+    "mode": "Robot 36",
+    "vis": 8,
+    "width": 320,
+    "height": 240,
+    "lines": 240,
+    "complete": true,
+    "pictures_finished": 1,
+    "mean_abs_error_max": 12,
+    "slant_ppm": [
+     -50,
+     50
+    ],
+    "offset_hz": [
+     -10,
+     10
+    ]
+   },
+   "measured": {
+    "mean_abs_error": 7.71,
+    "slant_ppm": 0.0,
+    "offset_hz": -0.3
+   }
+  },
+  "hfkbd_psk31_12k": {
+   "mode": "psk",
+   "settings": {
+    "modulation": "BPSK31",
+    "threshold_db": 5
+   },
+   "expect": {
+    "signals": [
+     {
+      "offset_hz": [
+       985,
+       1015
+      ],
+      "contains": "CQ CQ DE K0TST K0TST PSE K",
+      "callsigns": [
+       "K0TST"
+      ]
+     },
+     {
+      "offset_hz": [
+       1585,
+       1620
+      ],
+      "contains": "TEST TEST DE N0XYZ 73",
+      "callsigns": [
+       "N0XYZ"
+      ]
+     }
+    ],
+    "state": "decoding"
+   },
+   "sent": [
+    "1000 Hz: 'CQ CQ DE K0TST K0TST PSE K\\n' from 0.5 s, 1 s idle reversals before and after, 2 s carrier off between repeats",
+    "1600 Hz: 'TEST TEST DE N0XYZ 73\\n' from 1.5 s, +50 ppm symbol clock, +2 Hz/min drift"
+   ]
+  },
+  "hfkbd_qpsk31_12k": {
+   "mode": "psk",
+   "settings": {
+    "modulation": "QPSK31"
+   },
+   "expect": {
+    "signals": [
+     {
+      "offset_hz": [
+       1185,
+       1215
+      ],
+      "contains": "QPSK TEST DE K0TST 0123456789"
+     }
+    ]
+   }
+  },
+  "hfkbd_cw_12k": {
+   "mode": "cw",
+   "settings": {
+    "threshold_db": 10
+   },
+   "expect": {
+    "signals": [
+     {
+      "offset_hz": [
+       385,
+       415
+      ],
+      "contains": "CQ CQ DE K0TST K0TST K",
+      "wpm": [
+       17.6,
+       22.4
+      ]
+     },
+     {
+      "offset_hz": [
+       -1515,
+       -1485
+      ],
+      "contains": "TEST DE N0XYZ 599",
+      "wpm": [
+       24.6,
+       31.4
+      ]
+     },
+     {
+      "offset_hz": [
+       2485,
+       2515
+      ],
+      "contains": "VVV DE K0TST",
+      "wpm": [
+       13.2,
+       16.8
+      ],
+      "farnsworth": true
+     }
+    ]
+   },
+   "sent": [
+    "+400 Hz 20 WPM 'CQ CQ DE K0TST K0TST K'",
+    "-1500 Hz 28 WPM 'TEST DE N0XYZ 599 <BT> 73 <SK>' from 1.0 s",
+    "+2500 Hz 15 WPM, Farnsworth 8 WPM, 8 % jitter 'VVV DE K0TST' from 0.6 s"
+   ],
+   "note": "each text repeats with a 2 s pause; prosigns are shown as <BT> and <SK>"
+  },
+  "hfkbd_mt63_1000_12k": {
+   "mode": "mt63",
+   "settings": {
+    "bandwidth": "auto",
+    "interleave": "auto"
+   },
+   "sent_text_repeated": "CQ CQ CQ DE K0TST K0TST MT63 TEST PSE K\n",
+   "expect": {
+    "contains": "DE K0TST K0TST MT63 TEST",
+    "bandwidth": 1000,
+    "interleave": "short",
+    "centre_hz": [
+     1480,
+     1520
+    ],
+    "state": "decoding"
+   }
+  },
+  "hfkbd_fsq3_12k": {
+   "mode": "fsq",
+   "settings": {
+    "speed": "auto",
+    "my_call": "N0XYZ"
+   },
+   "sent_text_repeated": " \nk0tst:a0 n0xyz? hello from the test signal  \b  ",
+   "expect": {
+    "band_hz": [
+     280,
+     300
+    ],
+    "message": {
+     "from": "K0TST",
+     "crc_ok": true,
+     "to": "N0XYZ",
+     "trigger": "?",
+     "trigger_meaning": "asks for the signal report",
+     "text": "hello from the test signal",
+     "to_me": true
+    },
+    "snr_db": [
+     5,
+     22
+    ],
+    "symbol_rate_hz": [
+     2.88,
+     2.98
+    ]
+   },
+   "measured": {
+    "decoded": " \nk0tst:a0 n0xyz? hello from the test signal  \b   \nk0tst:a0 n0xyz? hello from the test sign",
+    "crc8_of_k0tst": "a0"
+   }
+  },
+  "hfkbd_ifkp1_12k": {
+   "mode": "ifkp",
+   "settings": {
+    "speed": "auto"
+   },
+   "sent_text_repeated": " \nK0TST: ifkp test message 0123456789\n ",
+   "expect": {
+    "contains": "K0TST: ifkp test message 0123456789",
+    "band_hz": [
+     380,
+     392
+    ],
+    "messages": 0,
+    "callsigns": [
+     "K0TST"
+    ],
+    "symbol_rate_hz": [
+     3.89,
+     3.92
+    ]
+   }
+  },
+  "hfkbd_ardop_12k": {
+   "mode": "ardop",
+   "expect": {
+    "frames": [
+     {
+      "type": "0x30",
+      "name": "IDFrame",
+      "kind": "ID",
+      "from": "K0TST",
+      "locator": "FN42AA",
+      "session": 255,
+      "body_ok": true
+     },
+     {
+      "type": "0x32",
+      "name": "ConReq500M",
+      "from": "K0TST",
+      "to": "N0XYZ",
+      "body_ok": true
+     },
+     {
+      "type": "0x3A",
+      "name": "ConAck500",
+      "leader_ms": 160,
+      "body_ok": true
+     },
+     {
+      "type": "0x3E",
+      "name": "Ping",
+      "from": "N0XYZ",
+      "to": "K0TST",
+      "body_ok": true
+     },
+     {
+      "type": "0x3D",
+      "name": "PingAck",
+      "snr_db": 12,
+      "quality": 80,
+      "body_ok": true
+     },
+     {
+      "type": "0x48",
+      "name": "4FSK.200.50S.E",
+      "text": "TEST DATA ONE",
+      "session": 90,
+      "baud": 50,
+      "body_ok": true
+     },
+     {
+      "type": "0xF0",
+      "name": "DataACK",
+      "quality": 70,
+      "session": 90,
+      "body_read": false
+     },
+     {
+      "type": "0x4C",
+      "name": "4FSK.500.100S.E",
+      "text": "TEST DATA TWO FROM K0TST",
+      "baud": 100,
+      "body_ok": true
+     },
+     {
+      "type": "0xF4",
+      "name": "DataACK",
+      "quality": 78
+     },
+     {
+      "type": "0x05",
+      "name": "DataNAK",
+      "quality": 48
+     },
+     {
+      "type": "0x29",
+      "name": "DISC"
+     },
+     {
+      "type": "0x44",
+      "name": "8PSK.200.100.E",
+      "modulation": "8PSK",
+      "header_ok": true,
+      "body_read": false
+     }
+    ],
+    "stations": 2,
+    "data_ok": 2,
+    "data_bad": 0,
+    "unreadable_leaders": 0,
+    "tone_offset_hz": [
+     -3,
+     3
+    ]
+   },
+   "sent": "the script once from 0.3 s, 200 ms leaders, 0.5 s gaps (2 s after the last)"
+  },
+  "hfkbd_ros16_12k": {
+   "mode": "ros",
+   "expect": {
+    "state": "detected",
+    "sub_mode": "ros16",
+    "grid_spacing_hz": [
+     15.525,
+     15.725
+    ],
+    "tones_lo_hz": [
+     400,
+     800
+    ],
+    "tones_hi_hz": [
+     2300,
+     2700
+    ],
+    "span_hz": [
+     1800,
+     2500
+    ]
+   },
+   "note": "Random tones of a 144-tone 15.625 Hz grid centred on 1550 Hz at 16 baud; this is the publicly reported physical layer only, not ROS encoding."
+  },
+  "hfkbd_sitorb_12k": {
+   "mode": "sitor",
+   "sent_text_repeated": "TEST MESSAGE FROM K0TST 0123456789",
+   "expect": {
+    "contains": "TEST MESSAGE FROM K0TST 0123456789",
+    "state": "locked",
+    "shift_hz": [
+     160,
+     180
+    ],
+    "inverted": true,
+    "symbol_rate_hz": [
+     99,
+     101
+    ]
+   },
+   "sent": "30 phasing places (beta in DX, alpha in RX), the text as ITA2 in CCIR 476 words (LTRS first, FIGS before the figures), 10 phasing places, three times; each character in DX and again 5 places later in RX; 100 Bd, mark (B, 1) at 1615 Hz, space (Y, 0) at 1785 Hz; 7-unit words sent least significant bit first",
+   "polarity": "The recording has B on the lower tone. ITU-R M.625-4 Table 1 note 3 puts B on the higher emitted frequency, so the receiver reads it as inverted."
+  }
+ }
+}

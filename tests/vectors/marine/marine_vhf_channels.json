@@ -1,0 +1,3643 @@
+{
+ "description": "Marine VHF channel plans by region (ITU RR Appendix 18 numbering; regional designators). ship_mhz is where a ship transmits, coast_mhz where a coast station transmits; equal values mean simplex.",
+ "regions": {
+  "INT": {
+   "name": "International (ITU)",
+   "channels": [
+    {
+     "label": "1",
+     "number": 1,
+     "suffix": "",
+     "ship_mhz": 156.05,
+     "coast_mhz": 160.65,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "2",
+     "number": 2,
+     "suffix": "",
+     "ship_mhz": 156.1,
+     "coast_mhz": 160.7,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "3",
+     "number": 3,
+     "suffix": "",
+     "ship_mhz": 156.15,
+     "coast_mhz": 160.75,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "4",
+     "number": 4,
+     "suffix": "",
+     "ship_mhz": 156.2,
+     "coast_mhz": 160.8,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "5",
+     "number": 5,
+     "suffix": "",
+     "ship_mhz": 156.25,
+     "coast_mhz": 160.85,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "6",
+     "number": 6,
+     "suffix": "",
+     "ship_mhz": 156.3,
+     "coast_mhz": 156.3,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "7",
+     "number": 7,
+     "suffix": "",
+     "ship_mhz": 156.35,
+     "coast_mhz": 160.95,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "8",
+     "number": 8,
+     "suffix": "",
+     "ship_mhz": 156.4,
+     "coast_mhz": 156.4,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "9",
+     "number": 9,
+     "suffix": "",
+     "ship_mhz": 156.45,
+     "coast_mhz": 156.45,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "10",
+     "number": 10,
+     "suffix": "",
+     "ship_mhz": 156.5,
+     "coast_mhz": 156.5,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "11",
+     "number": 11,
+     "suffix": "",
+     "ship_mhz": 156.55,
+     "coast_mhz": 156.55,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "12",
+     "number": 12,
+     "suffix": "",
+     "ship_mhz": 156.6,
+     "coast_mhz": 156.6,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "13",
+     "number": 13,
+     "suffix": "",
+     "ship_mhz": 156.65,
+     "coast_mhz": 156.65,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "bridge"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "14",
+     "number": 14,
+     "suffix": "",
+     "ship_mhz": 156.7,
+     "coast_mhz": 156.7,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "15",
+     "number": 15,
+     "suffix": "",
+     "ship_mhz": 156.75,
+     "coast_mhz": 156.75,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "16",
+     "number": 16,
+     "suffix": "",
+     "ship_mhz": 156.8,
+     "coast_mhz": 156.8,
+     "use": "voice",
+     "flags": [
+      "distress",
+      "calling"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "17",
+     "number": 17,
+     "suffix": "",
+     "ship_mhz": 156.85,
+     "coast_mhz": 156.85,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "18",
+     "number": 18,
+     "suffix": "",
+     "ship_mhz": 156.9,
+     "coast_mhz": 161.5,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "19",
+     "number": 19,
+     "suffix": "",
+     "ship_mhz": 156.95,
+     "coast_mhz": 161.55,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "20",
+     "number": 20,
+     "suffix": "",
+     "ship_mhz": 157.0,
+     "coast_mhz": 161.6,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "21",
+     "number": 21,
+     "suffix": "",
+     "ship_mhz": 157.05,
+     "coast_mhz": 161.65,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "22",
+     "number": 22,
+     "suffix": "",
+     "ship_mhz": 157.1,
+     "coast_mhz": 161.7,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "23",
+     "number": 23,
+     "suffix": "",
+     "ship_mhz": 157.15,
+     "coast_mhz": 161.75,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "24",
+     "number": 24,
+     "suffix": "",
+     "ship_mhz": 157.2,
+     "coast_mhz": 161.8,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "25",
+     "number": 25,
+     "suffix": "",
+     "ship_mhz": 157.25,
+     "coast_mhz": 161.85,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "26",
+     "number": 26,
+     "suffix": "",
+     "ship_mhz": 157.3,
+     "coast_mhz": 161.9,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "27",
+     "number": 27,
+     "suffix": "",
+     "ship_mhz": 157.35,
+     "coast_mhz": 161.95,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "28",
+     "number": 28,
+     "suffix": "",
+     "ship_mhz": 157.4,
+     "coast_mhz": 162.0,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "60",
+     "number": 60,
+     "suffix": "",
+     "ship_mhz": 156.025,
+     "coast_mhz": 160.625,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "61",
+     "number": 61,
+     "suffix": "",
+     "ship_mhz": 156.075,
+     "coast_mhz": 160.675,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "62",
+     "number": 62,
+     "suffix": "",
+     "ship_mhz": 156.125,
+     "coast_mhz": 160.725,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "63",
+     "number": 63,
+     "suffix": "",
+     "ship_mhz": 156.175,
+     "coast_mhz": 160.775,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "64",
+     "number": 64,
+     "suffix": "",
+     "ship_mhz": 156.225,
+     "coast_mhz": 160.825,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "65",
+     "number": 65,
+     "suffix": "",
+     "ship_mhz": 156.275,
+     "coast_mhz": 160.875,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "66",
+     "number": 66,
+     "suffix": "",
+     "ship_mhz": 156.325,
+     "coast_mhz": 160.925,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "67",
+     "number": 67,
+     "suffix": "",
+     "ship_mhz": 156.375,
+     "coast_mhz": 156.375,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "bridge"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "68",
+     "number": 68,
+     "suffix": "",
+     "ship_mhz": 156.425,
+     "coast_mhz": 156.425,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "69",
+     "number": 69,
+     "suffix": "",
+     "ship_mhz": 156.475,
+     "coast_mhz": 156.475,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "70",
+     "number": 70,
+     "suffix": "",
+     "ship_mhz": 156.525,
+     "coast_mhz": 156.525,
+     "use": "dsc",
+     "flags": [],
+     "power_w": 25.0
+    },
+    {
+     "label": "71",
+     "number": 71,
+     "suffix": "",
+     "ship_mhz": 156.575,
+     "coast_mhz": 156.575,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "72",
+     "number": 72,
+     "suffix": "",
+     "ship_mhz": 156.625,
+     "coast_mhz": 156.625,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "73",
+     "number": 73,
+     "suffix": "",
+     "ship_mhz": 156.675,
+     "coast_mhz": 156.675,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "74",
+     "number": 74,
+     "suffix": "",
+     "ship_mhz": 156.725,
+     "coast_mhz": 156.725,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "75",
+     "number": 75,
+     "suffix": "",
+     "ship_mhz": 156.775,
+     "coast_mhz": 156.775,
+     "use": "long_range_ais",
+     "flags": [
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "76",
+     "number": 76,
+     "suffix": "",
+     "ship_mhz": 156.825,
+     "coast_mhz": 156.825,
+     "use": "long_range_ais",
+     "flags": [
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "77",
+     "number": 77,
+     "suffix": "",
+     "ship_mhz": 156.875,
+     "coast_mhz": 156.875,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "78",
+     "number": 78,
+     "suffix": "",
+     "ship_mhz": 156.925,
+     "coast_mhz": 161.525,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "79",
+     "number": 79,
+     "suffix": "",
+     "ship_mhz": 156.975,
+     "coast_mhz": 161.575,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "80",
+     "number": 80,
+     "suffix": "",
+     "ship_mhz": 157.025,
+     "coast_mhz": 161.625,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "81",
+     "number": 81,
+     "suffix": "",
+     "ship_mhz": 157.075,
+     "coast_mhz": 161.675,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "82",
+     "number": 82,
+     "suffix": "",
+     "ship_mhz": 157.125,
+     "coast_mhz": 161.725,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "83",
+     "number": 83,
+     "suffix": "",
+     "ship_mhz": 157.175,
+     "coast_mhz": 161.775,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "84",
+     "number": 84,
+     "suffix": "",
+     "ship_mhz": 157.225,
+     "coast_mhz": 161.825,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "85",
+     "number": 85,
+     "suffix": "",
+     "ship_mhz": 157.275,
+     "coast_mhz": 161.875,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "86",
+     "number": 86,
+     "suffix": "",
+     "ship_mhz": 157.325,
+     "coast_mhz": 161.925,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "87A",
+     "number": 87,
+     "suffix": "A",
+     "ship_mhz": 157.375,
+     "coast_mhz": 157.375,
+     "use": "voice",
+     "flags": [
+      "port",
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "87B",
+     "number": 87,
+     "suffix": "B",
+     "ship_mhz": 161.975,
+     "coast_mhz": 161.975,
+     "use": "ais",
+     "flags": [],
+     "power_w": 12.5
+    },
+    {
+     "label": "88A",
+     "number": 88,
+     "suffix": "A",
+     "ship_mhz": 157.425,
+     "coast_mhz": 157.425,
+     "use": "voice",
+     "flags": [
+      "port",
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "88B",
+     "number": 88,
+     "suffix": "B",
+     "ship_mhz": 162.025,
+     "coast_mhz": 162.025,
+     "use": "ais",
+     "flags": [],
+     "power_w": 12.5
+    }
+   ]
+  },
+  "EUR": {
+   "name": "Europe",
+   "channels": [
+    {
+     "label": "1",
+     "number": 1,
+     "suffix": "",
+     "ship_mhz": 156.05,
+     "coast_mhz": 160.65,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "2",
+     "number": 2,
+     "suffix": "",
+     "ship_mhz": 156.1,
+     "coast_mhz": 160.7,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "3",
+     "number": 3,
+     "suffix": "",
+     "ship_mhz": 156.15,
+     "coast_mhz": 160.75,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "4",
+     "number": 4,
+     "suffix": "",
+     "ship_mhz": 156.2,
+     "coast_mhz": 160.8,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "5",
+     "number": 5,
+     "suffix": "",
+     "ship_mhz": 156.25,
+     "coast_mhz": 160.85,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "6",
+     "number": 6,
+     "suffix": "",
+     "ship_mhz": 156.3,
+     "coast_mhz": 156.3,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "7",
+     "number": 7,
+     "suffix": "",
+     "ship_mhz": 156.35,
+     "coast_mhz": 160.95,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "8",
+     "number": 8,
+     "suffix": "",
+     "ship_mhz": 156.4,
+     "coast_mhz": 156.4,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "9",
+     "number": 9,
+     "suffix": "",
+     "ship_mhz": 156.45,
+     "coast_mhz": 156.45,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "10",
+     "number": 10,
+     "suffix": "",
+     "ship_mhz": 156.5,
+     "coast_mhz": 156.5,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "11",
+     "number": 11,
+     "suffix": "",
+     "ship_mhz": 156.55,
+     "coast_mhz": 156.55,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "12",
+     "number": 12,
+     "suffix": "",
+     "ship_mhz": 156.6,
+     "coast_mhz": 156.6,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "13",
+     "number": 13,
+     "suffix": "",
+     "ship_mhz": 156.65,
+     "coast_mhz": 156.65,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "bridge"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "14",
+     "number": 14,
+     "suffix": "",
+     "ship_mhz": 156.7,
+     "coast_mhz": 156.7,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "15",
+     "number": 15,
+     "suffix": "",
+     "ship_mhz": 156.75,
+     "coast_mhz": 156.75,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "16",
+     "number": 16,
+     "suffix": "",
+     "ship_mhz": 156.8,
+     "coast_mhz": 156.8,
+     "use": "voice",
+     "flags": [
+      "distress",
+      "calling"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "17",
+     "number": 17,
+     "suffix": "",
+     "ship_mhz": 156.85,
+     "coast_mhz": 156.85,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "18",
+     "number": 18,
+     "suffix": "",
+     "ship_mhz": 156.9,
+     "coast_mhz": 161.5,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "19",
+     "number": 19,
+     "suffix": "",
+     "ship_mhz": 156.95,
+     "coast_mhz": 161.55,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "20",
+     "number": 20,
+     "suffix": "",
+     "ship_mhz": 157.0,
+     "coast_mhz": 161.6,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "21",
+     "number": 21,
+     "suffix": "",
+     "ship_mhz": 157.05,
+     "coast_mhz": 161.65,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "22",
+     "number": 22,
+     "suffix": "",
+     "ship_mhz": 157.1,
+     "coast_mhz": 161.7,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "23",
+     "number": 23,
+     "suffix": "",
+     "ship_mhz": 157.15,
+     "coast_mhz": 161.75,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "24",
+     "number": 24,
+     "suffix": "",
+     "ship_mhz": 157.2,
+     "coast_mhz": 161.8,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "25",
+     "number": 25,
+     "suffix": "",
+     "ship_mhz": 157.25,
+     "coast_mhz": 161.85,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "26",
+     "number": 26,
+     "suffix": "",
+     "ship_mhz": 157.3,
+     "coast_mhz": 161.9,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "27",
+     "number": 27,
+     "suffix": "",
+     "ship_mhz": 157.35,
+     "coast_mhz": 161.95,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "28",
+     "number": 28,
+     "suffix": "",
+     "ship_mhz": 157.4,
+     "coast_mhz": 162.0,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "37",
+     "number": 37,
+     "suffix": "",
+     "ship_mhz": 157.85,
+     "coast_mhz": 157.85,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "60",
+     "number": 60,
+     "suffix": "",
+     "ship_mhz": 156.025,
+     "coast_mhz": 160.625,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "61",
+     "number": 61,
+     "suffix": "",
+     "ship_mhz": 156.075,
+     "coast_mhz": 160.675,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "62",
+     "number": 62,
+     "suffix": "",
+     "ship_mhz": 156.125,
+     "coast_mhz": 160.725,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "63",
+     "number": 63,
+     "suffix": "",
+     "ship_mhz": 156.175,
+     "coast_mhz": 160.775,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "64",
+     "number": 64,
+     "suffix": "",
+     "ship_mhz": 156.225,
+     "coast_mhz": 160.825,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "65",
+     "number": 65,
+     "suffix": "",
+     "ship_mhz": 156.275,
+     "coast_mhz": 160.875,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "66",
+     "number": 66,
+     "suffix": "",
+     "ship_mhz": 156.325,
+     "coast_mhz": 160.925,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "67",
+     "number": 67,
+     "suffix": "",
+     "ship_mhz": 156.375,
+     "coast_mhz": 156.375,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "bridge"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "68",
+     "number": 68,
+     "suffix": "",
+     "ship_mhz": 156.425,
+     "coast_mhz": 156.425,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "69",
+     "number": 69,
+     "suffix": "",
+     "ship_mhz": 156.475,
+     "coast_mhz": 156.475,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "70",
+     "number": 70,
+     "suffix": "",
+     "ship_mhz": 156.525,
+     "coast_mhz": 156.525,
+     "use": "dsc",
+     "flags": [],
+     "power_w": 25.0
+    },
+    {
+     "label": "71",
+     "number": 71,
+     "suffix": "",
+     "ship_mhz": 156.575,
+     "coast_mhz": 156.575,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "72",
+     "number": 72,
+     "suffix": "",
+     "ship_mhz": 156.625,
+     "coast_mhz": 156.625,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "73",
+     "number": 73,
+     "suffix": "",
+     "ship_mhz": 156.675,
+     "coast_mhz": 156.675,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "74",
+     "number": 74,
+     "suffix": "",
+     "ship_mhz": 156.725,
+     "coast_mhz": 156.725,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "75",
+     "number": 75,
+     "suffix": "",
+     "ship_mhz": 156.775,
+     "coast_mhz": 156.775,
+     "use": "long_range_ais",
+     "flags": [
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "76",
+     "number": 76,
+     "suffix": "",
+     "ship_mhz": 156.825,
+     "coast_mhz": 156.825,
+     "use": "long_range_ais",
+     "flags": [
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "77",
+     "number": 77,
+     "suffix": "",
+     "ship_mhz": 156.875,
+     "coast_mhz": 156.875,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "78",
+     "number": 78,
+     "suffix": "",
+     "ship_mhz": 156.925,
+     "coast_mhz": 161.525,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "79",
+     "number": 79,
+     "suffix": "",
+     "ship_mhz": 156.975,
+     "coast_mhz": 161.575,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "80",
+     "number": 80,
+     "suffix": "",
+     "ship_mhz": 157.025,
+     "coast_mhz": 161.625,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "81",
+     "number": 81,
+     "suffix": "",
+     "ship_mhz": 157.075,
+     "coast_mhz": 161.675,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "82",
+     "number": 82,
+     "suffix": "",
+     "ship_mhz": 157.125,
+     "coast_mhz": 161.725,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "83",
+     "number": 83,
+     "suffix": "",
+     "ship_mhz": 157.175,
+     "coast_mhz": 161.775,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "84",
+     "number": 84,
+     "suffix": "",
+     "ship_mhz": 157.225,
+     "coast_mhz": 161.825,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "85",
+     "number": 85,
+     "suffix": "",
+     "ship_mhz": 157.275,
+     "coast_mhz": 161.875,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "86",
+     "number": 86,
+     "suffix": "",
+     "ship_mhz": 157.325,
+     "coast_mhz": 161.925,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "87A",
+     "number": 87,
+     "suffix": "A",
+     "ship_mhz": 157.375,
+     "coast_mhz": 157.375,
+     "use": "voice",
+     "flags": [
+      "port",
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "87B",
+     "number": 87,
+     "suffix": "B",
+     "ship_mhz": 161.975,
+     "coast_mhz": 161.975,
+     "use": "ais",
+     "flags": [],
+     "power_w": 12.5
+    },
+    {
+     "label": "88A",
+     "number": 88,
+     "suffix": "A",
+     "ship_mhz": 157.425,
+     "coast_mhz": 157.425,
+     "use": "voice",
+     "flags": [
+      "port",
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "88B",
+     "number": 88,
+     "suffix": "B",
+     "ship_mhz": 162.025,
+     "coast_mhz": 162.025,
+     "use": "ais",
+     "flags": [],
+     "power_w": 12.5
+    }
+   ]
+  },
+  "BAL": {
+   "name": "Baltic Sea",
+   "channels": [
+    {
+     "label": "1",
+     "number": 1,
+     "suffix": "",
+     "ship_mhz": 156.05,
+     "coast_mhz": 160.65,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "2",
+     "number": 2,
+     "suffix": "",
+     "ship_mhz": 156.1,
+     "coast_mhz": 160.7,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "3",
+     "number": 3,
+     "suffix": "",
+     "ship_mhz": 156.15,
+     "coast_mhz": 160.75,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "4",
+     "number": 4,
+     "suffix": "",
+     "ship_mhz": 156.2,
+     "coast_mhz": 160.8,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "5",
+     "number": 5,
+     "suffix": "",
+     "ship_mhz": 156.25,
+     "coast_mhz": 160.85,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "6",
+     "number": 6,
+     "suffix": "",
+     "ship_mhz": 156.3,
+     "coast_mhz": 156.3,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "7",
+     "number": 7,
+     "suffix": "",
+     "ship_mhz": 156.35,
+     "coast_mhz": 160.95,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "8",
+     "number": 8,
+     "suffix": "",
+     "ship_mhz": 156.4,
+     "coast_mhz": 156.4,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "9",
+     "number": 9,
+     "suffix": "",
+     "ship_mhz": 156.45,
+     "coast_mhz": 156.45,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "10",
+     "number": 10,
+     "suffix": "",
+     "ship_mhz": 156.5,
+     "coast_mhz": 156.5,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "11",
+     "number": 11,
+     "suffix": "",
+     "ship_mhz": 156.55,
+     "coast_mhz": 156.55,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "12",
+     "number": 12,
+     "suffix": "",
+     "ship_mhz": 156.6,
+     "coast_mhz": 156.6,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "13",
+     "number": 13,
+     "suffix": "",
+     "ship_mhz": 156.65,
+     "coast_mhz": 156.65,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "bridge"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "14",
+     "number": 14,
+     "suffix": "",
+     "ship_mhz": 156.7,
+     "coast_mhz": 156.7,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "15",
+     "number": 15,
+     "suffix": "",
+     "ship_mhz": 156.75,
+     "coast_mhz": 156.75,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "16",
+     "number": 16,
+     "suffix": "",
+     "ship_mhz": 156.8,
+     "coast_mhz": 156.8,
+     "use": "voice",
+     "flags": [
+      "distress",
+      "calling"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "17",
+     "number": 17,
+     "suffix": "",
+     "ship_mhz": 156.85,
+     "coast_mhz": 156.85,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "18",
+     "number": 18,
+     "suffix": "",
+     "ship_mhz": 156.9,
+     "coast_mhz": 161.5,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "19",
+     "number": 19,
+     "suffix": "",
+     "ship_mhz": 156.95,
+     "coast_mhz": 161.55,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "20",
+     "number": 20,
+     "suffix": "",
+     "ship_mhz": 157.0,
+     "coast_mhz": 161.6,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "21",
+     "number": 21,
+     "suffix": "",
+     "ship_mhz": 157.05,
+     "coast_mhz": 161.65,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "22",
+     "number": 22,
+     "suffix": "",
+     "ship_mhz": 157.1,
+     "coast_mhz": 161.7,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "23",
+     "number": 23,
+     "suffix": "",
+     "ship_mhz": 157.15,
+     "coast_mhz": 161.75,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "24",
+     "number": 24,
+     "suffix": "",
+     "ship_mhz": 157.2,
+     "coast_mhz": 161.8,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "25",
+     "number": 25,
+     "suffix": "",
+     "ship_mhz": 157.25,
+     "coast_mhz": 161.85,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "26",
+     "number": 26,
+     "suffix": "",
+     "ship_mhz": 157.3,
+     "coast_mhz": 161.9,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "27",
+     "number": 27,
+     "suffix": "",
+     "ship_mhz": 157.35,
+     "coast_mhz": 161.95,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "28",
+     "number": 28,
+     "suffix": "",
+     "ship_mhz": 157.4,
+     "coast_mhz": 162.0,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "60",
+     "number": 60,
+     "suffix": "",
+     "ship_mhz": 156.025,
+     "coast_mhz": 160.625,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "61",
+     "number": 61,
+     "suffix": "",
+     "ship_mhz": 156.075,
+     "coast_mhz": 160.675,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "62",
+     "number": 62,
+     "suffix": "",
+     "ship_mhz": 156.125,
+     "coast_mhz": 160.725,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "63",
+     "number": 63,
+     "suffix": "",
+     "ship_mhz": 156.175,
+     "coast_mhz": 160.775,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "64",
+     "number": 64,
+     "suffix": "",
+     "ship_mhz": 156.225,
+     "coast_mhz": 160.825,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "65",
+     "number": 65,
+     "suffix": "",
+     "ship_mhz": 156.275,
+     "coast_mhz": 160.875,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "66",
+     "number": 66,
+     "suffix": "",
+     "ship_mhz": 156.325,
+     "coast_mhz": 160.925,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "67",
+     "number": 67,
+     "suffix": "",
+     "ship_mhz": 156.375,
+     "coast_mhz": 156.375,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "bridge"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "68",
+     "number": 68,
+     "suffix": "",
+     "ship_mhz": 156.425,
+     "coast_mhz": 156.425,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "69",
+     "number": 69,
+     "suffix": "",
+     "ship_mhz": 156.475,
+     "coast_mhz": 156.475,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "70",
+     "number": 70,
+     "suffix": "",
+     "ship_mhz": 156.525,
+     "coast_mhz": 156.525,
+     "use": "dsc",
+     "flags": [],
+     "power_w": 25.0
+    },
+    {
+     "label": "71",
+     "number": 71,
+     "suffix": "",
+     "ship_mhz": 156.575,
+     "coast_mhz": 156.575,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "72",
+     "number": 72,
+     "suffix": "",
+     "ship_mhz": 156.625,
+     "coast_mhz": 156.625,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "73",
+     "number": 73,
+     "suffix": "",
+     "ship_mhz": 156.675,
+     "coast_mhz": 156.675,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "74",
+     "number": 74,
+     "suffix": "",
+     "ship_mhz": 156.725,
+     "coast_mhz": 156.725,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "75",
+     "number": 75,
+     "suffix": "",
+     "ship_mhz": 156.775,
+     "coast_mhz": 156.775,
+     "use": "long_range_ais",
+     "flags": [
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "76",
+     "number": 76,
+     "suffix": "",
+     "ship_mhz": 156.825,
+     "coast_mhz": 156.825,
+     "use": "long_range_ais",
+     "flags": [
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "77",
+     "number": 77,
+     "suffix": "",
+     "ship_mhz": 156.875,
+     "coast_mhz": 156.875,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "78",
+     "number": 78,
+     "suffix": "",
+     "ship_mhz": 156.925,
+     "coast_mhz": 161.525,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "79",
+     "number": 79,
+     "suffix": "",
+     "ship_mhz": 156.975,
+     "coast_mhz": 161.575,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "80",
+     "number": 80,
+     "suffix": "",
+     "ship_mhz": 157.025,
+     "coast_mhz": 161.625,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "81",
+     "number": 81,
+     "suffix": "",
+     "ship_mhz": 157.075,
+     "coast_mhz": 161.675,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "82",
+     "number": 82,
+     "suffix": "",
+     "ship_mhz": 157.125,
+     "coast_mhz": 161.725,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "83",
+     "number": 83,
+     "suffix": "",
+     "ship_mhz": 157.175,
+     "coast_mhz": 161.775,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "84",
+     "number": 84,
+     "suffix": "",
+     "ship_mhz": 157.225,
+     "coast_mhz": 161.825,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "85",
+     "number": 85,
+     "suffix": "",
+     "ship_mhz": 157.275,
+     "coast_mhz": 161.875,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "86",
+     "number": 86,
+     "suffix": "",
+     "ship_mhz": 157.325,
+     "coast_mhz": 161.925,
+     "use": "voice",
+     "flags": [
+      "port",
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "87A",
+     "number": 87,
+     "suffix": "A",
+     "ship_mhz": 157.375,
+     "coast_mhz": 157.375,
+     "use": "voice",
+     "flags": [
+      "port",
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "87B",
+     "number": 87,
+     "suffix": "B",
+     "ship_mhz": 161.975,
+     "coast_mhz": 161.975,
+     "use": "ais",
+     "flags": [],
+     "power_w": 12.5
+    },
+    {
+     "label": "88A",
+     "number": 88,
+     "suffix": "A",
+     "ship_mhz": 157.425,
+     "coast_mhz": 157.425,
+     "use": "voice",
+     "flags": [
+      "port",
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "88B",
+     "number": 88,
+     "suffix": "B",
+     "ship_mhz": 162.025,
+     "coast_mhz": 162.025,
+     "use": "ais",
+     "flags": [],
+     "power_w": 12.5
+    }
+   ]
+  },
+  "USA": {
+   "name": "USA",
+   "channels": [
+    {
+     "label": "1A",
+     "number": 1,
+     "suffix": "A",
+     "ship_mhz": 156.05,
+     "coast_mhz": 156.05,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "3A",
+     "number": 3,
+     "suffix": "A",
+     "ship_mhz": 156.15,
+     "coast_mhz": 156.15,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "5A",
+     "number": 5,
+     "suffix": "A",
+     "ship_mhz": 156.25,
+     "coast_mhz": 156.25,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "6",
+     "number": 6,
+     "suffix": "",
+     "ship_mhz": 156.3,
+     "coast_mhz": 156.3,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "7A",
+     "number": 7,
+     "suffix": "A",
+     "ship_mhz": 156.35,
+     "coast_mhz": 156.35,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "8",
+     "number": 8,
+     "suffix": "",
+     "ship_mhz": 156.4,
+     "coast_mhz": 156.4,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "9",
+     "number": 9,
+     "suffix": "",
+     "ship_mhz": 156.45,
+     "coast_mhz": 156.45,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "calling"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "10",
+     "number": 10,
+     "suffix": "",
+     "ship_mhz": 156.5,
+     "coast_mhz": 156.5,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "11",
+     "number": 11,
+     "suffix": "",
+     "ship_mhz": 156.55,
+     "coast_mhz": 156.55,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "12",
+     "number": 12,
+     "suffix": "",
+     "ship_mhz": 156.6,
+     "coast_mhz": 156.6,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "13",
+     "number": 13,
+     "suffix": "",
+     "ship_mhz": 156.65,
+     "coast_mhz": 156.65,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "bridge"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "14",
+     "number": 14,
+     "suffix": "",
+     "ship_mhz": 156.7,
+     "coast_mhz": 156.7,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "15",
+     "number": 15,
+     "suffix": "",
+     "ship_mhz": 156.75,
+     "coast_mhz": 156.75,
+     "use": "voice",
+     "flags": [
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "16",
+     "number": 16,
+     "suffix": "",
+     "ship_mhz": 156.8,
+     "coast_mhz": 156.8,
+     "use": "voice",
+     "flags": [
+      "distress",
+      "calling"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "17",
+     "number": 17,
+     "suffix": "",
+     "ship_mhz": 156.85,
+     "coast_mhz": 156.85,
+     "use": "voice",
+     "flags": [
+      "government",
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "18A",
+     "number": 18,
+     "suffix": "A",
+     "ship_mhz": 156.9,
+     "coast_mhz": 156.9,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "19A",
+     "number": 19,
+     "suffix": "A",
+     "ship_mhz": 156.95,
+     "coast_mhz": 156.95,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "20",
+     "number": 20,
+     "suffix": "",
+     "ship_mhz": 157.0,
+     "coast_mhz": 161.6,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "20A",
+     "number": 20,
+     "suffix": "A",
+     "ship_mhz": 157.0,
+     "coast_mhz": 157.0,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "21A",
+     "number": 21,
+     "suffix": "A",
+     "ship_mhz": 157.05,
+     "coast_mhz": 157.05,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "22A",
+     "number": 22,
+     "suffix": "A",
+     "ship_mhz": 157.1,
+     "coast_mhz": 157.1,
+     "use": "voice",
+     "flags": [
+      "government",
+      "safety_broadcast"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "23A",
+     "number": 23,
+     "suffix": "A",
+     "ship_mhz": 157.15,
+     "coast_mhz": 157.15,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "24",
+     "number": 24,
+     "suffix": "",
+     "ship_mhz": 157.2,
+     "coast_mhz": 161.8,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "25",
+     "number": 25,
+     "suffix": "",
+     "ship_mhz": 157.25,
+     "coast_mhz": 161.85,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "26",
+     "number": 26,
+     "suffix": "",
+     "ship_mhz": 157.3,
+     "coast_mhz": 161.9,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "27",
+     "number": 27,
+     "suffix": "",
+     "ship_mhz": 157.35,
+     "coast_mhz": 161.95,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "28",
+     "number": 28,
+     "suffix": "",
+     "ship_mhz": 157.4,
+     "coast_mhz": 162.0,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "63A",
+     "number": 63,
+     "suffix": "A",
+     "ship_mhz": 156.175,
+     "coast_mhz": 156.175,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "65A",
+     "number": 65,
+     "suffix": "A",
+     "ship_mhz": 156.275,
+     "coast_mhz": 156.275,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "66A",
+     "number": 66,
+     "suffix": "A",
+     "ship_mhz": 156.325,
+     "coast_mhz": 156.325,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "67",
+     "number": 67,
+     "suffix": "",
+     "ship_mhz": 156.375,
+     "coast_mhz": 156.375,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "bridge"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "68",
+     "number": 68,
+     "suffix": "",
+     "ship_mhz": 156.425,
+     "coast_mhz": 156.425,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "69",
+     "number": 69,
+     "suffix": "",
+     "ship_mhz": 156.475,
+     "coast_mhz": 156.475,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "70",
+     "number": 70,
+     "suffix": "",
+     "ship_mhz": 156.525,
+     "coast_mhz": 156.525,
+     "use": "dsc",
+     "flags": [],
+     "power_w": 25.0
+    },
+    {
+     "label": "71",
+     "number": 71,
+     "suffix": "",
+     "ship_mhz": 156.575,
+     "coast_mhz": 156.575,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "72",
+     "number": 72,
+     "suffix": "",
+     "ship_mhz": 156.625,
+     "coast_mhz": 156.625,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "73",
+     "number": 73,
+     "suffix": "",
+     "ship_mhz": 156.675,
+     "coast_mhz": 156.675,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "74",
+     "number": 74,
+     "suffix": "",
+     "ship_mhz": 156.725,
+     "coast_mhz": 156.725,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "75",
+     "number": 75,
+     "suffix": "",
+     "ship_mhz": 156.775,
+     "coast_mhz": 156.775,
+     "use": "long_range_ais",
+     "flags": [
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "76",
+     "number": 76,
+     "suffix": "",
+     "ship_mhz": 156.825,
+     "coast_mhz": 156.825,
+     "use": "long_range_ais",
+     "flags": [
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "77",
+     "number": 77,
+     "suffix": "",
+     "ship_mhz": 156.875,
+     "coast_mhz": 156.875,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "78A",
+     "number": 78,
+     "suffix": "A",
+     "ship_mhz": 156.925,
+     "coast_mhz": 156.925,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "79A",
+     "number": 79,
+     "suffix": "A",
+     "ship_mhz": 156.975,
+     "coast_mhz": 156.975,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "80A",
+     "number": 80,
+     "suffix": "A",
+     "ship_mhz": 157.025,
+     "coast_mhz": 157.025,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "81A",
+     "number": 81,
+     "suffix": "A",
+     "ship_mhz": 157.075,
+     "coast_mhz": 157.075,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "82A",
+     "number": 82,
+     "suffix": "A",
+     "ship_mhz": 157.125,
+     "coast_mhz": 157.125,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "83A",
+     "number": 83,
+     "suffix": "A",
+     "ship_mhz": 157.175,
+     "coast_mhz": 157.175,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "84",
+     "number": 84,
+     "suffix": "",
+     "ship_mhz": 157.225,
+     "coast_mhz": 161.825,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "85",
+     "number": 85,
+     "suffix": "",
+     "ship_mhz": 157.275,
+     "coast_mhz": 161.875,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "86",
+     "number": 86,
+     "suffix": "",
+     "ship_mhz": 157.325,
+     "coast_mhz": 161.925,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "87A",
+     "number": 87,
+     "suffix": "A",
+     "ship_mhz": 157.375,
+     "coast_mhz": 157.375,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "87B",
+     "number": 87,
+     "suffix": "B",
+     "ship_mhz": 161.975,
+     "coast_mhz": 161.975,
+     "use": "ais",
+     "flags": [],
+     "power_w": 12.5
+    },
+    {
+     "label": "88A",
+     "number": 88,
+     "suffix": "A",
+     "ship_mhz": 157.425,
+     "coast_mhz": 157.425,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "88B",
+     "number": 88,
+     "suffix": "B",
+     "ship_mhz": 162.025,
+     "coast_mhz": 162.025,
+     "use": "ais",
+     "flags": [],
+     "power_w": 12.5
+    }
+   ]
+  },
+  "CAN": {
+   "name": "Canada",
+   "channels": [
+    {
+     "label": "1A",
+     "number": 1,
+     "suffix": "A",
+     "ship_mhz": 156.05,
+     "coast_mhz": 156.05,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "3A",
+     "number": 3,
+     "suffix": "A",
+     "ship_mhz": 156.15,
+     "coast_mhz": 156.15,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "5A",
+     "number": 5,
+     "suffix": "A",
+     "ship_mhz": 156.25,
+     "coast_mhz": 156.25,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "6",
+     "number": 6,
+     "suffix": "",
+     "ship_mhz": 156.3,
+     "coast_mhz": 156.3,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "7A",
+     "number": 7,
+     "suffix": "A",
+     "ship_mhz": 156.35,
+     "coast_mhz": 156.35,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "8",
+     "number": 8,
+     "suffix": "",
+     "ship_mhz": 156.4,
+     "coast_mhz": 156.4,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "9",
+     "number": 9,
+     "suffix": "",
+     "ship_mhz": 156.45,
+     "coast_mhz": 156.45,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "calling"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "10",
+     "number": 10,
+     "suffix": "",
+     "ship_mhz": 156.5,
+     "coast_mhz": 156.5,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port",
+      "sar"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "11",
+     "number": 11,
+     "suffix": "",
+     "ship_mhz": 156.55,
+     "coast_mhz": 156.55,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "12",
+     "number": 12,
+     "suffix": "",
+     "ship_mhz": 156.6,
+     "coast_mhz": 156.6,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "13",
+     "number": 13,
+     "suffix": "",
+     "ship_mhz": 156.65,
+     "coast_mhz": 156.65,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "bridge"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "14",
+     "number": 14,
+     "suffix": "",
+     "ship_mhz": 156.7,
+     "coast_mhz": 156.7,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "15",
+     "number": 15,
+     "suffix": "",
+     "ship_mhz": 156.75,
+     "coast_mhz": 156.75,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "16",
+     "number": 16,
+     "suffix": "",
+     "ship_mhz": 156.8,
+     "coast_mhz": 156.8,
+     "use": "voice",
+     "flags": [
+      "distress",
+      "calling"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "17",
+     "number": 17,
+     "suffix": "",
+     "ship_mhz": 156.85,
+     "coast_mhz": 156.85,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "18A",
+     "number": 18,
+     "suffix": "A",
+     "ship_mhz": 156.9,
+     "coast_mhz": 156.9,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "19A",
+     "number": 19,
+     "suffix": "A",
+     "ship_mhz": 156.95,
+     "coast_mhz": 156.95,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "20",
+     "number": 20,
+     "suffix": "",
+     "ship_mhz": 157.0,
+     "coast_mhz": 161.6,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "20A",
+     "number": 20,
+     "suffix": "A",
+     "ship_mhz": 157.0,
+     "coast_mhz": 157.0,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "21A",
+     "number": 21,
+     "suffix": "A",
+     "ship_mhz": 157.05,
+     "coast_mhz": 157.05,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "21B",
+     "number": 21,
+     "suffix": "B",
+     "ship_mhz": 161.65,
+     "coast_mhz": 161.65,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "22A",
+     "number": 22,
+     "suffix": "A",
+     "ship_mhz": 157.1,
+     "coast_mhz": 157.1,
+     "use": "voice",
+     "flags": [
+      "government",
+      "safety_broadcast"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "23A",
+     "number": 23,
+     "suffix": "A",
+     "ship_mhz": 157.15,
+     "coast_mhz": 157.15,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "24",
+     "number": 24,
+     "suffix": "",
+     "ship_mhz": 157.2,
+     "coast_mhz": 161.8,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "25",
+     "number": 25,
+     "suffix": "",
+     "ship_mhz": 157.25,
+     "coast_mhz": 161.85,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "26",
+     "number": 26,
+     "suffix": "",
+     "ship_mhz": 157.3,
+     "coast_mhz": 161.9,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "27",
+     "number": 27,
+     "suffix": "",
+     "ship_mhz": 157.35,
+     "coast_mhz": 161.95,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "28",
+     "number": 28,
+     "suffix": "",
+     "ship_mhz": 157.4,
+     "coast_mhz": 162.0,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "61A",
+     "number": 61,
+     "suffix": "A",
+     "ship_mhz": 156.075,
+     "coast_mhz": 156.075,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "63A",
+     "number": 63,
+     "suffix": "A",
+     "ship_mhz": 156.175,
+     "coast_mhz": 156.175,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "64A",
+     "number": 64,
+     "suffix": "A",
+     "ship_mhz": 156.225,
+     "coast_mhz": 156.225,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "65A",
+     "number": 65,
+     "suffix": "A",
+     "ship_mhz": 156.275,
+     "coast_mhz": 156.275,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "66A",
+     "number": 66,
+     "suffix": "A",
+     "ship_mhz": 156.325,
+     "coast_mhz": 156.325,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "67",
+     "number": 67,
+     "suffix": "",
+     "ship_mhz": 156.375,
+     "coast_mhz": 156.375,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "bridge"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "68",
+     "number": 68,
+     "suffix": "",
+     "ship_mhz": 156.425,
+     "coast_mhz": 156.425,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "69",
+     "number": 69,
+     "suffix": "",
+     "ship_mhz": 156.475,
+     "coast_mhz": 156.475,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "70",
+     "number": 70,
+     "suffix": "",
+     "ship_mhz": 156.525,
+     "coast_mhz": 156.525,
+     "use": "dsc",
+     "flags": [],
+     "power_w": 25.0
+    },
+    {
+     "label": "71",
+     "number": 71,
+     "suffix": "",
+     "ship_mhz": 156.575,
+     "coast_mhz": 156.575,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "72",
+     "number": 72,
+     "suffix": "",
+     "ship_mhz": 156.625,
+     "coast_mhz": 156.625,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "73",
+     "number": 73,
+     "suffix": "",
+     "ship_mhz": 156.675,
+     "coast_mhz": 156.675,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "74",
+     "number": 74,
+     "suffix": "",
+     "ship_mhz": 156.725,
+     "coast_mhz": 156.725,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "75",
+     "number": 75,
+     "suffix": "",
+     "ship_mhz": 156.775,
+     "coast_mhz": 156.775,
+     "use": "long_range_ais",
+     "flags": [
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "76",
+     "number": 76,
+     "suffix": "",
+     "ship_mhz": 156.825,
+     "coast_mhz": 156.825,
+     "use": "long_range_ais",
+     "flags": [
+      "low_power"
+     ],
+     "power_w": 1.0
+    },
+    {
+     "label": "77",
+     "number": 77,
+     "suffix": "",
+     "ship_mhz": 156.875,
+     "coast_mhz": 156.875,
+     "use": "voice",
+     "flags": [
+      "intership",
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "78A",
+     "number": 78,
+     "suffix": "A",
+     "ship_mhz": 156.925,
+     "coast_mhz": 156.925,
+     "use": "voice",
+     "flags": [
+      "intership"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "79A",
+     "number": 79,
+     "suffix": "A",
+     "ship_mhz": 156.975,
+     "coast_mhz": 156.975,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "80A",
+     "number": 80,
+     "suffix": "A",
+     "ship_mhz": 157.025,
+     "coast_mhz": 157.025,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "81A",
+     "number": 81,
+     "suffix": "A",
+     "ship_mhz": 157.075,
+     "coast_mhz": 157.075,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "82A",
+     "number": 82,
+     "suffix": "A",
+     "ship_mhz": 157.125,
+     "coast_mhz": 157.125,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "83A",
+     "number": 83,
+     "suffix": "A",
+     "ship_mhz": 157.175,
+     "coast_mhz": 157.175,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "83B",
+     "number": 83,
+     "suffix": "B",
+     "ship_mhz": 161.775,
+     "coast_mhz": 161.775,
+     "use": "voice",
+     "flags": [
+      "government"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "84",
+     "number": 84,
+     "suffix": "",
+     "ship_mhz": 157.225,
+     "coast_mhz": 161.825,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "85",
+     "number": 85,
+     "suffix": "",
+     "ship_mhz": 157.275,
+     "coast_mhz": 161.875,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "86",
+     "number": 86,
+     "suffix": "",
+     "ship_mhz": 157.325,
+     "coast_mhz": 161.925,
+     "use": "voice",
+     "flags": [
+      "public"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "87A",
+     "number": 87,
+     "suffix": "A",
+     "ship_mhz": 157.375,
+     "coast_mhz": 157.375,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "87B",
+     "number": 87,
+     "suffix": "B",
+     "ship_mhz": 161.975,
+     "coast_mhz": 161.975,
+     "use": "ais",
+     "flags": [],
+     "power_w": 12.5
+    },
+    {
+     "label": "88A",
+     "number": 88,
+     "suffix": "A",
+     "ship_mhz": 157.425,
+     "coast_mhz": 157.425,
+     "use": "voice",
+     "flags": [
+      "port"
+     ],
+     "power_w": 25.0
+    },
+    {
+     "label": "88B",
+     "number": 88,
+     "suffix": "B",
+     "ship_mhz": 162.025,
+     "coast_mhz": 162.025,
+     "use": "ais",
+     "flags": [],
+     "power_w": 12.5
+    }
+   ]
+  }
+ }
+}

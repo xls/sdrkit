@@ -1,0 +1,22 @@
+# id: default_dials
+# name: Starting dials of the digital voice stacks
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+tetrapol,,392000000
+tetra,,392500000
+tetra_dmo,,420000000
+freedv,,14236000
+freedv,1600,14236000
+freedv,700D,14236000
+freedv,700E,14236000
+freedv,rade,14236000
+dcr,,351287500
+dmr,,446106250
+p25,,851012500
+m17,,433475000
+dstar,,145375000
+nxdn,,446106250
+dpmr,,446103125
+ysf,,145000000
+p25p2,,851012500
+dvoice-auto,,446106250

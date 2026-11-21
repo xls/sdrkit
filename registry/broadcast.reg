@@ -1,0 +1,404 @@
+# The interface of the stack family broadcast. The registry test of the family writes this file.
+family broadcast version=1.0
+uses.mpegts major=1 since=1.0
+uses.bcdata major=1 since=1.0
+uses.broadcast_scan major=1 since=1.0
+shape.DrmFields since=1.0
+shape.DrmFields.robustness_mode type=choice(A,B,C,D,E) unit= optional=yes since=1.0
+shape.DrmFields.occupancy type=i64 unit= optional=yes since=1.0
+shape.DrmFields.bandwidth type=hz unit=Hz optional=yes since=1.0
+shape.DrmFields.interleaver type=text unit= optional=yes since=1.0
+shape.DrmFields.msc type=text unit= optional=yes since=1.0
+shape.DrmFields.sdc type=text unit= optional=yes since=1.0
+shape.DrmFields.protection type=text unit= optional=yes since=1.0
+shape.DrmFields.protection_b type=i64 unit= optional=yes since=1.0
+shape.DrmFields.time type=text unit= optional=yes since=1.0
+shape.DrmFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.DrmFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.DrmFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.DrmFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.DrmFields.delay_ms type=f64 unit=ms optional=yes since=1.0
+shape.DrmFields.guard_correlation type=f64 unit= optional=yes since=1.0
+shape.DrmFields.quality type=f64 unit= optional=yes since=1.0
+shape.DrmFields.fac_ok type=i64 unit= optional=no since=1.0
+shape.DrmFields.fac_bad type=i64 unit= optional=no since=1.0
+shape.DrmFields.sdc_ok type=i64 unit= optional=no since=1.0
+shape.DrmFields.sdc_bad type=i64 unit= optional=no since=1.0
+shape.DrmFields.mux_ok type=i64 unit= optional=no since=1.0
+shape.DrmFields.mux_bad type=i64 unit= optional=no since=1.0
+shape.DrmFields.audio_ok type=i64 unit= optional=no since=1.0
+shape.DrmFields.audio_bad type=i64 unit= optional=no since=1.0
+shape.DrmFields.fades type=i64 unit= optional=no since=1.0
+shape.DrmFields.resyncs type=i64 unit= optional=no since=1.0
+shape.DrmFields.audio_state type=choice(no_audio_stream,no_decoder,decoding) unit= optional=no since=1.0
+shape.DrmFields.audio_info type=text unit= optional=no since=1.0
+shape.DrmFields.text_ok type=i64 unit= optional=no since=1.0
+shape.DrmFields.text_bad type=i64 unit= optional=no since=1.0
+shape.DrmFields.signal_time type=duration unit=s optional=no since=1.0
+shape.DrmFields.first_audio type=duration unit=s optional=yes since=1.0
+shape.DrmFields.holding type=bool unit= optional=no since=1.0
+shape.DrmFields.mirrored type=bool unit= optional=no since=1.0
+shape.DrmServiceRow since=1.0
+shape.DrmServiceRow.short_id type=i64 unit= optional=no since=1.0
+shape.DrmServiceRow.service_id type=text unit= optional=no since=1.0
+shape.DrmServiceRow.kind type=text unit= optional=no since=1.0
+shape.DrmServiceRow.label type=text unit= optional=yes since=1.0
+shape.DrmServiceRow.language type=text unit= optional=no since=1.0
+shape.DrmServiceRow.country type=text unit= optional=yes since=1.0
+shape.DrmServiceRow.programme type=text unit= optional=no since=1.0
+shape.DrmServiceRow.ca type=bool unit= optional=no since=1.0
+shape.DrmServiceRow.codec type=text unit= optional=yes since=1.0
+shape.DrmServiceRow.core_rate type=hz unit=Hz optional=yes since=1.0
+shape.DrmServiceRow.audio_mode type=i64 unit= optional=no since=1.0
+shape.DrmServiceRow.sbr type=bool unit= optional=no since=1.0
+shape.DrmServiceRow.text type=bool unit= optional=no since=1.0
+shape.DrmServiceRow.stream type=i64 unit= optional=no since=1.0
+shape.DrmServiceRow.bit_rate_bps type=f64 unit=bit/s optional=no since=1.0
+shape.DrmServiceRow.application type=text unit= optional=yes since=1.0
+shape.DrmServiceRow.mode_text type=text unit= optional=yes since=1.0
+shape.DrmServiceRow.decoded type=bool unit= optional=no since=1.0
+shape.DrmStreamRow since=1.0
+shape.DrmStreamRow.part_a type=i64 unit=bytes optional=no since=1.0
+shape.DrmStreamRow.part_b type=i64 unit=bytes optional=no since=1.0
+shape.DrmObjectRow since=1.0
+shape.DrmObjectRow.short_id type=i64 unit= optional=no since=1.0
+shape.DrmObjectRow.transport_id type=i64 unit= optional=no since=1.0
+shape.DrmObjectRow.name type=text unit= optional=no since=1.0
+shape.DrmObjectRow.content_type type=text unit= optional=no since=1.0
+shape.DrmObjectRow.size type=i64 unit= optional=no since=1.0
+shape.DrmObjectRow.received type=i64 unit= optional=no since=1.0
+shape.DrmObjectRow.order type=i64 unit= optional=no since=1.0
+shape.DrmObjectRow.note type=text unit= optional=yes since=1.0
+shape.DrmSlideRow since=1.0
+shape.DrmSlideRow.short_id type=i64 unit= optional=no since=1.0
+shape.DrmSlideRow.order type=i64 unit= optional=no since=1.0
+shape.DrmSlideRow.name type=text unit= optional=no since=1.0
+shape.DrmSlideRow.category type=text unit= optional=yes since=1.0
+shape.DrmSlideRow.category_id type=i64 unit= optional=yes since=1.0
+shape.DrmSlideRow.slide_id type=i64 unit= optional=yes since=1.0
+shape.DrmSlideRow.click_url type=text unit= optional=yes since=1.0
+shape.DrmSlideRow.alt_url type=text unit= optional=yes since=1.0
+shape.DrmSlideRow.trigger type=text unit= optional=yes since=1.0
+shape.DrmSlideRow.content_type type=text unit= optional=no since=1.0
+shape.DrmSlideRow.size type=i64 unit= optional=no since=1.0
+shape.DrmSlideRow.width type=i64 unit= optional=no since=1.0
+shape.DrmSlideRow.height type=i64 unit= optional=no since=1.0
+shape.DrmPageRow since=1.0
+shape.DrmPageRow.id type=i64 unit= optional=no since=1.0
+shape.DrmPageRow.kind type=text unit= optional=no since=1.0
+shape.DrmPageRow.title type=text unit= optional=no since=1.0
+shape.DrmPageRow.content type=text unit= optional=no since=1.0
+shape.DrmPacketRow since=1.0
+shape.DrmPacketRow.short_id type=i64 unit= optional=no since=1.0
+shape.DrmPacketRow.packets type=i64 unit= optional=no since=1.0
+shape.DrmPacketRow.bad_crc type=i64 unit= optional=no since=1.0
+shape.DrmPacketRow.lost type=i64 unit= optional=no since=1.0
+shape.DrmPacketRow.orphans type=i64 unit= optional=no since=1.0
+shape.DrmPacketRow.empty type=i64 unit= optional=no since=1.0
+shape.DrmPacketRow.other_id type=i64 unit= optional=no since=1.0
+shape.DrmPacketRow.units_ok type=i64 unit= optional=no since=1.0
+shape.DrmPacketRow.units_dropped type=i64 unit= optional=no since=1.0
+shape.DrmPacketRow.unit_bytes type=i64 unit= optional=no since=1.0
+shape.DrmPacketRow.tpeg_frames type=i64 unit= optional=no since=1.0
+shape.DrmNoteRow since=1.0
+shape.DrmNoteRow.note type=text unit= optional=no since=1.0
+shape.DrmTextEvent since=1.0
+shape.DrmTextEvent.text type=text unit= optional=no since=1.0
+shape.DrmTextEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.DrmObjectEvent since=1.0
+shape.DrmObjectEvent.transport_id type=i64 unit= optional=no since=1.0
+shape.DrmObjectEvent.text type=text unit= optional=no since=1.0
+shape.DrmObjectEvent.content_type type=text unit= optional=no since=1.0
+shape.DrmObjectEvent.size type=i64 unit= optional=no since=1.0
+shape.DrmObjectEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.HamdrmFields since=1.0
+shape.HamdrmFields.format type=text unit= optional=no since=1.0
+shape.HamdrmFields.mode type=choice(A,B,E) unit= optional=yes since=1.0
+shape.HamdrmFields.occupancy type=hz unit=Hz optional=yes since=1.0
+shape.HamdrmFields.qam type=choice(4,16,64) unit= optional=yes since=1.0
+shape.HamdrmFields.protection type=i64 unit= optional=yes since=1.0
+shape.HamdrmFields.interleave type=choice(short,long) unit= optional=yes since=1.0
+shape.HamdrmFields.label type=text unit= optional=yes since=1.0
+shape.HamdrmFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.HamdrmFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.HamdrmFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.HamdrmFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.HamdrmFields.files_completed type=i64 unit= optional=no since=1.0
+shape.HamdrmFields.file_id type=i64 unit= optional=yes since=1.0
+shape.HamdrmFields.file_name type=text unit= optional=yes since=1.0
+shape.HamdrmFields.file_call type=text unit= optional=yes since=1.0
+shape.HamdrmFields.file_size type=i64 unit= optional=yes since=1.0
+shape.HamdrmFields.segments_total type=i64 unit= optional=yes since=1.0
+shape.HamdrmFields.segments_received type=i64 unit= optional=yes since=1.0
+shape.HamdrmFields.transmissions type=i64 unit= optional=yes since=1.0
+shape.HamdrmFields.done type=bool unit= optional=yes since=1.0
+shape.HamdrmFileRow since=1.0
+shape.HamdrmFileRow.id type=i64 unit= optional=no since=1.0
+shape.HamdrmFileRow.name type=text unit= optional=no since=1.0
+shape.HamdrmFileRow.call type=text unit= optional=no since=1.0
+shape.HamdrmFileRow.mime type=text unit= optional=no since=1.0
+shape.HamdrmFileRow.size type=i64 unit= optional=no since=1.0
+shape.HamdrmFileRow.transmissions type=i64 unit= optional=no since=1.0
+shape.HamdrmFileRow.completed type=duration unit=s optional=no since=1.0
+shape.HamdrmFileRow.crc32 type=i64 unit= optional=no since=1.0
+shape.HamdrmMissingRow since=1.0
+shape.HamdrmMissingRow.segment type=i64 unit= optional=no since=1.0
+shape.HdradioFields since=1.0
+shape.HdradioFields.band type=choice(fm_hybrid,am_hybrid,am_all_digital) unit= optional=yes since=1.0
+shape.HdradioFields.service_mode type=choice(mp1,mp3,ma1,ma3) unit= optional=yes since=1.0
+shape.HdradioFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.HdradioFields.mer_lower_db type=f64 unit=dB optional=yes since=1.0
+shape.HdradioFields.mer_upper_db type=f64 unit=dB optional=yes since=1.0
+shape.HdradioFields.ber type=f64 unit= optional=yes since=1.0
+shape.HdradioFields.blocks type=i64 unit= optional=no since=1.0
+shape.HdradioFields.block_syncs type=i64 unit= optional=no since=1.0
+shape.HdradioFields.p1_ok type=i64 unit= optional=no since=1.0
+shape.HdradioFields.p1_bad type=i64 unit= optional=no since=1.0
+shape.HdradioFields.p3_ok type=i64 unit= optional=no since=1.0
+shape.HdradioFields.p3_bad type=i64 unit= optional=no since=1.0
+shape.HdradioFields.pids_ok type=i64 unit= optional=no since=1.0
+shape.HdradioFields.pids_bad type=i64 unit= optional=no since=1.0
+shape.HdradioFields.pdus type=i64 unit= optional=no since=1.0
+shape.HdradioFields.aas_ok type=i64 unit= optional=no since=1.0
+shape.HdradioFields.aas_bad type=i64 unit= optional=no since=1.0
+shape.HdradioFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.HdradioFields.signal_time type=duration unit=s optional=no since=1.0
+shape.HdradioFields.codec_note type=text unit= optional=yes since=1.0
+shape.HdradioFields.p1_on type=bool unit= optional=no since=1.0
+shape.HdradioFields.pids_on type=bool unit= optional=no since=1.0
+shape.HdradioFields.psd_on type=bool unit= optional=no since=1.0
+shape.HdradioFields.data_on type=bool unit= optional=no since=1.0
+shape.HdradioFields.program type=text unit= optional=no refers_to=programs since=1.0
+shape.HdradioFields.call_sign type=text unit= optional=yes since=1.0
+shape.HdradioFields.universal_name type=text unit= optional=yes since=1.0
+shape.HdradioFields.long_name type=text unit= optional=yes since=1.0
+shape.HdradioFields.slogan type=text unit= optional=yes since=1.0
+shape.HdradioFields.message type=text unit= optional=yes since=1.0
+shape.HdradioFields.country type=text unit= optional=yes since=1.0
+shape.HdradioFields.facility_id type=i64 unit= optional=yes since=1.0
+shape.HdradioFields.location type=position unit=deg optional=yes since=1.0
+shape.HdradioFields.altitude_m type=f64 unit=m optional=yes since=1.0
+shape.HdradioProgramRow since=1.0
+shape.HdradioProgramRow.number type=i64 unit= optional=no since=1.0
+shape.HdradioProgramRow.label type=text unit= optional=no since=1.0
+shape.HdradioProgramRow.name type=text unit= optional=yes since=1.0
+shape.HdradioProgramRow.program_type type=i64 unit= optional=no since=1.0
+shape.HdradioProgramRow.type_name type=text unit= optional=yes since=1.0
+shape.HdradioProgramRow.restricted type=bool unit= optional=no since=1.0
+shape.HdradioProgramRow.codec_mode type=i64 unit= optional=yes since=1.0
+shape.HdradioProgramRow.blend type=i64 unit= optional=yes since=1.0
+shape.HdradioProgramRow.sound_experience type=i64 unit= optional=no since=1.0
+shape.HdradioProgramRow.bit_rate_bps type=f64 unit=bit/s optional=no since=1.0
+shape.HdradioProgramRow.packets_ok type=i64 unit= optional=no since=1.0
+shape.HdradioProgramRow.packets_bad type=i64 unit= optional=no since=1.0
+shape.HdradioProgramRow.in_sis type=bool unit= optional=no since=1.0
+shape.HdradioProgramRow.in_sig type=bool unit= optional=no since=1.0
+shape.HdradioProgramRow.broadcasting type=bool unit= optional=no since=1.0
+shape.HdradioProgramRow.psd_count type=i64 unit= optional=no since=1.0
+shape.HdradioProgramRow.title type=text unit= optional=yes since=1.0
+shape.HdradioProgramRow.artist type=text unit= optional=yes since=1.0
+shape.HdradioProgramRow.album type=text unit= optional=yes since=1.0
+shape.HdradioProgramRow.genre type=text unit= optional=yes since=1.0
+shape.HdradioProgramRow.comment type=text unit= optional=yes since=1.0
+shape.HdradioProgramRow.ufid type=text unit= optional=yes since=1.0
+shape.HdradioProgramRow.commercial type=text unit= optional=yes since=1.0
+shape.HdradioProgramRow.art_lot type=i64 unit= optional=yes since=1.0
+shape.HdradioProgramRow.art_mime type=text unit= optional=yes since=1.0
+shape.HdradioProgramRow.logo_port type=i64 unit= optional=yes since=1.0
+shape.HdradioProgramRow.art_port type=i64 unit= optional=yes since=1.0
+shape.HdradioDataServiceRow since=1.0
+shape.HdradioDataServiceRow.name type=text unit= optional=no since=1.0
+shape.HdradioDataServiceRow.service type=i64 unit= optional=no since=1.0
+shape.HdradioDataServiceRow.port type=i64 unit= optional=no since=1.0
+shape.HdradioDataServiceRow.kind type=i64 unit= optional=no since=1.0
+shape.HdradioDataServiceRow.mime type=text unit= optional=no since=1.0
+shape.HdradioDataServiceRow.packets type=i64 unit= optional=no since=1.0
+shape.HdradioDataServiceRow.bytes type=i64 unit= optional=no since=1.0
+shape.HdradioFileRow since=1.0
+shape.HdradioFileRow.port type=i64 unit= optional=no since=1.0
+shape.HdradioFileRow.lot type=i64 unit= optional=no since=1.0
+shape.HdradioFileRow.name type=text unit= optional=no since=1.0
+shape.HdradioFileRow.mime type=text unit= optional=no since=1.0
+shape.HdradioFileRow.size type=i64 unit= optional=no since=1.0
+shape.HdradioFileRow.received type=i64 unit= optional=no since=1.0
+shape.HdradioFileRow.complete type=bool unit= optional=no since=1.0
+shape.HdradioFileRow.version type=i64 unit= optional=no since=1.0
+shape.HdradioFileRow.expiry_mjd type=i64 unit=MJD optional=no since=1.0
+shape.HdradioFileRow.updated type=duration unit=s optional=no since=1.0
+shape.HdradioSongEvent since=1.0
+shape.HdradioSongEvent.channel type=text unit= optional=no since=1.0
+shape.HdradioSongEvent.title type=text unit= optional=no since=1.0
+shape.HdradioSongEvent.artist type=text unit= optional=no since=1.0
+shape.HdradioSongEvent.text type=text unit= optional=no since=1.0
+shape.HdradioSongEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.CdrFields since=1.0
+shape.CdrFields.tables type=text unit= optional=no since=1.0
+shape.CdrFields.tx_mode type=i64 unit= optional=yes since=1.0
+shape.CdrFields.spectrum_mode type=i64 unit= optional=yes since=1.0
+shape.CdrFields.spectrum type=text unit= optional=yes since=1.0
+shape.CdrFields.ldpc_rate type=text unit= optional=yes since=1.0
+shape.CdrFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.CdrFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.CdrFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.CdrFields.subframes type=i64 unit= optional=no since=1.0
+shape.CdrFields.si_ok type=i64 unit= optional=no since=1.0
+shape.CdrFields.si_bad type=i64 unit= optional=no since=1.0
+shape.CdrFields.cw_ok type=i64 unit= optional=no since=1.0
+shape.CdrFields.cw_bad type=i64 unit= optional=no since=1.0
+shape.CdrFields.iterations type=f64 unit= optional=yes since=1.0
+shape.CdrFields.control_ok type=i64 unit= optional=no since=1.0
+shape.CdrFields.control_bad type=i64 unit= optional=no since=1.0
+shape.CdrFields.service_ok type=i64 unit= optional=no since=1.0
+shape.CdrFields.service_bad type=i64 unit= optional=no since=1.0
+shape.CdrFields.network type=text unit= optional=yes since=1.0
+shape.CdrFields.country type=text unit= optional=yes since=1.0
+shape.CdrFields.network_id type=i64 unit= optional=yes since=1.0
+shape.CdrFields.selected_service type=text unit= optional=yes refers_to=services since=1.0
+shape.CdrFields.units_in type=i64 unit= optional=no since=1.0
+shape.CdrServiceRow since=1.0
+shape.CdrServiceRow.sid type=i64 unit= optional=no since=1.0
+shape.CdrServiceRow.audio type=bool unit= optional=no since=1.0
+shape.CdrServiceRow.data type=bool unit= optional=no since=1.0
+shape.CdrServiceRow.sample_rate type=i64 unit=Hz optional=yes since=1.0
+shape.CdrServiceRow.channels type=i64 unit= optional=yes since=1.0
+shape.CdrServiceRow.language type=text unit= optional=yes since=1.0
+shape.CdrServiceRow.algorithm type=i64 unit= optional=yes since=1.0
+shape.CdrServiceRow.kbps type=f64 unit=kbit/s optional=no since=1.0
+shape.CdrServiceRow.units type=i64 unit= optional=no since=1.0
+shape.CdrServiceRow.text type=text unit= optional=yes since=1.0
+shape.CdrServiceRow.good type=i64 unit= optional=no since=1.0
+shape.CdrServiceRow.bad type=i64 unit= optional=no since=1.0
+shape.CdrDataTypeRow since=1.0
+shape.CdrDataTypeRow.service type=text unit= optional=no refers_to=services since=1.0
+shape.CdrDataTypeRow.data_type type=i64 unit= optional=no since=1.0
+shape.CdrFrequencyRow since=1.0
+shape.CdrFrequencyRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.CquamFields since=1.0
+shape.CquamFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.CquamFields.cn_db type=f64 unit=dB optional=yes since=1.0
+shape.CquamFields.carrier_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.CquamFields.stereo type=bool unit= optional=no since=1.0
+shape.CquamFields.pilot_seen type=bool unit= optional=no since=1.0
+shape.CquamFields.pilot_db type=f64 unit=dB optional=yes since=1.0
+shape.CquamFields.pilot_pct type=f64 unit=% optional=yes since=1.0
+shape.CquamFields.lock_quality type=f64 unit= optional=yes since=1.0
+shape.CquamFields.left_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.CquamFields.right_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.CquamFields.width_db type=f64 unit=dB optional=yes since=1.0
+shape.CquamFields.mod_peak_pct type=f64 unit=% optional=no since=1.0
+shape.CquamFields.stereo_mode type=choice(auto,mono,stereo) unit= optional=no since=1.0
+shape.CquamFields.filter_width type=hz unit=Hz optional=no since=1.0
+shape.CquamFields.noise_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.CquamFields.pilot_checks_ok type=i64 unit= optional=no since=1.0
+shape.CquamFields.pilot_checks_bad type=i64 unit= optional=no since=1.0
+shape.CquamFields.signal_time type=duration unit=s optional=no since=1.0
+shape.CquamFrontFields since=1.0
+shape.CquamFrontFields.input_rate type=hz unit=Hz optional=no since=1.0
+drm since=1.0
+drm.fields.DrmFields since=1.0
+drm.fields.LabelFields since=1.0
+drm.fields.SlideFields since=1.0
+drm.kept.guide_services since=1.0
+drm.kept.guide_programmes since=1.0
+drm.kept.guide_groups since=1.0
+drm.kept.logos since=1.0
+drm.table.services row=DrmServiceRow cap=4 since=1.0
+drm.table.streams row=DrmStreamRow cap=4 since=1.0
+drm.table.objects row=DrmObjectRow cap=96 since=1.0
+drm.table.slides row=DrmSlideRow cap=4 since=1.0
+drm.table.journaline row=DrmPageRow cap=512 since=1.0
+drm.table.packets row=DrmPacketRow cap=4 since=1.0
+drm.table.notes row=DrmNoteRow cap=16 since=1.0
+drm.table.label_tags row=LabelTagRow cap=128 since=1.0
+drm.table.guide_services row=GuideServiceRow cap=256 since=1.0
+drm.table.guide_programmes row=GuideProgrammeRow cap=500 since=1.0
+drm.table.guide_groups row=GuideGroupRow cap=256 since=1.0
+drm.table.slide_categories row=SlideCategoryRow cap=4096 since=1.0
+drm.table.logos row=LogoRow cap=256 since=1.0
+drm.series.channel x_unit=carrier y_unit=dB since=1.0
+drm.series.impulse_response x_unit=ms y_unit=dB since=1.0
+drm.series.fac_constellation x_unit= y_unit= since=1.0
+drm.series.sdc_constellation x_unit= y_unit= since=1.0
+drm.series.msc_constellation x_unit= y_unit= since=1.0
+drm.event.drm.text fields=DrmTextEvent since=1.0
+drm.event.drm.object fields=DrmObjectEvent since=1.0
+drm.setting.gen_robustness type=choice(A,B,C,D,E) unit= since=1.0
+drm.setting.gen_occupancy type=choice(usual,0,1,2,3,4,5) unit= since=1.0
+drm.setting.gen_msc_qam type=choice(high,low) unit= since=1.0
+drm.setting.gen_protection_b type=choice(usual,0,1,2,3) unit= since=1.0
+drm.setting.gen_interleaver type=choice(long,short) unit= since=1.0
+drm.setting.gen_audio type=choice(melody,tone,silence,noise,not_aac) unit= since=1.0
+drm.setting.gen_text_message type=bool unit= since=1.0
+drm.setting.gen_data type=choice(none,2,3,4,7,1098) unit= since=1.0
+drm.command.service.select args=row:text reply= since=1.0
+drm.command.clear args= reply= since=1.0
+hamdrm since=1.0
+hamdrm.fields.HamdrmFields since=1.0
+hamdrm.kept.history since=1.0
+hamdrm.kept.HamdrmFields.files_completed since=1.0
+hamdrm.table.history row=HamdrmFileRow cap=8 since=1.0
+hamdrm.table.missing row=HamdrmMissingRow cap=64 since=1.0
+hamdrm.setting.hamdrm_format type=text unit= since=1.0
+hamdrm.setting.gen_mode type=choice(A,B,E) unit= since=1.0
+hamdrm.setting.gen_occupancy type=choice(2.3,2.5) unit= since=1.0
+hamdrm.setting.gen_qam type=choice(4,16,64) unit= since=1.0
+hamdrm.setting.gen_protection type=choice(0,1) unit= since=1.0
+hamdrm.setting.gen_interleave type=choice(short,long) unit= since=1.0
+hamdrm.setting.gen_skip_every type=i64 unit= since=1.0
+hamdrm.setting.gen_transmissions type=i64 unit= since=1.0
+hamdrm.command.clear args= reply= since=1.0
+hdradio since=1.0
+hdradio.fields.HdradioFields since=1.0
+hdradio.fields.LabelFields since=1.0
+hdradio.fields.SlideFields since=1.0
+hdradio.kept.guide_services since=1.0
+hdradio.kept.guide_programmes since=1.0
+hdradio.kept.guide_groups since=1.0
+hdradio.kept.logos since=1.0
+hdradio.table.programs row=HdradioProgramRow cap=8 since=1.0
+hdradio.table.data_services row=HdradioDataServiceRow cap=64 since=1.0
+hdradio.table.files row=HdradioFileRow cap=64 since=1.0
+hdradio.table.label_tags row=LabelTagRow cap=128 since=1.0
+hdradio.table.guide_services row=GuideServiceRow cap=256 since=1.0
+hdradio.table.guide_programmes row=GuideProgrammeRow cap=500 since=1.0
+hdradio.table.guide_groups row=GuideGroupRow cap=256 since=1.0
+hdradio.table.slide_categories row=SlideCategoryRow cap=4096 since=1.0
+hdradio.table.logos row=LogoRow cap=256 since=1.0
+hdradio.series.constellation x_unit= y_unit= since=1.0
+hdradio.event.hdr.psd fields=HdradioSongEvent since=1.0
+hdradio.setting.gen_waveform type=choice(mp1,ma1,mp3,ma3) unit= since=1.0
+hdradio.setting.gen_analog_db type=f64 unit=dB since=1.0
+hdradio.command.service.select args=row:text reply= since=1.0
+hdradio.command.clear args= reply= since=1.0
+cdr since=1.0
+cdr.fields.CdrFields since=1.0
+cdr.table.services row=CdrServiceRow cap=32 since=1.0
+cdr.table.service_data_types row=CdrDataTypeRow cap=256 since=1.0
+cdr.table.network_frequencies row=CdrFrequencyRow cap=64 since=1.0
+cdr.series.si_constellation x_unit= y_unit= since=1.0
+cdr.series.msc_constellation x_unit= y_unit= since=1.0
+cdr.series.channel x_unit=kHz y_unit=dB since=1.0
+cdr.setting.cdr_tables type=text unit= since=1.0
+cdr.setting.gen_tx_mode type=choice(1,2,3) unit= since=1.0
+cdr.setting.gen_spectrum_mode type=choice(1,2,9,10,22,23) unit= since=1.0
+cdr.setting.gen_data_qam type=choice(4,16,64) unit= since=1.0
+cdr.setting.gen_ldpc_rate type=choice(0,1,2,3) unit= since=1.0
+cdr.setting.gen_sdi_qam type=choice(4,16,64) unit= since=1.0
+cdr.setting.gen_allocation type=choice(1,2,3) unit= since=1.0
+cdr.setting.gen_fm_programme type=bool unit= since=1.0
+cdr.setting.gen_text_service type=bool unit= since=1.0
+cdr.command.service.select args=row:text reply= since=1.0
+cdr.command.clear args= reply= since=1.0
+cdr.command.resync args= reply= since=1.0
+cquam since=1.0
+cquam.fields.CquamFields since=1.0
+cquam.fields.CquamFrontFields since=1.0
+cquam.series.pilot_spectrum x_unit=Hz y_unit=dB since=1.0
+cquam.setting.stereo type=choice(auto,mono,stereo) unit= since=1.0
+cquam.setting.width type=hz unit=Hz since=1.0
+cquam.setting.squelch type=bool unit= since=1.0
+cquam.setting.channel_offset type=hz unit=Hz since=1.0
+cquam.setting.gen_kind type=choice(stereo,am,noise) unit= since=1.0
+cquam.setting.gen_left_silent type=bool unit= since=1.0
+cquam.setting.gen_left_hz type=hz unit=Hz since=1.0
+cquam.command.clear args= reply= since=1.0

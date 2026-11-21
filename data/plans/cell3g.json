@@ -1,0 +1,121 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "cell_umts",
+      "name": "UMTS bands",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "User Equipment (UE) radio transmission and reception (FDD)",
+        "number": "TS 25.101",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "band 1 from a frequency list; not compared with TS 25.101",
+      "bands": [
+        {
+          "name": "UMTS band 1 downlink",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2170000000,
+          "modes": ["umts"],
+          "channel_width_hz": 5000000,
+          "note": "stack umts; UARFCN = 5 x f (MHz)",
+          "channels": [
+            { "name": "UARFCN 10564", "centre_hz": 2112800000, "note": "a band 1 downlink carrier" },
+            { "name": "UMTS / LTE band 1 downlink centre", "centre_hz": 2140000000, "note": "Europe; 2110 to 2170 MHz" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cell_tdscdma",
+      "name": "TD-SCDMA bands",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "Base Station (BS) radio transmission and reception (TDD)",
+        "number": "TS 25.105",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band edges are not compared with TS 25.105",
+      "bands": [
+        {
+          "name": "TD-SCDMA band A",
+          "service": "mobile",
+          "start_hz": 2010000000,
+          "end_hz": 2025000000,
+          "modes": ["tdscdma"],
+          "channel_width_hz": 1600000,
+          "channels": [
+            { "name": "2017.4 MHz", "centre_hz": 2017400000, "note": "a band A carrier" }
+          ]
+        },
+        {
+          "name": "TD-SCDMA band F",
+          "service": "mobile",
+          "start_hz": 1880000000,
+          "end_hz": 1920000000,
+          "modes": ["tdscdma"],
+          "channel_width_hz": 1600000
+        },
+        {
+          "name": "TD-SCDMA band E",
+          "service": "mobile",
+          "start_hz": 2300000000,
+          "end_hz": 2400000000,
+          "modes": ["tdscdma"],
+          "channel_width_hz": 1600000
+        }
+      ]
+    },
+    {
+      "id": "cell_cdma2000",
+      "name": "CDMA2000 band classes",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP2",
+        "title": "Physical Layer Standard for cdma2000 Spread Spectrum Systems, Revision C",
+        "number": "C.S0002-C v2.0",
+        "date": "2004-07-23",
+        "clause": "2.1.1.1, tables 2.1.1.1.1-1, 2.1.1.1.2-1 and 2.1.1.1.5-1"
+      },
+      "verified": true,
+      "bands": [
+        {
+          "name": "Band class 0 (800 MHz cellular)",
+          "service": "mobile",
+          "start_hz": 869000000,
+          "end_hz": 894000000,
+          "modes": ["cdma2000"],
+          "channel_width_hz": 1250000,
+          "note": "stack settings: band_class=0",
+          "channels": [
+            { "name": "Channel 283", "centre_hz": 878490000, "note": "870.000 + 0.030 x 283 MHz" }
+          ]
+        },
+        {
+          "name": "Band class 1 (1900 MHz PCS)",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1990000000,
+          "modes": ["cdma2000"],
+          "channel_width_hz": 1250000,
+          "note": "stack settings: band_class=1"
+        },
+        {
+          "name": "Band class 4 (Korean PCS)",
+          "service": "mobile",
+          "start_hz": 1840000000,
+          "end_hz": 1870000000,
+          "modes": ["cdma2000"],
+          "channel_width_hz": 1250000,
+          "note": "stack settings: band_class=4; blocks A 1840 to 1850, B 1850 to 1860, C 1860 to 1870 MHz"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+# id: meshtastic_countries
+# name: The Meshtastic region of each country
+# stacks: mesh meshtastic
+# source: Meshtastic documentation, LoRa Region by Country
+# note: iso2 is the ISO 3166-1 alpha-2 code. A country with two regions has the first one listed. The region is a row of meshtastic_regions.csv.
+iso2,region
+AL,EU_868
+AR,ANZ
+AT,EU_868
+AU,ANZ
+BA,EU_868
+BE,EU_868
+BG,EU_868
+BR,ANZ
+CA,US
+CH,EU_868
+CL,ANZ
+CN,CN
+CO,ANZ
+CY,EU_868
+CZ,EU_868
+DE,EU_868
+DK,EU_868
+EC,ANZ
+EE,EU_868
+ES,EU_868
+FI,EU_868
+FR,EU_868
+GB,EU_868
+GR,EU_868
+HR,EU_868
+HU,EU_868
+ID,SG_923
+IE,EU_868
+IN,IN
+IT,EU_868
+JP,JP
+KR,KR
+KZ,KZ_433
+LT,EU_868
+LU,EU_868
+LV,EU_868
+ME,EU_868
+MK,EU_868
+MT,EU_868
+MY,MY_919
+NL,EU_868
+NO,EU_868
+NP,NP_865
+NZ,ANZ
+PH,PH_915
+PL,EU_868
+PT,EU_868
+RO,EU_868
+RS,EU_868
+RU,RU
+SE,EU_868
+SG,SG_923
+SI,EU_868
+SK,EU_868
+TH,TH
+TR,EU_868
+TW,TW
+UA,EU_868
+US,US
+VA,EU_868
+ZA,EU_868

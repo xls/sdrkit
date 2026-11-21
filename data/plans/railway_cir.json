@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "railway_cir_china",
+      "name": "Railway CIR data, China",
+      "kind": "other",
+      "source": {
+        "publisher": "not recorded",
+        "title": "the dials that the railway CIR stack held in code",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "not compared with a published channel plan",
+      "bands": [
+        {
+          "name": "Railway CIR data channels, China",
+          "service": "land_mobile",
+          "start_hz": 400000000,
+          "end_hz": 900000000,
+          "modes": ["railway_cir"],
+          "modulation": "nfm",
+          "channel_width_hz": 35000,
+          "note": "stack railway_cir; the range of the dial 400 to 900 MHz; the width is the one that the stack receives",
+          "channels": [
+            { "name": "KLW", "centre_hz": 866237500, "note": "End-of-train device frames; stack settings: submode=klw" },
+            { "name": "TDCS", "centre_hz": 457550000, "note": "Dispatch frames; stack settings: submode=tdcs" }
+          ]
+        }
+      ]
+    }
+  ]
+}

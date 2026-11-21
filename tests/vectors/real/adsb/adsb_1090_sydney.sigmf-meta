@@ -1,0 +1,19 @@
+{
+  "annotations": [],
+  "captures": [
+    {
+      "core:datetime": "2026-11-08T08:38:36Z",
+      "core:frequency": 1090000000.0,
+      "core:sample_start": 0
+    }
+  ],
+  "global": {
+    "core:dataset": "adsb_1090_sydney.sigmf-data",
+    "core:datatype": "ci16_le",
+    "core:description": "adsb",
+    "core:recorder": "sdrkit",
+    "core:sample_count": 24641536,
+    "core:sample_rate": 4000000.0,
+    "core:version": "1.0.0"
+  }
+}

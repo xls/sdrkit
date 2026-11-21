@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 24000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic HF waveform for identification, 8 s, upper sideband with the dial at 0 Hz: 12-tone MFSK, 100 Hz spacing from 800 Hz, 50 baud, continuous phase. SNR 10 dB in 3 kHz.",
+    "core:recorder": "HF waveform test generator, seed 7",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 8000000.0
+    }
+  ],
+  "annotations": []
+}

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 256000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic LBJ train broadcasts, 2.97 s: 0.3 s of nothing, then two POCSAG 1200 bit/s bursts (576 bit preamble) as continuous-phase FSK at +-4.2 kHz deviation (bit 1 = lower frequency) on 821.2375 MHz, which sits 50 kHz below the capture centre, carrier 600 Hz high, 0.4 s apart. Burst 1: address 1234000 function 1, '19533  67   382'. Burst 2: address 1234000 function 3, '123    23   123', then address 1234002 function 3 with the 50-character detail text of specs/cell.md section 7. Amplitude 0.4, noise for 18 dB SNR in 25 kHz. See specs/cell.md section 7.",
+    "core:recorder": "sdrkit cellular and rail test signal definition (specs/cell.md), noise from a seeded Gaussian generator",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 821287500.0
+    }
+  ],
+  "annotations": []
+}

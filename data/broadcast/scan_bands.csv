@@ -1,0 +1,25 @@
+# id: broadcast_scan_bands
+# name: The bands that the band scan of the broadcast stacks covers, with the shortcut of each band
+# stacks: drm hdradio cdr cquam
+# source: the broadcasting bands of the plan files (plans/broadcast.json, plans/fm.json); ES 201 980 clause 5 for the DRM+ VHF bands
+# note: group and band name a band of the plan files, which gives the edges, the first channel and the raster. A row with mw_raster_khz is for a host whose medium wave raster is 9 or 10 kHz; a row without it is for every host. The stack adds the width of a station.
+stack,id,name,group,band,mw_raster_khz,shortcut_khz
+drm,mw,MW,bc_r1,MW,9,1215
+drm,mw,MW,bc_r2,MW,10,1210
+drm,sw49,SW 49 m,bc_r1,49 m,,5900
+drm,sw41,SW 41 m,bc_r1,41 m,,7325
+drm,sw31,SW 31 m,bc_r1,31 m,,9500
+drm,sw25,SW 25 m,bc_r1,25 m,,11650
+drm,sw19,SW 19 m,bc_r1,19 m,,15100
+drm,sw16,SW 16 m,bc_r1,16 m,,17480
+drm,sw13,SW 13 m,bc_r1,13 m,,21450
+drm,sw11,SW 11 m,bc_r1,11 m,,25670
+drm,vhf1,VHF I,drm_vhf,VHF I,,47100
+drm,vhf2,VHF II,fm_europe,FM,,87600
+drm,vhf3,VHF III,drm_vhf,VHF III,,174100
+hdradio,fm,FM,fm_north_america,FM,,98500
+hdradio,am,AM,bc_r1,MW,9,1026
+hdradio,am,AM,bc_r2,MW,10,1030
+cdr,fm,FM,fm_china,FM,,106100
+cquam,mw,MW,bc_r1,MW,9,999
+cquam,mw,MW,bc_r2,MW,10,1000

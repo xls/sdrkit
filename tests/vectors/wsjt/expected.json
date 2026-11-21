@@ -1,0 +1,1759 @@
+{
+  "note": "Synthetic recordings for specs/wsjt.md. Each file is complex baseband at 8000 samples/s whose centre is the dial frequency; the real part is the upper sideband audio the decoders work on. 'sent' lists what was transmitted: message, audio frequency of tone 0 (Hz; for MSK144 the carrier, which is reported as carrier - 500 Hz), SNR in 2500 Hz, DT (s against the nominal start of the transmission in the slot; for MSK144 the burst start in the period), and whether the station was sent on the lower sideband. 'decodes' is the expected list (slot_offset_s from the first sample, snr_db rounded, dt_s, hz of the lowest tone (mirrored: of tone 0), call/grid as the decode record shows them, dbm for WSPR / FST4W where carried, -1 otherwise; pass 0 = first pass). Pass is informative, not checked. The receiver is fed the whole file in pieces of 8000 samples with the slot clock set from the start time. For FST4, FST4W, MSK144 and Q65 see 'without_code_table' in each section.",
+  "tolerance": {
+    "msg": "exact; every listed message decoded in its slot, nothing else decoded",
+    "hz": "per recording, see tolerance.hz",
+    "dt_s": "per recording",
+    "snr_db": "within 3 dB of the listed value"
+  },
+  "recordings": {
+    "ft8": {
+      "recording": "wsjt_ft8_8k.sigmf-meta",
+      "receiver": {
+        "mode": "ft8",
+        "dial_hz": 14074000,
+        "start_utc": "2026-01-01T00:00:00Z"
+      },
+      "sent": [
+        [
+          "CQ K1ABC FN42",
+          600,
+          -6,
+          0.0,
+          false
+        ],
+        [
+          "K1ABC W9XYZ -12",
+          900,
+          -10,
+          0.3,
+          false
+        ],
+        [
+          "W9XYZ K1ABC R-05",
+          1250,
+          -14,
+          -0.4,
+          false
+        ],
+        [
+          "CQ PJ4/K1ABC",
+          1500,
+          -8,
+          0.1,
+          false
+        ],
+        [
+          "TNX BOB 73 GL",
+          1800,
+          -16,
+          0.6,
+          false
+        ],
+        [
+          "G4ABC DL1XYZ RR73",
+          2100,
+          -12,
+          0.0,
+          false
+        ],
+        [
+          "CQ JA1XYZ PM95",
+          2450,
+          -18,
+          1.0,
+          false
+        ],
+        [
+          "7123456789ABCDEF01",
+          2800,
+          -9,
+          -0.2,
+          false
+        ],
+        [
+          "CQ DL1XYZ JO62",
+          2000,
+          -10,
+          0.2,
+          true
+        ]
+      ],
+      "decodes": [
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": -6,
+          "dt_s": 0.003,
+          "hz": 600.05,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ PJ4/K1ABC",
+          "snr_db": -8,
+          "dt_s": 0.102,
+          "hz": 1500.02,
+          "mirrored": false,
+          "cq": true,
+          "call": "PJ4/K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "K1ABC W9XYZ -12",
+          "snr_db": -10,
+          "dt_s": 0.302,
+          "hz": 900.04,
+          "mirrored": false,
+          "cq": false,
+          "call": "W9XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "7123456789ABCDEF01",
+          "snr_db": -10,
+          "dt_s": -0.197,
+          "hz": 2799.8,
+          "mirrored": false,
+          "cq": false,
+          "call": "",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ DL1XYZ JO62",
+          "snr_db": -10,
+          "dt_s": 0.203,
+          "hz": 1999.93,
+          "mirrored": true,
+          "cq": true,
+          "call": "DL1XYZ",
+          "grid": "JO62",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "G4ABC DL1XYZ RR73",
+          "snr_db": -12,
+          "dt_s": 0.003,
+          "hz": 2099.98,
+          "mirrored": false,
+          "cq": false,
+          "call": "DL1XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "W9XYZ K1ABC R-05",
+          "snr_db": -14,
+          "dt_s": -0.399,
+          "hz": 1250.2,
+          "mirrored": false,
+          "cq": false,
+          "call": "K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "TNX BOB 73 GL",
+          "snr_db": -16,
+          "dt_s": 0.604,
+          "hz": 1799.99,
+          "mirrored": false,
+          "cq": false,
+          "call": "BOB",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ JA1XYZ PM95",
+          "snr_db": -18,
+          "dt_s": 1.0,
+          "hz": 2449.8,
+          "mirrored": false,
+          "cq": true,
+          "call": "JA1XYZ",
+          "grid": "PM95",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 15.0,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": -6,
+          "dt_s": 0.001,
+          "hz": 600.05,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 15.0,
+          "msg": "CQ PJ4/K1ABC",
+          "snr_db": -8,
+          "dt_s": 0.102,
+          "hz": 1500.02,
+          "mirrored": false,
+          "cq": true,
+          "call": "PJ4/K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 15.0,
+          "msg": "7123456789ABCDEF01",
+          "snr_db": -9,
+          "dt_s": -0.198,
+          "hz": 2800.06,
+          "mirrored": false,
+          "cq": false,
+          "call": "",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 15.0,
+          "msg": "K1ABC W9XYZ -12",
+          "snr_db": -10,
+          "dt_s": 0.304,
+          "hz": 900.02,
+          "mirrored": false,
+          "cq": false,
+          "call": "W9XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 15.0,
+          "msg": "CQ DL1XYZ JO62",
+          "snr_db": -10,
+          "dt_s": 0.203,
+          "hz": 2000.2,
+          "mirrored": true,
+          "cq": true,
+          "call": "DL1XYZ",
+          "grid": "JO62",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 15.0,
+          "msg": "G4ABC DL1XYZ RR73",
+          "snr_db": -12,
+          "dt_s": 0.002,
+          "hz": 2100.04,
+          "mirrored": false,
+          "cq": false,
+          "call": "DL1XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 15.0,
+          "msg": "W9XYZ K1ABC R-05",
+          "snr_db": -14,
+          "dt_s": -0.397,
+          "hz": 1250.05,
+          "mirrored": false,
+          "cq": false,
+          "call": "K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 15.0,
+          "msg": "TNX BOB 73 GL",
+          "snr_db": -16,
+          "dt_s": 0.602,
+          "hz": 1800.2,
+          "mirrored": false,
+          "cq": false,
+          "call": "BOB",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 15.0,
+          "msg": "CQ JA1XYZ PM95",
+          "snr_db": -18,
+          "dt_s": 0.997,
+          "hz": 2450.2,
+          "mirrored": false,
+          "cq": true,
+          "call": "JA1XYZ",
+          "grid": "PM95",
+          "dbm": -1,
+          "pass": 0
+        }
+      ],
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 2.0,
+        "dt_s": 0.1,
+        "snr_db": 3.0
+      }
+    },
+    "ft4": {
+      "recording": "wsjt_ft4_8k.sigmf-meta",
+      "receiver": {
+        "mode": "ft4",
+        "dial_hz": 14080000,
+        "start_utc": "2026-01-01T00:00:00Z"
+      },
+      "sent": [
+        [
+          "CQ K1ABC FN42",
+          700,
+          -4,
+          0.0,
+          false
+        ],
+        [
+          "K1ABC W9XYZ EN37",
+          1100,
+          -8,
+          0.2,
+          false
+        ],
+        [
+          "W9XYZ K1ABC +03",
+          1600,
+          -10,
+          -0.3,
+          false
+        ],
+        [
+          "CQ TEST DL1XYZ JO62",
+          2100,
+          -6,
+          0.0,
+          false
+        ],
+        [
+          "VK2ABC ZL1XYZ 73",
+          2600,
+          -12,
+          0.5,
+          false
+        ]
+      ],
+      "decodes": [
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": -4,
+          "dt_s": 0.002,
+          "hz": 699.87,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ TEST DL1XYZ JO62",
+          "snr_db": -6,
+          "dt_s": 0.0,
+          "hz": 2099.61,
+          "mirrored": false,
+          "cq": true,
+          "call": "DL1XYZ",
+          "grid": "JO62",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "K1ABC W9XYZ EN37",
+          "snr_db": -9,
+          "dt_s": 0.199,
+          "hz": 1099.21,
+          "mirrored": false,
+          "cq": false,
+          "call": "W9XYZ",
+          "grid": "EN37",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "W9XYZ K1ABC +03",
+          "snr_db": -11,
+          "dt_s": -0.301,
+          "hz": 1599.61,
+          "mirrored": false,
+          "cq": false,
+          "call": "K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "VK2ABC ZL1XYZ 73",
+          "snr_db": -13,
+          "dt_s": 0.5,
+          "hz": 2599.61,
+          "mirrored": false,
+          "cq": false,
+          "call": "ZL1XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 7.5,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": -4,
+          "dt_s": 0.003,
+          "hz": 699.43,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 7.5,
+          "msg": "CQ TEST DL1XYZ JO62",
+          "snr_db": -7,
+          "dt_s": 0.0,
+          "hz": 2099.61,
+          "mirrored": false,
+          "cq": true,
+          "call": "DL1XYZ",
+          "grid": "JO62",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 7.5,
+          "msg": "K1ABC W9XYZ EN37",
+          "snr_db": -8,
+          "dt_s": 0.2,
+          "hz": 1099.61,
+          "mirrored": false,
+          "cq": false,
+          "call": "W9XYZ",
+          "grid": "EN37",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 7.5,
+          "msg": "W9XYZ K1ABC +03",
+          "snr_db": -11,
+          "dt_s": -0.296,
+          "hz": 1600.02,
+          "mirrored": false,
+          "cq": false,
+          "call": "K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 7.5,
+          "msg": "VK2ABC ZL1XYZ 73",
+          "snr_db": -12,
+          "dt_s": 0.5,
+          "hz": 2600.5,
+          "mirrored": false,
+          "cq": false,
+          "call": "ZL1XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        }
+      ],
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 3.0,
+        "dt_s": 0.1,
+        "snr_db": 3.0
+      }
+    },
+    "ft2": {
+      "recording": "wsjt_ft2_8k.sigmf-meta",
+      "receiver": {
+        "mode": "ft2",
+        "dial_hz": 14084000,
+        "start_utc": "2026-01-01T00:00:00Z"
+      },
+      "sent": [
+        [
+          "CQ K1ABC FN42",
+          800,
+          -2,
+          0.0,
+          false
+        ],
+        [
+          "K1ABC W9XYZ -10",
+          1400,
+          -5,
+          0.1,
+          false
+        ],
+        [
+          "W9XYZ K1ABC RRR",
+          2200,
+          -8,
+          -0.1,
+          false
+        ]
+      ],
+      "decodes": [
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": -2,
+          "dt_s": 0.0,
+          "hz": 800.78,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "K1ABC W9XYZ -10",
+          "snr_db": -5,
+          "dt_s": 0.101,
+          "hz": 1399.74,
+          "mirrored": false,
+          "cq": false,
+          "call": "W9XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "W9XYZ K1ABC RRR",
+          "snr_db": -9,
+          "dt_s": -0.101,
+          "hz": 2201.82,
+          "mirrored": false,
+          "cq": false,
+          "call": "K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 3.75,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": -3,
+          "dt_s": 0.001,
+          "hz": 799.61,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 3.75,
+          "msg": "K1ABC W9XYZ -10",
+          "snr_db": -5,
+          "dt_s": 0.101,
+          "hz": 1399.74,
+          "mirrored": false,
+          "cq": false,
+          "call": "W9XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 3.75,
+          "msg": "W9XYZ K1ABC RRR",
+          "snr_db": -8,
+          "dt_s": -0.1,
+          "hz": 2201.82,
+          "mirrored": false,
+          "cq": false,
+          "call": "K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        }
+      ],
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 5.0,
+        "dt_s": 0.1,
+        "snr_db": 3.0
+      }
+    },
+    "wspr": {
+      "recording": "wsjt_wspr_8k.sigmf-meta",
+      "receiver": {
+        "mode": "wspr",
+        "dial_hz": 14095600,
+        "start_utc": "2026-01-01T00:00:00Z"
+      },
+      "sent": [
+        [
+          "K1ABC FN42 37",
+          1450,
+          -12,
+          0.0,
+          false
+        ],
+        [
+          "G4XYZ IO91 23",
+          1480,
+          -18,
+          0.5,
+          false
+        ],
+        [
+          "PJ4/K1ABC 30",
+          1520,
+          -20,
+          -0.5,
+          false
+        ],
+        [
+          "DL1XYZ/P 10",
+          1550,
+          -14,
+          1.0,
+          false
+        ],
+        [
+          "<K1ABC> FN42AX 37",
+          1580,
+          -16,
+          0.2,
+          false
+        ]
+      ],
+      "decodes": [
+        {
+          "slot_offset_s": 0.0,
+          "msg": "K1ABC FN42 37",
+          "snr_db": -12,
+          "dt_s": 0.011,
+          "hz": 1450.0,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": 37,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "DL1XYZ/P 10",
+          "snr_db": -14,
+          "dt_s": 1.006,
+          "hz": 1550.01,
+          "mirrored": false,
+          "cq": true,
+          "call": "DL1XYZ/P",
+          "grid": "",
+          "dbm": 10,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "<K1ABC> FN42AX 37",
+          "snr_db": -16,
+          "dt_s": 0.203,
+          "hz": 1580.0,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42AX",
+          "dbm": 37,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "G4XYZ IO91 23",
+          "snr_db": -18,
+          "dt_s": 0.514,
+          "hz": 1480.0,
+          "mirrored": false,
+          "cq": true,
+          "call": "G4XYZ",
+          "grid": "IO91",
+          "dbm": 23,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "PJ4/K1ABC 30",
+          "snr_db": -20,
+          "dt_s": -0.488,
+          "hz": 1519.98,
+          "mirrored": false,
+          "cq": true,
+          "call": "PJ4/K1ABC",
+          "grid": "",
+          "dbm": 30,
+          "pass": 0
+        }
+      ],
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 0.5,
+        "dt_s": 0.2,
+        "snr_db": 3.0
+      }
+    },
+    "jt65a": {
+      "recording": "wsjt_jt65a_8k.sigmf-meta",
+      "receiver": {
+        "mode": "jt65",
+        "dial_hz": 14076000,
+        "start_utc": "2026-01-01T00:00:00Z",
+        "submode": "A",
+        "period_s": 60
+      },
+      "sent": [
+        [
+          "CQ K1ABC FN42",
+          600,
+          -12,
+          0.0,
+          false
+        ],
+        [
+          "K1ABC W9XYZ -12",
+          1000,
+          -16,
+          0.3,
+          false
+        ],
+        [
+          "W9XYZ K1ABC R-05",
+          1400,
+          -20,
+          -0.4,
+          false
+        ],
+        [
+          "CQ DX G4ABC IO91",
+          1800,
+          -14,
+          0.1,
+          false
+        ],
+        [
+          "TNX BOB 73 GL",
+          2200,
+          -18,
+          0.6,
+          false
+        ]
+      ],
+      "decodes": [
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": -12,
+          "dt_s": -0.005,
+          "hz": 599.9,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ DX G4ABC IO91",
+          "snr_db": -14,
+          "dt_s": 0.1,
+          "hz": 1800.04,
+          "mirrored": false,
+          "cq": true,
+          "call": "G4ABC",
+          "grid": "IO91",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "K1ABC W9XYZ -12",
+          "snr_db": -16,
+          "dt_s": 0.297,
+          "hz": 999.95,
+          "mirrored": false,
+          "cq": false,
+          "call": "W9XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "TNX BOB 73 GL",
+          "snr_db": -18,
+          "dt_s": 0.587,
+          "hz": 2200.09,
+          "mirrored": false,
+          "cq": false,
+          "call": "BOB",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "W9XYZ K1ABC R-05",
+          "snr_db": -19,
+          "dt_s": -0.399,
+          "hz": 1399.99,
+          "mirrored": false,
+          "cq": false,
+          "call": "K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        }
+      ],
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 2.0,
+        "dt_s": 0.2,
+        "snr_db": 3.0
+      }
+    },
+    "jt9": {
+      "recording": "wsjt_jt9_8k.sigmf-meta",
+      "receiver": {
+        "mode": "jt9",
+        "dial_hz": 14078000,
+        "start_utc": "2026-01-01T00:00:00Z",
+        "submode": "A",
+        "period_s": 60
+      },
+      "sent": [
+        [
+          "CQ K1ABC FN42",
+          600,
+          -12,
+          0.0,
+          false
+        ],
+        [
+          "K1ABC W9XYZ -12",
+          1000,
+          -16,
+          0.3,
+          false
+        ],
+        [
+          "W9XYZ K1ABC R-05",
+          1400,
+          -20,
+          -0.4,
+          false
+        ],
+        [
+          "CQ DX G4ABC IO91",
+          1800,
+          -14,
+          0.1,
+          false
+        ],
+        [
+          "TNX BOB 73 GL",
+          2200,
+          -18,
+          0.6,
+          false
+        ]
+      ],
+      "decodes": [
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": -12,
+          "dt_s": 0.006,
+          "hz": 600.04,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ DX G4ABC IO91",
+          "snr_db": -14,
+          "dt_s": 0.114,
+          "hz": 1799.91,
+          "mirrored": false,
+          "cq": true,
+          "call": "G4ABC",
+          "grid": "IO91",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "K1ABC W9XYZ -12",
+          "snr_db": -17,
+          "dt_s": 0.312,
+          "hz": 1000.0,
+          "mirrored": false,
+          "cq": false,
+          "call": "W9XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "TNX BOB 73 GL",
+          "snr_db": -18,
+          "dt_s": 0.6,
+          "hz": 2199.87,
+          "mirrored": false,
+          "cq": false,
+          "call": "BOB",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "W9XYZ K1ABC R-05",
+          "snr_db": -21,
+          "dt_s": -0.408,
+          "hz": 1399.96,
+          "mirrored": false,
+          "cq": false,
+          "call": "K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        }
+      ],
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 1.0,
+        "dt_s": 0.2,
+        "snr_db": 3.0
+      }
+    },
+    "jt4a": {
+      "recording": "wsjt_jt4a_8k.sigmf-meta",
+      "receiver": {
+        "mode": "jt4",
+        "dial_hz": 144120000,
+        "start_utc": "2026-01-01T00:00:00Z",
+        "submode": "A",
+        "period_s": 60
+      },
+      "sent": [
+        [
+          "CQ K1ABC FN42",
+          600,
+          -10,
+          0.0,
+          false
+        ],
+        [
+          "K1ABC W9XYZ -12",
+          1000,
+          -13,
+          0.3,
+          false
+        ],
+        [
+          "W9XYZ K1ABC R-05",
+          1400,
+          -16,
+          -0.4,
+          false
+        ],
+        [
+          "CQ DX G4ABC IO91",
+          1800,
+          -12,
+          0.1,
+          false
+        ]
+      ],
+      "decodes": [
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": -11,
+          "dt_s": -0.0,
+          "hz": 600.25,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ DX G4ABC IO91",
+          "snr_db": -12,
+          "dt_s": 0.086,
+          "hz": 1799.88,
+          "mirrored": false,
+          "cq": true,
+          "call": "G4ABC",
+          "grid": "IO91",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "K1ABC W9XYZ -12",
+          "snr_db": -13,
+          "dt_s": 0.286,
+          "hz": 1000.12,
+          "mirrored": false,
+          "cq": false,
+          "call": "W9XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "W9XYZ K1ABC R-05",
+          "snr_db": -16,
+          "dt_s": -0.4,
+          "hz": 1400.0,
+          "mirrored": false,
+          "cq": false,
+          "call": "K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        }
+      ],
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 3.0,
+        "dt_s": 0.2,
+        "snr_db": 3.0
+      }
+    },
+    "q65_60a": {
+      "recording": "wsjt_q65_60a_8k.sigmf-meta",
+      "receiver": {
+        "mode": "q65",
+        "dial_hz": 50275000,
+        "start_utc": "2026-01-01T00:00:00Z",
+        "submode": "A",
+        "period_s": 60
+      },
+      "sent": [
+        [
+          "CQ K1ABC FN42",
+          700,
+          -12,
+          0.0,
+          false
+        ],
+        [
+          "K1ABC W9XYZ -12",
+          1200,
+          -16,
+          0.3,
+          false
+        ],
+        [
+          "W9XYZ K1ABC RRR",
+          1700,
+          -20,
+          -0.4,
+          false
+        ],
+        [
+          "CQ DX G4ABC IO91",
+          2200,
+          -14,
+          0.1,
+          false
+        ]
+      ],
+      "decodes": [],
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 2.0,
+        "dt_s": 0.2,
+        "snr_db": 3.0
+      },
+      "decodes_independent_decoder": [
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": -12,
+          "dt_s": -0.0,
+          "hz": 700.0,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ DX G4ABC IO91",
+          "snr_db": -14,
+          "dt_s": 0.094,
+          "hz": 2200.0,
+          "mirrored": false,
+          "cq": true,
+          "call": "G4ABC",
+          "grid": "IO91",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "K1ABC W9XYZ -12",
+          "snr_db": -16,
+          "dt_s": 0.3,
+          "hz": 1200.0,
+          "mirrored": false,
+          "cq": false,
+          "call": "W9XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "W9XYZ K1ABC RRR",
+          "snr_db": -20,
+          "dt_s": -0.394,
+          "hz": 1700.0,
+          "mirrored": false,
+          "cq": false,
+          "call": "K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 1
+        }
+      ],
+      "status": {
+        "lock_state": "off",
+        "summary_contains": "GF(64)"
+      },
+      "without_code_table": "sdrkit ships no table for the code of Q65 over GF(64): without it the receiver decodes nothing and its status names the file to load (q65_65_15.nbcode). A host gives the folder of the table in the setting code_dir. decodes_independent_decoder is what an independent decoder found in this audio, and the list expected once the table is loaded (from wsjt/codes/ of the recordings folder in the tests)."
+    },
+    "fst4_60": {
+      "recording": "wsjt_fst4_60_8k.sigmf-meta",
+      "receiver": {
+        "mode": "fst4",
+        "dial_hz": 7038600,
+        "start_utc": "2026-01-01T00:00:00Z",
+        "period_s": 60
+      },
+      "sent": [
+        [
+          "CQ K1ABC FN42",
+          700,
+          -12,
+          0.0,
+          false
+        ],
+        [
+          "K1ABC W9XYZ -12",
+          1100,
+          -16,
+          0.3,
+          false
+        ],
+        [
+          "W9XYZ K1ABC RRR",
+          1500,
+          -20,
+          -0.4,
+          false
+        ],
+        [
+          "CQ DX G4ABC IO91",
+          2000,
+          -14,
+          0.1,
+          false
+        ],
+        [
+          "TNX BOB 73 GL",
+          2500,
+          -18,
+          0.2,
+          false
+        ]
+      ],
+      "decodes": [],
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 1.0,
+        "dt_s": 0.2,
+        "snr_db": 3.0
+      },
+      "decodes_with_code_table": [
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": -12,
+          "dt_s": -0.003,
+          "hz": 699.99,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ DX G4ABC IO91",
+          "snr_db": -14,
+          "dt_s": 0.098,
+          "hz": 2000.0,
+          "mirrored": false,
+          "cq": true,
+          "call": "G4ABC",
+          "grid": "IO91",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "K1ABC W9XYZ -12",
+          "snr_db": -16,
+          "dt_s": 0.301,
+          "hz": 1100.0,
+          "mirrored": false,
+          "cq": false,
+          "call": "W9XYZ",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "TNX BOB 73 GL",
+          "snr_db": -19,
+          "dt_s": 0.199,
+          "hz": 2500.0,
+          "mirrored": false,
+          "cq": false,
+          "call": "BOB",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "W9XYZ K1ABC RRR",
+          "snr_db": -21,
+          "dt_s": -0.403,
+          "hz": 1500.0,
+          "mirrored": false,
+          "cq": false,
+          "call": "K1ABC",
+          "grid": "",
+          "dbm": -1,
+          "pass": 0
+        }
+      ],
+      "status": {
+        "lock_state": "off",
+        "summary_contains": "fst4_240_101.alist"
+      },
+      "without_code_table": "sdrkit ships no table for this code (the table exists only in copyleft software): the receiver decodes nothing and its status names the file to load. decodes_with_code_table is the list expected once a host loads the table (from wsjt/codes/ of the recordings folder in the tests)."
+    },
+    "fst4w_120": {
+      "recording": "wsjt_fst4w_120_8k.sigmf-meta",
+      "receiver": {
+        "mode": "fst4w",
+        "dial_hz": 14095600,
+        "start_utc": "2026-01-01T00:00:00Z",
+        "period_s": 120
+      },
+      "sent": [
+        [
+          "K1ABC FN42 37",
+          1400,
+          -20,
+          0.2,
+          false
+        ],
+        [
+          "G4XYZ IO91 23",
+          1700,
+          -24,
+          -0.4,
+          false
+        ]
+      ],
+      "decodes": [],
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 0.5,
+        "dt_s": 0.2,
+        "snr_db": 3.0
+      },
+      "decodes_with_code_table": [
+        {
+          "slot_offset_s": 0.0,
+          "msg": "K1ABC FN42 37",
+          "snr_db": -21,
+          "dt_s": 0.203,
+          "hz": 1400.0,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": 37,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "G4XYZ IO91 23",
+          "snr_db": -25,
+          "dt_s": -0.47,
+          "hz": 1700.0,
+          "mirrored": false,
+          "cq": true,
+          "call": "G4XYZ",
+          "grid": "IO91",
+          "dbm": 23,
+          "pass": 0
+        }
+      ],
+      "status": {
+        "lock_state": "off",
+        "summary_contains": "fst4w_240_74.alist"
+      },
+      "without_code_table": "sdrkit ships no table for this code (the table exists only in copyleft software): the receiver decodes nothing and its status names the file to load. decodes_with_code_table is the list expected once a host loads the table (from wsjt/codes/ of the recordings folder in the tests)."
+    },
+    "msk144_15": {
+      "recording": "wsjt_msk144_15_8k.sigmf-meta",
+      "receiver": {
+        "mode": "msk144",
+        "dial_hz": 50260000,
+        "start_utc": "2026-01-01T00:00:00Z",
+        "period_s": 15
+      },
+      "sent": [
+        [
+          "CQ K1ABC FN42",
+          1500,
+          2,
+          2.0,
+          false
+        ],
+        [
+          "G4XYZ DL1ABC JO62",
+          1500,
+          2,
+          8.0,
+          false
+        ]
+      ],
+      "decodes": [],
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 10.0,
+        "dt_s": 0.5,
+        "snr_db": 3.0
+      },
+      "decodes_with_code_table": [
+        {
+          "slot_offset_s": 0.0,
+          "msg": "CQ K1ABC FN42",
+          "snr_db": 2,
+          "dt_s": 2.144,
+          "hz": 998.28,
+          "mirrored": false,
+          "cq": true,
+          "call": "K1ABC",
+          "grid": "FN42",
+          "dbm": -1,
+          "pass": 0
+        },
+        {
+          "slot_offset_s": 0.0,
+          "msg": "G4XYZ DL1ABC JO62",
+          "snr_db": 2,
+          "dt_s": 8.0,
+          "hz": 997.87,
+          "mirrored": false,
+          "cq": false,
+          "call": "DL1ABC",
+          "grid": "JO62",
+          "dbm": -1,
+          "pass": 0
+        }
+      ],
+      "status": {
+        "lock_state": "off",
+        "summary_contains": "msk144_128_90.alist"
+      },
+      "without_code_table": "sdrkit ships no table for this code (the table exists only in copyleft software): the receiver decodes nothing and its status names the file to load. decodes_with_code_table is the list expected once a host loads the table (from wsjt/codes/ of the recordings folder in the tests)."
+    },
+    "js8": {
+      "recording": "wsjt_js8_8k.sigmf-meta",
+      "receiver": {
+        "mode": "js8",
+        "dial_hz": 14078000,
+        "start_utc": "2026-01-01T00:00:00Z"
+      },
+      "sent": "see frames",
+      "frames": [
+        {
+          "submode": "Normal",
+          "slot_start_s": 0.0,
+          "hz": 600.0,
+          "snr_db": -8,
+          "dt_s": 0.0,
+          "chars": "2jAmkFVDORMW",
+          "flags": 3,
+          "text": "LY2ABC: @HB HEARTBEAT KO24"
+        },
+        {
+          "submode": "Normal",
+          "slot_start_s": 15.0,
+          "hz": 600.0,
+          "snr_db": -8,
+          "dt_s": 0.0,
+          "chars": "2jAmkFVDORMW",
+          "flags": 3,
+          "text": "LY2ABC: @HB HEARTBEAT KO24"
+        },
+        {
+          "submode": "Normal",
+          "slot_start_s": 30.0,
+          "hz": 600.0,
+          "snr_db": -8,
+          "dt_s": 0.0,
+          "chars": "2jAmkFVDORMW",
+          "flags": 3,
+          "text": "LY2ABC: @HB HEARTBEAT KO24"
+        },
+        {
+          "submode": "Normal",
+          "slot_start_s": 45.0,
+          "hz": 600.0,
+          "snr_db": -8,
+          "dt_s": 0.0,
+          "chars": "2jAmkFVDORMW",
+          "flags": 3,
+          "text": "LY2ABC: @HB HEARTBEAT KO24"
+        },
+        {
+          "submode": "Normal",
+          "slot_start_s": 15.0,
+          "hz": 1500.0,
+          "snr_db": -6,
+          "dt_s": 0.3,
+          "chars": "TByV0oYetlaJ",
+          "flags": 3,
+          "text": "OK1XX: LY2ABC SNR -12"
+        },
+        {
+          "submode": "Normal",
+          "slot_start_s": 0.0,
+          "hz": 1900.0,
+          "snr_db": -4,
+          "dt_s": -0.3,
+          "chars": "VijAqhUd8Zy0",
+          "flags": 1,
+          "text": "G4ABC: DL1XYZ "
+        },
+        {
+          "submode": "Normal",
+          "slot_start_s": 15.0,
+          "hz": 1900.0,
+          "snr_db": -4,
+          "dt_s": -0.3,
+          "chars": "XpFFwI3zRd-x",
+          "flags": 0,
+          "text": "HELLO FROM LON"
+        },
+        {
+          "submode": "Normal",
+          "slot_start_s": 30.0,
+          "hz": 1900.0,
+          "snr_db": -4,
+          "dt_s": -0.3,
+          "chars": "k+tw8+bkF+OR",
+          "flags": 0,
+          "text": "DON. HOW COPY"
+        },
+        {
+          "submode": "Normal",
+          "slot_start_s": 45.0,
+          "hz": 1900.0,
+          "snr_db": -4,
+          "dt_s": -0.3,
+          "chars": "hB++++++++++",
+          "flags": 2,
+          "text": "?"
+        },
+        {
+          "submode": "Fast",
+          "slot_start_s": 0.0,
+          "hz": 2800.0,
+          "snr_db": -2,
+          "dt_s": 0.0,
+          "chars": "4HHgAhOiuRMm",
+          "flags": 3,
+          "text": "YL2XYZ: @HB HEARTBEAT KO26"
+        },
+        {
+          "submode": "Fast",
+          "slot_start_s": 10.0,
+          "hz": 2800.0,
+          "snr_db": -2,
+          "dt_s": 0.0,
+          "chars": "4HHgAhOiuRMm",
+          "flags": 3,
+          "text": "YL2XYZ: @HB HEARTBEAT KO26"
+        },
+        {
+          "submode": "Fast",
+          "slot_start_s": 20.0,
+          "hz": 2800.0,
+          "snr_db": -2,
+          "dt_s": 0.0,
+          "chars": "4HHgAhOiuRMm",
+          "flags": 3,
+          "text": "YL2XYZ: @HB HEARTBEAT KO26"
+        },
+        {
+          "submode": "Fast",
+          "slot_start_s": 30.0,
+          "hz": 2800.0,
+          "snr_db": -2,
+          "dt_s": 0.0,
+          "chars": "4HHgAhOiuRMm",
+          "flags": 3,
+          "text": "YL2XYZ: @HB HEARTBEAT KO26"
+        },
+        {
+          "submode": "Fast",
+          "slot_start_s": 40.0,
+          "hz": 2800.0,
+          "snr_db": -2,
+          "dt_s": 0.0,
+          "chars": "4HHgAhOiuRMm",
+          "flags": 3,
+          "text": "YL2XYZ: @HB HEARTBEAT KO26"
+        },
+        {
+          "submode": "Fast",
+          "slot_start_s": 50.0,
+          "hz": 2800.0,
+          "snr_db": -2,
+          "dt_s": 0.0,
+          "chars": "4HHgAhOiuRMm",
+          "flags": 3,
+          "text": "YL2XYZ: @HB HEARTBEAT KO26"
+        },
+        {
+          "submode": "Turbo",
+          "slot_start_s": 0.0,
+          "hz": 350.0,
+          "snr_db": 0,
+          "dt_s": 0.0,
+          "chars": "1qZSU-K5PRNF",
+          "flags": 3,
+          "text": "ES1ABC: @ALLCALL CQ KO29"
+        },
+        {
+          "submode": "Turbo",
+          "slot_start_s": 6.0,
+          "hz": 350.0,
+          "snr_db": 0,
+          "dt_s": 0.0,
+          "chars": "1qZSU-K5PRNF",
+          "flags": 3,
+          "text": "ES1ABC: @ALLCALL CQ KO29"
+        },
+        {
+          "submode": "Turbo",
+          "slot_start_s": 12.0,
+          "hz": 350.0,
+          "snr_db": 0,
+          "dt_s": 0.0,
+          "chars": "1qZSU-K5PRNF",
+          "flags": 3,
+          "text": "ES1ABC: @ALLCALL CQ KO29"
+        },
+        {
+          "submode": "Turbo",
+          "slot_start_s": 18.0,
+          "hz": 350.0,
+          "snr_db": 0,
+          "dt_s": 0.0,
+          "chars": "1qZSU-K5PRNF",
+          "flags": 3,
+          "text": "ES1ABC: @ALLCALL CQ KO29"
+        },
+        {
+          "submode": "Turbo",
+          "slot_start_s": 24.0,
+          "hz": 350.0,
+          "snr_db": 0,
+          "dt_s": 0.0,
+          "chars": "1qZSU-K5PRNF",
+          "flags": 3,
+          "text": "ES1ABC: @ALLCALL CQ KO29"
+        },
+        {
+          "submode": "Turbo",
+          "slot_start_s": 30.0,
+          "hz": 350.0,
+          "snr_db": 0,
+          "dt_s": 0.0,
+          "chars": "1qZSU-K5PRNF",
+          "flags": 3,
+          "text": "ES1ABC: @ALLCALL CQ KO29"
+        },
+        {
+          "submode": "Turbo",
+          "slot_start_s": 36.0,
+          "hz": 350.0,
+          "snr_db": 0,
+          "dt_s": 0.0,
+          "chars": "1qZSU-K5PRNF",
+          "flags": 3,
+          "text": "ES1ABC: @ALLCALL CQ KO29"
+        },
+        {
+          "submode": "Turbo",
+          "slot_start_s": 42.0,
+          "hz": 350.0,
+          "snr_db": 0,
+          "dt_s": 0.0,
+          "chars": "1qZSU-K5PRNF",
+          "flags": 3,
+          "text": "ES1ABC: @ALLCALL CQ KO29"
+        },
+        {
+          "submode": "Turbo",
+          "slot_start_s": 48.0,
+          "hz": 350.0,
+          "snr_db": 0,
+          "dt_s": 0.0,
+          "chars": "1qZSU-K5PRNF",
+          "flags": 3,
+          "text": "ES1ABC: @ALLCALL CQ KO29"
+        },
+        {
+          "submode": "Turbo",
+          "slot_start_s": 54.0,
+          "hz": 350.0,
+          "snr_db": 0,
+          "dt_s": 0.0,
+          "chars": "1qZSU-K5PRNF",
+          "flags": 3,
+          "text": "ES1ABC: @ALLCALL CQ KO29"
+        }
+      ],
+      "messages": [
+        {
+          "submode": "Normal",
+          "slot_start_s": 0.0,
+          "hz": 1900.0,
+          "frames": 4,
+          "complete": true,
+          "from": "G4ABC",
+          "to": "DL1XYZ",
+          "text": "G4ABC: DL1XYZ HELLO FROM LONDON. HOW COPY?"
+        }
+      ],
+      "stations": [
+        {
+          "call": "LY2ABC",
+          "grid": "KO24",
+          "heartbeat": true
+        },
+        {
+          "call": "YL2XYZ",
+          "grid": "KO26",
+          "heartbeat": true
+        },
+        {
+          "call": "ES1ABC",
+          "grid": "KO29",
+          "cq": true
+        },
+        {
+          "call": "OK1XX"
+        },
+        {
+          "call": "G4ABC"
+        }
+      ],
+      "verified": "frames and their texts are those the frame packer produced; this recording was not run through a decoder before release",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 2.0,
+        "dt_s": 0.1,
+        "snr_db": 3.0
+      }
+    }
+  }
+}

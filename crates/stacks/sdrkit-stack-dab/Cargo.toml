@@ -1,0 +1,33 @@
+[package]
+name = "sdrkit-stack-dab"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "DAB and DAB+ digital radio (EN 300 401, TS 102 563), with slideshow, labels, SPI, Journaline, TII, packet data and DMB"
+
+[dependencies]
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+sdrkit-codec-aac = { path = "../../codec/sdrkit-codec-aac" }
+sdrkit-codec-mpa = { path = "../../codec/sdrkit-codec-mpa" }
+sdrkit-proto-bcdata = { path = "../../proto/sdrkit-proto-bcdata" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-codec-image = { path = "../../codec/sdrkit-codec-image" }
+sdrkit-proto-mpegts = { path = "../../proto/sdrkit-proto-mpegts" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+num-complex.workspace = true
+serde_json.workspace = true
+# Inflate for SPI objects sent with MOT CompressionType 1 (GZIP): MIT OR Zlib OR Apache-2.0.
+miniz_oxide = "0.8"
+
+[dev-dependencies]
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The DAB groups of the data folder, for the test of service following.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }

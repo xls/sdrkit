@@ -1,0 +1,134 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "v2x_dial",
+      "name": "802.11p V2X: dial range",
+      "kind": "other",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "The dial range of the v2x stack",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "a dial range for the stack, not an allocation",
+      "bands": [
+        {
+          "name": "802.11p V2X dial range",
+          "service": "mobile",
+          "start_hz": 5800000000.0,
+          "end_hz": 6000000000.0,
+          "modes": [
+            "v2x"
+          ],
+          "modulation": "OFDM, 10 MHz (802.11 clause 17 at half clock)",
+          "channel_width_hz": 10000000.0,
+          "note": "stack v2x; the test signal is at 5900 MHz; the ITS band is about 5855 to 5925 MHz"
+        }
+      ]
+    },
+    {
+      "id": "v2x_its_g5_eu",
+      "name": "ITS-G5 (802.11p), Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "ETSI EN 302 571 (intelligent transport systems in the 5855 to 5925 MHz band)",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the channel use is from general knowledge; the standard was not read",
+      "bands": [
+        {
+          "name": "ITS-G5 channels",
+          "service": "mobile",
+          "start_hz": 5855000000.0,
+          "end_hz": 5925000000.0,
+          "modes": [
+            "v2x"
+          ],
+          "modulation": "OFDM, 10 MHz",
+          "channel_width_hz": 10000000.0,
+          "channels": [
+            {
+              "name": "172",
+              "centre_hz": 5860000000.0,
+              "note": "service channel"
+            },
+            {
+              "name": "174",
+              "centre_hz": 5870000000.0,
+              "note": "service channel"
+            },
+            {
+              "name": "176",
+              "centre_hz": 5880000000.0,
+              "note": "service channel"
+            },
+            {
+              "name": "178",
+              "centre_hz": 5890000000.0,
+              "note": "service channel"
+            },
+            {
+              "name": "180",
+              "centre_hz": 5900000000.0,
+              "note": "control channel"
+            },
+            {
+              "name": "182",
+              "centre_hz": 5910000000.0,
+              "note": "service channel"
+            },
+            {
+              "name": "184",
+              "centre_hz": 5920000000.0,
+              "note": "service channel"
+            }
+          ],
+          "note": "channel n is centred on 5000 + 5n MHz; which service channels are allowed depends on the country"
+        }
+      ]
+    },
+    {
+      "id": "v2x_dsrc_us",
+      "name": "DSRC (802.11p), United States",
+      "kind": "other",
+      "source": {
+        "publisher": "FCC",
+        "title": "Report and Order on the 5.850 to 5.925 GHz band (2020)",
+        "date": "2020"
+      },
+      "verified": false,
+      "unverified_reason": "the channels after the 2020 reallocation are from general knowledge; the order was not read",
+      "bands": [
+        {
+          "name": "DSRC channels",
+          "service": "mobile",
+          "start_hz": 5890000000.0,
+          "end_hz": 5930000000.0,
+          "modes": [
+            "v2x"
+          ],
+          "modulation": "OFDM, 10 MHz",
+          "channel_width_hz": 10000000.0,
+          "channels": [
+            {
+              "name": "180",
+              "centre_hz": 5900000000.0
+            },
+            {
+              "name": "182",
+              "centre_hz": 5910000000.0
+            },
+            {
+              "name": "184",
+              "centre_hz": 5920000000.0
+            }
+          ],
+          "note": "channels 180 to 184 after the 2020 reallocation; earlier 172 to 184"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 48000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic e-Czas long-wave time service: the 225 kHz carrier 12 kHz below the capture centre (+20 Hz carrier error), 50 bit/s phase keying (36 degree ramps), the 20 slots of a minute every 3 s, time packets in slots 0, 4, 8, 12 and 16, other packets in the remaining slots. Carrier-to-noise 30 dB in 100 Hz. Sample 0 is at 2026-06-01 00:00:07 UTC; local offset +2 h. 36 s. See specs/science.md, e-Czas test vectors.",
+    "core:recorder": "e-Czas test-signal generator, noise seed 3",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 237000.0
+    }
+  ],
+  "annotations": []
+}

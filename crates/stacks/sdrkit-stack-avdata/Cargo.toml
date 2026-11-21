@@ -1,0 +1,33 @@
+[package]
+name = "sdrkit-stack-avdata"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Aviation data links and voice: ACARS, VDL Mode 2, VDL Mode 4, HFDL, Airband and SELCAL"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-proto-aero = { path = "../../proto/sdrkit-proto-aero" }
+sdrkit-proto-link = { path = "../../proto/sdrkit-proto-link" }
+sdrkit-proto-tones = { path = "../../proto/sdrkit-proto-tones" }
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+# The channel sets of the data folder, for the tests.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }

@@ -1,0 +1,254 @@
+stack dvbt2
+setting SettingDecl { field: FieldDecl { key: "bandwidth", label: "Channel bandwidth", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1.7", label: "1.7 MHz" }, ChoiceDecl { key: "5", label: "5 MHz" }, ChoiceDecl { key: "6", label: "6 MHz" }, ChoiceDecl { key: "7", label: "7 MHz" }, ChoiceDecl { key: "8", label: "8 MHz" }, ChoiceDecl { key: "10", label: "10 MHz" }], refers_to: None, content: None }, range: None, default: Choice(4), required: false, restart: true, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "plp", label: "PLP", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: -1.0, max: 255.0, step: 1.0 }), default: I64(-1), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The data PLP to decode. -1 decodes the first data PLP. Its common PLP is decoded with it.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "decode_video", label: "Decode video", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "MPEG-2 video leaves as frames of raw pixels (I420) in display order, for a host that has no decoder of MPEG-2 video. Off: the coded pictures. H.264 and HEVC always leave as coded pictures.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_fft", label: "FFT size", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1k", label: "1K" }, ChoiceDecl { key: "2k", label: "2K" }, ChoiceDecl { key: "4k", label: "4K" }, ChoiceDecl { key: "8k", label: "8K" }, ChoiceDecl { key: "16k", label: "16K" }, ChoiceDecl { key: "32k", label: "32K" }], refers_to: None, content: None }, range: None, default: Choice(3), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_guard", label: "Guard interval", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1/32", label: "1/32" }, ChoiceDecl { key: "1/16", label: "1/16" }, ChoiceDecl { key: "1/8", label: "1/8" }, ChoiceDecl { key: "1/4", label: "1/4" }, ChoiceDecl { key: "1/128", label: "1/128" }, ChoiceDecl { key: "19/128", label: "19/128" }, ChoiceDecl { key: "19/256", label: "19/256" }], refers_to: None, content: None }, range: None, default: Choice(2), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_pilots", label: "Pilot pattern", unit: "", kind: Choice, choices: [ChoiceDecl { key: "pp1", label: "PP1" }, ChoiceDecl { key: "pp2", label: "PP2" }, ChoiceDecl { key: "pp3", label: "PP3" }, ChoiceDecl { key: "pp4", label: "PP4" }, ChoiceDecl { key: "pp5", label: "PP5" }, ChoiceDecl { key: "pp6", label: "PP6" }, ChoiceDecl { key: "pp7", label: "PP7" }, ChoiceDecl { key: "pp8", label: "PP8" }], refers_to: None, content: None }, range: None, default: Choice(2), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_extended", label: "Extended carriers", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_modulation", label: "Constellation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "qpsk", label: "QPSK" }, ChoiceDecl { key: "16qam", label: "16-QAM" }, ChoiceDecl { key: "64qam", label: "64-QAM" }, ChoiceDecl { key: "256qam", label: "256-QAM" }], refers_to: None, content: None }, range: None, default: Choice(2), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_rate", label: "Code rate", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1/2", label: "1/2" }, ChoiceDecl { key: "3/5", label: "3/5" }, ChoiceDecl { key: "2/3", label: "2/3" }, ChoiceDecl { key: "3/4", label: "3/4" }, ChoiceDecl { key: "4/5", label: "4/5 (T2-base)" }, ChoiceDecl { key: "5/6", label: "5/6 (T2-base)" }, ChoiceDecl { key: "1/3", label: "1/3 (T2-Lite)" }, ChoiceDecl { key: "2/5", label: "2/5 (T2-Lite)" }], refers_to: None, content: None }, range: None, default: Choice(2), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_fec_frame", label: "FEC frame", unit: "", kind: Choice, choices: [ChoiceDecl { key: "16200", label: "16 200 bits" }, ChoiceDecl { key: "64800", label: "64 800 bits" }], refers_to: None, content: None }, range: None, default: Choice(1), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_rotation", label: "Rotated constellation", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_profile", label: "Profile", unit: "", kind: Choice, choices: [ChoiceDecl { key: "base", label: "T2-base" }, ChoiceDecl { key: "lite", label: "T2-Lite" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_miso", label: "MISO", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_blocks", label: "FEC blocks per frame", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 100.0, step: 1.0 }), default: I64(4), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "gen_source", label: "Content", unit: "", kind: Choice, choices: [ChoiceDecl { key: "mux", label: "Test multiplex" }, ChoiceDecl { key: "pattern", label: "Numbered packets" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_bandwidth", label: "Channel width", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1.7", label: "1.7 MHz" }, ChoiceDecl { key: "5", label: "5 MHz" }, ChoiceDecl { key: "6", label: "6 MHz" }, ChoiceDecl { key: "7", label: "7 MHz" }, ChoiceDecl { key: "8", label: "8 MHz" }, ChoiceDecl { key: "10", label: "10 MHz" }], refers_to: None, content: None }, range: None, default: Choice(4), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "The width of the channel sent. It sets the elementary rate of the signal.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_fft", label: "FFT size", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1k", label: "1K" }, ChoiceDecl { key: "2k", label: "2K" }, ChoiceDecl { key: "4k", label: "4K" }, ChoiceDecl { key: "8k", label: "8K" }, ChoiceDecl { key: "16k", label: "16K" }, ChoiceDecl { key: "32k", label: "32K" }], refers_to: None, content: None }, range: None, default: Choice(3), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_guard", label: "Guard interval", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1/32", label: "1/32" }, ChoiceDecl { key: "1/16", label: "1/16" }, ChoiceDecl { key: "1/8", label: "1/8" }, ChoiceDecl { key: "1/4", label: "1/4" }, ChoiceDecl { key: "1/128", label: "1/128" }, ChoiceDecl { key: "19/128", label: "19/128" }, ChoiceDecl { key: "19/256", label: "19/256" }], refers_to: None, content: None }, range: None, default: Choice(4), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "A guard interval that the FFT size does not take is refused at start.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_pilots", label: "Pilot pattern", unit: "", kind: Choice, choices: [ChoiceDecl { key: "pp1", label: "PP1" }, ChoiceDecl { key: "pp2", label: "PP2" }, ChoiceDecl { key: "pp3", label: "PP3" }, ChoiceDecl { key: "pp4", label: "PP4" }, ChoiceDecl { key: "pp5", label: "PP5" }, ChoiceDecl { key: "pp6", label: "PP6" }, ChoiceDecl { key: "pp7", label: "PP7" }, ChoiceDecl { key: "pp8", label: "PP8" }], refers_to: None, content: None }, range: None, default: Choice(6), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "A pattern that EN 302 755 tables 58 and 59 do not allow with the FFT size and the guard interval is refused at start.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_extended", label: "Extended carriers", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "8K, 16K and 32K only.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_modulation", label: "Constellation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "qpsk", label: "QPSK" }, ChoiceDecl { key: "16qam", label: "16-QAM" }, ChoiceDecl { key: "64qam", label: "64-QAM" }, ChoiceDecl { key: "256qam", label: "256-QAM" }], refers_to: None, content: None }, range: None, default: Choice(2), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_rate", label: "Code rate", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1/2", label: "1/2" }, ChoiceDecl { key: "3/5", label: "3/5" }, ChoiceDecl { key: "2/3", label: "2/3" }, ChoiceDecl { key: "3/4", label: "3/4" }, ChoiceDecl { key: "4/5", label: "4/5" }, ChoiceDecl { key: "5/6", label: "5/6" }], refers_to: None, content: None }, range: None, default: Choice(2), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_rotation", label: "Rotated constellation", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_fec_frame", label: "FEC frame", unit: "", kind: Choice, choices: [ChoiceDecl { key: "16200", label: "16 200 bits" }, ChoiceDecl { key: "64800", label: "64 800 bits" }], refers_to: None, content: None }, range: None, default: Choice(1), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_ti_blocks", label: "Time interleaver", unit: "TI-blocks", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 8.0, step: 1.0 }), default: I64(3), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "The TI-blocks of a T2-frame. 0: no time interleaving. Fewer TI-blocks interleave deeper and hold fewer FEC blocks a frame.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_frame_ms", label: "Longest frame", unit: "ms", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 10.0, max: 250.0, step: 1.0 }), default: I64(100), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "The T2-frame holds whole symbols and whole FEC blocks and lasts this long at most, and never less than the shortest frame of the FFT size.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_l1_mod", label: "L1-post constellation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "bpsk", label: "BPSK" }, ChoiceDecl { key: "qpsk", label: "QPSK" }, ChoiceDecl { key: "16qam", label: "16-QAM" }, ChoiceDecl { key: "64qam", label: "64-QAM" }], refers_to: None, content: None }, range: None, default: Choice(1), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_cell_id", label: "Cell id", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 65535.0, step: 1.0 }), default: I64(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_network_id", label: "Network id", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 65535.0, step: 1.0 }), default: I64(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+setting SettingDecl { field: FieldDecl { key: "tx_system_id", label: "T2 system id", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 65535.0, step: 1.0 }), default: I64(0), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+field FieldDecl { key: "detection", label: "Detection", unit: "", kind: Choice, choices: [ChoiceDecl { key: "searching", label: "Searching" }, ChoiceDecl { key: "p1", label: "P1 found" }, ChoiceDecl { key: "l1", label: "L1 decoded" }, ChoiceDecl { key: "flowing", label: "Flowing" }], refers_to: None, content: None }
+field FieldDecl { key: "fft", label: "FFT size", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1k", label: "1K" }, ChoiceDecl { key: "2k", label: "2K" }, ChoiceDecl { key: "4k", label: "4K" }, ChoiceDecl { key: "8k", label: "8K" }, ChoiceDecl { key: "16k", label: "16K" }, ChoiceDecl { key: "32k", label: "32K" }], refers_to: None, content: None }
+field FieldDecl { key: "guard", label: "Guard interval", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1/32", label: "1/32" }, ChoiceDecl { key: "1/16", label: "1/16" }, ChoiceDecl { key: "1/8", label: "1/8" }, ChoiceDecl { key: "1/4", label: "1/4" }, ChoiceDecl { key: "1/128", label: "1/128" }, ChoiceDecl { key: "19/128", label: "19/128" }, ChoiceDecl { key: "19/256", label: "19/256" }], refers_to: None, content: None }
+field FieldDecl { key: "pilot_pattern", label: "Pilot pattern", unit: "", kind: Choice, choices: [ChoiceDecl { key: "pp1", label: "PP1" }, ChoiceDecl { key: "pp2", label: "PP2" }, ChoiceDecl { key: "pp3", label: "PP3" }, ChoiceDecl { key: "pp4", label: "PP4" }, ChoiceDecl { key: "pp5", label: "PP5" }, ChoiceDecl { key: "pp6", label: "PP6" }, ChoiceDecl { key: "pp7", label: "PP7" }, ChoiceDecl { key: "pp8", label: "PP8" }], refers_to: None, content: None }
+field FieldDecl { key: "extended_carriers", label: "Extended carriers", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "miso", label: "MISO", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "profile", label: "Profile", unit: "", kind: Choice, choices: [ChoiceDecl { key: "base", label: "T2-base" }, ChoiceDecl { key: "lite", label: "T2-Lite" }], refers_to: None, content: None }
+field FieldDecl { key: "l1_modulation", label: "L1-post constellation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "bpsk", label: "BPSK" }, ChoiceDecl { key: "qpsk", label: "QPSK" }, ChoiceDecl { key: "16qam", label: "16-QAM" }, ChoiceDecl { key: "64qam", label: "64-QAM" }, ChoiceDecl { key: "256qam", label: "256-QAM" }], refers_to: None, content: None }
+field FieldDecl { key: "cell_id", label: "Cell id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "network_id", label: "Network id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "t2_system_id", label: "T2 system id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "frames_per_superframe", label: "T2-frames per super-frame", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "data_symbols", label: "Data symbols per frame", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "frame_length", label: "Frame length", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "t2_frames", label: "T2-frames", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "l1_errors", label: "L1 failures", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "plp", label: "PLP", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "common_plp", label: "Common PLP", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ldpc_iterations", label: "LDPC iterations", unit: "", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "net_rate_bit_s", label: "Net bit rate", unit: "bit/s", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "problem", label: "Problem", unit: "", kind: Choice, choices: [ChoiceDecl { key: "tfs", label: "Time-frequency slicing is not supported" }, ChoiceDecl { key: "frame_shape", label: "Frame shape not supported" }, ChoiceDecl { key: "l1_post_size", label: "L1_POST_SIZE does not match the L1-post coding" }, ChoiceDecl { key: "no_such_plp", label: "The PLP is not in this multiplex" }, ChoiceDecl { key: "no_data_plp", label: "No data PLP in this multiplex" }, ChoiceDecl { key: "unknown_coding", label: "A PLP uses an unknown coding" }], refers_to: None, content: None }
+field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "bits_corrected", label: "Bits corrected", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "transmitting", label: "Transmitting", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tx_freq_hz", label: "Transmit frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tx_bitrate_bps", label: "Useful bit rate", unit: "bit/s", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tx_packets", label: "Packets sent", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tx_nulls", label: "Null packets inserted", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tx_queue", label: "Packets waiting", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tx_queue_s", label: "Queue length", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tx_pcr_restamped", label: "PCRs rewritten", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tx_frame_s", label: "Frame length", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tx_fec_blocks", label: "FEC blocks per frame", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "tx_problem", label: "Settings refused", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts.ts_packets", label: "TS packets", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts.crc_errors", label: "CRC errors", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts.pdus", label: "PDUs", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts.non_ip", label: "Non-IP PDUs", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts_demux.packets", label: "Packets", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts_demux.null_packets", label: "Null packets", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts_demux.tei_packets", label: "Packets with errors", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts_demux.cc_errors", label: "Continuity errors", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts_demux.mux_kbps", label: "Multiplex bit rate", unit: "kbit/s", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts_demux.null_kbps", label: "Null bit rate", unit: "kbit/s", kind: F64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts_demux.selected_service", label: "Service playing", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts_demux.selected_audio", label: "Audio PID", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts_demux.selected_subtitle", label: "Subtitle PID", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "ts_demux.player_status", label: "Player", unit: "", kind: Choice, choices: [ChoiceDecl { key: "starting", label: "Starting" }, ChoiceDecl { key: "playing", label: "Playing" }, ChoiceDecl { key: "scrambled", label: "Scrambled" }, ChoiceDecl { key: "no_service", label: "No service" }], refers_to: None, content: None }
+field FieldDecl { key: "ts_demux.audio_decoded", label: "Sound decoded", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "psi_si.network_name", label: "Network", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "psi_si.onid", label: "Original network id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "psi_si.tsid", label: "Transport stream id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "psi_si.service_count", label: "Services", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "psi_si.utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "psi_si.local_offset_min", label: "Local offset", unit: "min", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "teletext.data_units", label: "Data units", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "teletext.pages", label: "Pages", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "teletext.page", label: "Page", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "teletext.page_text", label: "Page text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+field FieldDecl { key: "dvb_subtitle.display_sets", label: "Display sets", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "plps" "PLPs" cap 256
+  column FieldDecl { key: "plp_id", label: "PLP", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "plp_type", label: "Type", unit: "", kind: Choice, choices: [ChoiceDecl { key: "common", label: "Common" }, ChoiceDecl { key: "data1", label: "Data type 1" }, ChoiceDecl { key: "data2", label: "Data type 2" }, ChoiceDecl { key: "reserved", label: "Reserved" }], refers_to: None, content: None }
+  column FieldDecl { key: "payload", label: "Payload", unit: "", kind: Choice, choices: [ChoiceDecl { key: "gfps", label: "GFPS" }, ChoiceDecl { key: "gcs", label: "GCS" }, ChoiceDecl { key: "gse", label: "GSE" }, ChoiceDecl { key: "ts", label: "TS" }, ChoiceDecl { key: "reserved", label: "Reserved" }], refers_to: None, content: None }
+  column FieldDecl { key: "modulation", label: "Constellation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "bpsk", label: "BPSK" }, ChoiceDecl { key: "qpsk", label: "QPSK" }, ChoiceDecl { key: "16qam", label: "16-QAM" }, ChoiceDecl { key: "64qam", label: "64-QAM" }, ChoiceDecl { key: "256qam", label: "256-QAM" }], refers_to: None, content: None }
+  column FieldDecl { key: "code_rate", label: "Code rate", unit: "", kind: Choice, choices: [ChoiceDecl { key: "1/2", label: "1/2" }, ChoiceDecl { key: "3/5", label: "3/5" }, ChoiceDecl { key: "2/3", label: "2/3" }, ChoiceDecl { key: "3/4", label: "3/4" }, ChoiceDecl { key: "4/5", label: "4/5" }, ChoiceDecl { key: "5/6", label: "5/6" }, ChoiceDecl { key: "1/3", label: "1/3" }, ChoiceDecl { key: "2/5", label: "2/5" }, ChoiceDecl { key: "1/4", label: "1/4" }], refers_to: None, content: None }
+  column FieldDecl { key: "fec_frame_bits", label: "FEC frame", unit: "bits", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "rotated", label: "Rotated", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "fec_blocks", label: "FEC blocks", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "group_id", label: "Group", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "time_interleaving", label: "Time interleaving", unit: "", kind: Choice, choices: [ChoiceDecl { key: "off", label: "Off" }, ChoiceDecl { key: "blocks", label: "TI-blocks per frame" }, ChoiceDecl { key: "frames", label: "Over T2-frames" }], refers_to: None, content: None }
+  column FieldDecl { key: "time_il_length", label: "Time interleaving length", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "services" "Services" cap 1000
+  column FieldDecl { key: "service_id", label: "Service id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "provider", label: "Provider", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "service_type", label: "Service type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "tv", label: "TV" }, ChoiceDecl { key: "radio", label: "Radio" }, ChoiceDecl { key: "data", label: "Data" }, ChoiceDecl { key: "teletext", label: "Teletext" }, ChoiceDecl { key: "other", label: "Other" }, ChoiceDecl { key: "unknown", label: "Unknown" }], refers_to: None, content: None }
+  column FieldDecl { key: "lcn", label: "Channel number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "visible", label: "Visible", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "scrambled", label: "Scrambled", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "ca_state", label: "Access", unit: "", kind: Choice, choices: [ChoiceDecl { key: "unknown", label: "Unknown" }, ChoiceDecl { key: "clear", label: "Clear" }, ChoiceDecl { key: "flagged_clear", label: "CA flag set, but the stream is clear" }, ChoiceDecl { key: "scrambled", label: "Scrambled" }], refers_to: None, content: None }
+  column FieldDecl { key: "pmt_pid", label: "PMT PID", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "pcr_pid", label: "PCR PID", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "running_status", label: "Running status", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "in_pat", label: "In the PAT", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "eit_schedule", label: "Schedule guide", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "eit_present_following", label: "Now and next guide", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "onid", label: "Original network id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "tsid", label: "Transport stream id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "now_title", label: "Now", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "now_text", label: "Now text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "now_start", label: "Now start", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "now_duration", label: "Now length", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "next_title", label: "Next", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "next_text", label: "Next text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "next_start", label: "Next start", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "next_duration", label: "Next length", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+table "tracks" "Tracks" cap 8192
+  column FieldDecl { key: "service", label: "Service", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "services" }), content: None }
+  column FieldDecl { key: "pid", label: "PID", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "stream_type", label: "Stream type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "video", label: "Video" }, ChoiceDecl { key: "audio", label: "Audio" }, ChoiceDecl { key: "subtitles", label: "Subtitles" }, ChoiceDecl { key: "teletext", label: "Teletext" }, ChoiceDecl { key: "data", label: "Data" }], refers_to: None, content: None }
+  column FieldDecl { key: "codec", label: "Codec", unit: "", kind: Choice, choices: [ChoiceDecl { key: "mpeg1video", label: "MPEG-1 video" }, ChoiceDecl { key: "mpeg2video", label: "MPEG-2 video" }, ChoiceDecl { key: "h264", label: "H.264" }, ChoiceDecl { key: "hevc", label: "HEVC" }, ChoiceDecl { key: "avs", label: "AVS" }, ChoiceDecl { key: "avs2", label: "AVS2" }, ChoiceDecl { key: "avs3", label: "AVS3" }, ChoiceDecl { key: "mp2", label: "MPEG audio" }, ChoiceDecl { key: "aac", label: "AAC" }, ChoiceDecl { key: "ac3", label: "AC-3" }, ChoiceDecl { key: "eac3", label: "E-AC-3" }, ChoiceDecl { key: "ac4", label: "AC-4" }, ChoiceDecl { key: "dts", label: "DTS" }, ChoiceDecl { key: "dra", label: "DRA" }, ChoiceDecl { key: "lpcm", label: "Linear PCM" }, ChoiceDecl { key: "opus", label: "Opus" }, ChoiceDecl { key: "teletext", label: "Teletext" }, ChoiceDecl { key: "dvbsub", label: "DVB subtitles" }, ChoiceDecl { key: "data", label: "Data" }], refers_to: None, content: None }
+  column FieldDecl { key: "packaging", label: "Packaging", unit: "", kind: Choice, choices: [ChoiceDecl { key: "annexb", label: "Start codes" }, ChoiceDecl { key: "elementary", label: "Elementary frames" }, ChoiceDecl { key: "adts", label: "ADTS" }, ChoiceDecl { key: "latm", label: "LATM" }, ChoiceDecl { key: "frames", label: "Sync frames" }, ChoiceDecl { key: "smpte302m", label: "SMPTE 302M" }, ChoiceDecl { key: "pes", label: "PES" }, ChoiceDecl { key: "none", label: "None" }], refers_to: None, content: None }
+  column FieldDecl { key: "fourcc", label: "FourCC", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "lang", label: "Language", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "audio_type", label: "Audio type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "audio_description", label: "Audio description", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "hard_of_hearing", label: "Hard of hearing", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "component_tag", label: "Component tag", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "kbps", label: "Bit rate", unit: "kbit/s", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "scrambled", label: "Scrambled", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "profile", label: "Profile", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "level", label: "Level", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "width", label: "Width", unit: "px", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "height", label: "Height", unit: "px", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "frame_rate", label: "Frame rate", unit: "Hz", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "aspect", label: "Aspect", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "interlaced", label: "Interlaced", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "sample_rate", label: "Sample rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "channels", label: "Channels", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "layout", label: "Layout", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "bitrate_kbps", label: "Coded bit rate", unit: "kbit/s", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "object_type", label: "Object type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "entry_type", label: "Entry type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "composition_page", label: "Composition page", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "ancillary_page", label: "Ancillary page", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "magazine", label: "Magazine", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "teletext_page", label: "Teletext page", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "guide" "Guide" cap 20000
+  column FieldDecl { key: "service", label: "Service", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "services" }), content: None }
+  column FieldDecl { key: "onid", label: "Original network id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "tsid", label: "Transport stream id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "service_id", label: "Service id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "event_id", label: "Event id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "start", label: "Start", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "duration", label: "Length", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "running_status", label: "Running status", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "title", label: "Title", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "extended", label: "Extended text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "lang", label: "Language", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "genre", label: "Genre", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "content", label: "Content", unit: "", kind: Bytes, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "min_age", label: "Minimum age", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "crid_programme", label: "Programme CRID", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "crid_series", label: "Series CRID", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "free_ca", label: "Scrambled when sent", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "other_ts", label: "Other multiplex", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "schedule", label: "Schedule", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+table "guide_ratings" "Guide ratings" cap 40000
+  column FieldDecl { key: "event", label: "Event", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "guide" }), content: None }
+  column FieldDecl { key: "country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "rating", label: "Rating", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "teletext_pages" "Teletext pages" cap 800
+  column FieldDecl { key: "page", label: "Page", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "subpages", label: "Subpages", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "teletext_subpages" "Teletext subpages" cap 8192
+  column FieldDecl { key: "page_row", label: "Page", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "teletext_pages" }), content: None }
+  column FieldDecl { key: "subcode", label: "Subcode", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "version", label: "Version", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+table "ts_demux.pids" "PIDs" cap 8192
+  column FieldDecl { key: "pid", label: "PID", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "label", label: "Label", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "packets", label: "Packets", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "cc_errors", label: "Continuity errors", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "tei", label: "Packets with errors", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "kbps", label: "Bit rate", unit: "kbit/s", kind: F64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "scrambled", label: "Scrambled", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+table "psi_si.sections" "Sections" cap 64
+  column FieldDecl { key: "accepted", label: "Accepted", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "crc", label: "Bad CRC", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "length", label: "Bad length", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "other", label: "Other", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+points ""
+event "service.list" "Service list"
+  field FieldDecl { key: "tsid", label: "Transport stream id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "onid", label: "Original network id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "network_id", label: "Network id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "network_name", label: "Network", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "service_count", label: "Services", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+event "epg.event" "Guide event"
+  field FieldDecl { key: "onid", label: "Original network id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "tsid", label: "Transport stream id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "service_id", label: "Service id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "event_id", label: "Event id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "start", label: "Start", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "duration", label: "Length", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "title", label: "Title", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "ts.time" "Stream time"
+  field FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "local_offset_min", label: "Local offset", unit: "min", kind: I64, choices: [], refers_to: None, content: None }
+event "ts.network" "Network"
+  field FieldDecl { key: "network_id", label: "Network id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "network_name", label: "Network", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "onid", label: "Original network id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "tsid", label: "Transport stream id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+event "teletext.page" "Teletext page"
+  field FieldDecl { key: "page", label: "Page", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "subcode", label: "Subcode", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "version", label: "Version", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+event "dvb.subtitle" "Subtitle"
+  field FieldDecl { key: "pts", label: "Presentation time", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "timeout_s", label: "Time out", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "width", label: "Width", unit: "px", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "height", label: "Height", unit: "px", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "seq", label: "Sequence", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "region_count", label: "Regions", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+command "service.select" "Select a service" "Plays a service of the multiplex. An empty row plays the first service that can play."
+  argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "services" }), content: None }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+command "teletext.select" "Select a teletext page" "Shows a teletext page."
+  argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "teletext_pages" }), content: None }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+command "track.select" "Select a track" "Plays an audio track or shows a subtitle track."
+  argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "tracks" }), content: None }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] } }
+command "start" "Start sending" "Sends a DVB-T2 signal with the tx_* settings from the start of a T2-frame, until stop. The packets of append fill it; a slot with no packet carries a null packet. Transmit must be on." transmits "file" stopped_by "stop"
+command "stop" "Stop sending" "Ends the transmission after the T2-frame on air with a fall of 5 ms. The packets that wait are dropped."
+command "append" "Add packets" "Adds transport packets to the queue of the stream. All or none: refused when the queue has no room, so the host feeds at the useful bit rate."
+  argument SettingDecl { field: FieldDecl { key: "packets", label: "Packets", unit: "", kind: Bytes, choices: [], refers_to: None, content: None }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "Whole transport packets of 188 bytes, each starting with 0x47. Null packets are left out.", zero_means: "", common: Common { values: [], by: "", sets: [] } }

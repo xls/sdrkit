@@ -1,0 +1,27 @@
+# The interface of the stack family ipcast. The registry test of the family writes this file.
+family ipcast version=1.0
+shape.BbFrameFields since=1.0
+shape.BbFrameFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.BbFrameFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.BbFrameFields.ts_packets type=i64 unit= optional=no since=1.0
+shape.BbFrameFields.crc_errors type=i64 unit= optional=no since=1.0
+shape.BbFrameFields.pdus type=i64 unit= optional=no since=1.0
+shape.BbFrameFields.non_ip type=i64 unit= optional=no since=1.0
+shape.AlpFields since=1.0
+shape.AlpFields.alp_packets type=i64 unit= optional=no since=1.0
+shape.AlpFields.alp_dropped type=i64 unit= optional=no since=1.0
+shape.AlpFields.compressed_ip type=i64 unit= optional=no since=1.0
+shape.IpFields since=1.0
+shape.IpFields.ip_packets type=i64 unit= optional=no since=1.0
+shape.IpFields.ip_bad type=i64 unit= optional=no since=1.0
+shape.IpFields.reassembled type=i64 unit= optional=no since=1.0
+shape.IpFields.flows type=i64 unit= optional=no since=1.0
+shape.IpFields.encrypted_flows type=i64 unit= optional=no since=1.0
+shape.RouteFields since=1.0
+shape.RouteFields.objects type=i64 unit= optional=no since=1.0
+shape.RouteFields.objects_dropped type=i64 unit= optional=no since=1.0
+ipcast since=1.0
+ipcast.component.bbframe.fields.BbFrameFields since=1.0
+ipcast.component.alp.fields.AlpFields since=1.0
+ipcast.component.ip.fields.IpFields since=1.0
+ipcast.component.route.fields.RouteFields since=1.0

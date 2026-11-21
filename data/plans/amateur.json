@@ -1,0 +1,1197 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "ham_r1",
+      "name": "Amateur bands, IARU Region 1",
+      "kind": "amateur",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, Article 5 (Table of Frequency Allocations)",
+        "number": "Edition of 2024",
+        "date": "2024",
+        "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/1.49.48.en.101.pdf"
+      },
+      "verified": true,
+      "note": "a receive aid, not a licence: national rules differ",
+      "bands": [
+        {
+          "name": "2200 m",
+          "service": "amateur",
+          "start_hz": 135700,
+          "end_hz": 137800,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "630 m",
+          "service": "amateur",
+          "start_hz": 472000,
+          "end_hz": 479000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "160 m",
+          "service": "amateur",
+          "start_hz": 1810000,
+          "end_hz": 1850000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "80 m",
+          "service": "amateur",
+          "start_hz": 3500000,
+          "end_hz": 3800000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "60 m",
+          "service": "amateur",
+          "start_hz": 5351500,
+          "end_hz": 5366500,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb",
+          "note": "some countries use channels outside the WRC-15 allocation"
+        },
+        {
+          "name": "40 m",
+          "service": "amateur",
+          "start_hz": 7000000,
+          "end_hz": 7200000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "30 m",
+          "service": "amateur",
+          "start_hz": 10100000,
+          "end_hz": 10150000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "narrow modes only"
+        },
+        {
+          "name": "20 m",
+          "service": "amateur",
+          "start_hz": 14000000,
+          "end_hz": 14350000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "17 m",
+          "service": "amateur",
+          "start_hz": 18068000,
+          "end_hz": 18168000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "15 m",
+          "service": "amateur",
+          "start_hz": 21000000,
+          "end_hz": 21450000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "12 m",
+          "service": "amateur",
+          "start_hz": 24890000,
+          "end_hz": 24990000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "10 m",
+          "service": "amateur",
+          "start_hz": 28000000,
+          "end_hz": 29700000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb",
+          "note": "FM above 29.5 MHz"
+        },
+        {
+          "name": "6 m",
+          "service": "amateur",
+          "start_hz": 50000000,
+          "end_hz": 52000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb",
+          "note": "52-54 MHz is broadcasting in Region 1"
+        },
+        {
+          "name": "2 m",
+          "service": "amateur",
+          "start_hz": 144000000,
+          "end_hz": 146000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "note": "SSB and CW in the lowest 500 kHz"
+        },
+        {
+          "name": "70 cm",
+          "service": "amateur",
+          "start_hz": 430000000,
+          "end_hz": 440000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "note": "420-430 and 440-450 MHz are amateur in some countries (RR 5.270)"
+        },
+        {
+          "name": "23 cm",
+          "service": "amateur",
+          "start_hz": 1240000000,
+          "end_hz": 1300000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm"
+        },
+        {
+          "name": "13 cm",
+          "service": "amateur",
+          "start_hz": 2300000000,
+          "end_hz": 2450000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "3 cm",
+          "service": "amateur",
+          "start_hz": 10000000000,
+          "end_hz": 10500000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "1.2 cm",
+          "service": "amateur",
+          "start_hz": 24000000000,
+          "end_hz": 24250000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "6 mm",
+          "service": "amateur",
+          "start_hz": 47000000000,
+          "end_hz": 47200000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "4 mm",
+          "service": "amateur",
+          "start_hz": 76000000000,
+          "end_hz": 81500000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        }
+      ]
+    },
+    {
+      "id": "ham_r2",
+      "name": "Amateur bands, IARU Region 2",
+      "kind": "amateur",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, Article 5 (Table of Frequency Allocations)",
+        "number": "Edition of 2024",
+        "date": "2024",
+        "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/1.49.48.en.101.pdf"
+      },
+      "verified": true,
+      "note": "a receive aid, not a licence: national rules differ",
+      "bands": [
+        {
+          "name": "2200 m",
+          "service": "amateur",
+          "start_hz": 135700,
+          "end_hz": 137800,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "630 m",
+          "service": "amateur",
+          "start_hz": 472000,
+          "end_hz": 479000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "160 m",
+          "service": "amateur",
+          "start_hz": 1800000,
+          "end_hz": 2000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "80 m",
+          "service": "amateur",
+          "start_hz": 3500000,
+          "end_hz": 4000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "60 m",
+          "service": "amateur",
+          "start_hz": 5351500,
+          "end_hz": 5366500,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb",
+          "note": "some countries use channels outside the WRC-15 allocation"
+        },
+        {
+          "name": "40 m",
+          "service": "amateur",
+          "start_hz": 7000000,
+          "end_hz": 7300000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "30 m",
+          "service": "amateur",
+          "start_hz": 10100000,
+          "end_hz": 10150000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "narrow modes only"
+        },
+        {
+          "name": "20 m",
+          "service": "amateur",
+          "start_hz": 14000000,
+          "end_hz": 14350000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "17 m",
+          "service": "amateur",
+          "start_hz": 18068000,
+          "end_hz": 18168000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "15 m",
+          "service": "amateur",
+          "start_hz": 21000000,
+          "end_hz": 21450000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "12 m",
+          "service": "amateur",
+          "start_hz": 24890000,
+          "end_hz": 24990000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "10 m",
+          "service": "amateur",
+          "start_hz": 28000000,
+          "end_hz": 29700000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb",
+          "note": "FM above 29.5 MHz"
+        },
+        {
+          "name": "6 m",
+          "service": "amateur",
+          "start_hz": 50000000,
+          "end_hz": 54000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb",
+          "note": "52-54 MHz is broadcasting in Region 1"
+        },
+        {
+          "name": "2 m",
+          "service": "amateur",
+          "start_hz": 144000000,
+          "end_hz": 148000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "note": "SSB and CW in the lowest 500 kHz"
+        },
+        {
+          "name": "1.25 m",
+          "service": "amateur",
+          "start_hz": 220000000,
+          "end_hz": 225000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "note": "222-225 MHz in the United States"
+        },
+        {
+          "name": "70 cm",
+          "service": "amateur",
+          "start_hz": 430000000,
+          "end_hz": 440000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "note": "420-430 and 440-450 MHz are amateur in some countries (RR 5.270)"
+        },
+        {
+          "name": "33 cm",
+          "service": "amateur",
+          "start_hz": 902000000,
+          "end_hz": 928000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm"
+        },
+        {
+          "name": "23 cm",
+          "service": "amateur",
+          "start_hz": 1240000000,
+          "end_hz": 1300000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm"
+        },
+        {
+          "name": "13 cm",
+          "service": "amateur",
+          "start_hz": 2300000000,
+          "end_hz": 2450000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "3 cm",
+          "service": "amateur",
+          "start_hz": 10000000000,
+          "end_hz": 10500000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "1.2 cm",
+          "service": "amateur",
+          "start_hz": 24000000000,
+          "end_hz": 24250000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "6 mm",
+          "service": "amateur",
+          "start_hz": 47000000000,
+          "end_hz": 47200000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "4 mm",
+          "service": "amateur",
+          "start_hz": 76000000000,
+          "end_hz": 81500000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        }
+      ]
+    },
+    {
+      "id": "ham_r3",
+      "name": "Amateur bands, IARU Region 3",
+      "kind": "amateur",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, Article 5 (Table of Frequency Allocations)",
+        "number": "Edition of 2024",
+        "date": "2024",
+        "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/1.49.48.en.101.pdf"
+      },
+      "verified": true,
+      "note": "a receive aid, not a licence: national rules differ",
+      "bands": [
+        {
+          "name": "2200 m",
+          "service": "amateur",
+          "start_hz": 135700,
+          "end_hz": 137800,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "630 m",
+          "service": "amateur",
+          "start_hz": 472000,
+          "end_hz": 479000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "160 m",
+          "service": "amateur",
+          "start_hz": 1800000,
+          "end_hz": 2000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "80 m",
+          "service": "amateur",
+          "start_hz": 3500000,
+          "end_hz": 3900000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "60 m",
+          "service": "amateur",
+          "start_hz": 5351500,
+          "end_hz": 5366500,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb",
+          "note": "some countries use channels outside the WRC-15 allocation"
+        },
+        {
+          "name": "40 m",
+          "service": "amateur",
+          "start_hz": 7000000,
+          "end_hz": 7200000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "30 m",
+          "service": "amateur",
+          "start_hz": 10100000,
+          "end_hz": 10150000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "narrow modes only"
+        },
+        {
+          "name": "20 m",
+          "service": "amateur",
+          "start_hz": 14000000,
+          "end_hz": 14350000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "17 m",
+          "service": "amateur",
+          "start_hz": 18068000,
+          "end_hz": 18168000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "15 m",
+          "service": "amateur",
+          "start_hz": 21000000,
+          "end_hz": 21450000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "12 m",
+          "service": "amateur",
+          "start_hz": 24890000,
+          "end_hz": 24990000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "10 m",
+          "service": "amateur",
+          "start_hz": 28000000,
+          "end_hz": 29700000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb",
+          "note": "FM above 29.5 MHz"
+        },
+        {
+          "name": "6 m",
+          "service": "amateur",
+          "start_hz": 50000000,
+          "end_hz": 54000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb",
+          "note": "52-54 MHz is broadcasting in Region 1"
+        },
+        {
+          "name": "2 m",
+          "service": "amateur",
+          "start_hz": 144000000,
+          "end_hz": 148000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "note": "SSB and CW in the lowest 500 kHz"
+        },
+        {
+          "name": "70 cm",
+          "service": "amateur",
+          "start_hz": 430000000,
+          "end_hz": 440000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm",
+          "note": "420-430 and 440-450 MHz are amateur in some countries (RR 5.270)"
+        },
+        {
+          "name": "23 cm",
+          "service": "amateur",
+          "start_hz": 1240000000,
+          "end_hz": 1300000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm"
+        },
+        {
+          "name": "13 cm",
+          "service": "amateur",
+          "start_hz": 2300000000,
+          "end_hz": 2450000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "3 cm",
+          "service": "amateur",
+          "start_hz": 10000000000,
+          "end_hz": 10500000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "1.2 cm",
+          "service": "amateur",
+          "start_hz": 24000000000,
+          "end_hz": 24250000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "6 mm",
+          "service": "amateur",
+          "start_hz": 47000000000,
+          "end_hz": 47200000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "4 mm",
+          "service": "amateur",
+          "start_hz": 76000000000,
+          "end_hz": 81500000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        }
+      ]
+    },
+    {
+      "id": "ham_au",
+      "name": "Amateur bands, Australia",
+      "kind": "amateur",
+      "source": {
+        "publisher": "Wireless Institute of Australia",
+        "title": "Australian Amateur Radio Band Plan, Revision 2026-1",
+        "date": "2026-02"
+      },
+      "also": [
+        {
+          "publisher": "ACMA",
+          "title": "Radiocommunications (Amateur Stations) Class Licence 2023, Schedule 2, as made 7 December 2023",
+          "date": "2023-12-07"
+        }
+      ],
+      "verified": true,
+      "note": "a receive aid, not a licence: the bands differ by licence class. Bands above 23 cm are not listed, as their edges are not yet compared with the documents",
+      "bands": [
+        {
+          "name": "2200 m",
+          "service": "amateur",
+          "start_hz": 135700,
+          "end_hz": 137800,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "630 m",
+          "service": "amateur",
+          "start_hz": 472000,
+          "end_hz": 479000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "160 m",
+          "service": "amateur",
+          "start_hz": 1800000,
+          "end_hz": 1875000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "160 m Morse",
+          "service": "amateur",
+          "start_hz": 1810000,
+          "end_hz": 1835000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "80 m",
+          "service": "amateur",
+          "start_hz": 3500000,
+          "end_hz": 3700000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "80 m Morse",
+          "service": "amateur",
+          "start_hz": 3500000,
+          "end_hz": 3535000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "80 m DX window",
+          "service": "amateur",
+          "start_hz": 3776000,
+          "end_hz": 3800000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "40 m",
+          "service": "amateur",
+          "start_hz": 7000000,
+          "end_hz": 7300000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "lsb"
+        },
+        {
+          "name": "40 m Morse",
+          "service": "amateur",
+          "start_hz": 7000000,
+          "end_hz": 7040000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "30 m",
+          "service": "amateur",
+          "start_hz": 10100000,
+          "end_hz": 10150000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "30 m Morse",
+          "service": "amateur",
+          "start_hz": 10100000,
+          "end_hz": 10120000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "20 m",
+          "service": "amateur",
+          "start_hz": 14000000,
+          "end_hz": 14350000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "20 m Morse",
+          "service": "amateur",
+          "start_hz": 14000000,
+          "end_hz": 14070000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "20 m beacons",
+          "service": "amateur",
+          "start_hz": 14099000,
+          "end_hz": 14101000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "International Beacon Project, 14.100 MHz"
+        },
+        {
+          "name": "17 m",
+          "service": "amateur",
+          "start_hz": 18068000,
+          "end_hz": 18168000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "17 m Morse",
+          "service": "amateur",
+          "start_hz": 18068000,
+          "end_hz": 18095000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "17 m beacons",
+          "service": "amateur",
+          "start_hz": 18109000,
+          "end_hz": 18111000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "International Beacon Project, 18.110 MHz"
+        },
+        {
+          "name": "15 m",
+          "service": "amateur",
+          "start_hz": 21000000,
+          "end_hz": 21450000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "15 m Morse",
+          "service": "amateur",
+          "start_hz": 21000000,
+          "end_hz": 21070000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "15 m beacons",
+          "service": "amateur",
+          "start_hz": 21149000,
+          "end_hz": 21151000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "International Beacon Project, 21.150 MHz"
+        },
+        {
+          "name": "12 m",
+          "service": "amateur",
+          "start_hz": 24890000,
+          "end_hz": 24990000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "12 m Morse",
+          "service": "amateur",
+          "start_hz": 24890000,
+          "end_hz": 24910000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "12 m beacons",
+          "service": "amateur",
+          "start_hz": 24929000,
+          "end_hz": 24931000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "International Beacon Project, 24.930 MHz"
+        },
+        {
+          "name": "10 m",
+          "service": "amateur",
+          "start_hz": 28000000,
+          "end_hz": 29700000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "10 m Morse",
+          "service": "amateur",
+          "start_hz": 28000000,
+          "end_hz": 28070000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "10 m beacons, time shared",
+          "service": "amateur",
+          "start_hz": 28190000,
+          "end_hz": 28200000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "International Beacon Project, 28.200 MHz"
+        },
+        {
+          "name": "10 m beacons, continuous",
+          "service": "amateur",
+          "start_hz": 28200000,
+          "end_hz": 28300000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "6 m",
+          "service": "amateur",
+          "start_hz": 50000000,
+          "end_hz": 54000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "6 m beacons, IBP time coordinated",
+          "service": "amateur",
+          "start_hz": 50000000,
+          "end_hz": 50030000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "6 m beacons, international",
+          "service": "amateur",
+          "start_hz": 50030000,
+          "end_hz": 50080000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "6 m Morse",
+          "service": "amateur",
+          "start_hz": 50080000,
+          "end_hz": 50105000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "6 m beacons, domestic",
+          "service": "amateur",
+          "start_hz": 50400000,
+          "end_hz": 50500000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "2 m",
+          "service": "amateur",
+          "start_hz": 144000000,
+          "end_hz": 148000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm"
+        },
+        {
+          "name": "2 m Morse",
+          "service": "amateur",
+          "start_hz": 144025000,
+          "end_hz": 144100000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "2 m beacons",
+          "service": "amateur",
+          "start_hz": 144400000,
+          "end_hz": 144600000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "70 cm",
+          "service": "amateur",
+          "start_hz": 430000000,
+          "end_hz": 450000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm"
+        },
+        {
+          "name": "70 cm Morse",
+          "service": "amateur",
+          "start_hz": 431937500,
+          "end_hz": 432100000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "70 cm beacons",
+          "service": "amateur",
+          "start_hz": 432400000,
+          "end_hz": 432600000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw"
+        },
+        {
+          "name": "23 cm",
+          "service": "amateur",
+          "start_hz": 1240000000,
+          "end_hz": 1300000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "nfm"
+        },
+        {
+          "name": "23 cm Morse",
+          "service": "amateur",
+          "start_hz": 1296000000,
+          "end_hz": 1296100000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw",
+          "note": "Morse priority segment"
+        },
+        {
+          "name": "23 cm beacons",
+          "service": "amateur",
+          "start_hz": 1296400000,
+          "end_hz": 1296600000,
+          "modes": [
+            "cw",
+            "general"
+          ],
+          "modulation": "cw"
+        }
+      ]
+    }
+  ]
+}

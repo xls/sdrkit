@@ -1,0 +1,15 @@
+[package]
+name = "sdrkit-svc-automation"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Rules on sdrkit events: triggers, conditions, time windows, named areas and closest approach, limits, schedules and the requests they make"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-svc-events = { path = "../sdrkit-svc-events" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

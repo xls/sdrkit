@@ -1,0 +1,70 @@
+{
+  "$schema": "../../../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "voice_cb_nz_26mhz",
+      "name": "CB New Zealand 26 MHz, 40 channels",
+      "kind": "personal",
+      "source": {
+        "publisher": "Standards Australia and Standards New Zealand",
+        "title": "AS/NZS 4355",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "not compared with the source",
+      "bands": [
+        {
+          "name": "CB New Zealand 26 MHz, 40 channels 26.3250 to 26.7750 MHz",
+          "service": "land_mobile",
+          "start_hz": 26325000,
+          "end_hz": 26775000,
+          "modes": ["voice_channels"],
+          "channel_width_hz": 10000,
+          "channels": [
+            { "name": "1", "centre_hz": 26330000 },
+            { "name": "2", "centre_hz": 26340000 },
+            { "name": "3", "centre_hz": 26350000 },
+            { "name": "4", "centre_hz": 26370000 },
+            { "name": "5", "centre_hz": 26380000 },
+            { "name": "6", "centre_hz": 26390000 },
+            { "name": "7", "centre_hz": 26400000 },
+            { "name": "8", "centre_hz": 26420000 },
+            { "name": "9", "centre_hz": 26430000, "note": "Emergency" },
+            { "name": "10", "centre_hz": 26440000 },
+            { "name": "11", "centre_hz": 26450000 },
+            { "name": "12", "centre_hz": 26470000 },
+            { "name": "13", "centre_hz": 26480000 },
+            { "name": "14", "centre_hz": 26490000 },
+            { "name": "15", "centre_hz": 26500000 },
+            { "name": "16", "centre_hz": 26520000 },
+            { "name": "17", "centre_hz": 26530000 },
+            { "name": "18", "centre_hz": 26540000 },
+            { "name": "19", "centre_hz": 26550000, "note": "Calling, road information" },
+            { "name": "20", "centre_hz": 26570000 },
+            { "name": "21", "centre_hz": 26580000 },
+            { "name": "22", "centre_hz": 26590000 },
+            { "name": "23", "centre_hz": 26620000 },
+            { "name": "24", "centre_hz": 26600000, "note": "Data and remote control are common in some countries" },
+            { "name": "25", "centre_hz": 26610000, "note": "Data and remote control are common in some countries" },
+            { "name": "26", "centre_hz": 26630000 },
+            { "name": "27", "centre_hz": 26640000 },
+            { "name": "28", "centre_hz": 26650000 },
+            { "name": "29", "centre_hz": 26660000 },
+            { "name": "30", "centre_hz": 26670000 },
+            { "name": "31", "centre_hz": 26680000 },
+            { "name": "32", "centre_hz": 26690000 },
+            { "name": "33", "centre_hz": 26700000 },
+            { "name": "34", "centre_hz": 26710000 },
+            { "name": "35", "centre_hz": 26720000 },
+            { "name": "36", "centre_hz": 26730000 },
+            { "name": "37", "centre_hz": 26740000 },
+            { "name": "38", "centre_hz": 26750000 },
+            { "name": "39", "centre_hz": 26760000 },
+            { "name": "40", "centre_hz": 26770000 }
+          ]
+        }
+      ]
+    }
+  ]
+}

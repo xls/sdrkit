@@ -1,0 +1,24 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 8000000.0,
+    "core:version": "1.0.0",
+    "core:description": "DTMB 8 MHz, multi-carrier C=3780, PN420 rotating phase, 16QAM, LDPC rate 0.6, interleaver mode 1 (M=240), C/N 28 dB, carrier +3 kHz, numbered test packets",
+    "core:author": "sdrkit test vectors",
+    "core:license": "CC0-1.0",
+    "core:hw": "synthetic (generated, never transmitted)"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 538000000.0
+    }
+  ],
+  "annotations": [
+    {
+      "core:sample_start": 0,
+      "core:sample_count": 3200000,
+      "core:comment": "0.40 s of signal"
+    }
+  ]
+}

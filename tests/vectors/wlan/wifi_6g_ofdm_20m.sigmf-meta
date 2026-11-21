@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 20000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic 6 GHz Wi-Fi, channel 37 (6135 MHz), 30 ms. Non-HT OFDM 6 Mbit/s: 'Test-6E' (HE + EHT, 80 MHz, WPA3-SAE, PMF required, indoor AP, duplicate beacons), 'Test-6E-Open' (HE, OWE, BSS color 33), a hidden HE WPA3 network, a probe response, a FILS Discovery frame and an unsolicited (broadcast) probe response of 'Test-6E'. Common carrier offset -40 kHz plus per-AP offsets. Signal to noise 25 dB in 20 MHz. See specs/wlan.md section 9.",
+    "core:recorder": "Wi-Fi beacon test generator, noise seed 5",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 6135000000.0
+    }
+  ],
+  "annotations": []
+}

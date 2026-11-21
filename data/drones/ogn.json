@@ -1,0 +1,213 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "ogn_eu868",
+      "name": "OGN tracker channel plan EU868",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Channels of Open Glider Network trackers. No agency or standards body defines the protocol or its channels",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document; the two channels are those of FLARM devices in Europe; not confirmed on a received signal",
+      "bands": [
+        {
+          "name": "OGN tracker EU868",
+          "service": "short_range",
+          "start_hz": 868100000.0,
+          "end_hz": 868500000.0,
+          "modulation": "2-FSK, 100 kchip/s, Manchester",
+          "channel_width_hz": 200000,
+          "numbering": {
+            "first": 0,
+            "last": 1,
+            "first_centre_hz": 868200000.0,
+            "step_hz": 200000.0
+          },
+          "note": "stack settings: frequency 868.3 MHz (the middle of the plan), channels=2, channel_step_hz=200000; the whole plan needs a sample rate above 1.00 Msps"
+        }
+      ]
+    },
+    {
+      "id": "ogn_au917",
+      "name": "OGN tracker channel plan AU917",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Channels of Open Glider Network trackers. No agency or standards body defines the protocol or its channels",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the channel plan of the region is from general knowledge and is not confirmed",
+      "bands": [
+        {
+          "name": "OGN tracker AU917",
+          "service": "short_range",
+          "start_hz": 916900000.0,
+          "end_hz": 926300000.0,
+          "modulation": "2-FSK, 100 kchip/s, Manchester",
+          "channel_width_hz": 200000,
+          "numbering": {
+            "first": 0,
+            "last": 23,
+            "first_centre_hz": 917000000.0,
+            "step_hz": 400000.0
+          },
+          "note": "stack settings: frequency 921.6 MHz (the middle of the plan), channels=24, channel_step_hz=400000; the whole plan needs a sample rate above 9.57 Msps"
+        }
+      ]
+    },
+    {
+      "id": "ogn_us902",
+      "name": "OGN tracker channel plan US902",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Channels of Open Glider Network trackers. No agency or standards body defines the protocol or its channels",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the channel plan of the region is from general knowledge and is not confirmed",
+      "bands": [
+        {
+          "name": "OGN tracker US902",
+          "service": "short_range",
+          "start_hz": 902100000.0,
+          "end_hz": 927900000.0,
+          "modulation": "2-FSK, 100 kchip/s, Manchester",
+          "channel_width_hz": 200000,
+          "numbering": {
+            "first": 0,
+            "last": 64,
+            "first_centre_hz": 902200000.0,
+            "step_hz": 400000.0
+          },
+          "note": "stack settings: frequency 915 MHz (the middle of the plan), channels=65, channel_step_hz=400000; the whole plan needs a sample rate above 26.31 Msps"
+        }
+      ]
+    },
+    {
+      "id": "ogn_nz869",
+      "name": "OGN tracker channel plan NZ869",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Channels of Open Glider Network trackers. No agency or standards body defines the protocol or its channels",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the channel plan of the region is from general knowledge and is not confirmed; it lies outside 915 to 928 MHz",
+      "bands": [
+        {
+          "name": "OGN tracker NZ869",
+          "service": "short_range",
+          "start_hz": 869150000.0,
+          "end_hz": 871150000.0,
+          "modulation": "2-FSK, 100 kchip/s, Manchester",
+          "channel_width_hz": 200000,
+          "numbering": {
+            "first": 0,
+            "last": 9,
+            "first_centre_hz": 869250000.0,
+            "step_hz": 200000.0
+          },
+          "note": "stack settings: frequency 870.15 MHz (the middle of the plan), channels=10, channel_step_hz=200000; the whole plan needs a sample rate above 2.02 Msps"
+        }
+      ]
+    },
+    {
+      "id": "ogn_il916",
+      "name": "OGN tracker channel plan IL916",
+      "kind": "ism",
+      "source": {
+        "publisher": "sdrkit",
+        "title": "Channels of Open Glider Network trackers. No agency or standards body defines the protocol or its channels",
+        "date": "2026"
+      },
+      "verified": false,
+      "unverified_reason": "not confirmed by a public document: the channel plan of the region is from general knowledge and is not confirmed",
+      "bands": [
+        {
+          "name": "OGN tracker IL916",
+          "service": "short_range",
+          "start_hz": 916100000.0,
+          "end_hz": 916300000.0,
+          "modulation": "2-FSK, 100 kchip/s, Manchester",
+          "channel_width_hz": 200000,
+          "numbering": {
+            "first": 0,
+            "last": 0,
+            "first_centre_hz": 916200000.0,
+            "step_hz": 400000.0
+          },
+          "note": "stack settings: frequency 916.2 MHz (the middle of the plan), channels=1, channel_step_hz=400000; the whole plan needs a sample rate above 1.00 Msps"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AU",
+      "groups": [
+        "ogn_au917"
+      ],
+      "unverified_reason": "the channel plan of the country is from general knowledge and is not confirmed by a public document"
+    },
+    {
+      "code": "NZ",
+      "groups": [
+        "ogn_au917",
+        "ogn_nz869"
+      ],
+      "unverified_reason": "the channel plan of the country is from general knowledge and is not confirmed by a public document; which of the two plans New Zealand uses is not determined"
+    },
+    {
+      "code": "US",
+      "groups": [
+        "ogn_us902"
+      ],
+      "unverified_reason": "the channel plan of the country is from general knowledge and is not confirmed by a public document"
+    },
+    {
+      "code": "CA",
+      "groups": [
+        "ogn_us902"
+      ],
+      "unverified_reason": "the channel plan of the country is from general knowledge and is not confirmed by a public document"
+    },
+    {
+      "code": "IL",
+      "groups": [
+        "ogn_il916"
+      ],
+      "unverified_reason": "the channel plan of the country is from general knowledge and is not confirmed by a public document"
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "ogn_eu868"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "ogn_us902"
+      ],
+      "note": "South and Central America are said to use the plan AU917; not confirmed"
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "ogn_au917"
+      ],
+      "note": "the plan of a Region 3 country without its own entry is not confirmed"
+    }
+  ]
+}

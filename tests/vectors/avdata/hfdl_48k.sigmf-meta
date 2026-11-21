@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 48000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic HFDL, 9.0 s. One channel, dial 8.927 MHz (+7 kHz from the centre; carrier 1440 Hz above the dial, upper sideband). Es/N0 20 dB, carrier offset +40 Hz. A squitter at 600 bit/s, a downlink MPDU at 1200 bit/s (performance data and ACARS), an uplink MPDU at 1800 bit/s (ACARS), all single slot.",
+    "core:recorder": "aviation data link test generator, noise seed 12",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 8920000.0
+    }
+  ],
+  "annotations": []
+}

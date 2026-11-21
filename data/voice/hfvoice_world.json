@@ -1,0 +1,51 @@
+{
+  "$schema": "../../../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "voice_hfvoice_world",
+      "name": "HF voice: HFGCS, VOLMET and relay stations",
+      "kind": "other",
+      "source": {
+        "publisher": "public station list",
+        "title": "HF voice stations: HFGCS, VOLMET and relay stations",
+        "date": "2025-07"
+      },
+      "verified": false,
+      "unverified_reason": "no standard lists these stations",
+      "bands": [
+        {
+          "name": "HF voice: HFGCS, VOLMET and relay stations 3.4116 to 15.0174 MHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 3411650,
+          "end_hz": 15017350,
+          "modes": ["voice_channels"],
+          "modulation": "usb",
+          "channel_width_hz": 2700,
+          "channels": [
+            { "name": "Shannon 3413", "centre_hz": 3413000, "note": "VOLMET, European airports" },
+            { "name": "Gander 3485", "centre_hz": 3485000, "note": "VOLMET, North Atlantic; minutes 20-24, 50-54" },
+            { "name": "New York 3485", "centre_hz": 3485000, "note": "VOLMET, North Atlantic; minutes 0-4, 30-34" },
+            { "name": "HFGCS 4724", "centre_hz": 4724000, "note": "HFGCS primary voice frequency" },
+            { "name": "RAF 5450", "centre_hz": 5450000, "note": "Military VOLMET" },
+            { "name": "Shannon 5505", "centre_hz": 5505000, "note": "VOLMET, European airports" },
+            { "name": "Gander 6604", "centre_hz": 6604000, "note": "VOLMET, North Atlantic; minutes 20-24, 50-54" },
+            { "name": "New York 6604", "centre_hz": 6604000, "note": "VOLMET, North Atlantic; minutes 0-4, 30-34" },
+            { "name": "Shannon 8957", "centre_hz": 8957000, "note": "VOLMET, European airports" },
+            { "name": "HFGCS 8992", "centre_hz": 8992000, "note": "HFGCS primary voice frequency" },
+            { "name": "Gander 10051", "centre_hz": 10051000, "note": "VOLMET, North Atlantic; minutes 20-24, 50-54" },
+            { "name": "New York 10051", "centre_hz": 10051000, "note": "VOLMET, North Atlantic; minutes 0-4, 30-34" },
+            { "name": "HFGCS 11175", "centre_hz": 11175000, "note": "HFGCS primary voice frequency" },
+            { "name": "CFHF 11232", "centre_hz": 11232000, "note": "Canadian Forces relay station" },
+            { "name": "RAF 11253", "centre_hz": 11253000, "note": "Military VOLMET" },
+            { "name": "Shannon 13264", "centre_hz": 13264000, "note": "VOLMET, European airports" },
+            { "name": "Gander 13270", "centre_hz": 13270000, "note": "VOLMET, North Atlantic; minutes 20-24, 50-54" },
+            { "name": "New York 13270", "centre_hz": 13270000, "note": "VOLMET, North Atlantic; minutes 0-4, 30-34" },
+            { "name": "MARS 13927", "centre_hz": 13927000, "note": "Relay station for aircraft messages" },
+            { "name": "HFGCS 15016", "centre_hz": 15016000, "note": "HFGCS primary voice frequency" }
+          ]
+        }
+      ]
+    }
+  ]
+}

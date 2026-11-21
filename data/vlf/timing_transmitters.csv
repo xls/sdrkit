@@ -1,0 +1,23 @@
+# id: timing_transmitters
+# name: VLF MSK transmitters usable as a common timing source (stack lightning_tdoa)
+# stacks: lightning_tdoa
+# source: Wikipedia "List of VLF transmitters"; Stanford Solar Center VLF transmitter list of 22 February 2005; Wikipedia "HWU transmitter"; Naval Radio Transmitter Facility LaMoure page; SuperSID program configuration (VTX3)
+# note: The id must be the same at every station of a network. No document gives the symbol rate of each transmitter, so the file holds none; the stack's baud setting applies. Check against a current public list before relying on a row.
+id,label,frequency_hz,site,lat,lon
+1,NAA,24000,"Cutler, US",44.6444,-67.2844
+2,NLK,24800,"Jim Creek, US",48.2036,-121.9169
+3,NML,25200,"LaMoure, US",46.3660,-98.3358
+4,NPM,21400,"Lualualei, US",21.4203,-158.1539
+5,NAU,40750,"Aguada, PR",18.3989,-67.1775
+6,GQD,19580,"Anthorn, UK",54.9117,-3.2786
+7,GQD,22100,"Anthorn, UK",54.9117,-3.2786
+8,DHO38,23400,"Rhauderfehn, DE",53.0872,7.6086
+9,ICV,20270,"Tavolara, IT",40.9228,9.7319
+10,HWU,18300,"Rosnay, FR",46.7131,1.2442
+11,NSY,45900,"Niscemi, IT",37.1256,14.4364
+12,TBB,26700,"Bafa, TR",37.4094,27.3253
+13,JXN,16400,"Novik, NO",66.9822,13.8725
+14,VTX3,18200,"Vijayanarayanam, IN",8.3869,77.7519
+15,NWC,19800,"Exmouth, AU",-21.8164,114.1656
+16,JJI,22200,"Ebino, JP",32.0922,130.8292
+17,VTX,17000,"Vijayanarayanam, IN",8.3869,77.7519

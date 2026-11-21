@@ -1,0 +1,262 @@
+# The interface of the stack family analogtv. The registry test of the family writes this file.
+family analogtv version=1.1
+uses.mpegts major=1 since=1.0
+shape.AtvFields since=1.0
+shape.AtvFields.state type=choice(searching,sync,locked) unit= optional=no since=1.0
+shape.AtvFields.system type=text unit= optional=yes since=1.0
+shape.AtvFields.colour_system type=choice(pal,pal_m,pal_n,ntsc,ntsc_n,ntsc443,secam,mono) unit= optional=yes since=1.0
+shape.AtvFields.colour type=bool unit= optional=no since=1.0
+shape.AtvFields.colour_killer type=bool unit= optional=no since=1.0
+shape.AtvFields.lines type=i64 unit= optional=no since=1.0
+shape.AtvFields.field_rate type=hz unit=Hz optional=no since=1.0
+shape.AtvFields.line_rate type=hz unit=Hz optional=no since=1.0
+shape.AtvFields.line_error_ppm type=f64 unit=ppm optional=no since=1.0
+shape.AtvFields.detector type=choice(synchronous,envelope,fm) unit= optional=no since=1.0
+shape.AtvFields.modulation type=choice(am,fm,nbtv_am,nbtv_fm) unit= optional=no since=1.0
+shape.AtvFields.vision_carrier type=hz unit=Hz optional=no since=1.0
+shape.AtvFields.sound_carrier type=hz unit=Hz optional=yes since=1.0
+shape.AtvFields.sound_spacing type=hz unit=Hz optional=no since=1.0
+shape.AtvFields.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.AtvFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.AtvFields.carrier_to_noise_db type=f64 unit=dB optional=no since=1.0
+shape.AtvFields.snr_db type=f64 unit=dB optional=no since=1.0
+shape.AtvFields.sound_present type=bool unit= optional=no since=1.0
+shape.AtvFields.sound_deviation type=hz unit=Hz optional=no since=1.0
+shape.AtvFields.audio_level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.AtvFields.sound_system type=choice(fm,am,a2_mono,a2_stereo,a2_dual_a,a2_dual_b,nicam_stereo,nicam_dual_1,nicam_dual_2,nicam_mono,none_found,not_decoded,picture) unit= optional=no since=1.0
+shape.AtvFields.sync_found_pct type=f64 unit=% optional=no since=1.0
+shape.AtvFields.line_count type=i64 unit= optional=no since=1.0
+shape.AtvFields.field_count type=i64 unit= optional=no since=1.0
+shape.AtvFields.pictures type=i64 unit= optional=no since=1.0
+shape.AtvFields.snow_pictures type=i64 unit= optional=no since=1.0
+shape.AtvFields.last_field type=i64 unit= optional=no since=1.0
+shape.AtvFields.fields_ok type=i64 unit= optional=no since=1.0
+shape.AtvFields.fields_bad type=i64 unit= optional=no since=1.0
+shape.AtvFields.sync_depth_pct type=f64 unit=% optional=no since=1.0
+shape.AtvFields.sync_compression_pct type=f64 unit=% optional=no since=1.0
+shape.AtvFields.white_peak type=f64 unit= optional=no since=1.0
+shape.AtvFields.burst_pct type=f64 unit=% optional=no since=1.0
+shape.AtvFields.burst_phase_error_deg type=f64 unit=° optional=no since=1.0
+shape.AtvFields.chroma_level_pct type=f64 unit=% optional=no since=1.0
+shape.AtvFields.secam_identification type=text unit= optional=yes since=1.0
+shape.AtvFields.fm_polarity type=choice(trying,tip_low,tip_high) unit= optional=yes since=1.0
+shape.AtvFields.nbtv_line_locked type=bool unit= optional=no since=1.0
+shape.AtvFields.nbtv_picture_locked type=bool unit= optional=no since=1.0
+shape.AtvFields.nicam_locked type=bool unit= optional=yes since=1.0
+shape.AtvFields.nicam_valid type=bool unit= optional=yes since=1.0
+shape.AtvFields.nicam_mode type=choice(stereo,dual_mono,mono,data) unit= optional=yes since=1.0
+shape.AtvFields.nicam_parity_errors type=i64 unit= optional=yes since=1.0
+shape.AtvFields.nicam_error_pct type=f64 unit=% optional=yes since=1.0
+shape.AtvFields.a2_mode type=choice(mono,stereo,dual) unit= optional=yes since=1.0
+shape.TeletextFields since=1.0
+shape.TeletextFields.teletext_header type=text unit= optional=yes since=1.0
+shape.TeletextFields.teletext_pages type=i64 unit= optional=yes since=1.0
+shape.TeletextFields.teletext_packets type=i64 unit= optional=yes since=1.0
+shape.TeletextFields.teletext_errors type=i64 unit= optional=yes since=1.0
+shape.TeletextFields.teletext_parity_errors type=i64 unit= optional=yes since=1.0
+shape.TeletextFields.teletext_page type=i64 unit= optional=no since=1.0
+shape.TeletextFields.page_text type=text unit= optional=yes since=1.0
+shape.TvTxFields since=1.1
+shape.TvTxFields.tx_sending type=bool unit= optional=no since=1.1
+shape.TvTxFields.tx_system type=text unit= optional=yes since=1.1
+shape.TvTxFields.tx_frames type=i64 unit= optional=no since=1.1
+shape.TvTxFields.tx_fields type=i64 unit= optional=no since=1.1
+shape.AtvChannelRow since=1.0
+shape.AtvChannelRow.label type=text unit= optional=no since=1.0
+shape.AtvChannelRow.vision type=hz unit=Hz optional=no since=1.0
+shape.AtvStateEvent since=1.0
+shape.AtvStateEvent.state type=choice(searching,sync,locked) unit= optional=no since=1.0
+shape.AtvStateEvent.text type=text unit= optional=no since=1.0
+shape.AtvStateEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.MacFields since=1.0
+shape.MacFields.state type=choice(searching,sync,locked) unit= optional=no since=1.0
+shape.MacFields.system type=choice(d2,d) unit= optional=yes since=1.0
+shape.MacFields.snr_db type=f64 unit=dB optional=no since=1.0
+shape.MacFields.video_snr_db type=f64 unit=dB optional=no since=1.0
+shape.MacFields.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.MacFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.MacFields.deviation_hz_per_v type=f64 unit=Hz/V optional=no since=1.0
+shape.MacFields.spectrum_inverted type=bool unit= optional=no since=1.0
+shape.MacFields.line_rate type=hz unit=Hz optional=no since=1.0
+shape.MacFields.line_error_ppm type=f64 unit=ppm optional=no since=1.0
+shape.MacFields.line_sync_pct type=f64 unit=% optional=no since=1.0
+shape.MacFields.frame_syncs type=i64 unit= optional=no since=1.0
+shape.MacFields.frames type=i64 unit= optional=no since=1.0
+shape.MacFields.ber type=f64 unit= optional=no since=1.0
+shape.MacFields.channel type=text unit= optional=yes since=1.0
+shape.MacFields.network type=text unit= optional=yes since=1.0
+shape.MacFields.country type=text unit= optional=yes since=1.0
+shape.MacFields.channel_id type=i64 unit= optional=yes since=1.0
+shape.MacFields.aspect type=choice(4:3,16:9) unit= optional=yes since=1.0
+shape.MacFields.scrambled type=bool unit= optional=no since=1.0
+shape.MacFields.access type=text unit= optional=yes since=1.0
+shape.MacFields.ca_system type=choice(eurocrypt,other) unit= optional=yes since=1.0
+shape.MacFields.sound_errors type=i64 unit= optional=no since=1.0
+shape.MacFields.ecm_packets type=i64 unit= optional=no since=1.0
+shape.MacFields.packet_headers type=i64 unit= optional=no since=1.0
+shape.MacFields.packets_corrected type=i64 unit= optional=no since=1.0
+shape.MacFields.packets_dummy type=i64 unit= optional=no since=1.0
+shape.MacFields.si_groups_ok type=i64 unit= optional=no since=1.0
+shape.MacFields.si_groups_bad type=i64 unit= optional=no since=1.0
+shape.MacFields.sound_address type=i64 unit= optional=yes since=1.0
+shape.MacFields.sound_present type=bool unit= optional=no since=1.0
+shape.MacFields.sound_packets type=i64 unit= optional=no since=1.0
+shape.MacFields.sound_mode type=choice(companded,scrambled) unit= optional=no since=1.0
+shape.MacFields.audio_level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.MacFields.blocks_bad type=i64 unit= optional=no since=1.0
+shape.MacFields.pictures type=i64 unit= optional=no since=1.0
+shape.MacStateEvent since=1.0
+shape.MacStateEvent.state type=choice(searching,sync,locked) unit= optional=no since=1.0
+shape.MacStateEvent.text type=text unit= optional=no since=1.0
+shape.MacStateEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.FpvFields since=1.0
+shape.FpvFields.state type=choice(searching,sync,locked) unit= optional=no since=1.0
+shape.FpvFields.channel type=text unit= optional=yes since=1.0
+shape.FpvFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.FpvFields.over_noise_db type=f64 unit=dB optional=no since=1.0
+shape.FpvFields.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.FpvFields.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.FpvFields.system type=text unit= optional=yes since=1.0
+shape.FpvFields.colour_system type=choice(pal,pal_m,pal_n,ntsc,ntsc_n,ntsc443,secam,mono) unit= optional=yes since=1.0
+shape.FpvFields.lines type=i64 unit= optional=no since=1.0
+shape.FpvFields.field_rate type=hz unit=Hz optional=no since=1.0
+shape.FpvFields.sync_found_pct type=f64 unit=% optional=no since=1.0
+shape.FpvFields.pictures type=i64 unit= optional=no since=1.0
+shape.FpvFields.fields_ok type=i64 unit= optional=no since=1.0
+shape.FpvFields.fields_bad type=i64 unit= optional=no since=1.0
+shape.FpvFields.polarity type=choice(trying,tip_low,tip_high) unit= optional=no since=1.0
+shape.FpvFields.snr_db type=f64 unit=dB optional=no since=1.0
+shape.FpvFields.sound_present type=bool unit= optional=no since=1.0
+shape.FpvFields.sound_subcarrier type=hz unit=Hz optional=yes since=1.0
+shape.FpvFields.subcarrier_60_db type=f64 unit=dB optional=no since=1.0
+shape.FpvFields.subcarrier_65_db type=f64 unit=dB optional=no since=1.0
+shape.FpvChannelRow since=1.0
+shape.FpvChannelRow.name type=text unit= optional=no since=1.0
+shape.FpvChannelRow.band type=text unit= optional=no since=1.0
+shape.FpvChannelRow.number type=i64 unit= optional=no since=1.0
+shape.FpvChannelRow.freq type=hz unit=Hz optional=no since=1.0
+shape.FpvChannelRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.FpvChannelRow.over_noise_db type=f64 unit=dB optional=no since=1.0
+shape.FpvChannelRow.present type=bool unit= optional=no since=1.0
+shape.FpvChannelRow.inside type=bool unit= optional=no since=1.0
+shape.FpvChannelRow.heard type=duration unit=s optional=yes since=1.0
+shape.FpvStateEvent since=1.0
+shape.FpvStateEvent.state type=choice(searching,sync,locked) unit= optional=no since=1.0
+shape.FpvStateEvent.text type=text unit= optional=no since=1.0
+shape.FpvStateEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+atv since=1.0
+atv.fields.AtvFields since=1.0
+atv.fields.TeletextFields since=1.0
+atv.fields.TvTxFields since=1.1
+atv.kept.channels since=1.0
+atv.table.channels row=AtvChannelRow cap=256 since=1.0
+atv.table.teletext_pages row=TeletextPageRow cap=800 since=1.0
+atv.table.teletext_subpages row=TeletextSubpageRow cap=8192 since=1.0
+atv.series.line x_unit=µs y_unit= since=1.0
+atv.series.vbi x_unit=µs y_unit= since=1.0
+atv.series.spectrum x_unit=Hz y_unit=dB since=1.0
+atv.event.atv.state fields=AtvStateEvent since=1.0
+atv.event.teletext.page fields=TeletextPageEvent since=1.0
+atv.setting.modulation type=choice(am,fm,nbtv_am,nbtv_fm) unit= since=1.0
+atv.setting.channels type=text unit= since=1.0
+atv.setting.system type=choice(auto,b,g,i,dk,m,n,a,c,e,h,kp,l,lp) unit= since=1.0
+atv.setting.colour type=choice(auto,mono,pal,ntsc,secam) unit= since=1.0
+atv.setting.colour_on type=bool unit= since=1.0
+atv.setting.saturation type=f64 unit= since=1.0
+atv.setting.tint type=f64 unit=° since=1.0
+atv.setting.detector type=choice(auto,envelope) unit= since=1.0
+atv.setting.deinterlace type=choice(weave,bob) unit= since=1.0
+atv.setting.noise_reduction type=choice(auto,off,light,medium,strong) unit= since=1.0
+atv.setting.black_setup type=choice(system,none,75) unit= since=1.0
+atv.setting.chroma_delay type=f64 unit=ns since=1.0
+atv.setting.channel_width type=choice(6,7,8) unit= since=1.0
+atv.setting.snow type=bool unit= since=1.0
+atv.setting.sound_system type=choice(auto,carrier) unit= since=1.0
+atv.setting.dual_sound type=choice(first,second) unit= since=1.0
+atv.setting.nbtv_lines type=i64 unit= since=1.0
+atv.setting.nbtv_rate type=f64 unit= since=1.0
+atv.setting.nbtv_deviation type=f64 unit=kHz since=1.0
+atv.setting.nbtv_vertical type=bool unit= since=1.0
+atv.setting.gen_system type=choice(g,b,i,dk,m,n,a,c,e,h,kp,l,lp,nbtv_am,nbtv_fm) unit= since=1.0
+atv.setting.gen_colour type=choice(system,pal,ntsc,secam,none) unit= since=1.0
+atv.setting.gen_picture type=choice(card,bars,ramp) unit= since=1.0
+atv.setting.gen_sound type=choice(gaps,melody,carrier,none,tone) unit= since=1.0
+atv.setting.gen_second type=choice(none,a2_stereo,a2_dual,a2_mono,nicam_stereo,nicam_dual) unit= since=1.0
+atv.setting.gen_compression type=f64 unit=% since=1.0
+atv.setting.gen_group_delay type=bool unit= since=1.0
+atv.setting.gen_nyquist type=bool unit= since=1.0
+atv.setting.gen_setup type=choice(75,none) unit= since=1.0
+atv.setting.gen_secam_id type=choice(both,porch,lines) unit= since=1.0
+atv.setting.gen_ident type=text unit= since=1.0
+atv.setting.gen_teletext type=bool unit= since=1.0
+atv.setting.gen_start type=f64 unit=s since=1.0
+atv.setting.gen_nbtv_lines type=i64 unit= since=1.0
+atv.setting.gen_nbtv_rate type=f64 unit= since=1.0
+atv.setting.gen_nbtv_pattern type=i64 unit= since=1.0
+atv.setting.tx_system type=choice(g,b,i,dk,m,n,a,c,e,h,kp,l,lp) unit= since=1.1
+atv.setting.tx_colour type=choice(system,pal,ntsc,secam,none) unit= since=1.1
+atv.setting.tx_picture type=choice(card,bars,ramp) unit= since=1.1
+atv.setting.tx_sound type=bool unit= since=1.1
+atv.setting.tx_compression type=f64 unit=% since=1.1
+atv.setting.tx_group_delay type=bool unit= since=1.1
+atv.setting.tx_nyquist type=bool unit= since=1.1
+atv.setting.tx_setup type=choice(75,none) unit= since=1.1
+atv.setting.tx_secam_id type=choice(both,porch,lines) unit= since=1.1
+atv.command.channel.tune args=row:text reply= since=1.0
+atv.command.start args= reply= transmits=file stop=stop since=1.1
+atv.command.stop args= reply= since=1.1
+atv.command.frame args=pixels:bytes;width:i64;height:i64;pixel_format:choice(rgb8,bgra,grey8) reply= since=1.1
+atv.command.teletext.select args=row:text reply= since=1.0
+mac since=1.0
+mac.fields.MacFields since=1.0
+mac.series.eye x_unit= y_unit= since=1.0
+mac.event.mac.state fields=MacStateEvent since=1.0
+mac.setting.gen_variant type=choice(d2,d) unit= since=1.0
+mac.setting.gen_scrambled type=bool unit= since=1.0
+mac.setting.gen_wide type=bool unit= since=1.0
+mac.setting.gen_picture type=choice(card,bars,ramp) unit= since=1.0
+mac.setting.gen_tone type=hz unit=Hz since=1.0
+mac.setting.gen_channel type=text unit= since=1.0
+mac.setting.gen_network type=text unit= since=1.0
+mac.setting.gen_country type=text unit= since=1.0
+fpv since=1.0
+fpv.fields.FpvFields since=1.0
+fpv.fields.TeletextFields since=1.0
+fpv.fields.TvTxFields since=1.1
+fpv.kept.channels since=1.0
+fpv.table.channels row=FpvChannelRow cap=64 since=1.0
+fpv.table.teletext_pages row=TeletextPageRow cap=800 since=1.0
+fpv.table.teletext_subpages row=TeletextSubpageRow cap=8192 since=1.0
+fpv.series.spectrum x_unit=MHz y_unit=dB since=1.0
+fpv.series.history x_unit=s y_unit=dB since=1.0
+fpv.event.fpv.state fields=FpvStateEvent since=1.0
+fpv.event.teletext.page fields=TeletextPageEvent since=1.0
+fpv.setting.system type=choice(auto,pal,ntsc) unit= since=1.0
+fpv.setting.channels type=text unit= since=1.0
+fpv.setting.sound_subcarrier type=choice(auto,6.0,6.5) unit= since=1.0
+fpv.setting.colour_on type=bool unit= since=1.0
+fpv.setting.saturation type=f64 unit= since=1.0
+fpv.setting.deinterlace type=choice(weave,bob) unit= since=1.0
+fpv.setting.audio type=bool unit= since=1.0
+fpv.setting.gen_system type=choice(pal,ntsc) unit= since=1.0
+fpv.setting.gen_picture type=choice(card,bars) unit= since=1.0
+fpv.setting.gen_sound type=choice(6.5,6.0,none) unit= since=1.0
+fpv.setting.gen_none type=bool unit= since=1.0
+fpv.setting.gen_centre_mhz type=f64 unit=MHz since=1.0
+fpv.setting.gen_deviation_mhz type=f64 unit=MHz since=1.0
+fpv.setting.gen_sync_high type=bool unit= since=1.0
+fpv.setting.gen_ac_ms type=f64 unit=ms since=1.0
+fpv.setting.tx_system type=choice(pal,ntsc) unit= since=1.1
+fpv.setting.tx_picture type=choice(card,bars) unit= since=1.1
+fpv.setting.tx_sound type=bool unit= since=1.1
+fpv.setting.tx_subcarrier type=choice(6.5,6.0) unit= since=1.1
+fpv.setting.tx_deviation_mhz type=f64 unit=MHz since=1.1
+fpv.setting.tx_sync_high type=bool unit= since=1.1
+fpv.setting.tx_ac_ms type=f64 unit=ms since=1.1
+fpv.command.clear args= reply= since=1.0
+fpv.command.channel.tune args=row:text reply= since=1.0
+fpv.command.scan args=plan:choice(5.8,1.2) reply= since=1.0
+fpv.command.teletext.select args=row:text reply= since=1.0
+fpv.command.start args= reply= transmits=file stop=stop since=1.1
+fpv.command.stop args= reply= since=1.1
+fpv.command.frame args=pixels:bytes;width:i64;height:i64;pixel_format:choice(rgb8,bgra,grey8) reply= since=1.1

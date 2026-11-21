@@ -1,0 +1,29 @@
+[package]
+name = "sdrkit-stack-voice"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Voice channel stacks: CB, FRS / GMRS, PMR446, amateur FM repeaters and HF voice on every channel of a plan at once; MDC-1200 bursts on every FM carrier; the wireless microphone finder; HF packet 300 Bd, the ELT 121.5 MHz detector and the voice inversion descrambler"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-proto-link = { path = "../../proto/sdrkit-proto-link" }
+sdrkit-proto-tones = { path = "../../proto/sdrkit-proto-tones" }
+sdrkit-proto-channels = { path = "../../proto/sdrkit-proto-channels" }
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+serde.workspace = true
+
+[dev-dependencies]
+# The record of the declarations that a generic consumer reads.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+# The starting dials that a host reads from the data folder.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }

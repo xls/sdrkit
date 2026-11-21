@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 4000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic Bluetooth LE tracker advertisements, 0.3 s. Same PHY and placement as ble_adv_4m. Six advertisers in a loop: a Find My network offline-finding frame (status 0x10), a Tile tag, a Chipolo tag, a Samsung SmartTag, a Google Find My Device tag in unwanted-tracking mode, and a phone sending Apple Nearby Info (not a tracker). Levels 0.35 to 1.0 of amplitude 0.3, offsets -10 to +15 kHz, carrier to noise 25 dB in 1 MHz. See specs/wlan.md section 8.",
+    "core:recorder": "Bluetooth LE advertising test generator, noise seed 11",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 2403000000.0
+    }
+  ],
+  "annotations": []
+}

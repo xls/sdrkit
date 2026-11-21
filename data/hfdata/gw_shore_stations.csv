@@ -1,0 +1,23 @@
+# id: gw_shore_stations
+# name: Shore station codes of the GW FSK free-channel markers (stack gwfsk)
+# stacks: gwfsk
+# source: Decoder Musings blog, "GW FSK", 5 April 2013 (codes CC and DE); the other codes are from community notes that no public document confirms
+# note: The host joins the rows as code=name pairs separated by semicolons into the setting stations. One code can be shared by stations. The service may have closed; the list is kept for recordings.
+code,station,support
+CC,"HEC, Bern, Switzerland (also named: LFI, Rogaland, Norway; 9MG, Georgetown, Malaysia)",Decoder Musings (HEC); the other names unconfirmed
+B8,"HLF, Seoul, South Korea",unconfirmed
+9C,"VCS, Halifax, Canada",unconfirmed
+AE,"KEJ, Honolulu, Hawaii",unconfirmed
+5E,"CPK, Santa Cruz, Bolivia",unconfirmed
+BE,"A9M, Hamala, Bahrain",unconfirmed
+63,"9HD, Malta",unconfirmed
+F0,"XSV, Tianjin, China",unconfirmed
+C9,"ZLA, Awanui, New Zealand",unconfirmed
+D2,"ZSC, Capetown, RSA",unconfirmed
+FA,"KPH, San Francisco, USA",unconfirmed
+C6,"WNU, Slidell Radio, USA",unconfirmed
+F6,"KHF, Agana, Guam",unconfirmed
+CE,"KFS, Palo Alto, USA",unconfirmed
+EE,"LSD836, Buenos Aires, Argentina",unconfirmed
+DE,"SAB, Goteborg, Sweden",Decoder Musings
+E3,"8PO, Bridgetown, Barbados",unconfirmed

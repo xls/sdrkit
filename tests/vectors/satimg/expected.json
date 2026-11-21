@@ -1,0 +1,87 @@
+{
+  "family": "satimg",
+  "note": "Expected decode at the end of each file, feeding the whole file once at its own rate with the mode's defaults (modulation or variant automatic). Expected pictures are 8-bit binary PGM files of the decoded channels; a decoder passes when every pixel is within the stated tolerance (Meteor strips are lossy JPEG, so an inverse DCT that rounds differently may differ by a small amount). Counters given as min/max are inclusive.",
+  "vectors": [
+    {
+      "file": "meteor_lrpt_oqpsk72k_250k.sigmf-data",
+      "mode": "meteor_lrpt",
+      "settings": {"modulation": "auto", "signal_offset_hz": 0},
+      "samples": 2500000, "sample_rate": 250000, "duration_s": 10.0,
+      "expect": {
+        "state": "frames_decoding",
+        "modulation_running": "oqpsk72",
+        "symbol_rate": 72000,
+        "carrier_offset_hz": {"value": 1200, "tol": 60},
+        "symbol_snr_db": {"value": 12.1, "tol": 1.5},
+        "symbol_clock_ppm": {"value": 20, "tol": 15},
+        "frames_good": {"min": 80, "max": 88},
+        "frames_failed": {"max": 1},
+        "vcdu": {"spacecraft": 156, "virtual_channel": 5},
+        "packets": {"min": 960},
+        "packets_lost": {"max": 0},
+        "packets_per_apid": {"64": {"min": 300}, "65": {"min": 300}, "66": {"min": 300}, "67": 0, "68": 0, "69": 0, "70": {"min": 20}},
+        "quality_factor": 80,
+        "picture_rows": {"min": 23, "max": 25},
+        "complete_strips_per_channel": {"1": {"min": 22}, "2": {"min": 22}, "3": {"min": 22}, "4": 0, "5": 0, "6": 0},
+        "colour_auto_channels": [1, 2, 3],
+        "first_report_with_frames_decoding_s": {"max": 2.0},
+        "expected_pictures": {"1": "meteor_ch1.pgm", "2": "meteor_ch2.pgm", "3": "meteor_ch3.pgm", "width": 1568, "rows_of_8_lines": 24, "pixel_tolerance": 2, "mean_abs_error_max": 0.5, "note": "rows are compared from the first row the decoder places; missing strips are 0 in the PGM"}
+      }
+    },
+    {
+      "file": "ahrpt_metop_4m.sigmf-data",
+      "mode": "hrpt",
+      "settings": {"variant": "auto", "signal_offset_hz": 0},
+      "samples": 1800000, "sample_rate": 4000000, "duration_s": 0.45,
+      "expect": {
+        "state": "frames_good",
+        "variant_running": "metop",
+        "symbol_rate": 2330000,
+        "carrier_offset_hz": {"value": 20000, "tol": 3000},
+        "symbol_snr_db": {"value": 11.6, "tol": 2.0},
+        "frames_good": {"min": 60, "max": 70},
+        "frames_failed": {"max": 1},
+        "vcdu": {"spacecraft": 11, "virtual_channel": 9},
+        "phase_ambiguity_mirrored": true,
+        "avhrr_lines": {"min": 3},
+        "packets_apid_103": {"min": 3},
+        "packets_apid_104": 0,
+        "expected_pictures": {"1": "ahrpt_ch1.pgm", "2": "ahrpt_ch2.pgm", "3": "ahrpt_ch3.pgm", "4": "ahrpt_ch4.pgm", "5": "ahrpt_ch5.pgm", "width": 2048, "lines": 3, "pixel_tolerance": 0, "note": "8-bit values are the top eight of the ten bits; lines placed by on-board time"}
+      }
+    },
+    {
+      "file": "goes_hrit_2m.sigmf-data",
+      "mode": "goes_hrit",
+      "settings": {"signal_offset_hz": 0},
+      "samples": 2800000, "sample_rate": 2000000, "duration_s": 1.4,
+      "expect": {
+        "state": "frames_decoding",
+        "carrier_offset_hz": {"value": 25000, "tol": 300},
+        "symbol_snr_db": {"value": 8.1, "tol": 1.5},
+        "symbol_rate_measured": {"value": 927000, "tol": 100},
+        "second_code_output_inverted": true,
+        "reed_solomon_basis": "dual",
+        "frames_good": {"min": 64, "max": 72},
+        "frames_failed": 0,
+        "spacecraft": 126,
+        "fill_vcdus": {"min": 30},
+        "vcdu_gaps": 0,
+        "crc_errors": 0,
+        "file_errors": 0,
+        "virtual_channels": {"0": {"min": 3}, "2": {"min": 9}, "13": {"min": 16}, "30": {"min": 6}},
+        "files_delivered": {"min": 12, "all_byte_exact_to_one_of": ["goes_file0.lrit", "goes_file1.lrit", "goes_file2.lrit", "goes_file3.lrit", "goes_file4.lrit"]},
+        "products": {
+          "count": {"min": 12, "max": 12},
+          "kinds_each_round": [
+            {"name": "OR_ABI-L2-CMIPF-M6C13_G16_s20262851200204_e20262851209512_c20262851209583.lrit", "kind": "full_disk", "vcid": 13, "apid": 781, "width": 100, "height": 64, "segments": 2, "compression": "Rice", "complete": true, "errors": false, "picture": "goes_13.pgm", "pixel_tolerance": 0, "time_unix": 1791806400.0},
+            {"name": "OR_ABI-L2-CMIPM1-M6C02_G16_s20262851201251_e20262851201308_c20262851201365.lrit", "kind": "mesoscale", "vcid": 2, "apid": 514, "width": 60, "height": 40, "compression": "none", "complete": true, "errors": false, "picture": "goes_2.pgm", "pixel_tolerance": 0},
+            {"name": "himawari9_relay_test.jpg", "kind": "image", "vcid": 30, "apid": 1054, "compression": "JPEG", "picture_fourcc": "jpeg", "data_bytes": 1484, "data_equals": "goes_relay.jpg"},
+            {"name": "admin_test_message", "kind": "admin_message", "vcid": 0, "apid": 1, "file_type": 2, "text": "HRIT TEST SIGNAL\r\nADMINISTRATIVE MESSAGE\r\nThis is a synthetic administrative message for receiver tests; nothing is transmitted.\r\n"}
+          ]
+        },
+        "first_report_with_frames_decoding_s": {"max": 0.6}
+      }
+    }
+  ],
+  "not_covered_by_files": "GK-2A LRIT/HRIT, FY-4 LRIT and HRIT-II/III, FY-2 S-VISSR, Elektro-L, NOAA HRPT, FY-3 AHRPT/MPT: their acceptance cases are listed in specs/satimg.md section 13 and run through the generators."
+}

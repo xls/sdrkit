@@ -1,0 +1,5 @@
+# Payload IDs of Horus Binary: one "id, callsign" a line. IDs 0 to 255 are v1 payloads, 256 to 65535 v2 payloads.
+# Source: payload_id_list.txt of the Project Horus horusdemodlib project (two entries; the full community list is
+# published there). A host gives the lines to the stack as its setting payload_ids.
+0, 4FSKTEST
+256, 4FSKTEST-V2

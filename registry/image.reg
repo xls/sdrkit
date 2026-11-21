@@ -1,0 +1,8 @@
+# The interface of the stack family image. The registry test of the family writes this file.
+family image version=1.0
+shape.PictureFields since=1.0
+shape.PictureFields.rows type=i64 unit= optional=no since=1.0
+shape.PictureFields.strips type=i64 unit= optional=no since=1.0
+shape.PictureFields.bad_strips type=i64 unit= optional=no since=1.0
+image since=1.0
+image.fields.PictureFields since=1.0

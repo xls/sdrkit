@@ -1,0 +1,32 @@
+[package]
+name = "sdrkit-stack-ism"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Short-range devices: ISM sensors, Wireless M-Bus, Z-Wave, Zigbee/802.15.4, Wi-SUN FAN, Sigfox, ANT+, nRF24L01, Sub-GHz chat, DECT identities and NFC tag identities"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-algo-crypto = { path = "../../algo/sdrkit-algo-crypto" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-proto-ookdev = { path = "../../proto/sdrkit-proto-ookdev" }
+sdrkit-proto-6lowpan = { path = "../../proto/sdrkit-proto-6lowpan" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+serde.workspace = true
+num-complex.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-data-plans = { path = "../../data/sdrkit-data-plans" }
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+# The Z-Wave and Wi-SUN channel plans of the data folder, for the tests of the two stacks.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }

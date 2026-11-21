@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 20000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic 2.4 GHz Wi-Fi, channel 6, 60 ms. 802.11b long-preamble DSSS at 1 Mbit/s (DBPSK, Barker-11, rectangular chips): beacons of 'Test-Home' (WPA2, BSSID 00:04:0E:12:34:56), 'Test-Cafe' (WPA2/WPA3 transition, FC:EC:DA:AB:CD:EF, +12 kHz, amplitude 0.6), a hidden open network (02:11:22:33:44:55, interval 200 TU, -8 kHz), a protected data frame and a probe response of 'Test-Home' to a client. Signal to noise 25 dB in 20 MHz, amplitude 0.25. See specs/wlan.md section 9.",
+    "core:recorder": "Wi-Fi beacon test generator, noise seed 5",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 2437000000.0
+    }
+  ],
+  "annotations": []
+}

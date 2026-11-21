@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 700000.0,
+    "core:version": "1.0.0",
+    "core:description": "LoRaWAN EU868 (125 kHz, CR 4/5, sync 0x34, preamble 8) on 868.1, 868.3 and 868.5 MHz around the capture centre, one downlink on inverted IQ without payload CRC. Synthetic.",
+    "core:author": "sdrkit test vector generator",
+    "core:hw": "synthetic (no radio)"
+  },
+  "captures": [ { "core:sample_start": 0, "core:frequency": 868300000.0 } ],
+  "annotations": [
+    { "core:sample_start": 35000, "core:sample_count": 39604, "core:freq_lower_edge": 868038800.0, "core:freq_upper_edge": 868163800.0, "core:label": "LoRaWAN unconfirmed up SF7 868.1" },
+    { "core:sample_start": 109603, "core:sample_count": 129741, "core:freq_lower_edge": 868235400.0, "core:freq_upper_edge": 868360400.0, "core:label": "LoRaWAN confirmed up SF9 868.3 with MAC commands" },
+    { "core:sample_start": 274344, "core:sample_count": 259482, "core:freq_lower_edge": 868438100.0, "core:freq_upper_edge": 868563100.0, "core:label": "LoRaWAN join request SF10 868.5" },
+    { "core:sample_start": 568826, "core:sample_count": 115405, "core:freq_lower_edge": 868237500.0, "core:freq_upper_edge": 868362500.0, "core:label": "LoRaWAN unconfirmed down SF9 868.3 inverted IQ" }
+  ]
+}

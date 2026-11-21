@@ -1,0 +1,14 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 10000000,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic analogue television channel, SECAM system D/K (625 lines, 50 Hz), 0.3 s. Made by the analogue TV test generator of specs/analogtv.md section 9: test card with the ident 'TEST CARD', SECAM chrominance (D'R and D'B on alternate lines, both line identifications: lead-in on the back porch and the nine identification lines per field), negative vision modulation through the vestigial-sideband filter, FM sound carrier 6.5 MHz above the vision carrier with a continuous 1 kHz tone at half deviation (50 us pre-emphasis), no second sound. Centre of the 8 MHz channel at 0 Hz; vision carrier at -2.75 MHz minus a 40 kHz offset. Carrier-to-noise 35 dB. Peak carrier amplitude 0.4.",
+    "core:recorder": "analogue TV test generator, noise seed 1",
+    "core:hw": "synthetic"
+  },
+  "captures": [
+    { "core:sample_start": 0, "core:frequency": 482000000.0 }
+  ],
+  "annotations": []
+}

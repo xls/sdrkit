@@ -1,0 +1,15 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 12000.0,
+    "core:version": "1.0.0",
+    "core:description": "NAVTEX SITOR-B 100 Bd, 170 Hz shift, FSK centre at 0 Hz, 20 dB SNR in 3 kHz",
+    "core:author": "sdrkit test vectors",
+    "core:license": "CC0-1.0",
+    "core:recorder": "synthetic"
+  },
+  "captures": [
+    {"core:sample_start": 0, "core:frequency": 518000.0}
+  ],
+  "annotations": []
+}

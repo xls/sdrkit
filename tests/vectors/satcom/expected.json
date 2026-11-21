@@ -1,0 +1,108 @@
+{
+  "note": "Synthetic recordings for specs/satcom.md. Each was made by the satcom test generators described in the spec and decoded back by an independent receiver before release. Feed each file from its first sample in blocks of any size, with the mode's dial at the stated offset from the capture centre. 'start_s' is the first sample of a burst or frame, in seconds from the first sample of the file. Decoded values are exact unless 'tolerance' says otherwise.",
+  "tolerance": {
+    "hex_ids_and_fields": "exact (strings, numbers, flags)",
+    "lat_lon_deg": "within 0.0002 degrees of the listed value (the value carried by the message, not the value the beacon was built from)",
+    "start_s": "within 0.02 s",
+    "cfo_hz": "within 5 Hz (beacons) and within 3 Hz (Inmarsat-C)",
+    "ebn0_db": "within 1.5 dB",
+    "bursts": "every listed burst decoded once, no other beacon reported, no failed burst counted",
+    "frames": "every listed frame decoded with a good bulletin board check, no bad frame counted"
+  },
+  "recordings": {
+    "sarsat_fgb_128k": {
+      "receiver": "mode sarsat, dial 406.028 MHz, capture centre 406.048 MHz (the dial is 20 kHz below the centre), whole-capture search off",
+      "bursts": [
+        {
+          "start_s": 1.000, "long": true, "self_test": false, "hex_id": "22A43C4806FFBFF",
+          "protocol": "location", "protocol_code": 2, "protocol_name": "EPIRB, MMSI and location", "beacon_type": "EPIRB",
+          "mid": 277, "country": "Lithuania", "identification": "MMSI 277123456, beacon 3",
+          "position": true, "fine": true, "lat": 55.70444, "lon": 20.98778, "homing_121_5": true, "bch1_ok": true, "bch2_ok": true, "bits_corrected": 0
+        },
+        {
+          "start_s": 2.540, "long": false, "self_test": false, "hex_id": "2DCED29F6AFFBFF",
+          "protocol": "location", "protocol_code": 7, "protocol_name": "PLB, serial and location", "beacon_type": "PLB",
+          "mid": 366, "country": "United States", "identification": "certificate 421, serial 4021",
+          "position": true, "fine": false, "lat": 37.75000, "lon": -122.50000, "homing_121_5": false, "bch1_ok": true, "bch2_present": false, "bits_corrected": 0
+        },
+        {
+          "start_s": 4.000, "long": true, "self_test": false, "hex_id": "1A6678C888FFBFF",
+          "protocol": "location", "protocol_code": 3, "protocol_name": "ELT, aircraft address and location", "beacon_type": "ELT",
+          "mid": 211, "country": "Germany", "identification": "aircraft address 3C6444",
+          "position": true, "fine": true, "lat": 54.13111, "lon": 12.09556, "homing_121_5": true, "bch1_ok": true, "bch2_ok": true, "bits_corrected": 0
+        },
+        {
+          "start_s": 5.540, "long": false, "self_test": false, "hex_id": "9B6A3DE1C3485D0",
+          "protocol": "user", "protocol_code": 2, "protocol_name": "Maritime user", "beacon_type": "EPIRB",
+          "mid": 219, "country": "Denmark", "identification": "call sign / MMSI digits OXTEST, beacon 1",
+          "position": false, "homing_121_5": false, "bch1_ok": true, "bch2_present": false, "bits_corrected": 0
+        },
+        {
+          "start_s": 7.000, "long": true, "self_test": false, "hex_id": "400D5B8612FFBFF",
+          "protocol": "location", "protocol_code": 6, "protocol_name": "EPIRB, serial and location", "beacon_type": "EPIRB",
+          "mid": 512, "country": "New Zealand", "identification": "certificate 695, serial 777",
+          "position": true, "fine": true, "lat": -36.84889, "lon": 174.76333, "homing_121_5": false, "bch1_ok": true, "bch2_ok": true, "bits_corrected": 0
+        }
+      ],
+      "summary": { "bursts_heard": 5, "bursts_decoded": 5, "bursts_failed": 0, "cfo_hz": 0, "state": "beacon decoded" },
+      "note": "Burst durations: 540 ms (long message), 460 ms (short message), each including the 160 ms carrier. The carrier of every burst is exactly at the dial; the measured carrier-to-noise in 31 Hz is about 37 dB."
+    },
+    "sarsat_sgb_192k": {
+      "receiver": "mode sarsat, dial 406.028 MHz, capture centre 406.048 MHz; the second-generation path needs an input rate of at least 160 ksps",
+      "bursts": [
+        {
+          "start_s": 1.000, "second_generation": true, "hex_id_23": "A2B4499C4D2000000000000",
+          "tac": 4711, "serial": 1234, "mid": 277, "country": "Lithuania", "beacon_type": "EPIRB",
+          "position": true, "lat": 55.70410, "lon": 20.98730, "homing_121_5": true, "rls": false, "test_protocol": false, "rotating_field_id": 0, "bits_corrected": 0
+        },
+        {
+          "start_s": 2.802, "second_generation": true, "hex_id_23": "C017FFFFFFF000000000000",
+          "tac": 65535, "serial": 16383, "mid": 512, "country": "New Zealand", "beacon_type": "PLB",
+          "position": true, "lat": -41.28650, "lon": -174.77621, "homing_121_5": false, "rls": false, "test_protocol": false, "rotating_field_id": 1, "bits_corrected": 0
+        },
+        {
+          "start_s": 4.604, "second_generation": true, "hex_id_23": "9934039823D3003C6444123",
+          "tac": 230, "serial": 573, "mid": 201, "country": "Albania", "beacon_type": "ELT",
+          "position": false, "homing_121_5": true, "rls": true, "test_protocol": false, "rotating_field_id": 2, "bits_corrected": 0
+        },
+        {
+          "start_s": 6.406, "second_generation": true, "hex_id_23": "ADD40190007800000000000",
+          "tac": 100, "serial": 7, "mid": 366, "country": "United States", "beacon_type": "PLB",
+          "position": true, "lat": 37.77490, "lon": -122.41940, "homing_121_5": false, "rls": false, "test_protocol": true, "rotating_field_id": 0, "bits_corrected": 0
+        }
+      ],
+      "summary": { "bursts_decoded": 4, "bursts_failed": 0, "cfo_hz": 0 },
+      "note": "Every burst lasts 1.002 s (38 400 chips plus 2 ms). The carrier is at +22 kHz from the dial (406.050 MHz)."
+    },
+    "inmarsatc_ncs_250k": {
+      "receiver": "mode inmarsatc, dial 1537.100 MHz, capture centre 1537.150 MHz (the channel is 50 kHz below the centre), channel search on",
+      "frames": [
+        { "start_s": 0.000, "frame_number": 1000, "bulletin_board_ok": true, "packets_ok": 5, "packets_bad": 0 },
+        { "start_s": 8.640, "frame_number": 1001, "bulletin_board_ok": true, "packets_ok": 5, "packets_bad": 0 }
+      ],
+      "ncs": {
+        "ocean_region_code": 3, "region": "Indian Ocean Region (IOR)", "station_id": 44, "station_name": "NCS",
+        "channel_type": 1, "channel_type_name": "NCS", "network_version": 1, "signalling_channel": 0, "random_interval": 8,
+        "status_byte": "70", "status_text": "operational, in service, clear",
+        "services_mask": "E001", "services_text": "Distress alerting, SafetyNET, Inmarsat-C, Low power CMES",
+        "signalling_uplink_mhz": 1626.8000,
+        "frame_number_last": 1001, "frame_time_last": "2:24:08.6"
+      },
+      "messages": [
+        {
+          "message_number": 4596, "service_code": "31", "service_text": "SafetyNET, NAVAREA/METAREA warning or forecast",
+          "kind": "SafetyNET", "priority": 1, "priority_name": "Safety", "presentation": "IA5",
+          "packets": 6, "complete": true, "times_heard_complete": 1, "channel": 0,
+          "area": "NAVAREA IX", "subject": "Navigational warning", "warning_number": "231/26",
+          "text": "NAVAREA IX 231/26\nPERSIAN GULF.\nSTRAIT OF HORMUZ.\nTRAFFIC SEPARATION SCHEME OFF RAS AL KHAIMAH.\nDREDGING OPERATIONS IN PROGRESS WITHIN 2 MILES OF 25-34.2N 056-24.6E. VESSELS REQUESTED TO KEEP CLEAR AND PASS AT SLOW SPEED.\nCANCEL THIS MESSAGE 15 DAYS AFTER DATE OF ISSUE.\n"
+        }
+      ],
+      "summary": {
+        "state": "frames decoding", "frames_ok": 2, "frames_bad": 0, "packets_ok": 10, "packets_bad": 0,
+        "message_count": 1, "channels": 1, "cfo_hz": 0, "ebn0_db": 10.2, "esn0_db": 7.1,
+        "unique_word_errors_avg_max": 3, "polarity_slips": 0
+      },
+      "note": "The first good bulletin board is reported once frame 1000 has fully arrived (about 8.8 s of signal). Carriage returns are removed from IA5 text; line feeds are kept. The made-up message loop continues in later frames with a METAREA IX gale warning (number 4891, priority Safety), a SAR coordination notice (service 34, number 1201, priority Urgency), a long METAREA IX forecast (number 5151, priority Routine, spans several frames) and an ITA2 FleetNET bulletin (service 02, number 4277); these are not in this recording."
+    }
+  }
+}

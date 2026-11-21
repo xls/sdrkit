@@ -1,0 +1,8 @@
+# id: default_dials
+# name: Starting dials of the general stack and its submodes
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+general,,145500000
+general,general,145500000
+general,am,999000
+general,shortwave,9650000

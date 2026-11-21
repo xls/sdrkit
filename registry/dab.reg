@@ -1,0 +1,272 @@
+# The interface of the stack family dab. The registry test of the family writes this file.
+family dab version=1.0
+uses.mpegts major=1 since=1.0
+uses.bcdata major=1 since=1.0
+shape.SignalFields since=1.0
+shape.SignalFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.SignalFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.SignalFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.SignalFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.EnsembleFields since=1.0
+shape.EnsembleFields.ensemble_label type=text unit= optional=yes since=1.0
+shape.EnsembleFields.ensemble_short_label type=text unit= optional=yes since=1.0
+shape.EnsembleFields.eid type=i64 unit= optional=yes since=1.0
+shape.EnsembleFields.ecc type=i64 unit= optional=yes since=1.0
+shape.EnsembleFields.country type=i64 unit= optional=yes since=1.0
+shape.EnsembleFields.utc type=time unit= optional=yes since=1.0
+shape.EnsembleFields.local_time_offset type=duration unit=s optional=yes since=1.0
+shape.EnsembleFields.ensemble_valid type=bool unit= optional=no since=1.0
+shape.EnsembleFields.service_count type=i64 unit= optional=no since=1.0
+shape.SyncFields since=1.0
+shape.SyncFields.sync type=bool unit= optional=no since=1.0
+shape.SyncFields.prs_peak type=f64 unit= optional=yes since=1.0
+shape.SyncFields.frames type=i64 unit= optional=no since=1.0
+shape.SyncFields.fib_ok type=i64 unit= optional=no since=1.0
+shape.SyncFields.fib_bad type=i64 unit= optional=no since=1.0
+shape.SyncFields.fib_ok_last_frame type=i64 unit= optional=no since=1.0
+shape.SyncFields.fic_fill_pct type=f64 unit=% optional=no since=1.0
+shape.SyncFields.quiet type=duration unit=s optional=no since=1.0
+shape.SyncFields.sync_losses type=i64 unit= optional=no since=1.0
+shape.SyncFields.relocks type=i64 unit= optional=no since=1.0
+shape.SyncFields.erased_cifs type=i64 unit= optional=no since=1.0
+shape.SyncFields.impulses_blanked type=i64 unit= optional=no since=1.0
+shape.SyncFields.mirrored type=bool unit= optional=no since=1.0
+shape.SyncFields.signal_time type=duration unit=s optional=no since=1.0
+shape.SyncFields.detection type=choice(coherent,differential) unit= optional=yes since=1.0
+shape.PlayingFields since=1.0
+shape.PlayingFields.selected_service type=text unit= optional=yes refers_to=services since=1.0
+shape.PlayingFields.selected_subchannel type=i64 unit= optional=yes since=1.0
+shape.PlayingFields.selected_label type=text unit= optional=yes since=1.0
+shape.PlayingFields.selected_kind type=choice(dab_plus,dab,dmb,data) unit= optional=yes since=1.0
+shape.PlayingFields.selected_bitrate_kbps type=i64 unit=kbit/s optional=yes since=1.0
+shape.PlayingFields.selected_protection type=text unit= optional=yes since=1.0
+shape.PlayingFields.playing type=choice(nothing,scrambled,waiting,no_audio,decoding) unit= optional=no since=1.0
+shape.AudioFields since=1.0
+shape.AudioFields.audio_codec type=choice(aac,he_aac,he_aac_v2,mp2) unit= optional=yes since=1.0
+shape.AudioFields.audio_rate type=hz unit=Hz optional=yes since=1.0
+shape.AudioFields.audio_channels type=i64 unit= optional=yes since=1.0
+shape.AudioFields.audio_sbr type=bool unit= optional=yes since=1.0
+shape.AudioFields.audio_ps type=bool unit= optional=yes since=1.0
+shape.AudioFields.audio_units_per_superframe type=i64 unit= optional=yes since=1.0
+shape.AudioFields.audio_logical_frames type=i64 unit= optional=no since=1.0
+shape.AudioFields.audio_units_ok type=i64 unit= optional=no since=1.0
+shape.AudioFields.audio_units_bad type=i64 unit= optional=no since=1.0
+shape.AudioFields.audio_superframes_ok type=i64 unit= optional=no since=1.0
+shape.AudioFields.audio_superframes_bad type=i64 unit= optional=no since=1.0
+shape.AudioFields.audio_rs_corrected type=i64 unit= optional=no since=1.0
+shape.AudioFields.audio_rs_uncorrectable type=i64 unit= optional=no since=1.0
+shape.AudioFields.audio_mp2_frames type=i64 unit= optional=no since=1.0
+shape.AudioFields.audio_mp2_bad type=i64 unit= optional=no since=1.0
+shape.AudioFields.audio_concealed_pct type=f64 unit=% optional=yes since=1.0
+shape.PadFields since=1.0
+shape.PadFields.label_charset type=i64 unit= optional=yes since=1.0
+shape.PadFields.slide_sequence type=i64 unit= optional=yes since=1.0
+shape.PadFields.slide_width type=i64 unit=px optional=yes since=1.0
+shape.PadFields.slide_height type=i64 unit=px optional=yes since=1.0
+shape.PadFields.slide_bytes type=i64 unit=bytes optional=yes since=1.0
+shape.TimingFields since=1.0
+shape.TimingFields.timing_lock type=duration unit=s optional=yes since=1.0
+shape.TimingFields.timing_first_fib type=duration unit=s optional=yes since=1.0
+shape.TimingFields.timing_ensemble_valid type=duration unit=s optional=yes since=1.0
+shape.TimingFields.timing_all_labels type=duration unit=s optional=yes since=1.0
+shape.TimingFields.timing_first_access_unit type=duration unit=s optional=yes since=1.0
+shape.TimingFields.timing_label type=duration unit=s optional=yes since=1.0
+shape.TimingFields.timing_slide type=duration unit=s optional=yes since=1.0
+shape.AnnouncementFields since=1.0
+shape.AnnouncementFields.announcement_cluster type=i64 unit= optional=yes since=1.0
+shape.AnnouncementFields.announcement_type type=i64 unit= optional=yes since=1.0
+shape.AnnouncementFields.announcement_name type=text unit= optional=yes since=1.0
+shape.AnnouncementFields.announcement_subchannel type=i64 unit= optional=yes since=1.0
+shape.DmbFields since=1.0
+shape.DmbFields.dmb_ts_packets type=i64 unit= optional=yes since=1.0
+shape.DmbFields.dmb_rs_corrected type=i64 unit= optional=yes since=1.0
+shape.DmbFields.dmb_rs_failed type=i64 unit= optional=yes since=1.0
+shape.DmbFields.dmb_video_units type=i64 unit= optional=yes since=1.0
+shape.DmbFields.dmb_audio_units type=i64 unit= optional=yes since=1.0
+shape.DmbFields.dmb_video_width type=i64 unit=px optional=yes since=1.0
+shape.DmbFields.dmb_video_height type=i64 unit=px optional=yes since=1.0
+shape.DataFields since=1.0
+shape.DataFields.fic_records type=i64 unit= optional=no since=1.0
+shape.DataFields.spi_objects type=i64 unit= optional=yes since=1.0
+shape.DataFields.journaline_received type=i64 unit= optional=yes since=1.0
+shape.DataFields.tii_analysed type=i64 unit= optional=yes since=1.0
+shape.HealthFields since=1.0
+shape.HealthFields.health_sync type=choice(off,amber,green) unit= optional=no since=1.0
+shape.HealthFields.health_prs type=choice(off,amber,green) unit= optional=no since=1.0
+shape.HealthFields.health_fic type=choice(off,amber,green) unit= optional=no since=1.0
+shape.HealthFields.health_ensemble type=choice(off,amber,green) unit= optional=no since=1.0
+shape.HealthFields.health_msc type=choice(off,amber,green) unit= optional=no since=1.0
+shape.HealthFields.health_audio type=choice(off,amber,green) unit= optional=no since=1.0
+shape.HealthFields.health_concealed type=choice(off,amber,green) unit= optional=no since=1.0
+shape.HealthFields.quality type=f64 unit= optional=yes since=1.0
+shape.HealthFields.quality_text type=choice(poor,fair,good,excellent) unit= optional=yes since=1.0
+shape.ServiceRow since=1.0
+shape.ServiceRow.sid type=i64 unit= optional=no since=1.0
+shape.ServiceRow.label type=text unit= optional=yes since=1.0
+shape.ServiceRow.short_label type=text unit= optional=yes since=1.0
+shape.ServiceRow.kind type=choice(dab_plus,dab,dmb,data) unit= optional=no since=1.0
+shape.ServiceRow.subchannel type=i64 unit= optional=yes refers_to=subchannels since=1.0
+shape.ServiceRow.bitrate_kbps type=i64 unit=kbit/s optional=yes since=1.0
+shape.ServiceRow.protection type=text unit= optional=yes since=1.0
+shape.ServiceRow.component_type type=i64 unit= optional=yes since=1.0
+shape.ServiceRow.pty type=i64 unit= optional=yes since=1.0
+shape.ServiceRow.pty_name type=text unit= optional=yes since=1.0
+shape.ServiceRow.pty_static type=bool unit= optional=no since=1.0
+shape.ServiceRow.language type=i64 unit= optional=yes since=1.0
+shape.ServiceRow.language_name type=text unit= optional=yes since=1.0
+shape.ServiceRow.scrambled type=bool unit= optional=no since=1.0
+shape.ServiceRow.announcement_support type=i64 unit= optional=no since=1.0
+shape.ServiceRow.now_playing type=text unit= optional=yes since=1.0
+shape.ServiceRow.playing type=bool unit= optional=no since=1.0
+shape.SubchannelRow since=1.0
+shape.SubchannelRow.id type=i64 unit= optional=no since=1.0
+shape.SubchannelRow.start_cu type=i64 unit=CU optional=no since=1.0
+shape.SubchannelRow.size_cu type=i64 unit=CU optional=no since=1.0
+shape.SubchannelRow.protection type=text unit= optional=yes since=1.0
+shape.SubchannelRow.bitrate_kbps type=i64 unit=kbit/s optional=no since=1.0
+shape.ServiceComponentRow since=1.0
+shape.ServiceComponentRow.service type=text unit= optional=no refers_to=services since=1.0
+shape.ServiceComponentRow.tmid type=i64 unit= optional=no since=1.0
+shape.ServiceComponentRow.component_type type=i64 unit= optional=no since=1.0
+shape.ServiceComponentRow.subchannel type=i64 unit= optional=yes refers_to=subchannels since=1.0
+shape.ServiceComponentRow.packet_address type=i64 unit= optional=yes since=1.0
+shape.ServiceComponentRow.scids type=i64 unit= optional=yes since=1.0
+shape.ServiceComponentRow.primary type=bool unit= optional=no since=1.0
+shape.ServiceComponentRow.scrambled type=bool unit= optional=no since=1.0
+shape.ServiceComponentRow.label type=text unit= optional=yes since=1.0
+shape.UserApplicationRow since=1.0
+shape.UserApplicationRow.service type=text unit= optional=no refers_to=services since=1.0
+shape.UserApplicationRow.scids type=i64 unit= optional=no since=1.0
+shape.UserApplicationRow.app_type type=i64 unit= optional=no since=1.0
+shape.UserApplicationRow.name type=text unit= optional=no since=1.0
+shape.ServiceClusterRow since=1.0
+shape.ServiceClusterRow.service type=text unit= optional=no refers_to=services since=1.0
+shape.ServiceClusterRow.cluster type=i64 unit= optional=no since=1.0
+shape.TiiEntryRow since=1.0
+shape.TiiEntryRow.main type=i64 unit= optional=no since=1.0
+shape.TiiEntryRow.sub type=i64 unit= optional=no since=1.0
+shape.TiiEntryRow.position type=position unit= optional=no since=1.0
+shape.TiiEntryRow.delay_us type=i64 unit=µs optional=no since=1.0
+shape.FollowingRow since=1.0
+shape.FollowingRow.freq type=hz unit=Hz optional=no since=1.0
+shape.FollowingRow.channel type=text unit= optional=no since=1.0
+shape.FollowingRow.eid type=i64 unit= optional=no since=1.0
+shape.AnnouncementRow since=1.0
+shape.AnnouncementRow.cluster type=i64 unit= optional=no since=1.0
+shape.AnnouncementRow.asw type=i64 unit= optional=no since=1.0
+shape.AnnouncementRow.subchannel type=i64 unit= optional=no refers_to=subchannels since=1.0
+shape.TransmitterRow since=1.0
+shape.TransmitterRow.main type=i64 unit= optional=no since=1.0
+shape.TransmitterRow.sub type=i64 unit= optional=no since=1.0
+shape.TransmitterRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.TransmitterRow.position type=position unit= optional=yes since=1.0
+shape.TransmitterRow.delay_us type=i64 unit=µs optional=yes since=1.0
+shape.JournalineRow since=1.0
+shape.JournalineRow.id type=i64 unit= optional=no since=1.0
+shape.JournalineRow.kind type=choice(menu,text,title,list) unit= optional=no since=1.0
+shape.JournalineRow.title type=text unit= optional=no since=1.0
+shape.JournalineRow.body type=text unit= optional=yes since=1.0
+shape.JournalineLinkRow since=1.0
+shape.JournalineLinkRow.object type=text unit= optional=no refers_to=journaline since=1.0
+shape.JournalineLinkRow.target type=i64 unit= optional=no since=1.0
+shape.JournalineLinkRow.text type=text unit= optional=no since=1.0
+shape.JournalineItemRow since=1.0
+shape.JournalineItemRow.object type=text unit= optional=no refers_to=journaline since=1.0
+shape.JournalineItemRow.text type=text unit= optional=no since=1.0
+shape.FigTypeRow since=1.0
+shape.FigTypeRow.fig type=text unit= optional=no since=1.0
+shape.FigTypeRow.count type=i64 unit= optional=no since=1.0
+shape.FigTypeRow.bytes type=i64 unit= optional=no since=1.0
+shape.EnsembleEvent since=1.0
+shape.EnsembleEvent.source type=text unit= optional=yes since=1.0
+shape.EnsembleEvent.text type=text unit= optional=no since=1.0
+shape.EnsembleEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.ServicesEvent since=1.0
+shape.ServicesEvent.source type=text unit= optional=yes since=1.0
+shape.ServicesEvent.count type=i64 unit= optional=no since=1.0
+shape.ServicesEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.AnnouncementStartedEvent since=1.0
+shape.AnnouncementStartedEvent.source type=text unit= optional=yes since=1.0
+shape.AnnouncementStartedEvent.cluster type=i64 unit= optional=no since=1.0
+shape.AnnouncementStartedEvent.asw type=i64 unit= optional=no since=1.0
+shape.AnnouncementStartedEvent.subchannel type=i64 unit= optional=no refers_to=subchannels since=1.0
+shape.AnnouncementStartedEvent.text type=text unit= optional=no since=1.0
+shape.AnnouncementStartedEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.AnnouncementStartedEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.AnnouncementEndedEvent since=1.0
+shape.AnnouncementEndedEvent.source type=text unit= optional=yes since=1.0
+shape.AnnouncementEndedEvent.cluster type=i64 unit= optional=no since=1.0
+shape.AnnouncementEndedEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.SyncLostEvent since=1.0
+shape.SyncLostEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.LabelEvent since=1.0
+shape.LabelEvent.source type=text unit= optional=yes since=1.0
+shape.LabelEvent.text type=text unit= optional=no since=1.0
+shape.LabelEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.SlideEvent since=1.0
+shape.SlideEvent.source type=text unit= optional=yes since=1.0
+shape.SlideEvent.slide_sequence type=i64 unit= optional=no since=1.0
+shape.SlideEvent.text type=text unit= optional=yes since=1.0
+shape.SlideEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+dab since=1.0
+dab.fields.SignalFields since=1.0
+dab.fields.EnsembleFields since=1.0
+dab.fields.SyncFields since=1.0
+dab.fields.PlayingFields since=1.0
+dab.fields.AudioFields since=1.0
+dab.fields.PadFields since=1.0
+dab.fields.TimingFields since=1.0
+dab.fields.AnnouncementFields since=1.0
+dab.fields.DmbFields since=1.0
+dab.fields.DataFields since=1.0
+dab.fields.HealthFields since=1.0
+dab.fields.LabelFields since=1.0
+dab.fields.SlideFields since=1.0
+dab.fields.PlayoutFields since=1.0
+dab.component.playout.fields.PlayoutFields shared=concealed;muted;concealments;underruns since=1.0
+dab.kept.guide_services since=1.0
+dab.kept.guide_programmes since=1.0
+dab.kept.guide_groups since=1.0
+dab.kept.logos since=1.0
+dab.kept.DataFields.spi_objects since=1.0
+dab.table.services row=ServiceRow cap=256 since=1.0
+dab.table.subchannels row=SubchannelRow cap=64 since=1.0
+dab.table.service_components row=ServiceComponentRow cap=512 since=1.0
+dab.table.user_applications row=UserApplicationRow cap=512 since=1.0
+dab.table.service_clusters row=ServiceClusterRow cap=512 since=1.0
+dab.table.tii_database row=TiiEntryRow cap=256 since=1.0
+dab.table.following row=FollowingRow cap=64 since=1.0
+dab.table.announcements row=AnnouncementRow cap=32 since=1.0
+dab.table.transmitters row=TransmitterRow cap=64 since=1.0
+dab.table.journaline row=JournalineRow cap=512 since=1.0
+dab.table.journaline_links row=JournalineLinkRow cap=4096 since=1.0
+dab.table.journaline_items row=JournalineItemRow cap=4096 since=1.0
+dab.table.fig_types row=FigTypeRow cap=256 since=1.0
+dab.table.label_tags row=LabelTagRow cap=128 since=1.0
+dab.table.guide_services row=GuideServiceRow cap=256 since=1.0
+dab.table.guide_programmes row=GuideProgrammeRow cap=500 since=1.0
+dab.table.guide_groups row=GuideGroupRow cap=256 since=1.0
+dab.table.slide_categories row=SlideCategoryRow cap=4096 since=1.0
+dab.table.logos row=LogoRow cap=256 since=1.0
+dab.series.constellation x_unit= y_unit= since=1.0
+dab.series.impulse_response x_unit=sample y_unit= since=1.0
+dab.event.dab.ensemble fields=EnsembleEvent since=1.0
+dab.event.dab.services fields=ServicesEvent since=1.0
+dab.event.dab.announcement_started fields=AnnouncementStartedEvent since=1.0
+dab.event.dab.announcement_ended fields=AnnouncementEndedEvent since=1.0
+dab.event.dab.sync_lost fields=SyncLostEvent since=1.0
+dab.event.dab.label fields=LabelEvent since=1.0
+dab.event.dab.slide fields=SlideEvent since=1.0
+dab.setting.detection type=choice(auto,differential) unit= since=1.0
+dab.setting.centring type=bool unit= since=1.0
+dab.setting.impulse_blanker type=bool unit= since=1.0
+dab.setting.early_start type=bool unit= since=1.0
+dab.setting.aac_packaging type=choice(raw,latm) unit= since=1.0
+dab.setting.channels type=text unit= since=1.0
+dab.setting.data_subchannel type=i64 unit= since=1.0
+dab.setting.tii type=bool unit= since=1.0
+dab.setting.announcement_types type=i64 unit= since=1.0
+dab.setting.gen_tii type=bool unit= since=1.0
+dab.setting.gen_fig2 type=bool unit= since=1.0
+dab.setting.gen_pty type=i64 unit= since=1.0
+dab.command.service.select args=row:text reply= since=1.0

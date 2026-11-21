@@ -1,0 +1,29 @@
+[package]
+name = "sdrkit-stack-general"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "The general receiver (AM, synchronous AM, NFM, WFM mono, USB, LSB, CW), the shared listening chain, tone squelch and band tables"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+sdrkit-proto-tones = { path = "../../proto/sdrkit-proto-tones" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+serde_json.workspace = true
+num-complex.workspace = true
+# RNNoise in Rust, with its trained weights (BSD-3-Clause): the voice noise remover.
+nnnoiseless = { version = "0.5", default-features = false }
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }
+# The data files of the stack: presets, band keys, voice segments, broadcast bands.
+sdrkit-presets = { path = "../../helpers/sdrkit-presets" }

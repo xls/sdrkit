@@ -1,0 +1,43 @@
+{
+  "note": "Expected decode of the broadcast-family vectors. Each recording is fed in pieces of 25000 samples with the dial at the capture frequency (no channel offset), stereo mode Auto, channel width 5000 Hz, squelch on. Audio amplitudes are peak amplitudes of a single-bin DFT over the last 2 s of the 48 kHz output, with full scale 1.0 = 100 % modulation of the carrier. 'tolerance' gives the accepted range. See specs/broadcast.md, section C-QUAM, test vectors.",
+  "cquam_stereo_250k": {
+    "mode": "cquam",
+    "state": "stereo",
+    "stereo": true,
+    "pilot_seen": true,
+    "pilot_pct": 5.0,
+    "carrier_offset_hz": 35.0,
+    "left_440_amp": 0.35,
+    "right_660_amp": 0.35,
+    "separation_db": "left 440 over left 660, and right 660 over right 440",
+    "mod_pct_peak": 70.0,
+    "pilot_checks_ok": "about 14 (one per 0.5 s once the first 1 s window is full)",
+    "t_stereo_s": "at most 3.0",
+    "tolerance": {
+      "state": "exact",
+      "pilot_pct": [3.5, 6.5],
+      "carrier_offset_hz": [32.0, 38.0],
+      "left_440_amp": [0.30, 0.40],
+      "right_660_amp": [0.30, 0.40],
+      "separation_db": "at least 25 each way",
+      "mod_pct_peak": [40, 100],
+      "pilot_checks_ok": "more than 5",
+      "snr_db": "at least 25"
+    }
+  },
+  "am_mono_250k": {
+    "mode": "cquam",
+    "state": "mono",
+    "stereo": false,
+    "pilot_seen": false,
+    "carrier_offset_hz": 35.0,
+    "left_440_amp": 0.175,
+    "left_right_equal": true,
+    "tolerance": {
+      "state": "exact (carrier locked, mono; never stereo)",
+      "carrier_offset_hz": [32.0, 38.0],
+      "left_440_amp": "more than 0.10",
+      "left_right_equal": "L and R identical: sum of squared differences below 1e-6 of the sum of squares"
+    }
+  }
+}

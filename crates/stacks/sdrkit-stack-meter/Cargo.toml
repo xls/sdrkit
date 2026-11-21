@@ -1,0 +1,23 @@
+[package]
+name = "sdrkit-stack-meter"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Measurement stacks: broadcast FM and AM modulation monitors, spectrum watchers and transmitter tests"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-util-ids = { path = "../../util/sdrkit-util-ids" }
+sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+
+[dev-dependencies]
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+sdrkit-components = { path = "../../framework/sdrkit-components" }
+# The record of the declarations that a generic consumer reads.
+sdrkit-dev-interface = { path = "../../dev/sdrkit-dev-interface" }

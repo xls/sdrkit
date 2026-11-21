@@ -1,0 +1,808 @@
+# Bluetooth 16-bit UUIDs: GATT services, and the UUIDs assigned to SIG member companies.
+# Source: Bluetooth SIG Assigned Numbers, uuids/service_uuids.yaml and uuids/member_uuids.yaml,
+#   https://bitbucket.org/bluetooth-SIG/public/src/main/assigned_numbers/ (retrieved 8 November 2026). The whole lists.
+# Update: cargo run -p sdrkit-util-ids --example update_tables -- bt-uuid service_uuids.yaml member_uuids.yaml \
+#   > data/bt_uuid16.tsv
+# Columns: UUID (hex), service or member, name as published
+1800	service	GAP
+1801	service	GATT
+1802	service	Immediate Alert
+1803	service	Link Loss
+1804	service	Tx Power
+1805	service	Current Time
+1806	service	Reference Time Update
+1807	service	Next DST Change
+1808	service	Glucose
+1809	service	Health Thermometer
+180A	service	Device Information
+180D	service	Heart Rate
+180E	service	Phone Alert Status
+180F	service	Battery
+1810	service	Blood Pressure
+1811	service	Alert Notification
+1812	service	Human Interface Device
+1813	service	Scan Parameters
+1814	service	Running Speed and Cadence
+1815	service	Automation IO
+1816	service	Cycling Speed and Cadence
+1818	service	Cycling Power
+1819	service	Location and Navigation
+181A	service	Environmental Sensing
+181B	service	Body Composition
+181C	service	User Data
+181D	service	Weight Scale
+181E	service	Bond Management
+181F	service	Continuous Glucose Monitoring
+1820	service	Internet Protocol Support
+1821	service	Indoor Positioning
+1822	service	Pulse Oximeter
+1823	service	HTTP Proxy
+1824	service	Transport Discovery
+1825	service	Object Transfer
+1826	service	Fitness Machine
+1827	service	Mesh Provisioning
+1828	service	Mesh Proxy
+1829	service	Reconnection Configuration
+183A	service	Insulin Delivery
+183B	service	Binary Sensor
+183C	service	Emergency Configuration
+183D	service	Authorization Control
+183E	service	Physical Activity Monitor
+183F	service	Elapsed Time
+1840	service	Generic Health Sensor
+1843	service	Audio Input Control
+1844	service	Volume Control
+1845	service	Volume Offset Control
+1846	service	Coordinated Set Identification
+1847	service	Device Time
+1848	service	Media Control
+1849	service	Generic Media Control
+184A	service	Constant Tone Extension
+184B	service	Telephone Bearer
+184C	service	Generic Telephone Bearer
+184D	service	Microphone Control
+184E	service	Audio Stream Control
+184F	service	Broadcast Audio Scan
+1850	service	Published Audio Capabilities
+1851	service	Basic Audio Announcement
+1852	service	Broadcast Audio Announcement
+1853	service	Common Audio
+1854	service	Hearing Access
+1855	service	Telephony and Media Audio
+1856	service	Public Broadcast Announcement
+1857	service	Electronic Shelf Label
+1858	service	Gaming Audio
+1859	service	Mesh Proxy Solicitation
+185A	service	Industrial Measurement Device
+185B	service	Ranging
+185C	service	HID ISO
+185D	service	Cookware
+185E	service	Voice Assistant
+185F	service	Generic Voice Assistant
+1860	service	Tire Pressure Monitoring System
+FC1F	member	Eight Sleep Inc.
+FC20	member	PreStartGo Pty Ltd
+FC21	member	Plejd AB
+FC22	member	InPlay, Inc.
+FC23	member	Helvar Oy Ab
+FC24	member	Electronics and Telecommunications Research Institute
+FC25	member	Trackonomy Systems, Inc.
+FC26	member	Hudl, Inc.
+FC27	member	Barking Labs Corp.
+FC28	member	TechnoPartner Tecnologia Ltda.
+FC29	member	Google LLC
+FC2A	member	Troo Corporation
+FC2B	member	Elder Technologies, Inc
+FC2C	member	Verkada Inc.
+FC2D	member	Arashi Vision Inc.
+FC2E	member	Arashi Vision Inc.
+FC2F	member	Arashi Vision Inc.
+FC30	member	Arashi Vision Inc.
+FC31	member	Ford Motor Company
+FC32	member	InPlay, Inc.
+FC34	member	Mitsubishi Electric Corporation
+FC35	member	Metabowerke GmbH
+FC36	member	PharmaSens AG
+FC37	member	TANlock GmbH
+FC38	member	SetPoint Medical
+FC39	member	Harman International
+FC3A	member	C.O.B.O. SpA
+FC3B	member	BONX INC.
+FC3C	member	Eforthink Technology Co., Ltd.
+FC3D	member	Reelables, Inc.
+FC3E	member	Google LLC
+FC3F	member	Milwaukee Electric Tools
+FC40	member	Yoto Limited
+FC41	member	Yoto Limited
+FC42	member	Atmosic Technologies, Inc.
+FC43	member	Atmosic Technologies, Inc.
+FC44	member	Block, Inc.
+FC45	member	Mitsubishi Electric Corporation
+FC46	member	Xiaomi
+FC47	member	Shanghai Ingeek Technology Co., Ltd.
+FC48	member	Michelin
+FC49	member	Golioth, Inc.
+FC4A	member	Shenzhen Shokz Co.,Ltd.
+FC4B	member	WinMagic Inc.
+FC4C	member	HP Inc.
+FC4D	member	Lodestar Technology Inc.
+FC4E	member	Lodestar Technology Inc.
+FC4F	member	WaveRF, Corp.
+FC50	member	Ant Group Co., Ltd.
+FC51	member	Ant Group Co., Ltd.
+FC52	member	LG Electronics Inc.
+FC53	member	LEGIC Identsystems AG
+FC54	member	Shenzhen Yinwang Intelligent Technologies Co., Ltd.
+FC55	member	BYD Company Limited
+FC56	member	Google LLC
+FC57	member	Ambient Life Inc.
+FC58	member	Shenzhen Minew Technologies Co., Ltd.
+FC59	member	Ant Group Co., Ltd.
+FC5A	member	LAST LOCK INC.
+FC5B	member	Time Location Systems AS
+FC5C	member	PLASTIC RESEARCH AND DEVELOPMENT CORPORATION
+FC5D	member	GP Acoustics International Limited
+FC5E	member	KUBU SMART LIMITED
+FC5F	member	PI-CRYSTAL INC.
+FC60	member	Ohme Operations UK Limited
+FC61	member	QIKCONNEX LLC
+FC62	member	SPRiNTUS GmbH
+FC63	member	Volvo Technology AB
+FC64	member	Volvo Technology AB
+FC65	member	Robor Electronics B.V.
+FC66	member	Xiaomi Inc.
+FC67	member	Guangdong Hengqin Xingtong Technology Co.,ltd.
+FC68	member	RIGH, INC.
+FC69	member	Harman International
+FC6A	member	Sonos Inc
+FC6B	member	Sonos Inc
+FC6C	member	Powerstick.com
+FC6D	member	MOTIVE TECHNOLOGIES, INC.
+FC6E	member	stryker
+FC6F	member	NextSense, Inc.
+FC70	member	MOTIVE TECHNOLOGIES, INC.
+FC71	member	Hive-Zox International SA
+FC72	member	iodyne, LLC
+FC73	member	Google LLC
+FC74	member	EMBEINT INC
+FC75	member	Xiaomi Inc.
+FC76	member	Weber-Stephen Products LLC
+FC77	member	SING SUN TECHNOLOGY (INTERNATIONAL) LIMITED
+FC78	member	DHL
+FC79	member	LG Electronics Inc.
+FC7A	member	Outshiny India Private Limited
+FC7B	member	Testo SE & Co. KGaA
+FC7C	member	Motorola Mobility, LLC
+FC7D	member	MML US, Inc
+FC7E	member	Harman International
+FC7F	member	Southco
+FC80	member	TELE System Communications Pte. Ltd.
+FC81	member	Axon Enterprise, Inc.
+FC82	member	Zwift, Inc.
+FC83	member	iHealth Labs, Inc.
+FC84	member	NINGBO FOTILE KITCHENWARE CO., LTD.
+FC85	member	Zhejiang Huanfu Technology Co., LTD
+FC86	member	Samsara Networks, Inc
+FC87	member	Samsara Networks, Inc
+FC88	member	CCC del Uruguay
+FC89	member	Intel Corporation
+FC8A	member	Intel Corporation
+FC8B	member	Kaspersky Lab Middle East FZ-LLC
+FC8C	member	VusionGroup
+FC8D	member	Caire Inc.
+FC8E	member	Blue Iris Labs, Inc.
+FC8F	member	Bose Corporation
+FC90	member	Wiliot LTD.
+FC91	member	Samsung Electronics Co., Ltd.
+FC92	member	Furuno Electric Co., Ltd.
+FC93	member	Komatsu Ltd.
+FC94	member	Apple Inc.
+FC95	member	Hippo Camp Software Ltd.
+FC96	member	LEGO System A/S
+FC97	member	Japan Display Inc.
+FC98	member	Ruuvi Innovations Ltd.
+FC99	member	Badger Meter
+FC9A	member	Koppli AB
+FC9B	member	Merry Electronics (S) Pte Ltd
+FC9D	member	Lenovo (Singapore) Pte Ltd.
+FC9E	member	Dell Computer Corporation
+FC9F	member	Delta Development Team, Inc
+FCA0	member	Apple Inc.
+FCA1	member	PF SCHWEISSTECHNOLOGIE GMBH
+FCA2	member	Meizu Technology Co., Ltd.
+FCA3	member	Gunnebo Aktiebolag
+FCA4	member	HP Inc.
+FCA5	member	HAYWARD INDUSTRIES, INC.
+FCA6	member	Hubble Network Inc.
+FCA7	member	Hubble Network Inc.
+FCA8	member	Medtronic Inc.
+FCA9	member	Medtronic Inc.
+FCAA	member	Spintly, Inc.
+FCAB	member	IRISS INC.
+FCAC	member	IRISS INC.
+FCAD	member	Beijing 99help Safety Technology Co., Ltd
+FCAE	member	Imagine Marketing Limited
+FCAF	member	AltoBeam Inc.
+FCB0	member	Ford Motor Company
+FCB1	member	Google LLC
+FCB2	member	Apple Inc.
+FCB3	member	SWEEN
+FCB4	member	OMRON HEALTHCARE Co., Ltd.
+FCB5	member	OMRON HEALTHCARE Co., Ltd.
+FCB6	member	OMRON HEALTHCARE Co., Ltd.
+FCB7	member	T-Mobile USA
+FCB8	member	Ribbiot, INC.
+FCB9	member	Lumi United Technology Co., Ltd
+FCBA	member	BlueID GmbH
+FCBB	member	SharkNinja Operating LLC
+FCBC	member	Drowsy Digital, Inc.
+FCBD	member	Toshiba Corporation
+FCBE	member	Musen Connect, Inc.
+FCBF	member	ASSA ABLOY Opening Solutions Sweden AB
+FCC0	member	Xiaomi Inc.
+FCC1	member	TIMECODE SYSTEMS LIMITED
+FCC2	member	Qualcomm Technologies, Inc.
+FCC3	member	HP Inc.
+FCC4	member	OMRON(DALIAN) CO,.LTD.
+FCC5	member	OMRON(DALIAN) CO,.LTD.
+FCC6	member	Wiliot LTD.
+FCC7	member	PB INC.
+FCC8	member	Allthenticate, Inc.
+FCC9	member	SkyHawke Technologies
+FCCA	member	Cosmed s.r.l.
+FCCB	member	TOTO LTD.
+FCCD	member	Marshall Group AB
+FCCE	member	Luna Health, Inc.
+FCCF	member	Google LLC
+FCD0	member	Laerdal Medical AS
+FCD1	member	Shenzhen Benwei Media Co.,Ltd.
+FCD2	member	Allterco Robotics ltd
+FCD3	member	Fisher & Paykel Healthcare
+FCD4	member	OMRON HEALTHCARE
+FCD5	member	Nortek Security & Control
+FCD6	member	SWISSINNO SOLUTIONS AG
+FCD7	member	PowerPal Pty Ltd
+FCD8	member	Appex Factory S.L.
+FCD9	member	Huso, INC
+FCDA	member	Draeger
+FCDB	member	aconno GmbH
+FCDC	member	Amazon.com Services, LLC
+FCDD	member	Mobilaris AB
+FCDE	member	ARCTOP, INC.
+FCDF	member	NIO USA, Inc.
+FCE0	member	Akciju sabiedriba "SAF TEHNIKA"
+FCE1	member	Sony Group Corporation
+FCE2	member	Baracoda Daily Healthtech
+FCE3	member	Smith & Nephew Medical Limited
+FCE4	member	Samsara Networks, Inc
+FCE5	member	Samsara Networks, Inc
+FCE6	member	Guard RFID Solutions Inc.
+FCE7	member	TKH Security B.V.
+FCE8	member	ITT Industries
+FCE9	member	MindRhythm, Inc.
+FCEA	member	Chess Wise B.V.
+FCEB	member	Avi-On
+FCEC	member	Griffwerk GmbH
+FCED	member	Workaround Gmbh
+FCEE	member	Velentium, LLC
+FCEF	member	Divesoft s.r.o.
+FCF0	member	Security Enhancement Systems, LLC
+FCF1	member	Google LLC
+FCF2	member	Bitwards Oy
+FCF3	member	Armatura LLC
+FCF4	member	Allegion
+FCF5	member	Trident Communication Technology, LLC
+FCF6	member	The Linux Foundation
+FCF7	member	Honor Device Co., Ltd.
+FCF8	member	Honor Device Co., Ltd.
+FCF9	member	Leupold & Stevens, Inc.
+FCFA	member	Leupold & Stevens, Inc.
+FCFB	member	Shenzhen Benwei Media Co., Ltd.
+FCFC	member	Barrot Technology Co.,Ltd.
+FCFD	member	Barrot Technology Co.,Ltd.
+FCFE	member	Sonova Consumer Hearing GmbH
+FCFF	member	701x
+FD00	member	FUTEK Advanced Sensor Technology, Inc.
+FD01	member	Sanvita Medical Corporation
+FD02	member	LEGO System A/S
+FD03	member	Quuppa Oy
+FD04	member	Shure Inc.
+FD05	member	Qualcomm Technologies, Inc.
+FD06	member	RACE-AI LLC
+FD07	member	Swedlock AB
+FD08	member	Bull Group Incorporated Company
+FD09	member	Cousins and Sears LLC
+FD0A	member	Luminostics, Inc.
+FD0B	member	Luminostics, Inc.
+FD0C	member	OSM HK Limited
+FD0D	member	Blecon Ltd
+FD0E	member	HerdDogg, Inc
+FD0F	member	AEON MOTOR CO.,LTD.
+FD10	member	AEON MOTOR CO.,LTD.
+FD11	member	AEON MOTOR CO.,LTD.
+FD12	member	AEON MOTOR CO.,LTD.
+FD13	member	BRG Sports, Inc.
+FD14	member	BRG Sports, Inc.
+FD15	member	Panasonic Corporation
+FD16	member	Sensitech, Inc.
+FD17	member	LEGIC Identsystems AG
+FD18	member	LEGIC Identsystems AG
+FD19	member	Smith & Nephew Medical Limited
+FD1A	member	CSIRO
+FD1B	member	Helios Sports, Inc.
+FD1C	member	Brady Worldwide Inc.
+FD1D	member	Samsung Electronics Co., Ltd
+FD1E	member	Plume Design Inc.
+FD1F	member	3M
+FD20	member	GN Hearing A/S
+FD21	member	Huawei Technologies Co., Ltd.
+FD22	member	Huawei Technologies Co., Ltd.
+FD23	member	DOM Sicherheitstechnik GmbH & Co. KG
+FD24	member	GD Midea Air-Conditioning Equipment Co., Ltd.
+FD25	member	GD Midea Air-Conditioning Equipment Co., Ltd.
+FD26	member	Novo Nordisk A/S
+FD27	member	Integrated Illumination Systems, Inc.
+FD28	member	Julius Blum GmbH
+FD29	member	Asahi Kasei Corporation
+FD2A	member	Sony Corporation
+FD2B	member	The Access Technologies
+FD2C	member	The Access Technologies
+FD2D	member	Xiaomi Inc.
+FD2E	member	Bitstrata Systems Inc.
+FD2F	member	Bitstrata Systems Inc.
+FD30	member	Sesam Solutions BV
+FD31	member	LG Electronics Inc.
+FD32	member	Gemalto Holding BV
+FD33	member	DashLogic, Inc.
+FD34	member	Aerosens LLC.
+FD35	member	Transsion Holdings Limited
+FD36	member	Google LLC
+FD37	member	TireCheck GmbH
+FD38	member	Danfoss A/S
+FD39	member	PREDIKTAS
+FD3A	member	Verkada Inc.
+FD3B	member	Verkada Inc.
+FD3C	member	Redline Communications Inc.
+FD3D	member	Woan Technology (Shenzhen) Co., Ltd.
+FD3E	member	Pure Watercraft, inc.
+FD3F	member	Cognosos, Inc
+FD40	member	Beflex Inc.
+FD41	member	Amazon Lab126
+FD42	member	Globe (Jiangsu) Co.,Ltd
+FD43	member	Apple Inc.
+FD44	member	Apple Inc.
+FD45	member	GB Solution co.,Ltd
+FD46	member	Lemco IKE
+FD47	member	Liberty Global Inc.
+FD48	member	Geberit International AG
+FD49	member	Panasonic Corporation
+FD4A	member	Sigma Elektro GmbH
+FD4B	member	Samsung Electronics Co., Ltd.
+FD4C	member	Adolf Wuerth GmbH & Co KG
+FD4D	member	70mai Co.,Ltd.
+FD4E	member	70mai Co.,Ltd.
+FD4F	member	SONITOR TECHNOLOGIES AS
+FD50	member	Hangzhou Tuya Information Technology Co., Ltd
+FD51	member	UTC Fire and Security
+FD52	member	UTC Fire and Security
+FD53	member	PCI Private Limited
+FD54	member	Qingdao Haier Technology Co., Ltd.
+FD55	member	Braveheart Wireless, Inc.
+FD56	member	Resmed Ltd
+FD57	member	Volvo Car Corporation
+FD58	member	Volvo Car Corporation
+FD59	member	Samsung Electronics Co., Ltd.
+FD5A	member	Samsung Electronics Co., Ltd.
+FD5B	member	V2SOFT INC.
+FD5C	member	React Mobile
+FD5D	member	maxon motor ltd.
+FD5E	member	Tapkey GmbH
+FD5F	member	Meta Platforms Technologies, LLC
+FD60	member	Sercomm Corporation
+FD61	member	Arendi AG
+FD62	member	Google LLC
+FD63	member	Google LLC
+FD64	member	INRIA
+FD65	member	Razer Inc.
+FD66	member	Zebra Technologies Corporation
+FD67	member	Montblanc Simplo GmbH
+FD68	member	Ubique Innovation AG
+FD69	member	Samsung Electronics Co., Ltd
+FD6A	member	Emerson
+FD6B	member	rapitag GmbH
+FD6C	member	Samsung Electronics Co., Ltd.
+FD6D	member	Sigma Elektro GmbH
+FD6E	member	Polidea sp. z o.o.
+FD6F	member	Apple, Inc.
+FD70	member	GuangDong Oppo Mobile Telecommunications Corp., Ltd
+FD71	member	GN Hearing A/S
+FD72	member	Logitech International SA
+FD73	member	BRControls Products BV
+FD74	member	BRControls Products BV
+FD75	member	Insulet Corporation
+FD76	member	Insulet Corporation
+FD77	member	Withings
+FD78	member	Withings
+FD79	member	Withings
+FD7A	member	Withings
+FD7B	member	WYZE LABS, INC.
+FD7C	member	Toshiba Information Systems(Japan) Corporation
+FD7D	member	Center for Advanced Research Wernher Von Braun
+FD7E	member	Samsung Electronics Co., Ltd.
+FD7F	member	Husqvarna AB
+FD80	member	Phindex Technologies, Inc
+FD81	member	CANDY HOUSE, Inc.
+FD82	member	Sony Corporation
+FD83	member	iNFORM Technology GmbH
+FD84	member	Tile, Inc.
+FD85	member	Husqvarna AB
+FD86	member	Abbott
+FD87	member	Google LLC
+FD88	member	Urbanminded LTD
+FD89	member	Urbanminded LTD
+FD8A	member	Signify Netherlands B.V.
+FD8B	member	Jigowatts Inc.
+FD8C	member	Google LLC
+FD8D	member	quip NYC Inc.
+FD8E	member	Motorola Solutions
+FD90	member	Guangzhou SuperSound Information Technology Co.,Ltd
+FD91	member	Groove X, Inc.
+FD92	member	Qualcomm Technologies International, Ltd. (QTIL)
+FD93	member	Bayerische Motoren Werke AG
+FD94	member	Hewlett Packard Enterprise
+FD95	member	Rigado
+FD96	member	Google LLC
+FD97	member	June Life, Inc.
+FD98	member	Disney Worldwide Services, Inc.
+FD99	member	ABB Oy
+FD9A	member	Huawei Technologies Co., Ltd.
+FD9B	member	Huawei Technologies Co., Ltd.
+FD9C	member	Huawei Technologies Co., Ltd.
+FD9D	member	Gastec Corporation
+FD9E	member	The Coca-Cola Company
+FD9F	member	VitalTech Affiliates LLC
+FDA0	member	Secugen Corporation
+FDA1	member	Groove X, Inc
+FDA2	member	Groove X, Inc
+FDA3	member	Inseego Corp.
+FDA4	member	Inseego Corp.
+FDA5	member	Neurostim OAB, Inc.
+FDA6	member	WWZN Information Technology Company Limited
+FDA7	member	WWZN Information Technology Company Limited
+FDA8	member	PSA Peugeot Citroën
+FDA9	member	Rhombus Systems, Inc.
+FDAA	member	Xiaomi Inc.
+FDAB	member	Xiaomi Inc.
+FDAC	member	Tentacle Sync GmbH
+FDAD	member	Houwa System Design, k.k.
+FDAE	member	Houwa System Design, k.k.
+FDAF	member	Wiliot LTD
+FDB0	member	Oura Health Ltd
+FDB1	member	Oura Health Ltd
+FDB2	member	Portable Multimedia Ltd
+FDB3	member	Audiodo AB
+FDB4	member	HP Inc
+FDB5	member	ECSG
+FDB6	member	GWA Hygiene GmbH
+FDB7	member	LivaNova USA Inc.
+FDB8	member	LivaNova USA Inc.
+FDBB	member	Profoto
+FDBC	member	Emerson
+FDBD	member	Clover Network, Inc.
+FDBE	member	California Things Inc.
+FDBF	member	California Things Inc.
+FDC0	member	Hunter Douglas
+FDC1	member	Hunter Douglas
+FDC2	member	Baidu Online Network Technology (Beijing) Co., Ltd
+FDC3	member	Baidu Online Network Technology (Beijing) Co., Ltd
+FDC4	member	Simavita (Aust) Pty Ltd
+FDC5	member	Automatic Labs
+FDC6	member	Eli Lilly and Company
+FDC7	member	Eli Lilly and Company
+FDC8	member	Hach – Danaher
+FDC9	member	Busch-Jaeger Elektro GmbH
+FDCA	member	Fortin Electronic Systems
+FDCB	member	Meggitt SA
+FDCC	member	Shoof Technologies
+FDCD	member	Qingping Technology (Beijing) Co., Ltd.
+FDCE	member	SENNHEISER electronic GmbH & Co. KG
+FDCF	member	Nalu Medical, Inc
+FDD0	member	Huawei Technologies Co., Ltd
+FDD1	member	Huawei Technologies Co., Ltd
+FDD2	member	Bose Corporation
+FDD3	member	FUBA Automotive Electronics GmbH
+FDD4	member	LX Solutions Pty Limited
+FDD5	member	Brompton Bicycle Ltd
+FDD6	member	Ministry of Supply
+FDD7	member	Copeland Cold Chain LP
+FDD8	member	Jiangsu Teranovo Tech Co., Ltd.
+FDD9	member	Jiangsu Teranovo Tech Co., Ltd.
+FDDA	member	MHCS
+FDDB	member	Samsung Electronics Co., Ltd.
+FDDC	member	4iiii Innovations Inc.
+FDDD	member	Arch Systems Inc
+FDDE	member	Noodle Technology Inc.
+FDDF	member	Harman International
+FDE0	member	John Deere
+FDE1	member	Fortin Electronic Systems
+FDE2	member	Google LLC
+FDE3	member	Abbott Diabetes Care
+FDE4	member	JUUL Labs, Inc.
+FDE5	member	SMK Corporation
+FDE6	member	Intelletto Technologies Inc
+FDE7	member	SECOM Co., LTD
+FDE8	member	Robert Bosch GmbH
+FDE9	member	Spacesaver Corporation
+FDEA	member	SeeScan, Inc
+FDEB	member	Syntronix Corporation
+FDEC	member	Mannkind Corporation
+FDED	member	Pole Star
+FDEE	member	Huawei Technologies Co., Ltd.
+FDEF	member	ART AND PROGRAM, INC.
+FDF0	member	Google LLC
+FDF1	member	LAMPLIGHT Co.,Ltd
+FDF2	member	AMICCOM Electronics Corporation
+FDF3	member	Amersports
+FDF4	member	O. E. M. Controls, Inc.
+FDF5	member	Milwaukee Electric Tools
+FDF6	member	AIAIAI ApS
+FDF7	member	HP Inc.
+FDF8	member	Onvocal
+FDF9	member	INIA
+FDFA	member	Tandem Diabetes Care
+FDFB	member	Tandem Diabetes Care
+FDFC	member	Optrel AG
+FDFD	member	RecursiveSoft Inc.
+FDFE	member	ADHERIUM(NZ) LIMITED
+FDFF	member	OSRAM GmbH
+FE00	member	Amazon.com Services, Inc.
+FE01	member	Duracell U.S. Operations Inc.
+FE02	member	Robert Bosch GmbH
+FE03	member	Amazon.com Services, Inc.
+FE04	member	Motorola Solutions, Inc.
+FE05	member	CORE Transport Technologies NZ Limited
+FE06	member	Qualcomm Technologies, Inc.
+FE07	member	Sonos, Inc.
+FE08	member	Microsoft
+FE09	member	Pillsy, Inc.
+FE0A	member	ruwido austria gmbh
+FE0B	member	ruwido austria gmbh
+FE0C	member	Procter & Gamble
+FE0D	member	Procter & Gamble
+FE0E	member	Setec Pty Ltd
+FE0F	member	Signify Netherlands B.V. (formerly Philips Lighting B.V.)
+FE10	member	LAPIS Technology Co., Ltd.
+FE11	member	GMC-I Messtechnik GmbH
+FE12	member	M-Way Solutions GmbH
+FE13	member	Apple Inc.
+FE14	member	Flextronics International USA Inc.
+FE15	member	Amazon.com Services, Inc..
+FE16	member	Footmarks, Inc.
+FE17	member	Telit Wireless Solutions GmbH
+FE18	member	Runtime, Inc.
+FE19	member	Google LLC
+FE1A	member	Tyto Life LLC
+FE1B	member	Tyto Life LLC
+FE1C	member	NetMedia, Inc.
+FE1D	member	Illuminati Instrument Corporation
+FE1E	member	LAMPLIGHT Co., Ltd.
+FE1F	member	Garmin International, Inc.
+FE20	member	Emerson
+FE21	member	Bose Corporation
+FE22	member	Zoll Medical Corporation
+FE23	member	Zoll Medical Corporation
+FE24	member	August Home Inc
+FE25	member	Apple, Inc.
+FE26	member	Google LLC
+FE27	member	Google LLC
+FE28	member	Ayla Networks
+FE29	member	Gibson Innovations
+FE2A	member	DaisyWorks, Inc.
+FE2B	member	ITT Industries
+FE2C	member	Google LLC
+FE2D	member	LAMPLIGHT Co., Ltd.
+FE2E	member	ERi,Inc.
+FE2F	member	CRESCO Wireless, Inc
+FE30	member	Volkswagen AG
+FE31	member	Volkswagen AG
+FE32	member	Pro-Mark, Inc.
+FE33	member	CHIPOLO d.o.o.
+FE34	member	SmallLoop LLC
+FE35	member	HUAWEI Technologies Co., Ltd
+FE36	member	HUAWEI Technologies Co., Ltd
+FE39	member	TTS Tooltechnic Systems AG & Co. KG
+FE3A	member	TTS Tooltechnic Systems AG & Co. KG
+FE3B	member	Dolby Laboratories
+FE3C	member	alibaba
+FE3D	member	BD Medical
+FE3E	member	BD Medical
+FE3F	member	Friday Labs Limited
+FE40	member	Inugo Systems Limited
+FE41	member	Inugo Systems Limited
+FE42	member	Nets A/S
+FE43	member	Andreas Stihl AG & Co. KG
+FE44	member	SK Telecom
+FE45	member	Snapchat Inc
+FE46	member	B&O Play A/S
+FE47	member	General Motors
+FE48	member	General Motors
+FE49	member	SenionLab AB
+FE4A	member	OMRON HEALTHCARE Co., Ltd.
+FE4B	member	Signify Netherlands B.V. (formerly Philips Lighting B.V.)
+FE4C	member	Volkswagen AG
+FE4D	member	Casambi Technologies Oy
+FE4E	member	NTT docomo
+FE4F	member	Molekule, Inc.
+FE50	member	Google LLC
+FE51	member	SRAM
+FE52	member	SetPoint Medical
+FE53	member	3M
+FE54	member	Motiv, Inc.
+FE55	member	Google LLC
+FE56	member	Google LLC
+FE57	member	Dotted Labs
+FE58	member	Nordic Semiconductor ASA
+FE59	member	Nordic Semiconductor ASA
+FE5A	member	Cronologics Corporation
+FE5B	member	GT-tronics HK Ltd
+FE5C	member	million hunters GmbH
+FE5D	member	Grundfos A/S
+FE5E	member	Plastc Corporation
+FE5F	member	Eyefi, Inc.
+FE60	member	Lierda Science & Technology Group Co., Ltd.
+FE61	member	Logitech International SA
+FE62	member	Indagem Tech LLC
+FE63	member	Connected Yard, Inc.
+FE64	member	Siemens AG
+FE65	member	CHIPOLO d.o.o.
+FE66	member	Intel Corporation
+FE67	member	Lab Sensor Solutions
+FE68	member	Capsle Technologies Inc.
+FE69	member	Capsle Technologies Inc.
+FE6A	member	Kontakt Micro-Location Sp. z o.o.
+FE6B	member	TASER International, Inc.
+FE6C	member	TASER International, Inc.
+FE6D	member	The University of Tokyo
+FE6E	member	The University of Tokyo
+FE6F	member	LINE Corporation
+FE70	member	Beijing Jingdong Century Trading Co., Ltd.
+FE71	member	Plume Design Inc
+FE72	member	Abbott Medical (formerly St. Jude Medical, Inc.)
+FE73	member	Abbott Medical (formerly St. Jude Medical, Inc.)
+FE74	member	unwire
+FE75	member	TangoMe
+FE76	member	TangoMe
+FE77	member	Hewlett-Packard Company
+FE78	member	Hewlett-Packard Company
+FE79	member	Zebra Technologies
+FE7A	member	Bragi GmbH
+FE7B	member	Orion Labs, Inc.
+FE7C	member	Telit Wireless Solutions (Formerly Stollmann E+V GmbH)
+FE7D	member	Aterica Health Inc.
+FE7E	member	Awear Solutions Ltd
+FE7F	member	Doppler Lab
+FE80	member	Doppler Lab
+FE81	member	Medtronic Inc.
+FE82	member	Medtronic Inc.
+FE83	member	Blue Bite
+FE84	member	RF Digital Corp
+FE85	member	RF Digital Corp
+FE86	member	HUAWEI Technologies Co., Ltd
+FE87	member	Qingdao Yeelink Information Technology Co., Ltd. ( 青岛亿联客信息技术有限公司 )
+FE88	member	SALTO SYSTEMS S.L.
+FE89	member	B&O Play A/S
+FE8A	member	Apple, Inc.
+FE8B	member	Apple, Inc.
+FE8C	member	TRON Forum
+FE8D	member	Interaxon Inc.
+FE8E	member	ARM Ltd
+FE8F	member	CSR
+FE90	member	JUMA
+FE91	member	Shanghai Imilab Technology Co.,Ltd
+FE92	member	Jarden Safety & Security
+FE93	member	OttoQ In
+FE94	member	OttoQ In
+FE95	member	Xiaomi Inc.
+FE96	member	Tesla Motors Inc.
+FE97	member	Tesla Motors Inc.
+FE98	member	Currant Inc
+FE99	member	Currant Inc
+FE9A	member	Estimote
+FE9B	member	Samsara Networks, Inc
+FE9C	member	GSI Laboratories, Inc.
+FE9D	member	Mobiquity Networks Inc
+FE9E	member	Renesas Design Netherlands B.V.
+FE9F	member	Google LLC
+FEA0	member	Google LLC
+FEA3	member	ITT Industries
+FEA4	member	Paxton Access Ltd
+FEA5	member	GoPro, Inc.
+FEA6	member	GoPro, Inc.
+FEA7	member	UTC Fire and Security
+FEA8	member	Savant Systems LLC
+FEA9	member	Savant Systems LLC
+FEAA	member	Google LLC
+FEAB	member	Nokia
+FEAC	member	Nokia
+FEAD	member	Nokia
+FEAE	member	Nokia
+FEAF	member	Nest Labs Inc
+FEB0	member	Nest Labs Inc
+FEB1	member	Electronics Tomorrow Limited
+FEB2	member	Microsoft Corporation
+FEB3	member	Taobao
+FEB4	member	WiSilica Inc.
+FEB5	member	WiSilica Inc.
+FEB6	member	Vencer Co., Ltd
+FEB7	member	Meta Platforms, Inc.
+FEB8	member	Meta Platforms, Inc.
+FEB9	member	LG Electronics
+FEBA	member	Tencent Holdings Limited
+FEBB	member	adafruit industries
+FEBC	member	Dexcom Inc
+FEBD	member	Clover Network, Inc
+FEBE	member	Bose Corporation
+FEBF	member	Nod, Inc.
+FEC0	member	KDDI Corporation
+FEC1	member	KDDI Corporation
+FEC2	member	Blue Spark Technologies, Inc.
+FEC3	member	360fly, Inc.
+FEC4	member	PLUS Location Systems
+FEC5	member	Realtek Semiconductor Corp.
+FEC6	member	Kocomojo, LLC
+FEC7	member	Apple, Inc.
+FEC8	member	Apple, Inc.
+FEC9	member	Apple, Inc.
+FECA	member	Apple, Inc.
+FECB	member	Apple, Inc.
+FECC	member	Apple, Inc.
+FECD	member	Apple, Inc.
+FECE	member	Apple, Inc.
+FECF	member	Apple, Inc.
+FED0	member	Apple, Inc.
+FED1	member	Apple, Inc.
+FED2	member	Apple, Inc.
+FED3	member	Apple, Inc.
+FED4	member	Apple, Inc.
+FED5	member	Plantronics Inc.
+FED6	member	Broadcom
+FED7	member	Broadcom
+FED8	member	Google LLC
+FED9	member	Pebble Technology Corporation
+FEDA	member	ISSC Technologies Corp.
+FEDB	member	Perka, Inc.
+FEDC	member	Jawbone
+FEDD	member	Jawbone
+FEDE	member	Coin, Inc.
+FEE0	member	Anhui Huami Information Technology Co., Ltd.
+FEE1	member	Anhui Huami Information Technology Co., Ltd.
+FEE2	member	Anki, Inc.
+FEE3	member	Anki, Inc.
+FEE4	member	Nordic Semiconductor ASA
+FEE5	member	Nordic Semiconductor ASA
+FEE6	member	Silvair, Inc.
+FEE7	member	Tencent Holdings Limited.
+FEE8	member	Quintic Corp.
+FEE9	member	Quintic Corp.
+FEEA	member	Swirl Networks, Inc.
+FEEB	member	Swirl Networks, Inc.
+FEEC	member	Tile, Inc.
+FEED	member	Tile, Inc.
+FEEE	member	Polar Electro Oy
+FEEF	member	Polar Electro Oy
+FEF0	member	Intel
+FEF1	member	CSR
+FEF2	member	CSR
+FEF3	member	Google LLC
+FEF4	member	Google LLC
+FEF5	member	Dialog Semiconductor GmbH
+FEF6	member	Wicentric, Inc.
+FEF7	member	Aplix Corporation
+FEF8	member	Aplix Corporation
+FEF9	member	PayPal, Inc.
+FEFA	member	PayPal, Inc.
+FEFB	member	Telit Wireless Solutions (Formerly Stollmann E+V GmbH)
+FEFC	member	Gimbal, Inc.
+FEFD	member	Gimbal, Inc.
+FEFE	member	GN Hearing A/S
+FEFF	member	GN Netcom

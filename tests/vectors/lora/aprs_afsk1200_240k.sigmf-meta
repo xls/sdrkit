@@ -1,0 +1,16 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 240000.0,
+    "core:version": "1.0.0",
+    "core:description": "APRS AX.25 1200 bd AFSK (Bell 202) on narrow FM, 3 kHz deviation, carrier 50 kHz below the capture centre, C/N 20 dB in 25 kHz. Synthetic.",
+    "core:author": "sdrkit test vector generator",
+    "core:hw": "synthetic (no radio)"
+  },
+  "captures": [ { "core:sample_start": 0, "core:frequency": 144850000.0 } ],
+  "annotations": [
+    { "core:sample_start": 24000, "core:sample_count": 203600, "core:freq_lower_edge": 144792000.0, "core:freq_upper_edge": 144808000.0, "core:label": "AX.25 UI position" },
+    { "core:sample_start": 287600, "core:sample_count": 139200, "core:freq_lower_edge": 144792000.0, "core:freq_upper_edge": 144808000.0, "core:label": "AX.25 UI message" },
+    { "core:sample_start": 486800, "core:sample_count": 134600, "core:freq_lower_edge": 144792000.0, "core:freq_upper_edge": 144808000.0, "core:label": "AX.25 UI ack" }
+  ]
+}

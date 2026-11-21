@@ -1,0 +1,67 @@
+# id: datalink_channels
+# name: ACARS, VDL Mode 2 and VDL Mode 4 channel sets by region
+# stacks: acars vdl2 vdl4
+# source: usage of the regions; not confirmed against an ICAO or ARINC plan
+# note: A host gives a stack the frequencies of one set, joined with spaces, as its setting channels.
+stack,set,frequency_mhz,note
+acars,Europe,131.525,
+acars,Europe,131.725,
+acars,Europe,131.825,
+acars,North America,131.125,
+acars,North America,131.550,
+acars,North America,131.725,
+acars,North America,130.025,
+acars,single,131.525,one channel
+vdl2,Europe,136.675,
+vdl2,Europe,136.725,
+vdl2,Europe,136.775,
+vdl2,Europe,136.825,
+vdl2,Europe,136.850,
+vdl2,Europe,136.875,
+vdl2,Europe,136.900,
+vdl2,Europe,136.975,
+vdl2,Europe 2027,136.700,from 2027
+vdl2,Europe 2027,136.725,from 2027
+vdl2,Europe 2027,136.750,from 2027
+vdl2,Europe 2027,136.775,from 2027
+vdl2,Europe 2027,136.800,from 2027
+vdl2,Europe 2027,136.825,from 2027
+vdl2,Europe 2027,136.850,from 2027
+vdl2,Europe 2027,136.875,from 2027
+vdl2,Europe 2027,136.900,from 2027
+vdl2,Europe 2027,136.925,from 2027
+vdl2,Europe 2027,136.950,from 2027
+vdl2,Europe 2027,136.975,from 2027
+vdl2,North America,136.100,
+vdl2,North America,136.300,
+vdl2,North America,136.650,
+vdl2,North America,136.800,
+vdl2,North America,136.975,
+vdl2,Worldwide,131.250,a set across the regions; not confirmed against an ICAO plan
+vdl2,Worldwide,131.425,
+vdl2,Worldwide,131.450,
+vdl2,Worldwide,131.475,
+vdl2,Worldwide,131.525,
+vdl2,Worldwide,131.550,
+vdl2,Worldwide,131.725,
+vdl2,Worldwide,131.825,
+vdl2,Worldwide,136.650,
+vdl2,Worldwide,136.675,
+vdl2,Worldwide,136.700,
+vdl2,Worldwide,136.725,
+vdl2,Worldwide,136.750,
+vdl2,Worldwide,136.775,
+vdl2,Worldwide,136.800,
+vdl2,Worldwide,136.825,
+vdl2,Worldwide,136.850,
+vdl2,Worldwide,136.875,
+vdl2,Worldwide,136.900,
+vdl2,Worldwide,136.925,
+vdl2,Worldwide,136.950,
+vdl2,Worldwide,136.975,
+vdl4,Six channels,136.725,not confirmed against a VDL Mode 4 plan
+vdl4,Six channels,136.775,
+vdl4,Six channels,136.825,
+vdl4,Six channels,136.875,
+vdl4,Six channels,136.900,
+vdl4,Six channels,136.975,

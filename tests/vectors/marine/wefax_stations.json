@@ -1,0 +1,818 @@
+{
+ "description": "HF radiofax stations (carrier frequencies; the USB dial is 1.9 kHz below each carrier) and sample broadcast times. Source: NOAA Worldwide Marine Radiofacsimile Broadcast Schedules and the stations' own schedules; stations change frequencies and times.",
+ "stations": [
+  {
+   "id": "DDK",
+   "name": "DWD Pinneberg (Hamburg)",
+   "callsigns": [
+    "DDH3",
+    "DDK3",
+    "DDK6"
+   ],
+   "country": "Germany",
+   "region": "Europe",
+   "carrier_khz": [
+    3855.0,
+    7880.0,
+    13882.5
+   ]
+  },
+  {
+   "id": "GYA",
+   "name": "Northwood (UK Met Office / Royal Navy)",
+   "callsigns": [
+    "GYA"
+   ],
+   "country": "United Kingdom",
+   "region": "Europe",
+   "carrier_khz": [
+    2618.5,
+    4610.0,
+    8040.0,
+    11086.5
+   ]
+  },
+  {
+   "id": "SVJ4",
+   "name": "Athens",
+   "callsigns": [
+    "SVJ4"
+   ],
+   "country": "Greece",
+   "region": "Europe",
+   "carrier_khz": [
+    4481.0,
+    8105.0
+   ]
+  },
+  {
+   "id": "TAH",
+   "name": "Istanbul (Turkish Met Service)",
+   "callsigns": [
+    "TAH"
+   ],
+   "country": "Turkey",
+   "region": "Europe",
+   "carrier_khz": [
+    3377.0,
+    6825.0
+   ]
+  },
+  {
+   "id": "RBW",
+   "name": "Murmansk",
+   "callsigns": [
+    "RBW41"
+   ],
+   "country": "Russia",
+   "region": "Europe",
+   "carrier_khz": [
+    6445.5,
+    7907.0
+   ]
+  },
+  {
+   "id": "NMF",
+   "name": "Boston (NOAA / USCG)",
+   "callsigns": [
+    "NMF"
+   ],
+   "country": "United States",
+   "region": "North America",
+   "carrier_khz": [
+    4235.0,
+    6340.5,
+    9110.0,
+    12750.0
+   ]
+  },
+  {
+   "id": "NMG",
+   "name": "New Orleans (NOAA / USCG)",
+   "callsigns": [
+    "NMG"
+   ],
+   "country": "United States",
+   "region": "North America",
+   "carrier_khz": [
+    4317.9,
+    8503.9,
+    12789.9,
+    17146.4
+   ]
+  },
+  {
+   "id": "NMC",
+   "name": "Point Reyes (NOAA / USCG)",
+   "callsigns": [
+    "NMC"
+   ],
+   "country": "United States",
+   "region": "North America",
+   "carrier_khz": [
+    4346.0,
+    8682.0,
+    12786.0,
+    17151.2,
+    22527.0
+   ]
+  },
+  {
+   "id": "NOJ",
+   "name": "Kodiak (NOAA / USCG)",
+   "callsigns": [
+    "NOJ"
+   ],
+   "country": "United States",
+   "region": "North America",
+   "carrier_khz": [
+    2054.0,
+    4298.0,
+    8459.0,
+    12412.5
+   ]
+  },
+  {
+   "id": "KVM70",
+   "name": "Honolulu (NOAA)",
+   "callsigns": [
+    "KVM70"
+   ],
+   "country": "United States",
+   "region": "Oceania",
+   "carrier_khz": [
+    9982.5,
+    11090.0,
+    16135.0,
+    23331.5
+   ]
+  },
+  {
+   "id": "CFH",
+   "name": "Halifax (Canadian Forces)",
+   "callsigns": [
+    "CFH"
+   ],
+   "country": "Canada",
+   "region": "North America",
+   "carrier_khz": [
+    4271.0,
+    6496.4,
+    10536.0,
+    13510.0
+   ]
+  },
+  {
+   "id": "VCO",
+   "name": "Sydney, Nova Scotia (CCG)",
+   "callsigns": [
+    "VCO"
+   ],
+   "country": "Canada",
+   "region": "North America",
+   "carrier_khz": [
+    4416.0,
+    6915.1
+   ]
+  },
+  {
+   "id": "VFF",
+   "name": "Iqaluit (CCG, summer)",
+   "callsigns": [
+    "VFF"
+   ],
+   "country": "Canada",
+   "region": "North America",
+   "carrier_khz": [
+    3253.0,
+    7710.0
+   ]
+  },
+  {
+   "id": "VFA",
+   "name": "Inuvik (CCG, summer)",
+   "callsigns": [
+    "VFA"
+   ],
+   "country": "Canada",
+   "region": "North America",
+   "carrier_khz": [
+    4292.0,
+    8457.8
+   ]
+  },
+  {
+   "id": "JMH",
+   "name": "Tokyo (Japan Meteorological Agency)",
+   "callsigns": [
+    "JMH"
+   ],
+   "country": "Japan",
+   "region": "Asia",
+   "carrier_khz": [
+    3622.5,
+    7795.0,
+    13988.5
+   ]
+  },
+  {
+   "id": "JJC",
+   "name": "Kyodo News, Tokyo",
+   "callsigns": [
+    "JJC"
+   ],
+   "country": "Japan",
+   "region": "Asia",
+   "carrier_khz": [
+    4316.0,
+    8467.5,
+    12745.5,
+    16971.0,
+    17069.6,
+    22542.0
+   ]
+  },
+  {
+   "id": "HLL2",
+   "name": "Seoul (KMA)",
+   "callsigns": [
+    "HLL2"
+   ],
+   "country": "South Korea",
+   "region": "Asia",
+   "carrier_khz": [
+    3585.0,
+    5857.5,
+    7433.5,
+    9165.0,
+    13570.0
+   ]
+  },
+  {
+   "id": "BAF",
+   "name": "Beijing",
+   "callsigns": [
+    "BAF"
+   ],
+   "country": "China",
+   "region": "Asia",
+   "carrier_khz": [
+    5526.9,
+    8121.9,
+    10116.9,
+    14366.9,
+    16025.9,
+    18236.9
+   ]
+  },
+  {
+   "id": "XSG",
+   "name": "Shanghai",
+   "callsigns": [
+    "XSG"
+   ],
+   "country": "China",
+   "region": "Asia",
+   "carrier_khz": [
+    4170.0,
+    8302.0,
+    12382.0,
+    16559.0
+   ]
+  },
+  {
+   "id": "XSQ",
+   "name": "Guangzhou",
+   "callsigns": [
+    "XSQ"
+   ],
+   "country": "China",
+   "region": "Asia",
+   "carrier_khz": [
+    4199.8,
+    8412.5,
+    12629.3,
+    16826.3
+   ]
+  },
+  {
+   "id": "BMF",
+   "name": "Taipei",
+   "callsigns": [
+    "BMF"
+   ],
+   "country": "Taiwan",
+   "region": "Asia",
+   "carrier_khz": [
+    4616.0,
+    8140.0,
+    13900.0,
+    18560.0
+   ]
+  },
+  {
+   "id": "HSW64",
+   "name": "Bangkok (Thai Navy)",
+   "callsigns": [
+    "HSW64"
+   ],
+   "country": "Thailand",
+   "region": "Asia",
+   "carrier_khz": [
+    7395.0
+   ]
+  },
+  {
+   "id": "VMC",
+   "name": "Charleville (Bureau of Meteorology)",
+   "callsigns": [
+    "VMC"
+   ],
+   "country": "Australia",
+   "region": "Oceania",
+   "carrier_khz": [
+    2628.0,
+    5100.0,
+    11030.0,
+    13920.0,
+    20469.0
+   ]
+  },
+  {
+   "id": "VMW",
+   "name": "Wiluna (Bureau of Meteorology)",
+   "callsigns": [
+    "VMW"
+   ],
+   "country": "Australia",
+   "region": "Oceania",
+   "carrier_khz": [
+    5755.0,
+    7535.0,
+    10555.0,
+    15615.0,
+    18060.0
+   ]
+  },
+  {
+   "id": "ZKLF",
+   "name": "Wellington (MetService)",
+   "callsigns": [
+    "ZKLF"
+   ],
+   "country": "New Zealand",
+   "region": "Oceania",
+   "carrier_khz": [
+    3247.4,
+    5807.0,
+    9459.0,
+    13550.5,
+    16340.1
+   ]
+  },
+  {
+   "id": "CBV",
+   "name": "Valparaiso (Chilean Navy)",
+   "callsigns": [
+    "CBV"
+   ],
+   "country": "Chile",
+   "region": "South America",
+   "carrier_khz": [
+    4228.0,
+    8677.0,
+    17146.4
+   ]
+  },
+  {
+   "id": "CBM",
+   "name": "Punta Arenas, Magallanes (Chilean Navy)",
+   "callsigns": [
+    "CBM"
+   ],
+   "country": "Chile",
+   "region": "South America",
+   "carrier_khz": [
+    4322.0,
+    8696.0
+   ]
+  },
+  {
+   "id": "ZSJ",
+   "name": "Cape Town (South African Navy)",
+   "callsigns": [
+    "ZSJ"
+   ],
+   "country": "South Africa",
+   "region": "Africa",
+   "carrier_khz": [
+    4014.0,
+    7508.0,
+    13538.0,
+    18238.0
+   ]
+  }
+ ],
+ "broadcasts": [
+  {
+   "station": "DDK",
+   "utc": "04:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis, North Atlantic and Europe",
+   "approximate": true
+  },
+  {
+   "station": "DDK",
+   "utc": "10:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "DDK",
+   "utc": "16:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "DDK",
+   "utc": "22:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "DDK",
+   "utc": "09:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Sea state / wave forecast",
+   "approximate": true
+  },
+  {
+   "station": "GYA",
+   "utc": "03:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "GYA",
+   "utc": "09:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "GYA",
+   "utc": "15:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "GYA",
+   "utc": "21:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "GYA",
+   "utc": "10:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Sea and swell forecast",
+   "approximate": true
+  },
+  {
+   "station": "SVJ4",
+   "utc": "09:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis, Mediterranean",
+   "approximate": true
+  },
+  {
+   "station": "SVJ4",
+   "utc": "16:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface forecast",
+   "approximate": true
+  },
+  {
+   "station": "NMF",
+   "utc": "02:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis, Atlantic",
+   "approximate": true
+  },
+  {
+   "station": "NMF",
+   "utc": "08:15",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "NMF",
+   "utc": "14:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "NMF",
+   "utc": "19:45",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "NMG",
+   "utc": "00:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Tropical surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "NMG",
+   "utc": "06:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Tropical surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "NMG",
+   "utc": "12:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Tropical surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "NMG",
+   "utc": "18:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Tropical surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "NMC",
+   "utc": "01:40",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis, Pacific",
+   "approximate": true
+  },
+  {
+   "station": "NMC",
+   "utc": "07:40",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "NMC",
+   "utc": "13:40",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "NMC",
+   "utc": "19:40",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "NOJ",
+   "utc": "04:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis, Alaska",
+   "approximate": true
+  },
+  {
+   "station": "NOJ",
+   "utc": "16:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "KVM70",
+   "utc": "01:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis, Pacific",
+   "approximate": true
+  },
+  {
+   "station": "KVM70",
+   "utc": "13:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "CFH",
+   "utc": "03:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "CFH",
+   "utc": "15:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "JMH",
+   "utc": "03:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Asia surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "JMH",
+   "utc": "09:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Asia surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "JMH",
+   "utc": "15:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Asia surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "JMH",
+   "utc": "21:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Asia surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "JJC",
+   "utc": "00:00",
+   "lpm": 60,
+   "ioc": 576,
+   "product": "Weather charts and news",
+   "approximate": true
+  },
+  {
+   "station": "HLL2",
+   "utc": "03:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "HLL2",
+   "utc": "15:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "BMF",
+   "utc": "02:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "VMC",
+   "utc": "01:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "MSL analysis, Australia",
+   "approximate": true
+  },
+  {
+   "station": "VMC",
+   "utc": "07:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "MSL analysis",
+   "approximate": true
+  },
+  {
+   "station": "VMC",
+   "utc": "13:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "MSL analysis",
+   "approximate": true
+  },
+  {
+   "station": "VMC",
+   "utc": "19:30",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "MSL analysis",
+   "approximate": true
+  },
+  {
+   "station": "VMW",
+   "utc": "02:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "MSL analysis, Indian Ocean",
+   "approximate": true
+  },
+  {
+   "station": "VMW",
+   "utc": "14:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "MSL analysis",
+   "approximate": true
+  },
+  {
+   "station": "ZKLF",
+   "utc": "01:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "MSL analysis, Southwest Pacific",
+   "approximate": true
+  },
+  {
+   "station": "ZKLF",
+   "utc": "13:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "MSL analysis",
+   "approximate": true
+  },
+  {
+   "station": "CBV",
+   "utc": "11:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis, Southeast Pacific",
+   "approximate": true
+  },
+  {
+   "station": "CBV",
+   "utc": "23:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  },
+  {
+   "station": "ZSJ",
+   "utc": "06:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis, South Atlantic",
+   "approximate": true
+  },
+  {
+   "station": "ZSJ",
+   "utc": "18:00",
+   "lpm": 120,
+   "ioc": 576,
+   "product": "Surface analysis",
+   "approximate": true
+  }
+ ]
+}

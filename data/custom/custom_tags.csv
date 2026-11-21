@@ -1,0 +1,7 @@
+# id: custom_tags
+# name: Signature bytes that the custom stacks take as settings
+# stacks: qam_video
+# source: the private description of these signals
+# note: The bytes are hex. A station that sends other bytes is still received.
+stack,setting,value_hex,note
+qam_video,station_tag,4B415642,"the bytes before "" de "" in the identification text of other stations of this signal"

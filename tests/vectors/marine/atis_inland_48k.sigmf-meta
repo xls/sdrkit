@@ -1,0 +1,15 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 48000.0,
+    "core:version": "1.0.0",
+    "core:description": "ATIS bursts after voice, NFM, 1200 Bd 1300/2100 Hz on a phase-modulated carrier, carrier offset +300 Hz, 30 dB C/N in 12.5 kHz",
+    "core:author": "sdrkit test vectors",
+    "core:license": "CC0-1.0",
+    "core:recorder": "synthetic"
+  },
+  "captures": [
+    {"core:sample_start": 0, "core:frequency": 156500000.0}
+  ],
+  "annotations": []
+}

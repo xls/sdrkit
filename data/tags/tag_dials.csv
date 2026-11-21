@@ -1,0 +1,8 @@
+# id: tag_dials
+# name: Usual starting dials of the stacks rfid_lf and qi
+# stacks: rfid_lf qi
+# source: EM Microelectronic-Marin, EM4100 data sheet (operating frequency 100 to 150 kHz, coil for 125 kHz); Wireless Power Consortium, Qi version 1.2.3, introduction (operation in 87 to 205 kHz). The 140 kHz dial of qi is a starting point inside that range, not from a document.
+# note: Starting points only. The reader carrier or the power signal must lie within about 4 kHz of the dial. rfid_uhf has no row: its channels follow regional plans that are not read here (ETSI EN 302 208, FCC part 15.247).
+stack,frequency_hz,low_hz,high_hz
+rfid_lf,125000,100000,150000
+qi,140000,87000,205000

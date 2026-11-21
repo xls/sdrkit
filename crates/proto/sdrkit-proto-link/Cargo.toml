@@ -1,0 +1,29 @@
+[package]
+name = "sdrkit-proto-link"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Packet links for sdrkit: HDLC with NRZI and G3RUH, AX.25 2.2 frames, KISS, TNC2 text, the APRS parser, AFSK 1200 and G3RUH 9600 packet modems, CSP and AX100 framing"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+serde = { workspace = true, optional = true }
+
+[features]
+# Serialize and Deserialize on the owned value types (AX.25 addresses, APRS reports, CSP headers).
+serde = ["dep:serde"]
+
+[[test]]
+name = "sdrkit-proto-link"
+path = "tests/sdrkit-proto-link.rs"
+
+[dev-dependencies]
+sdrkit-components = { path = "../../framework/sdrkit-components" }

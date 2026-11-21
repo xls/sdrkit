@@ -1,0 +1,179 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "rc_links_2g4",
+      "name": "2.4 GHz radio-control links",
+      "kind": "ism",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, footnote 5.150 (ISM band 2400 to 2500 MHz)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the links use the 2.4 GHz short-range device band; which part of it each country allows was not compared with national rules",
+      "note": "stack settings: frequency 2440 MHz, sample rate 8 Msps; the links hop over the whole band and are not followed",
+      "bands": [
+        {
+          "name": "2.4 GHz radio control",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2483500000,
+          "modes": [
+            "rc_links"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sik_r1",
+      "name": "SiK telemetry radios, Europe",
+      "kind": "ism",
+      "source": {
+        "publisher": "CEPT ERC",
+        "title": "ERC Recommendation 70-03",
+        "number": "ERC/REC 70-03",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the band that SiK radios use in Europe was not compared with ERC/REC 70-03 and national rules",
+      "note": "stack settings: frequency 433.92 MHz, sample rate 8 Msps; the radios hop over a channel list of their own that is not followed",
+      "bands": [
+        {
+          "name": "SiK 433 MHz",
+          "service": "short_range",
+          "start_hz": 433000000,
+          "end_hz": 435000000,
+          "modes": [
+            "mavlink_sik"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sik_americas",
+      "name": "SiK telemetry radios, Americas",
+      "kind": "ism",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47",
+        "number": "47 CFR 15.247",
+        "date": "2026",
+        "url": "https://www.ecfr.gov/current/title-47/section-15.247"
+      },
+      "verified": false,
+      "unverified_reason": "the band that SiK radios use in the Americas was not compared with national rules",
+      "note": "stack settings: frequency 915 MHz, sample rate 8 Msps; the radios hop and are not followed",
+      "bands": [
+        {
+          "name": "SiK 915 MHz",
+          "service": "short_range",
+          "start_hz": 902000000,
+          "end_hz": 928000000,
+          "modes": [
+            "mavlink_sik"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sik_au",
+      "name": "SiK telemetry radios, Australia",
+      "kind": "ism",
+      "source": {
+        "publisher": "ACMA",
+        "title": "Radiocommunications (Low Interference Potential Devices) Class Licence",
+        "date": "2015"
+      },
+      "verified": false,
+      "unverified_reason": "the band that SiK radios use in Australia was not compared with the class licence",
+      "note": "stack settings: frequency 921.5 MHz, sample rate 8 Msps; the radios hop and are not followed",
+      "bands": [
+        {
+          "name": "SiK 921 MHz",
+          "service": "short_range",
+          "start_hz": 915000000,
+          "end_hz": 928000000,
+          "modes": [
+            "mavlink_sik"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wfb_wifi",
+      "name": "wfb-ng and OpenHD video links",
+      "kind": "ism",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, footnote 5.150 (ISM bands)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the links use Wi-Fi channels; which channels each country allows is in the Wi-Fi channel plans and was not compared here",
+      "note": "stack settings: frequency 5805 MHz, sample rate 20 Msps; tune to the centre of a 20 MHz Wi-Fi channel",
+      "bands": [
+        {
+          "name": "wfb 2.4 GHz",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2500000000,
+          "modes": [
+            "wfb"
+          ],
+          "channel_width_hz": 20000000
+        },
+        {
+          "name": "wfb 5 GHz",
+          "service": "short_range",
+          "start_hz": 5150000000,
+          "end_hz": 5900000000,
+          "modes": [
+            "wfb"
+          ],
+          "channel_width_hz": 20000000
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AU",
+      "groups": [
+        "sik_au"
+      ],
+      "unverified_reason": "the mapping of the country to the band is not confirmed by a public document"
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "rc_links_2g4",
+        "sik_r1",
+        "wfb_wifi"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "rc_links_2g4",
+        "sik_americas",
+        "wfb_wifi"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "rc_links_2g4",
+        "wfb_wifi"
+      ]
+    }
+  ]
+}

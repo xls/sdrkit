@@ -1,0 +1,255 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "dect_nrplus_europe",
+      "name": "DECT NR+, Europe (band 1)",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "TS 103 636-2, DECT-2020 New Radio; Part 2: Radio reception and transmission requirements",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the band and the channel numbers (n = 1657 to 1677, centre 450.144 + n x 0.864 MHz) were not compared with TS 103 636-2",
+      "bands": [
+        {
+          "name": "DECT NR+ band 1",
+          "service": "mobile",
+          "start_hz": 1880000000,
+          "end_hz": 1900000000,
+          "modes": [
+            "dect_nrplus"
+          ],
+          "note": "stack dect_nrplus; channel 1657 at 1881.792 MHz is the usual dial"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "LI",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "dect_nrplus_europe"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom, where 1880 to 1900 MHz is the DECT band; not compared with the national rules"
+    }
+  ]
+}

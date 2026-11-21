@@ -1,0 +1,4 @@
+# stack variant stage calibration-units-per-second-of-signal (written by the cost test, do not edit)
+rdas - front 8597.2
+rdas - demod 92828.7
+rdas - picture 9877.6

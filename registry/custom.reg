@@ -1,0 +1,322 @@
+# The interface of the stack family custom. The registry test of the family writes this file.
+family custom version=1.2
+shape.SlottedVoiceFields since=1.0
+shape.SlottedVoiceFields.locked type=bool unit= optional=no since=1.0
+shape.SlottedVoiceFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.SlottedVoiceFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.SlottedVoiceFields.frame_version type=i64 unit= optional=yes since=1.0
+shape.SlottedVoiceFields.voice_kbps type=f64 unit=kbit/s optional=yes since=1.0
+shape.SlottedVoiceFields.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.SlottedVoiceFields.frames_ok type=i64 unit= optional=yes since=1.0
+shape.SlottedVoiceFields.frames_bad type=i64 unit= optional=yes since=1.0
+shape.SlottedVoiceFields.sweep_id type=text unit= optional=yes since=1.0
+shape.SlottedVoiceFields.sweep_db type=f64 unit=dB optional=yes since=1.0
+shape.SlottedVoiceFields.callsign type=text unit= optional=yes since=1.0
+shape.SlottedVoiceFields.note type=text unit= optional=no since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.SlottedVoiceStationRow since=1.0
+shape.SlottedVoiceStationRow.callsign type=text unit= optional=no since=1.0
+shape.SlottedVoiceStationRow.locator type=text unit= optional=no since=1.0
+shape.SlottedVoiceStationRow.position type=position unit= optional=no since=1.0
+shape.SlottedVoiceStationRow.power_dbm type=f64 unit=dBm optional=no since=1.0
+shape.SlottedVoiceStationRow.link type=i64 unit= optional=no since=1.0
+shape.SlottedVoiceStationRow.text type=text unit= optional=no since=1.0
+shape.SlottedVoiceStationRow.last_heard type=time unit= optional=no since=1.0
+shape.SlottedVoiceStationEvent since=1.0
+shape.SlottedVoiceStationEvent.callsign type=text unit= optional=no since=1.0
+shape.SlottedVoiceStationEvent.locator type=text unit= optional=no since=1.0
+shape.SlottedVoiceStationEvent.position type=position unit= optional=no since=1.0
+shape.SlottedVoiceStationEvent.power_dbm type=f64 unit=dBm optional=no since=1.0
+shape.SlottedVoiceStationEvent.text type=text unit= optional=no since=1.0
+shape.TxEvent since=1.0
+shape.TxEvent.state type=text unit= optional=no since=1.0
+shape.TxEvent.reason type=text unit= optional=no since=1.0
+shape.QamVideoFields since=1.0
+shape.QamVideoFields.locked type=bool unit= optional=no since=1.0
+shape.QamVideoFields.profile type=text unit= optional=yes since=1.0
+shape.QamVideoFields.esn0_db type=f64 unit=dB optional=yes since=1.0
+shape.QamVideoFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.QamVideoFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.QamVideoFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.QamVideoFields.blocks_bad type=i64 unit= optional=no since=1.0
+shape.QamVideoFields.groups_restored type=i64 unit= optional=no since=1.0
+shape.QamVideoFields.groups_lost type=i64 unit= optional=no since=1.0
+shape.QamVideoFields.packets type=i64 unit= optional=no since=1.0
+shape.QamVideoFields.callsign type=text unit= optional=yes since=1.0
+shape.QamVideoFields.symbol_rate_hz type=hz unit=Hz optional=no since=1.0
+shape.QamVideoFields.note type=text unit= optional=no since=1.0
+shape.QamVideoStreamRow since=1.0
+shape.QamVideoStreamRow.stream type=text unit= optional=no since=1.0
+shape.QamVideoStreamRow.type type=text unit= optional=no since=1.0
+shape.QamVideoStreamRow.packets type=i64 unit= optional=no since=1.0
+shape.PictureBurstFields since=1.0
+shape.PictureBurstFields.header_ok type=bool unit= optional=yes since=1.0
+shape.PictureBurstFields.profile type=i64 unit= optional=yes since=1.0
+shape.PictureBurstFields.layers type=i64 unit= optional=yes since=1.0
+shape.PictureBurstFields.layers_sent type=i64 unit= optional=yes since=1.0
+shape.PictureBurstFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.PictureBurstFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.PictureBurstFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.PictureBurstFields.callsign type=text unit= optional=yes since=1.0
+shape.PictureBurstFields.bursts type=i64 unit= optional=no since=1.0
+shape.PictureBurstFields.bursts_decoded type=i64 unit= optional=no since=1.0
+shape.PictureBurstFields.locked type=bool unit= optional=no since=1.0
+shape.PictureBurstFields.note type=text unit= optional=no since=1.0
+shape.PictureBurstPictureRow since=1.0
+shape.PictureBurstPictureRow.callsign type=text unit= optional=no since=1.0
+shape.PictureBurstPictureRow.size type=text unit= optional=no since=1.0
+shape.PictureBurstPictureRow.layers type=i64 unit= optional=no since=1.0
+shape.PictureBurstPictureRow.time type=time unit= optional=no since=1.0
+shape.PictureBurstEvent since=1.0
+shape.PictureBurstEvent.callsign type=text unit= optional=no since=1.0
+shape.PictureBurstEvent.size type=text unit= optional=no since=1.0
+shape.PictureBurstEvent.layers type=i64 unit= optional=no since=1.0
+shape.ArqPacketFields since=1.0
+shape.ArqPacketFields.blocks_good type=i64 unit= optional=no since=1.0
+shape.ArqPacketFields.blocks_bad type=i64 unit= optional=no since=1.0
+shape.ArqPacketFields.profile type=i64 unit= optional=yes since=1.0
+shape.ArqPacketFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.ArqPacketFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.ArqPacketFields.callsign type=text unit= optional=yes since=1.0
+shape.ArqPacketFields.bursts type=i64 unit= optional=no since=1.0
+shape.ArqPacketFields.messages type=i64 unit= optional=no since=1.0
+shape.ArqPacketFields.repeats type=i64 unit= optional=no since=1.0
+shape.ArqPacketFields.acks_heard type=i64 unit= optional=no since=1.0
+shape.ArqPacketFields.locked type=bool unit= optional=no since=1.0
+shape.ArqPacketFields.note type=text unit= optional=no since=1.0
+shape.ArqPacketFields.sequence type=i64 unit= optional=yes since=1.0
+shape.ArqPacketMessageRow since=1.0
+shape.ArqPacketMessageRow.callsign type=text unit= optional=no since=1.0
+shape.ArqPacketMessageRow.sequence type=i64 unit= optional=no since=1.0
+shape.ArqPacketMessageRow.length type=i64 unit=bytes optional=no since=1.0
+shape.ArqPacketMessageRow.text type=text unit= optional=no since=1.0
+shape.ArqPacketMessageRow.time type=time unit= optional=no since=1.0
+shape.ArqPacketMessageEvent since=1.0
+shape.ArqPacketMessageEvent.callsign type=text unit= optional=no since=1.0
+shape.ArqPacketMessageEvent.sequence type=i64 unit= optional=no since=1.0
+shape.ArqPacketMessageEvent.length type=i64 unit=bytes optional=no since=1.0
+shape.ArqPacketMessageEvent.text type=text unit= optional=no since=1.0
+shape.ArqPacketAckOutEvent since=1.0
+shape.ArqPacketAckOutEvent.callsign type=text unit= optional=no since=1.0
+shape.ArqPacketAckOutEvent.sequence type=i64 unit= optional=no since=1.0
+shape.ArqPacketAckOutEvent.blocks type=i64 unit= optional=no since=1.0
+shape.ArqPacketAckOutEvent.blocks_acked type=i64 unit= optional=no since=1.0
+shape.ArqPacketAckOutEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.ArqPacketAckInEvent since=1.0
+shape.ArqPacketAckInEvent.callsign type=text unit= optional=no since=1.0
+shape.ArqPacketAckInEvent.sequence type=i64 unit= optional=no since=1.0
+shape.ArqPacketAckInEvent.blocks_acked type=i64 unit= optional=no since=1.0
+shape.ArqPacketAckInEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.FileTransferFields since=1.0
+shape.FileTransferFields.session type=i64 unit= optional=yes since=1.0
+shape.FileTransferFields.blocks_good type=i64 unit= optional=no since=1.0
+shape.FileTransferFields.blocks_bad type=i64 unit= optional=no since=1.0
+shape.FileTransferFields.frames type=i64 unit= optional=no since=1.0
+shape.FileTransferFields.progress type=f64 unit=% optional=yes since=1.0
+shape.FileTransferFields.hash_ok type=bool unit= optional=yes since=1.0
+shape.FileTransferFields.profile type=i64 unit= optional=yes since=1.0
+shape.FileTransferFields.width type=text unit= optional=yes since=1.0
+shape.FileTransferFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.FileTransferFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.FileTransferFields.callsign type=text unit= optional=yes since=1.0
+shape.FileTransferFields.files type=i64 unit= optional=no since=1.0
+shape.FileTransferFields.held_bytes type=i64 unit=bytes optional=no since=1.0
+shape.FileTransferFields.acks_heard type=i64 unit= optional=no since=1.0
+shape.FileTransferFields.locked type=bool unit= optional=no since=1.0
+shape.FileTransferFields.note type=text unit= optional=no since=1.0
+shape.FileTransferFileRow since=1.0
+shape.FileTransferFileRow.name type=text unit= optional=no since=1.0
+shape.FileTransferFileRow.size type=i64 unit=bytes optional=no since=1.0
+shape.FileTransferFileRow.hash type=text unit= optional=no since=1.0
+shape.FileTransferFileRow.state type=text unit= optional=no since=1.0
+shape.FileTransferFileRow.callsign type=text unit= optional=no since=1.0
+shape.FileTransferFileRow.time type=time unit= optional=no since=1.0
+shape.FileTransferReceivedEvent since=1.0
+shape.FileTransferReceivedEvent.name type=text unit= optional=no since=1.0
+shape.FileTransferReceivedEvent.size type=i64 unit=bytes optional=no since=1.0
+shape.FileTransferReceivedEvent.hash type=text unit= optional=no since=1.0
+shape.FileTransferReceivedEvent.path type=text unit= optional=no since=1.0
+shape.FileTransferReceivedEvent.callsign type=text unit= optional=no since=1.0
+shape.FileTransferOpenEvent since=1.0
+shape.FileTransferOpenEvent.session type=i64 unit= optional=no since=1.0
+shape.FileTransferOpenEvent.name type=text unit= optional=no since=1.0
+shape.FileTransferOpenEvent.size type=i64 unit=bytes optional=no since=1.0
+shape.FileTransferOpenEvent.held_bytes type=i64 unit=bytes optional=no since=1.0
+shape.FileTransferOpenEvent.callsign type=text unit= optional=no since=1.0
+shape.HfChatFields since=1.0
+shape.HfChatFields.profile type=i64 unit= optional=yes since=1.0
+shape.HfChatFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.HfChatFields.offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.HfChatFields.clock_error_s type=f64 unit=s optional=yes since=1.0
+shape.HfChatFields.callsign type=text unit= optional=yes since=1.0
+shape.HfChatFields.bursts type=i64 unit= optional=no since=1.0
+shape.HfChatFields.blocks_good type=i64 unit= optional=no since=1.0
+shape.HfChatFields.blocks_bad type=i64 unit= optional=no since=1.0
+shape.HfChatFields.messages type=i64 unit= optional=no since=1.0
+shape.HfChatFields.beacons type=i64 unit= optional=no since=1.0
+shape.HfChatFields.acks_heard type=i64 unit= optional=no since=1.0
+shape.HfChatFields.voice_blocks type=i64 unit= optional=no since=1.0
+shape.HfChatFields.locked type=bool unit= optional=no since=1.0
+shape.HfChatFields.note type=text unit= optional=no since=1.0
+shape.HfChatFields.message_id type=i64 unit= optional=yes since=1.0
+shape.HfChatMessageRow since=1.0
+shape.HfChatMessageRow.callsign type=text unit= optional=no since=1.0
+shape.HfChatMessageRow.to type=text unit= optional=no since=1.0
+shape.HfChatMessageRow.text type=text unit= optional=no since=1.0
+shape.HfChatMessageRow.time type=time unit= optional=no since=1.0
+shape.HfChatBeaconRow since=1.0
+shape.HfChatBeaconRow.callsign type=text unit= optional=no since=1.0
+shape.HfChatBeaconRow.locator type=text unit= optional=no since=1.0
+shape.HfChatBeaconRow.position type=position unit= optional=no since=1.0
+shape.HfChatBeaconRow.power_dbm type=f64 unit=dBm optional=no since=1.0
+shape.HfChatBeaconRow.text type=text unit= optional=no since=1.0
+shape.HfChatBeaconRow.time type=time unit= optional=no since=1.0
+shape.HfChatMessageEvent since=1.0
+shape.HfChatMessageEvent.callsign type=text unit= optional=no since=1.0
+shape.HfChatMessageEvent.to type=text unit= optional=no since=1.0
+shape.HfChatMessageEvent.text type=text unit= optional=no since=1.0
+shape.HfChatBeaconEvent since=1.0
+shape.HfChatBeaconEvent.callsign type=text unit= optional=no since=1.0
+shape.HfChatBeaconEvent.locator type=text unit= optional=no since=1.0
+shape.HfChatBeaconEvent.position type=position unit= optional=no since=1.0
+shape.HfChatBeaconEvent.power_dbm type=f64 unit=dBm optional=no since=1.0
+shape.HfChatBeaconEvent.text type=text unit= optional=no since=1.0
+shape.HfChatAckEvent since=1.0
+shape.HfChatAckEvent.callsign type=text unit= optional=no since=1.0
+shape.HfChatAckEvent.message_id type=i64 unit= optional=no since=1.0
+shape.HfChatAckEvent.blocks_acked type=i64 unit= optional=no since=1.0
+shape.HfChatAckEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.HfChatAckEvent.profile type=i64 unit= optional=no since=1.0
+shape.HfChatVoiceEvent since=1.0
+shape.HfChatVoiceEvent.callsign type=text unit= optional=no since=1.0
+shape.HfChatVoiceEvent.call type=i64 unit= optional=no since=1.0
+shape.HfChatVoiceEvent.profile type=i64 unit= optional=no since=1.0
+slotted_voice since=1.0
+slotted_voice.fields.SlottedVoiceFields since=1.0
+slotted_voice.fields.DecoderFields since=1.0
+slotted_voice.kept.stations since=1.0
+slotted_voice.table.stations row=SlottedVoiceStationRow cap=200 since=1.0
+slotted_voice.event.voice.station fields=SlottedVoiceStationEvent since=1.0
+slotted_voice.event.voice.tx fields=TxEvent since=1.0
+slotted_voice.setting.listen_rate type=choice(both,8000,16000) unit= since=1.0
+slotted_voice.setting.callsign type=text unit= since=1.0
+slotted_voice.setting.grid type=text unit= since=1.0
+slotted_voice.setting.lat type=f64 unit=° since=1.0
+slotted_voice.setting.lon type=f64 unit=° since=1.0
+slotted_voice.setting.power_dbm type=f64 unit=dBm since=1.0
+slotted_voice.setting.link type=i64 unit= since=1.0
+slotted_voice.setting.beacon type=bool unit= since=1.0
+slotted_voice.setting.beacon_text type=text unit= since=1.0
+slotted_voice.setting.frame_version type=choice(3,4) unit= since=1.0
+slotted_voice.setting.bit_rate type=choice(12,16,24,32) unit= since=1.0
+slotted_voice.setting.voice_slots type=i64 unit= since=1.0
+slotted_voice.setting.voice_profile type=choice(v80,v60,v48,v32r) unit= since=1.0
+slotted_voice.setting.robust_data type=bool unit= since=1.0
+slotted_voice.setting.speech_file type=text unit= since=1.0
+slotted_voice.setting.gen_bit_rate type=choice(12,16,24,32) unit= since=1.0
+slotted_voice.setting.gen_frame_version type=choice(3,4) unit= since=1.0
+slotted_voice.command.clear args= reply= since=1.0
+slotted_voice.command.send args= reply= transmits=voice stop=stop since=1.0
+slotted_voice.command.stop args= reply= since=1.0
+qam_video since=1.0
+qam_video.fields.QamVideoFields since=1.0
+qam_video.fields.DecoderFields since=1.0
+qam_video.table.streams row=QamVideoStreamRow cap=64 since=1.0
+qam_video.event.video.tx fields=TxEvent since=1.0
+qam_video.setting.listen_profile type=choice(a,b,cd) unit= since=1.0
+qam_video.setting.callsign type=text unit= since=1.0
+qam_video.setting.station_tag type=text unit= since=1.0
+qam_video.setting.profile type=choice(a,b,c,d) unit= since=1.0
+qam_video.setting.fec type=i64 unit= since=1.0
+qam_video.setting.file type=text unit= since=1.0
+qam_video.setting.media_s type=f64 unit=s since=1.0
+qam_video.command.clear args= reply= since=1.0
+qam_video.command.send args= reply= transmits=file stop=stop since=1.0
+qam_video.command.stop args= reply= since=1.0
+picture_burst since=1.0
+picture_burst.fields.PictureBurstFields since=1.0
+picture_burst.fields.DecoderFields since=1.0
+picture_burst.kept.pictures since=1.0
+picture_burst.kept.PictureBurstFields.bursts_decoded since=1.0
+picture_burst.table.pictures row=PictureBurstPictureRow cap=100 since=1.0
+picture_burst.event.picture.burst fields=PictureBurstEvent since=1.0
+picture_burst.event.picture.tx fields=TxEvent since=1.0
+picture_burst.setting.callsign type=text unit= since=1.0
+picture_burst.setting.profile type=choice(0,1,2,3) unit= since=1.0
+picture_burst.setting.picture type=text unit= since=1.0
+picture_burst.command.clear args= reply= since=1.0
+picture_burst.command.send args= reply= transmits=file stop=stop since=1.0
+picture_burst.command.stop args= reply= since=1.0
+arq_packet since=1.0
+arq_packet.fields.ArqPacketFields since=1.0
+arq_packet.fields.DecoderFields since=1.0
+arq_packet.kept.messages since=1.0
+arq_packet.kept.ArqPacketFields.messages since=1.0
+arq_packet.table.messages row=ArqPacketMessageRow cap=200 since=1.0
+arq_packet.event.packet.message fields=ArqPacketMessageEvent since=1.0
+arq_packet.event.packet.ack_out fields=ArqPacketAckOutEvent since=1.0
+arq_packet.event.packet.ack_in fields=ArqPacketAckInEvent since=1.0
+arq_packet.event.packet.tx fields=TxEvent since=1.0
+arq_packet.setting.callsign type=text unit= since=1.0
+arq_packet.setting.profile type=choice(0,1,2,3,4,5,6,7,8) unit= since=1.0
+arq_packet.setting.passes type=i64 unit= since=1.0
+arq_packet.setting.link type=choice(one_way,two_way) unit= since=1.0
+arq_packet.setting.message type=text unit= since=1.0
+arq_packet.setting.file type=text unit= since=1.0
+arq_packet.command.clear args= reply= since=1.0
+arq_packet.command.send args= reply= transmits=text stop=stop since=1.0
+arq_packet.command.stop args= reply= since=1.0
+file_transfer since=1.0
+file_transfer.fields.FileTransferFields since=1.0
+file_transfer.fields.DecoderFields since=1.0
+file_transfer.kept.files since=1.0
+file_transfer.kept.FileTransferFields.files since=1.0
+file_transfer.table.files row=FileTransferFileRow cap=200 since=1.0
+file_transfer.event.file.received fields=FileTransferReceivedEvent since=1.0
+file_transfer.event.file.open fields=FileTransferOpenEvent since=1.0
+file_transfer.event.file.tx fields=TxEvent since=1.0
+file_transfer.setting.callsign type=text unit= since=1.0
+file_transfer.setting.widths type=choice(all,1m,500k,200k) unit= since=1.0
+file_transfer.setting.folder type=text unit= since=1.0
+file_transfer.setting.width type=choice(1m,500k,200k) unit= since=1.0
+file_transfer.setting.profile type=choice(0,1,2,3,4,5,6,7,8,9) unit= since=1.0
+file_transfer.setting.passes type=i64 unit= since=1.0
+file_transfer.setting.link type=choice(one_way,two_way) unit= since=1.0
+file_transfer.setting.file type=text unit= since=1.0
+file_transfer.setting.recipient type=text unit= since=1.0
+file_transfer.setting.session type=i64 unit= since=1.0
+file_transfer.setting.fixed_profile type=bool unit= since=1.0
+file_transfer.command.clear args= reply= since=1.0
+file_transfer.command.send args= reply= transmits=file stop=stop since=1.0
+file_transfer.command.stop args= reply= since=1.0
+hf_chat since=1.0
+hf_chat.fields.HfChatFields since=1.0
+hf_chat.fields.DecoderFields since=1.0
+hf_chat.kept.messages since=1.0
+hf_chat.kept.beacons since=1.0
+hf_chat.kept.HfChatFields.messages since=1.0
+hf_chat.kept.HfChatFields.beacons since=1.0
+hf_chat.table.messages row=HfChatMessageRow cap=200 since=1.0
+hf_chat.table.beacons row=HfChatBeaconRow cap=200 since=1.0
+hf_chat.event.chat.message fields=HfChatMessageEvent since=1.0
+hf_chat.event.chat.beacon fields=HfChatBeaconEvent since=1.0
+hf_chat.event.chat.ack fields=HfChatAckEvent since=1.0
+hf_chat.event.chat.voice fields=HfChatVoiceEvent since=1.0
+hf_chat.event.chat.tx fields=TxEvent since=1.0
+hf_chat.setting.listen type=choice(all,0,1,2,3,4,5,6,7) unit= since=1.0
+hf_chat.setting.callsign type=text unit= since=1.0
+hf_chat.setting.profile type=choice(0,1,2,3,4,5,6,7) unit= since=1.0
+hf_chat.setting.kind type=choice(chat,short_beacon,full_beacon,data) unit= since=1.0
+hf_chat.setting.to type=text unit= since=1.0
+hf_chat.setting.text type=text unit= since=1.0
+hf_chat.setting.locator type=text unit= since=1.0
+hf_chat.setting.lat type=f64 unit=° since=1.0
+hf_chat.setting.lon type=f64 unit=° since=1.0
+hf_chat.setting.power_step type=i64 unit= since=1.0
+hf_chat.setting.file type=text unit= since=1.0
+hf_chat.setting.passes type=i64 unit= since=1.0
+hf_chat.setting.link type=choice(one_way,two_way) unit= since=1.0
+hf_chat.command.clear args= reply= since=1.0
+hf_chat.command.send args= reply= transmits=text stop=stop since=1.0
+hf_chat.command.stop args= reply= since=1.0

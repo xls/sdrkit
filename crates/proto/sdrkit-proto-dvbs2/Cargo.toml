@@ -1,0 +1,22 @@
+[package]
+name = "sdrkit-proto-dvbs2"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "The DVB-S and DVB-S2 satellite receiver and test-signal generator, its shared interface, and the receive and transmit parts of the TV receivers"
+
+[dependencies]
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+sdrkit-proto-ipcast = { path = "../sdrkit-proto-ipcast" }
+sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
+sdrkit-proto-mpegts = { path = "../sdrkit-proto-mpegts" }
+sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
+
+[dev-dependencies]
+# The frame error rate sweep of `examples/ldpc_rule.rs`.
+sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }

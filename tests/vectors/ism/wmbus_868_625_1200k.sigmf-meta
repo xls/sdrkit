@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 1200000.0,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic wireless M-Bus meters (S1, T1, C1 format A and B, R2) on the 868 MHz plan, capture centred on 868.625 MHz, 30 dB in 250 kHz.",
+    "core:recorder": "sdrkit test-signal generator (synthetic)",
+    "core:license": "CC0-1.0"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 868625000.0
+    }
+  ],
+  "annotations": []
+}

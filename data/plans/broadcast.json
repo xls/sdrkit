@@ -1,0 +1,961 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "bc_r1",
+      "name": "AM broadcasting, Region 1",
+      "kind": "broadcast",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, Article 5 (Table of Frequency Allocations)",
+        "number": "Edition of 2024",
+        "date": "2024",
+        "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/1.49.48.en.101.pdf"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Final Acts, Regional Administrative LF/MF Broadcasting Conference (Regions 1 and 3), Geneva 1975",
+          "date": "1975",
+          "clause": "the plan's channel list, 531 to 1602 kHz",
+          "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/4.98.43.en.100.pdf"
+        },
+        {
+          "publisher": "ITU",
+          "title": "Final Acts, Regional Administrative MF Broadcasting Conference (Region 2), Rio de Janeiro 1981",
+          "date": "1981",
+          "clause": "Annex 2, chapter 4, 4.1",
+          "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/4.103.43.en.100.pdf"
+        },
+        {
+          "publisher": "ETSI",
+          "title": "Digital Radio Mondiale (DRM); System Specification",
+          "number": "ETSI ES 201 980 V4.2.1",
+          "date": "2021-01",
+          "clause": "Introduction (the LF, MF and HF broadcasting bands; the VHF ranges of mode E), 4.4.1 (100 kHz raster above 30 MHz)",
+          "url": "https://www.etsi.org/deliver/etsi_es/201900_201999/201980/04.02.01_60/es_201980v040201p.pdf"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47 (AM stereophonic broadcasting: C-QUAM)",
+          "number": "47 CFR 73.128",
+          "date": "2024-10-01",
+          "clause": "(a)",
+          "url": "https://www.ecfr.gov/current/title-47/section-73.128"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "LW",
+          "service": "broadcasting",
+          "start_hz": 148500,
+          "end_hz": 283500,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 153000,
+            "step_hz": 9000
+          }
+        },
+        {
+          "name": "MW",
+          "service": "broadcasting",
+          "start_hz": 526500,
+          "end_hz": 1606500,
+          "modes": [
+            "general",
+            "drm",
+            "cquam"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 531000,
+            "step_hz": 9000
+          }
+        },
+        {
+          "name": "120 m",
+          "service": "broadcasting",
+          "start_hz": 2300000,
+          "end_hz": 2498000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 2300000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "90 m",
+          "service": "broadcasting",
+          "start_hz": 3200000,
+          "end_hz": 3400000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 3200000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "75 m",
+          "service": "broadcasting",
+          "start_hz": 3950000,
+          "end_hz": 4000000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 3950000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "60 m",
+          "service": "broadcasting",
+          "start_hz": 4750000,
+          "end_hz": 4995000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 4750000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "60 m (upper)",
+          "service": "broadcasting",
+          "start_hz": 5005000,
+          "end_hz": 5060000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 5005000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "49 m",
+          "service": "broadcasting",
+          "start_hz": 5900000,
+          "end_hz": 6200000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 5900000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "41 m",
+          "service": "broadcasting",
+          "start_hz": 7200000,
+          "end_hz": 7450000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 7200000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "31 m",
+          "service": "broadcasting",
+          "start_hz": 9400000,
+          "end_hz": 9900000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 9400000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "25 m",
+          "service": "broadcasting",
+          "start_hz": 11600000,
+          "end_hz": 12100000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 11600000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "22 m",
+          "service": "broadcasting",
+          "start_hz": 13570000,
+          "end_hz": 13870000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 13570000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "19 m",
+          "service": "broadcasting",
+          "start_hz": 15100000,
+          "end_hz": 15800000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 15100000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "16 m",
+          "service": "broadcasting",
+          "start_hz": 17480000,
+          "end_hz": 17900000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 17480000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "15 m",
+          "service": "broadcasting",
+          "start_hz": 18900000,
+          "end_hz": 19020000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 18900000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "13 m",
+          "service": "broadcasting",
+          "start_hz": 21450000,
+          "end_hz": 21850000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 21450000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "11 m",
+          "service": "broadcasting",
+          "start_hz": 25670000,
+          "end_hz": 26100000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 25670000,
+            "step_hz": 5000
+          }
+        }
+      ]
+    },
+    {
+      "id": "bc_r2",
+      "name": "AM broadcasting, Region 2",
+      "kind": "broadcast",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, Article 5 (Table of Frequency Allocations)",
+        "number": "Edition of 2024",
+        "date": "2024",
+        "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/1.49.48.en.101.pdf"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Final Acts, Regional Administrative LF/MF Broadcasting Conference (Regions 1 and 3), Geneva 1975",
+          "date": "1975",
+          "clause": "the plan's channel list, 531 to 1602 kHz",
+          "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/4.98.43.en.100.pdf"
+        },
+        {
+          "publisher": "ITU",
+          "title": "Final Acts, Regional Administrative MF Broadcasting Conference (Region 2), Rio de Janeiro 1981",
+          "date": "1981",
+          "clause": "Annex 2, chapter 4, 4.1",
+          "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/4.103.43.en.100.pdf"
+        },
+        {
+          "publisher": "ETSI",
+          "title": "Digital Radio Mondiale (DRM); System Specification",
+          "number": "ETSI ES 201 980 V4.2.1",
+          "date": "2021-01",
+          "clause": "Introduction (the LF, MF and HF broadcasting bands; the VHF ranges of mode E), 4.4.1 (100 kHz raster above 30 MHz)",
+          "url": "https://www.etsi.org/deliver/etsi_es/201900_201999/201980/04.02.01_60/es_201980v040201p.pdf"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47 (AM stereophonic broadcasting: C-QUAM)",
+          "number": "47 CFR 73.128",
+          "date": "2024-10-01",
+          "clause": "(a)",
+          "url": "https://www.ecfr.gov/current/title-47/section-73.128"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47 (IBOC DAB operation: HD Radio on AM and FM stations)",
+          "number": "47 CFR 73.404",
+          "date": "2024-10-01",
+          "clause": "(a)",
+          "url": "https://www.ecfr.gov/current/title-47/section-73.404"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "MW",
+          "service": "broadcasting",
+          "start_hz": 525000,
+          "end_hz": 1705000,
+          "modes": [
+            "general",
+            "drm",
+            "hdradio",
+            "cquam"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 540000,
+            "step_hz": 10000
+          }
+        },
+        {
+          "name": "120 m",
+          "service": "broadcasting",
+          "start_hz": 2300000,
+          "end_hz": 2495000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 2300000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "90 m",
+          "service": "broadcasting",
+          "start_hz": 3200000,
+          "end_hz": 3400000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 3200000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "60 m",
+          "service": "broadcasting",
+          "start_hz": 4750000,
+          "end_hz": 4995000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 4750000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "60 m (upper)",
+          "service": "broadcasting",
+          "start_hz": 5005000,
+          "end_hz": 5060000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 5005000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "49 m",
+          "service": "broadcasting",
+          "start_hz": 5900000,
+          "end_hz": 6200000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 5900000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "41 m",
+          "service": "broadcasting",
+          "start_hz": 7300000,
+          "end_hz": 7400000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 7300000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "31 m",
+          "service": "broadcasting",
+          "start_hz": 9400000,
+          "end_hz": 9900000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 9400000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "25 m",
+          "service": "broadcasting",
+          "start_hz": 11600000,
+          "end_hz": 12100000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 11600000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "22 m",
+          "service": "broadcasting",
+          "start_hz": 13570000,
+          "end_hz": 13870000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 13570000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "19 m",
+          "service": "broadcasting",
+          "start_hz": 15100000,
+          "end_hz": 15800000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 15100000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "16 m",
+          "service": "broadcasting",
+          "start_hz": 17480000,
+          "end_hz": 17900000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 17480000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "15 m",
+          "service": "broadcasting",
+          "start_hz": 18900000,
+          "end_hz": 19020000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 18900000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "13 m",
+          "service": "broadcasting",
+          "start_hz": 21450000,
+          "end_hz": 21850000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 21450000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "11 m",
+          "service": "broadcasting",
+          "start_hz": 25670000,
+          "end_hz": 26100000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 25670000,
+            "step_hz": 5000
+          }
+        }
+      ]
+    },
+    {
+      "id": "bc_r3",
+      "name": "AM broadcasting, Region 3",
+      "kind": "broadcast",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, Article 5 (Table of Frequency Allocations)",
+        "number": "Edition of 2024",
+        "date": "2024",
+        "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/1.49.48.en.101.pdf"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Final Acts, Regional Administrative LF/MF Broadcasting Conference (Regions 1 and 3), Geneva 1975",
+          "date": "1975",
+          "clause": "the plan's channel list, 531 to 1602 kHz",
+          "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/4.98.43.en.100.pdf"
+        },
+        {
+          "publisher": "ITU",
+          "title": "Final Acts, Regional Administrative MF Broadcasting Conference (Region 2), Rio de Janeiro 1981",
+          "date": "1981",
+          "clause": "Annex 2, chapter 4, 4.1",
+          "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/4.103.43.en.100.pdf"
+        },
+        {
+          "publisher": "ETSI",
+          "title": "Digital Radio Mondiale (DRM); System Specification",
+          "number": "ETSI ES 201 980 V4.2.1",
+          "date": "2021-01",
+          "clause": "Introduction (the LF, MF and HF broadcasting bands; the VHF ranges of mode E), 4.4.1 (100 kHz raster above 30 MHz)",
+          "url": "https://www.etsi.org/deliver/etsi_es/201900_201999/201980/04.02.01_60/es_201980v040201p.pdf"
+        },
+        {
+          "publisher": "US Government (eCFR)",
+          "title": "Code of Federal Regulations, Title 47 (AM stereophonic broadcasting: C-QUAM)",
+          "number": "47 CFR 73.128",
+          "date": "2024-10-01",
+          "clause": "(a)",
+          "url": "https://www.ecfr.gov/current/title-47/section-73.128"
+        }
+      ],
+      "verified": true,
+      "bands": [
+        {
+          "name": "MW",
+          "service": "broadcasting",
+          "start_hz": 526500,
+          "end_hz": 1606500,
+          "modes": [
+            "general",
+            "drm",
+            "cquam"
+          ],
+          "modulation": "am",
+          "note": "in Australia, narrowband area services also use 1606.5-1705 kHz",
+          "raster": {
+            "first_hz": 531000,
+            "step_hz": 9000
+          }
+        },
+        {
+          "name": "120 m",
+          "service": "broadcasting",
+          "start_hz": 2300000,
+          "end_hz": 2495000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 2300000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "90 m",
+          "service": "broadcasting",
+          "start_hz": 3200000,
+          "end_hz": 3400000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 3200000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "75 m",
+          "service": "broadcasting",
+          "start_hz": 3900000,
+          "end_hz": 4000000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 3900000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "60 m",
+          "service": "broadcasting",
+          "start_hz": 4750000,
+          "end_hz": 4995000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 4750000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "60 m (upper)",
+          "service": "broadcasting",
+          "start_hz": 5005000,
+          "end_hz": 5060000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "note": "tropical zone",
+          "raster": {
+            "first_hz": 5005000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "49 m",
+          "service": "broadcasting",
+          "start_hz": 5900000,
+          "end_hz": 6200000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 5900000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "41 m",
+          "service": "broadcasting",
+          "start_hz": 7200000,
+          "end_hz": 7450000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 7200000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "31 m",
+          "service": "broadcasting",
+          "start_hz": 9400000,
+          "end_hz": 9900000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 9400000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "25 m",
+          "service": "broadcasting",
+          "start_hz": 11600000,
+          "end_hz": 12100000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 11600000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "22 m",
+          "service": "broadcasting",
+          "start_hz": 13570000,
+          "end_hz": 13870000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 13570000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "19 m",
+          "service": "broadcasting",
+          "start_hz": 15100000,
+          "end_hz": 15800000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 15100000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "16 m",
+          "service": "broadcasting",
+          "start_hz": 17480000,
+          "end_hz": 17900000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 17480000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "15 m",
+          "service": "broadcasting",
+          "start_hz": 18900000,
+          "end_hz": 19020000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 18900000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "13 m",
+          "service": "broadcasting",
+          "start_hz": 21450000,
+          "end_hz": 21850000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 21450000,
+            "step_hz": 5000
+          }
+        },
+        {
+          "name": "11 m",
+          "service": "broadcasting",
+          "start_hz": 25670000,
+          "end_hz": 26100000,
+          "modes": [
+            "general",
+            "drm"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 25670000,
+            "step_hz": 5000
+          }
+        }
+      ]
+    },
+    {
+      "id": "drm_vhf",
+      "name": "DRM+ (VHF bands I, II and III)",
+      "kind": "broadcast",
+      "source": {
+        "publisher": "ETSI",
+        "title": "Digital Radio Mondiale (DRM); System Specification",
+        "number": "ETSI ES 201 980 V4.2.1",
+        "date": "2021-01",
+        "clause": "Introduction (the LF, MF and HF broadcasting bands; the VHF ranges of mode E), 4.4.1 (100 kHz raster above 30 MHz)",
+        "url": "https://www.etsi.org/deliver/etsi_es/201900_201999/201980/04.02.01_60/es_201980v040201p.pdf"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Recommendation ITU-R BS.1114-13 (systems for terrestrial digital sound broadcasting in the frequency range 30-3 000 MHz)",
+          "number": "ITU-R BS.1114-13",
+          "date": "2025-11",
+          "clause": "considering g) (System G, DRM mode E: Band I 47-68 MHz, Band II 87.5-108 MHz, Band III 174-230 MHz)",
+          "url": "https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.1114-13-202511-I!!PDF-E.pdf"
+        }
+      ],
+      "verified": true,
+      "note": "DRM mode E; Band III is 174-240 MHz in ES 201 980 and 174-230 MHz in ITU-R BS.1114",
+      "bands": [
+        {
+          "name": "VHF I",
+          "service": "broadcasting",
+          "start_hz": 47000000,
+          "end_hz": 68000000,
+          "modes": [
+            "drm"
+          ],
+          "note": "allocated to analogue television in ES 201 980",
+          "raster": {
+            "first_hz": 47100000,
+            "step_hz": 100000
+          }
+        },
+        {
+          "name": "VHF II",
+          "service": "broadcasting",
+          "start_hz": 87500000,
+          "end_hz": 107900000,
+          "modes": [
+            "drm"
+          ],
+          "note": "beside FM stations",
+          "raster": {
+            "first_hz": 87600000,
+            "step_hz": 100000
+          }
+        },
+        {
+          "name": "VHF III",
+          "service": "broadcasting",
+          "start_hz": 174000000,
+          "end_hz": 240000000,
+          "modes": [
+            "drm"
+          ],
+          "note": "between DAB ensembles",
+          "raster": {
+            "first_hz": 174100000,
+            "step_hz": 100000
+          }
+        }
+      ]
+    }
+  ]
+}

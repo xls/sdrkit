@@ -1,0 +1,5 @@
+# stack variant stage calibration-units-per-second-of-signal (written by the cost test, do not edit)
+atv - front 37332.3
+atv - picture 12641.7
+fpv - front 23477.4
+fpv - picture 10258.9

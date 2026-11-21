@@ -1,0 +1,17 @@
+{
+  "global": {
+    "core:datatype": "cf32_le",
+    "core:sample_rate": 400000.0,
+    "core:version": "1.0.0",
+    "core:description": "Synthetic Sigfox RC1 uplink (one frame, rank 1, 100 bit/s DBPSK) 12.3 kHz above the dial, 20 dB in 100 Hz.",
+    "core:recorder": "sdrkit test-signal generator (synthetic)",
+    "core:license": "CC0-1.0"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 868130000.0
+    }
+  ],
+  "annotations": []
+}

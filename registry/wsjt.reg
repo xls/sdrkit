@@ -1,0 +1,1003 @@
+# The interface of the stack family wsjt. The registry test of the family writes this file.
+family wsjt version=2.1
+shape.WsjtFields since=1.0
+shape.WsjtFields.time_source type=choice(system_clock,recording_start,searching,found_from_signals) unit= optional=yes since=1.0
+shape.WsjtFields.utc type=time unit= optional=no since=1.0
+shape.WsjtFields.clock_error_s type=f64 unit=s optional=yes since=1.0
+shape.WsjtFields.clock_spread_s type=f64 unit=s optional=yes since=1.0
+shape.WsjtFields.clock_decodes type=i64 unit= optional=no since=1.0
+shape.WsjtFields.clock_warning type=bool unit= optional=no since=1.0
+shape.WsjtFields.decodes_total type=i64 unit= optional=no since=1.0
+shape.WsjtFields.js8_frames type=i64 unit= optional=no since=1.0
+shape.WsjtFields.js8_failed type=i64 unit= optional=no since=1.0
+shape.WsjtFields.js8_state type=choice(listening,slots,frames) unit= optional=no since=1.0
+shape.WsjtFields.js8_waterfall_seq type=i64 unit= optional=yes since=1.0
+shape.SlotDecoderFields since=1.0
+shape.SlotDecoderFields.slots type=i64 unit= optional=no since=1.0
+shape.SlotDecoderFields.decodes type=i64 unit= optional=no since=1.0
+shape.SlotDecoderFields.decode_ms type=f64 unit=ms optional=no since=1.0
+shape.WideFields since=1.0
+shape.WideFields.channels type=i64 unit= optional=no since=1.0
+shape.WideFields.load_pct type=f64 unit=% optional=no since=1.0
+shape.WideFields.too_slow type=bool unit= optional=no since=1.0
+shape.DecodeRow since=1.0
+shape.DecodeRow.utc type=time unit= optional=no since=1.0
+shape.DecodeRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.DecodeRow.dt_s type=f64 unit=s optional=no since=1.0
+shape.DecodeRow.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.DecodeRow.band type=text unit= optional=yes since=1.0
+shape.DecodeRow.dial_hz type=hz unit=Hz optional=yes since=1.0
+shape.DecodeRow.mode type=text unit= optional=no since=1.0
+shape.DecodeRow.message type=text unit= optional=no since=1.0
+shape.DecodeRow.mirrored type=bool unit= optional=no since=1.0
+shape.DecodeRow.how type=choice(alone,combined,a_priori) unit= optional=no since=1.0
+shape.DecodeRow.early type=bool unit= optional=no since=1.0
+shape.WsprSpotRow since=1.0
+shape.WsprSpotRow.utc type=time unit= optional=no since=1.0
+shape.WsprSpotRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.WsprSpotRow.dt_s type=f64 unit=s optional=no since=1.0
+shape.WsprSpotRow.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.WsprSpotRow.callsign type=text unit= optional=no since=1.0
+shape.WsprSpotRow.locator type=text unit= optional=no since=1.0
+shape.WsprSpotRow.power_dbm type=i64 unit=dBm optional=no since=1.0
+shape.WsprSpotRow.message type=text unit= optional=no since=1.0
+shape.ModeRow since=1.0
+shape.ModeRow.mode type=text unit= optional=no since=1.0
+shape.ModeRow.period type=duration unit=s optional=no since=1.0
+shape.ModeRow.slots type=i64 unit= optional=no since=1.0
+shape.ModeRow.decodes type=i64 unit= optional=no since=1.0
+shape.ModeRow.last_count type=i64 unit= optional=no since=1.0
+shape.ModeRow.utc type=time unit= optional=yes since=1.0
+shape.ModeRow.decode_ms type=f64 unit=ms optional=no since=1.0
+shape.ModeRow.state type=choice(decoding,no_table,no_decoder) unit= optional=no since=1.0
+shape.StationRow since=1.0
+shape.StationRow.callsign type=text unit= optional=no since=1.0
+shape.StationRow.locator type=text unit= optional=yes since=1.0
+shape.StationRow.mode type=choice(ft8,ft4,ft2,wspr,jt65,jt9,jt4,q65,fst4,fst4w,msk144,js8) unit= optional=no since=1.0
+shape.StationRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.StationRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.StationRow.heard type=i64 unit= optional=yes since=1.0
+shape.StationRow.last_heard type=time unit= optional=yes since=1.0
+shape.Js8FrameRow since=1.0
+shape.Js8FrameRow.utc type=time unit= optional=no since=1.0
+shape.Js8FrameRow.submode type=choice(normal,fast,turbo) unit= optional=yes since=1.0
+shape.Js8FrameRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Js8FrameRow.dt_s type=f64 unit=s optional=no since=1.0
+shape.Js8FrameRow.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.Js8FrameRow.frame type=text unit= optional=no since=1.0
+shape.Js8MessageRow since=1.0
+shape.Js8MessageRow.utc type=time unit= optional=no since=1.0
+shape.Js8MessageRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Js8MessageRow.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.Js8MessageRow.message type=text unit= optional=no since=1.0
+shape.Js8StationRow since=1.0
+shape.Js8StationRow.callsign type=text unit= optional=no since=1.0
+shape.Js8StationRow.locator type=text unit= optional=yes since=1.0
+shape.Js8StationRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Js8StationRow.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.Js8StationRow.utc type=time unit= optional=no since=1.0
+shape.Js8StationRow.last_text type=text unit= optional=no since=1.0
+shape.Js8StationRow.last_heard type=time unit= optional=yes since=1.0
+shape.MultibandRow since=1.0
+shape.MultibandRow.band type=text unit= optional=no since=1.0
+shape.MultibandRow.mode type=choice(ft8,ft4,ft2,wspr,jt65,jt9,jt4,q65,fst4,fst4w,msk144,js8) unit= optional=no since=1.0
+shape.MultibandRow.dial_hz type=hz unit=Hz optional=yes since=1.0
+shape.MultibandRow.running type=bool unit= optional=no since=1.0
+shape.MultibandRow.decodes type=i64 unit= optional=no since=1.0
+shape.MultibandRow.covered type=bool unit= optional=no since=1.0
+shape.MultibandRow.span_needed_hz type=hz unit=Hz optional=yes since=1.0
+shape.DecodeEvent since=1.0
+shape.DecodeEvent.mode type=choice(ft8,ft4,ft2,wspr,jt65,jt9,jt4,q65,fst4,fst4w,msk144,js8) unit= optional=no since=1.0
+shape.DecodeEvent.text type=text unit= optional=no since=1.0
+shape.DecodeEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.DecodeEvent.dt_s type=f64 unit=s optional=no since=1.0
+shape.DecodeEvent.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.DecodeEvent.callsign type=text unit= optional=yes since=1.0
+shape.DecodeEvent.locator type=text unit= optional=yes since=1.0
+shape.DecodeEvent.cq type=bool unit= optional=no since=1.0
+shape.DecodeEvent.mirrored type=bool unit= optional=no since=1.0
+shape.DecodeEvent.how type=choice(alone,combined,a_priori) unit= optional=no since=1.0
+shape.DecodeEvent.power_dbm type=i64 unit=dBm optional=yes since=1.0
+shape.DecodeEvent.source type=text unit= optional=yes since=1.0
+shape.DecodeEvent.position type=position unit= optional=yes since=1.0
+shape.DecodeEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.SpotEvent since=1.0
+shape.SpotEvent.callsign type=text unit= optional=no since=1.0
+shape.SpotEvent.locator type=text unit= optional=yes since=1.0
+shape.SpotEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.SpotEvent.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.SpotEvent.mode type=text unit= optional=no since=1.0
+shape.SpotEvent.source type=text unit= optional=no since=1.0
+shape.SpotEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.Js8FrameEvent since=1.0
+shape.Js8FrameEvent.text type=text unit= optional=no since=1.0
+shape.Js8FrameEvent.chars type=text unit= optional=no since=1.0
+shape.Js8FrameEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Js8FrameEvent.submode type=choice(normal,fast,turbo) unit= optional=yes since=1.0
+shape.Js8FrameEvent.source type=text unit= optional=yes since=1.0
+shape.Js8FrameEvent.target type=text unit= optional=yes since=1.0
+shape.Js8FrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.Js8MessageEvent since=1.0
+shape.Js8MessageEvent.text type=text unit= optional=no since=1.0
+shape.Js8MessageEvent.complete type=bool unit= optional=no since=1.0
+shape.Js8MessageEvent.source type=text unit= optional=yes since=1.0
+shape.Js8MessageEvent.target type=text unit= optional=yes since=1.0
+shape.Js8MessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.TxEvent since=1.0
+shape.TxEvent.mode type=choice(ft8,ft4,ft2,wspr,jt65,jt9,jt4,q65,fst4,fst4w,msk144,js8) unit= optional=no since=1.0
+shape.TxEvent.text type=text unit= optional=no since=1.0
+shape.TxEvent.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.TxEvent.slot type=time unit= optional=no since=1.0
+shape.TxEvent.period type=duration unit=s optional=no since=1.0
+shape.TxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.HopFields since=1.0
+shape.HopFields.band type=text unit= optional=yes since=1.0
+shape.HopFields.next_utc type=time unit= optional=yes since=1.0
+shape.ScatterFields since=1.0
+shape.ScatterFields.decodes_total type=i64 unit= optional=no since=1.0
+shape.ScatterFields.note type=text unit= optional=no since=1.0
+shape.ScatterFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.Fsk441Fields since=1.0
+shape.Fsk441Fields.burst_level_db type=f64 unit=dB optional=no since=1.0
+shape.Fsk441Fields.bursts type=i64 unit= optional=no since=1.0
+shape.DecoderFields since=1.0
+shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
+shape.Fsk441DecodeRow since=1.0
+shape.Fsk441DecodeRow.utc type=time unit= optional=no since=1.0
+shape.Fsk441DecodeRow.time_s type=f64 unit=s optional=no since=1.0
+shape.Fsk441DecodeRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Fsk441DecodeRow.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.Fsk441DecodeRow.mode type=text unit= optional=no since=1.0
+shape.Fsk441DecodeRow.message type=text unit= optional=no since=1.0
+shape.Fsk441DecodeRow.contrast_db type=f64 unit=dB optional=no since=1.0
+shape.Fsk441DecodeRow.duration_ms type=f64 unit=ms optional=no since=1.0
+shape.Fsk441DecodeEvent since=1.0
+shape.Fsk441DecodeEvent.mode type=text unit= optional=no since=1.0
+shape.Fsk441DecodeEvent.text type=text unit= optional=no since=1.0
+shape.Fsk441DecodeEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Fsk441DecodeEvent.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.Fsk441DecodeEvent.callsign type=text unit= optional=yes since=1.0
+shape.Fsk441DecodeEvent.source type=text unit= optional=yes since=1.0
+shape.Fsk441DecodeEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.Fsk441DecodeEvent.contrast_db type=f64 unit=dB optional=no since=1.0
+shape.Fsk441DecodeEvent.duration_ms type=f64 unit=ms optional=no since=1.0
+shape.Jt6mFields since=1.0
+shape.Jt6mFields.folded type=text unit= optional=yes since=1.0
+shape.Jt6mFields.fold_period type=i64 unit= optional=yes since=1.0
+shape.Jt6mFields.tuning_hz type=f64 unit=Hz optional=yes since=1.0
+shape.Jt6mDecodeRow since=1.0
+shape.Jt6mDecodeRow.utc type=time unit= optional=no since=1.0
+shape.Jt6mDecodeRow.time_s type=f64 unit=s optional=no since=1.0
+shape.Jt6mDecodeRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Jt6mDecodeRow.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.Jt6mDecodeRow.mode type=text unit= optional=no since=1.0
+shape.Jt6mDecodeRow.message type=text unit= optional=no since=1.0
+shape.Jt6mDecodeRow.duration_s type=f64 unit=s optional=no since=1.0
+shape.Jt6mDecodeRow.clear_frames type=i64 unit= optional=no since=1.0
+shape.Jt6mDecodeEvent since=1.0
+shape.Jt6mDecodeEvent.mode type=text unit= optional=no since=1.0
+shape.Jt6mDecodeEvent.text type=text unit= optional=no since=1.0
+shape.Jt6mDecodeEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Jt6mDecodeEvent.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.Jt6mDecodeEvent.callsign type=text unit= optional=yes since=1.0
+shape.Jt6mDecodeEvent.source type=text unit= optional=yes since=1.0
+shape.Jt6mDecodeEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.Jt6mDecodeEvent.duration_s type=f64 unit=s optional=no since=1.0
+shape.Jt6mDecodeEvent.clear_frames type=i64 unit= optional=no since=1.0
+shape.IscatFields since=1.0
+shape.IscatFields.variant type=text unit= optional=yes since=1.0
+shape.IscatDecodeRow since=1.0
+shape.IscatDecodeRow.utc type=time unit= optional=no since=1.0
+shape.IscatDecodeRow.time_s type=f64 unit=s optional=no since=1.0
+shape.IscatDecodeRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.IscatDecodeRow.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.IscatDecodeRow.mode type=text unit= optional=no since=1.0
+shape.IscatDecodeRow.message type=text unit= optional=no since=1.0
+shape.IscatDecodeRow.variant type=text unit= optional=no since=1.0
+shape.IscatDecodeRow.sync_ratio type=f64 unit= optional=no since=1.0
+shape.IscatDecodeRow.frames type=i64 unit= optional=no since=1.0
+shape.IscatDecodeRow.unclear type=i64 unit= optional=no since=1.0
+shape.IscatDecodeEvent since=1.0
+shape.IscatDecodeEvent.mode type=text unit= optional=no since=1.0
+shape.IscatDecodeEvent.text type=text unit= optional=no since=1.0
+shape.IscatDecodeEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.IscatDecodeEvent.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.IscatDecodeEvent.callsign type=text unit= optional=yes since=1.0
+shape.IscatDecodeEvent.source type=text unit= optional=yes since=1.0
+shape.IscatDecodeEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.IscatDecodeEvent.variant type=text unit= optional=no since=1.0
+shape.IscatDecodeEvent.sync_ratio type=f64 unit= optional=no since=1.0
+shape.IscatDecodeEvent.frames type=i64 unit= optional=no since=1.0
+shape.IscatDecodeEvent.unclear type=i64 unit= optional=no since=1.0
+shape.Pi4DecodeRow since=1.0
+shape.Pi4DecodeRow.utc type=time unit= optional=no since=1.0
+shape.Pi4DecodeRow.time_s type=f64 unit=s optional=no since=1.0
+shape.Pi4DecodeRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Pi4DecodeRow.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.Pi4DecodeRow.mode type=text unit= optional=no since=1.0
+shape.Pi4DecodeRow.message type=text unit= optional=no since=1.0
+shape.Pi4DecodeRow.dt_s type=f64 unit=s optional=no since=1.0
+shape.Pi4DecodeRow.carrier_hz type=f64 unit=Hz optional=no since=1.0
+shape.Pi4DecodeRow.sync type=f64 unit= optional=no since=1.0
+shape.Pi4DecodeRow.k type=i64 unit= optional=no since=1.0
+shape.Pi4DecodeEvent since=1.0
+shape.Pi4DecodeEvent.mode type=text unit= optional=no since=1.0
+shape.Pi4DecodeEvent.text type=text unit= optional=no since=1.0
+shape.Pi4DecodeEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.Pi4DecodeEvent.audio_hz type=hz unit=Hz optional=no since=1.0
+shape.Pi4DecodeEvent.callsign type=text unit= optional=yes since=1.0
+shape.Pi4DecodeEvent.source type=text unit= optional=yes since=1.0
+shape.Pi4DecodeEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.Pi4DecodeEvent.dt_s type=f64 unit=s optional=no since=1.0
+shape.Pi4DecodeEvent.carrier_hz type=f64 unit=Hz optional=no since=1.0
+shape.Pi4DecodeEvent.sync type=f64 unit= optional=no since=1.0
+shape.Pi4DecodeEvent.k type=i64 unit= optional=no since=1.0
+wsjt since=1.0
+wsjt.fields.WsjtFields since=1.0
+wsjt.component.dec_ft8.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_ft8.dropped since=1.0
+wsjt.component.dec_ft4.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_ft4.dropped since=1.0
+wsjt.component.dec_ft2.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_ft2.dropped since=1.0
+wsjt.component.dec_wspr.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_wspr.dropped since=1.0
+wsjt.component.dec_jt65.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_jt65.dropped since=1.0
+wsjt.component.dec_jt9.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_jt9.dropped since=1.0
+wsjt.component.dec_jt4.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_jt4.dropped since=1.0
+wsjt.component.dec_q65.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_q65.dropped since=1.0
+wsjt.component.dec_fst4.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_fst4.dropped since=1.0
+wsjt.component.dec_fst4w.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_fst4w.dropped since=1.0
+wsjt.component.dec_msk144.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_msk144.dropped since=1.0
+wsjt.component.dec_js8.fields.SlotDecoderFields since=1.0
+wsjt.component.dec_js8.dropped since=1.0
+wsjt.component.wide.fields.WideFields since=1.0
+wsjt.kept.decodes since=1.0
+wsjt.kept.wspr_spots since=1.0
+wsjt.kept.stations since=1.0
+wsjt.kept.js8_frames since=1.0
+wsjt.kept.js8_messages since=1.0
+wsjt.kept.js8_stations since=1.0
+wsjt.kept.WsjtFields.decodes_total since=1.0
+wsjt.kept.WsjtFields.js8_frames since=1.0
+wsjt.kept.WsjtFields.js8_failed since=1.0
+wsjt.table.decodes row=DecodeRow cap=1000 since=1.0
+wsjt.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+wsjt.table.modes row=ModeRow cap=32 since=1.0
+wsjt.table.stations row=StationRow cap=1000 since=1.0
+wsjt.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+wsjt.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+wsjt.table.js8_stations row=Js8StationRow cap=600 since=1.0
+wsjt.table.wide.multiband row=MultibandRow cap=64 since=1.0
+wsjt.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+wsjt.event.wsjt.decode fields=DecodeEvent since=1.0
+wsjt.event.wsjt.spot fields=SpotEvent since=1.0
+wsjt.event.js8.frame fields=Js8FrameEvent since=1.0
+wsjt.event.js8.message fields=Js8MessageEvent since=1.0
+wsjt.event.wsjt.tx fields=TxEvent since=1.0
+wsjt.setting.enable_ft8 type=bool unit= since=1.0
+wsjt.setting.enable_ft4 type=bool unit= since=1.0
+wsjt.setting.enable_ft2 type=bool unit= since=1.0
+wsjt.setting.enable_wspr type=bool unit= since=1.0
+wsjt.setting.enable_jt65 type=bool unit= since=1.0
+wsjt.setting.enable_jt9 type=bool unit= since=1.0
+wsjt.setting.enable_jt4 type=bool unit= since=1.0
+wsjt.setting.enable_q65 type=bool unit= since=1.0
+wsjt.setting.enable_fst4 type=bool unit= since=1.0
+wsjt.setting.enable_fst4w type=bool unit= since=1.0
+wsjt.setting.enable_msk144 type=bool unit= since=1.0
+wsjt.setting.jt65_submode type=choice(A,B,C) unit= since=1.0
+wsjt.setting.jt4_submode type=choice(A,B,C,D,E,F,G) unit= since=1.0
+wsjt.setting.q65_submode type=choice(A,B,C,D,E) unit= since=1.0
+wsjt.setting.q65_period type=duration unit=s since=1.0
+wsjt.setting.fst4_period type=duration unit=s since=1.0
+wsjt.setting.fst4w_period type=duration unit=s since=1.0
+wsjt.setting.msk144_period type=duration unit=s since=1.0
+wsjt.setting.code_dir type=text unit= since=1.0
+wsjt.setting.js8_normal type=bool unit= since=1.0
+wsjt.setting.js8_fast type=bool unit= since=1.0
+wsjt.setting.js8_turbo type=bool unit= since=1.0
+wsjt.setting.mirrored type=bool unit= since=1.0
+wsjt.setting.deep type=bool unit= since=1.0
+wsjt.setting.early_decode type=bool unit= since=1.0
+wsjt.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+wsjt.setting.listen type=bool unit= since=1.0
+wsjt.setting.time_source type=choice(system,start,search) unit= since=1.0
+wsjt.setting.time_start type=text unit= since=1.0
+wsjt.setting.band_edges type=text unit= since=1.0
+wsjt.setting.dials type=text unit= since=1.0
+wsjt.setting.wide type=bool unit= since=1.0
+wsjt.setting.wide_span type=hz unit=Hz since=1.0
+wsjt.setting.multiband type=bool unit= since=1.0
+wsjt.setting.multiband_select type=i64 unit= since=1.0
+wsjt.setting.spots type=bool unit= since=1.0
+wsjt.setting.qso_mode type=choice(ft8,ft4,ft2,jt65,jt9,jt4) unit= since=1.0
+wsjt.setting.qso_even type=bool unit= since=1.0
+wsjt.setting.qso_auto type=bool unit= since=1.0
+wsjt.setting.qso_hold type=bool unit= since=1.0
+wsjt.setting.qso_hz type=hz unit=Hz since=1.0
+wsjt.setting.qso_retries type=i64 unit= since=1.0
+wsjt.setting.qso_watchdog type=duration unit=s since=1.0
+wsjt.setting.beacon_dbm type=i64 unit=dBm since=1.0
+wsjt.setting.beacon_every type=i64 unit= since=1.0
+wsjt.setting.beacon_offset type=i64 unit= since=1.0
+wsjt.setting.beacon_hz type=hz unit=Hz since=1.0
+wsjt.setting.js8_speed type=choice(normal,fast,turbo) unit= since=1.0
+wsjt.setting.js8_hz type=hz unit=Hz since=1.0
+wsjt.setting.gen_mirrored type=bool unit= since=1.0
+wsjt.setting.gen_live type=bool unit= since=1.0
+wsjt.setting.gen_single type=text unit= since=1.0
+wsjt.setting.gen_hz type=hz unit=Hz since=1.0
+wsjt.command.clear args= reply= since=1.0
+wsjt.command.remove args=row:text reply= since=1.0
+wsjt.command.cq args= reply= transmits=text stop=halt since=1.0
+wsjt.command.beacon args= reply= transmits=beacon stop=halt since=1.0
+wsjt.command.send args=text:text reply= transmits=text stop=halt since=1.0
+wsjt.command.halt args= reply= since=1.0
+ft8 since=1.0
+ft8.fields.WsjtFields since=1.0
+ft8.component.dec_ft8.fields.SlotDecoderFields since=1.0
+ft8.component.dec_ft8.dropped since=1.0
+ft8.component.wide.fields.WideFields since=1.0
+ft8.component.hop.fields.HopFields since=1.0
+ft8.kept.decodes since=1.0
+ft8.kept.wspr_spots since=1.0
+ft8.kept.stations since=1.0
+ft8.kept.js8_frames since=1.0
+ft8.kept.js8_messages since=1.0
+ft8.kept.js8_stations since=1.0
+ft8.kept.WsjtFields.decodes_total since=1.0
+ft8.kept.WsjtFields.js8_frames since=1.0
+ft8.kept.WsjtFields.js8_failed since=1.0
+ft8.table.decodes row=DecodeRow cap=1000 since=1.0
+ft8.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+ft8.table.modes row=ModeRow cap=32 since=1.0
+ft8.table.stations row=StationRow cap=1000 since=1.0
+ft8.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+ft8.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+ft8.table.js8_stations row=Js8StationRow cap=600 since=1.0
+ft8.table.wide.multiband row=MultibandRow cap=64 since=1.0
+ft8.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+ft8.event.wsjt.decode fields=DecodeEvent since=1.0
+ft8.event.wsjt.spot fields=SpotEvent since=1.0
+ft8.event.js8.frame fields=Js8FrameEvent since=1.0
+ft8.event.js8.message fields=Js8MessageEvent since=1.0
+ft8.event.wsjt.tx fields=TxEvent since=1.0
+ft8.setting.mirrored type=bool unit= since=1.0
+ft8.setting.deep type=bool unit= since=1.0
+ft8.setting.early_decode type=bool unit= since=1.0
+ft8.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+ft8.setting.listen type=bool unit= since=1.0
+ft8.setting.time_source type=choice(system,start,search) unit= since=1.0
+ft8.setting.time_start type=text unit= since=1.0
+ft8.setting.band_edges type=text unit= since=1.0
+ft8.setting.dials type=text unit= since=1.0
+ft8.setting.wide type=bool unit= since=1.0
+ft8.setting.wide_span type=hz unit=Hz since=1.0
+ft8.setting.multiband type=bool unit= since=1.0
+ft8.setting.multiband_select type=i64 unit= since=1.0
+ft8.setting.hop.enabled type=bool unit= since=1.0
+ft8.setting.hop.coordinated type=bool unit= since=1.0
+ft8.setting.hop.hours type=text unit= since=1.0
+ft8.setting.hop.bands type=text unit= since=1.0
+ft8.setting.hop.cycle type=text unit= since=1.0
+ft8.setting.spots type=bool unit= since=1.0
+ft8.setting.qso_even type=bool unit= since=1.0
+ft8.setting.qso_auto type=bool unit= since=1.0
+ft8.setting.qso_hold type=bool unit= since=1.0
+ft8.setting.qso_hz type=hz unit=Hz since=1.0
+ft8.setting.qso_retries type=i64 unit= since=1.0
+ft8.setting.qso_watchdog type=duration unit=s since=1.0
+ft8.setting.gen_mirrored type=bool unit= since=1.0
+ft8.setting.gen_live type=bool unit= since=1.0
+ft8.setting.gen_single type=text unit= since=1.0
+ft8.setting.gen_hz type=hz unit=Hz since=1.0
+ft8.command.clear args= reply= since=1.0
+ft8.command.remove args=row:text reply= since=1.0
+ft8.command.cq args= reply= transmits=text stop=halt since=1.0
+ft8.command.halt args= reply= since=1.0
+ft4 since=1.0
+ft4.fields.WsjtFields since=1.0
+ft4.component.dec_ft4.fields.SlotDecoderFields since=1.0
+ft4.component.dec_ft4.dropped since=1.0
+ft4.component.wide.fields.WideFields since=1.0
+ft4.component.hop.fields.HopFields since=1.0
+ft4.kept.decodes since=1.0
+ft4.kept.wspr_spots since=1.0
+ft4.kept.stations since=1.0
+ft4.kept.js8_frames since=1.0
+ft4.kept.js8_messages since=1.0
+ft4.kept.js8_stations since=1.0
+ft4.kept.WsjtFields.decodes_total since=1.0
+ft4.kept.WsjtFields.js8_frames since=1.0
+ft4.kept.WsjtFields.js8_failed since=1.0
+ft4.table.decodes row=DecodeRow cap=1000 since=1.0
+ft4.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+ft4.table.modes row=ModeRow cap=32 since=1.0
+ft4.table.stations row=StationRow cap=1000 since=1.0
+ft4.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+ft4.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+ft4.table.js8_stations row=Js8StationRow cap=600 since=1.0
+ft4.table.wide.multiband row=MultibandRow cap=64 since=1.0
+ft4.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+ft4.event.wsjt.decode fields=DecodeEvent since=1.0
+ft4.event.wsjt.spot fields=SpotEvent since=1.0
+ft4.event.js8.frame fields=Js8FrameEvent since=1.0
+ft4.event.js8.message fields=Js8MessageEvent since=1.0
+ft4.event.wsjt.tx fields=TxEvent since=1.0
+ft4.setting.mirrored type=bool unit= since=1.0
+ft4.setting.deep type=bool unit= since=1.0
+ft4.setting.early_decode type=bool unit= since=1.0
+ft4.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+ft4.setting.listen type=bool unit= since=1.0
+ft4.setting.time_source type=choice(system,start,search) unit= since=1.0
+ft4.setting.time_start type=text unit= since=1.0
+ft4.setting.band_edges type=text unit= since=1.0
+ft4.setting.dials type=text unit= since=1.0
+ft4.setting.wide type=bool unit= since=1.0
+ft4.setting.wide_span type=hz unit=Hz since=1.0
+ft4.setting.multiband type=bool unit= since=1.0
+ft4.setting.multiband_select type=i64 unit= since=1.0
+ft4.setting.hop.enabled type=bool unit= since=1.0
+ft4.setting.hop.coordinated type=bool unit= since=1.0
+ft4.setting.hop.hours type=text unit= since=1.0
+ft4.setting.hop.bands type=text unit= since=1.0
+ft4.setting.hop.cycle type=text unit= since=1.0
+ft4.setting.spots type=bool unit= since=1.0
+ft4.setting.qso_even type=bool unit= since=1.0
+ft4.setting.qso_auto type=bool unit= since=1.0
+ft4.setting.qso_hold type=bool unit= since=1.0
+ft4.setting.qso_hz type=hz unit=Hz since=1.0
+ft4.setting.qso_retries type=i64 unit= since=1.0
+ft4.setting.qso_watchdog type=duration unit=s since=1.0
+ft4.setting.gen_mirrored type=bool unit= since=1.0
+ft4.setting.gen_live type=bool unit= since=1.0
+ft4.setting.gen_single type=text unit= since=1.0
+ft4.setting.gen_hz type=hz unit=Hz since=1.0
+ft4.command.clear args= reply= since=1.0
+ft4.command.remove args=row:text reply= since=1.0
+ft4.command.cq args= reply= transmits=text stop=halt since=1.0
+ft4.command.halt args= reply= since=1.0
+ft2 since=1.0
+ft2.fields.WsjtFields since=1.0
+ft2.component.dec_ft2.fields.SlotDecoderFields since=1.0
+ft2.component.dec_ft2.dropped since=1.0
+ft2.component.wide.fields.WideFields since=1.0
+ft2.component.hop.fields.HopFields since=1.0
+ft2.kept.decodes since=1.0
+ft2.kept.wspr_spots since=1.0
+ft2.kept.stations since=1.0
+ft2.kept.js8_frames since=1.0
+ft2.kept.js8_messages since=1.0
+ft2.kept.js8_stations since=1.0
+ft2.kept.WsjtFields.decodes_total since=1.0
+ft2.kept.WsjtFields.js8_frames since=1.0
+ft2.kept.WsjtFields.js8_failed since=1.0
+ft2.table.decodes row=DecodeRow cap=1000 since=1.0
+ft2.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+ft2.table.modes row=ModeRow cap=32 since=1.0
+ft2.table.stations row=StationRow cap=1000 since=1.0
+ft2.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+ft2.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+ft2.table.js8_stations row=Js8StationRow cap=600 since=1.0
+ft2.table.wide.multiband row=MultibandRow cap=64 since=1.0
+ft2.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+ft2.event.wsjt.decode fields=DecodeEvent since=1.0
+ft2.event.wsjt.spot fields=SpotEvent since=1.0
+ft2.event.js8.frame fields=Js8FrameEvent since=1.0
+ft2.event.js8.message fields=Js8MessageEvent since=1.0
+ft2.event.wsjt.tx fields=TxEvent since=1.0
+ft2.setting.mirrored type=bool unit= since=1.0
+ft2.setting.deep type=bool unit= since=1.0
+ft2.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+ft2.setting.listen type=bool unit= since=1.0
+ft2.setting.time_source type=choice(system,start,search) unit= since=1.0
+ft2.setting.time_start type=text unit= since=1.0
+ft2.setting.band_edges type=text unit= since=1.0
+ft2.setting.dials type=text unit= since=1.0
+ft2.setting.wide type=bool unit= since=1.0
+ft2.setting.wide_span type=hz unit=Hz since=1.0
+ft2.setting.multiband type=bool unit= since=1.0
+ft2.setting.multiband_select type=i64 unit= since=1.0
+ft2.setting.hop.enabled type=bool unit= since=1.0
+ft2.setting.hop.coordinated type=bool unit= since=1.0
+ft2.setting.hop.hours type=text unit= since=1.0
+ft2.setting.hop.bands type=text unit= since=1.0
+ft2.setting.hop.cycle type=text unit= since=1.0
+ft2.setting.spots type=bool unit= since=1.0
+ft2.setting.qso_even type=bool unit= since=1.0
+ft2.setting.qso_auto type=bool unit= since=1.0
+ft2.setting.qso_hold type=bool unit= since=1.0
+ft2.setting.qso_hz type=hz unit=Hz since=1.0
+ft2.setting.qso_retries type=i64 unit= since=1.0
+ft2.setting.qso_watchdog type=duration unit=s since=1.0
+ft2.setting.gen_mirrored type=bool unit= since=1.0
+ft2.setting.gen_live type=bool unit= since=1.0
+ft2.setting.gen_single type=text unit= since=1.0
+ft2.setting.gen_hz type=hz unit=Hz since=1.0
+ft2.command.clear args= reply= since=1.0
+ft2.command.remove args=row:text reply= since=1.0
+ft2.command.cq args= reply= transmits=text stop=halt since=1.0
+ft2.command.halt args= reply= since=1.0
+wspr since=1.0
+wspr.fields.WsjtFields since=1.0
+wspr.component.dec_wspr.fields.SlotDecoderFields since=1.0
+wspr.component.dec_wspr.dropped since=1.0
+wspr.component.wide.fields.WideFields since=1.0
+wspr.component.hop.fields.HopFields since=1.0
+wspr.kept.decodes since=1.0
+wspr.kept.wspr_spots since=1.0
+wspr.kept.stations since=1.0
+wspr.kept.js8_frames since=1.0
+wspr.kept.js8_messages since=1.0
+wspr.kept.js8_stations since=1.0
+wspr.kept.WsjtFields.decodes_total since=1.0
+wspr.kept.WsjtFields.js8_frames since=1.0
+wspr.kept.WsjtFields.js8_failed since=1.0
+wspr.table.decodes row=DecodeRow cap=1000 since=1.0
+wspr.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+wspr.table.modes row=ModeRow cap=32 since=1.0
+wspr.table.stations row=StationRow cap=1000 since=1.0
+wspr.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+wspr.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+wspr.table.js8_stations row=Js8StationRow cap=600 since=1.0
+wspr.table.wide.multiband row=MultibandRow cap=64 since=1.0
+wspr.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+wspr.event.wsjt.decode fields=DecodeEvent since=1.0
+wspr.event.wsjt.spot fields=SpotEvent since=1.0
+wspr.event.js8.frame fields=Js8FrameEvent since=1.0
+wspr.event.js8.message fields=Js8MessageEvent since=1.0
+wspr.event.wsjt.tx fields=TxEvent since=1.0
+wspr.setting.mirrored type=bool unit= since=1.0
+wspr.setting.deep type=bool unit= since=1.0
+wspr.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+wspr.setting.listen type=bool unit= since=1.0
+wspr.setting.time_source type=choice(system,start,search) unit= since=1.0
+wspr.setting.time_start type=text unit= since=1.0
+wspr.setting.band_edges type=text unit= since=1.0
+wspr.setting.dials type=text unit= since=1.0
+wspr.setting.wide type=bool unit= since=1.0
+wspr.setting.wide_span type=hz unit=Hz since=1.0
+wspr.setting.multiband type=bool unit= since=1.0
+wspr.setting.multiband_select type=i64 unit= since=1.0
+wspr.setting.hop.enabled type=bool unit= since=1.0
+wspr.setting.hop.coordinated type=bool unit= since=1.0
+wspr.setting.hop.hours type=text unit= since=1.0
+wspr.setting.hop.bands type=text unit= since=1.0
+wspr.setting.hop.cycle type=text unit= since=1.0
+wspr.setting.spots type=bool unit= since=1.0
+wspr.setting.beacon_dbm type=i64 unit=dBm since=1.0
+wspr.setting.beacon_every type=i64 unit= since=1.0
+wspr.setting.beacon_offset type=i64 unit= since=1.0
+wspr.setting.beacon_hz type=hz unit=Hz since=1.0
+wspr.setting.gen_mirrored type=bool unit= since=1.0
+wspr.setting.gen_live type=bool unit= since=1.0
+wspr.setting.gen_single type=text unit= since=1.0
+wspr.setting.gen_hz type=hz unit=Hz since=1.0
+wspr.command.clear args= reply= since=1.0
+wspr.command.remove args=row:text reply= since=1.0
+wspr.command.beacon args= reply= transmits=beacon stop=halt since=1.0
+wspr.command.halt args= reply= since=1.0
+jt65 since=1.0
+jt65.fields.WsjtFields since=1.0
+jt65.component.dec_jt65.fields.SlotDecoderFields since=1.0
+jt65.component.dec_jt65.dropped since=1.0
+jt65.kept.decodes since=1.0
+jt65.kept.wspr_spots since=1.0
+jt65.kept.stations since=1.0
+jt65.kept.js8_frames since=1.0
+jt65.kept.js8_messages since=1.0
+jt65.kept.js8_stations since=1.0
+jt65.kept.WsjtFields.decodes_total since=1.0
+jt65.kept.WsjtFields.js8_frames since=1.0
+jt65.kept.WsjtFields.js8_failed since=1.0
+jt65.table.decodes row=DecodeRow cap=1000 since=1.0
+jt65.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+jt65.table.modes row=ModeRow cap=32 since=1.0
+jt65.table.stations row=StationRow cap=1000 since=1.0
+jt65.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+jt65.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+jt65.table.js8_stations row=Js8StationRow cap=600 since=1.0
+jt65.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+jt65.event.wsjt.decode fields=DecodeEvent since=1.0
+jt65.event.wsjt.spot fields=SpotEvent since=1.0
+jt65.event.js8.frame fields=Js8FrameEvent since=1.0
+jt65.event.js8.message fields=Js8MessageEvent since=1.0
+jt65.event.wsjt.tx fields=TxEvent since=1.0
+jt65.setting.jt65_submode type=choice(A,B,C) unit= since=1.0
+jt65.setting.deep type=bool unit= since=1.0
+jt65.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+jt65.setting.listen type=bool unit= since=1.0
+jt65.setting.time_source type=choice(system,start,search) unit= since=1.0
+jt65.setting.time_start type=text unit= since=1.0
+jt65.setting.band_edges type=text unit= since=1.0
+jt65.setting.spots type=bool unit= since=1.0
+jt65.setting.qso_even type=bool unit= since=1.0
+jt65.setting.qso_auto type=bool unit= since=1.0
+jt65.setting.qso_hold type=bool unit= since=1.0
+jt65.setting.qso_hz type=hz unit=Hz since=1.0
+jt65.setting.qso_retries type=i64 unit= since=1.0
+jt65.setting.qso_watchdog type=duration unit=s since=1.0
+jt65.setting.gen_mirrored type=bool unit= since=1.0
+jt65.setting.gen_live type=bool unit= since=1.0
+jt65.setting.gen_single type=text unit= since=1.0
+jt65.setting.gen_hz type=hz unit=Hz since=1.0
+jt65.command.clear args= reply= since=1.0
+jt65.command.remove args=row:text reply= since=1.0
+jt65.command.cq args= reply= transmits=text stop=halt since=1.0
+jt65.command.halt args= reply= since=1.0
+jt9 since=1.0
+jt9.fields.WsjtFields since=1.0
+jt9.component.dec_jt9.fields.SlotDecoderFields since=1.0
+jt9.component.dec_jt9.dropped since=1.0
+jt9.kept.decodes since=1.0
+jt9.kept.wspr_spots since=1.0
+jt9.kept.stations since=1.0
+jt9.kept.js8_frames since=1.0
+jt9.kept.js8_messages since=1.0
+jt9.kept.js8_stations since=1.0
+jt9.kept.WsjtFields.decodes_total since=1.0
+jt9.kept.WsjtFields.js8_frames since=1.0
+jt9.kept.WsjtFields.js8_failed since=1.0
+jt9.table.decodes row=DecodeRow cap=1000 since=1.0
+jt9.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+jt9.table.modes row=ModeRow cap=32 since=1.0
+jt9.table.stations row=StationRow cap=1000 since=1.0
+jt9.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+jt9.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+jt9.table.js8_stations row=Js8StationRow cap=600 since=1.0
+jt9.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+jt9.event.wsjt.decode fields=DecodeEvent since=1.0
+jt9.event.wsjt.spot fields=SpotEvent since=1.0
+jt9.event.js8.frame fields=Js8FrameEvent since=1.0
+jt9.event.js8.message fields=Js8MessageEvent since=1.0
+jt9.event.wsjt.tx fields=TxEvent since=1.0
+jt9.setting.deep type=bool unit= since=1.0
+jt9.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+jt9.setting.listen type=bool unit= since=1.0
+jt9.setting.time_source type=choice(system,start,search) unit= since=1.0
+jt9.setting.time_start type=text unit= since=1.0
+jt9.setting.band_edges type=text unit= since=1.0
+jt9.setting.spots type=bool unit= since=1.0
+jt9.setting.qso_even type=bool unit= since=1.0
+jt9.setting.qso_auto type=bool unit= since=1.0
+jt9.setting.qso_hold type=bool unit= since=1.0
+jt9.setting.qso_hz type=hz unit=Hz since=1.0
+jt9.setting.qso_retries type=i64 unit= since=1.0
+jt9.setting.qso_watchdog type=duration unit=s since=1.0
+jt9.setting.gen_mirrored type=bool unit= since=1.0
+jt9.setting.gen_live type=bool unit= since=1.0
+jt9.setting.gen_single type=text unit= since=1.0
+jt9.setting.gen_hz type=hz unit=Hz since=1.0
+jt9.command.clear args= reply= since=1.0
+jt9.command.remove args=row:text reply= since=1.0
+jt9.command.cq args= reply= transmits=text stop=halt since=1.0
+jt9.command.halt args= reply= since=1.0
+jt4 since=1.0
+jt4.fields.WsjtFields since=1.0
+jt4.component.dec_jt4.fields.SlotDecoderFields since=1.0
+jt4.component.dec_jt4.dropped since=1.0
+jt4.kept.decodes since=1.0
+jt4.kept.wspr_spots since=1.0
+jt4.kept.stations since=1.0
+jt4.kept.js8_frames since=1.0
+jt4.kept.js8_messages since=1.0
+jt4.kept.js8_stations since=1.0
+jt4.kept.WsjtFields.decodes_total since=1.0
+jt4.kept.WsjtFields.js8_frames since=1.0
+jt4.kept.WsjtFields.js8_failed since=1.0
+jt4.table.decodes row=DecodeRow cap=1000 since=1.0
+jt4.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+jt4.table.modes row=ModeRow cap=32 since=1.0
+jt4.table.stations row=StationRow cap=1000 since=1.0
+jt4.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+jt4.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+jt4.table.js8_stations row=Js8StationRow cap=600 since=1.0
+jt4.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+jt4.event.wsjt.decode fields=DecodeEvent since=1.0
+jt4.event.wsjt.spot fields=SpotEvent since=1.0
+jt4.event.js8.frame fields=Js8FrameEvent since=1.0
+jt4.event.js8.message fields=Js8MessageEvent since=1.0
+jt4.event.wsjt.tx fields=TxEvent since=1.0
+jt4.setting.jt4_submode type=choice(A,B,C,D,E,F,G) unit= since=1.0
+jt4.setting.deep type=bool unit= since=1.0
+jt4.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+jt4.setting.listen type=bool unit= since=1.0
+jt4.setting.time_source type=choice(system,start,search) unit= since=1.0
+jt4.setting.time_start type=text unit= since=1.0
+jt4.setting.band_edges type=text unit= since=1.0
+jt4.setting.spots type=bool unit= since=1.0
+jt4.setting.qso_even type=bool unit= since=1.0
+jt4.setting.qso_auto type=bool unit= since=1.0
+jt4.setting.qso_hold type=bool unit= since=1.0
+jt4.setting.qso_hz type=hz unit=Hz since=1.0
+jt4.setting.qso_retries type=i64 unit= since=1.0
+jt4.setting.qso_watchdog type=duration unit=s since=1.0
+jt4.setting.gen_mirrored type=bool unit= since=1.0
+jt4.setting.gen_live type=bool unit= since=1.0
+jt4.setting.gen_single type=text unit= since=1.0
+jt4.setting.gen_hz type=hz unit=Hz since=1.0
+jt4.command.clear args= reply= since=1.0
+jt4.command.remove args=row:text reply= since=1.0
+jt4.command.cq args= reply= transmits=text stop=halt since=1.0
+jt4.command.halt args= reply= since=1.0
+q65 since=1.0
+q65.fields.WsjtFields since=1.0
+q65.component.dec_q65.fields.SlotDecoderFields since=1.0
+q65.component.dec_q65.dropped since=1.0
+q65.kept.decodes since=1.0
+q65.kept.wspr_spots since=1.0
+q65.kept.stations since=1.0
+q65.kept.js8_frames since=1.0
+q65.kept.js8_messages since=1.0
+q65.kept.js8_stations since=1.0
+q65.kept.WsjtFields.decodes_total since=1.0
+q65.kept.WsjtFields.js8_frames since=1.0
+q65.kept.WsjtFields.js8_failed since=1.0
+q65.table.decodes row=DecodeRow cap=1000 since=1.0
+q65.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+q65.table.modes row=ModeRow cap=32 since=1.0
+q65.table.stations row=StationRow cap=1000 since=1.0
+q65.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+q65.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+q65.table.js8_stations row=Js8StationRow cap=600 since=1.0
+q65.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+q65.event.wsjt.decode fields=DecodeEvent since=1.0
+q65.event.wsjt.spot fields=SpotEvent since=1.0
+q65.event.js8.frame fields=Js8FrameEvent since=1.0
+q65.event.js8.message fields=Js8MessageEvent since=1.0
+q65.event.wsjt.tx fields=TxEvent since=1.0
+q65.setting.q65_submode type=choice(A,B,C,D,E) unit= since=1.0
+q65.setting.q65_period type=duration unit=s since=1.0
+q65.setting.code_dir type=text unit= since=2.1
+q65.setting.deep type=bool unit= since=1.0
+q65.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+q65.setting.listen type=bool unit= since=1.0
+q65.setting.time_source type=choice(system,start,search) unit= since=1.0
+q65.setting.time_start type=text unit= since=1.0
+q65.setting.band_edges type=text unit= since=1.0
+q65.setting.spots type=bool unit= since=1.0
+q65.setting.gen_mirrored type=bool unit= since=1.0
+q65.setting.gen_live type=bool unit= since=1.0
+q65.setting.gen_single type=text unit= since=1.0
+q65.setting.gen_hz type=hz unit=Hz since=1.0
+q65.command.clear args= reply= since=1.0
+q65.command.remove args=row:text reply= since=1.0
+fst4 since=1.0
+fst4.fields.WsjtFields since=1.0
+fst4.component.dec_fst4.fields.SlotDecoderFields since=1.0
+fst4.component.dec_fst4.dropped since=1.0
+fst4.kept.decodes since=1.0
+fst4.kept.wspr_spots since=1.0
+fst4.kept.stations since=1.0
+fst4.kept.js8_frames since=1.0
+fst4.kept.js8_messages since=1.0
+fst4.kept.js8_stations since=1.0
+fst4.kept.WsjtFields.decodes_total since=1.0
+fst4.kept.WsjtFields.js8_frames since=1.0
+fst4.kept.WsjtFields.js8_failed since=1.0
+fst4.table.decodes row=DecodeRow cap=1000 since=1.0
+fst4.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+fst4.table.modes row=ModeRow cap=32 since=1.0
+fst4.table.stations row=StationRow cap=1000 since=1.0
+fst4.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+fst4.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+fst4.table.js8_stations row=Js8StationRow cap=600 since=1.0
+fst4.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+fst4.event.wsjt.decode fields=DecodeEvent since=1.0
+fst4.event.wsjt.spot fields=SpotEvent since=1.0
+fst4.event.js8.frame fields=Js8FrameEvent since=1.0
+fst4.event.js8.message fields=Js8MessageEvent since=1.0
+fst4.event.wsjt.tx fields=TxEvent since=1.0
+fst4.setting.fst4_period type=duration unit=s since=1.0
+fst4.setting.code_dir type=text unit= since=1.0
+fst4.setting.deep type=bool unit= since=1.0
+fst4.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+fst4.setting.listen type=bool unit= since=1.0
+fst4.setting.time_source type=choice(system,start,search) unit= since=1.0
+fst4.setting.time_start type=text unit= since=1.0
+fst4.setting.band_edges type=text unit= since=1.0
+fst4.setting.spots type=bool unit= since=1.0
+fst4.setting.gen_mirrored type=bool unit= since=1.0
+fst4.setting.gen_live type=bool unit= since=1.0
+fst4.setting.gen_single type=text unit= since=1.0
+fst4.setting.gen_hz type=hz unit=Hz since=1.0
+fst4.command.clear args= reply= since=1.0
+fst4.command.remove args=row:text reply= since=1.0
+fst4w since=1.0
+fst4w.fields.WsjtFields since=1.0
+fst4w.component.dec_fst4w.fields.SlotDecoderFields since=1.0
+fst4w.component.dec_fst4w.dropped since=1.0
+fst4w.kept.decodes since=1.0
+fst4w.kept.wspr_spots since=1.0
+fst4w.kept.stations since=1.0
+fst4w.kept.js8_frames since=1.0
+fst4w.kept.js8_messages since=1.0
+fst4w.kept.js8_stations since=1.0
+fst4w.kept.WsjtFields.decodes_total since=1.0
+fst4w.kept.WsjtFields.js8_frames since=1.0
+fst4w.kept.WsjtFields.js8_failed since=1.0
+fst4w.table.decodes row=DecodeRow cap=1000 since=1.0
+fst4w.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+fst4w.table.modes row=ModeRow cap=32 since=1.0
+fst4w.table.stations row=StationRow cap=1000 since=1.0
+fst4w.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+fst4w.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+fst4w.table.js8_stations row=Js8StationRow cap=600 since=1.0
+fst4w.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+fst4w.event.wsjt.decode fields=DecodeEvent since=1.0
+fst4w.event.wsjt.spot fields=SpotEvent since=1.0
+fst4w.event.js8.frame fields=Js8FrameEvent since=1.0
+fst4w.event.js8.message fields=Js8MessageEvent since=1.0
+fst4w.event.wsjt.tx fields=TxEvent since=1.0
+fst4w.setting.fst4w_period type=duration unit=s since=1.0
+fst4w.setting.code_dir type=text unit= since=1.0
+fst4w.setting.deep type=bool unit= since=1.0
+fst4w.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+fst4w.setting.listen type=bool unit= since=1.0
+fst4w.setting.time_source type=choice(system,start,search) unit= since=1.0
+fst4w.setting.time_start type=text unit= since=1.0
+fst4w.setting.band_edges type=text unit= since=1.0
+fst4w.setting.spots type=bool unit= since=1.0
+fst4w.setting.gen_mirrored type=bool unit= since=1.0
+fst4w.setting.gen_live type=bool unit= since=1.0
+fst4w.setting.gen_single type=text unit= since=1.0
+fst4w.setting.gen_hz type=hz unit=Hz since=1.0
+fst4w.command.clear args= reply= since=1.0
+fst4w.command.remove args=row:text reply= since=1.0
+msk144 since=1.0
+msk144.fields.WsjtFields since=1.0
+msk144.component.dec_msk144.fields.SlotDecoderFields since=1.0
+msk144.component.dec_msk144.dropped since=1.0
+msk144.kept.decodes since=1.0
+msk144.kept.wspr_spots since=1.0
+msk144.kept.stations since=1.0
+msk144.kept.js8_frames since=1.0
+msk144.kept.js8_messages since=1.0
+msk144.kept.js8_stations since=1.0
+msk144.kept.WsjtFields.decodes_total since=1.0
+msk144.kept.WsjtFields.js8_frames since=1.0
+msk144.kept.WsjtFields.js8_failed since=1.0
+msk144.table.decodes row=DecodeRow cap=1000 since=1.0
+msk144.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+msk144.table.modes row=ModeRow cap=32 since=1.0
+msk144.table.stations row=StationRow cap=1000 since=1.0
+msk144.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+msk144.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+msk144.table.js8_stations row=Js8StationRow cap=600 since=1.0
+msk144.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+msk144.event.wsjt.decode fields=DecodeEvent since=1.0
+msk144.event.wsjt.spot fields=SpotEvent since=1.0
+msk144.event.js8.frame fields=Js8FrameEvent since=1.0
+msk144.event.js8.message fields=Js8MessageEvent since=1.0
+msk144.event.wsjt.tx fields=TxEvent since=1.0
+msk144.setting.msk144_period type=duration unit=s since=1.0
+msk144.setting.code_dir type=text unit= since=1.0
+msk144.setting.deep type=bool unit= since=1.0
+msk144.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+msk144.setting.listen type=bool unit= since=1.0
+msk144.setting.time_source type=choice(system,start,search) unit= since=1.0
+msk144.setting.time_start type=text unit= since=1.0
+msk144.setting.band_edges type=text unit= since=1.0
+msk144.setting.spots type=bool unit= since=1.0
+msk144.setting.gen_mirrored type=bool unit= since=1.0
+msk144.setting.gen_live type=bool unit= since=1.0
+msk144.setting.gen_single type=text unit= since=1.0
+msk144.setting.gen_hz type=hz unit=Hz since=1.0
+msk144.command.clear args= reply= since=1.0
+msk144.command.remove args=row:text reply= since=1.0
+js8 since=1.0
+js8.fields.WsjtFields since=1.0
+js8.component.dec_js8.fields.SlotDecoderFields since=1.0
+js8.component.dec_js8.dropped since=1.0
+js8.kept.decodes since=1.0
+js8.kept.wspr_spots since=1.0
+js8.kept.stations since=1.0
+js8.kept.js8_frames since=1.0
+js8.kept.js8_messages since=1.0
+js8.kept.js8_stations since=1.0
+js8.kept.WsjtFields.decodes_total since=1.0
+js8.kept.WsjtFields.js8_frames since=1.0
+js8.kept.WsjtFields.js8_failed since=1.0
+js8.table.decodes row=DecodeRow cap=1000 since=1.0
+js8.table.wspr_spots row=WsprSpotRow cap=1000 since=1.0
+js8.table.modes row=ModeRow cap=32 since=1.0
+js8.table.stations row=StationRow cap=1000 since=1.0
+js8.table.js8_frames row=Js8FrameRow cap=600 since=1.0
+js8.table.js8_messages row=Js8MessageRow cap=200 since=1.0
+js8.table.js8_stations row=Js8StationRow cap=600 since=1.0
+js8.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
+js8.event.wsjt.decode fields=DecodeEvent since=1.0
+js8.event.wsjt.spot fields=SpotEvent since=1.0
+js8.event.js8.frame fields=Js8FrameEvent since=1.0
+js8.event.js8.message fields=Js8MessageEvent since=1.0
+js8.event.wsjt.tx fields=TxEvent since=1.0
+js8.setting.js8_normal type=bool unit= since=1.0
+js8.setting.js8_fast type=bool unit= since=1.0
+js8.setting.js8_turbo type=bool unit= since=1.0
+js8.setting.deep type=bool unit= since=1.0
+js8.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+js8.setting.listen type=bool unit= since=1.0
+js8.setting.time_source type=choice(system,start,search) unit= since=1.0
+js8.setting.time_start type=text unit= since=1.0
+js8.setting.band_edges type=text unit= since=1.0
+js8.setting.spots type=bool unit= since=1.0
+js8.setting.js8_speed type=choice(normal,fast,turbo) unit= since=1.0
+js8.setting.js8_hz type=hz unit=Hz since=1.0
+js8.setting.gen_mirrored type=bool unit= since=1.0
+js8.setting.gen_live type=bool unit= since=1.0
+js8.setting.gen_single type=text unit= since=1.0
+js8.setting.gen_hz type=hz unit=Hz since=1.0
+js8.command.clear args= reply= since=1.0
+js8.command.remove args=row:text reply= since=1.0
+js8.command.send args=text:text reply= transmits=text stop=halt since=1.0
+js8.command.halt args= reply= since=1.0
+fsk441 since=1.0
+fsk441.fields.ScatterFields since=1.0
+fsk441.fields.Fsk441Fields since=1.0
+fsk441.fields.DecoderFields since=1.0
+fsk441.kept.decodes since=1.0
+fsk441.kept.ScatterFields.decodes_total since=1.0
+fsk441.table.decodes row=Fsk441DecodeRow cap=1000 since=1.0
+fsk441.event.wsjt.decode fields=Fsk441DecodeEvent since=1.0
+fsk441.event.wsjt.spot fields=SpotEvent since=1.0
+fsk441.setting.tol_hz type=hz unit=Hz since=1.0
+fsk441.setting.burst_db type=f64 unit=dB since=1.0
+fsk441.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+fsk441.setting.listen type=bool unit= since=1.0
+fsk441.setting.gen_text type=text unit= since=1.0
+fsk441.command.clear args= reply= since=1.0
+jt6m since=1.0
+jt6m.fields.ScatterFields since=1.0
+jt6m.fields.Jt6mFields since=1.0
+jt6m.fields.DecoderFields since=1.0
+jt6m.kept.decodes since=1.0
+jt6m.kept.ScatterFields.decodes_total since=1.0
+jt6m.table.decodes row=Jt6mDecodeRow cap=1000 since=1.0
+jt6m.event.wsjt.decode fields=Jt6mDecodeEvent since=1.0
+jt6m.event.wsjt.spot fields=SpotEvent since=1.0
+jt6m.setting.tol_hz type=hz unit=Hz since=1.0
+jt6m.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+jt6m.setting.listen type=bool unit= since=1.0
+jt6m.setting.gen_text type=text unit= since=1.0
+jt6m.setting.gen_continuous type=bool unit= since=1.0
+jt6m.command.clear args= reply= since=1.0
+iscat since=1.0
+iscat.fields.ScatterFields since=1.0
+iscat.fields.IscatFields since=1.0
+iscat.fields.DecoderFields since=1.0
+iscat.kept.decodes since=1.0
+iscat.kept.ScatterFields.decodes_total since=1.0
+iscat.table.decodes row=IscatDecodeRow cap=1000 since=1.0
+iscat.event.wsjt.decode fields=IscatDecodeEvent since=1.0
+iscat.event.wsjt.spot fields=SpotEvent since=1.0
+iscat.setting.submode type=choice(auto,a,b) unit= since=1.0
+iscat.setting.tol_hz type=hz unit=Hz since=1.0
+iscat.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+iscat.setting.listen type=bool unit= since=1.0
+iscat.setting.gen_text type=text unit= since=1.0
+iscat.setting.gen_variant type=choice(a,b) unit= since=1.0
+iscat.command.clear args= reply= since=1.0
+pi4 since=1.0
+pi4.fields.ScatterFields since=1.0
+pi4.fields.DecoderFields since=1.0
+pi4.kept.decodes since=1.0
+pi4.kept.ScatterFields.decodes_total since=1.0
+pi4.table.decodes row=Pi4DecodeRow cap=1000 since=1.0
+pi4.event.wsjt.decode fields=Pi4DecodeEvent since=1.0
+pi4.event.wsjt.spot fields=SpotEvent since=1.0
+pi4.setting.k type=choice(40,80,96,120) unit= since=1.0
+pi4.setting.f_lo_hz type=hz unit=Hz since=1.0
+pi4.setting.f_hi_hz type=hz unit=Hz since=1.0
+pi4.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
+pi4.setting.listen type=bool unit= since=1.0
+pi4.setting.gen_text type=text unit= since=1.0
+pi4.setting.gen_k type=choice(40,80,96,120) unit= since=1.0
+pi4.command.clear args= reply= since=1.0

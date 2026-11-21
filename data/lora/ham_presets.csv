@@ -1,0 +1,18 @@
+# id: lora_ham_presets
+# name: LoRa APRS and MeshCom channels of the amateur 70 cm, 868 MHz and 915 MHz bands
+# stacks: mesh loraaprs meshcom
+# note: A host gives the stack the rows in its setting channels as label=protocol/frequency Hz/bandwidth Hz/SF/CR/preamble/sync entries.
+protocol,name,mhz,khz,sf,cr,preamble,sync
+loraaprs,LoRa APRS EU,433.775,125,12,5,8,0x12
+loraaprs,LoRa APRS PL,434.855,125,9,7,8,0x12
+loraaprs,LoRa APRS UK,439.9125,125,12,5,8,0x12
+loraaprs,LoRa APRS 915,915,125,12,5,8,0x12
+meshcom,MeshCom EU,433.175,250,11,6,32,0x2B
+meshcom,MeshCom UK,439.9125,125,10,6,8,0x2B
+meshcom,MeshCom LA,433.925,125,10,6,8,0x2B
+meshcom,MeshCom 868,869.525,250,11,6,8,0x2B
+meshcom,MeshCom 915,906.875,250,11,6,8,0x2B
+meshcom,MeshCom VR2,435.775,250,11,6,8,0x2B
+meshcom,MeshCom 435,435.75,250,11,6,8,0x2B
+meshcom,MeshCom 436,436.25,250,11,6,8,0x2B
+meshcom,MeshCom 442,442,250,11,6,8,0x2B

@@ -1,0 +1,9 @@
+[package]
+name = "sdrkit-util-bits"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Bit-level utilities for sdrkit: packing, bit readers and writers, CRCs, checksums, scramblers and sequences, interleavers, line codes, HDLC, sync words, Gray, BCD, ASN.1 PER and protobuf wire format"
+
+[dependencies]

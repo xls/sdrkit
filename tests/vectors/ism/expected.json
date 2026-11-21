@@ -1,0 +1,900 @@
+{
+ "note": "Synthetic recordings made by a test-signal generator; every value below is what a correct receiver must report. Frequencies are offsets from the dial (the recording centre). Byte-level vectors need no recording.",
+ "recordings": {
+  "ism_433_scene_1msps": {
+   "mode": "ism",
+   "sample_rate": 1000000.0,
+   "dial_offset_hz": 0,
+   "cn_db_in_100khz": 30,
+   "duration_s": 3.27,
+   "expect": {
+    "devices_exactly": 14,
+    "unknown_bursts_max": 0,
+    "wrong_readings": 0,
+    "freq_tolerance_hz": 12000,
+    "value_tolerance": 0.051,
+    "devices": [
+     {
+      "model": "Nexus-TH",
+      "kind": "weather",
+      "id": "90",
+      "sent_offset_hz": -30000.0,
+      "burst_start_s": 0.05,
+      "fields": {
+       "temperature_c": 21.3,
+       "humidity_pct": 45
+      },
+      "channel": 2,
+      "battery_ok": true,
+      "check": "repeat"
+     },
+     {
+      "model": "LaCrosse-TX141THBv2",
+      "kind": "weather",
+      "id": "3c",
+      "sent_offset_hz": 40000.0,
+      "burst_start_s": 1.036,
+      "fields": {
+       "temperature_c": 18.7,
+       "humidity_pct": 62
+      },
+      "channel": 1,
+      "battery_ok": true,
+      "check": "CRC"
+     },
+     {
+      "model": "Acurite-Tower",
+      "kind": "weather",
+      "id": "4660",
+      "sent_offset_hz": -50000.0,
+      "burst_start_s": 1.476,
+      "fields": {
+       "temperature_c": 22.5,
+       "humidity_pct": 55
+      },
+      "channel_name": "A",
+      "battery_ok": true,
+      "check": "checksum"
+     },
+     {
+      "model": "Fineoffset-WHx080",
+      "kind": "weather",
+      "id": "123",
+      "sent_offset_hz": 15000.0,
+      "burst_start_s": 1.657,
+      "fields": {
+       "temperature_c": 12.4,
+       "humidity_pct": 71,
+       "wind_dir_deg": 90,
+       "wind_speed_km_h": 3.67,
+       "wind_gust_km_h": 8.57,
+       "rain_mm": 87.3
+      },
+      "battery_ok": true,
+      "check": "CRC"
+     },
+     {
+      "model": "Ambientweather-F007TH",
+      "kind": "weather",
+      "id": "156",
+      "sent_offset_hz": 48000.0,
+      "burst_start_s": 1.902,
+      "fields": {
+       "temperature_f": 68.5,
+       "humidity_pct": 40
+      },
+      "channel": 3,
+      "battery_ok": true,
+      "check": "CRC"
+     },
+     {
+      "model": "Oregon-THGR810",
+      "kind": "weather",
+      "id": "165",
+      "sent_offset_hz": -10000.0,
+      "burst_start_s": 2.025,
+      "fields": {
+       "temperature_c": 19.6,
+       "humidity_pct": 52
+      },
+      "channel": 1,
+      "battery_ok": true,
+      "check": "checksum"
+     },
+     {
+      "model": "Oregon-THGR228N",
+      "kind": "weather",
+      "id": "62",
+      "sent_offset_hz": 25000.0,
+      "burst_start_s": 2.186,
+      "fields": {
+       "temperature_c": 5.2,
+       "humidity_pct": 80
+      },
+      "channel": 1,
+      "battery_ok": true,
+      "check": "checksum"
+     },
+     {
+      "model": "Schrader",
+      "kind": "tpms",
+      "id": "1A2B3C4",
+      "sent_offset_hz": -45000.0,
+      "burst_start_s": 2.417,
+      "fields": {
+       "pressure_kpa": 230.0,
+       "temperature_c": 25,
+       "flags": "0b"
+      },
+      "check": "CRC"
+     },
+     {
+      "model": "Generic-Remote",
+      "kind": "remote",
+      "id": "23100",
+      "sent_offset_hz": 10000.0,
+      "burst_start_s": 2.493,
+      "fields": {
+       "code": "5a3c81",
+       "command": 129,
+       "tri_state": "ZZXX0110X00Z"
+      },
+      "check": "repeat"
+     },
+     {
+      "model": "Toyota",
+      "kind": "tpms",
+      "id": "a1b2c3d4",
+      "sent_offset_hz": 20000.0,
+      "burst_start_s": 2.895,
+      "fields": {
+       "pressure_psi": 32.0,
+       "temperature_c": 22,
+       "status": 0
+      },
+      "check": "CRC"
+     },
+     {
+      "model": "Renault",
+      "kind": "tpms",
+      "id": "c0ffee",
+      "sent_offset_hz": -35000.0,
+      "burst_start_s": 2.964,
+      "fields": {
+       "pressure_kpa": 249.75,
+       "temperature_c": 18,
+       "flags": "34"
+      },
+      "check": "CRC"
+     },
+     {
+      "model": "Ford",
+      "kind": "tpms",
+      "id": "12ab34cd",
+      "sent_offset_hz": 45000.0,
+      "burst_start_s": 3.033,
+      "fields": {
+       "pressure_psi": 35.0,
+       "temperature_c": 20,
+       "moving": 0,
+       "learn": 0
+      },
+      "check": "checksum"
+     },
+     {
+      "model": "Efergy-e2CT",
+      "kind": "energy",
+      "id": "1234",
+      "sent_offset_hz": -370000.0,
+      "burst_start_s": 3.102,
+      "fields": {
+       "current_a": 5.5,
+       "interval_s": 12
+      },
+      "battery_ok": true,
+      "check": "checksum"
+     },
+     {
+      "model": "CurrentCost-TX",
+      "kind": "energy",
+      "id": "1957",
+      "sent_offset_hz": 5000.0,
+      "burst_start_s": 3.176,
+      "fields": {
+       "power_0_w": 1234,
+       "power_1_w": 0,
+       "power_2_w": 0
+      },
+      "check": "Manchester"
+     }
+    ]
+   },
+   "notes": "The 1 Msps minimum rate; a device exactly on the dial frequency (0 Hz in a dial-centred recording) is placed 10 kHz off so it does not sit on DC."
+  },
+  "ism_868_scene_1msps": {
+   "mode": "ism",
+   "sample_rate": 1000000.0,
+   "dial_offset_hz": 0,
+   "cn_db_in_100khz": 30,
+   "duration_s": 0.36,
+   "expect": {
+    "devices_exactly": 4,
+    "unknown_bursts_max": 0,
+    "wrong_readings": 0,
+    "freq_tolerance_hz": 40000,
+    "value_tolerance": 0.051,
+    "devices": [
+     {
+      "model": "Bresser-6in1",
+      "kind": "weather",
+      "id": "12345678",
+      "sent_offset_hz": 0,
+      "burst_start_s": 0.05,
+      "fields": {
+       "temperature_c": 15.6,
+       "humidity_pct": 67,
+       "wind_gust_m_s": 3.4,
+       "wind_speed_m_s": 2.1,
+       "wind_dir_deg": 225,
+       "uv_index": 3.2,
+       "sensor_type": 1
+      },
+      "channel": 0,
+      "battery_ok": true,
+      "check": "CRC"
+     },
+     {
+      "model": "Bresser-5in1",
+      "kind": "weather",
+      "id": "108",
+      "sent_offset_hz": 20000.0,
+      "burst_start_s": 0.135,
+      "fields": {
+       "temperature_c": 8.7,
+       "humidity_pct": 81,
+       "wind_gust_m_s": 5.2,
+       "wind_speed_m_s": 3.1,
+       "wind_dir_deg": 90,
+       "rain_mm": 12.3
+      },
+      "battery_ok": true,
+      "check": "checksum"
+     },
+     {
+      "model": "LaCrosse-TX29IT",
+      "kind": "weather",
+      "id": "43",
+      "sent_offset_hz": -15000.0,
+      "burst_start_s": 0.229,
+      "fields": {
+       "temperature_c": 21.7
+      },
+      "battery_ok": true,
+      "check": "CRC"
+     },
+     {
+      "model": "Fineoffset-WH24",
+      "kind": "weather",
+      "id": "191",
+      "sent_offset_hz": 30000.0,
+      "burst_start_s": 0.294,
+      "fields": {
+       "temperature_c": 11.8,
+       "humidity_pct": 78,
+       "wind_dir_deg": 266,
+       "wind_speed_m_s": 1.1,
+       "wind_gust_m_s": 2.2,
+       "rain_mm": 22.2,
+       "uv_index": 0,
+       "light_lux": 10.0
+      },
+      "battery_ok": true,
+      "check": "CRC"
+     }
+    ]
+   },
+   "notes": "FSK bursts: the reported frequency is the power centroid of the burst's bins and may sit up to about 25 kHz from the carrier at 1 Msps."
+  },
+  "zwave_868_4_1msps": {
+   "mode": "ism (Z-Wave decoders); also usable for the zwave mode with the dial at 868.40 MHz",
+   "sample_rate": 1000000.0,
+   "dial_offset_hz": 0,
+   "cn_db_in_100khz": 30,
+   "duration_s": 0.31,
+   "expect": {
+    "devices_exactly": 3,
+    "wrong_readings": 0,
+    "freq_tolerance_hz": 40000,
+    "devices": [
+     {
+      "model": "Z-Wave-R1",
+      "kind": "zwave",
+      "id": "C0FFEE01:2",
+      "sent_offset_hz": -20000.0,
+      "burst_start_s": 0.05,
+      "fields": {
+       "home_id": "C0FFEE01",
+       "source": 2,
+       "destination": 1,
+       "frame": "Singlecast",
+       "sequence": 0,
+       "ack_requested": true,
+       "command_class": "Switch Binary",
+       "command": "Report",
+       "value": "off"
+      },
+      "check": "checksum"
+     },
+     {
+      "model": "Z-Wave-R2",
+      "kind": "zwave",
+      "id": "DEADBEEF:7",
+      "sent_offset_hz": 20000.0,
+      "burst_start_s": 0.133,
+      "fields": {
+       "home_id": "DEADBEEF",
+       "source": 7,
+       "destination": 1,
+       "frame": "Singlecast",
+       "sequence": 0,
+       "ack_requested": true,
+       "command_class": "Sensor Multilevel",
+       "command": "Report",
+       "temperature_c": 21.5
+      },
+      "check": "checksum"
+     },
+     {
+      "model": "Z-Wave-R3",
+      "kind": "zwave",
+      "id": "12345678:9",
+      "sent_offset_hz": 0,
+      "burst_start_s": 0.199,
+      "fields": {
+       "home_id": "12345678",
+       "source": 9,
+       "destination": 1,
+       "frame": "Singlecast",
+       "sequence": 0,
+       "ack_requested": true,
+       "command_class": "Meter",
+       "command": "Report",
+       "power_w": 1234.5
+      },
+      "check": "CRC"
+     }
+    ]
+   },
+   "notes": "R1 Manchester 9.6 kbit/s at 20 kHz deviation, R2 NRZ 40 kbit/s at 20 kHz, R3 NRZ 100 kbit/s at 29 kHz; every frame uses start-of-frame 0xF0 in this recording (the ISM-mode convention)."
+  },
+  "sigfox_rc1_400k": {
+   "mode": "sigfox",
+   "sample_rate": 400000.0,
+   "dial_offset_hz": 0,
+   "dial_hz": 868130000.0,
+   "snr_db_in_100hz": 20,
+   "duration_s": 1.9,
+   "expect": {
+    "messages_exactly": 1,
+    "message": {
+     "device_id": "00C0FFEE",
+     "counter": 291,
+     "payload_hex": "1F3A007C",
+     "payload_bytes": 4,
+     "auth_hex": "949B",
+     "crc_hex": "E1E2",
+     "frame_type_hex": "035F",
+     "li": 0,
+     "container_bytes": 12,
+     "ranks_heard_mask": 1,
+     "bit_rate": 100,
+     "repetitions": 1,
+     "downlink_request": false,
+     "offset_hz": 12300,
+     "offset_tolerance_hz": 30
+    }
+   }
+  },
+  "wmbus_868_625_1200k": {
+   "mode": "wmbus",
+   "sample_rate": 1200000.0,
+   "centre_hz": 868625000.0,
+   "snr_db_in_250khz": 30,
+   "duration_s": 1.5,
+   "expect": {
+    "channels_listed": [
+     "868.3000 MHz S1",
+     "868.9500 MHz T1 C1",
+     "868.0900 MHz R2",
+     "868.1500 MHz R2"
+    ],
+    "frames_good_min": 22,
+    "frames_bad": 0,
+    "encrypted_frames_min": 3,
+    "meters_exactly": 6,
+    "phys_seen": [
+     "S1",
+     "T1",
+     "C1 (A)",
+     "C1 (B)",
+     "R2"
+    ],
+    "meters": [
+     {
+      "phy": "S1",
+      "channel_mhz": 868.3,
+      "manufacturer": "KAM",
+      "id": "12345678",
+      "version": 27,
+      "type": "water",
+      "ci": "7A",
+      "encrypted": false,
+      "records": [
+       "Volume 123.456 m3",
+       "Volume 120.000 m3 (storage 1)",
+       "Date 2025-10-01 (storage 1)",
+       "Volume flow 0.040 m3/h",
+       "Error flags 0"
+      ]
+     },
+     {
+      "phy": "T1",
+      "channel_mhz": 868.95,
+      "manufacturer": "ELV",
+      "id": "40112233",
+      "version": 42,
+      "type": "heat (outlet)",
+      "ci": "7A",
+      "encrypted": false,
+      "records": [
+       "Energy 8123456000 Wh",
+       "Volume 450.000 m3",
+       "Power 34200 W",
+       "Flow temperature 65.2 C",
+       "Return temperature 41.2 C"
+      ]
+     },
+     {
+      "phy": "T1",
+      "channel_mhz": 868.95,
+      "manufacturer": "EMH",
+      "id": "50667788",
+      "version": 1,
+      "type": "electricity",
+      "ci": "7A",
+      "encrypted": true,
+      "records": []
+     },
+     {
+      "phy": "C1 (A)",
+      "channel_mhz": 868.95,
+      "manufacturer": "GWF",
+      "id": "61000042",
+      "version": 3,
+      "type": "gas",
+      "ci": "7A",
+      "encrypted": false,
+      "records": [
+       "Volume 234567.8 m3",
+       "Date 2025-10-01"
+      ]
+     },
+     {
+      "phy": "C1 (B)",
+      "channel_mhz": 868.95,
+      "manufacturer": "SEN",
+      "id": "72004711",
+      "version": 12,
+      "type": "cold water",
+      "ci": "7A",
+      "encrypted": false,
+      "records_min": 29
+     },
+     {
+      "phy": "R2",
+      "channel_mhz": 868.09,
+      "manufacturer": "QDS",
+      "id": "83001234",
+      "version": 5,
+      "type": "heat cost allocator",
+      "ci": "7A",
+      "encrypted": false,
+      "records": [
+       "Units for heat cost allocators 1723",
+       "Date 2025-10-01 (storage 1)"
+      ]
+     }
+    ],
+    "counters_step": "each meter's access number and readings step by one transmission each cycle (water volume +0.003 m3, heat energy +1 kWh, gas +0.1 m3, allocator units +1)"
+   }
+  }
+ },
+ "byte_vectors": {
+  "wmbus_frames_with_crcs": [
+   {
+    "phy": "S1",
+    "channel_mhz": 868.3,
+    "manufacturer": "KAM",
+    "id": "12345678",
+    "version": 27,
+    "type": "water",
+    "ci": "7A",
+    "encrypted": false,
+    "records": [
+     "Volume 123.456 m3",
+     "Volume 120.000 m3 (storage 1)",
+     "Date 2025-10-01 (storage 1)",
+     "Volume flow 0.040 m3/h",
+     "Error flags 0"
+    ],
+    "air_hex": "26442D2C785634121B07DBB77A000000000C13563412004C13000012C50B00426C213A023B280001FD17009180"
+   },
+   {
+    "phy": "T1",
+    "channel_mhz": 868.95,
+    "manufacturer": "ELV",
+    "id": "40112233",
+    "version": 42,
+    "type": "heat (outlet)",
+    "ci": "7A",
+    "encrypted": false,
+    "records": [
+     "Energy 8123456000 Wh",
+     "Volume 450.000 m3",
+     "Power 34200 W",
+     "Flow temperature 65.2 C",
+     "Return temperature 41.2 C"
+    ],
+    "air_hex": "27449615332211402A04BBEE7A000000000C06563412080C1300004543C5000B2D4203000A5A52060A5E12044FF8"
+   },
+   {
+    "phy": "T1",
+    "channel_mhz": 868.95,
+    "manufacturer": "EMH",
+    "id": "50667788",
+    "version": 1,
+    "type": "electricity",
+    "ci": "7A",
+    "encrypted": true,
+    "records": [],
+    "air_hex": "2E44A81588776650010214277A0000000567DDFCF2897BCA0E0D8BBCA1DE99D0D8C8B8E47E71272F083EF66FBB1901796D346ADD9E9C54"
+   },
+   {
+    "phy": "C1 (A)",
+    "channel_mhz": 868.95,
+    "manufacturer": "GWF",
+    "id": "61000042",
+    "version": 3,
+    "type": "gas",
+    "ci": "7A",
+    "encrypted": false,
+    "records": [
+     "Volume 234567.8 m3",
+     "Date 2025-10-01"
+    ],
+    "air_hex": "1844E61E420000610303F9777A000000000C1578563402026C213A40C0"
+   },
+   {
+    "phy": "C1 (B)",
+    "channel_mhz": 868.95,
+    "manufacturer": "SEN",
+    "id": "72004711",
+    "version": 12,
+    "type": "cold water",
+    "ci": "7A",
+    "encrypted": false,
+    "records_min": 29,
+    "air_hex": "D244AE4C114700720C167A000000000C13563412004C1300001200426C213A023B280001FD1700CC011300011000CC021300021000CC031300031000CC041300041000CC051300051000CC061300061000CC071300071000CC081300081000CC091300091000CC0A1300101000CC0B1300111000CC0C1300121000CC0D13BB8400131000CC0E1300141000CC0F1300151000CC001300161000CC011300171000CC021300181000CC031300191000CC041300201000CC051300211000CC061300221000CC071300231000CC081300241000D134"
+   },
+   {
+    "phy": "R2",
+    "channel_mhz": 868.09,
+    "manufacturer": "QDS",
+    "id": "83001234",
+    "version": 5,
+    "type": "heat cost allocator",
+    "ci": "7A",
+    "encrypted": false,
+    "records": [
+     "Units for heat cost allocators 1723",
+     "Date 2025-10-01 (storage 1)"
+    ],
+    "air_hex": "184493443412008305083BB17A000000000C6E23170000426C213A7E9E"
+   },
+   {
+    "phy": "N1",
+    "channel_mhz": 169.43125,
+    "manufacturer": "ITW",
+    "id": "94005566",
+    "version": 2,
+    "type": "water",
+    "ci": "7A",
+    "encrypted": false,
+    "records": [
+     "Volume 123.456 m3",
+     "Volume 120.000 m3 (storage 1)",
+     "Date 2025-10-01 (storage 1)",
+     "Volume flow 0.040 m3/h",
+     "Error flags 0"
+    ],
+    "air_hex": "26449726665500940207C5B17A000000000C13563412004C13000012C50B00426C213A023B280001FD17009180"
+   }
+  ],
+  "wmbus_crc_check_value": {
+   "input_ascii": "123456789",
+   "crc_hex": "C2B7"
+  },
+  "wmbus_manufacturer": {
+   "KAM": "2C2D"
+  },
+  "zwave_mode_schedule_eu": [
+   {
+    "rate": "R2",
+    "mhz": 868.4,
+    "describe": "SWITCH_BINARY Set on",
+    "mpdu_hex": "C0FFEE010141010D022501FFBA"
+   },
+   {
+    "rate": "R2",
+    "mhz": 868.4,
+    "describe": "ack",
+    "mpdu_hex": "C0FFEE010203010A0124"
+   },
+   {
+    "rate": "R2",
+    "mhz": 868.4,
+    "describe": "SWITCH_BINARY Get",
+    "mpdu_hex": "C0FFEE010141020C02250244"
+   },
+   {
+    "rate": "R2",
+    "mhz": 868.4,
+    "describe": "SWITCH_BINARY Report on",
+    "mpdu_hex": "C0FFEE010201030D012503FFFA"
+   },
+   {
+    "rate": "R1",
+    "mhz": 868.42,
+    "describe": "SWITCH_MULTILEVEL Set 50%",
+    "mpdu_hex": "C0FFEE010141040D0326013270"
+   },
+   {
+    "rate": "R1",
+    "mhz": 868.42,
+    "describe": "ack",
+    "mpdu_hex": "C0FFEE010303040A0120"
+   },
+   {
+    "rate": "R2",
+    "mhz": 868.4,
+    "describe": "SENSOR_MULTILEVEL Report temperature 22.0 C",
+    "mpdu_hex": "C0FFEE0104010510013105012200DCF5"
+   },
+   {
+    "rate": "R1",
+    "mhz": 868.42,
+    "describe": "BATTERY Report 90%",
+    "mpdu_hex": "C0FFEE010501060D0180035AF8"
+   },
+   {
+    "rate": "R2",
+    "mhz": 868.4,
+    "describe": "WAKE_UP Notification",
+    "mpdu_hex": "C0FFEE010501070C018407A2"
+   },
+   {
+    "rate": "R2",
+    "mhz": 868.4,
+    "describe": "PROTOCOL Node Info",
+    "mpdu_hex": "C0FFEE0106010812FF0101D39C0004100197"
+   },
+   {
+    "rate": "R2",
+    "mhz": 868.4,
+    "describe": "NOP",
+    "mpdu_hex": "C0FFEE010141090B02006F"
+   },
+   {
+    "rate": "R2",
+    "mhz": 868.4,
+    "describe": "SWITCH_BINARY Set off (multicast to 2, 3, 5)",
+    "mpdu_hex": "C0FFEE0101020A0E01162501001B"
+   },
+   {
+    "rate": "R2",
+    "mhz": 868.4,
+    "describe": "Security S0 encrypted (22 octets, not decoded)",
+    "mpdu_hex": "C0FFEE0101410B2002988105048BA2E81C7E8C98C80ABEF712B37565F567F3B2"
+   },
+   {
+    "rate": "R2",
+    "mhz": 868.4,
+    "describe": "Security S2 encrypted (18 octets, not decoded)",
+    "mpdu_hex": "C0FFEE0103010C1C019F03FEA96C7F496CAC2716DA4F01764A92F690"
+   },
+   {
+    "rate": "R3",
+    "mhz": 869.85,
+    "describe": "BASIC Set on",
+    "mpdu_hex": "C0FFEE0101410D0E022001FFFFAE"
+   },
+   {
+    "rate": "R3",
+    "mhz": 869.85,
+    "describe": "ack",
+    "mpdu_hex": "C0FFEE0102030D0B019E35"
+   },
+   {
+    "rate": "R1",
+    "mhz": 868.42,
+    "describe": "NOTIFICATION Report",
+    "mpdu_hex": "C0FFEE0102010E12017105000000FF0616AA"
+   }
+  ],
+  "zwave_crc16_check_value": {
+   "input_ascii": "123456789",
+   "crc_hex": "E5CC",
+   "poly": "1021",
+   "init": "1D0F"
+  },
+  "sigfox_public_example_frame": {
+   "bits_hex": "aaaaa35f01a0db334d00abad1deadc32758a",
+   "preamble_bits": 19,
+   "frame_type_hex": "035F",
+   "container_bytes": 12,
+   "rank": 1,
+   "device_id": "004D33DB",
+   "counter_hex": "1A0",
+   "payload_hex": "ABAD1DEA",
+   "auth_hex": "DC32",
+   "crc_hex": "758A",
+   "downlink_request": false
+  },
+  "ant_frames_17_bytes": [
+   {
+    "hex": "A6C5310078010AB9A521FBBD72C3459471",
+    "marker": "A6C5",
+    "device_number": 49,
+    "device_type": 120,
+    "transmission_type": 1,
+    "crc_ok": true
+   },
+   {
+    "hex": "5B25310078010AFDFEFF00010203044D10",
+    "marker": "5B25",
+    "device_number": 49,
+    "device_type": 120,
+    "transmission_type": 1,
+    "crc_ok": true
+   },
+   {
+    "hex": "5B25310078010A010203040506070864F9",
+    "marker": "5B25",
+    "device_number": 49,
+    "device_type": 120,
+    "transmission_type": 1,
+    "crc_ok": true
+   },
+   {
+    "hex": "5B25310078010A05060708090A0B0C1862",
+    "marker": "5B25",
+    "device_number": 49,
+    "device_type": 120,
+    "transmission_type": 1,
+    "crc_ok": true
+   }
+  ],
+  "zigbee_fcs_check_value": {
+   "input_ascii": "123456789",
+   "crc_hex": "2189"
+  },
+  "zigbee_frames": [
+   {
+    "hex": "02005A",
+    "with_fcs": true,
+    "expect": "Ack, sequence 0x5A, no addresses"
+   },
+   {
+    "hex": "03082AFFFFFFFF07",
+    "expect": "MAC command 7 (Beacon request), dest PAN 0xFFFF short 0xFFFF, no source, seq 0x2A (FCS bytes not checked by the header test)"
+   },
+   {
+    "hex": "618821621A0000127A48020000127A1E07280100000001020304050607080A0B0C0D",
+    "expect": "Data, PAN 0x1A62, 0x7A12 > 0x0000; Zigbee NWK secured (encrypted), src 0x7A12 dest 0x0000 radius 30 protocol 2"
+   },
+   {
+    "hex": "008007621A0000FFCF00000022841807060504030201FFFFFF03",
+    "expect": "Beacon from short 0x0000 PAN 0x1A62, PAN coordinator, association permit; Zigbee beacon payload: stack profile 2, NWK version 2, router and end-device capacity, depth 0, ext PAN 01:02:03:04:05:06:07:18, update id 3"
+   }
+  ],
+  "wisun_offair_psdus_whitened": [
+   {
+    "phr_hex": "0883",
+    "mhz": 916.2,
+    "psdu_hex": "f9edcdf68f14998bc228c3a0c58465acbe17e9a307df08e64a65c45d8f5cb998a9cc7ac996390a406e4531182a86f0efef32f90ca860b6cfcf4510891bc81627b120570c23bb1f1d4e83bacb815cbd61eba5b47f188b7eb6dfd03681d2eb56e946ccd2225901186a6bba0578a3bfa3c6827f01aa3b0e18e3df3dabb5cd67b6a2588a9f",
+    "expect": {
+     "length": 131,
+     "fcs": "4-octet, passes only after PN9 dewhitening",
+     "frame_version": 2,
+     "type": "Data",
+     "secured": true,
+     "seq_suppressed": true,
+     "ie_list": true,
+     "dest_mode": "none",
+     "src_mode": "extended",
+     "src_pan": "0000",
+     "src_eui": "18:DF:C1:FF:FE:8B:0D:4D",
+     "sec_level": 6,
+     "key_id_mode": 1,
+     "key_index": 1,
+     "frame_counter": 417967,
+     "utt": "PAN Config",
+     "ufsi_hex": "E655CF",
+     "bsn_hex": "3995",
+     "bio": 181,
+     "lfn_bcast_ms": 60000,
+     "ies": "UTT BT LBC HT1",
+     "encrypted_payload_len": 85,
+     "info": "PAN Config, encrypted (key 1)",
+     "anz_400khz_channel": 2
+    }
+   },
+   {
+    "phr_hex": "0889",
+    "mhz": 927.0,
+    "psdu_hex": "f9ec98f6c271daf5c316dd67d3252197b516edb313dcc38be045d74a18f6c58ea9c96f76a579361aac73e451a2b8ea13079eea128b02e51cac8458a1e8936c8581d134f9df02ede15b40bf03fc29a0c977e6af2f1a9f704a136b175d37e4b817d431970cabafe864dbe073a4e30bbbefc824c9f7f25abe28b69b6407d76914d25fe2e37ee7a3261fca",
+    "expect": {
+     "length": 137,
+     "seq": 85,
+     "src_eui": "18:DF:C1:FF:FE:80:C8:68",
+     "utt": "Data",
+     "frame_counter": 736548,
+     "bsn_hex": "C993",
+     "dest": "broadcast",
+     "anz_400khz_channel": 29
+    }
+   }
+  ],
+  "wisun_crc32_check_value": {
+   "input_ascii": "123456789",
+   "crc_hex": "CBF43926"
+  },
+  "wisun_pn9_first_octets": "f00ecdf6c2191275",
+  "nrf24_crc16_check_value": {
+   "input_ascii": "123456789",
+   "crc_hex": "29B1"
+  },
+  "flipper_chat_crc16_check_value": {
+   "input_ascii": "123456789",
+   "crc_hex": "AEE7"
+  },
+  "flipper_chat_packet": {
+   "payload_ascii": "hi",
+   "octets_prefix_hex": "AAAAAAAA464C02",
+   "note": "4 preamble octets in this example, then sync 46 4C, length 2, 'h' 'i', CRC-16 high octet first"
+  },
+  "nfc_type_a_reader_capture_2msps": {
+   "frames": [
+    "52 (7 bits, WUPA)",
+    "26 (7 bits, REQA)",
+    "93 20",
+    "93 70 8E 63 3D 3B EB + CRC_A",
+    "60 04 + CRC_A (MIFARE Classic AUTH key A block 4)",
+    "73 44 2F CC 38 8D 28 73 (encrypted, parity broken on purpose)",
+    "50 00 + CRC_A (HLTA)"
+   ],
+   "expect_tag_uid": "8E633D3B",
+   "expect_tag_frames": 0
+  },
+  "dect_a_field": {
+   "crc_poly": "CRC-16/DECT-R: 0589 (x^16+x^10+x^8+x^7+x^3+1), register 0, final XOR 0001", "crc_check_value_hex": "007E",
+   "sync_rfp": "AAAAE98A",
+   "sync_pp": "55551675",
+   "test_rfpi_hex": [
+    "0100A5C3D1",
+    "0100F31A22"
+   ],
+   "test_qt_tail_hex": "0123456789"
+  }
+ }
+}

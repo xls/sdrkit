@@ -1,0 +1,395 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "air_25",
+      "name": "Aeronautical, 25 kHz channels",
+      "kind": "aviation",
+      "source": {
+        "publisher": "ICAO",
+        "title": "Handbook on Radio Frequency Spectrum Requirements for Civil Aviation, Volume II",
+        "number": "Doc 9718, 2nd edition",
+        "date": "2022",
+        "clause": "2.5.3 Table 2-4, 3.3.1.1.1, 4.3.1.1, 5.5.1",
+        "url": "https://www.icao.int/sites/default/files/FSMP/Doc.9718-Vol-II-2nd-Edition-2022_corr000.pdf"
+      },
+      "also": [
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 2, Appendix 27 (REV.WRC-23)",
+          "number": "Edition of 2024",
+          "date": "2024",
+          "clause": "27/18",
+          "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/1.49.48.en.102.pdf"
+        },
+        {
+          "publisher": "ITU",
+          "title": "Radio Regulations, Volume 1, Article 5 (Table of Frequency Allocations)",
+          "number": "Edition of 2024",
+          "date": "2024",
+          "url": "https://search.itu.int/history/HistoryDigitalCollectionDocLibrary/1.49.48.en.101.pdf"
+        }
+      ],
+      "verified": true,
+      "note": "HF bands of the aeronautical mobile (R) service only",
+      "bands": [
+        {
+          "name": "HF aeronautical 2850 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 2850000,
+          "end_hz": 3025000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "HF aeronautical 3400 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 3400000,
+          "end_hz": 3500000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "HF aeronautical 4650 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 4650000,
+          "end_hz": 4700000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "HF aeronautical 5450 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 5450000,
+          "end_hz": 5480000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb",
+          "note": "Region 2 only"
+        },
+        {
+          "name": "HF aeronautical 5480 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 5480000,
+          "end_hz": 5680000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "HF aeronautical 6525 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 6525000,
+          "end_hz": 6685000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "HF aeronautical 8815 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 8815000,
+          "end_hz": 8965000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "HF aeronautical 10005 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 10005000,
+          "end_hz": 10100000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "HF aeronautical 11275 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 11275000,
+          "end_hz": 11400000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "HF aeronautical 13260 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 13260000,
+          "end_hz": 13360000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "HF aeronautical 17900 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 17900000,
+          "end_hz": 17970000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "HF aeronautical 21924 kHz",
+          "service": "aeronautical_mobile",
+          "start_hz": 21924000,
+          "end_hz": 22000000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "usb"
+        },
+        {
+          "name": "Marker beacons",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 74800000,
+          "end_hz": 75200000,
+          "modes": [
+            "ils"
+          ],
+          "modulation": "am",
+          "note": "ILS marker beacons on 75 MHz: outer, middle and inner (ICAO Annex 10 Volume I, 3.1.7)"
+        },
+        {
+          "name": "VHF navigation (VOR, ILS)",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 108000000,
+          "end_hz": 117975000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 108000000,
+            "step_hz": 50000
+          }
+        },
+        {
+          "name": "VHF airband",
+          "service": "aeronautical_mobile",
+          "start_hz": 117975000,
+          "end_hz": 137000000,
+          "note": "transmitting needs an aeronautical station licence (aircraft or ground station) from the national regulator",
+          "modes": [
+            "general"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 118000000,
+            "step_hz": 25000
+          }
+        },
+        {
+          "name": "Emergency",
+          "service": "aeronautical_mobile",
+          "start_hz": 121487500,
+          "end_hz": 121512500,
+          "modes": [
+            "general"
+          ],
+          "channel_width_hz": 25000,
+          "channels": [
+            {
+              "name": "121.500",
+              "centre_hz": 121500000,
+              "note": "emergency"
+            }
+          ]
+        },
+        {
+          "name": "Survival craft",
+          "service": "aeronautical_mobile",
+          "start_hz": 242987500,
+          "end_hz": 243012500,
+          "modes": [
+            "general"
+          ],
+          "channel_width_hz": 25000,
+          "channels": [
+            {
+              "name": "243.000",
+              "centre_hz": 243000000,
+              "note": "survival craft and distress (RR 5.111, 5.256)"
+            }
+          ]
+        },
+        {
+          "name": "ILS glide path",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 328600000,
+          "end_hz": 335400000,
+          "modes": [
+            "general"
+          ]
+        },
+        {
+          "name": "SSR interrogations",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 1028500000,
+          "end_hz": 1031500000,
+          "modes": [
+            "uplink1030"
+          ],
+          "channel_width_hz": 3000000,
+          "channels": [
+            {
+              "name": "1030",
+              "centre_hz": 1030000000,
+              "note": "SSR interrogations"
+            }
+          ]
+        },
+        {
+          "name": "SSR replies and ADS-B",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 1088500000,
+          "end_hz": 1091500000,
+          "modes": [
+            "adsb",
+            "modeac"
+          ],
+          "channel_width_hz": 3000000,
+          "channels": [
+            {
+              "name": "1090",
+              "centre_hz": 1090000000,
+              "note": "SSR replies and ADS-B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "air_uhf_mil",
+      "name": "UHF military airband",
+      "kind": "aviation",
+      "source": {
+        "publisher": "NATO and national military plans",
+        "title": "UHF military aeronautical band",
+        "date": "unknown"
+      },
+      "verified": false,
+      "unverified_reason": "the band is not in the Radio Regulations as an aeronautical allocation; its edges are not yet compared with a published plan",
+      "bands": [
+        {
+          "name": "UHF military airband",
+          "service": "aeronautical_mobile",
+          "start_hz": 225000000,
+          "end_hz": 399975000,
+          "modes": [
+            "general"
+          ],
+          "modulation": "am",
+          "raster": {
+            "first_hz": 225000000,
+            "step_hz": 25000
+          }
+        }
+      ]
+    },
+    {
+      "id": "air_833",
+      "name": "Aeronautical, 8.33 kHz channels (Europe)",
+      "kind": "aviation",
+      "source": {
+        "publisher": "European Commission",
+        "title": "Commission Implementing Regulation laying down requirements for voice channel spacing for the single European sky",
+        "number": "(EU) No 1079/2012",
+        "date": "2012-11-16",
+        "clause": "Article 1",
+        "url": "https://www.legislation.gov.uk/eur/2012/1079"
+      },
+      "also": [
+        {
+          "publisher": "ICAO",
+          "title": "Handbook on Radio Frequency Spectrum Requirements for Civil Aviation, Volume II",
+          "number": "Doc 9718, 2nd edition",
+          "date": "2022",
+          "clause": "2.5.3 Table 2-4, 3.3.1.1.1, 4.3.1.1, 5.5.1",
+          "url": "https://www.icao.int/sites/default/files/FSMP/Doc.9718-Vol-II-2nd-Edition-2022_corr000.pdf"
+        },
+        {
+          "publisher": "BNetzA",
+          "title": "Frequenzplan gemaess Paragraph 90 TKG",
+          "date": "2026-08",
+          "clause": "entry 205001",
+          "url": "https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Downloads/DE/Sachgebiete/Telekommunikation/Unternehmen_Institutionen/Frequenzen/202608_Frequenzplan.pdf"
+        }
+      ],
+      "verified": true,
+      "include": [
+        "air_25"
+      ],
+      "bands": [
+        {
+          "name": "VHF airband, 8.33 kHz channels",
+          "service": "aeronautical_mobile",
+          "start_hz": 117995830,
+          "end_hz": 137004170,
+          "note": "transmitting needs an aeronautical station licence (aircraft or ground station) from the national regulator",
+          "modes": [
+            "general"
+          ],
+          "modulation": "am",
+          "channel_width_hz": 8333.333333,
+          "numbering": {
+            "first": 0,
+            "last": 2279,
+            "first_centre_hz": 118000000,
+            "step_hz": 8333.333333,
+            "names": "icao_8_33"
+          }
+        }
+      ]
+    },
+    {
+      "id": "air_uat",
+      "name": "UAT (978 MHz, United States)",
+      "kind": "aviation",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47",
+        "number": "47 CFR 87.475",
+        "date": "2026",
+        "url": "https://www.ecfr.gov/current/title-47/section-87.475"
+      },
+      "verified": false,
+      "unverified_reason": "the 978 MHz UAT frequency is not yet compared with the FAA and FCC rules",
+      "bands": [
+        {
+          "name": "UAT",
+          "service": "aeronautical_radionavigation",
+          "start_hz": 977350000,
+          "end_hz": 978650000,
+          "modes": [
+            "uat"
+          ],
+          "channel_width_hz": 1300000,
+          "channels": [
+            {
+              "name": "UAT",
+              "centre_hz": 978000000,
+              "note": "ADS-B UAT"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

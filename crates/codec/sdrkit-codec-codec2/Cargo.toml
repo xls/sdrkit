@@ -1,0 +1,15 @@
+[package]
+name = "sdrkit-codec-codec2"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Codec 2 speech encoder and decoder (modes 3200, 1300, 1200 and 700C) with codebook tables that the host loads at run time"
+
+[dependencies]
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+sdrkit-algo-crypto = { path = "../../algo/sdrkit-algo-crypto" }
+
+[[example]]
+name = "bench"

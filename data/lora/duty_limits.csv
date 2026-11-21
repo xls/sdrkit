@@ -1,0 +1,7 @@
+# id: lora_duty_limits
+# name: Duty-cycle limits of own transmissions in the 868 MHz band of the EU, over the last hour of air time
+# stacks: mesh meshtastic meshcore loraaprs meshcom lorawan
+# note: A host gives the stack the rows in its setting duty_bands as low Hz-high Hz=percent entries.
+name,lo_mhz,hi_mhz,duty_percent
+EU_868,869.4,869.65,10
+EU 868.0 to 868.6 MHz,868.0,868.6,1

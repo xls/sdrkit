@@ -1,0 +1,19 @@
+{
+  "global": {
+    "core:datatype": "ci16_le",
+    "core:sample_rate": 2000000.0,
+    "core:version": "1.0.0",
+    "core:sample_count": 6000000,
+    "core:description": "Meshtastic LongFast (SF11, 250 kHz, CR 4/5, sync 0x2B) recorded off air in the ANZ region: stack meshtastic, region ANZ, preset LongFast, dial 919.875 MHz, capture centre 919.875 MHz, default channel only. Two frames of one text from a T-Beam.",
+    "core:recorder": "sdrkit",
+    "core:hw": "ANTSDR (Pluto family)"
+  },
+  "captures": [
+    {
+      "core:sample_start": 0,
+      "core:frequency": 919875000.0,
+      "core:datetime": "2026-11-10T13:09:58Z"
+    }
+  ],
+  "annotations": []
+}
