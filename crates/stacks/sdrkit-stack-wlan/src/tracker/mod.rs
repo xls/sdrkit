@@ -1,5 +1,6 @@
 //! The BLE tracker detector (`bletracker`): recognises item trackers from their public advertisements and raises an unwanted
-//! tracking alert for one that stays with the receiver. Identifiers stay in memory only and are never saved.
+//! tracking alert for one that stays with the receiver. Identifiers stay in memory only and are never saved. The stack sends
+//! the Find My and Google frames that the detector reads ([`crate::ble::tx`]) into a transmit sink.
 
 pub mod book;
 
@@ -39,7 +40,7 @@ pub const ID: &str = "bletracker";
 /// The note on what the detector can and cannot tell.
 pub const LIMITS_NOTE: &str = "A tracker that stays near a fixed radio, such as a neighbour's tag, is reported too, and the levels are the radio's own, not calibrated distances. The detector is meant for a radio that travels with you.";
 /// The privacy note of the detector.
-pub const TRACKER_PRIVACY_NOTE: &str = "Receive only: item trackers are recognised from their public advertisements. Nothing is ever connected to, sent to, or read from a tracker's owner. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.";
+pub const TRACKER_PRIVACY_NOTE: &str = "Item trackers are recognised from their public advertisements. Nothing is ever connected to, sent to, or read from a tracker's owner. Tracker advertisements go out only on the command send. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.";
 
 /// The advertising channel to listen on. The host tunes to it.
 pub const CHANNEL_SETTING: Setting<field::Choice<AdvChannel>> =
@@ -107,6 +108,8 @@ sdrkit_core::settings! {
         Near = NEAR,
         /// The alert time in seconds.
         AlertAfterS = ALERT_AFTER_S,
+        /// The level sent.
+        TxLevel = ble::tx::TX_LEVEL,
         /// The schedule of the test signal.
         GenSchedule = GEN_SCHEDULE,
     }
@@ -543,7 +546,7 @@ impl Component for TrackerBook {
 ///
 /// [`GraphError`] if the graph does not build.
 pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
-    ble::front()?
+    ble::with_sender(ble::front()?, ble::tx::BleSender::tracker())
         .add("book", TrackerBook::default())
         .connect("adv.adverts", "book.adverts")
         .connect("adv.stats", "book.stats")
@@ -565,11 +568,10 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         ble::MIN_RATE_HZ,
         "The BLE tracker detector needs a sample rate of at least 4 Msps",
     );
-    route_to(b, "book", &TrackerSetting::schema())?
+    let b = route_to(b, "book", &TrackerSetting::schema())?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
-        .command("mine", sdrkit_graph::CommandTarget::of("book", "mine"))
-        .with_settings(&cfg.settings)
-        .build()
+        .command("mine", sdrkit_graph::CommandTarget::of("book", "mine"));
+    ble::route_sender(b)?.with_settings(&cfg.settings).build()
 }
 
 /// Adds the tracker book component to a registry.

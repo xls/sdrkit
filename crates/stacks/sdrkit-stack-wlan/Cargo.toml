@@ -4,7 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
-description = "Bluetooth LE advertising, a BLE tracker detector, Wi-Fi networks (DSSS and OFDM beacons), ESP-NOW frames, Wi-Fi HaLow (802.11ah S1G), Bluetooth Classic discovery and wfb-ng / OpenHD video links on the HT-mixed PHY, receive only"
+description = "Bluetooth LE advertising, a BLE tracker detector, Wi-Fi networks (DSSS and OFDM beacons), ESP-NOW frames, Wi-Fi HaLow (802.11ah S1G), Bluetooth Classic discovery and wfb-ng / OpenHD video links on the HT-mixed PHY; the BLE stacks also send advertising packets"
 
 [dependencies]
 sdrkit-core = { path = "../../framework/sdrkit-core" }

@@ -6,6 +6,8 @@ use sdrkit_core::Clock;
 
 /// The privacy note of the BLE and Wi-Fi monitors.
 pub const PRIVACY_NOTE: &str = "Receive only: the packets devices broadcast openly, as a scanner app sees them. Nothing is transmitted, connected to, paired with, joined or decrypted.";
+/// The privacy note of the `ble` stack, which also sends advertising packets on command.
+pub const BLE_PRIVACY_NOTE: &str = "The packets devices broadcast openly, as a scanner app sees them. Nothing is connected to, paired with, joined or decrypted. Advertising packets go out only on the command send.";
 
 /// The wall clock in seconds since 1970 when the samples are live, else `None` (a recording has no wall time of its own).
 pub fn wall(live: bool, clock: &Clock) -> Option<f64> {

@@ -55,8 +55,8 @@ pub fn gen_setting<'a, K: SettingKind>(cfg: &'a GenConfig, s: &Setting<K>) -> Op
     s.read(id, cfg.settings.value(id)?).ok()
 }
 
-/// Routes every setting of the stack's `schema` that is not a test-signal setting (`gen_*`) to the setting of the same key
-/// of `component`.
+/// Routes every setting of the stack's `schema` that is not a test-signal setting (`gen_*`) or a transmit setting (`tx_*`)
+/// to the setting of the same key of `component`.
 ///
 /// # Errors
 ///
@@ -68,7 +68,7 @@ pub fn route_to(
 ) -> Result<StackGraphBuilder, GraphError> {
     for s in schema.settings() {
         let key = s.field.key.as_ref();
-        if !key.starts_with("gen_") {
+        if !key.starts_with("gen_") && !key.starts_with("tx_") {
             b = b.route(key, &[&format!("{component}.{key}")])?;
         }
     }

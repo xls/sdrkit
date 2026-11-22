@@ -3,6 +3,7 @@
 mod sdrkit_stack_wlan {
     pub mod alloc;
     pub mod ble;
+    pub mod ble_tx;
     pub mod btclassic;
     pub mod espnow;
     pub mod halow;

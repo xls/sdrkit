@@ -327,6 +327,116 @@ pub struct BleDeviceArgs<'a> {
 /// Forgets one device.
 pub const BLE_REMOVE: CommandKind<BleDeviceArgs<'static>> = objcmd::remove_kind();
 
+/// The result fields of the advertising sender of `ble` and `bletracker`.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct BleTxFields {
+    /// Whether a send is on air.
+    #[field(label = "Sending")]
+    pub tx_sending: bool,
+    /// The packets of the send on air that went out.
+    #[field(label = "Packets sent")]
+    pub tx_sent: i64,
+    /// The packets still to go: the rest of the send on air and the sends that wait.
+    #[field(label = "Packets left")]
+    pub tx_left: i64,
+}
+
+/// The fields of a change of an advertising send.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct BleTxEvent<'a> {
+    /// The state: started, queued, finished or refused.
+    #[field(label = "State")]
+    pub state: &'a str,
+    /// Why it changed: empty, halted, the transmitter is off, the format changed, the frequency changed, or why a send
+    /// was refused.
+    #[field(label = "Reason")]
+    pub reason: &'a str,
+    /// The advertiser address.
+    #[field(shared = keys::TARGET)]
+    pub target: &'a str,
+    /// The PDU type, the channel, the packets and the advertising data in hex; empty for finished.
+    #[field(shared = keys::TEXT)]
+    pub text: &'a str,
+    /// The family of the source.
+    #[field(shared = keys::FAMILY)]
+    pub family: Family,
+}
+
+/// An advertising send.
+pub static BLE_TX: EventKind<BleTxEvent<'static>> =
+    EventKind::new("ble.tx", "Bluetooth LE transmission");
+
+/// The arguments of `send` of `ble`.
+#[derive(Arguments)]
+pub struct BleSendArgs<'a> {
+    /// The advertiser address.
+    #[arg(shared = crate::ble::tx::ADDRESS)]
+    pub address: &'a str,
+    /// Public or random.
+    #[arg(shared = crate::ble::tx::ADDRESS_TYPE)]
+    pub address_type: Option<crate::ble::tx::SendAddress>,
+    /// The PDU type.
+    #[arg(shared = crate::ble::tx::PDU_TYPE)]
+    pub pdu_type: Option<crate::ble::tx::SendPdu>,
+    /// The advertising data.
+    #[arg(
+        label = "Data",
+        help = "The advertising data in hex, up to 31 bytes of AD structures. When given, the name, UUID and manufacturer fields stay empty.",
+        default = ""
+    )]
+    pub data: Option<&'a str>,
+    /// The complete local name.
+    #[arg(
+        label = "Name",
+        help = "Without data: a complete local name structure of this text.",
+        default = ""
+    )]
+    pub name: Option<&'a str>,
+    /// A 16-bit service UUID.
+    #[arg(
+        label = "Service UUID",
+        help = "Without data: a complete list of 16-bit service UUIDs that holds this one, 4 hex digits (180F).",
+        default = ""
+    )]
+    pub uuid16: Option<&'a str>,
+    /// The company identifier.
+    #[arg(
+        label = "Company",
+        help = "Without data: manufacturer specific data of this company identifier, 4 hex digits (004C).",
+        default = ""
+    )]
+    pub company: Option<&'a str>,
+    /// The manufacturer specific data.
+    #[arg(
+        label = "Manufacturer data",
+        help = "The bytes after the company identifier, in hex. Needs the company.",
+        default = ""
+    )]
+    pub manufacturer_data: Option<&'a str>,
+    /// The packets.
+    #[arg(shared = crate::ble::tx::COUNT)]
+    pub count: Option<i64>,
+    /// The interval.
+    #[arg(shared = crate::ble::tx::INTERVAL_MS)]
+    pub interval_ms: Option<i64>,
+}
+
+/// Sends advertising packets of the LE 1M PHY on the advertising channel of the tuned frequency.
+pub const BLE_SEND: CommandKind<BleSendArgs<'static>> = CommandKind::new(
+    "send",
+    "Send an advertisement",
+)
+.help(
+    "Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: 2402, 2426 or 2480 MHz. \
+     A send during another waits for it. Transmit must be on.",
+)
+.transmits(sdrkit_core::TxContent::Beacon)
+.stopped_by("halt");
+
+/// Ends a send.
+pub const BLE_HALT: Command = Command::new("halt", "Halt")
+    .help("Drops the packets of the send on air that are still to go, and the sends that wait.");
+
 // bletracker
 
 /// The result fields of `bletracker`.
@@ -523,6 +633,66 @@ pub struct BletrackerMineArgs<'a> {
 pub const BLETRACKER_MINE: CommandKind<BletrackerMineArgs<'static>> =
     CommandKind::new("mine", "Mark as mine")
         .help("A tracker marked as the user's own raises no alert.");
+
+/// The arguments of `send` of `bletracker`.
+#[derive(Arguments)]
+pub struct BletrackerSendArgs<'a> {
+    /// The tracker family.
+    #[arg(shared = crate::ble::tx::TRACKER)]
+    pub tracker: Option<crate::ble::tx::SendTracker>,
+    /// The advertiser address.
+    #[arg(shared = crate::ble::tx::ADDRESS)]
+    pub address: &'a str,
+    /// Public or random.
+    #[arg(shared = crate::ble::tx::ADDRESS_TYPE)]
+    pub address_type: Option<crate::ble::tx::SendAddress>,
+    /// The PDU type.
+    #[arg(shared = crate::ble::tx::PDU_TYPE)]
+    pub pdu_type: Option<crate::ble::tx::SendPdu>,
+    /// The Find My status byte.
+    #[arg(
+        label = "Status",
+        help = "Find My: the status byte after the type and the length.",
+        default = 0,
+        min = 0,
+        max = 255,
+        step = 1
+    )]
+    pub status: Option<i64>,
+    /// The Google frame type.
+    #[arg(
+        label = "Unwanted-tracking protection",
+        help = "Google: frame type 0x41 in place of 0x40.",
+        default = false
+    )]
+    pub protection: Option<bool>,
+    /// The rest of the frame.
+    #[arg(
+        label = "Payload",
+        help = "In hex. Find My: the 24 bytes after the status. Google: up to 26 bytes after the frame type.",
+        default = ""
+    )]
+    pub payload: Option<&'a str>,
+    /// The packets.
+    #[arg(shared = crate::ble::tx::COUNT)]
+    pub count: Option<i64>,
+    /// The interval.
+    #[arg(shared = crate::ble::tx::INTERVAL_MS)]
+    pub interval_ms: Option<i64>,
+}
+
+/// Sends tracker advertisements in the form that the detector reads.
+pub const BLETRACKER_SEND: CommandKind<BletrackerSendArgs<'static>> = CommandKind::new(
+    "send",
+    "Send a tracker advertisement",
+)
+.help(
+    "Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: Find My manufacturer \
+     data of company 0x004C (type 0x12, length 25, the status, the payload) or Google service data of UUID 0xFEAA (frame \
+     type 0x40 or 0x41, the payload). A send during another waits for it. Transmit must be on.",
+)
+.transmits(sdrkit_core::TxContent::Beacon)
+.stopped_by("halt");
 
 // wifi
 
@@ -1419,7 +1589,7 @@ pub fn family() -> &'static Described {
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 1, 1)
+        Described::new("wlan", 1, 2)
             .shared_source("tracker", &["bletracker"])
             .stack(
                 StackShape::new("ble")
@@ -1433,6 +1603,10 @@ pub fn family() -> &'static Described {
                     .settings(BleSetting::SETTINGS)
                     .command(CLEAR)
                     .command(&BLE_REMOVE)
+                    .fields::<BleTxFields>()
+                    .event(&BLE_TX)
+                    .command(&BLE_SEND)
+                    .command(&BLE_HALT)
                     .kept(&["devices", "packets", "device_levels", "BleFields.devices"]),
             )
             .stack(
@@ -1446,6 +1620,10 @@ pub fn family() -> &'static Described {
                     .settings(TrackerSetting::SETTINGS)
                     .command(CLEAR)
                     .command(&BLETRACKER_MINE)
+                    .fields::<BleTxFields>()
+                    .event(&BLE_TX)
+                    .command(&BLETRACKER_SEND)
+                    .command(&BLE_HALT)
                     .kept(&[
                         "trackers",
                         "alerts",
@@ -1526,8 +1704,33 @@ pub fn family() -> &'static Described {
                         .kept(&["devices", "frames", "EspnowFields.devices"]),
                 )
             })
+            .added(1, 2, ADDED_1_2)
     })
 }
+
+/// What version 1.2 added: the advertising senders of the stacks `ble` and `bletracker`.
+const ADDED_1_2: &[&str] = &[
+    "ble.fields.BleTxFields",
+    "ble.event.ble.tx",
+    "ble.setting.tx_level",
+    "ble.command.send",
+    "ble.command.halt",
+    "bletracker.fields.BleTxFields",
+    "bletracker.event.ble.tx",
+    "bletracker.setting.tx_level",
+    "bletracker.command.send",
+    "bletracker.command.halt",
+    "shape.BleTxFields",
+    "shape.BleTxFields.tx_sending",
+    "shape.BleTxFields.tx_sent",
+    "shape.BleTxFields.tx_left",
+    "shape.BleTxEvent",
+    "shape.BleTxEvent.state",
+    "shape.BleTxEvent.reason",
+    "shape.BleTxEvent.target",
+    "shape.BleTxEvent.text",
+    "shape.BleTxEvent.family",
+];
 
 /// The description of the stack `id`.
 ///

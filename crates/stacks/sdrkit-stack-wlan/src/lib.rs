@@ -1,5 +1,6 @@
-//! Bluetooth and Wi-Fi monitors, receive only: BLE advertising, a BLE tracker detector, Wi-Fi networks, ESP-NOW frames,
-//! Wi-Fi HaLow, Bluetooth Classic discovery, and the wfb-ng and OpenHD video links on the HT-mixed PHY.
+//! Bluetooth and Wi-Fi monitors: BLE advertising, a BLE tracker detector, Wi-Fi networks, ESP-NOW frames, Wi-Fi HaLow,
+//! Bluetooth Classic discovery, and the wfb-ng and OpenHD video links on the HT-mixed PHY. The two BLE stacks also send
+//! advertising packets.
 //! Standard: Bluetooth Core Specification v5.4 and its Supplement; IEEE Std 802.11-2020.
 
 #![warn(missing_docs)]

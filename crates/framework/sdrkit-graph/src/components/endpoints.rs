@@ -316,6 +316,8 @@ impl Component for HostIn {
 pub struct TxSink {
     streams: Option<Arc<dyn HostStreams>>,
     format: Option<Format>,
+    /// The centre of the graph's input at the last configure or retune.
+    input_centre_hz: Option<f64>,
 }
 
 impl TxSink {
@@ -340,8 +342,20 @@ impl Component for TxSink {
     }
     fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
         self.format = Some(inputs[0].clone());
+        self.input_centre_hz = None;
         self.announce();
         Ok(vec![])
+    }
+    /// A retune that keeps the components moves the transmit centre by the step of the input centre, and tells the host.
+    fn retuned(&mut self, centre_hz: f64, _tuned_hz: f64) {
+        if let (Some(before), Some(f)) = (self.input_centre_hz, self.format.as_mut()) {
+            let step = centre_hz - before;
+            if step != 0.0 {
+                f.centre_hz += step;
+                self.announce();
+            }
+        }
+        self.input_centre_hz = Some(centre_hz);
     }
     fn process(&mut self, io: &mut Io) {
         let (Some(s), Some(f)) = (&self.streams, &self.format) else {

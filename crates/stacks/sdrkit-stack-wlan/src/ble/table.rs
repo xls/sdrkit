@@ -2,7 +2,7 @@
 //! the log are kept in the saved state.
 
 use super::{AdvChannel, AdvStats, Advert};
-use crate::report::{hex, push_history, remove_older_rows, wall, PRIVACY_NOTE};
+use crate::report::{hex, push_history, remove_older_rows, wall, BLE_PRIVACY_NOTE};
 use crate::typed::{
     BleDeviceEvent, BleDeviceLevelRow, BleDeviceRow, BleFields, BlePacketRow, BlePduTypeRow,
     BLE_DEVICE, BLE_DEVICES, BLE_DEVICE_LEVELS, BLE_DEVICE_ROW, BLE_PACKETS, BLE_PDU_TYPES,
@@ -617,7 +617,7 @@ impl DeviceTable {
             packets_38: c.per_channel[1] as i64,
             packets_39: c.per_channel[2] as i64,
             hopping: self.hop,
-            privacy: PRIVACY_NOTE,
+            privacy: BLE_PRIVACY_NOTE,
         });
         for i in 0..16u8 {
             let n = c.per_type[usize::from(i)];

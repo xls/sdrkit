@@ -114,13 +114,24 @@ pub fn whitening_of(cfg: &GenConfig) -> Whitening {
     }
 }
 
-/// An address from its text (most significant byte first). Panics on bad text: the schedules use constants.
-pub fn addr(text: &str, random: bool) -> Addr {
-    let mut b = [0u8; 6];
-    for (i, p) in text.split(':').enumerate().take(6) {
-        b[5 - i] = u8::from_str_radix(p, 16).expect("an address in the schedule");
+/// An address from its text: 12 hexadecimal digits, most significant byte first, with or without `:` or `-` between the
+/// bytes. `None` for other text.
+pub fn parse_addr(text: &str, random: bool) -> Option<Addr> {
+    let digits: Vec<u8> = text.bytes().filter(|c| !matches!(c, b':' | b'-')).collect();
+    if digits.len() != 12 {
+        return None;
     }
-    Addr { bytes: b, random }
+    let mut b = [0u8; 6];
+    for (i, p) in digits.chunks(2).enumerate() {
+        let d = |c: u8| (c as char).to_digit(16);
+        b[5 - i] = (d(p[0])? * 16 + d(p[1])?) as u8;
+    }
+    Some(Addr { bytes: b, random })
+}
+
+/// An address from its text, as [`parse_addr`] reads it. Panics on bad text: the schedules use constants.
+pub fn addr(text: &str, random: bool) -> Addr {
+    parse_addr(text, random).expect("an address in the schedule")
 }
 
 fn hex(text: &str) -> Vec<u8> {

@@ -1,10 +1,11 @@
 //! The Bluetooth LE advertising monitor (`ble`): the packets devices broadcast on the three primary advertising channels with
-//! the LE 1M PHY, a device table and a packet log.
+//! the LE 1M PHY, a device table and a packet log. The stack sends advertising packets ([`tx`]) into a transmit sink.
 //! Standard: Bluetooth Core Specification v5.4 Vol 6 Part B; Core Specification Supplement v11 Part A.
 
 pub mod adv;
 pub mod gen;
 pub mod table;
+pub mod tx;
 
 use sdrkit_algo_dsp::meter::IntervalLevel;
 
@@ -20,7 +21,7 @@ use sdrkit_core::{
 };
 use sdrkit_graph::{
     no_values, Catalog, Decoder, DecoderComponent, Format, Graph, GraphBuilder, GraphError, Item,
-    Kind, Outbox, Port, Registry, RunContext, StackGraph, Timed,
+    Kind, Outbox, Port, Registry, RunContext, StackGraph, StackGraphBuilder, Timed,
 };
 use sdrkit_proto_wlan_phy::ble::{advertising_channel_at, AdvPdu, AdvReceiver};
 use std::sync::Arc;
@@ -281,13 +282,40 @@ pub fn front() -> Result<GraphBuilder, GraphError> {
         .connect("channel", "adv"))
 }
 
-/// The `ble` graph.
+/// Adds the advertising sender `sender` and the transmit sink `tx` to a BLE graph: the sender takes the graph's input and
+/// writes into the sink.
+pub fn with_sender(b: GraphBuilder, sender: tx::BleSender) -> GraphBuilder {
+    b.add("sender", sender)
+        .add("tx", sdrkit_graph::components::TxSink::default())
+        .input("sender.in")
+        .connect("sender.out", "tx.in")
+        .output("sender.events")
+}
+
+/// Routes the transmit settings and the commands `send` and `halt` of a BLE stack to its sender.
+///
+/// # Errors
+///
+/// [`GraphError::Setting`] if the sender has no setting `tx_level`.
+pub fn route_sender(b: StackGraphBuilder) -> Result<StackGraphBuilder, GraphError> {
+    Ok(b.route(
+        tx::TX_LEVEL.key(),
+        &[&format!("sender.{}", tx::TX_LEVEL.key())],
+    )?
+    .command("send", sdrkit_graph::CommandTarget::of("sender", "send"))
+    .command(
+        crate::typed::BLE_HALT.key,
+        sdrkit_graph::CommandTarget::of("sender", crate::typed::BLE_HALT.key),
+    ))
+}
+
+/// The `ble` graph: the front, the device table, and the advertising sender.
 ///
 /// # Errors
 ///
 /// [`GraphError`] if the graph does not build.
 pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
-    front()?
+    with_sender(front()?, tx::BleSender::ble())
         .add("table", table::DeviceTable::default())
         .connect("adv.adverts", "table.adverts")
         .connect("adv.stats", "table.stats")
@@ -320,6 +348,8 @@ sdrkit_core::settings! {
         MinLevel = table::MIN_LEVEL,
         /// Only named devices.
         NamedOnly = table::NAMED_ONLY,
+        /// The level sent.
+        TxLevel = tx::TX_LEVEL,
         /// The whitening of the test signal.
         GenChannel = GEN_CHANNEL,
     }
@@ -335,11 +365,10 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         MIN_RATE_HZ,
         "Bluetooth LE needs a sample rate of at least 4 Msps",
     );
-    route_to(b, "table", &BleSetting::schema())?
+    let b = route_to(b, "table", &BleSetting::schema())?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
-        .command("remove", sdrkit_graph::CommandTarget::of("table", "remove"))
-        .with_settings(&cfg.settings)
-        .build()
+        .command("remove", sdrkit_graph::CommandTarget::of("table", "remove"));
+    route_sender(b)?.with_settings(&cfg.settings).build()
 }
 
 /// Adds the BLE components of this crate to a registry.
@@ -350,6 +379,8 @@ pub fn register(r: &mut Registry) {
     r.add("wlan.ble_devices", || {
         Box::new(table::DeviceTable::default())
     });
+    r.add("wlan.ble_tx", || Box::new(tx::BleSender::ble()));
+    r.add("wlan.ble_tracker_tx", || Box::new(tx::BleSender::tracker()));
 }
 
 fn make_receiver(cfg: &StackConfig) -> Result<Box<dyn Receiver>, ConfigError> {
