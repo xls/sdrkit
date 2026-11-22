@@ -1,5 +1,5 @@
 # The interface of the stack family dvbt2. The registry test of the family writes this file.
-family dvbt2 version=1.2
+family dvbt2 version=1.3
 uses.mpegts major=1 since=1.0
 uses.ipcast major=1 since=1.0
 shape.Dvbt2Fields since=1.0
@@ -99,7 +99,7 @@ dvbt2.setting.tx_guard type=choice(1/32,1/16,1/8,1/4,1/128,19/128,19/256) unit= 
 dvbt2.setting.tx_pilots type=choice(pp1,pp2,pp3,pp4,pp5,pp6,pp7,pp8) unit= since=1.2
 dvbt2.setting.tx_extended type=bool unit= since=1.2
 dvbt2.setting.tx_modulation type=choice(qpsk,16qam,64qam,256qam) unit= since=1.2
-dvbt2.setting.tx_rate type=choice(1/2,3/5,2/3,3/4,4/5,5/6) unit= since=1.2
+dvbt2.setting.tx_rate type=choice(1/2,3/5,2/3,3/4,4/5,5/6,1/3,2/5) unit= since=1.2
 dvbt2.setting.tx_rotation type=bool unit= since=1.2
 dvbt2.setting.tx_fec_frame type=choice(16200,64800) unit= since=1.2
 dvbt2.setting.tx_ti_blocks type=i64 unit=TI-blocks since=1.2
@@ -108,6 +108,8 @@ dvbt2.setting.tx_l1_mod type=choice(bpsk,qpsk,16qam,64qam) unit= since=1.2
 dvbt2.setting.tx_cell_id type=i64 unit= since=1.2
 dvbt2.setting.tx_network_id type=i64 unit= since=1.2
 dvbt2.setting.tx_system_id type=i64 unit= since=1.2
+dvbt2.setting.tx_profile type=choice(base,lite) unit= since=1.3
+dvbt2.setting.tx_miso type=choice(siso,group1,group2) unit= since=1.3
 dvbt2.command.service.select args=row:text reply= since=1.0
 dvbt2.command.teletext.select args=row:text reply= since=1.0
 dvbt2.command.track.select args=row:text reply= since=1.0

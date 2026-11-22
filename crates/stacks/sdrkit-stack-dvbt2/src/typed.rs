@@ -234,6 +234,9 @@ const ADDED_1_2: &[&str] = &[
     "dvbt2.command.append",
 ];
 
+/// The settings of the sender for T2-Lite and MISO, added in 1.3.
+const ADDED_1_3: &[&str] = &["dvbt2.setting.tx_profile", "dvbt2.setting.tx_miso"];
+
 /// The description of the receiver graph of `dvbt2`, which the stack without its sender runs.
 pub fn receiver_shape() -> &'static StackShape {
     static SHAPE: OnceLock<StackShape> = OnceLock::new();
@@ -263,7 +266,7 @@ pub fn family() -> &'static Family {
             .command(&TX_START)
             .command(&TX_STOP)
             .command(&TX_APPEND);
-        Family::new("dvbt2", 1, 2)
+        Family::new("dvbt2", 1, 3)
             .uses(sdrkit_proto_mpegts::publish::interface())
             .uses(ipcast::interface())
             .shared_source("graph", &["dvbt2"])
@@ -271,6 +274,7 @@ pub fn family() -> &'static Family {
             .stack(dvbt2)
             .added(1, 1, &["dvbt2.setting.decode_video"])
             .added(1, 2, ADDED_1_2)
+            .added(1, 3, ADDED_1_3)
     })
 }
 

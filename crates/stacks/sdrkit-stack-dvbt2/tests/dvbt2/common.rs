@@ -7,7 +7,7 @@ use sdrkit_stack_dvbt2::bicm::Coding;
 use sdrkit_stack_dvbt2::params::*;
 use sdrkit_stack_dvbt2::pilots::FrameShape;
 use sdrkit_stack_dvbt2::rx::{RxSettings, RxStatus, T2Receiver};
-use sdrkit_stack_dvbt2::tx::{PlpKind, PlpSpec, TimeIl, Transmitter, TxConfig};
+use sdrkit_stack_dvbt2::tx::{MisoOut, Path, PlpKind, PlpSpec, TimeIl, Transmitter, TxConfig};
 
 /// The numbered pattern of the data PLP.
 pub const PATTERN: Numbered = Numbered::new(0x0101, Fill::I31N7);
@@ -43,7 +43,16 @@ pub fn single(fft: Fft, guard: Guard, pp: PilotPattern, coding: Coding, blocks: 
         t2_system_id: 0x8001,
         repetition: false,
         post_scrambled: false,
-        miso_group2: Complex32::new(0.6, 0.3),
+        miso: MisoOut::Sum([
+            Path {
+                gain: Complex32::new(1.0, 0.0),
+                delay: 0,
+            },
+            Path {
+                gain: Complex32::new(0.6, 0.3),
+                delay: 0,
+            },
+        ]),
         fef: None,
     }
 }

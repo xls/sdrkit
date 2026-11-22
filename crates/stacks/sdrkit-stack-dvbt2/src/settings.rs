@@ -3,9 +3,9 @@
 //! impairments.
 
 use crate::bicm::Coding;
+use crate::error::Rule;
 use crate::params::{
-    allowed, ldpc_table, Bandwidth, CodeRate, FecFrame, Fft, Guard, Modulation, PilotPattern,
-    Profile,
+    allowed, Bandwidth, CodeRate, FecFrame, Fft, Guard, Modulation, PilotPattern, Profile,
 };
 use sdrkit_core::publish::field;
 use sdrkit_core::{Choice, Setting, SettingError, SettingSet, Value, Values};
@@ -86,7 +86,7 @@ sdrkit_core::choice_enum! {
 }
 
 sdrkit_core::choice_enum! {
-    /// The code rate of the sender's data PLP (T2-base).
+    /// The code rate of the sender's data PLP.
     pub enum TxRate {
         /// 1/2.
         R1_2 = ("1/2", "1/2"),
@@ -100,6 +100,10 @@ sdrkit_core::choice_enum! {
         R4_5 = ("4/5", "4/5"),
         /// 5/6.
         R5_6 = ("5/6", "5/6"),
+        /// 1/3 (T2-Lite).
+        R1_3 = ("1/3", "1/3 (T2-Lite)"),
+        /// 2/5 (T2-Lite).
+        R2_5 = ("2/5", "2/5 (T2-Lite)"),
     }
 }
 
@@ -113,7 +117,21 @@ impl TxRate {
             TxRate::R3_4 => CodeRate::R3_4,
             TxRate::R4_5 => CodeRate::R4_5,
             TxRate::R5_6 => CodeRate::R5_6,
+            TxRate::R1_3 => CodeRate::R1_3,
+            TxRate::R2_5 => CodeRate::R2_5,
         }
+    }
+}
+
+sdrkit_core::choice_enum! {
+    /// What the sender is: one transmitter of a SISO network, or a transmitter of one group of a MISO network (clause 9.1).
+    pub enum TxMiso {
+        /// SISO.
+        Siso = ("siso", "SISO"),
+        /// MISO, transmitter group 1.
+        Group1 = ("group1", "MISO group 1"),
+        /// MISO, transmitter group 2.
+        Group2 = ("group2", "MISO group 2"),
     }
 }
 
@@ -209,6 +227,16 @@ pub const TX_NETWORK_ID: Setting<field::I64> =
 pub const TX_SYSTEM_ID: Setting<field::I64> =
     Setting::new("tx_system_id", "T2 system id", "", 0)
         .range(0.0, 65535.0, 1.0)
+        .section(TRANSMIT);
+/// The profile of the sender.
+pub const TX_PROFILE: Setting<field::Choice<Profile>> =
+    Setting::choice("tx_profile", "Profile", Profile::Base)
+        .help("T2-Lite (EN 302 755 annex I) takes 2K to 16K, the code rates 1/2 to 3/4, 1/3 and 2/5, always the 16 200-bit FEC frame, 256-QAM only with 1/3, 2/5, 1/2 and 3/5 and never rotated, and at most 4 Mbit/s. A pattern that tables I.5 and I.6 do not allow is refused at start.")
+        .section(TRANSMIT);
+/// SISO, or the MISO transmitter group of the sender.
+pub const TX_MISO: Setting<field::Choice<TxMiso>> =
+    Setting::choice("tx_miso", "MISO", TxMiso::Siso)
+        .help("In MISO each transmitter of group 2 sends the modified Alamouti code of the cells that group 1 sends, and its own pilot signs (EN 302 755 clause 9.1). A receiver decodes the sum of both groups. A pattern that table 59 does not allow is refused at start.")
         .section(TRANSMIT);
 
 /// The channel width.
@@ -352,6 +380,10 @@ sdrkit_core::settings! {
         TxNetworkId = TX_NETWORK_ID,
         /// T2_SYSTEM_ID of the sender.
         TxSystemId = TX_SYSTEM_ID,
+        /// The profile of the sender.
+        TxProfile = TX_PROFILE,
+        /// SISO, or the MISO transmitter group of the sender.
+        TxMiso = TX_MISO,
     }
 }
 
@@ -385,7 +417,8 @@ pub struct GenSettings {
 /// # Errors
 ///
 /// [`SettingError::Conflict`] if the standard does not allow the combination: a guard interval and pilot pattern that the FFT
-/// size does not take (EN 302 755 tables 58, 59, I.5 and I.6), or a code rate that the profile and FEC frame do not use.
+/// size does not take (EN 302 755 tables 58, 59, I.5 and I.6), a code rate that the profile and FEC frame do not use, or
+/// 256-QAM with 2/3 or 3/4 in T2-Lite (table I.4).
 pub fn gen_settings(v: &Values) -> Result<GenSettings, SettingError> {
     let fft = v.get(&GEN_FFT);
     let guard = v.get(&GEN_GUARD);
@@ -406,12 +439,26 @@ pub fn gen_settings(v: &Values) -> Result<GenSettings, SettingError> {
     } else {
         v.get(&GEN_FEC_FRAME)
     };
-    let used = rate.code().and_then(|c| CodeRate::from_code(c, lite)) == Some(rate);
-    if ldpc_table(frame, rate).is_none() || !used {
-        return Err(SettingError::Conflict {
-            id: Dvbt2Setting::GenRate.id(),
-            with: Dvbt2Setting::GenProfile.id(),
-        });
+    let coding = Coding {
+        frame,
+        rate,
+        modulation,
+        rotated: v.get(&GEN_ROTATION) && !(lite && modulation == Modulation::Qam256),
+    };
+    match coding.check(profile) {
+        Ok(()) => {}
+        Err(Rule::LiteConstellation) => {
+            return Err(SettingError::Conflict {
+                id: Dvbt2Setting::GenModulation.id(),
+                with: Dvbt2Setting::GenRate.id(),
+            })
+        }
+        Err(_) => {
+            return Err(SettingError::Conflict {
+                id: Dvbt2Setting::GenRate.id(),
+                with: Dvbt2Setting::GenProfile.id(),
+            })
+        }
     }
     Ok(GenSettings {
         bandwidth: v.get(&BANDWIDTH),
@@ -419,12 +466,7 @@ pub fn gen_settings(v: &Values) -> Result<GenSettings, SettingError> {
         guard,
         pp,
         extended: v.get(&GEN_EXTENDED) && fft.has_extended(),
-        coding: Coding {
-            frame,
-            rate,
-            modulation,
-            rotated: v.get(&GEN_ROTATION) && !(lite && modulation == Modulation::Qam256),
-        },
+        coding,
         profile,
         miso,
         blocks: v.get(&GEN_BLOCKS) as u16,

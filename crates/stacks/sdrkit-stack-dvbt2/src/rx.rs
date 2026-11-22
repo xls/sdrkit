@@ -134,9 +134,17 @@ struct Phy {
     shape: FrameShape,
     maps: PilotMaps,
     framer: FftFramer,
-    /// Estimators for P2, the normal phases and the frame closing symbol. MISO adds a second set for the inverted pilots.
+    /// Estimators for P2, the normal phases and the frame closing symbol. MISO adds a second set for the inverted pilots,
+    /// and its normal estimators interpolate the held values `sum` and `diff`.
     est: Vec<PilotLs>,
     est2: Vec<PilotLs>,
+    /// MISO: the last least squares value of H1 + H2 and of H1 - H2 at each carrier, which the normal symbols refresh at
+    /// their pilots and each P2 symbol sets over the band.
+    sum: Vec<Complex32>,
+    diff: Vec<Complex32>,
+    /// The pilot sequence w and the offset of carrier 0 in it.
+    prbs: Vec<u8>,
+    prbs_off: usize,
     freq: Option<FreqInterleaver>,
     cells: Vec<Complex32>,
     z: Vec<Complex32>,
@@ -201,10 +209,44 @@ impl Phy {
         } else {
             vec![None]
         };
+        // MISO normal symbols: every carrier of any phase at which the group sends its pilots alike (or inverted). In one
+        // normal symbol all scattered pilots are of one kind, since D_Y is even, so the other kind comes from the symbols
+        // before it.
+        let held = |same: bool| -> Result<OfdmLayout, T2Error> {
+            let mut ks: Vec<u32> = normals
+                .iter()
+                .zip(&phases)
+                .flat_map(|(m, &l)| {
+                    m.pilots
+                        .iter()
+                        .filter(move |p| shape_pilot(&shape, p, l) == same)
+                        .map(|p| p.k)
+                })
+                .collect();
+            ks.sort_unstable();
+            ks.dedup();
+            let cells = vec![ks
+                .iter()
+                .map(|&k| (first + k as i32, Complex32::new(1.0, 0.0)))
+                .collect()];
+            OfdmLayout::new(
+                shape.fft.size(),
+                &[guard],
+                first,
+                first + kt as i32 - 1,
+                &[],
+                &[],
+                &Pattern { cells },
+            )
+            .map_err(T2Error::from)
+        };
         let mut sets = Vec::new();
         for g in &groups {
             let p2 = mk(&[maps.p2()], &[0], *g)?;
-            let normal = mk(&normals, &phases, *g)?;
+            let normal = match g {
+                Some(same) => held(*same)?,
+                None => mk(&normals, &phases, *g)?,
+            };
             let fc = mk(&[maps.symbol(fc_l)], &[fc_l], *g)?;
             sets.push(vec![
                 PilotLs::new(&p2, false),
@@ -232,6 +274,10 @@ impl Phy {
             wd: vec![0.0; kt],
             xd: vec![Complex32::default(); kt],
             xw: vec![0.0; kt],
+            sum: vec![Complex32::default(); if shape.miso { kt } else { 0 }],
+            diff: vec![Complex32::default(); if shape.miso { kt } else { 0 }],
+            prbs: w,
+            prbs_off: off,
             guard,
             sym: n + guard,
         })
@@ -720,15 +766,43 @@ impl T2Receiver {
         };
         let map = phy.maps.symbol(l);
         let nd = map.data.len();
-        if phy.est[ei].push(sym_no, &phy.cells).is_err() {
-            return false;
+        let pushed = if sh.miso && kind == SymbolKind::Normal {
+            // Turn the held values by the common phase of this symbol against them (residual carrier offset), refresh
+            // them at the pilots of this symbol, then interpolate each over frequency.
+            let ls = |p: &crate::pilots::PilotCell| {
+                let k = p.k as usize;
+                phy.cells[k] / (p.amp * (1.0 - 2.0 * f32::from(phy.prbs[k + phy.prbs_off])))
+            };
+            let mut turn = Complex32::default();
+            for p in &map.pilots {
+                let held = if shape_pilot(&sh, p, l) { phy.sum[p.k as usize] } else { phy.diff[p.k as usize] };
+                turn += ls(p) * held.conj();
+            }
+            if turn.norm() > 0.0 {
+                let r = turn / turn.norm();
+                phy.sum.iter_mut().chain(phy.diff.iter_mut()).for_each(|v| *v *= r);
+            }
+            for p in &map.pilots {
+                let v = ls(p);
+                if shape_pilot(&sh, p, l) {
+                    phy.sum[p.k as usize] = v;
+                } else {
+                    phy.diff[p.k as usize] = v;
+                }
+            }
+            phy.est[1].push(0, &phy.sum).is_ok() && phy.est2[1].push(0, &phy.diff).is_ok()
+        } else {
+            phy.est[ei].push(sym_no, &phy.cells).is_ok()
+                && (!sh.miso || phy.est2[ei].push(sym_no, &phy.cells).is_ok())
+        };
+        if pushed && sh.miso && kind == SymbolKind::P2 {
+            phy.sum.copy_from_slice(phy.est[0].h());
+            phy.diff.copy_from_slice(phy.est2[0].h());
         }
-        let est2_ok =
-            !sh.miso || phy.est2.is_empty() || phy.est2[ei].push(sym_no, &phy.cells).is_ok();
         if flip {
             phy.cells.iter_mut().for_each(|c| *c = -*c);
         }
-        if !est2_ok {
+        if !pushed {
             return false;
         }
         let h1 = phy.est[ei].h();
@@ -736,7 +810,7 @@ impl T2Receiver {
         let noise = phy.est[ei].noise().max(mean_h * 1e-5).max(1e-20);
         self.snr_acc.0 += (mean_h / noise) as f64;
         self.snr_acc.1 += 1;
-        if sh.miso && !phy.est2.is_empty() {
+        if sh.miso {
             let s = phy.est[ei].h();
             let d = phy.est2[ei].h();
             for p in (0..nd).step_by(2) {
@@ -877,11 +951,13 @@ impl T2Receiver {
             self.status.problem = Some(Problem::PostSize);
             return false;
         }
-        let key = (info, m, pre.post_scrambled, n_p2);
+        // L1_POST_SCRAMBLED can hold bias balancing bits before T2_VERSION 0010 (clause 7.2.2).
+        let scrambled = pre.post_scrambled && pre.t2_version >= 2;
+        let key = (info, m, scrambled, n_p2);
         let fresh = self.post_codec.as_ref().map(|p| (p.0, p.1, p.2, p.3)) != Some(key);
         if fresh {
-            match L1Codec::post(&sizes, m, pre.post_scrambled) {
-                Ok(codec) => self.post_codec = Some((info, m, pre.post_scrambled, n_p2, codec)),
+            match L1Codec::post(&sizes, m, scrambled) {
+                Ok(codec) => self.post_codec = Some((info, m, scrambled, n_p2, codec)),
                 Err(_) => return false,
             }
         }
@@ -1181,10 +1257,12 @@ impl T2Receiver {
         self.status.offset_hz = self.freq * self.rate;
         self.finish_frame(out);
         let mut next = start + P1_LEN as u64 + (l_f * sym) as u64;
-        if let (Some(post), Some(_)) = (self.post.as_ref(), self.pre) {
+        if let (Some(post), Some(pre)) = (self.post.as_ref(), self.pre) {
             if let Some((_, len, iv)) = post.config.fef {
                 let idx = post.dynamic.frame_idx as usize;
-                let len = len as u64 | ((post.config.fef_length_msb as u64) << 22);
+                // FEF_LENGTH_MSB is read from T2_VERSION 0010 on, and only T2-Lite sets it (clause 7.2.3.1).
+                let msb = if pre.t2_version >= 2 { post.config.fef_length_msb } else { 0 };
+                let len = len as u64 | ((msb as u64) << 22);
                 if iv > 0 && (idx + 1).is_multiple_of(iv as usize) {
                     next += len;
                 }

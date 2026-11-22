@@ -4,7 +4,7 @@
 use crate::params::{k_bch, Fft, Modulation};
 use crate::pilots::FrameShape;
 use crate::settings::{gen_settings, GenSettings};
-use crate::tx::{PlpKind, PlpSpec, TimeIl, Transmitter, TxConfig};
+use crate::tx::{MisoOut, Path, PlpKind, PlpSpec, TimeIl, Transmitter, TxConfig};
 use sdrkit_algo_dsp::resample::Resampler;
 use sdrkit_core::{Complex32, GenConfig, Generator, Hz, SignalInfo};
 use sdrkit_proto_mpegts::source::{Fill, Numbered, NumberedSource, PacketSource, TestMux};
@@ -12,8 +12,18 @@ use sdrkit_proto_mpegts::source::{Fill, Numbered, NumberedSource, PacketSource, 
 /// The numbered packets of the pattern test signal: PID 0x0101, [`Fill::I31N7`].
 pub const PATTERN: Numbered = Numbered::new(0x0101, Fill::I31N7);
 
-/// The channel of MISO group 2 relative to group 1 in the test signal (both groups arrive together).
-pub const MISO_GROUP2: Complex32 = Complex32::new(0.6, 0.35);
+/// The paths of MISO groups 1 and 2 to the antenna in the test signal: other gains, power gains that add to 1, and
+/// group 2 five samples at 1/T after group 1.
+pub const MISO_PATHS: [Path; 2] = [
+    Path {
+        gain: Complex32::new(0.8, 0.0),
+        delay: 0,
+    },
+    Path {
+        gain: Complex32::new(0.36, 0.48),
+        delay: 5,
+    },
+];
 
 /// The transmitter configuration of a set of generator settings: one type 1 data PLP with one TI-block per frame.
 pub fn tx_config(g: &GenSettings, source: Box<dyn PacketSource>) -> TxConfig {
@@ -46,7 +56,7 @@ pub fn tx_config(g: &GenSettings, source: Box<dyn PacketSource>) -> TxConfig {
         t2_system_id: 0x8001,
         repetition: false,
         post_scrambled: false,
-        miso_group2: MISO_GROUP2,
+        miso: MisoOut::Sum(MISO_PATHS),
         fef: None,
     }
 }

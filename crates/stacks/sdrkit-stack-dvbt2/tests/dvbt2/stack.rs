@@ -6,11 +6,11 @@ use sdrkit_core::publish::{field, keys};
 use sdrkit_core::{Setting, SettingError, SettingSet, StackConfig, Value, Values};
 use sdrkit_dev_test::Harness;
 use sdrkit_proto_mpegts::publish::SERVICE_LIST_EVENT;
-use sdrkit_stack_dvbt2::params::{Bandwidth, FecFrame, Fft, Guard, PilotPattern};
+use sdrkit_stack_dvbt2::params::{Bandwidth, FecFrame, Fft, Guard, PilotPattern, Profile};
 use sdrkit_stack_dvbt2::results::Detection;
 use sdrkit_stack_dvbt2::settings::{
     gen_settings, PlpModulation, PlpRate, BANDWIDTH, GEN_BLOCKS, GEN_FEC_FRAME, GEN_FFT, GEN_GUARD,
-    GEN_MODULATION, GEN_PILOTS, GEN_RATE,
+    GEN_MISO, GEN_MODULATION, GEN_PILOTS, GEN_PROFILE, GEN_RATE,
 };
 use sdrkit_stack_dvbt2::typed::Dvbt2Fields;
 use sdrkit_stack_dvbt2::{values_of_config, Dvbt2Setting, DVBT2};
@@ -81,6 +81,40 @@ fn a_bad_combination_of_settings_is_refused() {
     let v = Harness::new(&DVBT2)
         .set(&GEN_FFT, Fft::K32)
         .set(&GEN_GUARD, Guard::G1_4)
+        .values()
+        .expect("values");
+    assert!(matches!(
+        gen_settings(&v),
+        Err(SettingError::Conflict { .. })
+    ));
+}
+
+#[test]
+fn the_test_signal_in_t2_lite_and_in_miso_through_the_framework() {
+    for (profile, miso) in [(Profile::Lite, false), (Profile::Base, true), (Profile::Lite, true)] {
+        // 2K with guard 1/8 takes PP1 in MISO (tables 59 and I.6).
+        let pp = if miso { PilotPattern::Pp1 } else { PilotPattern::Pp3 };
+        let run = small(Harness::new(&DVBT2))
+            .set(&GEN_PROFILE, profile)
+            .set(&GEN_MISO, miso)
+            .set(&GEN_PILOTS, pp)
+            .set(&GEN_NOISE, NoiseKind::Snr)
+            .set(&GEN_SNR_DB, 20.0)
+            .run()
+            .expect("run");
+        let r = run.results.fields();
+        assert_eq!(r.at(&Dvbt2Fields::DETECTION), Some(Detection::Flowing), "{r:?}");
+        assert_eq!(r.at(&Dvbt2Fields::PROFILE), Some(profile));
+        assert_eq!(r.at(&Dvbt2Fields::MISO), Some(miso));
+        let ok = r.get(&keys::FRAMES_OK).unwrap_or(0);
+        let bad = r.get(&keys::FRAMES_BAD).unwrap_or(-1);
+        assert!(ok > 10 && bad == 0, "{profile:?} MISO {miso}: {r:?}");
+    }
+    // T2-Lite never sends 256-QAM with 2/3 (table I.4).
+    let v = Harness::new(&DVBT2)
+        .set(&GEN_PROFILE, Profile::Lite)
+        .set(&GEN_MODULATION, PlpModulation::Qam256)
+        .set(&GEN_RATE, PlpRate::R2_3)
         .values()
         .expect("values");
     assert!(matches!(

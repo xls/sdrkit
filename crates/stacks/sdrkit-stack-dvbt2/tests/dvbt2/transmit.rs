@@ -19,7 +19,7 @@ use sdrkit_stack_dvbt2::bicm::Coding;
 use sdrkit_stack_dvbt2::error::{Rule, T2Error};
 use sdrkit_stack_dvbt2::params::*;
 use sdrkit_stack_dvbt2::rx::{RxSettings, Stage, T2Receiver};
-use sdrkit_stack_dvbt2::settings::{L1Modulation, PlpModulation, TxRate};
+use sdrkit_stack_dvbt2::settings::{L1Modulation, PlpModulation, TxMiso, TxRate};
 use sdrkit_stack_dvbt2::transmit::{Chain, TxConfig, TxError, RISE_S, RMS};
 use sdrkit_stack_dvbt2::tx::{FramePlan, TimeIl, Transmitter};
 use sdrkit_stack_dvbt2::typed::{Dvbt2Fields, Dvbt2TxFields};
@@ -121,6 +121,8 @@ fn tx_settings(c: &TxConfig) -> Vec<(&'static str, Value)> {
         ("tx_cell_id", Value::I64(i64::from(c.cell_id))),
         ("tx_network_id", Value::I64(i64::from(c.network_id))),
         ("tx_system_id", Value::I64(i64::from(c.system_id))),
+        ("tx_profile", choice(c.profile)),
+        ("tx_miso", choice(c.miso)),
     ]
 }
 
@@ -382,6 +384,10 @@ fn loop_test(c: &TxConfig, rate: f64, packets: usize, late: bool) {
         );
         assert_eq!(d.l1_modulation, Some(c.l1_mod));
         assert_eq!(
+            (d.profile, d.miso),
+            (Some(c.profile), Some(c.miso != TxMiso::Siso))
+        );
+        assert_eq!(
             (d.cell_id, d.network_id, d.t2_system_id),
             (
                 Some(i64::from(c.cell_id)),
@@ -453,6 +459,8 @@ fn loop_4k_16qam_three_fifths_plain_without_time_interleaving_at_6_mhz() {
         cell_id: 7,
         network_id: 8,
         system_id: 9,
+        profile: Profile::Base,
+        miso: TxMiso::Siso,
     };
     loop_test(&c, c.bandwidth.rate(), 3000, false);
 }
@@ -477,9 +485,61 @@ fn loop_8k_extended_256qam_five_sixths_with_a_closing_symbol_at_7_mhz() {
         cell_id: 0,
         network_id: 0,
         system_id: 0,
+        profile: Profile::Base,
+        miso: TxMiso::Siso,
     };
     assert!(c.shape().has_fc());
     loop_test(&c, c.bandwidth.rate(), 5000, false);
+}
+
+#[test]
+fn loop_t2_lite_8k_qpsk_one_third_at_8_mhz() {
+    let c = TxConfig {
+        fft: Fft::K8,
+        guard: Guard::G1_32,
+        pilots: PilotPattern::Pp4,
+        coding: Coding {
+            frame: FecFrame::Normal,
+            rate: CodeRate::R1_3,
+            modulation: Modulation::Qpsk,
+            rotated: true,
+        },
+        profile: Profile::Lite,
+        ..TxConfig::default()
+    };
+    let plan = c.plan().expect("a frame");
+    // T2-Lite takes the 16 200-bit frame and at most 4 Mbit/s whatever the settings ask (annex I.1, I.10).
+    assert_eq!(c.coding().frame, FecFrame::Short);
+    assert!(plan.bit_rate <= 4.0e6, "{}", plan.bit_rate);
+    loop_test(&c, c.bandwidth.rate(), 2500, false);
+}
+
+#[test]
+fn loop_miso_group_1_and_t2_lite_miso_group_2() {
+    let c = TxConfig {
+        fft: Fft::K8,
+        guard: Guard::G1_8,
+        pilots: PilotPattern::Pp1,
+        miso: TxMiso::Group1,
+        ..TxConfig::default()
+    };
+    loop_test(&c, c.bandwidth.rate(), 4000, false);
+    let c = TxConfig {
+        fft: Fft::K4,
+        guard: Guard::G1_16,
+        pilots: PilotPattern::Pp3,
+        coding: Coding {
+            frame: FecFrame::Short,
+            rate: CodeRate::R2_5,
+            modulation: Modulation::Qam256,
+            rotated: true,
+        },
+        profile: Profile::Lite,
+        miso: TxMiso::Group2,
+        ..TxConfig::default()
+    };
+    assert!(!c.coding().rotated, "T2-Lite never rotates 256-QAM");
+    loop_test(&c, c.bandwidth.rate(), 2500, false);
 }
 
 /// The samples of `frames` whole T2-frames of the chain of `c` with an empty queue, at the elementary rate.
@@ -581,6 +641,8 @@ fn the_l1_fields_of_the_sender_are_the_configured_ones() {
         cell_id: 0xBEEF,
         network_id: 0x1234,
         system_id: 0x4321,
+        profile: Profile::Base,
+        miso: TxMiso::Siso,
     };
     let plan = c.plan().unwrap();
     let (pre, plp) = l1_of(&frames_of(&c, 3), c.bandwidth);

@@ -1,5 +1,6 @@
 //! The sender of `dvbt2` (`dvbt2.transmit`): a DVB-T2 signal of the transport stream that the host feeds, one data PLP in
-//! normal mode, T2-base, one transmitter. The library has no video encoder; the sender modulates the packets as they come.
+//! normal mode, T2-base or T2-Lite, one transmitter in SISO or one transmitter group of MISO. The library has no video
+//! encoder; the sender modulates the packets as they come.
 //!
 //! Input `in` is the session's samples: their rate, pace and dial. Output `out` is complex baseband at the session's rate
 //! for `tx.sink`, the channel centred at 0 Hz on the dial. Output `keyed` is the keyed state ([`KeyedOut`]). Each pass
@@ -20,13 +21,14 @@
 
 use crate::bicm::Coding;
 use crate::error::T2Error;
-use crate::params::{Bandwidth, Fft, Guard, Modulation, PilotPattern, Profile};
+use crate::params::{Bandwidth, FecFrame, Fft, Guard, Modulation, PilotPattern, Profile};
 use crate::pilots::FrameShape;
 use crate::settings::{
-    TX_BANDWIDTH, TX_CELL_ID, TX_EXTENDED, TX_FEC_FRAME, TX_FFT, TX_FRAME_MS, TX_GUARD, TX_L1_MOD,
-    TX_MODULATION, TX_NETWORK_ID, TX_PILOTS, TX_RATE, TX_ROTATION, TX_SYSTEM_ID, TX_TI_BLOCKS,
+    TxMiso, TX_BANDWIDTH, TX_CELL_ID, TX_EXTENDED, TX_FEC_FRAME, TX_FFT, TX_FRAME_MS, TX_GUARD,
+    TX_L1_MOD, TX_MISO, TX_MODULATION, TX_NETWORK_ID, TX_PILOTS, TX_PROFILE, TX_RATE, TX_ROTATION,
+    TX_SYSTEM_ID, TX_TI_BLOCKS,
 };
-use crate::tx::{self, plan_frame, FramePlan, PlpKind, PlpSpec, Transmitter};
+use crate::tx::{self, plan_frame, FramePlan, MisoOut, PlpKind, PlpSpec, Transmitter};
 use crate::typed::{Dvbt2TxFields, TX_APPEND, TX_START, TX_STOP};
 use sdrkit_components::tx::{end_mark, BurstOut, BurstTiming, KeyedOut, Ramp};
 use sdrkit_core::interface::{Fields, Hertz, Seconds};
@@ -80,6 +82,10 @@ sdrkit_core::settings! {
         NetworkId = TX_NETWORK_ID,
         /// T2_SYSTEM_ID.
         SystemId = TX_SYSTEM_ID,
+        /// The profile.
+        Profile = TX_PROFILE,
+        /// SISO, or the MISO transmitter group.
+        Miso = TX_MISO,
     }
 }
 
@@ -125,6 +131,10 @@ pub struct TxConfig {
     pub network_id: u16,
     /// T2_SYSTEM_ID.
     pub system_id: u16,
+    /// The profile.
+    pub profile: Profile,
+    /// SISO, or the MISO transmitter group that the sender is.
+    pub miso: TxMiso,
 }
 
 impl Default for TxConfig {
@@ -147,6 +157,8 @@ impl Default for TxConfig {
             cell_id: 0,
             network_id: 0,
             system_id: 0,
+            profile: TX_PROFILE.default,
+            miso: TX_MISO.default,
         }
     }
 }
@@ -159,9 +171,19 @@ impl TxConfig {
             extended: self.extended,
             pp: self.pilots,
             guard: self.guard,
-            miso: false,
+            miso: self.miso != TxMiso::Siso,
             tr: false,
             l_data: 0,
+        }
+    }
+
+    /// The coding of the PLP: in T2-Lite the 16 200-bit FEC frame, and 256-QAM without rotation (annex I.1, table I.4).
+    pub fn coding(&self) -> Coding {
+        let lite = self.profile == Profile::Lite;
+        Coding {
+            frame: if lite { FecFrame::Short } else { self.coding.frame },
+            rotated: self.coding.rotated && !(lite && self.coding.modulation == Modulation::Qam256),
+            ..self.coding
         }
     }
 
@@ -174,7 +196,8 @@ impl TxConfig {
         plan_frame(
             self.bandwidth,
             self.shape(),
-            self.coding,
+            self.profile,
+            self.coding(),
             self.l1_mod,
             self.ti_blocks,
             f64::from(self.frame_ms) / 1000.0,
@@ -193,7 +216,8 @@ impl TxConfig {
     }
 
     /// The transmitter of the settings with the frame `plan`: one type 1 data PLP with PLP_ID 0, two T2-frames a
-    /// super-frame. Its packets come from the caller of [`Transmitter::part`].
+    /// super-frame, in MISO the signal of the sender's transmitter group. Its packets come from the caller of
+    /// [`Transmitter::part`].
     ///
     /// # Errors
     ///
@@ -205,14 +229,14 @@ impl TxConfig {
                 l_data: plan.l_data,
                 ..self.shape()
             },
-            profile: Profile::Base,
+            profile: self.profile,
             l1_mod: self.l1_mod,
             num_t2_frames: 2,
             plps: vec![PlpSpec {
                 id: 0,
                 kind: PlpKind::Type1,
                 group: 0,
-                coding: self.coding,
+                coding: self.coding(),
                 blocks: plan.blocks,
                 time_il: plan.time_il,
                 source: Box::new(NullSource),
@@ -223,7 +247,10 @@ impl TxConfig {
             t2_system_id: self.system_id,
             repetition: false,
             post_scrambled: false,
-            miso_group2: Complex32::default(),
+            miso: match self.miso {
+                TxMiso::Group2 => MisoOut::Group2,
+                TxMiso::Siso | TxMiso::Group1 => MisoOut::Group1,
+            },
             fef: None,
         })
     }
@@ -596,6 +623,8 @@ impl Component for Dvbt2Transmit {
             TxSetting::CellId => c.cell_id = id16(&TX_CELL_ID, id, v)?,
             TxSetting::NetworkId => c.network_id = id16(&TX_NETWORK_ID, id, v)?,
             TxSetting::SystemId => c.system_id = id16(&TX_SYSTEM_ID, id, v)?,
+            TxSetting::Profile => c.profile = TX_PROFILE.read(id, v)?,
+            TxSetting::Miso => c.miso = TX_MISO.read(id, v)?,
         }
         self.plan = self.cfg.plan();
         self.publish();
@@ -623,6 +652,8 @@ impl Component for Dvbt2Transmit {
             (TxSetting::CellId, Value::I64(i64::from(c.cell_id))),
             (TxSetting::NetworkId, Value::I64(i64::from(c.network_id))),
             (TxSetting::SystemId, Value::I64(i64::from(c.system_id))),
+            (TxSetting::Profile, Value::Choice(c.profile.index())),
+            (TxSetting::Miso, Value::Choice(c.miso.index())),
         ])
     }
     fn results(&self) -> Option<&Results> {

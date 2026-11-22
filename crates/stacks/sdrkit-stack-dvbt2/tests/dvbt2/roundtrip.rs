@@ -287,6 +287,7 @@ fn miso_with_a_second_transmitter_group() {
     let x = signal(&mut tx, 6, 2000);
     check_plp(&x, 1, 0x0101);
     check_plp(&x, 2, 0x0102);
+    check_plp(&x, 3, 0x0103);
 }
 
 #[test]

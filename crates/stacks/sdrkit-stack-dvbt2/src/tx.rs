@@ -13,7 +13,7 @@ use crate::l1::{
     post_sizes, L1Codec, L1Post, L1Pre, PlpConfig, PlpDynamic, PostConfig, PostDynamic, PostSizes,
 };
 use crate::p1;
-use crate::params::{allowed, k_bch, Bandwidth, CodeRate, Fft, Modulation, P1Info, Profile};
+use crate::params::{allowed, k_bch, Bandwidth, Fft, Modulation, P1Info, Profile};
 use crate::pilots::{FrameShape, PilotMaps, SymbolKind};
 use sdrkit_algo_dsp::fft::Fft as DspFft;
 use sdrkit_core::Complex32;
@@ -77,7 +77,8 @@ pub struct PlpSpec {
 pub struct TxConfig {
     /// Channel width.
     pub bandwidth: Bandwidth,
-    /// The frame shape. `l_data` 0 selects the fewest data symbols that hold the PLPs.
+    /// The frame shape. `l_data` 0 selects the fewest data symbols that hold the PLPs and, in T2-Lite, keep each data PLP
+    /// within [`LITE_MOST_BIT_RATE`].
     pub shape: FrameShape,
     /// Profile.
     pub profile: Profile,
@@ -99,10 +100,30 @@ pub struct TxConfig {
     pub repetition: bool,
     /// L1_POST_SCRAMBLED.
     pub post_scrambled: bool,
-    /// The channel of MISO group 2 relative to group 1 (the clean signal is the sum of both groups).
-    pub miso_group2: Complex32,
+    /// The signal of a MISO frame shape. Not read in SISO.
+    pub miso: MisoOut,
     /// A FEF part of this many samples after every `fef_interval` T2-frames (a P1 of the non-T2 type, then silence).
     pub fef: Option<(u32, u8)>,
+}
+
+/// The path from one transmitter group to the receiving antenna: a complex gain and a delay in elementary periods T.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Path {
+    /// The gain.
+    pub gain: Complex32,
+    /// The delay, samples at 1/T.
+    pub delay: usize,
+}
+
+/// What a transmitter of a MISO frame shape sends (clause 9.1).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum MisoOut {
+    /// The signal of transmitter group 1.
+    Group1,
+    /// The signal of transmitter group 2: the modified Alamouti cells and the group 2 pilots.
+    Group2,
+    /// What one antenna receives: group 1 through the first path plus group 2 through the second.
+    Sum([Path; 2]),
 }
 
 /// The packets that a caller gives in place of the source of the first PLP.
@@ -155,7 +176,8 @@ pub struct Transmitter {
     num_t2_frames: u8,
     frame_count: u64,
     sub_slices: usize,
-    miso_g2: Complex32,
+    profile: Profile,
+    miso: MisoOut,
     fef: Option<(u32, u8)>,
     ifft: DspFft,
     /// The part that [`Transmitter::part`] makes next: 0 the P1 symbol, `l + 1` symbol `l`.
@@ -169,7 +191,17 @@ pub struct Transmitter {
     a: Vec<Complex32>,
     c1: Vec<Complex32>,
     c2: Vec<Complex32>,
+    /// With [`MisoOut::Sum`]: the group 2 samples of the part in the making, the group 1 samples of it, and the last
+    /// samples of each group for the delays of the paths.
+    g2: Vec<Complex32>,
+    g1: Vec<Complex32>,
+    lines: [Vec<Complex32>; 2],
 }
+
+/// The most bits a second that a data PLP of T2-Lite with its common PLP carries (annex I.10).
+pub const LITE_MOST_BIT_RATE: f64 = 4.0e6;
+/// The longest FEF part, seconds: T2-base, T2-Lite (clause 8.4, annex I.9).
+pub const LONGEST_FEF_S: [f64; 2] = [0.25, 1.0];
 
 impl Transmitter {
     /// Builds the transmitter. Errors when the configuration breaks a rule of the standard that this transmitter tests.
@@ -181,15 +213,12 @@ impl Transmitter {
         let lite = cfg.profile == Profile::Lite;
         let mut plps = Vec::with_capacity(cfg.plps.len());
         let multi = cfg.plps.len() > 1;
+        if !allowed(shape.fft, shape.guard, shape.pp, shape.miso, lite) {
+            return Err(T2Error::Rule(Rule::PilotsForGuard));
+        }
         for spec in cfg.plps {
             let c = spec.coding;
-            let lite_rate = matches!(c.rate, CodeRate::R1_3 | CodeRate::R2_5);
-            if lite_rate && !lite || lite && matches!(c.rate, CodeRate::R4_5 | CodeRate::R5_6) {
-                return Err(T2Error::Rule(Rule::RateForProfile));
-            }
-            if c.modulation == Modulation::Bpsk {
-                return Err(T2Error::Rule(Rule::BpskData));
-            }
+            c.check(cfg.profile)?;
             if spec.time_il == TimeIl::Off && multi {
                 return Err(T2Error::Rule(Rule::TimeIlOff));
             }
@@ -207,9 +236,14 @@ impl Transmitter {
                 spec,
             });
         }
-        if let Some((_, iv)) = cfg.fef {
+        if let Some((len, iv)) = cfg.fef {
             if iv == 0 || !(cfg.num_t2_frames.max(2)).is_multiple_of(iv) {
                 return Err(T2Error::Rule(Rule::FefInterval));
+            }
+            let bits = if lite { 24 } else { 22 };
+            let longest = LONGEST_FEF_S[usize::from(lite)] * cfg.bandwidth.rate();
+            if len >> bits != 0 || f64::from(len) > longest {
+                return Err(T2Error::Rule(Rule::FefLength));
             }
         }
         let sub_slices = if plps.iter().any(|p| p.spec.kind == PlpKind::Type2) {
@@ -254,7 +288,8 @@ impl Transmitter {
             num_t2_frames: cfg.num_t2_frames.max(2),
             frame_count: 0,
             sub_slices,
-            miso_g2: cfg.miso_group2,
+            profile: cfg.profile,
+            miso: cfg.miso,
             fef: cfg.fef,
             ifft: DspFft::inverse(shape.fft.size()),
             at: 0,
@@ -266,6 +301,9 @@ impl Transmitter {
             a: Vec::new(),
             c1: vec![Complex32::default(); shape.fft.size()],
             c2: vec![Complex32::default(); shape.fft.size()],
+            g2: Vec::new(),
+            g1: Vec::new(),
+            lines: [Vec::new(), Vec::new()],
         };
         t.pre.repetition = cfg.repetition;
         t.post = t.l1_post(0);
@@ -289,7 +327,7 @@ impl Transmitter {
                 }
                 let m = PilotMaps::new(s)?;
                 let fc = FrameCells::new(&m, t.post_sizes.cells)?;
-                if fc.d_plp >= need || l > 4000 {
+                if fc.d_plp >= need && !t.too_fast(s) || l > 4000 {
                     break;
                 }
                 l += 1;
@@ -344,7 +382,33 @@ impl Transmitter {
             t2_base_lite: false,
             reserved: 0,
         };
+        if t.too_fast(shape) {
+            return Err(T2Error::Rule(Rule::LiteBitRate));
+        }
         Ok(t)
+    }
+
+    /// T2-Lite: whether a data PLP with the common PLP of its group carries more than [`LITE_MOST_BIT_RATE`] in frames of
+    /// `shape`, FEF parts included in the time.
+    fn too_fast(&self, shape: FrameShape) -> bool {
+        if self.profile != Profile::Lite {
+            return false;
+        }
+        let fef = self.fef.map_or(0.0, |(len, iv)| f64::from(len) / f64::from(iv));
+        let frame = p1::P1_LEN + shape.l_f() * shape.symbol_len().unwrap_or(0);
+        let frame_s = (frame as f64 + fef) / self.rate();
+        self.plps
+            .iter()
+            .filter(|p| p.spec.kind != PlpKind::Common)
+            .any(|p| {
+                let common: usize = self
+                    .plps
+                    .iter()
+                    .filter(|c| c.spec.kind == PlpKind::Common && c.spec.group == p.spec.group)
+                    .map(PlpState::bits_per_frame)
+                    .sum();
+                (p.bits_per_frame() + common) as f64 / frame_s > LITE_MOST_BIT_RATE
+            })
     }
 
     /// The frame shape in use (with the data symbols chosen).
@@ -359,21 +423,12 @@ impl Transmitter {
 
     /// The net bits of every PLP in one frame: FEC blocks times (K_bch - 80), spread over P_I frames.
     pub fn plp_bits_per_frame(&self) -> usize {
-        self.plps
-            .iter()
-            .map(|p| {
-                let p_i = match p.spec.time_il {
-                    TimeIl::Frames(n) => n.max(1) as usize,
-                    _ => 1,
-                };
-                p.spec.blocks as usize * (p.spec.coding.k_bch() - 80) / p_i
-            })
-            .sum()
+        self.plps.iter().map(PlpState::bits_per_frame).sum()
     }
 
     /// The mean power of a T2-frame: the P1 symbol at power 1 and each symbol after it with its pilots, their boost and
     /// its cells at power 1 (the mean of the L1 cells and of the data cells), over the frame with its guard intervals. A
-    /// MISO frame counts group 1 only.
+    /// MISO frame counts one group: each group sends this power, and [`MisoOut::Sum`] adds the power gains of its paths.
     pub fn mean_power(&self) -> f32 {
         let shape = self.shape;
         let sym = shape.symbol_len().unwrap_or(0) as f32;
@@ -432,6 +487,10 @@ impl Transmitter {
             sub_slices_per_frame: self.sub_slices as u16,
             rf: vec![(0, 0)],
             fef: self.fef.map(|(len, iv)| (0, len & 0x3F_FFFF, iv)),
+            fef_length_msb: match (self.fef, self.profile) {
+                (Some((len, _)), Profile::Lite) => (len >> 22) as u8 & 3,
+                _ => 0,
+            },
             plps: self.plps.iter().map(|p| self.plp_config(p)).collect(),
             ..Default::default()
         };
@@ -514,14 +573,39 @@ impl Transmitter {
     /// Adds the next part of the signal to `out`: the P1 symbol of a T2-frame, then each symbol of the frame, the FEF part
     /// with the last one. With `feed`, the first PLP takes its packets from it in place of its own source. Errors only on
     /// an internal inconsistency.
-    pub fn part(&mut self, mut feed: Feed<'_, '_>, out: &mut Vec<Complex32>) -> Result<(), T2Error> {
+    pub fn part(&mut self, feed: Feed<'_, '_>, out: &mut Vec<Complex32>) -> Result<(), T2Error> {
+        let from = out.len();
+        self.g2.clear();
+        self.next_part(feed, out)?;
+        if let (true, MisoOut::Sum(paths)) = (self.shape.miso, self.miso) {
+            let y = &mut out[from..];
+            self.g1.clear();
+            self.g1.extend_from_slice(y);
+            delayed(&mut self.lines[0], paths[0], &self.g1, y, false);
+            delayed(&mut self.lines[1], paths[1], &self.g2, y, true);
+        }
+        Ok(())
+    }
+
+    /// Whether the parts carry the group 2 samples in `g2` beside the group 1 samples.
+    fn sums(&self) -> bool {
+        self.shape.miso && matches!(self.miso, MisoOut::Sum(_))
+    }
+
+    /// [`Transmitter::part`] before the paths of [`MisoOut::Sum`]: the samples of the group that `out` takes, and with
+    /// [`MisoOut::Sum`] the group 2 samples in `g2`. P1 and the FEF part are the same in both groups.
+    fn next_part(&mut self, mut feed: Feed<'_, '_>, out: &mut Vec<Complex32>) -> Result<(), T2Error> {
         let idx = (self.frame_count % self.num_t2_frames as u64) as u8;
         if self.at == 0 {
             self.build_cells(idx, feed)?;
+            let at = out.len();
             out.extend_from_slice(&p1::generate(P1Info {
                 s1: self.pre.s1,
                 s2: self.pre.s2,
             }));
+            if self.sums() {
+                self.g2.extend_from_slice(&out[at..]);
+            }
             self.at = 1;
             return Ok(());
         }
@@ -543,12 +627,16 @@ impl Transmitter {
         if let Some((len, iv)) = self.fef {
             // A FEF part follows the T2-frames whose FRAME_IDX + 1 is a multiple of FEF_INTERVAL (clause 8.2).
             if iv > 0 && (idx as u64 + 1).is_multiple_of(iv as u64) {
+                let at = out.len();
                 let fef_p1 = p1::generate(P1Info { s1: 2, s2: 0 });
                 out.extend_from_slice(&fef_p1);
                 out.resize(
                     out.len() + (len as usize).saturating_sub(p1::P1_LEN),
                     Complex32::default(),
                 );
+                if self.sums() {
+                    self.g2.extend_from_slice(&out[at..]);
+                }
             }
         }
         Ok(())
@@ -621,7 +709,8 @@ impl Transmitter {
     }
 
     /// Adds symbol `l` of the frame in the making to `out`: its cells, frequency interleaved, with the pilots, as samples
-    /// with the guard interval.
+    /// with the guard interval. In MISO, `out` takes group 1, or group 2 with [`MisoOut::Group2`]; [`MisoOut::Sum`] puts
+    /// group 2 in `g2`.
     fn symbol(&mut self, l: usize, out: &mut Vec<Complex32>) -> Result<(), T2Error> {
         let shape = self.shape;
         let n = shape.fft.size();
@@ -629,6 +718,8 @@ impl Transmitter {
         let kt = shape.k_total();
         let kc = (kt - 1) / 2;
         let scale = 5.0 / (27.0 * kt as f32).sqrt();
+        let sums = self.sums();
+        let only2 = shape.miso && self.miso == MisoOut::Group2;
         let (x, a, c1, c2) = (&mut self.x, &mut self.a, &mut self.c1, &mut self.c2);
         let map = self.maps.symbol(l);
         let nd = map.data.len();
@@ -681,18 +772,44 @@ impl Transmitter {
                 c2[bin(pc.k)] = Complex32::new(self.maps.pilot_value(l, pc, true), 0.0);
             }
         }
-        if shape.miso {
-            for (u, v) in c1.iter_mut().zip(c2.iter()) {
-                *u += *v * self.miso_g2;
+        let ifft = &mut self.ifft;
+        let mut emit = |c: &mut Vec<Complex32>, out: &mut Vec<Complex32>| {
+            ifft.process(c);
+            for v in c.iter_mut() {
+                *v *= scale;
+            }
+            out.extend_from_slice(&c[n - g..]);
+            out.extend_from_slice(c);
+        };
+        if only2 {
+            emit(c2, out);
+        } else {
+            emit(c1, out);
+            if sums {
+                emit(c2, &mut self.g2);
             }
         }
-        self.ifft.process(c1);
-        for v in c1.iter_mut() {
-            *v *= scale;
-        }
-        out.extend_from_slice(&c1[n - g..]);
-        out.extend_from_slice(c1);
         Ok(())
+    }
+}
+
+/// `y[i] = gain x[i - delay]` (or `+=` with `add`) over a stream that comes in blocks: `line` holds the last `delay`
+/// samples of `x` before this block, zeros at first, and keeps those of this block for the next.
+fn delayed(line: &mut Vec<Complex32>, p: Path, x: &[Complex32], y: &mut [Complex32], add: bool) {
+    let d = p.delay;
+    line.resize(d, Complex32::default());
+    let m = x.len().min(y.len());
+    for (i, out) in y.iter_mut().enumerate().take(m) {
+        let v = if i < d { line[i] } else { x[i - d] } * p.gain;
+        if add {
+            *out += v;
+        } else {
+            *out = v;
+        }
+    }
+    for j in 0..d {
+        let s = m + j;
+        line[j] = if s < d { line[s] } else { x[s - d] };
     }
 }
 
@@ -704,6 +821,15 @@ impl PlpState {
             _ => 1,
         };
         self.spec.blocks as usize * self.spec.coding.cells() / p_i
+    }
+
+    /// The net bits this PLP sends in each frame: FEC blocks times (K_bch - 80), spread over P_I frames.
+    fn bits_per_frame(&self) -> usize {
+        let p_i = match self.spec.time_il {
+            TimeIl::Frames(n) => n.max(1) as usize,
+            _ => 1,
+        };
+        self.spec.blocks as usize * (self.spec.coding.k_bch() - 80) / p_i
     }
 
     /// One BBFRAME of transport packets in normal mode (clauses 5.1.7, 5.2.4): header, data field, scrambled, as bits. The
@@ -832,6 +958,8 @@ impl PlpState {
 
 /// The cells of the time interleaver memory M_TI of T2-base (clause 6.5.2).
 pub const TI_MEMORY_CELLS: usize = (1 << 19) + (1 << 15);
+/// The cells of the time interleaver memory M_TI of T2-Lite (annex I.8).
+pub const TI_MEMORY_CELLS_LITE: usize = 1 << 18;
 /// The longest T2-frame, seconds (clause 8.3.1).
 pub const LONGEST_FRAME_S: f64 = 0.25;
 
@@ -871,35 +999,32 @@ pub(crate) fn single_plp_post_bits() -> usize {
     .len()
 }
 
-/// The frame of a T2-base sender with one data PLP of `coding` in a channel of `bandwidth`: the most FEC blocks that fit
-/// a frame of at most `longest_s` seconds (at most [`LONGEST_FRAME_S`], at least the shortest frame of the FFT size), that
-/// PLP_NUM_BLOCKS can state (1023) and that `ti_blocks` TI-blocks hold in [`TI_MEMORY_CELLS`]; then the fewest data
-/// symbols that hold them. `ti_blocks` 0 is no time interleaving, with the FEC blocks of one TI-block at most.
-/// `shape.l_data` is not read.
+/// The frame of a sender of `profile` with one data PLP of `coding` in a channel of `bandwidth`: the most FEC blocks that
+/// fit a frame of at most `longest_s` seconds (at most [`LONGEST_FRAME_S`], at least the shortest frame of the FFT size),
+/// that PLP_NUM_BLOCKS can state (1023), that `ti_blocks` TI-blocks hold in [`TI_MEMORY_CELLS`] ([`TI_MEMORY_CELLS_LITE`]
+/// in T2-Lite) and, in T2-Lite, that carry at most [`LITE_MOST_BIT_RATE`]; then the fewest data symbols that hold them.
+/// `ti_blocks` 0 is no time interleaving, with the FEC blocks of one TI-block at most. `shape.l_data` is not read.
 ///
 /// # Errors
 ///
-/// [`T2Error::Rule`] when the standard does not allow the combination (tables 58 and 59, the guard for the FFT size, the
-/// extended carriers, the code, the L1-post constellation) or the frame holds no FEC block.
+/// [`T2Error::Rule`] when the standard does not allow the combination (tables 58, 59, I.5 and I.6, the guard for the FFT
+/// size, the extended carriers, the code for the profile, the L1-post constellation) or the frame holds no FEC block.
 pub fn plan_frame(
     bandwidth: Bandwidth,
     shape: FrameShape,
+    profile: Profile,
     coding: Coding,
     l1_mod: Modulation,
     ti_blocks: u8,
     longest_s: f64,
 ) -> Result<FramePlan, T2Error> {
+    let lite = profile == Profile::Lite;
     let sym = shape.symbol_len().ok_or(Rule::GuardForFft)?;
-    if !allowed(shape.fft, shape.guard, shape.pp, shape.miso, false) {
+    if !allowed(shape.fft, shape.guard, shape.pp, shape.miso, lite) {
         return Err(Rule::PilotsForGuard.into());
     }
-    if coding.modulation == Modulation::Bpsk {
-        return Err(Rule::BpskData.into());
-    }
+    coding.check(profile)?;
     let k = k_bch(coding.frame, coding.rate).ok_or(Rule::NoCode)?;
-    if matches!(coding.rate, CodeRate::R1_3 | CodeRate::R2_5) {
-        return Err(Rule::RateForProfile.into());
-    }
     let n_p2 = shape.n_p2();
     let post = post_sizes(single_plp_post_bits(), l1_mod, n_p2)?.cells;
     let rate = bandwidth.rate();
@@ -929,17 +1054,24 @@ pub fn plan_frame(
         n_p2 * maps.p2().data.len() - l1 + data + closing.unwrap_or(0)
     };
     let nc = coding.cells();
-    let memory = ti_blocks.max(1) as usize * (TI_MEMORY_CELLS / nc);
-    let blocks = (d_plp(most) / nc).min(memory).min(1023);
+    let ti_memory = if lite { TI_MEMORY_CELLS_LITE } else { TI_MEMORY_CELLS };
+    let memory = ti_blocks.max(1) as usize * (ti_memory / nc);
+    let mut blocks = (d_plp(most) / nc).min(memory).min(1023);
+    let seconds = |l: usize| (p1::P1_LEN + (n_p2 + l) * sym) as f64 / rate;
+    // T2-Lite: `b` FEC blocks in a frame of `l` data symbols carry more than the profile allows.
+    let fast = |b: usize, l: usize| lite && (b * (k - 80)) as f64 / seconds(l) > LITE_MOST_BIT_RATE;
+    while blocks > 0 && fast(blocks, most) {
+        blocks -= 1;
+    }
     if blocks == 0 {
         return Err(Rule::PlpsDoNotFit.into());
     }
     let whole = |l: usize| !k32 || (n_p2 + l).is_multiple_of(2);
     let l_data = (min..=most)
-        .find(|&l| whole(l) && d_plp(l) >= blocks * nc)
+        .find(|&l| whole(l) && d_plp(l) >= blocks * nc && !fast(blocks, l))
         .unwrap_or(most);
     let frame_samples = p1::P1_LEN + (n_p2 + l_data) * sym;
-    let frame_s = frame_samples as f64 / rate;
+    let frame_s = seconds(l_data);
     Ok(FramePlan {
         l_data,
         blocks: blocks as u16,

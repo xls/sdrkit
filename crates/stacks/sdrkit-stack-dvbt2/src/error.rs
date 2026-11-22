@@ -38,6 +38,15 @@ pub enum Rule {
     NoPlp,
     /// The code rate is not used in this profile (annex I).
     RateForProfile,
+    /// T2-Lite uses the 16 200-bit FEC frame only (annex I.1).
+    LiteFecFrame,
+    /// T2-Lite never uses 256-QAM with the code rates 2/3 and 3/4, and never rotates 256-QAM (table I.4).
+    LiteConstellation,
+    /// A data PLP of T2-Lite with its common PLP carries more than 4 Mbit/s (annex I.10).
+    LiteBitRate,
+    /// FEF_LENGTH does not fit its field (22 bits, 24 bits in T2-Lite), or the FEF part is longer than 250 ms (1 s in
+    /// T2-Lite).
+    FefLength,
     /// BPSK carries L1 only.
     BpskData,
     /// Time interleaving can be off only with one PLP.

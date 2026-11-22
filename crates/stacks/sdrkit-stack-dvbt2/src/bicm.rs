@@ -5,7 +5,7 @@
 
 use crate::error::{Rule, T2Error};
 use crate::interleave::bits_to_cells;
-use crate::params::{k_bch, ldpc_table, outer_code_key, CodeRate, FecFrame, Modulation};
+use crate::params::{k_bch, ldpc_table, outer_code_key, CodeRate, FecFrame, Modulation, Profile};
 use sdrkit_algo_dsp::constellation::{PointSet, QamMap};
 use sdrkit_algo_fec::bch::{codes, Bch};
 use sdrkit_algo_fec::ldpc::{LdpcCode, LdpcDecoder, MinSum};
@@ -36,6 +36,35 @@ impl Coding {
     /// N_cells, the cells of one FEC block.
     pub fn cells(&self) -> usize {
         self.frame.n_ldpc() / self.modulation.bits()
+    }
+
+    /// Whether a data PLP of `profile` can use this coding (tables 6, I.1 and I.4).
+    ///
+    /// # Errors
+    ///
+    /// The [`Rule`] that the coding breaks: BPSK, a code that the standard does not have, a code rate of the other profile,
+    /// the 64 800-bit frame in T2-Lite, or 256-QAM with 2/3, 3/4 or rotation in T2-Lite.
+    pub fn check(&self, profile: Profile) -> Result<(), Rule> {
+        let lite = profile == Profile::Lite;
+        if self.modulation == Modulation::Bpsk {
+            return Err(Rule::BpskData);
+        }
+        if ldpc_table(self.frame, self.rate).is_none() {
+            return Err(Rule::NoCode);
+        }
+        let lite_rate = matches!(self.rate, CodeRate::R1_3 | CodeRate::R2_5);
+        let base_rate = matches!(self.rate, CodeRate::R4_5 | CodeRate::R5_6);
+        if lite_rate && !lite || base_rate && lite {
+            return Err(Rule::RateForProfile);
+        }
+        if lite && self.frame != FecFrame::Short {
+            return Err(Rule::LiteFecFrame);
+        }
+        let qam256 = self.modulation == Modulation::Qam256;
+        if lite && qam256 && (self.rotated || matches!(self.rate, CodeRate::R2_3 | CodeRate::R3_4)) {
+            return Err(Rule::LiteConstellation);
+        }
+        Ok(())
     }
 }
 
