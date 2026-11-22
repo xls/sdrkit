@@ -1,5 +1,5 @@
 # The interface of the stack family ism. The registry test of the family writes this file.
-family ism version=1.0
+family ism version=1.1
 uses.ookdev major=1 since=1.0
 shape.IsmDetectFields since=1.0
 shape.IsmDetectFields.bursts_detected type=i64 unit= optional=no since=1.0
@@ -31,6 +31,10 @@ shape.IsmPulseFields.frame_ms type=f64 unit=ms optional=yes since=1.0
 shape.IsmPulseFields.repeats type=i64 unit= optional=yes since=1.0
 shape.IsmPulseFields.frames_seen type=i64 unit= optional=no since=1.0
 shape.IsmPulseFields.frames_good type=i64 unit= optional=no since=1.0
+shape.IsmTxFields since=1.1
+shape.IsmTxFields.tx_sending type=bool unit= optional=no since=1.1
+shape.IsmTxFields.tx_sent type=i64 unit= optional=no since=1.1
+shape.IsmTxFields.tx_waiting type=i64 unit= optional=no since=1.1
 shape.IsmDeviceRow since=1.0
 shape.IsmDeviceRow.model type=text unit= optional=no since=1.0
 shape.IsmDeviceRow.kind type=text unit= optional=no since=1.0
@@ -120,6 +124,12 @@ shape.IsmPulseFrameEvent.bits type=i64 unit= optional=no since=1.0
 shape.IsmPulseFrameEvent.bits_hex type=text unit= optional=no since=1.0
 shape.IsmPulseFrameEvent.repeats type=i64 unit= optional=no since=1.0
 shape.IsmPulseFrameEvent.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.IsmTxEvent since=1.1
+shape.IsmTxEvent.state type=text unit= optional=no since=1.1
+shape.IsmTxEvent.reason type=text unit= optional=no since=1.1
+shape.IsmTxEvent.target type=text unit= optional=no since=1.1
+shape.IsmTxEvent.text type=text unit= optional=no since=1.1
+shape.IsmTxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.1
 shape.WmbusFields since=1.0
 shape.WmbusFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.WmbusFields.frames_bad type=i64 unit= optional=no since=1.0
@@ -738,6 +748,7 @@ ism.fields.SigfoxFinderFields since=1.0
 ism.fields.GuardFields writer=receiver since=1.0
 ism.fields.IsmFields since=1.0
 ism.fields.IsmPulseFields since=1.0
+ism.fields.IsmTxFields since=1.1
 ism.component.burstdetect.fields.IsmDetectFields shared=bursts_detected;noise_floor_dbfs;input_level_dbfs since=1.0
 ism.component.decode.fields.DecodeFields shared=readings;unknown_trains since=1.0
 ism.component.sfx_finder.fields.SigfoxFinderFields shared=carriers since=1.0
@@ -762,6 +773,7 @@ ism.event.ism.device fields=IsmDeviceEvent since=1.0
 ism.event.sigfox.message fields=SigfoxMessageEvent since=1.0
 ism.event.ookdev.reading fields=ReadingFields since=1.0
 ism.event.ism.pulse_frame fields=IsmPulseFrameEvent since=1.0
+ism.event.ism.tx fields=IsmTxEvent since=1.1
 ism.setting.threshold type=f64 unit=dB since=1.0
 ism.setting.gen_scene type=choice(0,1,2) unit= since=1.0
 ism.setting.gen_carrier type=bool unit= since=1.0
@@ -778,11 +790,15 @@ ism.setting.gen_gap1_us type=f64 unit=µs since=1.0
 ism.setting.gen_jitter type=f64 unit= since=1.0
 ism.setting.gen_frames type=i64 unit= since=1.0
 ism.setting.gen_frame_gap_s type=f64 unit=s since=1.0
+ism.setting.tx_level type=f64 unit=of%20full%20scale since=1.1
 ism.command.clear args= reply= since=1.0
 ism.command.remove args=row:text reply= since=1.0
+ism.command.send args=family:choice(remote,tx141thbv2)?;id:i64;command:i64?;channel:i64?;battery_ok:bool?;temperature:f64?;humidity:i64? reply= transmits=frame stop=halt since=1.1
+ism.command.halt args= reply= since=1.1
 wmbus since=1.0
 wmbus.fields.WmbusFields since=1.0
 wmbus.fields.GuardFields writer=receiver since=1.0
+wmbus.fields.IsmTxFields since=1.1
 wmbus.kept.meters since=1.0
 wmbus.kept.meter_records since=1.0
 wmbus.kept.frames since=1.0
@@ -794,15 +810,20 @@ wmbus.table.channels row=WmbusChannelRow cap=16 since=1.0
 wmbus.series.level_history x_unit=s y_unit=dBFS since=1.0
 wmbus.series.trace x_unit=chip y_unit= since=1.0
 wmbus.event.wmbus.frame fields=WmbusFrameEvent since=1.0
+wmbus.event.wmbus.tx fields=IsmTxEvent since=1.1
 wmbus.setting.gen_plan type=choice(868,169) unit= since=1.0
 wmbus.setting.gen_phy type=choice(all,S1,T1,C1A,C1B,R2,N1) unit= since=1.0
 wmbus.setting.gen_encrypted type=bool unit= since=1.0
 wmbus.setting.gen_silence type=bool unit= since=1.0
+wmbus.setting.tx_level type=f64 unit=of%20full%20scale since=1.1
 wmbus.command.clear args= reply= since=1.0
 wmbus.command.remove args=row:text reply= since=1.0
+wmbus.command.send args=mode:choice(S1,T1,C1A,C1B,R2,N1)?;manufacturer:text;address:text;version:i64;device_type:i64;payload:text reply= transmits=frame stop=halt since=1.1
+wmbus.command.halt args= reply= since=1.1
 zwave since=1.0
 zwave.fields.ZwaveFields since=1.0
 zwave.fields.GuardFields writer=receiver since=1.0
+zwave.fields.IsmTxFields since=1.1
 zwave.kept.frames since=1.0
 zwave.kept.nodes since=1.0
 zwave.kept.networks since=1.0
@@ -824,14 +845,19 @@ zwave.table.channels row=ZwaveChannelRow cap=32 since=1.0
 zwave.table.classes row=ZwaveClassRow cap=256 since=1.0
 zwave.event.zwave.frame fields=ZwaveFrameEvent since=1.0
 zwave.event.zwave.state fields=ZwaveStateEvent since=1.0
+zwave.event.zwave.tx fields=IsmTxEvent since=1.1
 zwave.setting.channels type=text unit= since=1.0
 zwave.setting.sof_f0_r3 type=bool unit= since=1.0
 zwave.setting.gen_centre_hz type=hz unit=Hz since=1.0
+zwave.setting.tx_level type=f64 unit=of%20full%20scale since=1.1
 zwave.command.clear args= reply= since=1.0
 zwave.command.remove args=row:text reply= since=1.0
+zwave.command.send args=home_id:text;source:i64;destination:i64;payload:text;rate:choice(r1,r2,r3)?;ack:bool?;sequence:i64? reply= transmits=frame stop=halt since=1.1
+zwave.command.halt args= reply= since=1.1
 zigbee since=1.0
 zigbee.fields.ZigbeeFields since=1.0
 zigbee.fields.GuardFields writer=receiver since=1.0
+zigbee.fields.IsmTxFields since=1.1
 zigbee.kept.networks since=1.0
 zigbee.kept.devices since=1.0
 zigbee.kept.frames since=1.0
@@ -846,14 +872,18 @@ zigbee.table.devices row=PanDeviceRow cap=600 since=1.0
 zigbee.table.frames row=ZigbeeFrameRow cap=600 since=1.0
 zigbee.series.frames_per_second x_unit=s y_unit=frames since=1.0
 zigbee.event.zigbee.pan fields=ZigbeePanEvent since=1.0
+zigbee.event.zigbee.tx fields=IsmTxEvent since=1.1
 zigbee.setting.channel type=i64 unit= since=1.0
 zigbee.setting.scan type=bool unit= since=1.0
 zigbee.setting.dwell type=duration unit=s since=1.0
 zigbee.setting.gen_bad_fcs type=bool unit= since=1.0
 zigbee.setting.gen_interferer_db type=f64 unit=dB since=1.0
 zigbee.setting.gen_interferer_hz type=hz unit=Hz since=1.0
+zigbee.setting.tx_level type=f64 unit=of%20full%20scale since=1.1
 zigbee.command.clear args= reply= since=1.0
 zigbee.command.remove args=row:text reply= since=1.0
+zigbee.command.send args=pan_id:text;destination:text;source:text;payload:text;frame_type:choice(beacon,data,command)?;sequence:i64?;ack:bool? reply= transmits=frame stop=halt since=1.1
+zigbee.command.halt args= reply= since=1.1
 sigfox since=1.0
 sigfox.fields.SigfoxFields since=1.0
 sigfox.fields.SigfoxFinderFields since=1.0
@@ -876,6 +906,7 @@ sigfox.command.clear args= reply= since=1.0
 ant since=1.0
 ant.fields.AntFields since=1.0
 ant.fields.AntDemodFields since=1.0
+ant.fields.IsmTxFields since=1.1
 ant.component.demod.fields.AntDemodFields shared=frames_bad;syncs since=1.0
 ant.component.demod.dropped since=1.0
 ant.kept.sensors since=1.0
@@ -888,11 +919,15 @@ ant.table.sensors row=AntSensorRow cap=100 since=1.0
 ant.table.frames row=AntFrameRow cap=400 since=1.0
 ant.series.history x_unit=s y_unit= since=1.0
 ant.event.ant.sensor fields=AntSensorEvent since=1.0
+ant.event.ant.tx fields=IsmTxEvent since=1.1
 ant.setting.other_networks type=bool unit= since=1.0
 ant.setting.wheel_mm type=f64 unit=mm since=1.0
 ant.setting.gen_sensors type=choice(all,strap,none) unit= since=1.0
+ant.setting.tx_level type=f64 unit=of%20full%20scale since=1.1
 ant.command.clear args= reply= since=1.0
 ant.command.remove args=row:text reply= since=1.0
+ant.command.send args=device:i64;device_type:i64;tx_type:i64;payload:text;pairing:bool? reply= transmits=frame stop=halt since=1.1
+ant.command.halt args= reply= since=1.1
 nrf24 since=1.0
 nrf24.fields.NrfFields since=1.0
 nrf24.component.demod.dropped since=1.0
@@ -975,6 +1010,7 @@ nfc.command.remove args=row:text reply= since=1.0
 wisun since=1.0
 wisun.fields.WisunFields since=1.0
 wisun.fields.GuardFields writer=receiver since=1.0
+wisun.fields.IsmTxFields since=1.1
 wisun.kept.networks since=1.0
 wisun.kept.nodes since=1.0
 wisun.kept.links since=1.0
@@ -994,12 +1030,16 @@ wisun.table.links row=WisunLinkRow cap=4000 since=1.0
 wisun.table.frames row=WisunFrameRow cap=800 since=1.0
 wisun.series.hops x_unit=s y_unit=MHz since=1.0
 wisun.event.wisun.pan fields=WisunPanEvent since=1.0
+wisun.event.wisun.tx fields=IsmTxEvent since=1.1
 wisun.setting.ranges type=text unit= since=1.0
 wisun.setting.classes type=text unit= since=1.0
 wisun.setting.gen_span type=hz unit=Hz since=1.0
 wisun.setting.gen_centre_hz type=hz unit=Hz since=1.0
+wisun.setting.tx_level type=f64 unit=of%20full%20scale since=1.1
 wisun.command.clear args= reply= since=1.0
 wisun.command.remove args=row:text reply= since=1.0
+wisun.command.send args=frame_type:choice(pa,pas,pc,pcs,data,ack,eapol)?;pan_id:text;source:text;destination:text;payload:text;header_ies:text?;sequence:i64?;kbps:i64?;ufsi:i64? reply= transmits=frame stop=halt since=1.1
+wisun.command.halt args= reply= since=1.1
 thread since=1.0
 thread.fields.ThreadFields since=1.0
 thread.fields.GuardFields writer=receiver since=1.0

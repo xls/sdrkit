@@ -4,8 +4,11 @@
 //! Standard: ITU-T G.9959 (PHY and MAC)
 
 pub mod frame;
+pub mod send;
 
 use crate::family::{at_least_value, hex, min_rate_message, wall, CleanScene, REPORT_S};
+use crate::tx::{FrameSender, TX_LEVEL};
+use sdrkit_graph::components::TxSink;
 use crate::typed::{
     ZwaveChannelRow, ZwaveClassRow, ZwaveFields, ZwaveFrameEvent, ZwaveFrameRow, ZwaveNetworkRow,
     ZwaveNodeRow, ZwaveStateEvent, ZWAVE_CHANNELS, ZWAVE_CLASSES, ZWAVE_FRAME, ZWAVE_FRAMES,
@@ -1463,11 +1466,16 @@ pub fn build_graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
         .add("groups", Groups::default())
         .add("decode", Decode::default())
         .add("tables", Tables::default())
+        .add("sender", FrameSender::<send::ZwaveFrames>::default())
+        .add("tx", TxSink::default())
         .input("groups")
+        .input("sender.in")
         .connect("groups.bursts", "decode")
         .connect("groups.plan", "tables.plan")
         .connect("decode", "tables.in")
+        .connect("sender.out", "tx.in")
         .output("tables.events")
+        .output("sender.events")
         .clock(REPORT_S)
         .status_from("tables")
         .build()
@@ -1482,6 +1490,8 @@ sdrkit_core::settings! {
         SofF0R3 = SOF_F0_R3,
         /// The centre of the test signal.
         GenCentreHz = GEN_CENTRE_HZ,
+        /// The level sent.
+        TxLevel = TX_LEVEL,
     }
 }
 
@@ -1497,13 +1507,16 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         build_graph(&Catalog::of(cfg)?)?,
     )
     .min_rate(MIN_RATE_HZ, &min_rate_message("Z-Wave", MIN_RATE_HZ))
-    .route(CHANNELS.key(), &["groups.channels"])?
+    .route(CHANNELS.key(), &["groups.channels", "sender.channels"])?
     .route(SOF_F0_R3.key(), &["decode.sof_f0_r3"])?
+    .route(TX_LEVEL.key(), &["sender.tx_level"])?
     .command("clear", sdrkit_graph::CommandTarget::of("tables", "clear"))
     .command(
         "remove",
         sdrkit_graph::CommandTarget::of("tables", "remove"),
     )
+    .command("send", sdrkit_graph::CommandTarget::of("sender", "send"))
+    .command("halt", sdrkit_graph::CommandTarget::of("sender", "halt"))
     .with_settings(&cfg.settings)
     .build()
 }

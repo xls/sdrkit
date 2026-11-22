@@ -265,6 +265,36 @@ pub fn wmbus_frame(k: u64) -> Vec<u8> {
     ]
 }
 
+/// The train of a LaCrosse TX141TH-Bv2: 12 copies, each 4 sync pulses of 833 µs and the 40 bits in PWM (a 1 is 417 µs
+/// on, 208 µs off): the id, the battery-low bit, the channel (0 to 3) and the 12-bit temperature `raw` (tenths of °C plus
+/// 500), the humidity and the LFSR digest (generator 0x31, key 0xF4) of the 4 octets before it.
+pub fn tx141th_train(id: u8, channel: u8, battery_ok: bool, raw: u16, humidity: u8) -> Train {
+    let low = if battery_ok { 0 } else { 0x80 };
+    let mut b = [id, low | (channel & 3) << 4 | ((raw >> 8) as u8 & 0xF), raw as u8, humidity, 0];
+    b[4] = lfsr_digest8_reflect(&b[0..4], 0x31, 0xF4);
+    let bits = bits_of(&b);
+    let mut tr = train(Modulation::Ook);
+    for _ in 0..12 {
+        for _ in 0..4 {
+            push(&mut tr, 833.0, 833.0);
+        }
+        encode::pwm(&bits, (417.0, 208.0), (208.0, 417.0), &mut tr);
+    }
+    tr
+}
+
+/// The train of a PT2262 / EV1527 remote: 6 copies of the 24 bits of `code` in PWM (a 1 is 1404 µs on, 464 µs off), each
+/// ended by a 464 µs sync pulse and 14 ms of silence.
+pub fn ev1527_train(code: [u8; 3]) -> Train {
+    let bits = bits_of(&code);
+    let mut tr = train(Modulation::Ook);
+    for _ in 0..6 {
+        encode::pwm(&bits, (1404.0, 464.0), (464.0, 1404.0), &mut tr);
+        push(&mut tr, 464.0, 14000.0);
+    }
+    tr
+}
+
 /// The train of test device `d` for transmission `k`, as a receiver passes it to the protocols (lengths at 1 MHz).
 pub fn device_train(d: TestDevice, k: u64) -> Train {
     match d {
@@ -279,20 +309,7 @@ pub fn device_train(d: TestDevice, k: u64) -> Train {
             }
             tr
         }
-        TestDevice::Tx141th => {
-            let t = 187 + (k % 3) as u16 + 500;
-            let mut b = [0x3Cu8, 0x10 | ((t >> 8) as u8 & 0xF), t as u8, 62, 0];
-            b[4] = lfsr_digest8_reflect(&b[0..4], 0x31, 0xF4);
-            let bits = bits_of(&b);
-            let mut tr = train(Modulation::Ook);
-            for _ in 0..12 {
-                for _ in 0..4 {
-                    push(&mut tr, 833.0, 833.0);
-                }
-                encode::pwm(&bits, (417.0, 208.0), (208.0, 417.0), &mut tr);
-            }
-            tr
-        }
+        TestDevice::Tx141th => tx141th_train(0x3C, 1, true, 187 + (k % 3) as u16 + 500, 62),
         TestDevice::AcuriteTower => {
             let t = 1225 + (k % 3) as u16;
             // Bytes 2 to 5 each carry an even parity bit in their top bit.
@@ -400,15 +417,7 @@ pub fn device_train(d: TestDevice, k: u64) -> Train {
             bits.extend(bits_of(&b));
             manchester_ook(&bits, 120.0)
         }
-        TestDevice::Ev1527 => {
-            let bits = bits_of(&[0x5A, 0x3C, 0x81]);
-            let mut tr = train(Modulation::Ook);
-            for _ in 0..6 {
-                encode::pwm(&bits, (1404.0, 464.0), (464.0, 1404.0), &mut tr);
-                push(&mut tr, 464.0, 14000.0);
-            }
-            tr
-        }
+        TestDevice::Ev1527 => ev1527_train([0x5A, 0x3C, 0x81]),
         TestDevice::Toyota => {
             let p1 = 156 + (k % 2) as u8;
             let tt = 62u8;

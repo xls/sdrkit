@@ -2,6 +2,8 @@
 //! beacons and device announcements. Secured payloads are shown as encrypted, and no key is used.
 //! Standard: IEEE 802.15.4-2020 clause 12 (2450 MHz O-QPSK) and clause 7 (MAC frames), Zigbee specification R22 (NWK, APS).
 
+pub mod send;
+
 use crate::family::{at_least_value, min_rate_message, set_status, CleanScene, REPORT_S};
 use crate::mac154::{self, eui, Addr};
 use crate::typed::{
@@ -1905,6 +1907,8 @@ sdrkit_core::settings! {
         GenInterfererDb = GEN_INTERFERER_DB,
         /// The offset of the adjacent transmitter of the test signal.
         GenInterfererHz = GEN_INTERFERER_HZ,
+        /// The level sent.
+        TxLevel = crate::tx::TX_LEVEL,
     }
 }
 
@@ -1924,13 +1928,18 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .add("chips", Chips::default())
         .add("frame", FrameDec::default())
         .add("tables", Tables::default())
+        .add("sender", crate::tx::FrameSender::<send::ZigbeeFrames>::default())
+        .add("tx", sdrkit_graph::components::TxSink::default())
         .input("front")
+        .input("sender.in")
         .connect("front", "chips")
         .connect("chips", "frame")
         .connect("frame.frames", "tables.frames")
         .connect("frame.counts", "tables.counts")
+        .connect("sender.out", "tx.in")
         .output("tables.events")
         .output("tables.requests")
+        .output("sender.events")
         .clock(REPORT_S)
         .status_from("tables")
         .build()?;
@@ -1942,11 +1951,14 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route(CHANNEL_SETTING.key(), &["tables.channel"])?
         .route(SCAN.key(), &["tables.scan"])?
         .route(DWELL.key(), &["tables.dwell"])?
+        .route(crate::tx::TX_LEVEL.key(), &["sender.tx_level"])?
         .command("clear", sdrkit_graph::CommandTarget::of("tables", "clear"))
         .command(
             "remove",
             sdrkit_graph::CommandTarget::of("tables", "remove"),
         )
+        .command("send", sdrkit_graph::CommandTarget::of("sender", "send"))
+        .command("halt", sdrkit_graph::CommandTarget::of("sender", "halt"))
         .with_settings(&cfg.settings)
         .build()
 }

@@ -30,6 +30,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:zw
 |---|---|---|---|---|---|
 | `channels` | Channels | text | empty |  | Entries separated by ";", each the frequency in Hz and the rates on it (1, 2, 3) separated by "/", for example "868420000/1;868400000/2;869850000/3". At most 64 entries. Empty: one channel at the tuned frequency with the three rates. |
 | `sof_f0_r3` | Accept 0xF0 as the R3 start of frame | yes or no | false |  | For recordings made with the ISM-mode start of frame at every rate. |
+| `tx_level` | Level | number (of full scale) | 0.5 | 0.05 to 0.9 | The magnitude of the signal sent, of full scale. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -52,6 +53,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `s2_frames` | S2 frames | whole number |
 | `acks` | Acks | whole number |
 | `bad_samples` | Bad samples | whole number |
+| `tx_sending` | Sending | yes or no |
+| `tx_sent` | Frames sent | whole number |
+| `tx_waiting` | Frames waiting | whole number |
 
 ## Result tables
 
@@ -69,6 +73,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|
 | `zwave.frame` | Z-Wave frame | `source` (text), `target` (text), `text` (text), `family` (choice), `home_id` (text), `route` (text), `rate` (text), `frame_type` (text), `encryption` (text), `command` (text), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)) |
 | `zwave.state` | Z-Wave activity | `text` (text), `family` (choice) |
+| `zwave.tx` | Z-Wave transmission | `state` (text), `reason` (text), `target` (text), `text` (text), `family` (choice) |
 
 ## Commands
 
@@ -76,10 +81,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything heard so far. Favourites stay. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
+| `send` | Send a frame | `home_id` (text, required), `source` (whole number, required), `destination` (whole number, required), `payload` (text, required), `rate` (choice, default `r2`), `ack` (yes or no, default false), `sequence` (whole number, default 0) |  | Sends a singlecast MPDU on the first channel of the rate in the setting channels (the tuned frequency when the setting is empty). Frames sent during a frame wait for it. Transmit must be on. |
+| `halt` | Halt |  |  | Drops the frames waiting and ends the frame on air with the fall of the carrier. |
 
 ## Typed interface
 
-The stack is in the family `ism`, version 1.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 1.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -105,6 +112,16 @@ Struct `GuardFields`. The result set that a [`StackGraph`] writes itself. The de
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `bad_samples` | whole number | always | 1.0 | Input samples replaced because they were not finite or far beyond full scale. |
+
+### Result fields
+
+Struct `IsmTxFields`. The result fields of the sender of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `tx_sending` | yes or no | always | 1.1 | Whether a frame is on air. |
+| `tx_sent` | whole number | always | 1.1 | The frames sent since the stack started. |
+| `tx_waiting` | whole number | always | 1.1 | The frames waiting for the transmitter. |
 
 ### Table `frames`
 
@@ -210,12 +227,26 @@ Struct `ZwaveStateEvent`. The fields of the event that Z-Wave frames start or st
 | `text` | text | always | 1.0 | The text of the event. |
 | `family` | choice | always | 1.0 | The family of the event. |
 
+### Event `zwave.tx`
+
+Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `state` | text | always | 1.1 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.1 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
+| `target` | text | always | 1.1 | The addressee or the identity of the frame. |
+| `text` | text | always | 1.1 | What the frame carries, for started and queued; empty otherwise. |
+| `family` | choice | always | 1.1 | The family of the source: a sensor. |
+
 ### Commands
 
 | Key | C function | Arguments struct | Reply struct |
 |---|---|---|---|
 | `clear` | `sdrkit_zwave_clear` | none | none |
 | `remove` | `sdrkit_zwave_remove` | `sdrkit_zwave_node_args` | none |
+| `send` | `sdrkit_zwave_send` | `sdrkit_zwave_send_args` | none |
+| `halt` | `sdrkit_zwave_halt` | none | none |
 
 ### Settings
 
@@ -223,6 +254,7 @@ Struct `ZwaveStateEvent`. The fields of the event that Z-Wave frames start or st
 |---|---|---|
 | `channels` | `sdrkit_zwave_get_channels` | `sdrkit_zwave_set_channels` |
 | `sof_f0_r3` | `sdrkit_zwave_get_sof_f0_r3` | `sdrkit_zwave_set_sof_f0_r3` |
+| `tx_level` | `sdrkit_zwave_get_tx_level` | `sdrkit_zwave_set_tx_level` |
 
 ### Settings of the test signal generator
 

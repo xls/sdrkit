@@ -28,6 +28,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:wm
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
+| `tx_level` | Level | number (of full scale) | 0.5 | 0.05 to 0.9 | The magnitude of the signal sent, of full scale. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -49,6 +50,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `false_syncs` | False syncs | whole number |
 | `encrypted_frames` | Encrypted frames | whole number |
 | `bad_samples` | Bad samples | whole number |
+| `tx_sending` | Sending | yes or no |
+| `tx_sent` | Frames sent | whole number |
+| `tx_waiting` | Frames waiting | whole number |
 
 ## Result tables
 
@@ -71,6 +75,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Kind | Label | Fields |
 |---|---|---|
 | `wmbus.frame` | Wireless M-Bus frame | `source` (text), `text` (text), `family` (choice), `maker` (text), `meter_id` (text), `device_type` (text), `phy` (text), `encrypted` (yes or no), `level_dbfs` (number (dBFS)) |
+| `wmbus.tx` | Wireless M-Bus transmission | `state` (text), `reason` (text), `target` (text), `text` (text), `family` (choice) |
 
 ## Commands
 
@@ -78,10 +83,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything heard so far. Favourites stay. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
+| `send` | Send a frame | `mode` (choice, default `T1`), `manufacturer` (text, required), `address` (text, required), `version` (whole number, required), `device_type` (whole number, required), `payload` (text, required) |  | Sends a link-layer frame with the C field 0x44 (SND-NR) on the channel of the mode nearest the tuned frequency, with the CRCs of its format. Frames sent during a frame wait for it. Transmit must be on. |
+| `halt` | Halt |  |  | Drops the frames waiting and ends the frame on air with the fall of the carrier. |
 
 ## Typed interface
 
-The stack is in the family `ism`, version 1.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 1.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -103,6 +110,16 @@ Struct `GuardFields`. The result set that a [`StackGraph`] writes itself. The de
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `bad_samples` | whole number | always | 1.0 | Input samples replaced because they were not finite or far beyond full scale. |
+
+### Result fields
+
+Struct `IsmTxFields`. The result fields of the sender of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `tx_sending` | yes or no | always | 1.1 | Whether a frame is on air. |
+| `tx_sent` | whole number | always | 1.1 | The frames sent since the stack started. |
+| `tx_waiting` | whole number | always | 1.1 | The frames waiting for the transmitter. |
 
 ### Table `meters`
 
@@ -180,12 +197,32 @@ Struct `WmbusFrameEvent`. The fields of a frame event.
 | `encrypted` | yes or no | always | 1.0 | The payload is encrypted. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the frame. |
 
+### Event `wmbus.tx`
+
+Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `state` | text | always | 1.1 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.1 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
+| `target` | text | always | 1.1 | The addressee or the identity of the frame. |
+| `text` | text | always | 1.1 | What the frame carries, for started and queued; empty otherwise. |
+| `family` | choice | always | 1.1 | The family of the source: a sensor. |
+
 ### Commands
 
 | Key | C function | Arguments struct | Reply struct |
 |---|---|---|---|
 | `clear` | `sdrkit_wmbus_clear` | none | none |
 | `remove` | `sdrkit_wmbus_remove` | `sdrkit_wmbus_meter_args` | none |
+| `send` | `sdrkit_wmbus_send` | `sdrkit_wmbus_send_args` | none |
+| `halt` | `sdrkit_wmbus_halt` | none | none |
+
+### Settings
+
+| Key | C getter | C setter |
+|---|---|---|
+| `tx_level` | `sdrkit_wmbus_get_tx_level` | `sdrkit_wmbus_set_tx_level` |
 
 ### Settings of the test signal generator
 

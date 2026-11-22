@@ -1,7 +1,9 @@
 //! ANT+ sensors (`ant`): 1 Mbit/s GFSK frames on one channel, the ANT+ network marker and the frames of other ANT networks, the
-//! public device profiles, and a table of sensors with the history of their main value. Receive only.
+//! public device profiles, and a table of sensors with the history of their main value. `send` sends one ANT+ frame.
 //!
 //! Standard: ANT+ device profiles (heart rate, bike speed and cadence, bike power, stride, environment, common pages).
+
+pub mod send;
 
 use crate::family::{checked, hex, min_rate_message, CleanScene, REPORT_S};
 use crate::typed::{
@@ -1261,10 +1263,15 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .set("front.exact", Value::Bool(true))
         .add("demod", DecoderComponent::new(Demod::default()))
         .add("sensors", Sensors::default())
+        .add("sender", crate::tx::FrameSender::<send::AntFrames>::default())
+        .add("tx", sdrkit_graph::components::TxSink::default())
         .input("front")
+        .input("sender.in")
         .connect("front", "demod")
         .connect("demod.frames", "sensors.frames")
+        .connect("sender.out", "tx.in")
         .output("sensors.events")
+        .output("sender.events")
         .clock(REPORT_S)
         .status_from("sensors")
         .build()?;
@@ -1272,11 +1279,14 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .min_rate(DEMOD_RATE, &min_rate_message("ANT+ sensors", DEMOD_RATE))
         .route(OTHER_NETWORKS.key(), &["demod.other_networks"])?
         .route(WHEEL_MM.key(), &["sensors.wheel_mm"])?
+        .route(crate::tx::TX_LEVEL.key(), &["sender.tx_level"])?
         .command("clear", sdrkit_graph::CommandTarget::of("sensors", "clear"))
         .command(
             "remove",
             sdrkit_graph::CommandTarget::of("sensors", "remove"),
         )
+        .command("send", sdrkit_graph::CommandTarget::of("sender", "send"))
+        .command("halt", sdrkit_graph::CommandTarget::of("sender", "halt"))
         .with_settings(&cfg.settings)
         .build()
 }
@@ -1308,6 +1318,8 @@ sdrkit_core::settings! {
         WheelMm = WHEEL_MM,
         /// The sensors of the test signal.
         GenSensors = GEN_SENSORS,
+        /// The level sent.
+        TxLevel = crate::tx::TX_LEVEL,
     }
 }
 
@@ -1480,6 +1492,23 @@ pub fn frame_levels(bytes: &[u8], out: &mut Vec<f32>) {
     out.extend([0.0; 4]);
 }
 
+/// The GFSK modulator of ANT frames at `rate` samples a second: BT 0.5, ±160 kHz at 1 Mbit/s.
+///
+/// # Errors
+///
+/// The error of the modulator for a rate it refuses.
+pub fn modulator(rate: f64) -> Result<Cpm, sdrkit_algo_sim::SimError> {
+    Cpm::gfsk(0.5, 2.0 * 160e3 / BIT_RATE, rate / BIT_RATE)
+}
+
+/// Appends to `out` the clean samples at 0 Hz of the frame `bytes` ([`frame_levels`]) from `cpm`; `levels` is a buffer.
+pub fn modulate(cpm: &mut Cpm, bytes: &[u8], levels: &mut Vec<f32>, out: &mut Vec<Complex32>) {
+    levels.clear();
+    frame_levels(bytes, levels);
+    cpm.push(levels, out);
+    cpm.flush(out);
+}
+
 /// The settings of the generator.
 #[derive(Clone, Debug)]
 pub struct GenParams {
@@ -1502,7 +1531,7 @@ pub fn generator(rate: f64, p: GenParams) -> CleanScene {
         .with_bit_rate(BIT_RATE);
     let mut scene = CleanScene::new(Scene::new(rate).expect("a positive rate"), rate, info);
     for (i, ts) in p.sensors.into_iter().enumerate() {
-        let Ok(mut cpm) = Cpm::gfsk(0.5, 2.0 * 160e3 / BIT_RATE, rate / BIT_RATE) else {
+        let Ok(mut cpm) = modulator(rate) else {
             continue;
         };
         let mut t = 0.01 + 0.037 * i as f64;
@@ -1515,11 +1544,8 @@ pub fn generator(rate: f64, p: GenParams) -> CleanScene {
             if ts.bad_every > 0 && m % ts.bad_every == ts.bad_every - 1 {
                 b[16] ^= 0x01;
             }
-            levels.clear();
-            frame_levels(&b, &mut levels);
             let mut samples = Vec::new();
-            cpm.push(&levels, &mut samples);
-            cpm.flush(&mut samples);
+            modulate(&mut cpm, &b, &mut levels, &mut samples);
             let burst = Burst {
                 start_s: t,
                 offset_hz: ts.offset,
@@ -1607,7 +1633,7 @@ pub static ANT: StackDescriptor = StackDescriptor {
     id: "ant",
     name: "ANT+ sensors",
     group: "IoT, 2.4 GHz",
-    blurb: "ANT+ heart rate straps, bike speed, cadence and power sensors, footpods and environment sensors on 2457 MHz (receive only).",
+    blurb: "ANT+ heart rate straps, bike speed, cadence and power sensors, footpods and environment sensors on 2457 MHz; sends one ANT+ frame.",
     tuning: Tuning { min_hz: 2400e6, max_hz: 2524e6, tune_offset_hz: 1e6, ..Tuning::anywhere(2457e6, 4e6, 4e6, 2e6) },
     submodes: &[],
     settings: AntSetting::schema,

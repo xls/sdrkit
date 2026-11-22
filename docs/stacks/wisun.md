@@ -30,6 +30,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:wi
 |---|---|---|---|---|---|
 | `ranges` | Usable ranges | text | empty |  | Entries separated by ";", each the lower and the upper edge in Hz separated by "-", for example "902000000-907500000;915000000-928000000". At most 16 entries. Empty: every channel of the classes is usable. |
 | `classes` | Operating classes | text | empty |  | Entries separated by ";", one for each operating class in the order of the class numbers: the first channel in Hz, the spacing in Hz, the number of channels and the FSK modes, separated by "/". The modes are separated by spaces, each the bit rate in kbit/s and the modulation index separated by ":", for example "915200000/200000/64/50:1;915400000/400000/32/100:0.5 150:0.5". At most 16 entries. Empty: class 1 every 200 kHz at 50 kbit/s and class 2 every 400 kHz at 100 and 150 kbit/s, on grids through the tuned frequency, without channel numbers. |
+| `tx_level` | Level | number (of full scale) | 0.5 | 0.05 to 0.9 | The magnitude of the signal sent, of full scale. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -52,6 +53,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `nodes` | Nodes | whole number |
 | `links` | Links | whole number |
 | `bad_samples` | Bad samples | whole number |
+| `tx_sending` | Sending | yes or no |
+| `tx_sent` | Frames sent | whole number |
+| `tx_waiting` | Frames waiting | whole number |
 
 ## Result tables
 
@@ -73,6 +77,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Kind | Label | Fields |
 |---|---|---|
 | `wisun.pan` | New Wi-SUN PAN | `source` (text), `text` (text), `family` (choice), `pan` (text) |
+| `wisun.tx` | Wi-SUN transmission | `state` (text), `reason` (text), `target` (text), `text` (text), `family` (choice) |
 
 ## Commands
 
@@ -80,10 +85,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything heard so far. Favourites stay. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
+| `send` | Send a frame | `frame_type` (choice, default `data`), `pan_id` (text, required), `source` (text, required), `destination` (text, required), `payload` (text, required), `header_ies` (text, default empty), `sequence` (whole number, default 0), `kbps` (whole number (kbit/s), default 0), `ufsi` (whole number, default 0) |  | Sends an IEEE 802.15.4 frame of version 2015 with the UTT-IE of the frame type, the header IEs, a header termination IE and the payload IEs, whitened with a 4-octet FCS, on the channel of the plan nearest the tuned frequency. Frames sent during a frame wait for it. Transmit must be on. |
+| `halt` | Halt |  |  | Drops the frames waiting and ends the frame on air with the fall of the carrier. |
 
 ## Typed interface
 
-The stack is in the family `ism`, version 1.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 1.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -108,6 +115,16 @@ Struct `GuardFields`. The result set that a [`StackGraph`] writes itself. The de
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `bad_samples` | whole number | always | 1.0 | Input samples replaced because they were not finite or far beyond full scale. |
+
+### Result fields
+
+Struct `IsmTxFields`. The result fields of the sender of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `tx_sending` | yes or no | always | 1.1 | Whether a frame is on air. |
+| `tx_sent` | whole number | always | 1.1 | The frames sent since the stack started. |
+| `tx_waiting` | whole number | always | 1.1 | The frames waiting for the transmitter. |
 
 ### Table `networks`
 
@@ -183,12 +200,26 @@ Struct `WisunPanEvent`. The fields of a new Wi-SUN PAN event.
 | `family` | choice | always | 1.0 | The family of the event. |
 | `pan` | text | always | 1.0 | The PAN id. |
 
+### Event `wisun.tx`
+
+Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `state` | text | always | 1.1 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.1 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
+| `target` | text | always | 1.1 | The addressee or the identity of the frame. |
+| `text` | text | always | 1.1 | What the frame carries, for started and queued; empty otherwise. |
+| `family` | choice | always | 1.1 | The family of the source: a sensor. |
+
 ### Commands
 
 | Key | C function | Arguments struct | Reply struct |
 |---|---|---|---|
 | `clear` | `sdrkit_wisun_clear` | none | none |
 | `remove` | `sdrkit_wisun_remove` | `sdrkit_wisun_node_args` | none |
+| `send` | `sdrkit_wisun_send` | `sdrkit_wisun_send_args` | none |
+| `halt` | `sdrkit_wisun_halt` | none | none |
 
 ### Settings
 
@@ -196,6 +227,7 @@ Struct `WisunPanEvent`. The fields of a new Wi-SUN PAN event.
 |---|---|---|
 | `ranges` | `sdrkit_wisun_get_ranges` | `sdrkit_wisun_set_ranges` |
 | `classes` | `sdrkit_wisun_get_classes` | `sdrkit_wisun_set_classes` |
+| `tx_level` | `sdrkit_wisun_get_tx_level` | `sdrkit_wisun_set_tx_level` |
 
 ### Settings of the test signal generator
 

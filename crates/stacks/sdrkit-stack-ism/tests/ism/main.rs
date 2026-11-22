@@ -13,6 +13,7 @@ mod nfc;
 mod npr70;
 mod nrf24;
 mod nrplus;
+mod send;
 mod pulse_analyser;
 mod sigfox;
 mod subghzchat;

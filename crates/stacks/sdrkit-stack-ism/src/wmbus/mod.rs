@@ -5,6 +5,7 @@
 
 pub mod link;
 pub mod rx;
+pub mod send;
 
 use crate::family::{at_least_value, hex, min_rate_message, wall, CleanScene, REPORT_S};
 use crate::typed::{
@@ -806,10 +807,15 @@ pub fn build_graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
         .catalog(catalog)
         .add("channels", Channels::default())
         .add("meters", Meters::default())
+        .add("sender", crate::tx::FrameSender::<send::WmbusFrames>::default())
+        .add("tx", sdrkit_graph::components::TxSink::default())
         .input("channels")
+        .input("sender.in")
         .connect("channels.frames", "meters.frames")
         .connect("channels.state", "meters.state")
+        .connect("sender.out", "tx.in")
         .output("meters.events")
+        .output("sender.events")
         .clock(REPORT_S)
         .status_from("meters")
         .build()
@@ -877,6 +883,8 @@ sdrkit_core::settings! {
         GenEncrypted = GEN_ENCRYPTED,
         /// No meters in the test signal.
         GenSilence = GEN_SILENCE,
+        /// The level sent.
+        TxLevel = crate::tx::TX_LEVEL,
     }
 }
 
@@ -895,11 +903,14 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         MIN_RATE_HZ,
         &min_rate_message("Wireless M-Bus meters", MIN_RATE_HZ),
     )
+    .route(crate::tx::TX_LEVEL.key(), &["sender.tx_level"])?
     .command("clear", sdrkit_graph::CommandTarget::of("meters", "clear"))
     .command(
         "remove",
         sdrkit_graph::CommandTarget::of("meters", "remove"),
     )
+    .command("send", sdrkit_graph::CommandTarget::of("sender", "send"))
+    .command("halt", sdrkit_graph::CommandTarget::of("sender", "halt"))
     .with_settings(&cfg.settings)
     .build()
 }
@@ -993,14 +1004,54 @@ fn bcd_le(v: u64, n: usize, d: &mut Vec<u8>) {
     d.extend(b[..n].iter().rev());
 }
 
+/// The link-layer header of a frame: the length octet (0 until [`set_length`]), the C field 0x44 (SND-NR), the manufacturer
+/// code, the id, the version and the device type.
+pub fn link_header(mfr_code: u16, id: u32, version: u8, dev_type: u8) -> Vec<u8> {
+    let mut d = vec![0u8, 0x44, mfr_code as u8, (mfr_code >> 8) as u8];
+    // The id is shown as its hex digits, so its BCD bytes are the bytes of the number.
+    d.extend(id.to_le_bytes());
+    d.extend([version, dev_type]);
+    d
+}
+
+/// The physical mode and the frame format of a mode name ("S1", "T1", "C1 (A)", "C1 (B)", "R2", "N1").
+pub fn phy_of(name: &str) -> (Phy, FrameFormat) {
+    let phy = match name {
+        "S1" => Phy::S1,
+        "R2" => Phy::R2,
+        "N1" => Phy::N1,
+        _ => Phy::T1C1,
+    };
+    let fmt = if name == "C1 (B)" {
+        FrameFormat::B
+    } else {
+        FrameFormat::A
+    };
+    (phy, fmt)
+}
+
+/// The length octet of frame bytes `d` (no CRCs) in format `fmt`: the frame without itself; format B counts the CRCs.
+pub fn set_length(d: &mut [u8], fmt: FrameFormat) {
+    let n = d.len();
+    d[0] = match fmt {
+        FrameFormat::B => (n - 1 + if n <= 126 { 2 } else { 4 }) as u8,
+        FrameFormat::A => (n - 1) as u8,
+    };
+}
+
+/// The clean samples at 0 Hz of frame bytes `data` (no CRCs) in the mode `name`: the CRCs of its format, the chips of
+/// [`sim_chips`] and the modulation of [`chips_to_samples`].
+pub fn frame_samples(name: &str, data: &[u8], rate: f64) -> Vec<Complex32> {
+    let (phy, fmt) = phy_of(name);
+    let air = add_crcs(data, fmt);
+    chips_to_samples(&sim_chips(name, &air), phy.chip_rate(), phy.dev_hz(), rate)
+}
+
 /// The frame bytes (no CRCs) of meter `i` for transmission `n`. `rng` supplies the bytes of the encrypted payload.
 pub fn sim_frame(i: usize, n: u64, rng: &mut Rng) -> Vec<u8> {
     let m = &SIM_METERS[i];
-    let code = manufacturer_code(m.mfr);
-    let mut d = vec![0u8, 0x44, code as u8, (code >> 8) as u8];
-    // The id is shown as its hex digits, so its BCD bytes are the bytes of the number.
-    d.extend(m.id.to_le_bytes());
-    d.extend([m.version, m.dev_type, 0x7A, n as u8, 0x00]);
+    let mut d = link_header(manufacturer_code(m.mfr), m.id, m.version, m.dev_type);
+    d.extend([0x7A, n as u8, 0x00]);
     let water = |d: &mut Vec<u8>| {
         d.extend([0x0C, 0x13]);
         bcd_le(123456 + 3 * n, 4, d);
@@ -1050,14 +1101,7 @@ pub fn sim_frame(i: usize, n: u64, rng: &mut Rng) -> Vec<u8> {
             }
         }
     }
-    // L is the frame length without itself; format B counts the CRCs.
-    if m.phy == "C1 (B)" {
-        let n = d.len();
-        let crcs = if n <= 126 { 2 } else { 4 };
-        d[0] = (n - 1 + crcs) as u8;
-    } else {
-        d[0] = (d.len() - 1) as u8;
-    }
+    set_length(&mut d, phy_of(m.phy).1);
     d
 }
 
@@ -1171,20 +1215,7 @@ pub fn generator(rate: f64, p: GenParams) -> Option<CleanScene> {
         let n = (k / meters.len()) as u64;
         k += 1;
         let m = &SIM_METERS[i];
-        let fmt = if m.phy == "C1 (B)" {
-            FrameFormat::B
-        } else {
-            FrameFormat::A
-        };
-        let air = add_crcs(&sim_frame(i, n, &mut rng), fmt);
-        let phy = match m.phy {
-            "S1" => Phy::S1,
-            "R2" => Phy::R2,
-            "N1" => Phy::N1,
-            _ => Phy::T1C1,
-        };
-        let samples =
-            chips_to_samples(&sim_chips(m.phy, &air), phy.chip_rate(), phy.dev_hz(), rate);
+        let samples = frame_samples(m.phy, &sim_frame(i, n, &mut rng), rate);
         let start_s = t;
         t += samples.len() as f64 / rate + 0.5;
         Some(Burst {

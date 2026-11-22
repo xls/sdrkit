@@ -32,6 +32,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:zi
 | `channel` | Channel | whole number | 11 | 11 to 26 | Asks the host to tune 2405 + 5 (k - 11) MHz. |
 | `scan` | Scan channels 11 to 26 | yes or no | false |  | Asks the host to visit each channel in turn. |
 | `dwell` | Scan dwell | duration (s) | 5 s | 1 to 60 |  |
+| `tx_level` | Level | number (of full scale) | 0.5 | 0.05 to 0.9 | The magnitude of the signal sent, of full scale. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -56,6 +57,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `snr_db` | SNR | number (dB) |
 | `offset_hz` | Offset | frequency |
 | `bad_samples` | Bad samples | whole number |
+| `tx_sending` | Sending | yes or no |
+| `tx_sent` | Frames sent | whole number |
+| `tx_waiting` | Frames waiting | whole number |
 
 ## Result tables
 
@@ -76,6 +80,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Kind | Label | Fields |
 |---|---|---|
 | `zigbee.pan` | New Zigbee PAN | `source` (text), `text` (text), `family` (choice), `pan` (text), `ch` (whole number) |
+| `zigbee.tx` | Zigbee transmission | `state` (text), `reason` (text), `target` (text), `text` (text), `family` (choice) |
 
 ## Commands
 
@@ -83,10 +88,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything heard so far. Favourites stay. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
+| `send` | Send a frame | `pan_id` (text, required), `destination` (text, required), `source` (text, required), `payload` (text, required), `frame_type` (choice, default `data`), `sequence` (whole number, default 0), `ack` (yes or no, default false) |  | Sends an IEEE 802.15.4 MAC frame (frame version 2003, no security) on the tuned frequency. With both addresses the source PAN id is left out. Frames sent during a frame wait for it. Transmit must be on. |
+| `halt` | Halt |  |  | Drops the frames waiting and ends the frame on air with the fall of the carrier. |
 
 ## Typed interface
 
-The stack is in the family `ism`, version 1.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 1.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -112,6 +119,16 @@ Struct `GuardFields`. The result set that a [`StackGraph`] writes itself. The de
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `bad_samples` | whole number | always | 1.0 | Input samples replaced because they were not finite or far beyond full scale. |
+
+### Result fields
+
+Struct `IsmTxFields`. The result fields of the sender of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `tx_sending` | yes or no | always | 1.1 | Whether a frame is on air. |
+| `tx_sent` | whole number | always | 1.1 | The frames sent since the stack started. |
+| `tx_waiting` | whole number | always | 1.1 | The frames waiting for the transmitter. |
 
 ### Table `networks`
 
@@ -173,12 +190,26 @@ Struct `ZigbeePanEvent`. The fields of a new PAN event.
 | `pan` | text | always | 1.0 | The PAN id. |
 | `ch` | whole number | always | 1.0 | The channel. |
 
+### Event `zigbee.tx`
+
+Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `state` | text | always | 1.1 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.1 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
+| `target` | text | always | 1.1 | The addressee or the identity of the frame. |
+| `text` | text | always | 1.1 | What the frame carries, for started and queued; empty otherwise. |
+| `family` | choice | always | 1.1 | The family of the source: a sensor. |
+
 ### Commands
 
 | Key | C function | Arguments struct | Reply struct |
 |---|---|---|---|
 | `clear` | `sdrkit_zigbee_clear` | none | none |
 | `remove` | `sdrkit_zigbee_remove` | `sdrkit_ism_pan_device_args` | none |
+| `send` | `sdrkit_zigbee_send` | `sdrkit_zigbee_send_args` | none |
+| `halt` | `sdrkit_zigbee_halt` | none | none |
 
 ### Settings
 
@@ -187,6 +218,7 @@ Struct `ZigbeePanEvent`. The fields of a new PAN event.
 | `channel` | `sdrkit_zigbee_get_channel` | `sdrkit_zigbee_set_channel` |
 | `scan` | `sdrkit_zigbee_get_scan` | `sdrkit_zigbee_set_scan` |
 | `dwell` | `sdrkit_zigbee_get_dwell` | `sdrkit_zigbee_set_dwell` |
+| `tx_level` | `sdrkit_zigbee_get_tx_level` | `sdrkit_zigbee_set_tx_level` |
 
 ### Settings of the test signal generator
 

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "ism", version 1.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "ism", version 1.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,26 +36,30 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_ISM_VERSION_MAJOR 1
-#define SDRKIT_ISM_VERSION_MINOR 0
+#define SDRKIT_ISM_VERSION_MINOR 1
 
 // The stack "ism": its id, and the keys of its event types.
 #define SDRKIT_STACK_ISM "ism"
 #define SDRKIT_EVENT_ISM_DEVICE "ism.device"
 #define SDRKIT_EVENT_SIGFOX_MESSAGE "sigfox.message"
 #define SDRKIT_EVENT_ISM_PULSE_FRAME "ism.pulse_frame"
+#define SDRKIT_EVENT_ISM_TX "ism.tx"
 
 // The stack "wmbus": its id, and the keys of its event types.
 #define SDRKIT_STACK_WMBUS "wmbus"
 #define SDRKIT_EVENT_WMBUS_FRAME "wmbus.frame"
+#define SDRKIT_EVENT_WMBUS_TX "wmbus.tx"
 
 // The stack "zwave": its id, and the keys of its event types.
 #define SDRKIT_STACK_ZWAVE "zwave"
 #define SDRKIT_EVENT_ZWAVE_FRAME "zwave.frame"
 #define SDRKIT_EVENT_ZWAVE_STATE "zwave.state"
+#define SDRKIT_EVENT_ZWAVE_TX "zwave.tx"
 
 // The stack "zigbee": its id, and the keys of its event types.
 #define SDRKIT_STACK_ZIGBEE "zigbee"
 #define SDRKIT_EVENT_ZIGBEE_PAN "zigbee.pan"
+#define SDRKIT_EVENT_ZIGBEE_TX "zigbee.tx"
 
 // The stack "sigfox": its id, and the keys of its event types.
 #define SDRKIT_STACK_SIGFOX "sigfox"
@@ -63,6 +67,7 @@
 // The stack "ant": its id, and the keys of its event types.
 #define SDRKIT_STACK_ANT "ant"
 #define SDRKIT_EVENT_ANT_SENSOR "ant.sensor"
+#define SDRKIT_EVENT_ANT_TX "ant.tx"
 
 // The stack "nrf24": its id, and the keys of its event types.
 #define SDRKIT_STACK_NRF24 "nrf24"
@@ -84,6 +89,7 @@
 // The stack "wisun": its id, and the keys of its event types.
 #define SDRKIT_STACK_WISUN "wisun"
 #define SDRKIT_EVENT_WISUN_PAN "wisun.pan"
+#define SDRKIT_EVENT_WISUN_TX "wisun.tx"
 
 // The stack "thread": its id, and the keys of its event types.
 #define SDRKIT_STACK_THREAD "thread"
@@ -379,6 +385,18 @@ typedef struct sdrkit_ism_pulse_fields {
   // Frames with a line code.
   int64_t frames_good;
 } sdrkit_ism_pulse_fields;
+
+// The result fields of the sender of a frame stack.
+typedef struct sdrkit_ism_tx_fields {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Whether a frame is on air.
+  bool tx_sending;
+  // The frames sent since the stack started.
+  int64_t tx_sent;
+  // The frames waiting for the transmitter.
+  int64_t tx_waiting;
+} sdrkit_ism_tx_fields;
 
 // The options of `check` of `sdrkit_ism_device_row`.
 typedef enum sdrkit_ism_device_row_check {
@@ -2357,6 +2375,56 @@ typedef struct sdrkit_ism_pulse_frame_event {
   double level_dbfs;
 } sdrkit_ism_pulse_frame_event;
 
+// The options of `family` of `sdrkit_ism_tx_event`.
+typedef enum sdrkit_ism_tx_event_family {
+  // Aircraft
+  SDRKIT_ISM_TX_EVENT_FAMILY_AIRCRAFT = 0,
+  // Vessel
+  SDRKIT_ISM_TX_EVENT_FAMILY_VESSEL = 1,
+  // APRS
+  SDRKIT_ISM_TX_EVENT_FAMILY_APRS = 2,
+  // Pager
+  SDRKIT_ISM_TX_EVENT_FAMILY_PAGER = 3,
+  // Radiosonde
+  SDRKIT_ISM_TX_EVENT_FAMILY_SONDE = 4,
+  // Broadcast
+  SDRKIT_ISM_TX_EVENT_FAMILY_BROADCAST = 5,
+  // Voice
+  SDRKIT_ISM_TX_EVENT_FAMILY_VOICE = 6,
+  // Message
+  SDRKIT_ISM_TX_EVENT_FAMILY_MESSAGE = 7,
+  // Sensor
+  SDRKIT_ISM_TX_EVENT_FAMILY_SENSOR = 8,
+  // Satellite
+  SDRKIT_ISM_TX_EVENT_FAMILY_SATELLITE = 9,
+  // Receiver
+  SDRKIT_ISM_TX_EVENT_FAMILY_RECEIVER = 10,
+  // Alert
+  SDRKIT_ISM_TX_EVENT_FAMILY_ALERT = 11,
+  // Other
+  SDRKIT_ISM_TX_EVENT_FAMILY_OTHER = 12,
+} sdrkit_ism_tx_event_family;
+
+// The fields of a change of a transmission of a frame stack.
+typedef struct sdrkit_ism_tx_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The state: started, queued, finished or refused.
+  sdrkit_string state;
+  // Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+  sdrkit_string reason;
+  // The addressee or the identity of the frame.
+  sdrkit_string target;
+  // What the frame carries, for started and queued; empty otherwise.
+  sdrkit_string text;
+  // The family of the source: a sensor. A value of `sdrkit_ism_tx_event_family`.
+  int32_t family;
+} sdrkit_ism_tx_event;
+
 // The options of `family` of `sdrkit_wmbus_frame_event`.
 typedef enum sdrkit_wmbus_frame_event_family {
   // Aircraft
@@ -2414,6 +2482,56 @@ typedef struct sdrkit_wmbus_frame_event {
   // The level of the frame. Unit: dBFS.
   double level_dbfs;
 } sdrkit_wmbus_frame_event;
+
+// The options of `family` of `sdrkit_wmbus_tx_event`.
+typedef enum sdrkit_wmbus_tx_event_family {
+  // Aircraft
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_AIRCRAFT = 0,
+  // Vessel
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_VESSEL = 1,
+  // APRS
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_APRS = 2,
+  // Pager
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_PAGER = 3,
+  // Radiosonde
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_SONDE = 4,
+  // Broadcast
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_BROADCAST = 5,
+  // Voice
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_VOICE = 6,
+  // Message
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_MESSAGE = 7,
+  // Sensor
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_SENSOR = 8,
+  // Satellite
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_SATELLITE = 9,
+  // Receiver
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_RECEIVER = 10,
+  // Alert
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_ALERT = 11,
+  // Other
+  SDRKIT_WMBUS_TX_EVENT_FAMILY_OTHER = 12,
+} sdrkit_wmbus_tx_event_family;
+
+// The fields of a change of a transmission of a frame stack.
+typedef struct sdrkit_wmbus_tx_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The state: started, queued, finished or refused.
+  sdrkit_string state;
+  // Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+  sdrkit_string reason;
+  // The addressee or the identity of the frame.
+  sdrkit_string target;
+  // What the frame carries, for started and queued; empty otherwise.
+  sdrkit_string text;
+  // The family of the source: a sensor. A value of `sdrkit_wmbus_tx_event_family`.
+  int32_t family;
+} sdrkit_wmbus_tx_event;
 
 // The options of `family` of `sdrkit_zwave_frame_event`.
 typedef enum sdrkit_zwave_frame_event_family {
@@ -2525,6 +2643,56 @@ typedef struct sdrkit_zwave_state_event {
   int32_t family;
 } sdrkit_zwave_state_event;
 
+// The options of `family` of `sdrkit_zwave_tx_event`.
+typedef enum sdrkit_zwave_tx_event_family {
+  // Aircraft
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_AIRCRAFT = 0,
+  // Vessel
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_VESSEL = 1,
+  // APRS
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_APRS = 2,
+  // Pager
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_PAGER = 3,
+  // Radiosonde
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_SONDE = 4,
+  // Broadcast
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_BROADCAST = 5,
+  // Voice
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_VOICE = 6,
+  // Message
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_MESSAGE = 7,
+  // Sensor
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_SENSOR = 8,
+  // Satellite
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_SATELLITE = 9,
+  // Receiver
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_RECEIVER = 10,
+  // Alert
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_ALERT = 11,
+  // Other
+  SDRKIT_ZWAVE_TX_EVENT_FAMILY_OTHER = 12,
+} sdrkit_zwave_tx_event_family;
+
+// The fields of a change of a transmission of a frame stack.
+typedef struct sdrkit_zwave_tx_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The state: started, queued, finished or refused.
+  sdrkit_string state;
+  // Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+  sdrkit_string reason;
+  // The addressee or the identity of the frame.
+  sdrkit_string target;
+  // What the frame carries, for started and queued; empty otherwise.
+  sdrkit_string text;
+  // The family of the source: a sensor. A value of `sdrkit_zwave_tx_event_family`.
+  int32_t family;
+} sdrkit_zwave_tx_event;
+
 // The options of `family` of `sdrkit_zigbee_pan_event`.
 typedef enum sdrkit_zigbee_pan_event_family {
   // Aircraft
@@ -2574,6 +2742,56 @@ typedef struct sdrkit_zigbee_pan_event {
   // The channel.
   int64_t ch;
 } sdrkit_zigbee_pan_event;
+
+// The options of `family` of `sdrkit_zigbee_tx_event`.
+typedef enum sdrkit_zigbee_tx_event_family {
+  // Aircraft
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_AIRCRAFT = 0,
+  // Vessel
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_VESSEL = 1,
+  // APRS
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_APRS = 2,
+  // Pager
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_PAGER = 3,
+  // Radiosonde
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_SONDE = 4,
+  // Broadcast
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_BROADCAST = 5,
+  // Voice
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_VOICE = 6,
+  // Message
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_MESSAGE = 7,
+  // Sensor
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_SENSOR = 8,
+  // Satellite
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_SATELLITE = 9,
+  // Receiver
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_RECEIVER = 10,
+  // Alert
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_ALERT = 11,
+  // Other
+  SDRKIT_ZIGBEE_TX_EVENT_FAMILY_OTHER = 12,
+} sdrkit_zigbee_tx_event_family;
+
+// The fields of a change of a transmission of a frame stack.
+typedef struct sdrkit_zigbee_tx_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The state: started, queued, finished or refused.
+  sdrkit_string state;
+  // Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+  sdrkit_string reason;
+  // The addressee or the identity of the frame.
+  sdrkit_string target;
+  // What the frame carries, for started and queued; empty otherwise.
+  sdrkit_string text;
+  // The family of the source: a sensor. A value of `sdrkit_zigbee_tx_event_family`.
+  int32_t family;
+} sdrkit_zigbee_tx_event;
 
 // The options of `family` of `sdrkit_ant_sensor_event`.
 typedef enum sdrkit_ant_sensor_event_family {
@@ -2626,6 +2844,56 @@ typedef struct sdrkit_ant_sensor_event {
   // The network marker as hex.
   sdrkit_string marker;
 } sdrkit_ant_sensor_event;
+
+// The options of `family` of `sdrkit_ant_tx_event`.
+typedef enum sdrkit_ant_tx_event_family {
+  // Aircraft
+  SDRKIT_ANT_TX_EVENT_FAMILY_AIRCRAFT = 0,
+  // Vessel
+  SDRKIT_ANT_TX_EVENT_FAMILY_VESSEL = 1,
+  // APRS
+  SDRKIT_ANT_TX_EVENT_FAMILY_APRS = 2,
+  // Pager
+  SDRKIT_ANT_TX_EVENT_FAMILY_PAGER = 3,
+  // Radiosonde
+  SDRKIT_ANT_TX_EVENT_FAMILY_SONDE = 4,
+  // Broadcast
+  SDRKIT_ANT_TX_EVENT_FAMILY_BROADCAST = 5,
+  // Voice
+  SDRKIT_ANT_TX_EVENT_FAMILY_VOICE = 6,
+  // Message
+  SDRKIT_ANT_TX_EVENT_FAMILY_MESSAGE = 7,
+  // Sensor
+  SDRKIT_ANT_TX_EVENT_FAMILY_SENSOR = 8,
+  // Satellite
+  SDRKIT_ANT_TX_EVENT_FAMILY_SATELLITE = 9,
+  // Receiver
+  SDRKIT_ANT_TX_EVENT_FAMILY_RECEIVER = 10,
+  // Alert
+  SDRKIT_ANT_TX_EVENT_FAMILY_ALERT = 11,
+  // Other
+  SDRKIT_ANT_TX_EVENT_FAMILY_OTHER = 12,
+} sdrkit_ant_tx_event_family;
+
+// The fields of a change of a transmission of a frame stack.
+typedef struct sdrkit_ant_tx_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The state: started, queued, finished or refused.
+  sdrkit_string state;
+  // Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+  sdrkit_string reason;
+  // The addressee or the identity of the frame.
+  sdrkit_string target;
+  // What the frame carries, for started and queued; empty otherwise.
+  sdrkit_string text;
+  // The family of the source: a sensor. A value of `sdrkit_ant_tx_event_family`.
+  int32_t family;
+} sdrkit_ant_tx_event;
 
 // The options of `family` of `sdrkit_nrf24_address_event`.
 typedef enum sdrkit_nrf24_address_event_family {
@@ -2931,6 +3199,56 @@ typedef struct sdrkit_wisun_pan_event {
   sdrkit_string pan;
 } sdrkit_wisun_pan_event;
 
+// The options of `family` of `sdrkit_wisun_tx_event`.
+typedef enum sdrkit_wisun_tx_event_family {
+  // Aircraft
+  SDRKIT_WISUN_TX_EVENT_FAMILY_AIRCRAFT = 0,
+  // Vessel
+  SDRKIT_WISUN_TX_EVENT_FAMILY_VESSEL = 1,
+  // APRS
+  SDRKIT_WISUN_TX_EVENT_FAMILY_APRS = 2,
+  // Pager
+  SDRKIT_WISUN_TX_EVENT_FAMILY_PAGER = 3,
+  // Radiosonde
+  SDRKIT_WISUN_TX_EVENT_FAMILY_SONDE = 4,
+  // Broadcast
+  SDRKIT_WISUN_TX_EVENT_FAMILY_BROADCAST = 5,
+  // Voice
+  SDRKIT_WISUN_TX_EVENT_FAMILY_VOICE = 6,
+  // Message
+  SDRKIT_WISUN_TX_EVENT_FAMILY_MESSAGE = 7,
+  // Sensor
+  SDRKIT_WISUN_TX_EVENT_FAMILY_SENSOR = 8,
+  // Satellite
+  SDRKIT_WISUN_TX_EVENT_FAMILY_SATELLITE = 9,
+  // Receiver
+  SDRKIT_WISUN_TX_EVENT_FAMILY_RECEIVER = 10,
+  // Alert
+  SDRKIT_WISUN_TX_EVENT_FAMILY_ALERT = 11,
+  // Other
+  SDRKIT_WISUN_TX_EVENT_FAMILY_OTHER = 12,
+} sdrkit_wisun_tx_event_family;
+
+// The fields of a change of a transmission of a frame stack.
+typedef struct sdrkit_wisun_tx_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The state: started, queued, finished or refused.
+  sdrkit_string state;
+  // Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+  sdrkit_string reason;
+  // The addressee or the identity of the frame.
+  sdrkit_string target;
+  // What the frame carries, for started and queued; empty otherwise.
+  sdrkit_string text;
+  // The family of the source: a sensor. A value of `sdrkit_wisun_tx_event_family`.
+  int32_t family;
+} sdrkit_wisun_tx_event;
+
 // The options of `family` of `sdrkit_thread_network_event`.
 typedef enum sdrkit_thread_network_event_family {
   // Aircraft
@@ -3234,6 +3552,41 @@ typedef struct sdrkit_ism_pan_device_args {
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_ISM_PAN_DEVICE_ARGS_INIT {sizeof(sdrkit_ism_pan_device_args), {0}}
 
+// The arguments of `send` of the ISM sensor stack.
+typedef struct sdrkit_ism_send_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // True if `family` holds a value.
+  bool has_family;
+  // The device family. The index of an option.
+  int32_t family;
+  // The id of the device.
+  int64_t id;
+  // True if `command` holds a value.
+  bool has_command;
+  // The command of a remote.
+  int64_t command;
+  // True if `channel` holds a value.
+  bool has_channel;
+  // The channel of a sensor.
+  int64_t channel;
+  // True if `battery_ok` holds a value.
+  bool has_battery_ok;
+  // Whether the battery of a sensor is good.
+  bool battery_ok;
+  // True if `temperature` holds a value.
+  bool has_temperature;
+  // The temperature of a sensor. Unit: °C.
+  double temperature;
+  // True if `humidity` holds a value.
+  bool has_humidity;
+  // The humidity of a sensor. Unit: %.
+  int64_t humidity;
+} sdrkit_ism_send_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_ISM_SEND_ARGS_INIT {sizeof(sdrkit_ism_send_args), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
 // The arguments of `remove` of the Wireless M-Bus stack.
 typedef struct sdrkit_wmbus_meter_args {
   // The size of this struct: sizeof of the type. The caller sets it.
@@ -3244,6 +3597,29 @@ typedef struct sdrkit_wmbus_meter_args {
 
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_WMBUS_METER_ARGS_INIT {sizeof(sdrkit_wmbus_meter_args), {0}}
+
+// The arguments of `send` of the Wireless M-Bus stack.
+typedef struct sdrkit_wmbus_send_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // True if `mode` holds a value.
+  bool has_mode;
+  // The physical mode and frame format. The index of an option.
+  int32_t mode;
+  // The manufacturer.
+  sdrkit_string manufacturer;
+  // The address (identification number).
+  sdrkit_string address;
+  // The version.
+  int64_t version;
+  // The device type.
+  int64_t device_type;
+  // The application data.
+  sdrkit_string payload;
+} sdrkit_wmbus_send_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_WMBUS_SEND_ARGS_INIT {sizeof(sdrkit_wmbus_send_args), 0, 0, {0}, {0}, 0, 0, {0}}
 
 // The arguments of `remove` of the Z-Wave stack.
 typedef struct sdrkit_zwave_node_args {
@@ -3256,6 +3632,64 @@ typedef struct sdrkit_zwave_node_args {
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_ZWAVE_NODE_ARGS_INIT {sizeof(sdrkit_zwave_node_args), {0}}
 
+// The arguments of `send` of the Z-Wave stack.
+typedef struct sdrkit_zwave_send_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // The home id.
+  sdrkit_string home_id;
+  // The source node.
+  int64_t source;
+  // The destination node.
+  int64_t destination;
+  // The application command.
+  sdrkit_string payload;
+  // True if `rate` holds a value.
+  bool has_rate;
+  // The rate. The index of an option.
+  int32_t rate;
+  // True if `ack` holds a value.
+  bool has_ack;
+  // Whether the frame asks for an acknowledgement.
+  bool ack;
+  // True if `sequence` holds a value.
+  bool has_sequence;
+  // The sequence number.
+  int64_t sequence;
+} sdrkit_zwave_send_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_ZWAVE_SEND_ARGS_INIT {sizeof(sdrkit_zwave_send_args), {0}, 0, 0, {0}, 0, 0, 0, 0, 0, 0}
+
+// The arguments of `send` of the Zigbee stack.
+typedef struct sdrkit_zigbee_send_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // The PAN id.
+  sdrkit_string pan_id;
+  // The destination address.
+  sdrkit_string destination;
+  // The source address.
+  sdrkit_string source;
+  // The MAC payload.
+  sdrkit_string payload;
+  // True if `frame_type` holds a value.
+  bool has_frame_type;
+  // The frame type. The index of an option.
+  int32_t frame_type;
+  // True if `sequence` holds a value.
+  bool has_sequence;
+  // The sequence number.
+  int64_t sequence;
+  // True if `ack` holds a value.
+  bool has_ack;
+  // Whether the frame asks for an acknowledgement.
+  bool ack;
+} sdrkit_zigbee_send_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_ZIGBEE_SEND_ARGS_INIT {sizeof(sdrkit_zigbee_send_args), {0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, 0}
+
 // The arguments of `remove` of the ANT+ stack.
 typedef struct sdrkit_ant_sensor_args {
   // The size of this struct: sizeof of the type. The caller sets it.
@@ -3266,6 +3700,27 @@ typedef struct sdrkit_ant_sensor_args {
 
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_ANT_SENSOR_ARGS_INIT {sizeof(sdrkit_ant_sensor_args), {0}}
+
+// The arguments of `send` of the ANT+ stack.
+typedef struct sdrkit_ant_send_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // The device number.
+  int64_t device;
+  // The device type.
+  int64_t device_type;
+  // The transmission type.
+  int64_t tx_type;
+  // The data page.
+  sdrkit_string payload;
+  // True if `pairing` holds a value.
+  bool has_pairing;
+  // The pairing bit.
+  bool pairing;
+} sdrkit_ant_send_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_ANT_SEND_ARGS_INIT {sizeof(sdrkit_ant_send_args), 0, 0, 0, {0}, 0, 0}
 
 // The arguments of `remove` of the nRF24L01 stack.
 typedef struct sdrkit_nrf24_nrf_address_args {
@@ -3310,6 +3765,43 @@ typedef struct sdrkit_wisun_node_args {
 
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_WISUN_NODE_ARGS_INIT {sizeof(sdrkit_wisun_node_args), {0}}
+
+// The arguments of `send` of the Wi-SUN stack.
+typedef struct sdrkit_wisun_send_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // True if `frame_type` holds a value.
+  bool has_frame_type;
+  // The frame type of the UTT IE. The index of an option.
+  int32_t frame_type;
+  // The PAN id.
+  sdrkit_string pan_id;
+  // The source.
+  sdrkit_string source;
+  // The destination.
+  sdrkit_string destination;
+  // The payload IEs.
+  sdrkit_string payload;
+  // True if `header_ies` holds a value.
+  bool has_header_ies;
+  // More header IEs.
+  sdrkit_string header_ies;
+  // True if `sequence` holds a value.
+  bool has_sequence;
+  // The sequence number.
+  int64_t sequence;
+  // True if `kbps` holds a value.
+  bool has_kbps;
+  // The bit rate. Unit: kbit/s.
+  int64_t kbps;
+  // True if `ufsi` holds a value.
+  bool has_ufsi;
+  // The UFSI of the UTT-IE.
+  int64_t ufsi;
+} sdrkit_wisun_send_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_WISUN_SEND_ARGS_INIT {sizeof(sdrkit_wisun_send_args), 0, 0, {0}, {0}, {0}, {0}, 0, {0}, 0, 0, 0, 0, 0, 0}
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "ism" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
@@ -3383,6 +3875,12 @@ static inline int32_t sdrkit_ism_pulse_frame_event_read(SDRKIT_HANDLE handle, ui
   return sdrkit_typed_event(handle, n, "ism.pulse_frame", "ism.IsmPulseFrameEvent", event, sizeof(sdrkit_ism_pulse_frame_event));
 }
 
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "ism.tx"
+// (ISM transmission). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_ism_tx_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_ism_tx_event *event) {
+  return sdrkit_typed_event(handle, n, "ism.tx", "ism.IsmTxEvent", event, sizeof(sdrkit_ism_tx_event));
+}
+
 // Runs the command "clear" (Clear) of the stack "ism" on the session of `handle`. Forgets everything heard so far. Favourites stay.
 static inline int32_t sdrkit_ism_clear(SDRKIT_HANDLE handle) {
   return sdrkit_typed_command(handle, "clear", NULL, NULL, NULL, NULL, 0);
@@ -3391,6 +3889,16 @@ static inline int32_t sdrkit_ism_clear(SDRKIT_HANDLE handle) {
 // Runs the command "remove" (Remove) of the stack "ism" on the session of `handle`. Forgets one object, a favourite too.
 static inline int32_t sdrkit_ism_remove(SDRKIT_HANDLE handle, const sdrkit_ism_pan_device_args *args) {
   return sdrkit_typed_command(handle, "remove", "ism.PanDeviceArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "send" (Send a frame) of the stack "ism" on the session of `handle`. Sends one transmission of the device family (its copies of the frame, as the device sends them) as OOK on the tuned frequency. Transmissions sent during one wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+static inline int32_t sdrkit_ism_send(SDRKIT_HANDLE handle, const sdrkit_ism_send_args *args) {
+  return sdrkit_typed_command(handle, "send", "ism.IsmSendArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "halt" (Halt) of the stack "ism" on the session of `handle`. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+static inline int32_t sdrkit_ism_halt(SDRKIT_HANDLE handle) {
+  return sdrkit_typed_command(handle, "halt", NULL, NULL, NULL, NULL, 0);
 }
 
 // The settings of the test signal generator of the stack "ism" are the sdrkit_ism_gen_*() functions
@@ -3437,6 +3945,14 @@ static inline int32_t sdrkit_ism_get_cluster_ratio(SDRKIT_HANDLE handle, double 
 }
 static inline int32_t sdrkit_ism_set_cluster_ratio(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "cluster_ratio", value);
+}
+
+// The setting "tx_level" (Level) of the stack "ism". Unit: of full scale. The magnitude of the signal sent, of full scale.
+static inline int32_t sdrkit_ism_get_tx_level(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "tx_level", value);
+}
+static inline int32_t sdrkit_ism_set_tx_level(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "tx_level", value);
 }
 
 // The setting "gen_scene" (Test signal scene) of the test signal generator of the stack "ism". A value of `sdrkit_ism_gen_scene`.
@@ -3575,6 +4091,12 @@ static inline int32_t sdrkit_wmbus_frame_event_read(SDRKIT_HANDLE handle, uint32
   return sdrkit_typed_event(handle, n, "wmbus.frame", "ism.WmbusFrameEvent", event, sizeof(sdrkit_wmbus_frame_event));
 }
 
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "wmbus.tx"
+// (Wireless M-Bus transmission). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_wmbus_tx_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_wmbus_tx_event *event) {
+  return sdrkit_typed_event(handle, n, "wmbus.tx", "ism.IsmTxEvent", event, sizeof(sdrkit_wmbus_tx_event));
+}
+
 // Runs the command "clear" (Clear) of the stack "wmbus" on the session of `handle`. Forgets everything heard so far. Favourites stay.
 static inline int32_t sdrkit_wmbus_clear(SDRKIT_HANDLE handle) {
   return sdrkit_typed_command(handle, "clear", NULL, NULL, NULL, NULL, 0);
@@ -3585,8 +4107,26 @@ static inline int32_t sdrkit_wmbus_remove(SDRKIT_HANDLE handle, const sdrkit_wmb
   return sdrkit_typed_command(handle, "remove", "ism.WmbusMeterArgs", args, NULL, NULL, 0);
 }
 
+// Runs the command "send" (Send a frame) of the stack "wmbus" on the session of `handle`. Sends a link-layer frame with the C field 0x44 (SND-NR) on the channel of the mode nearest the tuned frequency, with the CRCs of its format. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+static inline int32_t sdrkit_wmbus_send(SDRKIT_HANDLE handle, const sdrkit_wmbus_send_args *args) {
+  return sdrkit_typed_command(handle, "send", "ism.WmbusSendArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "halt" (Halt) of the stack "wmbus" on the session of `handle`. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+static inline int32_t sdrkit_wmbus_halt(SDRKIT_HANDLE handle) {
+  return sdrkit_typed_command(handle, "halt", NULL, NULL, NULL, NULL, 0);
+}
+
 // The settings of the test signal generator of the stack "wmbus" are the sdrkit_wmbus_gen_*() functions
 // after the settings of its receiver.
+
+// The setting "tx_level" (Level) of the stack "wmbus". Unit: of full scale. The magnitude of the signal sent, of full scale.
+static inline int32_t sdrkit_wmbus_get_tx_level(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "tx_level", value);
+}
+static inline int32_t sdrkit_wmbus_set_tx_level(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "tx_level", value);
+}
 
 // The setting "gen_plan" (Test signal plan) of the test signal generator of the stack "wmbus". A value of `sdrkit_wmbus_gen_plan`.
 static inline int32_t sdrkit_wmbus_gen_get_plan(SDRKIT_HANDLE handle, sdrkit_wmbus_gen_plan *value) {
@@ -3683,6 +4223,12 @@ static inline int32_t sdrkit_zwave_state_event_read(SDRKIT_HANDLE handle, uint32
   return sdrkit_typed_event(handle, n, "zwave.state", "ism.ZwaveStateEvent", event, sizeof(sdrkit_zwave_state_event));
 }
 
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "zwave.tx"
+// (Z-Wave transmission). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_zwave_tx_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_zwave_tx_event *event) {
+  return sdrkit_typed_event(handle, n, "zwave.tx", "ism.IsmTxEvent", event, sizeof(sdrkit_zwave_tx_event));
+}
+
 // Runs the command "clear" (Clear) of the stack "zwave" on the session of `handle`. Forgets everything heard so far. Favourites stay.
 static inline int32_t sdrkit_zwave_clear(SDRKIT_HANDLE handle) {
   return sdrkit_typed_command(handle, "clear", NULL, NULL, NULL, NULL, 0);
@@ -3691,6 +4237,16 @@ static inline int32_t sdrkit_zwave_clear(SDRKIT_HANDLE handle) {
 // Runs the command "remove" (Remove) of the stack "zwave" on the session of `handle`. Forgets one object, a favourite too.
 static inline int32_t sdrkit_zwave_remove(SDRKIT_HANDLE handle, const sdrkit_zwave_node_args *args) {
   return sdrkit_typed_command(handle, "remove", "ism.ZwaveNodeArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "send" (Send a frame) of the stack "zwave" on the session of `handle`. Sends a singlecast MPDU on the first channel of the rate in the setting channels (the tuned frequency when the setting is empty). Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+static inline int32_t sdrkit_zwave_send(SDRKIT_HANDLE handle, const sdrkit_zwave_send_args *args) {
+  return sdrkit_typed_command(handle, "send", "ism.ZwaveSendArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "halt" (Halt) of the stack "zwave" on the session of `handle`. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+static inline int32_t sdrkit_zwave_halt(SDRKIT_HANDLE handle) {
+  return sdrkit_typed_command(handle, "halt", NULL, NULL, NULL, NULL, 0);
 }
 
 // The settings of the test signal generator of the stack "zwave" are the sdrkit_zwave_gen_*() functions
@@ -3710,6 +4266,14 @@ static inline int32_t sdrkit_zwave_get_sof_f0_r3(SDRKIT_HANDLE handle, bool *val
 }
 static inline int32_t sdrkit_zwave_set_sof_f0_r3(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "sof_f0_r3", value);
+}
+
+// The setting "tx_level" (Level) of the stack "zwave". Unit: of full scale. The magnitude of the signal sent, of full scale.
+static inline int32_t sdrkit_zwave_get_tx_level(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "tx_level", value);
+}
+static inline int32_t sdrkit_zwave_set_tx_level(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "tx_level", value);
 }
 
 // The setting "gen_centre_hz" (Test signal radio centre) of the test signal generator of the stack "zwave". A frequency in Hz. The frequency that the radio is tuned to: the test signal puts the channels of the setting channels around it.
@@ -3753,6 +4317,12 @@ static inline int32_t sdrkit_zigbee_pan_event_read(SDRKIT_HANDLE handle, uint32_
   return sdrkit_typed_event(handle, n, "zigbee.pan", "ism.ZigbeePanEvent", event, sizeof(sdrkit_zigbee_pan_event));
 }
 
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "zigbee.tx"
+// (Zigbee transmission). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_zigbee_tx_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_zigbee_tx_event *event) {
+  return sdrkit_typed_event(handle, n, "zigbee.tx", "ism.IsmTxEvent", event, sizeof(sdrkit_zigbee_tx_event));
+}
+
 // Runs the command "clear" (Clear) of the stack "zigbee" on the session of `handle`. Forgets everything heard so far. Favourites stay.
 static inline int32_t sdrkit_zigbee_clear(SDRKIT_HANDLE handle) {
   return sdrkit_typed_command(handle, "clear", NULL, NULL, NULL, NULL, 0);
@@ -3761,6 +4331,16 @@ static inline int32_t sdrkit_zigbee_clear(SDRKIT_HANDLE handle) {
 // Runs the command "remove" (Remove) of the stack "zigbee" on the session of `handle`. Forgets one object, a favourite too.
 static inline int32_t sdrkit_zigbee_remove(SDRKIT_HANDLE handle, const sdrkit_ism_pan_device_args *args) {
   return sdrkit_typed_command(handle, "remove", "ism.PanDeviceArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "send" (Send a frame) of the stack "zigbee" on the session of `handle`. Sends an IEEE 802.15.4 MAC frame (frame version 2003, no security) on the tuned frequency. With both addresses the source PAN id is left out. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+static inline int32_t sdrkit_zigbee_send(SDRKIT_HANDLE handle, const sdrkit_zigbee_send_args *args) {
+  return sdrkit_typed_command(handle, "send", "ism.ZigbeeSendArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "halt" (Halt) of the stack "zigbee" on the session of `handle`. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+static inline int32_t sdrkit_zigbee_halt(SDRKIT_HANDLE handle) {
+  return sdrkit_typed_command(handle, "halt", NULL, NULL, NULL, NULL, 0);
 }
 
 // The settings of the test signal generator of the stack "zigbee" are the sdrkit_zigbee_gen_*() functions
@@ -3788,6 +4368,14 @@ static inline int32_t sdrkit_zigbee_get_dwell(SDRKIT_HANDLE handle, double *valu
 }
 static inline int32_t sdrkit_zigbee_set_dwell(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "dwell", value);
+}
+
+// The setting "tx_level" (Level) of the stack "zigbee". Unit: of full scale. The magnitude of the signal sent, of full scale.
+static inline int32_t sdrkit_zigbee_get_tx_level(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "tx_level", value);
+}
+static inline int32_t sdrkit_zigbee_set_tx_level(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "tx_level", value);
 }
 
 // The setting "gen_bad_fcs" (Every frame with a bad FCS) of the test signal generator of the stack "zigbee".
@@ -3885,6 +4473,12 @@ static inline int32_t sdrkit_ant_sensor_event_read(SDRKIT_HANDLE handle, uint32_
   return sdrkit_typed_event(handle, n, "ant.sensor", "ism.AntSensorEvent", event, sizeof(sdrkit_ant_sensor_event));
 }
 
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "ant.tx"
+// (ANT+ transmission). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_ant_tx_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_ant_tx_event *event) {
+  return sdrkit_typed_event(handle, n, "ant.tx", "ism.IsmTxEvent", event, sizeof(sdrkit_ant_tx_event));
+}
+
 // Runs the command "clear" (Clear) of the stack "ant" on the session of `handle`. Forgets everything heard so far. Favourites stay.
 static inline int32_t sdrkit_ant_clear(SDRKIT_HANDLE handle) {
   return sdrkit_typed_command(handle, "clear", NULL, NULL, NULL, NULL, 0);
@@ -3893,6 +4487,16 @@ static inline int32_t sdrkit_ant_clear(SDRKIT_HANDLE handle) {
 // Runs the command "remove" (Remove) of the stack "ant" on the session of `handle`. Forgets one object, a favourite too.
 static inline int32_t sdrkit_ant_remove(SDRKIT_HANDLE handle, const sdrkit_ant_sensor_args *args) {
   return sdrkit_typed_command(handle, "remove", "ism.AntSensorArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "send" (Send a frame) of the stack "ant" on the session of `handle`. Sends one ANT+ broadcast frame (the ANT+ network marker, the channel id, the data page and the CRC) on the tuned frequency. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+static inline int32_t sdrkit_ant_send(SDRKIT_HANDLE handle, const sdrkit_ant_send_args *args) {
+  return sdrkit_typed_command(handle, "send", "ism.AntSendArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "halt" (Halt) of the stack "ant" on the session of `handle`. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+static inline int32_t sdrkit_ant_halt(SDRKIT_HANDLE handle) {
+  return sdrkit_typed_command(handle, "halt", NULL, NULL, NULL, NULL, 0);
 }
 
 // The settings of the test signal generator of the stack "ant" are the sdrkit_ant_gen_*() functions
@@ -3912,6 +4516,14 @@ static inline int32_t sdrkit_ant_get_wheel_mm(SDRKIT_HANDLE handle, double *valu
 }
 static inline int32_t sdrkit_ant_set_wheel_mm(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "wheel_mm", value);
+}
+
+// The setting "tx_level" (Level) of the stack "ant". Unit: of full scale. The magnitude of the signal sent, of full scale.
+static inline int32_t sdrkit_ant_get_tx_level(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "tx_level", value);
+}
+static inline int32_t sdrkit_ant_set_tx_level(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "tx_level", value);
 }
 
 // The setting "gen_sensors" (Test signal sensors) of the test signal generator of the stack "ant". A value of `sdrkit_ant_gen_sensors`.
@@ -4241,6 +4853,12 @@ static inline int32_t sdrkit_wisun_pan_event_read(SDRKIT_HANDLE handle, uint32_t
   return sdrkit_typed_event(handle, n, "wisun.pan", "ism.WisunPanEvent", event, sizeof(sdrkit_wisun_pan_event));
 }
 
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "wisun.tx"
+// (Wi-SUN transmission). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_wisun_tx_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_wisun_tx_event *event) {
+  return sdrkit_typed_event(handle, n, "wisun.tx", "ism.IsmTxEvent", event, sizeof(sdrkit_wisun_tx_event));
+}
+
 // Runs the command "clear" (Clear) of the stack "wisun" on the session of `handle`. Forgets everything heard so far. Favourites stay.
 static inline int32_t sdrkit_wisun_clear(SDRKIT_HANDLE handle) {
   return sdrkit_typed_command(handle, "clear", NULL, NULL, NULL, NULL, 0);
@@ -4249,6 +4867,16 @@ static inline int32_t sdrkit_wisun_clear(SDRKIT_HANDLE handle) {
 // Runs the command "remove" (Remove) of the stack "wisun" on the session of `handle`. Forgets one object, a favourite too.
 static inline int32_t sdrkit_wisun_remove(SDRKIT_HANDLE handle, const sdrkit_wisun_node_args *args) {
   return sdrkit_typed_command(handle, "remove", "ism.WisunNodeArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "send" (Send a frame) of the stack "wisun" on the session of `handle`. Sends an IEEE 802.15.4 frame of version 2015 with the UTT-IE of the frame type, the header IEs, a header termination IE and the payload IEs, whitened with a 4-octet FCS, on the channel of the plan nearest the tuned frequency. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+static inline int32_t sdrkit_wisun_send(SDRKIT_HANDLE handle, const sdrkit_wisun_send_args *args) {
+  return sdrkit_typed_command(handle, "send", "ism.WisunSendArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "halt" (Halt) of the stack "wisun" on the session of `handle`. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+static inline int32_t sdrkit_wisun_halt(SDRKIT_HANDLE handle) {
+  return sdrkit_typed_command(handle, "halt", NULL, NULL, NULL, NULL, 0);
 }
 
 // The settings of the test signal generator of the stack "wisun" are the sdrkit_wisun_gen_*() functions
@@ -4268,6 +4896,14 @@ static inline int32_t sdrkit_wisun_get_classes(SDRKIT_HANDLE handle, sdrkit_stri
 }
 static inline int32_t sdrkit_wisun_set_classes(SDRKIT_HANDLE handle, sdrkit_string value) {
   return sdrkit_typed_setting_set_string(handle, "classes", value);
+}
+
+// The setting "tx_level" (Level) of the stack "wisun". Unit: of full scale. The magnitude of the signal sent, of full scale.
+static inline int32_t sdrkit_wisun_get_tx_level(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "tx_level", value);
+}
+static inline int32_t sdrkit_wisun_set_tx_level(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "tx_level", value);
 }
 
 // The setting "gen_span" (Span of channels used) of the test signal generator of the stack "wisun". A frequency in Hz.
@@ -4559,6 +5195,11 @@ static inline int32_t sdrkit_ism_fields_read(SDRKIT_HANDLE handle, sdrkit_ism_fi
 // Fills `fields` with the result fields of the snapshot of `handle`.
 static inline int32_t sdrkit_ism_pulse_fields_read(SDRKIT_HANDLE handle, sdrkit_ism_pulse_fields *fields) {
   return sdrkit_typed_fields(handle, "ism.IsmPulseFields", fields, sizeof(sdrkit_ism_pulse_fields));
+}
+
+// Fills `fields` with the result fields of the snapshot of `handle`.
+static inline int32_t sdrkit_ism_tx_fields_read(SDRKIT_HANDLE handle, sdrkit_ism_tx_fields *fields) {
+  return sdrkit_typed_fields(handle, "ism.IsmTxFields", fields, sizeof(sdrkit_ism_tx_fields));
 }
 
 // Fills `fields` with the result fields of the snapshot of `handle`.

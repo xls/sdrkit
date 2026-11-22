@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "ism", version 1.0. MIT licence.
+// sdrkit: the typed interface of the stack family "ism", version 1.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum IsmInterface {
     public static let major = 1
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of the burst finder of the ISM sensor stack.
@@ -157,6 +157,29 @@ public struct IsmPulseFields {
         var c = sdrkit_ism_pulse_fields()
         let code = sdrkit_ism_pulse_fields_read(handle, &c)
         return code == SDRKIT_OK ? .success(IsmPulseFields(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// The result fields of the sender of a frame stack.
+public struct IsmTxFields {
+    /// Whether a frame is on air.
+    public var txSending: Bool
+    /// The frames sent since the stack started.
+    public var txSent: Int64
+    /// The frames waiting for the transmitter.
+    public var txWaiting: Int64
+
+    init(_ c: sdrkit_ism_tx_fields) {
+        txSending = c.tx_sending
+        txSent = c.tx_sent
+        txWaiting = c.tx_waiting
+    }
+
+    /// The result fields of the snapshot of `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE) -> Result<IsmTxFields, SDRKitCode> {
+        var c = sdrkit_ism_tx_fields()
+        let code = sdrkit_ism_tx_fields_read(handle, &c)
+        return code == SDRKIT_OK ? .success(IsmTxFields(c)) : .failure(SDRKitCode(code: code))
     }
 }
 
@@ -2603,6 +2626,56 @@ public struct IsmPulseFrameEvent {
     }
 }
 
+/// The fields of a change of a transmission of a frame stack.
+public struct IsmTxEvent {
+    public enum Family: Int32 {
+        case aircraft = 0
+        case vessel = 1
+        case aprs = 2
+        case pager = 3
+        case sonde = 4
+        case broadcast = 5
+        case voice = 6
+        case message = 7
+        case sensor = 8
+        case satellite = 9
+        case receiver = 10
+        case alert = 11
+        case other = 12
+    }
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The state: started, queued, finished or refused.
+    public var state: String
+    /// Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+    public var reason: String
+    /// The addressee or the identity of the frame.
+    public var target: String
+    /// What the frame carries, for started and queued; empty otherwise.
+    public var text: String
+    /// The family of the source: a sensor.
+    public var family: Family?
+
+    init(_ c: sdrkit_ism_tx_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        state = sdrkitText(c.state)
+        reason = sdrkitText(c.reason)
+        target = sdrkitText(c.target)
+        text = sdrkitText(c.text)
+        family = Family(rawValue: c.family)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<IsmTxEvent, SDRKitCode> {
+        var c = sdrkit_ism_tx_event()
+        let code = sdrkit_ism_tx_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(IsmTxEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
 /// The fields of a frame event.
 public struct WmbusFrameEvent {
     public enum Family: Int32 {
@@ -2662,6 +2735,56 @@ public struct WmbusFrameEvent {
         var c = sdrkit_wmbus_frame_event()
         let code = sdrkit_wmbus_frame_event_read(handle, n, &c)
         return code == SDRKIT_OK ? .success(WmbusFrameEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// The fields of a change of a transmission of a frame stack.
+public struct WmbusTxEvent {
+    public enum Family: Int32 {
+        case aircraft = 0
+        case vessel = 1
+        case aprs = 2
+        case pager = 3
+        case sonde = 4
+        case broadcast = 5
+        case voice = 6
+        case message = 7
+        case sensor = 8
+        case satellite = 9
+        case receiver = 10
+        case alert = 11
+        case other = 12
+    }
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The state: started, queued, finished or refused.
+    public var state: String
+    /// Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+    public var reason: String
+    /// The addressee or the identity of the frame.
+    public var target: String
+    /// What the frame carries, for started and queued; empty otherwise.
+    public var text: String
+    /// The family of the source: a sensor.
+    public var family: Family?
+
+    init(_ c: sdrkit_wmbus_tx_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        state = sdrkitText(c.state)
+        reason = sdrkitText(c.reason)
+        target = sdrkitText(c.target)
+        text = sdrkitText(c.text)
+        family = Family(rawValue: c.family)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<WmbusTxEvent, SDRKitCode> {
+        var c = sdrkit_wmbus_tx_event()
+        let code = sdrkit_wmbus_tx_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(WmbusTxEvent(c)) : .failure(SDRKitCode(code: code))
     }
 }
 
@@ -2777,6 +2900,56 @@ public struct ZwaveStateEvent {
     }
 }
 
+/// The fields of a change of a transmission of a frame stack.
+public struct ZwaveTxEvent {
+    public enum Family: Int32 {
+        case aircraft = 0
+        case vessel = 1
+        case aprs = 2
+        case pager = 3
+        case sonde = 4
+        case broadcast = 5
+        case voice = 6
+        case message = 7
+        case sensor = 8
+        case satellite = 9
+        case receiver = 10
+        case alert = 11
+        case other = 12
+    }
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The state: started, queued, finished or refused.
+    public var state: String
+    /// Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+    public var reason: String
+    /// The addressee or the identity of the frame.
+    public var target: String
+    /// What the frame carries, for started and queued; empty otherwise.
+    public var text: String
+    /// The family of the source: a sensor.
+    public var family: Family?
+
+    init(_ c: sdrkit_zwave_tx_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        state = sdrkitText(c.state)
+        reason = sdrkitText(c.reason)
+        target = sdrkitText(c.target)
+        text = sdrkitText(c.text)
+        family = Family(rawValue: c.family)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<ZwaveTxEvent, SDRKitCode> {
+        var c = sdrkit_zwave_tx_event()
+        let code = sdrkit_zwave_tx_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(ZwaveTxEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
 /// The fields of a new PAN event.
 public struct ZigbeePanEvent {
     public enum Family: Int32 {
@@ -2824,6 +2997,56 @@ public struct ZigbeePanEvent {
         var c = sdrkit_zigbee_pan_event()
         let code = sdrkit_zigbee_pan_event_read(handle, n, &c)
         return code == SDRKIT_OK ? .success(ZigbeePanEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// The fields of a change of a transmission of a frame stack.
+public struct ZigbeeTxEvent {
+    public enum Family: Int32 {
+        case aircraft = 0
+        case vessel = 1
+        case aprs = 2
+        case pager = 3
+        case sonde = 4
+        case broadcast = 5
+        case voice = 6
+        case message = 7
+        case sensor = 8
+        case satellite = 9
+        case receiver = 10
+        case alert = 11
+        case other = 12
+    }
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The state: started, queued, finished or refused.
+    public var state: String
+    /// Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+    public var reason: String
+    /// The addressee or the identity of the frame.
+    public var target: String
+    /// What the frame carries, for started and queued; empty otherwise.
+    public var text: String
+    /// The family of the source: a sensor.
+    public var family: Family?
+
+    init(_ c: sdrkit_zigbee_tx_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        state = sdrkitText(c.state)
+        reason = sdrkitText(c.reason)
+        target = sdrkitText(c.target)
+        text = sdrkitText(c.text)
+        family = Family(rawValue: c.family)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<ZigbeeTxEvent, SDRKitCode> {
+        var c = sdrkit_zigbee_tx_event()
+        let code = sdrkit_zigbee_tx_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(ZigbeeTxEvent(c)) : .failure(SDRKitCode(code: code))
     }
 }
 
@@ -2877,6 +3100,56 @@ public struct AntSensorEvent {
         var c = sdrkit_ant_sensor_event()
         let code = sdrkit_ant_sensor_event_read(handle, n, &c)
         return code == SDRKIT_OK ? .success(AntSensorEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// The fields of a change of a transmission of a frame stack.
+public struct AntTxEvent {
+    public enum Family: Int32 {
+        case aircraft = 0
+        case vessel = 1
+        case aprs = 2
+        case pager = 3
+        case sonde = 4
+        case broadcast = 5
+        case voice = 6
+        case message = 7
+        case sensor = 8
+        case satellite = 9
+        case receiver = 10
+        case alert = 11
+        case other = 12
+    }
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The state: started, queued, finished or refused.
+    public var state: String
+    /// Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+    public var reason: String
+    /// The addressee or the identity of the frame.
+    public var target: String
+    /// What the frame carries, for started and queued; empty otherwise.
+    public var text: String
+    /// The family of the source: a sensor.
+    public var family: Family?
+
+    init(_ c: sdrkit_ant_tx_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        state = sdrkitText(c.state)
+        reason = sdrkitText(c.reason)
+        target = sdrkitText(c.target)
+        text = sdrkitText(c.text)
+        family = Family(rawValue: c.family)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<AntTxEvent, SDRKitCode> {
+        var c = sdrkit_ant_tx_event()
+        let code = sdrkit_ant_tx_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(AntTxEvent(c)) : .failure(SDRKitCode(code: code))
     }
 }
 
@@ -3166,6 +3439,56 @@ public struct WisunPanEvent {
         var c = sdrkit_wisun_pan_event()
         let code = sdrkit_wisun_pan_event_read(handle, n, &c)
         return code == SDRKIT_OK ? .success(WisunPanEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// The fields of a change of a transmission of a frame stack.
+public struct WisunTxEvent {
+    public enum Family: Int32 {
+        case aircraft = 0
+        case vessel = 1
+        case aprs = 2
+        case pager = 3
+        case sonde = 4
+        case broadcast = 5
+        case voice = 6
+        case message = 7
+        case sensor = 8
+        case satellite = 9
+        case receiver = 10
+        case alert = 11
+        case other = 12
+    }
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The state: started, queued, finished or refused.
+    public var state: String
+    /// Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+    public var reason: String
+    /// The addressee or the identity of the frame.
+    public var target: String
+    /// What the frame carries, for started and queued; empty otherwise.
+    public var text: String
+    /// The family of the source: a sensor.
+    public var family: Family?
+
+    init(_ c: sdrkit_wisun_tx_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        state = sdrkitText(c.state)
+        reason = sdrkitText(c.reason)
+        target = sdrkitText(c.target)
+        text = sdrkitText(c.text)
+        family = Family(rawValue: c.family)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<WisunTxEvent, SDRKitCode> {
+        var c = sdrkit_wisun_tx_event()
+        let code = sdrkit_wisun_tx_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(WisunTxEvent(c)) : .failure(SDRKitCode(code: code))
     }
 }
 
@@ -3934,6 +4257,33 @@ public enum IsmCommands {
         }() }
         return sdrkitResult(code)
     }
+    /// Send a frame. Sends one transmission of the device family (its copies of the frame, as the device sends them) as OOK on the tuned frequency. Transmissions sent during one wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    public static func ismSend(_ handle: SDRKIT_HANDLE, family: Int32? = nil, id: Int64, command: Int64? = nil, channel: Int64? = nil, batteryOk: Bool? = nil, temperature: Double? = nil, humidity: Int64? = nil) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_ism_send_args()
+        args.size = UInt32(MemoryLayout<sdrkit_ism_send_args>.size)
+        let code: Int32 = { () -> Int32 in
+        args.has_family = family != nil
+        if let given = family { args.family = given }
+        args.id = id
+        args.has_command = command != nil
+        if let given = command { args.command = given }
+        args.has_channel = channel != nil
+        if let given = channel { args.channel = given }
+        args.has_battery_ok = batteryOk != nil
+        if let given = batteryOk { args.battery_ok = given }
+        args.has_temperature = temperature != nil
+        if let given = temperature { args.temperature = given }
+        args.has_humidity = humidity != nil
+        if let given = humidity { args.humidity = given }
+        return sdrkit_ism_send(handle, &args)
+        }()
+        return sdrkitResult(code)
+    }
+    /// Halt. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+    public static func ismHalt(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
+        let code = sdrkit_ism_halt(handle)
+        return sdrkitResult(code)
+    }
     /// Clear. Forgets everything heard so far. Favourites stay.
     public static func wmbusClear(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
         let code = sdrkit_wmbus_clear(handle)
@@ -3947,6 +4297,27 @@ public enum IsmCommands {
         args.row = row_
         return sdrkit_wmbus_remove(handle, &args)
         }() }
+        return sdrkitResult(code)
+    }
+    /// Send a frame. Sends a link-layer frame with the C field 0x44 (SND-NR) on the channel of the mode nearest the tuned frequency, with the CRCs of its format. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    public static func wmbusSend(_ handle: SDRKIT_HANDLE, mode: Int32? = nil, manufacturer: String, address: String, version: Int64, deviceType: Int64, payload: String) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_wmbus_send_args()
+        args.size = UInt32(MemoryLayout<sdrkit_wmbus_send_args>.size)
+        let code: Int32 = sdrkitWithString(manufacturer) { manufacturer_ in sdrkitWithString(address) { address_ in sdrkitWithString(payload) { payload_ in { () -> Int32 in
+        args.has_mode = mode != nil
+        if let given = mode { args.mode = given }
+        args.manufacturer = manufacturer_
+        args.address = address_
+        args.version = version
+        args.device_type = deviceType
+        args.payload = payload_
+        return sdrkit_wmbus_send(handle, &args)
+        }() } } }
+        return sdrkitResult(code)
+    }
+    /// Halt. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+    public static func wmbusHalt(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
+        let code = sdrkit_wmbus_halt(handle)
         return sdrkitResult(code)
     }
     /// Clear. Forgets everything heard so far. Favourites stay.
@@ -3964,6 +4335,30 @@ public enum IsmCommands {
         }() }
         return sdrkitResult(code)
     }
+    /// Send a frame. Sends a singlecast MPDU on the first channel of the rate in the setting channels (the tuned frequency when the setting is empty). Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    public static func zwaveSend(_ handle: SDRKIT_HANDLE, homeId: String, source: Int64, destination: Int64, payload: String, rate: Int32? = nil, ack: Bool? = nil, sequence: Int64? = nil) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_zwave_send_args()
+        args.size = UInt32(MemoryLayout<sdrkit_zwave_send_args>.size)
+        let code: Int32 = sdrkitWithString(homeId) { home_id_ in sdrkitWithString(payload) { payload_ in { () -> Int32 in
+        args.home_id = home_id_
+        args.source = source
+        args.destination = destination
+        args.payload = payload_
+        args.has_rate = rate != nil
+        if let given = rate { args.rate = given }
+        args.has_ack = ack != nil
+        if let given = ack { args.ack = given }
+        args.has_sequence = sequence != nil
+        if let given = sequence { args.sequence = given }
+        return sdrkit_zwave_send(handle, &args)
+        }() } }
+        return sdrkitResult(code)
+    }
+    /// Halt. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+    public static func zwaveHalt(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
+        let code = sdrkit_zwave_halt(handle)
+        return sdrkitResult(code)
+    }
     /// Clear. Forgets everything heard so far. Favourites stay.
     public static func zigbeeClear(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
         let code = sdrkit_zigbee_clear(handle)
@@ -3977,6 +4372,30 @@ public enum IsmCommands {
         args.row = row_
         return sdrkit_zigbee_remove(handle, &args)
         }() }
+        return sdrkitResult(code)
+    }
+    /// Send a frame. Sends an IEEE 802.15.4 MAC frame (frame version 2003, no security) on the tuned frequency. With both addresses the source PAN id is left out. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    public static func zigbeeSend(_ handle: SDRKIT_HANDLE, panId: String, destination: String, source: String, payload: String, frameType: Int32? = nil, sequence: Int64? = nil, ack: Bool? = nil) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_zigbee_send_args()
+        args.size = UInt32(MemoryLayout<sdrkit_zigbee_send_args>.size)
+        let code: Int32 = sdrkitWithString(panId) { pan_id_ in sdrkitWithString(destination) { destination_ in sdrkitWithString(source) { source_ in sdrkitWithString(payload) { payload_ in { () -> Int32 in
+        args.pan_id = pan_id_
+        args.destination = destination_
+        args.source = source_
+        args.payload = payload_
+        args.has_frame_type = frameType != nil
+        if let given = frameType { args.frame_type = given }
+        args.has_sequence = sequence != nil
+        if let given = sequence { args.sequence = given }
+        args.has_ack = ack != nil
+        if let given = ack { args.ack = given }
+        return sdrkit_zigbee_send(handle, &args)
+        }() } } } }
+        return sdrkitResult(code)
+    }
+    /// Halt. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+    public static func zigbeeHalt(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
+        let code = sdrkit_zigbee_halt(handle)
         return sdrkitResult(code)
     }
     /// Clear. Forgets everything heard so far. Favourites stay.
@@ -3997,6 +4416,26 @@ public enum IsmCommands {
         args.row = row_
         return sdrkit_ant_remove(handle, &args)
         }() }
+        return sdrkitResult(code)
+    }
+    /// Send a frame. Sends one ANT+ broadcast frame (the ANT+ network marker, the channel id, the data page and the CRC) on the tuned frequency. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    public static func antSend(_ handle: SDRKIT_HANDLE, device: Int64, deviceType: Int64, txType: Int64, payload: String, pairing: Bool? = nil) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_ant_send_args()
+        args.size = UInt32(MemoryLayout<sdrkit_ant_send_args>.size)
+        let code: Int32 = sdrkitWithString(payload) { payload_ in { () -> Int32 in
+        args.device = device
+        args.device_type = deviceType
+        args.tx_type = txType
+        args.payload = payload_
+        args.has_pairing = pairing != nil
+        if let given = pairing { args.pairing = given }
+        return sdrkit_ant_send(handle, &args)
+        }() }
+        return sdrkitResult(code)
+    }
+    /// Halt. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+    public static func antHalt(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
+        let code = sdrkit_ant_halt(handle)
         return sdrkitResult(code)
     }
     /// Clear. Forgets everything heard so far. Favourites stay.
@@ -4062,6 +4501,34 @@ public enum IsmCommands {
         args.row = row_
         return sdrkit_wisun_remove(handle, &args)
         }() }
+        return sdrkitResult(code)
+    }
+    /// Send a frame. Sends an IEEE 802.15.4 frame of version 2015 with the UTT-IE of the frame type, the header IEs, a header termination IE and the payload IEs, whitened with a 4-octet FCS, on the channel of the plan nearest the tuned frequency. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    public static func wisunSend(_ handle: SDRKIT_HANDLE, frameType: Int32? = nil, panId: String, source: String, destination: String, payload: String, headerIes: String? = nil, sequence: Int64? = nil, kbps: Int64? = nil, ufsi: Int64? = nil) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_wisun_send_args()
+        args.size = UInt32(MemoryLayout<sdrkit_wisun_send_args>.size)
+        let code: Int32 = sdrkitWithString(panId) { pan_id_ in sdrkitWithString(source) { source_ in sdrkitWithString(destination) { destination_ in sdrkitWithString(payload) { payload_ in sdrkitWithString(headerIes ?? "") { header_ies_ in { () -> Int32 in
+        args.has_frame_type = frameType != nil
+        if let given = frameType { args.frame_type = given }
+        args.pan_id = pan_id_
+        args.source = source_
+        args.destination = destination_
+        args.payload = payload_
+        args.has_header_ies = headerIes != nil
+        args.header_ies = header_ies_
+        args.has_sequence = sequence != nil
+        if let given = sequence { args.sequence = given }
+        args.has_kbps = kbps != nil
+        if let given = kbps { args.kbps = given }
+        args.has_ufsi = ufsi != nil
+        if let given = ufsi { args.ufsi = given }
+        return sdrkit_wisun_send(handle, &args)
+        }() } } } } }
+        return sdrkitResult(code)
+    }
+    /// Halt. Drops the frames waiting and ends the frame on air with the fall of the carrier.
+    public static func wisunHalt(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
+        let code = sdrkit_wisun_halt(handle)
         return sdrkitResult(code)
     }
     /// Clear. Forgets everything heard so far. Favourites stay.
@@ -4154,6 +4621,24 @@ public enum IsmSettings {
     public static func setIsmClusterRatio(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "cluster_ratio", value))
     }
+    /// Level.
+    public static func ismTxLevel(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "tx_level", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setIsmTxLevel(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_level", value))
+    }
+    /// Level.
+    public static func wmbusTxLevel(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "tx_level", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setWmbusTxLevel(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_level", value))
+    }
     /// Channels.
     public static func zwaveChannels(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
         var v: sdrkit_string = sdrkit_string()
@@ -4171,6 +4656,15 @@ public enum IsmSettings {
     }
     public static func setZwaveSofF0R3(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "sof_f0_r3", value))
+    }
+    /// Level.
+    public static func zwaveTxLevel(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "tx_level", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setZwaveTxLevel(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_level", value))
     }
     /// Channel.
     public static func zigbeeChannel(_ handle: SDRKIT_HANDLE) -> Result<Int64, SDRKitCode> {
@@ -4199,6 +4693,15 @@ public enum IsmSettings {
     public static func setZigbeeDwell(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "dwell", value))
     }
+    /// Level.
+    public static func zigbeeTxLevel(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "tx_level", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setZigbeeTxLevel(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_level", value))
+    }
     /// Other ANT networks.
     public static func antOtherNetworks(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
         var v: Bool = false
@@ -4216,6 +4719,15 @@ public enum IsmSettings {
     }
     public static func setAntWheelMm(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "wheel_mm", value))
+    }
+    /// Level.
+    public static func antTxLevel(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "tx_level", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setAntTxLevel(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_level", value))
     }
     /// Channel.
     public static func nrf24Channel(_ handle: SDRKIT_HANDLE) -> Result<Int64, SDRKitCode> {
@@ -4337,6 +4849,15 @@ public enum IsmSettings {
     }
     public static func setWisunClasses(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "classes", $0) })
+    }
+    /// Level.
+    public static func wisunTxLevel(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "tx_level", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setWisunTxLevel(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_level", value))
     }
     /// Channel.
     public static func threadChannel(_ handle: SDRKIT_HANDLE) -> Result<Int64, SDRKitCode> {

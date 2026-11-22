@@ -32,6 +32,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:is
 | `frame_gap_ms` | Longest gap inside a frame | number (ms) | 5 | 1 to 50 | Pulse analyser: a longer gap ends a frame. After 4 pulses the limit is 12 times the median width (at least 1.2 ms), if that is shorter. |
 | `min_pulses` | Fewest pulses in a frame | whole number | 8 | 4 to 64 | Pulse analyser: a frame with fewer pulses is not analysed. |
 | `cluster_ratio` | Cluster split ratio | number | 1.5 | 1.2 to 2.5 | Pulse analyser: sorted widths or gaps start a new cluster where a value is this many times the one before. |
+| `tx_level` | Level | number (of full scale) | 0.5 | 0.05 to 0.9 | The magnitude of the signal sent, of full scale. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -80,6 +81,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `repeats` | Repeats | whole number |
 | `frames_seen` | Frames seen | whole number |
 | `frames_good` | Frames with a line code | whole number |
+| `tx_sending` | Sending | yes or no |
+| `tx_sent` | Frames sent | whole number |
+| `tx_waiting` | Frames waiting | whole number |
 
 ## Result tables
 
@@ -106,6 +110,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `sigfox.message` | Sigfox message | `source` (text), `text` (text), `family` (choice), `device_id` (text), `seq` (whole number), `payload` (text) |
 | `ookdev.reading` | Device reading | `source` (text), `text` (text), `channel` (text), `family` (choice), `model` (text), `device_kind` (text), `id` (text), `battery_ok` (yes or no), `check` (choice), `offset_hz` (frequency), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `temperature_c` (number (°C)), `temperature_1_c` (number (°C)), `temperature_2_c` (number (°C)), `globe_temperature_c` (number (°C)), `humidity_pct` (number (%)), `absolute_humidity_g_m3` (number (g/m³)), `moisture_pct` (number (%)), `pressure_kpa` (number (kPa)), `wind_speed_m_s` (number (m/s)), `wind_gust_m_s` (number (m/s)), `wind_dir_deg` (number (°)), `rain_mm` (number (mm)), `uv_index` (number), `light_lux` (number (lux)), `battery_level_pct` (number (%)), `level_pct` (number (%)), `power_0_w` (number (W)), `power_1_w` (number (W)), `power_2_w` (number (W)), `power_w` (number (W)), `current_a` (number (A)), `voltage_v` (number (V)), `energy_kwh` (number (kWh)), `gas_volume_m3` (number (m³)), `water_volume_m3` (number (m³)), `luminance_pct` (number (%)), `co2_ppm` (number (ppm)), `hcho_ppb` (number (ppb)), `pm2_5_ug_m3` (number (µg/m³)), `pm10_ug_m3` (number (µg/m³)), `value` (number), `interval` (duration (s)), `wake_up_interval` (duration (s)), `consumption` (whole number), `last_consumption` (whole number), `interval_count` (whole number), `counter` (whole number), `sequence` (whole number), `repeat` (whole number), `transmit_offset` (whole number), `level` (whole number), `voc_level` (whole number), `alarm` (whole number), `alarm_type` (whole number), `alarm_level` (whole number), `status` (whole number), `flags` (whole number), `event` (whole number), `heartbeat` (whole number), `sensor_type` (whole number), `packet_type` (whole number), `ert_type` (whole number), `version` (whole number), `app_version` (whole number), `battery_bits` (whole number), `source_node` (whole number), `length_bytes` (whole number (bytes)), `new_battery` (yes or no), `learning` (yes or no), `ack_requested` (yes or no), `moving` (yes or no), `tamper` (yes or no), `physical_tamper` (yes or no), `encoder_tamper` (yes or no), `door_open` (yes or no), `switch_on` (yes or no), `state` (text), `tri_state` (text), `mode` (text), `type` (text), `button` (text), `code` (text), `command` (text), `command_class` (text), `manufacturer` (text), `home_id` (text), `destination` (text), `frame` (text), `c_field` (text) |
 | `ism.pulse_frame` | Pulse frame | `text` (text), `family` (choice), `line_code` (choice), `bits` (whole number), `bits_hex` (text), `repeats` (whole number), `level_dbfs` (number (dBFS)) |
+| `ism.tx` | ISM transmission | `state` (text), `reason` (text), `target` (text), `text` (text), `family` (choice) |
 
 ## Commands
 
@@ -113,10 +118,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything heard so far. Favourites stay. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
+| `send` | Send a frame | `family` (choice, default `remote`), `id` (whole number, required), `command` (whole number, default 1), `channel` (whole number, default 1), `battery_ok` (yes or no, default true), `temperature` (number (°C), default 20), `humidity` (whole number (%), default 50) |  | Sends one transmission of the device family (its copies of the frame, as the device sends them) as OOK on the tuned frequency. Transmissions sent during one wait for it. Transmit must be on. |
+| `halt` | Halt |  |  | Drops the frames waiting and ends the frame on air with the fall of the carrier. |
 
 ## Typed interface
 
-The stack is in the family `ism`, version 1.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 1.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -186,6 +193,16 @@ Struct `IsmPulseFields`. The result fields of the pulse analyser (submode `pulse
 | `repeats` | whole number | optional | 1.0 | Frames in a row with the same bits, each within 0.5 s of the one before. |
 | `frames_seen` | whole number | always | 1.0 | Frames analysed, with a line code or not. |
 | `frames_good` | whole number | always | 1.0 | Frames with a line code. |
+
+### Result fields
+
+Struct `IsmTxFields`. The result fields of the sender of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `tx_sending` | yes or no | always | 1.1 | Whether a frame is on air. |
+| `tx_sent` | whole number | always | 1.1 | The frames sent since the stack started. |
+| `tx_waiting` | whole number | always | 1.1 | The frames waiting for the transmitter. |
 
 ### Table `devices`
 
@@ -428,12 +445,26 @@ Struct `IsmPulseFrameEvent`. The fields of an analysed frame with a line code.
 | `repeats` | whole number | always | 1.0 | Frames in a row with the same bits, this one included. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the marks. |
 
+### Event `ism.tx`
+
+Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `state` | text | always | 1.1 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.1 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
+| `target` | text | always | 1.1 | The addressee or the identity of the frame. |
+| `text` | text | always | 1.1 | What the frame carries, for started and queued; empty otherwise. |
+| `family` | choice | always | 1.1 | The family of the source: a sensor. |
+
 ### Commands
 
 | Key | C function | Arguments struct | Reply struct |
 |---|---|---|---|
 | `clear` | `sdrkit_ism_clear` | none | none |
 | `remove` | `sdrkit_ism_remove` | `sdrkit_ism_pan_device_args` | none |
+| `send` | `sdrkit_ism_send` | `sdrkit_ism_send_args` | none |
+| `halt` | `sdrkit_ism_halt` | none | none |
 
 ### Settings
 
@@ -444,6 +475,7 @@ Struct `IsmPulseFrameEvent`. The fields of an analysed frame with a line code.
 | `frame_gap_ms` | `sdrkit_ism_get_frame_gap_ms` | `sdrkit_ism_set_frame_gap_ms` |
 | `min_pulses` | `sdrkit_ism_get_min_pulses` | `sdrkit_ism_set_min_pulses` |
 | `cluster_ratio` | `sdrkit_ism_get_cluster_ratio` | `sdrkit_ism_set_cluster_ratio` |
+| `tx_level` | `sdrkit_ism_get_tx_level` | `sdrkit_ism_set_tx_level` |
 
 ### Settings of the test signal generator
 

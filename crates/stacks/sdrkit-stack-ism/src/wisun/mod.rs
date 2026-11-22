@@ -4,6 +4,7 @@
 //! Standard: IEEE 802.15.4-2020 clause 19 (SUN FSK) and clause 7 (MAC), Wi-SUN FAN 1.1.
 
 pub mod frame;
+pub mod send;
 
 use crate::family::{at_least_value, min_rate_message, set_status, CleanScene, REPORT_S};
 use crate::mac154::{self, eui, Addr};
@@ -1452,6 +1453,8 @@ sdrkit_core::settings! {
         GenSpan = GEN_SPAN,
         /// The centre of the test signal.
         GenCentreHz = GEN_CENTRE_HZ,
+        /// The level sent.
+        TxLevel = crate::tx::TX_LEVEL,
     }
 }
 
@@ -1470,10 +1473,15 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .add("bank", Bank::default())
         .add("demod", Demod::default())
         .add("tables", Tables::default())
+        .add("sender", crate::tx::FrameSender::<send::WisunFrames>::default())
+        .add("tx", sdrkit_graph::components::TxSink::default())
         .input("bank")
+        .input("sender.in")
         .connect("bank", "demod")
         .connect("demod", "tables")
+        .connect("sender.out", "tx.in")
         .output("tables.events")
+        .output("sender.events")
         .clock(REPORT_S)
         .status_from("tables")
         // Whole bursts cross into the demodulation, and whole results into the tables.
@@ -1484,13 +1492,16 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .build()?;
     StackGraph::of(crate::typed::shape("wisun"), graph)
         .min_rate(MIN_RATE_HZ, &min_rate_message("Wi-SUN FAN", MIN_RATE_HZ))
-        .route(RANGES.key(), &["bank.ranges", "tables.ranges"])?
-        .route(CLASSES.key(), &["bank.classes", "tables.classes"])?
+        .route(RANGES.key(), &["bank.ranges", "tables.ranges", "sender.ranges"])?
+        .route(CLASSES.key(), &["bank.classes", "tables.classes", "sender.classes"])?
+        .route(crate::tx::TX_LEVEL.key(), &["sender.tx_level"])?
         .command("clear", sdrkit_graph::CommandTarget::of("tables", "clear"))
         .command(
             "remove",
             sdrkit_graph::CommandTarget::of("tables", "remove"),
         )
+        .command("send", sdrkit_graph::CommandTarget::of("sender", "send"))
+        .command("halt", sdrkit_graph::CommandTarget::of("sender", "halt"))
         .with_settings(&cfg.settings)
         .build()
 }
@@ -1548,8 +1559,18 @@ fn wh(sub: u8, v: &[u8]) -> Vec<u8> {
     frame::hie(0x2A, &c)
 }
 
+/// The UFSI of the frames of the test signal.
+const TEST_UFSI: u32 = 0x56_3412;
+
+/// The UTT-IE of frame type `t` with the 24-bit `ufsi`, least significant octet first.
+fn utt_ie(t: u8, ufsi: u32) -> Vec<u8> {
+    let u = ufsi.to_le_bytes();
+    wh(0x01, &[t, u[0], u[1], u[2]])
+}
+
+/// The UTT-IE of frame type `t` of the test signal.
 fn utt(t: u8) -> Vec<u8> {
-    wh(0x01, &[t, 0x12, 0x34, 0x56])
+    utt_ie(t, TEST_UFSI)
 }
 
 fn us_ie() -> Vec<u8> {

@@ -9,6 +9,7 @@ pub mod devices;
 pub mod gen;
 pub mod protocols;
 pub mod pulsegen;
+pub mod send;
 
 use crate::family::{at_least_value, min_rate_message, REPORT_S};
 use crate::typed::IsmFields;
@@ -60,8 +61,12 @@ pub fn build_graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
         .add("sfx_front", crate::sigfox::Front::new(true))
         .add("sfx_finder", crate::sigfox::Finder::default())
         .add("sfx_demod", crate::sigfox::Demod::default())
+        .add("sender", crate::tx::FrameSender::<send::IsmFrames>::default())
+        .add("tx", sdrkit_graph::components::TxSink::default())
         .input("burstdetect")
         .input("sfx_front")
+        .input("sender.in")
+        .connect("sender.out", "tx.in")
         .connect("burstdetect", "channelise")
         .connect("channelise", "pulses")
         .connect("pulses", "decode")
@@ -75,6 +80,7 @@ pub fn build_graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
         .connect("sfx_demod", "devices.sigfox")
         .output("devices.events")
         .output("decode.readings")
+        .output("sender.events")
         .clock(REPORT_S)
         .status_from("devices")
         .build()
@@ -139,6 +145,8 @@ sdrkit_core::settings! {
         GenFrames = pulsegen::GEN_FRAMES,
         /// The gap after each frame of the test signal.
         GenFrameGapS = pulsegen::GEN_FRAME_GAP_S,
+        /// The level sent.
+        TxLevel = crate::tx::TX_LEVEL,
     }
 }
 
@@ -172,11 +180,14 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route(analyser::FRAME_GAP_MS.key(), &["analyser.frame_gap_ms"])?
         .route(analyser::MIN_PULSES.key(), &["analyser.min_pulses"])?
         .route(analyser::CLUSTER_RATIO.key(), &["analyser.cluster_ratio"])?
+        .route(crate::tx::TX_LEVEL.key(), &["sender.tx_level"])?
         .command("clear", sdrkit_graph::CommandTarget::of("devices", "clear"))
         .command(
             "remove",
             sdrkit_graph::CommandTarget::of("devices", "remove"),
         )
+        .command("send", sdrkit_graph::CommandTarget::of("sender", "send"))
+        .command("halt", sdrkit_graph::CommandTarget::of("sender", "halt"))
         .with_settings(&cfg.settings)
         .build()
 }

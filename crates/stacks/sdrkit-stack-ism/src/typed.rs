@@ -17,6 +17,47 @@ use sdrkit_util_objects::commands as objcmd;
 use sdrkit_util_objects::publish::columns;
 use std::sync::OnceLock;
 
+// The sender of the frame stacks.
+
+/// The result fields of the sender of a frame stack.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct IsmTxFields {
+    /// Whether a frame is on air.
+    #[field(label = "Sending")]
+    pub tx_sending: bool,
+    /// The frames sent since the stack started.
+    #[field(label = "Frames sent")]
+    pub tx_sent: i64,
+    /// The frames waiting for the transmitter.
+    #[field(label = "Frames waiting")]
+    pub tx_waiting: i64,
+}
+
+/// The fields of a change of a transmission of a frame stack.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct IsmTxEvent<'a> {
+    /// The state: started, queued, finished or refused.
+    #[field(label = "State")]
+    pub state: &'a str,
+    /// Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused.
+    #[field(label = "Reason")]
+    pub reason: &'a str,
+    /// The addressee or the identity of the frame.
+    #[field(shared = keys::TARGET)]
+    pub target: &'a str,
+    /// What the frame carries, for started and queued; empty otherwise.
+    #[field(shared = keys::TEXT)]
+    pub text: &'a str,
+    /// The family of the source: a sensor.
+    #[field(shared = keys::FAMILY)]
+    pub family: Family,
+}
+
+/// Ends the transmission of a frame stack.
+pub const TX_HALT: sdrkit_core::command::Command =
+    sdrkit_core::command::Command::new("halt", "Halt")
+        .help("Drops the frames waiting and ends the frame on air with the fall of the carrier.");
+
 // ISM sensors.
 
 /// The result fields of the burst finder of the ISM sensor stack.
@@ -403,6 +444,54 @@ pub static ISM_PULSE_FRAMES: Table<IsmPulseFrameRow<'static>> =
 pub static ISM_PULSE_FRAME: EventKind<IsmPulseFrameEvent<'static>> =
     EventKind::new("ism.pulse_frame", "Pulse frame");
 
+/// The arguments of `send` of the ISM sensor stack.
+#[derive(Arguments)]
+pub struct IsmSendArgs {
+    /// The device family.
+    #[arg(shared = crate::ism::send::FAMILY)]
+    pub family: Option<crate::ism::send::IsmFamily>,
+    /// The id of the device.
+    #[arg(
+        label = "ID",
+        help = "Remote: 1 to 65535, the first 16 bits of the code. TX141TH-Bv2: 1 to 255."
+    )]
+    pub id: i64,
+    /// The command of a remote.
+    #[arg(label = "Command", help = "Remote: 1 to 255, the last 8 bits of the code.", default = 1, min = 1, max = 255, step = 1)]
+    pub command: Option<i64>,
+    /// The channel of a sensor.
+    #[arg(label = "Channel", help = "TX141TH-Bv2: 0 to 3.", default = 1, min = 0, max = 3, step = 1)]
+    pub channel: Option<i64>,
+    /// Whether the battery of a sensor is good.
+    #[arg(label = "Battery good", help = "TX141TH-Bv2: clear sends the battery-low bit.", default = true)]
+    pub battery_ok: Option<bool>,
+    /// The temperature of a sensor.
+    #[arg(
+        label = "Temperature",
+        unit = "°C",
+        help = "TX141TH-Bv2: -40 to 140, in tenths.",
+        default = 20.0,
+        min = -40.0,
+        max = 140.0,
+        step = 0.1
+    )]
+    pub temperature: Option<f64>,
+    /// The humidity of a sensor.
+    #[arg(label = "Humidity", unit = "%", help = "TX141TH-Bv2: 1 to 100.", default = 50, min = 1, max = 100, step = 1)]
+    pub humidity: Option<i64>,
+}
+
+/// Sends the frames of a sensor or a remote.
+pub const ISM_SEND: CommandKind<IsmSendArgs> = CommandKind::new("send", "Send a frame")
+    .help(
+        "Sends one transmission of the device family (its copies of the frame, as the device sends them) as OOK on the \
+         tuned frequency. Transmissions sent during one wait for it. Transmit must be on.",
+    )
+    .transmits(sdrkit_core::TxContent::Frame)
+    .stopped_by("halt");
+/// A transmission of a sensor or a remote.
+pub static ISM_TX: EventKind<IsmTxEvent<'static>> = EventKind::new("ism.tx", "ISM transmission");
+
 /// The ISM sensor stack.
 fn ism() -> StackShape {
     StackShape::new("ism")
@@ -434,6 +523,10 @@ fn ism() -> StackShape {
         .settings(crate::ism::IsmSetting::SETTINGS)
         .command(&objcmd::CLEAR)
         .command(&PAN_REMOVE)
+        .fields::<IsmTxFields>()
+        .event(&ISM_TX)
+        .command(&ISM_SEND)
+        .command(&TX_HALT)
         .kept(&[
             "devices",
             "zwave",
@@ -518,7 +611,7 @@ pub static DSRC_FRAME: EventKind<DsrcFrameEvent<'static>> =
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("ism", 1, 0)
+        Described::new("ism", 1, 1)
             .uses(sdrkit_proto_ookdev::components::interface())
             .stack(ism())
             .stack(wmbus())
@@ -536,8 +629,53 @@ pub fn family() -> &'static Described {
             .stack(dect_nrplus())
             .stack(npr70())
             .stack(dsrc_toll())
+            .added(1, 1, ADDED_1_1)
     })
 }
+
+/// What version 1.1 added: the senders of the stacks `ism`, `wmbus`, `zwave`, `zigbee`, `ant` and `wisun`.
+const ADDED_1_1: &[&str] = &[
+    "ism.fields.IsmTxFields",
+    "ism.event.ism.tx",
+    "ism.setting.tx_level",
+    "ism.command.send",
+    "ism.command.halt",
+    "wmbus.fields.IsmTxFields",
+    "wmbus.event.wmbus.tx",
+    "wmbus.setting.tx_level",
+    "wmbus.command.send",
+    "wmbus.command.halt",
+    "zwave.fields.IsmTxFields",
+    "zwave.event.zwave.tx",
+    "zwave.setting.tx_level",
+    "zwave.command.send",
+    "zwave.command.halt",
+    "zigbee.fields.IsmTxFields",
+    "zigbee.event.zigbee.tx",
+    "zigbee.setting.tx_level",
+    "zigbee.command.send",
+    "zigbee.command.halt",
+    "ant.fields.IsmTxFields",
+    "ant.event.ant.tx",
+    "ant.setting.tx_level",
+    "ant.command.send",
+    "ant.command.halt",
+    "wisun.fields.IsmTxFields",
+    "wisun.event.wisun.tx",
+    "wisun.setting.tx_level",
+    "wisun.command.send",
+    "wisun.command.halt",
+    "shape.IsmTxFields",
+    "shape.IsmTxFields.tx_sending",
+    "shape.IsmTxFields.tx_sent",
+    "shape.IsmTxFields.tx_waiting",
+    "shape.IsmTxEvent",
+    "shape.IsmTxEvent.state",
+    "shape.IsmTxEvent.reason",
+    "shape.IsmTxEvent.target",
+    "shape.IsmTxEvent.text",
+    "shape.IsmTxEvent.family",
+];
 
 /// The DSRC road toll stack.
 fn dsrc_toll() -> StackShape {
@@ -1134,6 +1272,45 @@ pub struct WmbusMeterArgs<'a> {
 /// Forgets one meter and its records.
 pub const WMBUS_REMOVE: CommandKind<WmbusMeterArgs<'static>> = objcmd::remove_kind();
 
+/// The arguments of `send` of the Wireless M-Bus stack.
+#[derive(Arguments)]
+pub struct WmbusSendArgs<'a> {
+    /// The physical mode and frame format.
+    #[arg(shared = crate::wmbus::send::MODE)]
+    pub mode: Option<crate::wmbus::send::WmbusMode>,
+    /// The manufacturer.
+    #[arg(label = "Manufacturer", help = "Three letters A to Z, as the meters table shows them.")]
+    pub manufacturer: &'a str,
+    /// The address (identification number).
+    #[arg(label = "Address", help = "8 hex digits, as the meters table shows the id.")]
+    pub address: &'a str,
+    /// The version.
+    #[arg(label = "Version", help = "0 to 255.")]
+    pub version: i64,
+    /// The device type.
+    #[arg(label = "Device type", help = "0 to 255, for example 7 for water or 2 for electricity.")]
+    pub device_type: i64,
+    /// The application data.
+    #[arg(
+        label = "Payload",
+        help = "The CI field and the data after it as pairs of hex digits, spaces allowed: at most 246 octets in \
+                format A, 242 in format B."
+    )]
+    pub payload: &'a str,
+}
+
+/// Sends a Wireless M-Bus frame.
+pub const WMBUS_SEND: CommandKind<WmbusSendArgs<'static>> = CommandKind::new("send", "Send a frame")
+    .help(
+        "Sends a link-layer frame with the C field 0x44 (SND-NR) on the channel of the mode nearest the tuned \
+         frequency, with the CRCs of its format. Frames sent during a frame wait for it. Transmit must be on.",
+    )
+    .transmits(sdrkit_core::TxContent::Frame)
+    .stopped_by("halt");
+/// A Wireless M-Bus transmission.
+pub static WMBUS_TX: EventKind<IsmTxEvent<'static>> =
+    EventKind::new("wmbus.tx", "Wireless M-Bus transmission");
+
 /// The Wireless M-Bus stack.
 fn wmbus() -> StackShape {
     StackShape::new("wmbus")
@@ -1149,6 +1326,10 @@ fn wmbus() -> StackShape {
         .settings(crate::wmbus::WmbusSetting::SETTINGS)
         .command(&objcmd::CLEAR)
         .command(&WMBUS_REMOVE)
+        .fields::<IsmTxFields>()
+        .event(&WMBUS_TX)
+        .command(&WMBUS_SEND)
+        .command(&TX_HALT)
         .kept(&["meters", "meter_records", "frames", "WmbusFields"])
 }
 
@@ -1421,6 +1602,55 @@ pub struct ZwaveNodeArgs<'a> {
 /// Forgets one node.
 pub const ZWAVE_REMOVE: CommandKind<ZwaveNodeArgs<'static>> = objcmd::remove_kind();
 
+/// The arguments of `send` of the Z-Wave stack.
+#[derive(Arguments)]
+pub struct ZwaveSendArgs<'a> {
+    /// The home id.
+    #[arg(label = "Home ID", help = "8 hex digits, as the networks table shows it.")]
+    pub home_id: &'a str,
+    /// The source node.
+    #[arg(label = "Source node", help = "1 to 232.")]
+    pub source: i64,
+    /// The destination node.
+    #[arg(label = "Destination node", help = "1 to 232, or 255 for every node.")]
+    pub destination: i64,
+    /// The application command.
+    #[arg(
+        label = "Command",
+        help = "The command class, the command and its parameters as pairs of hex digits (spaces allowed): 1 to 54 \
+                octets at R1 and R2, 1 to 159 at R3."
+    )]
+    pub payload: &'a str,
+    /// The rate.
+    #[arg(shared = crate::zwave::send::RATE)]
+    pub rate: Option<crate::zwave::send::ZwaveRate>,
+    /// Whether the frame asks for an acknowledgement.
+    #[arg(label = "Ack requested", help = "Sets bit 6 of frame control 1.", default = false)]
+    pub ack: Option<bool>,
+    /// The sequence number.
+    #[arg(
+        label = "Sequence",
+        help = "0 to 15, in bits 3 to 0 of frame control 2.",
+        default = 0,
+        min = 0,
+        max = 15,
+        step = 1
+    )]
+    pub sequence: Option<i64>,
+}
+
+/// Sends a Z-Wave singlecast frame.
+pub const ZWAVE_SEND: CommandKind<ZwaveSendArgs<'static>> = CommandKind::new("send", "Send a frame")
+    .help(
+        "Sends a singlecast MPDU on the first channel of the rate in the setting channels (the tuned frequency when \
+         the setting is empty). Frames sent during a frame wait for it. Transmit must be on.",
+    )
+    .transmits(sdrkit_core::TxContent::Frame)
+    .stopped_by("halt");
+/// A Z-Wave transmission.
+pub static ZWAVE_TX: EventKind<IsmTxEvent<'static>> =
+    EventKind::new("zwave.tx", "Z-Wave transmission");
+
 /// The Z-Wave stack.
 fn zwave() -> StackShape {
     StackShape::new("zwave")
@@ -1436,6 +1666,10 @@ fn zwave() -> StackShape {
         .settings(crate::zwave::ZwaveSetting::SETTINGS)
         .command(&objcmd::CLEAR)
         .command(&ZWAVE_REMOVE)
+        .fields::<IsmTxFields>()
+        .event(&ZWAVE_TX)
+        .command(&ZWAVE_SEND)
+        .command(&TX_HALT)
         .kept(&[
             "frames",
             "nodes",
@@ -1507,6 +1741,54 @@ pub struct PanDeviceArgs<'a> {
 
 /// Forgets one device of an IEEE 802.15.4 stack.
 pub const PAN_REMOVE: CommandKind<PanDeviceArgs<'static>> = objcmd::remove_kind();
+
+/// The arguments of `send` of the Zigbee stack.
+#[derive(Arguments)]
+pub struct ZigbeeSendArgs<'a> {
+    /// The PAN id.
+    #[arg(label = "PAN ID", help = "4 hex digits, as the networks table shows it without 0x.")]
+    pub pan_id: &'a str,
+    /// The destination address.
+    #[arg(
+        label = "Destination",
+        help = "4 hex digits for a short address (FFFF is broadcast), 16 for an extended address, empty for none."
+    )]
+    pub destination: &'a str,
+    /// The source address.
+    #[arg(
+        label = "Source",
+        help = "4 hex digits for a short address, 16 for an extended address, empty for none."
+    )]
+    pub source: &'a str,
+    /// The MAC payload.
+    #[arg(
+        label = "Payload",
+        help = "The MAC payload (for a data frame the Zigbee NWK frame) as pairs of hex digits, spaces allowed; the \
+                whole frame with its header and FCS is at most 127 octets."
+    )]
+    pub payload: &'a str,
+    /// The frame type.
+    #[arg(shared = crate::zigbee::send::FRAME_TYPE)]
+    pub frame_type: Option<crate::zigbee::send::ZigbeeFrameType>,
+    /// The sequence number.
+    #[arg(label = "Sequence", help = "0 to 255.", default = 0, min = 0, max = 255, step = 1)]
+    pub sequence: Option<i64>,
+    /// Whether the frame asks for an acknowledgement.
+    #[arg(label = "Ack requested", help = "Sets the acknowledgement request bit.", default = false)]
+    pub ack: Option<bool>,
+}
+
+/// Sends an IEEE 802.15.4 MAC frame.
+pub const ZIGBEE_SEND: CommandKind<ZigbeeSendArgs<'static>> = CommandKind::new("send", "Send a frame")
+    .help(
+        "Sends an IEEE 802.15.4 MAC frame (frame version 2003, no security) on the tuned frequency. With both \
+         addresses the source PAN id is left out. Frames sent during a frame wait for it. Transmit must be on.",
+    )
+    .transmits(sdrkit_core::TxContent::Frame)
+    .stopped_by("halt");
+/// A Zigbee transmission.
+pub static ZIGBEE_TX: EventKind<IsmTxEvent<'static>> =
+    EventKind::new("zigbee.tx", "Zigbee transmission");
 
 /// The result fields of the Zigbee stack.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1653,6 +1935,10 @@ fn zigbee() -> StackShape {
         .settings(crate::zigbee::ZigbeeSetting::SETTINGS)
         .command(&objcmd::CLEAR)
         .command(&PAN_REMOVE)
+        .fields::<IsmTxFields>()
+        .event(&ZIGBEE_TX)
+        .command(&ZIGBEE_SEND)
+        .command(&TX_HALT)
         .kept(&[
             "networks",
             "devices",
@@ -2152,6 +2438,84 @@ pub struct WisunNodeArgs<'a> {
 /// Forgets one node.
 pub const WISUN_REMOVE: CommandKind<WisunNodeArgs<'static>> = objcmd::remove_kind();
 
+/// The arguments of `send` of the Wi-SUN stack.
+#[derive(Arguments)]
+pub struct WisunSendArgs<'a> {
+    /// The frame type of the UTT IE.
+    #[arg(shared = crate::wisun::send::FRAME_TYPE)]
+    pub frame_type: Option<crate::wisun::send::WisunFrameType>,
+    /// The PAN id.
+    #[arg(label = "PAN ID", help = "4 hex digits; sent as the source PAN id of a frame without a destination.")]
+    pub pan_id: &'a str,
+    /// The source.
+    #[arg(label = "Source", help = "The EUI-64 of the sender as 16 hex digits.")]
+    pub source: &'a str,
+    /// The destination.
+    #[arg(
+        label = "Destination",
+        help = "16 hex digits for an EUI-64, FFFF for broadcast, empty for none."
+    )]
+    pub destination: &'a str,
+    /// The payload IEs.
+    #[arg(
+        label = "Payload IEs",
+        help = "The payload IEs (for example the WP-IE or the MPX-IE) as pairs of hex digits, spaces allowed; empty for \
+                none. The whole frame with its 4-octet FCS is at most 2047 octets."
+    )]
+    pub payload: &'a str,
+    /// More header IEs.
+    #[arg(
+        label = "Header IEs",
+        help = "Header IEs after the UTT-IE (for example the BT-IE) as pairs of hex digits, spaces allowed.",
+        default = ""
+    )]
+    pub header_ies: Option<&'a str>,
+    /// The sequence number.
+    #[arg(
+        label = "Sequence",
+        help = "0 to 255, sent with a destination; a frame without one leaves it out.",
+        default = 0,
+        min = 0,
+        max = 255,
+        step = 1
+    )]
+    pub sequence: Option<i64>,
+    /// The bit rate.
+    #[arg(
+        label = "Bit rate",
+        unit = "kbit/s",
+        help = "An FSK mode of the channel; 0 for the slowest mode of the channel.",
+        default = 0,
+        min = 0,
+        max = 150,
+        step = 1
+    )]
+    pub kbps: Option<i64>,
+    /// The UFSI of the UTT-IE.
+    #[arg(
+        label = "UFSI",
+        help = "The unicast fractional sequence interval of the UTT-IE, 24 bits: 0 to 16777215.",
+        default = 0,
+        min = 0,
+        max = 16_777_215,
+        step = 1
+    )]
+    pub ufsi: Option<i64>,
+}
+
+/// Sends a Wi-SUN FAN frame.
+pub const WISUN_SEND: CommandKind<WisunSendArgs<'static>> = CommandKind::new("send", "Send a frame")
+    .help(
+        "Sends an IEEE 802.15.4 frame of version 2015 with the UTT-IE of the frame type, the header IEs, a header \
+         termination IE and the payload IEs, whitened with a 4-octet FCS, on the channel of the plan nearest the tuned \
+         frequency. Frames sent during a frame wait for it. Transmit must be on.",
+    )
+    .transmits(sdrkit_core::TxContent::Frame)
+    .stopped_by("halt");
+/// A Wi-SUN transmission.
+pub static WISUN_TX: EventKind<IsmTxEvent<'static>> =
+    EventKind::new("wisun.tx", "Wi-SUN transmission");
+
 /// The Wi-SUN FAN stack.
 fn wisun() -> StackShape {
     StackShape::new("wisun")
@@ -2166,6 +2530,10 @@ fn wisun() -> StackShape {
         .settings(crate::wisun::WisunSetting::SETTINGS)
         .command(&objcmd::CLEAR)
         .command(&WISUN_REMOVE)
+        .fields::<IsmTxFields>()
+        .event(&WISUN_TX)
+        .command(&WISUN_SEND)
+        .command(&TX_HALT)
         .kept(&[
             "networks",
             "nodes",
@@ -2489,6 +2857,37 @@ pub struct AntSensorArgs<'a> {
 /// Forgets one sensor.
 pub const ANT_REMOVE: CommandKind<AntSensorArgs<'static>> = objcmd::remove_kind();
 
+/// The arguments of `send` of the ANT+ stack.
+#[derive(Arguments)]
+pub struct AntSendArgs<'a> {
+    /// The device number.
+    #[arg(label = "Device number", help = "0 to 65535.")]
+    pub device: i64,
+    /// The device type.
+    #[arg(label = "Device type", help = "1 to 127, for example 120 for heart rate or 11 for bike power.")]
+    pub device_type: i64,
+    /// The transmission type.
+    #[arg(label = "Transmission type", help = "0 to 255.")]
+    pub tx_type: i64,
+    /// The data page.
+    #[arg(label = "Payload", help = "The 8 octets of the data page as 16 hex digits, spaces allowed.")]
+    pub payload: &'a str,
+    /// The pairing bit.
+    #[arg(label = "Pairing", help = "Sets the pairing bit of the device type octet.", default = false)]
+    pub pairing: Option<bool>,
+}
+
+/// Sends an ANT+ frame.
+pub const ANT_SEND: CommandKind<AntSendArgs<'static>> = CommandKind::new("send", "Send a frame")
+    .help(
+        "Sends one ANT+ broadcast frame (the ANT+ network marker, the channel id, the data page and the CRC) on the tuned \
+         frequency. Frames sent during a frame wait for it. Transmit must be on.",
+    )
+    .transmits(sdrkit_core::TxContent::Frame)
+    .stopped_by("halt");
+/// An ANT+ transmission.
+pub static ANT_TX: EventKind<IsmTxEvent<'static>> = EventKind::new("ant.tx", "ANT+ transmission");
+
 /// The ANT+ stack.
 fn ant() -> StackShape {
     StackShape::new("ant")
@@ -2506,6 +2905,10 @@ fn ant() -> StackShape {
         .settings(crate::ant::AntSetting::SETTINGS)
         .command(&objcmd::CLEAR)
         .command(&ANT_REMOVE)
+        .fields::<IsmTxFields>()
+        .event(&ANT_TX)
+        .command(&ANT_SEND)
+        .command(&TX_HALT)
         .kept(&[
             "sensors",
             "frames",

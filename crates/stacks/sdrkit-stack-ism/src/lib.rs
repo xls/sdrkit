@@ -4,7 +4,8 @@
 //! frame structure of DSRC road toll beacons.
 //!
 //! Each stack receives only what a transmitter broadcasts openly. Encrypted content is shown as encrypted. The Sub-GHz chat
-//! decrypts only with the key that the user types in.
+//! decrypts only with the key that the user types in. The ISM sensor, Wireless M-Bus, Z-Wave, Zigbee, ANT+ and Wi-SUN stacks
+//! send one frame that the user states with their command `send`, through the sender of [`tx`].
 
 #![warn(missing_docs)]
 // Signal-processing loops index several arrays by one sample position. Argument lists follow the parameter lists of the standards.
@@ -28,6 +29,7 @@ pub mod nrplus;
 pub mod sigfox;
 pub mod subghzchat;
 pub mod thread;
+pub mod tx;
 pub mod typed;
 pub mod wisun;
 pub mod wmbus;

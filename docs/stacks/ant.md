@@ -1,11 +1,11 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
 # ANT+ sensors
 
-ANT+ heart rate straps, bike speed, cadence and power sensors, footpods and environment sensors on 2457 MHz (receive only).
+ANT+ heart rate straps, bike speed, cadence and power sensors, footpods and environment sensors on 2457 MHz; sends one ANT+ frame.
 
 Stack id: `ant`. Group: IoT, 2.4 GHz.
 
-ANT+ sensors : 1 Mbit/s GFSK frames on one channel, the ANT+ network marker and the frames of other ANT networks, the public device profiles, and a table of sensors with the history of their main value. Receive only.
+ANT+ sensors : 1 Mbit/s GFSK frames on one channel, the ANT+ network marker and the frames of other ANT networks, the public device profiles, and a table of sensors with the history of their main value. `send` sends one ANT+ frame.
 
 Standard: ANT+ device profiles (heart rate, bike speed and cadence, bike power, stride, environment, common pages).
 
@@ -31,6 +31,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:an
 |---|---|---|---|---|---|
 | `other_networks` | Other ANT networks | yes or no | true |  | Also decodes frames of networks other than ANT+. |
 | `wheel_mm` | Wheel circumference | number (mm) | 2096 | 1000 to 3000 |  |
+| `tx_level` | Level | number (of full scale) | 0.5 | 0.05 to 0.9 | The magnitude of the signal sent, of full scale. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -49,6 +50,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `channel` | Channel | frequency |
 | `frames_bad` | Frames bad | whole number |
 | `syncs` | Sync hits | whole number |
+| `tx_sending` | Sending | yes or no |
+| `tx_sent` | Frames sent | whole number |
+| `tx_waiting` | Frames waiting | whole number |
 | `demod.dropped` | Dropped | whole number |
 
 ## Result tables
@@ -69,6 +73,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Kind | Label | Fields |
 |---|---|---|
 | `ant.sensor` | New ANT sensor | `source` (text), `text` (text), `family` (choice), `device` (whole number), `type` (text), `marker` (text) |
+| `ant.tx` | ANT+ transmission | `state` (text), `reason` (text), `target` (text), `text` (text), `family` (choice) |
 
 ## Commands
 
@@ -76,10 +81,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything heard so far. Favourites stay. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
+| `send` | Send a frame | `device` (whole number, required), `device_type` (whole number, required), `tx_type` (whole number, required), `payload` (text, required), `pairing` (yes or no, default false) |  | Sends one ANT+ broadcast frame (the ANT+ network marker, the channel id, the data page and the CRC) on the tuned frequency. Frames sent during a frame wait for it. Transmit must be on. |
+| `halt` | Halt |  |  | Drops the frames waiting and ends the frame on air with the fall of the carrier. |
 
 ## Typed interface
 
-The stack is in the family `ism`, version 1.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 1.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -101,6 +108,16 @@ Struct `AntDemodFields`. The counts of the ANT+ demodulator.
 |---|---|---|---|---|
 | `frames_bad` | whole number | always | 1.0 | Frames whose CRC failed. |
 | `syncs` | whole number | always | 1.0 | Sync words found. |
+
+### Result fields
+
+Struct `IsmTxFields`. The result fields of the sender of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `tx_sending` | yes or no | always | 1.1 | Whether a frame is on air. |
+| `tx_sent` | whole number | always | 1.1 | The frames sent since the stack started. |
+| `tx_waiting` | whole number | always | 1.1 | The frames waiting for the transmitter. |
 
 ### Table `sensors`
 
@@ -149,12 +166,26 @@ Struct `AntSensorEvent`. The fields of a new sensor event.
 | `type` | text | always | 1.0 | The device type name. |
 | `marker` | text | always | 1.0 | The network marker as hex. |
 
+### Event `ant.tx`
+
+Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `state` | text | always | 1.1 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.1 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
+| `target` | text | always | 1.1 | The addressee or the identity of the frame. |
+| `text` | text | always | 1.1 | What the frame carries, for started and queued; empty otherwise. |
+| `family` | choice | always | 1.1 | The family of the source: a sensor. |
+
 ### Commands
 
 | Key | C function | Arguments struct | Reply struct |
 |---|---|---|---|
 | `clear` | `sdrkit_ant_clear` | none | none |
 | `remove` | `sdrkit_ant_remove` | `sdrkit_ant_sensor_args` | none |
+| `send` | `sdrkit_ant_send` | `sdrkit_ant_send_args` | none |
+| `halt` | `sdrkit_ant_halt` | none | none |
 
 ### Settings
 
@@ -162,6 +193,7 @@ Struct `AntSensorEvent`. The fields of a new sensor event.
 |---|---|---|
 | `other_networks` | `sdrkit_ant_get_other_networks` | `sdrkit_ant_set_other_networks` |
 | `wheel_mm` | `sdrkit_ant_get_wheel_mm` | `sdrkit_ant_set_wheel_mm` |
+| `tx_level` | `sdrkit_ant_get_tx_level` | `sdrkit_ant_set_tx_level` |
 
 ### Settings of the test signal generator
 
