@@ -5,6 +5,7 @@
 //! Standard: ATSC A/322:2023-03 clauses 5.2.3, 6.1 to 6.3 and Annex C.
 
 use super::l1::{crc32, Plp, Scrambler};
+use super::nuc::AxisPam;
 use super::tables::{NUC16, NUC256, NUC64};
 use sdrkit_algo_dsp::constellation::{PointSet, Shape};
 use sdrkit_algo_fec::a322::BitInterleaver;
@@ -49,6 +50,53 @@ pub fn constellation(bits: usize, rate_fifteenths: u8) -> Option<Constellation> 
     Constellation::new(set).ok()
 }
 
+/// The constellation of the cells of a PLP.
+#[derive(Clone, Debug)]
+pub enum PlpPoints {
+    /// QPSK and 16 to 256 points ([`constellation`]).
+    Plane(Constellation),
+    /// 1024 and 4096 points, per axis.
+    Axes(AxisPam),
+}
+
+impl PlpPoints {
+    /// The constellation of `bits` bits per cell (2 to 12) at code rate `rate_fifteenths / 15`, `None` for another.
+    pub fn new(bits: usize, rate_fifteenths: u8) -> Option<PlpPoints> {
+        match bits {
+            10 | 12 => AxisPam::new(bits, rate_fifteenths).map(PlpPoints::Axes),
+            _ => constellation(bits, rate_fifteenths).map(PlpPoints::Plane),
+        }
+    }
+
+    /// Maps hard bits (0 or 1 per byte, whole cell words, first bit most significant) to cells, appending to `out`. False
+    /// when the bits do not fill whole cells.
+    pub fn map_bits(&self, bits: &[u8], out: &mut Vec<Complex32>) -> bool {
+        match self {
+            PlpPoints::Plane(c) => c.set().map_bits(bits, out).is_ok(),
+            PlpPoints::Axes(a) => a.map_bits(bits, out),
+        }
+    }
+
+    /// The point nearest `z`.
+    pub fn nearest(&self, z: Complex32) -> Complex32 {
+        match self {
+            PlpPoints::Plane(c) => c.nearest(z),
+            PlpPoints::Axes(a) => a.nearest(z),
+        }
+    }
+
+    /// The max-log LLRs of equalised cells with their weights `|H|^2 / sigma^2` into `out`, positive means 0. False when
+    /// a length is wrong or a value is not finite.
+    pub fn demap(&self, cells: &[Complex32], weights: &[f32], out: &mut [f32]) -> bool {
+        match self {
+            PlpPoints::Plane(c) => c
+                .demap_block_weighted(cells, weights, Demap::MaxLog, out)
+                .is_ok(),
+            PlpPoints::Axes(a) => a.demap(cells, weights, out),
+        }
+    }
+}
+
 /// The outer code of a FEC block (table 9.17).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Outer {
@@ -67,7 +115,7 @@ pub struct PlpCoding {
     pub ldpc_bits: usize,
     /// The code rate in fifteenths, 2 to 13.
     pub rate: u8,
-    /// Bits per cell: 2, 4, 6 or 8, and 10 or 12 for a signalled coding that the stack does not decode.
+    /// Bits per cell: 2, 4, 6, 8, 10 or 12; 10 and 12 with the 64800-bit code only.
     pub bits: usize,
     /// The outer code.
     pub outer: Outer,
@@ -75,9 +123,9 @@ pub struct PlpCoding {
 
 impl PlpCoding {
     /// The coding that L1-Detail signals for `plp` and that the stack decodes, `None` when it is reserved or has 1024 or
-    /// 4096 points.
+    /// 4096 points with the 16200-bit code (clause 9.3.4, `L1D_plp_mod`).
     pub fn of(plp: &Plp) -> Option<PlpCoding> {
-        PlpCoding::signalled(plp).filter(|c| c.bits <= 8)
+        PlpCoding::signalled(plp).filter(|c| c.bits <= 8 || c.ldpc_bits == 64800)
     }
     /// The coding that L1-Detail signals for `plp` (tables 9.17, 9.18 and 9.20, 4 to 4096 points), `None` when a code
     /// of it is reserved.
@@ -197,7 +245,7 @@ fn ldpc_rule(coding: PlpCoding) -> MinSum {
 /// The encoder of the FEC blocks of one PLP (clauses 5.2.3 and 6.1 to 6.3). After the first block it allocates nothing.
 pub struct PlpEncoder {
     coding: PlpCoding,
-    points: Constellation,
+    points: PlpPoints,
     table: Atsc3Table,
     ldpc: LdpcCode,
     bch: Option<Bch>,
@@ -214,7 +262,7 @@ impl PlpEncoder {
         let table = Atsc3Table::find(coding.ldpc_bits, coding.rate)?;
         Some(PlpEncoder {
             coding,
-            points: constellation(coding.bits, coding.rate)?,
+            points: PlpPoints::new(coding.bits, coding.rate)?,
             ldpc: LdpcCode::from_atsc3(table).ok()?,
             bch: match coding.outer {
                 Outer::Bch => Some(table.bch().ok()?),
@@ -235,7 +283,7 @@ impl PlpEncoder {
     }
 
     /// The constellation of the cells.
-    pub fn points(&self) -> &Constellation {
+    pub fn points(&self) -> &PlpPoints {
         &self.points
     }
 
@@ -288,20 +336,21 @@ impl PlpEncoder {
     /// that [`PlpDecoder::word`] gives). An error when the length is wrong.
     pub fn code_word_cells(&mut self, word: &[u8], out: &mut Vec<Complex32>) -> FecResult<()> {
         self.interleaver.interleave(word, &mut self.bits)?;
-        self.points
-            .set()
-            .map_bits(&self.bits, out)
-            .map_err(|_| sdrkit_algo_fec::FecError::InputLength {
+        if self.points.map_bits(&self.bits, out) {
+            Ok(())
+        } else {
+            Err(sdrkit_algo_fec::FecError::InputLength {
                 expected: self.coding.ldpc_bits,
                 got: word.len(),
             })
+        }
     }
 }
 
 /// The decoder of the FEC blocks of one PLP.
 pub struct PlpDecoder {
     coding: PlpCoding,
-    constellation: Constellation,
+    constellation: PlpPoints,
     interleaver: BitInterleaver,
     ldpc: LdpcDecoder,
     bch: Option<Bch>,
@@ -322,7 +371,7 @@ impl PlpDecoder {
         let n = coding.ldpc_bits;
         Some(PlpDecoder {
             coding,
-            constellation: constellation(coding.bits, coding.rate)?,
+            constellation: PlpPoints::new(coding.bits, coding.rate)?,
             interleaver: BitInterleaver::new(n, coding.rate, coding.bits).ok()?,
             ldpc: LdpcDecoder::new(&code, ldpc_rule(coding)),
             bch: match coding.outer {
@@ -353,11 +402,7 @@ impl PlpDecoder {
         if cells.len() != self.coding.cells() || weights.len() != cells.len() {
             return false;
         }
-        if self
-            .constellation
-            .demap_block_weighted(cells, weights, Demap::MaxLog, &mut self.soft)
-            .is_err()
-        {
+        if !self.constellation.demap(cells, weights, &mut self.soft) {
             return false;
         }
         for (q, &l) in self.llr.iter_mut().zip(&self.soft) {
@@ -572,10 +617,17 @@ pub(super) mod tests {
             PlpCoding::of(&p)
         };
         assert!(refuse(&|p| p.fec_type = 6).is_none());
-        assert!(refuse(&|p| p.modulation = Some(4)).is_none());
+        // 1024 and 4096 points with the 64800-bit code only.
+        assert_eq!(refuse(&|p| p.modulation = Some(4)), Some(c(64800, 8, 10, Outer::Bch)));
+        assert_eq!(refuse(&|p| p.modulation = Some(5)).map(|c| c.cells()), Some(5400));
+        assert!(refuse(&|p| {
+            p.modulation = Some(4);
+            p.fec_type = 0;
+        })
+        .is_none());
         assert!(refuse(&|p| p.code_rate = Some(12)).is_none());
         assert!(refuse(&|p| p.modulation = None).is_none());
-        // 1024 and 4096 points are signalled but not decoded; codes 6 and above are reserved.
+        // Also 1024 points with the 16200-bit code are signalled; codes 6 and above are reserved.
         let signalled = |m| {
             PlpCoding::signalled(&Plp {
                 modulation: Some(m),
@@ -583,6 +635,14 @@ pub(super) mod tests {
             })
         };
         assert_eq!(signalled(4), Some(c(64800, 8, 10, Outer::Bch)));
+        assert_eq!(
+            PlpCoding::signalled(&Plp {
+                modulation: Some(4),
+                fec_type: 0,
+                ..plp
+            }),
+            Some(c(16200, 8, 10, Outer::Bch))
+        );
         assert_eq!(signalled(5).map(|c| c.bits), Some(12));
         assert_eq!(signalled(6), None);
         assert_eq!(PlpCoding::signalled(&plp), Some(coding));
@@ -633,7 +693,7 @@ pub(super) mod tests {
             .unwrap();
             front.interleaver.interleave(&word, &mut q).unwrap();
             cells.clear();
-            front.constellation.set().map_bits(&q, &mut cells).unwrap();
+            assert!(front.constellation.map_bits(&q, &mut cells));
             noise.process(&mut cells);
             assert!(front.soft_word(&cells, &weights));
             for ((dec, f), o) in decs.iter_mut().zip(&mut failed).zip(&mut open) {
@@ -940,13 +1000,13 @@ pub(super) mod tests {
                                 .unwrap();
                                 front.interleaver.interleave(&word, &mut q).unwrap();
                                 cells.clear();
-                                front.constellation.set().map_bits(&q, &mut cells).unwrap();
+                                let PlpPoints::Plane(plane) = &front.constellation else {
+                                    panic!("up to 256 points");
+                                };
+                                plane.set().map_bits(&q, &mut cells).unwrap();
                                 noise.process(&mut cells);
                                 for (method, s) in [Demap::MaxLog, Demap::Exact].into_iter().zip(&mut soft) {
-                                    front
-                                        .constellation
-                                        .demap_block_weighted(&cells, &weights, method, s)
-                                        .unwrap();
+                                    plane.demap_block_weighted(&cells, &weights, method, s).unwrap();
                                 }
                                 for (j, u) in setups.iter().enumerate() {
                                     let s = &soft[usize::from(u.exact)];
@@ -984,6 +1044,114 @@ pub(super) mod tests {
         });
         lines.sort();
         println!("{code_text}: frame error rate / mean iterations of {}", env("ATSC3_PROBE_SETUPS", "g4.s12.i50,bp.exact.i50"));
+        for (_, l) in lines {
+            println!("{l}");
+        }
+    }
+
+    /// The good blocks among `blocks` FEC blocks of `coding` through white noise at `esn0` dB, cells of mean energy 1.
+    fn good_blocks(coding: PlpCoding, esn0: f64, blocks: usize, seed: u64) -> usize {
+        use sdrkit_algo_sim::{noise::Awgn, rng::Rng};
+        let mut enc = PlpEncoder::new(coding).unwrap();
+        let mut dec = PlpDecoder::new(coding).unwrap();
+        let n0 = 10f64.powf(-esn0 / 10.0);
+        let weights = vec![(1.0 / n0) as f32; coding.cells()];
+        let mut rng = Rng::new(seed);
+        let mut noise = Awgn::with_power(n0, seed ^ 0x5DEE_CE66).unwrap();
+        let (mut cells, mut packet) = (Vec::new(), Vec::new());
+        (0..blocks)
+            .filter(|_| {
+                let sent: Vec<u8> = (0..coding.packet_bytes()).map(|_| rng.next_u32() as u8).collect();
+                cells.clear();
+                enc.block(&sent, &mut cells);
+                noise.process(&mut cells);
+                dec.decode(&cells, &weights, LDPC_ITER, &mut packet).good && packet == sent
+            })
+            .count()
+    }
+
+    /// The coding of 1024 (`bits` 10) or 4096 points (12) at `rate` with the 64800-bit code and BCH.
+    fn large(bits: usize, rate: u8) -> PlpCoding {
+        PlpCoding {
+            ldpc_bits: 64800,
+            rate,
+            bits,
+            outer: Outer::Bch,
+        }
+    }
+
+    /// Every rate of 1024 and 4096 points decodes at 45 dB, and a mapped cell comes back as its point.
+    #[test]
+    fn large_constellations_decode_without_much_noise() {
+        for bits in [10, 12] {
+            for rate in 2..=13 {
+                assert_eq!(good_blocks(large(bits, rate), 45.0, 1, u64::from(rate)), 1, "{bits} bits {rate}/15");
+            }
+        }
+    }
+
+    /// The Es/N0 of a block error rate of 0.1 that [`large_constellation_thresholds`] measured, dB: 1024 points at 2/15,
+    /// 9/15 and 13/15 and 4096 points at 5/15, 10/15 and 13/15, 1.4 to 2.1 dB above the Shannon bound at every rate.
+    /// 2/15 at 1024 points and 5/15 at 4096 points have equal magnitudes in their tables.
+    const THRESHOLDS: [(usize, u8, f64); 6] = [
+        (10, 2, 3.20),
+        (10, 9, 19.56),
+        (10, 13, 27.54),
+        (12, 5, 13.50),
+        (12, 10, 26.14),
+        (12, 13, 32.80),
+    ];
+
+    /// Every block decodes 0.3 dB above the threshold and none 0.5 dB below it.
+    #[test]
+    fn large_constellations_start_to_decode_at_their_threshold() {
+        for (bits, rate, at) in THRESHOLDS {
+            let c = large(bits, rate);
+            assert_eq!(good_blocks(c, at + 0.3, 4, 1), 4, "{bits} bits {rate}/15 at {at} dB");
+            assert_eq!(good_blocks(c, at - 0.5, 4, 2), 0, "{bits} bits {rate}/15 at {at} dB");
+        }
+    }
+
+    /// The Es/N0 of a block error rate of 0.1 for 1024 and 4096 points at every rate, with the Shannon bound
+    /// `10 log10(2^(bits rate) - 1)` beside it. 40 blocks a point, steps of 0.1 dB.
+    #[test]
+    #[ignore = "a measurement of minutes: run it alone in an optimised build"]
+    fn large_constellation_thresholds() {
+        let codes: Vec<(usize, u8)> = [10, 12].iter().flat_map(|&b| (2..=13).map(move |r| (b, r))).collect();
+        let next = std::sync::atomic::AtomicUsize::new(0);
+        let workers = std::thread::available_parallelism().map_or(4, |n| n.get());
+        let mut lines: Vec<(usize, String)> = std::thread::scope(|s| {
+            let jobs: Vec<_> = (0..workers)
+                .map(|_| {
+                    s.spawn(|| {
+                        let mut out = Vec::new();
+                        loop {
+                            let i = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                            let Some(&(bits, rate)) = codes.get(i) else {
+                                break;
+                            };
+                            let c = large(bits, rate);
+                            let bound = 10.0 * (2f64.powf(bits as f64 * f64::from(rate) / 15.0) - 1.0).log10();
+                            let (step, frames) = (0.1, 40);
+                            let first = (bound / step).floor() * step;
+                            let mut fer = Vec::new();
+                            for k in 0..200 {
+                                let good = good_blocks(c, first + step * k as f64, frames, k as u64);
+                                fer.push(1.0 - good as f64 / frames as f64);
+                                if good == frames {
+                                    break;
+                                }
+                            }
+                            let at = crossing(&fer, first, step, frames);
+                            out.push((i, format!("{bits} bits {rate:2}/15: {at:6.2} dB, bound {bound:6.2} dB, gap {:5.2} dB", at - bound)));
+                        }
+                        out
+                    })
+                })
+                .collect();
+            jobs.into_iter().flat_map(|j| j.join().unwrap()).collect()
+        });
+        lines.sort();
         for (_, l) in lines {
             println!("{l}");
         }

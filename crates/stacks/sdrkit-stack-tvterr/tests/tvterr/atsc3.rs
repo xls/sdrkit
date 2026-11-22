@@ -483,7 +483,7 @@ fn the_setting_chooses_a_layer() {
             interval: 0,
             time_interleaver: GenTi::None,
             lls: false,
-            ldm: Some(GenLdm { core: 0, level: 8 }),
+            ldm: Some(GenLdm { core: 0, cores: 1, level: 8 }),
         }],
         ..Default::default()
     };
@@ -566,10 +566,106 @@ fn the_plp_table_lists_every_plp_of_the_subframe() {
                     cells: i64::from(sent[n].size),
                     time_interleaver: ti,
                     decoded: n == id as usize,
+                    bonding: None,
+                    bonded_bsid: None,
                 },
             )
         };
         assert_eq!(rows, vec![want(0, 4, 8, 0), want(1, 16, 6, 2)], "plp {plp}");
+    }
+}
+
+/// An enhanced PLP 10 dB below two core PLPs that it lies on (A/322 clause 7.2.7.4), without time interleaving: 16
+/// points 8/15 and 6/15 with the 16200-bit code, 5 and 4 blocks of 4050 cells, and 64 points 10/15 with the 64800-bit
+/// code, whose blocks cross from one core PLP to the other and from frame to frame. With `plp` at its id the stack
+/// decodes it, no baseband packet is bad, and its modulation error ratio, measured after the core PLPs are taken off, is
+/// far above the 10 dB that the core constellation would give.
+#[test]
+fn an_enhanced_plp_across_two_core_plps_decodes_through_the_stack() {
+    use sdrkit_stack_tvterr::atsc3::bicm::{Outer, PlpCoding};
+    use sdrkit_stack_tvterr::atsc3::gen::{GenLdm, GenPlp, GenTi};
+    let rate = 6.144e6;
+    let coding = |ldpc_bits, rate, bits| PlpCoding {
+        ldpc_bits,
+        rate,
+        bits,
+        outer: Outer::Bch,
+    };
+    let plp = |coding, start, cells, ldm| GenPlp {
+        coding,
+        seed: 9,
+        start,
+        cells,
+        subslices: 1,
+        interval: 0,
+        time_interleaver: GenTi::None,
+        lls: false,
+        ldm,
+    };
+    let p = Atsc3GenParams {
+        rate_hz: rate,
+        coding: coding(16200, 8, 4),
+        plp_cells: Some(5 * 4050),
+        more_plps: vec![
+            plp(coding(16200, 6, 4), 5 * 4050, Some(4 * 4050), None),
+            plp(
+                coding(64800, 10, 6),
+                0,
+                None,
+                Some(GenLdm {
+                    core: 0,
+                    cores: 2,
+                    level: 15,
+                }),
+            ),
+        ],
+        ..Default::default()
+    };
+    let x = common::generate(Atsc3Generator::new(p).unwrap(), 0.5);
+    let mut rx = receiver_of_plp(2);
+    let r = common::run(rx.as_mut(), rate, &x, 65536, "");
+    assert_eq!((r.f("plp_id"), r.f("plp_points")), (2.0, 64.0));
+    assert_eq!(r.f("frames_failed"), 0.0);
+    assert!(r.f("frames_ok") >= 3.0);
+    assert!(r.f("baseband_packets") >= 3.0 * 3.0);
+    assert_eq!(r.f("baseband_packets_bad"), 0.0);
+    assert!(r.f("mer_db") > 20.0, "{} dB", r.f("mer_db"));
+}
+
+/// A PLP bonded with another RF channel without SNR averaging (A/322 Annex K.2) decodes as a PLP of its own, and the
+/// table shows the bonding and the BSID of the other channel. With SNR averaging (K.3) the stack does not decode it.
+#[test]
+fn the_plp_table_shows_a_bonded_plp() {
+    use sdrkit_stack_tvterr::typed::{Atsc3PlpRow, ATSC3_PLPS};
+    let rate = 6.144e6;
+    for (format, decoded) in [(0u8, true), (1, false)] {
+        let p = Atsc3GenParams {
+            rate_hz: rate,
+            coding: short_coding(false),
+            bonding: Some((format, 0x2B1)),
+            ..Default::default()
+        };
+        let x = common::generate(Atsc3Generator::new(p).unwrap(), 0.5);
+        let mut rx = receiver_of_plp(-1);
+        let r = common::run(rx.as_mut(), rate, &x, 65536, "");
+        let rows: Vec<Atsc3PlpRow> = ATSC3_PLPS
+            .rows::<Atsc3PlpRow>(&r.results)
+            .map(|(_, row)| row)
+            .collect();
+        assert_eq!(rows.len(), 1, "format {format}");
+        let row = &rows[0];
+        assert_eq!(
+            (row.bonding, row.bonded_bsid, row.decoded),
+            (Some(i64::from(format)), Some(0x2B1), decoded),
+            "format {format}"
+        );
+        if decoded {
+            assert!(r.f("frames_ok") >= 3.0);
+            assert!(r.f("baseband_packets") > 0.0);
+            assert_eq!(r.f("baseband_packets_bad"), 0.0);
+        } else {
+            assert_eq!(r.t("not_decoded"), "plp");
+        }
     }
 }
 

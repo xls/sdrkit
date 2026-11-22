@@ -531,7 +531,7 @@ pub struct Atsc3PlpRow {
     /// The layer: 0 core, above 0 enhanced.
     #[field(label = "Layer")]
     pub layer: i64,
-    /// The constellation points, also 1024 and 4096 that the stack does not decode. No value for a reserved code.
+    /// The constellation points, also of a coding that the stack does not decode. No value for a reserved code.
     #[field(label = "Constellation points")]
     pub points: Option<i64>,
     /// The code rate in fifteenths.
@@ -549,6 +549,13 @@ pub struct Atsc3PlpRow {
     /// The PLP is the one that the stack decodes.
     #[field(label = "Decoded")]
     pub decoded: bool,
+    /// The channel bonding format (table 9.25): 0 plain, 1 SNR averaging, 2 and 3 reserved. No value when the PLP is
+    /// not bonded with another RF channel.
+    #[field(label = "Channel bonding")]
+    pub bonding: Option<i64>,
+    /// The BSID of the RF channel that the PLP is bonded with, as L1-Detail lists it.
+    #[field(label = "Bonded channel BSID")]
+    pub bonded_bsid: Option<i64>,
 }
 
 /// A row of the services of the service list. The row key is the service id; `service.select` takes it.
@@ -892,7 +899,7 @@ pub fn family() -> &'static Family {
                 .fields::<IsdbtNarrowFields<'static>>(),
         )
         .settings(IsdbtsbSetting::SETTINGS);
-        Family::new("tvterr", 1, 4)
+        Family::new("tvterr", 1, 5)
             .uses(sdrkit_proto_mpegts::publish::interface())
             .uses(ipcast::interface())
             .uses(sdrkit_graph::components::interface())
@@ -903,6 +910,7 @@ pub fn family() -> &'static Family {
             .stack(atsc3)
             .stack(dtmb)
             .stack(auto)
+            .added(1, 5, &["shape.Atsc3PlpRow.bonding", "shape.Atsc3PlpRow.bonded_bsid"])
             .added(1, 4, &["shape.Atsc3PlpRow.subframe"])
             .added(1, 3, &["atsc3.setting.plp"])
             .added(1, 2, ADDED_1_2)

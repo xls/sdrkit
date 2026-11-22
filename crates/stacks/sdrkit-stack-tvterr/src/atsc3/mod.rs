@@ -13,6 +13,7 @@ pub mod gen;
 pub mod l1;
 pub mod layout;
 pub mod ldm;
+pub mod nuc;
 pub mod results;
 pub mod rx;
 pub mod svc;
@@ -84,29 +85,33 @@ pub const NOTE: &str = "Decodes frames at 6.144 Msps (sample-rate coefficient 0)
     L1-Basic modes 1 to 5, L1-Detail modes 1, 2, 5 and \
     7, one and several coded blocks and Preamble symbols, symbol-aligned and time-aligned frames, 8K, 16K and 32K FFT, \
     subframe boundary symbols with null cells, carrier reduction, the frequency interleaver on and off, a PLP of 4, 16, 64 \
-    or 256 points at 16200 or 64800 bits with BCH, CRC or no outer code, FEC blocks that cross from frame to frame, a PLP \
+    or 256 points at 16200 or 64800 bits and of 1024 or 4096 points at 64800 bits, with BCH, CRC or no outer code, FEC blocks that cross from frame to frame, a PLP \
     that begins after other cells, two PLPs in one subframe, non-dispersed and dispersed in subslices, the convolutional \
     time interleaver at its six depths, the hybrid time interleaver within a subframe (one and several TI blocks) and \
     across 1 to 16 subframes, with and without the cell interleaver, frames of three subframes with the three FFT \
     sizes, a PLP that continues from subframe to subframe with each time interleaver, a PLP that only a later \
     subframe carries, and layered division multiplexing: a core PLP with an enhanced PLP on its cells at injection \
-    levels from 3 to 15 dB, without a time interleaver and with the hybrid one within a subframe and dummy enhanced \
-    cells. The setting chooses either layer; the enhanced PLP is decoded after the core PLP under it is decoded, encoded \
-    and mapped again and taken off its cells. A subframe without boundary symbols was not exercised. Open in the hybrid time interleaver across \
+    levels from 3 to 15 dB, without a time interleaver, with the hybrid one within a subframe and dummy enhanced \
+    cells, with the hybrid one across subframes and with the convolutional one, and an enhanced PLP across two core \
+    PLPs without a time interleaver and with the hybrid one. The setting chooses either layer; the enhanced PLP is \
+    decoded after the core PLPs under it are decoded, encoded and mapped again and taken off its cells, and its \
+    modulation error ratio is measured on what is left. A PLP bonded with another RF channel without SNR averaging is \
+    decoded as a PLP of its own: only the baseband packets of this channel, each after a gap; the table of PLPs shows \
+    the bonding and the BSID of the other channel. A subframe without boundary symbols was not exercised. Open in the hybrid time interleaver across \
     subframes: the standard names the unit that moves between the branches of the delay line a row, and the stack takes \
     it as as many consecutive cells of the twisted block read-out as the TI block has FEC blocks; this was not checked \
     against a signal. The test signal starts the rows of the convolutional time interleaver with zeros and not with the \
     cells of the standard. Built from the \
     standard and not exercised by a signal: the other guard intervals, pilot \
     patterns, code rates and L1-Detail modes, a subframe without boundary symbols. Not decoded: frames at another sample \
-    rate (6.912 Msps and the others), the \
-    1024 and 4096-point \
-    constellations, MIMO, MISO, channel bonding, tone reservation, L1-Detail \
-    additional parity with several coded blocks, an enhanced PLP under the convolutional time interleaver (the standard \
-    does not say from which cell its FEC block start counts) or across several core PLPs, a subframe with an enhanced \
-    layer whose core PLPs are dispersed or do not follow each other from cell 0 in the order of L1-Detail, a core PLP \
-    with two injection levels on it or, without the hybrid time interleaver, enhanced PLPs on part of it only, an \
-    enhanced layer on a core PLP under the hybrid time interleaver across subframes, a subframe that ends more than 1 s after the bootstrap and the \
+    rate (6.912 Msps and the others), MIMO, MISO, channel bonding with SNR averaging (half the cells of each FEC block \
+    are on the other RF channel) and the merge of two bonded channels (the stack takes one), tone reservation, L1-Detail \
+    additional parity with several coded blocks, an enhanced PLP on part of a core PLP under the convolutional time \
+    interleaver, across more than four core PLPs or across core PLPs under the convolutional time interleaver or the \
+    hybrid one across subframes, a subframe with an enhanced layer whose core PLPs are dispersed or do not follow each \
+    other from cell 0 in the order of L1-Detail or where a core PLP before the last has other cell counts before and \
+    after time interleaving, a core PLP with two injection levels on it or, without the hybrid time interleaver, \
+    enhanced PLPs on part of it only, a subframe that ends more than 1 s after the bootstrap and the \
     subframes after it, a later subframe with a waveform that the stack does not decode and those after it, more than \
     one PLP at a time, a first \
     subframe that ends more than 1 s after the bootstrap. MMTP services are listed and not received. The media of a ROUTE service is given as \

@@ -63,6 +63,15 @@ pub enum TiFrame {
 }
 
 impl TiFrame {
+    /// The subframes from the one whose cells before time interleaving the de-interleaver gives in this subframe to this
+    /// one: `units - 1` for the hybrid time interleaver across subframes, else 0.
+    pub fn subframes_late(&self) -> usize {
+        match *self {
+            TiFrame::HtiAcross { units, .. } => units.saturating_sub(1),
+            _ => 0,
+        }
+    }
+
     /// The time interleaving that L1-Detail signals for `p`. `None` for a reserved value.
     pub fn of(p: &Plp) -> Option<TiFrame> {
         match p.ti_mode {
@@ -198,6 +207,15 @@ fn untwist(
     }
 }
 
+/// The place, among the cells that leave the convolutional de-interleaver of `rows` rows in a subframe, of the cell that
+/// `L1D_plp_CTI_fec_block_start` = `fec_block_start` names when the subframe starts at row `start_row` (clause 9.3.9.1):
+/// that cell left row `r = (start_row + fec_block_start) mod rows` of the sender, and row `r` here delays it by
+/// `(rows - 1 - r) rows` more cells. It may lie after the cells of the subframe.
+pub fn cti_boundary(rows: usize, start_row: usize, fec_block_start: usize) -> usize {
+    let r = (start_row + fec_block_start) % rows;
+    fec_block_start + (rows - 1 - r) * rows
+}
+
 /// A cell that no input has filled: its weight erases it.
 const ERASED: (Complex32, f32) = (Complex32::new(0.0, 0.0), 0.0);
 
@@ -212,6 +230,9 @@ pub struct Deinterleaved<'a> {
     pub block_start: Option<usize>,
     /// The cells do not follow those of the frame before: a FEC block that has begun is dropped.
     pub restart: bool,
+    /// The cells of the frame left out before `cells`: those that the convolutional de-interleaver gives before it is
+    /// full, up to the first FEC block after them.
+    pub skipped: usize,
 }
 
 /// The time de-interleaver of one PLP. Its delay lines and buffers are made when a frame first needs them and kept.
@@ -285,6 +306,7 @@ impl TimeDeinterleaver {
                     weights,
                     block_start,
                     restart: !follows,
+                    skipped: 0,
                 })
             }
             TiFrame::Cti {
@@ -352,10 +374,7 @@ impl TimeDeinterleaver {
         let depth = (rows * (rows - 1)) as u64;
         let warm = depth.saturating_sub(self.count) as usize;
         self.count += cells.len() as u64;
-        // The cell at `fec_block_start` left row `r` of the sender `r rows` cells after it entered, and leaves here
-        // `rows (rows - 1)` cells after it entered.
-        let r = (start_row + fec_block_start) % rows;
-        let boundary = fec_block_start + (rows - 1 - r) * rows;
+        let boundary = cti_boundary(rows, start_row, fec_block_start);
         let first = warm + (boundary + block - warm % block) % block;
         let n = self.cells.len();
         let from = if warm > 0 { first.min(n) } else { 0 };
@@ -364,6 +383,7 @@ impl TimeDeinterleaver {
             weights: &self.weights[from..],
             block_start: (first < n).then_some(first - from),
             restart: warm > 0,
+            skipped: from,
         })
     }
 
@@ -420,6 +440,7 @@ impl TimeDeinterleaver {
             weights: &self.weights,
             block_start: Some(0),
             restart: !follows,
+            skipped: 0,
         })
     }
 
@@ -483,6 +504,7 @@ impl TimeDeinterleaver {
                 weights: &[],
                 block_start: None,
                 restart: true,
+                skipped: 0,
             });
         }
         let from = &self.ring[(age + 1) % units];
@@ -506,6 +528,7 @@ impl TimeDeinterleaver {
             weights: &self.weights,
             block_start: Some(0),
             restart,
+            skipped: 0,
         })
     }
 }

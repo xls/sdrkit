@@ -669,6 +669,8 @@ table "plps" "PLPs" cap 64
   column FieldDecl { key: "cells", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_interleaver", label: "Time interleaver mode", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "decoded", label: "Decoded", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "bonding", label: "Channel bonding", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "bonded_bsid", label: "Bonded channel BSID", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 points ""
 command "service.select" "Select a service" "Plays a service of the multiplex. An empty row plays the first service that can play."
   argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "services" }), content: None }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] } }

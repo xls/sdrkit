@@ -365,6 +365,8 @@ impl Report {
                 cells: i64::from(row.cells),
                 time_interleaver: i64::from(row.ti_mode),
                 decoded: plp == Some(row.id),
+                bonding: row.bonding.map(i64::from),
+                bonded_bsid: row.bonded_bsid.map(i64::from),
             };
             ATSC3_PLPS.put(p, &self.key, &row);
         }

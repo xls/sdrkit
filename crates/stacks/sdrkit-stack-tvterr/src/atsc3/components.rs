@@ -2,10 +2,10 @@
 //! (time de-interleaving and FEC blocks to baseband packets), `atsc3.lls` (the service list) and `atsc3.media` (ROUTE objects to media samples). The link and delivery layers between them are the
 //! `ipcast.*` components.
 
-use super::bicm::{constellation, BlockResult, PlpCoding, PlpDecoder, PlpStream};
+use super::bicm::{BlockResult, PlpCoding, PlpDecoder, PlpPoints, PlpStream};
 use super::bootstrap::{self, Detector, Fields};
 use super::frame::NotDecoded;
-use super::ldm::LayerDecoder;
+use super::ldm::{CoreCells, LayerDecoder};
 use super::rx::{FrameDecoder, FrameInfo, Head, HeadResult, Layers, PlpCells, BACKOFF};
 use super::ti::{TiFrame, TimeDeinterleaver};
 use super::{Atsc3Setting, PLP};
@@ -13,7 +13,6 @@ use super::svc::{
     parse_lls, parse_slt, parse_system_time, SltService, SystemTime, LLS_ADDR, LLS_PORT, TABLE_SLT,
     TABLE_SYSTEM_TIME,
 };
-use sdrkit_algo_modem::constellation::Constellation;
 use sdrkit_core::{Complex32, ConfigError, SettingError, SettingId, SettingSet, Value, Values};
 use sdrkit_graph::{
     no_values, values_of, Applied, Component, ComponentInfo, Format, Io, Item, Kept, Kind, Packet,
@@ -158,6 +157,8 @@ pub struct FrameCells {
     pub follows: bool,
     /// The cells of the PLP, when the subframe was demodulated.
     pub cells: Option<Arc<PlpCells>>,
+    /// The PLP is bonded with another RF channel without SNR averaging: every baseband packet follows a gap.
+    pub bonded: bool,
 }
 
 impl Item for FrameCells {
@@ -190,6 +191,7 @@ pub struct FrameState {
     /// The mean LDPC iterations of the blocks of the last frame.
     pub iterations: f32,
     /// The modulation error ratio of the cells of the PLP in the last frame against the nearest constellation points, dB.
+    /// An enhanced PLP is measured on its cells after the core PLP under it is taken off.
     pub mer_db: Option<f32>,
     /// The signal to noise ratio of the pilots of the last frame, dB.
     pub pilot_snr_db: Option<f32>,
@@ -308,6 +310,7 @@ impl Component for Frame {
                 ti: TiFrame::None,
                 follows: false,
                 cells: None,
+                bonded: false,
             };
             let from = ((b.position.saturating_sub(self.base)) as usize).min(self.buf.len());
             if b.position < self.base {
@@ -368,6 +371,7 @@ impl Component for Frame {
                 value.subframe = part.subframe;
                 value.coding = Some(plp.coding);
                 value.layers = plp.layers;
+                value.bonded = plp.bonded;
                 if read {
                     value.fec_block_start = plp.fec_block_start;
                     value.ti = plp.ti;
@@ -421,7 +425,7 @@ pub struct Fec {
     plp: Option<u8>,
     /// Every subframe of the present frame decoded so far.
     good: bool,
-    points: Option<(PlpCoding, Constellation)>,
+    points: Option<(PlpCoding, PlpPoints)>,
     state: FrameState,
     pool: PacketPool,
     gap: bool,
@@ -520,14 +524,14 @@ impl Component for Fec {
                 continue;
             };
             if self.points.as_ref().is_none_or(|p| p.0 != coding) {
-                self.points = constellation(coding.bits, coding.rate).map(|p| (coding, p));
+                self.points = PlpPoints::new(coding.bits, coding.rate).map(|p| (coding, p));
             }
             match enhanced {
                 None if self.stream.as_ref().is_none_or(|s| *s.coding() != coding) => {
                     self.stream = PlpDecoder::new(coding).map(PlpStream::new);
                 }
-                Some(e) if self.layers.as_ref().is_none_or(|l| l.codings() != (coding, e.coding)) => {
-                    self.layers = LayerDecoder::new(coding, e.coding);
+                Some(e) if self.layers.as_ref().is_none_or(|l| !l.fits(coding, &e)) => {
+                    self.layers = LayerDecoder::of(coding, &e);
                 }
                 _ => {}
             }
@@ -541,12 +545,14 @@ impl Component for Fec {
             // The cells of another PLP do not follow those of the PLP before.
             let follows = c.follows && self.plp == Some(c.id);
             self.plp = Some(c.id);
+            // An enhanced PLP across core PLPs: the cells of the first core PLP, then those of the next ones.
+            let first = plp.cells.len().saturating_sub(c.layers.map_or(0, |l| l.next_cells()));
             let Some(cells) = self.deinterleaver.frame(
                 &c.ti,
                 follows,
                 coding.cells(),
-                &plp.cells,
-                &plp.weights,
+                &plp.cells[..first],
+                &plp.weights[..first],
                 c.fec_block_start,
             ) else {
                 self.state.failed = Some(NotDecoded::Signalling);
@@ -575,6 +581,7 @@ impl Component for Fec {
             }
             let (mut blocks, mut good, mut iterations) = (0u32, 0u32, 0u32);
             let (state, pool, gap) = (&mut self.state, &mut self.pool, &mut self.gap);
+            let bonded = c.bonded;
             let each = |r: BlockResult, packet: &[u8]| {
                 blocks += 1;
                 iterations += r.iterations;
@@ -582,7 +589,9 @@ impl Component for Fec {
                     good += 1;
                     state.packets += 1;
                     state.outer_corrected += u64::from(r.outer_corrected);
-                    if *gap {
+                    // Annex K.2: up to five baseband packets in a row go to one RF channel, so the packets of the other
+                    // channel may lie between any two of this one.
+                    if *gap || bonded {
                         gaps.push(packets.len());
                         *gap = false;
                     }
@@ -594,10 +603,9 @@ impl Component for Fec {
             };
             match (&mut self.stream, &mut self.layers, &c.layers) {
                 (_, Some(l), Some(layers)) if enhanced.is_some() => l.frame(
-                    cells.cells,
-                    cells.weights,
-                    cells.block_start,
-                    layers,
+                    CoreCells::from(&cells),
+                    (&plp.cells[first..], &plp.weights[first..], follows),
+                    (layers, c.ti.subframes_late()),
                     LDPC_ITERATIONS,
                     each,
                 ),
@@ -613,7 +621,12 @@ impl Component for Fec {
             self.count(c.first, true, blocks, good);
             self.state.iterations = iterations as f32 / blocks.max(1) as f32;
             self.state.pilot_snr_db = Some(plp.pilot_snr_db);
-            self.state.mer_db = self.points.as_ref().and_then(|(_, points)| {
+            // The enhanced PLP is measured after the core PLP is taken off, against its own constellation.
+            let enhanced_mer = match (enhanced, &mut self.layers) {
+                (Some(_), Some(l)) => Some(l.take_mer()),
+                _ => None,
+            };
+            self.state.mer_db = enhanced_mer.unwrap_or_else(|| self.points.as_ref().and_then(|(_, points)| {
                 let (mut signal, mut error) = (0f64, 0f64);
                 let every = (plp.cells.len() / MER_CELLS).max(1);
                 for (z, w) in plp.cells.iter().zip(&plp.weights).step_by(every) {
@@ -624,7 +637,7 @@ impl Component for Fec {
                     }
                 }
                 (signal > 0.0 && error > 0.0).then(|| (10.0 * (signal / error).log10()) as f32)
-            });
+            }));
             if blocks != good {
                 self.state.failed = Some(NotDecoded::Fec);
             } else if self.good {
