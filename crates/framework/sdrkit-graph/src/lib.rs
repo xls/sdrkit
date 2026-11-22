@@ -52,8 +52,9 @@ pub use graph::{
 };
 pub use guard::SampleGuard;
 pub use media::{
-    Codec, Codec2Mode, FourCc, MediaFormat, MediaPacket, MediaSpec, Packaging, Picture,
-    PixelFormat, PixelLayout, SpeechChannel, SpeechPackaging, SpeechPacket, VideoFrame,
+    Codec, Codec2Mode, FourCc, MediaFormat, MediaPacket, MediaSpec, Packaging, Picture, PictureIds,
+    PictureState, PixelFormat, PixelLayout, SpeechChannel, SpeechPackaging, SpeechPacket,
+    VideoFrame,
 };
 pub use graph::{Stage, StageProblem, AHEAD_BYTES, MAX_STAGES};
 pub use meter::{Meter, SectionTimer};

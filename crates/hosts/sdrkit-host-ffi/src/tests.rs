@@ -242,6 +242,9 @@ fn a_table_is_read_by_counter_and_only_the_changed_rows_come_again() {
         assert_eq!(t.sort_column, crate::value::SDRKIT_NO_ID);
         assert_eq!(t.position_column, crate::value::SDRKIT_NO_ID);
         assert_eq!(t.speed_column, crate::value::SDRKIT_NO_ID);
+        assert_eq!(t.role, crate::results::SDRKIT_TABLE_ROLE_NONE);
+        assert_eq!(t.sender_column, crate::value::SDRKIT_NO_ID);
+        assert_eq!(t.time_column, crate::value::SDRKIT_NO_ID);
                 let mut col = Decl::default();
         assert_eq!(sdrkit_column_decl(e, stacks, name, &mut col), OK);
         assert_eq!(col.r#type, SDRKIT_TYPE_STRING);

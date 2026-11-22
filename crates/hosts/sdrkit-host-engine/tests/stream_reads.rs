@@ -69,6 +69,7 @@ impl Receiver for Streamer {
                 kind: StreamKind::Mp2,
                 packet: Packet::new(Arc::from(self.packet.to_le_bytes()), time),
                 format: Arc::clone(&self.audio),
+                picture: None,
             });
         }
         PACKETS_MADE.fetch_add(PACKETS, Ordering::Relaxed);
@@ -76,6 +77,7 @@ impl Receiver for Streamer {
             kind: StreamKind::Picture,
             packet: Packet::new(Arc::from(self.block.to_le_bytes()), time),
             format: Arc::clone(&self.picture),
+            picture: None,
         });
         PICTURES_MADE.fetch_add(1, Ordering::Relaxed);
     }

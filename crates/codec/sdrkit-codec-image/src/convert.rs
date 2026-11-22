@@ -99,7 +99,7 @@ impl Component for Decode {
                 Codec::Pixels(_) => Some(p.clone()),
                 codec => decode(codec, &p.data)
                     .ok()
-                    .map(|r| r.to_picture(p.name.as_deref().unwrap_or(""))),
+                    .map(|r| r.to_picture(p.name.as_deref().unwrap_or(""), p.id, p.state)),
             };
             match out {
                 Some(value) => io.items_out::<Picture>(0).push(Timed { time, value }),
@@ -191,7 +191,7 @@ impl Component for PixelConvert {
                 Raster::from_picture(p)
                     .and_then(|r| r.convert(to))
                     .ok()
-                    .map(|r| r.to_picture(p.name.as_deref().unwrap_or("")))
+                    .map(|r| r.to_picture(p.name.as_deref().unwrap_or(""), p.id, p.state))
             };
             match out {
                 Some(value) => io.items_out::<Picture>(0).push(Timed { time, value }),

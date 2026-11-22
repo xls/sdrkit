@@ -371,6 +371,19 @@ fn dgps_every_bit_rate_with_noise_offset_and_clock_error() {
         let (lat, _) = get(f, &DgpsFields::BASE_STATION).unwrap();
         assert!((lat + 33.86).abs() < 1e-4);
         assert_eq!(rows(f, &DGPS_ALMANAC).len(), 1);
+        // The station table has one row, keyed by the station id, and the map point of the station shows it.
+        let table = f.decl().table_id("station").expect("the station table");
+        let station = f.table(table).expect("its rows");
+        assert_eq!(station.len(), 1);
+        let row = station.row("812").expect("the row of station 812");
+        let row_lat = match row.value(row.decl().id("position").unwrap()) {
+            Some(sdrkit_core::Value::Position { lat, .. }) => *lat,
+            other => panic!("the position of the station: {other:?}"),
+        };
+        assert!((row_lat + 33.86).abs() < 1e-4);
+        let point = f.points().get("station").expect("the point of the station");
+        let link = point.row.as_ref().expect("the point shows a row");
+        assert_eq!((link.table, link.key.as_str()), (table, "812"));
         assert!(r.events_of("rtcm.frame").next().is_some());
         let c5 = corrections
             .iter()

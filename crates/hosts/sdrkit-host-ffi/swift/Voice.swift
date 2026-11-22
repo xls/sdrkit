@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "voice", version 1.3. MIT licence.
+// sdrkit: the typed interface of the stack family "voice", version 1.4. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum VoiceInterface {
     public static let major = 1
-    public static let minor = 3
+    public static let minor = 4
 }
 
 /// The result fields that every single-channel stack shares.
@@ -1147,6 +1147,8 @@ public enum VoiceComponents {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum VoiceTables {
     /// The changed rows of the table "events" of the stack "hfpacket", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
+    /// Text: `text`. Time: `time_utc`.
     public static func hfpacketEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[VoiceDetectorEventRow], SDRKitCode> {
         var rows = [sdrkit_voice_detector_event_row](repeating: sdrkit_voice_detector_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1164,6 +1166,8 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfpacketFrameRow.init))
     }
     /// The changed rows of the table "events" of the stack "elt121", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
+    /// Text: `text`. Time: `time_utc`.
     public static func elt121Events(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[VoiceDetectorEventRow], SDRKitCode> {
         var rows = [sdrkit_voice_detector_event_row](repeating: sdrkit_voice_detector_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1172,6 +1176,8 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceDetectorEventRow.init))
     }
     /// The changed rows of the table "events" of the stack "voice_inversion", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
+    /// Text: `text`. Time: `time_utc`.
     public static func voiceInversionEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[VoiceDetectorEventRow], SDRKitCode> {
         var rows = [sdrkit_voice_detector_event_row](repeating: sdrkit_voice_detector_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1180,7 +1186,9 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceDetectorEventRow.init))
     }
     /// The changed rows of the table "calls" of the stack "voice_channels", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `label` names a row.
+    /// Time: `time_utc`.
     public static func voiceChannelsCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[VoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_voice_call_row](repeating: sdrkit_voice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1189,7 +1197,9 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceCallRow.init))
     }
     /// The changed rows of the table "channels" of the stack "voice_channels", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
     /// The column `name` names a row.
+    /// Time: `last_heard_utc`.
     public static func voiceChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[VoiceChannelRow], SDRKitCode> {
         var rows = [sdrkit_voice_channel_row](repeating: sdrkit_voice_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1198,7 +1208,9 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceChannelRow.init))
     }
     /// The changed rows of the table "calls" of the stack "mdc1200", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `label` names a row.
+    /// Time: `time_utc`.
     public static func mdc1200Calls(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[VoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_voice_call_row](repeating: sdrkit_voice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1207,7 +1219,9 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceCallRow.init))
     }
     /// The changed rows of the table "channels" of the stack "mdc1200", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
     /// The column `name` names a row.
+    /// Time: `last_heard_utc`.
     public static func mdc1200Channels(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[VoiceChannelRow], SDRKitCode> {
         var rows = [sdrkit_voice_channel_row](repeating: sdrkit_voice_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1216,7 +1230,9 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceChannelRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "mdc1200", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `label` names a row.
+    /// Sender: `unit_id`. Text: `text`. Time: `time_utc`.
     public static func mdc1200Bursts(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[Mdc1200BurstRow], SDRKitCode> {
         var rows = [sdrkit_mdc1200_burst_row](repeating: sdrkit_mdc1200_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1234,7 +1250,9 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WmicCandidateRow.init))
     }
     /// The changed rows of the table "calls" of the stack "fleetsync", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `label` names a row.
+    /// Time: `time_utc`.
     public static func fleetsyncCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[VoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_voice_call_row](repeating: sdrkit_voice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1243,7 +1261,9 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceCallRow.init))
     }
     /// The changed rows of the table "channels" of the stack "fleetsync", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
     /// The column `name` names a row.
+    /// Time: `last_heard_utc`.
     public static func fleetsyncChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[VoiceChannelRow], SDRKitCode> {
         var rows = [sdrkit_voice_channel_row](repeating: sdrkit_voice_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1252,7 +1272,9 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceChannelRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "fleetsync", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `label` names a row.
+    /// Sender: `unit`. Text: `text`. Time: `time_utc`.
     public static func fleetsyncBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[FleetsyncBurstRow], SDRKitCode> {
         var rows = [sdrkit_fleetsync_burst_row](repeating: sdrkit_fleetsync_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1261,6 +1283,8 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FleetsyncBurstRow.init))
     }
     /// The changed rows of the table "units" of the stack "fleetsync", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// Time: `last_heard`.
     public static func fleetsyncUnits(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[FleetsyncUnitRow], SDRKitCode> {
         var rows = [sdrkit_fleetsync_unit_row](repeating: sdrkit_fleetsync_unit_row(), count: capacity)
         var info = sdrkit_rows_info.sized

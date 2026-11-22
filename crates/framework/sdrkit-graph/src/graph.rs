@@ -1397,10 +1397,23 @@ pub(crate) fn collect_outputs(
             Data::Items(Some(items)) if items.item_type().is::<Picture>() => {
                 if let Some(v) = items.as_any().downcast_ref::<Vec<Timed<Picture>>>() {
                     // The pixels are shared with the host, not copied.
+                    // The number of a picture is the number that its component gave it, with the stream above it:
+                    // two outputs of pictures never share a number.
+                    let port = s as u64;
                     for p in v {
                         let f = picture_format(&p.value);
                         let packet = sdrkit_core::Packet::new(p.value.data.clone(), p.time);
-                        out.push_media(sdrkit_core::StreamKind::Picture, packet, &Arc::new(f));
+                        let whole = p.value.id == Picture::WHOLE;
+                        let tag = sdrkit_core::PictureTag {
+                            id: (port << 32) | u64::from(p.value.id),
+                            state: if whole {
+                                sdrkit_core::PictureState::Finished
+                            } else {
+                                p.value.state
+                            },
+                            name: p.value.name.as_deref().map(Arc::from),
+                        };
+                        out.push_picture(packet, &Arc::new(f), tag);
                     }
                 }
             }

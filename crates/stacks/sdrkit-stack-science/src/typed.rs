@@ -1391,7 +1391,7 @@ pub struct SameAlertRow<'a> {
     #[field(label = "Event")]
     pub event: Option<&'a str>,
     /// The event name.
-    #[field(label = "Event name")]
+    #[field(label = "Event name", role = Text)]
     pub event_name: Option<&'a str>,
     /// The kind of event (warning, watch ...).
     #[field(label = "Event kind")]
@@ -1412,7 +1412,7 @@ pub struct SameAlertRow<'a> {
     #[field(label = "Issued")]
     pub issued: Option<Time>,
     /// The sender's call sign.
-    #[field(label = "Call sign")]
+    #[field(label = "Call sign", role = Sender)]
     pub callsign: Option<&'a str>,
     /// The repeats heard.
     #[field(label = "Repeats")]
@@ -1531,7 +1531,9 @@ pub struct SameEndEvent<'a> {
 
 /// Messages.
 pub static SAME_ALERTS: Table<SameAlertRow<'static>> =
-    Table::new("alerts", "Messages", crate::same::MAX_ALERTS).label(&SameAlertRow::CALLSIGN);
+    Table::new("alerts", "Messages", crate::same::MAX_ALERTS)
+        .role(sdrkit_core::TableRole::Messages)
+        .label(&SameAlertRow::CALLSIGN);
 /// Locations.
 pub static SAME_ALERT_LOCATIONS: Table<SameAlertLocationRow<'static>> = Table::new(
     "alert_locations",
@@ -3275,7 +3277,7 @@ pub fn family() -> &'static Family {
         let objects_clear = &sdrkit_util_objects::commands::CLEAR;
         let decoder_clear = &sdrkit_graph::decoder::CLEAR;
         // Version 1.2 names rows and orders tables.
-        Family::new("science", 1, 2)
+        Family::new("science", 1, 3)
             .added(
                 1,
                 1,
@@ -3325,9 +3327,9 @@ pub fn family() -> &'static Family {
                     "eme_echo",
                     "beacon_events",
                     "pulsar",
-                    "radar_detect",
                 ],
             )
+            .content(sdrkit_core::ContentKind::Measurement, &["radar_detect"])
             .audio(sdrkit_core::AudioKind::Programme, &["same"])
             .audio(sdrkit_core::AudioKind::Monitor, &["time", "eczas"])
             .pictures(&["ssdv", "iono"])

@@ -113,6 +113,7 @@ pub const VIEW: CatalogueSetting = CatalogueSetting {
     choices: || view_choices(vec![picture_layout()]),
     default: "ch1",
     advanced: false,
+    role: Some(sdrkit_core::SettingRole::PictureView),
 };
 /// Keep the newest scans in view.
 pub const FOLLOW: Setting<field::Bool> = Setting::new("follow", "Follow", "", true);

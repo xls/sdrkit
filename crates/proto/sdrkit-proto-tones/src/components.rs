@@ -688,6 +688,7 @@ const TONE_SET: CatalogueSetting = CatalogueSetting {
     },
     default: "all",
     advanced: false,
+    role: None,
 };
 
 sdrkit_core::settings! {

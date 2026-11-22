@@ -66,6 +66,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
+| `station` | Station | `station_id` (whole number), `health` (choice), `position` (position), `height_m` (number (m)) |
 | `messages` | Messages | `msg_type` (whole number), `count` (whole number) |
 | `corrections` | Corrections | `prn` (whole number), `prc_m` (number (m)), `rrc_m_s` (number (m/s)), `iod` (whole number), `udre` (whole number) |
 | `almanac` | Beacon almanac | `station_id` (whole number), `freq_hz` (frequency), `bit_rate_hz` (frequency), `position` (position), `range_km` (number (km)), `health` (whole number) |
@@ -88,7 +89,7 @@ The stack puts points on a map: Base station.
 
 ## Typed interface
 
-The stack is in the family `avnav`, version 1.3. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avnav`, version 1.4. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Navigation aids (`navigation`). Media: none.
 
@@ -120,6 +121,19 @@ Struct `DgpsMeterFields`. The levels of the channel, from its power meter.
 |---|---|---|---|---|
 | `level_dbfs` | number (dBFS) | optional | 1.0 | The mean level. No value before the first tenth of a second. |
 | `peak_dbfs` | number (dBFS) | optional | 1.0 | The peak level. No value before the first tenth of a second. |
+
+### Table `station`
+
+Struct `DgpsStationRow`. The row of the station table: the base station of the frames received. The row key is the station id.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `station_id` | whole number | always | 1.4 | The station id. |
+| `health` | choice | optional | 1.4 | The health of the station. |
+| `position` | position | optional | 1.4 | The position of the station. No value before a message of type 3. |
+| `height_m` | number (m) | optional | 1.4 | The height of the station above the ellipsoid. No value before a message of type 3. |
+
+The column `station_id` names a row. Place of a row: the column `position`. Height: `height_m`.
 
 ### Table `messages`
 

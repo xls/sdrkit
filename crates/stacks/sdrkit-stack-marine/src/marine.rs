@@ -843,6 +843,9 @@ impl Component for FaxComponent {
         self.on = services(self.service, dial_of(f)).3;
         let mut d = FaxDecoder::new(f.rate)?;
         d.settings = self.settings.clone();
+        if let Some(old) = &mut self.dec {
+            d.carry_pictures(old);
+        }
         self.dec = Some(d);
         self.last_change = None;
         Ok(vec![
@@ -868,12 +871,27 @@ impl Component for FaxComponent {
                     value: MarineReport::Fax(Box::new(d.status())),
                 });
             }
+            for p in d.take_ended() {
+                io.items_out::<Picture>(1).push(Timed { time: t, value: p });
+            }
             if let Some((change, p)) = d.picture() {
                 if self.last_change != Some(change) {
                     self.last_change = Some(change);
                     io.items_out::<Picture>(1).push(Timed { time: t, value: p });
                 }
             }
+        }
+    }
+    fn finish(&mut self, io: &mut Io) {
+        self.process(io);
+        let Some(d) = &mut self.dec else {
+            return;
+        };
+        // The end of the input ends the page.
+        d.end_page();
+        let t = io.input(0).end() as f64 / io.input_format(0).rate.max(1.0);
+        for p in d.take_ended() {
+            io.items_out::<Picture>(1).push(Timed { time: t, value: p });
         }
     }
     fn apply(&mut self, id: SettingId, v: &Value) -> Result<Applied, SettingError> {
@@ -1321,13 +1339,15 @@ pub struct NavtexRow<'a> {
     #[field(label = "Repeats")]
     pub repeats: i64,
     /// The text of a decoded message.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
 }
 
 /// The NAVTEX messages, newest first.
 pub static NAVTEX_TABLE: Table<NavtexRow<'static>> =
-    Table::new("navtex", "NAVTEX", crate::navtex::LIST_CAP).label(&NavtexRow::HEADER);
+    Table::new("navtex", "NAVTEX", crate::navtex::LIST_CAP)
+        .role(sdrkit_core::TableRole::Messages)
+        .label(&NavtexRow::HEADER);
 
 /// A row of the DSC call table. The row key is the place of the call in the log.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1342,7 +1362,7 @@ pub struct DscRow<'a> {
     #[field(label = "Kind")]
     pub kind: &'a str,
     /// The sender's MMSI.
-    #[field(label = "From")]
+    #[field(label = "From", role = Sender)]
     pub from_mmsi: Option<&'a str>,
     /// The sender's name.
     #[field(label = "Name")]
@@ -1351,7 +1371,7 @@ pub struct DscRow<'a> {
     #[field(label = "Country")]
     pub from_country: Option<&'a str>,
     /// The called station.
-    #[field(label = "To")]
+    #[field(label = "To", role = Addressee)]
     pub to_mmsi: Option<&'a str>,
     /// The category in words.
     #[field(label = "Category")]
@@ -1381,13 +1401,14 @@ pub struct DscRow<'a> {
     #[field(label = "Erasures")]
     pub erasures: i64,
     /// The text of a decoded message.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
 }
 
 /// The DSC calls, newest first.
-pub static DSC_TABLE: Table<DscRow<'static>> =
-    Table::new("dsc", "DSC", DSC_CAP).label(&DscRow::FROM_MMSI);
+pub static DSC_TABLE: Table<DscRow<'static>> = Table::new("dsc", "DSC", DSC_CAP)
+    .role(sdrkit_core::TableRole::Calls)
+    .label(&DscRow::FROM_MMSI);
 
 /// The fields of the event of a DSC call.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -2160,7 +2181,7 @@ impl Component for MarineDisplay {
         ])
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
     }
     fn process(&mut self, io: &mut Io) {

@@ -575,7 +575,9 @@ impl QrssDecoder {
         }
     }
 
-    fn picture(&mut self, out: &mut Outbox) {
+    /// Sends the newest rows of the spectrogram as the picture, in the state `state`. The picture is one strip that
+    /// grows, with one number.
+    fn picture(&mut self, out: &mut Outbox, state: sdrkit_graph::PictureState) {
         let t = self.element_now();
         let w = ((0.5 * t * NARROW_RATE).round() as usize).max(32);
         // Enough of the newest stream for the rows kept.
@@ -598,7 +600,7 @@ impl QrssDecoder {
         }
         p.rows = rows.len() as u32;
         self.rows_total = rows.len() as i64;
-        out.picture(self.n as f64 / 8000.0, p.to_picture());
+        out.picture(self.n as f64 / 8000.0, p.to_picture(state));
     }
 }
 
@@ -709,7 +711,7 @@ impl sdrkit_graph::Decoder for QrssDecoder {
         // Every 2 s of signal: the picture and the text.
         if self.since_read >= (2.0 * NARROW_RATE) as usize {
             self.since_read = 0;
-            self.picture(out);
+            self.picture(out, sdrkit_graph::PictureState::Growing);
             self.read_text(out);
         }
     }
@@ -718,7 +720,7 @@ impl sdrkit_graph::Decoder for QrssDecoder {
             // The end of the record: the element length is searched again over all of it.
             self.searched_at = 0;
             self.element = None;
-            self.picture(out);
+            self.picture(out, sdrkit_graph::PictureState::Finished);
             self.read_text(out);
         }
     }

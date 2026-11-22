@@ -79,7 +79,7 @@ pub struct IridiumFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct IridiumRawRow<'a> {
     /// At (signal time).
-    #[field(label = "At (signal time)", unit = "s")]
+    #[field(label = "At (signal time)", unit = "s", role = Time)]
     pub at: Seconds,
     /// Frequency.
     #[field(label = "Frequency", unit = "Hz")]
@@ -91,7 +91,7 @@ pub struct IridiumRawRow<'a> {
     #[field(label = "Confidence", unit = "%")]
     pub confidence_pct: f64,
     /// RAW line.
-    #[field(label = "RAW line")]
+    #[field(label = "RAW line", role = Text)]
     pub line: &'a str,
 }
 
@@ -527,7 +527,7 @@ pub struct SatSurveyCarrierEvent<'a> {
 
 /// The RAW lines of Iridium, newest first (only while `raw_output` is on).
 pub static IRIDIUM_RAW: Table<IridiumRawRow<'static>> =
-    Table::new("raw", "RAW lines", iridium::RAW_CAP);
+    Table::new("raw", "RAW lines", iridium::RAW_CAP).role(sdrkit_core::TableRole::Messages);
 /// A RAW line of Iridium.
 pub static IRIDIUM_RAW_EVENT: EventKind<IridiumRawEvent<'static>> =
     EventKind::new("iridium.raw", "RAW line");
@@ -1805,7 +1805,7 @@ pub struct InmarsatcMessageRow<'a> {
     #[field(label = "Warning")]
     pub warning_number: &'a str,
     /// The text of the message.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
     /// The text of the message is cut short.
     #[field(label = "Truncated")]
@@ -1907,7 +1907,8 @@ pub struct InmarsatcEgcEvent<'a> {
 
 /// The EGC messages of Inmarsat-C.
 pub static INMARSATC_MESSAGES: Table<InmarsatcMessageRow<'static>> =
-    Table::new("messages", "EGC messages", inmarsatc::MESSAGE_CAP);
+    Table::new("messages", "EGC messages", inmarsatc::MESSAGE_CAP)
+        .role(sdrkit_core::TableRole::Messages);
 /// The channels followed now.
 pub static INMARSATC_CHANNELS: Table<InmarsatcChannelRow<'static>> =
     Table::new("channels", "Channels", inmarsatc::MAX_CHANNELS);
@@ -3133,10 +3134,10 @@ pub struct AeroMessageRow<'a> {
     #[field(label = "Frequency", unit = "Hz")]
     pub frequency: Hertz,
     /// The AES id, six hexadecimal digits.
-    #[field(label = "AES")]
+    #[field(label = "AES", role = Sender)]
     pub aes: &'a str,
     /// The GES id, two hexadecimal digits.
-    #[field(label = "GES")]
+    #[field(label = "GES", role = Addressee)]
     pub ges: &'a str,
     /// The registration.
     #[field(shared = aircraft::REGISTRATION)]
@@ -3154,7 +3155,7 @@ pub struct AeroMessageRow<'a> {
     #[field(label = "Message number")]
     pub message_number: &'a str,
     /// The text.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
     /// The block check is good.
     #[field(label = "Check good")]
@@ -3321,10 +3322,14 @@ pub static AERO_LOGONS: Table<AeroLogonRow<'static>> =
     Table::new("logons", "Log-ons", aero::LOGON_CAP);
 /// The ACARS messages.
 pub static AERO_MESSAGES: Table<AeroMessageRow<'static>> =
-    Table::new("messages", "Messages", aero::MESSAGE_CAP).label(&AeroMessageRow::FLIGHT);
+    Table::new("messages", "Messages", aero::MESSAGE_CAP)
+        .role(sdrkit_core::TableRole::Messages)
+        .label(&AeroMessageRow::FLIGHT);
 /// The aircraft heard.
 pub static AERO_AIRCRAFT: Table<AeroAircraftRow<'static>> =
-    Table::new("aircraft", "Aircraft", aero::AIRCRAFT_CAP).label(&AeroAircraftRow::FLIGHT);
+    Table::new("aircraft", "Aircraft", aero::AIRCRAFT_CAP)
+        .role(sdrkit_core::TableRole::Nodes)
+        .label(&AeroAircraftRow::FLIGHT);
 /// The system facts.
 pub static AERO_FACTS: Table<AeroFactRow<'static>> = Table::new("facts", "System", aero::FACT_CAP);
 /// An ACARS message. The source is the registration.
@@ -3509,7 +3514,7 @@ pub const INMARSAT_CARRIER_FOCUS: CommandKind<InmarsatCarrierArgs<'static>> =
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("satcom", 1, 4)
+        Described::new("satcom", 1, 5)
             .added(
                 1,
                 3,

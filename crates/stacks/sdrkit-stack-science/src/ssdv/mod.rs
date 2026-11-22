@@ -13,7 +13,7 @@ use sdrkit_codec_image::jpeg::{
     decode_block, encode_block, rgb_to_mcus_420, write_mcus_420, EntropyReader, EntropyWriter,
     Mcu420, StandardTables,
 };
-use sdrkit_core::media::{Codec, Picture};
+use sdrkit_core::media::{Codec, Picture, PictureIds, PictureState};
 use crate::typed::{SsdvFields, SsdvPacketRow, SsdvPictureRow, SSDV_PACKETS, SSDV_PICTURES};
 use sdrkit_core::interface::{Fields, Time};
 use sdrkit_core::publish::{field, Published};
@@ -989,6 +989,8 @@ sdrkit_core::commands! {
 /// The picture assembler (`ssdv.pictures`: `ssdv.packet` to `picture`).
 pub struct Pictures {
     pics: Vec<Assembly>,
+    /// The numbers of the pictures that still grow, by call sign and image id.
+    ids: PictureIds<(String, u8)>,
     rows: LogRing<PacketRow>,
     good: u64,
     bad: u64,
@@ -1009,6 +1011,7 @@ impl Default for Pictures {
     fn default() -> Self {
         Pictures {
             pics: Vec::new(),
+            ids: PictureIds::new(),
             rows: LogRing::new(MAX_PACKETS),
             good: 0,
             bad: 0,
@@ -1146,13 +1149,37 @@ impl Component for Pictures {
         )
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.clock = ctx.clock.clone();
     }
     fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
         self.rate = inputs[0].rate;
         self.publish();
         Ok(vec![Format::new(Kind::typed::<Picture>(), 0.0)])
+    }
+    fn finish(&mut self, io: &mut Io) {
+        self.process(io);
+        // The end of the input ends the pictures that still wait for packets.
+        for ((call, image), id) in self.ids.close_all() {
+            let Some(a) = self
+                .pics
+                .iter()
+                .find(|a| a.call == call && a.image == image)
+            else {
+                continue;
+            };
+            io.items_out::<Picture>(0).push(Timed {
+                time: self.t,
+                value: Picture {
+                    codec: Codec::Jpeg,
+                    layout: None,
+                    name: Some(format!("{call}-{image}")),
+                    id,
+                    state: PictureState::Finished,
+                    data: a.jpeg.clone(),
+                },
+            });
+        }
     }
     fn process(&mut self, io: &mut Io) {
         let first = io.input(0).first();
@@ -1197,6 +1224,20 @@ impl Component for Pictures {
                 None => {
                     if self.pics.len() >= MAX_PICTURES {
                         let gone = self.pics.remove(0);
+                        // A picture that leaves before its last packet goes out once more, finished.
+                        if let Some(id) = self.ids.close(&(gone.call.clone(), gone.image)) {
+                            outp.push(Timed {
+                                time: pk.time,
+                                value: Picture {
+                                    codec: Codec::Jpeg,
+                                    layout: None,
+                                    name: Some(format!("{}-{}", gone.call, gone.image)),
+                                    id,
+                                    state: PictureState::Finished,
+                                    data: gone.jpeg.clone(),
+                                },
+                            });
+                        }
                         picture_key(&mut self.key, &gone);
                         self.published.remove_row(&SSDV_PICTURES, &self.key);
                     }
@@ -1213,12 +1254,23 @@ impl Component for Pictures {
                 Some(w) => format!("{}-{}-{}", a.call, a.image, calendar::compact(w as i64)),
                 None => format!("{}-{}", a.call, a.image),
             };
+            // One number for each picture of a station. The picture grows until its last packet.
+            let key = (a.call.clone(), a.image);
+            let id = self.ids.of(&key);
+            let state = if a.complete() {
+                self.ids.close(&key);
+                PictureState::Finished
+            } else {
+                PictureState::Growing
+            };
             outp.push(Timed {
                 time: pk.time,
                 value: Picture {
                     codec: Codec::Jpeg,
                     layout: None,
                     name: Some(name),
+                    id,
+                    state,
                     data: a.jpeg.clone(),
                 },
             });

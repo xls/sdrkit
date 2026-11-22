@@ -372,6 +372,7 @@ const FCS: CatalogueSetting = CatalogueSetting {
     },
     default: DEFAULT_CRC,
     advanced: false,
+    role: None,
 };
 const MIN_LEN: Setting<field::I64> = Setting::new("min_len", "Shortest frame", "bytes", 1)
     .range(0.0, 65_535.0, 1.0)
@@ -573,6 +574,7 @@ const CRC: CatalogueSetting = CatalogueSetting {
     },
     default: DEFAULT_CRC,
     advanced: false,
+    role: None,
 };
 const TRAILER: Setting<field::Choice<CrcTrailer>> =
     Setting::choice("trailer", "Byte order", CrcTrailer::Auto)

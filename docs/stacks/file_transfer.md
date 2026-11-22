@@ -80,7 +80,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:fi
 
 ## Typed interface
 
-The stack is in the family `custom`, version 1.4. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `custom`, version 1.5. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: none.
 
@@ -128,7 +128,7 @@ Struct `FileTransferFileRow`. A row of the files heard. The row key is the sessi
 | `callsign` | text | always | 1.0 | The sending station. |
 | `time` | time | always | 1.0 | When the state was reached. |
 
-The column `name` names a row.
+The rows are the messages of the stack. The column `name` names a row. Sender: `callsign`. Text: `name`. Time: `time`.
 
 ### Event `file.received`
 

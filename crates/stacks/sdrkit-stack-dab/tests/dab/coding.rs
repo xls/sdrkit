@@ -168,6 +168,7 @@ fn aac_encoder() {
                 kind: sdrkit_core::StreamKind::Aac,
                 packet: sdrkit_core::media::Packet::new(u.clone().into(), 0.0),
                 format: fmt.clone(),
+                picture: None,
             })
             .collect();
         let refs: Vec<&sdrkit_core::Elementary> = el.iter().collect();

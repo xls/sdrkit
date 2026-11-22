@@ -30,7 +30,7 @@ pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // Version 3.2 names rows and orders tables.
-        Described::new("lora", 3, 2)
+        Described::new("lora", 3, 3)
             .added(
                 3,
                 1,
@@ -64,8 +64,9 @@ pub fn family() -> &'static Described {
             .content(sdrkit_core::ContentKind::Tracking, &["fanet"])
             .content(
                 sdrkit_core::ContentKind::Devices,
-                &["lorawan", "lorawanwide", "loraraw", "elrs"],
+                &["lorawan", "lorawanwide", "elrs"],
             )
+            .content(sdrkit_core::ContentKind::Utility, &["loraraw"])
             .audio(sdrkit_core::AudioKind::Monitor, &["aprs"])
             .text(&[
                 "mesh",
@@ -875,13 +876,13 @@ pub struct RnsPacketRow<'a> {
     #[field(label = "Time", unit = "s")]
     pub time_s: f64,
     /// The destination hash as hex.
-    #[field(label = "Destination")]
+    #[field(label = "Destination", role = Addressee)]
     pub destination: &'a str,
     /// The type of the packet.
     #[field(label = "Type")]
     pub r#type: PacketType,
     /// The packet in one line.
-    #[field(label = "Content")]
+    #[field(label = "Content", role = Text)]
     pub content: &'a str,
     /// The channel plus the carrier offset.
     #[field(shared = keys::FREQ_HZ)]
@@ -966,6 +967,7 @@ pub static RNS_PACKETS: Table<RnsPacketRow<'static>> = Table::new(
     "Packets",
     crate::components::reticulum::PACKET_CAP,
 )
+.role(sdrkit_core::TableRole::Messages)
 .label(&RnsPacketRow::DESTINATION);
 /// The Reticulum destinations.
 pub static RNS_DESTINATIONS: Table<RnsDestinationRow<'static>> = Table::new(
@@ -973,6 +975,7 @@ pub static RNS_DESTINATIONS: Table<RnsDestinationRow<'static>> = Table::new(
     "Destinations",
     crate::components::reticulum::DESTINATION_CAP,
 )
+.role(sdrkit_core::TableRole::Nodes)
 .label(&RnsDestinationRow::DESTINATION);
 /// A Reticulum destination heard for the first time.
 pub static RNS_DESTINATION: EventKind<RnsDestinationEvent<'static>> =
@@ -1046,13 +1049,13 @@ pub struct AprsFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct AprsFrameRow<'a> {
     /// The signal time of the frame.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The sender.
-    #[field(shared = keys::SOURCE)]
+    #[field(shared = keys::SOURCE, role = Sender)]
     pub source: &'a str,
     /// The destination.
-    #[field(shared = keys::TARGET)]
+    #[field(shared = keys::TARGET, role = Addressee)]
     pub target: &'a str,
     /// The digipeater path.
     #[field(label = "Path")]
@@ -1061,7 +1064,7 @@ pub struct AprsFrameRow<'a> {
     #[field(label = "Type")]
     pub r#type: &'a str,
     /// The frame in one line.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
     /// The bit rate.
     #[field(label = "Speed", unit = "bit/s")]
@@ -1141,6 +1144,7 @@ pub static APRS_FRAMES: Table<AprsFrameRow<'static>> =
 /// The APRS stations, objects and items.
 pub static APRS_STATIONS: Table<AprsStationRow<'static>> =
     Table::new("stations", "Stations", crate::aprs::station::STATIONS_CAP)
+        .role(sdrkit_core::TableRole::Nodes)
         .label(&AprsStationRow::CALL);
 /// One AX.25 frame.
 pub static APRS_PACKET: EventKind<AprsPacketEvent<'static>> =
@@ -1446,13 +1450,13 @@ pub struct MeshMessageRow<'a> {
     #[field(shared = keys::SOURCE)]
     pub source: Option<&'a str>,
     /// The name of the sender.
-    #[field(label = "Sender")]
+    #[field(label = "Sender", role = Sender)]
     pub sender: Option<&'a str>,
     /// The addressee.
-    #[field(shared = keys::TARGET)]
+    #[field(shared = keys::TARGET, role = Addressee)]
     pub target: Option<&'a str>,
     /// The text.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
     /// The hops taken.
     #[field(label = "Hops")]
@@ -1820,10 +1824,13 @@ pub static MESH_PACKETS: Table<MeshPacketRow<'static>> =
     Table::new("packets", "Packets", crate::mesh::store::PACKETS_CAP).label(&MeshPacketRow::SOURCE);
 /// The node list.
 pub static MESH_NODES: Table<MeshNodeRow<'static>> =
-    Table::new("nodes", "Nodes", crate::mesh::store::NODES_CAP).label(&MeshNodeRow::NAME);
+    Table::new("nodes", "Nodes", crate::mesh::store::NODES_CAP)
+        .role(sdrkit_core::TableRole::Nodes)
+        .label(&MeshNodeRow::NAME);
 /// The messages, newest last.
 pub static MESH_MESSAGES: Table<MeshMessageRow<'static>> =
     Table::new("messages", "Messages", crate::mesh::store::MESSAGES_CAP)
+        .role(sdrkit_core::TableRole::Messages)
         .label(&MeshMessageRow::SENDER);
 /// The telemetry and position readings, newest last.
 pub static MESH_READINGS: Table<MeshReadingRow<'static>> =
@@ -1853,6 +1860,7 @@ pub static MESH_CHANNELS: Table<MeshChannelRow<'static>> = Table::new(
     "Channels",
     crate::components::mesh::CHANNELS_CAP,
 )
+.role(sdrkit_core::TableRole::Groups)
 .label(&MeshChannelRow::CHANNEL);
 /// The Meshtastic frequency slots of the primary preset.
 pub static MESH_SLOTS: Table<MeshSlotRow> =

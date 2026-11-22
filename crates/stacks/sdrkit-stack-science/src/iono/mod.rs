@@ -809,7 +809,7 @@ impl Component for Sounders {
         .with_settings(SoundersSetting::schema())
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.clock = ctx.clock.clone();
         self.site = ctx.station.position;
     }
@@ -879,7 +879,12 @@ impl Component for Sounders {
                 io.items_out::<sdrkit_core::media::Picture>(0)
                     .push(sdrkit_graph::Timed {
                         time: self.now_s,
-                        value: r.to_picture("ionogram"),
+                        // The ionogram after a sweep, or of the sounder chosen: each is a whole picture.
+                        value: r.to_picture(
+                            "ionogram",
+                            sdrkit_core::Picture::WHOLE,
+                            sdrkit_core::PictureState::Finished,
+                        ),
                     });
             }
         }

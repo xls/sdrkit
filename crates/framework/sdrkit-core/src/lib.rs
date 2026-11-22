@@ -62,10 +62,12 @@ pub use command::{Command, CommandDef, CommandError, CommandId, CommandSet, Comm
 pub use event::{Event, EventCatalog, EventDecl, EventDef, EventKindId};
 pub use facilities::Facilities;
 pub use job::{Job, JobControl, JobError};
-pub use marks::{AudioKind, ContentKind, Media, Role, RowMarks, SortOrder, TableMarks};
+pub use marks::{
+    AudioKind, ContentKind, Media, Role, RowMarks, SettingRole, SortOrder, TableMarks, TableRole,
+};
 pub use media::{
-    ChannelLayout, Codec, FourCc, MediaFormat, MediaSpec, Packaging, Packet, Picture, PixelFormat,
-    PixelLayout, VideoFrame,
+    ChannelLayout, Codec, FourCc, MediaFormat, MediaSpec, Packaging, Packet, Picture, PictureIds,
+    PictureState, PixelFormat, PixelLayout, VideoFrame,
 };
 pub use net::{Conn, Datagram, Listener, NetError, Transport};
 pub use operator::{listened_hz, Demand, Operator, Receive, TableOperator, Transmit};
@@ -86,8 +88,9 @@ pub use settings::{
 pub use signal::SignalType;
 pub use stack::{
     AdapterCatalog, AudioPart, AutoGain, ConfigError, Elementary, GenConfig, Generator, InputInfo,
-    LockCondition, LockProfile, Lookup, MakeGenerator, MakeReceiver, NameSource, Output, Receiver,
-    SignalInfo, StackConfig, StackDescriptor, StackLookup, StageError, StreamKind, SubMode, Tuning,
+    LockCondition, LockProfile, Lookup, MakeGenerator, MakeReceiver, NameSource, Output,
+    PictureTag, Receiver, SignalInfo, StackConfig, StackDescriptor, StackLookup, StageError,
+    StreamKind, SubMode, Tuning,
 };
 pub use stage::{
     ComponentLoad, ConnectionLoad, CostRow, CostTable, StageDecl, StageLoad, StageRun, StageSetId,

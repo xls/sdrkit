@@ -60,9 +60,10 @@ impl HfPicture {
     pub fn put(&mut self, x: u32, y: u32, r: u8, g: u8, b: u8) {
         self.raster.put(x as i64, y as i64, &[b, g, r, 255]);
     }
-    /// The standard picture item of it (BGRA pixels), named after the picture mode.
-    pub fn to_picture(&self) -> sdrkit_graph::Picture {
-        self.raster.to_picture(self.mode)
+    /// The standard picture item of it (BGRA pixels), named after the picture mode, in the state `state`. The number
+    /// of the item is the number of the picture.
+    pub fn to_picture(&self, state: sdrkit_graph::PictureState) -> sdrkit_graph::Picture {
+        self.raster.to_picture(self.mode, self.id as u32, state)
     }
 }
 
@@ -393,7 +394,11 @@ impl PictureReader {
             self.done_px += 1;
             if self.done_px.is_multiple_of(w) {
                 self.rows_sent += 1;
-                out.picture(now as f64 / 8000.0, self.picture().to_picture());
+                out.picture(
+                    now as f64 / 8000.0,
+                    self.picture()
+                        .to_picture(sdrkit_graph::PictureState::Growing),
+                );
             }
         }
         if self.done_px >= self.total() {

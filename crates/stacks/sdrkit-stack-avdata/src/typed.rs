@@ -195,7 +195,7 @@ pub struct Vdl3Fields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct Vdl3BurstRow<'a> {
     /// The signal time of the end of the training.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The burst kind.
     #[field(label = "Kind")]
@@ -240,13 +240,13 @@ pub struct Vdl3BurstRow<'a> {
     #[field(shared = keys::EVM_PCT)]
     pub evm_pct: f64,
     /// The summary of the burst.
-    #[field(label = "Summary")]
+    #[field(label = "Summary", role = Text)]
     pub summary: &'a str,
 }
 
 /// The bursts, newest first.
 pub static VDL3_BURSTS: Table<Vdl3BurstRow<'static>> =
-    Table::new("bursts", "Bursts", crate::vdl3::BURST_CAP);
+    Table::new("bursts", "Bursts", crate::vdl3::BURST_CAP).role(sdrkit_core::TableRole::Messages);
 
 // --- ACARS ---
 
@@ -304,7 +304,7 @@ pub struct AcarsMessageRow<'a> {
     #[field(label = "Mode")]
     pub mode: Option<&'a str>,
     /// The registration.
-    #[field(shared = aircraft::REGISTRATION)]
+    #[field(shared = aircraft::REGISTRATION, role = Sender)]
     pub registration: Option<&'a str>,
     /// The row of the aircraft in the aircraft table.
     #[field(label = "Aircraft", refers_to = "aircraft")]
@@ -331,7 +331,7 @@ pub struct AcarsMessageRow<'a> {
     #[field(label = "Acknowledgement")]
     pub ack: Option<&'a str>,
     /// The printable text.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: Option<&'a str>,
     /// The reading of the fixed format.
     #[field(label = "Reading")]
@@ -492,10 +492,12 @@ pub struct AcarsMessageEvent<'a> {
 /// The messages, newest first.
 pub static ACARS_MESSAGES: Table<AcarsMessageRow<'static>> =
     Table::new("messages", "Messages", crate::acars::tables::MESSAGE_CAP)
+        .role(sdrkit_core::TableRole::Messages)
         .label(&AcarsMessageRow::FLIGHT);
 /// The aircraft.
 pub static ACARS_AIRCRAFT: Table<AcarsAircraftRow<'static>> =
     Table::new("aircraft", "Aircraft", crate::acars::tables::AIRCRAFT_CAP)
+        .role(sdrkit_core::TableRole::Nodes)
         .label(&AcarsAircraftRow::FLIGHT);
 /// The channels.
 pub static ACARS_CHANNELS: Table<AcarsChannelRow> =
@@ -560,13 +562,13 @@ pub struct Vdl2MessageRow<'a> {
     #[field(shared = keys::SNR_DB)]
     pub snr_db: f64,
     /// The source address, six hex digits.
-    #[field(label = "From")]
+    #[field(label = "From", role = Sender)]
     pub from: &'a str,
     /// The type of the source address.
     #[field(label = "From type")]
     pub from_type: i64,
     /// The destination address, six hex digits.
-    #[field(label = "To")]
+    #[field(label = "To", role = Addressee)]
     pub to: &'a str,
     /// The type of the destination address.
     #[field(label = "To type")]
@@ -596,7 +598,7 @@ pub struct Vdl2MessageRow<'a> {
     #[field(shared = aircraft::LABEL)]
     pub label: Option<&'a str>,
     /// The text of an ACARS message.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: Option<&'a str>,
     /// The ACARS check sequence passed.
     #[field(label = "ACARS check good")]
@@ -791,10 +793,12 @@ pub struct Vdl2MessageEvent<'a> {
 /// The frames, newest first.
 pub static VDL2_MESSAGES: Table<Vdl2MessageRow<'static>> =
     Table::new("messages", "Frames", crate::vdl2::tables::MESSAGE_CAP)
+        .role(sdrkit_core::TableRole::Messages)
         .label(&Vdl2MessageRow::FLIGHT);
 /// The aircraft.
 pub static VDL2_AIRCRAFT: Table<Vdl2AircraftRow<'static>> =
     Table::new("aircraft", "Aircraft", crate::vdl2::tables::AIRCRAFT_CAP)
+        .role(sdrkit_core::TableRole::Nodes)
         .label(&Vdl2AircraftRow::FLIGHT);
 /// The ground stations.
 pub static VDL2_STATIONS: Table<Vdl2StationRow<'static>> = Table::new(
@@ -849,7 +853,7 @@ pub struct SelcalCallRow<'a> {
     #[field(label = "Signal time", unit = "s")]
     pub signal_s: f64,
     /// The code, "AM-CP".
-    #[field(label = "Code")]
+    #[field(label = "Code", role = Addressee)]
     pub code: &'a str,
     /// The code as its row key in the codes.
     #[field(label = "Code row", refers_to = "codes")]
@@ -890,10 +894,12 @@ pub struct SelcalCodeRow<'a> {
 
 /// The calls, newest first.
 pub static SELCAL_CALLS: Table<SelcalCallRow<'static>> =
-    Table::new("calls", "Calls", crate::selcal::tables::CALL_CAP);
+    Table::new("calls", "Calls", crate::selcal::tables::CALL_CAP)
+        .role(sdrkit_core::TableRole::Calls);
 /// The codes heard.
 pub static SELCAL_CODES: Table<SelcalCodeRow<'static>> =
-    Table::new("codes", "Codes", crate::selcal::tables::CODE_CAP);
+    Table::new("codes", "Codes", crate::selcal::tables::CODE_CAP)
+        .role(sdrkit_core::TableRole::Nodes);
 /// The audio spectrum.
 pub const SELCAL_SPECTRUM: SeriesDef = SeriesDef {
     key: "spectrum",
@@ -1077,13 +1083,16 @@ pub struct AirbandActivityEvent<'a> {
 
 /// The channels.
 pub static AIRBAND_CHANNELS: Table<AirbandChannelRow<'static>> =
-    Table::new("channels", "Channels", 256).label(&AirbandChannelRow::NAME);
+    Table::new("channels", "Channels", 256)
+        .role(sdrkit_core::TableRole::Groups)
+        .label(&AirbandChannelRow::NAME);
 /// The band watch.
 pub static AIRBAND_SEEN: Table<AirbandSeenRow<'static>> =
     Table::new("seen", "Band watch", 200).label(&AirbandSeenRow::NAME);
 /// The transmissions, newest first.
 pub static AIRBAND_ACTIVITY: Table<AirbandActivityRow<'static>> =
     Table::new("activity", "Transmissions", crate::airband::tables::LOG)
+        .role(sdrkit_core::TableRole::Calls)
         .label(&AirbandActivityRow::NAME);
 /// Each transmission.
 pub static AIRBAND_TRANSMISSION: EventKind<AirbandActivityEvent<'static>> =
@@ -1254,7 +1263,7 @@ pub struct HfdlMessageRow<'a> {
     #[field(label = "Message number")]
     pub msn: Option<&'a str>,
     /// The text of an ACARS message.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: Option<&'a str>,
     /// The ACARS check sequence passed.
     #[field(label = "ACARS check good")]
@@ -1439,10 +1448,12 @@ pub struct HfdlMessageEvent<'a> {
 /// The messages, newest first.
 pub static HFDL_MESSAGES: Table<HfdlMessageRow<'static>> =
     Table::new("messages", "Messages", crate::hfdl::tables::MESSAGE_CAP)
+        .role(sdrkit_core::TableRole::Messages)
         .label(&HfdlMessageRow::FLIGHT);
 /// The aircraft.
 pub static HFDL_AIRCRAFT: Table<HfdlAircraftRow<'static>> =
     Table::new("aircraft", "Aircraft", crate::hfdl::tables::AIRCRAFT_CAP)
+        .role(sdrkit_core::TableRole::Nodes)
         .label(&HfdlAircraftRow::FLIGHT);
 /// The ground stations.
 pub static HFDL_STATIONS: Table<HfdlStationRow<'static>> = Table::new(
@@ -1510,7 +1521,7 @@ pub struct Vdl4MessageRow<'a> {
     #[field(shared = keys::SNR_DB)]
     pub snr_db: f64,
     /// The address of the sender, six hex digits.
-    #[field(shared = aircraft::ADDRESS)]
+    #[field(shared = aircraft::ADDRESS, role = Sender)]
     pub address: &'a str,
     /// The kind of the address.
     #[field(label = "Address kind")]
@@ -1519,7 +1530,7 @@ pub struct Vdl4MessageRow<'a> {
     #[field(label = "Message")]
     pub message: Option<&'a str>,
     /// One line.
-    #[field(label = "Summary")]
+    #[field(label = "Summary", role = Text)]
     pub summary: Option<&'a str>,
     /// The text of the DLS.
     #[field(label = "DLS text")]
@@ -1654,10 +1665,12 @@ pub struct Vdl4MessageEvent<'a> {
 /// The messages, newest first.
 pub static VDL4_MESSAGES: Table<Vdl4MessageRow<'static>> =
     Table::new("messages", "Messages", crate::vdl4::tables::MESSAGE_CAP)
+        .role(sdrkit_core::TableRole::Messages)
         .label(&Vdl4MessageRow::ADDRESS);
 /// The aircraft.
 pub static VDL4_AIRCRAFT: Table<Vdl4AircraftRow<'static>> =
     Table::new("aircraft", "Aircraft", crate::vdl4::tables::AIRCRAFT_CAP)
+        .role(sdrkit_core::TableRole::Nodes)
         .label(&Vdl4AircraftRow::FLIGHT);
 /// The ground stations.
 pub static VDL4_STATIONS: Table<Vdl4StationRow<'static>> = Table::new(
@@ -1837,7 +1850,7 @@ pub fn family() -> &'static Described {
                 "Vdl4Fields.ground_stations",
             ]);
         // The keys of the training sequences differ by a star only, so the starred ones get a name of their own.
-        Described::new("avdata", 1, 3)
+        Described::new("avdata", 1, 4)
             .added(
                 1,
                 2,

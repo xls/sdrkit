@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "trunk", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "trunk", version 1.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,7 +36,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_TRUNK_VERSION_MAJOR 1
-#define SDRKIT_TRUNK_VERSION_MINOR 4
+#define SDRKIT_TRUNK_VERSION_MINOR 5
 
 // The stack "mpt1327": its id, and the keys of its event types.
 #define SDRKIT_STACK_MPT1327 "mpt1327"
@@ -3519,6 +3519,8 @@ static inline int32_t sdrkit_tones_set_listen(SDRKIT_HANDLE handle, bool value) 
 
 // Fills `rows` with the changed rows of the table "pages" of the stack "pager" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
+// Addressee: `address`. Text: `message`. Time: `time_s`.
 static inline int32_t sdrkit_pager_pages_rows(SDRKIT_HANDLE handle,
                                              sdrkit_pager_page_row *rows,
                                              uint32_t capacity,
@@ -3537,6 +3539,8 @@ static inline int32_t sdrkit_pager_speeds_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "pager" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_pager_heard_rows(SDRKIT_HANDLE handle,
                                              sdrkit_pager_heard_row *rows,
                                              uint32_t capacity,
@@ -3741,6 +3745,8 @@ static inline int32_t sdrkit_pager_set_tx_level(SDRKIT_HANDLE handle, double val
 
 // Fills `rows` with the changed rows of the table "rows" of the stack "ermes" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
+// Addressee: `address`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_ermes_rows(SDRKIT_HANDLE handle,
                                        sdrkit_ermes_entry_row *rows,
                                        uint32_t capacity,
@@ -3778,6 +3784,8 @@ static inline int32_t sdrkit_ermes_gen_set_last_batch(SDRKIT_HANDLE handle, bool
 
 // Fills `rows` with the changed rows of the table "transmissions" of the stack "multitone" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
+// Time: `time_s`.
 static inline int32_t sdrkit_multitone_transmissions_rows(SDRKIT_HANDLE handle,
                                                          sdrkit_multitone_transmission_row *rows,
                                                          uint32_t capacity,
@@ -4015,7 +4023,9 @@ static inline int32_t sdrkit_opensky_gen_set_shape(SDRKIT_HANDLE handle, sdrkit_
 
 // Fills `rows` with the changed rows of the table "pages" of the stack "gsc" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `call` names a row.
+// Addressee: `code`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_gsc_pages_rows(SDRKIT_HANDLE handle,
                                            sdrkit_gsc_page_row *rows,
                                            uint32_t capacity,

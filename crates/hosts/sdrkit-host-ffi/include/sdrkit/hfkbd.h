@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "hfkbd", version 2.9. MIT licence.
+ * sdrkit: the typed interface of the stack family "hfkbd", version 2.10. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_HFKBD_VERSION_MAJOR 2
-#define SDRKIT_HFKBD_VERSION_MINOR 9
+#define SDRKIT_HFKBD_VERSION_MINOR 10
 
 // The stack "rtty": its id, and the keys of its event types.
 #define SDRKIT_STACK_RTTY "rtty"
@@ -2583,7 +2583,9 @@ typedef struct sdrkit_cp16_send_args {
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "rtty" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_rtty_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hfkbd_station_row *rows,
                                                uint32_t capacity,
@@ -2758,7 +2760,9 @@ static inline int32_t sdrkit_rtty_gen_set_lower_hz(SDRKIT_HANDLE handle, double 
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "psk" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_psk_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_hfkbd_station_row *rows,
                                               uint32_t capacity,
@@ -2889,7 +2893,9 @@ static inline int32_t sdrkit_psk_gen_set_freq_hz(SDRKIT_HANDLE handle, double va
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "cw" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_cw_stations_rows(SDRKIT_HANDLE handle,
                                              sdrkit_hfkbd_station_row *rows,
                                              uint32_t capacity,
@@ -3078,7 +3084,9 @@ static inline int32_t sdrkit_cw_gen_set_noise_only(SDRKIT_HANDLE handle, bool va
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "olivia" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_olivia_stations_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_hfkbd_station_row *rows,
                                                  uint32_t capacity,
@@ -3197,7 +3205,9 @@ static inline int32_t sdrkit_olivia_gen_set_message(SDRKIT_HANDLE handle, sdrkit
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "contestia" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_contestia_stations_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_hfkbd_station_row *rows,
                                                     uint32_t capacity,
@@ -3316,7 +3326,9 @@ static inline int32_t sdrkit_contestia_gen_set_message(SDRKIT_HANDLE handle, sdr
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "mfsk" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_mfsk_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hfkbd_station_row *rows,
                                                uint32_t capacity,
@@ -3446,7 +3458,9 @@ static inline int32_t sdrkit_mfsk_gen_set_picture_height(SDRKIT_HANDLE handle, i
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "dominoex" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_dominoex_stations_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_hfkbd_station_row *rows,
                                                    uint32_t capacity,
@@ -3554,7 +3568,9 @@ static inline int32_t sdrkit_dominoex_gen_set_message(SDRKIT_HANDLE handle, sdrk
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "thor" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_thor_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hfkbd_station_row *rows,
                                                uint32_t capacity,
@@ -3763,7 +3779,9 @@ static inline int32_t sdrkit_hell_gen_set_message(SDRKIT_HANDLE handle, sdrkit_s
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "mt63" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_mt63_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hfkbd_station_row *rows,
                                                uint32_t capacity,
@@ -3871,7 +3889,9 @@ static inline int32_t sdrkit_mt63_gen_set_centre_hz(SDRKIT_HANDLE handle, double
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "fsq" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_fsq_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_hfkbd_station_row *rows,
                                               uint32_t capacity,
@@ -3881,7 +3901,9 @@ static inline int32_t sdrkit_fsq_stations_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "fsq" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `from` names a row.
+// Sender: `from`. Addressee: `to`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_fsq_messages_rows(SDRKIT_HANDLE handle,
                                               sdrkit_fsq_message_row *rows,
                                               uint32_t capacity,
@@ -3984,7 +4006,9 @@ static inline int32_t sdrkit_fsq_gen_set_centre_hz(SDRKIT_HANDLE handle, double 
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "ifkp" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_ifkp_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hfkbd_station_row *rows,
                                                uint32_t capacity,
@@ -4206,7 +4230,9 @@ static inline int32_t sdrkit_sstv_gen_set_picture(SDRKIT_HANDLE handle, sdrkit_s
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "sitor" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_sitor_stations_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_hfkbd_station_row *rows,
                                                 uint32_t capacity,
@@ -4259,7 +4285,9 @@ static inline int32_t sdrkit_sitor_gen_set_lower_hz(SDRKIT_HANDLE handle, double
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "ardop" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `name` names a row.
+// Sender: `from`. Addressee: `to`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_ardop_frames_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ardop_frame_row *rows,
                                               uint32_t capacity,
@@ -4269,7 +4297,9 @@ static inline int32_t sdrkit_ardop_frames_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "ardop" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_ardop_stations_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_ardop_station_row *rows,
                                                 uint32_t capacity,
@@ -4453,7 +4483,9 @@ static inline int32_t sdrkit_ros_gen_set_baud(SDRKIT_HANDLE handle, double value
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "throb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_throb_stations_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_hfkbd_station_row *rows,
                                                 uint32_t capacity,
@@ -4539,7 +4571,9 @@ static inline int32_t sdrkit_throb_gen_set_centre_hz(SDRKIT_HANDLE handle, doubl
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "qrss" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_qrss_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hfkbd_station_row *rows,
                                                uint32_t capacity,
@@ -4657,7 +4691,9 @@ static inline int32_t sdrkit_qrss_gen_set_shift_hz(SDRKIT_HANDLE handle, double 
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "cp16" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_cp16_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hfkbd_station_row *rows,
                                                uint32_t capacity,

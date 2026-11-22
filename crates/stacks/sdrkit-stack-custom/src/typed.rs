@@ -113,7 +113,9 @@ pub struct SlottedVoiceStationEvent<'a> {
 
 /// The stations heard in beacons.
 pub static SLOTTED_VOICE_STATIONS: Table<SlottedVoiceStationRow<'static>> =
-    Table::new("stations", "Stations heard", 200).label(&SlottedVoiceStationRow::CALLSIGN);
+    Table::new("stations", "Stations heard", 200)
+        .role(sdrkit_core::TableRole::Nodes)
+        .label(&SlottedVoiceStationRow::CALLSIGN);
 /// A beacon of a station.
 pub static SLOTTED_VOICE_STATION: EventKind<SlottedVoiceStationEvent<'static>> =
     EventKind::new("voice.station", "Station beacon");
@@ -322,7 +324,7 @@ pub struct ArqPacketFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct ArqPacketMessageRow<'a> {
     /// The sending station.
-    #[field(shared = keys::CALLSIGN)]
+    #[field(shared = keys::CALLSIGN, role = Sender)]
     pub callsign: &'a str,
     /// The sequence number of the last burst of the message.
     #[field(label = "Sequence")]
@@ -331,7 +333,7 @@ pub struct ArqPacketMessageRow<'a> {
     #[field(label = "Length", unit = "bytes")]
     pub length: i64,
     /// The message as text.
-    #[field(label = "Text")]
+    #[field(label = "Text", role = Text)]
     pub text: &'a str,
     /// When the message was completed.
     #[field(label = "Time")]
@@ -394,7 +396,9 @@ pub struct ArqPacketAckInEvent<'a> {
 
 /// The messages received.
 pub static ARQ_PACKET_MESSAGES: Table<ArqPacketMessageRow<'static>> =
-    Table::new("messages", "Messages", 200).label(&ArqPacketMessageRow::CALLSIGN);
+    Table::new("messages", "Messages", 200)
+        .role(sdrkit_core::TableRole::Messages)
+        .label(&ArqPacketMessageRow::CALLSIGN);
 /// A message was completed.
 pub static ARQ_PACKET_MESSAGE: EventKind<ArqPacketMessageEvent<'static>> =
     EventKind::new("packet.message", "Message received");
@@ -468,7 +472,7 @@ pub struct FileTransferFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FileTransferFileRow<'a> {
     /// The file name.
-    #[field(label = "Name")]
+    #[field(label = "Name", role = Text)]
     pub name: &'a str,
     /// The size.
     #[field(label = "Size", unit = "bytes")]
@@ -480,7 +484,7 @@ pub struct FileTransferFileRow<'a> {
     #[field(label = "State")]
     pub state: &'a str,
     /// The sending station.
-    #[field(shared = keys::CALLSIGN)]
+    #[field(shared = keys::CALLSIGN, role = Sender)]
     pub callsign: &'a str,
     /// When the state was reached.
     #[field(label = "Time")]
@@ -529,7 +533,9 @@ pub struct FileTransferOpenEvent<'a> {
 
 /// The files heard.
 pub static FILE_TRANSFER_FILES: Table<FileTransferFileRow<'static>> =
-    Table::new("files", "Files", 200).label(&FileTransferFileRow::NAME);
+    Table::new("files", "Files", 200)
+        .role(sdrkit_core::TableRole::Messages)
+        .label(&FileTransferFileRow::NAME);
 /// A file passed every check and was saved.
 pub static FILE_TRANSFER_RECEIVED: EventKind<FileTransferReceivedEvent<'static>> =
     EventKind::new("file.received", "File received");
@@ -596,13 +602,13 @@ pub struct HfChatFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct HfChatMessageRow<'a> {
     /// The sending station; empty for a data message.
-    #[field(shared = keys::CALLSIGN)]
+    #[field(shared = keys::CALLSIGN, role = Sender)]
     pub callsign: &'a str,
     /// The recipient; empty for a data message.
-    #[field(label = "To")]
+    #[field(label = "To", role = Addressee)]
     pub to: &'a str,
     /// The text.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
     /// When the message was completed, UTC.
     #[field(label = "Time")]
@@ -702,10 +708,13 @@ pub struct HfChatVoiceEvent<'a> {
 
 /// The messages received.
 pub static HF_CHAT_MESSAGES: Table<HfChatMessageRow<'static>> =
-    Table::new("messages", "Messages", 200).label(&HfChatMessageRow::CALLSIGN);
+    Table::new("messages", "Messages", 200)
+        .role(sdrkit_core::TableRole::Messages)
+        .label(&HfChatMessageRow::CALLSIGN);
 /// The beacons received.
-pub static HF_CHAT_BEACONS: Table<HfChatBeaconRow<'static>> =
-    Table::new("beacons", "Beacons", 200).label(&HfChatBeaconRow::CALLSIGN);
+pub static HF_CHAT_BEACONS: Table<HfChatBeaconRow<'static>> = Table::new("beacons", "Beacons", 200)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&HfChatBeaconRow::CALLSIGN);
 /// A chat or data message was completed.
 pub static HF_CHAT_MESSAGE: EventKind<HfChatMessageEvent<'static>> =
     EventKind::new("chat.message", "Message received");
@@ -753,7 +762,7 @@ pub fn family() -> &'static Family {
         // What a stack heard from stations stays over a change of frequency: the station list, the logs of messages,
         // pictures and files, and the counts of these logs. The streams of `qam_video` belong to the signal on air.
         // 1.2: each `send` names `stop` as the command that ends its transmission.
-        Family::new("custom", 1, 4)
+        Family::new("custom", 1, 5)
             .added(
                 1,
                 3,

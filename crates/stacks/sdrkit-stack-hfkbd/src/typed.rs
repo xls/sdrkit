@@ -54,8 +54,9 @@ pub struct StationRow<'a> {
 }
 
 /// The stations heard: one row for each callsign in the decoded text.
-pub static STATIONS: Table<StationRow<'static>> =
-    Table::new("stations", "Stations heard", 100).label(&StationRow::CALLSIGN);
+pub static STATIONS: Table<StationRow<'static>> = Table::new("stations", "Stations heard", 100)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&StationRow::CALLSIGN);
 
 /// The fields of a callsign heard for the first time.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -689,22 +690,22 @@ pub struct FsqFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FsqMessageRow<'a> {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The sender, when the line starts with "CALL:".
-    #[field(label = "From")]
+    #[field(label = "From", role = Sender)]
     pub from: Option<&'a str>,
     /// The two hex digits equal the CRC-8 of the callsign.
     #[field(label = "Check")]
     pub crc_ok: bool,
     /// The addressee.
-    #[field(label = "To")]
+    #[field(label = "To", role = Addressee)]
     pub to: Option<&'a str>,
     /// The trigger.
     #[field(label = "Trigger")]
     pub trigger: Option<Trigger>,
     /// The text after the trigger.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
     /// Addressed to my call, allcall or cqcqcq.
     #[field(label = "To me")]
@@ -712,8 +713,9 @@ pub struct FsqMessageRow<'a> {
 }
 
 /// The FSQ messages, newest first.
-pub static FSQ_MESSAGES: Table<FsqMessageRow<'static>> =
-    Table::new("messages", "Messages", 60).label(&FsqMessageRow::FROM);
+pub static FSQ_MESSAGES: Table<FsqMessageRow<'static>> = Table::new("messages", "Messages", 60)
+    .role(sdrkit_core::TableRole::Messages)
+    .label(&FsqMessageRow::FROM);
 
 /// The fields of an FSQ message.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -994,7 +996,7 @@ pub struct ArdopFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct ArdopFrameRow<'a> {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The frame type.
     #[field(label = "Type")]
@@ -1015,16 +1017,16 @@ pub struct ArdopFrameRow<'a> {
     #[field(label = "Session")]
     pub session: i64,
     /// The sender, if the frame names one.
-    #[field(label = "From")]
+    #[field(label = "From", role = Sender)]
     pub from: Option<&'a str>,
     /// The addressee, if the frame names one.
-    #[field(label = "To")]
+    #[field(label = "To", role = Addressee)]
     pub to: Option<&'a str>,
     /// The locator, if the frame holds one.
     #[field(shared = keys::LOCATOR)]
     pub locator: Option<&'a str>,
     /// The text, if the frame holds one.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: Option<&'a str>,
     /// The quality that the frame reports.
     #[field(label = "Quality")]
@@ -1079,11 +1081,14 @@ pub struct ArdopStationRow<'a> {
 }
 
 /// The ARDOP frames, newest first.
-pub static ARDOP_FRAMES: Table<ArdopFrameRow<'static>> =
-    Table::new("frames", "Frames", 300).label(&ArdopFrameRow::NAME);
+pub static ARDOP_FRAMES: Table<ArdopFrameRow<'static>> = Table::new("frames", "Frames", 300)
+    .role(sdrkit_core::TableRole::Messages)
+    .label(&ArdopFrameRow::NAME);
 /// The ARDOP stations.
 pub static ARDOP_STATIONS: Table<ArdopStationRow<'static>> =
-    Table::new("stations", "Stations", 100).label(&ArdopStationRow::CALLSIGN);
+    Table::new("stations", "Stations", 100)
+        .role(sdrkit_core::TableRole::Nodes)
+        .label(&ArdopStationRow::CALLSIGN);
 
 /// The level of the ARDOP signal over time.
 pub const ARDOP_LEVELS: SeriesDef = SeriesDef {
@@ -2053,7 +2058,7 @@ pub fn family() -> &'static Described {
         let olivia = k::olivia::OliviaSetting::SETTINGS;
         let olivia_gen = k::olivia::OliviaGenSetting::SETTINGS;
         let ifk_gen = k::domino::IfkGenSetting::SETTINGS;
-        let mut f = Described::new("hfkbd", 2, 9)
+        let mut f = Described::new("hfkbd", 2, 10)
             .added(
                 2,
                 8,

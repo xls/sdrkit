@@ -599,7 +599,7 @@ impl EodbComponent {
         };
         let r = products::render(d, planes, th.as_ref(), width)?;
         let raster = Raster::from_rgb(r.width as u32, r.height as u32, &r.data).ok()?;
-        Some(raster.to_picture(d.name))
+        Some(raster.to_picture(d.name, Picture::WHOLE, sdrkit_core::PictureState::Finished))
     }
 }
 

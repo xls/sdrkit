@@ -21,6 +21,8 @@ impl crate::stream::Item for Picture {
 ///     codec: Codec::Pixels(PixelFormat::Grey8),
 ///     layout: Some(PixelLayout::packed(PixelFormat::Grey8, 4, 2)),
 ///     name: None,
+///     id: 1,
+///     state: sdrkit_graph::PictureState::Finished,
 ///     data: Arc::from(&[0u8; 8][..]),
 /// };
 /// let f = picture_format(&p);

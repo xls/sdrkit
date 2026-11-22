@@ -40,6 +40,10 @@ int main(int argc, char **argv) {
     CHECK(decl.label_column == name_column && decl.position_column == position_column);
     CHECK(decl.sort_column == SDRKIT_NO_ID && decl.latitude_column == SDRKIT_NO_ID);
     CHECK(decl.course_column != SDRKIT_NO_ID && decl.speed_column != SDRKIT_NO_ID);
+    // The ships are no messages, calls, nodes or groups, and no column is a part of a message.
+    CHECK(decl.role == SDRKIT_TABLE_ROLE_NONE && decl.sender_column == SDRKIT_NO_ID);
+    CHECK(decl.addressee_column == SDRKIT_NO_ID && decl.text_column == SDRKIT_NO_ID);
+    CHECK(decl.time_column == SDRKIT_NO_ID);
     uint32_t linked = 0;
     for (uint32_t n = 0; n < snapshot.points; n++) {
         sdrkit_point point = SDRKIT_POINT_INIT;

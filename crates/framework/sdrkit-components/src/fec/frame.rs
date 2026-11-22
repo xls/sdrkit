@@ -229,6 +229,7 @@ const BCH_CODE: CatalogueSetting = CatalogueSetting {
     },
     default: "dvb_s2_normal_1_2",
     advanced: false,
+    role: None,
 };
 const DROP_FAILED: Setting<field::Bool> =
     Setting::new("drop_failed", "Drop failed frames", "", false).help(DROP_FAILED_HELP);
@@ -393,6 +394,7 @@ const LDPC_CODE: CatalogueSetting = CatalogueSetting {
     },
     default: "dvb_s2_short_1_2",
     advanced: false,
+    role: None,
 };
 const LIFTING: Setting<field::I64> = Setting::new("lifting", "Lifting size", "", 384)
     .range(2.0, 384.0, 1.0)

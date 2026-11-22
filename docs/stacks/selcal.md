@@ -67,7 +67,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:se
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.3. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 1.4. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Paging (`paging`). Media: text.
 
@@ -96,6 +96,8 @@ Struct `SelcalCallRow`. A row of the calls. The row key is the place in the log.
 | `level_db` | number (dB) | always | 1.0 | The level of the tones, dB relative to a full-scale sine. |
 | `aircraft` | text | optional | 1.0 | The aircraft the code belongs to. |
 
+The rows are the calls of the stack. Addressee: `code`. Time: `time`.
+
 ### Table `codes`
 
 Struct `SelcalCodeRow`. A row of the codes heard. The row key is the code.
@@ -107,6 +109,8 @@ Struct `SelcalCodeRow`. A row of the codes heard. The row key is the code.
 | `heard` | whole number | optional | 1.0 | How often the code was heard. |
 | `last_heard` | time | optional | 1.0 | When the code was last heard. |
 | `dial` | frequency | optional | 1.0 | The last dial frequency. No value when it is not known. |
+
+The rows are the stations or nodes of the stack. Time: `last_heard`.
 
 ### Event `tones.selcal`
 

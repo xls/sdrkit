@@ -118,7 +118,8 @@ pub fn print_table(
 }
 
 /// The marks of table `t` as text after its line, each with `; ` before it: the column that names a row, the default
-/// order and the columns of the place of a row. Empty for a table without marks.
+/// order, the columns of the place of a row, what the rows are, and the columns of a message. Empty for a table
+/// without marks.
 fn table_marks(t: &sdrkit_core::TableDecl) -> String {
     let m = &t.marks;
     let key = |c: u16| t.columns.fields()[usize::from(c)].key.as_ref();
@@ -140,6 +141,19 @@ fn table_marks(t: &sdrkit_core::TableDecl) -> String {
         ("altitude", m.altitude),
         ("course", m.course),
         ("speed", m.speed),
+    ] {
+        if let Some(c) = c {
+            let _ = write!(out, "; {name} {}", key(c));
+        }
+    }
+    if let Some(r) = m.role {
+        let _ = write!(out, "; role {}", r.key());
+    }
+    for (name, c) in [
+        ("sender", m.sender),
+        ("addressee", m.addressee),
+        ("text", m.text),
+        ("time", m.time),
     ] {
         if let Some(c) = c {
             let _ = write!(out, "; {name} {}", key(c));

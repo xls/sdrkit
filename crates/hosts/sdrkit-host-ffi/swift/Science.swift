@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "science", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "science", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum ScienceInterface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The result fields of `sonde`.
@@ -3471,7 +3471,9 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(EczasFrameRow.init))
     }
     /// The changed rows of the table "alerts" of the stack "same", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `callsign` names a row.
+    /// Sender: `callsign`. Text: `event_name`. Time: `host_time`.
     public static func sameAlerts(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[SameAlertRow], SDRKitCode> {
         var rows = [sdrkit_same_alert_row](repeating: sdrkit_same_alert_row(), count: capacity)
         var info = sdrkit_rows_info.sized

@@ -843,6 +843,8 @@ impl PictureDecoder {
             codec: Codec::Pixels(PixelFormat::Bgra),
             layout: Some(layout),
             name: None,
+            id: Picture::WHOLE,
+            state: sdrkit_core::PictureState::Finished,
             data: Arc::from(data.into_boxed_slice()),
         };
         self.pictures += 1;

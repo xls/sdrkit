@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "custom", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "custom", version 1.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_CUSTOM_VERSION_MAJOR 1
-#define SDRKIT_CUSTOM_VERSION_MINOR 4
+#define SDRKIT_CUSTOM_VERSION_MINOR 5
 
 // The stack "slotted_voice": its id, and the keys of its event types.
 #define SDRKIT_STACK_SLOTTED_VOICE "slotted_voice"
@@ -1020,8 +1020,10 @@ typedef struct sdrkit_hf_chat_tx_event {
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "slotted_voice" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_slotted_voice_stations_rows(SDRKIT_HANDLE handle,
                                                         sdrkit_slotted_voice_station_row *rows,
                                                         uint32_t capacity,
@@ -1371,7 +1373,9 @@ static inline int32_t sdrkit_picture_burst_set_picture(SDRKIT_HANDLE handle, sdr
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "arq_packet" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `callsign` names a row.
+// Sender: `callsign`. Text: `text`. Time: `time`.
 static inline int32_t sdrkit_arq_packet_messages_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_arq_packet_message_row *rows,
                                                      uint32_t capacity,
@@ -1474,7 +1478,9 @@ static inline int32_t sdrkit_arq_packet_set_file(SDRKIT_HANDLE handle, sdrkit_st
 
 // Fills `rows` with the changed rows of the table "files" of the stack "file_transfer" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `name` names a row.
+// Sender: `callsign`. Text: `name`. Time: `time`.
 static inline int32_t sdrkit_file_transfer_files_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_file_transfer_file_row *rows,
                                                      uint32_t capacity,
@@ -1617,7 +1623,9 @@ static inline int32_t sdrkit_file_transfer_set_fixed_profile(SDRKIT_HANDLE handl
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "hf_chat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `callsign` names a row.
+// Sender: `callsign`. Addressee: `to`. Text: `text`. Time: `time`.
 static inline int32_t sdrkit_hf_chat_messages_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_hf_chat_message_row *rows,
                                                   uint32_t capacity,
@@ -1627,8 +1635,10 @@ static inline int32_t sdrkit_hf_chat_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "beacons" of the stack "hf_chat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Place of a row: the column `position`.
+// Time: `time`.
 static inline int32_t sdrkit_hf_chat_beacons_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_hf_chat_beacon_row *rows,
                                                  uint32_t capacity,

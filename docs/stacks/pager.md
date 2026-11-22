@@ -92,7 +92,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:pa
 
 ## Typed interface
 
-The stack is in the family `trunk`, version 1.4. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `trunk`, version 1.5. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Paging (`paging`). Media: text.
 
@@ -142,6 +142,8 @@ Struct `PagerPageRow`. A row of the page list. The row key is the sequence numbe
 | `copies` | whole number | always | 1.0 | The copies voted into the page. |
 | `freq_hz` | frequency | optional | 1.0 | The frequency of the carrier, when it is known. |
 
+The rows are the messages of the stack. Addressee: `address`. Text: `message`. Time: `time_s`.
+
 ### Table `speeds`
 
 Struct `PagerSpeedRow`. A row of the statistics of each speed. The row key is the speed.
@@ -168,6 +170,8 @@ Struct `PagerHeardRow`. A row of the addresses heard. The row key is the protoco
 | `speed` | text | always | 1.0 | The protocol and speed of the last page. |
 | `last_text` | text | optional | 1.0 | The last text (a tone-only page does not erase it). |
 | `last_heard` | time | optional | 1.0 | When it was last heard. |
+
+The rows are the stations or nodes of the stack. Time: `last_heard`.
 
 ### Event `pocsag.page`
 

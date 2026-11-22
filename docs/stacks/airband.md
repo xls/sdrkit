@@ -81,7 +81,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ai
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.3. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 1.4. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Voice calls (`voice`). Media: sound (voice).
 
@@ -130,7 +130,7 @@ Struct `AirbandChannelRow`. A row of the channels. The row key is the name of th
 | `offset_hz` | frequency | always | 1.0 | The carrier offset. |
 | `count` | whole number | always | 1.0 | Transmissions on the channel. |
 
-The column `name` names a row.
+The rows are the groups of the stack. The column `name` names a row.
 
 ### Table `seen`
 
@@ -165,7 +165,7 @@ Struct `AirbandActivityRow`. A row of the transmissions. The row key is the plac
 | `level_db` | number (dB) | always | 1.0 | The level. |
 | `heterodyne` | yes or no | always | 1.0 | Two stations at once. |
 
-The column `name` names a row.
+The rows are the calls of the stack. The column `name` names a row. Time: `time`.
 
 ### Event `airband.activity`
 

@@ -243,6 +243,11 @@ impl Feed {
         self.live
     }
 
+    /// True if the signal of the feed is made as it plays (a test signal): [`RunContext::present`].
+    pub(crate) fn present(&self) -> bool {
+        self.ctx.present
+    }
+
     /// Adds a session. False if the feed's radio is closing: the session is not added.
     pub(crate) fn subscribe(&self, sub: Sub) -> bool {
         let mut run = lock(&self.run);

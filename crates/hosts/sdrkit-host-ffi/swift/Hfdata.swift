@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "hfdata", version 1.6. MIT licence.
+// sdrkit: the typed interface of the stack family "hfdata", version 1.7. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum HfdataInterface {
     public static let major = 1
-    public static let minor = 6
+    public static let minor = 7
 }
 
 /// The result fields of the CROWD36 stack.

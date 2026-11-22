@@ -68,7 +68,6 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `clock_spread_s` | Clock spread | number (s) |
 | `clock_decodes` | Clock decodes | whole number |
 | `clock_warning` | Clock warning | yes or no |
-| `decodes_total` | Decodes | whole number |
 | `js8_frames` | JS8 frames | whole number |
 | `js8_failed` | JS8 candidates failed | whole number |
 | `js8_state` | JS8 | choice |
@@ -82,8 +81,6 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `decodes` | Decodes | `utc` (time), `snr_db` (number (dB)), `dt_s` (number (s)), `audio_hz` (frequency), `band` (text), `dial_hz` (frequency), `mode` (text), `message` (text), `mirrored` (yes or no), `how` (choice), `early` (yes or no) |
-| `wspr_spots` | WSPR spots | `utc` (time), `snr_db` (number (dB)), `dt_s` (number (s)), `audio_hz` (frequency), `callsign` (text), `locator` (text), `power_dbm` (whole number (dBm)), `message` (text), `position` (position) |
 | `modes` | Modes | `mode` (text), `period` (duration (s)), `slots` (whole number), `decodes` (whole number), `last_count` (whole number), `utc` (time), `decode_ms` (number (ms)), `state` (choice) |
 | `stations` | Stations | `callsign` (text), `locator` (text), `mode` (choice), `snr_db` (number (dB)), `freq_hz` (frequency), `heard` (whole number), `last_heard` (time), `position` (position) |
 | `js8_frames` | JS8 frames | `utc` (time), `submode` (choice), `snr_db` (number (dB)), `dt_s` (number (s)), `audio_hz` (frequency), `frame` (text) |
@@ -104,7 +101,6 @@ The stack puts points on a map: Stations.
 
 | Kind | Label | Fields |
 |---|---|---|
-| `wsjt.decode` | Decode | `mode` (choice), `text` (text), `snr_db` (number (dB)), `dt_s` (number (s)), `audio_hz` (frequency), `callsign` (text), `locator` (text), `cq` (yes or no), `mirrored` (yes or no), `how` (choice), `power_dbm` (whole number (dBm)), `source` (text), `position` (position), `family` (choice) |
 | `wsjt.spot` | Station heard | `callsign` (text), `locator` (text), `snr_db` (number (dB)), `freq_hz` (frequency), `mode` (text), `source` (text), `family` (choice) |
 | `js8.frame` | JS8 frame | `text` (text), `chars` (text), `snr_db` (number (dB)), `submode` (choice), `source` (text), `target` (text), `cq` (yes or no), `family` (choice) |
 | `js8.message` | JS8 message | `text` (text), `complete` (yes or no), `source` (text), `target` (text), `cq` (yes or no), `family` (choice) |
@@ -121,13 +117,13 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `wsjt`, version 4.2. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wsjt`, version 5.0. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Weak-signal messages (`weak_signal`). Media: sound (monitor), text.
 
 ### Result fields
 
-Struct `WsjtFields`. The result fields of a slot stack: the slot clock, the clock estimate from the decodes, and the counts since Clear.
+Struct `WsjtFields`. The result fields of a slot stack: the slot clock and the clock estimate from the decodes.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
@@ -137,49 +133,17 @@ Struct `WsjtFields`. The result fields of a slot stack: the slot clock, the cloc
 | `clock_spread_s` | number (s) | optional | 1.0 | The spread of the recent DTs. It has no value without a recent decode. |
 | `clock_decodes` | whole number | always | 1.0 | The decodes that the clock estimate uses. |
 | `clock_warning` | yes or no | always | 1.0 | The clock is more than 1 s off. |
-| `decodes_total` | whole number | always | 1.0 | Decodes since Clear. |
+
+### Result fields
+
+Struct `Js8Fields`. The result fields of a slot stack with JS8.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
 | `js8_frames` | whole number | always | 1.0 | JS8 frames since Clear. |
 | `js8_failed` | whole number | always | 1.0 | JS8 candidates that did not decode since Clear. |
 | `js8_state` | choice | always | 1.0 | What JS8 has heard. |
 | `js8_waterfall_seq` | whole number | optional | 1.0 | The sequence number of the newest line of the JS8 waterfall. It has no value before the first line. |
-
-### Table `decodes`
-
-Struct `DecodeRow`. A row of the decode table. The row key is the place of the decode in the log.
-
-| Key | Kind | Value | Since | Description |
-|---|---|---|---|---|
-| `utc` | time | always | 1.0 | The UTC of the slot. |
-| `snr_db` | number (dB) | always | 1.0 | The SNR in 2500 Hz. |
-| `dt_s` | number (s) | always | 1.0 | The time offset from the slot start. |
-| `audio_hz` | frequency | always | 1.0 | The audio frequency. |
-| `band` | text | optional | 1.0 | The amateur band of the dial, if the dial is in one. |
-| `dial_hz` | frequency | optional | 1.0 | The dial frequency, if the slot has one. |
-| `mode` | text | always | 1.0 | The mode with its sub-mode and period ("JT65B"). |
-| `message` | text | always | 1.0 | The decoded message. |
-| `mirrored` | yes or no | always | 1.0 | The decode was found on the other sideband. |
-| `how` | choice | always | 1.0 | How the decode was made. |
-| `early` | yes or no | always | 1.0 | The decode is from the first part of a slot. The decode of the whole slot replaces it. |
-
-Default order: the column `utc`, highest first.
-
-### Table `wspr_spots`
-
-Struct `WsprSpotRow`. A row of the WSPR and FST4W spots. The row key is the place of the spot in the log.
-
-| Key | Kind | Value | Since | Description |
-|---|---|---|---|---|
-| `utc` | time | always | 1.0 | The UTC of the slot. |
-| `snr_db` | number (dB) | always | 1.0 | The SNR in 2500 Hz. |
-| `dt_s` | number (s) | always | 1.0 | The time offset from the slot start. |
-| `audio_hz` | frequency | always | 1.0 | The audio frequency. |
-| `callsign` | text | always | 1.0 | The callsign of the beacon. |
-| `locator` | text | always | 1.0 | The locator of the beacon. |
-| `power_dbm` | whole number (dBm) | always | 1.0 | The power that the beacon states. |
-| `message` | text | always | 1.0 | The decoded message. |
-| `position` | position | optional | 4.2 | The centre of the locator, if the spot holds one. |
-
-The column `callsign` names a row. Default order: the column `utc`, highest first. Place of a row: the column `position`.
 
 ### Table `modes`
 
@@ -209,7 +173,7 @@ Struct `StationRow`. A row of the station table: a station heard in any mode. Th
 | `freq_hz` | frequency | always | 1.0 | The radio frequency of the newest decode. |
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last decode. |
-| `position` | position | optional | 4.2 | The centre of the locator, if one was heard. |
+| `position` | position | optional | 1.0 | The centre of the locator, if one was heard. |
 
 The column `callsign` names a row. Default order: the column `last_heard`, highest first. Place of a row: the column `position`.
 
@@ -254,30 +218,9 @@ Struct `Js8StationRow`. A row of the JS8 stations. The row key is the callsign.
 | `utc` | time | always | 1.0 | The UTC of the newest frame. |
 | `last_text` | text | always | 1.0 | The newest text of the station. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
-| `position` | position | optional | 4.2 | The centre of the locator, if one was heard. |
+| `position` | position | optional | 1.0 | The centre of the locator, if one was heard. |
 
 The column `callsign` names a row. Default order: the column `last_heard`, highest first. Place of a row: the column `position`.
-
-### Event `wsjt.decode`
-
-Struct `DecodeEvent`. The fields of a decode of any mode but JS8.
-
-| Key | Kind | Value | Since | Description |
-|---|---|---|---|---|
-| `mode` | choice | always | 1.0 | The mode. |
-| `text` | text | always | 1.0 | The decoded message. |
-| `snr_db` | number (dB) | always | 1.0 | The SNR in 2500 Hz. |
-| `dt_s` | number (s) | always | 1.0 | The time offset from the slot start. |
-| `audio_hz` | frequency | always | 1.0 | The audio frequency. |
-| `callsign` | text | optional | 1.0 | The calling station, if the message names one. |
-| `locator` | text | optional | 1.0 | The locator, if the message holds one. |
-| `cq` | yes or no | always | 1.0 | The message is a CQ. |
-| `mirrored` | yes or no | always | 1.0 | The decode was found on the other sideband. |
-| `how` | choice | always | 1.0 | How the decode was made. |
-| `power_dbm` | whole number (dBm) | optional | 1.0 | The power that a WSPR or FST4W station states. |
-| `source` | text | optional | 1.0 | The calling station, if the message names one. |
-| `position` | position | optional | 1.0 | The centre of the locator, if the message holds one. |
-| `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Event `wsjt.spot`
 
@@ -305,7 +248,7 @@ Struct `Js8FrameEvent`. The fields of a JS8 frame.
 | `submode` | choice | optional | 1.0 | The speed of the frame. |
 | `source` | text | optional | 1.0 | The sending station, if the frame names one. |
 | `target` | text | optional | 1.0 | The station or group addressed, if the frame names one. |
-| `cq` | yes or no | always | 4.2 | The frame is a CQ: a heartbeat to all with a CQ. |
+| `cq` | yes or no | always | 1.0 | The frame is a CQ: a heartbeat to all with a CQ. |
 | `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Event `js8.message`
@@ -318,7 +261,7 @@ Struct `Js8MessageEvent`. The fields of a JS8 message, sent when its last frame 
 | `complete` | yes or no | always | 1.0 | The last frame of the message came. |
 | `source` | text | optional | 1.0 | The sending station, if it is known. |
 | `target` | text | optional | 1.0 | The station or group addressed, if it is known. |
-| `cq` | yes or no | always | 4.2 | The message is a CQ. |
+| `cq` | yes or no | always | 1.0 | The message is a CQ. |
 | `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Event `wsjt.tx`

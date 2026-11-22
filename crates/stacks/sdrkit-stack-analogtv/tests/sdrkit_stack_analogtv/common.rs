@@ -312,6 +312,8 @@ pub fn pictures(out: &Output) -> impl Iterator<Item = Picture> + '_ {
             codec: e.format.codec,
             layout: e.format.pixels.clone(),
             name: None,
+            id: 1,
+            state: sdrkit_core::PictureState::Finished,
             data: Arc::from(e.packet.bytes()),
         })
 }

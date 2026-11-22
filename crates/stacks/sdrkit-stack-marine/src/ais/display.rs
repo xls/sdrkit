@@ -1645,7 +1645,7 @@ impl Component for Stations {
     }
 
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
         self.station = ctx.station.position;
         self.alerts.settings.own = self.station;

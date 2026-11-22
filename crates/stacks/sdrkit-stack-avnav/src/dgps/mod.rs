@@ -7,8 +7,8 @@ pub mod rtcm;
 use crate::checked;
 use crate::fields::put_status;
 use crate::typed::{
-    DgpsAlmanacRow, DgpsCorrectionRow, DgpsFields, DgpsMessageRow, DGPS_ALMANAC, DGPS_CORRECTIONS,
-    DGPS_MESSAGES,
+    DgpsAlmanacRow, DgpsCorrectionRow, DgpsFields, DgpsMessageRow, DgpsStationRow, DGPS_ALMANAC,
+    DGPS_CORRECTIONS, DGPS_MESSAGES, DGPS_STATION,
 };
 use rtcm::{
     base_position, decode, encode_almanac, encode_base_station, encode_corrections, encode_text,
@@ -258,7 +258,12 @@ impl StationHealth {
 fn new_published() -> Published {
     let mut p = crate::typed::store(
         &[DgpsFields::SHAPE],
-        &[&DGPS_MESSAGES, &DGPS_CORRECTIONS, &DGPS_ALMANAC],
+        &[
+            &DGPS_STATION,
+            &DGPS_MESSAGES,
+            &DGPS_CORRECTIONS,
+            &DGPS_ALMANAC,
+        ],
     );
     put_status(&mut p, LockState::Searching, None, None, None, "Searching");
     p
@@ -357,6 +362,12 @@ impl DgpsReport {
                     let _ = write!(key, "DGPS {}", f.station_id);
                     p.results_mut()
                         .update_point("station", pos.lat_deg, pos.lon_deg, key, None);
+                    // The point shows the row of the station.
+                    key.clear();
+                    let _ = write!(key, "{}", f.station_id);
+                    let table = p.results().decl().table_id(DGPS_STATION.key);
+                    p.results_mut()
+                        .link_point("station", table.map(|t| (t, key.as_str())));
                 }
             }
             RtcmMessage::Almanac { beacons } => {
@@ -414,6 +425,23 @@ impl DgpsReport {
             unhealthy: self.unhealthy.as_deref(),
             corrections: self.corrections.len() as i64,
         });
+        // The station table: one row, keyed by the station id of the frames.
+        if let Some(id) = self.station_id {
+            let key = &mut self.text;
+            key.clear();
+            // Writing into a String cannot fail.
+            let _ = write!(key, "{id}");
+            DGPS_STATION.put(
+                &mut self.published,
+                key,
+                &DgpsStationRow {
+                    station_id: i64::from(id),
+                    health: self.health,
+                    position: self.base.map(|(p, _)| p),
+                    height_m: self.base.map(|(_, h)| h),
+                },
+            );
+        }
     }
 
     fn publish(&mut self) {
@@ -513,6 +541,7 @@ impl Component for DgpsReport {
             self.message = None;
         }
         p.results_mut().clear_points();
+        p.clear_rows(&DGPS_STATION);
         self.station_id = None;
         self.health = None;
         self.zcount_s = None;

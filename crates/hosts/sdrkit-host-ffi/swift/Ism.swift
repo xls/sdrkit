@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "ism", version 3.0. MIT licence.
+// sdrkit: the typed interface of the stack family "ism", version 3.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum IsmInterface {
     public static let major = 3
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of the burst finder of the ISM sensor stack.
@@ -4087,6 +4087,8 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Nrf24NrfBadBurstRow.init))
     }
     /// The changed rows of the table "chat" of the stack "subghzchat", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
+    /// Text: `text`. Time: `time_s`.
     public static func subghzchatChat(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[SubghzchatLineRow], SDRKitCode> {
         var rows = [sdrkit_subghzchat_line_row](repeating: sdrkit_subghzchat_line_row(), count: capacity)
         var info = sdrkit_rows_info.sized

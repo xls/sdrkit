@@ -1,5 +1,5 @@
 # The interface of the stack family science. The registry test of the family writes this file.
-family science version=1.2
+family science version=1.3
 shape.SondeFields since=1.0
 shape.SondeFields.sondes type=i64 unit= optional=no since=1.0
 shape.SondeFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -839,7 +839,7 @@ eczas.command.clear args= reply= since=1.0
 same since=1.0
 same.content kind=datalink audio=programme text=yes since=1.1
 same.fields.SameFields since=1.0
-same.table.alerts row=SameAlertRow cap=100 label=callsign since=1.0
+same.table.alerts row=SameAlertRow cap=100 label=callsign role=messages sender=callsign message=event_name time=host_time since=1.0
 same.table.alert_locations row=SameAlertLocationRow cap=3100 label=place position=position since=1.0
 same.table.tones row=SameToneRow cap=40 since=1.0
 same.event.same.alert fields=SameAlertEvent since=1.0
@@ -1188,7 +1188,7 @@ pulsar.setting.gen_dm type=f64 unit=pc%20cm⁻³ since=1.0
 pulsar.command.clear args= reply= since=1.0
 pulsar.command.search_now args= reply= since=1.0
 radar_detect since=1.0
-radar_detect.content kind=science since=1.1
+radar_detect.content kind=measurement since=1.1
 radar_detect.fields.RadarDetectFields since=1.0
 radar_detect.fields.DecoderFields since=1.0
 radar_detect.table.radar_rows row=RadarDetectRow cap=500 since=1.0

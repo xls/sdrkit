@@ -94,7 +94,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfkbd`, version 2.9. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfkbd`, version 2.10. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Keyboard text (`text_chat`). Media: sound (monitor), text.
 
@@ -152,7 +152,7 @@ Struct `StationRow`. A row of the stations heard. The row key is the callsign.
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last time heard. |
 
-The column `callsign` names a row.
+The rows are the stations or nodes of the stack. The column `callsign` names a row. Time: `last_heard`.
 
 ### Table `signals`
 

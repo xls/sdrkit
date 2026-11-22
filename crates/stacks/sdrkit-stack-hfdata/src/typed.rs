@@ -3310,7 +3310,7 @@ pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // Version 1.6 names rows and orders tables.
-        Described::new("hfdata", 1, 6)
+        Described::new("hfdata", 1, 7)
             .added(
                 1,
                 5,
@@ -3347,7 +3347,8 @@ pub fn family() -> &'static Described {
                     "rpr.content",
                 ],
             )
-            .content(sdrkit_core::ContentKind::Measurement, &["hfid"])
+            .content(sdrkit_core::ContentKind::Measurement, &["hfid", "uvb76"])
+            .content(sdrkit_core::ContentKind::Devices, &["wavebuoy"])
             .content(sdrkit_core::ContentKind::Science, &["hfradar", "hfbeacons"])
             .content(
                 sdrkit_core::ContentKind::Utility,
@@ -3357,7 +3358,6 @@ pub fn family() -> &'static Described {
                     "fsk200",
                     "gwfsk",
                     "fsk_modems",
-                    "uvb76",
                     "vlf_msk",
                     "efr",
                     "gtor",
@@ -3374,7 +3374,6 @@ pub fn family() -> &'static Described {
                     "pactor3",
                     "pactor4",
                     "pactor1",
-                    "wavebuoy",
                     "ms110",
                     "s4285",
                     "s4539",

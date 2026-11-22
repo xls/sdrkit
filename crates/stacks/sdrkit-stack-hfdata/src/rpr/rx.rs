@@ -662,7 +662,7 @@ impl Component for RprResults {
         )
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
     }
     fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
         self.origin = Origin::new(self.live);

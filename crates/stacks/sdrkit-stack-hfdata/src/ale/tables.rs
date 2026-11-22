@@ -618,7 +618,7 @@ impl Component for AleTables {
         .with_settings(AleTablesSetting::schema())
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
     }
     fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
         let f = &inputs[0];

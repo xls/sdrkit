@@ -231,6 +231,7 @@ pub const DOMINO_VARIANT: CatalogueSetting = CatalogueSetting {
     choices: || variant_choices(Family::DominoEx),
     default: "DominoEX 11",
     advanced: false,
+    role: None,
 };
 
 /// The `variant` setting of THOR.
@@ -241,6 +242,7 @@ pub const THOR_VARIANT: CatalogueSetting = CatalogueSetting {
     choices: || variant_choices(Family::Thor),
     default: "THOR 16",
     advanced: false,
+    role: None,
 };
 
 sdrkit_core::settings! {

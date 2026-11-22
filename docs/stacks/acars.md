@@ -78,7 +78,7 @@ The stack puts points on a map: Aircraft.
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.3. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 1.4. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: text.
 
@@ -134,7 +134,7 @@ Struct `AcarsMessageRow`. A row of the messages. The row key is the place in the
 | `position` | position | optional | 1.0 | The position the message gives. |
 | `alt_ft` | number (ft) | optional | 1.0 | The altitude the message gives. |
 
-The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`.
+The rows are the messages of the stack. The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`. Sender: `registration`. Text: `text`. Time: `time`.
 
 ### Table `aircraft`
 
@@ -157,7 +157,7 @@ Struct `AcarsAircraftRow`. A row of the aircraft. The row key is the registratio
 | `frequency` | frequency | always | 1.0 | The channel of the last message. |
 | `level_db` | number (dB) | always | 1.0 | The level of the last downlink. |
 
-The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
+The rows are the stations or nodes of the stack. The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`. Time: `last_heard`.
 
 ### Table `channels`
 

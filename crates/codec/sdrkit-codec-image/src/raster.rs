@@ -1,7 +1,7 @@
 //! [`Raster`]: an uncompressed picture held in memory, and its conversion to and from the standard [`Picture`] item.
 
 use crate::ImageError;
-use sdrkit_core::media::{Codec, Picture, PixelFormat, PixelLayout};
+use sdrkit_core::media::{Codec, Picture, PictureState, PixelFormat, PixelLayout};
 use std::sync::Arc;
 
 /// The largest number of pixel bytes a [`Raster`] holds (1 GiB). A larger size is refused with [`ImageError::TooLarge`].
@@ -29,7 +29,7 @@ pub const fn bytes_per_pixel(format: PixelFormat) -> Option<usize> {
 ///
 /// let mut r = Raster::new(PixelFormat::Grey8, 4, 2).unwrap();
 /// r.row_mut(1).unwrap().fill(200);
-/// let p = r.to_picture("test");
+/// let p = r.to_picture("test", 1, sdrkit_codec_image::PictureState::Finished);
 /// assert_eq!(&p.data[4..], &[200; 4]);
 /// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -222,12 +222,15 @@ impl Raster {
         Ok(out)
     }
 
-    /// The standard picture item of raw pixels, named `name` (no name if empty). The picture shares the pixel bytes.
-    pub fn to_picture(&self, name: &str) -> Picture {
+    /// The standard picture item of raw pixels, named `name` (no name if empty), with the number `id` among the
+    /// pictures of its component and the state `state`. The picture shares the pixel bytes.
+    pub fn to_picture(&self, name: &str, id: u32, state: PictureState) -> Picture {
         Picture {
             codec: Codec::Pixels(self.format),
             layout: Some(PixelLayout::packed(self.format, self.width, self.height)),
             name: (!name.is_empty()).then(|| name.to_string()),
+            id,
+            state,
             data: Arc::clone(&self.data),
         }
     }

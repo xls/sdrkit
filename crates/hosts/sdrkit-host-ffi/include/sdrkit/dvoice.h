@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dvoice", version 2.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "dvoice", version 2.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DVOICE_VERSION_MAJOR 2
-#define SDRKIT_DVOICE_VERSION_MINOR 2
+#define SDRKIT_DVOICE_VERSION_MINOR 3
 
 // The stack "dmr": its id, and the keys of its event types.
 #define SDRKIT_STACK_DMR "dmr"
@@ -1722,7 +1722,9 @@ typedef struct sdrkit_dstar_send_args {
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "dmr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_dmr_calls_rows(SDRKIT_HANDLE handle,
                                            sdrkit_dvoice_call_row *rows,
                                            uint32_t capacity,
@@ -1742,7 +1744,9 @@ static inline int32_t sdrkit_dmr_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "dmr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_dmr_messages_rows(SDRKIT_HANDLE handle,
                                               sdrkit_dvoice_message_row *rows,
                                               uint32_t capacity,
@@ -1782,6 +1786,8 @@ static inline int32_t sdrkit_dmr_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "dmr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_dmr_talkgroups_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_dvoice_talkgroup_row *rows,
                                                 uint32_t capacity,
@@ -1801,6 +1807,7 @@ static inline int32_t sdrkit_dmr_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "dmr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_dmr_heard_rows(SDRKIT_HANDLE handle,
                                            sdrkit_dvoice_heard_row *rows,
@@ -2014,7 +2021,9 @@ static inline int32_t sdrkit_dmr_gen_set_cc(SDRKIT_HANDLE handle, int64_t value)
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "p25" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_p25_calls_rows(SDRKIT_HANDLE handle,
                                            sdrkit_dvoice_call_row *rows,
                                            uint32_t capacity,
@@ -2034,7 +2043,9 @@ static inline int32_t sdrkit_p25_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "p25" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_p25_messages_rows(SDRKIT_HANDLE handle,
                                               sdrkit_dvoice_message_row *rows,
                                               uint32_t capacity,
@@ -2074,6 +2085,8 @@ static inline int32_t sdrkit_p25_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "p25" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_p25_talkgroups_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_dvoice_talkgroup_row *rows,
                                                 uint32_t capacity,
@@ -2111,6 +2124,7 @@ static inline int32_t sdrkit_p25_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "p25" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_p25_heard_rows(SDRKIT_HANDLE handle,
                                            sdrkit_dvoice_heard_row *rows,
@@ -2232,7 +2246,9 @@ static inline int32_t sdrkit_p25_gen_set_nac(SDRKIT_HANDLE handle, int64_t value
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "m17" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_m17_calls_rows(SDRKIT_HANDLE handle,
                                            sdrkit_dvoice_call_row *rows,
                                            uint32_t capacity,
@@ -2252,7 +2268,9 @@ static inline int32_t sdrkit_m17_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "m17" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_m17_messages_rows(SDRKIT_HANDLE handle,
                                               sdrkit_dvoice_message_row *rows,
                                               uint32_t capacity,
@@ -2292,6 +2310,8 @@ static inline int32_t sdrkit_m17_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "m17" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_m17_talkgroups_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_dvoice_talkgroup_row *rows,
                                                 uint32_t capacity,
@@ -2311,6 +2331,7 @@ static inline int32_t sdrkit_m17_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "m17" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_m17_heard_rows(SDRKIT_HANDLE handle,
                                            sdrkit_dvoice_heard_row *rows,
@@ -2500,7 +2521,9 @@ static inline int32_t sdrkit_m17_set_tx_timeout(SDRKIT_HANDLE handle, double val
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "dstar" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_dstar_calls_rows(SDRKIT_HANDLE handle,
                                              sdrkit_dvoice_call_row *rows,
                                              uint32_t capacity,
@@ -2520,7 +2543,9 @@ static inline int32_t sdrkit_dstar_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "dstar" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_dstar_messages_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_dvoice_message_row *rows,
                                                 uint32_t capacity,
@@ -2560,6 +2585,8 @@ static inline int32_t sdrkit_dstar_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "dstar" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_dstar_talkgroups_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_dvoice_talkgroup_row *rows,
                                                   uint32_t capacity,
@@ -2579,6 +2606,7 @@ static inline int32_t sdrkit_dstar_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "dstar" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_dstar_heard_rows(SDRKIT_HANDLE handle,
                                              sdrkit_dvoice_heard_row *rows,
@@ -2768,7 +2796,9 @@ static inline int32_t sdrkit_dstar_set_tx_timeout(SDRKIT_HANDLE handle, double v
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "nxdn" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_nxdn_calls_rows(SDRKIT_HANDLE handle,
                                             sdrkit_dvoice_call_row *rows,
                                             uint32_t capacity,
@@ -2788,7 +2818,9 @@ static inline int32_t sdrkit_nxdn_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "nxdn" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_nxdn_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_dvoice_message_row *rows,
                                                uint32_t capacity,
@@ -2828,6 +2860,8 @@ static inline int32_t sdrkit_nxdn_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "nxdn" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_nxdn_talkgroups_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_dvoice_talkgroup_row *rows,
                                                  uint32_t capacity,
@@ -2847,6 +2881,7 @@ static inline int32_t sdrkit_nxdn_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "nxdn" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_nxdn_heard_rows(SDRKIT_HANDLE handle,
                                             sdrkit_dvoice_heard_row *rows,
@@ -2957,7 +2992,9 @@ static inline int32_t sdrkit_nxdn_set_listen(SDRKIT_HANDLE handle, bool value) {
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "dpmr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_dpmr_calls_rows(SDRKIT_HANDLE handle,
                                             sdrkit_dvoice_call_row *rows,
                                             uint32_t capacity,
@@ -2977,7 +3014,9 @@ static inline int32_t sdrkit_dpmr_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "dpmr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_dpmr_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_dvoice_message_row *rows,
                                                uint32_t capacity,
@@ -3017,6 +3056,8 @@ static inline int32_t sdrkit_dpmr_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "dpmr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_dpmr_talkgroups_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_dvoice_talkgroup_row *rows,
                                                  uint32_t capacity,
@@ -3036,6 +3077,7 @@ static inline int32_t sdrkit_dpmr_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "dpmr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_dpmr_heard_rows(SDRKIT_HANDLE handle,
                                             sdrkit_dvoice_heard_row *rows,
@@ -3146,7 +3188,9 @@ static inline int32_t sdrkit_dpmr_set_listen(SDRKIT_HANDLE handle, bool value) {
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "ysf" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_ysf_calls_rows(SDRKIT_HANDLE handle,
                                            sdrkit_dvoice_call_row *rows,
                                            uint32_t capacity,
@@ -3166,7 +3210,9 @@ static inline int32_t sdrkit_ysf_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "ysf" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_ysf_messages_rows(SDRKIT_HANDLE handle,
                                               sdrkit_dvoice_message_row *rows,
                                               uint32_t capacity,
@@ -3206,6 +3252,8 @@ static inline int32_t sdrkit_ysf_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "ysf" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_ysf_talkgroups_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_dvoice_talkgroup_row *rows,
                                                 uint32_t capacity,
@@ -3225,6 +3273,7 @@ static inline int32_t sdrkit_ysf_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "ysf" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_ysf_heard_rows(SDRKIT_HANDLE handle,
                                            sdrkit_dvoice_heard_row *rows,
@@ -3349,7 +3398,9 @@ static inline int32_t sdrkit_ysf_gen_set_voice(SDRKIT_HANDLE handle, sdrkit_ysf_
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "p25p2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_p25p2_calls_rows(SDRKIT_HANDLE handle,
                                              sdrkit_dvoice_call_row *rows,
                                              uint32_t capacity,
@@ -3369,7 +3420,9 @@ static inline int32_t sdrkit_p25p2_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "p25p2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_p25p2_messages_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_dvoice_message_row *rows,
                                                 uint32_t capacity,
@@ -3409,6 +3462,8 @@ static inline int32_t sdrkit_p25p2_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "p25p2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_p25p2_talkgroups_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_dvoice_talkgroup_row *rows,
                                                   uint32_t capacity,
@@ -3428,6 +3483,7 @@ static inline int32_t sdrkit_p25p2_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "p25p2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_p25p2_heard_rows(SDRKIT_HANDLE handle,
                                              sdrkit_dvoice_heard_row *rows,
@@ -3538,7 +3594,9 @@ static inline int32_t sdrkit_p25p2_set_listen(SDRKIT_HANDLE handle, bool value) 
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "tetrapol" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_tetrapol_calls_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_dvoice_call_row *rows,
                                                 uint32_t capacity,
@@ -3558,7 +3616,9 @@ static inline int32_t sdrkit_tetrapol_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "tetrapol" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_tetrapol_messages_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_dvoice_message_row *rows,
                                                    uint32_t capacity,
@@ -3598,6 +3658,8 @@ static inline int32_t sdrkit_tetrapol_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "tetrapol" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_tetrapol_talkgroups_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_dvoice_talkgroup_row *rows,
                                                      uint32_t capacity,
@@ -3617,6 +3679,7 @@ static inline int32_t sdrkit_tetrapol_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "tetrapol" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_tetrapol_heard_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_dvoice_heard_row *rows,
@@ -3727,7 +3790,9 @@ static inline int32_t sdrkit_tetrapol_set_listen(SDRKIT_HANDLE handle, bool valu
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "tetra" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_tetra_calls_rows(SDRKIT_HANDLE handle,
                                              sdrkit_dvoice_call_row *rows,
                                              uint32_t capacity,
@@ -3747,7 +3812,9 @@ static inline int32_t sdrkit_tetra_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "tetra" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_tetra_messages_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_dvoice_message_row *rows,
                                                 uint32_t capacity,
@@ -3787,6 +3854,8 @@ static inline int32_t sdrkit_tetra_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "tetra" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_tetra_talkgroups_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_dvoice_talkgroup_row *rows,
                                                   uint32_t capacity,
@@ -3806,6 +3875,7 @@ static inline int32_t sdrkit_tetra_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "tetra" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_tetra_heard_rows(SDRKIT_HANDLE handle,
                                              sdrkit_dvoice_heard_row *rows,
@@ -3916,7 +3986,9 @@ static inline int32_t sdrkit_tetra_set_listen(SDRKIT_HANDLE handle, bool value) 
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "tetra_dmo" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_tetra_dmo_calls_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_dvoice_call_row *rows,
                                                  uint32_t capacity,
@@ -3936,7 +4008,9 @@ static inline int32_t sdrkit_tetra_dmo_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "tetra_dmo" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_tetra_dmo_messages_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_dvoice_message_row *rows,
                                                     uint32_t capacity,
@@ -3976,6 +4050,8 @@ static inline int32_t sdrkit_tetra_dmo_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "tetra_dmo" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_tetra_dmo_talkgroups_rows(SDRKIT_HANDLE handle,
                                                       sdrkit_dvoice_talkgroup_row *rows,
                                                       uint32_t capacity,
@@ -3995,6 +4071,7 @@ static inline int32_t sdrkit_tetra_dmo_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "tetra_dmo" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_tetra_dmo_heard_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_dvoice_heard_row *rows,
@@ -4156,7 +4233,9 @@ static inline int32_t sdrkit_tetra_dmo_gen_set_setup_repeats(SDRKIT_HANDLE handl
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "freedv" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_freedv_calls_rows(SDRKIT_HANDLE handle,
                                               sdrkit_dvoice_call_row *rows,
                                               uint32_t capacity,
@@ -4176,7 +4255,9 @@ static inline int32_t sdrkit_freedv_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "freedv" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_freedv_messages_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_dvoice_message_row *rows,
                                                  uint32_t capacity,
@@ -4216,6 +4297,8 @@ static inline int32_t sdrkit_freedv_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "freedv" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_freedv_talkgroups_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_dvoice_talkgroup_row *rows,
                                                    uint32_t capacity,
@@ -4235,6 +4318,7 @@ static inline int32_t sdrkit_freedv_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "freedv" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_freedv_heard_rows(SDRKIT_HANDLE handle,
                                               sdrkit_dvoice_heard_row *rows,
@@ -4406,7 +4490,9 @@ static inline int32_t sdrkit_freedv_gen_set_clip(SDRKIT_HANDLE handle, bool valu
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "dvoice-auto" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_dvoice_auto_calls_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_dvoice_call_row *rows,
                                                    uint32_t capacity,
@@ -4426,7 +4512,9 @@ static inline int32_t sdrkit_dvoice_auto_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "dvoice-auto" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_dvoice_auto_messages_rows(SDRKIT_HANDLE handle,
                                                       sdrkit_dvoice_message_row *rows,
                                                       uint32_t capacity,
@@ -4466,6 +4554,8 @@ static inline int32_t sdrkit_dvoice_auto_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "dvoice-auto" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_dvoice_auto_talkgroups_rows(SDRKIT_HANDLE handle,
                                                         sdrkit_dvoice_talkgroup_row *rows,
                                                         uint32_t capacity,
@@ -4512,6 +4602,7 @@ static inline int32_t sdrkit_dvoice_auto_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "dvoice-auto" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_dvoice_auto_heard_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_dvoice_heard_row *rows,
@@ -4622,7 +4713,9 @@ static inline int32_t sdrkit_dvoice_auto_set_listen(SDRKIT_HANDLE handle, bool v
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "dcr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `alias` names a row.
+// Sender: `src`. Addressee: `dst`. Time: `start_s`.
 static inline int32_t sdrkit_dcr_calls_rows(SDRKIT_HANDLE handle,
                                            sdrkit_dvoice_call_row *rows,
                                            uint32_t capacity,
@@ -4642,7 +4735,9 @@ static inline int32_t sdrkit_dcr_call_details_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "dcr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `src` names a row.
+// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_dcr_messages_rows(SDRKIT_HANDLE handle,
                                               sdrkit_dvoice_message_row *rows,
                                               uint32_t capacity,
@@ -4682,6 +4777,8 @@ static inline int32_t sdrkit_dcr_grants_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "talkgroups" of the stack "dcr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_dcr_talkgroups_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_dvoice_talkgroup_row *rows,
                                                 uint32_t capacity,
@@ -4711,6 +4808,7 @@ static inline int32_t sdrkit_dcr_history_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "heard" of the stack "dcr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `src` names a row.
 static inline int32_t sdrkit_dcr_heard_rows(SDRKIT_HANDLE handle,
                                            sdrkit_dvoice_heard_row *rows,

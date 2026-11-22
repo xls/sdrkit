@@ -628,7 +628,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
         }
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.clock.attach(ctx.live, &ctx.clock, self.time_s);
+        self.clock.attach(ctx.wall_clock(), &ctx.clock, self.time_s);
     }
     fn save_state(&self) -> Option<StateBlob> {
         self.held.save_state(self.time_s).ok()

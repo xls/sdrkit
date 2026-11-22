@@ -59,7 +59,7 @@ pub struct DetectorEventRow<'a> {
     #[field(label = "Signal time", unit = "s")]
     pub signal_time_s: Seconds,
     /// The text of a decoded message.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
 }
 
@@ -449,7 +449,7 @@ pub struct Mdc1200BurstRow<'a> {
     #[field(label = "Channel")]
     pub label: &'a str,
     /// The unit id, 4 hex digits.
-    #[field(label = "Unit")]
+    #[field(label = "Unit", role = Sender)]
     pub unit_id: &'a str,
     /// The operation code, 2 hex digits.
     #[field(label = "Operation")]
@@ -464,7 +464,7 @@ pub struct Mdc1200BurstRow<'a> {
     #[field(label = "Extra bytes")]
     pub extra: &'a str,
     /// The meaning of the packet.
-    #[field(label = "Meaning")]
+    #[field(label = "Meaning", role = Text)]
     pub text: &'a str,
 }
 
@@ -571,7 +571,7 @@ pub struct FleetsyncBurstRow<'a> {
     #[field(label = "Fleet")]
     pub fleet: i64,
     /// The unit number.
-    #[field(label = "Unit")]
+    #[field(label = "Unit", role = Sender)]
     pub unit: i64,
     /// The fleet is 100 to 349 and the unit 1000 to 4999, the ranges of the maker's manuals.
     #[field(label = "Valid identity")]
@@ -595,7 +595,7 @@ pub struct FleetsyncBurstRow<'a> {
     #[field(label = "Check")]
     pub check: &'a str,
     /// The burst in words.
-    #[field(label = "Text")]
+    #[field(label = "Text", role = Text)]
     pub text: &'a str,
 }
 
@@ -748,7 +748,7 @@ pub const WMIC_LISTEN: CommandKind<ListenArgs> =
 
 /// The events of a single-channel stack, newest first.
 pub static DETECTOR_EVENTS: Table<DetectorEventRow<'static>> =
-    Table::new("events", "Events", crate::common::EVENT_CAP);
+    Table::new("events", "Events", crate::common::EVENT_CAP).role(sdrkit_core::TableRole::Messages);
 /// The frames of HF packet, newest first.
 pub static HFPACKET_FRAMES: Table<HfpacketFrameRow<'static>> =
     Table::new("frames", "Frames", crate::hfpacket::FRAME_CAP).label(&HfpacketFrameRow::SOURCE);
@@ -771,17 +771,21 @@ pub static VOICE_INVERSION_FOUND: EventKind<VoiceInversionFoundEvent<'static>> =
 pub static VOICE_INVERSION_CLEAR: EventKind<VoiceInversionClearEvent<'static>> =
     EventKind::new("voice_inversion.clear", "Speech, not inverted");
 /// The call log, newest first.
-pub static CALLS: Table<CallRow<'static>> =
-    Table::new("calls", "Calls", crate::channels::CALL_CAP).label(&CallRow::LABEL);
+pub static CALLS: Table<CallRow<'static>> = Table::new("calls", "Calls", crate::channels::CALL_CAP)
+    .role(sdrkit_core::TableRole::Calls)
+    .label(&CallRow::LABEL);
 /// The channels.
-pub static CHANNELS: Table<ChannelRow<'static>> =
-    Table::new("channels", "Channels", 512).label(&ChannelRow::NAME);
+pub static CHANNELS: Table<ChannelRow<'static>> = Table::new("channels", "Channels", 512)
+    .role(sdrkit_core::TableRole::Groups)
+    .label(&ChannelRow::NAME);
 /// A call that ended.
 pub static VOICE_CHANNELS_CALL: EventKind<VoiceChannelsCallEvent<'static>> =
     EventKind::new("voice_channels.call", "Call");
 /// The bursts of MDC-1200, newest first.
 pub static MDC1200_BURSTS: Table<Mdc1200BurstRow<'static>> =
-    Table::new("bursts", "Bursts", crate::mdc::BURST_CAP).label(&Mdc1200BurstRow::LABEL);
+    Table::new("bursts", "Bursts", crate::mdc::BURST_CAP)
+        .role(sdrkit_core::TableRole::Messages)
+        .label(&Mdc1200BurstRow::LABEL);
 /// A call of MDC-1200 that ended.
 pub static MDC1200_CALL: EventKind<Mdc1200CallEvent<'static>> =
     EventKind::new("mdc1200.call", "Call");
@@ -790,10 +794,12 @@ pub static MDC1200_BURST: EventKind<Mdc1200BurstEvent<'static>> =
     EventKind::new("mdc1200.burst", "Burst");
 /// The FleetSync bursts, newest first.
 pub static FLEETSYNC_BURSTS: Table<FleetsyncBurstRow<'static>> =
-    Table::new("bursts", "Bursts", crate::fleetsync::BURST_CAP).label(&FleetsyncBurstRow::LABEL);
+    Table::new("bursts", "Bursts", crate::fleetsync::BURST_CAP)
+        .role(sdrkit_core::TableRole::Messages)
+        .label(&FleetsyncBurstRow::LABEL);
 /// The fleet and unit pairs heard.
 pub static FLEETSYNC_UNITS: Table<FleetsyncUnitRow<'static>> =
-    Table::new("units", "Units", crate::fleetsync::UNIT_CAP);
+    Table::new("units", "Units", crate::fleetsync::UNIT_CAP).role(sdrkit_core::TableRole::Nodes);
 /// A call of the FleetSync stack that ended.
 pub static FLEETSYNC_CALL: EventKind<VoiceChannelsCallEvent<'static>> =
     EventKind::new("fleetsync.call", "Call");
@@ -829,7 +835,7 @@ pub fn family() -> &'static Described {
         // stay over a change of frequency, with the counts of frames and stations and the last frame of HF packet. The
         // level, the quality, the state and the measures of a detector belong to the signal of one frequency and are
         // cleared. The candidates of the microphone finder are carriers of the present capture and are cleared.
-        Described::new("voice", 1, 3)
+        Described::new("voice", 1, 4)
             .added(
                 1,
                 2,

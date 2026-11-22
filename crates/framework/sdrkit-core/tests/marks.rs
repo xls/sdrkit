@@ -111,3 +111,96 @@ fn a_picture_column_gives_the_stack_pictures() {
     assert!(!StackShape::new("a").table(&STRIKES).media().pictures);
     assert!(StackShape::new("a").pictures().media().pictures);
 }
+
+/// A row of a message table.
+#[derive(Fields)]
+struct ChatRow<'a> {
+    /// The signal time.
+    #[field(label = "Signal time", unit = "s")]
+    time_s: f64,
+    /// Who sent it.
+    #[field(label = "From", role = Sender)]
+    from: &'a str,
+    /// To whom.
+    #[field(label = "To", role = Addressee)]
+    to: Option<&'a str>,
+    /// The text, with a role next to the standard key.
+    #[field(shared = keys::TEXT, role = Text)]
+    text: &'a str,
+    /// When it was received.
+    #[field(label = "Received")]
+    received: Option<sdrkit_core::interface::Time>,
+    /// When it was sent.
+    #[field(label = "Sent")]
+    sent: Option<sdrkit_core::interface::Time>,
+}
+
+/// A row whose only time is the signal time.
+#[derive(Fields)]
+struct PageRow<'a> {
+    /// The signal time.
+    #[field(label = "Signal time", unit = "s", role = Time)]
+    time_s: f64,
+    /// The pager.
+    #[field(label = "Address", role = Addressee)]
+    address: &'a str,
+}
+
+static CHAT: Table<ChatRow<'static>> =
+    Table::new("messages", "Messages", 10).role(sdrkit_core::TableRole::Messages);
+static CHAT_PLAIN: Table<ChatRow<'static>> = Table::new("lines", "Lines", 10);
+static PAGES: Table<PageRow<'static>> =
+    Table::new("pages", "Pages", 10).role(sdrkit_core::TableRole::Messages);
+
+#[test]
+fn a_table_states_what_its_rows_are_and_the_columns_of_a_message() {
+    let m = CHAT.def().decl().marks;
+    assert_eq!(m.role, Some(sdrkit_core::TableRole::Messages));
+    assert_eq!((m.sender, m.addressee, m.text), (Some(1), Some(2), Some(3)));
+    // Without a column of the role, the first column of the time kind.
+    assert_eq!(m.time, Some(4));
+    // A table without a role has the columns that state their part, and no time.
+    let plain = CHAT_PLAIN.def().decl().marks;
+    assert_eq!(plain.role, None);
+    assert_eq!(
+        (plain.sender, plain.text, plain.time),
+        (Some(1), Some(3), None)
+    );
+    // A column of seconds of signal that states the role is the time.
+    let pages = PAGES.def().decl().marks;
+    assert_eq!(
+        (pages.time, pages.addressee, pages.sender),
+        (Some(0), Some(1), None)
+    );
+    // A table of another kind has none of these marks.
+    let craft = CRAFT.def().decl().marks;
+    assert_eq!((craft.role, craft.sender, craft.time), (None, None, None));
+}
+
+#[test]
+fn a_setting_states_what_it_chooses() {
+    use sdrkit_core::publish::field;
+    use sdrkit_core::settings::{DeclareSetting, Setting};
+    use sdrkit_core::SettingRole;
+    const PRODUCT: Setting<field::I64> =
+        Setting::new("product", "Product", "", 0).role(SettingRole::PictureSource);
+    const GAIN: Setting<field::F64> = Setting::new("gain", "Gain", "dB", 0.0);
+    assert_eq!(PRODUCT.decl().role, Some(SettingRole::PictureSource));
+    assert_eq!(GAIN.decl().role, None);
+    let view = sdrkit_core::settings::CatalogueSetting {
+        key: "view",
+        label: "View",
+        help: "",
+        choices: || vec![sdrkit_core::ChoiceDecl::new("ch1", "Channel 1")],
+        default: "ch1",
+        advanced: false,
+        role: Some(SettingRole::PictureView),
+    };
+    assert_eq!(view.decl().role, Some(SettingRole::PictureView));
+    // The role is in the declaration that a host reads as JSON, and absent for a setting without one.
+    let json = serde_json::to_string(&view.decl()).unwrap();
+    assert!(json.contains("\"role\":\"picture_view\""), "{json}");
+    assert!(!serde_json::to_string(&GAIN.decl())
+        .unwrap()
+        .contains("role"));
+}

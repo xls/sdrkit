@@ -197,6 +197,7 @@ pub const VIEW: CatalogueSetting = CatalogueSetting {
     choices: || view_choices(vec![picture_layout()]),
     default: "rgb214",
     advanced: false,
+    role: Some(sdrkit_core::SettingRole::PictureView),
 };
 /// The view of the HIRS picture (NOAA).
 pub const HIRS_VIEW: CatalogueSetting = CatalogueSetting {
@@ -206,6 +207,7 @@ pub const HIRS_VIEW: CatalogueSetting = CatalogueSetting {
     choices: || view_choices(vec![super::dsb::picture_layout()]),
     default: "rgb214",
     advanced: false,
+    role: None,
 };
 /// Keep the newest lines in view.
 pub const FOLLOW: Setting<field::Bool> = Setting::new("follow", "Follow", "", true);

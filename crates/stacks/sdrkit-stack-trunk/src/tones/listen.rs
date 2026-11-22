@@ -137,6 +137,7 @@ pub const GATE_TONE: CatalogueSetting = CatalogueSetting {
     choices: tone_choices,
     default: "100.0",
     advanced: false,
+    role: None,
 };
 /// The chosen DCS code.
 pub const GATE_CODE: CatalogueSetting = CatalogueSetting {
@@ -146,6 +147,7 @@ pub const GATE_CODE: CatalogueSetting = CatalogueSetting {
     choices: code_choices,
     default: "023",
     advanced: false,
+    role: None,
 };
 /// The chosen DCS code is inverted.
 pub const GATE_INVERTED: Setting<field::Bool> =

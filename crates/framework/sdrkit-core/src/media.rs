@@ -662,10 +662,93 @@ pub struct Picture {
     pub codec: Codec,
     /// For raw pixels, their layout; for a compressed picture, its size when known.
     pub layout: Option<PixelLayout>,
-    /// A name, when the signal provides one (a slideshow file name).
+    /// A name, when the signal provides one (a slideshow file name) or the component has one (a product, a channel).
     pub name: Option<String>,
+    /// The number of the picture among the pictures of its component. Items with the same number are states of one
+    /// picture, and each replaces the one before. A component starts a new number for a new picture, and keeps one
+    /// number for each product or channel that it builds at the same time. [`Picture::WHOLE`] for a picture that is
+    /// sent once, whole.
+    pub id: u32,
+    /// Whether more of the picture can come.
+    pub state: PictureState,
     /// The bytes.
     pub data: Arc<[u8]>,
+}
+
+impl Picture {
+    /// The number of a picture that is sent once, whole, in the state [`PictureState::Finished`]: a slide, a
+    /// received file, a frame of moving pictures. Every such item is a picture of its own for the host.
+    pub const WHOLE: u32 = 0;
+}
+
+/// Whether more of a picture can come.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PictureState {
+    /// The picture can change: more rows, more parts, or better data for the same rows. A later item with the same
+    /// number replaces this one.
+    #[default]
+    Growing,
+    /// The picture is complete or its signal ended. A later item with the same number is the same picture drawn
+    /// again, after a change of a setting of its view.
+    Finished,
+}
+
+/// The numbers of the pictures of a component: one for each key (a product, a channel, a file), new for a key that
+/// is not open. A component that builds one picture at a time uses the key `()`.
+///
+/// ```
+/// use sdrkit_core::media::PictureIds;
+/// let mut ids = PictureIds::new();
+/// let (a, b) = (ids.of(&"ch1"), ids.of(&"ch2"));
+/// assert_eq!((ids.of(&"ch1"), ids.of(&"ch2")), (a, b));
+/// assert_eq!(ids.close(&"ch1"), Some(a));
+/// assert_ne!(ids.of(&"ch1"), a);
+/// ```
+#[derive(Clone, Debug)]
+pub struct PictureIds<K> {
+    open: Vec<(K, u32)>,
+    next: u32,
+}
+
+impl<K> Default for PictureIds<K> {
+    fn default() -> Self {
+        PictureIds {
+            open: Vec::new(),
+            next: 1,
+        }
+    }
+}
+
+impl<K: PartialEq + Clone> PictureIds<K> {
+    /// No picture open. The first number is 1.
+    pub fn new() -> Self {
+        Self::default()
+    }
+    /// The number of the open picture of `key`. A key without an open picture gets a new number.
+    pub fn of(&mut self, key: &K) -> u32 {
+        if let Some((_, id)) = self.open.iter().find(|(k, _)| k == key) {
+            return *id;
+        }
+        let id = self.next;
+        self.next = self.next.wrapping_add(1).max(1);
+        self.open.push((key.clone(), id));
+        id
+    }
+    /// The number of the open picture of `key`, if it has one. It opens none.
+    pub fn open(&self, key: &K) -> Option<u32> {
+        self.open.iter().find(|(k, _)| k == key).map(|(_, id)| *id)
+    }
+    /// Ends the picture of `key` and returns its number: the number for the item that states
+    /// [`PictureState::Finished`]. The next picture of the key gets a new number. `None` if the key has no open picture.
+    pub fn close(&mut self, key: &K) -> Option<u32> {
+        let i = self.open.iter().position(|(k, _)| k == key)?;
+        Some(self.open.remove(i).1)
+    }
+    /// Ends every open picture and returns the keys with their numbers, oldest first.
+    pub fn close_all(&mut self) -> Vec<(K, u32)> {
+        std::mem::take(&mut self.open)
+    }
 }
 
 /// One decoded video frame: raw pixels with their layout and presentation time. The standard typed item for `"video.frame"` streams.

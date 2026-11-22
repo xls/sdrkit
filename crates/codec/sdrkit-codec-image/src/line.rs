@@ -3,7 +3,7 @@
 use crate::geom::shift_row_pixels;
 use crate::raster::bytes_per_pixel;
 use crate::{ImageError, PixelFormat, Raster};
-use sdrkit_core::media::Picture;
+use sdrkit_core::media::{Picture, PictureState};
 
 /// What happens when a [`LineImage`] holds its most rows and another row arrives.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -30,7 +30,7 @@ pub enum Overflow {
 /// // Three rows are kept: the first one scrolled away.
 /// assert_eq!(img.height(), 3);
 /// assert_eq!(img.row(0), Some(&[20u8; 4][..]));
-/// let p = img.to_picture("fax");
+/// let p = img.to_picture("fax", 1, sdrkit_codec_image::PictureState::Growing);
 /// assert_eq!(p.data.len(), 12);
 /// ```
 #[derive(Clone, Debug)]
@@ -267,8 +267,9 @@ impl LineImage {
         r
     }
 
-    /// The rows so far as the standard picture item of raw pixels, named `name`. The rows are copied once.
-    pub fn to_picture(&self, name: &str) -> Picture {
-        self.to_raster().to_picture(name)
+    /// The rows so far as the standard picture item of raw pixels, named `name`, with the number `id` and the state
+    /// `state`. The rows are copied once.
+    pub fn to_picture(&self, name: &str, id: u32, state: PictureState) -> Picture {
+        self.to_raster().to_picture(name, id, state)
     }
 }

@@ -120,6 +120,8 @@ impl Component for Snow {
                         codec: Codec::Pixels(PixelFormat::Bgra),
                         layout: Some(PixelLayout::packed(PixelFormat::Bgra, W as u32, H as u32)),
                         name: None,
+                        id: Picture::WHOLE,
+                        state: sdrkit_core::PictureState::Finished,
                         data: Arc::from(&self.frame[..]),
                     };
                     io.items_out::<Picture>(0).push(Timed {

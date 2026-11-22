@@ -252,6 +252,9 @@ impl Receiver for SelcalReceiver {
     fn set_station(&mut self, station: &Station) {
         self.inner.set_station(station)
     }
+    fn set_facilities(&mut self, facilities: &sdrkit_core::Facilities) {
+        self.inner.set_facilities(facilities)
+    }
     fn save_state(&self) -> Option<StateBlob> {
         self.inner.save_state()
     }

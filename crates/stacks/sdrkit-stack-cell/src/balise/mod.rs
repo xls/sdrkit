@@ -666,7 +666,7 @@ impl Decoder for BaliseTelegrams {
         self.dirty = true;
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.clock.attach(ctx.live, &ctx.clock, self.now);
+        self.clock.attach(ctx.wall_clock(), &ctx.clock, self.now);
     }
     fn save_state(&self) -> Option<StateBlob> {
         self.held.save_state(self.now).ok()

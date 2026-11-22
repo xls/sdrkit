@@ -163,6 +163,7 @@ pub const VIEW: CatalogueSetting = CatalogueSetting {
     choices: || view_choices(vec![picture_layout()]),
     default: "auto",
     advanced: false,
+    role: Some(sdrkit_core::SettingRole::PictureView),
 };
 /// The enhancement of the picture.
 pub const ENHANCE: Setting<field::Choice<Enhance>> =

@@ -85,7 +85,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:hf
 
 ## Typed interface
 
-The stack is in the family `custom`, version 1.4. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `custom`, version 1.5. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Keyboard text (`text_chat`). Media: text.
 
@@ -130,7 +130,7 @@ Struct `HfChatMessageRow`. A row of the messages received. The row key is a runn
 | `text` | text | always | 1.0 | The text. |
 | `time` | time | always | 1.0 | When the message was completed, UTC. |
 
-The column `callsign` names a row.
+The rows are the messages of the stack. The column `callsign` names a row. Sender: `callsign`. Addressee: `to`. Text: `text`. Time: `time`.
 
 ### Table `beacons`
 
@@ -145,7 +145,7 @@ Struct `HfChatBeaconRow`. A row of the beacons received. The row key is a runnin
 | `text` | text | always | 1.0 | The text of a full beacon; empty for a short one. |
 | `time` | time | always | 1.0 | When the beacon was completed, UTC. |
 
-The column `callsign` names a row. Place of a row: the column `position`.
+The rows are the stations or nodes of the stack. The column `callsign` names a row. Place of a row: the column `position`. Time: `time`.
 
 ### Event `chat.message`
 

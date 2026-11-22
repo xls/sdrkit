@@ -627,7 +627,11 @@ mod png {
         ] {
             assert_eq!(png::decode(&png::encode(&r).unwrap()).unwrap(), r);
         }
-        let pic = ramp(PixelFormat::Bgra, 4, 4).to_picture("x");
+        let pic = ramp(PixelFormat::Bgra, 4, 4).to_picture(
+            "x",
+            1,
+            sdrkit_codec_image::PictureState::Finished,
+        );
         assert_eq!(
             png::decode(&png::encode_picture(&pic).unwrap())
                 .unwrap()
@@ -1323,13 +1327,15 @@ mod adapters {
             codec: Codec::Png,
             layout: None,
             name: Some("a".into()),
+            id: 1,
+            state: sdrkit_codec_image::PictureState::Finished,
             data: file,
         };
         let damaged = Picture {
             data: Arc::from(&b"junk"[..]),
             ..compressed.clone()
         };
-        let raw = r.to_picture("raw");
+        let raw = r.to_picture("raw", 1, sdrkit_codec_image::PictureState::Finished);
         let out = run(
             &mut Decode::default(),
             vec![compressed, damaged, raw.clone()],
@@ -1345,7 +1351,7 @@ mod adapters {
     #[test]
     fn pixels_convert_and_share_when_they_fit() {
         let r = Raster::from_vec(PixelFormat::Grey8, 2, 1, vec![10, 200]).unwrap();
-        let grey = r.to_picture("");
+        let grey = r.to_picture("", 1, sdrkit_codec_image::PictureState::Finished);
         let out = run(
             &mut PixelConvert::new(PackedPixels::Bgra),
             vec![grey.clone()],
@@ -1363,7 +1369,7 @@ mod adapters {
     fn a_decoded_picture_shares_its_pixels_with_the_raster() {
         let r = Raster::from_vec(PixelFormat::Grey8, 4, 4, vec![9; 16]).unwrap();
         let back = png::decode(&png::encode(&r).unwrap()).unwrap();
-        let p = back.to_picture("x");
+        let p = back.to_picture("x", 1, sdrkit_codec_image::PictureState::Finished);
         assert!(Arc::ptr_eq(&p.data, back.shared()));
         let again = Raster::from_picture(&p).unwrap();
         assert!(Arc::ptr_eq(again.shared(), &p.data));

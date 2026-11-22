@@ -92,6 +92,16 @@ public struct MediaPacket: Equatable, Sendable {
         case rawVideo = 13
     }
 
+    /// Whether more of a picture can come.
+    public enum PictureState: Int32, Sendable {
+        /// The picture can change: more rows, more parts, or better data. A later packet with the same `pictureID`
+        /// replaces this one.
+        case growing = 1
+        /// The picture is complete or its signal ended. A later packet with the same `pictureID` is the same
+        /// picture drawn again, after a change of a setting of its view.
+        case finished = 2
+    }
+
     /// The colour matrix of raw pixels.
     public enum ColourMatrix: Int32, Sendable {
         /// Not known, or no pixels.
@@ -188,6 +198,14 @@ public struct MediaPacket: Equatable, Sendable {
     public var topFieldFirst: Bool
     /// For decoded video: the stream lost or damaged pictures and the frame is the last good one again.
     public var damaged: Bool
+    /// For a picture: the number of the picture in the session, from 1. Packets with the same number are states of
+    /// one picture, and each replaces the one before. A new picture has a new number, also when it has the size and
+    /// the name of the one before. 0 for media.
+    public var pictureID: UInt64
+    /// For a picture: whether more of it can come. nil for media.
+    public var pictureState: PictureState?
+    /// For a picture: its name (a product, a channel, a picture mode, a file name). Empty if it has none.
+    public var pictureName: String
 
     /// Copies the packet `i`. The views of `i` must still be valid.
     init(_ i: sdrkit_media_info) {
@@ -218,6 +236,9 @@ public struct MediaPacket: Equatable, Sendable {
         interlaced = i.interlaced
         topFieldFirst = i.top_field_first
         damaged = i.damaged
+        pictureID = i.picture_id
+        pictureState = PictureState(rawValue: i.picture_state)
+        pictureName = copy(i.picture_name)
     }
 }
 
@@ -330,8 +351,10 @@ public final class Session: Object {
     }
 
     /// Returns the first picture after the counter `after`, or nil if there is none. Pass 0 for the oldest picture.
-    /// A picture is compressed bytes, or raw pixels in the layout of `width`, `height` and `strides`. The session
-    /// keeps its last 16 pictures.
+    /// A picture is compressed bytes, or raw pixels in the layout of `width`, `height` and `strides`. `pictureID`
+    /// says which picture the packet holds, `pictureState` whether more of it can come, and `pictureName` its name.
+    /// A picture that grows comes again with the same `pictureID` and all of its bytes. The session keeps the newest
+    /// state of each of its last 16 pictures.
     public func readPicture(after: UInt64) throws -> MediaPacket? {
         var info = sdrkit_media_info.sized
         try ok(sdrkit_picture_read(handle, after, &info))

@@ -75,6 +75,42 @@ pub struct TableInfo {
     pub course_column: Id,
     /// The id of the column of the speed, or `SDRKIT_NO_ID`. The declaration of the column has the unit.
     pub speed_column: Id,
+    /// An `SDRKIT_TABLE_ROLE_*` constant: what the rows are. A front end finds the message log, the call log, the
+    /// nodes and the groups of an object by this member and not by the key of the table.
+    pub role: i32,
+    /// The id of the column of the sender of a message or a call, or `SDRKIT_NO_ID`.
+    pub sender_column: Id,
+    /// The id of the column of the addressee of a message or a call, or `SDRKIT_NO_ID`.
+    pub addressee_column: Id,
+    /// The id of the column of the text of a message, or `SDRKIT_NO_ID`.
+    pub text_column: Id,
+    /// The id of the column that holds the time of a row, or `SDRKIT_NO_ID`: a column of type `SDRKIT_TYPE_TIME`, or
+    /// a number of seconds of signal with the unit `s`. Only a table with a role, or with a column that states it,
+    /// has it.
+    pub time_column: Id,
+}
+
+/// The table states nothing about its rows.
+pub const SDRKIT_TABLE_ROLE_NONE: i32 = 0;
+/// Each row is a message: the main log of messages of the object.
+pub const SDRKIT_TABLE_ROLE_MESSAGES: i32 = 1;
+/// Each row is a call or a transmission: who, to whom, when.
+pub const SDRKIT_TABLE_ROLE_CALLS: i32 = 2;
+/// Each row is a station, a node or a unit that was heard.
+pub const SDRKIT_TABLE_ROLE_NODES: i32 = 3;
+/// Each row is a group that stations talk in: a talkgroup, a channel, a net.
+pub const SDRKIT_TABLE_ROLE_GROUPS: i32 = 4;
+
+/// The `SDRKIT_TABLE_ROLE_*` code of `r`.
+fn table_role(r: Option<sdrkit_core::TableRole>) -> i32 {
+    use sdrkit_core::TableRole as R;
+    match r {
+        None => SDRKIT_TABLE_ROLE_NONE,
+        Some(R::Messages) => SDRKIT_TABLE_ROLE_MESSAGES,
+        Some(R::Calls) => SDRKIT_TABLE_ROLE_CALLS,
+        Some(R::Nodes) => SDRKIT_TABLE_ROLE_NODES,
+        Some(R::Groups) => SDRKIT_TABLE_ROLE_GROUPS,
+    }
 }
 
 /// The declaration of one series (a small plot) or raster (an image of values, such as a waterfall).
@@ -385,6 +421,11 @@ pub unsafe extern "C" fn sdrkit_table_decl(handle: Handle, id: Id, info: *mut Ta
             altitude_column: column(m.altitude),
             course_column: column(m.course),
             speed_column: column(m.speed),
+            role: table_role(m.role),
+            sender_column: column(m.sender),
+            addressee_column: column(m.addressee),
+            text_column: column(m.text),
+            time_column: column(m.time),
         });
         Ok(())
     })

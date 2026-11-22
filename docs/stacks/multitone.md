@@ -60,7 +60,7 @@ The stack has no settings.
 
 ## Typed interface
 
-The stack is in the family `trunk`, version 1.4. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `trunk`, version 1.5. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Paging (`paging`). Media: text.
 
@@ -90,6 +90,8 @@ Struct `MultitoneTransmissionRow`. A transmission. The row key is its number.
 | `kind` | choice | always | 1.0 | Kind. |
 | `period_ms` | number (ms) | optional | 1.0 | Period. |
 | `burst` | whole number | optional | 1.0 | Burst. |
+
+The rows are the calls of the stack. Time: `time_s`.
 
 ### Table `tx_tones`
 

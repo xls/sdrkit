@@ -1798,7 +1798,7 @@ impl Component for Tables {
         ])
     }
     fn attach(&mut self, ctx: &sdrkit_graph::RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
     }
     fn process(&mut self, io: &mut Io) {
         let mut new = false;

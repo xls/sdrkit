@@ -284,6 +284,8 @@ impl Component for Lines {
                 codec: Codec::Pixels(PixelFormat::Grey8),
                 layout: Some(layout),
                 name: None,
+                id: 1,
+                state: sdrkit_core::PictureState::Finished,
                 data,
             },
         });

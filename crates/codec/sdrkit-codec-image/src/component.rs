@@ -4,13 +4,14 @@
 //! graph's clock it draws the chosen view again when the picture changed, at most once every `frame_every` ticks. A change of
 //! view or enhancement draws at once. [`Component::save_state`] returns the gathered strips for the host to keep.
 
+use crate::raster::Raster;
 use crate::strip::{render, Enhance, Strip, StripPicture, View};
 use sdrkit_core::command::{Command, CommandError, CommandId, CommandSet, Commands};
 use sdrkit_core::interface::{Family, Fields, StackShape};
-use sdrkit_core::media::Picture;
+use sdrkit_core::media::{Picture, PictureIds, PictureState};
 use sdrkit_core::publish::{field, Published};
 use sdrkit_core::settings::SchemaError;
-use sdrkit_core::Choice;
+use sdrkit_core::{Choice, SettingRole};
 use sdrkit_core::{
     ChoiceDecl, ConfigError, DeclareSetting, FieldDecl, Record, Results, Schema, Setting,
     SettingDecl, SettingError, SettingId, StateBlob, StateError, Value, Values,
@@ -178,6 +179,10 @@ pub struct Pictures {
     last: Option<(u32, u64, usize, usize, Enhance)>,
     bad_strips: u64,
     published: Published,
+    /// The numbers of the pictures sent, by the number of the strip picture and the view.
+    ids: PictureIds<(u32, usize)>,
+    /// The last states of pictures that ended between two ticks. The next tick sends them.
+    ended: Vec<Picture>,
 }
 
 impl Default for Pictures {
@@ -221,11 +226,13 @@ impl Pictures {
             SettingDecl::new(
                 FieldDecl::with_choices("instrument", "Instrument", instruments),
                 Value::Choice(0),
-            ),
+            )
+            .with_role(SettingRole::PictureSource),
             SettingDecl::new(
                 FieldDecl::with_choices("view", "View", view_keys),
                 Value::Choice(0),
-            ),
+            )
+            .with_role(SettingRole::PictureView),
             ENHANCE.decl(),
             FOLLOW.decl(),
             FRAME_EVERY.decl(),
@@ -236,6 +243,8 @@ impl Pictures {
             inputs: 1,
             pictures: BTreeMap::new(),
             next_id: 1,
+            ids: PictureIds::new(),
+            ended: Vec::new(),
             instrument: 0,
             view: 0,
             enhance: ENHANCE.default,
@@ -280,19 +289,58 @@ impl Pictures {
         &self.pictures
     }
 
-    /// Draws the chosen view of the instrument shown, with its name (`<instrument>-<view tag>`).
-    pub fn render_current(&self) -> Option<Picture> {
+    /// Draws the chosen view of the instrument shown, with its name (`<instrument>-<view tag>`). The picture has the
+    /// number of that view of that instrument, and it can grow.
+    pub fn render_current(&mut self) -> Option<Picture> {
         let l = self.layout();
         let pic = self.pictures.get(l.name)?;
-        let v = &self.named_view().view;
-        let r = render(pic, v, self.enhance)?;
+        let view = self.view.min(l.views.len() - 1);
+        let (r, name) = Self::draw(l, pic, view, self.enhance)?;
+        let id = self.ids.of(&(pic.id, view));
+        Some(r.to_picture(&name, id, PictureState::Growing))
+    }
+
+    /// The view `view` of the picture `pic` of the layout `l`, and its name.
+    fn draw(
+        l: &Layout,
+        pic: &StripPicture,
+        view: usize,
+        enhance: Enhance,
+    ) -> Option<(Raster, String)> {
+        let v = &l.views.get(view)?.view;
+        let r = render(pic, v, enhance)?;
         let tag = v.resolve(pic).map_or_else(|| v.tag(), |v| v.tag());
         let name = if l.name.is_empty() {
             tag
         } else {
             format!("{}-{tag}", l.name)
         };
-        Some(r.to_picture(&name))
+        Some((r, name))
+    }
+
+    /// Ends every picture sent: draws each once more as finished, for the next tick. The next picture of a view has a
+    /// new number.
+    fn end_sent(&mut self) {
+        for ((pic_id, view), id) in self.ids.close_all() {
+            let found = self.layouts.iter().find_map(|l| {
+                let pic = self.pictures.get(l.name).filter(|p| p.id == pic_id)?;
+                Self::draw(l, pic, view, self.enhance)
+            });
+            if let Some((r, name)) = found {
+                self.ended
+                    .push(r.to_picture(&name, id, PictureState::Finished));
+            }
+        }
+    }
+
+    /// Sends the last states of the pictures that ended.
+    fn send_ended(&mut self, io: &mut Io) {
+        for p in self.ended.drain(..) {
+            io.items_out::<Picture>(0).push(Timed {
+                time: 0.0,
+                value: p,
+            });
+        }
     }
 
     fn add(&mut self, s: &Strip) {
@@ -384,6 +432,7 @@ impl Component for Pictures {
         if !io.tick() {
             return;
         }
+        self.send_ended(io);
         self.since_frame = self.since_frame.saturating_add(1);
         let state = self
             .current()
@@ -407,6 +456,12 @@ impl Component for Pictures {
             }
         }
         self.publish();
+    }
+
+    fn finish(&mut self, io: &mut Io) {
+        self.process(io);
+        self.end_sent();
+        self.send_ended(io);
     }
 
     fn apply(&mut self, id: SettingId, v: &Value) -> Result<Applied, SettingError> {
@@ -481,6 +536,7 @@ impl Component for Pictures {
     fn invoke(&mut self, id: CommandId, _args: &Values) -> Result<Option<Record>, CommandError> {
         match PicturesCommand::from_id(id).ok_or(CommandError::NoSuchId { id })? {
             PicturesCommand::Clear => {
+                self.end_sent();
                 self.pictures.clear();
                 self.last = None;
                 self.publish();
@@ -509,6 +565,7 @@ impl Component for Pictures {
             self.next_id = self.next_id.max(p.1.id.saturating_add(1));
             restored.insert(l.name, p.1);
         }
+        self.end_sent();
         self.pictures = restored;
         self.last = None;
         Ok(())

@@ -655,7 +655,7 @@ pub struct CallRow<'a> {
     #[field(label = "Id")]
     pub id: i64,
     /// Signal time of the start of a call, seconds.
-    #[field(label = "Start", unit = "s")]
+    #[field(label = "Start", unit = "s", role = Time)]
     pub start_s: f64,
     /// How long a call lasted.
     #[field(label = "Duration", unit = "s")]
@@ -667,10 +667,10 @@ pub struct CallRow<'a> {
     #[field(label = "Kind")]
     pub kind: CallKind,
     /// Who sends.
-    #[field(label = "Source")]
+    #[field(label = "Source", role = Sender)]
     pub src: &'a str,
     /// Who is called.
-    #[field(label = "Target")]
+    #[field(label = "Target", role = Addressee)]
     pub dst: &'a str,
     /// The target is a group.
     #[field(label = "Group")]
@@ -790,13 +790,13 @@ pub struct CallDetailRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct MessageRow<'a> {
     /// Signal time, seconds.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// Who sends.
-    #[field(label = "Source")]
+    #[field(label = "Source", role = Sender)]
     pub src: &'a str,
     /// Who is called.
-    #[field(label = "Target")]
+    #[field(label = "Target", role = Addressee)]
     pub dst: &'a str,
     /// The target is a group.
     #[field(label = "Group")]
@@ -808,7 +808,7 @@ pub struct MessageRow<'a> {
     #[field(label = "Data format")]
     pub data_format: Option<i64>,
     /// Text carried by a transmission.
-    #[field(label = "Text")]
+    #[field(label = "Text", role = Text)]
     pub text: &'a str,
     /// The error check was good.
     #[field(label = "CRC good")]
@@ -1109,17 +1109,20 @@ pub struct YsfFields<'a> {
 }
 
 /// The call log of DMR (at most 100 entries).
-pub static CALLS_100: Table<CallRow<'static>> =
-    Table::new("calls", "Calls", 100).label(&CallRow::ALIAS);
+pub static CALLS_100: Table<CallRow<'static>> = Table::new("calls", "Calls", 100)
+    .role(sdrkit_core::TableRole::Calls)
+    .label(&CallRow::ALIAS);
 /// The call log of the other stacks (at most 300 entries).
-pub static CALLS_300: Table<CallRow<'static>> =
-    Table::new("calls", "Calls", 300).label(&CallRow::ALIAS);
+pub static CALLS_300: Table<CallRow<'static>> = Table::new("calls", "Calls", 300)
+    .role(sdrkit_core::TableRole::Calls)
+    .label(&CallRow::ALIAS);
 /// The facts of a call that only some stacks send.
 pub static CALL_DETAILS: Table<CallDetailRow<'static>> =
     Table::new("call_details", "Call details", 3000).label(&CallDetailRow::CALL);
 /// Text messages.
-pub static MESSAGES: Table<MessageRow<'static>> =
-    Table::new("messages", "Messages", 100).label(&MessageRow::SRC);
+pub static MESSAGES: Table<MessageRow<'static>> = Table::new("messages", "Messages", 100)
+    .role(sdrkit_core::TableRole::Messages)
+    .label(&MessageRow::SRC);
 /// Positions.
 pub static POSITIONS: Table<PositionRow<'static>> =
     Table::new("positions", "Positions", crate::calls::POSITION_CAP).label(&PositionRow::SRC);
@@ -1130,7 +1133,8 @@ pub static GRANTS: Table<GrantRow<'static>> =
     Table::new("grants", "Grants", crate::calls::GRANT_CAP);
 /// Talkgroups heard, with their counters.
 pub static TALKGROUPS: Table<TalkgroupRow> =
-    Table::new("talkgroups", "Talkgroups", crate::calls::TALKGROUP_CAP);
+    Table::new("talkgroups", "Talkgroups", crate::calls::TALKGROUP_CAP)
+        .role(sdrkit_core::TableRole::Groups);
 /// The stacks that the automatic detector heard.
 pub static SEEN: Table<SeenRow> = Table::new("modes_seen", "Modes heard", 16);
 /// The channel identifiers of a P25 site.
@@ -1146,7 +1150,9 @@ pub static HISTORY: Table<HistoryRow<'static>> =
     Table::new("history", "Heard calls", monitor::HISTORY_CAP).label(&HistoryRow::CALL);
 /// One row per source radio or callsign.
 pub static HEARD: Table<HeardRow<'static>> =
-    Table::new("heard", "Heard stations", monitor::HEARD_CAP).label(&HeardRow::SRC);
+    Table::new("heard", "Heard stations", monitor::HEARD_CAP)
+        .role(sdrkit_core::TableRole::Nodes)
+        .label(&HeardRow::SRC);
 
 /// A call started, ended, or was a single transmission.
 pub static CALL: EventKind<CallEvent<'static>> = EventKind::new("dvoice.call", "Call");
@@ -1230,7 +1236,7 @@ pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         let plain = |id| common(id, &CALLS_300);
-        Described::new("dvoice", 2, 2)
+        Described::new("dvoice", 2, 3)
             .added(2, 2, &["dstar.command.ptt", "dstar.setting.tx_timeout"])
             .added(
                 2,

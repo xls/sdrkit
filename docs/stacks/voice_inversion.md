@@ -78,7 +78,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `voice`, version 1.3. The C header `sdrkit/voice.h`, the registry record `registry/voice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `voice`, version 1.4. The C header `sdrkit/voice.h`, the registry record `registry/voice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Voice calls (`voice`). Media: sound (voice).
 
@@ -116,6 +116,8 @@ Struct `DetectorEventRow`. An event of a single-channel stack. The row key is th
 | `time_utc` | time | optional | 1.0 | The wall-clock time of an event. |
 | `signal_time_s` | duration (s) | always | 1.0 | The signal time. |
 | `text` | text | always | 1.0 | The text of a decoded message. |
+
+The rows are the messages of the stack. Text: `text`. Time: `time_utc`.
 
 ### Event `voice_inversion.found`
 

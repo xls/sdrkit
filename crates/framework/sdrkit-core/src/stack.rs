@@ -4,7 +4,7 @@ use crate::bench::Benchmark;
 use crate::event::Event;
 use crate::facilities::Facilities;
 use crate::media::FourCc;
-use crate::media::{ChannelLayout, MediaFormat, Packet};
+use crate::media::{ChannelLayout, MediaFormat, Packet, PictureState};
 use crate::owner::Owner;
 use crate::request::HostRequest;
 use crate::settings::{Schema, SettingError, SettingId, Values};
@@ -280,6 +280,21 @@ pub struct Elementary {
     pub packet: Packet,
     /// The stream's format.
     pub format: Arc<MediaFormat>,
+    /// For a picture: which picture it is and whether more of it can come. `None` for media, and for a picture of a
+    /// receiver that states nothing: the host then takes each packet as a whole picture of its own.
+    pub picture: Option<PictureTag>,
+}
+
+/// Which picture a picture packet holds, for the host.
+#[derive(Clone, Debug, PartialEq)]
+pub struct PictureTag {
+    /// The number of the picture in its receiver. Packets with the same number are states of one picture. A number
+    /// whose low 32 bits are [`Picture::WHOLE`](crate::Picture::WHOLE) is a whole picture of its own.
+    pub id: u64,
+    /// Whether more of the picture can come.
+    pub state: PictureState,
+    /// The name of the picture, if it has one.
+    pub name: Option<Arc<str>>,
 }
 
 /// What a receiver can produce from one call of [`Receiver::feed`]. The engine drains it after the call. Nothing here blocks.
@@ -413,6 +428,16 @@ impl Output {
             kind,
             packet,
             format: format.clone(),
+            picture: None,
+        });
+    }
+    /// Hands a picture to the host with what `tag` states about it (shares its bytes and the format).
+    pub fn push_picture(&mut self, packet: Packet, format: &Arc<MediaFormat>, tag: PictureTag) {
+        self.media.push(Elementary {
+            kind: StreamKind::Picture,
+            packet,
+            format: format.clone(),
+            picture: Some(tag),
         });
     }
 }

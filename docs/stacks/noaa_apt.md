@@ -30,7 +30,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `gen_lines` | Test picture lines | whole number | 400 | 1 to 4000 |  |
+| `gen_lines` | Test picture lines | whole number | 0 | 1 to 4000 | The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats. |
 
 ## Result fields
 
@@ -66,7 +66,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.2. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
 

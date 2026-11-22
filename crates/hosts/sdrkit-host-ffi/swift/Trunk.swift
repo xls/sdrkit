@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "trunk", version 1.4. MIT licence.
+// sdrkit: the typed interface of the stack family "trunk", version 1.5. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum TrunkInterface {
     public static let major = 1
-    public static let minor = 4
+    public static let minor = 5
 }
 
 /// The result fields of MPT 1327.
@@ -2841,6 +2841,8 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(TonesHeardRow.init))
     }
     /// The changed rows of the table "pages" of the stack "pager", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
+    /// Addressee: `address`. Text: `message`. Time: `time_s`.
     public static func pagerPages(_ handle: SDRKIT_HANDLE, capacity: Int = 2000) -> Result<[PagerPageRow], SDRKitCode> {
         var rows = [sdrkit_pager_page_row](repeating: sdrkit_pager_page_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2857,6 +2859,8 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(PagerSpeedRow.init))
     }
     /// The changed rows of the table "heard" of the stack "pager", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// Time: `last_heard`.
     public static func pagerHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[PagerHeardRow], SDRKitCode> {
         var rows = [sdrkit_pager_heard_row](repeating: sdrkit_pager_heard_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2865,6 +2869,8 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(PagerHeardRow.init))
     }
     /// The changed rows of the table "rows" of the stack "ermes", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
+    /// Addressee: `address`. Text: `text`. Time: `time_s`.
     public static func ermesRows(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[ErmesEntryRow], SDRKitCode> {
         var rows = [sdrkit_ermes_entry_row](repeating: sdrkit_ermes_entry_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2873,6 +2879,8 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ErmesEntryRow.init))
     }
     /// The changed rows of the table "transmissions" of the stack "multitone", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
+    /// Time: `time_s`.
     public static func multitoneTransmissions(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MultitoneTransmissionRow], SDRKitCode> {
         var rows = [sdrkit_multitone_transmission_row](repeating: sdrkit_multitone_transmission_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2965,7 +2973,9 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(OpenskyBlockRow.init))
     }
     /// The changed rows of the table "pages" of the stack "gsc", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `call` names a row.
+    /// Addressee: `code`. Text: `text`. Time: `time_s`.
     public static func gscPages(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[GscPageRow], SDRKitCode> {
         var rows = [sdrkit_gsc_page_row](repeating: sdrkit_gsc_page_row(), count: capacity)
         var info = sdrkit_rows_info.sized

@@ -1680,7 +1680,8 @@ impl Engine {
     }
 
     /// Copies the first picture of session `id` after counter `after` (0 for the oldest kept) into `out`: compressed bytes,
-    /// or raw pixels in the layout of the format's `pixels`. The session keeps its last 16 pictures. `None` if no picture
+    /// or raw pixels in the layout of the format's `pixels`. [`MediaRead::picture`] says which picture it is and whether
+    /// more of it can come. The session keeps the newest state of each of its last 16 pictures. `None` if no picture
     /// follows `after`.
     ///
     /// # Errors
@@ -2342,11 +2343,12 @@ impl Shared {
         let open = lock(kind).open(address, values)?;
         let live = open.capabilities().realtime;
         let tx = open.capabilities().transmit.clone();
-        let feed = Arc::new(Feed::new(
-            live,
-            Arc::clone(self.components.catalog()),
-            self.context(),
-        ));
+        // The test signal of a stack is made as it plays: its rows can have the time of the clock.
+        let ctx = RunContext {
+            present: driver == SYNTH,
+            ..self.context()
+        };
+        let feed = Arc::new(Feed::new(live, Arc::clone(self.components.catalog()), ctx));
         let radio = Radio::start(open, address, feed, auto_rate)?;
         signal.keep();
         let (d, a) = (radio.driver, radio.address.clone());

@@ -553,6 +553,26 @@ pub struct DgpsAlmanacRow {
     pub health: i64,
 }
 
+/// The row of the station table: the base station of the frames received. The row key is the station id.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct DgpsStationRow {
+    /// The station id.
+    #[field(label = "Station")]
+    pub station_id: i64,
+    /// The health of the station.
+    #[field(label = "Health")]
+    pub health: Option<StationHealth>,
+    /// The position of the station. No value before a message of type 3.
+    #[field(label = "Position")]
+    pub position: Option<(f64, f64)>,
+    /// The height of the station above the ellipsoid. No value before a message of type 3.
+    #[field(label = "Height", unit = "m", role = Altitude)]
+    pub height_m: Option<f64>,
+}
+
+/// The base station of the frames received: one row. The map point of the station shows this row.
+pub static DGPS_STATION: Table<DgpsStationRow> =
+    Table::new("station", "Station", 1).label(&DgpsStationRow::STATION_ID);
 /// The frames by message type.
 pub static DGPS_MESSAGES: Table<DgpsMessageRow> =
     Table::new("messages", "Messages", 64).label(&DgpsMessageRow::MSG_TYPE);
@@ -686,6 +706,7 @@ pub fn family() -> &'static Described {
             dgps = dgps.component(name, |c| c.fields::<DgpsMskFields>());
         }
         let dgps = dgps
+            .table(&DGPS_STATION)
             .table(&DGPS_MESSAGES)
             .table(&DGPS_CORRECTIONS)
             .table(&DGPS_ALMANAC)
@@ -699,8 +720,20 @@ pub fn family() -> &'static Described {
                 "DgpsFields.frames_ok",
                 "DgpsFields.text",
             ]);
-        // Version 1.3 names rows and orders tables.
-        Described::new("avnav", 1, 3)
+        // Version 1.3 names rows and orders tables. Version 1.4 has the station table of `dgps`.
+        Described::new("avnav", 1, 4)
+            .added(
+                1,
+                4,
+                &[
+                    "dgps.table.station",
+                    "shape.DgpsStationRow",
+                    "shape.DgpsStationRow.station_id",
+                    "shape.DgpsStationRow.health",
+                    "shape.DgpsStationRow.position",
+                    "shape.DgpsStationRow.height_m",
+                ],
+            )
             .added(
                 1,
                 2,

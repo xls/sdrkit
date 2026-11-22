@@ -354,7 +354,7 @@ impl Decoder for LoraSatDisplay {
         Published::from_decl(results_decl())
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
     }
     fn configure(&mut self, _input: &Format) -> Result<Vec<Format>, ConfigError> {

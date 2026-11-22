@@ -216,3 +216,95 @@ fn sstv_noise_and_a_weak_robot36() {
     let (mut rx, _tap) = receiver_with_pictures(&h, RATE);
     feed_rx(rx.as_mut(), &x, 800);
 }
+
+/// The picture packets that the receiver hands to the host for `x`, fed in pieces of 800 samples: the number, the
+/// state, the name and the size of each.
+fn host_pictures(
+    rx: &mut dyn sdrkit_core::Receiver,
+    x: &[sdrkit_core::Complex32],
+) -> Vec<(u64, sdrkit_core::PictureState, String, (u32, u32))> {
+    let mut seen = vec![];
+    let mut out = sdrkit_core::Output::default();
+    for c in x.chunks(800) {
+        out.clear();
+        rx.feed(c, &mut out);
+        for e in out
+            .media
+            .iter()
+            .filter(|e| e.kind == sdrkit_core::StreamKind::Picture)
+        {
+            let t = e
+                .picture
+                .as_ref()
+                .expect("a picture packet states its picture");
+            let l = e.format.pixels.as_ref().expect("raw pixels");
+            let name = t.name.as_deref().unwrap_or("").to_string();
+            seen.push((t.id, t.state, name, (l.width, l.height)));
+        }
+    }
+    seen
+}
+
+#[test]
+fn two_sstv_pictures_of_the_same_size_are_two_pictures_for_the_host() {
+    use sdrkit_core::PictureState::{Finished, Growing};
+    let mode = hf::sstv::mode("Robot 36").unwrap();
+    let secs = mode.line_ms * mode.lines() as f64 / 1000.0 + 4.0;
+    let h = snr_2500(harness(&hf::SSTV), 25.0)
+        .with_settings(&[pick(&hf::sstv::GEN_MODE, "Robot 36")])
+        .seconds(secs);
+    let x = h.generate().unwrap();
+    let (mut rx, _tap) = receiver_with_pictures(&h, RATE);
+    let mut seen = host_pictures(rx.as_mut(), &x);
+    seen.extend(host_pictures(rx.as_mut(), &x));
+    let ids: Vec<u64> = seen.iter().map(|p| p.0).collect();
+    let (first, second) = (ids[0], *ids.last().unwrap());
+    assert_ne!(first, second, "{seen:?}");
+    // The packets of the first picture come before those of the second, and no third picture is among them.
+    let turn = ids.iter().position(|&i| i == second).unwrap();
+    assert!(ids[..turn].iter().all(|&i| i == first), "{seen:?}");
+    assert!(ids[turn..].iter().all(|&i| i == second), "{seen:?}");
+    // Each picture grows and then ends: its last packet, and only that one, is finished.
+    for part in [&seen[..turn], &seen[turn..]] {
+        let (last, before) = part.split_last().unwrap();
+        assert_eq!(last.1, Finished, "{seen:?}");
+        assert!(
+            !before.is_empty() && before.iter().all(|p| p.1 == Growing),
+            "{seen:?}"
+        );
+        assert!(
+            part.iter()
+                .all(|p| p.2 == "Robot 36" && p.3 == (mode.w, mode.h)),
+            "{seen:?}"
+        );
+    }
+}
+
+#[test]
+fn an_sstv_picture_that_the_input_cuts_off_ends_finished() {
+    let mode = hf::sstv::mode("Robot 36").unwrap();
+    let secs = mode.line_ms * mode.lines() as f64 / 1000.0 + 4.0;
+    let h = snr_2500(harness(&hf::SSTV), 25.0)
+        .with_settings(&[pick(&hf::sstv::GEN_MODE, "Robot 36")])
+        .seconds(secs);
+    let x = h.generate().unwrap();
+    let (mut rx, _tap) = receiver_with_pictures(&h, RATE);
+    let mut seen = host_pictures(rx.as_mut(), &x[..x.len() / 2]);
+    assert!(
+        seen.iter()
+            .all(|p| p.1 == sdrkit_core::PictureState::Growing),
+        "{seen:?}"
+    );
+    let mut out = sdrkit_core::Output::default();
+    rx.finish(&mut out);
+    for e in &out.media {
+        let t = e.picture.as_ref().unwrap();
+        seen.push((t.id, t.state, String::new(), (0, 0)));
+    }
+    let last = seen.last().unwrap();
+    assert_eq!(
+        (last.0, last.1),
+        (seen[0].0, sdrkit_core::PictureState::Finished),
+        "{seen:?}"
+    );
+}

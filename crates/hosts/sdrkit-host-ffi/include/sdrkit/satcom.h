@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "satcom", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "satcom", version 1.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_SATCOM_VERSION_MAJOR 1
-#define SDRKIT_SATCOM_VERSION_MINOR 4
+#define SDRKIT_SATCOM_VERSION_MINOR 5
 
 // The stack "inmarsatc": its id, and the keys of its event types.
 #define SDRKIT_STACK_INMARSATC "inmarsatc"
@@ -4900,6 +4900,8 @@ typedef struct sdrkit_cubesat_send_args {
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "inmarsatc" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
+// Text: `text`. Time: `first_heard`.
 static inline int32_t sdrkit_inmarsatc_messages_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_inmarsatc_message_row *rows,
                                                     uint32_t capacity,
@@ -5049,9 +5051,11 @@ static inline int32_t sdrkit_aero_logons_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "aero" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `flight` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_ft`.
+// Sender: `aes`. Addressee: `ges`. Text: `text`. Time: `time`.
 static inline int32_t sdrkit_aero_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_aero_message_row *rows,
                                                uint32_t capacity,
@@ -5061,9 +5065,11 @@ static inline int32_t sdrkit_aero_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "aero" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `flight` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_aero_aircraft_rows(SDRKIT_HANDLE handle,
                                                sdrkit_aero_aircraft_row *rows,
                                                uint32_t capacity,
@@ -5223,9 +5229,11 @@ static inline int32_t sdrkit_inmarsat_aero_display_logons_rows(SDRKIT_HANDLE han
 
 // Fills `rows` with the changed rows of the table "aero_display.messages" of the stack "inmarsat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `flight` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_ft`.
+// Sender: `aes`. Addressee: `ges`. Text: `text`. Time: `time`.
 static inline int32_t sdrkit_inmarsat_aero_display_messages_rows(SDRKIT_HANDLE handle,
                                                                 sdrkit_aero_message_row *rows,
                                                                 uint32_t capacity,
@@ -5235,9 +5243,11 @@ static inline int32_t sdrkit_inmarsat_aero_display_messages_rows(SDRKIT_HANDLE h
 
 // Fills `rows` with the changed rows of the table "aero_display.aircraft" of the stack "inmarsat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `flight` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_inmarsat_aero_display_aircraft_rows(SDRKIT_HANDLE handle,
                                                                 sdrkit_aero_aircraft_row *rows,
                                                                 uint32_t capacity,
@@ -5256,6 +5266,8 @@ static inline int32_t sdrkit_inmarsat_aero_display_facts_rows(SDRKIT_HANDLE hand
 
 // Fills `rows` with the changed rows of the table "egc.messages" of the stack "inmarsat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
+// Text: `text`. Time: `first_heard`.
 static inline int32_t sdrkit_inmarsat_egc_messages_rows(SDRKIT_HANDLE handle,
                                                        sdrkit_inmarsatc_message_row *rows,
                                                        uint32_t capacity,
@@ -5339,6 +5351,8 @@ static inline int32_t sdrkit_inmarsat_gen_set_plain(SDRKIT_HANDLE handle, bool v
 
 // Fills `rows` with the changed rows of the table "raw" of the stack "iridium" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
+// Text: `line`. Time: `at`.
 static inline int32_t sdrkit_iridium_raw_rows(SDRKIT_HANDLE handle,
                                              sdrkit_iridium_raw_row *rows,
                                              uint32_t capacity,

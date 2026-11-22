@@ -628,7 +628,7 @@ impl Decoder for GoesDisplay {
         self.centre_hz = f.centre_hz;
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
     }
     fn process(&mut self, x: &[Timed<GoesItem>], _first: u64, out: &mut Outbox) {

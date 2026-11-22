@@ -31,7 +31,7 @@ mod bench;
 pub use bench::benchmarks;
 pub use convert::{Decode, PackedPixels, PixelConvert, PixelConvertSetting};
 pub use raster::Raster;
-pub use sdrkit_core::media::{Codec, Picture, PixelFormat};
+pub use sdrkit_core::media::{Codec, Picture, PictureIds, PictureState, PixelFormat};
 
 /// Why a picture operation failed.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]

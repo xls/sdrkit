@@ -1,6 +1,7 @@
 //! What a front end needs to show a stack without knowing it: the kind of content of the stack, the media that it
-//! gives, the column that names a row, the default order of the rows, and the columns that hold a place on the map.
-//! A stack states them in its interface description, or they follow from what it declares.
+//! gives, the column that names a row, the default order of the rows, the columns that hold a place on the map, the
+//! tables that hold messages, calls, nodes or groups with the columns of a message, and the settings that choose what
+//! a picture shows. A stack states them in its interface description, or they follow from what it declares.
 
 use crate::publish::Declare;
 use crate::value::ValueKind;
@@ -76,7 +77,7 @@ pub struct Media {
     pub text: bool,
 }
 
-/// What a column holds, for a front end that places a row on a map.
+/// What a column holds, for a front end that places a row on a map or shows a row as a message or a call.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Role {
     /// The position of the row, for a table with several columns of the position kind. Without it, the first column of
@@ -92,6 +93,71 @@ pub enum Role {
     Course,
     /// The speed. The unit of the column says in what.
     Speed,
+    /// Who sent the message or made the call: a call sign, an address, a node, a unit.
+    Sender,
+    /// To whom the message or the call goes: a call sign, an address, a group, a pager.
+    Addressee,
+    /// The text of the message for people.
+    Text,
+    /// When the row was received: for a table with several columns of the time kind, or for a column of seconds of
+    /// signal (unit `s`) in a table without a column of the time kind. Without it, the first column of the time kind
+    /// of a table with a role is the time.
+    Time,
+}
+
+/// What the rows of a table are, for a front end that shows them in a view made for them.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TableRole {
+    /// Each row is a message, newest first: the main log of messages of the stack.
+    Messages,
+    /// Each row is a call or a transmission: who, to whom, when.
+    Calls,
+    /// Each row is a station, a node or a unit that was heard.
+    Nodes,
+    /// Each row is a group that stations talk in: a talkgroup, a channel, a net.
+    Groups,
+}
+
+impl TableRole {
+    /// The roles, in the order of their numbers in the C interface (from 1).
+    pub const ALL: [TableRole; 4] = [
+        TableRole::Messages,
+        TableRole::Calls,
+        TableRole::Nodes,
+        TableRole::Groups,
+    ];
+    /// The name of the role in the registry record.
+    pub const fn key(self) -> &'static str {
+        match self {
+            TableRole::Messages => "messages",
+            TableRole::Calls => "calls",
+            TableRole::Nodes => "nodes",
+            TableRole::Groups => "groups",
+        }
+    }
+}
+
+/// What a setting chooses, for a front end that puts its control next to what it acts on.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SettingRole {
+    /// The setting chooses whose picture the stack shows: an instrument, a product, a satellite channel group.
+    PictureSource,
+    /// The setting chooses the view of the picture shown: a channel, a composite, a projection.
+    PictureView,
+}
+
+impl SettingRole {
+    /// The roles, in the order of their numbers in the C interface (from 1).
+    pub const ALL: [SettingRole; 2] = [SettingRole::PictureSource, SettingRole::PictureView];
+    /// The name of the role in the registry record.
+    pub const fn key(self) -> &'static str {
+        match self {
+            SettingRole::PictureSource => "picture_source",
+            SettingRole::PictureView => "picture_view",
+        }
+    }
 }
 
 /// The order of the rows of a table.
@@ -114,6 +180,8 @@ pub struct RowMarks {
     pub sort: &'static str,
     /// The order along `sort`.
     pub order: SortOrder,
+    /// What the rows are. `None` for a table that states nothing.
+    pub role: Option<TableRole>,
 }
 
 impl RowMarks {
@@ -122,6 +190,7 @@ impl RowMarks {
         label: "",
         sort: "",
         order: SortOrder::Descending,
+        role: None,
     };
 }
 
@@ -144,12 +213,23 @@ pub struct TableMarks {
     pub course: Option<u16>,
     /// The column of the speed.
     pub speed: Option<u16>,
+    /// What the rows are.
+    pub role: Option<TableRole>,
+    /// The column of the sender of a message or a call.
+    pub sender: Option<u16>,
+    /// The column of the addressee of a message or a call.
+    pub addressee: Option<u16>,
+    /// The column of the text of a message.
+    pub text: Option<u16>,
+    /// The column of the time of a row. Only a table with a role or a column with [`Role::Time`] has it.
+    pub time: Option<u16>,
 }
 
 impl TableMarks {
     /// The marks of a table with the columns `columns` that states `rows`. The position column is the column with
     /// [`Role::Position`], else the first column of the position kind. Each other place column is the first column
-    /// with its role.
+    /// with its role, and so are the sender, the addressee and the text. The time column is the column with
+    /// [`Role::Time`], else, in a table with a role, the first column of the time kind.
     ///
     /// # Panics
     ///
@@ -176,6 +256,11 @@ impl TableMarks {
             u16::try_from(i).ok()
         };
         let position = with(Role::Position).or_else(first_position);
+        let first_time = || -> Option<u16> {
+            rows.role?;
+            let i = columns.iter().position(|c| c.kind() == ValueKind::Time)?;
+            u16::try_from(i).ok()
+        };
         TableMarks {
             label: at(rows.label),
             sort: at(rows.sort).map(|c| (c, rows.order)),
@@ -185,6 +270,11 @@ impl TableMarks {
             altitude: with(Role::Altitude),
             course: with(Role::Course),
             speed: with(Role::Speed),
+            role: rows.role,
+            sender: with(Role::Sender),
+            addressee: with(Role::Addressee),
+            text: with(Role::Text),
+            time: with(Role::Time).or_else(first_time),
         }
     }
     /// True if nothing is marked.

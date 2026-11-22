@@ -82,7 +82,7 @@ The stack puts points on a map: Alert areas.
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.2. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: sound (programme), text.
 
@@ -130,7 +130,7 @@ Struct `SameAlertRow`. A SAME message. The row key is the count of rows added be
 | `raw` | text | always | 1.0 | The raw text. |
 | `error` | choice | optional | 1.0 | Why the message is damaged. |
 
-The column `callsign` names a row.
+The rows are the messages of the stack. The column `callsign` names a row. Sender: `callsign`. Text: `event_name`. Time: `host_time`.
 
 ### Table `alert_locations`
 

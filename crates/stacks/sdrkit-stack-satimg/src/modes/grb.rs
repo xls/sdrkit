@@ -608,7 +608,8 @@ pub const CHANNELS: Setting<field::Text> = Setting::new("channels", "Virtual cha
 /// The product shown: an APID, or -1 for the one updated last.
 pub const PRODUCT: Setting<field::I64> = Setting::new("product", "Product shown", "", -1)
     .range(-1.0, 2047.0, 1.0)
-    .help("An APID, or -1 for the picture updated last.");
+    .help("An APID, or -1 for the picture updated last.")
+    .role(sdrkit_core::SettingRole::PictureSource);
 
 sdrkit_core::settings! {
     /// The settings of `goes_grb`.

@@ -701,6 +701,7 @@ pub const SATELLITE_CHOICE: CatalogueSetting = CatalogueSetting {
     choices: satellite_choices,
     default: "auto",
     advanced: false,
+    role: None,
 };
 sdrkit_core::commands! {
     /// The commands of [`InmDisplay`].
@@ -1078,7 +1079,7 @@ impl Decoder for InmDisplay {
         self.inmc.clear();
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
         self.location = ctx.station.position.map(|p| (p.lat_deg, p.lon_deg));
     }

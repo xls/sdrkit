@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "hfkbd", version 2.9. MIT licence.
+// sdrkit: the typed interface of the stack family "hfkbd", version 2.10. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum HfkbdInterface {
     public static let major = 2
-    public static let minor = 9
+    public static let minor = 10
 }
 
 /// The levels that the front end measures. A level has no value before the first input.
@@ -2134,7 +2134,9 @@ public enum HfkbdComponents {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum HfkbdTables {
     /// The changed rows of the table "stations" of the stack "rtty", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func rttyStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2151,7 +2153,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(RttyGuessRow.init))
     }
     /// The changed rows of the table "stations" of the stack "psk", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func pskStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2169,7 +2173,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(PskSignalRow.init))
     }
     /// The changed rows of the table "stations" of the stack "cw", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func cwStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2187,7 +2193,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(CwSignalRow.init))
     }
     /// The changed rows of the table "stations" of the stack "olivia", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func oliviaStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2196,7 +2204,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "stations" of the stack "contestia", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func contestiaStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2205,7 +2215,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "stations" of the stack "mfsk", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func mfskStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2214,7 +2226,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "stations" of the stack "dominoex", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func dominoexStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2223,7 +2237,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "stations" of the stack "thor", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func thorStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2232,7 +2248,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "stations" of the stack "mt63", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func mt63Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2241,7 +2259,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "stations" of the stack "fsq", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func fsqStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2250,7 +2270,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "messages" of the stack "fsq", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `from` names a row.
+    /// Sender: `from`. Addressee: `to`. Text: `text`. Time: `time_s`.
     public static func fsqMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[FsqMessageRow], SDRKitCode> {
         var rows = [sdrkit_fsq_message_row](repeating: sdrkit_fsq_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2259,7 +2281,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FsqMessageRow.init))
     }
     /// The changed rows of the table "stations" of the stack "ifkp", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func ifkpStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2268,7 +2292,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "stations" of the stack "sitor", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func sitorStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2277,7 +2303,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "frames" of the stack "ardop", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `name` names a row.
+    /// Sender: `from`. Addressee: `to`. Text: `text`. Time: `time_s`.
     public static func ardopFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[ArdopFrameRow], SDRKitCode> {
         var rows = [sdrkit_ardop_frame_row](repeating: sdrkit_ardop_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2286,7 +2314,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ArdopFrameRow.init))
     }
     /// The changed rows of the table "stations" of the stack "ardop", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func ardopStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[ArdopStationRow], SDRKitCode> {
         var rows = [sdrkit_ardop_station_row](repeating: sdrkit_ardop_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2304,7 +2334,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(RosDetectionRow.init))
     }
     /// The changed rows of the table "stations" of the stack "throb", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func throbStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2313,7 +2345,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "stations" of the stack "qrss", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func qrssStations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2322,7 +2356,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "stations" of the stack "cp16", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `callsign` names a row.
+    /// Time: `last_heard`.
     public static func cp16Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[HfkbdStationRow], SDRKitCode> {
         var rows = [sdrkit_hfkbd_station_row](repeating: sdrkit_hfkbd_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized

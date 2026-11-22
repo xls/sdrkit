@@ -1,5 +1,5 @@
 # The interface of the stack family marine. The registry test of the family writes this file.
-family marine version=1.2
+family marine version=1.3
 shape.AisFields since=1.0
 shape.AisFields.state type=choice(searching,signal,decoding) unit= optional=no since=1.0
 shape.AisFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -424,8 +424,8 @@ ais.command.remove args=row:text reply= since=1.0
 marine since=1.0
 marine.content kind=datalink audio=monitor text=yes since=1.1
 marine.fields.HfFields since=1.0
-marine.table.navtex row=NavtexRow cap=100 label=header since=1.0
-marine.table.dsc row=DscRow cap=100 label=from_mmsi position=position since=1.0
+marine.table.navtex row=NavtexRow cap=100 label=header role=messages message=text time=time since=1.0
+marine.table.dsc row=DscRow cap=100 label=from_mmsi position=position role=calls sender=from_mmsi addressee=to_mmsi message=text time=time since=1.0
 marine.series.audio_spectrum x_unit=Hz y_unit=dB since=1.0
 marine.event.navtex.message fields=NavtexMessageEvent since=1.0
 marine.event.dsc.call fields=DscCallEvent since=1.0
@@ -469,8 +469,8 @@ vdes.command.clear args= reply= since=1.0
 marinevhf since=1.0
 marinevhf.content kind=voice audio=voice since=1.1
 marinevhf.fields.VhfFields since=1.0
-marinevhf.table.calls row=VhfCallRow cap=600 label=channel since=1.0
-marinevhf.table.channels row=VhfChannelRow cap=400 label=channel sort=freq_hz:ascending since=1.0
+marinevhf.table.calls row=VhfCallRow cap=600 label=channel role=calls time=time since=1.0
+marinevhf.table.channels row=VhfChannelRow cap=400 label=channel sort=freq_hz:ascending role=groups time=last_heard since=1.0
 marinevhf.event.marinevhf.call fields=VhfCallEvent since=1.0
 marinevhf.setting.plan type=text unit= since=1.0
 marinevhf.setting.channel_hz type=hz unit=Hz since=1.0
@@ -489,8 +489,8 @@ marinevhf.command.close_all args= reply= since=1.0
 atis since=1.0
 atis.content kind=voice audio=voice since=1.1
 atis.fields.AtisFields since=1.0
-atis.table.messages row=AtisMessageRow cap=300 label=name since=1.0
-atis.table.stations row=AtisStationRow cap=200 label=name since=1.0
+atis.table.messages row=AtisMessageRow cap=300 label=name role=messages sender=callsign time=time since=1.0
+atis.table.stations row=AtisStationRow cap=200 label=name role=nodes time=last_heard since=1.0
 atis.event.atis.message fields=AtisMessageEvent since=1.0
 atis.setting.listen type=bool unit= since=1.0
 atis.setting.names type=text unit= since=1.0

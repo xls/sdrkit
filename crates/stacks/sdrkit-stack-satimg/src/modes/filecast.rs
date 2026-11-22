@@ -166,8 +166,13 @@ impl Mosaic {
         }
         n
     }
-    /// The picture item.
-    pub fn picture(&self, partial: bool) -> Option<Picture> {
+    /// The picture item with the number `id`. It is finished when `last`, else it can grow.
+    pub fn picture(&self, partial: bool, id: u32, last: bool) -> Option<Picture> {
+        let state = if last {
+            sdrkit_core::PictureState::Finished
+        } else {
+            sdrkit_core::PictureState::Growing
+        };
         Raster::from_vec(
             PixelFormat::Grey8,
             self.width,
@@ -175,7 +180,7 @@ impl Mosaic {
             self.pixels.clone(),
         )
         .ok()
-        .map(|r| r.to_picture(&self.name(partial)))
+        .map(|r| r.to_picture(&self.name(partial), id, state))
     }
 }
 
@@ -204,9 +209,18 @@ pub struct HritMosaics {
     pub bad: u64,
     /// Pictures finished.
     pub finished: u64,
+    /// The numbers of the pictures in progress, by channel.
+    ids: sdrkit_core::PictureIds<String>,
 }
 
 impl HritMosaics {
+    /// Ends the picture of `channel` and returns its number.
+    fn close(&mut self, channel: &String) -> u32 {
+        let id = self.ids.of(channel);
+        self.ids.close(channel);
+        id
+    }
+
     /// Takes the decompressed file `bytes` named `name`. Returns false when the name is not a segment name. A segment with
     /// bad headers counts in [`HritMosaics::bad`].
     pub fn push(&mut self, name: &str, bytes: &[u8], out: &mut impl FnMut(MosaicOut)) -> bool {
@@ -250,7 +264,8 @@ impl HritMosaics {
         });
         if differs {
             if let Some(old) = self.open.remove(&seg.channel) {
-                if let Some(p) = old.picture(true) {
+                let id = self.close(&seg.channel);
+                if let Some(p) = old.picture(true, id, true) {
                     out(MosaicOut::Done {
                         picture: p,
                         complete: false,
@@ -290,14 +305,15 @@ impl HritMosaics {
         if received == total {
             if let Some(done) = self.open.remove(&seg.channel) {
                 self.finished += 1;
-                if let Some(p) = done.picture(false) {
+                let id = self.close(&seg.channel);
+                if let Some(p) = done.picture(false, id, true) {
                     out(MosaicOut::Done {
                         picture: p,
                         complete: true,
                     });
                 }
             }
-        } else if let Some(p) = m.picture(false) {
+        } else if let Some(p) = m.picture(false, self.ids.of(&seg.channel), false) {
             out(MosaicOut::Progress(p));
         }
         true
@@ -305,8 +321,9 @@ impl HritMosaics {
 
     /// Pushes out every open picture as partial (the end of the input).
     pub fn flush(&mut self, out: &mut impl FnMut(MosaicOut)) {
-        for (_, m) in std::mem::take(&mut self.open) {
-            if let Some(p) = m.picture(true) {
+        for (channel, m) in std::mem::take(&mut self.open) {
+            let id = self.close(&channel);
+            if let Some(p) = m.picture(true, id, true) {
                 out(MosaicOut::Done {
                     picture: p,
                     complete: false,

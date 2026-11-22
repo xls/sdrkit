@@ -70,7 +70,8 @@ pub fn status(
     });
 }
 
-/// The wall-clock time now of `clock` when `live`, else `None` (a recording has no wall clock).
+/// The wall-clock time now of `clock` when `live`, else `None` (a recording has no wall clock). `live` is
+/// [`RunContext::wall_clock`](sdrkit_graph::RunContext::wall_clock): live samples, or a test signal made as it plays.
 pub fn wall(live: bool, clock: &Clock) -> Option<f64> {
     live.then(|| clock.now())
 }

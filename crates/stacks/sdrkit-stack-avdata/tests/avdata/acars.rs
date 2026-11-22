@@ -576,3 +576,32 @@ fn the_default_signal_and_receiver() {
     let r = rx.results();
     assert!(common::field(r, "frames_ok") >= 3.0 && common::field(r, "messages") >= 3.0);
 }
+
+#[test]
+fn a_message_has_the_time_of_the_clock_for_a_signal_made_as_it_plays() {
+    let (x, _) = signal(base(), 8.0, 35.0);
+    // A recording: no wall-clock time.
+    let mut rx = rx_with(2e6, 131.5e6, &[("join_blocks", "0")]);
+    run(rx.as_mut(), &x, 65_536);
+    let got = messages(rx.as_ref());
+    assert!(!got.is_empty());
+    assert!(got.iter().all(|m| num(m, "time") == 0.0));
+    // A test signal that the host makes as it plays: the time of the host's clock.
+    let mut rx = rx_with(2e6, 131.5e6, &[("join_blocks", "0")]);
+    let g = rx
+        .as_any_mut()
+        .and_then(|a| a.downcast_mut::<sdrkit_graph::Graph>())
+        .expect("a graph");
+    let mut ctx = g.context().clone();
+    ctx.present = true;
+    ctx.clock = sdrkit_core::Clock::fixed(1_800_000_000.0);
+    g.set_context(ctx);
+    run(rx.as_mut(), &x, 65_536);
+    let got = messages(rx.as_ref());
+    assert!(!got.is_empty());
+    assert!(
+        got.iter().all(|m| num(m, "time") == 1_800_000_000.0),
+        "{:?}",
+        got[0]
+    );
+}

@@ -1,5 +1,5 @@
 # The interface of the stack family lora. The registry test of the family writes this file.
-family lora version=3.2
+family lora version=3.3
 shape.MeshFields since=1.0
 shape.MeshFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.MeshFields.frames_bad type=i64 unit= optional=no since=1.0
@@ -511,15 +511,15 @@ mesh.kept.MeshMcFields.mc_name since=1.0
 mesh.kept.MeshMcFields.mc_contacts since=1.0
 mesh.kept.MeshTxFields since=1.0
 mesh.table.packets row=MeshPacketRow cap=100 label=source since=1.0
-mesh.table.nodes row=MeshNodeRow cap=150 label=name position=position since=1.0
-mesh.table.messages row=MeshMessageRow cap=100 label=sender since=1.0
+mesh.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
+mesh.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
 mesh.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
 mesh.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 mesh.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 mesh.table.types row=MeshTypeRow cap=200 label=type since=1.0
 mesh.table.decoders row=MeshDecoderRow cap=400 label=preset sort=freq:ascending since=1.0
 mesh.table.contacts row=MeshContactRow cap=200 label=name since=1.0
-mesh.table.channels row=MeshChannelRow cap=64 label=channel since=1.0
+mesh.table.channels row=MeshChannelRow cap=64 label=channel role=groups since=1.0
 mesh.table.slots row=MeshSlotRow cap=1024 label=slot sort=slot:ascending since=1.0
 mesh.event.lora.packet fields=LoraPacketEvent since=1.0
 mesh.event.mesh.text fields=MeshTextEvent since=1.0
@@ -625,15 +625,15 @@ meshtastic.kept.MeshMcFields.mc_name since=1.0
 meshtastic.kept.MeshMcFields.mc_contacts since=1.0
 meshtastic.kept.MeshTxFields since=1.0
 meshtastic.table.packets row=MeshPacketRow cap=100 label=source since=1.0
-meshtastic.table.nodes row=MeshNodeRow cap=150 label=name position=position since=1.0
-meshtastic.table.messages row=MeshMessageRow cap=100 label=sender since=1.0
+meshtastic.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
+meshtastic.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
 meshtastic.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
 meshtastic.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 meshtastic.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 meshtastic.table.types row=MeshTypeRow cap=200 label=type since=1.0
 meshtastic.table.decoders row=MeshDecoderRow cap=400 label=preset sort=freq:ascending since=1.0
 meshtastic.table.contacts row=MeshContactRow cap=200 label=name since=1.0
-meshtastic.table.channels row=MeshChannelRow cap=64 label=channel since=1.0
+meshtastic.table.channels row=MeshChannelRow cap=64 label=channel role=groups since=1.0
 meshtastic.table.slots row=MeshSlotRow cap=1024 label=slot sort=slot:ascending since=1.0
 meshtastic.event.lora.packet fields=LoraPacketEvent since=1.0
 meshtastic.event.mesh.text fields=MeshTextEvent since=1.0
@@ -721,15 +721,15 @@ meshcore.kept.MeshMcFields.mc_name since=1.0
 meshcore.kept.MeshMcFields.mc_contacts since=1.0
 meshcore.kept.MeshTxFields since=1.0
 meshcore.table.packets row=MeshPacketRow cap=100 label=source since=1.0
-meshcore.table.nodes row=MeshNodeRow cap=150 label=name position=position since=1.0
-meshcore.table.messages row=MeshMessageRow cap=100 label=sender since=1.0
+meshcore.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
+meshcore.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
 meshcore.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
 meshcore.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 meshcore.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 meshcore.table.types row=MeshTypeRow cap=200 label=type since=1.0
 meshcore.table.decoders row=MeshDecoderRow cap=400 label=preset sort=freq:ascending since=1.0
 meshcore.table.contacts row=MeshContactRow cap=200 label=name since=1.0
-meshcore.table.channels row=MeshChannelRow cap=64 label=channel since=1.0
+meshcore.table.channels row=MeshChannelRow cap=64 label=channel role=groups since=1.0
 meshcore.table.slots row=MeshSlotRow cap=1024 label=slot sort=slot:ascending since=1.0
 meshcore.event.lora.packet fields=LoraPacketEvent since=1.0
 meshcore.event.mesh.text fields=MeshTextEvent since=1.0
@@ -803,15 +803,15 @@ lorawan.kept.MeshMcFields.mc_name since=1.0
 lorawan.kept.MeshMcFields.mc_contacts since=1.0
 lorawan.kept.MeshTxFields since=1.0
 lorawan.table.packets row=MeshPacketRow cap=100 label=source since=1.0
-lorawan.table.nodes row=MeshNodeRow cap=150 label=name position=position since=1.0
-lorawan.table.messages row=MeshMessageRow cap=100 label=sender since=1.0
+lorawan.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
+lorawan.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
 lorawan.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
 lorawan.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 lorawan.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 lorawan.table.types row=MeshTypeRow cap=200 label=type since=1.0
 lorawan.table.decoders row=MeshDecoderRow cap=400 label=preset sort=freq:ascending since=1.0
 lorawan.table.contacts row=MeshContactRow cap=200 label=name since=1.0
-lorawan.table.channels row=MeshChannelRow cap=64 label=channel since=1.0
+lorawan.table.channels row=MeshChannelRow cap=64 label=channel role=groups since=1.0
 lorawan.table.slots row=MeshSlotRow cap=1024 label=slot sort=slot:ascending since=1.0
 lorawan.event.lora.packet fields=LoraPacketEvent since=1.0
 lorawan.event.mesh.text fields=MeshTextEvent since=1.0
@@ -872,15 +872,15 @@ loraaprs.kept.MeshMcFields.mc_name since=1.0
 loraaprs.kept.MeshMcFields.mc_contacts since=1.0
 loraaprs.kept.MeshTxFields since=1.0
 loraaprs.table.packets row=MeshPacketRow cap=100 label=source since=1.0
-loraaprs.table.nodes row=MeshNodeRow cap=150 label=name position=position since=1.0
-loraaprs.table.messages row=MeshMessageRow cap=100 label=sender since=1.0
+loraaprs.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
+loraaprs.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
 loraaprs.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
 loraaprs.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 loraaprs.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 loraaprs.table.types row=MeshTypeRow cap=200 label=type since=1.0
 loraaprs.table.decoders row=MeshDecoderRow cap=400 label=preset sort=freq:ascending since=1.0
 loraaprs.table.contacts row=MeshContactRow cap=200 label=name since=1.0
-loraaprs.table.channels row=MeshChannelRow cap=64 label=channel since=1.0
+loraaprs.table.channels row=MeshChannelRow cap=64 label=channel role=groups since=1.0
 loraaprs.table.slots row=MeshSlotRow cap=1024 label=slot sort=slot:ascending since=1.0
 loraaprs.event.lora.packet fields=LoraPacketEvent since=1.0
 loraaprs.event.mesh.text fields=MeshTextEvent since=1.0
@@ -950,15 +950,15 @@ meshcom.kept.MeshMcFields.mc_name since=1.0
 meshcom.kept.MeshMcFields.mc_contacts since=1.0
 meshcom.kept.MeshTxFields since=1.0
 meshcom.table.packets row=MeshPacketRow cap=100 label=source since=1.0
-meshcom.table.nodes row=MeshNodeRow cap=150 label=name position=position since=1.0
-meshcom.table.messages row=MeshMessageRow cap=100 label=sender since=1.0
+meshcom.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
+meshcom.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
 meshcom.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
 meshcom.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 meshcom.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 meshcom.table.types row=MeshTypeRow cap=200 label=type since=1.0
 meshcom.table.decoders row=MeshDecoderRow cap=400 label=preset sort=freq:ascending since=1.0
 meshcom.table.contacts row=MeshContactRow cap=200 label=name since=1.0
-meshcom.table.channels row=MeshChannelRow cap=64 label=channel since=1.0
+meshcom.table.channels row=MeshChannelRow cap=64 label=channel role=groups since=1.0
 meshcom.table.slots row=MeshSlotRow cap=1024 label=slot sort=slot:ascending since=1.0
 meshcom.event.lora.packet fields=LoraPacketEvent since=1.0
 meshcom.event.mesh.text fields=MeshTextEvent since=1.0
@@ -1011,7 +1011,7 @@ lorawanwide.setting.clock0 type=f64 unit=s since=1.0
 lorawanwide.command.clear args= reply= since=1.0
 lorawanwide.command.reset args= reply= since=1.0
 loraraw since=1.0
-loraraw.content kind=devices since=3.1
+loraraw.content kind=utility since=3.1
 loraraw.fields.RawFields since=1.0
 loraraw.fields.GuardFields writer=receiver since=1.0
 loraraw.component.modulate.fields.ModulateFields since=1.0
@@ -1073,9 +1073,9 @@ aprs.kept.AprsFields.aprs_frames since=1.0
 aprs.kept.AprsFields.copies since=1.0
 aprs.kept.AprsFields.not_ax25 since=1.0
 aprs.kept.AprsFields.stations since=1.0
-aprs.table.frames row=AprsFrameRow cap=200 label=source since=1.0
-aprs.table.stations row=AprsStationRow cap=300 label=call position=position altitude=alt_m course=course_deg speed=speed_kt since=1.0
-aprs.table.messages row=MeshMessageRow cap=100 label=sender since=1.0
+aprs.table.frames row=AprsFrameRow cap=200 label=source sender=source addressee=target message=text time=time_s since=1.0
+aprs.table.stations row=AprsStationRow cap=300 label=call position=position altitude=alt_m course=course_deg speed=speed_kt role=nodes time=last_heard since=1.0
+aprs.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
 aprs.event.aprs.packet fields=AprsPacketEvent since=1.0
 aprs.event.tx.request fields=TxRequestEvent since=1.0
 aprs.setting.narrow type=bool unit= since=1.0
@@ -1130,8 +1130,8 @@ reticulum.kept.RnsFields.frames_ok since=1.0
 reticulum.kept.RnsFields.frames_bad since=1.0
 reticulum.kept.RnsFields.preambles since=1.0
 reticulum.kept.RnsFields.destinations_heard since=1.0
-reticulum.table.packets row=RnsPacketRow cap=300 label=destination since=1.0
-reticulum.table.destinations row=RnsDestinationRow cap=100 label=destination since=1.0
+reticulum.table.packets row=RnsPacketRow cap=300 label=destination role=messages addressee=destination message=content time=utc since=1.0
+reticulum.table.destinations row=RnsDestinationRow cap=100 label=destination role=nodes time=first_heard since=1.0
 reticulum.event.reticulum.destination fields=RnsDestinationEvent since=1.0
 reticulum.event.reticulum.announce fields=RnsAnnounceEvent since=1.0
 reticulum.setting.auto_plan type=bool unit= since=1.0

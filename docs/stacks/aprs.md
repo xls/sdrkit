@@ -105,7 +105,7 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 3.2. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 3.3. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Mesh messaging (`mesh`). Media: sound (monitor), text.
 
@@ -158,7 +158,7 @@ Struct `AprsFrameRow`. A row of the APRS frame log. The row key is the place of 
 | `text` | text | always | 1.0 | The frame in one line. |
 | `bit_rate` | frequency | always | 1.0 | The bit rate. |
 
-The column `source` names a row.
+The column `source` names a row. Sender: `source`. Addressee: `target`. Text: `text`. Time: `time_s`.
 
 ### Table `stations`
 
@@ -177,7 +177,7 @@ Struct `AprsStationRow`. A row of the APRS stations. The row key is the callsign
 | `comment` | text | always | 1.0 | The comment or status. |
 | `via` | text | always | 1.0 | The station that sent an object, an item or a third-party packet. |
 
-The column `call` names a row. Place of a row: the column `position`. Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
+The rows are the stations or nodes of the stack. The column `call` names a row. Place of a row: the column `position`. Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`. Time: `last_heard`.
 
 ### Table `messages`
 
@@ -203,7 +203,7 @@ Struct `MeshMessageRow`. A row of the messages. The row key is the place of the 
 | `crc_ok` | yes or no | optional | 1.0 | The text comes from a copy with a good CRC. False for a damaged copy that was shown after the wait without a good copy; a later good copy replaces the text and sets it. None for an own message. |
 | `copies` | whole number | optional | 1.0 | The copies of the packet heard while the message is remembered (10 minutes), damaged ones included. None for an own message. |
 
-The column `sender` names a row.
+The rows are the messages of the stack. The column `sender` names a row. Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
 
 ### Event `aprs.packet`
 

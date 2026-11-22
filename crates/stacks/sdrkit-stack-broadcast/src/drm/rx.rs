@@ -1578,6 +1578,8 @@ impl Component for DrmMot {
                         codec: image_codec(object.content_subtype),
                         layout: None,
                         name: (!object.name.is_empty()).then(|| object.name.clone()),
+                        id: Picture::WHOLE,
+                        state: sdrkit_core::PictureState::Finished,
                         data: object.body.clone(),
                     });
                 }

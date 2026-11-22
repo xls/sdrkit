@@ -321,8 +321,8 @@ the keys that differ. A receive chain that is not a `StackGraph` makes the same 
 
 ### What a front end reads to show a stack
 
-A front end (an app, the terminal app, the CLI) builds the view of a stack from the description. Five facts tell it
-how, so that it holds no list of stack ids and guesses no key names. A stack states a fact in its description, or the
+A front end (an app, the terminal app, the CLI) builds the view of a stack from the description. The facts below tell
+it how, so that it holds no list of stack ids and guesses no key names. A stack states a fact in its description, or the
 fact follows from what the stack declares. A stack that states nothing behaves as before.
 
 | Fact | Where it is stated | What follows without a statement |
@@ -334,6 +334,10 @@ fact follows from what the stack declares. A stack that states nothing behaves a
 | The default order of the rows | `Table::new(..).sorted(&CarrierRow::SNR_DB, SortOrder::Descending)` | The newest row first, by arrival. |
 | The place of a row | `#[field(.., role = Altitude)]` and the other roles | The first column of the position kind is the position. |
 | The row of a map point | `shaped::row_points(&objects, &TABLE, "prefix/", results)`, or `Results::link_point` | A point without a row. |
+| What the rows of a table are | `Table::new(..).role(TableRole::Messages)` | A table without a role. |
+| The parts of a message or a call | `#[field(.., role = Sender)]`, `Addressee`, `Text`, `Time` | In a table with a role, the first column of the time kind is the time. |
+| The setting that chooses the picture | `Setting::new(..).role(SettingRole::PictureView)`, `role: Some(..)` of a `CatalogueSetting`, `SettingDecl::with_role` | A setting without a role. |
+| Which picture a picture item is | `Picture::id` and `Picture::state` | Nothing: every picture item states both. |
 
 The kinds of content are a closed set, the enum `ContentKind`. A kind names what the results are, not a page:
 
@@ -363,8 +367,8 @@ A new kind is a new option at the end of the enum, and a compatible change. The 
 broadcast programme), `voice` (speech of calls; there is sound only while a call lasts) and `monitor` (the demodulated
 signal, to hear that it is there).
 
-The roles of a column are `Position`, `Latitude`, `Longitude`, `Altitude`, `Course` and `Speed`. `Position` is for a
-table with several columns of the position kind. `Latitude` and `Longitude` are for a table that holds the two numbers
+The roles of a column are `Position`, `Latitude`, `Longitude`, `Altitude`, `Course`, `Speed`, `Sender`, `Addressee`,
+`Text` and `Time`. `Position` is for a table with several columns of the position kind. `Latitude` and `Longitude` are for a table that holds the two numbers
 in two columns. The unit of a height or a speed is the unit of its column. The standard keys `height_m`, `speed_kt`
 and `course_deg` of `sdrkit_core::publish::keys` have their roles, so a row struct that names them with
 `#[field(shared = ..)]` states nothing. A `shared` field can take a role of its own: `#[field(shared = PATH, role =
@@ -393,6 +397,57 @@ Family::new("marine", 1, 1)
 
 The test `families` fails for an id that is no stack of the family.
 
+A table can state what its rows are, with `Table::role`. The roles are a closed set, the enum `TableRole`:
+
+| Role | The rows |
+|---|---|
+| `Messages` | The messages of the stack: its main log of messages. |
+| `Calls` | The calls or transmissions: who, to whom, when. |
+| `Nodes` | The stations, nodes or units that were heard. |
+| `Groups` | The groups that stations talk in: talkgroups, channels, nets. |
+
+A stack has at most one table of each role among its own tables, and one for each component whose tables have the
+key `<component>.<table>`. The columns of a message or a call state their part with a column role:
+`Sender` (who sent it), `Addressee` (to whom), `Text` (the text for people) and `Time`. The time column of a table
+with a role is the column with the role `Time`, else the first column of the time kind. A table whose only time is a
+number of seconds of signal marks that column with `Time`: the unit of the column (`s`) says that it is no UTC. Every
+stack of the kinds `mesh`, `paging`, `datalink`, `text_chat` and `voice` that has such a table states its role. The
+test `message_marks` of `sdrkit-host-catalog` fails for a stack of these kinds without a role, unless the test lists
+the stack with the reason (a stack that only detects a signal).
+
+```rust
+/// The messages.
+pub static MESSAGES: Table<ChatRow<'static>> = Table::new("messages", "Messages", 200).role(TableRole::Messages);
+
+#[derive(Fields)]
+pub struct ChatRow<'a> {
+    #[field(label = "From", role = Sender)]
+    pub from: &'a str,
+    #[field(label = "To", role = Addressee)]
+    pub to: Option<&'a str>,
+    #[field(shared = keys::TEXT, role = Text)]
+    pub text: &'a str,
+    #[field(label = "Time")]
+    pub time: Option<Time>,
+}
+```
+
+A setting that chooses what the picture of a stack shows states it with a role, the enum `SettingRole`:
+`PictureSource` (whose picture: an instrument, a product) and `PictureView` (the view of it: a channel, a
+composite). A front end puts the control of such a setting next to the picture. The role stays with the setting when
+the stack routes its own setting to the setting of a component.
+
+A picture item states which picture it is. `Picture::id` is the number of the picture among the pictures of its
+component, and `Picture::state` is `Growing` or `Finished`. Items with the same number are states of one picture,
+each with all of its bytes, and each replaces the one before. A component gives a new number to a new picture, also
+when it has the size and the name of the one before, and keeps one number for each product or channel that it
+builds at the same time (`PictureIds` holds the numbers by key). The last item of a picture is `Finished`: at its
+last line, on loss of its signal, when a command clears it, and in `Component::finish` at the end of the input. A
+picture that is sent once, whole (a slide, a received file, a frame of moving pictures) has the number
+`Picture::WHOLE`. The session gives each picture one number for the host, from 1, and keeps the newest state of each
+of its last 16 pictures. When the session takes another stack, the pictures that still grow go to the host once
+more, finished.
+
 The order of a table is a statement for the view. The rows of a snapshot are always newest first, whatever the
 table states.
 
@@ -408,9 +463,14 @@ Where a consumer reads the facts:
 | Kind of content, sound, pictures, video, text of each stack | The columns `kind`, `audio`, `pictures`, `video` and `text` of the table `stacks` of the engine; `StackShape::content`, `StackShape::media()` | `sdrkit_engine_stacks_rows()` of `sdrkit/engine.h`: the members of `sdrkit_engine_stack_row` | `EngineStackRow` of `Engine.swift` |
 | Marks of a table | `TableDecl::marks` (`TableMarks`) | `sdrkit_table_decl()`: `label_column`, `sort_column`, `sort_descending`, `position_column`, `latitude_column`, `longitude_column`, `altitude_column`, `course_column`, `speed_column` of `sdrkit_table_info`; `SDRKIT_NO_ID` for none | `TableDeclaration.labelColumn`, `.sort`, `.place` |
 | Row of a map point | `MapPoint::row` (`RowLink`) | `table` and `row` of `sdrkit_point` | `MapPoint.row` |
+| What the rows of a table are, and the columns of a message | `TableMarks::role`, `.sender`, `.addressee`, `.text`, `.time` | `sdrkit_table_decl()`: `role` (`SDRKIT_TABLE_ROLE_NONE`, `_MESSAGES`, `_CALLS`, `_NODES`, `_GROUPS`), `sender_column`, `addressee_column`, `text_column`, `time_column` of `sdrkit_table_info` | `TableDeclaration.role` (`TableRole`), `.message` (`TableMessage`) |
+| What a setting chooses | `SettingDecl::role` (`SettingRole`) | `sdrkit_setting_decl()`: `role` of `sdrkit_decl` (`SDRKIT_SETTING_ROLE_NONE`, `_PICTURE_SOURCE`, `_PICTURE_VIEW`) | `Declaration.role` (`Declaration.SettingRole`) |
+| Which picture a picture packet holds | `MediaRead::picture` (`PictureTag`: `id`, `state`, `name`) of `Engine::picture` | `sdrkit_picture_read()`: `picture_id`, `picture_state` (`SDRKIT_PICTURE_STATE_GROWING`, `_FINISHED`) and `picture_name` of `sdrkit_media_info` | `MediaPacket.pictureID`, `.pictureState`, `.pictureName` |
 
 In the registry record, the kind and the media of a stack are the line `<stack>.content`, and the marks of a table are
-attributes of its line (`label=`, `sort=`, `position=`, `altitude=`, ...). A change of a mark is compatible. The docs
+attributes of its line (`label=`, `sort=`, `position=`, `altitude=`, `role=`, `sender=`, `addressee=`, `message=` for
+the text column, `time=`, ...). The role of a setting is the attribute `role=` of its line. A change of a mark is
+compatible. The docs
 page of a stack and the comments of the typed table functions say the same in words. `sdrkit show <owner>` prints
 the marks with each table, and the table `stacks` of `sdrkit show engine stacks` has the kind and the media.
 

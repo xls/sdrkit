@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "avnav", version 1.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "avnav", version 1.4. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_AVNAV_VERSION_MAJOR 1
-#define SDRKIT_AVNAV_VERSION_MINOR 3
+#define SDRKIT_AVNAV_VERSION_MINOR 4
 
 // The stack "ndb": its id, and the keys of its event types.
 #define SDRKIT_STACK_NDB "ndb"
@@ -723,6 +723,48 @@ typedef struct sdrkit_dgps_msk_fields {
   // The carrier offset that the demodulator removes. A frequency in Hz.
   double offset_hz;
 } sdrkit_dgps_msk_fields;
+
+// The options of `health` of `sdrkit_dgps_station_row`.
+typedef enum sdrkit_dgps_station_row_health {
+  // UDRE scale 1
+  SDRKIT_DGPS_STATION_ROW_HEALTH_SCALE_1 = 0,
+  // UDRE scale 0.75
+  SDRKIT_DGPS_STATION_ROW_HEALTH_SCALE_0_75 = 1,
+  // UDRE scale 0.5
+  SDRKIT_DGPS_STATION_ROW_HEALTH_SCALE_0_5 = 2,
+  // UDRE scale 0.3
+  SDRKIT_DGPS_STATION_ROW_HEALTH_SCALE_0_3 = 3,
+  // UDRE scale 0.2
+  SDRKIT_DGPS_STATION_ROW_HEALTH_SCALE_0_2 = 4,
+  // UDRE scale 0.1
+  SDRKIT_DGPS_STATION_ROW_HEALTH_SCALE_0_1 = 5,
+  // not monitored
+  SDRKIT_DGPS_STATION_ROW_HEALTH_NOT_MONITORED = 6,
+  // not working
+  SDRKIT_DGPS_STATION_ROW_HEALTH_NOT_WORKING = 7,
+} sdrkit_dgps_station_row_health;
+
+// The row of the station table: the base station of the frames received. The row key is the station id.
+typedef struct sdrkit_dgps_station_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The station id.
+  int64_t station_id;
+  // True if `health` holds a value.
+  bool has_health;
+  // The health of the station. A value of `sdrkit_dgps_station_row_health`.
+  int32_t health;
+  // True if `position` holds a value.
+  bool has_position;
+  // The position of the station. No value before a message of type 3.
+  sdrkit_position position;
+  // True if `height_m` holds a value.
+  bool has_height_m;
+  // The height of the station above the ellipsoid. No value before a message of type 3. Unit: m.
+  double height_m;
+} sdrkit_dgps_station_row;
 
 // A row of the frames by message type. The row key is the type in two digits.
 typedef struct sdrkit_dgps_message_row {
@@ -1604,6 +1646,18 @@ static inline int32_t sdrkit_loran_gen_get_ecd(SDRKIT_HANDLE handle, double *val
 }
 static inline int32_t sdrkit_loran_gen_set_ecd(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "gen_ecd", value);
+}
+
+// Fills `rows` with the changed rows of the table "station" of the stack "dgps" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `station_id` names a row.
+// Place of a row: the column `position`.
+// Height: `height_m`.
+static inline int32_t sdrkit_dgps_station_rows(SDRKIT_HANDLE handle,
+                                              sdrkit_dgps_station_row *rows,
+                                              uint32_t capacity,
+                                              sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "avnav.DgpsStationRow", "station", rows, sizeof(sdrkit_dgps_station_row), capacity, info);
 }
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "dgps" in the snapshot of `handle`,

@@ -133,6 +133,8 @@ impl CallBook {
                     open: true,
                     last_active: time,
                     peak_dbfs: b.level_dbfs,
+                    // The mean of an open call is the mean so far: at its start, the first level.
+                    mean_dbfs: b.level_dbfs,
                     ..Default::default()
                 };
                 describe(&mut c);
@@ -145,6 +147,7 @@ impl CallBook {
                 c.peak_dbfs = c.peak_dbfs.max(b.level_dbfs);
                 c.level_sum += b.level_dbfs;
                 c.level_n += 1;
+                c.mean_dbfs = c.level_sum / c.level_n as f64;
                 c.duration_s = c.last_active - c.at.t;
             }
         }

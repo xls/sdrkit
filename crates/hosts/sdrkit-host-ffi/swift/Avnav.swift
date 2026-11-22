@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "avnav", version 1.3. MIT licence.
+// sdrkit: the typed interface of the stack family "avnav", version 1.4. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum AvnavInterface {
     public static let major = 1
-    public static let minor = 3
+    public static let minor = 4
 }
 
 /// The tuned frequency.
@@ -582,6 +582,38 @@ public struct DgpsMskFields {
     }
 }
 
+/// The row of the station table: the base station of the frames received. The row key is the station id.
+public struct DgpsStationRow {
+    public enum Health: Int32 {
+        case scale1 = 0
+        case scale075 = 1
+        case scale05 = 2
+        case scale03 = 3
+        case scale02 = 4
+        case scale01 = 5
+        case notMonitored = 6
+        case notWorking = 7
+    }
+    /// The row key.
+    public var key: String
+    /// The station id.
+    public var stationId: Int64
+    /// The health of the station.
+    public var health: Health?
+    /// The position of the station. No value before a message of type 3.
+    public var position: SDRKitPosition?
+    /// The height of the station above the ellipsoid. No value before a message of type 3.
+    public var heightM: Double?
+
+    init(_ c: sdrkit_dgps_station_row) {
+        key = sdrkitText(c.key)
+        stationId = c.station_id
+        health = c.has_health ? Health(rawValue: c.health) : nil
+        position = c.has_position ? SDRKitPosition(c.position) : nil
+        heightM = c.has_height_m ? c.height_m : nil
+    }
+}
+
 /// A row of the frames by message type. The row key is the type in two digits.
 public struct DgpsMessageRow {
     /// The row key.
@@ -962,6 +994,17 @@ public enum AvnavTables {
         let code = sdrkit_loran_stations_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(LoranStationRow.init))
+    }
+    /// The changed rows of the table "station" of the stack "dgps", newest first, at most `capacity` rows.
+    /// The column `station_id` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `height_m`.
+    public static func dgpsStation(_ handle: SDRKIT_HANDLE, capacity: Int = 1) -> Result<[DgpsStationRow], SDRKitCode> {
+        var rows = [sdrkit_dgps_station_row](repeating: sdrkit_dgps_station_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_dgps_station_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(DgpsStationRow.init))
     }
     /// The changed rows of the table "messages" of the stack "dgps", newest first, at most `capacity` rows.
     /// The column `msg_type` names a row.

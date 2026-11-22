@@ -82,7 +82,7 @@ The stack puts points on a map: Aircraft and ground stations.
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.3. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 1.4. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: text.
 
@@ -149,7 +149,7 @@ Struct `HfdlMessageRow`. A row of the messages. The row key is the place in the 
 | `position` | position | optional | 1.0 | The position the message gives. |
 | `detail` | text | optional | 1.0 | Every decoded layer, joined by " \| ". |
 
-The column `flight` names a row. Place of a row: the column `position`.
+The rows are the messages of the stack. The column `flight` names a row. Place of a row: the column `position`. Text: `text`. Time: `time`.
 
 ### Table `aircraft`
 
@@ -170,7 +170,7 @@ Struct `HfdlAircraftRow`. A row of the aircraft. The row key is the address, or 
 | `position` | position | optional | 1.0 | The last position. |
 | `alt_ft` | number (ft) | optional | 1.0 | The altitude of the last position. |
 
-The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`.
+The rows are the stations or nodes of the stack. The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`. Time: `last_heard`.
 
 ### Table `ground_stations`
 

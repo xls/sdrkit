@@ -71,7 +71,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `lora`, version 3.2. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 3.3. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Mesh messaging (`mesh`). Media: text.
 
@@ -115,7 +115,7 @@ Struct `RnsPacketRow`. A row of the Reticulum packet log. The row key is the pla
 | `hex` | bytes | always | 1.0 | The first bytes of the packet. |
 | `setting` | text | always | 1.0 | The LoRa setting of the frame. |
 
-The column `destination` names a row.
+The rows are the messages of the stack. The column `destination` names a row. Addressee: `destination`. Text: `content`. Time: `utc`.
 
 ### Table `destinations`
 
@@ -132,7 +132,7 @@ Struct `RnsDestinationRow`. A row of the Reticulum destinations. The row key is 
 | `first_heard` | time | optional | 1.0 | The UTC of the first packet. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last packet. |
 
-The column `destination` names a row.
+The rows are the stations or nodes of the stack. The column `destination` names a row. Time: `first_heard`.
 
 ### Event `reticulum.destination`
 

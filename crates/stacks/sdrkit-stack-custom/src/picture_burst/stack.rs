@@ -338,6 +338,8 @@ impl PbDecoder {
                         codec: Codec::Pixels(PixelFormat::Rgb8),
                         layout: Some(PixelLayout::packed(PixelFormat::Rgb8, d.header.width, d.header.height)),
                         name: Some(d.header.callsign.clone()),
+                        id: Picture::WHOLE,
+                        state: sdrkit_core::PictureState::Finished,
                         data: Arc::from(&rgb[..]),
                     },
                 });

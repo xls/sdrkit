@@ -73,7 +73,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ar
 
 ## Typed interface
 
-The stack is in the family `custom`, version 1.4. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `custom`, version 1.5. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: text.
 
@@ -117,7 +117,7 @@ Struct `ArqPacketMessageRow`. A row of the messages received. The row key is a r
 | `text` | text | always | 1.0 | The message as text. |
 | `time` | time | always | 1.0 | When the message was completed. |
 
-The column `callsign` names a row.
+The rows are the messages of the stack. The column `callsign` names a row. Sender: `callsign`. Text: `text`. Time: `time`.
 
 ### Event `packet.message`
 

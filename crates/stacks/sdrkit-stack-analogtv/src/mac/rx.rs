@@ -1068,6 +1068,8 @@ impl MacPicture {
             codec: Codec::Pixels(PixelFormat::Bgra),
             layout: Some(PixelLayout::packed(PixelFormat::Bgra, w as u32, h as u32)),
             name: None,
+            id: Picture::WHOLE,
+            state: sdrkit_core::PictureState::Finished,
             data: Arc::from(px.into_boxed_slice()),
         };
         self.rep.pictures += 1;

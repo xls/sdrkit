@@ -638,6 +638,8 @@ impl ReportComponent {
                     codec,
                     layout: None,
                     name: (!name.is_empty()).then(|| name.to_string()),
+                    id: Picture::WHOLE,
+                    state: sdrkit_core::PictureState::Finished,
                     data: Arc::clone(&o.body),
                 }
             }

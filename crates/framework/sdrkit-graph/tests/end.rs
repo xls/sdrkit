@@ -252,6 +252,8 @@ impl Component for Painter {
                 codec: Codec::Pixels(PixelFormat::Grey8),
                 layout: Some(PixelLayout::packed(PixelFormat::Grey8, 4, 2)),
                 name: None,
+                id: 1,
+                state: sdrkit_core::PictureState::Finished,
                 data: Arc::from(&[7u8; 8][..]),
             },
         });

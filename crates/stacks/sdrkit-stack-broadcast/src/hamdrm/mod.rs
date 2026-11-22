@@ -918,6 +918,8 @@ impl Files {
                     codec,
                     layout: None,
                     name: Some(file.name.clone()),
+                    id: Picture::WHOLE,
+                    state: sdrkit_core::PictureState::Finished,
                     data: file.bytes.clone(),
                 });
                 self.history.push_front(file);

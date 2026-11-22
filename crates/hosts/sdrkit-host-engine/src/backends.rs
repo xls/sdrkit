@@ -50,6 +50,7 @@ macro_rules! backend_setting {
             choices: || choices(&$registry),
             default: AUTO,
             advanced: false,
+            role: None,
         };
     };
 }

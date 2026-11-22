@@ -1438,7 +1438,7 @@ impl Component for VdesDisplay {
         Ok(vec![Format::new(Kind::Messages, 0.0)])
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
     }
     fn process(&mut self, io: &mut Io) {

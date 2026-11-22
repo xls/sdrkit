@@ -1397,7 +1397,7 @@ impl Decoder for AeroDisplay {
         self.channels.clear();
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
     }
     fn process(&mut self, items: &[Timed<AeroItem>], _first: u64, out: &mut Outbox) {

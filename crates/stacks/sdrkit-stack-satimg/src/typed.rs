@@ -1812,7 +1812,7 @@ pub fn family() -> &'static Described {
         .settings(crate::modes::filecast::FilecastSetting::SETTINGS)
         .command(&crate::modes::filecast::CLEAR)
         .kept(&["recent_files", "pictures"]);
-        Described::new("satimg", 1, 2)
+        Described::new("satimg", 1, 3)
             .added(
                 1,
                 2,

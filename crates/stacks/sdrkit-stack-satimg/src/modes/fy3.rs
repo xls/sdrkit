@@ -177,6 +177,7 @@ pub const AHRPT_PRESET: CatalogueSetting = CatalogueSetting {
     choices: || preset_choices(false),
     default: "auto",
     advanced: false,
+    role: None,
 };
 /// The MPT satellite.
 pub const MPT_PRESET: CatalogueSetting = CatalogueSetting {
@@ -186,6 +187,7 @@ pub const MPT_PRESET: CatalogueSetting = CatalogueSetting {
     choices: || preset_choices(true),
     default: "auto",
     advanced: false,
+    role: None,
 };
 /// The symbol rate in Msym/s, 0 for automatic.
 pub const SYMBOL_RATE: Setting<field::F64> =
@@ -206,6 +208,7 @@ pub const AHRPT_INSTRUMENT: CatalogueSetting = CatalogueSetting {
     choices: || instrument_choices(layouts(false)),
     default: "VIRR",
     advanced: false,
+    role: Some(sdrkit_core::SettingRole::PictureSource),
 };
 /// The MPT instrument shown.
 pub const MPT_INSTRUMENT: CatalogueSetting = CatalogueSetting {
@@ -215,6 +218,7 @@ pub const MPT_INSTRUMENT: CatalogueSetting = CatalogueSetting {
     choices: || instrument_choices(layouts(true)),
     default: "MERSI",
     advanced: false,
+    role: Some(sdrkit_core::SettingRole::PictureSource),
 };
 /// The AHRPT view.
 pub const AHRPT_VIEW: CatalogueSetting = CatalogueSetting {
@@ -224,6 +228,7 @@ pub const AHRPT_VIEW: CatalogueSetting = CatalogueSetting {
     choices: || view_choices(layouts(false)),
     default: "true",
     advanced: false,
+    role: Some(sdrkit_core::SettingRole::PictureView),
 };
 /// The MPT view.
 pub const MPT_VIEW: CatalogueSetting = CatalogueSetting {
@@ -233,6 +238,7 @@ pub const MPT_VIEW: CatalogueSetting = CatalogueSetting {
     choices: || view_choices(layouts(true)),
     default: "true",
     advanced: false,
+    role: Some(sdrkit_core::SettingRole::PictureView),
 };
 /// Keep the newest lines in view.
 pub const FOLLOW: Setting<field::Bool> = Setting::new("follow", "Follow", "", true);

@@ -93,7 +93,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `voice`, version 1.3. The C header `sdrkit/voice.h`, the registry record `registry/voice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `voice`, version 1.4. The C header `sdrkit/voice.h`, the registry record `registry/voice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Voice calls (`voice`). Media: sound (voice).
 
@@ -153,7 +153,7 @@ Struct `CallRow`. A call in the call log.
 | `tone` | text | always | 1.0 | The tone or code heard. |
 | `open` | yes or no | always | 1.0 | The squelch is open. |
 
-The column `label` names a row.
+The rows are the calls of the stack. The column `label` names a row. Time: `time_utc`.
 
 ### Table `channels`
 
@@ -183,7 +183,7 @@ Struct `ChannelRow`. A channel of the plan or a carrier heard.
 | `last_heard_utc` | time | optional | 1.0 | When the channel was last open. |
 | `peak_dbfs` | number (dBFS) | optional | 1.0 | The highest level. |
 
-The column `name` names a row.
+The rows are the groups of the stack. The column `name` names a row. Time: `last_heard_utc`.
 
 ### Table `bursts`
 
@@ -206,7 +206,7 @@ Struct `FleetsyncBurstRow`. A FleetSync burst: a row of the burst log and the fi
 | `check` | text | always | 1.1 | "good", or for FleetSync II the bits that the code repaired. |
 | `text` | text | always | 1.1 | The burst in words. |
 
-The column `label` names a row.
+The rows are the messages of the stack. The column `label` names a row. Sender: `unit`. Text: `text`. Time: `time_utc`.
 
 ### Table `units`
 
@@ -221,6 +221,8 @@ Struct `FleetsyncUnitRow`. A fleet and unit heard.
 | `last_heard` | time | optional | 1.1 | When it was last heard. |
 | `hz` | frequency | always | 1.1 | The carrier of its last burst. |
 | `kind` | text | always | 1.1 | The type of its last burst. |
+
+The rows are the stations or nodes of the stack. Time: `last_heard`.
 
 ### Event `fleetsync.call`
 

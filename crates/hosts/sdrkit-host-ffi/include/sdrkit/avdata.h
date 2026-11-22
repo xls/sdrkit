@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "avdata", version 1.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "avdata", version 1.4. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,7 +36,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_AVDATA_VERSION_MAJOR 1
-#define SDRKIT_AVDATA_VERSION_MINOR 3
+#define SDRKIT_AVDATA_VERSION_MINOR 4
 
 // The stack "acars": its id, and the keys of its event types.
 #define SDRKIT_STACK_ACARS "acars"
@@ -1810,9 +1810,11 @@ typedef struct sdrkit_hfdl_aircraft_args {
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "acars" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `flight` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_ft`.
+// Sender: `registration`. Text: `text`. Time: `time`.
 static inline int32_t sdrkit_acars_messages_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_acars_message_row *rows,
                                                 uint32_t capacity,
@@ -1822,9 +1824,11 @@ static inline int32_t sdrkit_acars_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "acars" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `flight` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_acars_aircraft_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_acars_aircraft_row *rows,
                                                 uint32_t capacity,
@@ -1905,9 +1909,11 @@ static inline int32_t sdrkit_acars_gen_set_positions(SDRKIT_HANDLE handle, bool 
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "vdl2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `flight` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_ft`.
+// Sender: `from`. Addressee: `to`. Text: `text`. Time: `time`.
 static inline int32_t sdrkit_vdl2_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_vdl2_message_row *rows,
                                                uint32_t capacity,
@@ -1917,9 +1923,11 @@ static inline int32_t sdrkit_vdl2_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "vdl2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `flight` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_vdl2_aircraft_rows(SDRKIT_HANDLE handle,
                                                sdrkit_vdl2_aircraft_row *rows,
                                                uint32_t capacity,
@@ -2000,9 +2008,11 @@ static inline int32_t sdrkit_vdl2_gen_set_aircraft(SDRKIT_HANDLE handle, int64_t
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "vdl4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `address` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_ft`.
+// Sender: `address`. Text: `summary`. Time: `time`.
 static inline int32_t sdrkit_vdl4_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_vdl4_message_row *rows,
                                                uint32_t capacity,
@@ -2012,9 +2022,11 @@ static inline int32_t sdrkit_vdl4_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "vdl4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `flight` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_vdl4_aircraft_rows(SDRKIT_HANDLE handle,
                                                sdrkit_vdl4_aircraft_row *rows,
                                                uint32_t capacity,
@@ -2068,6 +2080,8 @@ static inline int32_t sdrkit_vdl4_set_channels(SDRKIT_HANDLE handle, sdrkit_stri
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "selcal" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
+// Addressee: `code`. Time: `time`.
 static inline int32_t sdrkit_selcal_calls_rows(SDRKIT_HANDLE handle,
                                               sdrkit_selcal_call_row *rows,
                                               uint32_t capacity,
@@ -2077,6 +2091,8 @@ static inline int32_t sdrkit_selcal_calls_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "codes" of the stack "selcal" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// Time: `last_heard`.
 static inline int32_t sdrkit_selcal_codes_rows(SDRKIT_HANDLE handle,
                                               sdrkit_selcal_code_row *rows,
                                               uint32_t capacity,
@@ -2131,6 +2147,7 @@ static inline int32_t sdrkit_selcal_set_aircraft_table(SDRKIT_HANDLE handle, sdr
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "airband" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
 // The column `name` names a row.
 static inline int32_t sdrkit_airband_channels_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_airband_channel_row *rows,
@@ -2151,7 +2168,9 @@ static inline int32_t sdrkit_airband_seen_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "activity" of the stack "airband" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `name` names a row.
+// Time: `time`.
 static inline int32_t sdrkit_airband_activity_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_airband_activity_row *rows,
                                                   uint32_t capacity,
@@ -2289,8 +2308,10 @@ static inline int32_t sdrkit_airband_set_tx_timeout(SDRKIT_HANDLE handle, double
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "hfdl" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `flight` names a row.
 // Place of a row: the column `position`.
+// Text: `text`. Time: `time`.
 static inline int32_t sdrkit_hfdl_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hfdl_message_row *rows,
                                                uint32_t capacity,
@@ -2300,9 +2321,11 @@ static inline int32_t sdrkit_hfdl_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "hfdl" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `flight` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_ft`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_hfdl_aircraft_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hfdl_aircraft_row *rows,
                                                uint32_t capacity,
@@ -2388,6 +2411,8 @@ static inline int32_t sdrkit_hfdl_set_follow_best_band(SDRKIT_HANDLE handle, boo
 
 // Fills `rows` with the changed rows of the table "bursts" of the stack "vdl3" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
+// Text: `summary`. Time: `time_s`.
 static inline int32_t sdrkit_vdl3_bursts_rows(SDRKIT_HANDLE handle,
                                              sdrkit_vdl3_burst_row *rows,
                                              uint32_t capacity,

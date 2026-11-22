@@ -8,10 +8,10 @@ use crate::rx::js8::{Js8Frame, Js8FrameKind};
 use crate::rx::slot::{locator_centre, Decode};
 use crate::slots::TimeSource;
 use crate::typed::{
-    self, DecodeEvent, DecodeRow, Js8FrameEvent, Js8FrameRow, Js8MessageEvent, Js8MessageRow,
-    Js8StationRow, ModeRow, SpotEvent, StationRow, WsjtFields, WsprSpotRow, DECODE, DECODES,
-    JS8_FRAME, JS8_FRAMES, JS8_MESSAGE, JS8_MESSAGES, JS8_STATIONS, MODES, SPOT, STATIONS,
-    STATION_ROW, WSPR_SPOTS,
+    self, DecodeEvent, DecodeRow, Js8Fields, Js8FrameEvent, Js8FrameRow, Js8MessageEvent,
+    Js8MessageRow, Js8StationRow, ModeRow, SpotEvent, StationRow, WsjtDecodeFields, WsjtFields,
+    WsprSpotRow, DECODE, DECODES, JS8_FRAME, JS8_FRAMES, JS8_MESSAGE, JS8_MESSAGES, JS8_STATIONS,
+    MODES, SPOT, STATIONS, STATION_ROW, WSPR_SPOTS,
 };
 use sdrkit_algo_dsp::spectrum::percentile as quantile;
 use sdrkit_core::interface::{Hertz, Seconds, Time};
@@ -26,7 +26,7 @@ use sdrkit_util_objects::shaped::{self, RowOut, Shaped};
 use sdrkit_util_objects::{Format, LogRing, ObjectTable, Seen, Shift, Stamp, Tables};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, VecDeque};
-use std::sync::{Arc, OnceLock};
+use std::sync::Arc;
 
 /// The decode table's cap.
 pub const DECODES_CAP: usize = 1000;
@@ -420,12 +420,6 @@ sdrkit_core::choice_enum! {
 /// The key of the JS8 waterfall series: (Hz, dB) of the newest line.
 pub const WATERFALL_SERIES: &str = "js8_waterfall";
 
-/// The declaration of the display, made once.
-fn shared_declaration() -> Arc<ResultsDecl> {
-    static DECL: OnceLock<Arc<ResultsDecl>> = OnceLock::new();
-    Arc::clone(DECL.get_or_init(|| Arc::new(typed::display_declaration())))
-}
-
 /// The stations kept.
 pub const STATIONS_CAP: usize = 1000;
 
@@ -699,6 +693,8 @@ pub struct Display {
     waterfall_shown: u64,
     warned: bool,
     summary: String,
+    /// What the stack of the display can fill.
+    gives: typed::Gives,
 }
 
 impl Default for Display {
@@ -715,9 +711,16 @@ impl Display {
         d
     }
 
-    /// An empty display.
+    /// An empty display of the combined stack.
     pub fn new() -> Display {
-        let mut published = Published::from_decl(shared_declaration());
+        Self::of(None)
+    }
+
+    /// An empty display of the slot stack of `mode` (`None`: the combined stack). It declares and writes what that
+    /// stack can fill.
+    pub fn of(mode: Option<Mode>) -> Display {
+        let decl: Arc<ResultsDecl> = Arc::new(typed::display_declaration(mode));
+        let mut published = Published::from_decl(decl);
         published
             .results_mut()
             .set_status(&Status::new(LockState::Searching).with_summary("listening"));
@@ -741,6 +744,7 @@ impl Display {
             waterfall_shown: 0,
             warned: false,
             summary: String::new(),
+            gives: typed::Gives::of(mode),
         }
     }
 
@@ -993,10 +997,17 @@ impl Display {
                 s.push_str("; ");
             }
         };
+        // For each mode that decoded: the decodes of its last slot and of all slots.
         for m in Mode::ALL {
             if let Some(st) = self.modes.get(m.id()).filter(|st| st.decodes > 0) {
                 sep(s);
-                let _ = write!(s, "{} {}", m.name(), st.last_count);
+                let _ = write!(
+                    s,
+                    "{}: {} in the last slot, {} decoded",
+                    m.name(),
+                    st.last_count,
+                    st.decodes
+                );
             }
         }
         if js8 == Js8State::Frames || self.js8_frames > 0 {
@@ -1048,12 +1059,21 @@ impl Display {
             clock_spread_s: measured.then_some(rep.spread_s),
             clock_decodes: rep.count as i64,
             clock_warning: rep.warning,
-            decodes_total: self.total as i64,
-            js8_frames: self.js8_frames as i64,
-            js8_failed: self.js8_failed as i64,
-            js8_state: js8,
-            js8_waterfall_seq: (self.waterfall_seq > 0).then_some(self.waterfall_seq as i64),
         });
+        let gives = self.gives;
+        if gives.decodes {
+            p.put(&WsjtDecodeFields {
+                decodes_total: self.total as i64,
+            });
+        }
+        if gives.js8 {
+            p.put(&Js8Fields {
+                js8_frames: self.js8_frames as i64,
+                js8_failed: self.js8_failed as i64,
+                js8_state: js8,
+                js8_waterfall_seq: (self.waterfall_seq > 0).then_some(self.waterfall_seq as i64),
+            });
+        }
         p.results_mut().update_status(|s| {
             let changed = s.lock_state != lock_state || s.snr_db != snr || s.summary != *summary;
             if changed {
@@ -1064,8 +1084,12 @@ impl Display {
             changed
         });
         // The tables.
-        shaped::log_rows(&self.heard.decodes, &DECODES, utc, p);
-        shaped::log_rows(&self.heard.wspr, &WSPR_SPOTS, utc, p);
+        if gives.decodes {
+            shaped::log_rows(&self.heard.decodes, &DECODES, utc, p);
+        }
+        if gives.wspr {
+            shaped::log_rows(&self.heard.wspr, &WSPR_SPOTS, utc, p);
+        }
         for (k, m) in &self.modes {
             MODES.put(
                 p,
@@ -1084,9 +1108,11 @@ impl Display {
         }
         let heard = &self.heard;
         shaped::rows(&heard.stations, &STATIONS, utc, p);
-        shaped::log_rows(&heard.js8.frames, &JS8_FRAMES, utc, p);
-        shaped::log_rows(&heard.js8.messages, &JS8_MESSAGES, utc, p);
-        shaped::rows(&heard.js8.stations, &JS8_STATIONS, utc, p);
+        if gives.js8 {
+            shaped::log_rows(&heard.js8.frames, &JS8_FRAMES, utc, p);
+            shaped::log_rows(&heard.js8.messages, &JS8_MESSAGES, utc, p);
+            shaped::rows(&heard.js8.stations, &JS8_STATIONS, utc, p);
+        }
         // The map: the stations with a locator, by call.
         shaped::row_points(&heard.stations, &STATIONS, "", p.results_mut());
         if self.waterfall_seq != self.waterfall_shown {

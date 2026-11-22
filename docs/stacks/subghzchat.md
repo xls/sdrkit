@@ -72,7 +72,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:su
 
 ## Typed interface
 
-The stack is in the family `ism`, version 3.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 3.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Keyboard text (`text_chat`). Media: text.
 
@@ -117,6 +117,8 @@ Struct `SubghzchatLineRow`. A row of the chat. The row key is the number of the 
 | `snr_db` | number (dB) | optional | 1.0 | The SNR of the first packet of a line heard. |
 | `offset_hz` | frequency | optional | 1.0 | The carrier offset of the first packet of a line heard. |
 | `run` | text | optional | 1.0 | The run id and counter of an encrypted line. |
+
+The rows are the messages of the stack. Text: `text`. Time: `time_s`.
 
 ### Table `packets`
 

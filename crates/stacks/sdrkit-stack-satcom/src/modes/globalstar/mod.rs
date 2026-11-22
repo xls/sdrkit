@@ -902,7 +902,7 @@ impl Decoder for GsDisplay {
         Published::from_decl(display_decl())
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
     }
     fn configure(&mut self, _f: &Format) -> Result<Vec<Format>, ConfigError> {

@@ -81,17 +81,23 @@ pub const PICTURE: CatalogueSetting = CatalogueSetting {
     choices: || instrument_choices(layouts()),
     default: "APT",
     advanced: false,
+    role: None,
 };
 /// Keep the newest lines in view.
 pub const FOLLOW: Setting<field::Bool> = Setting::new("follow", "Follow", "", true);
 /// The line filter of pictures A and B.
 pub const LINE_FILTER: Setting<field::Bool> = Setting::new("line_filter", "Line filter", "", true)
     .help("Removes clicks and smooths noise along each line of both pictures, with the noise measured in space A.");
-/// Lines of the test picture before it repeats.
-pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture lines", "", 400)
+/// The lines of the test signal: a pass of that many lines, then the signal ends. 0: the test picture of
+/// [`TEST_PICTURE_LINES`] lines repeats without end.
+pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture lines", "", 0)
     .range(1.0, 4000.0, 1.0)
+    .zero_means("Without end")
+    .help("The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.")
     .section(TEST)
     .advanced();
+/// The lines of the test picture before it repeats.
+pub const TEST_PICTURE_LINES: u32 = 400;
 
 sdrkit_core::settings! {
     /// The settings of [`AptComponent`].
@@ -638,7 +644,8 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
 /// The APT test signal: the test picture in both channels, through the subcarrier and the FM modulator, at unit power.
 pub struct AptGenerator {
     rate: f64,
-    lines: u32,
+    /// The samples of the pass, after which the signal ends. `None` for a signal without end.
+    samples: Option<u64>,
     n: u64,
     phase: PhaseAcc,
     fm: Fm,
@@ -646,7 +653,8 @@ pub struct AptGenerator {
 }
 
 impl AptGenerator {
-    /// From a configuration: `gen_lines`. The schema of the settings must be [`AptSetting`].
+    /// From a configuration: `gen_lines`, the lines of the pass (0: without end). The schema of the settings must be
+    /// [`AptSetting`].
     ///
     /// # Errors
     ///
@@ -658,9 +666,11 @@ impl AptGenerator {
                 got: cfg.rate_hz,
             });
         }
+        let lines = cfg.settings.get(&GEN_LINES).clamp(0, 4000) as u64;
+        let line_samples = cfg.rate_hz / WORD_RATE * LINE_WORDS as f64;
         Ok(AptGenerator {
             rate: cfg.rate_hz,
-            lines: cfg.settings.get(&GEN_LINES).clamp(1, 4000) as u32,
+            samples: (lines > 0).then(|| (lines as f64 * line_samples).round() as u64),
             n: 0,
             phase: PhaseAcc::new(SUBCARRIER_HZ / cfg.rate_hz),
             fm: Fm::new(cfg.rate_hz, DEVIATION_HZ)?,
@@ -676,9 +686,13 @@ impl Generator for AptGenerator {
     fn generate(&mut self, out: &mut [Complex32]) -> usize {
         self.audio.clear();
         let per_word = self.rate / WORD_RATE;
+        // A pass of a stated number of lines ends: the rest of `out` stays unwritten.
+        let left = self.samples.map_or(u64::MAX, |s| s.saturating_sub(self.n));
+        let n = out.len().min(usize::try_from(left).unwrap_or(usize::MAX));
+        let out = &mut out[..n];
         for _ in 0..out.len() {
             let word = (self.n as f64 / per_word) as u64;
-            let line = (word / LINE_WORDS as u64 % u64::from(self.lines)) as u32;
+            let line = (word / LINE_WORDS as u64 % u64::from(TEST_PICTURE_LINES)) as u32;
             let level = test_word((word % LINE_WORDS as u64) as usize, line, test_value);
             self.audio
                 .push(amplitude(level) * self.phase.next_phasor().im);

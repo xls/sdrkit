@@ -1,26 +1,21 @@
-// sdrkit: the typed interface of the stack family "wsjt", version 4.2. MIT licence.
+// sdrkit: the typed interface of the stack family "wsjt", version 5.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum WsjtInterface {
-    public static let major = 4
-    public static let minor = 2
+    public static let major = 5
+    public static let minor = 0
 }
 
-/// The result fields of a slot stack: the slot clock, the clock estimate from the decodes, and the counts since Clear.
+/// The result fields of a slot stack: the slot clock and the clock estimate from the decodes.
 public struct WsjtFields {
     public enum TimeSource: Int32 {
         case systemClock = 0
         case recordingStart = 1
         case searching = 2
         case foundFromSignals = 3
-    }
-    public enum Js8State: Int32 {
-        case listening = 0
-        case slots = 1
-        case frames = 2
     }
     /// The time source of the slot clock. It has no value before the clock reports.
     public var timeSource: TimeSource?
@@ -34,8 +29,48 @@ public struct WsjtFields {
     public var clockDecodes: Int64
     /// The clock is more than 1 s off.
     public var clockWarning: Bool
+
+    init(_ c: sdrkit_wsjt_fields) {
+        timeSource = c.has_time_source ? TimeSource(rawValue: c.time_source) : nil
+        utc = c.utc
+        clockErrorS = c.has_clock_error_s ? c.clock_error_s : nil
+        clockSpreadS = c.has_clock_spread_s ? c.clock_spread_s : nil
+        clockDecodes = c.clock_decodes
+        clockWarning = c.clock_warning
+    }
+
+    /// The result fields of the snapshot of `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE) -> Result<WsjtFields, SDRKitCode> {
+        var c = sdrkit_wsjt_fields()
+        let code = sdrkit_wsjt_fields_read(handle, &c)
+        return code == SDRKIT_OK ? .success(WsjtFields(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// The result field of a slot stack with a mode other than JS8: the count of the decodes.
+public struct WsjtDecodeFields {
     /// Decodes since Clear.
     public var decodesTotal: Int64
+
+    init(_ c: sdrkit_wsjt_decode_fields) {
+        decodesTotal = c.decodes_total
+    }
+
+    /// The result fields of the snapshot of `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE) -> Result<WsjtDecodeFields, SDRKitCode> {
+        var c = sdrkit_wsjt_decode_fields()
+        let code = sdrkit_wsjt_decode_fields_read(handle, &c)
+        return code == SDRKIT_OK ? .success(WsjtDecodeFields(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// The result fields of a slot stack with JS8.
+public struct Js8Fields {
+    public enum Js8State: Int32 {
+        case listening = 0
+        case slots = 1
+        case frames = 2
+    }
     /// JS8 frames since Clear.
     public var js8Frames: Int64
     /// JS8 candidates that did not decode since Clear.
@@ -45,14 +80,7 @@ public struct WsjtFields {
     /// The sequence number of the newest line of the JS8 waterfall. It has no value before the first line.
     public var js8WaterfallSeq: Int64?
 
-    init(_ c: sdrkit_wsjt_fields) {
-        timeSource = c.has_time_source ? TimeSource(rawValue: c.time_source) : nil
-        utc = c.utc
-        clockErrorS = c.has_clock_error_s ? c.clock_error_s : nil
-        clockSpreadS = c.has_clock_spread_s ? c.clock_spread_s : nil
-        clockDecodes = c.clock_decodes
-        clockWarning = c.clock_warning
-        decodesTotal = c.decodes_total
+    init(_ c: sdrkit_js8_fields) {
         js8Frames = c.js8_frames
         js8Failed = c.js8_failed
         js8State = Js8State(rawValue: c.js8_state)
@@ -60,10 +88,10 @@ public struct WsjtFields {
     }
 
     /// The result fields of the snapshot of `handle`, or the code of the error.
-    public static func read(_ handle: SDRKIT_HANDLE) -> Result<WsjtFields, SDRKitCode> {
-        var c = sdrkit_wsjt_fields()
-        let code = sdrkit_wsjt_fields_read(handle, &c)
-        return code == SDRKIT_OK ? .success(WsjtFields(c)) : .failure(SDRKitCode(code: code))
+    public static func read(_ handle: SDRKIT_HANDLE) -> Result<Js8Fields, SDRKitCode> {
+        var c = sdrkit_js8_fields()
+        let code = sdrkit_js8_fields_read(handle, &c)
+        return code == SDRKIT_OK ? .success(Js8Fields(c)) : .failure(SDRKitCode(code: code))
     }
 }
 
@@ -1818,17 +1846,6 @@ public enum WsjtTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
-    /// The changed rows of the table "wspr_spots" of the stack "ft8", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `utc`, highest first.
-    /// Place of a row: the column `position`.
-    public static func ft8WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
-        var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft8_wspr_spots_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsprSpotRow.init))
-    }
     /// The changed rows of the table "modes" of the stack "ft8", newest first, at most `capacity` rows.
     public static func ft8Modes(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[WsjtModeRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_mode_row](repeating: sdrkit_wsjt_mode_row(), count: capacity)
@@ -1848,35 +1865,6 @@ public enum WsjtTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtStationRow.init))
     }
-    /// The changed rows of the table "js8_frames" of the stack "ft8", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func ft8Js8Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8FrameRow], SDRKitCode> {
-        var rows = [sdrkit_js8_frame_row](repeating: sdrkit_js8_frame_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft8_js8_frames_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8FrameRow.init))
-    }
-    /// The changed rows of the table "js8_messages" of the stack "ft8", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func ft8Js8Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Js8MessageRow], SDRKitCode> {
-        var rows = [sdrkit_js8_message_row](repeating: sdrkit_js8_message_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft8_js8_messages_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
-    }
-    /// The changed rows of the table "js8_stations" of the stack "ft8", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `last_heard`, highest first.
-    /// Place of a row: the column `position`.
-    public static func ft8Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
-        var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft8_js8_stations_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8StationRow.init))
-    }
     /// The changed rows of the table "wide.multiband" of the stack "ft8", newest first, at most `capacity` rows.
     public static func ft8WideMultiband(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[WsjtMultibandRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_multiband_row](repeating: sdrkit_wsjt_multiband_row(), count: capacity)
@@ -1893,17 +1881,6 @@ public enum WsjtTables {
         let code = sdrkit_ft4_decodes_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
-    }
-    /// The changed rows of the table "wspr_spots" of the stack "ft4", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `utc`, highest first.
-    /// Place of a row: the column `position`.
-    public static func ft4WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
-        var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft4_wspr_spots_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsprSpotRow.init))
     }
     /// The changed rows of the table "modes" of the stack "ft4", newest first, at most `capacity` rows.
     public static func ft4Modes(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[WsjtModeRow], SDRKitCode> {
@@ -1924,35 +1901,6 @@ public enum WsjtTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtStationRow.init))
     }
-    /// The changed rows of the table "js8_frames" of the stack "ft4", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func ft4Js8Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8FrameRow], SDRKitCode> {
-        var rows = [sdrkit_js8_frame_row](repeating: sdrkit_js8_frame_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft4_js8_frames_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8FrameRow.init))
-    }
-    /// The changed rows of the table "js8_messages" of the stack "ft4", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func ft4Js8Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Js8MessageRow], SDRKitCode> {
-        var rows = [sdrkit_js8_message_row](repeating: sdrkit_js8_message_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft4_js8_messages_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
-    }
-    /// The changed rows of the table "js8_stations" of the stack "ft4", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `last_heard`, highest first.
-    /// Place of a row: the column `position`.
-    public static func ft4Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
-        var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft4_js8_stations_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8StationRow.init))
-    }
     /// The changed rows of the table "wide.multiband" of the stack "ft4", newest first, at most `capacity` rows.
     public static func ft4WideMultiband(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[WsjtMultibandRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_multiband_row](repeating: sdrkit_wsjt_multiband_row(), count: capacity)
@@ -1969,17 +1917,6 @@ public enum WsjtTables {
         let code = sdrkit_ft2_decodes_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
-    }
-    /// The changed rows of the table "wspr_spots" of the stack "ft2", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `utc`, highest first.
-    /// Place of a row: the column `position`.
-    public static func ft2WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
-        var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft2_wspr_spots_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsprSpotRow.init))
     }
     /// The changed rows of the table "modes" of the stack "ft2", newest first, at most `capacity` rows.
     public static func ft2Modes(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[WsjtModeRow], SDRKitCode> {
@@ -1999,35 +1936,6 @@ public enum WsjtTables {
         let code = sdrkit_ft2_stations_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtStationRow.init))
-    }
-    /// The changed rows of the table "js8_frames" of the stack "ft2", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func ft2Js8Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8FrameRow], SDRKitCode> {
-        var rows = [sdrkit_js8_frame_row](repeating: sdrkit_js8_frame_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft2_js8_frames_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8FrameRow.init))
-    }
-    /// The changed rows of the table "js8_messages" of the stack "ft2", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func ft2Js8Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Js8MessageRow], SDRKitCode> {
-        var rows = [sdrkit_js8_message_row](repeating: sdrkit_js8_message_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft2_js8_messages_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
-    }
-    /// The changed rows of the table "js8_stations" of the stack "ft2", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `last_heard`, highest first.
-    /// Place of a row: the column `position`.
-    public static func ft2Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
-        var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_ft2_js8_stations_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8StationRow.init))
     }
     /// The changed rows of the table "wide.multiband" of the stack "ft2", newest first, at most `capacity` rows.
     public static func ft2WideMultiband(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[WsjtMultibandRow], SDRKitCode> {
@@ -2076,35 +1984,6 @@ public enum WsjtTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtStationRow.init))
     }
-    /// The changed rows of the table "js8_frames" of the stack "wspr", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func wsprJs8Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8FrameRow], SDRKitCode> {
-        var rows = [sdrkit_js8_frame_row](repeating: sdrkit_js8_frame_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_wspr_js8_frames_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8FrameRow.init))
-    }
-    /// The changed rows of the table "js8_messages" of the stack "wspr", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func wsprJs8Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Js8MessageRow], SDRKitCode> {
-        var rows = [sdrkit_js8_message_row](repeating: sdrkit_js8_message_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_wspr_js8_messages_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
-    }
-    /// The changed rows of the table "js8_stations" of the stack "wspr", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `last_heard`, highest first.
-    /// Place of a row: the column `position`.
-    public static func wsprJs8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
-        var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_wspr_js8_stations_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8StationRow.init))
-    }
     /// The changed rows of the table "wide.multiband" of the stack "wspr", newest first, at most `capacity` rows.
     public static func wsprWideMultiband(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[WsjtMultibandRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_multiband_row](repeating: sdrkit_wsjt_multiband_row(), count: capacity)
@@ -2121,17 +2000,6 @@ public enum WsjtTables {
         let code = sdrkit_jt65_decodes_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
-    }
-    /// The changed rows of the table "wspr_spots" of the stack "jt65", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `utc`, highest first.
-    /// Place of a row: the column `position`.
-    public static func jt65WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
-        var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt65_wspr_spots_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsprSpotRow.init))
     }
     /// The changed rows of the table "modes" of the stack "jt65", newest first, at most `capacity` rows.
     public static func jt65Modes(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[WsjtModeRow], SDRKitCode> {
@@ -2152,35 +2020,6 @@ public enum WsjtTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtStationRow.init))
     }
-    /// The changed rows of the table "js8_frames" of the stack "jt65", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func jt65Js8Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8FrameRow], SDRKitCode> {
-        var rows = [sdrkit_js8_frame_row](repeating: sdrkit_js8_frame_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt65_js8_frames_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8FrameRow.init))
-    }
-    /// The changed rows of the table "js8_messages" of the stack "jt65", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func jt65Js8Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Js8MessageRow], SDRKitCode> {
-        var rows = [sdrkit_js8_message_row](repeating: sdrkit_js8_message_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt65_js8_messages_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
-    }
-    /// The changed rows of the table "js8_stations" of the stack "jt65", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `last_heard`, highest first.
-    /// Place of a row: the column `position`.
-    public static func jt65Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
-        var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt65_js8_stations_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8StationRow.init))
-    }
     /// The changed rows of the table "decodes" of the stack "jt9", newest first, at most `capacity` rows.
     /// Default order: the column `utc`, highest first.
     public static func jt9Decodes(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtDecodeRow], SDRKitCode> {
@@ -2189,17 +2028,6 @@ public enum WsjtTables {
         let code = sdrkit_jt9_decodes_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
-    }
-    /// The changed rows of the table "wspr_spots" of the stack "jt9", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `utc`, highest first.
-    /// Place of a row: the column `position`.
-    public static func jt9WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
-        var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt9_wspr_spots_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsprSpotRow.init))
     }
     /// The changed rows of the table "modes" of the stack "jt9", newest first, at most `capacity` rows.
     public static func jt9Modes(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[WsjtModeRow], SDRKitCode> {
@@ -2220,35 +2048,6 @@ public enum WsjtTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtStationRow.init))
     }
-    /// The changed rows of the table "js8_frames" of the stack "jt9", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func jt9Js8Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8FrameRow], SDRKitCode> {
-        var rows = [sdrkit_js8_frame_row](repeating: sdrkit_js8_frame_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt9_js8_frames_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8FrameRow.init))
-    }
-    /// The changed rows of the table "js8_messages" of the stack "jt9", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func jt9Js8Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Js8MessageRow], SDRKitCode> {
-        var rows = [sdrkit_js8_message_row](repeating: sdrkit_js8_message_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt9_js8_messages_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
-    }
-    /// The changed rows of the table "js8_stations" of the stack "jt9", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `last_heard`, highest first.
-    /// Place of a row: the column `position`.
-    public static func jt9Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
-        var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt9_js8_stations_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8StationRow.init))
-    }
     /// The changed rows of the table "decodes" of the stack "jt4", newest first, at most `capacity` rows.
     /// Default order: the column `utc`, highest first.
     public static func jt4Decodes(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtDecodeRow], SDRKitCode> {
@@ -2257,17 +2056,6 @@ public enum WsjtTables {
         let code = sdrkit_jt4_decodes_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
-    }
-    /// The changed rows of the table "wspr_spots" of the stack "jt4", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `utc`, highest first.
-    /// Place of a row: the column `position`.
-    public static func jt4WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
-        var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt4_wspr_spots_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsprSpotRow.init))
     }
     /// The changed rows of the table "modes" of the stack "jt4", newest first, at most `capacity` rows.
     public static func jt4Modes(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[WsjtModeRow], SDRKitCode> {
@@ -2288,35 +2076,6 @@ public enum WsjtTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtStationRow.init))
     }
-    /// The changed rows of the table "js8_frames" of the stack "jt4", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func jt4Js8Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8FrameRow], SDRKitCode> {
-        var rows = [sdrkit_js8_frame_row](repeating: sdrkit_js8_frame_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt4_js8_frames_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8FrameRow.init))
-    }
-    /// The changed rows of the table "js8_messages" of the stack "jt4", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func jt4Js8Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Js8MessageRow], SDRKitCode> {
-        var rows = [sdrkit_js8_message_row](repeating: sdrkit_js8_message_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt4_js8_messages_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
-    }
-    /// The changed rows of the table "js8_stations" of the stack "jt4", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `last_heard`, highest first.
-    /// Place of a row: the column `position`.
-    public static func jt4Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
-        var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_jt4_js8_stations_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8StationRow.init))
-    }
     /// The changed rows of the table "decodes" of the stack "q65", newest first, at most `capacity` rows.
     /// Default order: the column `utc`, highest first.
     public static func q65Decodes(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtDecodeRow], SDRKitCode> {
@@ -2325,17 +2084,6 @@ public enum WsjtTables {
         let code = sdrkit_q65_decodes_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
-    }
-    /// The changed rows of the table "wspr_spots" of the stack "q65", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `utc`, highest first.
-    /// Place of a row: the column `position`.
-    public static func q65WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
-        var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_q65_wspr_spots_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsprSpotRow.init))
     }
     /// The changed rows of the table "modes" of the stack "q65", newest first, at most `capacity` rows.
     public static func q65Modes(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[WsjtModeRow], SDRKitCode> {
@@ -2356,35 +2104,6 @@ public enum WsjtTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtStationRow.init))
     }
-    /// The changed rows of the table "js8_frames" of the stack "q65", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func q65Js8Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8FrameRow], SDRKitCode> {
-        var rows = [sdrkit_js8_frame_row](repeating: sdrkit_js8_frame_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_q65_js8_frames_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8FrameRow.init))
-    }
-    /// The changed rows of the table "js8_messages" of the stack "q65", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func q65Js8Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Js8MessageRow], SDRKitCode> {
-        var rows = [sdrkit_js8_message_row](repeating: sdrkit_js8_message_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_q65_js8_messages_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
-    }
-    /// The changed rows of the table "js8_stations" of the stack "q65", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `last_heard`, highest first.
-    /// Place of a row: the column `position`.
-    public static func q65Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
-        var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_q65_js8_stations_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8StationRow.init))
-    }
     /// The changed rows of the table "decodes" of the stack "fst4", newest first, at most `capacity` rows.
     /// Default order: the column `utc`, highest first.
     public static func fst4Decodes(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtDecodeRow], SDRKitCode> {
@@ -2393,17 +2112,6 @@ public enum WsjtTables {
         let code = sdrkit_fst4_decodes_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
-    }
-    /// The changed rows of the table "wspr_spots" of the stack "fst4", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `utc`, highest first.
-    /// Place of a row: the column `position`.
-    public static func fst4WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
-        var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_fst4_wspr_spots_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsprSpotRow.init))
     }
     /// The changed rows of the table "modes" of the stack "fst4", newest first, at most `capacity` rows.
     public static func fst4Modes(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[WsjtModeRow], SDRKitCode> {
@@ -2423,35 +2131,6 @@ public enum WsjtTables {
         let code = sdrkit_fst4_stations_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtStationRow.init))
-    }
-    /// The changed rows of the table "js8_frames" of the stack "fst4", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func fst4Js8Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8FrameRow], SDRKitCode> {
-        var rows = [sdrkit_js8_frame_row](repeating: sdrkit_js8_frame_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_fst4_js8_frames_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8FrameRow.init))
-    }
-    /// The changed rows of the table "js8_messages" of the stack "fst4", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func fst4Js8Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Js8MessageRow], SDRKitCode> {
-        var rows = [sdrkit_js8_message_row](repeating: sdrkit_js8_message_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_fst4_js8_messages_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
-    }
-    /// The changed rows of the table "js8_stations" of the stack "fst4", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `last_heard`, highest first.
-    /// Place of a row: the column `position`.
-    public static func fst4Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
-        var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_fst4_js8_stations_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8StationRow.init))
     }
     /// The changed rows of the table "decodes" of the stack "fst4w", newest first, at most `capacity` rows.
     /// Default order: the column `utc`, highest first.
@@ -2492,35 +2171,6 @@ public enum WsjtTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtStationRow.init))
     }
-    /// The changed rows of the table "js8_frames" of the stack "fst4w", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func fst4wJs8Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8FrameRow], SDRKitCode> {
-        var rows = [sdrkit_js8_frame_row](repeating: sdrkit_js8_frame_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_fst4w_js8_frames_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8FrameRow.init))
-    }
-    /// The changed rows of the table "js8_messages" of the stack "fst4w", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func fst4wJs8Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Js8MessageRow], SDRKitCode> {
-        var rows = [sdrkit_js8_message_row](repeating: sdrkit_js8_message_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_fst4w_js8_messages_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
-    }
-    /// The changed rows of the table "js8_stations" of the stack "fst4w", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `last_heard`, highest first.
-    /// Place of a row: the column `position`.
-    public static func fst4wJs8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
-        var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_fst4w_js8_stations_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8StationRow.init))
-    }
     /// The changed rows of the table "decodes" of the stack "msk144", newest first, at most `capacity` rows.
     /// Default order: the column `utc`, highest first.
     public static func msk144Decodes(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtDecodeRow], SDRKitCode> {
@@ -2529,17 +2179,6 @@ public enum WsjtTables {
         let code = sdrkit_msk144_decodes_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
-    }
-    /// The changed rows of the table "wspr_spots" of the stack "msk144", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `utc`, highest first.
-    /// Place of a row: the column `position`.
-    public static func msk144WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
-        var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_msk144_wspr_spots_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsprSpotRow.init))
     }
     /// The changed rows of the table "modes" of the stack "msk144", newest first, at most `capacity` rows.
     public static func msk144Modes(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[WsjtModeRow], SDRKitCode> {
@@ -2559,55 +2198,6 @@ public enum WsjtTables {
         let code = sdrkit_msk144_stations_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtStationRow.init))
-    }
-    /// The changed rows of the table "js8_frames" of the stack "msk144", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func msk144Js8Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8FrameRow], SDRKitCode> {
-        var rows = [sdrkit_js8_frame_row](repeating: sdrkit_js8_frame_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_msk144_js8_frames_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8FrameRow.init))
-    }
-    /// The changed rows of the table "js8_messages" of the stack "msk144", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func msk144Js8Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Js8MessageRow], SDRKitCode> {
-        var rows = [sdrkit_js8_message_row](repeating: sdrkit_js8_message_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_msk144_js8_messages_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
-    }
-    /// The changed rows of the table "js8_stations" of the stack "msk144", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `last_heard`, highest first.
-    /// Place of a row: the column `position`.
-    public static func msk144Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
-        var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_msk144_js8_stations_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8StationRow.init))
-    }
-    /// The changed rows of the table "decodes" of the stack "js8", newest first, at most `capacity` rows.
-    /// Default order: the column `utc`, highest first.
-    public static func js8Decodes(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtDecodeRow], SDRKitCode> {
-        var rows = [sdrkit_wsjt_decode_row](repeating: sdrkit_wsjt_decode_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_js8_decodes_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
-    }
-    /// The changed rows of the table "wspr_spots" of the stack "js8", newest first, at most `capacity` rows.
-    /// The column `callsign` names a row.
-    /// Default order: the column `utc`, highest first.
-    /// Place of a row: the column `position`.
-    public static func js8WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
-        var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
-        var info = sdrkit_rows_info.sized
-        let code = sdrkit_js8_wspr_spots_rows(handle, &rows, UInt32(capacity), &info)
-        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
-        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsprSpotRow.init))
     }
     /// The changed rows of the table "modes" of the stack "js8", newest first, at most `capacity` rows.
     public static func js8Modes(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[WsjtModeRow], SDRKitCode> {

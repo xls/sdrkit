@@ -1117,7 +1117,7 @@ impl Decoder for InmcDisplay {
         self.tuned_hz = f.tuned_hz;
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
     }
     fn process(&mut self, items: &[Timed<InmcItem>], _first: u64, out: &mut Outbox) {

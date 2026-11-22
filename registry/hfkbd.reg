@@ -1,5 +1,5 @@
 # The interface of the stack family hfkbd. The registry test of the family writes this file.
-family hfkbd version=2.9
+family hfkbd version=2.10
 shape.FrontFields since=1.0
 shape.FrontFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.FrontFields.audio_dbfs type=f64 unit=dBFS optional=yes since=1.0
@@ -402,7 +402,7 @@ rtty.kept.RttyFields.callsign since=1.0
 rtty.kept.stations since=1.0
 rtty.kept.RttyFields.characters since=1.0
 rtty.kept.RttyFields.framing_errors since=1.0
-rtty.table.stations row=StationRow cap=100 label=callsign since=1.0
+rtty.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 rtty.table.auto_guesses row=RttyGuessRow cap=3 since=1.0
 rtty.event.hfkbd.spot fields=SpotEvent since=1.0
 rtty.event.hfkbd.text fields=LineEvent since=1.0
@@ -436,7 +436,7 @@ psk.kept.stations since=1.0
 psk.kept.signals since=1.0
 psk.kept.PskFields.characters since=1.0
 psk.kept.PskFields.errors since=1.0
-psk.table.stations row=StationRow cap=100 label=callsign since=1.0
+psk.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 psk.table.signals row=PskSignalRow cap=72 sort=snr_db:descending since=1.0
 psk.series.spectrum x_unit=Hz y_unit=dB since=1.0
 psk.event.hfkbd.spot fields=SpotEvent since=1.0
@@ -466,7 +466,7 @@ cw.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 cw.kept.stations since=1.0
 cw.kept.signals since=1.0
 cw.kept.CwFields.characters since=1.0
-cw.table.stations row=StationRow cap=100 label=callsign since=1.0
+cw.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 cw.table.signals row=CwSignalRow cap=200 sort=snr_db:descending since=1.0
 cw.series.marks x_unit=ln(length/dot) y_unit=count since=1.0
 cw.series.gaps x_unit=ln(length/dot) y_unit=count since=1.0
@@ -505,7 +505,7 @@ olivia.kept.KeyboardFields.characters since=1.0
 olivia.kept.KeyboardFields.text since=1.0
 olivia.kept.KeyboardFields.callsign since=1.0
 olivia.kept.stations since=1.0
-olivia.table.stations row=StationRow cap=100 label=callsign since=1.0
+olivia.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 olivia.event.hfkbd.spot fields=SpotEvent since=1.0
 olivia.event.hfkbd.text fields=LineEvent since=1.0
 olivia.event.hfkbd.tx fields=KeyboardTxEvent since=2.5
@@ -534,7 +534,7 @@ contestia.kept.KeyboardFields.characters since=1.0
 contestia.kept.KeyboardFields.text since=1.0
 contestia.kept.KeyboardFields.callsign since=1.0
 contestia.kept.stations since=1.0
-contestia.table.stations row=StationRow cap=100 label=callsign since=1.0
+contestia.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 contestia.event.hfkbd.spot fields=SpotEvent since=1.0
 contestia.event.hfkbd.text fields=LineEvent since=1.0
 contestia.event.hfkbd.tx fields=KeyboardTxEvent since=2.5
@@ -565,7 +565,7 @@ mfsk.kept.KeyboardFields.text since=1.0
 mfsk.kept.KeyboardFields.callsign since=1.0
 mfsk.kept.stations since=1.0
 mfsk.kept.PictureFields since=1.0
-mfsk.table.stations row=StationRow cap=100 label=callsign since=1.0
+mfsk.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 mfsk.event.hfkbd.spot fields=SpotEvent since=1.0
 mfsk.event.hfkbd.text fields=LineEvent since=1.0
 mfsk.event.mfsk.picture fields=PictureEvent since=1.0
@@ -596,7 +596,7 @@ dominoex.kept.KeyboardFields.characters since=1.0
 dominoex.kept.KeyboardFields.text since=1.0
 dominoex.kept.KeyboardFields.callsign since=1.0
 dominoex.kept.stations since=1.0
-dominoex.table.stations row=StationRow cap=100 label=callsign since=1.0
+dominoex.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 dominoex.event.hfkbd.spot fields=SpotEvent since=1.0
 dominoex.event.hfkbd.text fields=LineEvent since=1.0
 dominoex.event.hfkbd.tx fields=KeyboardTxEvent since=2.4
@@ -624,7 +624,7 @@ thor.kept.KeyboardFields.characters since=1.0
 thor.kept.KeyboardFields.text since=1.0
 thor.kept.KeyboardFields.callsign since=1.0
 thor.kept.stations since=1.0
-thor.table.stations row=StationRow cap=100 label=callsign since=1.0
+thor.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 thor.event.hfkbd.spot fields=SpotEvent since=1.0
 thor.event.hfkbd.text fields=LineEvent since=1.0
 thor.event.hfkbd.tx fields=KeyboardTxEvent since=2.4
@@ -675,7 +675,7 @@ mt63.kept.stations since=1.0
 mt63.kept.Mt63Fields.characters since=1.0
 mt63.kept.Mt63Fields.errors since=1.0
 mt63.kept.Mt63Fields.locks since=1.0
-mt63.table.stations row=StationRow cap=100 label=callsign since=1.0
+mt63.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 mt63.series.spectrum x_unit=Hz y_unit=dB since=1.0
 mt63.series.carriers x_unit=carrier y_unit=dB since=1.0
 mt63.event.hfkbd.spot fields=SpotEvent since=1.0
@@ -706,8 +706,8 @@ fsq.kept.FsqFields.callsign since=1.0
 fsq.kept.stations since=1.0
 fsq.kept.FsqFields.characters since=1.0
 fsq.kept.messages since=1.0
-fsq.table.stations row=StationRow cap=100 label=callsign since=1.0
-fsq.table.messages row=FsqMessageRow cap=60 label=from since=1.0
+fsq.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
+fsq.table.messages row=FsqMessageRow cap=60 label=from role=messages sender=from addressee=to message=text time=time_s since=1.0
 fsq.series.tone_use x_unit=position y_unit=share since=1.0
 fsq.event.hfkbd.spot fields=SpotEvent since=1.0
 fsq.event.hfkbd.text fields=LineEvent since=1.0
@@ -736,7 +736,7 @@ ifkp.kept.FsqFields.text since=1.0
 ifkp.kept.FsqFields.callsign since=1.0
 ifkp.kept.stations since=1.0
 ifkp.kept.FsqFields.characters since=1.0
-ifkp.table.stations row=StationRow cap=100 label=callsign since=1.0
+ifkp.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 ifkp.series.tone_use x_unit=position y_unit=share since=1.0
 ifkp.event.hfkbd.spot fields=SpotEvent since=1.0
 ifkp.event.hfkbd.text fields=LineEvent since=1.0
@@ -787,7 +787,7 @@ sitor.kept.SitorFields.text since=1.0
 sitor.kept.SitorFields.callsign since=1.0
 sitor.kept.stations since=1.0
 sitor.kept.SitorFields.arq_text since=1.0
-sitor.table.stations row=StationRow cap=100 label=callsign since=1.0
+sitor.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 sitor.event.hfkbd.spot fields=SpotEvent since=1.0
 sitor.event.hfkbd.text fields=LineEvent since=1.0
 sitor.event.sitor.arq fields=SitorArqEvent since=1.0
@@ -806,8 +806,8 @@ ardop.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 ardop.kept.frames since=1.0
 ardop.kept.stations since=1.0
 ardop.kept.ArdopFields since=1.0
-ardop.table.frames row=ArdopFrameRow cap=300 label=name since=1.0
-ardop.table.stations row=ArdopStationRow cap=100 label=callsign since=1.0
+ardop.table.frames row=ArdopFrameRow cap=300 label=name role=messages sender=from addressee=to message=text time=time_s since=1.0
+ardop.table.stations row=ArdopStationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 ardop.series.levels x_unit=s y_unit=dB since=1.0
 ardop.event.ardop.frame fields=ArdopFrameEvent since=1.0
 ardop.event.hfkbd.tx fields=KeyboardTxEvent since=2.6
@@ -853,7 +853,7 @@ throb.kept.ThrobFields.text since=1.0
 throb.kept.ThrobFields.callsign since=1.0
 throb.kept.stations since=1.0
 throb.kept.ThrobFields.characters since=1.0
-throb.table.stations row=StationRow cap=100 label=callsign since=1.0
+throb.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 throb.event.hfkbd.spot fields=SpotEvent since=1.0
 throb.event.hfkbd.text fields=LineEvent since=1.0
 throb.event.throb.text fields=ThrobTextEvent since=1.0
@@ -874,7 +874,7 @@ qrss.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 qrss.kept.QrssFields.text since=1.0
 qrss.kept.QrssFields.callsign since=1.0
 qrss.kept.stations since=1.0
-qrss.table.stations row=StationRow cap=100 label=callsign since=1.0
+qrss.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 qrss.event.hfkbd.spot fields=SpotEvent since=1.0
 qrss.event.hfkbd.text fields=LineEvent since=1.0
 qrss.event.qrss.text fields=QrssTextEvent since=1.0
@@ -903,7 +903,7 @@ cp16.kept.Cp16Fields.picture_rows since=1.0
 cp16.kept.Cp16Fields.characters since=1.0
 cp16.kept.Cp16Fields.sure since=1.0
 cp16.kept.Cp16Fields.unclear since=1.0
-cp16.table.stations row=StationRow cap=100 label=callsign since=1.0
+cp16.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 cp16.event.hfkbd.spot fields=SpotEvent since=1.0
 cp16.event.hfkbd.text fields=LineEvent since=1.0
 cp16.event.cp16.char fields=Cp16CharEvent since=1.0

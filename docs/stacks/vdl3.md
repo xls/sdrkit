@@ -75,7 +75,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.3. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 1.4. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: none.
 
@@ -133,6 +133,8 @@ Struct `Vdl3BurstRow`. A row of the bursts. The row key is the place in the log.
 | `cfo_hz` | number (Hz) | always | 1.0 | The carrier offset of the burst. |
 | `evm_pct` | number (%) | always | 1.0 | The error vector magnitude of the burst. |
 | `summary` | text | always | 1.0 | The summary of the burst. |
+
+The rows are the messages of the stack. Text: `summary`. Time: `time_s`.
 
 ### Commands
 

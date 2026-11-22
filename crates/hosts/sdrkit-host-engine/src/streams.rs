@@ -5,7 +5,10 @@
 use crate::mix::Gains;
 use sdrkit_algo_dsp::resample::Resampler;
 use sdrkit_algo_dsp::Stereo;
-use sdrkit_core::{ChannelLayout, Complex32, Elementary, MediaFormat, StreamKind};
+use sdrkit_core::{
+    ChannelLayout, Complex32, Elementary, MediaFormat, Picture, PictureState, PictureTag,
+    StreamKind,
+};
 use sdrkit_graph::components::{
     convert_channels, HostData, HostPort, HostStreams, HOST_IN_RATE,
 };
@@ -310,7 +313,8 @@ pub struct IqRead {
 pub struct MediaRead {
     /// Its counter. The next call requests the packet after it.
     pub counter: u64,
-    /// Packets that the session dropped between the counter of the call and this one.
+    /// Packets that the session dropped between the counter of the call and this one. For a picture, the states that
+    /// a newer state of the same picture replaced count too.
     pub missed: u64,
     /// The kind of decoder it needs.
     pub kind: StreamKind,
@@ -327,6 +331,9 @@ pub struct MediaRead {
     pub clean_start: bool,
     /// Seconds of signal at which it was made.
     pub time: f64,
+    /// For a picture: its number in the session, whether more of it can come, and its name. Packets with the same
+    /// number are states of one picture. `None` for media.
+    pub picture: Option<PictureTag>,
 }
 
 /// The packets of one kind that a session keeps, by counter. The oldest go first when the queue is full: by count, by
@@ -345,7 +352,15 @@ struct Queue {
     read_to: u64,
     /// Packets that left before the host read them.
     lost: u64,
+    /// The pictures of the receiver that the session follows: the number that the receiver gave, the number in the
+    /// session, and whether the picture is finished.
+    open: Vec<(u64, u64, bool)>,
+    /// The number of the next picture of the session.
+    next_picture: u64,
 }
+
+/// The pictures of its receiver that a session follows. The oldest leaves when one more starts.
+const OPEN_PICTURES: usize = 64;
 
 /// True for a packet of decoded video.
 fn raw(e: &Elementary) -> bool {
@@ -364,6 +379,76 @@ impl Queue {
             raw_bytes: 0,
             read_to: 0,
             lost: 0,
+            open: Vec::new(),
+            next_picture: 1,
+        }
+    }
+
+    /// Adds the picture `e` with its number in the session. A packet with a number that the receiver used before is
+    /// that picture again, and the state before it leaves the queue: the queue holds the newest state of each
+    /// picture. A picture without a tag is whole and has a number of its own.
+    fn push_picture(&mut self, mut e: Elementary) {
+        let (source, state, name) = match e.picture.take() {
+            Some(t) if t.id & 0xffff_ffff == u64::from(Picture::WHOLE) => {
+                (None, PictureState::Finished, t.name)
+            }
+            Some(t) => (Some(t.id), t.state, t.name),
+            None => (None, PictureState::Finished, None),
+        };
+        let at = source.and_then(|s| self.open.iter().position(|(o, _, _)| *o == s));
+        let id = match at {
+            Some(i) => self.open[i].1,
+            None => {
+                self.next_picture += 1;
+                self.next_picture - 1
+            }
+        };
+        let finished = state == PictureState::Finished;
+        match (at, source) {
+            (Some(i), _) => self.open[i].2 = finished,
+            (None, Some(s)) => {
+                if self.open.len() >= OPEN_PICTURES {
+                    self.open.remove(0);
+                }
+                self.open.push((s, id, finished));
+            }
+            (None, None) => {}
+        }
+        self.supersede(id);
+        e.picture = Some(PictureTag { id, state, name });
+        self.push(e);
+    }
+
+    /// Removes the state of picture `id` that the queue holds. It does not count as lost: a newer state follows.
+    fn supersede(&mut self, id: u64) {
+        let old = self
+            .items
+            .iter()
+            .position(|(_, f)| f.picture.as_ref().is_some_and(|t| t.id == id));
+        if let Some((_, f)) = old.and_then(|i| self.items.remove(i)) {
+            self.bytes -= f.packet.len;
+        }
+    }
+
+    /// Ends every picture that grows: the receiver that made them is gone. The state of each that the queue still
+    /// holds goes in again as finished, with the same bytes.
+    fn end_pictures(&mut self) {
+        for (_, id, finished) in std::mem::take(&mut self.open) {
+            if finished {
+                continue;
+            }
+            let held = self
+                .items
+                .iter()
+                .find(|(_, f)| f.picture.as_ref().is_some_and(|t| t.id == id))
+                .map(|(_, f)| f.clone());
+            if let Some(mut e) = held {
+                self.supersede(id);
+                if let Some(t) = e.picture.as_mut() {
+                    t.state = PictureState::Finished;
+                }
+                self.push(e);
+            }
         }
     }
 
@@ -425,6 +510,7 @@ impl Queue {
             keyframe: e.packet.keyframe,
             clean_start: e.packet.clean_start,
             time: e.packet.time,
+            picture: e.picture.clone(),
         })
     }
 }
@@ -448,6 +534,8 @@ pub(crate) struct Streams {
     tx_lead: AtomicU64,
     media: Mutex<Queue>,
     pictures: Mutex<Queue>,
+    /// The signal of the session is made as it plays (a test signal).
+    present: AtomicBool,
     /// Media packets dropped while they waited for the queues.
     pending_lost: AtomicU64,
     /// Media packets and pictures that left the queues before the host read them.
@@ -505,6 +593,7 @@ impl Streams {
             tx_lead: AtomicU64::new(0),
             media: Mutex::new(Queue::new(MEDIA_CAP, MEDIA_KEEP_S, MEDIA_KEEP_BYTES)),
             pictures: Mutex::new(Queue::new(PICTURE_CAP, f64::INFINITY, usize::MAX)),
+            present: AtomicBool::new(false),
             pending_lost: AtomicU64::new(0),
             queued_lost: AtomicU64::new(0),
             gains: Arc::default(),
@@ -784,13 +873,29 @@ impl Streams {
         };
         for e in pending.drain(..) {
             if e.kind == StreamKind::Picture {
-                pictures.push(e);
+                pictures.push_picture(e);
             } else {
                 media.push(e);
             }
         }
         self.queued_lost
             .store(media.lost + pictures.lost, Ordering::Relaxed);
+    }
+
+    /// States whether the signal of the session is made as it plays (a test signal).
+    pub(crate) fn set_present(&self, present: bool) {
+        self.present.store(present, Ordering::Relaxed);
+    }
+
+    /// True if the signal of the session is made as it plays.
+    pub(crate) fn present(&self) -> bool {
+        self.present.load(Ordering::Relaxed)
+    }
+
+    /// Ends the pictures that grow, when the session takes another receiver or ends: each goes to the host once more
+    /// as finished. A picture of the next receiver is a new picture, whatever number that receiver gives it.
+    pub(crate) fn end_pictures(&self) {
+        crate::feed::lock(&self.pictures).end_pictures();
     }
 
     /// The first media packet after counter `after`, its bytes copied into `out`. Pictures are not in it.
@@ -1223,6 +1328,146 @@ mod tests {
         );
     }
 
+    /// A picture packet of the receiver's picture `id` in `state`, with `bytes` as its only byte.
+    fn picture(id: u64, state: PictureState, name: &str, byte: u8) -> Elementary {
+        let layout = sdrkit_core::PixelLayout::packed(sdrkit_core::PixelFormat::Grey8, 1, 1);
+        let mut format = MediaFormat::new(layout.pixel.codec(), sdrkit_core::Packaging::Raw);
+        format.pixels = Some(layout);
+        Elementary {
+            kind: StreamKind::Picture,
+            packet: sdrkit_core::Packet::new(Arc::from(&[byte][..]), 0.0),
+            format: Arc::new(format),
+            picture: Some(PictureTag {
+                id,
+                state,
+                name: Some(Arc::from(name)),
+            }),
+        }
+    }
+
+    /// Every picture that waits after counter `after`: (number, state, name, byte).
+    fn pictures(s: &Streams, mut after: u64) -> Vec<(u64, PictureState, String, u8)> {
+        let (mut out, mut bytes) = (vec![], vec![]);
+        while let Some(m) = s.read_picture(after, &mut bytes) {
+            let t = m.picture.expect("a picture states its number");
+            out.push((t.id, t.state, t.name.unwrap().to_string(), bytes[0]));
+            after = m.counter;
+        }
+        out
+    }
+
+    #[test]
+    fn two_pictures_in_a_row_have_two_numbers_and_the_first_is_finished() {
+        use PictureState::{Finished, Growing};
+        let s = Streams::new(1, 1);
+        // The same size and the same name: the number alone tells the pictures apart.
+        let mut pending = vec![
+            picture(7, Growing, "Robot 36", 1),
+            picture(7, Growing, "Robot 36", 2),
+            picture(7, Finished, "Robot 36", 3),
+            picture(8, Growing, "Robot 36", 4),
+        ];
+        s.offer_media(&mut pending);
+        // The queue holds the newest state of each picture.
+        assert_eq!(
+            pictures(&s, 0),
+            [
+                (1, Finished, "Robot 36".to_string(), 3),
+                (2, Growing, "Robot 36".to_string(), 4)
+            ]
+        );
+    }
+
+    #[test]
+    fn interleaved_pictures_keep_their_numbers() {
+        use PictureState::{Finished, Growing};
+        let s = Streams::new(1, 1);
+        let mut after = 0;
+        let mut seen = vec![];
+        for (id, state, name, byte) in [
+            (1, Growing, "ch1", 1),
+            (2, Growing, "ch2", 2),
+            (1, Growing, "ch1", 3),
+            (2, Finished, "ch2", 4),
+            (1, Finished, "ch1", 5),
+        ] {
+            s.offer_media(&mut vec![picture(id, state, name, byte)]);
+            let m = s.read_picture(after, &mut vec![]).unwrap();
+            after = m.counter;
+            let t = m.picture.unwrap();
+            seen.push((t.id, t.state));
+        }
+        assert_eq!(
+            seen,
+            [
+                (1, Growing),
+                (2, Growing),
+                (1, Growing),
+                (2, Finished),
+                (1, Finished)
+            ]
+        );
+        // A finished picture that the receiver draws again keeps its number.
+        s.offer_media(&mut vec![picture(2, Finished, "ch2", 6)]);
+        assert_eq!(pictures(&s, after), [(2, Finished, "ch2".to_string(), 6)]);
+    }
+
+    #[test]
+    fn a_picture_that_grows_ends_when_the_session_takes_another_receiver() {
+        use PictureState::{Finished, Growing};
+        let s = Streams::new(1, 1);
+        s.offer_media(&mut vec![
+            picture(1, Growing, "a", 1),
+            picture(2, Finished, "b", 2),
+        ]);
+        s.end_pictures();
+        // The next receiver uses the number 1 again: it is another picture.
+        s.offer_media(&mut vec![picture(1, Growing, "c", 3)]);
+        assert_eq!(
+            pictures(&s, 0),
+            [
+                (2, Finished, "b".to_string(), 2),
+                (1, Finished, "a".to_string(), 1),
+                (3, Growing, "c".to_string(), 3)
+            ]
+        );
+    }
+
+    #[test]
+    fn a_picture_without_a_number_is_whole() {
+        let s = Streams::new(1, 1);
+        let mut whole = picture(
+            u64::from(sdrkit_core::Picture::WHOLE),
+            PictureState::Growing,
+            "slide",
+            1,
+        );
+        let mut bare = whole.clone();
+        bare.picture = None;
+        whole.packet = sdrkit_core::Packet::new(Arc::from(&[2u8][..]), 0.0);
+        s.offer_media(&mut vec![bare, whole.clone(), whole]);
+        let got = pictures_loose(&s);
+        assert_eq!(
+            got,
+            [
+                (1, PictureState::Finished),
+                (2, PictureState::Finished),
+                (3, PictureState::Finished)
+            ]
+        );
+    }
+
+    /// The number and the state of every picture that waits.
+    fn pictures_loose(s: &Streams) -> Vec<(u64, PictureState)> {
+        let (mut out, mut after) = (vec![], 0);
+        while let Some(m) = s.read_picture(after, &mut vec![]) {
+            let t = m.picture.unwrap();
+            out.push((t.id, t.state));
+            after = m.counter;
+        }
+        out
+    }
+
     #[test]
     fn a_read_stops_at_the_end_of_a_burst() {
         let s = Streams::new(1, 64);
@@ -1269,11 +1514,13 @@ mod tests {
                     kind: StreamKind::RawVideo,
                     packet: p,
                     format: Arc::clone(&video),
+                    picture: None,
                 },
                 Elementary {
                     kind: StreamKind::Mp2,
                     packet: Packet::new(Arc::from(&[0_u8; 384][..]), t),
                     format: Arc::clone(&sound),
+                    picture: None,
                 },
             ];
             s.offer_media(&mut pending);

@@ -708,6 +708,8 @@ pub struct GeneralReceiver {
     extras: [Option<Chan>; 3],
     input: Option<InputInfo>,
     station: Station,
+    /// The facilities of the host, for the channels that are made later.
+    facilities: Option<sdrkit_core::Facilities>,
     scratch: Output,
     requests: Vec<HostRequest>,
 }
@@ -779,6 +781,7 @@ impl GeneralReceiver {
             extras: [None, None, None],
             input: None,
             station: Station::default(),
+            facilities: None,
             scratch: Output::default(),
             requests: Vec::new(),
         };
@@ -806,6 +809,9 @@ impl GeneralReceiver {
                 (true, false) => {
                     let mut c = Chan::new(self.extra_settings(i), &self.catalog, None, Mic::Off)?;
                     c.graph.set_station(&self.station);
+                    if let Some(f) = &self.facilities {
+                        Receiver::set_facilities(&mut c.graph, f);
+                    }
                     if let Some(inp) = self.input {
                         c.set_input(&inp)?;
                         Receiver::configure(&mut c.graph, &inp)?;
@@ -1108,6 +1114,15 @@ impl Receiver for GeneralReceiver {
     }
     fn set_transmit(&mut self, on: bool) {
         Receiver::set_transmit(&mut self.main.graph, on);
+    }
+    /// Gives the files, the clock, the random source and the codecs of the host to the graph of every channel. The
+    /// transmit side states the start of a transmission by this clock.
+    fn set_facilities(&mut self, facilities: &sdrkit_core::Facilities) {
+        Receiver::set_facilities(&mut self.main.graph, facilities);
+        for c in self.extras.iter_mut().flatten() {
+            Receiver::set_facilities(&mut c.graph, facilities);
+        }
+        self.facilities = Some(facilities.clone());
     }
     /// The graph of the main channel, which holds the transmit sink.
     fn as_any_mut(&mut self) -> Option<&mut dyn std::any::Any> {

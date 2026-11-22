@@ -3,11 +3,11 @@
 //! media.
 
 use sdrkit_core::interface::StackShape;
-use sdrkit_core::{Choice, SortOrder, TableDef, TableMarks};
+use sdrkit_core::{Choice, SettingRole, SortOrder, TableDef, TableMarks, TableRole};
 
 /// The marks of table `t` as attributes of its registry line, each with a space before it: `label=`, `sort=` (the
-/// column, `:`, the order), `position=`, `latitude=`, `longitude=`, `altitude=`, `course=` and `speed=`. Empty for a
-/// table without marks.
+/// column, `:`, the order), `position=`, `latitude=`, `longitude=`, `altitude=`, `course=`, `speed=`, `role=`,
+/// `sender=`, `addressee=`, `message=` (the column of the text) and `time=`. Empty for a table without marks.
 pub fn table_attributes(t: &TableDef) -> String {
     let m = TableMarks::of(t.key, t.columns, &t.marks);
     let key = |c: Option<u16>| c.map(|c| t.columns[usize::from(c)].key());
@@ -38,6 +38,15 @@ pub fn table_attributes(t: &TableDef) -> String {
     ] {
         put(name, key(c).map(str::to_owned));
     }
+    put("role", m.role.map(|r| r.key().to_owned()));
+    for (name, c) in [
+        ("sender", m.sender),
+        ("addressee", m.addressee),
+        ("message", m.text),
+        ("time", m.time),
+    ] {
+        put(name, key(c).map(str::to_owned));
+    }
     out
 }
 
@@ -46,6 +55,17 @@ pub fn table_sentences(t: &TableDef) -> Vec<String> {
     let m = TableMarks::of(t.key, t.columns, &t.marks);
     let key = |c: u16| t.columns[usize::from(c)].key();
     let mut out = Vec::new();
+    if let Some(r) = m.role {
+        out.push(
+            match r {
+                TableRole::Messages => "The rows are the messages of the stack.",
+                TableRole::Calls => "The rows are the calls of the stack.",
+                TableRole::Nodes => "The rows are the stations or nodes of the stack.",
+                TableRole::Groups => "The rows are the groups of the stack.",
+            }
+            .to_owned(),
+        );
+    }
     if let Some(c) = m.label {
         out.push(format!("The column `{}` names a row.", key(c)));
     }
@@ -79,7 +99,28 @@ pub fn table_sentences(t: &TableDef) -> Vec<String> {
     if !more.is_empty() {
         out.push(more.join(" "));
     }
+    let parts: Vec<String> = [
+        ("Sender", m.sender),
+        ("Addressee", m.addressee),
+        ("Text", m.text),
+        ("Time", m.time),
+    ]
+    .into_iter()
+    .filter_map(|(name, c)| Some(format!("{name}: `{}`.", key(c?))))
+    .collect();
+    if !parts.is_empty() {
+        out.push(parts.join(" "));
+    }
     out
+}
+
+/// The role of setting `d` for people, in one sentence. `None` for a setting without a role.
+pub fn setting_sentence(d: &sdrkit_core::SettingDecl) -> Option<String> {
+    let what = match d.role? {
+        SettingRole::PictureSource => "chooses whose picture the stack shows",
+        SettingRole::PictureView => "chooses the view of the picture",
+    };
+    Some(format!("The setting `{}` {what}.", d.field.key))
 }
 
 /// The kind of content and the media of `stack` as attributes of its registry line `<stack>.content`, each with a

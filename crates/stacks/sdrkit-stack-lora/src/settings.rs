@@ -279,6 +279,7 @@ pub const MT_PRESET: SectionCatalogue = SectionCatalogue {
         choices: preset_choices,
         default: "LongFast",
         advanced: false,
+        role: None,
     },
     section: "Meshtastic",
 };

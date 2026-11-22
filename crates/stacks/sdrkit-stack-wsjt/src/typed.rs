@@ -25,7 +25,34 @@ use std::sync::OnceLock;
 
 // The display: the status component of every slot stack.
 
-/// The result fields of a slot stack: the slot clock, the clock estimate from the decodes, and the counts since Clear.
+/// What a slot stack can fill, from its modes. The description of the stack, the declaration of its display and the
+/// writers of the display all read it, so a stack declares no table, event or field that stays empty.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Gives {
+    /// A mode other than JS8: the decode table, the decode event and the count of the decodes.
+    pub decodes: bool,
+    /// WSPR or FST4W: the table of the WSPR spots.
+    pub wspr: bool,
+    /// JS8: the frames, the messages, the stations and the waterfall of JS8, with their events and fields.
+    pub js8: bool,
+    /// A mode that the stack sends: the transmit event.
+    pub transmits: bool,
+}
+
+impl Gives {
+    /// What the slot stack of `mode` (`None`: the combined stack `wsjt`) can fill.
+    pub fn of(mode: Option<Mode>) -> Gives {
+        let has = |f: fn(Mode) -> bool| mode.map_or_else(|| Mode::ALL.iter().any(|m| f(*m)), f);
+        Gives {
+            decodes: has(|m| m != Mode::Js8),
+            wspr: has(|m| matches!(m, Mode::Wspr | Mode::Fst4w)),
+            js8: has(|m| m == Mode::Js8),
+            transmits: crate::settings::transmits_too(mode),
+        }
+    }
+}
+
+/// The result fields of a slot stack: the slot clock and the clock estimate from the decodes.
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct WsjtFields {
     /// The time source of the slot clock. It has no value before the clock reports.
@@ -46,9 +73,19 @@ pub struct WsjtFields {
     /// The clock is more than 1 s off.
     #[field(label = "Clock warning")]
     pub clock_warning: bool,
+}
+
+/// The result field of a slot stack with a mode other than JS8: the count of the decodes.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct WsjtDecodeFields {
     /// Decodes since Clear.
     #[field(label = "Decodes")]
     pub decodes_total: i64,
+}
+
+/// The result fields of a slot stack with JS8.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct Js8Fields {
     /// JS8 frames since Clear.
     #[field(label = "JS8 frames")]
     pub js8_frames: i64,
@@ -600,52 +637,86 @@ pub fn decoder_name(mode: Mode) -> &'static str {
     }
 }
 
-/// What the display of a slot stack publishes: its fields, tables, series, map points and events.
-pub fn display_declaration() -> sdrkit_core::ResultsDecl {
-    sdrkit_core::ResultsDecl::new()
-        .with_fields(WsjtFields::SHAPE.fields)
-        .with_table(&DECODES)
-        .with_table(&WSPR_SPOTS)
-        .with_table(&MODES)
-        .with_table(&STATIONS)
-        .with_table(&JS8_FRAMES)
-        .with_table(&JS8_MESSAGES)
-        .with_table(&JS8_STATIONS)
-        .series(
-            WATERFALL.key,
-            WATERFALL.label,
-            WATERFALL.x_unit,
-            WATERFALL.y_unit,
-        )
-        .points("Stations")
-        .event(&DECODE)
-        .event(&SPOT)
-        .event(&JS8_FRAME)
-        .event(&JS8_MESSAGE)
-        .event(&TX)
+/// What the display of the slot stack of `mode` (`None`: the combined stack) publishes: its fields, tables, series,
+/// map points and events. It is the part of [`slot_stack`] that the display writes.
+pub fn display_declaration(mode: Option<Mode>) -> sdrkit_core::ResultsDecl {
+    let g = Gives::of(mode);
+    let mut d = sdrkit_core::ResultsDecl::new().with_fields(WsjtFields::SHAPE.fields);
+    if g.decodes {
+        d = d
+            .with_fields(WsjtDecodeFields::SHAPE.fields)
+            .with_table(&DECODES);
+    }
+    if g.js8 {
+        d = d.with_fields(Js8Fields::SHAPE.fields);
+    }
+    if g.wspr {
+        d = d.with_table(&WSPR_SPOTS);
+    }
+    d = d.with_table(&MODES).with_table(&STATIONS);
+    if g.js8 {
+        d = d
+            .with_table(&JS8_FRAMES)
+            .with_table(&JS8_MESSAGES)
+            .with_table(&JS8_STATIONS)
+            .series(
+                WATERFALL.key,
+                WATERFALL.label,
+                WATERFALL.x_unit,
+                WATERFALL.y_unit,
+            );
+    }
+    d = d.points("Stations");
+    if g.decodes {
+        d = d.event(&DECODE);
+    }
+    d = d.event(&SPOT);
+    if g.js8 {
+        d = d.event(&JS8_FRAME).event(&JS8_MESSAGE);
+    }
+    if g.transmits {
+        d = d.event(&TX);
+    }
+    d
 }
 
-/// The description of the slot stack of `mode` (`None`: the combined stack `wsjt`). The decodes, the spots, the stations,
-/// the JS8 logs and their totals stay over a change of frequency.
+/// The description of the slot stack of `mode` (`None`: the combined stack `wsjt`). A stack has only the tables, the
+/// events and the fields that its modes fill ([`Gives`]). The decodes, the spots, the stations, the JS8 logs and
+/// their totals stay over a change of frequency.
 fn slot_stack(mode: Option<Mode>) -> StackShape {
     use crate::settings::{hop_too, settings_of, wide_too};
     let modes: Vec<Mode> = mode.map_or_else(|| Mode::ALL.to_vec(), |m| vec![m]);
-    let mut s = StackShape::new(crate::receiver::stack_id(mode))
-        .fields::<WsjtFields>()
-        .table(&DECODES)
-        .table(&WSPR_SPOTS)
-        .table(&MODES)
-        .table(&STATIONS)
-        .table(&JS8_FRAMES)
-        .table(&JS8_MESSAGES)
-        .table(&JS8_STATIONS)
-        .series(WATERFALL)
-        .points("Stations")
-        .event(&DECODE)
-        .event(&SPOT)
-        .event(&JS8_FRAME)
-        .event(&JS8_MESSAGE)
-        .event(&TX)
+    let g = Gives::of(mode);
+    let mut s = StackShape::new(crate::receiver::stack_id(mode)).fields::<WsjtFields>();
+    if g.decodes {
+        s = s.fields::<WsjtDecodeFields>().table(&DECODES);
+    }
+    if g.js8 {
+        s = s.fields::<Js8Fields>();
+    }
+    if g.wspr {
+        s = s.table(&WSPR_SPOTS);
+    }
+    s = s.table(&MODES).table(&STATIONS);
+    if g.js8 {
+        s = s
+            .table(&JS8_FRAMES)
+            .table(&JS8_MESSAGES)
+            .table(&JS8_STATIONS)
+            .series(WATERFALL);
+    }
+    s = s.points("Stations");
+    if g.decodes {
+        s = s.event(&DECODE);
+    }
+    s = s.event(&SPOT);
+    if g.js8 {
+        s = s.event(&JS8_FRAME).event(&JS8_MESSAGE);
+    }
+    if g.transmits {
+        s = s.event(&TX);
+    }
+    s = s
         .settings(settings_of(mode))
         .command(clear_of(mode))
         .command(&REMOVE);
@@ -672,17 +743,23 @@ fn slot_stack(mode: Option<Mode>) -> StackShape {
     if hop_too(mode) {
         s = s.component("hop", |c| c.fields::<HopFields>());
     }
-    s.kept(&[
-        "decodes",
-        "wspr_spots",
-        "stations",
-        "js8_frames",
-        "js8_messages",
-        "js8_stations",
-        "WsjtFields.decodes_total",
-        "WsjtFields.js8_frames",
-        "WsjtFields.js8_failed",
-    ])
+    let mut kept = vec!["stations"];
+    if g.decodes {
+        kept.extend(["decodes", "WsjtDecodeFields.decodes_total"]);
+    }
+    if g.wspr {
+        kept.push("wspr_spots");
+    }
+    if g.js8 {
+        kept.extend([
+            "js8_frames",
+            "js8_messages",
+            "js8_stations",
+            "Js8Fields.js8_frames",
+            "Js8Fields.js8_failed",
+        ]);
+    }
+    s.kept(&kept)
 }
 
 /// The `clear` command of the slot stack of `mode`. The stack takes the command of the first component in run order
@@ -956,43 +1033,11 @@ pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     // 2.0: a stack has only the transmit commands and settings of its modes, the WSPR beacon starts with the command
     // `beacon` and no setting, and `cq`, `beacon` and `send` transmit. 3.0: the Q65 stack has its code built in and no
-    // setting `code_dir`. 4.0: no stack has the setting `code_dir`, and a mode row has no state `no_table`.
+    // setting `code_dir`. 4.0: no stack has the setting `code_dir`, and a mode row has no state `no_table`. 5.0: a slot
+    // stack has only the tables, the events and the fields that its modes fill; the count of the decodes and the JS8
+    // fields are result sets of their own.
     FAMILY.get_or_init(|| {
-        let mut f = Described::new("wsjt", 4, 2)
-            .added(
-                4,
-                2,
-                &[
-                    "shape.Js8FrameEvent.cq",
-                    "shape.Js8MessageEvent.cq",
-                    "shape.StationRow.position",
-                    "shape.Js8StationRow.position",
-                    "shape.WsprSpotRow.position",
-                ],
-            )
-            .added(
-                4,
-                1,
-                &[
-                    "wsjt.content",
-                    "ft8.content",
-                    "ft4.content",
-                    "ft2.content",
-                    "wspr.content",
-                    "jt65.content",
-                    "jt9.content",
-                    "jt4.content",
-                    "q65.content",
-                    "fst4.content",
-                    "fst4w.content",
-                    "msk144.content",
-                    "js8.content",
-                    "fsk441.content",
-                    "jt6m.content",
-                    "iscat.content",
-                    "pi4.content",
-                ],
-            )
+        let mut f = Described::new("wsjt", 5, 0)
             .content(
                 sdrkit_core::ContentKind::WeakSignal,
                 &[

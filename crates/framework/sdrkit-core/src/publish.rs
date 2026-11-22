@@ -202,6 +202,12 @@ pub struct TableDef {
 }
 
 impl TableDef {
+    /// The same table, whose rows are what `role` says ([`TableMarks::role`]). For a table constant of a shared crate.
+    #[must_use]
+    pub const fn with_role(mut self, role: crate::marks::TableRole) -> Self {
+        self.marks.role = Some(role);
+        self
+    }
     /// Its declaration.
     ///
     /// # Panics

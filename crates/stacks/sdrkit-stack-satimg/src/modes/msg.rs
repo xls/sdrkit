@@ -101,6 +101,7 @@ pub const PICTURE: CatalogueSetting = CatalogueSetting {
     choices: || instrument_choices(layouts()),
     default: SEVIRI,
     advanced: false,
+    role: None,
 };
 /// The view of the picture.
 pub const VIEW: CatalogueSetting = CatalogueSetting {
@@ -110,6 +111,7 @@ pub const VIEW: CatalogueSetting = CatalogueSetting {
     choices: || view_choices(layouts()),
     default: "rgb214",
     advanced: false,
+    role: Some(sdrkit_core::SettingRole::PictureView),
 };
 /// Keep the newest lines in view.
 pub const FOLLOW: Setting<field::Bool> = Setting::new("follow", "Follow", "", true);

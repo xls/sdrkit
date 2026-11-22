@@ -141,7 +141,7 @@ The stack puts points on a map: Nodes and stations.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 3.2. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 3.3. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Mesh messaging (`mesh`). Media: text.
 
@@ -262,7 +262,7 @@ Struct `MeshNodeRow`. A row of the node list. The row key is `<net key>/<id>`.
 | `voltage_v` | number (V) | optional | 1.0 | The battery voltage. |
 | `position` | position | optional | 1.0 | The last position. |
 
-The column `name` names a row. Place of a row: the column `position`.
+The rows are the stations or nodes of the stack. The column `name` names a row. Place of a row: the column `position`. Time: `last_heard`.
 
 ### Table `messages`
 
@@ -288,7 +288,7 @@ Struct `MeshMessageRow`. A row of the messages. The row key is the place of the 
 | `crc_ok` | yes or no | optional | 1.0 | The text comes from a copy with a good CRC. False for a damaged copy that was shown after the wait without a good copy; a later good copy replaces the text and sets it. None for an own message. |
 | `copies` | whole number | optional | 1.0 | The copies of the packet heard while the message is remembered (10 minutes), damaged ones included. None for an own message. |
 
-The column `sender` names a row.
+The rows are the messages of the stack. The column `sender` names a row. Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
 
 ### Table `readings`
 
@@ -417,7 +417,7 @@ Struct `MeshChannelRow`. A row of the channels with keys. The row key is `<net k
 | `channel` | text | always | 1.0 | The name of the channel. |
 | `key_set` | yes or no | always | 1.0 | The channel holds a key. |
 
-The column `channel` names a row.
+The rows are the groups of the stack. The column `channel` names a row.
 
 ### Table `slots`
 

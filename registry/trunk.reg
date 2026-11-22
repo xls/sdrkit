@@ -1,5 +1,5 @@
 # The interface of the stack family trunk. The registry test of the family writes this file.
-family trunk version=1.4
+family trunk version=1.5
 uses.tones major=1 since=1.0
 shape.Mpt1327Fields since=1.0
 shape.Mpt1327Fields.locked type=bool unit= optional=no since=1.0
@@ -595,9 +595,9 @@ pager.kept.pages since=1.0
 pager.kept.speeds since=1.0
 pager.kept.heard since=1.0
 pager.kept.PagerFields since=1.0
-pager.table.pages row=PagerPageRow cap=2000 since=1.0
+pager.table.pages row=PagerPageRow cap=2000 role=messages addressee=address message=message time=time_s since=1.0
 pager.table.speeds row=PagerSpeedRow cap=16 since=1.0
-pager.table.heard row=PagerHeardRow cap=1000 since=1.0
+pager.table.heard row=PagerHeardRow cap=1000 role=nodes time=last_heard since=1.0
 pager.event.pocsag.page fields=PocsagPageEvent since=1.0
 pager.event.flex.page fields=FlexPageEvent since=1.0
 pager.event.tones.selcall fields=SelcallFields since=1.0
@@ -628,7 +628,7 @@ ermes.content kind=paging text=yes since=1.3
 ermes.fields.ErmesFields since=1.0
 ermes.fields.DecoderFields since=1.0
 ermes.component.modem.dropped since=1.0
-ermes.table.rows row=ErmesEntryRow cap=400 since=1.0
+ermes.table.rows row=ErmesEntryRow cap=400 role=messages addressee=address message=text time=time_s since=1.0
 ermes.event.ermes.batch fields=ErmesBatchEvent since=1.0
 ermes.event.ermes.message fields=ErmesMessageEvent since=1.0
 ermes.setting.gen_last_batch type=bool unit= since=1.0
@@ -636,7 +636,7 @@ ermes.command.clear args= reply= since=1.0
 multitone since=1.0
 multitone.content kind=paging text=yes since=1.3
 multitone.fields.MultitoneFields since=1.0
-multitone.table.transmissions row=MultitoneTransmissionRow cap=200 since=1.0
+multitone.table.transmissions row=MultitoneTransmissionRow cap=200 role=calls time=time_s since=1.0
 multitone.table.tx_tones row=MultitoneToneRow cap=2000 since=1.0
 multitone.table.tx_lines row=MultitoneLineRow cap=2000 since=1.0
 multitone.table.tones_heard row=MultitoneHeardRow cap=24 since=1.0
@@ -679,7 +679,7 @@ gsc.content kind=paging text=yes since=1.3
 gsc.fields.GscFields since=1.1
 gsc.fields.DecoderFields since=1.1
 gsc.component.modem.dropped since=1.1
-gsc.table.pages row=GscPageRow cap=400 label=call since=1.1
+gsc.table.pages row=GscPageRow cap=400 label=call role=messages addressee=code message=text time=time_s since=1.1
 gsc.event.gsc.page fields=GscPageEvent since=1.1
 gsc.setting.gen_pages type=choice(all,tone,numeric,alpha,voice) unit= since=1.1
 gsc.setting.gen_batch type=bool unit= since=1.1

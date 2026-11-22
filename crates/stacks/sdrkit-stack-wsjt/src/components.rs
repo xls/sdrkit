@@ -770,7 +770,6 @@ sdrkit_core::commands! {
 
 /// The decode table, the clock estimator, JS8 assembly, the stations and what the receiver publishes (`wsjt.display`). Its
 /// lists are saved and restored through the component's state (format `wsjt.heard`).
-#[derive(Default)]
 pub struct DisplayComponent {
     /// The state.
     pub display: Display,
@@ -781,6 +780,26 @@ pub struct DisplayComponent {
     wf_df: f64,
     /// The text of the band edges.
     band_edges: String,
+}
+
+impl Default for DisplayComponent {
+    fn default() -> Self {
+        Self::of(None)
+    }
+}
+
+impl DisplayComponent {
+    /// The display of the slot stack of `mode` (`None`: the combined stack).
+    pub fn of(mode: Option<Mode>) -> Self {
+        DisplayComponent {
+            display: Display::of(mode),
+            map: None,
+            end_index: 0,
+            level: None,
+            wf_df: 0.0,
+            band_edges: String::new(),
+        }
+    }
 }
 
 impl Component for DisplayComponent {

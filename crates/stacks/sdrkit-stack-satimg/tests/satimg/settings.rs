@@ -69,3 +69,57 @@ fn every_submode_makes_its_receiver() {
         }
     }
 }
+
+#[test]
+fn the_settings_that_choose_the_picture_state_their_role() {
+    use sdrkit_core::SettingRole;
+    let role_of = |stack: &str, key: &str| -> Option<SettingRole> {
+        let d = sdrkit_stack_satimg::descriptors()
+            .into_iter()
+            .find(|d| d.id == stack)
+            .unwrap_or_else(|| panic!("no stack {stack}"));
+        let schema = (d.settings)();
+        let s = schema
+            .settings()
+            .iter()
+            .find(|s| s.field.key == key)
+            .unwrap_or_else(|| panic!("{stack} has no setting {key}"));
+        s.role
+    };
+    // The role stays with the setting of the stack, which the stack routes to the picture component.
+    assert_eq!(
+        role_of("fy3_ahrpt", "instrument"),
+        Some(SettingRole::PictureSource)
+    );
+    assert_eq!(role_of("fy3_ahrpt", "view"), Some(SettingRole::PictureView));
+    assert_eq!(
+        role_of("goes_grb", "product"),
+        Some(SettingRole::PictureSource)
+    );
+    for stack in [
+        "meteor_lrpt",
+        "hrpt",
+        "noaa_dsb",
+        "goes_gvar",
+        "aws",
+        "noaa_gac",
+        "msg_raw",
+        "fy3_mpt",
+    ] {
+        assert_eq!(
+            role_of(stack, "view"),
+            Some(SettingRole::PictureView),
+            "{stack}"
+        );
+    }
+    assert_eq!(role_of("fy3_ahrpt", "follow"), None);
+    // Every setting with the key `view` or `instrument` of the family has a role.
+    for d in sdrkit_stack_satimg::descriptors() {
+        for s in (d.settings)().settings() {
+            let key = s.field.key.as_ref();
+            if key == "view" || key == "instrument" {
+                assert!(s.role.is_some(), "{} {key}", d.id);
+            }
+        }
+    }
+}

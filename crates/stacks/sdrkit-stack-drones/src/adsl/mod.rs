@@ -870,7 +870,7 @@ impl Component for AdslTracker {
         .with_settings(AdslTrackerSetting::schema())
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
         self.station = ctx.station.position;
         self.flarm.attach(ctx);

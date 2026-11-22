@@ -534,7 +534,7 @@ pub struct AtisMessageRow<'a> {
     #[field(label = "Digits")]
     pub digits: &'a str,
     /// The call sign of a station heard.
-    #[field(shared = keys::CALLSIGN)]
+    #[field(shared = keys::CALLSIGN, role = Sender)]
     pub callsign: &'a str,
     /// The nine digits after the 9.
     #[field(label = "MMSI")]
@@ -570,7 +570,9 @@ pub struct AtisMessageRow<'a> {
 
 /// The messages, newest first.
 pub static MESSAGE_TABLE: Table<AtisMessageRow<'static>> =
-    Table::new("messages", "Messages", MESSAGE_CAP).label(&AtisMessageRow::NAME);
+    Table::new("messages", "Messages", MESSAGE_CAP)
+        .role(sdrkit_core::TableRole::Messages)
+        .label(&AtisMessageRow::NAME);
 
 /// A row of the ATIS station table. The row key is the digits of the identity.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -603,7 +605,9 @@ pub struct AtisStationRow<'a> {
 
 /// The stations heard.
 pub static STATION_TABLE: Table<AtisStationRow<'static>> =
-    Table::new("stations", "Stations", STATION_CAP).label(&AtisStationRow::NAME);
+    Table::new("stations", "Stations", STATION_CAP)
+        .role(sdrkit_core::TableRole::Nodes)
+        .label(&AtisStationRow::NAME);
 
 /// The fields of the event of an ATIS message.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1041,7 +1045,7 @@ impl Component for AtisDisplay {
         Ok(vec![Format::new(Kind::Messages, 0.0)])
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
     }
     fn process(&mut self, io: &mut Io) {

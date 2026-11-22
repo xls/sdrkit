@@ -825,10 +825,9 @@ pub static DSRC_FRAME: EventKind<DsrcFrameEvent<'static>> =
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("ism", 3, 0)
-            .content(sdrkit_core::ContentKind::Voice, &["dect"])
+        Described::new("ism", 3, 1)
             .content(sdrkit_core::ContentKind::TextChat, &["subghzchat"])
-            .content(sdrkit_core::ContentKind::Networks, &["npr70"])
+            .content(sdrkit_core::ContentKind::Networks, &["npr70", "dect"])
             .content(
                 sdrkit_core::ContentKind::Devices,
                 &[
@@ -3614,7 +3613,7 @@ pub struct SubghzchatFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SubghzchatLineRow<'a> {
     /// The signal time of the line.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// "heard" or "sent".
     #[field(label = "Direction")]
@@ -3623,7 +3622,7 @@ pub struct SubghzchatLineRow<'a> {
     #[field(label = "Kind")]
     pub kind: LineKind,
     /// The text.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
     /// The packets joined into the line.
     #[field(label = "Packets")]
@@ -3700,7 +3699,8 @@ pub struct SubghzchatStateEvent<'a> {
 }
 
 /// The chat, newest first.
-pub static SUBGHZCHAT_CHAT: Table<SubghzchatLineRow<'static>> = Table::new("chat", "Chat", 500);
+pub static SUBGHZCHAT_CHAT: Table<SubghzchatLineRow<'static>> =
+    Table::new("chat", "Chat", 500).role(sdrkit_core::TableRole::Messages);
 /// The packet log, newest first.
 pub static SUBGHZCHAT_PACKETS: Table<SubghzchatPacketRow<'static>> =
     Table::new("packets", "Packets", 200).label(&SubghzchatPacketRow::HEX);

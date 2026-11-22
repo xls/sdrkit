@@ -496,7 +496,7 @@ pub struct MultitoneFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct MultitoneTransmissionRow {
     /// Time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// Duration.
     #[field(label = "Duration", unit = "s")]
@@ -1017,7 +1017,7 @@ pub static EDACS_CALL: EventKind<EdacsCallEvent<'static>> =
 
 /// The Multitone transmissions.
 pub static MULTITONE_TRANSMISSIONS: Table<MultitoneTransmissionRow> =
-    Table::new("transmissions", "Transmissions", 200);
+    Table::new("transmissions", "Transmissions", 200).role(sdrkit_core::TableRole::Calls);
 /// The tones of the Multitone transmissions.
 pub static MULTITONE_TONES: Table<MultitoneToneRow<'static>> =
     Table::new("tx_tones", "Tones of the transmissions", 2000);
@@ -1113,7 +1113,7 @@ pub struct ErmesFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct ErmesEntryRow<'a> {
     /// The signal time of the row.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// What the row is: the addresses of a batch, or a message.
     #[field(label = "Kind")]
@@ -1122,13 +1122,13 @@ pub struct ErmesEntryRow<'a> {
     #[field(label = "Batch")]
     pub batch: &'a str,
     /// The local address of a message.
-    #[field(label = "Address")]
+    #[field(label = "Address", role = Addressee)]
     pub address: Option<i64>,
     /// The category of a message.
     #[field(label = "Category")]
     pub category: Option<&'a str>,
     /// The addresses, or the text of the message.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
 }
 
@@ -1168,7 +1168,8 @@ pub struct ErmesMessageEvent<'a> {
 
 /// The ERMES rows: the addresses of each batch and its messages, newest last.
 pub static ERMES_ROWS: Table<ErmesEntryRow<'static>> =
-    Table::new("rows", "Batches and messages", crate::ermes::ROW_CAP);
+    Table::new("rows", "Batches and messages", crate::ermes::ROW_CAP)
+        .role(sdrkit_core::TableRole::Messages);
 /// A good ERMES batch: its network and initial addresses.
 pub static ERMES_BATCH: EventKind<ErmesBatchEvent<'static>> =
     EventKind::new("ermes.batch", "ERMES batch");
@@ -1323,13 +1324,13 @@ pub struct PagerFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct PagerPageRow<'a> {
     /// The signal time of the page.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The protocol and speed ("POCSAG 1200", "FLEX 3200/4", "Selcall ZVEI1").
     #[field(label = "Protocol")]
     pub protocol: &'a str,
     /// The RIC or capcode (0 for a sequential call).
-    #[field(label = "Address")]
+    #[field(label = "Address", role = Addressee)]
     pub address: i64,
     /// The POCSAG function code.
     #[field(label = "Function")]
@@ -1338,7 +1339,7 @@ pub struct PagerPageRow<'a> {
     #[field(label = "Type")]
     pub r#type: PageType,
     /// The message.
-    #[field(label = "Message")]
+    #[field(label = "Message", role = Text)]
     pub message: &'a str,
     /// A word was lost or the end is not sure.
     #[field(label = "Damaged")]
@@ -1454,12 +1455,13 @@ pub struct FlexPageEvent<'a> {
 
 /// The page list, oldest first.
 pub static PAGER_PAGES: Table<PagerPageRow<'static>> =
-    Table::new("pages", "Pages", crate::pager::tables::PAGES_KEPT);
+    Table::new("pages", "Pages", crate::pager::tables::PAGES_KEPT)
+        .role(sdrkit_core::TableRole::Messages);
 /// The statistics of each speed.
 pub static PAGER_SPEEDS: Table<PagerSpeedRow<'static>> = Table::new("speeds", "Speeds", 16);
 /// The addresses heard, the most recent first.
 pub static PAGER_HEARD: Table<PagerHeardRow<'static>> =
-    Table::new("heard", "Addresses heard", 1000);
+    Table::new("heard", "Addresses heard", 1000).role(sdrkit_core::TableRole::Nodes);
 /// A POCSAG page.
 pub static POCSAG_PAGE: EventKind<PocsagPageEvent<'static>> =
     EventKind::new("pocsag.page", "POCSAG page");
@@ -1613,13 +1615,13 @@ pub struct GscFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct GscPageRow<'a> {
     /// The signal time of the row.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// What the row is: "Tone page", "Numeric page", "Alpha page", "Voice page" or "Voice end".
     #[field(label = "Kind")]
     pub kind: &'a str,
     /// The pager code: six digits, or N and five digits when no preamble was seen.
-    #[field(label = "Pager code")]
+    #[field(label = "Pager code", role = Addressee)]
     pub code: &'a str,
     /// The address function, 1 to 4.
     #[field(label = "Function")]
@@ -1634,7 +1636,7 @@ pub struct GscPageRow<'a> {
     #[field(label = "Call")]
     pub call: &'a str,
     /// The text of a data page, or "tone and voice".
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
     /// The data blocks of a data page.
     #[field(label = "Blocks")]
@@ -1675,7 +1677,9 @@ pub struct GscPageEvent<'a> {
 
 /// The GSC pages and the ends of voice pages, newest last.
 pub static GSC_PAGES: Table<GscPageRow<'static>> =
-    Table::new("pages", "Pages", crate::gsc::ROW_CAP).label(&GscPageRow::CALL);
+    Table::new("pages", "Pages", crate::gsc::ROW_CAP)
+        .role(sdrkit_core::TableRole::Messages)
+        .label(&GscPageRow::CALL);
 /// One GSC page.
 pub static GSC_PAGE: EventKind<GscPageEvent<'static>> = EventKind::new("gsc.page", "GSC page");
 
@@ -1913,7 +1917,7 @@ pub fn family() -> &'static Described {
         let objects_clear = &sdrkit_util_objects::commands::CLEAR;
         let decoder_clear = &sdrkit_graph::decoder::CLEAR;
         use sdrkit_proto_tones::components as tones;
-        Described::new("trunk", 1, 4)
+        Described::new("trunk", 1, 5)
             .added(
                 1,
                 3,

@@ -1439,7 +1439,7 @@ impl Component for Alerts {
         .with_settings(AlertsSetting::schema())
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.clock = ctx.clock.clone();
     }
     fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {

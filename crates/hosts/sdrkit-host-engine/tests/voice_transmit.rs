@@ -20,10 +20,12 @@ const T: f64 = 20.0;
 fn engine(net: &FakeTransport) -> Engine {
     let mut components = sdrkit_graph::Registry::standard();
     sdrkit_stack_general::register(&mut components);
+    // The clock runs: a burst with a stated start goes to the radio when its time comes.
+    let t0 = Instant::now();
     Engine::new(Setup {
         facilities: Facilities {
             storage: Arc::new(MemStorage::new()),
-            clock: Clock::fixed(1.7e9),
+            clock: Clock::new(move || 1.7e9 + t0.elapsed().as_secs_f64()),
             random: Random::fixed(7),
             codecs: Arc::default(),
         },

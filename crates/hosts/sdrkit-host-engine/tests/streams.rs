@@ -184,6 +184,16 @@ fn media_packets_and_pictures_are_read_by_counter() {
     let p = e.picture(s, 0, &mut bytes).unwrap().expect("a picture");
     assert_eq!(p.kind, StreamKind::Picture);
     assert_eq!(bytes, vec![7u8; 16]);
+    // A picture that its receiver sends without a number is a whole picture of its own.
+    let tag = p
+        .picture
+        .as_ref()
+        .expect("a picture states which picture it is");
+    assert_eq!(tag.state, sdrkit_core::PictureState::Finished);
+    assert!(tag.id >= 1 && tag.name.is_none());
+    if let Some(next) = e.picture(s, p.counter, &mut bytes).unwrap() {
+        assert_ne!(next.picture.unwrap().id, tag.id);
+    }
     assert!(e.picture(s, p.counter, &mut bytes).unwrap().is_none() || p.counter > 0);
 }
 

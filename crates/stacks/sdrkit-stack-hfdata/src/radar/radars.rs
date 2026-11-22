@@ -995,6 +995,9 @@ impl RadarTable {
                 self.rows.len() as u32,
             )),
             name: None,
+            // The waterfall is one picture that grows.
+            id: 1,
+            state: sdrkit_core::PictureState::Growing,
             data,
         })
     }

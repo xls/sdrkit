@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "dvoice", version 2.2. MIT licence.
+// sdrkit: the typed interface of the stack family "dvoice", version 2.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum DvoiceInterface {
     public static let major = 2
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The measurements that every digital voice stack publishes.
@@ -1567,7 +1567,9 @@ public struct DvoicePositionEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum DvoiceTables {
     /// The changed rows of the table "calls" of the stack "dmr", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func dmrCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1585,7 +1587,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "dmr", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func dmrMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1621,6 +1625,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "dmr", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func dmrTalkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1638,6 +1644,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "dmr", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func dmrHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -1647,7 +1654,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "p25", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func p25Calls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1665,7 +1674,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "p25", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func p25Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1701,6 +1712,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "p25", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func p25Talkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1734,6 +1747,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "p25", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func p25Heard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -1743,7 +1757,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "m17", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func m17Calls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1761,7 +1777,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "m17", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func m17Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1797,6 +1815,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "m17", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func m17Talkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1814,6 +1834,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "m17", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func m17Heard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -1823,7 +1844,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "dstar", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func dstarCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1841,7 +1864,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "dstar", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func dstarMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1877,6 +1902,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "dstar", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func dstarTalkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1894,6 +1921,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "dstar", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func dstarHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -1903,7 +1931,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "nxdn", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func nxdnCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1921,7 +1951,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "nxdn", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func nxdnMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1957,6 +1989,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "nxdn", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func nxdnTalkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1974,6 +2008,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "nxdn", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func nxdnHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -1983,7 +2018,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "dpmr", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func dpmrCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2001,7 +2038,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "dpmr", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func dpmrMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2037,6 +2076,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "dpmr", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func dpmrTalkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2054,6 +2095,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "dpmr", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func dpmrHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -2063,7 +2105,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "ysf", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func ysfCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2081,7 +2125,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "ysf", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func ysfMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2117,6 +2163,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "ysf", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func ysfTalkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2134,6 +2182,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "ysf", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func ysfHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -2143,7 +2192,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "p25p2", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func p25p2Calls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2161,7 +2212,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "p25p2", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func p25p2Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2197,6 +2250,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "p25p2", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func p25p2Talkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2214,6 +2269,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "p25p2", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func p25p2Heard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -2223,7 +2279,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "tetrapol", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func tetrapolCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2241,7 +2299,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "tetrapol", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func tetrapolMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2277,6 +2337,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "tetrapol", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func tetrapolTalkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2294,6 +2356,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "tetrapol", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func tetrapolHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -2303,7 +2366,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "tetra", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func tetraCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2321,7 +2386,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "tetra", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func tetraMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2357,6 +2424,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "tetra", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func tetraTalkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2374,6 +2443,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "tetra", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func tetraHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -2383,7 +2453,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "tetra_dmo", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func tetraDmoCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2401,7 +2473,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "tetra_dmo", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func tetraDmoMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2437,6 +2511,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "tetra_dmo", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func tetraDmoTalkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2454,6 +2530,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "tetra_dmo", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func tetraDmoHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -2463,7 +2540,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "freedv", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func freedvCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2481,7 +2560,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "freedv", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func freedvMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2517,6 +2598,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "freedv", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func freedvTalkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2534,6 +2617,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "freedv", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func freedvHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -2543,7 +2627,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "dvoice-auto", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func dvoiceAutoCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2561,7 +2647,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "dvoice-auto", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func dvoiceAutoMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2597,6 +2685,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "dvoice-auto", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func dvoiceAutoTalkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2638,6 +2728,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "dvoice-auto", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func dvoiceAutoHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)
@@ -2647,7 +2738,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHeardRow.init))
     }
     /// The changed rows of the table "calls" of the stack "dcr", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `alias` names a row.
+    /// Sender: `src`. Addressee: `dst`. Time: `start_s`.
     public static func dcrCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DvoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_call_row](repeating: sdrkit_dvoice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2665,7 +2758,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceCallDetailRow.init))
     }
     /// The changed rows of the table "messages" of the stack "dcr", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `src` names a row.
+    /// Sender: `src`. Addressee: `dst`. Text: `text`. Time: `time_s`.
     public static func dcrMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DvoiceMessageRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_message_row](repeating: sdrkit_dvoice_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2701,6 +2796,8 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceGrantRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "dcr", newest first, at most `capacity` rows.
+    /// The rows are the groups of the stack.
+    /// Time: `last_heard`.
     public static func dcrTalkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DvoiceTalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_talkgroup_row](repeating: sdrkit_dvoice_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2727,6 +2824,7 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceHistoryRow.init))
     }
     /// The changed rows of the table "heard" of the stack "dcr", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `src` names a row.
     public static func dcrHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DvoiceHeardRow], SDRKitCode> {
         var rows = [sdrkit_dvoice_heard_row](repeating: sdrkit_dvoice_heard_row(), count: capacity)

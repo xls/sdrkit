@@ -197,13 +197,13 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `wsjt`, version 4.2. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wsjt`, version 5.0. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Weak-signal messages (`weak_signal`). Media: sound (monitor), text.
 
 ### Result fields
 
-Struct `WsjtFields`. The result fields of a slot stack: the slot clock, the clock estimate from the decodes, and the counts since Clear.
+Struct `WsjtFields`. The result fields of a slot stack: the slot clock and the clock estimate from the decodes.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
@@ -213,7 +213,21 @@ Struct `WsjtFields`. The result fields of a slot stack: the slot clock, the cloc
 | `clock_spread_s` | number (s) | optional | 1.0 | The spread of the recent DTs. It has no value without a recent decode. |
 | `clock_decodes` | whole number | always | 1.0 | The decodes that the clock estimate uses. |
 | `clock_warning` | yes or no | always | 1.0 | The clock is more than 1 s off. |
+
+### Result fields
+
+Struct `WsjtDecodeFields`. The result field of a slot stack with a mode other than JS8: the count of the decodes.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
 | `decodes_total` | whole number | always | 1.0 | Decodes since Clear. |
+
+### Result fields
+
+Struct `Js8Fields`. The result fields of a slot stack with JS8.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
 | `js8_frames` | whole number | always | 1.0 | JS8 frames since Clear. |
 | `js8_failed` | whole number | always | 1.0 | JS8 candidates that did not decode since Clear. |
 | `js8_state` | choice | always | 1.0 | What JS8 has heard. |
@@ -253,7 +267,7 @@ Struct `WsprSpotRow`. A row of the WSPR and FST4W spots. The row key is the plac
 | `locator` | text | always | 1.0 | The locator of the beacon. |
 | `power_dbm` | whole number (dBm) | always | 1.0 | The power that the beacon states. |
 | `message` | text | always | 1.0 | The decoded message. |
-| `position` | position | optional | 4.2 | The centre of the locator, if the spot holds one. |
+| `position` | position | optional | 1.0 | The centre of the locator, if the spot holds one. |
 
 The column `callsign` names a row. Default order: the column `utc`, highest first. Place of a row: the column `position`.
 
@@ -285,7 +299,7 @@ Struct `StationRow`. A row of the station table: a station heard in any mode. Th
 | `freq_hz` | frequency | always | 1.0 | The radio frequency of the newest decode. |
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last decode. |
-| `position` | position | optional | 4.2 | The centre of the locator, if one was heard. |
+| `position` | position | optional | 1.0 | The centre of the locator, if one was heard. |
 
 The column `callsign` names a row. Default order: the column `last_heard`, highest first. Place of a row: the column `position`.
 
@@ -330,7 +344,7 @@ Struct `Js8StationRow`. A row of the JS8 stations. The row key is the callsign.
 | `utc` | time | always | 1.0 | The UTC of the newest frame. |
 | `last_text` | text | always | 1.0 | The newest text of the station. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
-| `position` | position | optional | 4.2 | The centre of the locator, if one was heard. |
+| `position` | position | optional | 1.0 | The centre of the locator, if one was heard. |
 
 The column `callsign` names a row. Default order: the column `last_heard`, highest first. Place of a row: the column `position`.
 
@@ -395,7 +409,7 @@ Struct `Js8FrameEvent`. The fields of a JS8 frame.
 | `submode` | choice | optional | 1.0 | The speed of the frame. |
 | `source` | text | optional | 1.0 | The sending station, if the frame names one. |
 | `target` | text | optional | 1.0 | The station or group addressed, if the frame names one. |
-| `cq` | yes or no | always | 4.2 | The frame is a CQ: a heartbeat to all with a CQ. |
+| `cq` | yes or no | always | 1.0 | The frame is a CQ: a heartbeat to all with a CQ. |
 | `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Event `js8.message`
@@ -408,7 +422,7 @@ Struct `Js8MessageEvent`. The fields of a JS8 message, sent when its last frame 
 | `complete` | yes or no | always | 1.0 | The last frame of the message came. |
 | `source` | text | optional | 1.0 | The sending station, if it is known. |
 | `target` | text | optional | 1.0 | The station or group addressed, if it is known. |
-| `cq` | yes or no | always | 4.2 | The message is a CQ. |
+| `cq` | yes or no | always | 1.0 | The message is a CQ. |
 | `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Event `wsjt.tx`

@@ -31,6 +31,7 @@ use sdrkit_core::{
     StackConfig, StageError, Status, Value, Values,
 };
 use sdrkit_graph::components::{HostStreams, TxSink};
+use sdrkit_graph::PictureState;
 use sdrkit_graph::{
     values_of, Applied, Catalog, CommandTarget, Component, ComponentInfo, DecoderComponent, Format,
     GraphBuilder, GraphError, Io, Kept, Kind, Outbox, Port, RateFrom, RunContext, StackGraph,
@@ -735,6 +736,7 @@ pub const GEN_MODE: CatalogueSetting = CatalogueSetting {
     },
     default: "Robot 36",
     advanced: false,
+    role: None,
 };
 /// The test signal sends the VIS header.
 pub const GEN_VIS: Setting<field::Bool> = Setting::new("gen_vis", "Send the header", "", true)
@@ -853,6 +855,8 @@ pub struct SstvDecoder {
     logs: Vec<String>,
     status: Status,
     last_done: u64,
+    /// A picture that a retune or a new input cut off after a part of it went out. The next block sends it, finished.
+    cut: Option<HfPicture>,
     pending_vis: Option<(SstvMode, u8, f64)>,
     /// The picture filter is on.
     filter_on: bool,
@@ -879,6 +883,7 @@ impl SstvDecoder {
             logs: Vec::new(),
             status: Status::default(),
             last_done: 0,
+            cut: None,
             pending_vis: None,
             filter_on: true,
         }
@@ -1194,7 +1199,7 @@ impl SstvDecoder {
             if rx.missed >= 3 {
                 self.logs
                     .push(format!("{}: syncs stopped at line {k}", rx.m.name));
-                self.finish(rx, out);
+                self.finish_picture(rx, out);
                 return;
             }
             self.read_line(&mut rx, k);
@@ -1205,11 +1210,14 @@ impl SstvDecoder {
             rx.next_line += 1;
             self.serial += 1;
             if k % 8 == 7 {
-                out.picture(now / 8000.0, picture_of(&rx, false).to_picture());
+                out.picture(
+                    now / 8000.0,
+                    picture_of(&rx, false).to_picture(PictureState::Growing),
+                );
             }
         }
         if rx.next_line >= rx.m.lines() {
-            self.finish(rx, out);
+            self.finish_picture(rx, out);
             return;
         }
         self.rx = Some(rx);
@@ -1337,7 +1345,9 @@ impl SstvDecoder {
         }
     }
 
-    fn finish(&mut self, mut rx: Rx, out: &mut Outbox) {
+    /// Ends the picture of `rx`: at its last line, when its syncs stop, or at the end of the input. The picture goes
+    /// out once more, finished, and into the history.
+    fn finish_picture(&mut self, mut rx: Rx, out: &mut Outbox) {
         if self.filter_on {
             let rows = rx.rows;
             filter_rows(&mut rx, rows, true);
@@ -1353,7 +1363,7 @@ impl SstvDecoder {
         ));
         let time = self.t as f64 / 8000.0;
         out.event(picture::picture_event(&SSTV_PICTURE, &p, time, self.dial));
-        out.picture(time, p.to_picture());
+        out.picture(time, p.to_picture(PictureState::Finished));
         self.last = (rx.vis, (rx.period / rx.nominal - 1.0) * 1e6);
         self.hist.finish(p.id, p);
         self.state = 2;
@@ -1564,17 +1574,22 @@ impl sdrkit_graph::Decoder for SstvDecoder {
     }
     fn configure(&mut self, input: &Format) -> Result<Vec<Format>, ConfigError> {
         self.dial = input.tuned_hz;
-        self.rx = None;
-        self.video = None;
-        self.pulses.clear();
-        self.state = 0;
+        self.drop_picture();
         Ok(decoder::formats())
     }
     fn retune(&mut self, input: &Format) {
         self.dial = input.tuned_hz;
         self.drop_picture();
     }
+    fn finish(&mut self, out: &mut Outbox) {
+        if let Some(rx) = self.rx.take() {
+            self.finish_picture(rx, out);
+        }
+    }
     fn process(&mut self, x: &[Complex32], _first: u64, out: &mut Outbox) {
+        if let Some(p) = self.cut.take() {
+            out.picture(self.t as f64 / 8000.0, p.to_picture(PictureState::Finished));
+        }
         let n = self.audio.len() as u64;
         for (i, &s) in x.iter().enumerate() {
             self.audio[((self.ring.count + i as u64) % n) as usize] = s;
@@ -1655,9 +1670,12 @@ impl sdrkit_graph::Decoder for SstvDecoder {
 }
 
 impl SstvDecoder {
-    /// Drops the picture being received. The finished ones stay.
+    /// Drops the picture being received. The finished ones stay. If a part of the picture went out, the next block
+    /// sends that part once more, finished.
     fn drop_picture(&mut self) {
-        self.rx = None;
+        if let Some(rx) = self.rx.take().filter(|rx| rx.next_line >= 8) {
+            self.cut = Some(picture_of(&rx, true));
+        }
         self.video = None;
         self.pulses.clear();
         self.in_pulse = None;
@@ -1691,6 +1709,7 @@ pub const TX_MODE: CatalogueSetting = CatalogueSetting {
     },
     default: "Robot 36",
     advanced: false,
+    role: None,
 };
 
 sdrkit_core::choice_enum! {

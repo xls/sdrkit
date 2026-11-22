@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "hfdata", version 1.6. MIT licence.
+ * sdrkit: the typed interface of the stack family "hfdata", version 1.7. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_HFDATA_VERSION_MAJOR 1
-#define SDRKIT_HFDATA_VERSION_MINOR 6
+#define SDRKIT_HFDATA_VERSION_MINOR 7
 
 // The stack "crowd36": its id, and the keys of its event types.
 #define SDRKIT_STACK_CROWD36 "crowd36"

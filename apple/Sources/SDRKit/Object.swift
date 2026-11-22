@@ -284,6 +284,10 @@ public class Object {
                 position: column(raw.position_column), latitude: column(raw.latitude_column),
                 longitude: column(raw.longitude_column), altitude: column(raw.altitude_column),
                 course: column(raw.course_column), speed: column(raw.speed_column))
+            table.role = TableRole(rawValue: raw.role)
+            table.message = TableMessage(
+                sender: column(raw.sender_column), addressee: column(raw.addressee_column),
+                text: column(raw.text_column), time: column(raw.time_column))
             table.columns = try (0..<raw.columns).map { c in
                 try declaration(
                     id: c,

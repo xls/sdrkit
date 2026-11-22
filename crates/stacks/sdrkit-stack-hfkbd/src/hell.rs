@@ -113,6 +113,7 @@ pub const VARIANT_SETTING: CatalogueSetting = CatalogueSetting {
     },
     default: "Feld Hell",
     advanced: false,
+    role: None,
 };
 
 sdrkit_core::settings! {
@@ -296,6 +297,8 @@ pub struct HellDecoder {
     finder: CentreFinder,
     snr: f32,
     pic_dirty: bool,
+    /// A state of the tape went out.
+    pic_sent: bool,
     since_pic: usize,
 }
 
@@ -329,6 +332,7 @@ impl HellDecoder {
             finder: CentreFinder::new(var.pixel_rate() as f32 + 2.0 * var.fsk as f32),
             snr: 0.0,
             pic_dirty: false,
+            pic_sent: false,
             since_pic: 0,
         };
         d.rebuild();
@@ -569,6 +573,9 @@ impl sdrkit_graph::Decoder for HellDecoder {
     fn retune(&mut self, _input: &Format) {
         self.rebuild();
     }
+    fn finish(&mut self, out: &mut Outbox) {
+        self.end_picture(out);
+    }
     fn process(&mut self, x: &[Complex32], _first: u64, out: &mut Outbox) {
         // In pieces that end where the signal finder decides, so the result does not depend on how the input is cut.
         let mut rest = x;
@@ -703,11 +710,28 @@ impl HellDecoder {
 }
 
 impl HellDecoder {
-    /// Emits the picture of the kept columns to the outputs when it changed (called at each report).
+    /// Emits the picture of the kept columns to the outputs when it changed (called at each report). The picture is
+    /// one tape that grows, with one number.
     pub fn take_picture(&mut self, out: &mut Outbox) {
         if self.pic_dirty {
             self.pic_dirty = false;
-            out.picture(self.n as f64 / 8000.0, self.picture().to_picture());
+            self.pic_sent = true;
+            out.picture(
+                self.n as f64 / 8000.0,
+                self.picture()
+                    .to_picture(sdrkit_graph::PictureState::Growing),
+            );
+        }
+    }
+    /// Emits the tape once more, finished, at the end of the input.
+    fn end_picture(&mut self, out: &mut Outbox) {
+        if self.pic_dirty || self.pic_sent {
+            (self.pic_dirty, self.pic_sent) = (false, false);
+            out.picture(
+                self.n as f64 / 8000.0,
+                self.picture()
+                    .to_picture(sdrkit_graph::PictureState::Finished),
+            );
         }
     }
 }

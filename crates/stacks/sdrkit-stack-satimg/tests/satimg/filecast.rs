@@ -301,3 +301,55 @@ fn a_change_of_frequency_keeps_the_files_and_the_pictures() {
         v => panic!("{v:?}"),
     }
 }
+
+#[test]
+fn interleaved_channels_are_two_pictures_and_each_ends_finished() {
+    use sdrkit_core::PictureState::{Finished, Growing};
+    let mut m = HritMosaics::default();
+    // (channel, number, state) of every picture item, in the order sent.
+    let mut seen: Vec<(String, u32, sdrkit_core::PictureState)> = Vec::new();
+    let mut push = |m: &mut HritMosaics, channel: &str, n: u32, stamp: &str| {
+        let name = format!("IMG_DK01{channel}_{stamp}_{n:03}");
+        let s = test_segment(&name, n);
+        assert!(m.push(&name, &s, &mut |o| {
+            let p = match o {
+                MosaicOut::Progress(p) => p,
+                MosaicOut::Done { picture, .. } => picture,
+            };
+            seen.push((channel.to_string(), p.id, p.state));
+        }));
+    };
+    for n in 1..=10 {
+        push(&mut m, "IR1", n, "202611090230");
+        push(&mut m, "B13", n, "202611090230");
+    }
+    // The next scan of one channel is a new picture.
+    push(&mut m, "IR1", 1, "202611090240");
+    let of = |c: &str| -> Vec<(u32, sdrkit_core::PictureState)> {
+        seen.iter()
+            .filter(|s| s.0 == c)
+            .map(|s| (s.1, s.2))
+            .collect()
+    };
+    let (ir, b13) = (of("IR1"), of("B13"));
+    assert_eq!(ir.len(), 11);
+    assert_eq!(b13.len(), 10);
+    let (a, b, next) = (ir[0].0, b13[0].0, ir[10].0);
+    assert!(
+        a != b && next != a && next != b && a != 0 && b != 0,
+        "{seen:?}"
+    );
+    for (list, id) in [(&ir[..10], a), (&b13[..], b)] {
+        assert!(list[..9].iter().all(|p| *p == (id, Growing)), "{seen:?}");
+        assert_eq!(list[9], (id, Finished), "{seen:?}");
+    }
+    assert_eq!(ir[10], (next, Growing));
+    // The end of the input ends the picture that still waits for segments.
+    let mut last = Vec::new();
+    m.flush(&mut |o| {
+        if let MosaicOut::Done { picture, .. } = o {
+            last.push((picture.id, picture.state));
+        }
+    });
+    assert_eq!(last, [(next, Finished)]);
+}

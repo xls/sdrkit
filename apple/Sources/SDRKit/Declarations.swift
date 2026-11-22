@@ -78,6 +78,17 @@ public struct Declaration: Equatable, Sendable {
     public var content: Content
     /// For media content: the four-character code of the codec.
     public var fourCC: String
+    /// What the setting chooses, if it states it. A front end finds the setting that chooses the view of the picture
+    /// by this member and not by the key. Settings only.
+    public var role: SettingRole? = nil
+
+    /// What a setting chooses.
+    public enum SettingRole: Int32, Sendable {
+        /// The setting chooses whose picture the object shows: an instrument, a product.
+        case pictureSource = 1
+        /// The setting chooses the view of the picture shown: a channel, a composite.
+        case pictureView = 2
+    }
 
     /// Returns the index of the option with the key `key`.
     public func optionIndex(key: String) -> UInt32? {
@@ -109,6 +120,7 @@ public struct Declaration: Equatable, Sendable {
         refersTable = copy(d.refers_table)
         content = Content(rawValue: d.content) ?? .none
         fourCC = fourCCString(d.fourcc)
+        role = SettingRole(rawValue: d.role)
     }
 }
 
@@ -155,6 +167,37 @@ public struct TableDeclaration: Equatable, Sendable {
     public var sort: TableSort? = nil
     /// The columns that hold the place of a row on the map.
     public var place: TablePlace = TablePlace()
+    /// What the rows are, if the table states it. A front end finds the message log, the call log, the nodes and the
+    /// groups of an object by this member and not by the key of the table.
+    public var role: TableRole? = nil
+    /// The columns of a message or a call.
+    public var message: TableMessage = TableMessage()
+}
+
+/// What the rows of a table are.
+public enum TableRole: Int32, Sendable {
+    /// Each row is a message: the main log of messages of the object.
+    case messages = 1
+    /// Each row is a call or a transmission: who, to whom, when.
+    case calls = 2
+    /// Each row is a station, a node or a unit that was heard.
+    case nodes = 3
+    /// Each row is a group that stations talk in: a talkgroup, a channel, a net.
+    case groups = 4
+}
+
+/// The columns of a table that hold the parts of a message or a call, each by its id. A column that the table does
+/// not have is `nil`.
+public struct TableMessage: Equatable, Sendable {
+    /// The column of the sender: a call sign, an address, a node, a unit.
+    public var sender: UInt32? = nil
+    /// The column of the addressee: a call sign, an address, a group, a pager.
+    public var addressee: UInt32? = nil
+    /// The column of the text for people.
+    public var text: UInt32? = nil
+    /// The column that holds the time of the row: a column of the time kind, or a number of seconds of signal with
+    /// the unit `s`.
+    public var time: UInt32? = nil
 }
 
 /// The default order of the rows of a table.

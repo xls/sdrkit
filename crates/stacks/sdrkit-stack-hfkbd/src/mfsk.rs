@@ -558,6 +558,7 @@ pub const VARIANT_SETTING: CatalogueSetting = CatalogueSetting {
     },
     default: "MFSK16",
     advanced: false,
+    role: None,
 };
 
 sdrkit_core::settings! {
@@ -641,6 +642,8 @@ pub struct MfskDecoder {
     // pictures
     reader: Option<PictureReader>,
     pics: PictureHistory<HfPicture>,
+    /// A picture that a reset of the signal cut off. The next block sends it, finished.
+    cut: Option<HfPicture>,
     pic_wait: Option<PicHeader>,
     ring: Option<PhaseRing>,
 }
@@ -699,6 +702,7 @@ impl MfskDecoder {
             t_in: 0,
             reader: None,
             pics: PictureHistory::new(8),
+            cut: None,
             pic_wait: None,
             ring: None,
         }
@@ -731,6 +735,7 @@ impl MfskDecoder {
         if let Some(r) = reader {
             // An MFSK picture being received is ended where it is.
             let p = r.picture();
+            self.cut = (p.rows > 0).then(|| p.clone());
             self.pics.finish(p.id, p);
         }
     }
@@ -1048,6 +1053,12 @@ impl sdrkit_graph::Decoder for MfskDecoder {
         self.reset_signal();
     }
     fn process(&mut self, x: &[Complex32], _first: u64, out: &mut Outbox) {
+        if let Some(p) = self.cut.take() {
+            out.picture(
+                self.t_in as f64 / 8000.0,
+                p.to_picture(sdrkit_graph::PictureState::Finished),
+            );
+        }
         // In pieces that end where the signal finder decides, so the result does not depend on how the input is cut.
         let mut rest = x;
         while !rest.is_empty() {
@@ -1120,7 +1131,10 @@ impl MfskDecoder {
                     done.height(),
                     if done.colour { "colour" } else { "grey" }
                 ));
-                out.picture(self.t_in as f64 / 8000.0, done.to_picture());
+                out.picture(
+                    self.t_in as f64 / 8000.0,
+                    done.to_picture(sdrkit_graph::PictureState::Finished),
+                );
                 self.pics.finish(done.id, done);
                 self.reader = None;
                 self.vari.reset();

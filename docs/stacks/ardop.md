@@ -106,7 +106,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfkbd`, version 2.9. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfkbd`, version 2.10. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Keyboard text (`text_chat`). Media: sound (monitor), text.
 
@@ -192,7 +192,7 @@ Struct `ArdopFrameRow`. A row of the ARDOP frames. The row key is the number of 
 | `tone_offset_hz` | frequency | always | 1.0 | The offset of the tones. |
 | `tone_snr_db` | number (dB) | always | 1.0 | The SNR of the tones. |
 
-The column `name` names a row.
+The rows are the messages of the stack. The column `name` names a row. Sender: `from`. Addressee: `to`. Text: `text`. Time: `time_s`.
 
 ### Table `stations`
 
@@ -207,7 +207,7 @@ Struct `ArdopStationRow`. A row of the ARDOP stations. The row key is the callsi
 | `last_type` | text | always | 1.0 | The type of its last frame. |
 | `called` | text | optional | 1.0 | The station it called, if it called one. |
 
-The column `callsign` names a row.
+The rows are the stations or nodes of the stack. The column `callsign` names a row. Time: `last_heard`.
 
 ### Event `ardop.frame`
 

@@ -359,6 +359,8 @@ impl Publisher {
             codec: slide.format.codec(),
             layout: None,
             name: non_empty(name).map(str::to_string),
+            id: Picture::WHOLE,
+            state: sdrkit_core::PictureState::Finished,
             data,
         }
     }

@@ -185,6 +185,18 @@ pub fn settings_table(settings: &[SettingDecl]) -> String {
         out.push_str("\n\n");
         out.push_str(&table(&SETTING_HEADER, &setting_rows(&generator)));
     }
+    // What a setting with a role chooses.
+    let roles: Vec<String> = settings
+        .iter()
+        .filter_map(sdrkit_dev_interface::marks::setting_sentence)
+        .collect();
+    if !roles.is_empty() {
+        if !out.is_empty() {
+            out.push('\n');
+        }
+        out.push_str(&roles.join(" "));
+        out.push('\n');
+    }
     out
 }
 

@@ -15,7 +15,7 @@
 #define SDRKIT_INIT_H
 
 #define SDRKIT_COMMAND_INFO_INIT {sizeof(sdrkit_command_info), {0}, {0}, {0}, 0, 0, 0, 0, {0}}
-#define SDRKIT_DECL_INIT {sizeof(sdrkit_decl), {0}, {0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, {0}, {0}, 0, {0}, {0}, 0, {0}, 0}
+#define SDRKIT_DECL_INIT {sizeof(sdrkit_decl), {0}, {0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, {0}, {0}, 0, {0}, {0}, 0, {0}, 0, 0}
 #define SDRKIT_OPTION_INIT {sizeof(sdrkit_option), {0}, {0}}
 #define SDRKIT_INPUT_INIT {sizeof(sdrkit_input), 0, 0, 0, 0}
 #define SDRKIT_RADIO_OPTIONS_INIT {sizeof(sdrkit_radio_options), 0, 0}
@@ -29,7 +29,7 @@
 #define SDRKIT_REPORT_PORT_INIT {sizeof(sdrkit_report_port), {0}, 0, 0, 0, 0}
 #define SDRKIT_REPORT_ADAPTER_INIT {sizeof(sdrkit_report_adapter), {0}, {0}, {0}, {0}, 0}
 #define SDRKIT_RESULTS_INFO_INIT {sizeof(sdrkit_results_info), 0, 0, 0, 0, {0}}
-#define SDRKIT_TABLE_INFO_INIT {sizeof(sdrkit_table_info), {0}, {0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define SDRKIT_TABLE_INFO_INIT {sizeof(sdrkit_table_info), {0}, {0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define SDRKIT_PLOT_INFO_INIT {sizeof(sdrkit_plot_info), {0}, {0}, {0}, {0}, {0}}
 #define SDRKIT_SNAPSHOT_INFO_INIT {sizeof(sdrkit_snapshot_info), 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0}
 #define SDRKIT_ROWS_INFO_INIT {sizeof(sdrkit_rows_info), 0, 0, 0}
@@ -40,7 +40,7 @@
 #define SDRKIT_STORAGE_INIT {sizeof(sdrkit_storage), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define SDRKIT_AUDIO_INFO_INIT {sizeof(sdrkit_audio_info), 0, 0, 0, 0}
 #define SDRKIT_IQ_INFO_INIT {sizeof(sdrkit_iq_info), 0, 0, 0}
-#define SDRKIT_MEDIA_INFO_INIT {sizeof(sdrkit_media_info), 0, 0, 0, 0, {0}, 0, 0, {0}, 0, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, {0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define SDRKIT_MEDIA_INFO_INIT {sizeof(sdrkit_media_info), 0, 0, 0, 0, {0}, 0, 0, {0}, 0, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, {0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}}
 #define SDRKIT_SPECTRUM_FRAME_INIT {sizeof(sdrkit_spectrum_frame), 0, 0, 0, 0, 0, 0, 0}
 #define SDRKIT_TAP_INFO_INIT {sizeof(sdrkit_tap_info), 0, 0, 0, 0, 0}
 

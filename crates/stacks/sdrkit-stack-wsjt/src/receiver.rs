@@ -67,7 +67,7 @@ pub fn receiver(mode: Option<Mode>, cfg: &StackConfig) -> Result<StackGraph, Gra
     }
     b = b
         .add("merge", MergeComponent::new(n_merge))
-        .add("display", DisplayComponent::default())
+        .add("display", DisplayComponent::of(mode))
         .connect("merge.out", "display.slots")
         .connect("clock.time", "display.time")
         .connect("front.levels", "display.levels")

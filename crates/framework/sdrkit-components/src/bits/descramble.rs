@@ -59,6 +59,7 @@ const SEQUENCE: CatalogueSetting = CatalogueSetting {
     },
     default: "prbs9_dispersal",
     advanced: false,
+    role: None,
 };
 const POLY: Setting<field::I64> = Setting::new("poly", "Polynomial", "", 0x221)
     .range(2.0, MAX_EXACT, 1.0)
@@ -406,6 +407,7 @@ const BYTE_SEQUENCE: CatalogueSetting = CatalogueSetting {
     },
     default: "ccsds",
     advanced: false,
+    role: None,
 };
 const PERIOD: Setting<field::I64> = Setting::new("period", "Period", "packets", 1)
     .range(1.0, 1e6, 1.0)

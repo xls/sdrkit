@@ -42,6 +42,10 @@ pub struct RunContext {
     pub random: Random,
     /// The host's network, for a network sink. `None` without one.
     pub transport: Option<Arc<dyn Transport>>,
+    /// The signal is of the present moment although the samples are not live: a test signal that the host makes as
+    /// it plays. A row can then have the time of the host's clock. False for a recording, whose signal is of another
+    /// time, and for a graph without a host.
+    pub present: bool,
     /// The host's streams of this graph, for the host and transmit endpoints. `None` without a host.
     pub streams: Option<Arc<dyn HostStreams>>,
     /// The test signals of the stacks, for a stack's signal as a source. `None` without them.
@@ -73,9 +77,18 @@ impl Default for RunContext {
             clock: Clock::fixed(0.0),
             random: Random::fixed(0),
             transport: None,
+            present: false,
             streams: None,
             generators: None,
         }
+    }
+}
+
+impl RunContext {
+    /// True if the clock of the host gives the time of the signal: the samples are live, or the signal is made as it
+    /// plays ([`RunContext::present`]). A component that stamps a row with the wall-clock time asks this.
+    pub fn wall_clock(&self) -> bool {
+        self.live || self.present
     }
 }
 

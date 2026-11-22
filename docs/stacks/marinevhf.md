@@ -74,7 +74,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ma
 
 ## Typed interface
 
-The stack is in the family `marine`, version 1.2. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `marine`, version 1.3. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Voice calls (`voice`). Media: sound (voice).
 
@@ -110,7 +110,7 @@ Struct `VhfCallRow`. A row of the call table of the marine VHF stack. The row ke
 | `mean_dbfs` | number (dBFS) | always | 1.0 | The mean level of a call. |
 | `open` | yes or no | always | 1.0 | The call or channel is open. |
 
-The column `channel` names a row.
+The rows are the calls of the stack. The column `channel` names a row. Time: `time`.
 
 ### Table `channels`
 
@@ -131,7 +131,7 @@ Struct `VhfChannelRow`. A row of the channel table of the marine VHF stack. The 
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
 | `peak_dbfs` | number (dBFS) | optional | 1.0 | The highest level of a call or channel. |
 
-The column `channel` names a row. Default order: the column `freq_hz`, lowest first.
+The rows are the groups of the stack. The column `channel` names a row. Default order: the column `freq_hz`, lowest first. Time: `last_heard`.
 
 ### Event `marinevhf.call`
 

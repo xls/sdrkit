@@ -271,6 +271,11 @@ final class SDRKitTests: XCTestCase {
         XCTAssertEqual(stacks.labelColumn.map { stacks.columns[Int($0)].key }, "name")
         XCTAssertNil(stacks.sort)
         XCTAssertFalse(stacks.place.onMap)
+        // The stacks are no messages, calls, nodes or groups, and no column is a part of a message.
+        XCTAssertNil(stacks.role)
+        XCTAssertEqual(stacks.message, TableMessage())
+        // The call sign of the station chooses no picture.
+        XCTAssertNil(try engine.object.setting("callsign").role)
     }
 
     func testSettingErrors() throws {

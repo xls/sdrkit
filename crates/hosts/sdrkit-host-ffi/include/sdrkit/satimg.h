@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "satimg", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "satimg", version 1.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -38,7 +38,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_SATIMG_VERSION_MAJOR 1
-#define SDRKIT_SATIMG_VERSION_MINOR 2
+#define SDRKIT_SATIMG_VERSION_MINOR 3
 
 // The stack "meteor_lrpt": its id, and the keys of its event types.
 #define SDRKIT_STACK_METEOR_LRPT "meteor_lrpt"
@@ -3555,7 +3555,7 @@ static inline int32_t sdrkit_noaa_apt_set_line_filter(SDRKIT_HANDLE handle, bool
   return sdrkit_typed_setting_set_bool(handle, "line_filter", value);
 }
 
-// The setting "gen_lines" (Test picture lines) of the test signal generator of the stack "noaa_apt".
+// The setting "gen_lines" (Test picture lines) of the test signal generator of the stack "noaa_apt". The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.
 static inline int32_t sdrkit_noaa_apt_gen_get_lines(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_lines", value);
 }

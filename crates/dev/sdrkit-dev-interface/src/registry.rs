@@ -148,9 +148,13 @@ pub fn render(family: &Family) -> String {
         for s in &stack.settings {
             let d = s.decl();
             let path = format!("{id}.setting.{}", d.field.key);
+            // What the setting chooses for a front end.
+            let role = d
+                .role
+                .map_or(String::new(), |r| format!(" role={}", r.key()));
             let _ = writeln!(
                 out,
-                "{path} type={} unit={} since={}",
+                "{path} type={} unit={}{role} since={}",
                 value(&type_name(&d.field)),
                 value(&d.field.unit),
                 since(&path)
@@ -307,8 +311,9 @@ fn appended(old: &str, new: &str, optional: bool) -> bool {
 }
 
 /// The attributes of a registry line that hold a mark: of a table (the column that names a row, the default order, the
-/// columns of a place) and of the content line of a stack (the kind of content and the media).
-const MARKS: [&str; 13] = [
+/// columns of a place, what the rows are, the columns of a message), of a setting (what it chooses) and of the content
+/// line of a stack (the kind of content and the media).
+const MARKS: [&str; 18] = [
     "label",
     "sort",
     "position",
@@ -322,6 +327,11 @@ const MARKS: [&str; 13] = [
     "pictures",
     "video",
     "text",
+    "role",
+    "sender",
+    "addressee",
+    "message",
+    "time",
 ];
 
 /// The differences from record `old` to record `new`. An added item is compatible. A removed item is breaking, so a

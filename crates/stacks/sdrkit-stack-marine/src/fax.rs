@@ -14,7 +14,7 @@ use sdrkit_algo_dsp::window::Window;
 use sdrkit_algo_modem::level::M2m4;
 use sdrkit_codec_image::line::{LineImage, Overflow};
 use sdrkit_codec_image::{geom, PixelFormat};
-use sdrkit_core::media::Picture;
+use sdrkit_core::media::{Picture, PictureState};
 use sdrkit_core::Complex32;
 use std::collections::VecDeque;
 use std::f64::consts::PI;
@@ -589,6 +589,14 @@ pub struct FaxDecoder {
     join_seen: Option<(u32, u64)>,
     join_check: u64,
     picture: Option<(u64, u64, Picture)>,
+    /// The number of the page: the number of its picture items.
+    page: u32,
+    /// A growing state of the page went out and no finished state yet.
+    page_open: bool,
+    /// The page ended. Its picture is finished.
+    page_closed: bool,
+    /// The finished pictures of pages that ended, until the component takes them.
+    ended: Vec<Picture>,
     /// The next row to build.
     next_row: usize,
     roll: usize,
@@ -643,6 +651,10 @@ impl FaxDecoder {
             join_seen: None,
             join_check: 0,
             picture: None,
+            page: 0,
+            page_open: false,
+            page_closed: false,
+            ended: Vec::new(),
             next_row: 0,
             roll: 0,
             row_tones: Vec::new(),
@@ -713,6 +725,7 @@ impl FaxDecoder {
 
     /// Clears the picture and the decoder's lines. Phasing and the line count restart. The change counter moves.
     pub fn clear(&mut self) {
+        self.end_page();
         self.clear_rows();
         self.state = FaxState::Waiting;
         self.phasing_lines = 0;
@@ -725,7 +738,8 @@ impl FaxDecoder {
     pub fn reset(&mut self) {
         let s = self.settings.clone();
         let c = self.change;
-        if let Ok(d) = FaxDecoder::new(self.rate) {
+        if let Ok(mut d) = FaxDecoder::new(self.rate) {
+            d.carry_pictures(self);
             *self = d;
         }
         self.settings = s;
@@ -754,6 +768,8 @@ impl FaxDecoder {
         self.pending.clear();
         self.phasing_lines = 0;
         self.missing = 0;
+        self.page += 1;
+        (self.page_open, self.page_closed) = (false, false);
         self.new_image();
         self.next_expected = at;
         self.black_meas.clear();
@@ -767,6 +783,39 @@ impl FaxDecoder {
             self.done += 1;
         }
         self.end_reason = reason.into();
+        self.end_page();
+    }
+
+    /// Ends the picture of the page: if a state of it went out or it has lines, its finished state waits in the
+    /// list that [`FaxDecoder::take_ended`] gives.
+    pub fn end_page(&mut self) {
+        if self.page_closed || !(self.page_open || self.lines() > 0) {
+            return;
+        }
+        if let Some(p) = self.draw(PictureState::Finished) {
+            self.ended.push(p);
+        }
+        (self.page_open, self.page_closed) = (false, true);
+    }
+
+    /// The finished pictures of the pages that ended after the last call.
+    pub fn take_ended(&mut self) -> Vec<Picture> {
+        std::mem::take(&mut self.ended)
+    }
+
+    /// Takes the page number and the finished pictures of `old`, the decoder that this one replaces, and ends the
+    /// page of `old`. The numbers of the pages go on.
+    pub fn carry_pictures(&mut self, old: &mut FaxDecoder) {
+        old.end_page();
+        self.page = old.page;
+        self.ended = old.take_ended();
+    }
+
+    /// The page as a picture item in the state `state`, turned by the rotation setting.
+    fn draw(&self, state: PictureState) -> Option<Picture> {
+        let img = self.image.as_ref()?;
+        let r = geom::rotate(&img.to_raster(), self.settings.rotate);
+        Some(r.to_picture("fax", self.page.max(1), state))
     }
 
     fn effective_period(&self) -> f64 {
@@ -1304,16 +1353,26 @@ impl FaxDecoder {
     }
 
     /// The picture so far as the standard picture item (raw grey, `L008`, 0 black to 255 white), turned by the rotation setting,
-    /// with the number that changes whenever it does. `None` before the first picture.
+    /// with the number that changes whenever it does. `None` before the first picture. The picture grows until the
+    /// page ends. A page that ended comes again, finished, only when a setting draws it again.
     pub fn picture(&mut self) -> Option<(u64, Picture)> {
         let img = self.image.as_ref()?;
+        if self.page_closed && self.lines() == 0 {
+            return None;
+        }
         let key = (img.version(), self.change);
         if let Some((v, c, p)) = &self.picture {
             if (*v, *c) == key {
                 return Some((self.change, p.clone()));
             }
         }
-        let p = geom::rotate(&img.to_raster(), self.settings.rotate).to_picture("fax");
+        let state = if self.page_closed {
+            PictureState::Finished
+        } else {
+            PictureState::Growing
+        };
+        let p = self.draw(state)?;
+        self.page_open = !self.page_closed;
         self.picture = Some((key.0, key.1, p.clone()));
         Some((self.change, p))
     }

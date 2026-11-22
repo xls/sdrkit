@@ -716,8 +716,9 @@ pub struct VhfCallRow<'a> {
 }
 
 /// The calls, newest first.
-pub static CALL_TABLE: Table<VhfCallRow<'static>> =
-    Table::new("calls", "Calls", CALL_CAP).label(&VhfCallRow::CHANNEL);
+pub static CALL_TABLE: Table<VhfCallRow<'static>> = Table::new("calls", "Calls", CALL_CAP)
+    .role(sdrkit_core::TableRole::Calls)
+    .label(&VhfCallRow::CHANNEL);
 
 /// A row of the channel table of the marine VHF stack. The row key is the channel frequency in units of the raster.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -762,6 +763,7 @@ pub struct VhfChannelRow<'a> {
 
 /// The channels of the plan.
 pub static CHANNEL_TABLE: Table<VhfChannelRow<'static>> = Table::new("channels", "Channels", 400)
+    .role(sdrkit_core::TableRole::Groups)
     .label(&VhfChannelRow::CHANNEL)
     .sorted(&VhfChannelRow::FREQ_HZ, sdrkit_core::SortOrder::Ascending);
 
@@ -1133,7 +1135,7 @@ impl Component for CallLog {
         ])
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.host_clock = ctx.clock.clone();
     }
     fn process(&mut self, io: &mut Io) {

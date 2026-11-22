@@ -1,5 +1,5 @@
 # The interface of the stack family ism. The registry test of the family writes this file.
-family ism version=3.0
+family ism version=3.1
 uses.ookdev major=1 since=1.0
 shape.IsmDetectFields since=1.0
 shape.IsmDetectFields.bursts_detected type=i64 unit= optional=no since=1.0
@@ -973,7 +973,7 @@ subghzchat.kept.SubghzchatFields.unreadable since=1.0
 subghzchat.kept.SubghzchatFields.repeats since=1.0
 subghzchat.kept.SubghzchatFields.sent since=1.0
 subghzchat.kept.SubghzchatFields.key_set since=1.0
-subghzchat.table.chat row=SubghzchatLineRow cap=500 since=1.0
+subghzchat.table.chat row=SubghzchatLineRow cap=500 role=messages message=text time=time_s since=1.0
 subghzchat.table.packets row=SubghzchatPacketRow cap=200 label=hex since=1.0
 subghzchat.event.subghzchat.line fields=SubghzchatLineEvent since=1.0
 subghzchat.event.subghzchat.state fields=SubghzchatStateEvent since=1.0
@@ -984,7 +984,7 @@ subghzchat.setting.key type=text unit= since=1.0
 subghzchat.setting.frequency type=choice(433.92,315.00,390.00,868.35,915.00) unit= since=1.0
 subghzchat.command.clear args= reply= since=1.0
 dect since=1.0
-dect.content kind=voice since=1.0
+dect.content kind=networks since=1.0
 dect.fields.DectFields since=1.0
 dect.fields.DectDemodFields since=1.0
 dect.component.demod.fields.DectDemodFields shared=frames_ok;frames_bad since=1.0

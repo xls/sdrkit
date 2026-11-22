@@ -199,3 +199,35 @@ fn the_line_filter_raises_the_psnr() {
     }
     assert!(short.is_empty(), "{short:#?}");
 }
+
+#[test]
+fn gen_lines_makes_a_pass_of_that_many_lines_and_the_picture_ends_finished() {
+    use sdrkit_stack_satimg::modes::apt::GEN_LINES;
+    // 30 lines are 15 s. The harness asks for more, and the signal ends by itself.
+    let h = Harness::new(&DESCRIPTOR)
+        .rate(RATE)
+        .seconds(40.0)
+        .set(&GEN_LEVEL_DBFS, -13.0)
+        .set(&GEN_LINES, 30);
+    let x = h.generate().expect("a signal");
+    assert_eq!(x.len(), (15.0 * RATE) as usize);
+    let mut r = run::<Strip>(&h, &x, RATE, 137.1e6, 137.1e6, 65_536, Some("apt.out"));
+    let lines = r.num("lines");
+    assert!((24.0..=30.0).contains(&lines), "{lines}");
+    // The end of the input ends the picture: its last state is finished.
+    let mut out = sdrkit_core::Output::default();
+    r.rx.finish(&mut out);
+    let last = out
+        .media
+        .iter()
+        .rev()
+        .find_map(|e| e.picture.as_ref())
+        .expect("a picture at the end of the pass");
+    assert_eq!(last.state, sdrkit_core::PictureState::Finished);
+    // Without the setting the signal has no end.
+    let h = Harness::new(&DESCRIPTOR).rate(RATE).seconds(16.0);
+    assert_eq!(
+        h.generate().expect("a signal").len(),
+        (16.0 * RATE) as usize
+    );
+}

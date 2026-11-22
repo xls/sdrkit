@@ -34,7 +34,7 @@
 
 use crate::command::{Command, CommandError, Commands};
 use crate::event::{Event, EventDef};
-use crate::marks::{AudioKind, ContentKind, Media, Role, RowMarks, SortOrder};
+use crate::marks::{AudioKind, ContentKind, Media, Role, RowMarks, SortOrder, TableRole};
 use crate::owner::Owner;
 use crate::publish::{field, Declare, Field, Published, RasterDef, SeriesDef, TableDef};
 use crate::record::{FieldDecl, Kind, Record};
@@ -650,6 +650,14 @@ impl<S: Fields + 'static> Table<S> {
     pub const fn sorted<K>(mut self, c: &Column<K>, order: SortOrder) -> Self {
         self.def.marks.sort = c.key;
         self.def.marks.order = order;
+        self
+    }
+    /// The same table, whose rows are what `role` says: the messages, the calls, the nodes or the groups of the
+    /// stack. A front end finds the table by its role and not by its key. The columns of a message have their own
+    /// roles (`#[field(.., role = Sender)]`, `Addressee`, `Text`, `Time`).
+    #[must_use]
+    pub const fn role(mut self, role: TableRole) -> Self {
+        self.def.marks.role = Some(role);
         self
     }
     /// The declaration of the table.

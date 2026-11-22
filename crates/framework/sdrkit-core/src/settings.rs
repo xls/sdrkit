@@ -2,6 +2,7 @@
 //! values of a schema.
 
 use crate::command::CommandError;
+use crate::marks::SettingRole;
 use crate::publish::{field, Field};
 use crate::record::{DeclError, FieldDecl, FieldId, Kind, Record, RecordDecl};
 use crate::stack::ConfigError;
@@ -72,6 +73,10 @@ pub struct SettingDecl {
     /// The values of a number setting that people normally use. A front end offers them next to the range.
     #[serde(skip_serializing_if = "Common::is_empty")]
     pub common: Common,
+    /// What the setting chooses, for a front end that puts its control next to what it acts on. `None` for a setting
+    /// without a role.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role: Option<SettingRole>,
 }
 
 /// The values of a number setting that people normally use: one list, or one list for each option of a choice setting of
@@ -114,7 +119,14 @@ impl SettingDecl {
             help: Cow::Borrowed(""),
             zero_means: Cow::Borrowed(""),
             common: Common::default(),
+            role: None,
         }
+    }
+    /// The same setting with the role `role`: what it chooses for a front end.
+    #[must_use]
+    pub fn with_role(mut self, role: SettingRole) -> Self {
+        self.role = Some(role);
+        self
     }
     /// A required command argument of `field`: it has no default and must be given.
     pub fn required(field: FieldDecl) -> Self {
@@ -271,6 +283,8 @@ pub struct Setting<K: SettingKind> {
     /// The key of the choice setting that selects the common values, and the values for each of its options
     /// ([`Setting::common_for`]). Empty key for none.
     pub common_for: (&'static str, CommonSets),
+    /// What the setting chooses ([`SettingDecl::role`]).
+    pub role: Option<SettingRole>,
 }
 
 /// The sample rate in Hz that a stack would like for a value of one of its settings. 0 for the rate of its table
@@ -312,7 +326,15 @@ impl<K: SettingKind> Setting<K> {
             rate_of: None,
             common: &[],
             common_for: ("", &[]),
+            role: None,
         }
+    }
+    /// The same setting with the role `role`: `VIEW.role(SettingRole::PictureView)`. A front end finds the setting by
+    /// its role and not by its key.
+    #[must_use]
+    pub const fn role(mut self, role: SettingRole) -> Self {
+        self.role = Some(role);
+        self
     }
     /// The same setting with the values that people normally use: `RATE.common(&[1.024e6, 2.048e6])`. Each value must
     /// pass the checks of the setting.
@@ -439,6 +461,7 @@ impl<K: SettingKind> DeclareSetting for Setting<K> {
                     .map(|(o, v)| (Cow::Borrowed(*o), v.to_vec()))
                     .collect(),
             },
+            role: self.role,
         }
     }
     fn rate_of(&self) -> Option<RateOf> {
@@ -462,6 +485,8 @@ pub struct CatalogueSetting {
     pub default: &'static str,
     /// The setting is advanced ([`SettingDecl::advanced`]).
     pub advanced: bool,
+    /// What the setting chooses ([`SettingDecl::role`]).
+    pub role: Option<SettingRole>,
 }
 
 impl CatalogueSetting {
@@ -513,6 +538,10 @@ impl DeclareSetting for CatalogueSetting {
             Value::Choice(default),
         )
         .with_help(self.help);
+        let d = match self.role {
+            Some(r) => d.with_role(r),
+            None => d,
+        };
         if self.advanced {
             d.with_advanced()
         } else {
@@ -1631,6 +1660,7 @@ mod tests {
             choices: codes,
             default: "b",
             advanced: false,
+            role: None,
         };
         const LEVEL: Setting<field::F64> = Setting::new("level", "Level", "", 1.0);
         crate::settings! {

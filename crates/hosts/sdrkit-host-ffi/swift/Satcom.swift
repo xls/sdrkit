@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "satcom", version 1.4. MIT licence.
+// sdrkit: the typed interface of the stack family "satcom", version 1.5. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum SatcomInterface {
     public static let major = 1
-    public static let minor = 4
+    public static let minor = 5
 }
 
 /// The result fields of Inmarsat-C.
@@ -4443,6 +4443,8 @@ public enum SatcomComponents {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum SatcomTables {
     /// The changed rows of the table "messages" of the stack "inmarsatc", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
+    /// Text: `text`. Time: `first_heard`.
     public static func inmarsatcMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 150) -> Result<[InmarsatcMessageRow], SDRKitCode> {
         var rows = [sdrkit_inmarsatc_message_row](repeating: sdrkit_inmarsatc_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4491,9 +4493,11 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroLogonRow.init))
     }
     /// The changed rows of the table "messages" of the stack "aero", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `flight` names a row.
     /// Place of a row: the column `position`.
     /// Height: `alt_ft`.
+    /// Sender: `aes`. Addressee: `ges`. Text: `text`. Time: `time`.
     public static func aeroMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[AeroMessageRow], SDRKitCode> {
         var rows = [sdrkit_aero_message_row](repeating: sdrkit_aero_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4502,9 +4506,11 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroMessageRow.init))
     }
     /// The changed rows of the table "aircraft" of the stack "aero", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `flight` names a row.
     /// Place of a row: the column `position`.
     /// Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
+    /// Time: `last_heard`.
     public static func aeroAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[AeroAircraftRow], SDRKitCode> {
         var rows = [sdrkit_aero_aircraft_row](repeating: sdrkit_aero_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4572,9 +4578,11 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroLogonRow.init))
     }
     /// The changed rows of the table "aero_display.messages" of the stack "inmarsat", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `flight` names a row.
     /// Place of a row: the column `position`.
     /// Height: `alt_ft`.
+    /// Sender: `aes`. Addressee: `ges`. Text: `text`. Time: `time`.
     public static func inmarsatAeroDisplayMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[AeroMessageRow], SDRKitCode> {
         var rows = [sdrkit_aero_message_row](repeating: sdrkit_aero_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4583,9 +4591,11 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroMessageRow.init))
     }
     /// The changed rows of the table "aero_display.aircraft" of the stack "inmarsat", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `flight` names a row.
     /// Place of a row: the column `position`.
     /// Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
+    /// Time: `last_heard`.
     public static func inmarsatAeroDisplayAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[AeroAircraftRow], SDRKitCode> {
         var rows = [sdrkit_aero_aircraft_row](repeating: sdrkit_aero_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4602,6 +4612,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroFactRow.init))
     }
     /// The changed rows of the table "egc.messages" of the stack "inmarsat", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
+    /// Text: `text`. Time: `first_heard`.
     public static func inmarsatEgcMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 150) -> Result<[InmarsatcMessageRow], SDRKitCode> {
         var rows = [sdrkit_inmarsatc_message_row](repeating: sdrkit_inmarsatc_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4626,6 +4638,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(InmarsatcPacketCountRow.init))
     }
     /// The changed rows of the table "raw" of the stack "iridium", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
+    /// Text: `line`. Time: `at`.
     public static func iridiumRaw(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[IridiumRawRow], SDRKitCode> {
         var rows = [sdrkit_iridium_raw_row](repeating: sdrkit_iridium_raw_row(), count: capacity)
         var info = sdrkit_rows_info.sized

@@ -337,7 +337,7 @@ impl Component for Tables {
     }
 
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.clock = ctx.clock.clone();
     }
 

@@ -120,6 +120,15 @@
 // The setting is advanced: a program shows the other settings first, and these on request.
 #define SDRKIT_DECL_ADVANCED 16
 
+// The setting has no role.
+#define SDRKIT_SETTING_ROLE_NONE 0
+
+// The setting chooses whose picture the object shows: an instrument, a product.
+#define SDRKIT_SETTING_ROLE_PICTURE_SOURCE 1
+
+// The setting chooses the view of the picture shown: a channel, a composite.
+#define SDRKIT_SETTING_ROLE_PICTURE_VIEW 2
+
 // The bytes of the value are not declared, or the value is not bytes.
 #define SDRKIT_CONTENT_NONE 0
 
@@ -398,6 +407,21 @@
 // The object decodes the signal.
 #define SDRKIT_STATE_LOCKED 3
 
+// The table states nothing about its rows.
+#define SDRKIT_TABLE_ROLE_NONE 0
+
+// Each row is a message: the main log of messages of the object.
+#define SDRKIT_TABLE_ROLE_MESSAGES 1
+
+// Each row is a call or a transmission: who, to whom, when.
+#define SDRKIT_TABLE_ROLE_CALLS 2
+
+// Each row is a station, a node or a unit that was heard.
+#define SDRKIT_TABLE_ROLE_NODES 3
+
+// Each row is a group that stations talk in: a talkgroup, a channel, a net.
+#define SDRKIT_TABLE_ROLE_GROUPS 4
+
 // Opens the file for reading. The callback returns `SDRKIT_E_NOT_FOUND` if the file does not exist.
 #define SDRKIT_OPEN_READ 0
 
@@ -497,6 +521,17 @@
 // 5.1: left, centre, right, left surround, right surround, low-frequency effects.
 #define SDRKIT_CHANNEL_LAYOUT_SURROUND_5_1 3
 
+// The packet is no picture.
+#define SDRKIT_PICTURE_STATE_NONE 0
+
+// The picture can change: more rows, more parts, or better data. A later packet with the same `picture_id` replaces
+// this one.
+#define SDRKIT_PICTURE_STATE_GROWING 1
+
+// The picture is complete or its signal ended. A later packet with the same `picture_id` is the same picture drawn
+// again, after a change of a setting of its view.
+#define SDRKIT_PICTURE_STATE_FINISHED 2
+
 // Pixels whose colour matrix the library does not know, or no pixels.
 #define SDRKIT_COLOUR_MATRIX_UNKNOWN 0
 
@@ -518,7 +553,7 @@
 
 // The minor version of the C interface of this library. It rises when the base header gets a function, a constant or
 // a member at the end of a struct that starts with `size`.
-#define SDRKIT_INTERFACE_VERSION_MINOR 1
+#define SDRKIT_INTERFACE_VERSION_MINOR 2
 
 // No value.
 #define SDRKIT_TYPE_NONE 0
@@ -679,6 +714,9 @@ typedef struct sdrkit_decl {
   // The number of values of the setting that people normally use, for the present option of the setting that they
   // depend on. `sdrkit_setting_common()` reads them. Settings only.
   uint32_t common;
+  // An `SDRKIT_SETTING_ROLE_*` constant: what the setting chooses. A front end finds the setting that chooses the
+  // view of the picture by this member and not by the key. Settings only.
+  int32_t role;
 } sdrkit_decl;
 
 // One option of a value of type `SDRKIT_TYPE_ENUM`.
@@ -937,6 +975,19 @@ typedef struct sdrkit_table_info {
   sdrkit_id course_column;
   // The id of the column of the speed, or `SDRKIT_NO_ID`. The declaration of the column has the unit.
   sdrkit_id speed_column;
+  // An `SDRKIT_TABLE_ROLE_*` constant: what the rows are. A front end finds the message log, the call log, the
+  // nodes and the groups of an object by this member and not by the key of the table.
+  int32_t role;
+  // The id of the column of the sender of a message or a call, or `SDRKIT_NO_ID`.
+  sdrkit_id sender_column;
+  // The id of the column of the addressee of a message or a call, or `SDRKIT_NO_ID`.
+  sdrkit_id addressee_column;
+  // The id of the column of the text of a message, or `SDRKIT_NO_ID`.
+  sdrkit_id text_column;
+  // The id of the column that holds the time of a row, or `SDRKIT_NO_ID`: a column of type `SDRKIT_TYPE_TIME`, or
+  // a number of seconds of signal with the unit `s`. Only a table with a role, or with a column that states it,
+  // has it.
+  sdrkit_id time_column;
 } sdrkit_table_info;
 
 // The declaration of one series (a small plot) or raster (an image of values, such as a waterfall).
@@ -1265,6 +1316,14 @@ typedef struct sdrkit_media_info {
   int32_t colour_matrix;
   // For raw pixels: true for full range (0 to 255), false for video range (16 to 235).
   bool full_range;
+  // For a picture: the number of the picture in the session, from 1. Packets with the same number are states of
+  // one picture, and each replaces the one before. A new picture has a new number, also when it has the size and
+  // the name of the one before. 0 for media.
+  uint64_t picture_id;
+  // For a picture: one of `SDRKIT_PICTURE_STATE_*`. `SDRKIT_PICTURE_STATE_NONE` for media.
+  int32_t picture_state;
+  // For a picture: its name (a product, a channel, a picture mode, a file name). Empty if it has none.
+  struct sdrkit_string picture_name;
 } sdrkit_media_info;
 
 // The spectrum frame that `sdrkit_spectrum_read` copied.
@@ -2029,8 +2088,11 @@ int32_t sdrkit_media_read(SDRKIT_HANDLE session,
                           struct sdrkit_media_info *info);
 
 // Fills `info` with the first picture of `session` after the counter `after`. Pass 0 for the oldest picture. A picture is
-// compressed bytes, or raw pixels in the layout of `width`, `height` and `strides`. The session keeps its last 16
-// pictures.
+// compressed bytes, or raw pixels in the layout of `width`, `height` and `strides`. `picture_id` says which picture
+// the packet holds, `picture_state` whether more of it can come, and `picture_name` its name. A picture that grows
+// comes again with the same `picture_id` and all of its bytes; the session keeps the newest state of each of its
+// last 16 pictures, so a state that the caller did not read leaves when the next state of that picture comes, and
+// counts in `missed`. A picture that grows when the session takes another stack, or ends, comes once more, finished.
 // The arrays and strings of `info` are views that the library owns, valid until the next call on `session`. Copy what you keep.
 int32_t sdrkit_picture_read(SDRKIT_HANDLE session,
                             uint64_t after,

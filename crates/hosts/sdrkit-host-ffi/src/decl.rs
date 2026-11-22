@@ -23,6 +23,13 @@ pub const SDRKIT_DECL_FIXED: u32 = 8;
 /// The setting is advanced: a program shows the other settings first, and these on request.
 pub const SDRKIT_DECL_ADVANCED: u32 = 16;
 
+/// The setting has no role.
+pub const SDRKIT_SETTING_ROLE_NONE: i32 = 0;
+/// The setting chooses whose picture the object shows: an instrument, a product.
+pub const SDRKIT_SETTING_ROLE_PICTURE_SOURCE: i32 = 1;
+/// The setting chooses the view of the picture shown: a channel, a composite.
+pub const SDRKIT_SETTING_ROLE_PICTURE_VIEW: i32 = 2;
+
 /// The bytes of the value are not declared, or the value is not bytes.
 pub const SDRKIT_CONTENT_NONE: i32 = 0;
 /// A picture or media of the codec in `fourcc`.
@@ -85,6 +92,9 @@ pub struct Decl {
     /// The number of values of the setting that people normally use, for the present option of the setting that they
     /// depend on. `sdrkit_setting_common()` reads them. Settings only.
     pub common: u32,
+    /// An `SDRKIT_SETTING_ROLE_*` constant: what the setting chooses. A front end finds the setting that chooses the
+    /// view of the picture by this member and not by the key. Settings only.
+    pub role: i32,
 }
 
 /// One option of a value of type `SDRKIT_TYPE_ENUM`.
@@ -231,6 +241,11 @@ fn decl_of(f: &FieldDecl, s: Option<&SettingDecl>) -> Decl {
         content,
         fourcc,
         common: 0,
+        role: match s.and_then(|s| s.role) {
+            None => SDRKIT_SETTING_ROLE_NONE,
+            Some(sdrkit_core::SettingRole::PictureSource) => SDRKIT_SETTING_ROLE_PICTURE_SOURCE,
+            Some(sdrkit_core::SettingRole::PictureView) => SDRKIT_SETTING_ROLE_PICTURE_VIEW,
+        },
     }
 }
 

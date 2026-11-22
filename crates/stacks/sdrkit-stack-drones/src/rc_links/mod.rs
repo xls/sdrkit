@@ -881,7 +881,7 @@ impl Decoder for RcDecoder {
         let _ = self.build();
     }
     fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
         self.clock = Some(ctx.clock.clone());
     }
     fn process(&mut self, x: &[Complex32], first: u64, out: &mut Outbox) {

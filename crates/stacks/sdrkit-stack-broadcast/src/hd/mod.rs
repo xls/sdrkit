@@ -2415,6 +2415,8 @@ impl Component for HdStation {
                                 codec: if is_jpg { Codec::Jpeg } else { Codec::Png },
                                 layout: None,
                                 name: Some(format!("hdradio_{}_{}.{}", f.port, f.lot, ext)),
+                                id: Picture::WHOLE,
+                                state: sdrkit_core::PictureState::Finished,
                                 data: f.bytes.clone().unwrap_or_else(|| Arc::from(&[][..])),
                             },
                         ));
@@ -2673,6 +2675,9 @@ impl Receiver for HdReceiver {
     }
     fn set_station(&mut self, station: &sdrkit_core::Station) {
         self.inner.set_station(station)
+    }
+    fn set_facilities(&mut self, facilities: &sdrkit_core::Facilities) {
+        self.inner.set_facilities(facilities)
     }
     fn save_state(&self) -> Option<StateBlob> {
         self.inner.save_state()

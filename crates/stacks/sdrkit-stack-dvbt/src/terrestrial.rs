@@ -348,6 +348,13 @@ impl Receiver for TerrestrialReceiver {
         }
     }
 
+    fn set_facilities(&mut self, facilities: &sdrkit_core::Facilities) {
+        self.t.set_facilities(facilities);
+        if let Some(r) = self.t2.as_mut() {
+            r.set_facilities(facilities);
+        }
+    }
+
     /// The stages of the standard that decodes now. Only its receive chain is ever cut: a hand-over ends the placement
     /// of the one that stops.
     fn staged(&mut self) -> Option<&mut dyn Staged> {

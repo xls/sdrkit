@@ -1342,8 +1342,11 @@ impl Cp16Decoder {
         }
     }
 
-    fn picture(&mut self, out: &mut Outbox) {
-        if !self.pic_dirty || self.dots.is_empty() {
+    /// Sends the newest rows of dots as the picture, in the state `state`, if they changed or the state is finished.
+    /// The picture is one strip that grows, with one number.
+    fn picture(&mut self, out: &mut Outbox, state: sdrkit_graph::PictureState) {
+        let last = state == sdrkit_graph::PictureState::Finished;
+        if !(self.pic_dirty || last) || self.dots.is_empty() {
             return;
         }
         self.pic_dirty = false;
@@ -1357,7 +1360,7 @@ impl Cp16Decoder {
             }
         }
         p.rows = rows.len() as u32;
-        out.picture(self.n8 as f64 / RATE, p.to_picture());
+        out.picture(self.n8 as f64 / RATE, p.to_picture(state));
     }
 
     fn load_font(&mut self) {
@@ -1429,6 +1432,9 @@ impl sdrkit_graph::Decoder for Cp16Decoder {
         self.dial = input.tuned_hz;
         self.reset();
     }
+    fn finish(&mut self, out: &mut Outbox) {
+        self.picture(out, sdrkit_graph::PictureState::Finished);
+    }
     fn process(&mut self, x: &[Complex32], _first: u64, out: &mut Outbox) {
         // To 8 kHz: the low-pass, keeping every third output.
         let taps = self.lpf.len();
@@ -1464,7 +1470,7 @@ impl sdrkit_graph::Decoder for Cp16Decoder {
         while self.n8 >= self.next_measure {
             self.next_measure += RATE as u64;
             self.measure(out);
-            self.picture(out);
+            self.picture(out, sdrkit_graph::PictureState::Growing);
         }
     }
     fn report(&mut self, res: &mut Published) {

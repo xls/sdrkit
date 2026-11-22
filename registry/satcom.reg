@@ -1,5 +1,5 @@
 # The interface of the stack family satcom. The registry test of the family writes this file.
-family satcom version=1.4
+family satcom version=1.5
 shape.InmarsatcFields since=1.0
 shape.InmarsatcFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.InmarsatcFields.frames_bad type=i64 unit= optional=no since=1.0
@@ -898,7 +898,7 @@ inmarsatc.fields.DecoderFields since=1.0
 inmarsatc.component.demod.dropped since=1.0
 inmarsatc.kept.messages since=1.0
 inmarsatc.kept.InmarsatcFields.message_count since=1.0
-inmarsatc.table.messages row=InmarsatcMessageRow cap=150 since=1.0
+inmarsatc.table.messages row=InmarsatcMessageRow cap=150 role=messages message=text time=first_heard since=1.0
 inmarsatc.table.channels row=InmarsatcChannelRow cap=4 since=1.0
 inmarsatc.table.packet_counts row=InmarsatcPacketCountRow cap=64 since=1.0
 inmarsatc.event.inmarsatc.egc fields=InmarsatcEgcEvent since=1.0
@@ -931,8 +931,8 @@ aero.kept.AeroFields.aircraft since=1.0
 aero.table.channels row=AeroChannelRow cap=12 since=1.0
 aero.table.su_types row=AeroSuTypeRow cap=64 since=1.0
 aero.table.logons row=AeroLogonRow cap=100 since=1.0
-aero.table.messages row=AeroMessageRow cap=200 label=flight position=position altitude=alt_ft since=1.0
-aero.table.aircraft row=AeroAircraftRow cap=100 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt since=1.0
+aero.table.messages row=AeroMessageRow cap=200 label=flight position=position altitude=alt_ft role=messages sender=aes addressee=ges message=text time=time since=1.0
+aero.table.aircraft row=AeroAircraftRow cap=100 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt role=nodes time=last_heard since=1.0
 aero.table.facts row=AeroFactRow cap=24 since=1.0
 aero.event.aero.message fields=AeroMessageEvent since=1.0
 aero.event.aero.logon fields=AeroLogonEvent since=1.0
@@ -973,10 +973,10 @@ inmarsat.table.candidate_reasons row=InmarsatCandidateReasonRow cap=128 since=1.
 inmarsat.table.aero_display.channels row=AeroChannelRow cap=12 since=1.0
 inmarsat.table.aero_display.su_types row=AeroSuTypeRow cap=64 since=1.0
 inmarsat.table.aero_display.logons row=AeroLogonRow cap=100 since=1.0
-inmarsat.table.aero_display.messages row=AeroMessageRow cap=200 label=flight position=position altitude=alt_ft since=1.0
-inmarsat.table.aero_display.aircraft row=AeroAircraftRow cap=100 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt since=1.0
+inmarsat.table.aero_display.messages row=AeroMessageRow cap=200 label=flight position=position altitude=alt_ft role=messages sender=aes addressee=ges message=text time=time since=1.0
+inmarsat.table.aero_display.aircraft row=AeroAircraftRow cap=100 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt role=nodes time=last_heard since=1.0
 inmarsat.table.aero_display.facts row=AeroFactRow cap=24 since=1.0
-inmarsat.table.egc.messages row=InmarsatcMessageRow cap=150 since=1.0
+inmarsat.table.egc.messages row=InmarsatcMessageRow cap=150 role=messages message=text time=first_heard since=1.0
 inmarsat.table.egc.channels row=InmarsatcChannelRow cap=4 since=1.0
 inmarsat.table.egc.packet_counts row=InmarsatcPacketCountRow cap=64 since=1.0
 inmarsat.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -993,7 +993,7 @@ inmarsat.command.carrier.focus args=row:text reply= since=1.0
 iridium since=1.0
 iridium.content kind=datalink text=yes since=1.3
 iridium.fields.IridiumFields since=1.0
-iridium.table.raw row=IridiumRawRow cap=200 since=1.0
+iridium.table.raw row=IridiumRawRow cap=200 role=messages message=line time=at since=1.0
 iridium.series.scatter_detected x_unit=s y_unit=Hz since=1.0
 iridium.series.scatter_uw x_unit=s y_unit=Hz since=1.0
 iridium.event.iridium.raw fields=IridiumRawEvent since=1.0

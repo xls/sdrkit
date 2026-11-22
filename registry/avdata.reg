@@ -1,5 +1,5 @@
 # The interface of the stack family avdata. The registry test of the family writes this file.
-family avdata version=1.3
+family avdata version=1.4
 uses.tones major=1 since=1.0
 shape.AcarsFields since=1.0
 shape.AcarsFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -464,8 +464,8 @@ acars.kept.messages since=1.0
 acars.kept.aircraft since=1.0
 acars.kept.AcarsFields.aircraft since=1.0
 acars.kept.AcarsFields.messages since=1.0
-acars.table.messages row=AcarsMessageRow cap=200 label=flight position=position altitude=alt_ft since=1.0
-acars.table.aircraft row=AcarsAircraftRow cap=100 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt since=1.0
+acars.table.messages row=AcarsMessageRow cap=200 label=flight position=position altitude=alt_ft role=messages sender=registration message=text time=time since=1.0
+acars.table.aircraft row=AcarsAircraftRow cap=100 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt role=nodes time=last_heard since=1.0
 acars.table.channels row=AcarsChannelRow cap=24 since=1.0
 acars.event.acars.message fields=AcarsMessageEvent since=1.0
 acars.setting.channels type=text unit= since=1.0
@@ -484,8 +484,8 @@ vdl2.kept.ground_stations since=1.0
 vdl2.kept.Vdl2Fields.aircraft since=1.0
 vdl2.kept.Vdl2Fields.ground_stations since=1.0
 vdl2.kept.Vdl2Fields.messages since=1.0
-vdl2.table.messages row=Vdl2MessageRow cap=400 label=flight position=position altitude=alt_ft since=1.0
-vdl2.table.aircraft row=Vdl2AircraftRow cap=200 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt since=1.0
+vdl2.table.messages row=Vdl2MessageRow cap=400 label=flight position=position altitude=alt_ft role=messages sender=from addressee=to message=text time=time since=1.0
+vdl2.table.aircraft row=Vdl2AircraftRow cap=200 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt role=nodes time=last_heard since=1.0
 vdl2.table.ground_stations row=Vdl2StationRow cap=64 label=address position=position since=1.0
 vdl2.table.channels row=Vdl2ChannelRow cap=64 since=1.0
 vdl2.event.vdl2.message fields=Vdl2MessageEvent since=1.0
@@ -504,8 +504,8 @@ vdl4.kept.ground_stations since=1.0
 vdl4.kept.Vdl4Fields.frames since=1.0
 vdl4.kept.Vdl4Fields.aircraft since=1.0
 vdl4.kept.Vdl4Fields.ground_stations since=1.0
-vdl4.table.messages row=Vdl4MessageRow cap=400 label=address position=position altitude=alt_ft since=1.0
-vdl4.table.aircraft row=Vdl4AircraftRow cap=200 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt since=1.0
+vdl4.table.messages row=Vdl4MessageRow cap=400 label=address position=position altitude=alt_ft role=messages sender=address message=summary time=time since=1.0
+vdl4.table.aircraft row=Vdl4AircraftRow cap=200 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt role=nodes time=last_heard since=1.0
 vdl4.table.ground_stations row=Vdl4StationRow cap=64 label=address position=position since=1.0
 vdl4.table.channels row=Vdl4ChannelRow cap=64 since=1.0
 vdl4.event.vdl4.message fields=Vdl4MessageEvent since=1.0
@@ -519,8 +519,8 @@ selcal.kept.calls since=1.0
 selcal.kept.codes since=1.0
 selcal.kept.SelcalFields.calls since=1.0
 selcal.kept.SelcalFields.codes since=1.0
-selcal.table.calls row=SelcalCallRow cap=300 since=1.0
-selcal.table.codes row=SelcalCodeRow cap=300 since=1.0
+selcal.table.calls row=SelcalCallRow cap=300 role=calls addressee=code time=time since=1.0
+selcal.table.codes row=SelcalCodeRow cap=300 role=nodes time=last_heard since=1.0
 selcal.series.spectrum x_unit=Hz y_unit=dB since=1.0
 selcal.event.tones.selcal fields=SelcalFields since=1.0
 selcal.setting.demod type=choice(auto,fm,usb,lsb,am) unit= since=1.0
@@ -536,9 +536,9 @@ airband.fields.AirbandTxFields since=1.1
 airband.kept.seen since=1.0
 airband.kept.activity since=1.0
 airband.kept.AirbandFields.transmissions since=1.0
-airband.table.channels row=AirbandChannelRow cap=256 label=name since=1.0
+airband.table.channels row=AirbandChannelRow cap=256 label=name role=groups since=1.0
 airband.table.seen row=AirbandSeenRow cap=200 label=name since=1.0
-airband.table.activity row=AirbandActivityRow cap=300 label=name since=1.0
+airband.table.activity row=AirbandActivityRow cap=300 label=name role=calls time=time since=1.0
 airband.event.airband.activity fields=AirbandActivityEvent since=1.0
 airband.setting.channels type=text unit= since=1.0
 airband.setting.squelch_db type=f64 unit=dB since=1.0
@@ -564,8 +564,8 @@ hfdl.kept.aircraft since=1.0
 hfdl.kept.ground_stations since=1.0
 hfdl.kept.HfdlFields.hopper since=1.0
 hfdl.kept.HfdlFields.aircraft since=1.0
-hfdl.table.messages row=HfdlMessageRow cap=400 label=flight position=position since=1.0
-hfdl.table.aircraft row=HfdlAircraftRow cap=200 label=flight position=position altitude=alt_ft since=1.0
+hfdl.table.messages row=HfdlMessageRow cap=400 label=flight position=position role=messages message=text time=time since=1.0
+hfdl.table.aircraft row=HfdlAircraftRow cap=200 label=flight position=position altitude=alt_ft role=nodes time=last_heard since=1.0
 hfdl.table.ground_stations row=HfdlStationRow cap=64 label=name since=1.0
 hfdl.table.channels row=HfdlChannelRow cap=512 label=name since=1.0
 hfdl.event.hfdl.message fields=HfdlMessageEvent since=1.0
@@ -593,7 +593,7 @@ vdl3.kept.Vdl3Fields.net_entry since=1.0
 vdl3.kept.Vdl3Fields.vd_data since=1.0
 vdl3.kept.Vdl3Fields.vd_voice since=1.0
 vdl3.kept.Vdl3Fields.text since=1.0
-vdl3.table.bursts row=Vdl3BurstRow cap=400 since=1.0
+vdl3.table.bursts row=Vdl3BurstRow cap=400 role=messages message=summary time=time_s since=1.0
 vdl3.setting.sync_threshold type=f64 unit= since=1.0
 vdl3.setting.evm_max type=f64 unit=%%20of%20pi/4 since=1.0
 vdl3.setting.rs_bit_order type=choice(lsb_first,msb_first) unit= since=1.0

@@ -653,6 +653,7 @@ impl Run {
                 Control::Replace(mut rx, offset_hz, generation) => {
                     give_streams(rx.as_mut(), streams);
                     self.place.end(self.rx.as_mut());
+                    streams.end_pictures();
                     self.rx = rx;
                     self.place.start(self.rx.as_mut());
                     self.generation = generation;
@@ -1229,6 +1230,7 @@ impl Session {
         transmit: Arc<AtomicBool>,
         cores: Arc<crate::stages::Cores>,
     ) -> Result<Session, crate::EngineError> {
+        streams.set_present(feed.present());
         give_streams(rx.as_mut(), &streams);
         let (schema, values, own) = session_schema(rx.as_ref())?;
         let graph_decl = Arc::clone(rx.results_decl());
@@ -2104,6 +2106,8 @@ pub(crate) fn run(
         }
         pending.append(&mut out.media);
         link.streams.offer_media(&mut pending);
+        // The session ends: a picture that still grows goes to the host once more, finished.
+        link.streams.end_pictures();
         for mut e in out.events.drain(..) {
             if catalog.stamp(&mut e).is_some() {
                 events.push(e);
@@ -2121,13 +2125,15 @@ pub(crate) fn run(
     c.results.fields_mut().set(&STATE, SessionState::Stopped);
 }
 
-/// Sets on `rx`, if it is a graph, the session's streams for its endpoints (`host.out`, `tx.sink`).
+/// Sets on `rx`, if it is a graph, the session's streams for its endpoints (`host.out`, `tx.sink`), and whether its
+/// signal is made as it plays.
 fn give_streams(rx: &mut dyn Receiver, streams: &Arc<Streams>) {
     if let Some(g) = rx
         .as_any_mut()
         .and_then(|a| a.downcast_mut::<sdrkit_graph::Graph>())
     {
         let mut ctx = g.context().clone();
+        ctx.present = streams.present();
         ctx.streams = Some(Arc::clone(streams) as Arc<dyn sdrkit_graph::components::HostStreams>);
         g.set_context(ctx);
     }

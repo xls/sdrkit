@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "ism", version 3.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "ism", version 3.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,7 +36,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_ISM_VERSION_MAJOR 3
-#define SDRKIT_ISM_VERSION_MINOR 0
+#define SDRKIT_ISM_VERSION_MINOR 1
 
 // The stack "ism": its id, and the keys of its event types.
 #define SDRKIT_STACK_ISM "ism"
@@ -4727,6 +4727,8 @@ static inline int32_t sdrkit_nrf24_gen_set_random(SDRKIT_HANDLE handle, bool val
 
 // Fills `rows` with the changed rows of the table "chat" of the stack "subghzchat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
+// Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_subghzchat_chat_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_subghzchat_line_row *rows,
                                                  uint32_t capacity,

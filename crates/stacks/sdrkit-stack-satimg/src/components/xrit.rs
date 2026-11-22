@@ -642,6 +642,8 @@ impl Component for ProductComponent {
                     codec,
                     layout: None,
                     name: Some(name),
+                    id: Picture::WHOLE,
+                    state: sdrkit_core::PictureState::Finished,
                     data: bytes,
                 },
             });
@@ -669,9 +671,15 @@ impl Component for ProductComponent {
                     if let Ok(r) =
                         Raster::from_vec(PixelFormat::Grey8, p.width, p.height, pic.clone())
                     {
+                        // One number for each product. The picture grows until every segment arrived.
+                        let state = if p.complete {
+                            sdrkit_core::PictureState::Finished
+                        } else {
+                            sdrkit_core::PictureState::Growing
+                        };
                         io.items_out::<Picture>(2).push(Timed {
                             time: 0.0,
-                            value: r.to_picture(&p.name),
+                            value: r.to_picture(&p.name, p.id.wrapping_add(1).max(1), state),
                         });
                     }
                 }

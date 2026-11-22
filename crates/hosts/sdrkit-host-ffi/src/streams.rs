@@ -4,8 +4,8 @@
 use crate::engine::session_of;
 use crate::error::{stream_type, Error, SDRKIT_STREAM_NONE};
 use crate::handle::{run, slice_in, slice_out, str_in, Handle, Out, What};
-use crate::value::{Bytes, Id};
-use sdrkit_core::{Complex32, MediaFormat, Packaging, StreamKind};
+use crate::value::{Bytes, Id, Str};
+use sdrkit_core::{Complex32, MediaFormat, Packaging, PictureState, StreamKind};
 use sdrkit_graph::SampleType;
 use sdrkit_host_engine::{MediaRead, Samples, TapId};
 use std::ffi::{c_char, c_void};
@@ -70,6 +70,15 @@ pub const SDRKIT_CHANNEL_LAYOUT_MONO: i32 = 1;
 pub const SDRKIT_CHANNEL_LAYOUT_STEREO: i32 = 2;
 /// 5.1: left, centre, right, left surround, right surround, low-frequency effects.
 pub const SDRKIT_CHANNEL_LAYOUT_SURROUND_5_1: i32 = 3;
+
+/// The packet is no picture.
+pub const SDRKIT_PICTURE_STATE_NONE: i32 = 0;
+/// The picture can change: more rows, more parts, or better data. A later packet with the same `picture_id` replaces
+/// this one.
+pub const SDRKIT_PICTURE_STATE_GROWING: i32 = 1;
+/// The picture is complete or its signal ended. A later packet with the same `picture_id` is the same picture drawn
+/// again, after a change of a setting of its view.
+pub const SDRKIT_PICTURE_STATE_FINISHED: i32 = 2;
 
 /// Pixels whose colour matrix the library does not know, or no pixels.
 pub const SDRKIT_COLOUR_MATRIX_UNKNOWN: i32 = 0;
@@ -196,6 +205,14 @@ pub struct MediaInfo {
     pub colour_matrix: i32,
     /// For raw pixels: true for full range (0 to 255), false for video range (16 to 235).
     pub full_range: bool,
+    /// For a picture: the number of the picture in the session, from 1. Packets with the same number are states of
+    /// one picture, and each replaces the one before. A new picture has a new number, also when it has the size and
+    /// the name of the one before. 0 for media.
+    pub picture_id: u64,
+    /// For a picture: one of `SDRKIT_PICTURE_STATE_*`. `SDRKIT_PICTURE_STATE_NONE` for media.
+    pub picture_state: i32,
+    /// For a picture: its name (a product, a channel, a picture mode, a file name). Empty if it has none.
+    pub picture_name: Str,
 }
 
 /// The `SDRKIT_COLOUR_MATRIX_*` code of `m`.
@@ -258,6 +275,7 @@ pub(crate) struct Buffers {
     spectrum: Vec<f32>,
     media: Vec<u8>,
     format: Option<Arc<MediaFormat>>,
+    picture_name: Option<Arc<str>>,
 }
 
 fn media_type(k: StreamKind) -> i32 {
@@ -312,6 +330,9 @@ fn media_out(b: &mut Buffers, got: Option<MediaRead>, after: u64) -> MediaInfo {
         clean_start: false,
         colour_matrix: SDRKIT_COLOUR_MATRIX_UNKNOWN,
         full_range: false,
+        picture_id: 0,
+        picture_state: SDRKIT_PICTURE_STATE_NONE,
+        picture_name: Str::EMPTY,
     };
     let Some(m) = got else {
         return r;
@@ -355,6 +376,17 @@ fn media_out(b: &mut Buffers, got: Option<MediaRead>, after: u64) -> MediaInfo {
     r.clean_start = m.clean_start;
     r.time = m.time;
     r.bytes = Bytes::of(&b.media);
+    if let Some(t) = m.picture {
+        r.picture_id = t.id;
+        r.picture_state = match t.state {
+            PictureState::Growing => SDRKIT_PICTURE_STATE_GROWING,
+            PictureState::Finished => SDRKIT_PICTURE_STATE_FINISHED,
+        };
+        b.picture_name = t.name;
+        if let Some(n) = &b.picture_name {
+            r.picture_name = Str::of(n);
+        }
+    }
     r
 }
 
@@ -504,8 +536,11 @@ pub unsafe extern "C" fn sdrkit_media_read(
 }
 
 /// Fills `info` with the first picture of `session` after the counter `after`. Pass 0 for the oldest picture. A picture is
-/// compressed bytes, or raw pixels in the layout of `width`, `height` and `strides`. The session keeps its last 16
-/// pictures.
+/// compressed bytes, or raw pixels in the layout of `width`, `height` and `strides`. `picture_id` says which picture
+/// the packet holds, `picture_state` whether more of it can come, and `picture_name` its name. A picture that grows
+/// comes again with the same `picture_id` and all of its bytes; the session keeps the newest state of each of its
+/// last 16 pictures, so a state that the caller did not read leaves when the next state of that picture comes, and
+/// counts in `missed`. A picture that grows when the session takes another stack, or ends, comes once more, finished.
 /// The arrays and strings of `info` are views that the library owns, valid until the next call on `session`. Copy what you keep.
 #[no_mangle]
 pub unsafe extern "C" fn sdrkit_picture_read(
@@ -625,3 +660,67 @@ pub extern "C" fn sdrkit_tap_close(session: Handle, tap: Id) -> i32 {
 }
 
 crate::handle::sized_structs!(AudioInfo, IqInfo, MediaInfo, SpectrumFrame, TapInfo);
+
+#[cfg(test)]
+mod picture_tests {
+    use super::*;
+    use sdrkit_core::{PictureTag, PixelFormat, PixelLayout};
+
+    /// A read of one grey pixel, with the picture tag `tag`.
+    fn read(tag: Option<PictureTag>) -> MediaRead {
+        let layout = PixelLayout::packed(PixelFormat::Grey8, 1, 1);
+        let mut format = MediaFormat::new(layout.pixel.codec(), Packaging::Raw);
+        format.pixels = Some(layout);
+        MediaRead {
+            counter: 3,
+            missed: 1,
+            kind: StreamKind::Picture,
+            format: Arc::new(format),
+            pts: None,
+            dts: None,
+            keyframe: false,
+            clean_start: false,
+            time: 2.5,
+            picture: tag,
+        }
+    }
+
+    #[test]
+    fn a_picture_packet_states_its_number_its_state_and_its_name() {
+        let mut b = Buffers::default();
+        let tag = PictureTag {
+            id: 7,
+            state: PictureState::Growing,
+            name: Some(Arc::from("Robot 36")),
+        };
+        let m = media_out(&mut b, Some(read(Some(tag.clone()))), 1);
+        assert!(m.found);
+        assert_eq!(
+            (m.picture_id, m.picture_state),
+            (7, SDRKIT_PICTURE_STATE_GROWING)
+        );
+        // SAFETY: the name is a view into the buffers of the handle, which live to the end of the test.
+        let name = unsafe {
+            std::slice::from_raw_parts(m.picture_name.ptr.cast::<u8>(), m.picture_name.len)
+        };
+        assert_eq!(name, b"Robot 36");
+        let done = PictureTag {
+            state: PictureState::Finished,
+            name: None,
+            ..tag
+        };
+        let m = media_out(&mut b, Some(read(Some(done))), 3);
+        assert_eq!(
+            (m.picture_id, m.picture_state),
+            (7, SDRKIT_PICTURE_STATE_FINISHED)
+        );
+        assert_eq!(m.picture_name.len, 0);
+        // A media packet is no picture.
+        let m = media_out(&mut b, Some(read(None)), 3);
+        assert_eq!(
+            (m.picture_id, m.picture_state),
+            (0, SDRKIT_PICTURE_STATE_NONE)
+        );
+        assert_eq!(m.picture_name.len, 0);
+    }
+}

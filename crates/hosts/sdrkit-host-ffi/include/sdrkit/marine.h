@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "marine", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "marine", version 1.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_MARINE_VERSION_MAJOR 1
-#define SDRKIT_MARINE_VERSION_MINOR 2
+#define SDRKIT_MARINE_VERSION_MINOR 3
 
 // The stack "ais": its id, and the keys of its event types.
 #define SDRKIT_STACK_AIS "ais"
@@ -2236,7 +2236,9 @@ static inline int32_t sdrkit_ais_gen_set_speed(SDRKIT_HANDLE handle, double valu
 
 // Fills `rows` with the changed rows of the table "navtex" of the stack "marine" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `header` names a row.
+// Text: `text`. Time: `time`.
 static inline int32_t sdrkit_marine_navtex_rows(SDRKIT_HANDLE handle,
                                                sdrkit_marine_navtex_row *rows,
                                                uint32_t capacity,
@@ -2246,8 +2248,10 @@ static inline int32_t sdrkit_marine_navtex_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "dsc" of the stack "marine" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `from_mmsi` names a row.
 // Place of a row: the column `position`.
+// Sender: `from_mmsi`. Addressee: `to_mmsi`. Text: `text`. Time: `time`.
 static inline int32_t sdrkit_marine_dsc_rows(SDRKIT_HANDLE handle,
                                             sdrkit_marine_dsc_row *rows,
                                             uint32_t capacity,
@@ -2557,7 +2561,9 @@ static inline int32_t sdrkit_vdes_set_time_base(SDRKIT_HANDLE handle, double val
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "marinevhf" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the calls of the stack.
 // The column `channel` names a row.
+// Time: `time`.
 static inline int32_t sdrkit_marinevhf_calls_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_marinevhf_vhf_call_row *rows,
                                                  uint32_t capacity,
@@ -2567,8 +2573,10 @@ static inline int32_t sdrkit_marinevhf_calls_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "marinevhf" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the groups of the stack.
 // The column `channel` names a row.
 // Default order: the column `freq_hz`, lowest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_marinevhf_channels_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_marinevhf_vhf_channel_row *rows,
                                                     uint32_t capacity,
@@ -2690,7 +2698,9 @@ static inline int32_t sdrkit_marinevhf_set_time_base(SDRKIT_HANDLE handle, doubl
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "atis" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the messages of the stack.
 // The column `name` names a row.
+// Sender: `callsign`. Time: `time`.
 static inline int32_t sdrkit_atis_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_atis_message_row *rows,
                                                uint32_t capacity,
@@ -2700,7 +2710,9 @@ static inline int32_t sdrkit_atis_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "atis" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `name` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_atis_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_atis_station_row *rows,
                                                uint32_t capacity,

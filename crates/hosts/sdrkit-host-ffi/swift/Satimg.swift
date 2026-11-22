@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "satimg", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "satimg", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum SatimgInterface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The fields of the link layers that every coded stack publishes: the front end, the demodulator, the code, the frames and the packets. A field whose report has not come has no value.
