@@ -1,7 +1,7 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
 # ARDOP
 
-Lists the ARDOP frames and stations heard: frame types, IDs, connect requests and 4FSK data. Sends FEC text, the ID frame and Ping, and makes ARQ links.
+Lists the ARDOP frames and stations heard: frame types, IDs, connect requests, and 4FSK, PSK and QAM data. Sends FEC text, the ID frame and Ping, and makes ARQ links.
 
 Stack id: `ardop`. Group: HF and utility.
 
@@ -29,8 +29,14 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ar
 | `demod` | Demodulator | choice | `usb` | `usb` (USB), `lsb` (LSB), `nfm` (NFM), `am` (AM) | How the sideband audio is made. USB is usual on HF. NFM is for SSTV on 2 m. |
 | `listen` | Listen | yes or no | false |  | Plays the sideband audio. Decoding is the same either way. |
 | `leader_ms` | Leader | whole number (ms) | 240 | 100 to 1000 | The two-tone leader before each frame, 100 to 1000 ms in steps of 20. A receiver needs about 100 ms to find it. |
-| `fec_type` | FEC frame type | choice | `4fsk_500_100` | `4fsk_200_50s` (4FSK.200.50S), `4fsk_500_100s` (4FSK.500.100S), `4fsk_500_100` (4FSK.500.100) | The data frames of a text sent with no link: 4FSK.200.50S (16 bytes a frame, 200 Hz), 4FSK.500.100S (32 bytes) or 4FSK.500.100 (64 bytes, 500 Hz). |
+| `fec_type` | FEC frame type | choice | `4fsk_500_100` | `4fsk_200_50s` (4FSK.200.50S), `4fsk_500_100s` (4FSK.500.100S), `4fsk_500_100` (4FSK.500.100), `4psk_200_100` (4PSK.200.100), `4psk_200_100s` (4PSK.200.100S), `8psk_200_100` (8PSK.200.100), `16qam_200_100` (16QAM.200.100), `4psk_500_100` (4PSK.500.100), `8psk_500_100` (8PSK.500.100), `16qam_500_100` (16QAM.500.100), `4psk_1000_100` (4PSK.1000.100), `8psk_1000_100` (8PSK.1000.100), `16qam_1000_100` (16QAM.1000.100), `4psk_2000_100` (4PSK.2000.100), `8psk_2000_100` (8PSK.2000.100), `16qam_2000_100` (16QAM.2000.100) | The data frames of a text sent with no link: 4FSK.200.50S (16 bytes a frame, 200 Hz), 4FSK.500.100S (32 bytes), 4FSK.500.100 (64 bytes, 500 Hz), or 4PSK, 8PSK or 16QAM at 100 baud on 1, 2, 4 or 8 carriers (200, 500, 1000 or 2000 Hz, 16 to 1024 bytes a frame). |
 | `auto_answer` | Answer calls | yes or no | false |  | Answers a connect request to the station callsign with ConAck500 and runs the link as the called station, with no key press. Off at the start, so that nothing is sent unattended: a request is then shown and not answered. The engine's transmit switch must be on. |
+
+Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `gen_data` | Last frame | choice | `header` | `header` (8PSK header only), `4psk_200_100` (4PSK.200.100), `4psk_200_100s` (4PSK.200.100S), `8psk_200_100` (8PSK.200.100), `16qam_200_100` (16QAM.200.100), `4psk_500_100` (4PSK.500.100), `8psk_500_100` (8PSK.500.100), `16qam_500_100` (16QAM.500.100), `4psk_1000_100` (4PSK.1000.100), `8psk_1000_100` (8PSK.1000.100), `16qam_1000_100` (16QAM.1000.100), `4psk_2000_100` (4PSK.2000.100), `8psk_2000_100` (8PSK.2000.100), `16qam_2000_100` (16QAM.2000.100) | The last frame of the test script: the 8PSK.200.100 frame type with no body, or a whole PSK or QAM data frame of the type chosen. |
 
 ## Result fields
 
@@ -100,7 +106,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ar
 
 ## Typed interface
 
-The stack is in the family `hfkbd`, version 2.6. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfkbd`, version 2.7. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -254,6 +260,12 @@ Struct `ArdopLinkEvent`. The fields of a change of the ARDOP link.
 | `leader_ms` | `sdrkit_ardop_get_leader_ms` | `sdrkit_ardop_set_leader_ms` |
 | `fec_type` | `sdrkit_ardop_get_fec_type` | `sdrkit_ardop_set_fec_type` |
 | `auto_answer` | `sdrkit_ardop_get_auto_answer` | `sdrkit_ardop_set_auto_answer` |
+
+### Settings of the test signal generator
+
+| Key | C getter | C setter |
+|---|---|---|
+| `gen_data` | `sdrkit_ardop_gen_get_data` | `sdrkit_ardop_gen_set_data` |
 
 ## Try it
 

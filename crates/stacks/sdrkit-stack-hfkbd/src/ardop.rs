@@ -18,11 +18,13 @@ use sdrkit_algo_dsp::ring::SampleRing;
 use sdrkit_algo_fec::rs::{codes, Rs};
 use sdrkit_core::command::{Command, CommandError, CommandId, CommandSet};
 use sdrkit_core::interface::{Hertz, Time};
+use sdrkit_core::publish::field;
 use sdrkit_core::publish::keys::Family;
 use sdrkit_core::publish::Published;
 use sdrkit_core::Record;
 use sdrkit_core::{
-    Complex32, ConfigError, GenConfig, Generator, LockState, SeriesId, SignalInfo, Status, Values,
+    Complex32, ConfigError, GenConfig, Generator, LockState, SeriesId, Setting, SignalInfo, Status,
+    Values,
 };
 use sdrkit_graph::{no_values, Format, Item, Kept, Outbox, Port, RateFrom, Timed};
 use sdrkit_util_bits::crc::cyclic::ardop_crc16;
@@ -32,6 +34,7 @@ use sdrkit_util_objects::{LogRing, ObjectTable, Seen, Stamp};
 use sdrkit_util_text::store::TextStore;
 use std::f64::consts::TAU;
 
+pub mod body;
 pub mod link;
 pub mod tx;
 
@@ -61,45 +64,37 @@ pub struct FrameType {
 }
 
 const DATA: [(u8, &str, &str, u32, u32, u32, usize, usize, bool); 18] = [
-    (0x40, "4PSK.200.100", "4PSK", 1, 100, 200, 64, 32, false),
-    (0x42, "4PSK.200.100S", "4PSK", 1, 100, 200, 16, 8, false),
-    (0x44, "8PSK.200.100", "8PSK", 1, 100, 200, 108, 36, false),
-    (0x46, "16QAM.200.100", "16QAM", 1, 100, 200, 128, 64, false),
+    (0x40, "4PSK.200.100", "4PSK", 1, 100, 200, 64, 32, true),
+    (0x42, "4PSK.200.100S", "4PSK", 1, 100, 200, 16, 8, true),
+    (0x44, "8PSK.200.100", "8PSK", 1, 100, 200, 108, 36, true),
+    (0x46, "16QAM.200.100", "16QAM", 1, 100, 200, 128, 64, true),
     (0x48, "4FSK.200.50S", "4FSK", 1, 50, 200, 16, 4, true),
     (0x4A, "4FSK.500.100", "4FSK", 1, 100, 500, 64, 16, true),
     (0x4C, "4FSK.500.100S", "4FSK", 1, 100, 500, 32, 8, true),
-    (0x50, "4PSK.500.100", "4PSK", 2, 100, 500, 64, 32, false),
-    (0x52, "8PSK.500.100", "8PSK", 2, 100, 500, 108, 36, false),
-    (0x54, "16QAM.500.100", "16QAM", 2, 100, 500, 128, 64, false),
-    (0x60, "4PSK.1000.100", "4PSK", 4, 100, 1000, 64, 32, false),
-    (0x62, "8PSK.1000.100", "8PSK", 4, 100, 1000, 108, 36, false),
-    (
-        0x64,
-        "16QAM.1000.100",
-        "16QAM",
-        4,
-        100,
-        1000,
-        128,
-        64,
-        false,
-    ),
-    (0x70, "4PSK.2000.100", "4PSK", 8, 100, 2000, 64, 32, false),
-    (0x72, "8PSK.2000.100", "8PSK", 8, 100, 2000, 108, 36, false),
-    (
-        0x74,
-        "16QAM.2000.100",
-        "16QAM",
-        8,
-        100,
-        2000,
-        128,
-        64,
-        false,
-    ),
+    (0x50, "4PSK.500.100", "4PSK", 2, 100, 500, 64, 32, true),
+    (0x52, "8PSK.500.100", "8PSK", 2, 100, 500, 108, 36, true),
+    (0x54, "16QAM.500.100", "16QAM", 2, 100, 500, 128, 64, true),
+    (0x60, "4PSK.1000.100", "4PSK", 4, 100, 1000, 64, 32, true),
+    (0x62, "8PSK.1000.100", "8PSK", 4, 100, 1000, 108, 36, true),
+    (0x64, "16QAM.1000.100", "16QAM", 4, 100, 1000, 128, 64, true),
+    (0x70, "4PSK.2000.100", "4PSK", 8, 100, 2000, 64, 32, true),
+    (0x72, "8PSK.2000.100", "8PSK", 8, 100, 2000, 108, 36, true),
+    (0x74, "16QAM.2000.100", "16QAM", 8, 100, 2000, 128, 64, true),
     (0x7A, "4FSK.2000.600", "4FSK", 1, 600, 2000, 600, 150, false),
     (0x7C, "4FSK.2000.600S", "4FSK", 1, 600, 2000, 200, 50, false),
 ];
+
+impl FrameType {
+    /// The bytes of one carrier's block of a data frame: the count, the data, two CRC bytes and the parity.
+    pub fn block_len(&self) -> usize {
+        1 + self.data + 2 + self.rs
+    }
+
+    /// The most data bytes one frame carries, over all its carriers.
+    pub fn capacity(&self) -> usize {
+        self.data * self.carriers as usize
+    }
+}
 
 fn control(code: u8, name: String, kind: &'static str, readable: bool) -> FrameType {
     FrameType {
@@ -166,6 +161,11 @@ pub fn frame_type(code: u8) -> Option<FrameType> {
             }
         }
     })
+}
+
+/// The even type byte of the data frame type named `name` ("4PSK.500.100"), `None` when no data frame has that name.
+pub fn data_code(name: &str) -> Option<u8> {
+    DATA.iter().find(|d| d.1 == name).map(|d| d.0)
 }
 
 /// Every frame type byte.
@@ -313,7 +313,7 @@ pub struct ArdopFrame {
     pub hex: Option<String>,
     /// The data bytes of a good data frame.
     pub bytes: Vec<u8>,
-    /// Quality (ACK, NAK, PingAck).
+    /// Quality (ACK, NAK, PingAck, and PSK and QAM data frames from their highest carrier).
     pub quality: Option<u32>,
     /// PingAck SNR, dB.
     pub snr_db: Option<i32>,
@@ -408,6 +408,14 @@ const LEADER: [f64; 2] = [-25.0, 25.0];
 const TRIALS: [f64; 7] = [-45.0, -30.0, -15.0, 0.0, 15.0, 30.0, 45.0];
 const WIN: usize = 160;
 const MSS: u64 = 8;
+/// The receiver's rate, samples per second.
+const RX_RATE: f64 = 8000.0;
+/// Samples in one 10 ms body symbol at the receiver's rate.
+const SPS: usize = 80;
+/// The search for the start of a PSK or QAM body, samples each side of the estimate.
+const BODY_SEARCH: u64 = 40;
+/// The symbols of a body whose energy gives its start.
+const BODY_PROBE: usize = 8;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum State {
@@ -458,6 +466,14 @@ pub struct ArdopDecoder {
     reading: bool,
     refined: Option<u64>,
     hdr: Option<Option<(FrameType, u8, bool, f32)>>,
+    /// The mixed samples before the low-pass filter, for the PSK and QAM bodies.
+    raw: SampleRing<Complex32>,
+    /// The delay of the low-pass filter, samples: index `a` of `hist` is index `a - delay` of `raw`.
+    delay: u64,
+    /// The start of the body of the frame being read, as an index of `raw` (`Some(None)`: no body).
+    body_at: Option<Option<u64>>,
+    repeats: body::Repeats,
+    meas: Vec<Vec<Complex32>>,
 }
 
 impl Default for ArdopDecoder {
@@ -482,11 +498,12 @@ impl ArdopDecoder {
                 );
             }
         }
+        let lpf =
+            Fir::new(&lowpass(8000.0, 320.0, 450.0, 50.0).expect("the filter settings are valid"));
+        let delay = lpf.group_delay() as u64;
         ArdopDecoder {
             nco: Nco::new(8000.0, -1500.0),
-            lpf: Fir::new(
-                &lowpass(8000.0, 320.0, 450.0, 50.0).expect("the filter settings are valid"),
-            ),
+            lpf,
             hist: SampleRing::new(8000 * 5).expect("a ring of at least one sample"),
             t: 0,
             kernels,
@@ -513,6 +530,11 @@ impl ArdopDecoder {
             reading: false,
             refined: None,
             hdr: None,
+            raw: SampleRing::new(8000 * 5).expect("a ring of at least one sample"),
+            delay,
+            body_at: None,
+            repeats: body::Repeats::new(),
+            meas: Vec::new(),
         }
     }
 
@@ -682,7 +704,7 @@ impl ArdopDecoder {
         match ft.code {
             0x30..=0x38 | 0x3E => 16,
             0x39..=0x3D => 3,
-            _ if ft.kind == "data" && ft.readable => 1 + ft.data + 2 + ft.rs,
+            _ if ft.kind == "data" && ft.readable && body::Body::of(ft).is_none() => ft.block_len(),
             _ => 0,
         }
     }
@@ -755,10 +777,25 @@ impl ArdopDecoder {
             self.hdr = None;
             return Some(header_end);
         };
+        self.repeats.seen(ft.code);
         let blen = Self::body_len(&ft);
         let sym = 8000u32.checked_div(ft.baud).unwrap_or(0) as u64;
-        let body_end = header_end + blen as u64 * 4 * sym;
-        if ft.readable && self.t < body_end + 8 {
+        let mut body_end = header_end + blen as u64 * 4 * sym;
+        let psk = ft.readable && body::Body::of(&ft).is_some();
+        let mut psk_at = None;
+        if psk {
+            let at = self.psk_start(&ft, t0, header_end)?;
+            if let Some(b) = at {
+                let n = (1 + body::symbols(&ft)) as u64 * SPS as u64;
+                if self.t < b + n + 8 {
+                    return None;
+                }
+                psk_at = Some(b);
+                body_end = b + self.delay + n + (body::TRAILER_SYMBOLS * SPS) as u64;
+            } else {
+                body_end = header_end;
+            }
+        } else if ft.readable && self.t < body_end + 8 {
             return None;
         }
         let time = t0 as f64 / 8000.0;
@@ -783,10 +820,31 @@ impl ArdopDecoder {
             self.det.good_headers += 1;
         }
         if ft.kind == "data" && !ft.readable {
-            f.text = Some("header only (PSK, QAM or 600 baud data)".into());
+            f.text = Some("header only (600 baud data)".into());
+            self.det.other += 1;
+        } else if psk && psk_at.is_none() {
+            f.text = Some("header only (no body)".into());
             self.det.other += 1;
         }
-        if ft.readable && blen > 0 {
+        if let Some(b) = psk_at {
+            f.body_read = true;
+            let n = (1 + body::symbols(&ft)) * SPS;
+            if let Some(w) = self.raw.window(b, n) {
+                body::measure(w, b, RX_RATE, ft.carriers, self.offset, &mut self.meas);
+            } else {
+                self.meas.clear();
+            }
+            let r = self.repeats.read(&ft, &mut self.rs, &self.meas);
+            f.quality = Some(r.quality);
+            f.rs_corrections = r.corrections;
+            self.det.rs_corrections += u64::from(r.corrections);
+            if r.good {
+                f.body_ok = true;
+                self.deliver(&mut f, &r.data);
+            } else {
+                self.det.data_bad += 1;
+            }
+        } else if ft.readable && blen > 0 {
             f.body_read = true;
             let mut b = self.read_bytes(header_end, blen, ft.baud);
             match ft.code {
@@ -831,25 +889,7 @@ impl ArdopDecoder {
                         f.body_ok = true;
                         f.rs_corrections = fixed.unwrap_or(0) as u32;
                         self.det.rs_corrections += f.rs_corrections as u64;
-                        let data = &b[1..1 + count];
-                        f.hex = Some(data.iter().map(|x| format!("{x:02X}")).collect());
-                        f.bytes = data.to_vec();
-                        let txt: String = data
-                            .iter()
-                            .map(|&c| {
-                                if (32..127).contains(&c) {
-                                    c as char
-                                } else {
-                                    '.'
-                                }
-                            })
-                            .collect();
-                        for &c in data {
-                            self.store.push_byte(c, time, self.dial + 1500.0, 0);
-                        }
-                        self.store.push('\n', time, self.dial + 1500.0, 0);
-                        f.text = Some(txt);
-                        self.det.data_ok += 1;
+                        self.deliver(&mut f, &b[1..1 + count]);
                     } else {
                         self.det.data_bad += 1;
                     }
@@ -886,7 +926,82 @@ impl ArdopDecoder {
         self.new_frames.push(f);
         self.refined = None;
         self.hdr = None;
+        self.body_at = None;
         Some(if ft.readable { body_end } else { header_end })
+    }
+
+    /// Puts the data of a good data frame into `f` (bytes, hex, printable text) and the text store, and counts it. A
+    /// monitoring receiver forgets the copies of PSK and QAM bodies after any good data frame.
+    fn deliver(&mut self, f: &mut ArdopFrame, data: &[u8]) {
+        self.repeats.clear();
+        f.hex = Some(data.iter().map(|x| format!("{x:02X}")).collect());
+        f.bytes = data.to_vec();
+        f.text = Some(
+            data.iter()
+                .map(|&c| {
+                    if (32..127).contains(&c) {
+                        c as char
+                    } else {
+                        '.'
+                    }
+                })
+                .collect(),
+        );
+        for &c in data {
+            self.store.push_byte(c, f.time, self.dial + 1500.0, 0);
+        }
+        self.store.push('\n', f.time, self.dial + 1500.0, 0);
+        self.det.data_ok += 1;
+    }
+
+    /// The amplitude of the frame-type tones that start at `t0`: the root of the mean power of the strongest tone of each of
+    /// the ten symbols, over the part of each symbol that [`Self::fsk`] reads.
+    fn header_level(&self, t0: u64) -> f64 {
+        let n = (160 - 2 * (160 / 8)) as f64;
+        let p: f64 = (0..10u64)
+            .map(|i| {
+                let e = self.fsk(t0 + i * 160, 160, -75.0, 50.0);
+                f64::from(e.iter().cloned().fold(0.0, f32::max)) / n
+            })
+            .sum();
+        (p / 10.0).sqrt()
+    }
+
+    /// The start of the PSK or QAM body after the frame type that ends at `header_end`, as an index of `raw`: the start within
+    /// [`BODY_SEARCH`] samples of the estimate whose first [`BODY_PROBE`] symbols have the most energy at the carriers.
+    /// `Some(None)` when that energy is under a quarter of what carriers at the level of the frame-type tones give (a frame
+    /// type sent with no body); `None` while the samples are not in yet. Found once a frame.
+    fn psk_start(&mut self, ft: &FrameType, t0: u64, header_end: u64) -> Option<Option<u64>> {
+        if let Some(b) = self.body_at {
+            return Some(b);
+        }
+        let est = header_end.saturating_sub(self.delay);
+        let lo = est.saturating_sub(BODY_SEARCH);
+        let n = BODY_PROBE * SPS;
+        if self.t < est + BODY_SEARCH + n as u64 {
+            return None;
+        }
+        let mut best = (f64::MIN, est);
+        for b in lo..=est + BODY_SEARCH {
+            let Some(w) = self.raw.window(b, n) else {
+                continue;
+            };
+            body::measure(w, b, RX_RATE, ft.carriers, self.offset, &mut self.meas);
+            let e: f64 = self
+                .meas
+                .iter()
+                .flatten()
+                .map(|z| f64::from(z.norm_sqr()))
+                .sum();
+            if e > best.0 {
+                best = (e, b);
+            }
+        }
+        let want = body::expected_magnitude(ft, self.header_level(t0), SPS).powi(2)
+            * (n / SPS * ft.carriers as usize) as f64;
+        let at = (best.0 >= 0.25 * want).then_some(best.1);
+        self.body_at = Some(at);
+        Some(at)
     }
 
     fn note_station(&mut self, f: &ArdopFrame) {
@@ -1012,7 +1127,8 @@ impl sdrkit_graph::Decoder for ArdopDecoder {
     }
     fn process(&mut self, x: &[Complex32], _first: u64, out: &mut Outbox) {
         for &s in x {
-            let y = self.lpf.process_sample(s * self.nco.next_sample());
+            let m = s * self.nco.next_sample();
+            let y = self.lpf.process_sample(m);
             self.level_acc += y.norm_sqr() as f64;
             self.level_n += 1;
             if self.level_n == 8000 {
@@ -1024,6 +1140,7 @@ impl sdrkit_graph::Decoder for ArdopDecoder {
                 self.level_n = 0;
             }
             self.hist.push(y);
+            self.raw.push(m);
             self.t += 1;
             if self.t.is_multiple_of(MSS) && self.t > WIN as u64 {
                 self.every_ms(out);
@@ -1120,6 +1237,7 @@ impl sdrkit_graph::Decoder for ArdopDecoder {
         Ok(None)
     }
     fn clear(&mut self) {
+        self.repeats.clear();
         self.frames.clear();
         self.stations.clear();
         self.store.clear();
@@ -1147,8 +1265,11 @@ impl ArdopDecoder {
         self.run = 0;
         self.refined = None;
         self.hdr = None;
+        self.body_at = None;
+        self.repeats.clear();
         // The index carries on, so it stays equal to `t`.
         self.hist.clear();
+        self.raw.clear();
     }
 }
 
@@ -1213,23 +1334,21 @@ impl TxFrame {
             leader_ms: 200,
         }
     }
-    /// A 4FSK data frame of the text.
+    /// A data frame of the text.
     pub fn data(rs: &mut RsCodes, code: u8, session: u8, text: &str) -> Self {
         Self::data_bytes(rs, code, session, text.as_bytes())
     }
-    /// A 4FSK data frame of `data` (at most the frame's data size; more is cut): the count byte, the data padded with zeros,
-    /// the CRC-16 high byte, the CRC-16 low byte XOR the type byte, the Reed-Solomon parity.
+    /// A data frame of `data` (at most [`FrameType::capacity`] bytes; more is cut): the data cut in order over the carriers,
+    /// each carrier's part as the block of [`body::block`] (a carrier with no part has count 0), the blocks of carriers 0,
+    /// 1, ... one after the other.
     pub fn data_bytes(rs: &mut RsCodes, code: u8, session: u8, data: &[u8]) -> Self {
         let ft = frame_type(code).expect("a data frame type");
-        let n = data.len().min(ft.data);
-        let mut b = vec![n as u8];
-        b.extend_from_slice(&data[..n]);
-        b.resize(1 + ft.data, 0);
-        let crc = frame_check(&b);
-        b.push((crc >> 8) as u8);
-        b.push((crc as u8) ^ code);
-        let p = rs.parity(&b, ft.rs);
-        b.extend(p);
+        let mut b = Vec::with_capacity(ft.block_len() * ft.carriers as usize);
+        for c in 0..ft.carriers as usize {
+            let a = (c * ft.data).min(data.len());
+            let z = ((c + 1) * ft.data).min(data.len());
+            b.extend(body::block(rs, &ft, code, &data[a..z]));
+        }
         TxFrame {
             code,
             session,
@@ -1243,10 +1362,24 @@ impl TxFrame {
         self.leader_ms = ms;
         self
     }
-    /// The time on air, seconds: the leader, ten type symbols of 20 ms and four symbols a body byte.
+    /// The time on air, seconds: the leader, ten type symbols of 20 ms, then four symbols a body byte for 4FSK, or for a PSK
+    /// or QAM body the phase start symbol, the data symbols and the trailer of 10 ms each.
     pub fn air_s(&self) -> f64 {
         let n = (self.leader_ms / 20).clamp(5, 50);
-        f64::from(n) * 0.02 + 0.2 + self.body.len() as f64 * 4.0 * body_symbol_s(self.code)
+        let head = f64::from(n) * 0.02 + 0.2;
+        match self.psk_body() {
+            Some(ft) => {
+                head + (1 + body::symbols(&ft) + body::TRAILER_SYMBOLS) as f64 * body::SYMBOL_S
+            }
+            None => head + self.body.len() as f64 * 4.0 * body_symbol_s(self.code),
+        }
+    }
+
+    /// The frame type when the frame has a whole PSK or QAM body (a block for each carrier).
+    pub fn psk_body(&self) -> Option<FrameType> {
+        frame_type(self.code).filter(|ft| {
+            body::Body::of(ft).is_some() && self.body.len() == ft.block_len() * ft.carriers as usize
+        })
     }
 }
 
@@ -1259,9 +1392,75 @@ pub fn body_symbol_s(code: u8) -> f64 {
     }
 }
 
+sdrkit_core::choice_enum! {
+    /// The last frame of the test script.
+    pub enum GenData {
+        /// The 8PSK.200.100 frame type with no body.
+        Header = ("header", "8PSK header only"),
+        /// 4PSK.200.100 data.
+        Psk4_200_100 = ("4psk_200_100", "4PSK.200.100"),
+        /// 4PSK.200.100S data.
+        Psk4_200_100s = ("4psk_200_100s", "4PSK.200.100S"),
+        /// 8PSK.200.100 data.
+        Psk8_200_100 = ("8psk_200_100", "8PSK.200.100"),
+        /// 16QAM.200.100 data.
+        Qam16_200_100 = ("16qam_200_100", "16QAM.200.100"),
+        /// 4PSK.500.100 data.
+        Psk4_500_100 = ("4psk_500_100", "4PSK.500.100"),
+        /// 8PSK.500.100 data.
+        Psk8_500_100 = ("8psk_500_100", "8PSK.500.100"),
+        /// 16QAM.500.100 data.
+        Qam16_500_100 = ("16qam_500_100", "16QAM.500.100"),
+        /// 4PSK.1000.100 data.
+        Psk4_1000_100 = ("4psk_1000_100", "4PSK.1000.100"),
+        /// 8PSK.1000.100 data.
+        Psk8_1000_100 = ("8psk_1000_100", "8PSK.1000.100"),
+        /// 16QAM.1000.100 data.
+        Qam16_1000_100 = ("16qam_1000_100", "16QAM.1000.100"),
+        /// 4PSK.2000.100 data.
+        Psk4_2000_100 = ("4psk_2000_100", "4PSK.2000.100"),
+        /// 8PSK.2000.100 data.
+        Psk8_2000_100 = ("8psk_2000_100", "8PSK.2000.100"),
+        /// 16QAM.2000.100 data.
+        Qam16_2000_100 = ("16qam_2000_100", "16QAM.2000.100"),
+    }
+}
+
+impl GenData {
+    /// The even type byte of a data frame with a body, `None` for the header alone.
+    pub fn code(self) -> Option<u8> {
+        if self == GenData::Header {
+            return None;
+        }
+        data_code(sdrkit_core::Choice::label(self))
+    }
+}
+
+/// The last frame of the test script.
+pub const GEN_DATA: Setting<field::Choice<GenData>> =
+    Setting::choice("gen_data", "Last frame", GenData::Header)
+        .help("The last frame of the test script: the 8PSK.200.100 frame type with no body, or a whole PSK or QAM data frame of the type chosen.")
+        .section(decoder::GEN_SECTION);
+
+sdrkit_core::settings! {
+    /// The test-signal settings of the ARDOP stack.
+    pub enum ArdopGenSetting {
+        /// The last frame.
+        Data = GEN_DATA,
+    }
+}
+
+/// The text of the PSK or QAM data frame of the test script.
+pub const GEN_TEXT: &str = "TEST DATA THREE FROM K0TST";
+
 /// The test script: ID, ConReq500M, ConAck500 with 160 ms, Ping, PingAck 12 dB / 80, a 50 baud data frame, ACK
 /// quality 70, a short 500 Hz data frame, ACK, NAK quality 48, DISC, an 8PSK header.
 pub fn test_script() -> Vec<TxFrame> {
+    test_script_with(GenData::Header)
+}
+
+/// The test script with `last` as its last frame: the 8PSK header, or a data frame of [`GEN_TEXT`] with session 90.
+pub fn test_script_with(last: GenData) -> Vec<TxFrame> {
     let rs = &mut RsCodes::new();
     vec![
         TxFrame::two_fields(rs, 0x30, "K0TST", "FN42AA"),
@@ -1275,7 +1474,10 @@ pub fn test_script() -> Vec<TxFrame> {
         TxFrame::bare(0xF4, 90),
         TxFrame::bare(0x05, 90),
         TxFrame::bare(0x29, 90),
-        TxFrame::bare(0x44, 90),
+        match last.code() {
+            Some(code) => TxFrame::data(rs, code, 90, GEN_TEXT),
+            None => TxFrame::bare(0x44, 90),
+        },
     ]
 }
 
@@ -1323,15 +1525,18 @@ impl Modulator for ArdopModulator {
     }
 }
 
-/// The generator: the test script.
+/// The generator: the test script, its last frame as [`GEN_DATA`] says.
 pub fn generator(cfg: &GenConfig) -> Result<Box<dyn Generator>, ConfigError> {
-    let m = ArdopModulator::new(cfg.rate_hz, &test_script());
+    let last = cfg.settings.get(&GEN_DATA);
+    let band = last
+        .code()
+        .and_then(frame_type)
+        .map_or(500.0, |t| f64::from(t.band).max(500.0));
+    let m = ArdopModulator::new(cfg.rate_hz, &test_script_with(last));
     Ok(HfGenerator::boxed(
         cfg.rate_hz,
         m,
-        SignalInfo::new(500.0)
-            .with_symbol_rate(50.0)
-            .with_power(0.8),
+        SignalInfo::new(band).with_symbol_rate(50.0).with_power(0.8),
     ))
 }
 

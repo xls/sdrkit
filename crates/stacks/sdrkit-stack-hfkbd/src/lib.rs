@@ -475,7 +475,7 @@ pub static ARDOP: StackDescriptor = StackDescriptor {
     id: "ardop",
     name: "ARDOP",
     group: GROUP,
-    blurb: "Lists the ARDOP frames and stations heard: frame types, IDs, connect requests and 4FSK data. Sends FEC text, the ID frame and Ping, and makes ARQ links.",
+    blurb: "Lists the ARDOP frames and stations heard: frame types, IDs, connect requests, and 4FSK, PSK and QAM data. Sends FEC text, the ID frame and Ping, and makes ARQ links.",
     tuning: tuning(0.0, 4000.0),
     submodes: &[],
     settings: ardop_schema,

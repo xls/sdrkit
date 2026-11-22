@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "hfkbd", version 2.6. MIT licence.
+ * sdrkit: the typed interface of the stack family "hfkbd", version 2.7. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_HFKBD_VERSION_MAJOR 2
-#define SDRKIT_HFKBD_VERSION_MINOR 6
+#define SDRKIT_HFKBD_VERSION_MINOR 7
 
 // The stack "rtty": its id, and the keys of its event types.
 #define SDRKIT_STACK_RTTY "rtty"
@@ -583,6 +583,38 @@ typedef enum sdrkit_ardop_demod {
   SDRKIT_ARDOP_DEMOD_AM = 3,
 } sdrkit_ardop_demod;
 
+// The options of the setting "gen_data" of the stack "ardop".
+typedef enum sdrkit_ardop_gen_data {
+  // 8PSK header only
+  SDRKIT_ARDOP_GEN_DATA_HEADER = 0,
+  // 4PSK.200.100
+  SDRKIT_ARDOP_GEN_DATA_4PSK_200_100 = 1,
+  // 4PSK.200.100S
+  SDRKIT_ARDOP_GEN_DATA_4PSK_200_100S = 2,
+  // 8PSK.200.100
+  SDRKIT_ARDOP_GEN_DATA_8PSK_200_100 = 3,
+  // 16QAM.200.100
+  SDRKIT_ARDOP_GEN_DATA_16QAM_200_100 = 4,
+  // 4PSK.500.100
+  SDRKIT_ARDOP_GEN_DATA_4PSK_500_100 = 5,
+  // 8PSK.500.100
+  SDRKIT_ARDOP_GEN_DATA_8PSK_500_100 = 6,
+  // 16QAM.500.100
+  SDRKIT_ARDOP_GEN_DATA_16QAM_500_100 = 7,
+  // 4PSK.1000.100
+  SDRKIT_ARDOP_GEN_DATA_4PSK_1000_100 = 8,
+  // 8PSK.1000.100
+  SDRKIT_ARDOP_GEN_DATA_8PSK_1000_100 = 9,
+  // 16QAM.1000.100
+  SDRKIT_ARDOP_GEN_DATA_16QAM_1000_100 = 10,
+  // 4PSK.2000.100
+  SDRKIT_ARDOP_GEN_DATA_4PSK_2000_100 = 11,
+  // 8PSK.2000.100
+  SDRKIT_ARDOP_GEN_DATA_8PSK_2000_100 = 12,
+  // 16QAM.2000.100
+  SDRKIT_ARDOP_GEN_DATA_16QAM_2000_100 = 13,
+} sdrkit_ardop_gen_data;
+
 // The options of the setting "fec_type" of the stack "ardop".
 typedef enum sdrkit_ardop_fec_type {
   // 4FSK.200.50S
@@ -591,6 +623,32 @@ typedef enum sdrkit_ardop_fec_type {
   SDRKIT_ARDOP_FEC_TYPE_4FSK_500_100S = 1,
   // 4FSK.500.100
   SDRKIT_ARDOP_FEC_TYPE_4FSK_500_100 = 2,
+  // 4PSK.200.100
+  SDRKIT_ARDOP_FEC_TYPE_4PSK_200_100 = 3,
+  // 4PSK.200.100S
+  SDRKIT_ARDOP_FEC_TYPE_4PSK_200_100S = 4,
+  // 8PSK.200.100
+  SDRKIT_ARDOP_FEC_TYPE_8PSK_200_100 = 5,
+  // 16QAM.200.100
+  SDRKIT_ARDOP_FEC_TYPE_16QAM_200_100 = 6,
+  // 4PSK.500.100
+  SDRKIT_ARDOP_FEC_TYPE_4PSK_500_100 = 7,
+  // 8PSK.500.100
+  SDRKIT_ARDOP_FEC_TYPE_8PSK_500_100 = 8,
+  // 16QAM.500.100
+  SDRKIT_ARDOP_FEC_TYPE_16QAM_500_100 = 9,
+  // 4PSK.1000.100
+  SDRKIT_ARDOP_FEC_TYPE_4PSK_1000_100 = 10,
+  // 8PSK.1000.100
+  SDRKIT_ARDOP_FEC_TYPE_8PSK_1000_100 = 11,
+  // 16QAM.1000.100
+  SDRKIT_ARDOP_FEC_TYPE_16QAM_1000_100 = 12,
+  // 4PSK.2000.100
+  SDRKIT_ARDOP_FEC_TYPE_4PSK_2000_100 = 13,
+  // 8PSK.2000.100
+  SDRKIT_ARDOP_FEC_TYPE_8PSK_2000_100 = 14,
+  // 16QAM.2000.100
+  SDRKIT_ARDOP_FEC_TYPE_16QAM_2000_100 = 15,
 } sdrkit_ardop_fec_type;
 
 // The options of the setting "demod" of the stack "ros".
@@ -4254,6 +4312,9 @@ static inline int32_t sdrkit_ardop_stop(SDRKIT_HANDLE handle) {
   return sdrkit_typed_command(handle, "stop", NULL, NULL, NULL, NULL, 0);
 }
 
+// The settings of the test signal generator of the stack "ardop" are the sdrkit_ardop_gen_*() functions
+// after the settings of its receiver.
+
 // The setting "demod" (Demodulator) of the stack "ardop". A value of `sdrkit_ardop_demod`. How the sideband audio is made. USB is usual on HF. NFM is for SSTV on 2 m.
 static inline int32_t sdrkit_ardop_get_demod(SDRKIT_HANDLE handle, sdrkit_ardop_demod *value) {
   int32_t index = 0;
@@ -4281,7 +4342,7 @@ static inline int32_t sdrkit_ardop_set_leader_ms(SDRKIT_HANDLE handle, int64_t v
   return sdrkit_typed_setting_set_i64(handle, "leader_ms", value);
 }
 
-// The setting "fec_type" (FEC frame type) of the stack "ardop". A value of `sdrkit_ardop_fec_type`. The data frames of a text sent with no link: 4FSK.200.50S (16 bytes a frame, 200 Hz), 4FSK.500.100S (32 bytes) or 4FSK.500.100 (64 bytes, 500 Hz).
+// The setting "fec_type" (FEC frame type) of the stack "ardop". A value of `sdrkit_ardop_fec_type`. The data frames of a text sent with no link: 4FSK.200.50S (16 bytes a frame, 200 Hz), 4FSK.500.100S (32 bytes), 4FSK.500.100 (64 bytes, 500 Hz), or 4PSK, 8PSK or 16QAM at 100 baud on 1, 2, 4 or 8 carriers (200, 500, 1000 or 2000 Hz, 16 to 1024 bytes a frame).
 static inline int32_t sdrkit_ardop_get_fec_type(SDRKIT_HANDLE handle, sdrkit_ardop_fec_type *value) {
   int32_t index = 0;
   int32_t code = sdrkit_typed_setting_get_enum(handle, "fec_type", &index);
@@ -4298,6 +4359,17 @@ static inline int32_t sdrkit_ardop_get_auto_answer(SDRKIT_HANDLE handle, bool *v
 }
 static inline int32_t sdrkit_ardop_set_auto_answer(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "auto_answer", value);
+}
+
+// The setting "gen_data" (Last frame) of the test signal generator of the stack "ardop". A value of `sdrkit_ardop_gen_data`. The last frame of the test script: the 8PSK.200.100 frame type with no body, or a whole PSK or QAM data frame of the type chosen.
+static inline int32_t sdrkit_ardop_gen_get_data(SDRKIT_HANDLE handle, sdrkit_ardop_gen_data *value) {
+  int32_t index = 0;
+  int32_t code = sdrkit_typed_setting_get_enum(handle, "gen_data", &index);
+  if (code == SDRKIT_OK && value) *value = (sdrkit_ardop_gen_data)index;
+  return code;
+}
+static inline int32_t sdrkit_ardop_gen_set_data(SDRKIT_HANDLE handle, sdrkit_ardop_gen_data value) {
+  return sdrkit_typed_setting_set_enum(handle, "gen_data", (int32_t)value);
 }
 
 // Fills `rows` with the changed rows of the table "detections" of the stack "ros" in the snapshot of `handle`,

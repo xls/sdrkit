@@ -4,6 +4,7 @@
 use sdrkit_core::{Complex32, GenConfig, InputInfo, Output, StackConfig, StackDescriptor};
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::Mutex;
 
 struct Counting;
 
@@ -34,6 +35,9 @@ unsafe impl GlobalAlloc for Counting {
 
 #[global_allocator]
 static GLOBAL: Counting = Counting;
+
+/// Held by each test for its whole run: the counter sees every thread, so the tests of this file run one at a time.
+static ONE_AT_A_TIME: Mutex<()> = Mutex::new(());
 
 /// The allocations of one call of `f`.
 fn allocations(f: impl FnOnce()) -> usize {
@@ -75,6 +79,7 @@ fn quiet_blocks_that_allocate(
 
 #[test]
 fn the_rtty_receiver_allocates_nothing_per_block() {
+    let _one = ONE_AT_A_TIME.lock().unwrap_or_else(|e| e.into_inner());
     // 8000 characters at about 6.6 a second.
     let busy = quiet_blocks_that_allocate(&sdrkit_stack_hfkbd::RTTY, 1340.0, 1310.0);
     assert!(busy.is_empty(), "blocks that allocated: {busy:?}");
@@ -110,6 +115,7 @@ fn cw_allocations(listen: sdrkit_stack_hfkbd::cw::Listen, seconds: f64, warm: f6
 
 #[test]
 fn the_cw_audio_of_the_dial_allocates_nothing_more() {
+    let _one = ONE_AT_A_TIME.lock().unwrap_or_else(|e| e.into_inner());
     // The same noise with the audio off and playing the dial: the audio adds no allocation once warm.
     let off = cw_allocations(sdrkit_stack_hfkbd::cw::Listen::Off, 30.0, 10.0);
     let dial = cw_allocations(sdrkit_stack_hfkbd::cw::Listen::Signal, 30.0, 10.0);

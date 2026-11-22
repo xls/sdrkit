@@ -1,5 +1,5 @@
 # The interface of the stack family hfkbd. The registry test of the family writes this file.
-family hfkbd version=2.6
+family hfkbd version=2.7
 shape.FrontFields since=1.0
 shape.FrontFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.FrontFields.audio_dbfs type=f64 unit=dBFS optional=yes since=1.0
@@ -799,8 +799,9 @@ ardop.event.hfkbd.tx fields=KeyboardTxEvent since=2.6
 ardop.event.ardop.link fields=ArdopLinkEvent since=2.6
 ardop.setting.demod type=choice(usb,lsb,nfm,am) unit= since=1.0
 ardop.setting.listen type=bool unit= since=1.0
+ardop.setting.gen_data type=choice(header,4psk_200_100,4psk_200_100s,8psk_200_100,16qam_200_100,4psk_500_100,8psk_500_100,16qam_500_100,4psk_1000_100,8psk_1000_100,16qam_1000_100,4psk_2000_100,8psk_2000_100,16qam_2000_100) unit= since=2.7
 ardop.setting.leader_ms type=i64 unit=ms since=2.6
-ardop.setting.fec_type type=choice(4fsk_200_50s,4fsk_500_100s,4fsk_500_100) unit= since=2.6
+ardop.setting.fec_type type=choice(4fsk_200_50s,4fsk_500_100s,4fsk_500_100,4psk_200_100,4psk_200_100s,8psk_200_100,16qam_200_100,4psk_500_100,8psk_500_100,16qam_500_100,4psk_1000_100,8psk_1000_100,16qam_1000_100,4psk_2000_100,8psk_2000_100,16qam_2000_100) unit= since=2.6
 ardop.setting.auto_answer type=bool unit= since=2.6
 ardop.command.remove args=row:text reply= since=1.0
 ardop.command.clear args= reply= since=1.0

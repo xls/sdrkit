@@ -16,7 +16,7 @@ use std::collections::VecDeque;
 /// Worked examples: a 240 ms leader is 12 symbols signed + - + - + - + - + - + +; ACK quality 70 is 0xF0, with session 0x7C
 /// its second byte is 0x8C and its type tones are 1575, 1575, 1425, 1425, parity, 1525, 1425, 1575, 1425, parity; the ID frame
 /// lasts 1.72 s, an ACK 0.44 s and a 64-byte 4FSK.500.100 frame 3.76 s; the session ids of N0CALL to N1CALL and VK2ABC to
-/// VK2RMS are 0x7C and 0xA3, so the first data frame of the first link has the second byte 0x36.
+/// VK2RMS are 0xC4 and 0x51, so the first data frame of the first link has the second byte 0x8E.
 #[test]
 fn ardop_tx_worked_examples() {
     let mut s = Vec::new();
@@ -50,9 +50,9 @@ fn ardop_tx_worked_examples() {
         w.push_frame(f);
         assert_eq!(w.end_sample(), (want * RATE).round() as u64);
     }
-    assert_eq!(session_id("N0CALL", "N1CALL"), 0x7C);
-    assert_eq!(session_id("VK2ABC", "VK2RMS"), 0xA3);
-    assert_eq!(0x4A ^ session_id("N0CALL", "N1CALL"), 0x36);
+    assert_eq!(session_id("N0CALL", "N1CALL"), 0xC4);
+    assert_eq!(session_id("VK2ABC", "VK2RMS"), 0x51);
+    assert_eq!(0x4A ^ session_id("N0CALL", "N1CALL"), 0x8E);
 }
 
 /// Each sample is the symbol formula: sign x (-j) x the tone from phase zero at the symbol start, the leader the sum of its two
@@ -88,7 +88,7 @@ fn ardop_tx_samples_follow_the_formula() {
                         ((a.0 + b.0) * 0.5, (a.1 + b.1) * 0.5)
                     }
                     SymKind::Tone(hz) => tone(hz),
-                    SymKind::Quiet => (0.0, 0.0),
+                    SymKind::Quiet | SymKind::Carriers { .. } => (0.0, 0.0),
                 };
                 re *= f64::from(s.sign) * 0.5;
                 im *= f64::from(s.sign) * 0.5;

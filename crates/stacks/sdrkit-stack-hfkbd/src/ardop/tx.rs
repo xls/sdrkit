@@ -1,7 +1,9 @@
-//! The ARDOP sender: frames as tones at the stream rate (the leader, the sync symbol, the type symbols and the 4FSK body),
+//! The ARDOP sender: frames at the stream rate (the leader, the sync symbol, the type symbols, and the 4FSK body or the PSK
+//! and QAM body with its trailer),
 //! the FEC broadcast of a text, the ID frame, the Ping, and the ARQ link of [`super::link`] as the calling station and, when
 //! answering is on, as the called station. The stack's graph joins the receiver's frames to the sender.
 
+use super::body::{self, Body};
 use super::link::{Heard, Link, LinkError, LinkOut};
 use super::{frame_type, type_symbols, ArdopDecoder, ArdopFrame, RsCodes, TxFrame};
 use crate::typed::{
@@ -24,11 +26,12 @@ use sdrkit_graph::{
     values_of, Applied, Catalog, CommandTarget, Component, ComponentInfo, DecoderComponent, Format,
     GraphBuilder, GraphError, Io, Kind, Port, RateFrom, RunContext, StackGraph, TagKind,
 };
-use sdrkit_util_bits::crc::cyclic::ardop_crc16;
+use sdrkit_util_bits::crc::cyclic::remainder;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
-/// The peak of the signal sent, of full scale. Each leader tone is at half of it.
+/// The peak of the leader and the frame-type tones sent, of full scale. Each leader tone is at half of it. A PSK or QAM body
+/// peaks at up to 1.96 times this (eight 16QAM carriers in phase), below full scale.
 pub const TX_LEVEL: f32 = 0.5;
 /// The silence at the start of a burst, seconds: time for the transmitter to switch.
 pub const LEAD_S: f64 = 0.1;
@@ -48,6 +51,16 @@ pub enum SymKind {
     Leader,
     /// One tone, Hz above the dial.
     Tone(f64),
+    /// One 10 ms symbol on the carriers of [`body::carrier_hz`]: carrier c has the digit (`digits` >> 4c) & 15 of
+    /// [`body::digits`], each at `scale` of the carrier peak.
+    Carriers {
+        /// The carriers, 1, 2, 4 or 8.
+        carriers: u8,
+        /// Four bits a carrier, carrier 0 lowest.
+        digits: u32,
+        /// The carrier scaling factor.
+        scale: f32,
+    },
 }
 
 /// One symbol of a frame: what it sends, its length, its sign, and whether the frame starts or ends in it.
@@ -69,11 +82,12 @@ pub struct Sym {
 /// symbol i before the sync has the sign (-1)^(N + i) and the sync symbol +1, the sign of the symbol before it. Then the ten
 /// type symbols at 50 baud on 1425 + 50 s Hz with the signs +1, -1, ...; then each body byte as four symbols, most significant
 /// 2-bit group first, signs +1, -1, +1, -1: at 100 baud on 1350 + 100 s Hz for 4FSK.500.100 and 4FSK.500.100S, else at 50
-/// baud on 1425 + 50 s Hz.
+/// baud on 1425 + 50 s Hz. A PSK or QAM frame with a whole body has instead the phase start symbol (phase 0 on every carrier),
+/// the data symbols of [`body::digits`] on all carriers at once, and the trailer: [`body::TRAILER_SYMBOLS`] symbols at
+/// 1500 Hz, phase 0, with no carrier scaling. A PSK or QAM frame without a body ends after its type symbols.
 pub fn frame_symbols(f: &TxFrame, out: &mut Vec<Sym>) {
     let first = out.len();
     let n = (f.leader_ms / 20).clamp(5, 50) as i32;
-    let alt = |i: i32| if i % 2 == 0 { 1.0 } else { -1.0 };
     for i in 0..n - 1 {
         out.push(sym(SymKind::Leader, 0.02, alt(n + i)));
     }
@@ -85,6 +99,63 @@ pub fn frame_symbols(f: &TxFrame, out: &mut Vec<Sym>) {
             alt(i as i32),
         ));
     }
+    if let Some(ft) = f.psk_body() {
+        body_symbols(f, &ft, out);
+    } else {
+        fsk_symbols(f, out);
+    }
+    out[first].rise = true;
+    if let Some(last) = out.last_mut() {
+        last.fall = true;
+    }
+}
+
+/// The phase start symbol, the data symbols and the trailer of a PSK or QAM body.
+fn body_symbols(f: &TxFrame, ft: &super::FrameType, out: &mut Vec<Sym>) {
+    let Some(b) = Body::of(ft) else { return };
+    let nc = ft.carriers as usize;
+    let scale = b.scale(ft.carriers) as f32;
+    let carriers = ft.carriers as u8;
+    let digits: Vec<Vec<u8>> = f
+        .body
+        .chunks(ft.block_len())
+        .take(nc)
+        .map(|blk| body::digits(b, blk))
+        .collect();
+    let cs = |digits: u32| {
+        sym(
+            SymKind::Carriers {
+                carriers,
+                digits,
+                scale,
+            },
+            body::SYMBOL_S,
+            1.0,
+        )
+    };
+    out.push(cs(0));
+    for k in 0..body::symbols(ft) {
+        let d = digits
+            .iter()
+            .enumerate()
+            .fold(0u32, |a, (c, v)| a | u32::from(v[k]) << (4 * c));
+        out.push(cs(d));
+    }
+    for _ in 0..body::TRAILER_SYMBOLS {
+        out.push(sym(
+            SymKind::Carriers {
+                carriers: 1,
+                digits: 0,
+                scale: 1.0,
+            },
+            body::SYMBOL_S,
+            1.0,
+        ));
+    }
+}
+
+/// The 4FSK body.
+fn fsk_symbols(f: &TxFrame, out: &mut Vec<Sym>) {
     let d = super::body_symbol_s(f.code);
     let (base, sp) = if d < 0.015 {
         (1350.0, 100.0)
@@ -97,9 +168,14 @@ pub fn frame_symbols(f: &TxFrame, out: &mut Vec<Sym>) {
             out.push(sym(SymKind::Tone(base + sp * f64::from(s)), d, alt(k)));
         }
     }
-    out[first].rise = true;
-    if let Some(last) = out.last_mut() {
-        last.fall = true;
+}
+
+/// The sign of symbol `i` of an alternating run: +1 for even `i`, else −1.
+fn alt(i: i32) -> f32 {
+    if i % 2 == 0 {
+        1.0
+    } else {
+        -1.0
     }
 }
 
@@ -116,8 +192,10 @@ fn sym(kind: SymKind, s: f64, sign: f32) -> Sym {
 /// Writes symbols as complex samples with the dial at 0 Hz: a symbol is a sine of phase zero at its start, as its analytic
 /// signal (-j times the complex tone), times its sign; the leader is the sum of its two tones. Each tone has a whole number
 /// and a half of cycles in its symbol, so alternating signs give a continuous phase and a repeated sign a reversal. Symbol k
-/// starts at the sample nearest to the sum of the lengths before it. A frame rises and falls by a raised cosine of
-/// [`FADE_S`] inside its first and last symbol. On the lower sideband the samples are mirrored.
+/// starts at the sample nearest to the sum of the lengths before it. A carrier symbol is the sum of [`body::carrier_wave`] over
+/// its carriers, each counted from the exact start time of the symbol, times its scale and 26 000 / 28 600 of the level. A
+/// frame rises and falls by a raised cosine of [`FADE_S`] inside its first and last symbol. On the lower sideband the samples
+/// are mirrored.
 pub struct FrameWriter {
     rate: f64,
     level: f32,
@@ -125,7 +203,8 @@ pub struct FrameWriter {
     syms: VecDeque<Sym>,
     queued_s: f64,
     taken_s: f64,
-    cur: Option<(Sym, u64, u64)>,
+    /// The symbol being written: its first sample, the sample after its last, and its exact start time, seconds.
+    cur: Option<(Sym, u64, u64, f64)>,
     n: u64,
     osc: [Nco; 2],
     fade: u64,
@@ -185,17 +264,18 @@ impl FrameWriter {
     pub fn fill(&mut self, out: &mut [Complex32]) -> usize {
         let mut k = 0;
         while k < out.len() {
-            let (s, start, end) = match self.cur {
+            let (s, start, end, t_start) = match self.cur {
                 Some(c) if self.n < c.2 => c,
                 _ => {
                     let Some(s) = self.syms.pop_front() else {
                         break;
                     };
                     let start = (self.taken_s * self.rate).round() as u64;
+                    let t_start = self.taken_s;
                     self.taken_s += s.s;
                     let end = (self.taken_s * self.rate).round() as u64;
                     match s.kind {
-                        SymKind::Quiet => {}
+                        SymKind::Quiet | SymKind::Carriers { .. } => {}
                         SymKind::Leader => {
                             self.osc[0].set_freq(1475.0);
                             self.osc[1].set_freq(1525.0);
@@ -207,7 +287,7 @@ impl FrameWriter {
                             self.osc[0].set_phase_cycles(0.75);
                         }
                     }
-                    self.cur = Some((s, start, end));
+                    self.cur = Some((s, start, end, t_start));
                     continue;
                 }
             };
@@ -224,6 +304,25 @@ impl FrameWriter {
                     }
                 }
                 SymKind::Tone(_) => self.osc[0].fill(o),
+                SymKind::Carriers {
+                    carriers,
+                    digits,
+                    scale,
+                } => {
+                    let hz = body::carrier_hz(u32::from(carriers));
+                    let g = f64::from(scale) * body::CARRIER_PEAK / body::LEADER_PEAK;
+                    for (j, z) in o.iter_mut().enumerate() {
+                        let t = (self.n + j as u64) as f64 / self.rate;
+                        let tau = (t - t_start) * body::FORMULA_RATE;
+                        let (mut re, mut im) = (0.0, 0.0);
+                        for (c, &f) in hz.iter().enumerate() {
+                            let (a, b) = body::carrier_wave(f, (digits >> (4 * c)) as u8 & 15, tau);
+                            re += a;
+                            im += b;
+                        }
+                        *z = Complex32::new((re * g) as f32, (im * g) as f32);
+                    }
+                }
             }
             if s.kind != SymKind::Quiet {
                 let len = end - start;
@@ -251,16 +350,21 @@ fn ramp(i: u64, f: u64) -> f32 {
     (0.5 - 0.5 * (std::f64::consts::PI * (i + 1) as f64 / (f + 1) as f64).cos()) as f32
 }
 
-/// The session id of a link: the low byte of the frame check over the caller's callsign followed by the called station's
-/// (upper case, spaces trimmed); 0xFF, the id of no link, becomes 0xFE.
+/// The session id of a link: the remainder of eight one bits followed by the text of the caller's station id and then the
+/// called station's (bit 7 of each character first), divided by x^8 + x^7 + x^6 + x^2 + x. A station id is the callsign in
+/// upper case, spaces trimmed, with an SSID of 0 ("-0") left out. 0xFF, the id of no link, becomes 0x00.
 pub fn session_id(caller: &str, called: &str) -> u8 {
-    let mut b = caller.trim().to_ascii_uppercase().into_bytes();
-    b.extend(called.trim().to_ascii_uppercase().bytes());
-    let id = ardop_crc16(&b) as u8;
-    if id == 0xFF {
-        0xFE
-    } else {
-        id
+    let mut bits = vec![1u8; 8];
+    for id in [caller, called] {
+        let id = id.trim().to_ascii_uppercase();
+        let id = id.strip_suffix("-0").unwrap_or(&id);
+        for b in id.bytes() {
+            bits.extend((0..8).rev().map(|i| (b >> i) & 1));
+        }
+    }
+    match remainder(&bits, 0, 0x1C6, 8) as u8 {
+        0xFF => 0x00,
+        id => id,
     }
 }
 
@@ -281,23 +385,50 @@ sdrkit_core::choice_enum! {
         Fsk500_100s = ("4fsk_500_100s", "4FSK.500.100S"),
         /// 64 data bytes a frame, 100 baud, 500 Hz.
         Fsk500_100 = ("4fsk_500_100", "4FSK.500.100"),
+        /// 64 data bytes a frame, 4PSK, 1 carrier, 200 Hz.
+        Psk4_200_100 = ("4psk_200_100", "4PSK.200.100"),
+        /// 16 data bytes a frame, 4PSK, 1 carrier, 200 Hz.
+        Psk4_200_100s = ("4psk_200_100s", "4PSK.200.100S"),
+        /// 108 data bytes a frame, 8PSK, 1 carrier, 200 Hz.
+        Psk8_200_100 = ("8psk_200_100", "8PSK.200.100"),
+        /// 128 data bytes a frame, 16QAM, 1 carrier, 200 Hz.
+        Qam16_200_100 = ("16qam_200_100", "16QAM.200.100"),
+        /// 128 data bytes a frame, 4PSK, 2 carriers, 500 Hz.
+        Psk4_500_100 = ("4psk_500_100", "4PSK.500.100"),
+        /// 216 data bytes a frame, 8PSK, 2 carriers, 500 Hz.
+        Psk8_500_100 = ("8psk_500_100", "8PSK.500.100"),
+        /// 256 data bytes a frame, 16QAM, 2 carriers, 500 Hz.
+        Qam16_500_100 = ("16qam_500_100", "16QAM.500.100"),
+        /// 256 data bytes a frame, 4PSK, 4 carriers, 1000 Hz.
+        Psk4_1000_100 = ("4psk_1000_100", "4PSK.1000.100"),
+        /// 432 data bytes a frame, 8PSK, 4 carriers, 1000 Hz.
+        Psk8_1000_100 = ("8psk_1000_100", "8PSK.1000.100"),
+        /// 512 data bytes a frame, 16QAM, 4 carriers, 1000 Hz.
+        Qam16_1000_100 = ("16qam_1000_100", "16QAM.1000.100"),
+        /// 512 data bytes a frame, 4PSK, 8 carriers, 2000 Hz.
+        Psk4_2000_100 = ("4psk_2000_100", "4PSK.2000.100"),
+        /// 864 data bytes a frame, 8PSK, 8 carriers, 2000 Hz.
+        Psk8_2000_100 = ("8psk_2000_100", "8PSK.2000.100"),
+        /// 1024 data bytes a frame, 16QAM, 8 carriers, 2000 Hz.
+        Qam16_2000_100 = ("16qam_2000_100", "16QAM.2000.100"),
     }
 }
 
 impl FecType {
     /// The even type byte.
     pub fn code(self) -> u8 {
-        match self {
-            FecType::Fsk200_50s => 0x48,
-            FecType::Fsk500_100s => 0x4C,
-            FecType::Fsk500_100 => 0x4A,
-        }
+        super::data_code(self.label()).expect("every FEC type is a data frame type")
     }
-    /// The lowest and highest audio frequency of the tones and half the baud rate each side, Hz.
+    /// The lowest and highest audio frequency of the tones or carriers and half the baud rate each side, Hz.
     pub fn band(self) -> (f64, f64) {
         match self {
             FecType::Fsk200_50s => (1400.0, 1600.0),
-            _ => (1300.0, 1700.0),
+            FecType::Fsk500_100s | FecType::Fsk500_100 => (1300.0, 1700.0),
+            _ => {
+                let n = frame_type(self.code()).map_or(1, |t| t.carriers);
+                let hz = body::carrier_hz(n);
+                (hz[0] - 50.0, hz[hz.len() - 1] + 50.0)
+            }
         }
     }
 }
@@ -310,7 +441,7 @@ pub const LEADER_MS: Setting<field::I64> = Setting::new("leader_ms", "Leader", "
 /// The frame type of an FEC broadcast.
 pub const FEC_TYPE: Setting<field::Choice<FecType>> =
     Setting::choice("fec_type", "FEC frame type", FecType::Fsk500_100)
-        .help("The data frames of a text sent with no link: 4FSK.200.50S (16 bytes a frame, 200 Hz), 4FSK.500.100S (32 bytes) or 4FSK.500.100 (64 bytes, 500 Hz).")
+        .help("The data frames of a text sent with no link: 4FSK.200.50S (16 bytes a frame, 200 Hz), 4FSK.500.100S (32 bytes), 4FSK.500.100 (64 bytes, 500 Hz), or 4PSK, 8PSK or 16QAM at 100 baud on 1, 2, 4 or 8 carriers (200, 500, 1000 or 2000 Hz, 16 to 1024 bytes a frame).")
         .section(crate::sender::TX_SECTION);
 /// Whether a connect request to the station callsign is answered.
 pub const AUTO_ANSWER: Setting<field::Bool> = Setting::new("auto_answer", "Answer calls", "", false)
@@ -578,7 +709,7 @@ impl ArdopSender {
     /// The FEC frames of `data`: frames of the FEC type, even and odd in turn, session 0xFF.
     fn fec_frames(&mut self, data: &[u8]) -> Vec<TxFrame> {
         let code = self.fec.code();
-        let size = frame_type(code).map_or(16, |t| t.data);
+        let size = frame_type(code).map_or(16, |t| t.capacity());
         data.chunks(size)
             .map(|c| {
                 let f = TxFrame::data_bytes(&mut self.rs, code | u8::from(self.fec_odd), 0xFF, c)

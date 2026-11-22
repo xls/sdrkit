@@ -2,6 +2,7 @@
 //! the framework features every stack shares, and checks of details of the standards.
 
 mod ardop;
+mod ardop_psk;
 mod ardop_tx;
 mod auto;
 mod common;

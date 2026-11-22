@@ -1968,7 +1968,7 @@ pub fn family() -> &'static Described {
                     .event(&ARDOP_FRAME)
             },
             &[],
-            &[],
+            k::ardop::ArdopGenSetting::SETTINGS,
         )
         .fields::<ArdopTxFields>()
         .event(&KEYBOARD_TX)
@@ -2048,7 +2048,8 @@ pub fn family() -> &'static Described {
         let olivia = k::olivia::OliviaSetting::SETTINGS;
         let olivia_gen = k::olivia::OliviaGenSetting::SETTINGS;
         let ifk_gen = k::domino::IfkGenSetting::SETTINGS;
-        let mut f = Described::new("hfkbd", 2, 6)
+        let mut f = Described::new("hfkbd", 2, 7)
+            .added(2, 7, ADDED_2_7)
             .added(2, 6, ADDED_2_6)
             .added(2, 5, ADDED_2_5)
             .added(2, 4, ADDED_2_4)
@@ -2153,6 +2154,9 @@ pub fn family() -> &'static Described {
             .stack(winmor)
     })
 }
+
+/// What version 2.7 added: the test-signal setting of the last ARDOP frame.
+const ADDED_2_7: &[&str] = &["ardop.setting.gen_data"];
 
 /// What version 2.6 added: the sender and the link of ARDOP, the sideband, FM and repeat of the SSTV sender, the font of the
 /// Hell sender.

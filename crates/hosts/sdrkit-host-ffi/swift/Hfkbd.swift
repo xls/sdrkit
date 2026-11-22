@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "hfkbd", version 2.6. MIT licence.
+// sdrkit: the typed interface of the stack family "hfkbd", version 2.7. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum HfkbdInterface {
     public static let major = 2
-    public static let minor = 6
+    public static let minor = 7
 }
 
 /// The levels that the front end measures. A level has no value before the first input.
@@ -4016,6 +4016,19 @@ public enum HfkbdSettings {
         case n4fsk20050s = 0
         case n4fsk500100s = 1
         case n4fsk500100 = 2
+        case n4psk200100 = 3
+        case n4psk200100s = 4
+        case n8psk200100 = 5
+        case n16qam200100 = 6
+        case n4psk500100 = 7
+        case n8psk500100 = 8
+        case n16qam500100 = 9
+        case n4psk1000100 = 10
+        case n8psk1000100 = 11
+        case n16qam1000100 = 12
+        case n4psk2000100 = 13
+        case n8psk2000100 = 14
+        case n16qam2000100 = 15
     }
     /// FEC frame type.
     public static func ardopFecType(_ handle: SDRKIT_HANDLE) -> Result<ArdopFecType, SDRKitCode> {
@@ -4585,6 +4598,32 @@ public enum HfkbdGeneratorSettings {
     }
     public static func setSitorLowerHz(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "gen_lower_hz", value))
+    }
+    /// The options of the setting "gen_data" of the stack "ardop".
+    public enum ArdopData: Int32 {
+        case header = 0
+        case n4psk200100 = 1
+        case n4psk200100s = 2
+        case n8psk200100 = 3
+        case n16qam200100 = 4
+        case n4psk500100 = 5
+        case n8psk500100 = 6
+        case n16qam500100 = 7
+        case n4psk1000100 = 8
+        case n8psk1000100 = 9
+        case n16qam1000100 = 10
+        case n4psk2000100 = 11
+        case n8psk2000100 = 12
+        case n16qam2000100 = 13
+    }
+    /// Last frame.
+    public static func ardopData(_ handle: SDRKIT_HANDLE) -> Result<ArdopData, SDRKitCode> {
+        var v: Int32 = 0
+        let code = sdrkit_typed_setting_get_enum(handle, "gen_data", &v)
+        return code == SDRKIT_OK ? .success(ArdopData(rawValue: v) ?? ArdopData(rawValue: 0)!) : .failure(SDRKitCode(code: code))
+    }
+    public static func setArdopData(_ handle: SDRKIT_HANDLE, _ value: ArdopData) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_enum(handle, "gen_data", value.rawValue))
     }
     /// The options of the setting "gen_signal" of the stack "ros".
     public enum RosSignal: Int32 {
