@@ -2,10 +2,11 @@
 //! (time de-interleaving and FEC blocks to baseband packets), `atsc3.lls` (the service list) and `atsc3.media` (ROUTE objects to media samples). The link and delivery layers between them are the
 //! `ipcast.*` components.
 
-use super::bicm::{constellation, PlpCoding, PlpDecoder, PlpStream};
+use super::bicm::{constellation, BlockResult, PlpCoding, PlpDecoder, PlpStream};
 use super::bootstrap::{self, Detector, Fields};
 use super::frame::NotDecoded;
-use super::rx::{FrameDecoder, FrameInfo, Head, HeadResult, PlpCells, BACKOFF};
+use super::ldm::LayerDecoder;
+use super::rx::{FrameDecoder, FrameInfo, Head, HeadResult, Layers, PlpCells, BACKOFF};
 use super::ti::{TiFrame, TimeDeinterleaver};
 use super::{Atsc3Setting, PLP};
 use super::svc::{
@@ -145,8 +146,10 @@ pub struct FrameCells {
     pub cfo_hz: f64,
     /// The id of the PLP that is decoded.
     pub id: u8,
-    /// Its coding in this subframe.
+    /// The coding of its cells in this subframe: of its core PLP for an enhanced PLP.
     pub coding: Option<PlpCoding>,
+    /// The layers on the cells, with the enhanced PLP when it is the one decoded.
+    pub layers: Option<Layers>,
     /// The first cell of the first FEC block that begins in the subframe, for a PLP without time interleaving.
     pub fec_block_start: Option<usize>,
     /// The time interleaving of the PLP in the subframe.
@@ -205,7 +208,8 @@ const KEEP: usize = 1 << 20;
 ///
 /// The Preamble is demodulated as soon as its samples are in: L1-Basic and L1-Detail give the symbols of every subframe
 /// and its PLPs. Each subframe that carries the PLP is demodulated when its last sample is in. Setting `plp` chooses the PLP by its id; at -1
-/// the first PLP with low level signalling that the stack decodes is taken, or without one the first that it decodes.
+/// the first core PLP with low level signalling that the stack decodes is taken, or without one the first core PLP that it
+/// decodes.
 #[derive(Default)]
 pub struct Frame {
     /// The id of the PLP to decode.
@@ -299,6 +303,7 @@ impl Component for Frame {
                 cfo_hz: b.cfo_hz,
                 id: 0,
                 coding: None,
+                layers: None,
                 fec_block_start: None,
                 ti: TiFrame::None,
                 follows: false,
@@ -362,6 +367,7 @@ impl Component for Frame {
                 value.first = !self.sent;
                 value.subframe = part.subframe;
                 value.coding = Some(plp.coding);
+                value.layers = plp.layers;
                 if read {
                     value.fec_block_start = plp.fec_block_start;
                     value.ti = plp.ti;
@@ -403,12 +409,13 @@ pub const LDPC_ITERATIONS: u32 = 50;
 /// Cells of a frame that the modulation error ratio is measured on.
 const MER_CELLS: usize = 4096;
 
-/// `atsc3.fec`: the FEC blocks of the PLP of each frame to baseband packets, after its time de-interleaver. Input `in`:
-/// [`FrameCells`]. Output `out`: descrambled baseband packets, one per `Bytes` packet; a block that does not decode gives no
+/// `atsc3.fec`: the FEC blocks of the PLP of each frame to baseband packets, after its time de-interleaver; for an
+/// enhanced PLP, after the core PLP under it is taken off ([`LayerDecoder`]). Input `in`: [`FrameCells`]. Output `out`: descrambled baseband packets, one per `Bytes` packet; a block that does not decode gives no
 /// packet, and the next packet is marked as following a gap. Output `state`: [`FrameState`] after each frame.
 #[derive(Default)]
 pub struct Fec {
     stream: Option<PlpStream>,
+    layers: Option<LayerDecoder>,
     deinterleaver: TimeDeinterleaver,
     /// The id of the PLP of the record before.
     plp: Option<u8>,
@@ -458,6 +465,7 @@ impl Component for Fec {
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
         self.stream = None;
+        self.layers = None;
         self.deinterleaver.restart();
         self.plp = None;
         self.state = FrameState::default();
@@ -470,6 +478,7 @@ impl Component for Fec {
     /// The counts and the block that has begun are of the signal of the frequency before.
     fn forget(&mut self, _: &Kept) {
         self.stream = None;
+        self.layers = None;
         self.deinterleaver.restart();
         self.state = FrameState::default();
         self.gap = true;
@@ -487,9 +496,10 @@ impl Component for Fec {
             if c.info.is_some() {
                 self.state.info.clone_from(&c.info);
             }
+            let enhanced = c.layers.and_then(|l| l.enhanced);
             if c.coding.is_some() {
                 self.state.plp_id = Some(c.id);
-                self.state.coding = c.coding;
+                self.state.coding = enhanced.map(|e| e.coding).or(c.coding);
             }
             let coding = c.coding.filter(|_| c.failed.is_none());
             let (Some(coding), Some(plp)) = (coding, c.cells.as_deref()) else {
@@ -497,6 +507,9 @@ impl Component for Fec {
                 self.count(c.first, false, 0, 0);
                 if let Some(s) = &mut self.stream {
                     s.restart();
+                }
+                if let Some(l) = &mut self.layers {
+                    l.restart();
                 }
                 self.deinterleaver.restart();
                 self.gap = true;
@@ -506,13 +519,25 @@ impl Component for Fec {
                 });
                 continue;
             };
-            if self.stream.as_ref().is_none_or(|s| *s.coding() != coding) {
-                self.stream = PlpDecoder::new(coding).map(PlpStream::new);
+            if self.points.as_ref().is_none_or(|p| p.0 != coding) {
                 self.points = constellation(coding.bits, coding.rate).map(|p| (coding, p));
             }
-            let Some(stream) = &mut self.stream else {
-                continue;
+            match enhanced {
+                None if self.stream.as_ref().is_none_or(|s| *s.coding() != coding) => {
+                    self.stream = PlpDecoder::new(coding).map(PlpStream::new);
+                }
+                Some(e) if self.layers.as_ref().is_none_or(|l| l.codings() != (coding, e.coding)) => {
+                    self.layers = LayerDecoder::new(coding, e.coding);
+                }
+                _ => {}
+            }
+            let ready = match enhanced {
+                None => self.stream.is_some(),
+                Some(_) => self.layers.is_some(),
             };
+            if !ready {
+                continue;
+            }
             // The cells of another PLP do not follow those of the PLP before.
             let follows = c.follows && self.plp == Some(c.id);
             self.plp = Some(c.id);
@@ -525,7 +550,12 @@ impl Component for Fec {
                 c.fec_block_start,
             ) else {
                 self.state.failed = Some(NotDecoded::Signalling);
-                stream.restart();
+                if let Some(s) = &mut self.stream {
+                    s.restart();
+                }
+                if let Some(l) = &mut self.layers {
+                    l.restart();
+                }
                 self.count(c.first, false, 0, 0);
                 self.gap = true;
                 io.items_out::<FrameState>(1).push(Timed {
@@ -535,35 +565,51 @@ impl Component for Fec {
                 continue;
             };
             if cells.restart {
-                stream.restart();
+                if let Some(s) = &mut self.stream {
+                    s.restart();
+                }
+                if let Some(l) = &mut self.layers {
+                    l.restart();
+                }
                 self.gap = true;
             }
             let (mut blocks, mut good, mut iterations) = (0u32, 0u32, 0u32);
             let (state, pool, gap) = (&mut self.state, &mut self.pool, &mut self.gap);
-            stream.frame(
-                cells.cells,
-                cells.weights,
-                cells.block_start,
-                LDPC_ITERATIONS,
-                |r, packet| {
-                    blocks += 1;
-                    iterations += r.iterations;
-                    if r.good {
-                        good += 1;
-                        state.packets += 1;
-                        state.outer_corrected += u64::from(r.outer_corrected);
-                        if *gap {
-                            gaps.push(packets.len());
-                            *gap = false;
-                        }
-                        packets
-                            .push(pool.make(packet.len(), f.time, |o| o.copy_from_slice(packet)));
-                    } else {
-                        state.bad_packets += 1;
-                        *gap = true;
+            let each = |r: BlockResult, packet: &[u8]| {
+                blocks += 1;
+                iterations += r.iterations;
+                if r.good {
+                    good += 1;
+                    state.packets += 1;
+                    state.outer_corrected += u64::from(r.outer_corrected);
+                    if *gap {
+                        gaps.push(packets.len());
+                        *gap = false;
                     }
-                },
-            );
+                    packets.push(pool.make(packet.len(), f.time, |o| o.copy_from_slice(packet)));
+                } else {
+                    state.bad_packets += 1;
+                    *gap = true;
+                }
+            };
+            match (&mut self.stream, &mut self.layers, &c.layers) {
+                (_, Some(l), Some(layers)) if enhanced.is_some() => l.frame(
+                    cells.cells,
+                    cells.weights,
+                    cells.block_start,
+                    layers,
+                    LDPC_ITERATIONS,
+                    each,
+                ),
+                (Some(s), _, _) => s.frame(
+                    cells.cells,
+                    cells.weights,
+                    cells.block_start,
+                    LDPC_ITERATIONS,
+                    each,
+                ),
+                _ => {}
+            }
             self.count(c.first, true, blocks, good);
             self.state.iterations = iterations as f32 / blocks.max(1) as f32;
             self.state.pilot_snr_db = Some(plp.pilot_snr_db);

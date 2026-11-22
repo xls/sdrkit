@@ -34,7 +34,7 @@ sdrkit_core::choice_enum! {
         Plp = ("plp", "no PLP that the stack decodes"),
         /// The samples of the frame did not all arrive.
         Samples = ("samples", "samples missing"),
-        /// A PLP of the subframe is on an enhanced layer.
+        /// The PLP is in a subframe with an enhanced layer, in a layout that the stack does not decode.
         Ldm = ("ldm", "layered division multiplexing"),
         /// The first subframe ends more than 1 s after the bootstrap.
         Length = ("length", "subframe longer than 1 s"),

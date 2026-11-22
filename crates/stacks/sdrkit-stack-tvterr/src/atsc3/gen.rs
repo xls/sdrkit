@@ -1,10 +1,11 @@
 //! The ATSC 3.0 test signal: frames of a bootstrap, the Preamble symbols with L1-Basic and L1-Detail, and one or more
 //! subframes, each with its own waveform, with one or more PLPs that carry baseband packets of UDP datagrams with a known payload, each with or without a time
-//! interleaver.
+//! interleaver, and enhanced PLPs layered on core PLPs.
 //!
-//! Standard: ATSC A/321, A/322:2023-03 clauses 5.2, 6, 7.1, 7.2, 7.3 and 8, A/330 clause 5.
+//! Standard: ATSC A/321, A/322:2023-03 clauses 5.2, 6, 7.1, 7.2, 7.3 and 8, A/322:2026-06 clauses 6.4 and 7.2.7.4, A/330
+//! clause 5.
 
-use super::bicm::{constellation, Outer, PlpCoding};
+use super::bicm::{constellation, Outer, PlpCoding, PlpEncoder};
 use super::bootstrap::{self, Fields};
 use super::frame::{
     boundary_null_cells, first_subframe, preamble_symbols, subframe_symbols, Symbol,
@@ -15,15 +16,13 @@ use super::l1::{
 };
 use super::ti::{cell_sequence, cell_shifts};
 use super::layout::{guard_code, interleave, FftSize, Pattern, PreambleStructure};
+use super::tables::LDM_FACTORS;
 use super::OCCUPIED;
 use crate::band::resampler;
 use sdrkit_algo_dsp::fft::Fft;
 use sdrkit_algo_dsp::resample::FractionalResampler;
-use sdrkit_algo_fec::a322::{BitInterleaver, L1Code, L1Kind};
-use sdrkit_algo_fec::bch::Bch;
+use sdrkit_algo_fec::a322::{L1Code, L1Kind};
 use sdrkit_algo_fec::interleave::DelayLanes;
-use sdrkit_algo_fec::ldpc::tables::atsc3::Atsc3Table;
-use sdrkit_algo_fec::ldpc::LdpcCode;
 use sdrkit_algo_modem::constellation::Constellation;
 use sdrkit_core::{Complex32, GenConfig, Generator, Hz, SignalInfo};
 use sdrkit_proto_ipcast::alp::{write_bbp_header, write_single, BbpExtension, PacketType};
@@ -58,6 +57,17 @@ pub enum GenTi {
     },
 }
 
+/// The layer of an enhanced PLP of the test signal (A/322 clause 6.4).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GenLdm {
+    /// The core PLP that it is combined with: 0 for the first, `n` for `more_plps[n - 1]`. It must be in every subframe
+    /// that carries this PLP, non-dispersed, without the convolutional time interleaver and without the hybrid one
+    /// across subframes.
+    pub core: usize,
+    /// `L1D_plp_ldm_injection_level`, 0 to 30 (table 9.24).
+    pub level: u8,
+}
+
 /// One PLP of the test signal.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct GenPlp {
@@ -78,6 +88,10 @@ pub struct GenPlp {
     pub time_interleaver: GenTi,
     /// It is marked as a carrier of low level signalling.
     pub lls: bool,
+    /// It is an enhanced PLP on this layer. Its place, subslices and time interleaver are then those of the core PLP: it
+    /// takes the cells of the core PLP before time interleaving from the first, all of them, or with the hybrid time
+    /// interleaver as many whole FEC blocks as fit, with dummy cells after them.
+    pub ldm: Option<GenLdm>,
 }
 
 /// The place of a PLP in a subframe after the first.
@@ -412,11 +426,7 @@ impl DelayLine {
 /// One PLP of the test signal: its coder, its payload, its time interleaver and its place in the subframe.
 struct PlpSender {
     coding: PlpCoding,
-    points: Constellation,
-    table: Atsc3Table,
-    ldpc: LdpcCode,
-    bch: Option<Bch>,
-    interleaver: BitInterleaver,
+    enc: PlpEncoder,
     payload: Payload,
     /// The cells of the FEC blocks made and not yet sent.
     cells: VecDeque<Complex32>,
@@ -443,16 +453,31 @@ struct Place {
     size: usize,
     subslices: usize,
     interval: usize,
+    /// For an enhanced PLP: the place of its core PLP in the list.
+    on: Option<usize>,
 }
 
 /// The places of the PLPs `wants` (`plp`, `start`, `cells`, `subslices`, `interval`) in a subframe of `total` data cells:
 /// each PLP in its subslices, within the subframe, and no cell in two PLPs. A hybrid time interleaved PLP takes whole
-/// FEC blocks.
+/// FEC blocks. An enhanced PLP lies on the cells of its core PLP, which the subframe carries without subslices, and a core
+/// PLP carries one enhanced PLP at most.
 fn places(wants: &[GenPlace], options: &[GenPlp], total: usize) -> Result<Vec<Place>, GenError> {
     let mut runs = Vec::new();
     let mut out = Vec::with_capacity(wants.len());
     for (entry, w) in wants.iter().enumerate() {
         let g = options.get(w.plp).ok_or(GenError::Subframe)?;
+        if g.ldm.is_some() {
+            out.push(Place {
+                sender: w.plp,
+                entry,
+                start: 0,
+                size: 0,
+                subslices: 1,
+                interval: 0,
+                on: None,
+            });
+            continue;
+        }
         let (n, interval) = (usize::from(w.subslices), w.interval as usize);
         let mut size = match w.cells {
             Some(cells) => cells,
@@ -474,7 +499,24 @@ fn places(wants: &[GenPlace], options: &[GenPlp], total: usize) -> Result<Vec<Pl
             size,
             subslices: n,
             interval,
+            on: None,
         });
+    }
+    for i in 0..out.len() {
+        let Some(ldm) = options[out[i].sender].ldm else {
+            continue;
+        };
+        let core = out
+            .iter()
+            .position(|c| c.sender == ldm.core && options[c.sender].ldm.is_none())
+            .filter(|&c| out[c].subslices == 1 && !out.iter().any(|e| e.on == Some(c)))
+            .ok_or(GenError::Subframe)?;
+        out[i] = Place {
+            start: out[core].start,
+            size: out[core].size,
+            on: Some(core),
+            ..out[i]
+        };
     }
     runs.sort_unstable();
     if runs.windows(2).any(|w| w[0].1 > w[1].0) || runs.last().is_some_and(|r| r.1 > total) {
@@ -489,19 +531,9 @@ const ROWS: [[usize; 4]; 2] = [[512, 724, 887, 1024], [512, 724, 1254, 1448]];
 
 impl PlpSender {
     fn new(g: &GenPlp) -> Result<PlpSender, GenError> {
-        let c = g.coding;
-        let table = Atsc3Table::find(c.ldpc_bits, c.rate).ok_or(GenError::Coding)?;
         Ok(PlpSender {
-            coding: c,
-            points: constellation(c.bits, c.rate).ok_or(GenError::Coding)?,
-            interleaver: BitInterleaver::new(c.ldpc_bits, c.rate, c.bits)
-                .map_err(|_| GenError::Coding)?,
-            ldpc: LdpcCode::from_atsc3(table).map_err(|_| GenError::Coding)?,
-            bch: match c.outer {
-                Outer::Bch => Some(table.bch().map_err(|_| GenError::Coding)?),
-                _ => None,
-            },
-            table,
+            coding: g.coding,
+            enc: PlpEncoder::new(g.coding).ok_or(GenError::Coding)?,
             payload: Payload::new(g.seed),
             cells: VecDeque::new(),
             ti: g.time_interleaver,
@@ -529,6 +561,33 @@ impl PlpSender {
         }
         let dispersed = g.subslices > 1;
         let qpsk = g.coding.bits == 2;
+        if let Some(ldm) = g.ldm {
+            // Clauses 7.1.1 and 9.3.4: the time interleaver mode of the core PLP, and no fields of its own after it.
+            let ti_mode = match g.time_interleaver {
+                GenTi::None => 0,
+                GenTi::Hybrid {
+                    inter_subframe,
+                    ti_blocks,
+                    ..
+                } if !inter_subframe || ti_blocks == 1 => 2,
+                _ => return Err(GenError::Coding),
+            };
+            if usize::from(ldm.level) >= LDM_FACTORS.len() {
+                return Err(GenError::Coding);
+            }
+            return Ok(Plp {
+                id,
+                lls: g.lls,
+                layer: 1,
+                fec_type,
+                modulation: Some(modulation),
+                code_rate: Some(code_rate),
+                ti_mode,
+                fec_block_start: (ti_mode == 0).then_some(0),
+                ldm_injection_level: Some(ldm.level),
+                ..Plp::default()
+            });
+        }
         let mut plp = Plp {
             id,
             lls: g.lls,
@@ -572,52 +631,68 @@ impl PlpSender {
         Ok(plp)
     }
 
-    /// The cells of one FEC block that carries `packet` (clauses 5.2.3 and 6.1 to 6.3).
-    fn block(&mut self, mut packet: Vec<u8>) -> Vec<Complex32> {
-        let c = self.coding;
-        Scrambler::apply(&mut packet);
-        let mut info = Vec::with_capacity(c.outer_bits());
-        bits_of(&packet, &mut info);
-        match c.outer {
-            Outer::Bch => {
-                info.resize(c.outer_bits(), 0);
-                if let Some(bch) = &self.bch {
-                    bch.encode(&mut info).expect("the word of the outer code");
-                }
-            }
-            Outer::Crc => {
-                let crc = super::l1::crc32(&info);
-                info.extend((0..32).rev().map(|i| (crc >> i & 1) as u8));
-            }
-            Outer::None => {}
-        }
-        let mut word = vec![0u8; c.ldpc_bits];
-        match self.table {
-            Atsc3Table::A(t) => t.encode(&info, &mut word),
-            Atsc3Table::B(_) => self.ldpc.encode(&info, &mut word),
-        }
-        .expect("the information bits of the code");
-        let mut q = vec![0u8; c.ldpc_bits];
-        self.interleaver
-            .interleave(&word, &mut q)
-            .expect("one code word");
-        let mut cells = Vec::with_capacity(c.cells());
-        self.points
-            .set()
-            .map_bits(&q, &mut cells)
-            .expect("whole cells");
-        cells
-    }
-
     /// The cells of the next FEC block.
     fn next_block(&mut self) -> Vec<Complex32> {
         let packet = self.payload.packet(self.coding.packet_bytes());
-        self.block(packet)
+        let mut cells = Vec::with_capacity(self.coding.cells());
+        self.enc.block(&packet, &mut cells);
+        cells
+    }
+
+    /// The next `size` cells of FEC blocks that run on from subframe to subframe, and the cells that were left of the block
+    /// that began in the subframe before (clause 9.3.4).
+    fn run_on(&mut self, size: usize) -> (Vec<Complex32>, usize) {
+        let left = self.cells.len();
+        while self.cells.len() < size {
+            let cells = self.next_block();
+            self.cells.extend(cells);
+        }
+        debug_assert!(left < self.coding.cells());
+        (self.cells.drain(..size).collect(), left)
+    }
+
+    /// Combines the cells `core` of a core PLP before time interleaving with the cells of this enhanced PLP into
+    /// `beta (core + alpha enhanced)` (clause 6.4, table 6.16). With the hybrid time interleaver the PLP takes whole FEC
+    /// blocks and dummy cells fill the rest: the scrambling sequence of clause 5.2.3 from its start, mapped as the PLP
+    /// (clause 7.2.7.4.6). Sets the size and the first FEC block of its L1-Detail entry `plp`.
+    fn layer(&mut self, plp: &mut Plp, core: &mut [Complex32]) {
+        let n = core.len();
+        let block = self.coding.cells();
+        let (alpha, beta) = LDM_FACTORS[usize::from(plp.ldm_injection_level.unwrap_or(0))];
+        let cells = if matches!(self.ti, GenTi::Hybrid { .. }) {
+            let blocks = n / block;
+            let mut cells = Vec::with_capacity(n);
+            for _ in 0..blocks {
+                cells.extend(self.next_block());
+            }
+            plp.size = (blocks * block) as u32;
+            let bits = Scrambler::bits(self.coding.bits * (n - blocks * block));
+            self.enc
+                .points()
+                .set()
+                .map_bits(&bits, &mut cells)
+                .expect("whole cells");
+            cells
+        } else {
+            let (cells, left) = self.run_on(n);
+            plp.size = n as u32;
+            plp.fec_block_start = Some(if left >= n { 0x7FFF } else { left as u16 });
+            cells
+        };
+        for (c, e) in core.iter_mut().zip(cells) {
+            *c = (*c + e * alpha) * beta;
+        }
     }
 
     /// The cells of the PLP in the next subframe that carries it, which gives it `size` cells once the time interleaver
-    /// is full. Sets the fields of its L1-Detail entry `plp` that change from subframe to subframe.
-    fn subframe(&mut self, plp: &mut Plp, size: usize) -> Vec<Complex32> {
+    /// is full. `layer` combines its cells before time interleaving with an enhanced PLP. Sets the fields of its
+    /// L1-Detail entry `plp` that change from subframe to subframe.
+    fn subframe(
+        &mut self,
+        plp: &mut Plp,
+        size: usize,
+        layer: &mut dyn FnMut(&mut [Complex32]),
+    ) -> Vec<Complex32> {
         let block = self.coding.cells();
         if let GenTi::Hybrid {
             inter_subframe,
@@ -639,10 +714,12 @@ impl PlpSender {
                 for _ in 0..blocks {
                     cells.extend(self.next_block());
                 }
+                layer(&mut cells);
                 if self.line.is_none() {
                     let bits = Scrambler::bits(self.coding.bits * DelayLine::start_cells(n_ti, block));
                     let mut start = Vec::new();
-                    self.points
+                    self.enc
+                        .points()
                         .set()
                         .map_bits(&bits, &mut start)
                         .expect("whole cells");
@@ -664,24 +741,23 @@ impl PlpSender {
             }
             // Clause 7.1.5.4: the last TI blocks hold one FEC block more when the blocks do not divide evenly.
             let max = most.div_ceil(n_ti);
+            let mut cells = Vec::with_capacity(blocks * block);
+            for _ in 0..blocks {
+                cells.extend(self.next_block());
+            }
+            layer(&mut cells);
             let mut out = Vec::with_capacity(size);
+            let mut at = 0;
             for s in 0..n_ti {
                 let n = blocks / n_ti + usize::from(s >= n_ti - blocks % n_ti);
-                let mut cells = Vec::with_capacity(n * block);
-                for _ in 0..n {
-                    cells.extend(self.next_block());
-                }
-                out.extend(twisted_block(&cells, block, max, cell_interleaver));
+                out.extend(twisted_block(&cells[at..at + n * block], block, max, cell_interleaver));
+                at += n * block;
             }
             return out;
         }
         // The cells left of the block that began in the frame before come first (clause 9.3.4).
-        let left = self.cells.len();
-        while self.cells.len() < size {
-            let cells = self.next_block();
-            self.cells.extend(cells);
-        }
-        debug_assert!(left < block);
+        let (mut cells, left) = self.run_on(size);
+        layer(&mut cells);
         match &mut self.lines {
             Some(lines) => {
                 // The first cell of the first FEC block that begins in this subframe enters row `(row + left) mod rows`
@@ -689,11 +765,11 @@ impl PlpSender {
                 let (rows, row) = (lines.lanes(), lines.lane());
                 plp.cti = plp.cti.map(|(depth, _)| (depth, row as u16));
                 plp.cti_fec_block_start = Some((left + (row + left) % rows * rows) as u32);
-                self.cells.drain(..size).map(|c| lines.push(c)).collect()
+                cells.into_iter().map(|c| lines.push(c)).collect()
             }
             None => {
                 plp.fec_block_start = Some(if left >= size { 0x7FFF } else { left as u16 });
-                self.cells.drain(..size).collect()
+                cells
             }
         }
     }
@@ -727,14 +803,6 @@ pub struct FrameBuilder {
 /// The samples of 5 ms at 6.144 Msps.
 const FIVE_MS: usize = 30_720;
 
-fn bits_of(bytes: &[u8], out: &mut Vec<u8>) {
-    out.extend(
-        bytes
-            .iter()
-            .flat_map(|&b| (0..8).rev().map(move |i| b >> i & 1)),
-    );
-}
-
 impl FrameBuilder {
     /// The builder for `p`.
     ///
@@ -762,10 +830,21 @@ impl FrameBuilder {
             interval: p.subslices.1,
             time_interleaver: p.time_interleaver,
             lls: false,
+            ldm: None,
         };
-        let options: Vec<GenPlp> = std::iter::once(first_plp)
+        let mut options: Vec<GenPlp> = std::iter::once(first_plp)
             .chain(p.more_plps.iter().copied())
             .collect();
+        // An enhanced PLP follows the time interleaver of its core PLP.
+        for i in 0..options.len() {
+            if let Some(ldm) = options[i].ldm {
+                let core = options.get(ldm.core).ok_or(GenError::Subframe)?;
+                if core.ldm.is_some() || core.subslices != 1 {
+                    return Err(GenError::Subframe);
+                }
+                options[i].time_interleaver = core.time_interleaver;
+            }
+        }
         let mut plps = options
             .iter()
             .map(PlpSender::new)
@@ -956,7 +1035,7 @@ impl FrameBuilder {
                 .enumerate()
         };
         for (_, list) in all() {
-            for place in list {
+            for place in list.iter().filter(|p| p.on.is_none()) {
                 let (sender, g) = (&mut plps[place.sender], &options[place.sender]);
                 if let GenTi::Hybrid { spare, .. } = g.time_interleaver {
                     let most = place.size / g.coding.cells() + usize::from(spare);
@@ -1081,9 +1160,29 @@ impl FrameBuilder {
         total: usize,
     ) -> Vec<Complex32> {
         let mut data: Vec<Option<Complex32>> = vec![None; total];
-        for place in places {
+        for (i, place) in places.iter().enumerate() {
+            if place.on.is_some() {
+                continue;
+            }
+            let cells = match places.iter().find(|e| e.on == Some(i)) {
+                None => plps[place.sender].subframe(&mut entries[place.entry], place.size, &mut |_| {}),
+                Some(e) => {
+                    let (core, enhanced) = if place.sender < e.sender {
+                        let (a, b) = plps.split_at_mut(e.sender);
+                        (&mut a[place.sender], &mut b[0])
+                    } else {
+                        let (a, b) = plps.split_at_mut(place.sender);
+                        (&mut b[0], &mut a[e.sender])
+                    };
+                    let mut layered = entries[e.entry];
+                    let cells = core.subframe(&mut entries[place.entry], place.size, &mut |c| {
+                        enhanced.layer(&mut layered, c)
+                    });
+                    entries[e.entry] = layered;
+                    cells
+                }
+            };
             let entry = &mut entries[place.entry];
-            let cells = plps[place.sender].subframe(entry, place.size);
             entry.size = cells.len() as u32;
             let each = cells.len().div_ceil(place.subslices).max(1);
             for (j, part) in cells.chunks(each).enumerate() {
@@ -1266,5 +1365,98 @@ impl Generator for Atsc3Generator {
             w += n;
         }
         w
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A digest of the sample bits of `frames` frames of `p`.
+    fn digest(p: Atsc3GenParams, frames: usize) -> u64 {
+        let mut b = FrameBuilder::new(p).unwrap();
+        let mut h = 0xcbf2_9ce4_8422_2325_u64;
+        for _ in 0..frames {
+            for v in b.frame() {
+                for x in [v.re.to_bits(), v.im.to_bits()] {
+                    h = (h ^ u64::from(x)).wrapping_mul(0x0000_0100_0000_01b3);
+                }
+            }
+        }
+        h
+    }
+
+    /// The signal without layers stays as it was, sample for sample, with each time interleaver, two PLPs and subslices.
+    #[test]
+    fn the_signal_without_layers_is_unchanged() {
+        let short = PlpCoding {
+            ldpc_bits: 16200,
+            rate: 8,
+            bits: 2,
+            outer: Outer::Bch,
+        };
+        let base = Atsc3GenParams {
+            symbols: 24,
+            ..Atsc3GenParams::default()
+        };
+        let hti = |inter_subframe, ti_blocks| GenTi::Hybrid {
+            inter_subframe,
+            ti_blocks,
+            cell_interleaver: true,
+            spare: 1,
+        };
+        let cases = [
+            base.clone(),
+            Atsc3GenParams {
+                coding: short,
+                time_interleaver: GenTi::Convolutional {
+                    depth: 1,
+                    extended: false,
+                },
+                ..base.clone()
+            },
+            Atsc3GenParams {
+                coding: short,
+                time_interleaver: hti(false, 3),
+                ..base.clone()
+            },
+            Atsc3GenParams {
+                coding: short,
+                time_interleaver: hti(true, 3),
+                ..base.clone()
+            },
+            Atsc3GenParams {
+                coding: short,
+                plp_cells: Some(40_000),
+                subslices: (4, 25_000),
+                more_plps: vec![GenPlp {
+                    coding: PlpCoding {
+                        bits: 4,
+                        outer: Outer::Crc,
+                        ..short
+                    },
+                    seed: 9,
+                    start: 12_000,
+                    cells: Some(40_000),
+                    subslices: 4,
+                    interval: 25_000,
+                    time_interleaver: hti(false, 2),
+                    lls: true,
+                    ldm: None,
+                }],
+                ..base.clone()
+            },
+        ];
+        let got: Vec<u64> = cases.into_iter().map(|p| digest(p, 3)).collect();
+        assert_eq!(
+            got,
+            [
+                0x252f_5798_967d_7a83,
+                0x0927_15c5_302d_c899,
+                0x80c0_bd71_b605_cbb0,
+                0xab1b_a27b_940c_7a68,
+                0xfd95_eb48_52e6_969f,
+            ]
+        );
     }
 }

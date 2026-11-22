@@ -1751,7 +1751,7 @@ static inline int32_t sdrkit_atsc3_service_select(SDRKIT_HANDLE handle, const sd
   return sdrkit_typed_command(handle, "service.select", "tvterr.ServiceSelectArgs", args, NULL, NULL, 0);
 }
 
-// The setting "plp" (PLP) of the stack "atsc3". The id of the PLP to decode. -1 takes the first PLP with low level signalling that the stack decodes, or without one the first PLP that it decodes.
+// The setting "plp" (PLP) of the stack "atsc3". The id of the PLP to decode. -1 takes the first core PLP with low level signalling that the stack decodes, or without one the first core PLP that it decodes.
 static inline int32_t sdrkit_atsc3_get_plp(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "plp", value);
 }

@@ -24,7 +24,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:at
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `plp` | PLP | whole number | -1 | -1 to 63 | The id of the PLP to decode. -1 takes the first PLP with low level signalling that the stack decodes, or without one the first PLP that it decodes. |
+| `plp` | PLP | whole number | -1 | -1 to 63 | The id of the PLP to decode. -1 takes the first core PLP with low level signalling that the stack decodes, or without one the first core PLP that it decodes. |
 
 ## Result fields
 

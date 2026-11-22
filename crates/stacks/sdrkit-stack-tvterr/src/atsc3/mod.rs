@@ -12,6 +12,7 @@ pub mod frame;
 pub mod gen;
 pub mod l1;
 pub mod layout;
+pub mod ldm;
 pub mod results;
 pub mod rx;
 pub mod svc;
@@ -59,7 +60,7 @@ pub fn delivery(b: GraphBuilder, from: &str) -> GraphBuilder {
 /// The PLP that the stack decodes.
 pub const PLP: Setting<field::I64> = Setting::new("plp", "PLP", "", -1)
     .range(-1.0, 63.0, 1.0)
-    .help("The id of the PLP to decode. -1 takes the first PLP with low level signalling that the stack decodes, or without one the first PLP that it decodes.");
+    .help("The id of the PLP to decode. -1 takes the first core PLP with low level signalling that the stack decodes, or without one the first core PLP that it decodes.");
 
 sdrkit_core::settings! {
     /// The settings of the ATSC 3.0 stack and of `atsc3.frame`.
@@ -78,8 +79,8 @@ const COSTS: &str = include_str!("../../cost.txt");
 /// What the stack decodes and what it does not.
 pub const NOTE: &str = "Decodes frames at 6.144 Msps (sample-rate coefficient 0): the bootstrap, L1-Basic and L1-Detail, and \
     one PLP in every subframe to baseband packets, with the ALP packets, the IP and UDP layers, the service list and the \
-    ROUTE objects that they carry. The setting plp chooses the PLP by its id; without it the first PLP with low level \
-    signalling that the stack decodes is taken, or the first PLP that it decodes. Tested on the stack's own test signal: \
+    ROUTE objects that they carry. The setting plp chooses the PLP by its id; without it the first core PLP with low \
+    level signalling that the stack decodes is taken, or the first core PLP that it decodes. Tested on the stack's own test signal: \
     L1-Basic modes 1 to 5, L1-Detail modes 1, 2, 5 and \
     7, one and several coded blocks and Preamble symbols, symbol-aligned and time-aligned frames, 8K, 16K and 32K FFT, \
     subframe boundary symbols with null cells, carrier reduction, the frequency interleaver on and off, a PLP of 4, 16, 64 \
@@ -87,8 +88,11 @@ pub const NOTE: &str = "Decodes frames at 6.144 Msps (sample-rate coefficient 0)
     that begins after other cells, two PLPs in one subframe, non-dispersed and dispersed in subslices, the convolutional \
     time interleaver at its six depths, the hybrid time interleaver within a subframe (one and several TI blocks) and \
     across 1 to 16 subframes, with and without the cell interleaver, frames of three subframes with the three FFT \
-    sizes, a PLP that continues from subframe to subframe with each time interleaver, and a PLP that only a later \
-    subframe carries. A subframe without boundary symbols was not exercised. Open in the hybrid time interleaver across \
+    sizes, a PLP that continues from subframe to subframe with each time interleaver, a PLP that only a later \
+    subframe carries, and layered division multiplexing: a core PLP with an enhanced PLP on its cells at injection \
+    levels from 3 to 15 dB, without a time interleaver and with the hybrid one within a subframe and dummy enhanced \
+    cells. The setting chooses either layer; the enhanced PLP is decoded after the core PLP under it is decoded, encoded \
+    and mapped again and taken off its cells. A subframe without boundary symbols was not exercised. Open in the hybrid time interleaver across \
     subframes: the standard names the unit that moves between the branches of the delay line a row, and the stack takes \
     it as as many consecutive cells of the twisted block read-out as the TI block has FEC blocks; this was not checked \
     against a signal. The test signal starts the rows of the convolutional time interleaver with zeros and not with the \
@@ -97,8 +101,12 @@ pub const NOTE: &str = "Decodes frames at 6.144 Msps (sample-rate coefficient 0)
     patterns, code rates and L1-Detail modes, a subframe without boundary symbols. Not decoded: frames at another sample \
     rate (6.912 Msps and the others), the \
     1024 and 4096-point \
-    constellations, LDM (frames with an enhanced layer), MIMO, MISO, channel bonding, tone reservation, L1-Detail \
-    additional parity with several coded blocks, a subframe that ends more than 1 s after the bootstrap and the \
+    constellations, MIMO, MISO, channel bonding, tone reservation, L1-Detail \
+    additional parity with several coded blocks, an enhanced PLP under the convolutional time interleaver (the standard \
+    does not say from which cell its FEC block start counts) or across several core PLPs, a subframe with an enhanced \
+    layer whose core PLPs are dispersed or do not follow each other from cell 0 in the order of L1-Detail, a core PLP \
+    with two injection levels on it or, without the hybrid time interleaver, enhanced PLPs on part of it only, an \
+    enhanced layer on a core PLP under the hybrid time interleaver across subframes, a subframe that ends more than 1 s after the bootstrap and the \
     subframes after it, a later subframe with a waveform that the stack does not decode and those after it, more than \
     one PLP at a time, a first \
     subframe that ends more than 1 s after the bootstrap. MMTP services are listed and not received. The media of a ROUTE service is given as \

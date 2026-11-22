@@ -1,11 +1,11 @@
-//! Tables of the ATSC 3.0 physical layer: the non-uniform constellations, the continual pilots, the Preamble structures and
-//! the pilot powers.
+//! Tables of the ATSC 3.0 physical layer: the non-uniform constellations, the continual pilots, the Preamble structures,
+//! the pilot powers and the factors of the layers.
 //!
 //! Standard: ATSC A/322:2023-03 Annex C (tables C.1.2 to C.1.7), Annex D (tables D.1.1, D.1.4, D.1.5), Annex H (table H.1.1),
-//! tables 8.6 and 9.14.
+//! tables 8.6 and 9.14; A/322:2026-06 tables 6.16 and 9.24.
 
 // The values are those that the standard prints, also where one is near a named constant.
-#![allow(clippy::approx_constant)]
+#![allow(clippy::approx_constant, clippy::excessive_precision)]
 
 /// The first quadrant `w` of the 16-point non-uniform constellation per code rate (2/15 to 13/15), as `(re, im)`.
 pub static NUC16: [[(f32, f32); 4]; 12] = [
@@ -480,6 +480,43 @@ pub static ADDITIONAL_CP: [[&[(u16, bool)]; 3]; 16] = [
 
 /// The additional continual pilots of 8K with SP32_4 per carrier reduction 0 to 4 (table D.1.5).
 pub static ADDITIONAL_CP_8K_SP32_4: [&[u16]; 5] = [&[1696, 2880, 5728], &[], &[1696], &[1696, 2880], &[1696, 2880, 5728]];
+
+/// The scaling factor `alpha` of the enhanced layer and the normalising factor `beta` of the sum, per value of
+/// `L1D_plp_ldm_injection_level` (tables 9.24 and 6.16): 0.0 to 5.0 dB below the core layer in steps of 0.5 dB, then 6.0 to
+/// 25.0 dB in steps of 1 dB. Value 31 is reserved.
+pub static LDM_FACTORS: [(f32, f32); 31] = [
+    (1.000_000_0, 0.707_106_8),
+    (0.944_060_9, 0.727_152_4),
+    (0.891_250_9, 0.746_533_1),
+    (0.841_395_1, 0.765_178_9),
+    (0.794_328_2, 0.783_030_5),
+    (0.749_894_2, 0.800_040_6),
+    (0.707_945_8, 0.816_173_6),
+    (0.668_343_9, 0.831_406_1),
+    (0.630_957_3, 0.845_726_2),
+    (0.595_662_1, 0.859_132_7),
+    (0.562_341_3, 0.871_634_6),
+    (0.501_187_2, 0.894_002_2),
+    (0.446_683_6, 0.913_051_2),
+    (0.398_107_2, 0.929_081_9),
+    (0.354_813_4, 0.942_435_3),
+    (0.316_227_8, 0.953_462_6),
+    (0.281_838_3, 0.962_503_2),
+    (0.251_188_6, 0.969_870_6),
+    (0.223_872_1, 0.975_844_9),
+    (0.199_526_2, 0.980_669_9),
+    (0.177_827_9, 0.984_554_0),
+    (0.158_489_3, 0.987_672_3),
+    (0.141_253_8, 0.990_170_5),
+    (0.125_892_5, 0.992_168_5),
+    (0.112_201_8, 0.993_764_2),
+    (0.100_000_0, 0.995_037_2),
+    (0.089_125_1, 0.996_051_9),
+    (0.079_432_8, 0.996_860_1),
+    (0.070_794_6, 0.997_503_4),
+    (0.063_095_7, 0.998_015_4),
+    (0.056_234_1, 0.998_422_6),
+];
 
 /// Values printed in the standard that the layout must reproduce.
 #[cfg(test)]

@@ -1,5 +1,6 @@
-//! The coding of an ATSC 3.0 PLP: the constellations, the sizes of a FEC block, and the decoder of one block (demapping,
-//! bit de-interleaving, LDPC, the outer code and descrambling).
+//! The coding of an ATSC 3.0 PLP: the constellations, the sizes of a FEC block, the encoder of one block (scrambling, the
+//! outer code, LDPC, bit interleaving and mapping) and its decoder (demapping, bit de-interleaving, LDPC, the outer code and
+//! descrambling).
 //!
 //! Standard: ATSC A/322:2023-03 clauses 5.2.3, 6.1 to 6.3 and Annex C.
 
@@ -10,6 +11,7 @@ use sdrkit_algo_fec::a322::BitInterleaver;
 use sdrkit_algo_fec::bch::Bch;
 use sdrkit_algo_fec::ldpc::tables::atsc3::Atsc3Table;
 use sdrkit_algo_fec::ldpc::{LdpcCode, LdpcDecoder, MinSum};
+use sdrkit_algo_fec::Result as FecResult;
 use sdrkit_algo_modem::constellation::{Constellation, Demap};
 use sdrkit_core::Complex32;
 
@@ -152,6 +154,8 @@ pub struct BlockResult {
     pub good: bool,
     /// The LDPC iterations used.
     pub iterations: u32,
+    /// Every LDPC check closed: [`PlpDecoder::word`] is a code word.
+    pub checks_closed: bool,
     /// The bits that the BCH code corrected after the LDPC decoder.
     pub outer_corrected: u32,
 }
@@ -187,6 +191,110 @@ fn ldpc_rule(coding: PlpCoding) -> MinSum {
     MinSum {
         scale_q4,
         offset: 1,
+    }
+}
+
+/// The encoder of the FEC blocks of one PLP (clauses 5.2.3 and 6.1 to 6.3). After the first block it allocates nothing.
+pub struct PlpEncoder {
+    coding: PlpCoding,
+    points: Constellation,
+    table: Atsc3Table,
+    ldpc: LdpcCode,
+    bch: Option<Bch>,
+    interleaver: BitInterleaver,
+    bytes: Vec<u8>,
+    outer: Vec<u8>,
+    word: Vec<u8>,
+    bits: Vec<u8>,
+}
+
+impl PlpEncoder {
+    /// The encoder for `coding`, `None` when a part of it does not exist.
+    pub fn new(coding: PlpCoding) -> Option<PlpEncoder> {
+        let table = Atsc3Table::find(coding.ldpc_bits, coding.rate)?;
+        Some(PlpEncoder {
+            coding,
+            points: constellation(coding.bits, coding.rate)?,
+            ldpc: LdpcCode::from_atsc3(table).ok()?,
+            bch: match coding.outer {
+                Outer::Bch => Some(table.bch().ok()?),
+                _ => None,
+            },
+            interleaver: BitInterleaver::new(coding.ldpc_bits, coding.rate, coding.bits).ok()?,
+            table,
+            bytes: Vec::new(),
+            outer: Vec::new(),
+            word: vec![0; coding.ldpc_bits],
+            bits: vec![0; coding.ldpc_bits],
+        })
+    }
+
+    /// The coding.
+    pub fn coding(&self) -> &PlpCoding {
+        &self.coding
+    }
+
+    /// The constellation of the cells.
+    pub fn points(&self) -> &Constellation {
+        &self.points
+    }
+
+    /// Appends to `out` the cells of the FEC block that carries the baseband packet `packet` ([`PlpCoding::packet_bytes`]
+    /// bytes, not scrambled).
+    pub fn block(&mut self, packet: &[u8], out: &mut Vec<Complex32>) {
+        let c = self.coding;
+        self.bytes.clear();
+        self.bytes.extend_from_slice(packet);
+        Scrambler::apply(&mut self.bytes);
+        let mut outer = std::mem::take(&mut self.outer);
+        outer.clear();
+        outer.extend(
+            self.bytes
+                .iter()
+                .flat_map(|&b| (0..8).rev().map(move |i| b >> i & 1)),
+        );
+        match c.outer {
+            Outer::Bch => {
+                outer.resize(c.outer_bits(), 0);
+                if let Some(bch) = &self.bch {
+                    bch.encode(&mut outer).expect("the word of the outer code");
+                }
+            }
+            Outer::Crc => {
+                let crc = crc32(&outer);
+                outer.extend((0..32).rev().map(|i| (crc >> i & 1) as u8));
+            }
+            Outer::None => {}
+        }
+        self.outer_word_cells(&outer, out)
+            .expect("the information bits of the code");
+        self.outer = outer;
+    }
+
+    /// Appends to `out` the cells of the FEC block whose outer code word is `word`: [`PlpCoding::outer_bits`] bits, one per
+    /// byte, the scrambled packet and the parity of the outer code. An error when the length is wrong.
+    pub fn outer_word_cells(&mut self, word: &[u8], out: &mut Vec<Complex32>) -> FecResult<()> {
+        let mut code = std::mem::take(&mut self.word);
+        let done = match self.table {
+            Atsc3Table::A(t) => t.encode(word, &mut code),
+            Atsc3Table::B(_) => self.ldpc.encode(word, &mut code),
+        }
+        .and_then(|()| self.code_word_cells(&code, out));
+        self.word = code;
+        done
+    }
+
+    /// Appends to `out` the cells of the LDPC code word `word` ([`PlpCoding::ldpc_bits`] bits, one per byte, in the order
+    /// that [`PlpDecoder::word`] gives). An error when the length is wrong.
+    pub fn code_word_cells(&mut self, word: &[u8], out: &mut Vec<Complex32>) -> FecResult<()> {
+        self.interleaver.interleave(word, &mut self.bits)?;
+        self.points
+            .set()
+            .map_bits(&self.bits, out)
+            .map_err(|_| sdrkit_algo_fec::FecError::InputLength {
+                expected: self.coding.ldpc_bits,
+                got: word.len(),
+            })
     }
 }
 
@@ -233,6 +341,12 @@ impl PlpDecoder {
         &self.coding
     }
 
+    /// The LDPC code word of the block decoded last as hard bits, one per byte; its first [`PlpCoding::outer_bits`] bits are
+    /// the outer code word after the BCH code corrected it.
+    pub fn word(&self) -> &[u8] {
+        &self.hard
+    }
+
     /// Demaps, quantises and de-interleaves one FEC block into `self.word`, the 8-bit LLRs of the LDPC code word. False
     /// when a length is wrong.
     fn soft_word(&mut self, cells: &[Complex32], weights: &[f32]) -> bool {
@@ -270,6 +384,7 @@ impl PlpDecoder {
         let mut result = BlockResult {
             good: false,
             iterations: 0,
+            checks_closed: false,
             outer_corrected: 0,
         };
         if !self.soft_word(cells, weights) {
@@ -277,6 +392,7 @@ impl PlpDecoder {
         }
         let ldpc = self.ldpc.decode(&self.word, max_iter, &mut self.hard);
         result.iterations = ldpc.as_ref().map_or(max_iter, |d| d.iterations);
+        result.checks_closed = ldpc.is_ok();
         let k = c.outer_bits();
         let payload = c.packet_bytes() * 8;
         result.good = match (c.outer, &mut self.bch) {

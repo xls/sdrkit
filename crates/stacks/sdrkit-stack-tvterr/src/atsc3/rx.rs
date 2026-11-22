@@ -1,8 +1,10 @@
 //! The demodulation of one ATSC 3.0 frame at 6.144 Msps: the carrier offset from the guard interval, the OFDM symbols, the
 //! channel estimate from the pilots, the equalised data cells, L1-Basic and L1-Detail, and the cells of one PLP in its
-//! subslices, subframe by subframe.
+//! subslices, subframe by subframe, with the factors of the layers
+//! on them.
 //!
-//! Standard: ATSC A/322:2023-03 clauses 6.5, 7.2, 7.3, 8.1 and 9.
+//! Standard: ATSC A/322:2023-03 clauses 6.5, 7.2, 7.3, 8.1 and 9; A/322:2026-06 clauses 6.4 and 7.2.7.4; A/327:2021 clause
+//! 6.4.2.
 
 use super::bicm::{constellation, PlpCoding};
 use super::bootstrap::{self, Fields};
@@ -13,6 +15,7 @@ use super::l1::{
 use super::layout::{
     common_pilots, frequency_interleaver, guard_samples, FftSize, PreambleStructure,
 };
+use super::tables::LDM_FACTORS;
 use super::ti::TiFrame;
 use sdrkit_algo_dsp::fft::Fft;
 use sdrkit_algo_dsp::nco::Nco;
@@ -116,7 +119,30 @@ impl FrameInfo {
     }
 }
 
-/// The chosen PLP in one subframe.
+/// An enhanced PLP within the cells of its core PLP before time interleaving.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct EnhancedPlp {
+    /// Its coding.
+    pub coding: PlpCoding,
+    /// Its first cell among the cells of the core PLP before time interleaving, and its cells.
+    pub span: (usize, usize),
+    /// The first cell of its first whole FEC block among its cells, `None` when no block begins in this subframe.
+    pub fec_block_start: Option<usize>,
+}
+
+/// The layers on the cells of a core PLP in one subframe (A/322 clause 6.4): each cell is `beta (core + alpha enhanced)`.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Layers {
+    /// The scaling factor of the enhanced layer (table 6.16).
+    pub alpha: f32,
+    /// The normalising factor of the sum (table 6.16).
+    pub beta: f32,
+    /// The enhanced PLP that is decoded. `None`: the core PLP is decoded.
+    pub enhanced: Option<EnhancedPlp>,
+}
+
+/// The chosen PLP in one subframe. For an enhanced PLP, the fields other than `layers` are those of its core PLP, whose
+/// cells carry it.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PartPlp {
     /// Its coding.
@@ -130,6 +156,8 @@ pub struct PartPlp {
     /// The first cell of its first whole FEC block, `None` when no block begins in this subframe or the PLP is time
     /// interleaved.
     pub fec_block_start: Option<usize>,
+    /// The layers on its cells, when the subframe has an enhanced layer on them.
+    pub layers: Option<Layers>,
 }
 
 /// One subframe of the frame read last.
@@ -160,7 +188,7 @@ pub struct Head {
     pub part: usize,
     /// The PLP that is decoded: its place among the PLPs of that subframe.
     pub plp: usize,
-    /// Its coding.
+    /// The coding of its cells: of its core PLP for an enhanced PLP. The fields after it are those of the same cells.
     pub coding: PlpCoding,
     /// The index of its first data cell and its data cells.
     pub span: (usize, usize),
@@ -314,6 +342,88 @@ fn subslices_of(p: &Plp, available: usize) -> Option<(usize, usize)> {
     let fits = (count == 1 || (count > 1 && interval > each))
         && start + (count - 1) * interval + last <= available;
     fits.then_some((count, interval))
+}
+
+/// The core PLP whose cells carry `p` in subframe `sub` and the layers on them: `p` itself when it is a core PLP, or the
+/// core PLP under `p` when it is enhanced. `None` when the stack does not decode `p` there.
+///
+/// Clause 7.2.7.4: each core PLP is one TI group, in the order of L1-Detail, and the start and size of an enhanced PLP
+/// count cells before time interleaving. The stack takes a subframe with an enhanced layer when its core PLPs are not
+/// dispersed and each starts where the one before ends, from cell 0, so that both counts agree; an enhanced PLP within
+/// one core PLP, with the time interleaver mode of that core PLP, no time interleaver or the hybrid one (whole FEC blocks);
+/// and one injection level on each core PLP. The hybrid time interleaver across subframes is not taken: the size of a core
+/// PLP is then not its cells before time interleaving. Without the hybrid time interleaver the enhanced PLPs must cover the whole
+/// core PLP: clause 7.2.7.4.6 gives the dummy cells of the enhanced layer for the hybrid one only.
+fn layered<'a>(sub: &'a DetailSubframe, p: &'a Plp) -> Option<(&'a Plp, Option<Layers>)> {
+    if !sub.plps.iter().any(|e| e.layer > 0) {
+        return (p.layer == 0).then_some((p, None));
+    }
+    let end = |q: &Plp| u64::from(q.start) + u64::from(q.size);
+    let mut at = 0;
+    for c in sub.plps.iter().filter(|c| c.layer == 0) {
+        let across = c.hti.is_some_and(|h| h.inter_subframe && h.ti_blocks > 0);
+        if u64::from(c.start) != at || c.dispersed != Some(false) || across {
+            return None;
+        }
+        at = end(c);
+    }
+    let core = if p.layer == 0 {
+        p
+    } else {
+        sub.plps
+            .iter()
+            .find(|c| c.layer == 0 && c.start <= p.start && end(p) <= end(c))?
+    };
+    let (mut level, mut covered) = (None, 0);
+    for e in sub.plps.iter().filter(|e| e.layer > 0) {
+        if e.start < core.start + core.size && core.start < e.start + e.size {
+            let l = e.ldm_injection_level?;
+            if level.is_some_and(|v| v != l) || e.start < core.start || end(e) > end(core) {
+                return None;
+            }
+            level = Some(l);
+            covered += u64::from(e.size);
+        }
+    }
+    let Some(level) = level else {
+        return (p.layer == 0).then_some((p, None));
+    };
+    if core.ti_mode != 2 && covered != u64::from(core.size) {
+        return None;
+    }
+    let (alpha, beta) = *LDM_FACTORS.get(usize::from(level))?;
+    if p.layer == 0 {
+        return Some((
+            p,
+            Some(Layers {
+                alpha,
+                beta,
+                enhanced: None,
+            }),
+        ));
+    }
+    let coding = PlpCoding::of(p)?;
+    let fec_block_start = match (core.ti_mode, p.ti_mode) {
+        (0, 0) => p.fec_block_start.filter(|&s| s != 0x7FFF).map(usize::from),
+        (2, 2) if (p.size as usize).is_multiple_of(coding.cells()) => Some(0),
+        _ => return None,
+    };
+    if p.scrambler != 0 || p.size == 0 {
+        return None;
+    }
+    let enhanced = EnhancedPlp {
+        coding,
+        span: ((p.start - core.start) as usize, p.size as usize),
+        fec_block_start,
+    };
+    Some((
+        core,
+        Some(Layers {
+            alpha,
+            beta,
+            enhanced: Some(enhanced),
+        }),
+    ))
 }
 
 /// Fills the channel `out` of every carrier from the estimates `grid` at every `step`-th carrier (the last carrier is one of
@@ -502,8 +612,8 @@ fn frame_samples(basic: &L1Basic, detail: &L1Detail, first: usize) -> Option<usi
 }
 
 impl FrameDecoder {
-    /// Chooses the PLP to decode by its id. `None`: the first PLP that the stack decodes and that carries low level
-    /// signalling, or without one the first PLP that the stack decodes.
+    /// Chooses the PLP to decode by its id. `None`: the first core PLP that the stack decodes and that carries low level
+    /// signalling, or without one the first core PLP that the stack decodes.
     pub fn select(&mut self, id: Option<u8>) {
         self.want = id;
     }
@@ -824,10 +934,10 @@ impl FrameDecoder {
         preamble: usize,
     ) -> HeadResult {
         self.parts.clear();
-        let Some(first) = detail.subframes.first() else {
+        if detail.subframes.is_empty() {
             let info = self.info(structure, basic, None);
             return HeadResult::Failed(NotDecoded::Signalling, Some(info));
-        };
+        }
         let info = self.info(structure, basic, Some(&detail.subframes));
         let failed = |why| HeadResult::Failed(why, Some(info.clone()));
         let count = usize::from(basic.subframes).min(detail.subframes.len());
@@ -884,16 +994,13 @@ impl FrameDecoder {
             });
             at = samples;
         }
-        if first.plps.iter().any(|p| p.layer > 0) {
-            return failed(NotDecoded::Ldm);
-        }
         // The data cells of a subframe: the active cells of its symbols and, in the first subframe, the cells of the last
         // Preamble symbol after the signalling before them.
         let leftover = self.l1.0.len() - self.data_from;
         let (plans, parts) = (&self.subframes, &mut self.parts);
         let decodable = |k: usize, p: &Plp| {
-            let sub = &detail.subframes[k];
-            if p.layer != 0 || p.scrambler != 0 || sub.plps.iter().any(|p| p.layer > 0) {
+            let (p, layers) = layered(&detail.subframes[k], p)?;
+            if p.scrambler != 0 {
                 return None;
             }
             let available = if k == 0 { leftover } else { 0 }
@@ -908,14 +1015,16 @@ impl FrameDecoder {
                 subslices: subslices_of(p, available)?,
                 ti: TiFrame::of(p)?,
                 fec_block_start: p.fec_block_start.filter(|&s| s != 0x7FFF).map(usize::from),
+                layers,
             })
         };
         let plps = |k: usize| detail.subframes[k].plps.iter();
         let id = self.want.or_else(|| {
             let taken = || (0..parts.len()).flat_map(|k| plps(k).map(move |p| (k, p)));
+            let core = |(k, p): &(usize, &Plp)| p.layer == 0 && decodable(*k, p).is_some();
             taken()
-                .find(|(k, p)| p.lls && decodable(*k, p).is_some())
-                .or_else(|| taken().find(|(k, p)| decodable(*k, p).is_some()))
+                .find(|kp| kp.1.lls && core(kp))
+                .or_else(|| taken().find(core))
                 .map(|(_, p)| p.id)
         });
         let Some(id) = id else {
@@ -933,7 +1042,14 @@ impl FrameDecoder {
             }
         }
         let Some((part, plp, first)) = carried else {
-            return failed(NotDecoded::Plp);
+            // A PLP of a subframe with an enhanced layer that the stack does not decode.
+            let layered = (0..parts.len())
+                .any(|k| plps(k).any(|p| p.id == id) && plps(k).any(|p| p.layer > 0));
+            return failed(if layered {
+                NotDecoded::Ldm
+            } else {
+                NotDecoded::Plp
+            });
         };
         let samples = parts[0].samples;
         HeadResult::Ready(Head {
@@ -1077,6 +1193,18 @@ impl FrameDecoder {
             s.h[i] = h;
             let r = p.symbol.null_low..p.symbol.null_low + p.symbol.active;
             take(&s.zx[r.clone()], &s.wx[r], out);
+        }
+        // A/327 clause 6.4.2: the cells are `beta (core + alpha enhanced)`, so after `1 / beta` the noise of a cell of
+        // weight `w` is `1 / (w beta^2)`, and the core PLP sees the enhanced layer as noise of `alpha^2` more.
+        if let Some(l) = plp.layers {
+            let (gain, scale) = (1.0 / l.beta, l.beta * l.beta);
+            let alpha2 = l.alpha * l.alpha;
+            let core = l.enhanced.is_none();
+            for (z, w) in out.cells.iter_mut().zip(&mut out.weights) {
+                *z *= gain;
+                let v = *w * scale;
+                *w = if core { v / (1.0 + v * alpha2) } else { v };
+            }
         }
         out.pilot_snr_db = 10.0 * snr.log10();
         out.cells.len() == size
@@ -1539,6 +1667,7 @@ mod tests {
                 spare: 0,
             },
             lls: false,
+            ldm: None,
         };
         let after = Atsc3GenParams {
             coding: short(8, 2, Outer::Bch),
@@ -1750,6 +1879,7 @@ mod tests {
                     spare: 0,
                 },
                 lls: false,
+                ldm: None,
             }],
             more_subframes: subframes,
             ..Atsc3GenParams::default()
@@ -2050,5 +2180,158 @@ mod tests {
         for (_, l) in lines {
             println!("{l}");
         }
+    }
+
+    /// The layouts of a subframe with an enhanced layer that the stack takes, and those that it does not.
+    #[test]
+    fn the_layers_of_a_subframe_are_taken_where_the_cell_counts_agree() {
+        // QPSK 4/15 and 64 points 10/15, both 64800-bit codes with BCH: 32 400 and 10 800 cells a block.
+        let core = Plp {
+            start: 0,
+            size: 64_800,
+            fec_type: 1,
+            modulation: Some(0),
+            code_rate: Some(2),
+            dispersed: Some(false),
+            fec_block_start: Some(0),
+            ..Plp::default()
+        };
+        let enhanced = Plp {
+            id: 1,
+            layer: 1,
+            modulation: Some(2),
+            code_rate: Some(8),
+            dispersed: None,
+            fec_block_start: Some(5),
+            ldm_injection_level: Some(8),
+            ..core
+        };
+        let sub = |plps: &[Plp]| DetailSubframe {
+            plps: plps.to_vec(),
+            ..DetailSubframe::default()
+        };
+        let layers = |plps: &[Plp], k: usize| layered(&sub(plps), &plps[k]).map(|(c, l)| (c.id, l));
+        // Clause 6.4.4: 4 dB below the core layer.
+        let (alpha, beta) = (0.630_957_3, 0.845_726_2);
+        let core_layers = Layers {
+            alpha,
+            beta,
+            enhanced: None,
+        };
+        assert_eq!(layers(&[core, enhanced], 0), Some((0, Some(core_layers))));
+        let want = EnhancedPlp {
+            coding: PlpCoding::of(&enhanced).unwrap(),
+            span: (0, 64_800),
+            fec_block_start: Some(5),
+        };
+        assert_eq!(
+            layers(&[core, enhanced], 1),
+            Some((
+                0,
+                Some(Layers {
+                    enhanced: Some(want),
+                    ..core_layers
+                })
+            ))
+        );
+        // Without an enhanced layer the core PLP is plain.
+        assert_eq!(layers(&[core], 0), Some((0, None)));
+        // An enhanced PLP within the second of two core PLPs, counted from the start of the first.
+        let first = Plp { size: 32_400, ..core };
+        let second = Plp {
+            id: 2,
+            start: 32_400,
+            size: 32_400,
+            ..core
+        };
+        let head = Plp {
+            id: 3,
+            start: 32_400,
+            size: 10_800,
+            ..enhanced
+        };
+        let inner = Plp {
+            start: 32_400 + 10_800,
+            size: 21_600,
+            ..enhanced
+        };
+        let four = [first, second, head, inner];
+        assert_eq!(layers(&four, 0), Some((0, None)));
+        assert_eq!(
+            layers(&four, 3).map(|(c, l)| (c, l.and_then(|l| l.enhanced).map(|e| e.span))),
+            Some((2, Some((10_800, 21_600))))
+        );
+        // Without the hybrid time interleaver an enhanced layer on part of a core PLP is not taken.
+        assert_eq!((layers(&[first, second, inner], 1), layers(&[first, second, inner], 2)), (None, None));
+        // The hybrid time interleaver: whole enhanced FEC blocks.
+        let hti = |p: Plp, size| Plp {
+            ti_mode: 2,
+            fec_block_start: None,
+            size,
+            ..p
+        };
+        assert_eq!(
+            layers(&[hti(core, 64_800), hti(enhanced, 54_000)], 1)
+                .and_then(|(_, l)| l?.enhanced)
+                .map(|e| e.fec_block_start),
+            Some(Some(0))
+        );
+        assert_eq!(layers(&[hti(core, 64_800), hti(enhanced, 50_000)], 1), None);
+        let across = Plp {
+            hti: Some(super::super::l1::Hti {
+                inter_subframe: true,
+                ti_blocks: 1,
+                ..Default::default()
+            }),
+            ..hti(core, 64_800)
+        };
+        let pair = [across, hti(enhanced, 54_000)];
+        assert_eq!((layers(&pair, 0), layers(&pair, 1)), (None, None));
+        // Not taken: an enhanced PLP across two core PLPs, under the convolutional time interleaver or another mode than its
+        // core PLP, a dispersed core PLP, core PLPs that do not follow each other from cell 0, two injection levels on one
+        // core PLP, and the reserved level.
+        let across = Plp {
+            start: 10_800,
+            size: 43_200,
+            ..enhanced
+        };
+        assert_eq!(layers(&[first, second, across], 2), None);
+        let cti = |p: Plp| Plp {
+            ti_mode: 1,
+            fec_block_start: None,
+            cti_fec_block_start: Some(0),
+            ..p
+        };
+        assert_eq!(layers(&[cti(core), cti(enhanced)], 1), None);
+        assert!(layers(&[cti(core), cti(enhanced)], 0).is_some());
+        assert_eq!(layers(&[core, hti(enhanced, 54_000)], 1), None);
+        let dispersed = Plp {
+            dispersed: Some(true),
+            subslices: Some((2, 40_000)),
+            ..core
+        };
+        assert_eq!(layers(&[dispersed, enhanced], 0), None);
+        let later = Plp { start: 100, ..core };
+        assert_eq!(layers(&[later, enhanced], 0), None);
+        let two = [
+            core,
+            Plp {
+                size: 10_800,
+                ..enhanced
+            },
+            Plp {
+                id: 3,
+                start: 10_800,
+                size: 10_800,
+                ldm_injection_level: Some(9),
+                ..enhanced
+            },
+        ];
+        assert_eq!((layers(&two, 0), layers(&two, 1)), (None, None));
+        let reserved = Plp {
+            ldm_injection_level: Some(31),
+            ..enhanced
+        };
+        assert_eq!((layers(&[core, reserved], 0), layers(&[core, reserved], 1)), (None, None));
     }
 }

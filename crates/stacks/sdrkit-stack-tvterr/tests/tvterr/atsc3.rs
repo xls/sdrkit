@@ -428,6 +428,7 @@ fn the_setting_chooses_the_plp() {
             interval: 70_000,
             time_interleaver: GenTi::None,
             lls: false,
+            ldm: None,
         }],
         ..Default::default()
     };
@@ -456,6 +457,57 @@ fn the_setting_chooses_the_plp() {
     assert!(receiver_of_plp(63).configure(&InputInfo::new(rate, 539e6, 539e6)).is_ok());
 }
 
+/// A core PLP with an enhanced PLP on all its cells 4 dB below it, as in A/322 clause 6.4.4 (QPSK 4/15 and 64 points
+/// 10/15): without the setting and with `plp` at 0 the stack decodes the core PLP, with `plp` at 1 the enhanced PLP after
+/// the core PLP is taken off. No baseband packet is bad.
+#[test]
+fn the_setting_chooses_a_layer() {
+    use sdrkit_stack_tvterr::atsc3::bicm::{Outer, PlpCoding};
+    use sdrkit_stack_tvterr::atsc3::gen::{GenLdm, GenPlp, GenTi};
+    let rate = 6.144e6;
+    let coding = |rate, bits| PlpCoding {
+        ldpc_bits: 64800,
+        rate,
+        bits,
+        outer: Outer::Bch,
+    };
+    let p = Atsc3GenParams {
+        rate_hz: rate,
+        coding: coding(4, 2),
+        more_plps: vec![GenPlp {
+            coding: coding(10, 6),
+            seed: 9,
+            start: 0,
+            cells: None,
+            subslices: 1,
+            interval: 0,
+            time_interleaver: GenTi::None,
+            lls: false,
+            ldm: Some(GenLdm { core: 0, level: 8 }),
+        }],
+        ..Default::default()
+    };
+    let x = common::generate(Atsc3Generator::new(p).unwrap(), 0.5);
+    // 482 596 cells a frame: 14.9 core blocks of 32 400 cells, 44.7 enhanced blocks of 10 800.
+    for (plp, id, points, per_frame) in [(-1, 0.0, 4.0, 14.0), (0, 0.0, 4.0, 14.0), (1, 1.0, 64.0, 43.0)] {
+        let mut rx = receiver_of_plp(plp);
+        let r = common::run(rx.as_mut(), rate, &x, 65536, "");
+        assert_eq!(
+            r.results.status().lock_state,
+            sdrkit_core::LockState::Locked,
+            "plp {plp}"
+        );
+        assert_eq!((r.f("plps"), r.f("plp_id")), (2.0, id), "plp {plp}");
+        assert_eq!(r.f("plp_points"), points, "plp {plp}");
+        assert_eq!(r.rows("plps"), 2);
+        assert_eq!(r.f("frames_failed"), 0.0, "plp {plp}");
+        assert!(r.f("frames_ok") >= 3.0, "plp {plp}");
+        let packets = r.f("baseband_packets") / r.f("frames_ok");
+        assert!(packets >= per_frame, "plp {plp}: {packets} packets a frame");
+        assert_eq!(r.f("baseband_packets_bad"), 0.0, "plp {plp}");
+    }
+}
+
 /// Two non-dispersed PLPs in one subframe, QPSK 8/15 with BCH and no time interleaver, and 16 points 6/15 with a CRC
 /// through the hybrid time interleaver: each decodes when the setting chooses it, and the table lists both with the
 /// coding, cells and time interleaver that L1-Detail signals, and marks the one decoded.
@@ -482,6 +534,7 @@ fn the_plp_table_lists_every_plp_of_the_subframe() {
                 spare: 0,
             },
             lls: false,
+            ldm: None,
         }],
         ..Default::default()
     };
@@ -552,6 +605,7 @@ fn the_stack_takes_every_subframe_of_a_frame() {
             interval: 0,
             time_interleaver: GenTi::None,
             lls: false,
+            ldm: None,
         }],
         more_subframes: vec![
             GenSubframe {
