@@ -578,7 +578,7 @@ fn complement(n: usize, taken: &[u32]) -> Vec<u32> {
 }
 
 /// The min-sum rule of the L1 decoder for K_sig signalling bits in cells of `m`: an offset of 1 for BPSK from 1 000 bits
-/// and for 16-QAM from 1 500 bits, with scale 16/16 below 4 300 bits and 15/16 above; else 16/16 below 1 500 bits and
+/// and for 16-QAM from 1 500 bits, with scale 16/16 below 2 800 bits (BPSK) or 4 300 bits (16-QAM) and 15/16 above; else 16/16 below 1 500 bits and
 /// 15/16 above, with no offset.
 ///
 /// Shortening and puncturing leave few sent bits per check, and a scaled message fades along the chains of punctured
@@ -587,8 +587,8 @@ fn complement(n: usize, taken: &[u32]) -> Vec<u32> {
 /// frame error rate of 0.1 over the rule without it. The other constellations were not measured with an offset.
 fn l1_rule(k_sig: usize, m: Modulation) -> MinSum {
     let (scale_q4, offset) = match (m, k_sig) {
-        (Modulation::Bpsk, 1000..4300) | (Modulation::Qam16, 1500..4300) => (16, 1),
-        (Modulation::Bpsk | Modulation::Qam16, 4300..) => (15, 1),
+        (Modulation::Bpsk, 1000..2800) | (Modulation::Qam16, 1500..4300) => (16, 1),
+        (Modulation::Bpsk, 2800..) | (Modulation::Qam16, 4300..) => (15, 1),
         (_, 0..1500) => (16, 0),
         _ => (15, 0),
     };

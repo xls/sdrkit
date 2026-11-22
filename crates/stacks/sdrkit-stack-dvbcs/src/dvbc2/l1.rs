@@ -356,12 +356,12 @@ pub const L1_LDPC_PARITY: usize = 9000;
 pub const L1_MAX_BLOCK: usize = 4759;
 
 /// The min-sum rule of the L1 decoder for K_sig signalling bits: scale 15/16 below 1 500 bits, 16/16 less 1 below 2 300
-/// bits, else 14/16.
+/// bits, else 15/16 less 1.
 ///
 /// Shortening and puncturing leave few sent bits per check, and a scaled message fades along the chains of punctured
 /// parity bits. Measured with `scale::l1_words` (16-QAM, a word lost when BCH fails): 15/16 is best at K_sig 332, where an
-/// offset costs 0.5 dB; 16/16 less 1 gains 0.11 dB over 15/16 at 1 632; at 3 032 and 4 632 an offset gains less than
-/// 0.1 dB over 14/16.
+/// offset costs 0.5 dB; 16/16 less 1 gains 0.11 dB over 15/16 at 1 632; at 3 032 and 4 632 15/16 less 1 gains 0.07 dB to
+/// 0.10 dB over 14/16 and loses fewer words above the threshold.
 fn l1_rule(k_sig: usize) -> MinSum {
     match k_sig {
         0..1500 => MinSum::with_scale(15),
@@ -369,7 +369,10 @@ fn l1_rule(k_sig: usize) -> MinSum {
             scale_q4: 16,
             offset: 1,
         },
-        _ => MinSum::with_scale(14),
+        _ => MinSum {
+            scale_q4: 15,
+            offset: 1,
+        },
     }
 }
 
