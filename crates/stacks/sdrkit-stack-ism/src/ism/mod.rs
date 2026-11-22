@@ -6,6 +6,7 @@ pub mod analyser;
 pub mod checks;
 pub mod detect;
 pub mod devices;
+pub mod encode;
 pub mod gen;
 pub mod protocols;
 pub mod pulsegen;

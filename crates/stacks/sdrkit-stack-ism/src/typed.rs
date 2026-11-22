@@ -444,48 +444,165 @@ pub static ISM_PULSE_FRAMES: Table<IsmPulseFrameRow<'static>> =
 pub static ISM_PULSE_FRAME: EventKind<IsmPulseFrameEvent<'static>> =
     EventKind::new("ism.pulse_frame", "Pulse frame");
 
-/// The arguments of `send` of the ISM sensor stack.
+/// The arguments of `send` of the ISM sensor stack. Each family reads only the arguments its help names; the values are
+/// those that the stack reports for the family.
 #[derive(Arguments)]
-pub struct IsmSendArgs {
+pub struct IsmSendArgs<'a> {
     /// The device family.
     #[arg(shared = crate::ism::send::FAMILY)]
     pub family: Option<crate::ism::send::IsmFamily>,
     /// The id of the device.
     #[arg(
         label = "ID",
-        help = "Remote: 1 to 65535, the first 16 bits of the code. TX141TH-Bv2: 1 to 255."
+        help = "The id as the stack reports it, as a number (an id shown in hex is the same number). Remote: 1 to 65535, \
+                the first 16 bits of the code. A family with a raw payload takes its id from the payload."
     )]
     pub id: i64,
     /// The command of a remote.
     #[arg(label = "Command", help = "Remote: 1 to 255, the last 8 bits of the code.", default = 1, min = 1, max = 255, step = 1)]
     pub command: Option<i64>,
     /// The channel of a sensor.
-    #[arg(label = "Channel", help = "TX141TH-Bv2: 0 to 3.", default = 1, min = 0, max = 3, step = 1)]
+    #[arg(
+        label = "Channel",
+        help = "As the stack reports it. TX141TH-Bv2 0 to 3; Nexus and Prologue 1 to 4; Acurite tower 1 to 3 (A, B, C); \
+                F007TH 1 to 8; Oregon 0 to 15; Bresser 6-in-1 0 to 7.",
+        default = 1,
+        min = 0,
+        max = 15,
+        step = 1
+    )]
     pub channel: Option<i64>,
     /// Whether the battery of a sensor is good.
-    #[arg(label = "Battery good", help = "TX141TH-Bv2: clear sends the battery-low bit.", default = true)]
+    #[arg(label = "Battery good", help = "Clear sends the battery-low state of the family.", default = true)]
     pub battery_ok: Option<bool>,
     /// The temperature of a sensor.
     #[arg(
         label = "Temperature",
         unit = "°C",
-        help = "TX141TH-Bv2: -40 to 140, in tenths.",
+        help = "Sent in the resolution of the family (tenths of °C, or tenths of °F for F007TH); each family refuses a value \
+                outside its range.",
         default = 20.0,
-        min = -40.0,
+        min = -50.0,
         max = 140.0,
         step = 0.1
     )]
     pub temperature: Option<f64>,
     /// The humidity of a sensor.
-    #[arg(label = "Humidity", unit = "%", help = "TX141TH-Bv2: 1 to 100.", default = 50, min = 1, max = 100, step = 1)]
+    #[arg(
+        label = "Humidity",
+        unit = "%",
+        help = "1 to 100 (Oregon, Bresser: to 99). 0 sends no humidity where the family has a value for that (Nexus-T, \
+                TX29-IT, TX35DTH-IT, Acurite tower, WH24, Prologue).",
+        default = 50,
+        min = 0,
+        max = 100,
+        step = 1
+    )]
     pub humidity: Option<i64>,
+    /// The mean wind speed.
+    #[arg(
+        label = "Wind speed",
+        unit = "m/s",
+        help = "WH1080 (units of 0.34 m/s), WH24 (0.14 m/s), Bresser 5-in-1 and 6-in-1 (0.1 m/s).",
+        default = 0.0,
+        min = 0.0,
+        max = 99.9,
+        step = 0.1
+    )]
+    pub wind_speed: Option<f64>,
+    /// The wind gust.
+    #[arg(
+        label = "Wind gust",
+        unit = "m/s",
+        help = "WH1080 (units of 0.34 m/s), WH24 (1.12 m/s), Bresser 5-in-1 and 6-in-1 (0.1 m/s).",
+        default = 0.0,
+        min = 0.0,
+        max = 285.0,
+        step = 0.1
+    )]
+    pub wind_gust: Option<f64>,
+    /// The wind direction.
+    #[arg(
+        label = "Wind direction",
+        unit = "°",
+        help = "From north. WH1080 and Bresser 5-in-1 send one of 16 directions, WH24 and Bresser 6-in-1 whole degrees.",
+        default = 0.0,
+        min = 0.0,
+        max = 359.0,
+        step = 1.0
+    )]
+    pub wind_dir: Option<f64>,
+    /// The rain count.
+    #[arg(
+        label = "Rain",
+        unit = "mm",
+        help = "WH1080 (units of 0.3 mm), WH24 (0.3 mm), Bresser 5-in-1 (0.1 mm, at most 999.9).",
+        default = 0.0,
+        min = 0.0,
+        max = 19660.5,
+        step = 0.1
+    )]
+    pub rain: Option<f64>,
+    /// The UV index.
+    #[arg(
+        label = "UV index",
+        help = "Bresser 6-in-1 (tenths, at most 99.9); WH24 (whole index 0 to 13).",
+        default = 0.0,
+        min = 0.0,
+        max = 99.9,
+        step = 0.1
+    )]
+    pub uv: Option<f64>,
+    /// The light level.
+    #[arg(label = "Light", unit = "lx", help = "WH24, in tenths of a lux.", default = 0.0, min = 0.0, max = 1_677_721.4, step = 0.1)]
+    pub light: Option<f64>,
+    /// The tyre pressure.
+    #[arg(
+        label = "Pressure",
+        unit = "kPa",
+        help = "Schrader (units of 2.5 kPa), Toyota (0.25 PSI from -7 PSI), Renault (0.75 kPa), Ford (0.25 PSI).",
+        default = 0.0,
+        min = 0.0,
+        max = 1000.0,
+        step = 0.01
+    )]
+    pub pressure: Option<f64>,
+    /// The flags of a tyre sensor.
+    #[arg(
+        label = "Flags",
+        help = "Schrader: the 8 flag bits. Renault: the 6 flag bits. Toyota: the status (bit 7 and bits 6-0).",
+        default = 0,
+        min = 0,
+        max = 255,
+        step = 1
+    )]
+    pub flags: Option<i64>,
+    /// The current of a clamp.
+    #[arg(label = "Current", unit = "A", help = "Efergy e2: 0 to 511 A.", default = 0.0, min = 0.0, max = 511.0, step = 0.01)]
+    pub current: Option<f64>,
+    /// The report interval.
+    #[arg(label = "Interval", unit = "s", help = "Efergy e2: 6, 12, 18 or 24 s.", default = 6, min = 6, max = 24, step = 6)]
+    pub interval: Option<i64>,
+    /// The power of a meter.
+    #[arg(label = "Power", unit = "W", help = "CurrentCost TX: power 0, 0 to 32767 W.", default = 0, min = 0, max = 32767, step = 1)]
+    pub power: Option<i64>,
+    /// The frame octets of a family with a raw payload.
+    #[arg(
+        label = "Payload",
+        help = "The octets as pairs of hex digits, spaces allowed, as the stack reads them; the checks are added. Acurite \
+                tower family: 5 to 9 octets (the message without its checksum; the parity bits are set). Bresser 3CH: 4 \
+                octets. Citroen: octets 0 to 8. Schrader EG53MA4: 14 octets (5 before the message, then octets 0 to 8; the \
+                first bit is 0). Bresser 7-in-1: octets 2 to 24 before whitening.",
+        default = ""
+    )]
+    pub payload: Option<&'a str>,
 }
 
 /// Sends the frames of a sensor or a remote.
-pub const ISM_SEND: CommandKind<IsmSendArgs> = CommandKind::new("send", "Send a frame")
+pub const ISM_SEND: CommandKind<IsmSendArgs<'static>> = CommandKind::new("send", "Send a frame")
     .help(
-        "Sends one transmission of the device family (its copies of the frame, as the device sends them) as OOK on the \
-         tuned frequency. Transmissions sent during one wait for it. Transmit must be on.",
+        "Sends one transmission of the device family (its copies of the frame, as the device sends them) on the tuned \
+         frequency, as OOK or FSK by the family. Transmissions sent during one wait for it. Transmit must be on.",
     )
     .transmits(sdrkit_core::TxContent::Frame)
     .stopped_by("halt");
@@ -611,7 +728,7 @@ pub static DSRC_FRAME: EventKind<DsrcFrameEvent<'static>> =
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("ism", 1, 1)
+        Described::new("ism", 1, 2)
             .uses(sdrkit_proto_ookdev::components::interface())
             .stack(ism())
             .stack(wmbus())
@@ -630,8 +747,13 @@ pub fn family() -> &'static Described {
             .stack(npr70())
             .stack(dsrc_toll())
             .added(1, 1, ADDED_1_1)
+            .added(1, 2, ADDED_1_2)
     })
 }
+
+/// What version 1.2 added: the keys of secured frames of the stack `zigbee`. The device families of the `ism` sender and the
+/// security arguments of the `zigbee` sender are new options and optional arguments of the `send` of version 1.1.
+const ADDED_1_2: &[&str] = &["zigbee.setting.keys"];
 
 /// What version 1.1 added: the senders of the stacks `ism`, `wmbus`, `zwave`, `zigbee`, `ant` and `wisun`.
 const ADDED_1_1: &[&str] = &[
@@ -1776,13 +1898,59 @@ pub struct ZigbeeSendArgs<'a> {
     /// Whether the frame asks for an acknowledgement.
     #[arg(label = "Ack requested", help = "Sets the acknowledgement request bit.", default = false)]
     pub ack: Option<bool>,
+    /// The security level.
+    #[arg(
+        label = "Security level",
+        help = "0 for none. 1 to 3: a MIC of 4, 8 or 16 octets; 4: encryption only; 5 to 7: encryption and a MIC of 4, 8 \
+                or 16 octets. A secured frame needs the key and an extended source address.",
+        default = 0,
+        min = 0,
+        max = 7,
+        step = 1
+    )]
+    pub security_level: Option<i64>,
+    /// The key of a secured frame.
+    #[arg(label = "Key", help = "The AES-128 key of a secured frame as 32 hex digits.", default = "")]
+    pub key: Option<&'a str>,
+    /// The frame counter of a secured frame.
+    #[arg(
+        label = "Frame counter",
+        help = "The frame counter of the auxiliary security header: 0 to 4294967295.",
+        default = 0,
+        min = 0,
+        max = 4_294_967_295i64,
+        step = 1
+    )]
+    pub frame_counter: Option<i64>,
+    /// The key identifier mode of a secured frame.
+    #[arg(
+        label = "Key identifier mode",
+        help = "0: the key is known from the addresses; 1: a key index; 2: a 4-octet key source and a key index; 3: an \
+                8-octet key source and a key index.",
+        default = 1,
+        min = 0,
+        max = 3,
+        step = 1
+    )]
+    pub key_id_mode: Option<i64>,
+    /// The key index of a secured frame.
+    #[arg(label = "Key index", help = "Key identifier modes 1 to 3: 1 to 255.", default = 1, min = 1, max = 255, step = 1)]
+    pub key_index: Option<i64>,
+    /// The key source of a secured frame.
+    #[arg(
+        label = "Key source",
+        help = "Key identifier mode 2: 8 hex digits; mode 3: 16 hex digits; sent in the order given.",
+        default = ""
+    )]
+    pub key_source: Option<&'a str>,
 }
 
 /// Sends an IEEE 802.15.4 MAC frame.
 pub const ZIGBEE_SEND: CommandKind<ZigbeeSendArgs<'static>> = CommandKind::new("send", "Send a frame")
     .help(
-        "Sends an IEEE 802.15.4 MAC frame (frame version 2003, no security) on the tuned frequency. With both \
-         addresses the source PAN id is left out. Frames sent during a frame wait for it. Transmit must be on.",
+        "Sends an IEEE 802.15.4 MAC frame on the tuned frequency: frame version 2003 without security, frame version 2006 \
+         with the auxiliary security header and CCM* at the security level. With both addresses the source PAN id is \
+         left out. Frames sent during a frame wait for it. Transmit must be on.",
     )
     .transmits(sdrkit_core::TxContent::Frame)
     .stopped_by("halt");

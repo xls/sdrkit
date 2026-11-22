@@ -1,7 +1,9 @@
 //! Zigbee and IEEE 802.15.4 on 2.4 GHz (`zigbee`): O-QPSK chips, frames with their FCS, the MAC, Zigbee NWK and APS headers,
-//! beacons and device announcements. Secured payloads are shown as encrypted, and no key is used.
+//! beacons and device announcements. A secured MAC frame opens with a key of the setting `keys` ([`security`]); without
+//! one its payload is shown as encrypted.
 //! Standard: IEEE 802.15.4-2020 clause 12 (2450 MHz O-QPSK) and clause 7 (MAC frames), Zigbee specification R22 (NWK, APS).
 
+pub mod security;
 pub mod send;
 
 use crate::family::{at_least_value, min_rate_message, set_status, CleanScene, REPORT_S};
@@ -717,18 +719,65 @@ fn cluster_name(profile: u16, c: u16) -> String {
 /// Describes a PSDU without its FCS.
 pub fn describe(b: &[u8]) -> Option<Described> {
     let mac = mac154::parse(b)?;
+    let end = b.len() - mac.aux.as_ref().map_or(0, |a| a.mic_len).min(b.len());
+    let pay = b.get(mac.hdr_len..end).unwrap_or(&[]);
+    describe_mac(mac, pay, false)
+}
+
+/// Describes a PSDU without its FCS, opening a secured frame of version 2006 with the first of `keys` that passes its MIC
+/// (level 4 has none: the first key). `ext` gives the extended address of a short source address in a PAN, for the nonce.
+pub fn describe_keyed(
+    b: &[u8],
+    keys: &[sdrkit_algo_crypto::AesKey],
+    ext: impl Fn(u16, Option<u16>) -> Option<u64>,
+) -> Option<Described> {
+    let mac = mac154::parse(b)?;
+    // The frame version 2006 security only: other versions keep their plain description.
+    let Some(aux) = mac.aux.clone().filter(|_| !keys.is_empty() && mac.version == 1) else {
+        return describe(b);
+    };
+    let src = match mac.src {
+        Addr::Ext(e) => Some(e),
+        Addr::Short(s) => ext(s, mac154::pan_of(&mac)),
+        Addr::None => None,
+    };
+    let Some(src) = src else {
+        let mut d = describe(b)?;
+        d.text.push_str(", source EUI-64 not known");
+        return Some(d);
+    };
+    match security::open(b, &mac, src, keys) {
+        Some((plain, k)) => {
+            let encrypted = mac.encrypted();
+            let mut d = describe_mac(mac, &plain, true)?;
+            d.encrypted |= encrypted;
+            let how = match aux.level {
+                4 => "decrypted, no MIC to check",
+                l if l > 4 => "decrypted",
+                _ => "MIC good",
+            };
+            let _ = write!(d.text, ", {how} (key {})", k + 1);
+            Some(d)
+        }
+        None => {
+            let mut d = describe(b)?;
+            d.text.push_str(", no key fits");
+            Some(d)
+        }
+    }
+}
+
+/// Describes the MAC payload `pay` (without its MIC) of a frame with header `mac`; `plain` when an encrypted payload was
+/// decrypted.
+fn describe_mac(mac: mac154::Mac, pay: &[u8], plain: bool) -> Option<Described> {
     let mut d = Described {
         pan: None,
         ..Default::default()
     };
-    let pay = &b[mac.hdr_len.min(b.len())..];
     d.pan = mac154::pan_of(&mac);
     let seq = mac.seq.unwrap_or(0);
-    if mac.encrypted() {
-        let n = pay
-            .len()
-            .saturating_sub(mac.aux.as_ref().map_or(0, |a| a.mic_len));
-        d.text = format!("{}, MAC payload encrypted ({n} bytes)", mac.type_name());
+    if mac.encrypted() && !plain {
+        d.text = format!("{}, MAC payload encrypted ({} bytes)", mac.type_name(), pay.len());
         d.encrypted = true;
         d.mac = mac;
         return Some(d);
@@ -1402,10 +1451,15 @@ impl Devices {
 }
 
 impl Store {
-    /// Takes a good frame. Returns the event of a new PAN.
-    fn frame(&mut self, f: &Frame154, at: Stamp) -> Option<Event> {
+    /// Takes a good frame, opening a secured one with `keys`. Returns the event of a new PAN.
+    fn frame(&mut self, f: &Frame154, at: Stamp, keys: &[sdrkit_algo_crypto::AesKey]) -> Option<Event> {
         let n = f.psdu.len();
-        let ds = describe(&f.psdu[..n.saturating_sub(2)])?;
+        let devices = &self.devices;
+        let ext = |short: u16, pan: Option<u16>| {
+            let id = devices.find(Some(short), None, pan)?;
+            devices.table.get(&id)?.ext
+        };
+        let ds = describe_keyed(&f.psdu[..n.saturating_sub(2)], keys, ext)?;
         self.good += 1;
         let m = &ds.mac;
         self.per_type[(m.ftype & 7) as usize] += 1;
@@ -1541,6 +1595,11 @@ const SCAN: Setting<field::Bool> = Setting::new("scan", "Scan channels 11 to 26"
 /// The time on each channel of a scan.
 pub const DWELL: Setting<field::Duration> =
     Setting::new("dwell", "Scan dwell", "s", 5.0).range(1.0, 60.0, 1.0);
+/// The keys that open secured MAC frames.
+pub const KEYS: Setting<field::Text> = Setting::new("keys", "Keys (kept in memory only)", "", "").help(
+    "AES-128 keys of 32 hex digits, separated by ';', tried in turn on each secured MAC frame (IEEE 802.15.4 CCM*). \
+     Empty: secured payloads are shown as encrypted.",
+);
 
 sdrkit_core::settings! {
     /// The tuning settings of [`Tables`].
@@ -1551,6 +1610,8 @@ sdrkit_core::settings! {
         Scan = SCAN,
         /// The scan dwell.
         Dwell = DWELL,
+        /// The keys of secured frames.
+        Keys = KEYS,
     }
 }
 
@@ -1582,6 +1643,8 @@ pub struct Tables {
     want_channel: u32,
     scan: bool,
     dwell_s: f64,
+    keys_text: String,
+    keys: Vec<sdrkit_algo_crypto::AesKey>,
     configured: bool,
     live: bool,
 }
@@ -1618,6 +1681,8 @@ impl Default for Tables {
             want_channel: 11,
             scan: false,
             dwell_s: 5.0,
+            keys_text: String::new(),
+            keys: Vec::new(),
             configured: false,
             live: false,
         }
@@ -1740,7 +1805,7 @@ impl Component for Tables {
         for f in io.items::<Frame154>(0) {
             let at = self.stamp(f.value.time);
             self.now = self.now.max(f.value.time);
-            if let Some(e) = self.store.frame(&f.value, at) {
+            if let Some(e) = self.store.frame(&f.value, at, &self.keys) {
                 self.events.push(e);
             }
             self.last = Some((f.value.level_db, f.value.snr_db, f.value.offset_hz));
@@ -1786,6 +1851,12 @@ impl Component for Tables {
             }
             TablesSetting::Scan => self.scan = SCAN.read(id, v)?,
             TablesSetting::Dwell => self.dwell_s = DWELL.read(id, v)?,
+            TablesSetting::Keys => {
+                let t = KEYS.read(id, v)?;
+                self.keys = security::keys_of(t).ok_or(SettingError::Malformed { id, at: None })?;
+                t.clone_into(&mut self.keys_text);
+                return Ok(Applied::Live);
+            }
         }
         self.tune_request();
         Ok(Applied::Live)
@@ -1798,6 +1869,7 @@ impl Component for Tables {
             ),
             (TablesSetting::Scan, Value::Bool(self.scan)),
             (TablesSetting::Dwell, Value::Duration(self.dwell_s)),
+            (TablesSetting::Keys, Value::Text(self.keys_text.clone())),
         ])
     }
     fn commands(&self) -> &Commands {
@@ -1901,6 +1973,8 @@ sdrkit_core::settings! {
         Scan = SCAN,
         /// The scan dwell.
         Dwell = DWELL,
+        /// The keys of secured frames.
+        Keys = KEYS,
         /// Every frame with a bad FCS in the test signal.
         GenBadFcs = GEN_BAD_FCS,
         /// The level of the adjacent transmitter of the test signal.
@@ -1951,6 +2025,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route(CHANNEL_SETTING.key(), &["tables.channel"])?
         .route(SCAN.key(), &["tables.scan"])?
         .route(DWELL.key(), &["tables.dwell"])?
+        .route(KEYS.key(), &["tables.keys"])?
         .route(crate::tx::TX_LEVEL.key(), &["sender.tx_level"])?
         .command("clear", sdrkit_graph::CommandTarget::of("tables", "clear"))
         .command(
@@ -2096,7 +2171,7 @@ pub static ZIGBEE: StackDescriptor = StackDescriptor {
     id: "zigbee",
     name: "Zigbee / 802.15.4",
     group: "IoT, 2.4 GHz",
-    blurb: "IEEE 802.15.4 frames on 2.4 GHz channels 11 to 26: MAC headers, beacons, Zigbee NWK and APS headers and device announcements; secured payloads shown as encrypted.",
+    blurb: "IEEE 802.15.4 frames on 2.4 GHz channels 11 to 26: MAC headers, beacons, Zigbee NWK and APS headers and device announcements; secured MAC frames opened with the keys of the setting `keys`, else shown as encrypted.",
     tuning: Tuning { min_hz: 2405e6, max_hz: 2480e6, tune_offset_hz: 1e6, ..Tuning::anywhere(2405e6, 4e6, 4e6, 2e6) },
     submodes: &[],
     settings: ZigbeeSetting::schema,

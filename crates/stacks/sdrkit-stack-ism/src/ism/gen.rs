@@ -1,17 +1,13 @@
 //! The `ism` test signal: test devices encode their frames as pulse trains, and each train keys a clean carrier (OOK) or moves
 //! a carrier between two tones (FSK) in a scene of several devices.
 
-use super::checks::{CRC8_31, CRC8_SCHRADER, CRC8_TOYOTA};
-use super::protocols::reflect_nibbles;
+use super::encode::{self as enc, bits_of, fsk};
 use crate::family::CleanScene;
 use sdrkit_algo_sim::modulate::{Fm, Ook};
 use sdrkit_algo_sim::scene::{Burst, Scene};
 use sdrkit_core::{Complex32, SignalInfo};
-use sdrkit_proto_ookdev::{encode, Modulation, Pulse, Train};
-use sdrkit_util_bits::checksum::{lfsr_digest16, lfsr_digest8, lfsr_digest8_reflect, sum8};
-use sdrkit_util_bits::crc::catalog::{CRC8_NRSC_5, CRC8_SMBUS};
+use sdrkit_proto_ookdev::{Modulation, Train};
 use sdrkit_util_bits::line::{Manchester, ManchesterConv};
-use sdrkit_util_bits::pack::{unpack, BitOrder};
 
 /// The rate the test trains are counted at: one sample is one microsecond.
 pub const TRAIN_RATE_HZ: f64 = 1e6;
@@ -157,56 +153,6 @@ impl TestDevice {
     }
 }
 
-fn bits_of(b: &[u8]) -> Vec<u8> {
-    let mut v = Vec::with_capacity(8 * b.len());
-    unpack(b, BitOrder::Msb, &mut v);
-    v
-}
-
-fn train(m: Modulation) -> Train {
-    Train::new(m, TRAIN_RATE_HZ)
-}
-
-fn push(t: &mut Train, mark_us: f32, space_us: f32) {
-    t.pulses
-        .push(Pulse::new(t.samples(mark_us), t.samples(space_us)));
-}
-
-fn set_last_space(t: &mut Train, space_us: f32) {
-    let s = t.samples(space_us);
-    if let Some(p) = t.pulses.last_mut() {
-        p.space = s;
-    }
-}
-
-/// Manchester "1 = high then low" (the Thomas convention) with half-bit `half_us`, as OOK.
-fn manchester_ook(bits: &[u8], half_us: f32) -> Train {
-    let mut t = train(Modulation::Ook);
-    let mut chips = Vec::new();
-    encode::manchester(bits, ManchesterConv::Thomas, half_us, &mut chips, &mut t);
-    t
-}
-
-/// The IEEE 802.3 Manchester chips of `bits` (1 is 01), which some devices send as plain bits.
-fn ieee_chips(bits: &[u8]) -> Vec<u8> {
-    let mut v = Vec::with_capacity(2 * bits.len());
-    Manchester::encode(bits, ManchesterConv::Ieee, &mut v);
-    v
-}
-
-fn fsk(levels: &[u8], bit_us: f32, dev: f64) -> Train {
-    let mut t = train(Modulation::Fsk);
-    t.deviation_hz = dev;
-    encode::nrz(levels, bit_us, &mut t);
-    t
-}
-
-fn oregon_checksum(m: &mut [u8]) {
-    let c = sdrkit_util_bits::checksum::nibble_sum(m, 15);
-    m[7] = (m[7] & 0xF0) | (c & 0xF);
-    m[8] = (c >> 4) << 4 | (m[8] & 0xF);
-}
-
 /// The bytes of a Z-Wave test MPDU for transmission `k`.
 pub fn zwave_mpdu(d: TestDevice, k: u64) -> Vec<u8> {
     let seq = (k % 16) as u8;
@@ -265,327 +211,78 @@ pub fn wmbus_frame(k: u64) -> Vec<u8> {
     ]
 }
 
-/// The train of a LaCrosse TX141TH-Bv2: 12 copies, each 4 sync pulses of 833 µs and the 40 bits in PWM (a 1 is 417 µs
-/// on, 208 µs off): the id, the battery-low bit, the channel (0 to 3) and the 12-bit temperature `raw` (tenths of °C plus
-/// 500), the humidity and the LFSR digest (generator 0x31, key 0xF4) of the 4 octets before it.
-pub fn tx141th_train(id: u8, channel: u8, battery_ok: bool, raw: u16, humidity: u8) -> Train {
-    let low = if battery_ok { 0 } else { 0x80 };
-    let mut b = [id, low | (channel & 3) << 4 | ((raw >> 8) as u8 & 0xF), raw as u8, humidity, 0];
-    b[4] = lfsr_digest8_reflect(&b[0..4], 0x31, 0xF4);
-    let bits = bits_of(&b);
-    let mut tr = train(Modulation::Ook);
-    for _ in 0..12 {
-        for _ in 0..4 {
-            push(&mut tr, 833.0, 833.0);
-        }
-        encode::pwm(&bits, (417.0, 208.0), (208.0, 417.0), &mut tr);
-    }
-    tr
-}
-
-/// The train of a PT2262 / EV1527 remote: 6 copies of the 24 bits of `code` in PWM (a 1 is 1404 µs on, 464 µs off), each
-/// ended by a 464 µs sync pulse and 14 ms of silence.
-pub fn ev1527_train(code: [u8; 3]) -> Train {
-    let bits = bits_of(&code);
-    let mut tr = train(Modulation::Ook);
-    for _ in 0..6 {
-        encode::pwm(&bits, (1404.0, 464.0), (464.0, 1404.0), &mut tr);
-        push(&mut tr, 464.0, 14000.0);
-    }
-    tr
-}
-
 /// The train of test device `d` for transmission `k`, as a receiver passes it to the protocols (lengths at 1 MHz).
 pub fn device_train(d: TestDevice, k: u64) -> Train {
     match d {
-        TestDevice::Nexus => {
-            let t = 213 + (k % 4) as u16;
-            let b = [0x5Au8, 0x90 | ((t >> 8) as u8 & 0xF), t as u8, 0xF2, 0xD0];
-            let bits = &bits_of(&b)[..36];
-            let mut tr = train(Modulation::Ook);
-            for _ in 0..12 {
-                encode::ppm(bits, 500.0, 1000.0, 2000.0, &mut tr);
-                push(&mut tr, 500.0, 4000.0);
-            }
-            tr
-        }
-        TestDevice::Tx141th => tx141th_train(0x3C, 1, true, 187 + (k % 3) as u16 + 500, 62),
-        TestDevice::AcuriteTower => {
-            let t = 1225 + (k % 3) as u16;
-            // Bytes 2 to 5 each carry an even parity bit in their top bit.
-            let par = |x: u8| if x.count_ones() % 2 == 1 { x | 0x80 } else { x };
-            let mut b = [
-                0xD2u8,
-                0x34,
-                par(0x44),
-                par(55),
-                par((t >> 7) as u8 & 0x7F),
-                par(t as u8 & 0x7F),
-                0,
-            ];
-            b[6] = sum8(&b[0..6]);
-            let bits = bits_of(&b);
-            let mut tr = train(Modulation::Ook);
-            for r in 0..3 {
-                for _ in 0..4 {
-                    push(&mut tr, 620.0, 596.0);
-                }
-                encode::pwm(&bits, (408.0, 204.0), (220.0, 392.0), &mut tr);
-                if r < 2 {
-                    set_last_space(&mut tr, 2192.0);
-                }
-            }
-            tr
-        }
-        TestDevice::Wh1080 => {
-            let t = 124 + (k % 3) as u16 + 400;
-            let mut b = [
-                0xFFu8,
-                0xA7,
-                0xB0 | ((t >> 8) as u8 & 3),
-                t as u8,
-                71,
-                3,
-                7,
-                0x01,
-                0x23,
-                0x04,
-                0,
-            ];
-            b[10] = CRC8_NRSC_5.checksum(&b[0..10]);
-            let mut tr = train(Modulation::Ook);
-            encode::pwm(&bits_of(&b), (544.0, 1036.0), (1524.0, 1036.0), &mut tr);
-            tr
-        }
-        TestDevice::F007th => {
-            let t = 685 + (k % 3) as u16 + 400;
-            let mut b = [0x45u8, 0x9C, 0x20 | ((t >> 8) as u8 & 0xF), t as u8, 40, 0];
-            b[5] = lfsr_digest8(&b[0..5], 0x98, 0x3E) ^ 0x64;
-            let mut bits = vec![0u8; 15];
-            bits.push(1);
-            bits.extend(bits_of(&b));
-            manchester_ook(&bits, 500.0)
-        }
-        TestDevice::OregonV3 => {
-            let tenths = 6 + (k % 2) as u8;
-            let mut m = [
-                0xF8u8,
-                0x24,
-                0x15,
-                0xA0,
-                (tenths << 4) | 9,
-                0x10,
-                0x25,
-                0x00,
-                0x00,
-            ];
-            oregon_checksum(&mut m);
-            let mut bits = vec![0u8; 24];
-            bits.extend_from_slice(&[0, 1, 0, 1]);
-            for x in m {
-                bits.extend(bits_of(&[reflect_nibbles(x)]));
-            }
-            manchester_ook(&bits, 488.0)
-        }
-        TestDevice::OregonV21 => {
-            let tenths = 2 + (k % 2) as u8;
-            let mut m = [
-                0x1Du8,
-                0x20,
-                0x1E,
-                0x30,
-                (tenths << 4) | 5,
-                0x00,
-                0x08,
-                0x00,
-                0x00,
-            ];
-            oregon_checksum(&mut m);
-            let mut data = Vec::new();
-            for x in m {
-                data.extend(bits_of(&[reflect_nibbles(x)]));
-            }
-            data.truncate(68);
-            let mut bits = bits_of(&[0x55, 0x55, 0x55, 0x55, 0x99]);
-            bits.extend(ieee_chips(&data));
-            manchester_ook(&bits, 488.0)
-        }
-        TestDevice::Schrader => {
-            let mut b = [0x00u8, 0xB1, 0xA2, 0xB3, 0xC4, 92 + (k % 2) as u8, 75, 0];
-            b[7] = CRC8_SCHRADER.checksum(&b[0..7]);
-            let mut bits = vec![0u8, 1, 1, 1];
-            bits.extend(bits_of(&b));
-            manchester_ook(&bits, 120.0)
-        }
-        TestDevice::Ev1527 => ev1527_train([0x5A, 0x3C, 0x81]),
-        TestDevice::Toyota => {
-            let p1 = 156 + (k % 2) as u8;
-            let tt = 62u8;
-            let mut b = [
-                0xA1u8,
-                0xB2,
-                0xC3,
-                0xD4,
-                p1 >> 1,
-                ((p1 & 1) << 7) | (tt >> 1),
-                (tt & 1) << 7,
-                !p1,
-                0,
-            ];
-            b[8] = CRC8_TOYOTA.checksum(&b[0..8]);
-            let mut data = bits_of(&b);
-            data.extend_from_slice(&[0, 0, 0, 0]);
-            // The preamble, then the data in FM0 (biphase space): a level change at each cell start, and one in the middle for a 0.
-            let mut bits: Vec<u8> = "01010101001111".bytes().map(|c| c - b'0').collect();
-            let mut lvl = 1u8;
-            for d in data {
-                let a = 1 - lvl;
-                let c = if d != 0 { a } else { 1 - a };
-                bits.push(a);
-                bits.push(c);
-                lvl = c;
-            }
-            fsk(&bits, 52.0, 30e3)
-        }
-        TestDevice::Renault | TestDevice::Ford => {
-            let b: Vec<u8> = if d == TestDevice::Renault {
-                let pr = 333 + (k % 2) as u16;
-                let mut b = vec![
-                    (0x34 << 2) | (pr >> 8) as u8,
-                    pr as u8,
-                    48,
-                    0xEE,
-                    0xFF,
-                    0xC0,
-                    0xFF,
-                    0xFF,
-                    0,
-                ];
-                b[8] = CRC8_SMBUS.checksum(&b[0..8]);
-                b
-            } else {
-                let mut b = vec![0x12, 0xAB, 0x34, 0xCD, 140 + (k % 2) as u8, 76, 0x05, 0];
-                b[7] = sum8(&b[0..7]);
-                b
-            };
-            let mut bits = bits_of(&[0xAA, 0xAA, 0xAA, 0xA9]);
-            bits.extend(ieee_chips(&bits_of(&b)));
-            bits.extend(bits_of(&[0xAA]));
-            let inv: Vec<u8> = bits.iter().map(|x| 1 - x).collect();
-            fsk(&inv, 52.0, 30e3)
-        }
-        TestDevice::Efergy => {
-            let mut b = [
-                0x00u8,
-                0xD2,
-                0x04,
-                0x50,
-                0x58 + (k % 2) as u8,
-                0x00,
-                0x03,
-                0,
-            ];
-            b[7] = sum8(&b[0..7]);
-            let mut tr = train(Modulation::Fsk);
-            tr.deviation_hz = 20e3;
-            push(&mut tr, 500.0, 136.0);
-            encode::pwm(&bits_of(&b), (64.0, 136.0), (136.0, 64.0), &mut tr);
-            set_last_space(&mut tr, 200.0);
-            tr
-        }
-        TestDevice::CurrentCost => {
-            let pw = 1234 + (k % 2) as u16;
-            let b = [0x07u8, 0xA5, 0x80 | (pw >> 8) as u8, pw as u8, 0, 0, 0, 0];
-            let mut bits = bits_of(&[0xCC]);
-            bits.extend(bits_of(&[0xCC, 0xCC, 0xCC, 0xCE, 0x91, 0x5D])[..45].iter());
-            bits.extend(ieee_chips(&bits_of(&b)));
-            let inv: Vec<u8> = bits.iter().map(|x| 1 - x).collect();
-            fsk(&inv, 250.0, 20e3)
-        }
-        TestDevice::Bresser6 => {
-            let traw = 156 + (k % 3) as u32;
-            let mut m = [0u8; 18];
-            m[2..6].copy_from_slice(&[0x12, 0x34, 0x56, 0x78]);
-            m[6] = 0x10;
-            m[7] = !0x03;
-            m[8] = !0x41;
-            m[9] = !0x02;
-            m[10] = 0x22;
-            m[11] = 0x50;
-            let tens = traw / 10;
-            m[12] = (((tens / 10) % 10) << 4 | (tens % 10)) as u8;
-            m[13] = (((traw % 10) as u8) << 4) | 0x02;
-            m[14] = 0x67;
-            m[15] = !0x03;
-            m[16] = 0xD0;
-            m[17] = 0xFFu8.wrapping_sub(sum8(&m[2..17]));
-            let dg = lfsr_digest16(&m[2..17], 0x8810, 0x5412);
-            m[0] = (dg >> 8) as u8;
-            m[1] = dg as u8;
-            let mut bits = bits_of(&[0xAA, 0xAA, 0xAA, 0xAA, 0x2D, 0xD4]);
-            bits.extend(bits_of(&m));
-            fsk(&bits, 124.0, 40e3)
-        }
-        TestDevice::Bresser5 => {
-            let t = 87 + (k % 2) as u8;
-            let mut m = [0u8; 26];
-            m[14..26].copy_from_slice(&[
-                0x6C,
-                0x00,
-                52,
-                0x40,
-                0x31,
-                0x00,
-                ((t / 10) << 4) | (t % 10),
-                0,
-                0x81,
-                0x23,
-                0x01,
-                0x00,
-            ]);
-            m[13] = m[14..26].iter().map(|b| b.count_ones()).sum::<u32>() as u8;
-            for i in 0..13 {
-                m[i] = !m[i + 13];
-            }
-            let mut bits = bits_of(&[0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0x2D, 0xD4]);
-            bits.extend(bits_of(&m));
-            fsk(&bits, 124.0, 40e3)
-        }
-        TestDevice::Tx29 => {
-            let tenths = 7 + (k % 2) as u8;
-            let mut b = [0x9Au8, 0xC6, 0x10 | tenths, 0x6A, 0];
-            b[4] = CRC8_31.checksum(&b[0..4]);
-            let mut bits = bits_of(&[0xAA, 0xAA, 0xAA, 0x2D, 0xD4]);
-            bits.extend(bits_of(&b));
-            fsk(&bits, 55.0, 30e3)
-        }
-        TestDevice::Wh24 => {
-            let t = 518 + (k % 2) as u16;
-            let mut b = [
-                0x24u8,
-                0xBF,
-                0x0A,
-                0x80 | ((t >> 8) as u8 & 7),
-                t as u8,
-                78,
-                8,
-                2,
-                0x00,
-                0x4A,
-                0,
-                0,
-                0,
-                0,
-                100,
-                0,
-                0,
-            ];
-            b[15] = CRC8_31.checksum(&b[0..15]);
-            b[16] = sum8(&b[0..16]);
-            let mut bits = bits_of(&[0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0x2D, 0xD4]);
-            bits.extend(bits_of(&b));
-            fsk(&bits, 58.0, 30e3)
-        }
+        TestDevice::Nexus => enc::nexus(0x5A, 1, true, 213 + (k % 4) as i16, 45),
+        TestDevice::Tx141th => enc::tx141th(0x3C, 1, true, 187 + (k % 3) as u16 + 500, 62),
+        TestDevice::AcuriteTower => enc::acurite_tower(0x1234, 3, true, 55, 1225 + (k % 3) as u16),
+        TestDevice::Wh1080 => enc::wh1080(&enc::Wh1080 {
+            id: 0x7B,
+            battery_ok: true,
+            t: 124 + (k % 3) as u16 + 400,
+            humidity: 71,
+            speed: 3,
+            gust: 7,
+            rain: 0x123,
+            dir: 4,
+        }),
+        TestDevice::F007th => enc::f007th(0x9C, 2, true, 685 + (k % 3) as u16 + 400, 40),
+        TestDevice::OregonV3 => enc::oregon_v3(&enc::Oregon {
+            channel: 1,
+            id: 0xA5,
+            battery_ok: true,
+            t: 196 + (k % 2) as i16,
+            humidity: 52,
+        }),
+        TestDevice::OregonV21 => enc::oregon_v21(&enc::Oregon {
+            channel: 1,
+            id: 0x3E,
+            battery_ok: true,
+            t: 52 + (k % 2) as i16,
+            humidity: 80,
+        }),
+        TestDevice::Schrader => enc::schrader(0x0B, 0x1A2B3C4, 92 + (k % 2) as u8, 75),
+        TestDevice::Ev1527 => enc::ev1527([0x5A, 0x3C, 0x81]),
+        TestDevice::Toyota => enc::toyota(0xA1B2C3D4, 156 + (k % 2) as u8, 62, 0),
+        TestDevice::Renault => enc::renault(0x34, 333 + (k % 2) as u16, 48, 0xC0FFEE),
+        TestDevice::Ford => enc::ford(0x12AB34CD, 140 + (k % 2) as u16, 76),
+        TestDevice::Efergy => enc::efergy(1234, true, 1, 0x5800 + (k % 2) as u16 * 0x100, 3),
+        TestDevice::CurrentCost => enc::currentcost(0x7A5, 1234 + (k % 2) as u16),
+        TestDevice::Bresser6 => enc::bresser6(&enc::Bresser6 {
+            id: 0x12345678,
+            channel: 0,
+            battery_ok: true,
+            t: 156 + (k % 3) as i16,
+            humidity: 67,
+            gust: 34,
+            speed: 21,
+            dir: 225,
+            uv: 32,
+        }),
+        TestDevice::Bresser5 => enc::bresser5(&enc::Bresser5 {
+            id: 0x6C,
+            battery_ok: true,
+            t: 87 + (k % 2) as i16,
+            humidity: 81,
+            gust: 52,
+            speed: 31,
+            dir: 4,
+            rain: 123,
+        }),
+        TestDevice::Tx29 => enc::lacrosse_it(55.0, 43, true, 617 + (k % 2) as u16, 0x6A),
+        TestDevice::Wh24 => enc::wh24(&enc::Wh24 {
+            id: 0xBF,
+            battery_ok: true,
+            t: 518 + (k % 2) as u16,
+            humidity: 78,
+            dir: 0x10A,
+            speed: 8,
+            gust: 2,
+            rain: 0x4A,
+            uv: 0,
+            light: 100,
+        }),
         TestDevice::WmbusT => {
             let air = crate::wmbus::link::add_crcs(&wmbus_frame(k), crate::wmbus::link::Format::A);
             let mut bits = bits_of(&[0x55, 0x55, 0x55, 0x55, 0x54, 0x3D]);

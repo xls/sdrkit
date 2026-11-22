@@ -1,8 +1,9 @@
-//! The `send` of the Zigbee stack: an IEEE 802.15.4 MAC frame (frame version 2003, no security) built by
-//! [`crate::mac154::build_header`] and [`super::with_fcs`], and sent as the PPDU of [`super::ppdu_chip_pairs`] in the O-QPSK of
-//! [`super::oqpsk`], the builder and the modulator of the test signal, on the tuned frequency.
+//! The `send` of the Zigbee stack: an IEEE 802.15.4 MAC frame built by [`crate::mac154::build_header`] (frame version 2003, or
+//! 2006 with the auxiliary security header and CCM* of [`super::security`] when secured) and [`super::with_fcs`], and sent as
+//! the PPDU of [`super::ppdu_chip_pairs`] in the O-QPSK of [`super::oqpsk`], the builder and the modulator of the test signal,
+//! on the tuned frequency.
 
-use super::{oqpsk, ppdu_chip_pairs, with_fcs};
+use super::{oqpsk, ppdu_chip_pairs, security, with_fcs};
 use crate::mac154::{build_header, Addr};
 use crate::tx::{hex_arg, refused, Frame, FrameSource, Place};
 use crate::typed::{IsmTxEvent, ZigbeeSendArgs, ZIGBEE_SEND, ZIGBEE_TX};
@@ -87,19 +88,53 @@ impl FrameSource for ZigbeeFrames {
             .map_err(|_| refused("the sequence is not 0 to 255"))?;
         let payload = hex_arg("the payload", a.payload)?;
         let both = dst != Addr::None && src != Addr::None;
+        let level = u8::try_from(a.security_level.unwrap_or(0))
+            .ok()
+            .filter(|&l| l <= 7)
+            .ok_or_else(|| refused("the security level is not 0 to 7"))?;
         let mut psdu = build_header(
             ty.number(),
             a.ack.unwrap_or(false),
             both,
-            0,
+            u8::from(level > 0),
             seq,
             (dst != Addr::None).then_some(pan),
             dst,
             (src != Addr::None && !both).then_some(pan),
             src,
-            false,
+            level > 0,
         );
-        psdu.extend_from_slice(&payload);
+        if level == 0 {
+            psdu.extend_from_slice(&payload);
+        } else {
+            let Addr::Ext(eui) = src else {
+                return Err(refused("a secured frame needs an extended source address for its nonce"));
+            };
+            let key = security::key_of(a.key.unwrap_or(""))
+                .ok_or_else(|| refused("the key is not 32 hex digits"))?;
+            let counter = u32::try_from(a.frame_counter.unwrap_or(0))
+                .map_err(|_| refused("the frame counter is not 0 to 4294967295"))?;
+            let mode = u8::try_from(a.key_id_mode.unwrap_or(1))
+                .ok()
+                .filter(|&m| m <= 3)
+                .ok_or_else(|| refused("the key identifier mode is not 0 to 3"))?;
+            let index = u8::try_from(a.key_index.unwrap_or(1))
+                .ok()
+                .filter(|&i| i >= 1)
+                .ok_or_else(|| refused("the key index is not 1 to 255"))?;
+            let source = hex_arg("the key source", a.key_source.unwrap_or(""))?;
+            let want = [0, 0, 4, 8][usize::from(mode)];
+            if source.len() != want {
+                return Err(refused(format!(
+                    "the key source is {} octets; key identifier mode {mode} takes {want}",
+                    source.len()
+                )));
+            }
+            psdu.extend(security::aux_header(level, mode, counter, &source, index));
+            let secured = security::protect(&key, eui, counter, level, ty.number(), &psdu, &payload)
+                .ok_or_else(|| refused("the payload is too long to secure"))?;
+            psdu.extend(secured);
+        }
         if psdu.len() + 2 > MAX_PSDU {
             return Err(refused(format!(
                 "the frame is {} octets with its FCS: at most {MAX_PSDU}",

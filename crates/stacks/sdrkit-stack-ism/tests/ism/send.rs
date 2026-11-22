@@ -352,9 +352,101 @@ mod zigbee {
         }
     }
 
+    const KEY: &str = "C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF";
+    const OTHER: &str = "000102030405060708090A0B0C0D0E0F";
+
+    /// (length, details) of each frame that a stack with the setting `keys` reads.
+    fn keyed(keys: &str, x: &[Complex32]) -> Vec<(i64, String, bool)> {
+        let set = [("keys", text(keys))];
+        let st = Station { set: &set, ..station() };
+        let (rx, _) = st.receive(x, 0.002);
+        ZIGBEE_FRAMES
+            .rows::<ZigbeeFrameRow>(Owner::results(rx.as_ref()))
+            .map(|(_, r)| (r.len, r.details.to_owned(), r.encrypted))
+            .collect()
+    }
+
+    #[test]
+    fn secured_frames_open_with_their_key() {
+        let s = station();
+        let nwk = "0800 0000 0100 1E 01 4000 0600 0401 01 00 01 01";
+        let beacon = "FF CF 00 00 22 84 04 03 02 01 00 4B 12 00 FF FF FF 03";
+        // (frame type, destination, payload, level, length, details, encrypted on air)
+        let cases = [
+            (1u16, "0000", nwk, 5i64, 15 + 6 + 18 + 4 + 2, "APS cluster 0x0006 On/Off", true),
+            (1, "0000", nwk, 4, 15 + 6 + 18 + 2, "APS cluster 0x0006 On/Off", true),
+            (1, "0000", nwk, 2, 15 + 6 + 18 + 8 + 2, "APS cluster 0x0006 On/Off", false),
+            (1, "0000", nwk, 7, 15 + 6 + 18 + 16 + 2, "APS cluster 0x0006 On/Off", true),
+            (2, "", "07", 6, 13 + 6 + 1 + 8 + 2, "Beacon request", true),
+            (0, "", beacon, 5, 13 + 6 + 18 + 4 + 2, "join allowed", true),
+        ];
+        for (k, dst, payload, level, len, details, enc) in cases {
+            let x = s.send(&[
+                ("pan_id", text("1A62")),
+                ("destination", text(dst)),
+                ("source", text("001788010A0B0C0D")),
+                ("payload", text(payload)),
+                ("frame_type", Value::Choice(k)),
+                ("security_level", Value::I64(level)),
+                ("key", text(KEY)),
+                ("frame_counter", Value::I64(0x0102_0304)),
+            ]);
+            // Level 4 has no MIC: the first key opens it, so it gets the one key.
+            let (keys, n) = if level == 4 { (KEY.to_string(), 1) } else { (format!("{OTHER}; {KEY}"), 2) };
+            let how = match level {
+                4 => "decrypted, no MIC to check (key 1)".to_string(),
+                l if l > 4 => format!("decrypted (key {n})"),
+                _ => format!("MIC good (key {n})"),
+            };
+            let got = keyed(&keys, &x);
+            assert_eq!(got.len(), 1, "level {level}: {got:?}");
+            assert_eq!(got[0].0, len as i64, "level {level}");
+            assert!(got[0].1.contains(details) && got[0].1.contains(&how), "level {level}: {}", got[0].1);
+            assert_eq!(got[0].2, enc, "level {level}");
+            let shut = keyed("", &x);
+            if enc {
+                assert!(shut[0].1.contains("encrypted"), "level {level}: {}", shut[0].1);
+                assert!(!shut[0].1.contains(details), "level {level}: {}", shut[0].1);
+            }
+            let wrong = keyed(OTHER, &x);
+            if level != 4 {
+                assert!(wrong[0].1.contains("no key fits"), "level {level}: {}", wrong[0].1);
+            } else {
+                assert!(!wrong[0].1.contains(details), "level 4, another key: {}", wrong[0].1);
+            }
+        }
+        // Key identifier mode 3 with a key source, a short destination broadcast.
+        let x = s.send(&[
+            ("pan_id", text("1A62")),
+            ("destination", text("FFFF")),
+            ("source", text("001788010A0B0C0D")),
+            ("payload", text(nwk)),
+            ("security_level", Value::I64(6)),
+            ("key", text(KEY)),
+            ("key_id_mode", Value::I64(3)),
+            ("key_source", text("0011223344556677")),
+            ("key_index", Value::I64(9)),
+        ]);
+        let got = keyed(KEY, &x);
+        assert_eq!(got[0].0, 15 + 14 + 18 + 8 + 2);
+        assert!(got[0].1.contains("decrypted (key 1)"), "{}", got[0].1);
+    }
+
     #[test]
     fn a_frame_is_refused_while_transmit_is_off_and_for_a_bad_field() {
         let s = station();
+        let secured = |src: &str, key: &str| {
+            vec![
+                ("pan_id", text("1A62")),
+                ("destination", text("0000")),
+                ("source", text(src)),
+                ("payload", text("00")),
+                ("security_level", Value::I64(5)),
+                ("key", text(key)),
+            ]
+        };
+        assert!(s.refusal(true, &secured("0001", KEY)).contains("extended source"));
+        assert!(s.refusal(true, &secured("001788010A0B0C0D", "00")).contains("key"));
         let args = |pan: &str, dst: &str| {
             vec![
                 ("pan_id", text(pan)),
@@ -620,6 +712,8 @@ mod wisun {
 
 mod ism {
     use super::*;
+    use sdrkit_core::Choice;
+    use sdrkit_stack_ism::ism::send::IsmFamily;
     use sdrkit_stack_ism::ism::ISM;
     use sdrkit_stack_ism::typed::{IsmDeviceRow, ISM_DEVICES};
 
@@ -653,33 +747,382 @@ mod ism {
             .collect()
     }
 
+    /// The argument `family` of `f`.
+    fn fam(f: IsmFamily) -> (&'static str, Value) {
+        ("family", Value::Choice(f.index()))
+    }
+
+    /// One family: the arguments of `send` and what comes back (model, id, channel, battery good and parts of the
+    /// readings).
+    struct Case {
+        args: Vec<(&'static str, Value)>,
+        model: &'static str,
+        id: &'static str,
+        channel: Option<&'static str>,
+        battery_ok: Option<bool>,
+        has: &'static [&'static str],
+    }
+
+    fn cases() -> Vec<Case> {
+        use IsmFamily as F;
+        let num = |k: &'static str, v: f64| (k, Value::F64(v));
+        let int = |k: &'static str, v: i64| (k, Value::I64(v));
+        let hex = |v: &str| ("payload", text(v));
+        let batt = |b: bool| ("battery_ok", Value::Bool(b));
+        vec![
+            Case {
+                args: vec![fam(F::Remote), int("id", 0x1234), int("command", 0x42)],
+                model: "Generic-Remote",
+                id: "4660",
+                channel: None,
+                battery_ok: None,
+                has: &["Command 66"],
+            },
+            Case {
+                args: vec![
+                    fam(F::Tx141thBv2),
+                    int("id", 0x5B),
+                    int("channel", 2),
+                    batt(false),
+                    num("temperature", -3.4),
+                    int("humidity", 71),
+                ],
+                model: "LaCrosse-TX141THBv2",
+                id: "5b",
+                channel: Some("2"),
+                battery_ok: Some(false),
+                has: &["Temperature -3.4", "Humidity 71"],
+            },
+            Case {
+                args: vec![
+                    fam(F::Nexus),
+                    int("id", 91),
+                    int("channel", 2),
+                    batt(false),
+                    num("temperature", -3.4),
+                    int("humidity", 71),
+                ],
+                model: "Nexus-TH",
+                id: "91",
+                channel: Some("2"),
+                battery_ok: Some(false),
+                has: &["Temperature -3.4", "Humidity 71"],
+            },
+            Case {
+                args: vec![fam(F::Nexus), int("id", 17), int("channel", 3), num("temperature", 25.0), int("humidity", 0)],
+                model: "Nexus-T",
+                id: "17",
+                channel: Some("3"),
+                battery_ok: Some(true),
+                has: &["Temperature 25.0"],
+            },
+            Case {
+                args: vec![
+                    fam(F::AcuriteTower),
+                    int("id", 2748),
+                    int("channel", 2),
+                    num("temperature", 12.3),
+                    int("humidity", 44),
+                ],
+                model: "Acurite-Tower",
+                id: "2748",
+                channel: Some("B"),
+                battery_ok: Some(true),
+                has: &["Temperature 12.3", "Humidity 44"],
+            },
+            Case {
+                args: vec![
+                    fam(F::Wh1080),
+                    int("id", 69),
+                    num("temperature", 7.5),
+                    int("humidity", 63),
+                    num("wind_speed", 3.4),
+                    num("wind_gust", 6.8),
+                    num("rain", 30.0),
+                    num("wind_dir", 225.0),
+                ],
+                model: "Fineoffset-WHx080",
+                id: "69",
+                channel: None,
+                battery_ok: Some(true),
+                has: &["Temperature 7.5", "Humidity 63", "Wind direction 225", "Wind speed 3.40", "Wind gust 6.80", "Rain 30.0"],
+            },
+            Case {
+                args: vec![
+                    fam(F::F007th),
+                    int("id", 200),
+                    int("channel", 5),
+                    batt(false),
+                    num("temperature", 21.5),
+                    int("humidity", 33),
+                ],
+                model: "Ambientweather-F007TH",
+                id: "200",
+                channel: Some("5"),
+                battery_ok: Some(false),
+                has: &["Temperature 21.5", "Humidity 33"],
+            },
+            Case {
+                args: vec![
+                    fam(F::OregonThgr810),
+                    int("id", 119),
+                    int("channel", 2),
+                    num("temperature", -7.3),
+                    int("humidity", 41),
+                ],
+                model: "Oregon-THGR810",
+                id: "119",
+                channel: Some("2"),
+                battery_ok: Some(true),
+                has: &["Temperature -7.30", "Humidity 41"],
+            },
+            Case {
+                args: vec![
+                    fam(F::OregonThgr228n),
+                    int("id", 44),
+                    int("channel", 3),
+                    batt(false),
+                    num("temperature", 23.8),
+                    int("humidity", 56),
+                ],
+                model: "Oregon-THGR228N",
+                id: "44",
+                channel: Some("3"),
+                battery_ok: Some(false),
+                has: &["Temperature 23.80", "Humidity 56"],
+            },
+            Case {
+                args: vec![
+                    fam(F::Schrader),
+                    int("id", 0x0AB_CDEF),
+                    int("flags", 0x1C),
+                    num("pressure", 250.0),
+                    num("temperature", 18.0),
+                ],
+                model: "Schrader",
+                id: "0ABCDEF",
+                channel: None,
+                battery_ok: None,
+                has: &["Pressure 250.0", "Temperature 18", "Flags 28"],
+            },
+            Case {
+                args: vec![
+                    fam(F::Toyota),
+                    int("id", 0x1122_3344),
+                    int("flags", 0x05),
+                    num("pressure", 241.3),
+                    num("temperature", 21.0),
+                ],
+                model: "Toyota",
+                id: "11223344",
+                channel: None,
+                battery_ok: None,
+                has: &["Pressure 241.3", "Temperature 21", "Status 5"],
+            },
+            Case {
+                args: vec![
+                    fam(F::Renault),
+                    int("id", 0xABCD),
+                    int("flags", 0x12),
+                    num("pressure", 210.0),
+                    num("temperature", 15.0),
+                ],
+                model: "Renault",
+                id: "00abcd",
+                channel: None,
+                battery_ok: None,
+                has: &["Pressure 210.00", "Temperature 15", "Flags 18"],
+            },
+            Case {
+                args: vec![fam(F::Ford), int("id", 0x0BAD_CAFE), num("pressure", 220.6), num("temperature", 9.0)],
+                model: "Ford",
+                id: "0badcafe",
+                channel: None,
+                battery_ok: None,
+                has: &["Pressure 220.6", "Temperature 9"],
+            },
+            Case {
+                args: vec![fam(F::Efergy), int("id", 4321), num("current", 7.5), int("interval", 18)],
+                model: "Efergy-e2CT",
+                id: "4321",
+                channel: None,
+                battery_ok: Some(true),
+                has: &["Current 7.50", "Interval 18"],
+            },
+            Case {
+                args: vec![fam(F::CurrentCost), int("id", 1000), int("power", 2345)],
+                model: "CurrentCost-TX",
+                id: "1000",
+                channel: None,
+                battery_ok: None,
+                has: &["Power 0 2345"],
+            },
+            Case {
+                args: vec![
+                    fam(F::Bresser6),
+                    int("id", 0x0A0B_0C0D),
+                    int("channel", 3),
+                    num("temperature", -5.3),
+                    int("humidity", 48),
+                    num("wind_gust", 7.2),
+                    num("wind_speed", 4.6),
+                    num("wind_dir", 300.0),
+                    num("uv", 5.1),
+                ],
+                model: "Bresser-6in1",
+                id: "0a0b0c0d",
+                channel: Some("3"),
+                battery_ok: Some(true),
+                has: &["Temperature -5.3", "Humidity 48", "Wind gust 7.2", "Wind speed 4.6", "Wind direction 300", "UV index 5.1"],
+            },
+            Case {
+                args: vec![
+                    fam(F::Bresser5),
+                    int("id", 51),
+                    num("temperature", -12.4),
+                    int("humidity", 77),
+                    num("wind_gust", 9.9),
+                    num("wind_speed", 6.1),
+                    num("wind_dir", 135.0),
+                    num("rain", 45.6),
+                ],
+                model: "Bresser-5in1",
+                id: "51",
+                channel: None,
+                battery_ok: Some(true),
+                has: &["Temperature -12.4", "Humidity 77", "Wind gust 9.9", "Wind speed 6.1", "Wind direction 135.0", "Rain 45.6"],
+            },
+            Case {
+                args: vec![fam(F::Tx29), int("id", 21), num("temperature", 4.2), int("humidity", 58)],
+                model: "LaCrosse-TX29IT",
+                id: "21",
+                channel: None,
+                battery_ok: Some(true),
+                has: &["Temperature 4.2", "Humidity 58"],
+            },
+            Case {
+                args: vec![fam(F::Tx35), int("id", 9), batt(false), num("temperature", -8.1), int("humidity", 0)],
+                model: "LaCrosse-TX35DTHIT",
+                id: "9",
+                channel: None,
+                battery_ok: Some(false),
+                has: &["Temperature -8.1"],
+            },
+            Case {
+                args: vec![
+                    fam(F::Wh24),
+                    int("id", 77),
+                    num("temperature", 15.2),
+                    int("humidity", 66),
+                    num("wind_dir", 123.0),
+                    num("wind_speed", 2.8),
+                    num("wind_gust", 3.36),
+                    num("rain", 6.0),
+                    num("uv", 3.0),
+                    num("light", 1234.5),
+                ],
+                model: "Fineoffset-WH24",
+                id: "77",
+                channel: None,
+                battery_ok: Some(true),
+                has: &[
+                    "Temperature 15.2",
+                    "Humidity 66",
+                    "Wind direction 123",
+                    "Wind speed 2.8",
+                    "Wind gust 3.4",
+                    "Rain 6.0",
+                    "UV index 3",
+                    "Light 1234.5",
+                ],
+            },
+            Case {
+                args: vec![
+                    fam(F::Prologue),
+                    int("id", 58),
+                    int("channel", 2),
+                    num("temperature", 19.6),
+                    int("humidity", 61),
+                ],
+                model: "Prologue-TH",
+                id: "58",
+                channel: Some("2"),
+                battery_ok: None,
+                has: &["Temperature 19.6", "Humidity 61"],
+            },
+            Case {
+                args: vec![fam(F::AcuriteTxr), int("id", 0), hex("C1 23 78 00 08 60 2D")],
+                model: "Acurite-5n1",
+                id: "291",
+                channel: Some("A"),
+                battery_ok: Some(true),
+                has: &["Temperature 22.2", "Humidity 45", "Wind speed 0.0"],
+            },
+            Case {
+                args: vec![fam(F::Bresser3ch), int("id", 0), hex("5C 26 2C 34")],
+                model: "Bresser-3CH",
+                id: "92",
+                channel: Some("2"),
+                battery_ok: Some(true),
+                has: &["Temperature 20.0", "Humidity 52"],
+            },
+            Case {
+                args: vec![fam(F::Citroen), int("id", 0), hex("20 01 02 03 04 12 A0 46 55")],
+                model: "Citroen",
+                id: "01020304",
+                channel: None,
+                battery_ok: None,
+                has: &["Pressure 218", "Temperature 20", "Repeat 2", "Flags 1"],
+            },
+            Case {
+                args: vec![fam(F::SchraderEg53), int("id", 0), hex("15 55 55 55 55 01 02 03 04 0A BC DE 64 4D")],
+                model: "Schrader-EG53MA4",
+                id: "0ABCDE",
+                channel: None,
+                battery_ok: None,
+                has: &["Pressure 250.0", "Temperature 25.0"],
+            },
+            Case {
+                args: vec![
+                    fam(F::Bresser7),
+                    int("id", 0),
+                    hex("12 34 27 00 BB 05 50 32 00 01 23 00 21 70 55 01 23 45 04 50 00 00 00"),
+                ],
+                model: "Bresser-7in1",
+                id: "4660",
+                channel: Some("1"),
+                battery_ok: Some(true),
+                has: &["Temperature 21.7", "Humidity 55", "Wind direction 270", "Wind gust 5.5", "Wind speed 3.2", "Rain 12.3", "Light 12345", "UV index 4.5"],
+            },
+        ]
+    }
+
     #[test]
-    fn a_remote_and_a_thermometer_come_back() {
+    fn every_family_comes_back_with_its_fields() {
         let s = station();
-        let x = s.send(&[
-            ("family", Value::Choice(0)),
-            ("id", Value::I64(0x1234)),
-            ("command", Value::I64(0x42)),
-        ]);
-        let got = devices(&x);
-        assert_eq!(got.len(), 1, "{got:?}");
-        assert_eq!((got[0].0.as_str(), got[0].1.as_str()), ("Generic-Remote", "4660"));
-        assert!(got[0].4.contains("66"), "{}", got[0].4);
-        let x = s.send(&[
-            ("family", Value::Choice(1)),
-            ("id", Value::I64(0x5B)),
-            ("channel", Value::I64(2)),
-            ("battery_ok", Value::Bool(false)),
-            ("temperature", Value::F64(-3.4)),
-            ("humidity", Value::I64(71)),
-        ]);
-        let got = devices(&x);
-        assert_eq!(got.len(), 1, "{got:?}");
-        let g = &got[0];
-        assert_eq!((g.0.as_str(), g.1.as_str()), ("LaCrosse-TX141THBv2", "5b"));
-        assert_eq!(g.2.as_deref(), Some("2"));
-        assert_eq!(g.3, Some(false));
-        assert!(g.4.contains("-3.4") && g.4.contains("71"), "{}", g.4);
+        for c in cases() {
+            let x = s.send(&c.args);
+            let got = devices(&x);
+            assert_eq!(got.len(), 1, "{}: {got:?}", c.model);
+            let g = &got[0];
+            assert_eq!((g.0.as_str(), g.1.as_str()), (c.model, c.id), "{got:?}");
+            assert_eq!(g.2.as_deref(), c.channel, "{}: {got:?}", c.model);
+            assert_eq!(g.3, c.battery_ok, "{}: {got:?}", c.model);
+            for h in c.has {
+                assert!(g.4.contains(h), "{}: {h} in {}", c.model, g.4);
+            }
+        }
+    }
+
+    #[test]
+    fn every_family_is_offered() {
+        let fields: Vec<&str> = cases().iter().map(|c| c.model).collect();
+        for f in (0..).map_while(IsmFamily::from_index) {
+            assert!(
+                cases().iter().any(|c| c.args[0].1 == Value::Choice(f.index())),
+                "{f:?} has no case in {fields:?}"
+            );
+        }
     }
 
     #[test]
@@ -689,5 +1132,9 @@ mod ism {
         assert!(s.refusal(true, &[("id", Value::I64(0))]).contains("id"));
         let tx = [("family", Value::Choice(1)), ("id", Value::I64(300))];
         assert!(s.refusal(true, &tx).contains("id"));
+        let nexus = [fam(IsmFamily::Nexus), ("id", Value::I64(5)), ("channel", Value::I64(4))];
+        assert!(s.refusal(true, &nexus).contains("channel"));
+        let raw = [fam(IsmFamily::Citroen), ("id", Value::I64(0)), ("payload", text("20 01"))];
+        assert!(s.refusal(true, &raw).contains("payload"));
     }
 }
