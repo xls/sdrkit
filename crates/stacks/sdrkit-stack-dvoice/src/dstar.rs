@@ -213,6 +213,8 @@ pub struct DStar {
     headers_ok: u64,
     voice_frames: u64,
     lost: usize,
+    out_of_sync: bool,
+    bad_run: u8,
     inverted: bool,
     texts_sent: Vec<String>,
     idle: usize,
@@ -232,6 +234,8 @@ impl Default for DStar {
             headers_ok: 0,
             voice_frames: 0,
             lost: 0,
+            out_of_sync: false,
+            bad_run: 0,
             inverted: false,
             texts_sent: Vec::new(),
             idle: 0,
@@ -244,6 +248,16 @@ impl Default for DStar {
 }
 
 const KEY: u32 = 1;
+
+/// The frames in a row that fail their Golay codes that put the voice out of sync, as a data sync missed on its schedule
+/// does. A frame fails when the speech decoder would repeat it ([`sdrkit_codec_mbe::DstarErrors::repeats`]) or when the
+/// codes correct more than [`BAD_ERRORS`] bits; noise fails about 39 frames in 40.
+const BAD_RUN: u8 = 2;
+/// The most bits that the Golay codes of a frame may correct for the frame not to fail ([`BAD_RUN`]).
+const BAD_ERRORS: u32 = 4;
+/// The most bits that the Golay codes of a frame may correct while the voice is out of sync for the frame to count as
+/// received; noise passes this test about once in 7000 frames. A frame that fails it is a lost frame.
+const OUT_OF_SYNC_ERRORS: u32 = 2;
 
 impl DStar {
     fn start(&mut self, h: &Header, from_slow: bool, ctx: &mut Ctx) {
@@ -276,14 +290,27 @@ impl DStar {
         self.texts_sent.clear();
     }
 
+    /// One voice frame of 96 soft bits: its speech goes to the call, its slow data to [`DStar::slow_block`]. While the
+    /// voice is out of sync (a data sync missed, or [`BAD_RUN`] frames in a row that fail their Golay codes) a frame with
+    /// more than [`OUT_OF_SYNC_ERRORS`] corrected bits is a lost frame, which the speech decoder conceals; its slow data is
+    /// still read. A data sync or a header puts the voice back in sync.
     fn voice_frame(&mut self, b: &[f32], ctx: &mut Ctx) {
-        let hard: Vec<u8> = b.iter().map(|&v| (v > 0.0) as u8).collect();
+        let mut hard = [0u8; 96];
+        for (h, &v) in hard.iter_mut().zip(b) {
+            *h = (v > 0.0) as u8;
+        }
         self.voice_frames += 1;
         let pos = self.frame % 21;
         self.frame += 1;
+        let e = sdrkit_codec_mbe::dstar_channel_errors(&hard[..72]);
+        let bad = e.repeats() || e.corrected > BAD_ERRORS;
+        self.bad_run = if bad { self.bad_run.saturating_add(1) } else { 0 };
+        if self.bad_run >= BAD_RUN {
+            self.out_of_sync = true;
+        }
+        let lost = self.out_of_sync && (e.repeats() || e.corrected > OUT_OF_SYNC_ERRORS);
         if ctx.has_call(KEY) {
             ctx.update_call(KEY, |c| c.voice_frames += 1);
-            let cw = crate::voice::channel_bits::<9>(&hard[..72]);
             let spec = crate::voice::FrameSpec {
                 codec: Codec::Ambe,
                 packaging: crate::voice::DSTAR_PACKAGING,
@@ -293,18 +320,23 @@ impl DStar {
                 carrier_hz: ctx.carrier_hz,
                 slot: 0,
             };
-            ctx.speech(KEY, spec, &cw, ctx.now, false, None);
+            if lost {
+                ctx.voice(KEY, crate::voice::erasure(spec, ctx.now));
+            } else {
+                let cw = crate::voice::channel_bits::<9>(&hard[..72]);
+                ctx.speech(KEY, spec, &cw, ctx.now, false, None);
+            }
         }
         if pos == 0 {
             // The data sync frame.
             self.slow.half = None;
             return;
         }
-        let mut d = lsb_bytes(&hard[72..96]);
-        for (x, k) in d.iter_mut().zip(SLOW_XOR) {
-            *x ^= k;
+        let mut three = [0u8; 3];
+        for (i, (x, k)) in three.iter_mut().zip(SLOW_XOR).enumerate() {
+            let bits = &hard[72 + 8 * i..80 + 8 * i];
+            *x = bits.iter().rev().fold(0, |a, &bit| a << 1 | bit) ^ k;
         }
-        let three = [d[0], d[1], d[2]];
         match self.slow.half.take() {
             None => self.slow.half = Some(three),
             Some(first) => {
@@ -576,6 +608,8 @@ impl Protocol for DStar {
                 }
                 // Realign: the voice of this frame is in `pre` (a frame held for it is replaced).
                 self.held = None;
+                self.out_of_sync = false;
+                self.bad_run = 0;
                 self.inverted = self.sync_inverted;
                 self.frame = 0;
                 self.bits.clear();
@@ -630,6 +664,8 @@ impl Protocol for DStar {
                         self.state = State::Voice;
                         self.frame = 0;
                         self.lost = 0;
+                        self.out_of_sync = false;
+                        self.bad_run = 0;
                     } else {
                         self.state = State::Idle;
                     }
@@ -645,6 +681,7 @@ impl Protocol for DStar {
                 });
                 if let Some((b, _)) = overdue {
                     self.lost += 1;
+                    self.out_of_sync = true;
                     if self.lost > 3 {
                         if ctx.has_call(KEY) {
                             ctx.end_call(KEY, false);
@@ -661,9 +698,7 @@ impl Protocol for DStar {
                 }
                 if self.bits.len() == 96 {
                     let b = std::mem::take(&mut self.bits);
-                    if crate::symbols::carrier_gone(
-                        &b.iter().map(|&v| Sym { v, d: 0 }).collect::<Vec<_>>(),
-                    ) {
+                    if crate::symbols::carrier_gone_levels(b.iter().copied()) {
                         if ctx.has_call(KEY) {
                             ctx.end_call(KEY, false);
                         }
@@ -808,12 +843,10 @@ impl VoiceFrames {
                 [b[0], b[1], b[2]]
             }
         };
-        let s = [
-            three[0] ^ SLOW_XOR[0],
-            three[1] ^ SLOW_XOR[1],
-            three[2] ^ SLOW_XOR[2],
-        ];
-        out.extend(lsb_bits(&s));
+        for (x, k) in three.iter().zip(SLOW_XOR) {
+            let s = x ^ k;
+            out.extend((0..8).map(|i| s >> i & 1));
+        }
     }
 }
 

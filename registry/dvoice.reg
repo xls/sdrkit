@@ -1,5 +1,5 @@
 # The interface of the stack family dvoice. The registry test of the family writes this file.
-family dvoice version=2.3
+family dvoice version=2.4
 shape.SharedFields since=1.0
 shape.SharedFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.SharedFields.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
@@ -470,6 +470,7 @@ dstar.setting.your_call type=text unit= since=1.0
 dstar.setting.rpt1 type=text unit= since=1.0
 dstar.setting.rpt2 type=text unit= since=1.0
 dstar.setting.via_repeater type=bool unit= since=1.0
+dstar.setting.message type=text unit= since=2.4
 dstar.setting.tx_split type=hz unit=Hz since=1.0
 dstar.setting.tx_timeout type=duration unit=s since=2.2
 dstar.command.clear args= reply= since=1.0

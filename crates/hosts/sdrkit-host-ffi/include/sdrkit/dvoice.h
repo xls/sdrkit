@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dvoice", version 2.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "dvoice", version 2.4. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DVOICE_VERSION_MAJOR 2
-#define SDRKIT_DVOICE_VERSION_MINOR 3
+#define SDRKIT_DVOICE_VERSION_MINOR 4
 
 // The stack "dmr": its id, and the keys of its event types.
 #define SDRKIT_STACK_DMR "dmr"
@@ -2776,6 +2776,14 @@ static inline int32_t sdrkit_dstar_get_via_repeater(SDRKIT_HANDLE handle, bool *
 }
 static inline int32_t sdrkit_dstar_set_via_repeater(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "via_repeater", value);
+}
+
+// The setting "message" (Text message) of the stack "dstar". Up to 20 printable ASCII characters, sent in the slow data of every voice transmission with the copy of the radio header. Empty: no text message.
+static inline int32_t sdrkit_dstar_get_message(SDRKIT_HANDLE handle, sdrkit_string *value) {
+  return sdrkit_typed_setting_get_string(handle, "message", value);
+}
+static inline int32_t sdrkit_dstar_set_message(SDRKIT_HANDLE handle, sdrkit_string value) {
+  return sdrkit_typed_setting_set_string(handle, "message", value);
 }
 
 // The setting "tx_split" (Transmit offset) of the stack "dstar". A frequency in Hz. The transmit frequency less the listening frequency: 0 for simplex, the shift of a repeater for duplex.

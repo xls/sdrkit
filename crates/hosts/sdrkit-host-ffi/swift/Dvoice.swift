@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "dvoice", version 2.3. MIT licence.
+// sdrkit: the typed interface of the stack family "dvoice", version 2.4. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum DvoiceInterface {
     public static let major = 2
-    public static let minor = 3
+    public static let minor = 4
 }
 
 /// The measurements that every digital voice stack publishes.
@@ -3841,6 +3841,15 @@ public enum DvoiceSettings {
     }
     public static func setDstarViaRepeater(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "via_repeater", value))
+    }
+    /// Text message.
+    public static func dstarMessage(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
+        var v: sdrkit_string = sdrkit_string()
+        let code = sdrkit_typed_setting_get_string(handle, "message", &v)
+        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
+    }
+    public static func setDstarMessage(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "message", $0) })
     }
     /// Transmit offset.
     public static func dstarTxSplit(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {

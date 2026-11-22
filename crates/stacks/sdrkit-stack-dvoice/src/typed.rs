@@ -1236,7 +1236,8 @@ pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         let plain = |id| common(id, &CALLS_300);
-        Described::new("dvoice", 2, 3)
+        Described::new("dvoice", 2, 4)
+            .added(2, 4, &["dstar.setting.message"])
             .added(2, 2, &["dstar.command.ptt", "dstar.setting.tx_timeout"])
             .added(
                 2,

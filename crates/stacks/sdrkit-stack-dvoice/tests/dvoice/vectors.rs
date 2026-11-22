@@ -456,6 +456,10 @@ fn the_result_does_not_depend_on_the_block_size() {
     assert_eq!(strip(&a), strip(&b));
 }
 
+/// The calls, texts, positions and fields of the D-STAR recording. Its voice bits are a fixed pseudo-random pattern of
+/// its generator (the meta says "a known pattern"), not frames of a voice coder: their Golay codes fail as noise does, so
+/// the stack hands them to the speech decoder as lost frames and the recording gives no sound. The sound of the stack is
+/// tested with coded speech in the round trips.
 #[test]
 fn dstar_vector() {
     let exp = expected();

@@ -42,6 +42,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ds
 | `rpt1` | Repeater 1 | text | `DIRECT` |  | RPT1 of the radio header: DIRECT for simplex, or the repeater with its module letter in position 8. |
 | `rpt2` | Repeater 2 | text | `DIRECT` |  | RPT2 of the radio header: DIRECT for simplex, or the repeater with G in position 8 for the gateway. |
 | `via_repeater` | Via repeater | yes or no | false |  | Sets bit 6 (0x40) of flag byte 1: the transmission goes through a repeater. |
+| `message` | Text message | text | empty |  | Up to 20 printable ASCII characters, sent in the slow data of every voice transmission with the copy of the radio header. Empty: no text message. |
 | `tx_split` | Transmit offset | frequency | 0 Hz | -10 GHz to 10 GHz | The transmit frequency less the listening frequency: 0 for simplex, the shift of a repeater for duplex. |
 | `tx_timeout` | Time-out | duration (s) | 180 s | 1 to 3600 | A voice stream ends after this time on air. |
 
@@ -127,7 +128,7 @@ The stack puts points on a map: Positions.
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 2.3. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 2.4. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Voice calls (`voice`). Media: sound (voice).
 
@@ -450,6 +451,7 @@ Struct `PositionEvent`. A position.
 | `rpt1` | `sdrkit_dstar_get_rpt1` | `sdrkit_dstar_set_rpt1` |
 | `rpt2` | `sdrkit_dstar_get_rpt2` | `sdrkit_dstar_set_rpt2` |
 | `via_repeater` | `sdrkit_dstar_get_via_repeater` | `sdrkit_dstar_set_via_repeater` |
+| `message` | `sdrkit_dstar_get_message` | `sdrkit_dstar_set_message` |
 | `tx_split` | `sdrkit_dstar_get_tx_split` | `sdrkit_dstar_set_tx_split` |
 | `tx_timeout` | `sdrkit_dstar_get_tx_timeout` | `sdrkit_dstar_set_tx_timeout` |
 

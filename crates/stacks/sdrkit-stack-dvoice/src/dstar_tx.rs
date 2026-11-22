@@ -9,12 +9,12 @@
 //! after the end mark.
 //!
 //! A transmission is the bit sync, the frame sync, the radio header, voice frames of 20 ms (the data sync in frame 0 of
-//! every 21, the slow-data blocks in the others), then the end pattern. A voice transmission carries the header copy in
-//! the slow data; push-to-talk off, `halt` and the time-out end it after the frame on air. A text carries the text and the
-//! header copy in the slow data of voice frames with the silence pattern of the specification
+//! every 21, the slow-data blocks in the others), then the end pattern. A voice transmission carries the text message of
+//! the setting `message` (four blocks of five characters, none when it is empty) and the header copy in the slow data,
+//! in turn for as long as it lasts; push-to-talk off, `halt` and the time-out end it after the frame on air. A text
+//! carries the text and the header copy in the slow data of voice frames with the silence pattern of the specification
 //! ([`sdrkit_codec_mbe::DSTAR_SILENCE`]); it lasts the groups of 21 frames that send every slow-data block once; `halt`
-//! ends it after the frame on air. GMSK at 4800 bit/s, BT 0.5,
-//! deviation ±1.2 kHz. The carrier rises and falls with a 5 ms raised cosine; its magnitude is 0.9 of full scale. Every
+//! ends it after the frame on air. GMSK at 4800 bit/s, BT 0.5, deviation ±1.2 kHz. The carrier rises and falls with a 5 ms raised cosine; its magnitude is 0.9 of full scale. Every
 //! transmission ends with an end mark; on a live radio whose host times bursts, the first sample states its time on air.
 
 use crate::dstar::{end_bits, slow_blocks, start_bits, Header, VoiceFrames};
@@ -42,7 +42,8 @@ pub const TEXT_MAX: usize = 20;
 pub const FRAME_S: f64 = 0.02;
 /// What the sender sends.
 pub const NOTE: &str =
-    "voice from the microphone with the D-STAR voice coder, and texts in the slow data of silence frames";
+    "voice from the microphone with the D-STAR voice coder and the text message in its slow data, \
+     and texts in the slow data of silence frames";
 
 /// The own call sign: MY of the radio header.
 pub const CALLSIGN: Setting<field::Text> = Setting::new("callsign", "Own call sign", "", "")
@@ -69,6 +70,10 @@ pub const VIA_REPEATER: Setting<field::Bool> =
     Setting::new("via_repeater", "Via repeater", "", false)
         .help("Sets bit 6 (0x40) of flag byte 1: the transmission goes through a repeater.")
         .section(TX);
+/// The text message of a voice transmission.
+pub const MESSAGE: Setting<field::Text> = Setting::new("message", "Text message", "", "")
+    .help("Up to 20 printable ASCII characters, sent in the slow data of every voice transmission with the copy of the radio header. Empty: no text message.")
+    .section(TX);
 
 sdrkit_core::settings! {
     /// The settings of the sender.
@@ -85,6 +90,8 @@ sdrkit_core::settings! {
         Rpt2 = RPT2,
         /// Through a repeater.
         ViaRepeater = VIA_REPEATER,
+        /// The text message of a voice transmission.
+        Message = MESSAGE,
         /// The transmit offset.
         Split = TX_SPLIT,
         /// The time-out of a voice transmission.
@@ -178,10 +185,14 @@ impl Sender {
         Sender::new(DstarTxKind::Text, h, frames, limit)
     }
 
-    /// A voice transmission with the header `h`, of at most `limit` voice frames. The slow data carries the header copy.
-    pub fn voice(h: &Header, limit: usize) -> Sender {
-        // The first four slow-data blocks are the text; a voice transmission has none.
-        let blocks = slow_blocks(h, "", &[], None).split_off(4);
+    /// A voice transmission with the header `h`, of at most `limit` voice frames. The slow data carries the text
+    /// `message` (at most [`TEXT_MAX`] characters; none when it is empty) and the header copy, in turn.
+    pub fn voice(h: &Header, message: &str, limit: usize) -> Sender {
+        let mut blocks = slow_blocks(h, message, &[], None);
+        // The first four slow-data blocks are the text.
+        if message.is_empty() {
+            blocks.drain(..4);
+        }
         Sender::new(
             DstarTxKind::Voice,
             h,
@@ -308,6 +319,7 @@ struct TxConfig {
     rpt1: String,
     rpt2: String,
     via_repeater: bool,
+    message: String,
     split: f64,
     timeout: f64,
 }
@@ -321,6 +333,7 @@ impl Default for TxConfig {
             rpt1: RPT1.default.to_string(),
             rpt2: RPT2.default.to_string(),
             via_repeater: false,
+            message: String::new(),
             split: TX_SPLIT.default,
             timeout: TX_TIMEOUT.default,
         }
@@ -384,8 +397,8 @@ impl DstarTransmit {
         }
     }
 
-    /// Push-to-talk on: starts a voice transmission with the radio header of the settings; one already under way goes
-    /// on.
+    /// Push-to-talk on: starts a voice transmission with the radio header and the text message of the settings; one
+    /// already under way goes on.
     ///
     /// # Errors
     ///
@@ -400,7 +413,7 @@ impl DstarTransmit {
             return Err(failed(DstarTxError::NoSource));
         }
         let limit = (self.cfg.timeout / FRAME_S).ceil() as usize;
-        let sender = Sender::voice(&self.header(), limit);
+        let sender = Sender::voice(&self.header(), &self.cfg.message, limit);
         self.core
             .begin(Box::new(sender), RATE, DstarTxError::NoInput)?;
         self.last_kind = Some(DstarTxKind::Voice);
@@ -502,6 +515,13 @@ impl Component for DstarTransmit {
             TxSetting::Rpt1 => self.cfg.rpt1 = field(RPT1.read(id, v)?, 8)?,
             TxSetting::Rpt2 => self.cfg.rpt2 = field(RPT2.read(id, v)?, 8)?,
             TxSetting::ViaRepeater => self.cfg.via_repeater = VIA_REPEATER.read(id, v)?,
+            TxSetting::Message => {
+                let t = MESSAGE.read(id, v)?;
+                if !valid_field(t, TEXT_MAX) {
+                    return Err(malformed);
+                }
+                self.cfg.message = t.to_string();
+            }
             TxSetting::Timeout => self.cfg.timeout = TX_TIMEOUT.read(id, v)?,
             TxSetting::Split => {
                 let s = TX_SPLIT.read(id, v)?;
@@ -524,6 +544,7 @@ impl Component for DstarTransmit {
             (TxSetting::Rpt1, Value::Text(self.cfg.rpt1.clone())),
             (TxSetting::Rpt2, Value::Text(self.cfg.rpt2.clone())),
             (TxSetting::ViaRepeater, Value::Bool(self.cfg.via_repeater)),
+            (TxSetting::Message, Value::Text(self.cfg.message.clone())),
             (TxSetting::Split, Value::Hz(self.cfg.split)),
             (TxSetting::Timeout, Value::Duration(self.cfg.timeout)),
         ])

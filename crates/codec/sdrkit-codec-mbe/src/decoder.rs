@@ -244,8 +244,9 @@ impl Decoder {
         FrameStatus { kind, errors: eps_t }
     }
 
-    /// One D-STAR frame. A frame with too many errors ([`dstar::Errors::repeats`]) is repeated. A tone frame gives
-    /// silence and puts the amplitude state back to its start. Every other frame is a voice frame and updates the state.
+    /// One D-STAR frame. A frame with too many errors ([`dstar::Errors::repeats`]) is repeated. A tone frame gives its
+    /// tone at the fixed level [`dstar::TONE_AD`] (silence for an index that names no tone) and puts the amplitude state
+    /// back to its start. Every other frame is a voice frame and updates the state.
     fn dstar_frame(&mut self, sb: &[u8; dstar::SPEECH_BITS], e: dstar::Errors, out: &mut [i16; FRAME]) -> FrameStatus {
         if e.repeats() {
             return self.invalid(e.corrected, out);
@@ -253,7 +254,12 @@ impl Decoder {
         self.invalid_run = 0;
         if dstar::is_tone(sb) {
             let t = dstar::tone_from(sb);
-            self.dstar_silence(out);
+            self.half_amp = dstar::BOOKS.start();
+            // An index that names no tone leaves the parameters of silence.
+            let mut p = Params::silent(half::SILENCE_W0, half::SILENCE_L);
+            let _ = dstar::tone_params(t, &mut p);
+            self.tone = true;
+            self.synthesise(&p, out);
             return FrameStatus {
                 kind: FrameKind::Tone {
                     id: t.id,
@@ -262,6 +268,7 @@ impl Decoder {
                 errors: e.corrected,
             };
         }
+        self.tone = false;
         let mut b = [0u32; 9];
         dstar::unpack(sb, &mut b);
         let mut p = Params::silent(0.0, 0);
@@ -281,6 +288,7 @@ impl Decoder {
     /// step and every later frame of silence is zeros. The amplitude state goes back to its start.
     fn dstar_silence(&mut self, out: &mut [i16; FRAME]) {
         self.half_amp = dstar::BOOKS.start();
+        self.tone = false;
         self.synthesise(&Params::silent(half::SILENCE_W0, half::SILENCE_L), out);
     }
 

@@ -25,6 +25,19 @@ const E_SILENT: f64 = 1.0;
 /// The divisors tried for sub-multiples of the forward pitch, largest first (flow chart 4; 6 is explained at
 /// [`submultiple`]).
 const SUBMULTIPLES: [usize; 5] = [6, 5, 4, 3, 2];
+/// The largest CE_F of a sub-multiple over CE_F(P^_0) that [`sub_fits`] takes, except for an error below 0.05.
+const SUB_RATIO: f64 = 1.3;
+
+/// Whether the sub-multiple with CE_F `c` becomes the forward pitch, against CE_F `c0` of P^_0 (Equations 18 to 20).
+///
+/// The text allows a ratio of 1.7 for c <= 0.85 and of 3.5 for c <= 0.4. Those limits absorb the error that rounding
+/// P^_0 / n to the half-sample grid adds to CE_F; [`Analyser::submultiple_error`] takes the period not rounded, and a
+/// true sub-multiple then has c within 1.2 c0. With the text's limits a voice whose odd harmonics are weak passes at
+/// half its period (c from 1.4 to 3.5 times c0) and is coded an octave high. Here one ratio holds for c <= 0.85;
+/// Equation 20 is kept.
+fn sub_fits(c: f64, c0: f64) -> bool {
+    (c <= 0.85 && c <= SUB_RATIO * c0) || c <= 0.05
+}
 
 /// The shortest period the coders carry: the lowest candidate less the reach of the refinement, 21 - 1.125.
 const MIN_PERIOD: f64 = 19.875;
@@ -409,8 +422,7 @@ impl Analyser {
         for &n in &SUBMULTIPLES {
             if let Some(j) = submultiple(p_hat, n) {
                 let (c, e) = self.submultiple_error(path, n);
-                let c0 = cef[p_hat];
-                if (c <= 0.85 && c <= 1.7 * c0) || (c <= 0.4 && c <= 3.5 * c0) || c <= 0.05 {
+                if sub_fits(c, cef[p_hat]) {
                     (pf, cef_pf, e_pf) = (j, c, e);
                     break;
                 }

@@ -2,7 +2,8 @@
 //! specification; the stack's own receiver decodes what it sends (the header fields, the text, the voice frames of the
 //! silence pattern byte for byte, the end pattern), and with the header lost it takes the header from the slow data; a
 //! voice transmission decodes to the speech frames sent, and push-to-talk sends the frames of the microphone audio,
-//! which sound with its pitch; the signal fits its channel at its level; halt ends with the end pattern; a text or a
+//! which sound with its pitch, with the text message and the header copy in the slow data; frames garbled in the middle
+//! of a transmission are lost frames, so the sound fades and keeps its timing; the signal fits its channel at its level; halt ends with the end pattern; a text or a
 //! voice transmission is refused without an own call sign and with the transmitter off; the time-out ends a voice
 //! transmission. Nothing goes to a radio.
 
@@ -19,10 +20,12 @@ use sdrkit_core::interface::ReadFields;
 use sdrkit_core::media::Codec;
 use sdrkit_core::{CommandError, Complex32, InputInfo, Owner, Receiver, StackConfig, Value};
 use sdrkit_graph::{Graph, RunContext};
-use sdrkit_stack_dvoice::dstar::{slow_blocks, Header, SLOW_XOR};
+use sdrkit_stack_dvoice::dstar::{
+    end_bits, slow_blocks, start_bits, Header, VoiceFrames, SLOW_XOR,
+};
 use sdrkit_stack_dvoice::dstar_tx::{silence_frame, DstarTxError, Sender, NOTE};
-use sdrkit_stack_dvoice::gen::Prepared;
-use sdrkit_stack_dvoice::sender::PEAK;
+use sdrkit_stack_dvoice::gen::{FskModulator, Prepared, TxPulse};
+use sdrkit_stack_dvoice::sender::{FskBurst, PEAK, RISE_S};
 use sdrkit_stack_dvoice::typed::{DstarTxFields, DstarTxKind};
 use sdrkit_stack_dvoice::voice::channel_bits;
 use serde_json::Value as Json;
@@ -322,7 +325,7 @@ fn a_text_on_the_graph_carries_the_settings_and_halt_ends_it() {
 #[test]
 fn a_voice_transmission_decodes_to_the_frames_sent() {
     let frames = vowel_frames::<72>(Coder::Dstar, 40);
-    let mut s = Sender::voice(&direct("VK2ABC"), 40);
+    let mut s = Sender::voice(&direct("VK2ABC"), "", 40);
     assert!(s.speaking());
     let mut next = frames.iter();
     let mut s48 = Vec::new();
@@ -445,6 +448,183 @@ fn push_to_talk_sends_the_microphone_bit_for_bit() {
         sound.len() as f64 / rate
     );
     assert!((f0 - VOWEL_F0).abs() < 0.04 * VOWEL_F0, "pitch {f0} Hz");
+}
+
+/// Push-to-talk with the setting `message`: the slow data of the voice frames carries the text and the header copy, so
+/// the receiver shows the text with the call and as a message; with the start of the transmission lost it takes the
+/// header from the slow data and shows the text again. The speech frames are those of the microphone, one per frame.
+#[test]
+fn push_to_talk_carries_the_text_message_and_the_header_copy() {
+    let msg = "QRV 145.375 VK2ABC";
+    let (mut rx, host) = station(&[("callsign", "VK2ABC"), ("message", msg)]);
+    host.mic.lock().unwrap().0 = (0..96_000).map(|i| vowel_at(i as f64 / 48_000.0)).collect();
+    idle(rx.as_mut(), &host, 0.2, false);
+    ptt(rx.as_mut(), true).unwrap();
+    idle(rx.as_mut(), &host, 1.5, true);
+    ptt(rx.as_mut(), false).unwrap();
+    idle(rx.as_mut(), &host, 0.5, true);
+    let (on, _, _, sent, _) = fields(rx.as_ref());
+    assert!(!on && sent >= 56, "{sent} voice frames");
+    let b = host.bursts();
+    assert_eq!(b.len(), 1, "one transmission");
+    let mut x = vec![Complex32::default(); 9600];
+    x.extend_from_slice(&b[0].0);
+    let (r, got) = receive(&x);
+    let c = calls(&r);
+    assert_eq!(c.len(), 1, "{}", show(&c));
+    assert_eq!(
+        (
+            &c[0]["src"],
+            &c[0]["text"],
+            &c[0]["details"]["header_from_slow_data"]
+        ),
+        (&"VK2ABC".into(), &msg.into(), &false.into())
+    );
+    assert_eq!(r["detail"]["messages"][0]["text"], msg);
+    assert_eq!(got.len() as i64, sent);
+    // The bit sync, the frame sync and the header at 20 samples a bit; cut a little into the first frame.
+    let cut = (64 + 15 + 660 + 20) * 20;
+    let mut x = vec![Complex32::default(); 9600];
+    x.extend_from_slice(&b[0].0[cut..]);
+    let (r, _) = receive(&x);
+    let c = calls(&r);
+    assert_eq!(c.len(), 1, "{}", show(&c));
+    assert_eq!(
+        (
+            &c[0]["src"],
+            &c[0]["text"],
+            &c[0]["details"]["header_from_slow_data"]
+        ),
+        (&"VK2ABC".into(), &msg.into(), &true.into())
+    );
+    // A text message that does not fit is not taken.
+    let mut bad = values("dstar", &[]);
+    let schema = (desc("dstar").settings)();
+    bad.set(
+        schema.id("message").unwrap(),
+        &Value::Text("A TEXT OF MORE THAN TWENTY CHARACTERS".into()),
+    )
+    .unwrap();
+    assert!((desc("dstar").make_receiver)(&StackConfig::new(bad)).is_err());
+}
+
+/// A codec plug-in that keeps every frame it gets, `None` for a lost frame.
+struct Frames(Arc<Mutex<Vec<Option<Vec<u8>>>>>);
+
+impl AudioCodec for Frames {
+    fn decode(
+        &mut self,
+        frame: &[u8],
+        erasure: bool,
+        pcm: &mut sdrkit_core::codec::Pcm,
+    ) -> Result<(), sdrkit_core::codec::CodecError> {
+        self.0
+            .lock()
+            .unwrap()
+            .push((!erasure).then(|| frame.to_vec()));
+        pcm.rate_hz = 8000;
+        pcm.channels = 1;
+        pcm.samples.extend(std::iter::repeat_n(0, 160));
+        Ok(())
+    }
+}
+
+/// A voice transmission of 84 frames whose frames 25 to 50 (with the data sync of frame 42) are random bits on the same
+/// carrier: the receiver hands those frames on as lost frames from the second one, so the speech decoder repeats the
+/// last frame three times and then is silent; every other frame arrives bit for bit, and the sound keeps its timing.
+#[test]
+fn frames_garbled_mid_transmission_are_lost_and_the_sound_fades() {
+    let speech = vowel_frames::<72>(Coder::Dstar, 84);
+    let mut bits = start_bits(&direct("VK2ABC"));
+    let mut frames = VoiceFrames::new(slow_blocks(&direct("VK2ABC"), "", &[], None).split_off(4));
+    let mut seed = 0x2545_f491_4f6c_dd1du64;
+    for (k, f) in speech.iter().enumerate() {
+        let at = bits.len();
+        frames.push(f, &mut bits);
+        if (25..=50).contains(&k) {
+            for b in &mut bits[at..] {
+                seed ^= seed << 13;
+                seed ^= seed >> 7;
+                seed ^= seed << 17;
+                *b = (seed >> 32) as u8 & 1;
+            }
+        }
+    }
+    bits.extend(end_bits());
+    let mut burst = FskBurst::new(
+        FskModulator::new(4800.0, TxPulse::Gaussian(0.5), 1200.0),
+        48_000.0,
+        RISE_S,
+    );
+    let mut s48 = Vec::new();
+    burst.bits(&bits, &mut s48);
+    burst.end(&mut s48);
+    let x = on_air(&s48);
+    // The frames the plug-in gets.
+    let kept = Arc::new(Mutex::new(Vec::new()));
+    let mut set = CodecSet::default();
+    let k = Arc::clone(&kept);
+    set.register(
+        Codec::Ambe.fourcc(),
+        None,
+        Arc::new(move |_: &sdrkit_core::media::MediaFormat| {
+            Some(Box::new(Frames(Arc::clone(&k))) as Box<dyn AudioCodec>)
+        }),
+    );
+    let (r, _) = run(
+        receiver_with_codecs("dstar", &[], set).as_mut(),
+        RATE,
+        &x,
+        4800,
+    );
+    let c = calls(&r);
+    assert_eq!(
+        (c.len(), &c[0]["end"]),
+        (1, &"terminator".into()),
+        "{}",
+        show(&c)
+    );
+    let got = kept.lock().unwrap().clone();
+    assert_eq!(
+        got.len(),
+        84,
+        "one frame or lost frame for each frame position"
+    );
+    for (k, (g, f)) in got.iter().zip(&speech).enumerate() {
+        if (26..=50).contains(&k) {
+            assert!(g.is_none(), "frame {k} of random bits is a lost frame");
+        } else if k != 25 {
+            assert_eq!(
+                g.as_deref(),
+                Some(&channel_bits::<9>(f)[..]),
+                "frame {k} bit for bit"
+            );
+        }
+    }
+    // The speech decoder: sound before, silence within the garbled frames after three repeats, sound after.
+    let (_, out) = run(
+        receiver_with_codecs("dstar", &[], speech_codecs()).as_mut(),
+        RATE,
+        &x,
+        4800,
+    );
+    let mut sound = Vec::new();
+    let mut rate = 0.0;
+    for p in out.audio_runs() {
+        sound.extend_from_slice(p.samples);
+        rate = p.rate_hz;
+    }
+    let n = (rate / 50.0) as usize;
+    assert_eq!(sound.len() / n, 84, "the sound keeps its timing");
+    let rms =
+        |k: usize| (sound[k * n..(k + 1) * n].iter().map(|v| v * v).sum::<f32>() / n as f32).sqrt();
+    let level: Vec<f32> = (0..84).map(rms).collect();
+    assert!(level[5..25].iter().all(|&v| v > 0.01), "speech before");
+    assert!(
+        level[30..=50].iter().all(|&v| v < 1e-4),
+        "silence after the repeats"
+    );
+    assert!(level[55..80].iter().all(|&v| v > 0.01), "speech after");
 }
 
 /// Without an own call sign push-to-talk is refused with the error that names the setting, and with the transmitter

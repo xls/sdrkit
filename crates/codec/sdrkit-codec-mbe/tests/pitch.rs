@@ -274,16 +274,19 @@ fn add_noise(s: &mut Signal) {
     }
 }
 
-/// Noisy vowels whose odd harmonics above the first are 10 dB down, so that half the period fits nearly as well as the
-/// period: how often the pitch is coded an octave high. From 195 Hz half the period is below the candidate 21.
+/// Noisy vowels whose odd harmonics above the first are 10 dB or 6 dB down, so that half the period fits nearly as well as
+/// the period: how often the pitch is coded an octave high. From 195 Hz half the period is below the candidate 21.
 fn weak_odd_score(coder: Coder) -> Score {
     let mut total = Score::default();
-    for (i, hz) in [100.0, 150.0, 195.0, 196.0, 197.0, 198.0, 199.0, 200.0].into_iter().enumerate() {
-        for vowel in &VOWELS {
-            let mut s = Signal { seed: 23 + i as u64, odd: 0.316, ..Signal::default() };
-            s.voiced(30 * FRAME, vowel, 1, |_| hz, |_| 1.0);
-            add_noise(&mut s);
-            total.add(plain(coder, &s));
+    let pitches = [90.0, 100.0, 120.0, 135.0, 150.0, 170.0, 185.0, 195.0, 196.0, 197.0, 198.0, 199.0, 200.0, 230.0, 260.0];
+    for odd in [0.316, 0.5] {
+        for (i, hz) in pitches.into_iter().enumerate() {
+            for vowel in &VOWELS {
+                let mut s = Signal { seed: 23 + i as u64, odd, ..Signal::default() };
+                s.voiced(30 * FRAME, vowel, 1, |_| hz, |_| 1.0);
+                add_noise(&mut s);
+                total.add(plain(coder, &s));
+            }
         }
     }
     total
@@ -358,7 +361,7 @@ fn glides_and_phrases_keep_the_pitch() {
         let r = rough_score(coder);
         assert!(r.gross_pct() < 2.0, "{coder:?} vowels in noise: {:.2} % gross of {}", r.gross_pct(), r.frames);
         let w = weak_odd_score(coder);
-        assert!(w.gross_pct() < 10.0, "{coder:?} weak odd harmonics: {:.2} % gross of {}", w.gross_pct(), w.frames);
+        assert_eq!(w.gross, 0, "{coder:?} weak odd harmonics: {} gross of {}", w.gross, w.frames);
         for (lo, hi) in [(85.0, 155.0), (165.0, 255.0)] {
             let p = phrase_score(coder, lo, hi);
             assert!(p.gross_pct() < 2.0, "{coder:?} phrase {lo} to {hi} Hz: {:.2} % gross", p.gross_pct());
@@ -463,3 +466,4 @@ fn table() {
         println!("{c:?}: every 1 Hz from 66 to {} Hz, two phase sets, {frames} frames: off by more than 3 % at {bad:?}", TOP_HZ as usize);
     }
 }
+

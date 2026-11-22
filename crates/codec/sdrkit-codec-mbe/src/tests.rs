@@ -353,8 +353,23 @@ fn dstar_repeat_and_mute_limits() {
     assert_eq!(dec.error_rate(), 0.0);
 }
 
+/// The peak of a decoded D-STAR tone: twice the model amplitude 16384 x 10^(0.03555 (AD - 127)) at AD = 100.
+const TONE_PEAK: f64 = 3589.0;
+
+/// The amplitude of the sine of `hz` in one frame, and its share of the frame's power.
+fn sine_at(x: &[i16; FRAME], hz: f64) -> (f64, f64) {
+    let w = std::f64::consts::TAU * hz / 8000.0;
+    let (mut c, mut s) = (0.0, 0.0);
+    for (n, &v) in x.iter().enumerate() {
+        c += v as f64 * (w * n as f64).cos();
+        s += v as f64 * (w * n as f64).sin();
+    }
+    let a = 2.0 * (c * c + s * s).sqrt() / FRAME as f64;
+    (a, a * a / 2.0 / rms(x).powi(2).max(1e-9))
+}
+
 #[test]
-fn the_dstar_silence_pattern_is_quiet_and_a_tone_frame_is_silence() {
+fn the_dstar_silence_pattern_is_quiet_and_a_tone_frame_is_a_sine() {
     let fr = frames(Coder::Dstar, 12);
     let mut dec = Decoder::new(Coder::Dstar);
     let mut out = [0i16; FRAME];
@@ -372,7 +387,7 @@ fn the_dstar_silence_pattern_is_quiet_and_a_tone_frame_is_silence() {
         assert!(k < 3 || rms(&out) < 8.0, "frame {k}: RMS {}", rms(&out));
     }
     assert_eq!((dec.params().l, dec.params().voiced.iter().any(|&v| v)), (56, false));
-    // A tone frame gives its index and level, silence, and the start state.
+    // A tone frame gives its index and level, a sine of 1000 Hz at the fixed level, and the start state.
     for f in &fr {
         dec.decode(f, &mut out);
     }
@@ -383,9 +398,29 @@ fn the_dstar_silence_pattern_is_quiet_and_a_tone_frame_is_silence() {
     for k in 0..3 {
         let s = dec.decode(&tone, &mut out);
         assert_eq!(s.kind, FrameKind::Tone { id: 32, amplitude: 200 });
-        assert!(k == 0 || out.iter().all(|&v| v == 0), "tone frame {k}");
+        if k > 0 {
+            let (a, share) = sine_at(&out, 1000.0);
+            assert!(share > 0.99, "tone frame {k}: {share} of the power at 1000 Hz");
+            assert!((a - TONE_PEAK).abs() < 0.05 * TONE_PEAK, "tone frame {k}: amplitude {a}");
+        }
     }
     assert_eq!((dec.half_amp.gamma, dec.half_amp.l), (0.0, 30));
+    // DTMF 5 (index 0x85): 770 and 1336 Hz at the same level. Index 255: silence.
+    let mut sb = [0u8; crate::dstar::SPEECH_BITS];
+    let mut chan = [0u8; 72];
+    crate::dstar::tone_bits(crate::dstar::Tone { id: 0x85, level: 0 }, &mut sb);
+    crate::dstar::encode_channel(&sb, &mut chan);
+    for _ in 0..2 {
+        dec.decode(&chan, &mut out);
+    }
+    let ((lo, p_lo), (hi, p_hi)) = (sine_at(&out, 770.0), sine_at(&out, 1336.0));
+    assert!(p_lo + p_hi > 0.99 && (lo / hi - 1.0).abs() < 0.05, "DTMF {lo} {p_lo} {hi} {p_hi}");
+    crate::dstar::tone_bits(crate::dstar::Tone { id: 255, level: 0 }, &mut sb);
+    crate::dstar::encode_channel(&sb, &mut chan);
+    for _ in 0..2 {
+        dec.decode(&chan, &mut out);
+    }
+    assert!(rms(&out) < 1.0, "no tone: RMS {}", rms(&out));
     assert_eq!(dec.decode(&fr[5], &mut out).kind, FrameKind::Voice);
 }
 

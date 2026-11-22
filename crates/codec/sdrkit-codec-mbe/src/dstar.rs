@@ -122,6 +122,25 @@ pub fn tone_from(bits: &[u8; SPEECH_BITS]) -> Tone {
     }
 }
 
+/// The tone index of the half-rate coder for each D-STAR dual-tone index 128..=146: DTMF 0x80 + n in the chip's order
+/// 1, 4, 7, *, 2, 5, 8, 0, 3, 6, 9, #, A, B, C, D, then the call-progress pairs 350/440, 440/480 and 480/620 Hz.
+const PAIR_IDS: [u8; 19] = [129, 132, 135, 142, 130, 133, 136, 128, 131, 134, 137, 143, 138, 139, 140, 141, 160, 161, 162];
+
+/// The level of every tone, as a half-rate amplitude AD: no document gives the scale of the D-STAR level, so it is not
+/// read and each tone is about 19 dB below the largest sine.
+pub const TONE_AD: u8 = 100;
+
+/// The model parameters of the tone `t` at the level [`TONE_AD`] through the half-rate tone synthesis
+/// ([`half::tone_params`]), or `None` for an index that names no tone (0..=4, 123..=127, 147..=254).
+pub fn tone_params(t: Tone, out: &mut crate::model::Params) -> Option<()> {
+    let id = match t.id {
+        5..=122 | 255 => t.id,
+        128..=146 => PAIR_IDS[t.id as usize - 128],
+        _ => return None,
+    };
+    half::tone_params(half::Tone { id, ad: TONE_AD }, out)
+}
+
 /// The speech bits of a tone frame, the inverse of [`tone_from`]; every other bit is 0.
 pub fn tone_bits(t: Tone, out: &mut [u8; SPEECH_BITS]) {
     let (id, level) = (t.id as u32, t.level as u32);
@@ -222,6 +241,12 @@ pub fn decode_channel(chan: &[u8], bits: &mut [u8; SPEECH_BITS]) -> Errors {
     };
     from_vectors(&[u0, u1, u2], bits);
     e
+}
+
+/// What the error correction finds in the 72 channel bits of one frame, in the order sent, without its speech bits.
+pub fn channel_errors(chan: &[u8]) -> Errors {
+    let mut bits = [0u8; SPEECH_BITS];
+    decode_channel(chan, &mut bits)
 }
 
 /// The 72 channel bits of the speech bits, in the order sent.

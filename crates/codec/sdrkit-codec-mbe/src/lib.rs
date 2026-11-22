@@ -33,14 +33,16 @@
 //! Lambda(-1) = 0 (`dstar::BOOKS`); a frame repeats above three corrected data-bit errors ([`DSTAR_REPEAT_ERRORS`]) or
 //! when word A has four errors ([`DSTAR_WORD_A_DETECTS`]), and the fourth repeat in a row is muted; bit 0 of word B is
 //! sent as the even parity of the 23 bits before it and is not read (`dstar::decode_channel`); the tone field map
-//! (`dstar::tone_from`); tone frames and muted frames are silence; enhancement and synthesis are those of the other
-//! coders.
+//! (`dstar::tone_from`); the dual-tone indices are the chip's interface codes (`dstar::tone_params`); tones are
+//! synthesised as the half-rate tones at one fixed level, since the level scale is not known (`dstar::TONE_AD`); muted
+//! frames are silence; enhancement and synthesis are those of the other coders.
 //!
 //! Where the encoder's pitch estimation departs from the printed text, each in one named item: the error function
 //! E(P) sums the autocorrelation over every lag, not to lag 150 (`analysis::Lags::error`); above P = 80 it divides by
 //! the real window overlap (`analysis::fit_error`); the sub-multiple test of Equations 18 to 20 takes E at P / n not
-//! rounded, with a cubic between lags (`analysis::Analyser::submultiple_error`); sub-multiples count down to the
-//! period 19.875, with the divisor 6 (`analysis::submultiple`).
+//! rounded, with a cubic between lags (`analysis::Analyser::submultiple_error`), and with one ratio of 1.3 in place of
+//! the 1.7 and 3.5 of Equations 18 and 19 (`analysis::sub_fits`); sub-multiples count down to the period 19.875, with
+//! the divisor 6 (`analysis::submultiple`).
 //!
 //! ```
 //! use sdrkit_codec_mbe::{Coder, Decoder, Encoder};
@@ -75,8 +77,9 @@ mod tests;
 pub use codewords::{codeword_channel_bits, codewords};
 pub use decoder::{full_rate_repeats, Decoder, FULL_LOST_MUTE_RUN, FULL_MUTE_RATE, HALF_RATE_SMOOTHING};
 pub use dstar::{
-    silence_bits as dstar_silence_bits, B0_VOICE_MAX as DSTAR_B0_VOICE_MAX, REPEAT_ERRORS as DSTAR_REPEAT_ERRORS,
-    SILENCE as DSTAR_SILENCE, WORD_A_DETECTS as DSTAR_WORD_A_DETECTS,
+    channel_errors as dstar_channel_errors, silence_bits as dstar_silence_bits, Errors as DstarErrors,
+    B0_VOICE_MAX as DSTAR_B0_VOICE_MAX, REPEAT_ERRORS as DSTAR_REPEAT_ERRORS, SILENCE as DSTAR_SILENCE,
+    WORD_A_DETECTS as DSTAR_WORD_A_DETECTS,
 };
 pub use encoder::Encoder;
 pub use enhance::TAU_M_START;
@@ -122,12 +125,12 @@ pub enum FrameKind {
     Voice,
     /// A half-rate silence frame.
     Silence,
-    /// A tone frame with its index and amplitude. The half-rate decoder gives the tone; the D-STAR decoder gives
-    /// silence.
+    /// A tone frame with its index and amplitude. Both decoders give the tone; the D-STAR decoder at a fixed level.
     Tone {
         /// Tone index.
         id: u8,
-        /// Amplitude. Half rate: 0..=127, 0.711 dB a step. D-STAR: the 8-bit level of the frame, of no known scale.
+        /// Amplitude. Half rate: 0..=127, 0.711 dB a step. D-STAR: the 8-bit level of the frame, of no known scale and
+        /// not used.
         amplitude: u8,
     },
     /// The frame was invalid and the previous one was synthesised again.

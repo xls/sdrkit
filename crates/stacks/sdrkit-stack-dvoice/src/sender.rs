@@ -118,6 +118,7 @@ pub fn rise(n: usize) -> Vec<f32> {
 pub struct FskBurst {
     modulator: crate::gen::FskModulator,
     rise: Vec<f32>,
+    lv: Vec<f32>,
     made: usize,
     done: bool,
 }
@@ -128,6 +129,7 @@ impl FskBurst {
         FskBurst {
             modulator,
             rise: rise((rise_s * rate).round() as usize),
+            lv: Vec::with_capacity(128),
             made: 0,
             done: false,
         }
@@ -146,11 +148,11 @@ impl FskBurst {
 
     /// Appends the samples of the binary symbols `bits` (1 is the level +1, 0 the level −1) to `out`.
     pub fn bits(&mut self, bits: &[u8], out: &mut Vec<Complex32>) {
-        let lv: Vec<f32> = bits
-            .iter()
-            .map(|&b| if b != 0 { 1.0 } else { -1.0 })
-            .collect();
+        let mut lv = std::mem::take(&mut self.lv);
+        lv.clear();
+        lv.extend(bits.iter().map(|&b| if b != 0 { 1.0 } else { -1.0 }));
         self.levels(&lv, out);
+        self.lv = lv;
     }
 
     /// Appends the end: the pulse runs out on the carrier, which then falls. Nothing more after it.

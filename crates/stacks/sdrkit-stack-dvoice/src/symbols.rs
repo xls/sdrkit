@@ -94,17 +94,23 @@ impl Sym {
 /// Returns whether the carrier was lost within these symbols: more than a quarter are at the centre (a discriminator fed
 /// silence outputs zero).
 pub fn carrier_gone(s: &[Sym]) -> bool {
+    carrier_gone_levels(s.iter().map(|x| x.v))
+}
+
+/// [`carrier_gone`] on the soft values of the symbols.
+pub fn carrier_gone_levels(v: impl Iterator<Item = f32> + Clone) -> bool {
     let mut run = 0;
     let mut longest = 0;
-    for x in s {
-        if x.v.abs() < 0.3 {
+    for x in v.clone() {
+        if x.abs() < 0.3 {
             run += 1;
             longest = longest.max(run);
         } else {
             run = 0;
         }
     }
-    longest >= 6 || s.iter().filter(|x| x.v.abs() < 0.25).count() * 4 > s.len()
+    let (weak, n) = v.fold((0, 0), |(w, n), x| (w + (x.abs() < 0.25) as usize, n + 1));
+    longest >= 6 || weak * 4 > n
 }
 
 /// What the protocol answers to a sync.
