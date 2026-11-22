@@ -91,7 +91,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.2. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 1.3. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Satellite links (`satellite_links`). Media: none.
 
 ### Result fields
 
@@ -150,6 +152,8 @@ Struct `BganCarrierRow`. A carrier. The row key is its place, `000` first.
 | `network` | text | optional | 1.0 | MCC-MNC. |
 | `satellite` | text | optional | 1.0 | The carrying satellite. |
 | `last_seen` | duration (s) | always | 1.0 | Seconds since last heard. |
+
+The column `satellite` names a row. Default order: the column `snr_db`, highest first.
 
 ### Table `beam_table`
 

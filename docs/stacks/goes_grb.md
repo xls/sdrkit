@@ -147,7 +147,9 @@ Advanced settings. The owner works without any of them set.
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.1. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 1.2. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
 
 ### Result fields
 
@@ -301,6 +303,8 @@ Struct `GrbProductRow`. A picture product of `goes_grb`. The row key is the APID
 | `name` | text | always | 1.0 | The name of the product of the APID. |
 | `updated` | duration (s) | always | 1.0 | The signal time of the last update. |
 
+The column `name` names a row.
+
 ### Table `packets_by_apid`
 
 Struct `GrbApidRow`. A row of the packets of each APID of `goes_grb`. The row key is the APID.
@@ -310,6 +314,8 @@ Struct `GrbApidRow`. A row of the packets of each APID of `goes_grb`. The row ke
 | `apid` | whole number | always | 1.0 | The APID. |
 | `name` | text | always | 1.0 | The name of the product of the APID. |
 | `packets` | whole number | always | 1.0 | The packets of the APID. |
+
+The column `name` names a row.
 
 ### Table `frames`
 
@@ -336,6 +342,8 @@ Struct `GlmFlashRow`. A lightning flash of `goes_grb`. The row key is the produc
 | `groups` | whole number | always | 1.1 | Groups received with this flash as parent. |
 | `events` | whole number | always | 1.1 | Events received in those groups. |
 
+Place of a row: the column `position`.
+
 ### Table `groups`
 
 Struct `GlmGroupRow`. A lightning group of `goes_grb`. The row key is the product time (microseconds since J2000) and the group id.
@@ -350,6 +358,8 @@ Struct `GlmGroupRow`. A lightning group of `goes_grb`. The row key is the produc
 | `flash` | whole number | always | 1.1 | The parent flash id. |
 | `quality` | choice | optional | 1.1 | The data quality. |
 | `events` | whole number | always | 1.1 | Events received with this group as parent. |
+
+Place of a row: the column `position`.
 
 ### Commands
 

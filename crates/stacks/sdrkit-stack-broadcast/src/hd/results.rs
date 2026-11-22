@@ -296,12 +296,14 @@ pub struct HdradioSongEvent<'a> {
 }
 
 /// The audio programs.
-pub static PROGRAMS: Table<HdradioProgramRow<'static>> = Table::new("programs", "Programs", 8);
+pub static PROGRAMS: Table<HdradioProgramRow<'static>> =
+    Table::new("programs", "Programs", 8).label(&HdradioProgramRow::NAME);
 /// The data service components.
 pub static DATA_SERVICES: Table<HdradioDataServiceRow<'static>> =
-    Table::new("data_services", "Data services", 64);
+    Table::new("data_services", "Data services", 64).label(&HdradioDataServiceRow::NAME);
 /// The files of the LOT transport, newest first.
-pub static FILES: Table<HdradioFileRow<'static>> = Table::new("files", "Files", 64);
+pub static FILES: Table<HdradioFileRow<'static>> =
+    Table::new("files", "Files", 64).label(&HdradioFileRow::NAME);
 
 /// The constellation of the last frame.
 pub const SERIES_CONSTELLATION: SeriesDef = SeriesDef {

@@ -6,21 +6,17 @@ pub mod channels;
 pub mod generator;
 pub mod proto;
 
-use crate::family::{
-    min_rate_message, publish_tracks, wall, SignalClock, StatusLine, REPORT_S,
-};
+use crate::family::{min_rate_message, publish_tracks, wall, SignalClock, StatusLine, REPORT_S};
 use crate::flarm::demod::ChannelItem;
 use crate::flarm::proto::AIRCRAFT_TYPES as FLARM_TYPES;
-use crate::flarm::{
-    DeviceId, FlarmTracker, FlarmTrackerSetting, START_TIME, WALL_CLOCK,
-};
-use channels::{AdslChannels, AdslItem, AdslPacket, Band, BandState, BANDS};
-use proto::{amt_name, category_name, Address, DataHeader, Status, Traffic};
-use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
+use crate::flarm::{DeviceId, FlarmTracker, FlarmTrackerSetting, START_TIME, WALL_CLOCK};
 use crate::typed::{
     AdslAircraftEvent, AdslAircraftRow, AdslEmergencyEvent, AdslFields, AircraftTrackRow,
     ADSL_AIRCRAFT, ADSL_AIRCRAFT_SEEN, ADSL_EMERGENCY, ADSL_TRACKS, AIRCRAFT_REMOVE, AIRCRAFT_ROW,
 };
+use channels::{AdslChannels, AdslItem, AdslPacket, Band, BandState, BANDS};
+use proto::{amt_name, category_name, Address, DataHeader, Status, Traffic};
+use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
 use sdrkit_core::interface::{Hertz, Time};
 use sdrkit_core::publish::keys::{Family, Urgency};
 use sdrkit_core::publish::{field, Published};
@@ -133,7 +129,6 @@ sdrkit_core::settings! {
         StartTime = START_TIME,
     }
 }
-
 
 sdrkit_core::commands! {
     /// The commands of [`AdslTracker`].
@@ -643,20 +638,18 @@ impl AdslTracker {
         }
         if let (false, Some(at)) = (a.announced, a.position) {
             a.announced = true;
-            self.events.push(
-                ADSL_AIRCRAFT_SEEN.event(
-                    t,
-                    a.channel_hz,
-                    &AdslAircraftEvent {
-                        source: &a.id,
-                        address_source: source_name(a.source),
-                        category: &a.category,
-                        position: (at.lat_deg, at.lon_deg),
-                        private: a.private(),
-                        family: Family::Aircraft,
-                    },
-                ),
-            );
+            self.events.push(ADSL_AIRCRAFT_SEEN.event(
+                t,
+                a.channel_hz,
+                &AdslAircraftEvent {
+                    source: &a.id,
+                    address_source: source_name(a.source),
+                    category: &a.category,
+                    position: (at.lat_deg, at.lon_deg),
+                    private: a.private(),
+                    family: Family::Aircraft,
+                },
+            ));
         }
         if new && self.new_logged < 40 {
             self.new_logged += 1;
@@ -841,12 +834,20 @@ impl AdslTracker {
             p,
             &mut self.key,
             |p, key, aircraft, position, time_s| {
-                ADSL_TRACKS.put(p, key, &AircraftTrackRow { aircraft, position, time_s });
+                ADSL_TRACKS.put(
+                    p,
+                    key,
+                    &AircraftTrackRow {
+                        aircraft,
+                        position,
+                        time_s,
+                    },
+                );
             },
             &ADSL_TRACKS,
         );
         let r = p.results_mut();
-        shaped::points(&s.aircraft, "aircraft/", r);
+        shaped::row_points(&s.aircraft, &ADSL_AIRCRAFT, "aircraft/", r);
         match self.station {
             Some(st) => {
                 r.update_point("station", st.lat_deg, st.lon_deg, "station", None);

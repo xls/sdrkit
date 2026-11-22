@@ -247,6 +247,7 @@ pub static LISTENERS: TableDef = TableDef {
         &L_CONNECTED,
     ],
     cap: info::MAX_LISTENERS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The waterfall of the receiver: one row per line, the newest last, in dB.
@@ -476,6 +477,7 @@ pub static RECEIVERS: TableDef = TableDef {
     label: "Receivers tested",
     columns: &[&R_ADDRESS, &R_VERSION, &R_CHANNELS],
     cap: 64,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// What a test of the connection found.

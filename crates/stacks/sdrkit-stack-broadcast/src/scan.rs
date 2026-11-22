@@ -56,7 +56,8 @@ pub struct StationRow<'a> {
 }
 
 /// The stations found, keyed by their frequency in Hz.
-pub static STATIONS: Table<StationRow<'static>> = Table::new("stations", "Stations", 256);
+pub static STATIONS: Table<StationRow<'static>> =
+    Table::new("stations", "Stations", 256).label(&StationRow::NAME);
 
 /// One band that a scanned stack covers.
 #[derive(Clone, Debug, PartialEq)]

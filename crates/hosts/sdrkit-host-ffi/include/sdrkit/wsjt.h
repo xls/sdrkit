@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wsjt", version 4.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "wsjt", version 4.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WSJT_VERSION_MAJOR 4
-#define SDRKIT_WSJT_VERSION_MINOR 0
+#define SDRKIT_WSJT_VERSION_MINOR 1
 
 // The stack "wsjt": its id, and the keys of its event types.
 #define SDRKIT_STACK_WSJT "wsjt"
@@ -2023,6 +2023,7 @@ static inline int32_t sdrkit_wsjt_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "wsjt" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_wsjt_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_wspr_spot_row *rows,
                                                  uint32_t capacity,
@@ -2041,6 +2042,7 @@ static inline int32_t sdrkit_wsjt_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "wsjt" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_wsjt_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wsjt_station_row *rows,
                                                uint32_t capacity,
@@ -2068,6 +2070,7 @@ static inline int32_t sdrkit_wsjt_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "wsjt" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_wsjt_js8_stations_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_js8_station_row *rows,
                                                    uint32_t capacity,
@@ -2595,6 +2598,7 @@ static inline int32_t sdrkit_ft8_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "ft8" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_ft8_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_wspr_spot_row *rows,
                                                 uint32_t capacity,
@@ -2613,6 +2617,7 @@ static inline int32_t sdrkit_ft8_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "ft8" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_ft8_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -2640,6 +2645,7 @@ static inline int32_t sdrkit_ft8_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "ft8" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_ft8_js8_stations_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_js8_station_row *rows,
                                                   uint32_t capacity,
@@ -2928,6 +2934,7 @@ static inline int32_t sdrkit_ft4_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "ft4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_ft4_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_wspr_spot_row *rows,
                                                 uint32_t capacity,
@@ -2946,6 +2953,7 @@ static inline int32_t sdrkit_ft4_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "ft4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_ft4_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -2973,6 +2981,7 @@ static inline int32_t sdrkit_ft4_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "ft4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_ft4_js8_stations_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_js8_station_row *rows,
                                                   uint32_t capacity,
@@ -3261,6 +3270,7 @@ static inline int32_t sdrkit_ft2_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "ft2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_ft2_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_wspr_spot_row *rows,
                                                 uint32_t capacity,
@@ -3279,6 +3289,7 @@ static inline int32_t sdrkit_ft2_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "ft2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_ft2_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -3306,6 +3317,7 @@ static inline int32_t sdrkit_ft2_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "ft2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_ft2_js8_stations_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_js8_station_row *rows,
                                                   uint32_t capacity,
@@ -3586,6 +3598,7 @@ static inline int32_t sdrkit_wspr_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "wspr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_wspr_spots_rows(SDRKIT_HANDLE handle,
                                             sdrkit_wspr_spot_row *rows,
                                             uint32_t capacity,
@@ -3604,6 +3617,7 @@ static inline int32_t sdrkit_wspr_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "wspr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_wspr_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wsjt_station_row *rows,
                                                uint32_t capacity,
@@ -3631,6 +3645,7 @@ static inline int32_t sdrkit_wspr_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "wspr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_wspr_js8_stations_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_js8_station_row *rows,
                                                    uint32_t capacity,
@@ -3895,6 +3910,7 @@ static inline int32_t sdrkit_jt65_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "jt65" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_jt65_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_wspr_spot_row *rows,
                                                  uint32_t capacity,
@@ -3913,6 +3929,7 @@ static inline int32_t sdrkit_jt65_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "jt65" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_jt65_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wsjt_station_row *rows,
                                                uint32_t capacity,
@@ -3940,6 +3957,7 @@ static inline int32_t sdrkit_jt65_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "jt65" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_jt65_js8_stations_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_js8_station_row *rows,
                                                    uint32_t capacity,
@@ -4134,6 +4152,7 @@ static inline int32_t sdrkit_jt9_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "jt9" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_jt9_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_wspr_spot_row *rows,
                                                 uint32_t capacity,
@@ -4152,6 +4171,7 @@ static inline int32_t sdrkit_jt9_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "jt9" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_jt9_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -4179,6 +4199,7 @@ static inline int32_t sdrkit_jt9_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "jt9" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_jt9_js8_stations_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_js8_station_row *rows,
                                                   uint32_t capacity,
@@ -4362,6 +4383,7 @@ static inline int32_t sdrkit_jt4_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "jt4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_jt4_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_wspr_spot_row *rows,
                                                 uint32_t capacity,
@@ -4380,6 +4402,7 @@ static inline int32_t sdrkit_jt4_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "jt4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_jt4_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -4407,6 +4430,7 @@ static inline int32_t sdrkit_jt4_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "jt4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_jt4_js8_stations_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_js8_station_row *rows,
                                                   uint32_t capacity,
@@ -4601,6 +4625,7 @@ static inline int32_t sdrkit_q65_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "q65" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_q65_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_wspr_spot_row *rows,
                                                 uint32_t capacity,
@@ -4619,6 +4644,7 @@ static inline int32_t sdrkit_q65_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "q65" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_q65_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -4646,6 +4672,7 @@ static inline int32_t sdrkit_q65_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "q65" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_q65_js8_stations_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_js8_station_row *rows,
                                                   uint32_t capacity,
@@ -4790,6 +4817,7 @@ static inline int32_t sdrkit_fst4_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "fst4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_fst4_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_wspr_spot_row *rows,
                                                  uint32_t capacity,
@@ -4808,6 +4836,7 @@ static inline int32_t sdrkit_fst4_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "fst4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_fst4_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wsjt_station_row *rows,
                                                uint32_t capacity,
@@ -4835,6 +4864,7 @@ static inline int32_t sdrkit_fst4_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "fst4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_fst4_js8_stations_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_js8_station_row *rows,
                                                    uint32_t capacity,
@@ -4968,6 +4998,7 @@ static inline int32_t sdrkit_fst4w_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "fst4w" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_fst4w_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_wspr_spot_row *rows,
                                                   uint32_t capacity,
@@ -4986,6 +5017,7 @@ static inline int32_t sdrkit_fst4w_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "fst4w" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_fst4w_stations_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_wsjt_station_row *rows,
                                                 uint32_t capacity,
@@ -5013,6 +5045,7 @@ static inline int32_t sdrkit_fst4w_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "fst4w" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_fst4w_js8_stations_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_js8_station_row *rows,
                                                     uint32_t capacity,
@@ -5146,6 +5179,7 @@ static inline int32_t sdrkit_msk144_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "msk144" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_msk144_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_wspr_spot_row *rows,
                                                    uint32_t capacity,
@@ -5164,6 +5198,7 @@ static inline int32_t sdrkit_msk144_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "msk144" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_msk144_stations_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_wsjt_station_row *rows,
                                                  uint32_t capacity,
@@ -5191,6 +5226,7 @@ static inline int32_t sdrkit_msk144_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "msk144" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_msk144_js8_stations_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_js8_station_row *rows,
                                                      uint32_t capacity,
@@ -5324,6 +5360,7 @@ static inline int32_t sdrkit_js8_decodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "wspr_spots" of the stack "js8" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_js8_wspr_spots_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_wspr_spot_row *rows,
                                                 uint32_t capacity,
@@ -5342,6 +5379,7 @@ static inline int32_t sdrkit_js8_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "js8" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_js8_wsjt_stations_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_wsjt_station_row *rows,
                                                    uint32_t capacity,
@@ -5369,6 +5407,7 @@ static inline int32_t sdrkit_js8_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "js8_stations" of the stack "js8" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_js8_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_js8_station_row *rows,
                                               uint32_t capacity,

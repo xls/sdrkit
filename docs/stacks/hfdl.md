@@ -82,7 +82,9 @@ The stack puts points on a map: Aircraft and ground stations.
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.1. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 1.2. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Datalink messages (`datalink`). Media: text.
 
 ### Result fields
 
@@ -147,6 +149,8 @@ Struct `HfdlMessageRow`. A row of the messages. The row key is the place in the 
 | `position` | position | optional | 1.0 | The position the message gives. |
 | `detail` | text | optional | 1.0 | Every decoded layer, joined by " \| ". |
 
+The column `flight` names a row. Place of a row: the column `position`.
+
 ### Table `aircraft`
 
 Struct `HfdlAircraftRow`. A row of the aircraft. The row key is the address, or the ground station and the aircraft id while the address is not known.
@@ -166,6 +170,8 @@ Struct `HfdlAircraftRow`. A row of the aircraft. The row key is the address, or 
 | `position` | position | optional | 1.0 | The last position. |
 | `alt_ft` | number (ft) | optional | 1.0 | The altitude of the last position. |
 
+The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`.
+
 ### Table `ground_stations`
 
 Struct `HfdlStationRow`. A row of the ground stations. The row key is the station id.
@@ -183,6 +189,8 @@ Struct `HfdlStationRow`. A row of the ground stations. The row key is the statio
 | `frame_index` | whole number | optional | 1.0 | The frame index of the last squitter. |
 | `active_khz` | text | optional | 1.0 | The frequencies in use by the last squitter, kHz, separated by spaces. |
 
+The column `name` names a row.
+
 ### Table `channels`
 
 Struct `HfdlChannelRow`. A row of the channels. The row key is the dial frequency in hertz.
@@ -199,6 +207,8 @@ Struct `HfdlChannelRow`. A row of the channels. The row key is the dial frequenc
 | `snr_db` | number (dB) | always | 1.0 | The signal to noise ratio of the channel. |
 | `offset_hz` | frequency | always | 1.0 | The offset of the last burst. |
 | `bps` | whole number (bit/s) | always | 1.0 | The bit rate of the last burst. |
+
+The column `name` names a row.
 
 ### Event `hfdl.message`
 

@@ -10,7 +10,6 @@ use crate::rx::slot::How;
 use crate::slots::TimeSource;
 use crate::table::{Js8State, ModeState};
 use sdrkit_core::command::Command;
-use sdrkit_core::TxContent;
 use sdrkit_core::interface::{
     Arguments, CommandKind, EventKind, Family as Described, Fields, Hertz, Seconds, StackShape,
     Table, Time,
@@ -19,6 +18,7 @@ use sdrkit_core::publish::field;
 use sdrkit_core::publish::keys::{self, Family};
 use sdrkit_core::publish::SeriesDef;
 use sdrkit_core::settings::Argument;
+use sdrkit_core::TxContent;
 use sdrkit_util_objects::commands as objcmd;
 use sdrkit_util_objects::publish::columns;
 use std::sync::OnceLock;
@@ -257,12 +257,12 @@ pub static DECODES: Table<DecodeRow<'static>> =
     Table::new("decodes", "Decodes", crate::table::DECODES_CAP);
 /// The WSPR and FST4W spots, newest first.
 pub static WSPR_SPOTS: Table<WsprSpotRow<'static>> =
-    Table::new("wspr_spots", "WSPR spots", crate::table::DECODES_CAP);
+    Table::new("wspr_spots", "WSPR spots", crate::table::DECODES_CAP).label(&WsprSpotRow::CALLSIGN);
 /// One row per mode heard (per speed for JS8).
 pub static MODES: Table<ModeRow<'static>> = Table::new("modes", "Modes", 32);
 /// The stations heard, by callsign, in every mode.
 pub static STATIONS: Table<StationRow<'static>> =
-    Table::new("stations", "Stations", crate::table::STATIONS_CAP);
+    Table::new("stations", "Stations", crate::table::STATIONS_CAP).label(&StationRow::CALLSIGN);
 /// The JS8 frames, newest first.
 pub static JS8_FRAMES: Table<Js8FrameRow<'static>> =
     Table::new("js8_frames", "JS8 frames", crate::table::JS8_FRAMES_CAP);
@@ -277,7 +277,8 @@ pub static JS8_STATIONS: Table<Js8StationRow<'static>> = Table::new(
     "js8_stations",
     "JS8 stations",
     crate::table::JS8_STATIONS_CAP,
-);
+)
+.label(&Js8StationRow::CALLSIGN);
 
 /// The JS8 waterfall: (Hz, dB) of the newest line.
 pub const WATERFALL: SeriesDef = SeriesDef {
@@ -930,7 +931,48 @@ pub fn family() -> &'static Described {
     // `beacon` and no setting, and `cq`, `beacon` and `send` transmit. 3.0: the Q65 stack has its code built in and no
     // setting `code_dir`. 4.0: no stack has the setting `code_dir`, and a mode row has no state `no_table`.
     FAMILY.get_or_init(|| {
-        let mut f = Described::new("wsjt", 4, 0)
+        let mut f = Described::new("wsjt", 4, 1)
+            .added(
+                4,
+                1,
+                &[
+                    "wsjt.content",
+                    "ft8.content",
+                    "ft4.content",
+                    "ft2.content",
+                    "wspr.content",
+                    "jt65.content",
+                    "jt9.content",
+                    "jt4.content",
+                    "q65.content",
+                    "fst4.content",
+                    "fst4w.content",
+                    "msk144.content",
+                    "js8.content",
+                    "fsk441.content",
+                    "jt6m.content",
+                    "iscat.content",
+                    "pi4.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::WeakSignal,
+                &[
+                    "wsjt", "ft8", "ft4", "ft2", "wspr", "jt65", "jt9", "jt4", "q65", "fst4",
+                    "fst4w", "msk144", "js8", "fsk441", "jt6m", "iscat", "pi4",
+                ],
+            )
+            .audio(
+                sdrkit_core::AudioKind::Monitor,
+                &[
+                    "wsjt", "ft8", "ft4", "ft2", "wspr", "jt65", "jt9", "jt4", "q65", "fst4",
+                    "fst4w", "msk144", "js8", "fsk441", "jt6m", "iscat", "pi4",
+                ],
+            )
+            .text(&[
+                "wsjt", "ft8", "ft4", "ft2", "wspr", "jt65", "jt9", "jt4", "q65", "fst4", "fst4w",
+                "msk144", "js8", "fsk441", "jt6m", "iscat", "pi4",
+            ])
             .shared_source("table", SLOT_STACKS)
             .shared_source("components", SLOT_STACKS)
             .shared_source("runner", SLOT_STACKS)

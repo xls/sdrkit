@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "broadcast", version 1.0. MIT licence.
+// sdrkit: the typed interface of the stack family "broadcast", version 1.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum BroadcastInterface {
     public static let major = 1
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The results of the DRM stack. No FAC values before the first FAC, no protection before the multiplex description, no time before SDC type 8, no measurement before the first frame and no first audio before it came.
@@ -1194,6 +1194,7 @@ public struct HdradioHdrPsdEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum BroadcastTables {
     /// The changed rows of the table "services" of the stack "drm", newest first, at most `capacity` rows.
+    /// The column `label` names a row.
     public static func drmServices(_ handle: SDRKIT_HANDLE, capacity: Int = 4) -> Result<[DrmServiceRow], SDRKitCode> {
         var rows = [sdrkit_drm_service_row](repeating: sdrkit_drm_service_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1210,6 +1211,7 @@ public enum BroadcastTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DrmStreamRow.init))
     }
     /// The changed rows of the table "objects" of the stack "drm", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func drmObjects(_ handle: SDRKIT_HANDLE, capacity: Int = 96) -> Result<[DrmObjectRow], SDRKitCode> {
         var rows = [sdrkit_drm_object_row](repeating: sdrkit_drm_object_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1218,6 +1220,7 @@ public enum BroadcastTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DrmObjectRow.init))
     }
     /// The changed rows of the table "slides" of the stack "drm", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func drmSlides(_ handle: SDRKIT_HANDLE, capacity: Int = 4) -> Result<[DrmSlideRow], SDRKitCode> {
         var rows = [sdrkit_drm_slide_row](repeating: sdrkit_drm_slide_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1226,6 +1229,7 @@ public enum BroadcastTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DrmSlideRow.init))
     }
     /// The changed rows of the table "journaline" of the stack "drm", newest first, at most `capacity` rows.
+    /// The column `title` names a row.
     public static func drmJournaline(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[DrmPageRow], SDRKitCode> {
         var rows = [sdrkit_drm_page_row](repeating: sdrkit_drm_page_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1298,6 +1302,7 @@ public enum BroadcastTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BcdataLogoRow.init))
     }
     /// The changed rows of the table "history" of the stack "hamdrm", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func hamdrmHistory(_ handle: SDRKIT_HANDLE, capacity: Int = 8) -> Result<[HamdrmFileRow], SDRKitCode> {
         var rows = [sdrkit_hamdrm_file_row](repeating: sdrkit_hamdrm_file_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1314,6 +1319,7 @@ public enum BroadcastTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HamdrmMissingRow.init))
     }
     /// The changed rows of the table "programs" of the stack "hdradio", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func hdradioPrograms(_ handle: SDRKIT_HANDLE, capacity: Int = 8) -> Result<[HdradioProgramRow], SDRKitCode> {
         var rows = [sdrkit_hdradio_program_row](repeating: sdrkit_hdradio_program_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1322,6 +1328,7 @@ public enum BroadcastTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HdradioProgramRow.init))
     }
     /// The changed rows of the table "data_services" of the stack "hdradio", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func hdradioDataServices(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[HdradioDataServiceRow], SDRKitCode> {
         var rows = [sdrkit_hdradio_data_service_row](repeating: sdrkit_hdradio_data_service_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1330,6 +1337,7 @@ public enum BroadcastTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HdradioDataServiceRow.init))
     }
     /// The changed rows of the table "files" of the stack "hdradio", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func hdradioFiles(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[HdradioFileRow], SDRKitCode> {
         var rows = [sdrkit_hdradio_file_row](repeating: sdrkit_hdradio_file_row(), count: capacity)
         var info = sdrkit_rows_info.sized

@@ -5,25 +5,23 @@ pub mod burst;
 pub mod droneid;
 pub mod generator;
 
-use crate::family::{
-    min_rate_message, publish_tracks, wall, SignalClock, StatusLine, REPORT_S,
-};
-use burst::{BurstAnalyser, BurstSignal, DetectorStats};
-use droneid::{BurstReceiver, DroneIdPacket};
-use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
+use crate::family::{min_rate_message, publish_tracks, wall, SignalClock, StatusLine, REPORT_S};
 use crate::typed::{
     DjiDroneidBurstRow, DjiDroneidDroneRow, DjiDroneidEvent, DjiDroneidFields, DjiDroneidSignalRow,
     DroneTrackRow, DJI_BURSTS, DJI_DRONEID, DJI_DRONES, DJI_SIGNALS, DJI_TRACKS, DRONE_REMOVE,
     DRONE_ROW, LEVEL_SERIES,
 };
+use burst::{BurstAnalyser, BurstSignal, DetectorStats};
+use droneid::{BurstReceiver, DroneIdPacket};
+use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
 use sdrkit_core::interface::{Hertz, Seconds, Time};
 use sdrkit_core::publish::keys::Family;
 use sdrkit_core::publish::{field, Published};
 use sdrkit_core::results::Series;
 use sdrkit_core::{
-    Clock, ConfigError, Event, LockState, Record, Results, ResultsDecl, SeriesId,
-    Setting, SettingError, SettingId, SettingSet, StackConfig, StateBlob, StateError, TableId,
-    Value, Values,
+    Clock, ConfigError, Event, LockState, Record, Results, ResultsDecl, SeriesId, Setting,
+    SettingError, SettingId, SettingSet, StackConfig, StateBlob, StateError, TableId, Value,
+    Values,
 };
 use sdrkit_graph::{
     values_of, Applied, Catalog, Component, ComponentInfo, Format, GraphBuilder, GraphError, Io,
@@ -133,7 +131,6 @@ sdrkit_core::settings! {
         WallClock = WALL_CLOCK,
     }
 }
-
 
 sdrkit_core::commands! {
     /// The commands of [`DjiTracker`].
@@ -1182,7 +1179,15 @@ impl DjiTracker {
             p,
             &mut self.key,
             |p, key, drone, position, time_s| {
-                DJI_TRACKS.put(p, key, &DroneTrackRow { drone, position, time_s });
+                DJI_TRACKS.put(
+                    p,
+                    key,
+                    &DroneTrackRow {
+                        drone,
+                        position,
+                        time_s,
+                    },
+                );
             },
             &DJI_TRACKS,
         );
@@ -1206,7 +1211,7 @@ impl DjiTracker {
                 .extend(hist.iter().map(|&(t, l)| [t as f32, l as f32]));
             true
         });
-        shaped::points(&s.drones, "drone/", r);
+        shaped::row_points(&s.drones, &DJI_DRONES, "drone/", r);
         self.dirty = false;
     }
 }

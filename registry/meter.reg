@@ -1,5 +1,5 @@
 # The interface of the stack family meter. The registry test of the family writes this file.
-family meter version=1.0
+family meter version=1.1
 shape.FmMonitorFields since=1.0
 shape.FmMonitorFields.text type=text unit= optional=no since=1.0
 shape.FmMonitorFields.peak_deviation_khz type=f64 unit=kHz optional=yes since=1.0
@@ -858,9 +858,10 @@ shape.BeaconMonitorChangeEvent.level_db type=f64 unit=dB optional=yes since=1.0
 shape.BeaconMonitorChangeEvent.spread_hz type=f64 unit=Hz optional=yes since=1.0
 shape.BeaconMonitorChangeEvent.swing_db type=f64 unit=dB optional=yes since=1.0
 fm_monitor since=1.0
+fm_monitor.content kind=measurement since=1.1
 fm_monitor.fields.FmMonitorFields since=1.0
 fm_monitor.fields.DecoderFields since=1.0
-fm_monitor.table.log row=FmMonitorLogRow cap=500 since=1.0
+fm_monitor.table.log row=FmMonitorLogRow cap=500 label=identity since=1.0
 fm_monitor.event.fm_monitor.pilot fields=FmMonitorPilotEvent since=1.0
 fm_monitor.event.fm_monitor.rds fields=FmMonitorRdsEvent since=1.0
 fm_monitor.event.fm_monitor.sca fields=FmMonitorScaEvent since=1.0
@@ -883,9 +884,10 @@ fm_monitor.setting.gen_rds_until_s type=f64 unit=s since=1.0
 fm_monitor.setting.gen_sca_from_s type=f64 unit=s since=1.0
 fm_monitor.command.clear args= reply= since=1.0
 am_monitor since=1.0
+am_monitor.content kind=measurement since=1.1
 am_monitor.fields.AmMonitorFields since=1.0
 am_monitor.fields.DecoderFields since=1.0
-am_monitor.table.log row=AmMonitorLogRow cap=500 since=1.0
+am_monitor.table.log row=AmMonitorLogRow cap=500 label=identity since=1.0
 am_monitor.event.am_monitor.carrier fields=AmMonitorCarrierEvent since=1.0
 am_monitor.event.am_monitor.over_modulation fields=AmMonitorOverModulationEvent since=1.0
 am_monitor.setting.over_mod_share_pct type=f64 unit=% since=1.0
@@ -900,6 +902,7 @@ am_monitor.setting.gen_cut_until_s type=f64 unit=s since=1.0
 am_monitor.setting.gen_clip type=bool unit= since=1.0
 am_monitor.command.clear args= reply= since=1.0
 occupancy since=1.0
+occupancy.content kind=measurement since=1.1
 occupancy.fields.WatchFields since=1.0
 occupancy.fields.OccupancyFields since=1.0
 occupancy.fields.DecoderFields since=1.0
@@ -915,6 +918,7 @@ occupancy.setting.gen_tones type=text unit= since=1.0
 occupancy.command.clear args= reply= since=1.0
 occupancy.command.reset args= reply= since=1.0
 noise_floor since=1.0
+noise_floor.content kind=measurement since=1.1
 noise_floor.fields.WatchFields since=1.0
 noise_floor.fields.NoiseFloorFields since=1.0
 noise_floor.fields.DecoderFields since=1.0
@@ -936,6 +940,7 @@ noise_floor.setting.gen_tone_amp type=f64 unit= since=1.0
 noise_floor.command.clear args= reply= since=1.0
 noise_floor.command.reset args= reply= since=1.0
 burst_finder since=1.0
+burst_finder.content kind=measurement since=1.1
 burst_finder.fields.WatchFields since=1.0
 burst_finder.fields.BurstFinderFields since=1.0
 burst_finder.fields.DecoderFields since=1.0
@@ -951,6 +956,7 @@ burst_finder.setting.gen_bursts type=text unit= since=1.0
 burst_finder.command.clear args= reply= since=1.0
 burst_finder.command.reset args= reply= since=1.0
 hopper since=1.0
+hopper.content kind=measurement since=1.1
 hopper.fields.WatchFields since=1.0
 hopper.fields.HopperFields since=1.0
 hopper.fields.DecoderFields since=1.0
@@ -969,10 +975,11 @@ hopper.setting.gen_fsk_bps type=f64 unit=bit/s since=1.0
 hopper.command.clear args= reply= since=1.0
 hopper.command.reset args= reply= since=1.0
 birdie since=1.0
+birdie.content kind=measurement since=1.1
 birdie.fields.WatchFields since=1.0
 birdie.fields.BirdieFields since=1.0
 birdie.fields.DecoderFields since=1.0
-birdie.table.carriers row=BirdieCarrierRow cap=200 since=1.0
+birdie.table.carriers row=BirdieCarrierRow cap=200 sort=level_db:descending since=1.0
 birdie.table.carrier_events row=BirdieEventRow cap=500 since=1.0
 birdie.event.birdie.event fields=BirdieEvent since=1.0
 birdie.setting.threshold_db type=f64 unit=dB since=1.0
@@ -986,6 +993,7 @@ birdie.setting.gen_fm_dev_hz type=f64 unit=Hz since=1.0
 birdie.command.clear args= reply= since=1.0
 birdie.command.reset args= reply= since=1.0
 obw since=1.0
+obw.content kind=measurement since=1.1
 obw.fields.WatchFields since=1.0
 obw.fields.ObwFields since=1.0
 obw.fields.DecoderFields since=1.0
@@ -1004,6 +1012,7 @@ obw.setting.gen_neighbour_offset type=f64 unit= since=1.0
 obw.command.clear args= reply= since=1.0
 obw.command.reset args= reply= since=1.0
 ptt_log since=1.0
+ptt_log.content kind=measurement since=1.1
 ptt_log.fields.WatchFields since=1.0
 ptt_log.fields.PttLogFields since=1.0
 ptt_log.fields.DecoderFields since=1.0
@@ -1021,6 +1030,7 @@ ptt_log.setting.gen_tone_hz type=f64 unit=Hz since=1.0
 ptt_log.command.clear args= reply= since=1.0
 ptt_log.command.reset args= reply= since=1.0
 noise_locator since=1.0
+noise_locator.content kind=measurement since=1.1
 noise_locator.fields.WatchFields since=1.0
 noise_locator.fields.NoiseLocatorFields since=1.0
 noise_locator.fields.DecoderFields since=1.0
@@ -1044,6 +1054,7 @@ noise_locator.setting.gen_noise_sigma type=f64 unit= since=1.0
 noise_locator.command.clear args= reply= since=1.0
 noise_locator.command.reset args= reply= since=1.0
 freq_accuracy since=1.0
+freq_accuracy.content kind=measurement since=1.1
 freq_accuracy.fields.WatchFields since=1.0
 freq_accuracy.fields.FreqAccuracyFields since=1.0
 freq_accuracy.fields.DecoderFields since=1.0
@@ -1062,6 +1073,7 @@ freq_accuracy.setting.gen_fm_hold_s type=f64 unit=s since=1.0
 freq_accuracy.command.clear args= reply= since=1.0
 freq_accuracy.command.reset args= reply= since=1.0
 sinad since=1.0
+sinad.content kind=measurement since=1.1
 sinad.fields.WatchFields since=1.0
 sinad.fields.SinadFields since=1.0
 sinad.fields.DecoderFields since=1.0
@@ -1079,6 +1091,7 @@ sinad.setting.gen_deviation_after type=text unit= since=1.0
 sinad.command.clear args= reply= since=1.0
 sinad.command.reset args= reply= since=1.0
 nfm_meter since=1.0
+nfm_meter.content kind=measurement since=1.1
 nfm_meter.fields.WatchFields since=1.0
 nfm_meter.fields.NfmMeterFields since=1.0
 nfm_meter.fields.DecoderFields since=1.0
@@ -1094,6 +1107,7 @@ nfm_meter.setting.gen_ctcss_off_s type=f64 unit=s since=1.0
 nfm_meter.command.clear args= reply= since=1.0
 nfm_meter.command.reset args= reply= since=1.0
 tx_stability since=1.0
+tx_stability.content kind=measurement since=1.1
 tx_stability.fields.WatchFields since=1.0
 tx_stability.fields.TxStabilityFields since=1.0
 tx_stability.fields.DecoderFields since=1.0
@@ -1114,6 +1128,7 @@ tx_stability.setting.gen_ramp_s type=f64 unit=s since=1.0
 tx_stability.command.clear args= reply= since=1.0
 tx_stability.command.reset args= reply= since=1.0
 ssb_test since=1.0
+ssb_test.content kind=measurement since=1.1
 ssb_test.fields.WatchFields since=1.0
 ssb_test.fields.SsbTestFields since=1.0
 ssb_test.fields.DecoderFields since=1.0
@@ -1128,6 +1143,7 @@ ssb_test.setting.gen_carrier_dbc type=f64 unit=dBc since=1.0
 ssb_test.command.clear args= reply= since=1.0
 ssb_test.command.reset args= reply= since=1.0
 afsk_tuner since=1.0
+afsk_tuner.content kind=measurement since=1.1
 afsk_tuner.fields.WatchFields since=1.0
 afsk_tuner.fields.AfskTunerFields since=1.0
 afsk_tuner.fields.DecoderFields since=1.0
@@ -1147,10 +1163,11 @@ afsk_tuner.setting.gen_first_s type=f64 unit=s since=1.0
 afsk_tuner.command.clear args= reply= since=1.0
 afsk_tuner.command.reset args= reply= since=1.0
 phase_noise since=1.0
+phase_noise.content kind=measurement since=1.1
 phase_noise.fields.WatchFields since=1.0
 phase_noise.fields.PhaseNoiseFields since=1.0
 phase_noise.fields.DecoderFields since=1.0
-phase_noise.table.spurs row=PhaseNoiseSpurRow cap=6 since=1.0
+phase_noise.table.spurs row=PhaseNoiseSpurRow cap=6 sort=level_dbc:descending since=1.0
 phase_noise.table.events row=PhaseNoiseEventRow cap=500 since=1.0
 phase_noise.setting.average_blocks type=i64 unit= since=1.0
 phase_noise.setting.spur_ratio_db type=f64 unit=dB since=1.0
@@ -1163,6 +1180,7 @@ phase_noise.setting.gen_spur_dbc type=f64 unit=dBc since=1.0
 phase_noise.command.clear args= reply= since=1.0
 phase_noise.command.reset args= reply= since=1.0
 cw_keying since=1.0
+cw_keying.content kind=measurement since=1.1
 cw_keying.fields.WatchFields since=1.0
 cw_keying.fields.CwKeyingFields since=1.0
 cw_keying.fields.DecoderFields since=1.0
@@ -1186,6 +1204,7 @@ cw_keying.setting.gen_fade_db type=f64 unit=dB since=1.0
 cw_keying.command.clear args= reply= since=1.0
 cw_keying.command.reset args= reply= since=1.0
 fsk_analyser since=1.0
+fsk_analyser.content kind=measurement since=1.1
 fsk_analyser.fields.WatchFields since=1.0
 fsk_analyser.fields.FskAnalyserFields since=1.0
 fsk_analyser.fields.DecoderFields since=1.0
@@ -1201,6 +1220,7 @@ fsk_analyser.setting.gen_bt type=f64 unit= since=1.0
 fsk_analyser.command.clear args= reply= since=1.0
 fsk_analyser.command.reset args= reply= since=1.0
 mer since=1.0
+mer.content kind=measurement since=1.1
 mer.fields.WatchFields since=1.0
 mer.fields.MerFields since=1.0
 mer.fields.DecoderFields since=1.0
@@ -1216,6 +1236,7 @@ mer.setting.gen_rotated type=bool unit= since=1.0
 mer.command.clear args= reply= since=1.0
 mer.command.reset args= reply= since=1.0
 papr since=1.0
+papr.content kind=measurement since=1.1
 papr.fields.WatchFields since=1.0
 papr.fields.PaprFields since=1.0
 papr.fields.DecoderFields since=1.0
@@ -1232,6 +1253,7 @@ papr.setting.gen_rolloff type=f64 unit= since=1.0
 papr.command.clear args= reply= since=1.0
 papr.command.reset args= reply= since=1.0
 input_health since=1.0
+input_health.content kind=measurement since=1.1
 input_health.fields.WatchFields since=1.0
 input_health.fields.InputHealthFields since=1.0
 input_health.fields.DecoderFields since=1.0
@@ -1248,6 +1270,7 @@ input_health.setting.gen_scale type=f64 unit= since=1.0
 input_health.command.clear args= reply= since=1.0
 input_health.command.reset args= reply= since=1.0
 noise_figure since=1.0
+noise_figure.content kind=measurement since=1.1
 noise_figure.fields.WatchFields since=1.0
 noise_figure.fields.NoiseFigureFields since=1.0
 noise_figure.fields.DecoderFields since=1.0
@@ -1264,6 +1287,7 @@ noise_figure.setting.gen_p0 type=f64 unit= since=1.0
 noise_figure.command.clear args= reply= since=1.0
 noise_figure.command.reset args= reply= since=1.0
 kurtosis since=1.0
+kurtosis.content kind=measurement since=1.1
 kurtosis.fields.WatchFields since=1.0
 kurtosis.fields.KurtosisFields since=1.0
 kurtosis.fields.DecoderFields since=1.0
@@ -1277,6 +1301,7 @@ kurtosis.setting.gen_tones type=text unit= since=1.0
 kurtosis.command.clear args= reply= since=1.0
 kurtosis.command.reset args= reply= since=1.0
 glitch since=1.0
+glitch.content kind=measurement since=1.1
 glitch.fields.WatchFields since=1.0
 glitch.fields.GlitchFields since=1.0
 glitch.fields.DecoderFields since=1.0
@@ -1301,6 +1326,7 @@ glitch.setting.gen_gain_steps type=text unit= since=1.0
 glitch.command.clear args= reply= since=1.0
 glitch.command.reset args= reply= since=1.0
 intermod since=1.0
+intermod.content kind=measurement since=1.1
 intermod.fields.WatchFields since=1.0
 intermod.fields.IntermodFields since=1.0
 intermod.fields.DecoderFields since=1.0
@@ -1324,6 +1350,7 @@ intermod.setting.gen_extra_amp type=f64 unit= since=1.0
 intermod.command.clear args= reply= since=1.0
 intermod.command.reset args= reply= since=1.0
 spur since=1.0
+spur.content kind=measurement since=1.1
 spur.fields.WatchFields since=1.0
 spur.fields.SpurFields since=1.0
 spur.fields.DecoderFields since=1.0
@@ -1348,6 +1375,7 @@ spur.setting.gen_shift_hz type=f64 unit=Hz since=1.0
 spur.command.clear args= reply= since=1.0
 spur.command.reset args= reply= since=1.0
 fading since=1.0
+fading.content kind=measurement since=1.1
 fading.fields.WatchFields since=1.0
 fading.fields.FadingFields since=1.0
 fading.fields.DecoderFields since=1.0
@@ -1363,6 +1391,7 @@ fading.setting.gen_off type=text unit= since=1.0
 fading.command.clear args= reply= since=1.0
 fading.command.reset args= reply= since=1.0
 beacon_monitor since=1.0
+beacon_monitor.content kind=measurement since=1.1
 beacon_monitor.fields.WatchFields since=1.0
 beacon_monitor.fields.BeaconMonitorFields since=1.0
 beacon_monitor.fields.DecoderFields since=1.0

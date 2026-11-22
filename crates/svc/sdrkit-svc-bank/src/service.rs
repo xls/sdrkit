@@ -172,6 +172,7 @@ pub const CHANNELS: TableDef = TableDef {
         &SESSION,
     ],
     cap: MAX_CHANNELS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// Every raster channel of every span, with its level and the channel that decodes it. The row key is `<span>/<n>`.
 pub const CARRIERS: TableDef = TableDef {
@@ -186,6 +187,7 @@ pub const CARRIERS: TableDef = TableDef {
         &OF_CHANNEL,
     ],
     cap: MAX_CARRIERS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The spans. The row key is `s<n>`.
 pub const SPANS: TableDef = TableDef {
@@ -196,6 +198,7 @@ pub const SPANS: TableDef = TableDef {
         &MAX_RX, &COUNT,
     ],
     cap: MAX_SPANS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 // Commands.

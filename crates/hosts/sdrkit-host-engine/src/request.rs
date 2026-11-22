@@ -91,6 +91,7 @@ pub static REQUESTS: TableDef = TableDef {
     label: "Requests",
     columns: &[&FROM, &KIND, &FREQ_HZ, &DONE, &REFUSED, &SESSION],
     cap: 256,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// A request from a rule of the automation: its kind, the session whose event set it off, the automation's event, and that

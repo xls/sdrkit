@@ -89,7 +89,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `trunk`, version 1.2. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `trunk`, version 1.3. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Voice calls (`voice`). Media: none.
 
 ### Result fields
 
@@ -137,6 +139,8 @@ Struct `MotorolaType2MessageRow`. A Type II message. The row key is the sequence
 | `command` | text | always | 1.0 | A command. |
 | `text` | text | always | 1.0 | The text of a decoded message. |
 
+The column `address` names a row.
+
 ### Table `talkgroups`
 
 Struct `MotorolaType2TalkgroupRow`. A Type II talkgroup. The row key is the talkgroup.
@@ -152,6 +156,8 @@ Struct `MotorolaType2TalkgroupRow`. A Type II talkgroup. The row key is the talk
 | `digital` | yes or no | always | 1.0 | Digital. |
 | `encrypted` | yes or no | always | 1.0 | Encrypted. |
 | `patched` | yes or no | always | 1.0 | Patched. |
+
+The column `talkgroup` names a row.
 
 ### Table `sites`
 
@@ -176,6 +182,8 @@ Struct `MotorolaType2PatchRow`. A member of a patch. The row key is the talkgrou
 | `member` | text | always | 1.0 | A patch member. |
 | `last_s` | number (s) | always | 1.0 | The last time. |
 
+The column `talkgroup` names a row.
+
 ### Table `calls`
 
 Struct `MotorolaType2CallRow`. A Type II call. The row key is the talkgroup.
@@ -192,6 +200,8 @@ Struct `MotorolaType2CallRow`. A Type II call. The row key is the talkgroup.
 | `duration_s` | number (s) | always | 1.0 | The length of a call. |
 | `state` | text | always | 1.0 | The state of a call. |
 | `note` | text | optional | 1.0 | A note. |
+
+The column `talkgroup` names a row.
 
 ### Event `type2.message`
 

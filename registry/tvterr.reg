@@ -1,5 +1,5 @@
 # The interface of the stack family tvterr. The registry test of the family writes this file.
-family tvterr version=1.5
+family tvterr version=1.6
 uses.mpegts major=1 since=1.0
 uses.ipcast major=1 since=1.0
 uses.graph major=1 since=1.0
@@ -225,6 +225,7 @@ shape.AutoFoundEvent.width type=hz unit=Hz optional=no since=1.0
 shape.AutoFoundEvent.sure type=bool unit= optional=no since=1.0
 shape.AutoFoundEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 isdbt since=1.0
+isdbt.content kind=television audio=programme video=yes since=1.6
 isdbt.fields.IsdbtFields since=1.0
 isdbt.component.dc.fields.DcRemovalFields since=1.0
 isdbt.component.ts_demux.fields.TsDemuxFields since=1.0
@@ -253,6 +254,7 @@ isdbt.setting.decode_video type=bool unit= since=1.1
 isdbt.command.service.select args=row:text reply= since=1.0
 isdbt.command.track.select args=row:text reply= since=1.0
 isdbtsb since=1.0
+isdbtsb.content kind=television audio=programme video=yes since=1.6
 isdbtsb.fields.IsdbtFields since=1.0
 isdbtsb.fields.IsdbtNarrowFields since=1.0
 isdbtsb.component.dc.fields.DcRemovalFields since=1.0
@@ -288,6 +290,7 @@ isdbtsb.setting.gen_code_rate type=choice(1/2,2/3,3/4,5/6,7/8) unit= since=1.0
 isdbtsb.command.service.select args=row:text reply= since=1.0
 isdbtsb.command.track.select args=row:text reply= since=1.0
 atsc since=1.0
+atsc.content kind=television audio=programme video=yes since=1.6
 atsc.fields.AtscFields since=1.0
 atsc.component.ts_demux.fields.TsDemuxFields shared=packets since=1.0
 atsc.component.psi_si.fields.PsiSiFields since=1.0
@@ -307,17 +310,19 @@ atsc.setting.decode_video type=bool unit= since=1.1
 atsc.command.service.select args=row:text reply= since=1.0
 atsc.command.track.select args=row:text reply= since=1.0
 atsc3 since=1.0
+atsc3.content kind=television since=1.6
 atsc3.fields.Atsc3Fields since=1.0
 atsc3.fields.Atsc3FrameFields since=1.2
 atsc3.component.alp.fields.AlpFields since=1.0
 atsc3.component.ip.fields.IpFields since=1.0
 atsc3.component.route.fields.RouteFields since=1.0
-atsc3.table.services row=Atsc3ServiceRow cap=64 since=1.0
+atsc3.table.services row=Atsc3ServiceRow cap=64 label=name since=1.0
 atsc3.table.components row=Atsc3ComponentRow cap=64 since=1.0
 atsc3.table.plps row=Atsc3PlpRow cap=64 since=1.2
 atsc3.setting.plp type=i64 unit= since=1.3
 atsc3.command.service.select args=row:text reply= since=1.0
 dtmb since=1.0
+dtmb.content kind=television audio=programme video=yes since=1.6
 dtmb.fields.DtmbFields since=1.0
 dtmb.component.ts_demux.fields.TsDemuxFields shared=packets since=1.0
 dtmb.component.psi_si.fields.PsiSiFields since=1.0
@@ -339,6 +344,7 @@ dtmb.setting.decode_video type=bool unit= since=1.1
 dtmb.command.service.select args=row:text reply= since=1.0
 dtmb.command.track.select args=row:text reply= since=1.0
 tv-auto since=1.0
+tv-auto.content kind=television since=1.6
 tv-auto.fields.AutoFields since=1.0
 tv-auto.fields.DecoderFields since=1.0
 tv-auto.event.tv-auto.found fields=AutoFoundEvent since=1.0

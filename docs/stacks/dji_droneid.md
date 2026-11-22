@@ -88,7 +88,9 @@ The stack puts points on a map: Drones.
 
 ## Typed interface
 
-The stack is in the family `drones`, version 1.0. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `drones`, version 1.1. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -139,6 +141,8 @@ Struct `DjiDroneidSignalRow`. A drone link recognised by its shape.
 | `near_droneid` | yes or no | always | 1.0 | The track is within 3 MHz of a frequency reported for DroneID. |
 | `last_s` | number (s) | always | 1.0 | The signal time of the last burst. |
 
+Default order: the column `snr_db`, highest first.
+
 ### Table `drones`
 
 Struct `DjiDroneidDroneRow`. A DJI drone heard on DroneID.
@@ -171,6 +175,8 @@ Struct `DjiDroneidDroneRow`. A DJI drone heard on DroneID.
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
 | `heard` | whole number | optional | 1.0 | Times heard. |
 
+The column `source` names a row. Place of a row: the column `position`. Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
+
 ### Table `bursts`
 
 Struct `DjiDroneidBurstRow`. A burst in the burst log.
@@ -197,6 +203,8 @@ Struct `DroneTrackRow`. A track point of a drone. The row key is the drone key a
 | `drone` | text | always | 1.0 | The drone a track point belongs to. |
 | `position` | position | always | 1.0 | The position of the object that the event is about. |
 | `time_s` | number (s) | always | 1.0 | The signal time of a track point. |
+
+Place of a row: the column `position`.
 
 ### Event `dji.droneid`
 

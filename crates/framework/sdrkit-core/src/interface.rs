@@ -34,6 +34,7 @@
 
 use crate::command::{Command, CommandError, Commands};
 use crate::event::{Event, EventDef};
+use crate::marks::{AudioKind, ContentKind, Media, Role, RowMarks, SortOrder};
 use crate::owner::Owner;
 use crate::publish::{field, Declare, Field, Published, RasterDef, SeriesDef, TableDef};
 use crate::record::{FieldDecl, Kind, Record};
@@ -105,6 +106,9 @@ impl<K: Kind> Declare for Column<K> {
     }
     fn decl(&self) -> FieldDecl {
         self.field.decl()
+    }
+    fn role(&self) -> Option<Role> {
+        self.field.role_of()
     }
 }
 
@@ -627,9 +631,26 @@ impl<S: Fields + 'static> Table<S> {
                 label,
                 columns: S::SHAPE.fields,
                 cap,
+                marks: RowMarks::NONE,
             },
             row: PhantomData,
         }
+    }
+    /// The same table, in which column `c` names a row for people: the call sign, the name of the station, the id of
+    /// the device. `c` is a column constant of the row shape (`ShipRow::NAME`).
+    #[must_use]
+    pub const fn label<K>(mut self, c: &Column<K>) -> Self {
+        self.def.marks.label = c.key;
+        self
+    }
+    /// The same table, whose rows a front end shows in the order `order` of column `c` unless the user chooses
+    /// another order. A table that states no order shows its newest row first. The order of the rows in a snapshot
+    /// does not change.
+    #[must_use]
+    pub const fn sorted<K>(mut self, c: &Column<K>, order: SortOrder) -> Self {
+        self.def.marks.sort = c.key;
+        self.def.marks.order = order;
+        self
     }
     /// The declaration of the table.
     pub const fn def(&self) -> &TableDef {
@@ -643,6 +664,7 @@ impl<S: Fields + 'static> Table<S> {
             label,
             columns: S::SHAPE.fields,
             cap,
+            marks: RowMarks::NONE,
         }
     }
     /// The shape of the rows.
@@ -855,6 +877,12 @@ pub struct StackShape {
     /// The names of the structs in `fields` whose fields follow those of the components in the results of the stack
     /// ([`StackShape::fields_after_components`]).
     pub late_sets: Vec<&'static str>,
+    /// The kind of content of the stack ([`StackShape::content`]). `None` for a description of an object or of a
+    /// shared interface.
+    pub content: Option<ContentKind>,
+    /// The media that the stack states ([`StackShape::audio`], [`StackShape::pictures`], [`StackShape::video`],
+    /// [`StackShape::text`]). [`StackShape::media`] returns these and the media that follow from the declarations.
+    pub stated_media: Media,
 }
 
 /// A text of a description. A description is made once and lives as long as the program.
@@ -879,6 +907,9 @@ impl Declare for Prefixed {
         let mut d = self.of.decl();
         d.key = std::borrow::Cow::Borrowed(self.key);
         d
+    }
+    fn role(&self) -> Option<Role> {
+        self.of.role()
     }
 }
 
@@ -1135,6 +1166,68 @@ impl StackShape {
             receiver_sets: Vec::new(),
             table_writers: Vec::new(),
             late_sets: Vec::new(),
+            content: None,
+            stated_media: Media {
+                audio: None,
+                pictures: false,
+                video: false,
+                text: false,
+            },
+        }
+    }
+    /// The same stack with its kind of content.
+    #[must_use]
+    pub fn content(mut self, kind: ContentKind) -> Self {
+        self.content = Some(kind);
+        self
+    }
+    /// The same stack, which gives sound of kind `kind`.
+    #[must_use]
+    pub fn audio(mut self, kind: AudioKind) -> Self {
+        self.stated_media.audio = Some(kind);
+        self
+    }
+    /// The same stack, which gives still pictures. A stack that declares a field, a column or an event field with the
+    /// content of a picture needs no call: [`StackShape::media`] finds it.
+    #[must_use]
+    pub fn pictures(mut self) -> Self {
+        self.stated_media.pictures = true;
+        self
+    }
+    /// The same stack, which gives moving pictures.
+    #[must_use]
+    pub fn video(mut self) -> Self {
+        self.stated_media.video = true;
+        self
+    }
+    /// The same stack, which gives running text for people: decoded characters or whole messages.
+    #[must_use]
+    pub fn text(mut self) -> Self {
+        self.stated_media.text = true;
+        self
+    }
+    /// The media of the stack: what it states, and still pictures if a result field, a table column or an event field
+    /// of the stack holds bytes with the content of a picture.
+    pub fn media(&self) -> Media {
+        let picture = |f: &&dyn Declare| {
+            f.kind() == ValueKind::Bytes
+                && matches!(
+                    f.decl().content,
+                    Some(crate::ContentType::Media(c))
+                        if c.stream_kind() == Some(crate::StreamKind::Picture)
+                )
+        };
+        let declared = self
+            .fields
+            .iter()
+            .flat_map(|s| s.fields)
+            .chain(self.components.iter().flat_map(|c| c.fields))
+            .chain(self.tables.iter().flat_map(|t| t.def.columns))
+            .chain(self.events.iter().flat_map(|e| e.fields.fields))
+            .any(picture);
+        Media {
+            pictures: self.stated_media.pictures || declared,
+            ..self.stated_media
         }
     }
     /// The same stack with the results of its component `name` that do not have their own keys in the stack: the
@@ -1505,7 +1598,8 @@ impl std::fmt::Debug for StackShape {
 ///
 /// An item has a path: `shape.<Name>` for a shape and `shape.<Name>.<key>` for one of its fields, `<stack>` for a stack,
 /// `<stack>.fields.<Name>` for a result set, `<stack>.table.<key>`, `<stack>.series.<key>`, `<stack>.raster.<key>`,
-/// `<stack>.event.<kind>`, `<stack>.setting.<key>` and `<stack>.command.<key>`. An item is of version 1.0 unless
+/// `<stack>.event.<kind>`, `<stack>.setting.<key>` and `<stack>.command.<key>`, and `<stack>.content` for the kind of
+/// content and the media of a stack. An item is of version 1.0 unless
 /// [`Family::added`] lists its path.
 #[derive(Clone, Debug)]
 pub struct Family {
@@ -1532,6 +1626,37 @@ pub struct Family {
     /// The source files and folders of the crate that several stacks use, each with the ids of these stacks
     /// ([`Family::shared_source`]).
     pub shared_sources: Vec<(&'static str, &'static [&'static str])>,
+    /// The kinds of content and the media that the family states for its stacks by id ([`Family::content`],
+    /// [`Family::audio`], [`Family::pictures`], [`Family::video`], [`Family::text`]).
+    pub stack_marks: Vec<(StackMark, &'static [&'static str])>,
+}
+
+/// One statement of a family about some of its stacks.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum StackMark {
+    /// The kind of content.
+    Content(ContentKind),
+    /// The kind of sound.
+    Audio(AudioKind),
+    /// Still pictures.
+    Pictures,
+    /// Moving pictures.
+    Video,
+    /// Running text for people.
+    Text,
+}
+
+impl StackMark {
+    /// `s` with this statement.
+    fn on(self, s: &mut StackShape) {
+        match self {
+            StackMark::Content(kind) => s.content = Some(kind),
+            StackMark::Audio(kind) => s.stated_media.audio = Some(kind),
+            StackMark::Pictures => s.stated_media.pictures = true,
+            StackMark::Video => s.stated_media.video = true,
+            StackMark::Text => s.stated_media.text = true,
+        }
+    }
 }
 
 impl Family {
@@ -1547,6 +1672,7 @@ impl Family {
             shared: false,
             uses: Vec::new(),
             shared_sources: Vec::new(),
+            stack_marks: Vec::new(),
         }
     }
     /// The same family, in which the source file or folder `name` under `src` (`teleprinter.rs` or `teleprinter`,
@@ -1662,9 +1788,50 @@ impl Family {
     }
     /// The same family with stack `s` added.
     #[must_use]
-    pub fn stack(mut self, s: StackShape) -> Self {
+    pub fn stack(mut self, mut s: StackShape) -> Self {
+        for (mark, ids) in &self.stack_marks {
+            if ids.contains(&s.id) {
+                mark.on(&mut s);
+            }
+        }
         self.stacks.push(s);
         self
+    }
+    /// The same family with `mark` stated for the stacks `ids`: those that the family holds, and those that a later
+    /// [`Family::stack`] adds.
+    fn marked(mut self, mark: StackMark, ids: &'static [&'static str]) -> Self {
+        for s in self.stacks.iter_mut().filter(|s| ids.contains(&s.id)) {
+            mark.on(s);
+        }
+        self.stack_marks.push((mark, ids));
+        self
+    }
+    /// The same family, in which the stacks `ids` have the kind of content `kind`. It is the form of
+    /// [`StackShape::content`] for a family that states the kinds of its stacks in one place. The call can stand before
+    /// the stacks are added.
+    #[must_use]
+    pub fn content(self, kind: ContentKind, ids: &'static [&'static str]) -> Self {
+        self.marked(StackMark::Content(kind), ids)
+    }
+    /// The same family, in which the stacks `ids` give sound of kind `kind` ([`StackShape::audio`]).
+    #[must_use]
+    pub fn audio(self, kind: AudioKind, ids: &'static [&'static str]) -> Self {
+        self.marked(StackMark::Audio(kind), ids)
+    }
+    /// The same family, in which the stacks `ids` give still pictures ([`StackShape::pictures`]).
+    #[must_use]
+    pub fn pictures(self, ids: &'static [&'static str]) -> Self {
+        self.marked(StackMark::Pictures, ids)
+    }
+    /// The same family, in which the stacks `ids` give moving pictures ([`StackShape::video`]).
+    #[must_use]
+    pub fn video(self, ids: &'static [&'static str]) -> Self {
+        self.marked(StackMark::Video, ids)
+    }
+    /// The same family, in which the stacks `ids` give running text for people ([`StackShape::text`]).
+    #[must_use]
+    pub fn text(self, ids: &'static [&'static str]) -> Self {
+        self.marked(StackMark::Text, ids)
     }
     /// The same family with the items at `paths` marked as added in version `major.minor`.
     #[must_use]
@@ -1729,6 +1896,9 @@ impl Family {
         for s in &self.stacks {
             let id = s.id;
             out.push(id.to_owned());
+            if s.content.is_some() {
+                out.push(format!("{id}.content"));
+            }
             for f in &s.fields {
                 out.push(format!("{id}.fields.{}", f.name));
                 shape(&mut out, f);

@@ -776,9 +776,10 @@ impl Display {
         let Some(mode) = r.mode else { return };
         if r.early {
             for d in &r.decodes {
-                let shown = self.heard.decodes.iter().rev().any(|x| {
-                    x.early && x.mode == d.mode && x.slot == d.slot && x.text == d.text
-                });
+                let shown =
+                    self.heard.decodes.iter().rev().any(|x| {
+                        x.early && x.mode == d.mode && x.slot == d.slot && x.text == d.text
+                    });
                 if !shown {
                     let d = self.with_band(d);
                     self.heard.decodes.push(d);
@@ -1078,7 +1079,7 @@ impl Display {
         shaped::log_rows(&heard.js8.messages, &JS8_MESSAGES, utc, p);
         shaped::rows(&heard.js8.stations, &JS8_STATIONS, utc, p);
         // The map: the stations with a locator, by call.
-        shaped::points(&heard.stations, "", p.results_mut());
+        shaped::row_points(&heard.stations, &STATIONS, "", p.results_mut());
         if self.waterfall_seq != self.waterfall_shown {
             self.waterfall_shown = self.waterfall_seq;
             let line = &self.waterfall;

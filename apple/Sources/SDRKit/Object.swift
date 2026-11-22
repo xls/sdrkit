@@ -277,6 +277,13 @@ public class Object {
             var raw = sdrkit_table_info.sized
             try ok(sdrkit_table_decl(h, t, &raw))
             var table = TableDeclaration(id: t, key: copy(raw.key), label: copy(raw.label), columns: [], cap: raw.cap)
+            func column(_ id: UInt32) -> UInt32? { id == UInt32.max ? nil : id }
+            table.labelColumn = column(raw.label_column)
+            table.sort = column(raw.sort_column).map { TableSort(column: $0, descending: raw.sort_descending) }
+            table.place = TablePlace(
+                position: column(raw.position_column), latitude: column(raw.latitude_column),
+                longitude: column(raw.longitude_column), altitude: column(raw.altitude_column),
+                course: column(raw.course_column), speed: column(raw.speed_column))
             table.columns = try (0..<raw.columns).map { c in
                 try declaration(
                     id: c,
@@ -352,8 +359,10 @@ public class Object {
         results.points = try (0..<info.points).map { n in
             var p = sdrkit_point.sized
             try ok(sdrkit_snapshot_point(h, n, &p))
+            let row = p.table == UInt32.max ? nil : RowLink(table: p.table, key: copy(p.row))
             return MapPoint(
-                id: copy(p.id), latitude: p.lat, longitude: p.lon, label: copy(p.label), heading: known(p.heading))
+                id: copy(p.id), latitude: p.lat, longitude: p.lon, label: copy(p.label), heading: known(p.heading),
+                row: row)
         }
         if all || info.fields_changed {
             for id in results.fields.indices {

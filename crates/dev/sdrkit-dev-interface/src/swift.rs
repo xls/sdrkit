@@ -496,10 +496,14 @@ pub fn render(family: &Family) -> Result<String, String> {
             let f = crate::c_header::stack_table_function(family, stack, t.def.key);
             let func = camel(&both, false);
             names.push(func.clone());
+            let marks: String = crate::marks::table_sentences(t.def)
+                .iter()
+                .map(|s| format!("    /// {s}\n"))
+                .collect();
             let _ = write!(
                 out,
                 "    /// The changed rows of the table \"{key}\" of the stack \"{id}\", newest first, at most `capacity` rows.\n\
-                 \x20   public static func {func}(_ handle: SDRKIT_HANDLE, capacity: Int = {cap}) -> Result<[{name}], SDRKitCode> {{\n\
+                 {marks}\x20   public static func {func}(_ handle: SDRKIT_HANDLE, capacity: Int = {cap}) -> Result<[{name}], SDRKitCode> {{\n\
                  \x20       var rows = [{c_type}](repeating: {c_type}(), count: capacity)\n\
                  \x20       var info = sdrkit_rows_info.sized\n\
                  \x20       let code = {f}(handle, &rows, UInt32(capacity), &info)\n\

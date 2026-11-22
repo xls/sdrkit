@@ -1,5 +1,5 @@
 # The interface of the stack family dvbcs. The registry test of the family writes this file.
-family dvbcs version=1.4
+family dvbcs version=1.5
 uses.mpegts major=1 since=1.0
 uses.ipcast major=1 since=1.0
 uses.dvbs2 major=1 since=1.0
@@ -197,10 +197,11 @@ shape.IsdbsStreamRow.mixed type=bool unit= optional=no since=1.0
 shape.IsdbsStreamRow.bitrate_bps type=f64 unit=bit/s optional=no since=1.0
 shape.IsdbsStreamRow.decoded type=bool unit= optional=no since=1.0
 satbeacon since=1.0
+satbeacon.content kind=satellite_links since=1.5
 satbeacon.fields.SatbeaconFields since=1.0
-satbeacon.table.lines row=SatbeaconLineRow cap=6 since=1.0
+satbeacon.table.lines row=SatbeaconLineRow cap=6 sort=level_dbfs:descending since=1.0
 satbeacon.table.frames row=SatbeaconFrameRow cap=48 since=1.0
-satbeacon.table.decoded row=SatbeaconDecodedRow cap=256 since=1.0
+satbeacon.table.decoded row=SatbeaconDecodedRow cap=256 label=name since=1.0
 satbeacon.series.rf_spectrum x_unit=bin y_unit=dB since=1.0
 satbeacon.series.pm_spectrum x_unit=bin y_unit=dB since=1.0
 satbeacon.series.column_stability x_unit=byte y_unit= since=1.0
@@ -213,6 +214,7 @@ satbeacon.setting.gen_carrier_only type=bool unit= since=1.0
 satbeacon.setting.gen_pilot type=bool unit= since=1.0
 satbeacon.command.clear args= reply= since=1.0
 dvbc since=1.0
+dvbc.content kind=television audio=programme video=yes since=1.5
 dvbc.fields.DvbcFields since=1.0
 dvbc.fields.TsMonitorFields since=1.0
 dvbc.component.monitor.fields.TsMonitorFields shared=packets;flagged;scrambled;numbered_good;numbered_wrong;numbered_gaps;bitrate_bps;pat_seen;services since=1.0
@@ -250,6 +252,7 @@ dvbc.setting.gen_symbol_rate type=hz unit=Hz since=1.0
 dvbc.setting.gen_payload type=choice(programme,numbered) unit= since=1.0
 dvbc.command.clear args= reply= since=1.0
 dvbc2 since=1.0
+dvbc2.content kind=television audio=programme video=yes since=1.5
 dvbc2.fields.Dvbc2Fields since=1.0
 dvbc2.fields.Dvbc2StreamFields since=1.0
 dvbc2.fields.TsMonitorFields since=1.0
@@ -312,6 +315,7 @@ dvbc2.setting.gen_hem type=bool unit= since=1.0
 dvbc2.setting.gen_payload type=choice(programme,numbered) unit= since=1.0
 dvbc2.command.clear args= reply= since=1.0
 dvbs since=1.0
+dvbs.content kind=television audio=programme video=yes since=1.5
 dvbs.fields.Dvbs2Fields since=1.0
 dvbs.fields.TsMonitorFields since=1.0
 dvbs.fields.DvbsTxFields since=1.2
@@ -385,6 +389,7 @@ dvbs.command.start args= reply= transmits=file stop=stop since=1.2
 dvbs.command.stop args= reply= since=1.2
 dvbs.command.append args=packets:bytes reply= since=1.2
 isdbs since=1.0
+isdbs.content kind=television audio=programme video=yes since=1.5
 isdbs.fields.IsdbsFields since=1.0
 isdbs.fields.TsMonitorFields since=1.0
 isdbs.component.monitor.fields.TsMonitorFields shared=packets;flagged;scrambled;numbered_good;numbered_wrong;numbered_gaps;bitrate_bps;pat_seen;services since=1.0

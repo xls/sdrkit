@@ -66,7 +66,9 @@ The stack puts points on a map: ASM positions.
 
 ## Typed interface
 
-The stack is in the family `marine`, version 1.0. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `marine`, version 1.1. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -96,6 +98,8 @@ Struct `VdesAsmRow`. A row of the ASM frame table. The row key is the place of t
 | `speed_kt` | number (kt) | optional | 1.0 | The speed over the ground of the object that the event is about, knots. |
 | `course_deg` | number (°) | optional | 1.0 | The course over the ground of the object that the event is about, degrees clockwise from true north. |
 | `hex` | text | always | 1.0 | The payload in hexadecimal. |
+
+The column `mmsi` names a row. Place of a row: the column `position`. Course: `course_deg`. Speed: `speed_kt`.
 
 ### Table `bursts`
 
@@ -130,6 +134,8 @@ Struct `VdesChannelRow`. A row of the channel table of the VDES stack. The row k
 | `bursts` | whole number | optional | 1.0 | Bursts found on the VDE-TER channels. |
 | `level_dbfs` | number (dBFS) | optional | 1.0 | Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). |
 | `noise_dbfs` | number (dBFS) | optional | 1.0 | Noise floor, dBFS. |
+
+The column `name` names a row.
 
 ### Table `by_modulation`
 

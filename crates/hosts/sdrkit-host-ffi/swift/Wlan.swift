@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "wlan", version 2.0. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 2.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum WlanInterface {
     public static let major = 2
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of `ble`.
@@ -1894,6 +1894,7 @@ public struct EspnowDropped {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum WlanTables {
     /// The changed rows of the table "devices" of the stack "ble", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func bleDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[BleDeviceRow], SDRKitCode> {
         var rows = [sdrkit_ble_device_row](repeating: sdrkit_ble_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1902,6 +1903,7 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BleDeviceRow.init))
     }
     /// The changed rows of the table "packets" of the stack "ble", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func blePackets(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[BlePacketRow], SDRKitCode> {
         var rows = [sdrkit_ble_packet_row](repeating: sdrkit_ble_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1918,6 +1920,7 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BlePduTypeRow.init))
     }
     /// The changed rows of the table "device_levels" of the stack "ble", newest first, at most `capacity` rows.
+    /// The column `device` names a row.
     public static func bleDeviceLevels(_ handle: SDRKIT_HANDLE, capacity: Int = 9600) -> Result<[BleDeviceLevelRow], SDRKitCode> {
         var rows = [sdrkit_ble_device_level_row](repeating: sdrkit_ble_device_level_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1926,6 +1929,7 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BleDeviceLevelRow.init))
     }
     /// The changed rows of the table "trackers" of the stack "bletracker", newest first, at most `capacity` rows.
+    /// The column `identifier` names a row.
     public static func bletrackerTrackers(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[BletrackerTrackerRow], SDRKitCode> {
         var rows = [sdrkit_bletracker_tracker_row](repeating: sdrkit_bletracker_tracker_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1950,6 +1954,8 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BletrackerKindRow.init))
     }
     /// The changed rows of the table "networks" of the stack "wifi", newest first, at most `capacity` rows.
+    /// The column `ssid` names a row.
+    /// Default order: the column `level_dbfs`, highest first.
     public static func wifiNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[WifiNetworkRow], SDRKitCode> {
         var rows = [sdrkit_wifi_network_row](repeating: sdrkit_wifi_network_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1958,6 +1964,7 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WifiNetworkRow.init))
     }
     /// The changed rows of the table "beacons" of the stack "wifi", newest first, at most `capacity` rows.
+    /// The column `bssid` names a row.
     public static func wifiBeacons(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[WifiBeaconRow], SDRKitCode> {
         var rows = [sdrkit_wifi_beacon_row](repeating: sdrkit_wifi_beacon_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1982,6 +1989,8 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WifiBandRow.init))
     }
     /// The changed rows of the table "networks" of the stack "halow", newest first, at most `capacity` rows.
+    /// The column `ssid` names a row.
+    /// Default order: the column `snr_db`, highest first.
     public static func halowNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[HalowNetworkRow], SDRKitCode> {
         var rows = [sdrkit_halow_network_row](repeating: sdrkit_halow_network_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1990,6 +1999,7 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HalowNetworkRow.init))
     }
     /// The changed rows of the table "frames" of the stack "halow", newest first, at most `capacity` rows.
+    /// The column `bssid` names a row.
     public static func halowFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[HalowFrameRow], SDRKitCode> {
         var rows = [sdrkit_halow_frame_row](repeating: sdrkit_halow_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2022,6 +2032,7 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HalowPreambleRow.init))
     }
     /// The changed rows of the table "devices" of the stack "btclassic", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func btclassicDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[BtclassicDeviceRow], SDRKitCode> {
         var rows = [sdrkit_btclassic_device_row](repeating: sdrkit_btclassic_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2038,6 +2049,7 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BtclassicPacketRow.init))
     }
     /// The changed rows of the table "links" of the stack "wfb", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func wfbLinks(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[WfbLinkRow], SDRKitCode> {
         var rows = [sdrkit_wfb_link_row](repeating: sdrkit_wfb_link_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2046,6 +2058,7 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WfbLinkRow.init))
     }
     /// The changed rows of the table "frames" of the stack "wfb", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
     public static func wfbFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[WfbFrameRow], SDRKitCode> {
         var rows = [sdrkit_wfb_frame_row](repeating: sdrkit_wfb_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2054,6 +2067,7 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WfbFrameRow.init))
     }
     /// The changed rows of the table "devices" of the stack "espnow", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func espnowDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[EspnowDeviceRow], SDRKitCode> {
         var rows = [sdrkit_espnow_device_row](repeating: sdrkit_espnow_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2062,6 +2076,7 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(EspnowDeviceRow.init))
     }
     /// The changed rows of the table "frames" of the stack "espnow", newest first, at most `capacity` rows.
+    /// The column `from` names a row.
     public static func espnowFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[EspnowFrameRow], SDRKitCode> {
         var rows = [sdrkit_espnow_frame_row](repeating: sdrkit_espnow_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized

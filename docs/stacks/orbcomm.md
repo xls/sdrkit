@@ -86,7 +86,9 @@ The stack puts points on a map: Satellites.
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.2. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 1.3. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -125,6 +127,8 @@ Struct `OrbcommSatelliteRow`. A satellite heard. The row key is the satellite nu
 | `inclination_deg` | number (deg) | optional | 1.0 | The inclination. |
 | `period` | duration (s) | optional | 1.0 | The period. |
 | `last_heard` | time | optional | 1.0 | When it was last heard. |
+
+Default order: the column `snr_db`, highest first. Place of a row: the column `position`. Height: `height_m`.
 
 ### Table `satellite_channels`
 

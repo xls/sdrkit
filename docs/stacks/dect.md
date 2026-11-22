@@ -75,7 +75,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 2.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 2.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Voice calls (`voice`). Media: none.
 
 ### Result fields
 
@@ -118,6 +120,8 @@ Struct `DectBaseRow`. A row of the base stations. The row key is the RFPI.
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last beacon. |
 
+Default order: the column `level_dbfs`, highest first.
+
 ### Table `bursts`
 
 Struct `DectBurstRow`. A row of the burst log. The row key is the number of the burst in the log.
@@ -129,6 +133,8 @@ Struct `DectBurstRow`. A row of the burst log. The row key is the number of the 
 | `tail_type` | text | always | 1.0 | The name of the tail type. |
 | `tail` | text | always | 1.0 | The tail as hex. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the burst. |
+
+The column `from` names a row.
 
 ### Event `dect.base`
 

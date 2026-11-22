@@ -36,6 +36,7 @@ field FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choice
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "log" "Log" cap 500
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "identity", label: "Identity", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -86,6 +87,7 @@ field FieldDecl { key: "carrier", label: "Carrier present", unit: "", kind: Bool
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "log" "Log" cap 500
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "identity", label: "Identity", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -322,6 +324,7 @@ field FieldDecl { key: "snapshot_s", label: "Snapshot length", unit: "s", kind: 
 field FieldDecl { key: "bin_hz", label: "Bin width", unit: "Hz", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "carriers" "Persistent carriers" cap 200
+  marks TableMarks { label: None, sort: Some((1, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "frequency", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "level_db", label: "Level over the noise", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "level_sd_db", label: "Level deviation", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -857,6 +860,7 @@ field FieldDecl { key: "bin_hz", label: "Bin width", unit: "Hz", kind: Hz, choic
 field FieldDecl { key: "enbw_bins", label: "Window ENBW", unit: "bins", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "spurs" "Spurs" cap 6
+  marks TableMarks { label: None, sort: Some((1, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "level_dbc", label: "Level", unit: "dBc", kind: F64, choices: [], refers_to: None, content: None }
 table "events" "Events" cap 500

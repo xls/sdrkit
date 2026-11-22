@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "drones", version 1.0. MIT licence.
+// sdrkit: the typed interface of the stack family "drones", version 1.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum DronesInterface {
     public static let major = 1
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of Drone Remote ID.
@@ -1836,6 +1836,9 @@ public struct MavlinkSikVehicleEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum DronesTables {
     /// The changed rows of the table "drones" of the stack "remote_id", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_geo_m`. Course: `course_deg`. Speed: `speed_kt`.
     public static func remoteIdDrones(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[RemoteIdDroneRow], SDRKitCode> {
         var rows = [sdrkit_remote_id_drone_row](repeating: sdrkit_remote_id_drone_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1844,6 +1847,7 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(RemoteIdDroneRow.init))
     }
     /// The changed rows of the table "messages" of the stack "remote_id", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func remoteIdMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[RemoteIdMessageRow], SDRKitCode> {
         var rows = [sdrkit_remote_id_message_row](repeating: sdrkit_remote_id_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1852,6 +1856,7 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(RemoteIdMessageRow.init))
     }
     /// The changed rows of the table "drone_tracks" of the stack "remote_id", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
     public static func remoteIdDroneTracks(_ handle: SDRKIT_HANDLE, capacity: Int = 24000) -> Result<[DronesDroneTrackRow], SDRKitCode> {
         var rows = [sdrkit_drones_drone_track_row](repeating: sdrkit_drones_drone_track_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1860,6 +1865,7 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DronesDroneTrackRow.init))
     }
     /// The changed rows of the table "signals" of the stack "dji_droneid", newest first, at most `capacity` rows.
+    /// Default order: the column `snr_db`, highest first.
     public static func djiDroneidSignals(_ handle: SDRKIT_HANDLE, capacity: Int = 24) -> Result<[DjiDroneidSignalRow], SDRKitCode> {
         var rows = [sdrkit_dji_droneid_signal_row](repeating: sdrkit_dji_droneid_signal_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1868,6 +1874,9 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DjiDroneidSignalRow.init))
     }
     /// The changed rows of the table "drones" of the stack "dji_droneid", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
     public static func djiDroneidDrones(_ handle: SDRKIT_HANDLE, capacity: Int = 50) -> Result<[DjiDroneidDroneRow], SDRKitCode> {
         var rows = [sdrkit_dji_droneid_drone_row](repeating: sdrkit_dji_droneid_drone_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1884,6 +1893,7 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DjiDroneidBurstRow.init))
     }
     /// The changed rows of the table "drone_tracks" of the stack "dji_droneid", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
     public static func djiDroneidDroneTracks(_ handle: SDRKIT_HANDLE, capacity: Int = 6000) -> Result<[DronesDroneTrackRow], SDRKitCode> {
         var rows = [sdrkit_drones_drone_track_row](repeating: sdrkit_drones_drone_track_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1892,6 +1902,9 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DronesDroneTrackRow.init))
     }
     /// The changed rows of the table "aircraft" of the stack "flarm", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
     public static func flarmAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 128) -> Result<[FlarmAircraftRow], SDRKitCode> {
         var rows = [sdrkit_flarm_aircraft_row](repeating: sdrkit_flarm_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1900,6 +1913,7 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FlarmAircraftRow.init))
     }
     /// The changed rows of the table "aircraft_tracks" of the stack "flarm", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
     public static func flarmAircraftTracks(_ handle: SDRKIT_HANDLE, capacity: Int = 25600) -> Result<[DronesAircraftTrackRow], SDRKitCode> {
         var rows = [sdrkit_drones_aircraft_track_row](repeating: sdrkit_drones_aircraft_track_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1908,6 +1922,9 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DronesAircraftTrackRow.init))
     }
     /// The changed rows of the table "aircraft" of the stack "adsl", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
     public static func adslAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 128) -> Result<[AdslAircraftRow], SDRKitCode> {
         var rows = [sdrkit_adsl_aircraft_row](repeating: sdrkit_adsl_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1916,6 +1933,7 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AdslAircraftRow.init))
     }
     /// The changed rows of the table "aircraft_tracks" of the stack "adsl", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
     public static func adslAircraftTracks(_ handle: SDRKIT_HANDLE, capacity: Int = 25600) -> Result<[DronesAircraftTrackRow], SDRKitCode> {
         var rows = [sdrkit_drones_aircraft_track_row](repeating: sdrkit_drones_aircraft_track_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1924,6 +1942,8 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DronesAircraftTrackRow.init))
     }
     /// The changed rows of the table "packets" of the stack "ogn", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
+    /// Place of a row: the column `position`.
     public static func ognPackets(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[OgnPacketRow], SDRKitCode> {
         var rows = [sdrkit_ogn_packet_row](repeating: sdrkit_ogn_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1932,6 +1952,9 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(OgnPacketRow.init))
     }
     /// The changed rows of the table "aircraft" of the stack "ogn", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
     public static func ognAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[OgnAircraftRow], SDRKitCode> {
         var rows = [sdrkit_ogn_aircraft_row](repeating: sdrkit_ogn_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1940,6 +1963,7 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(OgnAircraftRow.init))
     }
     /// The changed rows of the table "aircraft_tracks" of the stack "ogn", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
     public static func ognAircraftTracks(_ handle: SDRKIT_HANDLE, capacity: Int = 51200) -> Result<[DronesAircraftTrackRow], SDRKitCode> {
         var rows = [sdrkit_drones_aircraft_track_row](repeating: sdrkit_drones_aircraft_track_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1948,6 +1972,9 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DronesAircraftTrackRow.init))
     }
     /// The changed rows of the table "links" of the stack "rc_links", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_m`.
     public static func rcLinks(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DronesHeardLinkRow], SDRKitCode> {
         var rows = [sdrkit_drones_heard_link_row](repeating: sdrkit_drones_heard_link_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1956,6 +1983,7 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DronesHeardLinkRow.init))
     }
     /// The changed rows of the table "frames" of the stack "rc_links", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
     public static func rcLinksFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DronesLinkFrameRow], SDRKitCode> {
         var rows = [sdrkit_drones_link_frame_row](repeating: sdrkit_drones_link_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1972,6 +2000,9 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(RcLinksPpmFrameRow.init))
     }
     /// The changed rows of the table "links" of the stack "mavlink_sik", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_m`.
     public static func mavlinkSikLinks(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[DronesHeardLinkRow], SDRKitCode> {
         var rows = [sdrkit_drones_heard_link_row](repeating: sdrkit_drones_heard_link_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1980,6 +2011,7 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DronesHeardLinkRow.init))
     }
     /// The changed rows of the table "frames" of the stack "mavlink_sik", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
     public static func mavlinkSikFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DronesLinkFrameRow], SDRKitCode> {
         var rows = [sdrkit_drones_link_frame_row](repeating: sdrkit_drones_link_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized

@@ -30,17 +30,6 @@ use crate::settings::{
 };
 use crate::system::*;
 use crate::track::ChannelState;
-use sdrkit_core::command::{Command, CommandError, CommandId, CommandSet, Commands};
-use sdrkit_core::publish::{field, keys, Published, TableDef};
-use sdrkit_core::settings::{Setting, SettingSet};
-use sdrkit_core::{
-    Choice, Complex32, ConfigError, LockState, Record, Results, SeriesId, SettingError, SettingId,
-    TableId, Value, Values,
-};
-use sdrkit_graph::{
-    no_values, values_of, Applied, Component, ComponentInfo, Format, Io, Item, Kept, Kind, Port,
-    RateFrom, RateRule, Registry, RunContext, TagKind, Timed,
-};
 use crate::typed::{
     GnssFields, GnssFixSystemRow, GnssSatelliteRow, GnssSystemRow, InterferenceEventRow,
     InterferenceFields, InterferenceLineRow, NmeaEvent, FIX_SYSTEMS, INTERFERENCE_EVENTS,
@@ -52,7 +41,18 @@ use crate::typed::{
     SbasFastCorrectionRow, SbasFields, SbasIonosphereRow, SbasMessageRow, SbasSatelliteRow,
     SbasSatelliteTypeRow, SbasSelectArgs, SbasTypeRow,
 };
+use sdrkit_core::command::{Command, CommandError, CommandId, CommandSet, Commands};
 use sdrkit_core::interface::{Fields as _, Hertz, Seconds, Time};
+use sdrkit_core::publish::{field, keys, Published, TableDef};
+use sdrkit_core::settings::{Setting, SettingSet};
+use sdrkit_core::{
+    Choice, Complex32, ConfigError, LockState, Record, Results, SeriesId, SettingError, SettingId,
+    TableId, Value, Values,
+};
+use sdrkit_graph::{
+    no_values, values_of, Applied, Component, ComponentInfo, Format, Io, Item, Kept, Kind, Port,
+    RateFrom, RateRule, Registry, RunContext, TagKind, Timed,
+};
 use sdrkit_util_objects::publish::Point;
 use sdrkit_util_objects::shaped::{self, RowOut, Shaped};
 use sdrkit_util_objects::{ObjectTable, Seen, Stamp};
@@ -618,7 +618,7 @@ impl GnssCoreComponent {
         sats.retain(|r| r.record.report == report);
         shaped::rows(sats, &SATELLITES, now, p);
         let r = p.results_mut();
-        shaped::points(sats, "sat/", r);
+        shaped::row_points(sats, &SATELLITES, "sat/", r);
         match f {
             Some(f) => {
                 r.update_point(
@@ -1390,12 +1390,7 @@ impl MonitorComponent {
             spoofing_reason: rep.spoofing.then_some(rep.spoof_reason.as_str()),
         });
         let key = &mut self.key;
-        for (i, l) in rep
-            .lines
-            .iter()
-            .enumerate()
-            .take(INTERFERENCE_LINES.cap)
-        {
+        for (i, l) in rep.lines.iter().enumerate().take(INTERFERENCE_LINES.cap) {
             key.clear();
             let _ = write!(key, "{i:02}");
             INTERFERENCE_LINES.put(

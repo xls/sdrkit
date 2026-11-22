@@ -295,6 +295,7 @@ pub const RULES: TableDef = TableDef {
         &R_MAX_PER_HOUR.field,
     ],
     cap: 10_000,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The actions of the rules. The row key is `<rule>/<n>`.
 pub const RULE_ACTIONS: TableDef = TableDef {
@@ -317,6 +318,7 @@ pub const RULE_ACTIONS: TableDef = TableDef {
         &A_OUTPUT.field,
     ],
     cap: 100_000,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The named areas.
 pub const RULE_FENCES: TableDef = TableDef {
@@ -331,6 +333,7 @@ pub const RULE_FENCES: TableDef = TableDef {
         &F_FAMILIES.field,
     ],
     cap: 64,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The schedules.
 pub const RULE_SCHEDULES: TableDef = TableDef {
@@ -346,6 +349,7 @@ pub const RULE_SCHEDULES: TableDef = TableDef {
         &R_TO.field,
     ],
     cap: 10_000,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 sdrkit_core::choice_enum! {
@@ -379,6 +383,7 @@ pub const RULE_PROBLEMS: TableDef = TableDef {
     label: "Problems",
     columns: &[&OF, &PROBLEM, &ARG, &AT],
     cap: 10_000,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// When the row was logged.
@@ -389,6 +394,7 @@ pub const LOG: TableDef = TableDef {
     label: "Log",
     columns: &[&TIME, &RULE, &keys::TEXT],
     cap: 1000,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 #[derive(Debug, Default)]

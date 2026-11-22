@@ -994,7 +994,7 @@ pub static VIRTUAL_CHANNELS: Table<VirtualChannelRow> =
 pub static PRODUCTS: Table<ProductRow<'static>> = Table::new("products", "Products", 80);
 /// The newest frames of a stack that lists frames.
 pub static FRAMES: Table<FrameRow<'static>> =
-    Table::new("frames", "Frames", crate::components::table::TABLE_ROWS);
+    Table::new("frames", "Frames", crate::components::table::TABLE_ROWS).label(&FrameRow::HEX);
 /// The instruments of FY-3.
 pub static FY3_INSTRUMENTS: Table<Fy3InstrumentRow<'static>> =
     Table::new("instruments", "Instruments", 32);
@@ -1371,10 +1371,10 @@ pub struct GrbApidRow<'a> {
 
 /// The picture products of `goes_grb`, by APID.
 pub static GRB_PRODUCTS: Table<GrbProductRow<'static>> =
-    Table::new("grb_products", "Products", 256);
+    Table::new("grb_products", "Products", 256).label(&GrbProductRow::NAME);
 /// The packets of the 32 most frequent APIDs of `goes_grb`.
 pub static GRB_PACKETS_BY_APID: Table<GrbApidRow<'static>> =
-    Table::new("packets_by_apid", "Packets by APID", 32);
+    Table::new("packets_by_apid", "Packets by APID", 32).label(&GrbApidRow::NAME);
 
 /// The GLM lightning results of `goes_grb`.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1584,7 +1584,8 @@ pub static RECENT_FILES: Table<RecentFileRow<'static>> = Table::new(
     "recent_files",
     "Recent files",
     crate::modes::filecast::RECENT,
-);
+)
+.label(&RecentFileRow::NAME);
 /// The pictures of `sat_filecast`, one row per channel.
 pub static FILECAST_PICTURES: Table<FilecastPictureRow<'static>> =
     Table::new("pictures", "Pictures", 64);
@@ -1811,7 +1812,94 @@ pub fn family() -> &'static Described {
         .settings(crate::modes::filecast::FilecastSetting::SETTINGS)
         .command(&crate::modes::filecast::CLEAR)
         .kept(&["recent_files", "pictures"]);
-        Described::new("satimg", 1, 1)
+        Described::new("satimg", 1, 2)
+            .added(
+                1,
+                2,
+                &[
+                    "meteor_lrpt.content",
+                    "goes_hrit.content",
+                    "gk2a_lrit.content",
+                    "gk2a_hrit.content",
+                    "fy2_svissr.content",
+                    "fy3_ahrpt.content",
+                    "fy3_mpt.content",
+                    "noaa_apt.content",
+                    "noaa_dsb.content",
+                    "goes_gvar.content",
+                    "aws.content",
+                    "noaa_gac.content",
+                    "msg_raw.content",
+                    "goes_cda.content",
+                    "goes_mdl.content",
+                    "gk2a_cdas.content",
+                    "sband_ccsds.content",
+                    "rdas.content",
+                    "gk2a_uhrit.content",
+                    "fy4_lrit.content",
+                    "fy4a_hrit.content",
+                    "goes_grb.content",
+                    "sat_filecast.content",
+                    "elektro_l.content",
+                    "hrpt.content",
+                    "eodb.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::SatelliteImagery,
+                &[
+                    "meteor_lrpt",
+                    "goes_hrit",
+                    "gk2a_lrit",
+                    "gk2a_hrit",
+                    "fy2_svissr",
+                    "fy3_ahrpt",
+                    "fy3_mpt",
+                    "noaa_apt",
+                    "noaa_dsb",
+                    "goes_gvar",
+                    "aws",
+                    "noaa_gac",
+                    "msg_raw",
+                    "rdas",
+                    "gk2a_uhrit",
+                    "fy4_lrit",
+                    "fy4a_hrit",
+                    "goes_grb",
+                    "sat_filecast",
+                    "elektro_l",
+                    "hrpt",
+                    "eodb",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::SatelliteLinks,
+                &["goes_cda", "goes_mdl", "gk2a_cdas", "sband_ccsds"],
+            )
+            .pictures(&[
+                "meteor_lrpt",
+                "fy2_svissr",
+                "fy3_ahrpt",
+                "fy3_mpt",
+                "noaa_apt",
+                "noaa_dsb",
+                "goes_gvar",
+                "aws",
+                "noaa_gac",
+                "msg_raw",
+                "rdas",
+                "goes_grb",
+                "sat_filecast",
+                "hrpt",
+                "eodb",
+                "goes_hrit",
+                "gk2a_lrit",
+                "gk2a_hrit",
+                "elektro_l",
+                "fy4_lrit",
+                "fy4a_hrit",
+                "gk2a_uhrit",
+            ])
             .added(1, 1, ADDED_1_1)
             .uses(sdrkit_codec_image::component::interface())
             // The labels of these options begin with a bracket, so they give no name.

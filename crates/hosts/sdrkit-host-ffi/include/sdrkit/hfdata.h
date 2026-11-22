@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "hfdata", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "hfdata", version 1.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_HFDATA_VERSION_MAJOR 1
-#define SDRKIT_HFDATA_VERSION_MINOR 4
+#define SDRKIT_HFDATA_VERSION_MINOR 5
 
 // The stack "crowd36": its id, and the keys of its event types.
 #define SDRKIT_STACK_CROWD36 "crowd36"
@@ -4425,6 +4425,7 @@ typedef struct sdrkit_pactor1_station_args {
 
 // Fills `rows` with the changed rows of the table "rows" of the stack "crowd36" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `id` names a row.
 static inline int32_t sdrkit_crowd36_rows(SDRKIT_HANDLE handle,
                                          sdrkit_hfdata_sender_row *rows,
                                          uint32_t capacity,
@@ -4527,6 +4528,7 @@ static inline int32_t sdrkit_crowd36_gen_set_sync_low(SDRKIT_HANDLE handle, int6
 
 // Fills `rows` with the changed rows of the table "rows" of the stack "xpa" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `id` names a row.
 static inline int32_t sdrkit_xpa_rows(SDRKIT_HANDLE handle,
                                      sdrkit_hfdata_sender_row *rows,
                                      uint32_t capacity,
@@ -4628,6 +4630,7 @@ static inline int32_t sdrkit_xpa_gen_set_lower(SDRKIT_HANDLE handle, bool value)
 
 // Fills `rows` with the changed rows of the table "rows" of the stack "fsk200" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `id` names a row.
 static inline int32_t sdrkit_fsk200_rows(SDRKIT_HANDLE handle,
                                         sdrkit_hfdata_sender_row *rows,
                                         uint32_t capacity,
@@ -4772,6 +4775,7 @@ static inline int32_t sdrkit_fsk200_gen_set_reversed(SDRKIT_HANDLE handle, bool 
 
 // Fills `rows` with the changed rows of the table "rows" of the stack "gwfsk" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `id` names a row.
 static inline int32_t sdrkit_gwfsk_rows(SDRKIT_HANDLE handle,
                                        sdrkit_hfdata_sender_row *rows,
                                        uint32_t capacity,
@@ -4867,6 +4871,7 @@ static inline int32_t sdrkit_gwfsk_gen_set_content(SDRKIT_HANDLE handle, sdrkit_
 
 // Fills `rows` with the changed rows of the table "rows" of the stack "fsk_modems" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `id` names a row.
 static inline int32_t sdrkit_fsk_modems_rows(SDRKIT_HANDLE handle,
                                             sdrkit_hfdata_sender_row *rows,
                                             uint32_t capacity,
@@ -5000,6 +5005,7 @@ static inline int32_t sdrkit_fsk_modems_gen_set_baud_scale(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "rows" of the stack "uvb76" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `id` names a row.
 static inline int32_t sdrkit_uvb76_rows(SDRKIT_HANDLE handle,
                                        sdrkit_hfdata_sender_row *rows,
                                        uint32_t capacity,
@@ -5108,6 +5114,7 @@ static inline int32_t sdrkit_uvb76_gen_set_voice_s(SDRKIT_HANDLE handle, double 
 
 // Fills `rows` with the changed rows of the table "rows" of the stack "vlf_msk" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `id` names a row.
 static inline int32_t sdrkit_vlf_msk_rows(SDRKIT_HANDLE handle,
                                          sdrkit_hfdata_sender_row *rows,
                                          uint32_t capacity,
@@ -6140,6 +6147,7 @@ static inline int32_t sdrkit_hfid_gen_set_ber(SDRKIT_HANDLE handle, double value
 
 // Fills `rows` with the changed rows of the table "events" of the stack "ale" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `from` names a row.
 static inline int32_t sdrkit_ale_events_rows(SDRKIT_HANDLE handle,
                                             sdrkit_ale_event_row *rows,
                                             uint32_t capacity,
@@ -6149,6 +6157,7 @@ static inline int32_t sdrkit_ale_events_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "ale" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_ale_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ale_station_row *rows,
                                               uint32_t capacity,
@@ -6167,6 +6176,7 @@ static inline int32_t sdrkit_ale_words_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "learned_nets" of the stack "ale" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_ale_learned_nets_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_ale_net_row *rows,
                                                   uint32_t capacity,
@@ -6176,6 +6186,7 @@ static inline int32_t sdrkit_ale_learned_nets_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "lqa" of the stack "ale" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_ale_lqa_rows(SDRKIT_HANDLE handle,
                                          sdrkit_ale_lqa_row *rows,
                                          uint32_t capacity,
@@ -6185,6 +6196,7 @@ static inline int32_t sdrkit_ale_lqa_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "ale" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `from` names a row.
 static inline int32_t sdrkit_ale_messages_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ale_message_row *rows,
                                               uint32_t capacity,
@@ -6358,6 +6370,7 @@ static inline int32_t sdrkit_ale_gen_set_ber(SDRKIT_HANDLE handle, double value)
 
 // Fills `rows` with the changed rows of the table "radars" of the stack "hfradar" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `id` names a row.
 static inline int32_t sdrkit_hfradar_radars_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_hfradar_radar_row *rows,
                                                 uint32_t capacity,
@@ -6376,6 +6389,7 @@ static inline int32_t sdrkit_hfradar_heard_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "bands" of the stack "hfradar" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_hfradar_bands_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hfradar_band_row *rows,
                                                uint32_t capacity,
@@ -6555,6 +6569,7 @@ static inline int32_t sdrkit_pactor4_gen_set_constellation(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "pactor1" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `call` names a row.
 static inline int32_t sdrkit_pactor1_frames_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_pactor1_frame_row *rows,
                                                 uint32_t capacity,
@@ -6564,6 +6579,7 @@ static inline int32_t sdrkit_pactor1_frames_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "pactor1" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `call` names a row.
 static inline int32_t sdrkit_pactor1_stations_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_pactor1_station_row *rows,
                                                   uint32_t capacity,
@@ -6630,6 +6646,8 @@ static inline int32_t sdrkit_pactor1_gen_set_script(SDRKIT_HANDLE handle, sdrkit
 
 // Fills `rows` with the changed rows of the table "beacons" of the stack "hfbeacons" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_hfbeacons_beacons_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_hfbeacons_beacon_row *rows,
                                                    uint32_t capacity,
@@ -6902,6 +6920,7 @@ static inline int32_t sdrkit_wavebuoy_system_words_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "wavebuoy" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex` names a row.
 static inline int32_t sdrkit_wavebuoy_frames_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_wavebuoy_frame_row *rows,
                                                  uint32_t capacity,
@@ -6963,6 +6982,7 @@ static inline int32_t sdrkit_wavebuoy_gen_set_wrsg(SDRKIT_HANDLE handle, bool va
 
 // Fills `rows` with the changed rows of the table "dpdus" of the stack "ms110" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `source` names a row.
 static inline int32_t sdrkit_ms110_dpdus_rows(SDRKIT_HANDLE handle,
                                              sdrkit_hfdata_dpdu_row *rows,
                                              uint32_t capacity,
@@ -7014,6 +7034,7 @@ static inline int32_t sdrkit_ms110_gen_set_interleaver(SDRKIT_HANDLE handle, sdr
 
 // Fills `rows` with the changed rows of the table "dpdus" of the stack "s4285" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `source` names a row.
 static inline int32_t sdrkit_s4285_dpdus_rows(SDRKIT_HANDLE handle,
                                              sdrkit_hfdata_dpdu_row *rows,
                                              uint32_t capacity,
@@ -7076,6 +7097,7 @@ static inline int32_t sdrkit_s4285_gen_set_profile(SDRKIT_HANDLE handle, sdrkit_
 
 // Fills `rows` with the changed rows of the table "dpdus" of the stack "s4539" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `source` names a row.
 static inline int32_t sdrkit_s4539_dpdus_rows(SDRKIT_HANDLE handle,
                                              sdrkit_hfdata_dpdu_row *rows,
                                              uint32_t capacity,

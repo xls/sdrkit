@@ -702,7 +702,8 @@ pub struct HamdrmMissingRow {
 pub static MISSING: Table<HamdrmMissingRow> = Table::new("missing", "Missing segments", 64);
 
 /// The history of finished files, newest first.
-pub static HISTORY: Table<HamdrmFileRow<'static>> = Table::new("history", "Files", 8);
+pub static HISTORY: Table<HamdrmFileRow<'static>> =
+    Table::new("history", "Files", 8).label(&HamdrmFileRow::NAME);
 
 /// The state held by the file assembler.
 #[derive(Clone, Debug, Default)]

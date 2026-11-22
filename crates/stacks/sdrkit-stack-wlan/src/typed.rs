@@ -127,10 +127,10 @@ pub struct WfbFrameRow<'a> {
 
 /// The links of `wfb`, most recently heard first.
 pub static WFB_LINKS: Table<WfbLinkRow<'static>> =
-    Table::new("links", "Links", crate::wfb::LINK_CAP);
+    Table::new("links", "Links", crate::wfb::LINK_CAP).label(&WfbLinkRow::ID);
 /// The frame log of `wfb`, newest first.
 pub static WFB_FRAMES: Table<WfbFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::wfb::FRAME_CAP);
+    Table::new("frames", "Frames", crate::wfb::FRAME_CAP).label(&WfbFrameRow::HEX);
 
 // ble
 
@@ -298,10 +298,10 @@ pub struct BleDeviceEvent<'a> {
 
 /// The devices of `ble`.
 pub static BLE_DEVICES: Table<BleDeviceRow<'static>> =
-    Table::new("devices", "Devices", crate::ble::table::DEVICE_CAP);
+    Table::new("devices", "Devices", crate::ble::table::DEVICE_CAP).label(&BleDeviceRow::NAME);
 /// The packet log of `ble`, newest first.
 pub static BLE_PACKETS: Table<BlePacketRow<'static>> =
-    Table::new("packets", "Packets", crate::ble::table::LOG_CAP);
+    Table::new("packets", "Packets", crate::ble::table::LOG_CAP).label(&BlePacketRow::ADDRESS);
 /// The good packets of each PDU type of `ble` since the last clear.
 pub static BLE_PDU_TYPES: Table<BlePduTypeRow<'static>> = Table::new("pdu_types", "PDU types", 16);
 /// The last levels of each device of `ble`, one row a level.
@@ -309,7 +309,8 @@ pub static BLE_DEVICE_LEVELS: Table<BleDeviceLevelRow<'static>> = Table::new(
     "device_levels",
     "Device levels",
     crate::ble::table::DEVICE_CAP * crate::ble::table::HISTORY,
-);
+)
+.label(&BleDeviceLevelRow::DEVICE);
 /// A good packet with an address.
 pub static BLE_DEVICE: EventKind<BleDeviceEvent<'static>> =
     EventKind::new("ble.device", "Bluetooth LE device");
@@ -651,7 +652,8 @@ pub struct BletrackerAlertEvent<'a> {
 
 /// The trackers of `bletracker`, the ones that follow first.
 pub static BLETRACKER_TRACKERS: Table<BletrackerTrackerRow<'static>> =
-    Table::new("trackers", "Trackers", crate::tracker::book::RECORD_CAP);
+    Table::new("trackers", "Trackers", crate::tracker::book::RECORD_CAP)
+        .label(&BletrackerTrackerRow::IDENTIFIER);
 /// The alerts of `bletracker`, newest first.
 pub static BLETRACKER_ALERTS: Table<BletrackerAlertRow<'static>> =
     Table::new("alerts", "Alerts", crate::tracker::book::ALERT_CAP);
@@ -1049,10 +1051,15 @@ pub struct WifiBandRow {
 
 /// The networks of `wifi`.
 pub static WIFI_NETWORKS: Table<WifiNetworkRow<'static>> =
-    Table::new("networks", "Networks", crate::wifi::table::NETWORK_CAP);
+    Table::new("networks", "Networks", crate::wifi::table::NETWORK_CAP)
+        .label(&WifiNetworkRow::SSID)
+        .sorted(
+            &WifiNetworkRow::LEVEL_DBFS,
+            sdrkit_core::SortOrder::Descending,
+        );
 /// The frame log of `wifi`, newest first.
 pub static WIFI_BEACONS: Table<WifiBeaconRow<'static>> =
-    Table::new("beacons", "Beacons", crate::wifi::table::LOG_CAP);
+    Table::new("beacons", "Beacons", crate::wifi::table::LOG_CAP).label(&WifiBeaconRow::BSSID);
 /// The good OFDM frames at each rate of `wifi` since the last clear.
 pub static WIFI_OFDM_RATES: Table<WifiRateRow> = Table::new("ofdm_rates", "OFDM frames by rate", 8);
 /// The summary of each band of `wifi`.
@@ -1321,10 +1328,11 @@ pub struct EspnowDeviceEvent<'a> {
 
 /// The devices of `espnow`, most recently heard first.
 pub static ESPNOW_DEVICES: Table<EspnowDeviceRow<'static>> =
-    Table::new("devices", "Devices", crate::espnow::table::DEVICE_CAP);
+    Table::new("devices", "Devices", crate::espnow::table::DEVICE_CAP)
+        .label(&EspnowDeviceRow::ADDRESS);
 /// The frame log of `espnow`, newest first.
 pub static ESPNOW_FRAMES: Table<EspnowFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::espnow::table::LOG_CAP);
+    Table::new("frames", "Frames", crate::espnow::table::LOG_CAP).label(&EspnowFrameRow::FROM);
 /// The ESP-NOW frames at each PHY rate of `espnow` since the last clear.
 pub static ESPNOW_BY_RATE: Table<EspnowRateRow<'static>> =
     Table::new("by_rate", "Frames by PHY rate", 5);
@@ -1549,10 +1557,12 @@ pub struct HalowPreambleRow {
 
 /// The networks of `halow`.
 pub static HALOW_NETWORKS: Table<HalowNetworkRow<'static>> =
-    Table::new("networks", "Networks", crate::halow::table::NETWORK_CAP);
+    Table::new("networks", "Networks", crate::halow::table::NETWORK_CAP)
+        .label(&HalowNetworkRow::SSID)
+        .sorted(&HalowNetworkRow::SNR_DB, sdrkit_core::SortOrder::Descending);
 /// The frame log of `halow`, newest first.
 pub static HALOW_FRAMES: Table<HalowFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::halow::table::LOG_CAP);
+    Table::new("frames", "Frames", crate::halow::table::LOG_CAP).label(&HalowFrameRow::BSSID);
 /// The width view of `halow`.
 pub static HALOW_WIDTHS: Table<HalowWidthRow> = Table::new("widths", "Widths", 5);
 /// The PPDUs of each MCS of `halow` since the last clear.
@@ -1712,7 +1722,8 @@ pub struct BtclassicInquiryEvent<'a> {
 
 /// The devices of `btclassic`, most recently heard first.
 pub static BTCLASSIC_DEVICES: Table<BtclassicDeviceRow<'static>> =
-    Table::new("devices", "Devices", crate::btclassic::DEVICE_CAP);
+    Table::new("devices", "Devices", crate::btclassic::DEVICE_CAP)
+        .label(&BtclassicDeviceRow::ADDRESS);
 /// The packet log of `btclassic`, newest first.
 pub static BTCLASSIC_PACKETS: Table<BtclassicPacketRow<'static>> =
     Table::new("packets", "Packets", crate::btclassic::PACKET_CAP);
@@ -1732,7 +1743,32 @@ pub fn family() -> &'static Described {
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 2, 0)
+        Described::new("wlan", 2, 1)
+            .added(
+                2,
+                1,
+                &[
+                    "ble.content",
+                    "bletracker.content",
+                    "wifi.content",
+                    "halow.content",
+                    "btclassic.content",
+                    "wfb.content",
+                    "espnow.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Networks,
+                &[
+                    "ble",
+                    "bletracker",
+                    "wifi",
+                    "halow",
+                    "btclassic",
+                    "wfb",
+                    "espnow",
+                ],
+            )
             .shared_source("tracker", &["bletracker"])
             .stack(
                 StackShape::new("ble")

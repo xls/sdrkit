@@ -321,7 +321,8 @@ pub const HALT: Command =
 /// The width presets of the demodulator in use.
 pub static WIDTH_PRESETS: Table<WidthPresetRow> = Table::new("width_presets", "Width presets", 32);
 /// The built-in presets. The command `preset.apply` applies one.
-pub static PRESETS: Table<PresetRow<'static>> = Table::new("presets", "Presets", 64);
+pub static PRESETS: Table<PresetRow<'static>> =
+    Table::new("presets", "Presets", 64).label(&PresetRow::NAME);
 /// The extra channels, while any is on.
 pub static CHANNELS: Table<ChannelRow<'static>> = Table::new("channels", "Extra channels", 4);
 
@@ -385,7 +386,10 @@ pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // The presets and the width presets hold no measurement: they stay over a change of frequency.
-        Family::new("general", 1, 2)
+        Family::new("general", 1, 3)
+            .added(1, 3, &["general.content"])
+            .content(sdrkit_core::ContentKind::General, &["general"])
+            .audio(sdrkit_core::AudioKind::Monitor, &["general"])
             .uses(tones::interface())
             .stack(
                 StackShape::new(ID)

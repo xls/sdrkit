@@ -296,7 +296,8 @@ pub struct AtvStateEvent<'a> {
 
 /// The channels of the setting `channels`.
 pub static ATV_CHANNELS: Table<AtvChannelRow<'static>> =
-    Table::new("channels", "Channels", crate::channels::ATV_CHANNELS_CAP);
+    Table::new("channels", "Channels", crate::channels::ATV_CHANNELS_CAP)
+        .label(&AtvChannelRow::LABEL);
 /// A change of the state of the `atv` receiver.
 pub static ATV_STATE: EventKind<AtvStateEvent<'static>> = EventKind::new("atv.state", "State");
 
@@ -449,7 +450,8 @@ pub struct FpvStateEvent<'a> {
 }
 
 /// The channels of the FPV meter.
-pub static FPV_CHANNELS: Table<FpvChannelRow<'static>> = Table::new("channels", "Channels", 64);
+pub static FPV_CHANNELS: Table<FpvChannelRow<'static>> =
+    Table::new("channels", "Channels", 64).label(&FpvChannelRow::NAME);
 /// A change of the state of the `fpv` receiver.
 pub static FPV_STATE: EventKind<FpvStateEvent<'static>> = EventKind::new("fpv.state", "State");
 
@@ -682,7 +684,11 @@ pub fn family() -> &'static Described {
         // The MAC display holds the measurements and service names of the present signal: nothing is kept over a
         // change of frequency.
         // The key and the label of the aspect ratios are numbers, so the options get the names of their variants.
-        Described::new("analogtv", 1, 1)
+        Described::new("analogtv", 1, 2)
+            .added(1, 2, &["atv.content", "mac.content", "fpv.content"])
+            .content(sdrkit_core::ContentKind::Television, &["atv", "mac", "fpv"])
+            .audio(sdrkit_core::AudioKind::Programme, &["atv", "mac", "fpv"])
+            .video(&["atv", "mac", "fpv"])
             .option_name("aspect", "4:3", "normal")
             .option_name("aspect", "16:9", "wide")
             .uses(teletext::interface())

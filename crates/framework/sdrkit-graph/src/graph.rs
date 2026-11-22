@@ -2689,7 +2689,14 @@ impl Graph {
                 }
             }
             for (k, v) in res.points() {
-                r.set_point(keyed(&mut key, if main { "" } else { id }, k), v);
+                let point = keyed(&mut key, if main { "" } else { id }, k);
+                r.set_point(point, v);
+                // The row of the point is in a table of the component: state it by the table of the graph.
+                let row = v.row.as_ref().and_then(|l| {
+                    let table = m.tables.get(usize::from(l.table.0))?;
+                    Some((*table, l.key.as_str()))
+                });
+                r.link_point(point, row);
             }
             np += res.points().len();
             let log = res.log_lines();
@@ -3156,6 +3163,27 @@ impl Graph {
         let mut ctx = self.ctx.clone();
         ctx.codecs = Arc::new(codecs);
         self.set_context(ctx);
+    }
+
+    /// The stream kinds that the graph gives to the host, each once: the kind of each graph output, and audio for a host
+    /// audio sink (`host.out`).
+    pub fn host_kinds(&self) -> Vec<Kind> {
+        let mut out: Vec<Kind> = Vec::new();
+        for n in &self.nodes {
+            let given = n
+                .outputs
+                .iter()
+                .zip(&n.kinds)
+                .filter(|(s, _)| self.outputs.contains(s))
+                .map(|(_, k)| *k);
+            let sink = (n.info.name == "host.out").then_some(Kind::Audio);
+            for k in given.chain(sink) {
+                if !out.contains(&k) {
+                    out.push(k);
+                }
+            }
+        }
+        out
     }
 
     /// Component ids in the order they run.

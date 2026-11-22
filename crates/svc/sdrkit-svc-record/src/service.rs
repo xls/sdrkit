@@ -326,6 +326,7 @@ pub const RECORDINGS: TableDef = TableDef {
         &KIND, &CONTAINER, &BYTES, &SECONDS, &RATE, &CENTRE, &CHANNELS, &MODIFIED,
     ],
     cap: MAX_RECORDINGS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The recordings that run. The row key is a number.
 pub const RUNNING: TableDef = TableDef {
@@ -335,6 +336,7 @@ pub const RUNNING: TableDef = TableDef {
         &KIND, &SESSION_F, &STATE, &FILE, &FILES, &FRAMES, &DROPPED, &BYTES, &PROBLEM, &STARTED,
     ],
     cap: MAX_RUNNING,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The files of the running transport stream recordings. The row key is the store path.
 pub const TS_FILES: TableDef = TableDef {
@@ -342,6 +344,7 @@ pub const TS_FILES: TableDef = TableDef {
     label: "Stream files",
     columns: &[&RECORDING, &SERVICE, &PART, &BYTES, &OPEN],
     cap: MAX_RECORDINGS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The scheduled recordings. The row key is the schedule id.
 pub const SCHEDULES: TableDef = TableDef {
@@ -368,6 +371,7 @@ pub const SCHEDULES: TableDef = TableDef {
         &RUNS,
     ],
     cap: MAX_JOBS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The history of the scheduled runs, newest last. The row key is a number.
 pub const SCHEDULE_RUNS: TableDef = TableDef {
@@ -375,6 +379,7 @@ pub const SCHEDULE_RUNS: TableDef = TableDef {
     label: "Scheduled runs",
     columns: &[&JOB, &NAME, &START, &END, &OUTCOME, &FILE, &BYTES],
     cap: MAX_RUNS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 // Events.

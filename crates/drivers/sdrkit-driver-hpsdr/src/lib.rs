@@ -379,6 +379,7 @@ pub static RADIOS: TableDef = TableDef {
         &R_PROTOCOL,
     ],
     cap: 64,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// Writes `found` as a row of [`RADIOS`].

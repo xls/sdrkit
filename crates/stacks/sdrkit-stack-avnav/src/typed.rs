@@ -84,7 +84,7 @@ pub struct IdentRow<'a> {
 
 /// Every word heard as an identification, with how often.
 pub static IDENTS: Table<IdentRow<'static>> =
-    Table::new("idents", "Identifications heard", IdentTracker::CAP);
+    Table::new("idents", "Identifications heard", IdentTracker::CAP).label(&IdentRow::IDENT);
 
 /// The fields of a decoded identification word: a spot of the station that sends it. The source, the text and the
 /// callsign hold the word.
@@ -157,7 +157,8 @@ pub struct NdbScanRow {
 }
 
 /// The carriers of the last band scan.
-pub static NDB_SCAN: Table<NdbScanRow> = Table::new("scan", "Beacons in the input", 64);
+pub static NDB_SCAN: Table<NdbScanRow> = Table::new("scan", "Beacons in the input", 64)
+    .sorted(&NdbScanRow::CN0_DBHZ, sdrkit_core::SortOrder::Descending);
 
 // --- VOR ---
 
@@ -427,7 +428,8 @@ pub struct LoranStationRow<'a> {
 }
 
 /// The master and the secondaries of the last measurement.
-pub static LORAN_STATIONS: Table<LoranStationRow<'static>> = Table::new("stations", "Stations", 16);
+pub static LORAN_STATIONS: Table<LoranStationRow<'static>> =
+    Table::new("stations", "Stations", 16).label(&LoranStationRow::STATION);
 
 // --- DGPS ---
 
@@ -693,7 +695,24 @@ pub fn family() -> &'static Described {
                 "DgpsFields.frames_ok",
                 "DgpsFields.text",
             ]);
-        Described::new("avnav", 1, 1)
+        Described::new("avnav", 1, 2)
+            .added(
+                1,
+                2,
+                &[
+                    "ndb.content",
+                    "vor.content",
+                    "ils.content",
+                    "dme.content",
+                    "loran.content",
+                    "dgps.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Navigation,
+                &["ndb", "vor", "ils", "dme", "loran", "dgps"],
+            )
+            .audio(sdrkit_core::AudioKind::Monitor, &["ndb", "vor", "ils"])
             .shared_source("fields", ALL)
             .shared_source("carrier", &["ndb", "vor", "ils"])
             .shared_source("keyer", &["ndb", "vor", "ils"])

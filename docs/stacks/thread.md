@@ -99,7 +99,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 2.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 2.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Sensors and devices (`devices`). Media: none.
 
 ### Result fields
 
@@ -165,6 +167,8 @@ Struct `ThreadNetworkRow`. A row of the Thread networks. The row key is the PAN 
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
 
+The column `network_name` names a row. Default order: the column `level_dbfs`, highest first.
+
 ### Table `devices`
 
 Struct `PanDeviceRow`. A row of the devices of an IEEE 802.15.4 stack. The row key is the number of the device.
@@ -201,6 +205,8 @@ Struct `ThreadFrameRow`. A row of the Thread frame log. The row key is the numbe
 | `seq` | whole number | optional | 1.0 | The sequence number, if the frame has one. |
 | `ack_request` | yes or no | always | 1.0 | The frame requests an acknowledgement. |
 | `details` | text | always | 1.0 | The description. |
+
+The column `source` names a row.
 
 ### Event `thread.network`
 

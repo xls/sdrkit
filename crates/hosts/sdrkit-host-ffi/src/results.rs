@@ -2,7 +2,7 @@
 
 use crate::error::Error;
 use crate::handle::{run, str_in, Handle, Out};
-use crate::value::{count, small, Id, Str, Variant};
+use crate::value::{count, small, Id, Str, Variant, SDRKIT_NO_ID};
 use sdrkit_core::{
     FieldId, LockState, MapPoint, RasterId, Record, ResultsDecl, SeriesId, Status, TableId,
 };
@@ -53,6 +53,28 @@ pub struct TableInfo {
     pub columns: u32,
     /// The most rows that the table keeps. When the table is full, a new row removes the oldest row.
     pub cap: usize,
+    /// The id of the column that names a row for people (a call sign, a station name), or `SDRKIT_NO_ID`.
+    pub label_column: Id,
+    /// The id of the column that orders the rows by default, or `SDRKIT_NO_ID`: the newest row is first. It is a hint
+    /// for a front end. The rows of a snapshot are always newest first.
+    pub sort_column: Id,
+    /// With `sort_column`: true for the highest value first, false for the lowest value first.
+    pub sort_descending: bool,
+    /// The id of the column of type `SDRKIT_TYPE_POSITION` that holds the place of a row on the map, or
+    /// `SDRKIT_NO_ID`.
+    pub position_column: Id,
+    /// The id of the column of the latitude in degrees north, for a table without a position column, or
+    /// `SDRKIT_NO_ID`.
+    pub latitude_column: Id,
+    /// The id of the column of the longitude in degrees east, for a table without a position column, or
+    /// `SDRKIT_NO_ID`.
+    pub longitude_column: Id,
+    /// The id of the column of the height, or `SDRKIT_NO_ID`. The declaration of the column has the unit.
+    pub altitude_column: Id,
+    /// The id of the column of the direction of travel in degrees from north, or `SDRKIT_NO_ID`.
+    pub course_column: Id,
+    /// The id of the column of the speed, or `SDRKIT_NO_ID`. The declaration of the column has the unit.
+    pub speed_column: Id,
 }
 
 /// The declaration of one series (a small plot) or raster (an image of values, such as a waterfall).
@@ -135,6 +157,10 @@ pub struct Point {
     pub label: Str,
     /// Degrees from north for a moving target, or NaN.
     pub heading: f32,
+    /// The id of the table that holds the row of the point, or `SDRKIT_NO_ID` for a point without a row.
+    pub table: Id,
+    /// The key of that row, or empty. The row can be absent from the table: a table drops its oldest rows.
+    pub row: Str,
 }
 
 /// The points of a series.
@@ -266,6 +292,11 @@ fn copy_line(list: &mut Vec<String>, used: &mut usize, line: &str) {
     *used += 1;
 }
 
+/// The id of column `c`, or `SDRKIT_NO_ID` for none.
+fn column(c: Option<u16>) -> Id {
+    c.map_or(SDRKIT_NO_ID, Id::from)
+}
+
 fn copy_point(list: &mut Vec<MapPoint>, used: &mut usize, p: &MapPoint) {
     match list.get_mut(*used) {
         Some(d) => d.clone_from(p),
@@ -338,12 +369,22 @@ pub unsafe extern "C" fn sdrkit_table_decl(handle: Handle, id: Id, info: *mut Ta
     let out = unsafe { Out::new(info) };
     with_decl(handle, |d| {
         let t = d.table(TableId(small(id)?)).ok_or(Error::NoSuchId)?;
+        let m = &t.marks;
         out?.put(TableInfo {
             size: 0,
             key: Str::of(&t.key),
             label: Str::of(&t.label),
             columns: count(t.columns.len()),
             cap: t.cap,
+            label_column: column(m.label),
+            sort_column: column(m.sort.map(|(c, _)| c)),
+            sort_descending: matches!(m.sort, Some((_, sdrkit_core::SortOrder::Descending))),
+            position_column: column(m.position),
+            latitude_column: column(m.latitude),
+            longitude_column: column(m.longitude),
+            altitude_column: column(m.altitude),
+            course_column: column(m.course),
+            speed_column: column(m.speed),
         });
         Ok(())
     })
@@ -656,6 +697,8 @@ pub unsafe extern "C" fn sdrkit_snapshot_point(handle: Handle, n: u32, point: *m
             lon: p.lon,
             label: Str::of(&p.label),
             heading: p.heading.unwrap_or(f32::NAN),
+            table: p.row.as_ref().map_or(SDRKIT_NO_ID, |r| Id::from(r.table.0)),
+            row: p.row.as_ref().map_or(Str::of(""), |r| Str::of(&r.key)),
         });
         Ok(())
     })

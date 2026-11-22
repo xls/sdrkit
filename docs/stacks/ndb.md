@@ -88,7 +88,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `avnav`, version 1.1. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avnav`, version 1.2. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Navigation aids (`navigation`). Media: sound (monitor).
 
 ### Result fields
 
@@ -149,6 +151,8 @@ Struct `IdentRow`. A row of the identifications heard. The row key is the word.
 | `ident` | text | always | 1.0 | The word. |
 | `heard` | whole number | always | 1.0 | How often it was heard. |
 
+The column `ident` names a row.
+
 ### Table `scan`
 
 Struct `NdbScanRow`. A row of the band scan. The row key is the frequency in whole hertz.
@@ -158,6 +162,8 @@ Struct `NdbScanRow`. A row of the band scan. The row key is the frequency in who
 | `freq_hz` | frequency | always | 1.0 | The frequency of the carrier. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the carrier. |
 | `cn0_dbhz` | number (dB-Hz) | always | 1.0 | The carrier to noise density. |
+
+Default order: the column `cn0_dbhz`, highest first.
 
 ### Event `morse.word`
 

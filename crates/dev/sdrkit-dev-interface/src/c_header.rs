@@ -512,11 +512,15 @@ pub fn render(family: &Family) -> Result<String, String> {
         for t in &stack.tables {
             let ty = struct_name(family, t.row.name);
             let f = stack_table_function(family, stack, t.def.key);
+            let marks: String = crate::marks::table_sentences(t.def)
+                .iter()
+                .map(|s| format!("// {s}\n"))
+                .collect();
             let _ = write!(
                 out,
                 "// Fills `rows` with the changed rows of the table \"{key}\" of the stack \"{id}\" in the snapshot of `handle`,\n\
                  // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.\n\
-                 static inline int32_t {f}(SDRKIT_HANDLE handle,\n\
+                 {marks}static inline int32_t {f}(SDRKIT_HANDLE handle,\n\
                  {pad}{ty} *rows,\n\
                  {pad}uint32_t capacity,\n\
                  {pad}sdrkit_rows_info *info) {{\n\

@@ -169,7 +169,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `dvbt2`, version 1.3. The C header `sdrkit/dvbt2.h`, the registry record `registry/dvbt2.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvbt2`, version 1.4. The C header `sdrkit/dvbt2.h`, the registry record `registry/dvbt2.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Television and video (`television`). Media: sound (programme), video.
 
 ### Result fields
 

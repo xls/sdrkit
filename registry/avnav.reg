@@ -1,5 +1,5 @@
 # The interface of the stack family avnav. The registry test of the family writes this file.
-family avnav version=1.1
+family avnav version=1.2
 shape.TunedFields since=1.0
 shape.TunedFields.tuned_hz type=hz unit=Hz optional=no since=1.0
 shape.IdentFields since=1.0
@@ -161,6 +161,7 @@ shape.RtcmFrameEvent.zcount_s type=f64 unit=s optional=no since=1.0
 shape.RtcmFrameEvent.sequence type=i64 unit= optional=no since=1.0
 shape.RtcmFrameEvent.health type=choice(scale_1,scale_0.75,scale_0.5,scale_0.3,scale_0.2,scale_0.1,not_monitored,not_working) unit= optional=no since=1.0
 ndb since=1.0
+ndb.content kind=navigation audio=monitor since=1.2
 ndb.fields.TunedFields since=1.0
 ndb.fields.IdentFields since=1.0
 ndb.fields.CarrierFields since=1.0
@@ -168,8 +169,8 @@ ndb.fields.NdbFields since=1.0
 ndb.fields.KeyerFields since=1.0
 ndb.component.keyer.fields.KeyerFields shared=id_tone_hz;id_depth_pct since=1.0
 ndb.kept.scan since=1.0
-ndb.table.idents row=IdentRow cap=16 since=1.0
-ndb.table.scan row=NdbScanRow cap=64 since=1.0
+ndb.table.idents row=IdentRow cap=16 label=ident since=1.0
+ndb.table.scan row=NdbScanRow cap=64 sort=cn0_dbhz:descending since=1.0
 ndb.event.morse.word fields=IdentWordEvent since=1.0
 ndb.setting.ident_keying type=choice(auto,a,b) unit= since=1.0
 ndb.setting.tone type=hz unit=Hz since=1.0
@@ -190,12 +191,13 @@ ndb.setting.gen_pause type=duration unit=s since=1.0
 ndb.setting.gen_others type=i64 unit= since=1.0
 ndb.command.clear args= reply= since=1.0
 vor since=1.0
+vor.content kind=navigation audio=monitor since=1.2
 vor.fields.VorFields since=1.0
 vor.fields.IdentFields since=1.0
 vor.fields.CarrierFields since=1.0
 vor.fields.KeyerFields since=1.0
 vor.component.keyer.fields.KeyerFields shared=id_tone_hz;id_depth_pct since=1.0
-vor.table.idents row=IdentRow cap=16 since=1.0
+vor.table.idents row=IdentRow cap=16 label=ident since=1.0
 vor.event.morse.word fields=IdentWordEvent since=1.0
 vor.setting.obs type=f64 unit=° since=1.0
 vor.setting.average type=duration unit=s since=1.0
@@ -209,13 +211,14 @@ vor.setting.gen_pause type=duration unit=s since=1.0
 vor.setting.gen_rotate type=f64 unit=°/s since=1.0
 vor.command.clear args= reply= since=1.0
 ils since=1.0
+ils.content kind=navigation audio=monitor since=1.2
 ils.fields.IlsFields since=1.0
 ils.fields.IdentFields since=1.0
 ils.fields.CarrierFields since=1.0
 ils.fields.MarkerFields since=1.1
 ils.fields.KeyerFields since=1.0
 ils.component.keyer.fields.KeyerFields shared=id_tone_hz;id_depth_pct since=1.0
-ils.table.idents row=IdentRow cap=16 since=1.0
+ils.table.idents row=IdentRow cap=16 label=ident since=1.0
 ils.table.passages row=MarkerPassageRow cap=64 since=1.1
 ils.event.morse.word fields=IdentWordEvent since=1.0
 ils.event.ils.marker fields=MarkerEvent since=1.1
@@ -235,10 +238,11 @@ ils.setting.gen_marker_start type=duration unit=s since=1.1
 ils.setting.gen_marker_stop type=duration unit=s since=1.1
 ils.command.clear args= reply= since=1.0
 dme since=1.0
+dme.content kind=navigation since=1.2
 dme.fields.DmeFields since=1.0
 dme.fields.TunedFields since=1.0
 dme.fields.IdentFields since=1.0
-dme.table.idents row=IdentRow cap=16 since=1.0
+dme.table.idents row=IdentRow cap=16 label=ident since=1.0
 dme.event.morse.word fields=IdentWordEvent since=1.0
 dme.setting.mode type=choice(auto,x,y) unit= since=1.0
 dme.setting.threshold type=f64 unit=dB since=1.0
@@ -251,8 +255,9 @@ dme.setting.gen_wpm type=f64 unit=wpm since=1.0
 dme.setting.gen_pause type=duration unit=s since=1.0
 dme.command.clear args= reply= since=1.0
 loran since=1.0
+loran.content kind=navigation since=1.2
 loran.fields.LoranFields since=1.0
-loran.table.stations row=LoranStationRow cap=16 since=1.0
+loran.table.stations row=LoranStationRow cap=16 label=station since=1.0
 loran.setting.gri type=i64 unit= since=1.0
 loran.setting.average type=duration unit=s since=1.0
 loran.setting.threshold type=f64 unit=dB since=1.0
@@ -263,6 +268,7 @@ loran.setting.gen_tds type=text unit= since=1.0
 loran.setting.gen_ecd type=f64 unit=µs since=1.0
 loran.command.clear args= reply= since=1.0
 dgps since=1.0
+dgps.content kind=navigation since=1.2
 dgps.fields.DgpsFields since=1.0
 dgps.fields.DgpsMeterFields since=1.0
 dgps.component.level.fields.DgpsMeterFields shared=level_dbfs;peak_dbfs since=1.0
@@ -275,7 +281,7 @@ dgps.kept.DgpsFields.frames_ok since=1.0
 dgps.kept.DgpsFields.text since=1.0
 dgps.table.messages row=DgpsMessageRow cap=64 since=1.0
 dgps.table.corrections row=DgpsCorrectionRow cap=32 since=1.0
-dgps.table.almanac row=DgpsAlmanacRow cap=64 since=1.0
+dgps.table.almanac row=DgpsAlmanacRow cap=64 position=position since=1.0
 dgps.event.rtcm.frame fields=RtcmFrameEvent since=1.0
 dgps.setting.bitrate type=choice(0,50,100,200) unit= since=1.0
 dgps.setting.gen_bitrate type=choice(50,100,200) unit= since=1.0

@@ -122,6 +122,7 @@ table "operators" "Operators" cap 400
   column FieldDecl { key: "country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "carriers" "Carriers" cap 24
+  marks TableMarks { label: None, sort: Some((2, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "frequency", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "width", label: "Width", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -250,6 +251,7 @@ table "cells" "Cells" cap 200
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
 table "carriers" "Carriers" cap 24
+  marks TableMarks { label: None, sort: Some((1, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "frequency", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "synchronised", label: "Synchronised", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
@@ -274,6 +276,7 @@ field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choic
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "modem.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "messages" "Messages" cap 400
+  marks TableMarks { label: None, sort: None, position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: Some(2) }
   column FieldDecl { key: "received", label: "Received", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "train", label: "Train", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "speed_kmh", label: "Speed", unit: "km/h", kind: I64, choices: [], refers_to: None, content: None }

@@ -608,7 +608,8 @@ pub struct Atsc3ComponentRow<'a> {
 }
 
 /// The services of the service list.
-pub static ATSC3_SERVICES: Table<Atsc3ServiceRow<'static>> = Table::new("services", "Services", 64);
+pub static ATSC3_SERVICES: Table<Atsc3ServiceRow<'static>> =
+    Table::new("services", "Services", 64).label(&Atsc3ServiceRow::NAME);
 /// The media components seen.
 pub static ATSC3_COMPONENTS: Table<Atsc3ComponentRow<'static>> =
     Table::new("components", "Media components", 64);
@@ -899,7 +900,28 @@ pub fn family() -> &'static Family {
                 .fields::<IsdbtNarrowFields<'static>>(),
         )
         .settings(IsdbtsbSetting::SETTINGS);
-        Family::new("tvterr", 1, 5)
+        Family::new("tvterr", 1, 6)
+            .added(
+                1,
+                6,
+                &[
+                    "isdbt.content",
+                    "isdbtsb.content",
+                    "atsc.content",
+                    "atsc3.content",
+                    "dtmb.content",
+                    "tv-auto.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Television,
+                &["isdbt", "isdbtsb", "atsc", "atsc3", "dtmb", "tv-auto"],
+            )
+            .audio(
+                sdrkit_core::AudioKind::Programme,
+                &["isdbt", "isdbtsb", "atsc", "dtmb"],
+            )
+            .video(&["isdbt", "isdbtsb", "atsc", "dtmb"])
             .uses(sdrkit_proto_mpegts::publish::interface())
             .uses(ipcast::interface())
             .uses(sdrkit_graph::components::interface())
@@ -910,7 +932,11 @@ pub fn family() -> &'static Family {
             .stack(atsc3)
             .stack(dtmb)
             .stack(auto)
-            .added(1, 5, &["shape.Atsc3PlpRow.bonding", "shape.Atsc3PlpRow.bonded_bsid"])
+            .added(
+                1,
+                5,
+                &["shape.Atsc3PlpRow.bonding", "shape.Atsc3PlpRow.bonded_bsid"],
+            )
             .added(1, 4, &["shape.Atsc3PlpRow.subframe"])
             .added(1, 3, &["atsc3.setting.plp"])
             .added(1, 2, ADDED_1_2)

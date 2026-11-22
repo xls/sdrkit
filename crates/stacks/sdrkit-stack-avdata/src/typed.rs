@@ -2,6 +2,7 @@
 //! event types and what each stack declares.
 
 use crate::vdl3::phy::{BurstKind, Training};
+use sdrkit_components::voice::{ptt, PttArgs};
 use sdrkit_core::interface::{
     Arguments, CommandKind, EventKind, Family as Described, Fields, Hertz, Seconds, StackShape,
     Table, Time,
@@ -9,7 +10,6 @@ use sdrkit_core::interface::{
 use sdrkit_core::publish::keys::{self, Family};
 use sdrkit_core::publish::{field, Published, SeriesDef};
 use sdrkit_core::settings::Argument;
-use sdrkit_components::voice::{ptt, PttArgs};
 use sdrkit_core::{Command, SettingSet};
 use sdrkit_graph::DecoderFields;
 use sdrkit_proto_aero::aircraft::columns as aircraft;
@@ -370,7 +370,7 @@ pub struct AcarsMessageRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// The altitude the message gives.
-    #[field(label = "Altitude", unit = "ft")]
+    #[field(label = "Altitude", unit = "ft", role = Altitude)]
     pub alt_ft: Option<f64>,
 }
 
@@ -491,10 +491,12 @@ pub struct AcarsMessageEvent<'a> {
 
 /// The messages, newest first.
 pub static ACARS_MESSAGES: Table<AcarsMessageRow<'static>> =
-    Table::new("messages", "Messages", crate::acars::tables::MESSAGE_CAP);
+    Table::new("messages", "Messages", crate::acars::tables::MESSAGE_CAP)
+        .label(&AcarsMessageRow::FLIGHT);
 /// The aircraft.
 pub static ACARS_AIRCRAFT: Table<AcarsAircraftRow<'static>> =
-    Table::new("aircraft", "Aircraft", crate::acars::tables::AIRCRAFT_CAP);
+    Table::new("aircraft", "Aircraft", crate::acars::tables::AIRCRAFT_CAP)
+        .label(&AcarsAircraftRow::FLIGHT);
 /// The channels.
 pub static ACARS_CHANNELS: Table<AcarsChannelRow> =
     Table::new("channels", "Channels", crate::acars::tables::CHANNEL_CAP);
@@ -630,7 +632,7 @@ pub struct Vdl2MessageRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// The altitude the frame gives.
-    #[field(label = "Altitude", unit = "ft")]
+    #[field(label = "Altitude", unit = "ft", role = Altitude)]
     pub alt_ft: Option<f64>,
     /// Every layer, one line each, joined by " | ".
     #[field(label = "Detail")]
@@ -788,16 +790,19 @@ pub struct Vdl2MessageEvent<'a> {
 
 /// The frames, newest first.
 pub static VDL2_MESSAGES: Table<Vdl2MessageRow<'static>> =
-    Table::new("messages", "Frames", crate::vdl2::tables::MESSAGE_CAP);
+    Table::new("messages", "Frames", crate::vdl2::tables::MESSAGE_CAP)
+        .label(&Vdl2MessageRow::FLIGHT);
 /// The aircraft.
 pub static VDL2_AIRCRAFT: Table<Vdl2AircraftRow<'static>> =
-    Table::new("aircraft", "Aircraft", crate::vdl2::tables::AIRCRAFT_CAP);
+    Table::new("aircraft", "Aircraft", crate::vdl2::tables::AIRCRAFT_CAP)
+        .label(&Vdl2AircraftRow::FLIGHT);
 /// The ground stations.
 pub static VDL2_STATIONS: Table<Vdl2StationRow<'static>> = Table::new(
     "ground_stations",
     "Ground stations",
     crate::vdl2::tables::STATION_CAP,
-);
+)
+.label(&Vdl2StationRow::ADDRESS);
 /// The channels heard now.
 pub static VDL2_CHANNELS: Table<Vdl2ChannelRow> =
     Table::new("channels", "Channels", crate::vdl2::tables::CHANNEL_CAP);
@@ -1072,12 +1077,14 @@ pub struct AirbandActivityEvent<'a> {
 
 /// The channels.
 pub static AIRBAND_CHANNELS: Table<AirbandChannelRow<'static>> =
-    Table::new("channels", "Channels", 256);
+    Table::new("channels", "Channels", 256).label(&AirbandChannelRow::NAME);
 /// The band watch.
-pub static AIRBAND_SEEN: Table<AirbandSeenRow<'static>> = Table::new("seen", "Band watch", 200);
+pub static AIRBAND_SEEN: Table<AirbandSeenRow<'static>> =
+    Table::new("seen", "Band watch", 200).label(&AirbandSeenRow::NAME);
 /// The transmissions, newest first.
 pub static AIRBAND_ACTIVITY: Table<AirbandActivityRow<'static>> =
-    Table::new("activity", "Transmissions", crate::airband::tables::LOG);
+    Table::new("activity", "Transmissions", crate::airband::tables::LOG)
+        .label(&AirbandActivityRow::NAME);
 /// Each transmission.
 pub static AIRBAND_TRANSMISSION: EventKind<AirbandActivityEvent<'static>> =
     EventKind::new("airband.activity", "Transmission");
@@ -1322,7 +1329,7 @@ pub struct HfdlAircraftRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// The altitude of the last position.
-    #[field(label = "Altitude", unit = "ft")]
+    #[field(label = "Altitude", unit = "ft", role = Altitude)]
     pub alt_ft: Option<f64>,
 }
 
@@ -1431,19 +1438,23 @@ pub struct HfdlMessageEvent<'a> {
 
 /// The messages, newest first.
 pub static HFDL_MESSAGES: Table<HfdlMessageRow<'static>> =
-    Table::new("messages", "Messages", crate::hfdl::tables::MESSAGE_CAP);
+    Table::new("messages", "Messages", crate::hfdl::tables::MESSAGE_CAP)
+        .label(&HfdlMessageRow::FLIGHT);
 /// The aircraft.
 pub static HFDL_AIRCRAFT: Table<HfdlAircraftRow<'static>> =
-    Table::new("aircraft", "Aircraft", crate::hfdl::tables::AIRCRAFT_CAP);
+    Table::new("aircraft", "Aircraft", crate::hfdl::tables::AIRCRAFT_CAP)
+        .label(&HfdlAircraftRow::FLIGHT);
 /// The ground stations.
 pub static HFDL_STATIONS: Table<HfdlStationRow<'static>> = Table::new(
     "ground_stations",
     "Ground stations",
     crate::hfdl::tables::STATION_CAP,
-);
+)
+.label(&HfdlStationRow::NAME);
 /// The channels.
 pub static HFDL_CHANNELS: Table<HfdlChannelRow<'static>> =
-    Table::new("channels", "Channels", crate::hfdl::tables::CHANNEL_CAP);
+    Table::new("channels", "Channels", crate::hfdl::tables::CHANNEL_CAP)
+        .label(&HfdlChannelRow::NAME);
 /// Each message.
 pub static HFDL_MESSAGE: EventKind<HfdlMessageEvent<'static>> =
     EventKind::new("hfdl.message", "HFDL message");
@@ -1517,7 +1528,7 @@ pub struct Vdl4MessageRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// The altitude the message gives.
-    #[field(label = "Altitude", unit = "ft")]
+    #[field(label = "Altitude", unit = "ft", role = Altitude)]
     pub alt_ft: Option<f64>,
 }
 
@@ -1642,16 +1653,19 @@ pub struct Vdl4MessageEvent<'a> {
 
 /// The messages, newest first.
 pub static VDL4_MESSAGES: Table<Vdl4MessageRow<'static>> =
-    Table::new("messages", "Messages", crate::vdl4::tables::MESSAGE_CAP);
+    Table::new("messages", "Messages", crate::vdl4::tables::MESSAGE_CAP)
+        .label(&Vdl4MessageRow::ADDRESS);
 /// The aircraft.
 pub static VDL4_AIRCRAFT: Table<Vdl4AircraftRow<'static>> =
-    Table::new("aircraft", "Aircraft", crate::vdl4::tables::AIRCRAFT_CAP);
+    Table::new("aircraft", "Aircraft", crate::vdl4::tables::AIRCRAFT_CAP)
+        .label(&Vdl4AircraftRow::FLIGHT);
 /// The ground stations.
 pub static VDL4_STATIONS: Table<Vdl4StationRow<'static>> = Table::new(
     "ground_stations",
     "Ground stations",
     crate::vdl4::tables::STATION_CAP,
-);
+)
+.label(&Vdl4StationRow::ADDRESS);
 /// The channels heard now.
 pub static VDL4_CHANNELS: Table<Vdl4ChannelRow> = Table::new("channels", "Channels", 64);
 /// Each message.
@@ -1823,7 +1837,33 @@ pub fn family() -> &'static Described {
                 "Vdl4Fields.ground_stations",
             ]);
         // The keys of the training sequences differ by a star only, so the starred ones get a name of their own.
-        Described::new("avdata", 1, 1)
+        Described::new("avdata", 1, 2)
+            .added(
+                1,
+                2,
+                &[
+                    "acars.content",
+                    "vdl2.content",
+                    "vdl4.content",
+                    "selcal.content",
+                    "airband.content",
+                    "hfdl.content",
+                    "vdl3.content",
+                    "gbas_vdb.content",
+                    "ldacs.content",
+                    "aeromacs.content",
+                ],
+            )
+            .content(sdrkit_core::ContentKind::Voice, &["airband"])
+            .content(
+                sdrkit_core::ContentKind::Datalink,
+                &[
+                    "acars", "vdl2", "vdl4", "selcal", "hfdl", "vdl3", "ldacs", "aeromacs",
+                ],
+            )
+            .content(sdrkit_core::ContentKind::Navigation, &["gbas_vdb"])
+            .audio(sdrkit_core::AudioKind::Voice, &["airband"])
+            .text(&["acars", "vdl2", "vdl4", "selcal", "hfdl"])
             .option_name("training", "s1*", "s1_star")
             .option_name("training", "s2*", "s2_star")
             .uses(sdrkit_proto_tones::components::interface())

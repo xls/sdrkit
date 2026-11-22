@@ -58,7 +58,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.1. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Pictures and fax (`pictures`). Media: pictures.
 
 ### Result fields
 
@@ -91,6 +93,8 @@ Struct `SsdvPacketRow`. An SSDV packet. The row key is the sequence number of th
 | `no_fec` | yes or no | always | 1.0 | A packet without FEC. |
 | `eoi` | yes or no | always | 1.0 | The last packet of a picture. |
 
+The column `call` names a row.
+
 ### Table `pictures`
 
 Struct `SsdvPictureRow`. An SSDV picture. The row key is the call sign and the image id.
@@ -106,6 +110,8 @@ Struct `SsdvPictureRow`. An SSDV picture. The row key is the call sign and the i
 | `missing` | whole number | always | 1.0 | Packets missing of a picture. |
 | `complete` | yes or no | always | 1.0 | The picture is complete. |
 | `bytes` | whole number | always | 1.0 | The size of the JPEG. |
+
+The column `call` names a row.
 
 ### Commands
 

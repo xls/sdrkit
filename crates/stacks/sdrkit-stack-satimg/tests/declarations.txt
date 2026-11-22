@@ -1309,6 +1309,7 @@ field FieldDecl { key: "stream", label: "Bit stream", unit: "", kind: I64, choic
 field FieldDecl { key: "inverted", label: "Inverted", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "frames" "Frames" cap 64
+  marks TableMarks { label: Some(5), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time", label: "Time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "spacecraft", label: "Spacecraft", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "vcid", label: "Virtual channel", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -1344,6 +1345,7 @@ field FieldDecl { key: "stream", label: "Bit stream", unit: "", kind: I64, choic
 field FieldDecl { key: "inverted", label: "Inverted", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "frames" "Frames" cap 64
+  marks TableMarks { label: Some(5), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time", label: "Time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "spacecraft", label: "Spacecraft", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "vcid", label: "Virtual channel", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -1379,6 +1381,7 @@ field FieldDecl { key: "stream", label: "Bit stream", unit: "", kind: I64, choic
 field FieldDecl { key: "inverted", label: "Inverted", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "frames" "Frames" cap 64
+  marks TableMarks { label: Some(5), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time", label: "Time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "spacecraft", label: "Spacecraft", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "vcid", label: "Virtual channel", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -1431,6 +1434,7 @@ field FieldDecl { key: "code_locked", label: "Code locked", unit: "", kind: Bool
 field FieldDecl { key: "phase_ambiguity", label: "Phase ambiguity", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "hint", label: "Hint", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "frames" "Frames" cap 64
+  marks TableMarks { label: Some(5), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time", label: "Time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "spacecraft", label: "Spacecraft", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "vcid", label: "Virtual channel", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -1555,10 +1559,12 @@ table "stream_modcods" "MODCODs of the input streams" cap 1024
   column FieldDecl { key: "frames", label: "Frames", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "share_pct", label: "Share", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
 table "grb_products" "Products" cap 256
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "apid", label: "APID", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Product", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "updated", label: "Last updated", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
 table "packets_by_apid" "Packets by APID" cap 32
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "apid", label: "APID", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Product", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "packets", label: "Packets", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -1566,6 +1572,7 @@ table "frames" "Frames" cap 64
   column FieldDecl { key: "vcid", label: "Virtual channel", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frames", label: "Frames", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "flashes" "Lightning flashes" cap 64
+  marks TableMarks { label: None, sort: None, position: Some(3), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "flash", label: "Flash", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "duration", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -1576,6 +1583,7 @@ table "flashes" "Lightning flashes" cap 64
   column FieldDecl { key: "groups", label: "Groups", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "events", label: "Events", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "groups" "Lightning groups" cap 64
+  marks TableMarks { label: None, sort: None, position: Some(2), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "group", label: "Group", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "position", label: "Position", unit: "°", kind: Position, choices: [], refers_to: None, content: None }
@@ -1841,6 +1849,7 @@ table "stream_modcods" "MODCODs of the input streams" cap 1024
   column FieldDecl { key: "frames", label: "Frames", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "share_pct", label: "Share", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
 table "recent_files" "Recent files" cap 60
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "size", label: "Size", unit: "bytes", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "parts", label: "Parts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -1891,6 +1900,7 @@ field FieldDecl { key: "rows", label: "Rows", unit: "", kind: I64, choices: [], 
 field FieldDecl { key: "strips", label: "Strips", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "bad_strips", label: "Bad strips", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "frames" "Frames" cap 64
+  marks TableMarks { label: Some(5), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time", label: "Time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "spacecraft", label: "Spacecraft", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "vcid", label: "Virtual channel", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -1947,6 +1957,7 @@ field FieldDecl { key: "rows", label: "Rows", unit: "", kind: I64, choices: [], 
 field FieldDecl { key: "strips", label: "Strips", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "bad_strips", label: "Bad strips", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "frames" "Frames" cap 64
+  marks TableMarks { label: Some(5), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time", label: "Time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "spacecraft", label: "Spacecraft", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "vcid", label: "Virtual channel", unit: "", kind: I64, choices: [], refers_to: None, content: None }

@@ -558,7 +558,9 @@ pub static FLEET_BROADCAST_STATE: EventKind<FleetBroadcastStateEvent<'static>> =
 
 /// The carriers of BGAN.
 pub static BGAN_CARRIERS: Table<BganCarrierRow<'static>> =
-    Table::new("carrier_table", "Carriers", 64);
+    Table::new("carrier_table", "Carriers", 64)
+        .label(&BganCarrierRow::SATELLITE)
+        .sorted(&BganCarrierRow::SNR_DB, sdrkit_core::SortOrder::Descending);
 /// The spot beams of BGAN.
 pub static BGAN_BEAMS: Table<BganBeamRow<'static>> = Table::new("beam_table", "Beams", 256);
 /// The signalling log of BGAN.
@@ -569,10 +571,15 @@ pub static BGAN_SIGNALLING: EventKind<BganSignallingEvent<'static>> =
 
 /// The carrier lines of the survey: active ones of 2.5 s or more and the finished ones.
 pub static SAT_SURVEY_CARRIERS: Table<SatSurveyCarrierRow<'static>> =
-    Table::new("carriers", "Carrier lines", sat_survey::CARRIER_ROWS);
+    Table::new("carriers", "Carrier lines", sat_survey::CARRIER_ROWS)
+        .label(&SatSurveyCarrierRow::SATELLITE)
+        .sorted(
+            &SatSurveyCarrierRow::SNR_DB,
+            sdrkit_core::SortOrder::Descending,
+        );
 /// The channels of the survey that have been active: the active ones first, then by S/N.
 pub static SAT_SURVEY_CHANNELS: Table<SatSurveyChannelRow<'static>> =
-    Table::new("channels", "Channels", sat_survey::CHANNEL_ROWS);
+    Table::new("channels", "Channels", sat_survey::CHANNEL_ROWS).label(&SatSurveyChannelRow::NAME);
 /// A finished carrier line of the survey, with the satellite when the Doppler curve names one.
 pub static SAT_SURVEY_CARRIER: EventKind<SatSurveyCarrierEvent<'static>> =
     EventKind::new("survey.carrier", "Carrier line");
@@ -862,13 +869,16 @@ pub struct GoesDcsReportEvent<'a> {
 
 /// The reports, newest last.
 pub static GOES_DCS_REPORTS: Table<GoesDcsReportRow<'static>> =
-    Table::new("reports", "Reports", goes::REPORT_CAP);
+    Table::new("reports", "Reports", goes::REPORT_CAP).label(&GoesDcsReportRow::ADDRESS);
 /// The platforms heard.
 pub static GOES_DCS_PLATFORMS: Table<GoesDcsPlatformRow<'static>> =
-    Table::new("platforms", "Platforms", goes::PLATFORM_CAP);
+    Table::new("platforms", "Platforms", goes::PLATFORM_CAP).label(&GoesDcsPlatformRow::ADDRESS);
 /// The carriers followed now.
 pub static GOES_DCS_CARRIERS: Table<GoesDcsCarrierRow> =
-    Table::new("carriers", "Carriers", goes::MAX_SLOTS);
+    Table::new("carriers", "Carriers", goes::MAX_SLOTS).sorted(
+        &GoesDcsCarrierRow::SNR_DB,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// A platform report of GOES DCS.
 pub static GOES_DCS_REPORT: EventKind<GoesDcsReportEvent<'static>> =
     EventKind::new("goes_dcs.report", "Platform report");
@@ -1045,10 +1055,10 @@ pub struct ArgosDownlinkFrameEvent {
 
 /// The uplink burst log.
 pub static ARGOS_BURSTS: Table<ArgosBurstRow<'static>> =
-    Table::new("bursts", "Bursts", argos::BURST_CAP);
+    Table::new("bursts", "Bursts", argos::BURST_CAP).label(&ArgosBurstRow::PLATFORM);
 /// The platforms heard.
 pub static ARGOS_PLATFORMS: Table<ArgosPlatformRow<'static>> =
-    Table::new("platforms", "Platforms", argos::PLATFORM_CAP);
+    Table::new("platforms", "Platforms", argos::PLATFORM_CAP).label(&ArgosPlatformRow::PLATFORM);
 /// The downlink frames with a good FCS.
 pub static ARGOS_FRAMES: Table<ArgosFrameRow> =
     Table::new("frames", "Downlink frames", argos::FRAME_CAP);
@@ -1259,13 +1269,14 @@ pub struct HrdcpReportEvent<'a> {
 
 /// The message log of Meteosat HRDCP.
 pub static HRDCP_REPORTS: Table<HrdcpReportRow<'static>> =
-    Table::new("reports", "Reports", hrdcp::REPORT_CAP);
+    Table::new("reports", "Reports", hrdcp::REPORT_CAP).label(&HrdcpReportRow::ADDRESS);
 /// The platforms heard.
 pub static HRDCP_PLATFORMS: Table<HrdcpPlatformRow<'static>> =
-    Table::new("platforms", "Platforms", hrdcp::PLATFORM_CAP);
+    Table::new("platforms", "Platforms", hrdcp::PLATFORM_CAP).label(&HrdcpPlatformRow::ADDRESS);
 /// The carriers followed now.
 pub static HRDCP_CARRIERS: Table<HrdcpCarrierRow> =
-    Table::new("carriers", "Carriers", hrdcp::MAX_FOLLOWERS);
+    Table::new("carriers", "Carriers", hrdcp::MAX_FOLLOWERS)
+        .sorted(&HrdcpCarrierRow::SNR_DB, sdrkit_core::SortOrder::Descending);
 /// A message of Meteosat HRDCP.
 pub static HRDCP_REPORT: EventKind<HrdcpReportEvent<'static>> =
     EventKind::new("hrdcp.report", "HRDCP message");
@@ -1443,10 +1454,10 @@ pub struct SarsatBeaconEvent<'a> {
 
 /// The burst log of COSPAS-SARSAT.
 pub static SARSAT_BURSTS: Table<SarsatBurstRow<'static>> =
-    Table::new("bursts", "Bursts", sarsat::LOG_CAP);
+    Table::new("bursts", "Bursts", sarsat::LOG_CAP).label(&SarsatBurstRow::HEX_ID);
 /// The beacons heard.
 pub static SARSAT_BEACONS: Table<SarsatBeaconRow<'static>> =
-    Table::new("beacons", "Beacons", sarsat::BEACON_CAP);
+    Table::new("beacons", "Beacons", sarsat::BEACON_CAP).label(&SarsatBeaconRow::HEX_ID);
 /// A beacon decoded.
 pub static SARSAT_BEACON: EventKind<SarsatBeaconEvent<'static>> =
     EventKind::new("sarsat.beacon", "Beacon decoded");
@@ -1629,7 +1640,7 @@ pub struct LoraSatFrameEvent<'a> {
 
 /// The frame log of the LoRa satellite stack.
 pub static LORA_SAT_FRAMES: Table<LoraSatFrameRow<'static>> =
-    Table::new("frames", "Frames", lorasat::display::FRAMES_CAP);
+    Table::new("frames", "Frames", lorasat::display::FRAMES_CAP).label(&LoraSatFrameRow::SATELLITE);
 /// The demodulators running now.
 pub static LORA_SAT_DEMODULATORS: Table<LoraSatDemodulatorRow> =
     Table::new("demodulators", "Demodulators", 64);
@@ -1952,7 +1963,7 @@ pub struct OrbcommSatelliteRow {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// The height.
-    #[field(label = "Height", unit = "m")]
+    #[field(label = "Height", unit = "m", role = Altitude)]
     pub height_m: Option<f64>,
     /// The inclination.
     #[field(label = "Inclination", unit = "deg")]
@@ -2082,7 +2093,10 @@ pub struct OrbcommMessageEvent<'a> {
 
 /// The satellites heard.
 pub static ORBCOMM_SATELLITES: Table<OrbcommSatelliteRow> =
-    Table::new("satellites", "Satellites", orbcomm::SATELLITES_CAP);
+    Table::new("satellites", "Satellites", orbcomm::SATELLITES_CAP).sorted(
+        &OrbcommSatelliteRow::SNR_DB,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// The channels that each satellite announces.
 pub static ORBCOMM_SATELLITE_CHANNELS: Table<OrbcommSatelliteChannelRow> = Table::new(
     "satellite_channels",
@@ -2615,9 +2629,11 @@ pub struct Qo100ConversationEvent<'a> {
 }
 
 /// The beacons of the narrowband transponder.
-pub static QO100_BEACONS: Table<Qo100BeaconRow<'static>> = Table::new("beacons", "Beacons", 3);
+pub static QO100_BEACONS: Table<Qo100BeaconRow<'static>> =
+    Table::new("beacons", "Beacons", 3).label(&Qo100BeaconRow::NAME);
 /// The signals of the spectrum now.
-pub static QO100_SIGNALS: Table<Qo100SignalRow<'static>> = Table::new("signals", "Signals", 256);
+pub static QO100_SIGNALS: Table<Qo100SignalRow<'static>> = Table::new("signals", "Signals", 256)
+    .sorted(&Qo100SignalRow::SNR_DB, sdrkit_core::SortOrder::Descending);
 /// The signals followed over time.
 pub static QO100_TRACKS: Table<Qo100TrackRow> =
     Table::new("tracks", "Tracks", qo100::display::TRACKS_CAP);
@@ -2632,7 +2648,8 @@ pub static QO100_CALLSIGNS: Table<Qo100CallsignRow<'static>> = Table::new(
     "conversation_callsigns",
     "Callsigns heard",
     qo100::display::CONVERSATIONS_CAP * 8,
-);
+)
+.label(&Qo100CallsignRow::CALLSIGN);
 /// The DATV carriers of the wideband transponder.
 pub static QO100_DATV: Table<Qo100DatvCarrierRow> = Table::new("datv", "DATV carriers", 32);
 /// The beacons of QO-100 were locked.
@@ -2877,12 +2894,16 @@ pub struct CubesatKissEvent<'a> {
 
 /// The frame log of the CubeSat telemetry stack.
 pub static CUBESAT_FRAMES: Table<CubesatFrameRow<'static>> =
-    Table::new("frames", "Frames", cubesat::display::FRAMES_CAP);
+    Table::new("frames", "Frames", cubesat::display::FRAMES_CAP).label(&CubesatFrameRow::SATELLITE);
 /// The frames by framing.
 pub static CUBESAT_FRAMES_PER_FRAMING: Table<CubesatFramingRow> =
     Table::new("frames_per_framing", "Frames by framing", 32);
 /// The carriers found now.
-pub static CUBESAT_CARRIERS: Table<CubesatCarrierRow> = Table::new("carriers", "Carriers", 16);
+pub static CUBESAT_CARRIERS: Table<CubesatCarrierRow> = Table::new("carriers", "Carriers", 16)
+    .sorted(
+        &CubesatCarrierRow::SNR_DB,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// A CubeSat frame.
 pub static CUBESAT_FRAME: EventKind<CubesatFrameEvent<'static>> =
     EventKind::new("cubesat.frame", "CubeSat frame");
@@ -2982,8 +3003,7 @@ pub const CUBESAT_SEND: CommandKind<CubesatSendArgs<'static>> =
         .stopped_by("halt");
 /// Ends the transmission.
 pub const CUBESAT_HALT: sdrkit_core::command::Command = sdrkit_core::command::Command::new(
-    "halt",
-    "Halt",
+    "halt", "Halt",
 )
 .help("Drops the frames waiting and ends the transmission after the current bit with a 5 ms fall.");
 
@@ -3301,10 +3321,10 @@ pub static AERO_LOGONS: Table<AeroLogonRow<'static>> =
     Table::new("logons", "Log-ons", aero::LOGON_CAP);
 /// The ACARS messages.
 pub static AERO_MESSAGES: Table<AeroMessageRow<'static>> =
-    Table::new("messages", "Messages", aero::MESSAGE_CAP);
+    Table::new("messages", "Messages", aero::MESSAGE_CAP).label(&AeroMessageRow::FLIGHT);
 /// The aircraft heard.
 pub static AERO_AIRCRAFT: Table<AeroAircraftRow<'static>> =
-    Table::new("aircraft", "Aircraft", aero::AIRCRAFT_CAP);
+    Table::new("aircraft", "Aircraft", aero::AIRCRAFT_CAP).label(&AeroAircraftRow::FLIGHT);
 /// The system facts.
 pub static AERO_FACTS: Table<AeroFactRow<'static>> = Table::new("facts", "System", aero::FACT_CAP);
 /// An ACARS message. The source is the registration.
@@ -3456,10 +3476,15 @@ pub struct InmarsatCandidateReasonRow<'a> {
 
 /// Every carrier found.
 pub static INMARSAT_CARRIERS: Table<InmarsatCarrierRow<'static>> =
-    Table::new("carriers", "Carriers", 256);
+    Table::new("carriers", "Carriers", 256)
+        .label(&InmarsatCarrierRow::SATELLITE)
+        .sorted(
+            &InmarsatCarrierRow::SNR_DB,
+            sdrkit_core::SortOrder::Descending,
+        );
 /// The satellites that the identification weighed.
 pub static INMARSAT_CANDIDATES: Table<InmarsatCandidateRow<'static>> =
-    Table::new("candidates", "Satellite candidates", 8);
+    Table::new("candidates", "Satellite candidates", 8).label(&InmarsatCandidateRow::NAME);
 /// The reasons of each candidate.
 pub static INMARSAT_CANDIDATE_REASONS: Table<InmarsatCandidateReasonRow<'static>> =
     Table::new("candidate_reasons", "Why", 128);
@@ -3484,7 +3509,55 @@ pub const INMARSAT_CARRIER_FOCUS: CommandKind<InmarsatCarrierArgs<'static>> =
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("satcom", 1, 2)
+        Described::new("satcom", 1, 3)
+            .added(
+                1,
+                3,
+                &[
+                    "inmarsatc.content",
+                    "aero.content",
+                    "inmarsat.content",
+                    "iridium.content",
+                    "globalstar.content",
+                    "goes_dcs.content",
+                    "argos.content",
+                    "hrdcp.content",
+                    "sarsat.content",
+                    "lora_sat.content",
+                    "orbcomm.content",
+                    "psk_demod.content",
+                    "qo100.content",
+                    "cubesat.content",
+                    "fleet_broadcast.content",
+                    "bgan.content",
+                    "sat_survey.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Tracking,
+                &["argos", "sarsat", "orbcomm"],
+            )
+            .content(
+                sdrkit_core::ContentKind::Datalink,
+                &["inmarsatc", "aero", "iridium"],
+            )
+            .content(
+                sdrkit_core::ContentKind::SatelliteLinks,
+                &[
+                    "inmarsat",
+                    "globalstar",
+                    "goes_dcs",
+                    "hrdcp",
+                    "lora_sat",
+                    "psk_demod",
+                    "qo100",
+                    "cubesat",
+                    "fleet_broadcast",
+                    "bgan",
+                    "sat_survey",
+                ],
+            )
+            .text(&["inmarsatc", "aero", "iridium"])
             .stack(
                 StackShape::new(inmarsatc::ID)
                     .fields::<InmarsatcFields>()

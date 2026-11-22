@@ -199,7 +199,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `general`, version 1.2. The C header `sdrkit/general.h`, the registry record `registry/general.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `general`, version 1.3. The C header `sdrkit/general.h`, the registry record `registry/general.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: General receiver (`general`). Media: sound (monitor).
 
 ### Result fields
 
@@ -298,6 +300,8 @@ Struct `PresetRow`. A row of the built-in presets. The row key is the key of the
 | `demod` | choice | always | 1.0 | The demodulator of the preset. |
 | `width` | frequency | always | 1.0 | The filter width of the preset. |
 | `squelch` | choice | always | 1.0 | The squelch of the preset. |
+
+The column `name` names a row.
 
 ### Table `channels`
 

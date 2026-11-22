@@ -156,7 +156,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.1. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 1.2. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
 
 ### Result fields
 
@@ -285,6 +287,8 @@ Struct `RecentFileRow`. A file of `sat_filecast`. The row key is the number of t
 | `parts` | whole number | always | 1.0 | The parts of the file. |
 | `received` | whole number | always | 1.0 | The parts received. |
 | `complete` | yes or no | always | 1.0 | Every part arrived. |
+
+The column `name` names a row.
 
 ### Table `pictures`
 

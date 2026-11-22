@@ -178,7 +178,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `analogtv`, version 1.1. The C header `sdrkit/analogtv.h`, the registry record `registry/analogtv.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `analogtv`, version 1.2. The C header `sdrkit/analogtv.h`, the registry record `registry/analogtv.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Television and video (`television`). Media: sound (programme), video.
 
 ### Result fields
 
@@ -266,6 +268,8 @@ Struct `AtvChannelRow`. A channel of the setting `channels`. The row key is the 
 |---|---|---|---|---|
 | `label` | text | always | 1.0 | The channel label. |
 | `vision` | frequency | always | 1.0 | The vision carrier of the channel. |
+
+The column `label` names a row.
 
 ### Table `teletext_pages`
 

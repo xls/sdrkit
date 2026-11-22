@@ -1,5 +1,5 @@
 # The interface of the stack family fm. The registry test of the family writes this file.
-family fm version=1.2
+family fm version=1.3
 shape.FmFields since=1.0
 shape.FmFields.station type=text unit= optional=no since=1.0
 shape.FmFields.station_partial type=text unit= optional=no since=1.0
@@ -165,12 +165,13 @@ shape.LinkEvent.link type=choice(nothing,composite,mono,digital_unknown,unknown)
 shape.LinkEvent.text type=text unit= optional=no since=1.1
 shape.LinkEvent.over_floor_db type=f64 unit=dB optional=yes since=1.1
 fm since=1.0
+fm.content kind=broadcast audio=programme since=1.3
 fm.fields.FmFields since=1.0
 fm.fields.FmTxFields since=1.2
 fm.table.af row=AfRow cap=32 since=1.0
 fm.table.label_tags row=LabelTagRow cap=128 since=1.0
 fm.table.oda row=OdaRow cap=16 since=1.0
-fm.table.eon row=EonRow cap=16 since=1.0
+fm.table.eon row=EonRow cap=16 label=name since=1.0
 fm.table.eon_af row=EonAfRow cap=400 since=1.0
 fm.table.tmc row=TmcRow cap=64 since=1.0
 fm.series.mpx x_unit=Hz y_unit=dB since=1.0
@@ -236,6 +237,7 @@ fm.command.clear args= reply= since=1.0
 fm.command.start args= reply= transmits=file stop=stop since=1.2
 fm.command.stop args= reply= since=1.2
 stl since=1.1
+stl.content kind=broadcast audio=programme since=1.3
 stl.fields.StlFields since=1.1
 stl.fields.RdsPart since=1.1
 stl.fields.LabelFields since=1.1
@@ -243,7 +245,7 @@ stl.table.links row=LinkRow cap=64 since=1.1
 stl.table.af row=AfRow cap=32 since=1.1
 stl.table.label_tags row=LabelTagRow cap=128 since=1.1
 stl.table.oda row=OdaRow cap=16 since=1.1
-stl.table.eon row=EonRow cap=16 since=1.1
+stl.table.eon row=EonRow cap=16 label=name since=1.1
 stl.table.eon_af row=EonAfRow cap=400 since=1.1
 stl.table.tmc row=TmcRow cap=64 since=1.1
 stl.series.mpx x_unit=Hz y_unit=dB since=1.1

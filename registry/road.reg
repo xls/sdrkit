@@ -1,5 +1,5 @@
 # The interface of the stack family road. The registry test of the family writes this file.
-family road version=1.0
+family road version=1.1
 shape.V2xFields since=1.0
 shape.V2xFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.V2xFields.frames_bad type=i64 unit= optional=no since=1.0
@@ -38,14 +38,15 @@ shape.V2xVehicleEvent.position type=position unit= optional=yes since=1.0
 shape.V2xVehicleEvent.text type=text unit= optional=no since=1.0
 shape.V2xVehicleEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 v2x since=1.0
+v2x.content kind=tracking since=1.1
 v2x.fields.V2xFields since=1.0
 v2x.fields.DecoderFields since=1.0
 v2x.kept.vehicles since=1.0
 v2x.kept.frames since=1.0
 v2x.kept.V2xFields since=1.0
 v2x.kept.DecoderFields since=1.0
-v2x.table.vehicles row=V2xVehicleRow cap=256 since=1.0
-v2x.table.frames row=V2xFrameRow cap=300 since=1.0
+v2x.table.vehicles row=V2xVehicleRow cap=256 label=source position=position course=course_deg speed=speed_kt since=1.0
+v2x.table.frames row=V2xFrameRow cap=300 label=source since=1.0
 v2x.event.v2x.vehicle fields=V2xVehicleEvent since=1.0
 v2x.setting.gen_rate type=choice(3,6) unit= since=1.0
 v2x.command.clear args= reply= since=1.0

@@ -148,6 +148,41 @@ public struct TableDeclaration: Equatable, Sendable {
     public var columns: [Declaration]
     /// The most rows that the table keeps. When the table is full, a new row removes the oldest row.
     public var cap: Int
+    /// The id of the column that names a row for people (a call sign, a station name), if the table states one.
+    public var labelColumn: UInt32? = nil
+    /// The default order of the rows, if the table states one. Without it, the newest row is first. It is a hint for
+    /// a front end: the rows of a snapshot are always newest first.
+    public var sort: TableSort? = nil
+    /// The columns that hold the place of a row on the map.
+    public var place: TablePlace = TablePlace()
+}
+
+/// The default order of the rows of a table.
+public struct TableSort: Equatable, Sendable {
+    /// The id of the column that orders the rows.
+    public var column: UInt32
+    /// True for the highest value first, false for the lowest value first.
+    public var descending: Bool
+}
+
+/// The columns of a table that hold the place of a row on the map, each by its id. A column that the table does not
+/// have is `nil`.
+public struct TablePlace: Equatable, Sendable {
+    /// The column of the position kind.
+    public var position: UInt32? = nil
+    /// The column of the latitude in degrees north, in a table without a position column.
+    public var latitude: UInt32? = nil
+    /// The column of the longitude in degrees east, in a table without a position column.
+    public var longitude: UInt32? = nil
+    /// The column of the height. The declaration of the column has the unit.
+    public var altitude: UInt32? = nil
+    /// The column of the direction of travel in degrees from north.
+    public var course: UInt32? = nil
+    /// The column of the speed. The declaration of the column has the unit.
+    public var speed: UInt32? = nil
+
+    /// True if the table has a position, or a latitude and a longitude.
+    public var onMap: Bool { position != nil || (latitude != nil && longitude != nil) }
 }
 
 /// The declaration of one series (a small plot) or raster (an image of values, such as a waterfall).

@@ -28,6 +28,7 @@ const HEARD: TableDef = TableDef {
     label: "Heard",
     columns: &[&STATION, &keys::SNR_DB],
     cap: 2,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 fn fields() -> [&'static dyn Declare; 4] {
@@ -115,6 +116,7 @@ const MANY: TableDef = TableDef {
     label: "Many",
     columns: &[&BLOCKS],
     cap: 40,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 #[test]

@@ -11,6 +11,7 @@
 pub mod base;
 pub mod c_header;
 pub mod declarations;
+pub mod marks;
 pub mod registry;
 pub mod sources;
 pub mod swift;

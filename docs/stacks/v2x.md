@@ -72,7 +72,9 @@ The stack puts points on a map: Vehicles.
 
 ## Typed interface
 
-The stack is in the family `road`, version 1.0. The C header `sdrkit/road.h`, the registry record `registry/road.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `road`, version 1.1. The C header `sdrkit/road.h`, the registry record `registry/road.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -117,6 +119,8 @@ Struct `V2xVehicleRow`. A vehicle heard. The source is the temporary id.
 | `first_heard` | time | optional | 1.0 | Wall-clock time when first heard. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
 
+The column `source` names a row. Place of a row: the column `position`. Course: `course_deg`. Speed: `speed_kt`.
+
 ### Table `frames`
 
 Struct `V2xFrameRow`. A frame of the frame log.
@@ -128,6 +132,8 @@ Struct `V2xFrameRow`. A frame of the frame log.
 | `source` | text | always | 1.0 | The sender of a decoded message: a registration, an address, a call sign or a code. |
 | `text` | text | always | 1.0 | The text of a decoded message. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). |
+
+The column `source` names a row.
 
 ### Event `v2x.vehicle`
 

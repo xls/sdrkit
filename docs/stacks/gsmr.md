@@ -73,7 +73,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.0. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.1. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Networks and cells (`networks`). Media: none.
 
 ### Result fields
 
@@ -135,6 +137,8 @@ Struct `GsmrCarrierRow`. A carrier of the newest capture of `gsmr`. The row key 
 | `frequency` | frequency | always | 1.0 | The frequency. |
 | `level_db` | number (dB) | always | 1.0 | The level over the floor of the spectrum. |
 | `synchronised` | yes or no | always | 1.0 | Whether an SCH decoded on the carrier. |
+
+Default order: the column `level_db`, highest first.
 
 ### Event `cell.gsm_cell`
 

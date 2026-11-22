@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "road", version 1.0. MIT licence.
+// sdrkit: the typed interface of the stack family "road", version 1.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum RoadInterface {
     public static let major = 1
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of V2X.
@@ -212,6 +212,9 @@ public struct V2xVehicleEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum RoadTables {
     /// The changed rows of the table "vehicles" of the stack "v2x", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
+    /// Place of a row: the column `position`.
+    /// Course: `course_deg`. Speed: `speed_kt`.
     public static func v2xVehicles(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[V2xVehicleRow], SDRKitCode> {
         var rows = [sdrkit_v2x_vehicle_row](repeating: sdrkit_v2x_vehicle_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -220,6 +223,7 @@ public enum RoadTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(V2xVehicleRow.init))
     }
     /// The changed rows of the table "frames" of the stack "v2x", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
     public static func v2xFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[V2xFrameRow], SDRKitCode> {
         var rows = [sdrkit_v2x_frame_row](repeating: sdrkit_v2x_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized

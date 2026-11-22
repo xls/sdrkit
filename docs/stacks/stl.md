@@ -158,7 +158,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `fm`, version 1.2. The C header `sdrkit/fm.h`, the registry record `registry/fm.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `fm`, version 1.3. The C header `sdrkit/fm.h`, the registry record `registry/fm.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Broadcast radio (`broadcast`). Media: sound (programme).
 
 ### Result fields
 
@@ -291,6 +293,8 @@ Struct `EonRow`. A row of the other networks. The row key is the PI in hexadecim
 | `ta` | yes or no | always | 1.0 | Traffic announcement. |
 | `pty` | whole number | optional | 1.0 | The programme type code. |
 | `pin` | text | optional | 1.0 | Programme item number, `DD HH:MM`. |
+
+The column `name` names a row.
 
 ### Table `eon_af`
 

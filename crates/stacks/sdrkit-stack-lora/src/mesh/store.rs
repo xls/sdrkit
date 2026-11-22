@@ -868,8 +868,8 @@ impl MeshStore {
         shaped::rows(&self.stations, &MESH_STATIONS, now, p);
         self.publish_devices(p, now);
         let res: &mut Results = p.results_mut();
-        shaped::points(&self.nodes, "nodes/", res);
-        shaped::points(&self.stations, "stations/", res);
+        shaped::row_points(&self.nodes, &MESH_NODES, "nodes/", res);
+        shaped::row_points(&self.stations, &MESH_STATIONS, "stations/", res);
     }
 
     /// Writes the device table and the type counts only (the tables of `lorawanwide`).

@@ -130,7 +130,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.2. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 1.3. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Satellite links (`satellite_links`). Media: none.
 
 ### Result fields
 
@@ -181,6 +183,8 @@ Struct `InmarsatCarrierRow`. A carrier found. The row key is the carrier id in f
 | `window` | whole number | always | 1.0 | The window that holds the carrier. |
 | `voice_candidate` | yes or no | always | 1.0 | The carrier has the width of a voice channel. |
 
+The column `satellite` names a row. Default order: the column `snr_db`, highest first.
+
 ### Table `candidates`
 
 Struct `InmarsatCandidateRow`. A satellite that the identification weighed. The row key is the name.
@@ -194,6 +198,8 @@ Struct `InmarsatCandidateRow`. A satellite that the identification weighed. The 
 | `geometry` | number | optional | 1.0 | The score of the geometry. |
 | `elevation_deg` | number (deg) | optional | 1.0 | The elevation from the station. |
 | `azimuth_deg` | number (deg) | optional | 1.0 | The azimuth from the station. |
+
+The column `name` names a row.
 
 ### Table `candidate_reasons`
 
@@ -280,6 +286,8 @@ Struct `AeroMessageRow`. An ACARS message. The row key is the place of the messa
 | `cpdlc_parsed` | yes or no | optional | 1.0 | The CPDLC message body decoded completely. |
 | `cpdlc_text` | text | optional | 1.0 | The decoded CPDLC message. |
 
+The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`.
+
 ### Table `aero_display.aircraft`
 
 Struct `AeroAircraftRow`. An aircraft heard: the standard aircraft columns, then the frequency last heard on. The row key is the address, else the registration.
@@ -299,6 +307,8 @@ Struct `AeroAircraftRow`. An aircraft heard: the standard aircraft columns, then
 | `vs_fpm` | number (ft/min) | optional | 1.0 | The vertical rate. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard. |
 | `frequency` | frequency | always | 1.0 | The frequency last heard on. |
+
+The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
 
 ### Table `aero_display.facts`
 

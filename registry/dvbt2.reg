@@ -1,5 +1,5 @@
 # The interface of the stack family dvbt2. The registry test of the family writes this file.
-family dvbt2 version=1.3
+family dvbt2 version=1.4
 uses.mpegts major=1 since=1.0
 uses.ipcast major=1 since=1.0
 shape.Dvbt2Fields since=1.0
@@ -54,6 +54,7 @@ shape.Dvbt2PlpRow.group_id type=i64 unit= optional=no since=1.0
 shape.Dvbt2PlpRow.time_interleaving type=choice(off,blocks,frames) unit= optional=no since=1.0
 shape.Dvbt2PlpRow.time_il_length type=i64 unit= optional=no since=1.0
 dvbt2 since=1.0
+dvbt2.content kind=television audio=programme video=yes since=1.4
 dvbt2.fields.Dvbt2Fields since=1.0
 dvbt2.fields.Dvbt2TxFields since=1.2
 dvbt2.component.ts.fields.BbFrameFields shared=frames_ok;frames_bad since=1.0

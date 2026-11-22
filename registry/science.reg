@@ -1,5 +1,5 @@
 # The interface of the stack family science. The registry test of the family writes this file.
-family science version=1.0
+family science version=1.1
 shape.SondeFields since=1.0
 shape.SondeFields.sondes type=i64 unit= optional=no since=1.0
 shape.SondeFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -776,9 +776,10 @@ shape.HorusChannelClosedEvent.text type=text unit= optional=no since=1.0
 shape.HorusChannelClosedEvent.channel type=i64 unit= optional=no since=1.0
 shape.HorusChannelClosedEvent.offset type=hz unit=Hz optional=no since=1.0
 sonde since=1.0
+sonde.content kind=tracking since=1.1
 sonde.fields.SondeFields since=1.0
-sonde.table.sondes row=SondeRow cap=16 since=1.0
-sonde.table.carriers row=SondeCarrierRow cap=32 since=1.0
+sonde.table.sondes row=SondeRow cap=16 label=serial position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
+sonde.table.carriers row=SondeCarrierRow cap=32 sort=level_db:descending since=1.0
 sonde.series.alt_time x_unit=s y_unit=m since=1.0
 sonde.series.temp_alt x_unit=°C y_unit=m since=1.0
 sonde.series.track x_unit=° y_unit=° since=1.0
@@ -798,6 +799,7 @@ sonde.command.clear args= reply= since=1.0
 sonde.command.remove args=row:text reply= since=1.0
 sonde.command.select args=row:text reply= since=1.0
 time since=1.0
+time.content kind=science audio=monitor since=1.1
 time.fields.TimeFields since=1.0
 time.table.minutes row=TimeMinuteRow cap=200 since=1.0
 time.series.level x_unit=s y_unit=dBFS since=1.0
@@ -817,6 +819,7 @@ time.setting.year_hint type=i64 unit= since=1.0
 time.setting.gen_start_utc type=f64 unit=s since=1.0
 time.command.clear args= reply= since=1.0
 eczas since=1.0
+eczas.content kind=science audio=monitor since=1.1
 eczas.fields.EczasFields since=1.0
 eczas.table.frames row=EczasFrameRow cap=100 since=1.0
 eczas.series.level x_unit=s y_unit=dBFS since=1.0
@@ -834,9 +837,10 @@ eczas.setting.gen_start_utc type=f64 unit=s since=1.0
 eczas.setting.gen_carrier_only type=bool unit= since=1.0
 eczas.command.clear args= reply= since=1.0
 same since=1.0
+same.content kind=datalink audio=programme text=yes since=1.1
 same.fields.SameFields since=1.0
-same.table.alerts row=SameAlertRow cap=100 since=1.0
-same.table.alert_locations row=SameAlertLocationRow cap=3100 since=1.0
+same.table.alerts row=SameAlertRow cap=100 label=callsign since=1.0
+same.table.alert_locations row=SameAlertLocationRow cap=3100 position=position since=1.0
 same.table.tones row=SameToneRow cap=40 since=1.0
 same.event.same.alert fields=SameAlertEvent since=1.0
 same.event.same.end fields=SameEndEvent since=1.0
@@ -850,9 +854,10 @@ same.setting.gen_loop type=bool unit= since=1.0
 same.command.clear args= reply= since=1.0
 same.command.clear_counties args= reply= since=1.0
 mscatter since=1.0
+mscatter.content kind=science since=1.1
 mscatter.fields.MscatterFields since=1.0
 mscatter.table.pings row=MscatterPingRow cap=500 since=1.0
-mscatter.table.showers row=MscatterShowerRow cap=64 since=1.0
+mscatter.table.showers row=MscatterShowerRow cap=64 label=name since=1.0
 mscatter.series.hourly x_unit=h y_unit= since=1.0
 mscatter.series.daily x_unit=d y_unit= since=1.0
 mscatter.series.beacon_spectrum x_unit=bin y_unit=dB since=1.0
@@ -863,13 +868,15 @@ mscatter.setting.gen_beacon_hz type=hz unit=Hz since=1.0
 mscatter.setting.gen_mean_gap_s type=duration unit=s since=1.0
 mscatter.command.clear args= reply= since=1.0
 ssdv since=1.0
+ssdv.content kind=pictures pictures=yes since=1.1
 ssdv.fields.SsdvFields since=1.0
-ssdv.table.packets row=SsdvPacketRow cap=400 since=1.0
-ssdv.table.pictures row=SsdvPictureRow cap=8 since=1.0
+ssdv.table.packets row=SsdvPacketRow cap=400 label=call since=1.0
+ssdv.table.pictures row=SsdvPictureRow cap=8 label=call since=1.0
 ssdv.setting.baud type=choice(auto,300_8n2,600_8n2,1200_8n2,1200,2400,4800,9600,19200,115200) unit= since=1.0
 ssdv.setting.gen_mode type=choice(auto,300_8n2,600_8n2,1200_8n2,1200,2400,4800,9600,19200,115200) unit= since=1.0
 ssdv.command.clear args= reply= since=1.0
 astro since=1.0
+astro.content kind=science since=1.1
 astro.fields.AstroFields since=1.0
 astro.table.calibrated row=AstroCalibratedRow cap=16384 since=1.0
 astro.table.session row=AstroSessionRow cap=500 since=1.0
@@ -909,6 +916,7 @@ astro.command.add_map args= reply= since=1.0
 astro.command.clear_map args= reply= since=1.0
 astro.command.restart args= reply= since=1.0
 iono since=1.0
+iono.content kind=science pictures=yes since=1.1
 iono.fields.IonoFields since=1.0
 iono.table.sounders row=IonoSounderRow cap=64 since=1.0
 iono.table.timeline row=IonoTimelineRow cap=200 since=1.0
@@ -932,6 +940,7 @@ iono.command.clear args= reply= since=1.0
 iono.command.select args=row:text reply= since=1.0
 iono.command.select_latest args= reply= since=1.0
 sferics since=1.0
+sferics.content kind=science since=1.1
 sferics.fields.SfericsFields since=1.0
 sferics.fields.DecoderFields since=1.0
 sferics.table.strikes row=SfericsStrikeRow cap=100 since=1.0
@@ -947,11 +956,12 @@ sferics.setting.gen_mains_hz type=hz unit=Hz since=1.0
 sferics.command.clear args= reply= since=1.0
 sferics.command.reset args= reply= since=1.0
 supersid since=1.0
+supersid.content kind=science since=1.1
 supersid.fields.SupersidFields since=1.0
 supersid.fields.DecoderFields since=1.0
-supersid.table.transmitters row=SupersidTransmitterRow cap=32 since=1.0
-supersid.table.sid_events row=SupersidEventRow cap=200 since=1.0
-supersid.table.marks row=SupersidMarkRow cap=384 since=1.0
+supersid.table.transmitters row=SupersidTransmitterRow cap=32 label=label since=1.0
+supersid.table.sid_events row=SupersidEventRow cap=200 label=label since=1.0
+supersid.table.marks row=SupersidMarkRow cap=384 label=label since=1.0
 supersid.series.minutes_01 x_unit=s y_unit=dB since=1.0
 supersid.series.minutes_02 x_unit=s y_unit=dB since=1.0
 supersid.series.minutes_03 x_unit=s y_unit=dB since=1.0
@@ -997,9 +1007,10 @@ supersid.setting.gen_flare type=bool unit= since=1.0
 supersid.command.clear args= reply= since=1.0
 supersid.command.reset args= reply= since=1.0
 schumann since=1.0
+schumann.content kind=science since=1.1
 schumann.fields.SchumannFields since=1.0
 schumann.fields.DecoderFields since=1.0
-schumann.table.peaks row=SchumannPeakRow cap=5 since=1.0
+schumann.table.peaks row=SchumannPeakRow cap=5 sort=height_db:descending since=1.0
 schumann.table.events row=ScienceEventRow cap=500 since=1.0
 schumann.table.trend row=SchumannTrendRow cap=1440 since=1.0
 schumann.series.average_spectrum x_unit=Hz y_unit=dB since=1.0
@@ -1013,6 +1024,7 @@ schumann.setting.gen_transients type=f64 unit= since=1.0
 schumann.command.clear args= reply= since=1.0
 schumann.command.reset args= reply= since=1.0
 whistler since=1.0
+whistler.content kind=science since=1.1
 whistler.fields.WhistlerFields since=1.0
 whistler.fields.DecoderFields since=1.0
 whistler.table.events row=ScienceEventRow cap=500 since=1.0
@@ -1028,10 +1040,11 @@ whistler.setting.gen_tone_snr_db type=f64 unit=dB since=1.0
 whistler.command.clear args= reply= since=1.0
 whistler.command.reset args= reply= since=1.0
 lightning_tdoa since=1.0
+lightning_tdoa.content kind=science since=1.1
 lightning_tdoa.fields.LightningTdoaFields since=1.0
 lightning_tdoa.fields.DecoderFields since=1.0
-lightning_tdoa.table.strikes row=LightningTdoaStrikeRow cap=500 since=1.0
-lightning_tdoa.table.stations row=LightningTdoaStationRow cap=64 since=1.0
+lightning_tdoa.table.strikes row=LightningTdoaStrikeRow cap=500 latitude=lat longitude=lon since=1.0
+lightning_tdoa.table.stations row=LightningTdoaStationRow cap=64 label=name latitude=lat longitude=lon since=1.0
 lightning_tdoa.event.lightning.strike fields=LightningStrikeEvent since=1.0
 lightning_tdoa.setting.role type=choice(local,client,server) unit= since=1.0
 lightning_tdoa.setting.server type=text unit= since=1.0
@@ -1064,6 +1077,7 @@ lightning_tdoa.command.reset args= reply= since=1.0
 lightning_tdoa.command.datagram args=bytes:bytes reply= since=1.0
 lightning_tdoa.command.time_mark args=source:text;sample:i64;utc_ns:i64;sigma_ns:f64?;bias_ns:f64? reply= since=1.0
 jove since=1.0
+jove.content kind=science since=1.1
 jove.fields.BurstFields since=1.0
 jove.fields.DecoderFields since=1.0
 jove.table.events row=ScienceEventRow cap=500 since=1.0
@@ -1077,6 +1091,7 @@ jove.setting.gen_level_db type=f64 unit=dB since=1.0
 jove.command.clear args= reply= since=1.0
 jove.command.reset args= reply= since=1.0
 callisto since=1.0
+callisto.content kind=science since=1.1
 callisto.fields.BurstFields since=1.0
 callisto.fields.DecoderFields since=1.0
 callisto.table.events row=ScienceEventRow cap=500 since=1.0
@@ -1099,6 +1114,7 @@ callisto.setting.gen_burst_drift_hz_s type=f64 unit=Hz/s since=1.0
 callisto.command.clear args= reply= since=1.0
 callisto.command.reset args= reply= since=1.0
 riometer since=1.0
+riometer.content kind=science since=1.1
 riometer.fields.RiometerFields since=1.0
 riometer.fields.DecoderFields since=1.0
 riometer.series.absorption x_unit=min y_unit=dB since=1.0
@@ -1113,6 +1129,7 @@ riometer.command.reset args= reply= since=1.0
 riometer.command.export_qdc args= reply=qdc:text since=1.0
 riometer.command.import_qdc args=text:text reply= since=1.0
 eme_echo since=1.0
+eme_echo.content kind=science since=1.1
 eme_echo.fields.EmeEchoFields since=1.0
 eme_echo.fields.DecoderFields since=1.0
 eme_echo.table.events row=ScienceEventRow cap=500 since=1.0
@@ -1129,6 +1146,7 @@ eme_echo.setting.gen_moon_level_db type=f64 unit=dB since=1.0
 eme_echo.command.clear args= reply= since=1.0
 eme_echo.command.reset args= reply= since=1.0
 beacon_events since=1.0
+beacon_events.content kind=science since=1.1
 beacon_events.fields.BeaconEventsFields since=1.0
 beacon_events.fields.DecoderFields since=1.0
 beacon_events.table.events row=ScienceEventRow cap=500 since=1.0
@@ -1144,6 +1162,7 @@ beacon_events.setting.gen_flutter_db type=f64 unit=dB since=1.0
 beacon_events.command.clear args= reply= since=1.0
 beacon_events.command.reset args= reply= since=1.0
 pulsar since=1.0
+pulsar.content kind=science since=1.1
 pulsar.fields.PulsarFields since=1.0
 pulsar.fields.DecoderFields since=1.0
 pulsar.table.searches row=PulsarSearchRow cap=500 since=1.0
@@ -1169,6 +1188,7 @@ pulsar.setting.gen_dm type=f64 unit=pc%20cm⁻³ since=1.0
 pulsar.command.clear args= reply= since=1.0
 pulsar.command.search_now args= reply= since=1.0
 radar_detect since=1.0
+radar_detect.content kind=science since=1.1
 radar_detect.fields.RadarDetectFields since=1.0
 radar_detect.fields.DecoderFields since=1.0
 radar_detect.table.radar_rows row=RadarDetectRow cap=500 since=1.0
@@ -1178,14 +1198,15 @@ radar_detect.setting.gen_prf_hz type=hz unit=Hz since=1.0
 radar_detect.setting.gen_dual_prf type=choice(auto,single,dual) unit= since=1.0
 radar_detect.command.clear args= reply= since=1.0
 horus since=1.0
+horus.content kind=tracking since=1.1
 horus.fields.HorusFields since=1.0
 horus.fields.HorusLogFields since=1.0
 horus.kept.payloads since=1.0
 horus.kept.custom_fields since=1.0
 horus.kept.packets since=1.0
 horus.kept.HorusLogFields since=1.0
-horus.table.payloads row=HorusPayloadRow cap=64 since=1.0
-horus.table.custom_fields row=HorusCustomFieldRow cap=512 since=1.0
+horus.table.payloads row=HorusPayloadRow cap=64 position=position altitude=height_m speed=speed_kmh since=1.0
+horus.table.custom_fields row=HorusCustomFieldRow cap=512 label=name since=1.0
 horus.table.packets row=HorusPacketRow cap=200 since=1.0
 horus.table.channels row=HorusChannelRow cap=8 since=1.0
 horus.series.spectrum x_unit=Hz y_unit=dB since=1.0

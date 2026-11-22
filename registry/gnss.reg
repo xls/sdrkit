@@ -1,5 +1,5 @@
 # The interface of the stack family gnss. The registry test of the family writes this file.
-family gnss version=1.0
+family gnss version=1.1
 shape.GnssFields since=1.0
 shape.GnssFields.centre_hz type=hz unit=Hz optional=no since=1.0
 shape.GnssFields.input_rate type=hz unit=Hz optional=no since=1.0
@@ -208,12 +208,13 @@ shape.NavicSubframeEvent.prn_id type=i64 unit= optional=yes since=1.0
 shape.NavicSubframeEvent.alert type=bool unit= optional=no since=1.0
 shape.NavicSubframeEvent.autonav type=bool unit= optional=no since=1.0
 gnss since=1.0
+gnss.content kind=tracking since=1.1
 gnss.fields.GnssFields since=1.0
 gnss.fields.InterferenceFields since=1.0
 gnss.fields.GuardFields writer=receiver since=1.0
 gnss.table.systems row=GnssSystemRow cap=6 since=1.0
 gnss.table.fix_systems row=GnssFixSystemRow cap=6 since=1.0
-gnss.table.satellites row=GnssSatelliteRow cap=160 since=1.0
+gnss.table.satellites row=GnssSatelliteRow cap=160 sort=cn0_dbhz:descending position=sub_point altitude=height_km since=1.0
 gnss.table.interference_lines row=InterferenceLineRow cap=16 since=1.0
 gnss.table.interference_events row=InterferenceEventRow cap=200 since=1.0
 gnss.series.acquisition x_unit= y_unit= since=1.0
@@ -250,6 +251,7 @@ gnss.setting.gen_sats type=i64 unit= since=1.0
 gnss.setting.gen_cold type=bool unit= since=1.0
 gnss.command.reset args= reply= since=1.0
 sbas since=1.0
+sbas.content kind=navigation since=1.1
 sbas.fields.SbasFields since=1.0
 sbas.fields.InterferenceFields since=1.0
 sbas.fields.GuardFields writer=receiver since=1.0
@@ -259,9 +261,9 @@ sbas.kept.types since=1.0
 sbas.kept.sbas_satellite_types since=1.0
 sbas.kept.SbasFields.sbas_messages since=1.0
 sbas.kept.SbasFields.messages_missed since=1.0
-sbas.table.sbas_satellites row=SbasSatelliteRow cap=39 since=1.0
+sbas.table.sbas_satellites row=SbasSatelliteRow cap=39 sort=cn0_dbhz:descending since=1.0
 sbas.table.sbas_satellite_types row=SbasSatelliteTypeRow cap=2496 since=1.0
-sbas.table.types row=SbasTypeRow cap=64 since=1.0
+sbas.table.types row=SbasTypeRow cap=64 label=name since=1.0
 sbas.table.messages row=SbasMessageRow cap=100 since=1.0
 sbas.table.fast_corrections row=SbasFastCorrectionRow cap=51 since=1.0
 sbas.table.ionosphere row=SbasIonosphereRow cap=11 since=1.0
@@ -269,7 +271,7 @@ sbas.table.interference_lines row=InterferenceLineRow cap=16 since=1.0
 sbas.table.interference_events row=InterferenceEventRow cap=200 since=1.0
 sbas.table.rx.systems row=GnssSystemRow cap=6 since=1.0
 sbas.table.rx.fix_systems row=GnssFixSystemRow cap=6 since=1.0
-sbas.table.rx.satellites row=GnssSatelliteRow cap=160 since=1.0
+sbas.table.rx.satellites row=GnssSatelliteRow cap=160 sort=cn0_dbhz:descending position=sub_point altitude=height_km since=1.0
 sbas.series.spectrum x_unit=bin y_unit=dB since=1.0
 sbas.series.history x_unit=s y_unit=dBFS/Hz since=1.0
 sbas.series.rx.acquisition x_unit= y_unit= since=1.0
@@ -285,9 +287,10 @@ sbas.command.reset args= reply= since=1.0
 sbas.command.select args=row:text reply= since=1.0
 sbas.command.clear args= reply= since=1.0
 navic since=1.0
+navic.content kind=navigation since=1.1
 navic.fields.NavicFields since=1.0
 navic.fields.DecoderFields since=1.0
-navic.table.satellites row=NavicSatelliteRow cap=14 since=1.0
+navic.table.satellites row=NavicSatelliteRow cap=14 sort=cn0_dbhz:descending since=1.0
 navic.event.navic.subframe fields=NavicSubframeEvent since=1.0
 navic.setting.gen_sats type=i64 unit= since=1.0
 navic.setting.gen_sat_doppler_hz type=f64 unit=Hz since=1.0

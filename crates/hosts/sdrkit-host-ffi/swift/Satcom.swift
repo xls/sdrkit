@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "satcom", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "satcom", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum SatcomInterface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The result fields of Inmarsat-C.
@@ -4491,6 +4491,9 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroLogonRow.init))
     }
     /// The changed rows of the table "messages" of the stack "aero", newest first, at most `capacity` rows.
+    /// The column `flight` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`.
     public static func aeroMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[AeroMessageRow], SDRKitCode> {
         var rows = [sdrkit_aero_message_row](repeating: sdrkit_aero_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4499,6 +4502,9 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroMessageRow.init))
     }
     /// The changed rows of the table "aircraft" of the stack "aero", newest first, at most `capacity` rows.
+    /// The column `flight` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
     public static func aeroAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[AeroAircraftRow], SDRKitCode> {
         var rows = [sdrkit_aero_aircraft_row](repeating: sdrkit_aero_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4515,6 +4521,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroFactRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "inmarsat", newest first, at most `capacity` rows.
+    /// The column `satellite` names a row.
+    /// Default order: the column `snr_db`, highest first.
     public static func inmarsatCarriers(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[InmarsatCarrierRow], SDRKitCode> {
         var rows = [sdrkit_inmarsat_carrier_row](repeating: sdrkit_inmarsat_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4523,6 +4531,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(InmarsatCarrierRow.init))
     }
     /// The changed rows of the table "candidates" of the stack "inmarsat", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func inmarsatCandidates(_ handle: SDRKIT_HANDLE, capacity: Int = 8) -> Result<[InmarsatCandidateRow], SDRKitCode> {
         var rows = [sdrkit_inmarsat_candidate_row](repeating: sdrkit_inmarsat_candidate_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4563,6 +4572,9 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroLogonRow.init))
     }
     /// The changed rows of the table "aero_display.messages" of the stack "inmarsat", newest first, at most `capacity` rows.
+    /// The column `flight` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`.
     public static func inmarsatAeroDisplayMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[AeroMessageRow], SDRKitCode> {
         var rows = [sdrkit_aero_message_row](repeating: sdrkit_aero_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4571,6 +4583,9 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroMessageRow.init))
     }
     /// The changed rows of the table "aero_display.aircraft" of the stack "inmarsat", newest first, at most `capacity` rows.
+    /// The column `flight` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
     public static func inmarsatAeroDisplayAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[AeroAircraftRow], SDRKitCode> {
         var rows = [sdrkit_aero_aircraft_row](repeating: sdrkit_aero_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4635,6 +4650,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GlobalstarActivityRow.init))
     }
     /// The changed rows of the table "reports" of the stack "goes_dcs", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func goesDcsReports(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[GoesDcsReportRow], SDRKitCode> {
         var rows = [sdrkit_goes_dcs_report_row](repeating: sdrkit_goes_dcs_report_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4643,6 +4659,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GoesDcsReportRow.init))
     }
     /// The changed rows of the table "platforms" of the stack "goes_dcs", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func goesDcsPlatforms(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[GoesDcsPlatformRow], SDRKitCode> {
         var rows = [sdrkit_goes_dcs_platform_row](repeating: sdrkit_goes_dcs_platform_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4651,6 +4668,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GoesDcsPlatformRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "goes_dcs", newest first, at most `capacity` rows.
+    /// Default order: the column `snr_db`, highest first.
     public static func goesDcsCarriers(_ handle: SDRKIT_HANDLE, capacity: Int = 8) -> Result<[GoesDcsCarrierRow], SDRKitCode> {
         var rows = [sdrkit_goes_dcs_carrier_row](repeating: sdrkit_goes_dcs_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4659,6 +4677,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GoesDcsCarrierRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "argos", newest first, at most `capacity` rows.
+    /// The column `platform` names a row.
     public static func argosBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[ArgosBurstRow], SDRKitCode> {
         var rows = [sdrkit_argos_burst_row](repeating: sdrkit_argos_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4667,6 +4686,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ArgosBurstRow.init))
     }
     /// The changed rows of the table "platforms" of the stack "argos", newest first, at most `capacity` rows.
+    /// The column `platform` names a row.
     public static func argosPlatforms(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[ArgosPlatformRow], SDRKitCode> {
         var rows = [sdrkit_argos_platform_row](repeating: sdrkit_argos_platform_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4683,6 +4703,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ArgosFrameRow.init))
     }
     /// The changed rows of the table "reports" of the stack "hrdcp", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func hrdcpReports(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[HrdcpReportRow], SDRKitCode> {
         var rows = [sdrkit_hrdcp_report_row](repeating: sdrkit_hrdcp_report_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4691,6 +4712,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HrdcpReportRow.init))
     }
     /// The changed rows of the table "platforms" of the stack "hrdcp", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func hrdcpPlatforms(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[HrdcpPlatformRow], SDRKitCode> {
         var rows = [sdrkit_hrdcp_platform_row](repeating: sdrkit_hrdcp_platform_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4699,6 +4721,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HrdcpPlatformRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "hrdcp", newest first, at most `capacity` rows.
+    /// Default order: the column `snr_db`, highest first.
     public static func hrdcpCarriers(_ handle: SDRKIT_HANDLE, capacity: Int = 6) -> Result<[HrdcpCarrierRow], SDRKitCode> {
         var rows = [sdrkit_hrdcp_carrier_row](repeating: sdrkit_hrdcp_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4707,6 +4730,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HrdcpCarrierRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "sarsat", newest first, at most `capacity` rows.
+    /// The column `hex_id` names a row.
+    /// Place of a row: the column `position`.
     public static func sarsatBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[SarsatBurstRow], SDRKitCode> {
         var rows = [sdrkit_sarsat_burst_row](repeating: sdrkit_sarsat_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4715,6 +4740,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SarsatBurstRow.init))
     }
     /// The changed rows of the table "beacons" of the stack "sarsat", newest first, at most `capacity` rows.
+    /// The column `hex_id` names a row.
+    /// Place of a row: the column `position`.
     public static func sarsatBeacons(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[SarsatBeaconRow], SDRKitCode> {
         var rows = [sdrkit_sarsat_beacon_row](repeating: sdrkit_sarsat_beacon_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4723,6 +4750,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SarsatBeaconRow.init))
     }
     /// The changed rows of the table "frames" of the stack "lora_sat", newest first, at most `capacity` rows.
+    /// The column `satellite` names a row.
     public static func loraSatFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[LoraSatFrameRow], SDRKitCode> {
         var rows = [sdrkit_lora_sat_frame_row](repeating: sdrkit_lora_sat_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4755,6 +4783,9 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(LoraSatSfRow.init))
     }
     /// The changed rows of the table "satellites" of the stack "orbcomm", newest first, at most `capacity` rows.
+    /// Default order: the column `snr_db`, highest first.
+    /// Place of a row: the column `position`.
+    /// Height: `height_m`.
     public static func orbcommSatellites(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[OrbcommSatelliteRow], SDRKitCode> {
         var rows = [sdrkit_orbcomm_satellite_row](repeating: sdrkit_orbcomm_satellite_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4827,6 +4858,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(PskDemodLogRow.init))
     }
     /// The changed rows of the table "beacons" of the stack "qo100", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func qo100Beacons(_ handle: SDRKIT_HANDLE, capacity: Int = 3) -> Result<[Qo100BeaconRow], SDRKitCode> {
         var rows = [sdrkit_qo100_beacon_row](repeating: sdrkit_qo100_beacon_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4835,6 +4867,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Qo100BeaconRow.init))
     }
     /// The changed rows of the table "signals" of the stack "qo100", newest first, at most `capacity` rows.
+    /// Default order: the column `snr_db`, highest first.
     public static func qo100Signals(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[Qo100SignalRow], SDRKitCode> {
         var rows = [sdrkit_qo100_signal_row](repeating: sdrkit_qo100_signal_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4859,6 +4892,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Qo100ConversationRow.init))
     }
     /// The changed rows of the table "conversation_callsigns" of the stack "qo100", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func qo100ConversationCallsigns(_ handle: SDRKIT_HANDLE, capacity: Int = 480) -> Result<[Qo100CallsignRow], SDRKitCode> {
         var rows = [sdrkit_qo100_callsign_row](repeating: sdrkit_qo100_callsign_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4875,6 +4909,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Qo100DatvCarrierRow.init))
     }
     /// The changed rows of the table "frames" of the stack "cubesat", newest first, at most `capacity` rows.
+    /// The column `satellite` names a row.
     public static func cubesatFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[CubesatFrameRow], SDRKitCode> {
         var rows = [sdrkit_cubesat_frame_row](repeating: sdrkit_cubesat_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4891,6 +4926,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(CubesatFramingRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "cubesat", newest first, at most `capacity` rows.
+    /// Default order: the column `snr_db`, highest first.
     public static func cubesatCarriers(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[CubesatCarrierRow], SDRKitCode> {
         var rows = [sdrkit_cubesat_carrier_row](repeating: sdrkit_cubesat_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4915,6 +4951,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FleetBroadcastFrameRow.init))
     }
     /// The changed rows of the table "carrier_table" of the stack "bgan", newest first, at most `capacity` rows.
+    /// The column `satellite` names a row.
+    /// Default order: the column `snr_db`, highest first.
     public static func bganCarrierTable(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[BganCarrierRow], SDRKitCode> {
         var rows = [sdrkit_bgan_carrier_row](repeating: sdrkit_bgan_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4939,6 +4977,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BganLogRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "sat_survey", newest first, at most `capacity` rows.
+    /// The column `satellite` names a row.
+    /// Default order: the column `snr_db`, highest first.
     public static func satSurveyCarriers(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatSurveyCarrierRow], SDRKitCode> {
         var rows = [sdrkit_sat_survey_carrier_row](repeating: sdrkit_sat_survey_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4947,6 +4987,7 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatSurveyCarrierRow.init))
     }
     /// The changed rows of the table "channels" of the stack "sat_survey", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func satSurveyChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 128) -> Result<[SatSurveyChannelRow], SDRKitCode> {
         var rows = [sdrkit_sat_survey_channel_row](repeating: sdrkit_sat_survey_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized

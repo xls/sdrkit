@@ -272,16 +272,18 @@ pub struct IsmDeviceEvent<'a> {
 }
 
 /// The devices.
-pub static ISM_DEVICES: Table<IsmDeviceRow<'static>> = Table::new("devices", "Devices", 300);
+pub static ISM_DEVICES: Table<IsmDeviceRow<'static>> =
+    Table::new("devices", "Devices", 300).label(&IsmDeviceRow::ID);
 /// The Z-Wave devices.
 pub static ISM_ZWAVE: Table<IsmZwaveRow<'static>> = Table::new("zwave", "Z-Wave", 300);
 /// The reading log, newest last.
-pub static ISM_LOG: Table<IsmLogRow<'static>> = Table::new("log", "Log", 400);
+pub static ISM_LOG: Table<IsmLogRow<'static>> = Table::new("log", "Log", 400).label(&IsmLogRow::ID);
 /// The unknown signals, newest last.
 pub static ISM_UNKNOWN: Table<IsmUnknownRow<'static>> =
     Table::new("unknown", "Unknown signals", 60);
 /// The Sigfox messages, newest first.
-pub static ISM_SIGFOX: Table<IsmSigfoxRow<'static>> = Table::new("sigfox", "Sigfox", 300);
+pub static ISM_SIGFOX: Table<IsmSigfoxRow<'static>> =
+    Table::new("sigfox", "Sigfox", 300).label(&IsmSigfoxRow::DEVICE_ID);
 /// A device heard for the first time.
 pub static ISM_DEVICE: EventKind<IsmDeviceEvent<'static>> =
     EventKind::new("ism.device", "ISM device");
@@ -459,7 +461,14 @@ pub struct IsmSendArgs<'a> {
     )]
     pub id: i64,
     /// The command of a remote.
-    #[arg(label = "Command", help = "Remote: 1 to 255, the last 8 bits of the code.", default = 1, min = 1, max = 255, step = 1)]
+    #[arg(
+        label = "Command",
+        help = "Remote: 1 to 255, the last 8 bits of the code.",
+        default = 1,
+        min = 1,
+        max = 255,
+        step = 1
+    )]
     pub command: Option<i64>,
     /// The channel of a sensor.
     #[arg(
@@ -473,7 +482,11 @@ pub struct IsmSendArgs<'a> {
     )]
     pub channel: Option<i64>,
     /// Whether the battery of a sensor is good.
-    #[arg(label = "Battery good", help = "Clear sends the battery-low state of the family.", default = true)]
+    #[arg(
+        label = "Battery good",
+        help = "Clear sends the battery-low state of the family.",
+        default = true
+    )]
     pub battery_ok: Option<bool>,
     /// The temperature of a sensor.
     #[arg(
@@ -554,7 +567,15 @@ pub struct IsmSendArgs<'a> {
     )]
     pub uv: Option<f64>,
     /// The light level.
-    #[arg(label = "Light", unit = "lx", help = "WH24, in tenths of a lux.", default = 0.0, min = 0.0, max = 1_677_721.4, step = 0.1)]
+    #[arg(
+        label = "Light",
+        unit = "lx",
+        help = "WH24, in tenths of a lux.",
+        default = 0.0,
+        min = 0.0,
+        max = 1_677_721.4,
+        step = 0.1
+    )]
     pub light: Option<f64>,
     /// The tyre pressure.
     #[arg(
@@ -578,13 +599,37 @@ pub struct IsmSendArgs<'a> {
     )]
     pub flags: Option<i64>,
     /// The current of a clamp.
-    #[arg(label = "Current", unit = "A", help = "Efergy e2: 0 to 511 A.", default = 0.0, min = 0.0, max = 511.0, step = 0.01)]
+    #[arg(
+        label = "Current",
+        unit = "A",
+        help = "Efergy e2: 0 to 511 A.",
+        default = 0.0,
+        min = 0.0,
+        max = 511.0,
+        step = 0.01
+    )]
     pub current: Option<f64>,
     /// The report interval.
-    #[arg(label = "Interval", unit = "s", help = "Efergy e2: 6, 12, 18 or 24 s.", default = 6, min = 6, max = 24, step = 6)]
+    #[arg(
+        label = "Interval",
+        unit = "s",
+        help = "Efergy e2: 6, 12, 18 or 24 s.",
+        default = 6,
+        min = 6,
+        max = 24,
+        step = 6
+    )]
     pub interval: Option<i64>,
     /// The power of a meter.
-    #[arg(label = "Power", unit = "W", help = "CurrentCost TX: power 0, 0 to 32767 W.", default = 0, min = 0, max = 32767, step = 1)]
+    #[arg(
+        label = "Power",
+        unit = "W",
+        help = "CurrentCost TX: power 0, 0 to 32767 W.",
+        default = 0,
+        min = 0,
+        max = 32767,
+        step = 1
+    )]
     pub power: Option<i64>,
     /// The frame octets of a family with a raw payload.
     #[arg(
@@ -718,7 +763,8 @@ pub struct DsrcFrameEvent<'a> {
 }
 
 /// The frame log, newest first.
-pub static DSRC_FRAMES: Table<DsrcFrameRow<'static>> = Table::new("frames", "Frames", 300);
+pub static DSRC_FRAMES: Table<DsrcFrameRow<'static>> =
+    Table::new("frames", "Frames", 300).label(&DsrcFrameRow::IDENTIFIER);
 
 /// A frame.
 pub static DSRC_FRAME: EventKind<DsrcFrameEvent<'static>> =
@@ -728,7 +774,51 @@ pub static DSRC_FRAME: EventKind<DsrcFrameEvent<'static>> =
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("ism", 2, 0)
+        Described::new("ism", 2, 1)
+            .added(
+                2,
+                1,
+                &[
+                    "ism.content",
+                    "wmbus.content",
+                    "zwave.content",
+                    "zigbee.content",
+                    "sigfox.content",
+                    "ant.content",
+                    "nrf24.content",
+                    "subghzchat.content",
+                    "dect.content",
+                    "nfc.content",
+                    "wisun.content",
+                    "thread.content",
+                    "mioty.content",
+                    "dect_nrplus.content",
+                    "npr70.content",
+                    "dsrc_toll.content",
+                ],
+            )
+            .content(sdrkit_core::ContentKind::Voice, &["dect"])
+            .content(sdrkit_core::ContentKind::TextChat, &["subghzchat"])
+            .content(sdrkit_core::ContentKind::Networks, &["npr70"])
+            .content(
+                sdrkit_core::ContentKind::Devices,
+                &[
+                    "ism",
+                    "wmbus",
+                    "zwave",
+                    "zigbee",
+                    "sigfox",
+                    "ant",
+                    "nrf24",
+                    "nfc",
+                    "wisun",
+                    "thread",
+                    "mioty",
+                    "dect_nrplus",
+                    "dsrc_toll",
+                ],
+            )
+            .text(&["subghzchat"])
             .uses(sdrkit_proto_ookdev::components::interface())
             .stack(ism())
             .stack(wmbus())
@@ -965,9 +1055,11 @@ pub struct NrPlusPacketEvent<'a> {
 }
 
 /// The packets, newest first.
-pub static NRPLUS_PACKETS: Table<NrPlusPacketRow<'static>> = Table::new("packets", "Packets", 300);
+pub static NRPLUS_PACKETS: Table<NrPlusPacketRow<'static>> =
+    Table::new("packets", "Packets", 300).label(&NrPlusPacketRow::ID);
 /// The devices, most recently heard first.
-pub static NRPLUS_DEVICES: Table<NrPlusDeviceRow<'static>> = Table::new("devices", "Devices", 200);
+pub static NRPLUS_DEVICES: Table<NrPlusDeviceRow<'static>> =
+    Table::new("devices", "Devices", 200).label(&NrPlusDeviceRow::ID);
 /// A packet.
 pub static NRPLUS_PACKET: EventKind<NrPlusPacketEvent<'static>> =
     EventKind::new("dect_nrplus.packet", "DECT NR+ packet");
@@ -1103,9 +1195,11 @@ pub struct MiotyFrameEvent<'a> {
 }
 
 /// The frames, newest first.
-pub static MIOTY_FRAMES: Table<MiotyFrameRow<'static>> = Table::new("frames", "Frames", 200);
+pub static MIOTY_FRAMES: Table<MiotyFrameRow<'static>> =
+    Table::new("frames", "Frames", 200).label(&MiotyFrameRow::ID);
 /// The devices, most recently heard first.
-pub static MIOTY_DEVICES: Table<MiotyDeviceRow<'static>> = Table::new("devices", "Devices", 200);
+pub static MIOTY_DEVICES: Table<MiotyDeviceRow<'static>> =
+    Table::new("devices", "Devices", 200).label(&MiotyDeviceRow::ID);
 /// A frame.
 pub static MIOTY_FRAME: EventKind<MiotyFrameEvent<'static>> =
     EventKind::new("mioty.frame", "mioty frame");
@@ -1351,16 +1445,25 @@ pub struct WmbusSendArgs<'a> {
     #[arg(shared = crate::wmbus::send::MODE)]
     pub mode: Option<crate::wmbus::send::WmbusMode>,
     /// The manufacturer.
-    #[arg(label = "Manufacturer", help = "Three letters A to Z, as the meters table shows them.")]
+    #[arg(
+        label = "Manufacturer",
+        help = "Three letters A to Z, as the meters table shows them."
+    )]
     pub manufacturer: &'a str,
     /// The address (identification number).
-    #[arg(label = "Address", help = "8 hex digits, as the meters table shows the id.")]
+    #[arg(
+        label = "Address",
+        help = "8 hex digits, as the meters table shows the id."
+    )]
     pub address: &'a str,
     /// The version.
     #[arg(label = "Version", help = "0 to 255.")]
     pub version: i64,
     /// The device type.
-    #[arg(label = "Device type", help = "0 to 255, for example 7 for water or 2 for electricity.")]
+    #[arg(
+        label = "Device type",
+        help = "0 to 255, for example 7 for water or 2 for electricity."
+    )]
     pub device_type: i64,
     /// The application data.
     #[arg(
@@ -1647,7 +1750,11 @@ pub static ZWAVE_FRAMES: Table<ZwaveFrameRow<'static>> = Table::new("frames", "F
 /// The Z-Wave nodes, most recently heard first.
 pub static ZWAVE_NODES: Table<ZwaveNodeRow<'static>> = Table::new("nodes", "Nodes", 1000);
 /// The Z-Wave networks, most recently heard first.
-pub static ZWAVE_NETWORKS: Table<ZwaveNetworkRow<'static>> = Table::new("networks", "Networks", 64);
+pub static ZWAVE_NETWORKS: Table<ZwaveNetworkRow<'static>> = Table::new("networks", "Networks", 64)
+    .sorted(
+        &ZwaveNetworkRow::LEVEL_DBFS,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// The Z-Wave channels in use.
 pub static ZWAVE_CHANNELS: Table<ZwaveChannelRow<'static>> = Table::new("channels", "Channels", 32);
 /// The command class counts.
@@ -1678,7 +1785,10 @@ pub const ZWAVE_REMOVE: CommandKind<ZwaveNodeArgs<'static>> = objcmd::remove_kin
 #[derive(Arguments)]
 pub struct ZwaveSendArgs<'a> {
     /// The home id.
-    #[arg(label = "Home ID", help = "8 hex digits, as the networks table shows it.")]
+    #[arg(
+        label = "Home ID",
+        help = "8 hex digits, as the networks table shows it."
+    )]
     pub home_id: &'a str,
     /// The source node.
     #[arg(label = "Source node", help = "1 to 232.")]
@@ -1697,7 +1807,11 @@ pub struct ZwaveSendArgs<'a> {
     #[arg(shared = crate::zwave::send::RATE)]
     pub rate: Option<crate::zwave::send::ZwaveRate>,
     /// Whether the frame asks for an acknowledgement.
-    #[arg(label = "Ack requested", help = "Sets bit 6 of frame control 1.", default = false)]
+    #[arg(
+        label = "Ack requested",
+        help = "Sets bit 6 of frame control 1.",
+        default = false
+    )]
     pub ack: Option<bool>,
     /// The sequence number.
     #[arg(
@@ -1818,7 +1932,10 @@ pub const PAN_REMOVE: CommandKind<PanDeviceArgs<'static>> = objcmd::remove_kind(
 #[derive(Arguments)]
 pub struct ZigbeeSendArgs<'a> {
     /// The PAN id.
-    #[arg(label = "PAN ID", help = "4 hex digits, as the networks table shows it without 0x.")]
+    #[arg(
+        label = "PAN ID",
+        help = "4 hex digits, as the networks table shows it without 0x."
+    )]
     pub pan_id: &'a str,
     /// The destination address.
     #[arg(
@@ -1843,10 +1960,21 @@ pub struct ZigbeeSendArgs<'a> {
     #[arg(shared = crate::zigbee::send::FRAME_TYPE)]
     pub frame_type: Option<crate::zigbee::send::ZigbeeFrameType>,
     /// The sequence number.
-    #[arg(label = "Sequence", help = "0 to 255.", default = 0, min = 0, max = 255, step = 1)]
+    #[arg(
+        label = "Sequence",
+        help = "0 to 255.",
+        default = 0,
+        min = 0,
+        max = 255,
+        step = 1
+    )]
     pub sequence: Option<i64>,
     /// Whether the frame asks for an acknowledgement.
-    #[arg(label = "Ack requested", help = "Sets the acknowledgement request bit.", default = false)]
+    #[arg(
+        label = "Ack requested",
+        help = "Sets the acknowledgement request bit.",
+        default = false
+    )]
     pub ack: Option<bool>,
     /// The security level.
     #[arg(
@@ -1860,7 +1988,11 @@ pub struct ZigbeeSendArgs<'a> {
     )]
     pub security_level: Option<i64>,
     /// The key of a secured frame.
-    #[arg(label = "Key", help = "The AES-128 key of a secured frame as 32 hex digits.", default = "")]
+    #[arg(
+        label = "Key",
+        help = "The AES-128 key of a secured frame as 32 hex digits.",
+        default = ""
+    )]
     pub key: Option<&'a str>,
     /// The frame counter of a secured frame.
     #[arg(
@@ -1884,7 +2016,14 @@ pub struct ZigbeeSendArgs<'a> {
     )]
     pub key_id_mode: Option<i64>,
     /// The key index of a secured frame.
-    #[arg(label = "Key index", help = "Key identifier modes 1 to 3: 1 to 255.", default = 1, min = 1, max = 255, step = 1)]
+    #[arg(
+        label = "Key index",
+        help = "Key identifier modes 1 to 3: 1 to 255.",
+        default = 1,
+        min = 1,
+        max = 255,
+        step = 1
+    )]
     pub key_index: Option<i64>,
     /// The key source of a secured frame.
     #[arg(
@@ -2026,7 +2165,10 @@ pub struct ZigbeePanEvent<'a> {
 
 /// The Zigbee networks, most recently heard first.
 pub static ZIGBEE_NETWORKS: Table<ZigbeeNetworkRow<'static>> =
-    Table::new("networks", "Networks", 100);
+    Table::new("networks", "Networks", 100).sorted(
+        &ZigbeeNetworkRow::LEVEL_DBFS,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// The Zigbee frame log, newest first.
 pub static ZIGBEE_FRAMES: Table<ZigbeeFrameRow<'static>> = Table::new("frames", "Frames", 600);
 /// A new Zigbee PAN.
@@ -2292,9 +2434,15 @@ pub struct ThreadDeviceEvent<'a> {
 
 /// The Thread networks, most recently heard first.
 pub static THREAD_NETWORKS: Table<ThreadNetworkRow<'static>> =
-    Table::new("networks", "Networks", 100);
+    Table::new("networks", "Networks", 100)
+        .label(&ThreadNetworkRow::NETWORK_NAME)
+        .sorted(
+            &ThreadNetworkRow::LEVEL_DBFS,
+            sdrkit_core::SortOrder::Descending,
+        );
 /// The Thread frame log, newest first.
-pub static THREAD_FRAMES: Table<ThreadFrameRow<'static>> = Table::new("frames", "Frames", 600);
+pub static THREAD_FRAMES: Table<ThreadFrameRow<'static>> =
+    Table::new("frames", "Frames", 600).label(&ThreadFrameRow::SOURCE);
 /// A new PAN with a Thread beacon.
 pub static THREAD_NETWORK: EventKind<ThreadNetworkEvent<'static>> =
     EventKind::new("thread.network", "Thread network");
@@ -2524,11 +2672,17 @@ pub struct WisunPanEvent<'a> {
 }
 
 /// The Wi-SUN networks, most recently heard first.
-pub static WISUN_NETWORKS: Table<WisunNetworkRow<'static>> = Table::new("networks", "Networks", 64);
+pub static WISUN_NETWORKS: Table<WisunNetworkRow<'static>> = Table::new("networks", "Networks", 64)
+    .label(&WisunNetworkRow::NAME)
+    .sorted(
+        &WisunNetworkRow::LEVEL_DBFS,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// The Wi-SUN nodes, most recently heard first.
 pub static WISUN_NODES: Table<WisunNodeRow<'static>> = Table::new("nodes", "Nodes", 2000);
 /// The Wi-SUN links, most recently heard first.
-pub static WISUN_LINKS: Table<WisunLinkRow<'static>> = Table::new("links", "Links", 4000);
+pub static WISUN_LINKS: Table<WisunLinkRow<'static>> =
+    Table::new("links", "Links", 4000).label(&WisunLinkRow::FROM);
 /// The Wi-SUN frame log, newest first.
 pub static WISUN_FRAMES: Table<WisunFrameRow<'static>> = Table::new("frames", "Frames", 800);
 /// A new Wi-SUN PAN.
@@ -2563,7 +2717,10 @@ pub struct WisunSendArgs<'a> {
     #[arg(shared = crate::wisun::send::FRAME_TYPE)]
     pub frame_type: Option<crate::wisun::send::WisunFrameType>,
     /// The PAN id.
-    #[arg(label = "PAN ID", help = "4 hex digits; sent as the source PAN id of a frame without a destination.")]
+    #[arg(
+        label = "PAN ID",
+        help = "4 hex digits; sent as the source PAN id of a frame without a destination."
+    )]
     pub pan_id: &'a str,
     /// The source.
     #[arg(label = "Source", help = "The EUI-64 of the sender as 16 hex digits.")]
@@ -2781,7 +2938,8 @@ pub struct SigfoxMessageEvent<'a> {
 }
 
 /// The messages, newest first.
-pub static SIGFOX_MESSAGES: Table<SigfoxMessageRow<'static>> = Table::new("sigfox", "Sigfox", 300);
+pub static SIGFOX_MESSAGES: Table<SigfoxMessageRow<'static>> =
+    Table::new("sigfox", "Sigfox", 300).label(&SigfoxMessageRow::DEVICE_ID);
 /// A new message.
 pub static SIGFOX_MESSAGE: EventKind<SigfoxMessageEvent<'static>> =
     EventKind::new("sigfox.message", "Sigfox message");
@@ -2982,16 +3140,26 @@ pub struct AntSendArgs<'a> {
     #[arg(label = "Device number", help = "0 to 65535.")]
     pub device: i64,
     /// The device type.
-    #[arg(label = "Device type", help = "1 to 127, for example 120 for heart rate or 11 for bike power.")]
+    #[arg(
+        label = "Device type",
+        help = "1 to 127, for example 120 for heart rate or 11 for bike power."
+    )]
     pub device_type: i64,
     /// The transmission type.
     #[arg(label = "Transmission type", help = "0 to 255.")]
     pub tx_type: i64,
     /// The data page.
-    #[arg(label = "Payload", help = "The 8 octets of the data page as 16 hex digits, spaces allowed.")]
+    #[arg(
+        label = "Payload",
+        help = "The 8 octets of the data page as 16 hex digits, spaces allowed."
+    )]
     pub payload: &'a str,
     /// The pairing bit.
-    #[arg(label = "Pairing", help = "Sets the pairing bit of the device type octet.", default = false)]
+    #[arg(
+        label = "Pairing",
+        help = "Sets the pairing bit of the device type octet.",
+        default = false
+    )]
     pub pairing: Option<bool>,
 }
 
@@ -3149,9 +3317,11 @@ pub struct NfcTagEvent<'a> {
 }
 
 /// The tags, most recently heard first.
-pub static NFC_TAGS: Table<NfcTagRow<'static>> = Table::new("tags", "Tags", 100);
+pub static NFC_TAGS: Table<NfcTagRow<'static>> =
+    Table::new("tags", "Tags", 100).label(&NfcTagRow::UID);
 /// The frame log, newest first.
-pub static NFC_FRAMES: Table<NfcFrameRow<'static>> = Table::new("frames", "Frames", 200);
+pub static NFC_FRAMES: Table<NfcFrameRow<'static>> =
+    Table::new("frames", "Frames", 200).label(&NfcFrameRow::NAME);
 /// A tag identified.
 pub static NFC_TAG: EventKind<NfcTagEvent<'static>> = EventKind::new("nfc.tag", "NFC tag");
 
@@ -3320,9 +3490,11 @@ pub struct NrfAddressEvent<'a> {
 }
 
 /// The frame log, newest first.
-pub static NRF_FRAMES: Table<NrfFrameRow<'static>> = Table::new("frames", "Frames", 300);
+pub static NRF_FRAMES: Table<NrfFrameRow<'static>> =
+    Table::new("frames", "Frames", 300).label(&NrfFrameRow::ADDRESS);
 /// The addresses, most recently heard first.
-pub static NRF_ADDRESSES: Table<NrfAddressRow<'static>> = Table::new("addresses", "Addresses", 100);
+pub static NRF_ADDRESSES: Table<NrfAddressRow<'static>> =
+    Table::new("addresses", "Addresses", 100).label(&NrfAddressRow::ADDRESS);
 /// The bursts without a frame, newest first.
 pub static NRF_BAD_BURSTS: Table<NrfBadBurstRow> =
     Table::new("bad_bursts", "Bursts without frame", 60);
@@ -3502,7 +3674,7 @@ pub struct SubghzchatStateEvent<'a> {
 pub static SUBGHZCHAT_CHAT: Table<SubghzchatLineRow<'static>> = Table::new("chat", "Chat", 500);
 /// The packet log, newest first.
 pub static SUBGHZCHAT_PACKETS: Table<SubghzchatPacketRow<'static>> =
-    Table::new("packets", "Packets", 200);
+    Table::new("packets", "Packets", 200).label(&SubghzchatPacketRow::HEX);
 /// A chat line heard.
 pub static SUBGHZCHAT_LINE: EventKind<SubghzchatLineEvent<'static>> =
     EventKind::new("subghzchat.line", "Chat line");
@@ -3654,9 +3826,11 @@ pub struct DectBaseEvent<'a> {
 }
 
 /// The base stations, most recently heard first.
-pub static DECT_BASES: Table<DectBaseRow<'static>> = Table::new("bases", "Base stations", 60);
+pub static DECT_BASES: Table<DectBaseRow<'static>> = Table::new("bases", "Base stations", 60)
+    .sorted(&DectBaseRow::LEVEL_DBFS, sdrkit_core::SortOrder::Descending);
 /// The burst log, newest first.
-pub static DECT_BURSTS: Table<DectBurstRow<'static>> = Table::new("bursts", "Bursts", 300);
+pub static DECT_BURSTS: Table<DectBurstRow<'static>> =
+    Table::new("bursts", "Bursts", 300).label(&DectBurstRow::FROM);
 /// A new base station.
 pub static DECT_BASE: EventKind<DectBaseEvent<'static>> =
     EventKind::new("dect.base", "New DECT base station");

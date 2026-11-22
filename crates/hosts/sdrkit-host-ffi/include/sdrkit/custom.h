@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "custom", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "custom", version 1.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_CUSTOM_VERSION_MAJOR 1
-#define SDRKIT_CUSTOM_VERSION_MINOR 2
+#define SDRKIT_CUSTOM_VERSION_MINOR 3
 
 // The stack "slotted_voice": its id, and the keys of its event types.
 #define SDRKIT_STACK_SLOTTED_VOICE "slotted_voice"
@@ -1020,6 +1020,8 @@ typedef struct sdrkit_hf_chat_tx_event {
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "slotted_voice" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_slotted_voice_stations_rows(SDRKIT_HANDLE handle,
                                                         sdrkit_slotted_voice_station_row *rows,
                                                         uint32_t capacity,
@@ -1305,6 +1307,7 @@ static inline int32_t sdrkit_qam_video_set_media_s(SDRKIT_HANDLE handle, double 
 
 // Fills `rows` with the changed rows of the table "pictures" of the stack "picture_burst" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_picture_burst_pictures_rows(SDRKIT_HANDLE handle,
                                                         sdrkit_picture_burst_picture_row *rows,
                                                         uint32_t capacity,
@@ -1368,6 +1371,7 @@ static inline int32_t sdrkit_picture_burst_set_picture(SDRKIT_HANDLE handle, sdr
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "arq_packet" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_arq_packet_messages_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_arq_packet_message_row *rows,
                                                      uint32_t capacity,
@@ -1470,6 +1474,7 @@ static inline int32_t sdrkit_arq_packet_set_file(SDRKIT_HANDLE handle, sdrkit_st
 
 // Fills `rows` with the changed rows of the table "files" of the stack "file_transfer" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_file_transfer_files_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_file_transfer_file_row *rows,
                                                      uint32_t capacity,
@@ -1612,6 +1617,7 @@ static inline int32_t sdrkit_file_transfer_set_fixed_profile(SDRKIT_HANDLE handl
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "hf_chat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_hf_chat_messages_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_hf_chat_message_row *rows,
                                                   uint32_t capacity,
@@ -1621,6 +1627,8 @@ static inline int32_t sdrkit_hf_chat_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "beacons" of the stack "hf_chat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_hf_chat_beacons_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_hf_chat_beacon_row *rows,
                                                  uint32_t capacity,

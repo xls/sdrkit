@@ -1,5 +1,5 @@
 # The interface of the stack family dvoice. The registry test of the family writes this file.
-family dvoice version=2.0
+family dvoice version=2.1
 shape.SharedFields since=1.0
 shape.SharedFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.SharedFields.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
@@ -293,20 +293,21 @@ shape.DcrEventRow.identity type=text unit= optional=no since=1.0
 shape.DcrEventRow.text type=text unit= optional=no since=1.0
 shape.DcrEventRow.channel type=text unit= optional=yes since=1.0
 dmr since=1.0
+dmr.content kind=voice audio=voice since=2.1
 dmr.fields.SharedFields since=1.0
 dmr.fields.DmrFields since=1.0
 dmr.fields.MonitorFields since=1.0
 dmr.fields.DecoderFields since=1.0
 dmr.fields.DmrTxFields since=1.0
-dmr.table.calls row=CallRow cap=100 since=1.0
-dmr.table.call_details row=CallDetailRow cap=3000 since=1.0
-dmr.table.messages row=MessageRow cap=100 since=1.0
-dmr.table.positions row=PositionRow cap=512 since=1.0
+dmr.table.calls row=CallRow cap=100 label=alias since=1.0
+dmr.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+dmr.table.messages row=MessageRow cap=100 label=src since=1.0
+dmr.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 dmr.table.sites row=SiteRow cap=1 since=1.0
 dmr.table.grants row=GrantRow cap=300 since=1.0
 dmr.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-dmr.table.history row=HistoryRow cap=500 since=1.0
-dmr.table.heard row=HeardRow cap=200 since=1.0
+dmr.table.history row=HistoryRow cap=500 label=call since=1.0
+dmr.table.heard row=HeardRow cap=200 label=src since=1.0
 dmr.series.eye x_unit= y_unit= since=1.0
 dmr.series.levels x_unit= y_unit= since=1.0
 dmr.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -341,21 +342,22 @@ dmr.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.0
 dmr.command.send args=text:text reply= transmits=text stop=halt since=1.0
 dmr.command.halt args= reply= since=1.0
 p25 since=1.0
+p25.content kind=voice audio=voice since=2.1
 p25.fields.SharedFields since=1.0
 p25.fields.P25Fields since=1.0
 p25.fields.MonitorFields since=1.0
 p25.fields.DecoderFields since=1.0
-p25.table.calls row=CallRow cap=300 since=1.0
-p25.table.call_details row=CallDetailRow cap=3000 since=1.0
-p25.table.messages row=MessageRow cap=100 since=1.0
-p25.table.positions row=PositionRow cap=512 since=1.0
+p25.table.calls row=CallRow cap=300 label=alias since=1.0
+p25.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+p25.table.messages row=MessageRow cap=100 label=src since=1.0
+p25.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 p25.table.sites row=SiteRow cap=1 since=1.0
 p25.table.grants row=GrantRow cap=300 since=1.0
 p25.table.talkgroups row=TalkgroupRow cap=500 since=1.0
 p25.table.identifiers row=IdentifierRow cap=16 since=1.0
 p25.table.adjacent_sites row=AdjacentRow cap=64 since=1.0
-p25.table.history row=HistoryRow cap=500 since=1.0
-p25.table.heard row=HeardRow cap=200 since=1.0
+p25.table.history row=HistoryRow cap=500 label=call since=1.0
+p25.table.heard row=HeardRow cap=200 label=src since=1.0
 p25.series.eye x_unit= y_unit= since=1.0
 p25.series.levels x_unit= y_unit= since=1.0
 p25.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -380,20 +382,21 @@ p25.command.hold_current args= reply= since=1.0
 p25.command.release args= reply= since=1.0
 p25.command.remove args=row:text reply= since=1.0
 m17 since=1.0
+m17.content kind=voice audio=voice since=2.1
 m17.fields.SharedFields since=1.0
 m17.fields.M17Fields since=1.0
 m17.fields.MonitorFields since=1.0
 m17.fields.DecoderFields since=1.0
 m17.fields.M17TxFields since=1.0
-m17.table.calls row=CallRow cap=300 since=1.0
-m17.table.call_details row=CallDetailRow cap=3000 since=1.0
-m17.table.messages row=MessageRow cap=100 since=1.0
-m17.table.positions row=PositionRow cap=512 since=1.0
+m17.table.calls row=CallRow cap=300 label=alias since=1.0
+m17.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+m17.table.messages row=MessageRow cap=100 label=src since=1.0
+m17.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 m17.table.sites row=SiteRow cap=1 since=1.0
 m17.table.grants row=GrantRow cap=300 since=1.0
 m17.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-m17.table.history row=HistoryRow cap=500 since=1.0
-m17.table.heard row=HeardRow cap=200 since=1.0
+m17.table.history row=HistoryRow cap=500 label=call since=1.0
+m17.table.heard row=HeardRow cap=200 label=src since=1.0
 m17.series.eye x_unit= y_unit= since=1.0
 m17.series.levels x_unit= y_unit= since=1.0
 m17.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -428,20 +431,21 @@ m17.command.send args=text:text reply= transmits=text stop=halt since=1.0
 m17.command.send_data args=protocol:i64;data:bytes reply= transmits=frame stop=halt since=1.0
 m17.command.halt args= reply= since=1.0
 dstar since=1.0
+dstar.content kind=voice audio=voice since=2.1
 dstar.fields.SharedFields since=1.0
 dstar.fields.DstarFields since=1.0
 dstar.fields.MonitorFields since=1.0
 dstar.fields.DecoderFields since=1.0
 dstar.fields.DstarTxFields since=1.0
-dstar.table.calls row=CallRow cap=300 since=1.0
-dstar.table.call_details row=CallDetailRow cap=3000 since=1.0
-dstar.table.messages row=MessageRow cap=100 since=1.0
-dstar.table.positions row=PositionRow cap=512 since=1.0
+dstar.table.calls row=CallRow cap=300 label=alias since=1.0
+dstar.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+dstar.table.messages row=MessageRow cap=100 label=src since=1.0
+dstar.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 dstar.table.sites row=SiteRow cap=1 since=1.0
 dstar.table.grants row=GrantRow cap=300 since=1.0
 dstar.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-dstar.table.history row=HistoryRow cap=500 since=1.0
-dstar.table.heard row=HeardRow cap=200 since=1.0
+dstar.table.history row=HistoryRow cap=500 label=call since=1.0
+dstar.table.heard row=HeardRow cap=200 label=src since=1.0
 dstar.series.eye x_unit= y_unit= since=1.0
 dstar.series.levels x_unit= y_unit= since=1.0
 dstar.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -474,19 +478,20 @@ dstar.command.remove args=row:text reply= since=1.0
 dstar.command.send args=text:text reply= transmits=text stop=halt since=1.0
 dstar.command.halt args= reply= since=1.0
 nxdn since=1.0
+nxdn.content kind=voice audio=voice since=2.1
 nxdn.fields.SharedFields since=1.0
 nxdn.fields.NxdnFields since=1.0
 nxdn.fields.MonitorFields since=1.0
 nxdn.fields.DecoderFields since=1.0
-nxdn.table.calls row=CallRow cap=300 since=1.0
-nxdn.table.call_details row=CallDetailRow cap=3000 since=1.0
-nxdn.table.messages row=MessageRow cap=100 since=1.0
-nxdn.table.positions row=PositionRow cap=512 since=1.0
+nxdn.table.calls row=CallRow cap=300 label=alias since=1.0
+nxdn.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+nxdn.table.messages row=MessageRow cap=100 label=src since=1.0
+nxdn.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 nxdn.table.sites row=SiteRow cap=1 since=1.0
 nxdn.table.grants row=GrantRow cap=300 since=1.0
 nxdn.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-nxdn.table.history row=HistoryRow cap=500 since=1.0
-nxdn.table.heard row=HeardRow cap=200 since=1.0
+nxdn.table.history row=HistoryRow cap=500 label=call since=1.0
+nxdn.table.heard row=HeardRow cap=200 label=src since=1.0
 nxdn.series.eye x_unit= y_unit= since=1.0
 nxdn.series.levels x_unit= y_unit= since=1.0
 nxdn.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -510,19 +515,20 @@ nxdn.command.hold_current args= reply= since=1.0
 nxdn.command.release args= reply= since=1.0
 nxdn.command.remove args=row:text reply= since=1.0
 dpmr since=1.0
+dpmr.content kind=voice audio=voice since=2.1
 dpmr.fields.SharedFields since=1.0
 dpmr.fields.DpmrFields since=1.0
 dpmr.fields.MonitorFields since=1.0
 dpmr.fields.DecoderFields since=1.0
-dpmr.table.calls row=CallRow cap=300 since=1.0
-dpmr.table.call_details row=CallDetailRow cap=3000 since=1.0
-dpmr.table.messages row=MessageRow cap=100 since=1.0
-dpmr.table.positions row=PositionRow cap=512 since=1.0
+dpmr.table.calls row=CallRow cap=300 label=alias since=1.0
+dpmr.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+dpmr.table.messages row=MessageRow cap=100 label=src since=1.0
+dpmr.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 dpmr.table.sites row=SiteRow cap=1 since=1.0
 dpmr.table.grants row=GrantRow cap=300 since=1.0
 dpmr.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-dpmr.table.history row=HistoryRow cap=500 since=1.0
-dpmr.table.heard row=HeardRow cap=200 since=1.0
+dpmr.table.history row=HistoryRow cap=500 label=call since=1.0
+dpmr.table.heard row=HeardRow cap=200 label=src since=1.0
 dpmr.series.eye x_unit= y_unit= since=1.0
 dpmr.series.levels x_unit= y_unit= since=1.0
 dpmr.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -546,19 +552,20 @@ dpmr.command.hold_current args= reply= since=1.0
 dpmr.command.release args= reply= since=1.0
 dpmr.command.remove args=row:text reply= since=1.0
 ysf since=1.0
+ysf.content kind=voice audio=voice since=2.1
 ysf.fields.SharedFields since=1.0
 ysf.fields.YsfFields since=1.0
 ysf.fields.MonitorFields since=1.0
 ysf.fields.DecoderFields since=1.0
-ysf.table.calls row=CallRow cap=300 since=1.0
-ysf.table.call_details row=CallDetailRow cap=3000 since=1.0
-ysf.table.messages row=MessageRow cap=100 since=1.0
-ysf.table.positions row=PositionRow cap=512 since=1.0
+ysf.table.calls row=CallRow cap=300 label=alias since=1.0
+ysf.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+ysf.table.messages row=MessageRow cap=100 label=src since=1.0
+ysf.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 ysf.table.sites row=SiteRow cap=1 since=1.0
 ysf.table.grants row=GrantRow cap=300 since=1.0
 ysf.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-ysf.table.history row=HistoryRow cap=500 since=1.0
-ysf.table.heard row=HeardRow cap=200 since=1.0
+ysf.table.history row=HistoryRow cap=500 label=call since=1.0
+ysf.table.heard row=HeardRow cap=200 label=src since=1.0
 ysf.series.eye x_unit= y_unit= since=1.0
 ysf.series.levels x_unit= y_unit= since=1.0
 ysf.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -583,19 +590,20 @@ ysf.command.hold_current args= reply= since=1.0
 ysf.command.release args= reply= since=1.0
 ysf.command.remove args=row:text reply= since=1.0
 p25p2 since=1.0
+p25p2.content kind=voice audio=voice since=2.1
 p25p2.fields.SharedFields since=1.0
 p25p2.fields.P25p2Fields since=1.0
 p25p2.fields.MonitorFields since=1.0
 p25p2.fields.DecoderFields since=1.0
-p25p2.table.calls row=CallRow cap=300 since=1.0
-p25p2.table.call_details row=CallDetailRow cap=3000 since=1.0
-p25p2.table.messages row=MessageRow cap=100 since=1.0
-p25p2.table.positions row=PositionRow cap=512 since=1.0
+p25p2.table.calls row=CallRow cap=300 label=alias since=1.0
+p25p2.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+p25p2.table.messages row=MessageRow cap=100 label=src since=1.0
+p25p2.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 p25p2.table.sites row=SiteRow cap=1 since=1.0
 p25p2.table.grants row=GrantRow cap=300 since=1.0
 p25p2.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-p25p2.table.history row=HistoryRow cap=500 since=1.0
-p25p2.table.heard row=HeardRow cap=200 since=1.0
+p25p2.table.history row=HistoryRow cap=500 label=call since=1.0
+p25p2.table.heard row=HeardRow cap=200 label=src since=1.0
 p25p2.series.eye x_unit= y_unit= since=1.0
 p25p2.series.levels x_unit= y_unit= since=1.0
 p25p2.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -619,19 +627,20 @@ p25p2.command.hold_current args= reply= since=1.0
 p25p2.command.release args= reply= since=1.0
 p25p2.command.remove args=row:text reply= since=1.0
 tetrapol since=1.0
+tetrapol.content kind=voice audio=voice since=2.1
 tetrapol.fields.SharedFields since=1.0
 tetrapol.fields.TetrapolFields since=1.0
 tetrapol.fields.MonitorFields since=1.0
 tetrapol.fields.DecoderFields since=1.0
-tetrapol.table.calls row=CallRow cap=300 since=1.0
-tetrapol.table.call_details row=CallDetailRow cap=3000 since=1.0
-tetrapol.table.messages row=MessageRow cap=100 since=1.0
-tetrapol.table.positions row=PositionRow cap=512 since=1.0
+tetrapol.table.calls row=CallRow cap=300 label=alias since=1.0
+tetrapol.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+tetrapol.table.messages row=MessageRow cap=100 label=src since=1.0
+tetrapol.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 tetrapol.table.sites row=SiteRow cap=1 since=1.0
 tetrapol.table.grants row=GrantRow cap=300 since=1.0
 tetrapol.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-tetrapol.table.history row=HistoryRow cap=500 since=1.0
-tetrapol.table.heard row=HeardRow cap=200 since=1.0
+tetrapol.table.history row=HistoryRow cap=500 label=call since=1.0
+tetrapol.table.heard row=HeardRow cap=200 label=src since=1.0
 tetrapol.series.eye x_unit= y_unit= since=1.0
 tetrapol.series.levels x_unit= y_unit= since=1.0
 tetrapol.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -655,19 +664,20 @@ tetrapol.command.hold_current args= reply= since=1.0
 tetrapol.command.release args= reply= since=1.0
 tetrapol.command.remove args=row:text reply= since=1.0
 tetra since=1.0
+tetra.content kind=voice audio=voice since=2.1
 tetra.fields.SharedFields since=1.0
 tetra.fields.TetraFields since=1.0
 tetra.fields.MonitorFields since=1.0
 tetra.fields.DecoderFields since=1.0
-tetra.table.calls row=CallRow cap=300 since=1.0
-tetra.table.call_details row=CallDetailRow cap=3000 since=1.0
-tetra.table.messages row=MessageRow cap=100 since=1.0
-tetra.table.positions row=PositionRow cap=512 since=1.0
+tetra.table.calls row=CallRow cap=300 label=alias since=1.0
+tetra.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+tetra.table.messages row=MessageRow cap=100 label=src since=1.0
+tetra.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 tetra.table.sites row=SiteRow cap=1 since=1.0
 tetra.table.grants row=GrantRow cap=300 since=1.0
 tetra.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-tetra.table.history row=HistoryRow cap=500 since=1.0
-tetra.table.heard row=HeardRow cap=200 since=1.0
+tetra.table.history row=HistoryRow cap=500 label=call since=1.0
+tetra.table.heard row=HeardRow cap=200 label=src since=1.0
 tetra.series.eye x_unit= y_unit= since=1.0
 tetra.series.levels x_unit= y_unit= since=1.0
 tetra.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -691,19 +701,20 @@ tetra.command.hold_current args= reply= since=1.0
 tetra.command.release args= reply= since=1.0
 tetra.command.remove args=row:text reply= since=1.0
 tetra_dmo since=1.0
+tetra_dmo.content kind=voice audio=voice since=2.1
 tetra_dmo.fields.SharedFields since=1.0
 tetra_dmo.fields.TetraDmoFields since=1.0
 tetra_dmo.fields.MonitorFields since=1.0
 tetra_dmo.fields.DecoderFields since=1.0
-tetra_dmo.table.calls row=CallRow cap=300 since=1.0
-tetra_dmo.table.call_details row=CallDetailRow cap=3000 since=1.0
-tetra_dmo.table.messages row=MessageRow cap=100 since=1.0
-tetra_dmo.table.positions row=PositionRow cap=512 since=1.0
+tetra_dmo.table.calls row=CallRow cap=300 label=alias since=1.0
+tetra_dmo.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+tetra_dmo.table.messages row=MessageRow cap=100 label=src since=1.0
+tetra_dmo.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 tetra_dmo.table.sites row=SiteRow cap=1 since=1.0
 tetra_dmo.table.grants row=GrantRow cap=300 since=1.0
 tetra_dmo.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-tetra_dmo.table.history row=HistoryRow cap=500 since=1.0
-tetra_dmo.table.heard row=HeardRow cap=200 since=1.0
+tetra_dmo.table.history row=HistoryRow cap=500 label=call since=1.0
+tetra_dmo.table.heard row=HeardRow cap=200 label=src since=1.0
 tetra_dmo.series.eye x_unit= y_unit= since=1.0
 tetra_dmo.series.levels x_unit= y_unit= since=1.0
 tetra_dmo.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -733,20 +744,21 @@ tetra_dmo.command.hold_current args= reply= since=1.0
 tetra_dmo.command.release args= reply= since=1.0
 tetra_dmo.command.remove args=row:text reply= since=1.0
 freedv since=1.0
+freedv.content kind=voice audio=voice since=2.1
 freedv.fields.SharedFields since=1.0
 freedv.fields.FreedvFields since=1.0
 freedv.fields.MonitorFields since=1.0
 freedv.fields.DecoderFields since=1.0
 freedv.fields.FreedvTxFields since=1.0
-freedv.table.calls row=CallRow cap=300 since=1.0
-freedv.table.call_details row=CallDetailRow cap=3000 since=1.0
-freedv.table.messages row=MessageRow cap=100 since=1.0
-freedv.table.positions row=PositionRow cap=512 since=1.0
+freedv.table.calls row=CallRow cap=300 label=alias since=1.0
+freedv.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+freedv.table.messages row=MessageRow cap=100 label=src since=1.0
+freedv.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 freedv.table.sites row=SiteRow cap=1 since=1.0
 freedv.table.grants row=GrantRow cap=300 since=1.0
 freedv.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-freedv.table.history row=HistoryRow cap=500 since=1.0
-freedv.table.heard row=HeardRow cap=200 since=1.0
+freedv.table.history row=HistoryRow cap=500 label=call since=1.0
+freedv.table.heard row=HeardRow cap=200 label=src since=1.0
 freedv.series.eye x_unit= y_unit= since=1.0
 freedv.series.levels x_unit= y_unit= since=1.0
 freedv.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -778,6 +790,7 @@ freedv.command.remove args=row:text reply= since=1.0
 freedv.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.0
 freedv.command.halt args= reply= since=1.0
 dvoice-auto since=1.0
+dvoice-auto.content kind=voice audio=voice since=2.1
 dvoice-auto.fields.SharedFields since=1.0
 dvoice-auto.fields.AutoFields since=1.0
 dvoice-auto.fields.DmrFields since=1.0
@@ -787,18 +800,18 @@ dvoice-auto.fields.YsfFields since=1.0
 dvoice-auto.fields.M17Fields since=1.0
 dvoice-auto.fields.MonitorFields since=1.0
 dvoice-auto.fields.DecoderFields since=1.0
-dvoice-auto.table.calls row=CallRow cap=300 since=1.0
-dvoice-auto.table.call_details row=CallDetailRow cap=3000 since=1.0
-dvoice-auto.table.messages row=MessageRow cap=100 since=1.0
-dvoice-auto.table.positions row=PositionRow cap=512 since=1.0
+dvoice-auto.table.calls row=CallRow cap=300 label=alias since=1.0
+dvoice-auto.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+dvoice-auto.table.messages row=MessageRow cap=100 label=src since=1.0
+dvoice-auto.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 dvoice-auto.table.sites row=SiteRow cap=1 since=1.0
 dvoice-auto.table.grants row=GrantRow cap=300 since=1.0
 dvoice-auto.table.talkgroups row=TalkgroupRow cap=500 since=1.0
 dvoice-auto.table.modes_seen row=SeenRow cap=16 since=1.0
 dvoice-auto.table.identifiers row=IdentifierRow cap=16 since=1.0
 dvoice-auto.table.adjacent_sites row=AdjacentRow cap=64 since=1.0
-dvoice-auto.table.history row=HistoryRow cap=500 since=1.0
-dvoice-auto.table.heard row=HeardRow cap=200 since=1.0
+dvoice-auto.table.history row=HistoryRow cap=500 label=call since=1.0
+dvoice-auto.table.heard row=HeardRow cap=200 label=src since=1.0
 dvoice-auto.series.eye x_unit= y_unit= since=1.0
 dvoice-auto.series.levels x_unit= y_unit= since=1.0
 dvoice-auto.series.spectrum x_unit=Hz y_unit=dB since=1.0
@@ -822,20 +835,21 @@ dvoice-auto.command.hold_current args= reply= since=1.0
 dvoice-auto.command.release args= reply= since=1.0
 dvoice-auto.command.remove args=row:text reply= since=1.0
 dcr since=1.0
+dcr.content kind=voice audio=voice since=2.1
 dcr.fields.SharedFields since=1.0
 dcr.fields.DcrFields since=1.0
 dcr.fields.MonitorFields since=1.0
 dcr.fields.DecoderFields since=1.0
-dcr.table.calls row=CallRow cap=300 since=1.0
-dcr.table.call_details row=CallDetailRow cap=3000 since=1.0
-dcr.table.messages row=MessageRow cap=100 since=1.0
-dcr.table.positions row=PositionRow cap=512 since=1.0
+dcr.table.calls row=CallRow cap=300 label=alias since=1.0
+dcr.table.call_details row=CallDetailRow cap=3000 label=call since=1.0
+dcr.table.messages row=MessageRow cap=100 label=src since=1.0
+dcr.table.positions row=PositionRow cap=512 label=src position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 dcr.table.sites row=SiteRow cap=1 since=1.0
 dcr.table.grants row=GrantRow cap=300 since=1.0
 dcr.table.talkgroups row=TalkgroupRow cap=500 since=1.0
-dcr.table.events row=DcrEventRow cap=500 since=1.0
-dcr.table.history row=HistoryRow cap=500 since=1.0
-dcr.table.heard row=HeardRow cap=200 since=1.0
+dcr.table.events row=DcrEventRow cap=500 label=identity since=1.0
+dcr.table.history row=HistoryRow cap=500 label=call since=1.0
+dcr.table.heard row=HeardRow cap=200 label=src since=1.0
 dcr.series.eye x_unit= y_unit= since=1.0
 dcr.series.levels x_unit= y_unit= since=1.0
 dcr.series.spectrum x_unit=Hz y_unit=dB since=1.0

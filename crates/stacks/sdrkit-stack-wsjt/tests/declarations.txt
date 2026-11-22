@@ -126,6 +126,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -144,6 +145,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -164,6 +166,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -296,6 +299,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -314,6 +318,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -334,6 +339,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -463,6 +469,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -481,6 +488,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -501,6 +509,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -629,6 +638,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -647,6 +657,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -667,6 +678,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -793,6 +805,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -811,6 +824,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -831,6 +845,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -944,6 +959,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -962,6 +978,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -982,6 +999,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1086,6 +1104,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1104,6 +1123,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1124,6 +1144,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1229,6 +1250,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1247,6 +1269,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1267,6 +1290,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1367,6 +1391,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1385,6 +1410,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1405,6 +1431,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1502,6 +1529,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1520,6 +1548,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1540,6 +1569,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1637,6 +1667,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1655,6 +1686,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1675,6 +1707,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1772,6 +1805,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1790,6 +1824,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1810,6 +1845,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1911,6 +1947,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1929,6 +1966,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1949,6 +1987,7 @@ table "js8_messages" "JS8 messages" cap 200
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }

@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "ism", version 2.0. MIT licence.
+// sdrkit: the typed interface of the stack family "ism", version 2.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum IsmInterface {
     public static let major = 2
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of the burst finder of the ISM sensor stack.
@@ -3887,6 +3887,7 @@ public enum IsmComponents {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum IsmTables {
     /// The changed rows of the table "devices" of the stack "ism", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func ismDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[IsmDeviceRow], SDRKitCode> {
         var rows = [sdrkit_ism_device_row](repeating: sdrkit_ism_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3903,6 +3904,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(IsmZwaveRow.init))
     }
     /// The changed rows of the table "log" of the stack "ism", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func ismLog(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[IsmLogRow], SDRKitCode> {
         var rows = [sdrkit_ism_log_row](repeating: sdrkit_ism_log_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3919,6 +3921,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(IsmUnknownRow.init))
     }
     /// The changed rows of the table "sigfox" of the stack "ism", newest first, at most `capacity` rows.
+    /// The column `device_id` names a row.
     public static func ismSigfox(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[IsmSigfoxRow], SDRKitCode> {
         var rows = [sdrkit_ism_sigfox_row](repeating: sdrkit_ism_sigfox_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3983,6 +3986,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ZwaveNodeRow.init))
     }
     /// The changed rows of the table "networks" of the stack "zwave", newest first, at most `capacity` rows.
+    /// Default order: the column `level_dbfs`, highest first.
     public static func zwaveNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[ZwaveNetworkRow], SDRKitCode> {
         var rows = [sdrkit_zwave_network_row](repeating: sdrkit_zwave_network_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4007,6 +4011,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ZwaveClassRow.init))
     }
     /// The changed rows of the table "networks" of the stack "zigbee", newest first, at most `capacity` rows.
+    /// Default order: the column `level_dbfs`, highest first.
     public static func zigbeeNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[ZigbeeNetworkRow], SDRKitCode> {
         var rows = [sdrkit_zigbee_network_row](repeating: sdrkit_zigbee_network_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4031,6 +4036,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ZigbeeFrameRow.init))
     }
     /// The changed rows of the table "sigfox" of the stack "sigfox", newest first, at most `capacity` rows.
+    /// The column `device_id` names a row.
     public static func sigfox(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[SigfoxMessageRow], SDRKitCode> {
         var rows = [sdrkit_sigfox_message_row](repeating: sdrkit_sigfox_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4055,6 +4061,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AntFrameRow.init))
     }
     /// The changed rows of the table "frames" of the stack "nrf24", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func nrf24Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[Nrf24NrfFrameRow], SDRKitCode> {
         var rows = [sdrkit_nrf24_nrf_frame_row](repeating: sdrkit_nrf24_nrf_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4063,6 +4070,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Nrf24NrfFrameRow.init))
     }
     /// The changed rows of the table "addresses" of the stack "nrf24", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func nrf24Addresses(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[Nrf24NrfAddressRow], SDRKitCode> {
         var rows = [sdrkit_nrf24_nrf_address_row](repeating: sdrkit_nrf24_nrf_address_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4087,6 +4095,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SubghzchatLineRow.init))
     }
     /// The changed rows of the table "packets" of the stack "subghzchat", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
     public static func subghzchatPackets(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[SubghzchatPacketRow], SDRKitCode> {
         var rows = [sdrkit_subghzchat_packet_row](repeating: sdrkit_subghzchat_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4095,6 +4104,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SubghzchatPacketRow.init))
     }
     /// The changed rows of the table "bases" of the stack "dect", newest first, at most `capacity` rows.
+    /// Default order: the column `level_dbfs`, highest first.
     public static func dectBases(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[DectBaseRow], SDRKitCode> {
         var rows = [sdrkit_dect_base_row](repeating: sdrkit_dect_base_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4103,6 +4113,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DectBaseRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "dect", newest first, at most `capacity` rows.
+    /// The column `from` names a row.
     public static func dectBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DectBurstRow], SDRKitCode> {
         var rows = [sdrkit_dect_burst_row](repeating: sdrkit_dect_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4111,6 +4122,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DectBurstRow.init))
     }
     /// The changed rows of the table "tags" of the stack "nfc", newest first, at most `capacity` rows.
+    /// The column `uid` names a row.
     public static func nfcTags(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[NfcTagRow], SDRKitCode> {
         var rows = [sdrkit_nfc_tag_row](repeating: sdrkit_nfc_tag_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4119,6 +4131,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NfcTagRow.init))
     }
     /// The changed rows of the table "frames" of the stack "nfc", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func nfcFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[NfcFrameRow], SDRKitCode> {
         var rows = [sdrkit_nfc_frame_row](repeating: sdrkit_nfc_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4127,6 +4140,8 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NfcFrameRow.init))
     }
     /// The changed rows of the table "networks" of the stack "wisun", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
+    /// Default order: the column `level_dbfs`, highest first.
     public static func wisunNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[WisunNetworkRow], SDRKitCode> {
         var rows = [sdrkit_wisun_network_row](repeating: sdrkit_wisun_network_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4143,6 +4158,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WisunNodeRow.init))
     }
     /// The changed rows of the table "links" of the stack "wisun", newest first, at most `capacity` rows.
+    /// The column `from` names a row.
     public static func wisunLinks(_ handle: SDRKIT_HANDLE, capacity: Int = 4000) -> Result<[WisunLinkRow], SDRKitCode> {
         var rows = [sdrkit_wisun_link_row](repeating: sdrkit_wisun_link_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4159,6 +4175,8 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WisunFrameRow.init))
     }
     /// The changed rows of the table "networks" of the stack "thread", newest first, at most `capacity` rows.
+    /// The column `network_name` names a row.
+    /// Default order: the column `level_dbfs`, highest first.
     public static func threadNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[ThreadNetworkRow], SDRKitCode> {
         var rows = [sdrkit_thread_network_row](repeating: sdrkit_thread_network_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4175,6 +4193,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(IsmPanDeviceRow.init))
     }
     /// The changed rows of the table "frames" of the stack "thread", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
     public static func threadFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[ThreadFrameRow], SDRKitCode> {
         var rows = [sdrkit_thread_frame_row](repeating: sdrkit_thread_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4183,6 +4202,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ThreadFrameRow.init))
     }
     /// The changed rows of the table "frames" of the stack "mioty", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func miotyFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MiotyFrameRow], SDRKitCode> {
         var rows = [sdrkit_mioty_frame_row](repeating: sdrkit_mioty_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4191,6 +4211,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MiotyFrameRow.init))
     }
     /// The changed rows of the table "devices" of the stack "mioty", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func miotyDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MiotyDeviceRow], SDRKitCode> {
         var rows = [sdrkit_mioty_device_row](repeating: sdrkit_mioty_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4199,6 +4220,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MiotyDeviceRow.init))
     }
     /// The changed rows of the table "packets" of the stack "dect_nrplus", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func dectNrplusPackets(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DectNrplusNrPlusPacketRow], SDRKitCode> {
         var rows = [sdrkit_dect_nrplus_nr_plus_packet_row](repeating: sdrkit_dect_nrplus_nr_plus_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4207,6 +4229,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DectNrplusNrPlusPacketRow.init))
     }
     /// The changed rows of the table "devices" of the stack "dect_nrplus", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func dectNrplusDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DectNrplusNrPlusDeviceRow], SDRKitCode> {
         var rows = [sdrkit_dect_nrplus_nr_plus_device_row](repeating: sdrkit_dect_nrplus_nr_plus_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4231,6 +4254,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Npr70NprNetworkRow.init))
     }
     /// The changed rows of the table "frames" of the stack "dsrc_toll", newest first, at most `capacity` rows.
+    /// The column `identifier` names a row.
     public static func dsrcTollFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[DsrcTollDsrcFrameRow], SDRKitCode> {
         var rows = [sdrkit_dsrc_toll_dsrc_frame_row](repeating: sdrkit_dsrc_toll_dsrc_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized

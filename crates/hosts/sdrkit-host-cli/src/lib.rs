@@ -331,7 +331,7 @@ pub struct Io<'a> {
 }
 
 /// The columns of the `stacks` table that the `stacks` command shows.
-const STACK_COLUMNS: &[&str] = &["name", "group", "blurb", "default_hz"];
+const STACK_COLUMNS: &[&str] = &["name", "group", "kind", "blurb", "default_hz"];
 
 static STOP: AtomicBool = AtomicBool::new(false);
 

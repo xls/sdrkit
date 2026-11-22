@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "marine", version 1.0. MIT licence.
+// sdrkit: the typed interface of the stack family "marine", version 1.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum MarineInterface {
     public static let major = 1
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of the AIS stack.
@@ -1794,6 +1794,9 @@ public struct AtisMessageEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum MarineTables {
     /// The changed rows of the table "stations" of the stack "ais", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
+    /// Place of a row: the column `position`.
+    /// Course: `course_deg`. Speed: `speed_kt`.
     public static func aisStations(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[AisStationRow], SDRKitCode> {
         var rows = [sdrkit_ais_station_row](repeating: sdrkit_ais_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1802,6 +1805,8 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AisStationRow.init))
     }
     /// The changed rows of the table "track_points" of the stack "ais", newest first, at most `capacity` rows.
+    /// The column `station` names a row.
+    /// Place of a row: the column `position`.
     public static func aisTrackPoints(_ handle: SDRKIT_HANDLE, capacity: Int = 2500) -> Result<[AisTrackPointRow], SDRKitCode> {
         var rows = [sdrkit_ais_track_point_row](repeating: sdrkit_ais_track_point_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1818,6 +1823,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AisCounterRow.init))
     }
     /// The changed rows of the table "channels" of the stack "ais", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func aisChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 4) -> Result<[AisChannelRow], SDRKitCode> {
         var rows = [sdrkit_ais_channel_row](repeating: sdrkit_ais_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1834,6 +1840,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AisSentenceRow.init))
     }
     /// The changed rows of the table "receptions" of the stack "ais", newest first, at most `capacity` rows.
+    /// The column `mmsi` names a row.
     public static func aisReceptions(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[AisReceptionRow], SDRKitCode> {
         var rows = [sdrkit_ais_reception_row](repeating: sdrkit_ais_reception_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1842,6 +1849,8 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AisReceptionRow.init))
     }
     /// The changed rows of the table "alerts" of the stack "ais", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
+    /// Place of a row: the column `position`.
     public static func aisAlerts(_ handle: SDRKIT_HANDLE, capacity: Int = 50) -> Result<[AisAlertRow], SDRKitCode> {
         var rows = [sdrkit_ais_alert_row](repeating: sdrkit_ais_alert_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1858,6 +1867,9 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AisHopRow.init))
     }
     /// The changed rows of the table "selected" of the stack "ais", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `altitude_m`. Course: `course_deg`. Speed: `speed_kt`.
     public static func aisSelected(_ handle: SDRKIT_HANDLE, capacity: Int = 1) -> Result<[AisSelectedRow], SDRKitCode> {
         var rows = [sdrkit_ais_selected_row](repeating: sdrkit_ais_selected_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1874,6 +1886,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MarineNavtexRow.init))
     }
     /// The changed rows of the table "dsc" of the stack "marine", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
     public static func marineDsc(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MarineDscRow], SDRKitCode> {
         var rows = [sdrkit_marine_dsc_row](repeating: sdrkit_marine_dsc_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1882,6 +1895,9 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MarineDscRow.init))
     }
     /// The changed rows of the table "asm" of the stack "vdes", newest first, at most `capacity` rows.
+    /// The column `mmsi` names a row.
+    /// Place of a row: the column `position`.
+    /// Course: `course_deg`. Speed: `speed_kt`.
     public static func vdesAsm(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[VdesAsmRow], SDRKitCode> {
         var rows = [sdrkit_vdes_asm_row](repeating: sdrkit_vdes_asm_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1898,6 +1914,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VdesBurstRow.init))
     }
     /// The changed rows of the table "channels" of the stack "vdes", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func vdesChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 6) -> Result<[VdesChannelRow], SDRKitCode> {
         var rows = [sdrkit_vdes_channel_row](repeating: sdrkit_vdes_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1938,6 +1955,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MarinevhfVhfChannelRow.init))
     }
     /// The changed rows of the table "messages" of the stack "atis", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func atisMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[AtisMessageRow], SDRKitCode> {
         var rows = [sdrkit_atis_message_row](repeating: sdrkit_atis_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1946,6 +1964,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AtisMessageRow.init))
     }
     /// The changed rows of the table "stations" of the stack "atis", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func atisStations(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[AtisStationRow], SDRKitCode> {
         var rows = [sdrkit_atis_station_row](repeating: sdrkit_atis_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized

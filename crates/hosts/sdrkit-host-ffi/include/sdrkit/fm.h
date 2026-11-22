@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "fm", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "fm", version 1.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_FM_VERSION_MAJOR 1
-#define SDRKIT_FM_VERSION_MINOR 2
+#define SDRKIT_FM_VERSION_MINOR 3
 
 // The stack "fm": its id, and the keys of its event types.
 #define SDRKIT_STACK_FM "fm"
@@ -847,6 +847,7 @@ static inline int32_t sdrkit_fm_oda_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "eon" of the stack "fm" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_fm_eon_rows(SDRKIT_HANDLE handle,
                                         sdrkit_fm_eon_row *rows,
                                         uint32_t capacity,
@@ -1407,6 +1408,7 @@ static inline int32_t sdrkit_stl_oda_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "eon" of the stack "stl" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_stl_eon_rows(SDRKIT_HANDLE handle,
                                          sdrkit_fm_eon_row *rows,
                                          uint32_t capacity,

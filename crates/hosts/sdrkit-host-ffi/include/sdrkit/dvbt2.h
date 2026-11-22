@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dvbt2", version 1.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "dvbt2", version 1.4. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -37,7 +37,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DVBT2_VERSION_MAJOR 1
-#define SDRKIT_DVBT2_VERSION_MINOR 3
+#define SDRKIT_DVBT2_VERSION_MINOR 4
 
 // The stack "dvbt2": its id, and the keys of its event types.
 #define SDRKIT_STACK_DVBT2 "dvbt2"

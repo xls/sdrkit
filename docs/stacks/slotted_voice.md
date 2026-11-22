@@ -86,7 +86,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `custom`, version 1.2. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `custom`, version 1.3. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Voice calls (`voice`). Media: sound (voice).
 
 ### Result fields
 
@@ -128,6 +130,8 @@ Struct `SlottedVoiceStationRow`. A row of the stations heard in beacons. The row
 | `link` | whole number | always | 1.0 | The link quality value. |
 | `text` | text | always | 1.0 | The beacon text, or the text of the last full beacon of the station. |
 | `last_heard` | time | always | 1.0 | When the station was last heard. |
+
+The column `callsign` names a row. Place of a row: the column `position`.
 
 ### Event `voice.station`
 

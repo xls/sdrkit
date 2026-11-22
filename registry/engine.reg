@@ -1,5 +1,5 @@
 # The interface of the stack family engine. The registry test of the family writes this file.
-family engine version=1.6
+family engine version=1.7
 shape.EngineFields since=1.2
 shape.EngineFields.engine.core_units type=f64 unit= optional=yes since=1.2
 shape.EngineFields.engine.core_units_slow type=f64 unit= optional=yes since=1.2
@@ -24,6 +24,11 @@ shape.StackRow.lock_snr_db type=f64 unit=dB optional=no since=1.0
 shape.StackRow.lock_collect_s type=duration unit=s optional=no since=1.0
 shape.StackRow.transmit type=bool unit= optional=no since=1.3
 shape.StackRow.host_audio_channels type=i64 unit= optional=no since=1.6
+shape.StackRow.kind type=choice(broadcast,television,voice,text_chat,weak_signal,mesh,tracking,datalink,pictures,satellite_imagery,measurement,science,navigation,networks,paging,devices,utility,satellite_links,general) unit= optional=yes since=1.7
+shape.StackRow.audio type=choice(programme,voice,monitor) unit= optional=yes since=1.7
+shape.StackRow.pictures type=bool unit= optional=no since=1.7
+shape.StackRow.video type=bool unit= optional=no since=1.7
+shape.StackRow.text type=bool unit= optional=no since=1.7
 shape.SubmodeRow since=1.0
 shape.SubmodeRow.stack type=text unit= optional=no refers_to=stacks since=1.0
 shape.SubmodeRow.name type=text unit= optional=no since=1.0
@@ -123,7 +128,7 @@ shape.StateSaveReply since=1.0
 shape.StateSaveReply.state type=bytes unit= optional=no since=1.0
 engine since=1.0
 engine.fields.EngineFields since=1.2
-engine.table.stacks row=StackRow cap=4096 since=1.0
+engine.table.stacks row=StackRow cap=4096 label=name since=1.0
 engine.table.submodes row=SubmodeRow cap=4096 since=1.0
 engine.table.stack_signals row=StackSignalRow cap=4096 since=1.0
 engine.table.drivers row=DriverRow cap=4096 since=1.0

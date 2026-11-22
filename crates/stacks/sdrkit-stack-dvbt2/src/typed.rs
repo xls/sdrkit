@@ -266,7 +266,11 @@ pub fn family() -> &'static Family {
             .command(&TX_START)
             .command(&TX_STOP)
             .command(&TX_APPEND);
-        Family::new("dvbt2", 1, 3)
+        Family::new("dvbt2", 1, 4)
+            .added(1, 4, &["dvbt2.content"])
+            .content(sdrkit_core::ContentKind::Television, &["dvbt2"])
+            .audio(sdrkit_core::AudioKind::Programme, &["dvbt2"])
+            .video(&["dvbt2"])
             .uses(sdrkit_proto_mpegts::publish::interface())
             .uses(ipcast::interface())
             .shared_source("graph", &["dvbt2"])

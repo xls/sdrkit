@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "analogtv", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "analogtv", version 1.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,7 +36,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_ANALOGTV_VERSION_MAJOR 1
-#define SDRKIT_ANALOGTV_VERSION_MINOR 1
+#define SDRKIT_ANALOGTV_VERSION_MINOR 2
 
 // The stack "atv": its id, and the keys of its event types.
 #define SDRKIT_STACK_ATV "atv"
@@ -1233,6 +1233,7 @@ typedef struct sdrkit_fpv_scan_args {
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "atv" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `label` names a row.
 static inline int32_t sdrkit_atv_channels_rows(SDRKIT_HANDLE handle,
                                               sdrkit_atv_channel_row *rows,
                                               uint32_t capacity,
@@ -1799,6 +1800,7 @@ static inline int32_t sdrkit_mac_gen_set_country(SDRKIT_HANDLE handle, sdrkit_st
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "fpv" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_fpv_channels_rows(SDRKIT_HANDLE handle,
                                               sdrkit_fpv_channel_row *rows,
                                               uint32_t capacity,

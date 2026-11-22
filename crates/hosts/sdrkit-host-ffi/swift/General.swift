@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "general", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "general", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum GeneralInterface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The result fields of the AM processor. The measurements have no value while the processor does not run.
@@ -336,6 +336,7 @@ public enum GeneralTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GeneralWidthPresetRow.init))
     }
     /// The changed rows of the table "presets" of the stack "general", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func generalPresets(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[GeneralPresetRow], SDRKitCode> {
         var rows = [sdrkit_general_preset_row](repeating: sdrkit_general_preset_row(), count: capacity)
         var info = sdrkit_rows_info.sized

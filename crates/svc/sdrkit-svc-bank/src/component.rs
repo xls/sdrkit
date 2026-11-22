@@ -116,6 +116,7 @@ const CARRIERS: TableDef = TableDef {
     label: "Carriers",
     columns: &[&keys::FREQ_HZ, &keys::LEVEL_DBFS, &keys::SNR_DB, &ON],
     cap: 100_000,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// A carrier of the raster rose above the threshold. Its frequency is the raster channel.

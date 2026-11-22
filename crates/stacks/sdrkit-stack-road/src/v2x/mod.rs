@@ -7,13 +7,13 @@
 pub mod gen;
 pub mod its;
 
-use its::{scan_mpdu, Found};
-use sdrkit_algo_dsp::channel::{ChannelConfig, Channelizer};
-use sdrkit_core::command::{CommandError, CommandId, CommandSet};
 use crate::typed::{
     V2xFields, V2xFrameRow, V2xVehicleEvent, V2xVehicleRow, V2X_FRAMES, V2X_REMOVE, V2X_VEHICLE,
     V2X_VEHICLES, VEHICLE_ROW,
 };
+use its::{scan_mpdu, Found};
+use sdrkit_algo_dsp::channel::{ChannelConfig, Channelizer};
+use sdrkit_core::command::{CommandError, CommandId, CommandSet};
 use sdrkit_core::interface::{Fields as _, Hertz, Time};
 use sdrkit_core::publish::keys::Family;
 use sdrkit_core::publish::Published;
@@ -515,7 +515,12 @@ impl Decoder for V2xDecoder {
         if std::mem::take(&mut self.dirty) {
             shaped::rows(&self.store.vehicles, &V2X_VEHICLES, now, p);
             shaped::log_rows(&self.store.frames, &V2X_FRAMES, now, p);
-            shaped::points(&self.store.vehicles, "vehicle/", p.results_mut());
+            shaped::row_points(
+                &self.store.vehicles,
+                &V2X_VEHICLES,
+                "vehicle/",
+                p.results_mut(),
+            );
         }
         let level = self.last.map(|l| l.0 as f32);
         let summary = self.summary.clone();
@@ -566,7 +571,6 @@ impl Decoder for V2xDecoder {
         Ok(())
     }
 }
-
 
 sdrkit_core::commands! {
     /// The commands of the decoder beside `clear`.

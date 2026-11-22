@@ -119,6 +119,7 @@ field FieldDecl { key: "tx_limit_db", label: "Limiter", unit: "dB", kind: F64, c
 table "width_presets" "Width presets" cap 32
   column FieldDecl { key: "width_hz", label: "Width", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
 table "presets" "Presets" cap 64
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "demod", label: "Demodulator", unit: "", kind: Choice, choices: [ChoiceDecl { key: "nfm", label: "NFM" }, ChoiceDecl { key: "wfm", label: "WFM" }, ChoiceDecl { key: "am", label: "AM" }, ChoiceDecl { key: "usb", label: "USB" }, ChoiceDecl { key: "lsb", label: "LSB" }, ChoiceDecl { key: "cw", label: "CW" }], refers_to: None, content: None }

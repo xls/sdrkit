@@ -134,7 +134,9 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `wsjt`, version 4.0. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wsjt`, version 4.1. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Weak-signal messages (`weak_signal`). Media: sound (monitor), text.
 
 ### Result fields
 
@@ -187,6 +189,8 @@ Struct `WsprSpotRow`. A row of the WSPR and FST4W spots. The row key is the plac
 | `power_dbm` | whole number (dBm) | always | 1.0 | The power that the beacon states. |
 | `message` | text | always | 1.0 | The decoded message. |
 
+The column `callsign` names a row.
+
 ### Table `modes`
 
 Struct `ModeRow`. A row of the modes table: the counters and the state of one mode heard, or of one JS8 speed. The row key is the mode id, or `js8n`, `js8f` and `js8t`.
@@ -215,6 +219,8 @@ Struct `StationRow`. A row of the station table: a station heard in any mode. Th
 | `freq_hz` | frequency | always | 1.0 | The radio frequency of the newest decode. |
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last decode. |
+
+The column `callsign` names a row.
 
 ### Table `js8_frames`
 
@@ -253,6 +259,8 @@ Struct `Js8StationRow`. A row of the JS8 stations. The row key is the callsign.
 | `utc` | time | always | 1.0 | The UTC of the newest frame. |
 | `last_text` | text | always | 1.0 | The newest text of the station. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+
+The column `callsign` names a row.
 
 ### Table `wide.multiband`
 

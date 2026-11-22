@@ -993,14 +993,16 @@ pub static MPT1327_MESSAGE: EventKind<Mpt1327MessageEvent<'static>> =
     EventKind::new("mpt1327.message", "MPT 1327 message");
 
 /// The good LTR words, oldest first.
-pub static LTR_WORDS: Table<LtrWordRow<'static>> = Table::new("words", "Words", 400);
+pub static LTR_WORDS: Table<LtrWordRow<'static>> =
+    Table::new("words", "Words", 400).label(&LtrWordRow::TALKGROUP);
 /// The LTR repeaters.
 pub static LTR_REPEATERS: Table<LtrRepeaterRow> = Table::new("repeaters", "Repeaters", 20);
 /// A good LTR word.
 pub static LTR_WORD: EventKind<LtrWordEvent<'static>> = EventKind::new("ltr.word", "LTR word");
 
 /// The EDACS calls, oldest first.
-pub static EDACS_CALLS: Table<EdacsCallRow<'static>> = Table::new("calls", "Calls", 200);
+pub static EDACS_CALLS: Table<EdacsCallRow<'static>> =
+    Table::new("calls", "Calls", 200).label(&EdacsCallRow::SOURCE);
 /// The EDACS talkgroups.
 pub static EDACS_TALKGROUPS: Table<EdacsTalkgroupRow> = Table::new("talkgroups", "Talkgroups", 200);
 /// The EDACS channels.
@@ -1036,22 +1038,25 @@ pub static MULTITONE_BURST: EventKind<MultitoneBurstEvent<'static>> =
 
 /// The Type II messages, oldest first.
 pub static MOTOROLA_TYPE2_MESSAGES: Table<MotorolaType2MessageRow<'static>> =
-    Table::new("messages", "Messages", crate::type2::tables::MESSAGE_CAP);
+    Table::new("messages", "Messages", crate::type2::tables::MESSAGE_CAP)
+        .label(&MotorolaType2MessageRow::ADDRESS);
 /// The Type II talkgroups.
 pub static MOTOROLA_TYPE2_TALKGROUPS: Table<MotorolaType2TalkgroupRow<'static>> = Table::new(
     "talkgroups",
     "Talkgroups",
     crate::type2::tables::TALKGROUP_CAP,
-);
+)
+.label(&MotorolaType2TalkgroupRow::TALKGROUP);
 /// The Type II sites.
 pub static MOTOROLA_TYPE2_SITES: Table<MotorolaType2SiteRow<'static>> =
     Table::new("sites", "Sites", 64);
 /// The Type II patches.
 pub static MOTOROLA_TYPE2_PATCHES: Table<MotorolaType2PatchRow<'static>> =
-    Table::new("patches", "Patches", 256);
+    Table::new("patches", "Patches", 256).label(&MotorolaType2PatchRow::TALKGROUP);
 /// The Type II calls.
 pub static MOTOROLA_TYPE2_CALLS: Table<MotorolaType2CallRow<'static>> =
-    Table::new("calls", "Calls", crate::type2::tables::CALL_CAP);
+    Table::new("calls", "Calls", crate::type2::tables::CALL_CAP)
+        .label(&MotorolaType2CallRow::TALKGROUP);
 /// A Type II message.
 pub static MOTOROLA_TYPE2_MESSAGE: EventKind<MotorolaType2MessageEvent<'static>> =
     EventKind::new("type2.message", "Type II message");
@@ -1541,8 +1546,7 @@ pub const PAGER_SEND: CommandKind<PagerSendArgs<'static>> =
         .stopped_by("halt");
 /// Ends the transmission.
 pub const PAGER_HALT: sdrkit_core::command::Command = sdrkit_core::command::Command::new(
-    "halt",
-    "Halt",
+    "halt", "Halt",
 )
 .help("Drops the pages waiting and ends the transmission after the current bit with a 1 ms fall.");
 
@@ -1671,7 +1675,7 @@ pub struct GscPageEvent<'a> {
 
 /// The GSC pages and the ends of voice pages, newest last.
 pub static GSC_PAGES: Table<GscPageRow<'static>> =
-    Table::new("pages", "Pages", crate::gsc::ROW_CAP);
+    Table::new("pages", "Pages", crate::gsc::ROW_CAP).label(&GscPageRow::CALL);
 /// One GSC page.
 pub static GSC_PAGE: EventKind<GscPageEvent<'static>> = EventKind::new("gsc.page", "GSC page");
 
@@ -1887,7 +1891,7 @@ pub struct ScadaCsvReply<'a> {
 
 /// The SCADA messages, newest last.
 pub static SCADA_MESSAGES: Table<ScadaMessageRow<'static>> =
-    Table::new("messages", "Messages", crate::scada::MESSAGE_CAP);
+    Table::new("messages", "Messages", crate::scada::MESSAGE_CAP).label(&ScadaMessageRow::FROM);
 /// The SCADA devices.
 pub static SCADA_DEVICES: Table<ScadaDeviceRow<'static>> =
     Table::new("devices", "Devices", crate::scada::DEVICE_CAP);
@@ -1909,7 +1913,36 @@ pub fn family() -> &'static Described {
         let objects_clear = &sdrkit_util_objects::commands::CLEAR;
         let decoder_clear = &sdrkit_graph::decoder::CLEAR;
         use sdrkit_proto_tones::components as tones;
-        Described::new("trunk", 1, 2)
+        Described::new("trunk", 1, 3)
+            .added(
+                1,
+                3,
+                &[
+                    "mpt1327.content",
+                    "ltr.content",
+                    "edacs.content",
+                    "tones.content",
+                    "pager.content",
+                    "ermes.content",
+                    "multitone.content",
+                    "motorola_type2.content",
+                    "opensky.content",
+                    "gsc.content",
+                    "scada.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Voice,
+                &["mpt1327", "ltr", "edacs", "motorola_type2", "opensky"],
+            )
+            .content(sdrkit_core::ContentKind::Measurement, &["tones"])
+            .content(
+                sdrkit_core::ContentKind::Paging,
+                &["pager", "ermes", "multitone", "gsc"],
+            )
+            .content(sdrkit_core::ContentKind::Devices, &["scada"])
+            .audio(sdrkit_core::AudioKind::Monitor, &["tones"])
+            .text(&["pager", "ermes", "multitone", "gsc"])
             // The tone events of the `tones` and `pager` stacks are described in their protocol crate.
             .uses(sdrkit_proto_tones::components::interface())
             .stack(

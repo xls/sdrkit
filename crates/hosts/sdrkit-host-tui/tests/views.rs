@@ -57,12 +57,14 @@ fn engine() -> Results {
                     column("rate_hz", "Sample rate", Type::Hz),
                 ],
                 cap: 10,
+                label_column: None,
             },
             TableDecl {
                 key: "stack_signals".into(),
                 label: "Signal types".into(),
                 columns: vec![column("stack", "Stack", Type::String), signal],
                 cap: 10,
+                label_column: None,
             },
         ],
     };

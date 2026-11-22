@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the settings that every engine has, version 1.6. MIT licence.
+// sdrkit: the typed interface of the settings that every engine has, version 1.7. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum EngineInterface {
     public static let major = 1
-    public static let minor = 6
+    public static let minor = 7
 }
 
 /// The calibration of the device and the cores of the engine.
@@ -45,6 +45,32 @@ public struct EngineStackRow {
         case high = 1
         case hold = 2
     }
+    public enum Kind: Int32 {
+        case broadcast = 0
+        case television = 1
+        case voice = 2
+        case textChat = 3
+        case weakSignal = 4
+        case mesh = 5
+        case tracking = 6
+        case datalink = 7
+        case pictures = 8
+        case satelliteImagery = 9
+        case measurement = 10
+        case science = 11
+        case navigation = 12
+        case networks = 13
+        case paging = 14
+        case devices = 15
+        case utility = 16
+        case satelliteLinks = 17
+        case general = 18
+    }
+    public enum Audio: Int32 {
+        case programme = 0
+        case voice = 1
+        case monitor = 2
+    }
     /// The row key.
     public var key: String
     /// Name.
@@ -81,6 +107,16 @@ public struct EngineStackRow {
     public var transmit: Bool
     /// The channels of host audio that the graph of the stack takes for a transmission: 0 for none, 1 for mono, 2 for stereo.
     public var hostAudioChannels: Int64
+    /// The kind of content of the stack. A front end chooses its view of the stack from it. No value for a stack without an interface description.
+    public var kind: Kind?
+    /// The kind of sound that the stack gives. No value for a stack without sound.
+    public var audio: Audio?
+    /// The stack gives still pictures.
+    public var pictures: Bool
+    /// The stack gives moving pictures.
+    public var video: Bool
+    /// The stack gives running text for people: decoded characters or whole messages.
+    public var text: Bool
 
     init(_ c: sdrkit_engine_stack_row) {
         key = sdrkitText(c.key)
@@ -101,6 +137,11 @@ public struct EngineStackRow {
         lockCollectS = c.lock_collect_s
         transmit = c.transmit
         hostAudioChannels = c.host_audio_channels
+        kind = c.has_kind ? Kind(rawValue: c.kind) : nil
+        audio = c.has_audio ? Audio(rawValue: c.audio) : nil
+        pictures = c.pictures
+        video = c.video
+        text = c.text
     }
 }
 
@@ -710,6 +751,7 @@ public struct EngineRequestEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum EngineTables {
     /// The changed rows of the table "stacks" of the stack "engine", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func engineStacks(_ handle: SDRKIT_HANDLE, capacity: Int = 4096) -> Result<[EngineStackRow], SDRKitCode> {
         var rows = [sdrkit_engine_stack_row](repeating: sdrkit_engine_stack_row(), count: capacity)
         var info = sdrkit_rows_info.sized

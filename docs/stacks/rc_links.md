@@ -91,7 +91,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `drones`, version 1.0. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `drones`, version 1.1. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Networks and cells (`networks`). Media: none.
 
 ### Result fields
 
@@ -147,6 +149,8 @@ Struct `HeardLinkRow`. A link heard.
 | `position` | position | optional | 1.0 | The position of the object that the event is about. |
 | `alt_m` | number (m) | optional | 1.0 | The altitude of the last position. |
 
+The column `id` names a row. Place of a row: the column `position`. Height: `alt_m`.
+
 ### Table `frames`
 
 Struct `LinkFrameRow`. A frame in the frame log.
@@ -163,6 +167,8 @@ Struct `LinkFrameRow`. A frame in the frame log.
 | `freq_hz` | number (Hz) | always | 1.0 | The frequency of a frame. |
 | `snr_db` | number (dB) | always | 1.0 | Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so). |
 | `encrypted` | yes or no | always | 1.0 | The payload is encrypted. |
+
+The column `hex` names a row.
 
 ### Table `ppm_frames`
 

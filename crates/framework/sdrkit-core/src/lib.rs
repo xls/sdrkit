@@ -36,6 +36,7 @@ pub mod event;
 pub mod facilities;
 pub mod interface;
 pub mod job;
+pub mod marks;
 pub mod media;
 pub mod net;
 pub mod operator;
@@ -61,6 +62,7 @@ pub use command::{Command, CommandDef, CommandError, CommandId, CommandSet, Comm
 pub use event::{Event, EventCatalog, EventDecl, EventDef, EventKindId};
 pub use facilities::Facilities;
 pub use job::{Job, JobControl, JobError};
+pub use marks::{AudioKind, ContentKind, Media, Role, RowMarks, SortOrder, TableMarks};
 pub use media::{
     ChannelLayout, Codec, FourCc, MediaFormat, MediaSpec, Packaging, Packet, Picture, PixelFormat,
     PixelLayout, VideoFrame,
@@ -73,7 +75,7 @@ pub use random::Random;
 pub use record::{ContentType, FieldDecl, FieldId, Record, RecordDecl, RefersTo};
 pub use request::{HostRequest, OwnerSetting, RequestError, TuneTarget};
 pub use results::{
-    Axis, LockState, MapPoint, Raster, RasterDecl, RasterId, Results, ResultsDecl, RowMut, Series,
+    Axis, LockState, MapPoint, Raster, RasterDecl, RasterId, Results, ResultsDecl, RowLink, RowMut, Series,
     SeriesDecl, SeriesId, Status, Table, TableDecl, TableId, TableMut,
 };
 pub use settings::{

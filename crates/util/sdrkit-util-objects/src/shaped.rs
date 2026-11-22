@@ -9,7 +9,7 @@ use crate::publish::{self, Point};
 use crate::seen::Seen;
 use crate::table::{ObjectTable, RowRef};
 use sdrkit_core::interface::{EventKind, Fields, Table};
-use sdrkit_core::publish::Published;
+use sdrkit_core::publish::{Published, TableDef};
 use sdrkit_core::results::RowMut;
 use sdrkit_core::{Event, Record, Results};
 use std::fmt::{self, Display, Write};
@@ -20,7 +20,7 @@ use std::marker::PhantomData;
 ///
 /// ```
 /// use sdrkit_core::interface::{Fields, Table};
-/// use sdrkit_core::publish::Published;
+/// use sdrkit_core::publish::{Published, TableDef};
 /// use sdrkit_util_objects::shaped::{self, RowOut, Shaped};
 /// use sdrkit_util_objects::{ObjectTable, Seen, Stamp};
 ///
@@ -164,7 +164,7 @@ pub fn rows_of<'a, T>(
 ///
 /// ```
 /// use sdrkit_core::interface::{Fields, Table};
-/// use sdrkit_core::publish::Published;
+/// use sdrkit_core::publish::{Published, TableDef};
 /// use sdrkit_util_objects::shaped;
 ///
 /// /// A carrier found.
@@ -243,23 +243,32 @@ pub fn event<R: Shaped>(
 }
 
 /// Makes the map points whose id starts with `prefix` hold the points of the objects of `objects` (id: `prefix` and
-/// the text of the key). A point that did not change is not written. Points with other prefixes stay.
-pub fn points<K, R>(objects: &ObjectTable<K, R>, prefix: &str, r: &mut Results)
-where
+/// the text of the key). A point that did not change is not written. Points with other prefixes stay. The rows of the
+/// objects are in table `table` under the text of their keys: each point states its row ([`Results::link_point`]), so
+/// a front end finds the row of a point without reading the point id.
+pub fn row_points<K, R>(
+    objects: &ObjectTable<K, R>,
+    table: &Table<R::Row>,
+    prefix: &str,
+    r: &mut Results,
+) where
     K: Hash + Eq + Clone + Display,
     R: Shaped,
 {
-    publish::points_with(objects, prefix, r, R::point);
+    publish::points_with(objects, Some(table.def()), prefix, r, R::point);
 }
 
-/// As [`points`], for objects of a type that is not [`Shaped`]: `point` returns the point of one object.
-pub fn points_by<K, R>(
+/// As [`row_points`], for objects of a type that is not [`Shaped`]: `point` returns the point of one object, and
+/// `table` is the table that holds the rows of the objects.
+pub fn row_points_by<K, R>(
     objects: &ObjectTable<K, R>,
+    table: &TableDef,
     prefix: &str,
     r: &mut Results,
     point: impl for<'x> Fn(&'x R) -> Option<Point<'x>>,
 ) where
     K: Hash + Eq + Clone + Display,
 {
-    publish::points_with(objects, prefix, r, point);
+    publish::points_with(objects, Some(table), prefix, r, point);
 }
+

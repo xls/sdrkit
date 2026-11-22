@@ -81,6 +81,7 @@ pub const ENTRIES: TableDef = TableDef {
         &STARRED, &USER, &DISTANCE,
     ],
     cap: MAX_PAGE,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The scope tags of the entries in [`ENTRIES`]: where each applies.
 pub const ENTRY_SCOPES: TableDef = TableDef {
@@ -88,6 +89,7 @@ pub const ENTRY_SCOPES: TableDef = TableDef {
     label: "Entry scopes",
     columns: &[&OF_ENTRY, &ITEM_KEY],
     cap: MAX_ITEMS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The tags of the entries in [`ENTRIES`].
 pub const ENTRY_TAGS: TableDef = TableDef {
@@ -95,6 +97,7 @@ pub const ENTRY_TAGS: TableDef = TableDef {
     label: "Entry tags",
     columns: &[&OF_ENTRY, &ITEM_KEY],
     cap: MAX_ITEMS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The settings of the entries in [`ENTRIES`]: the owner key, the setting key and the typed value.
 pub const ENTRY_SETTINGS: TableDef = TableDef {
@@ -102,6 +105,7 @@ pub const ENTRY_SETTINGS: TableDef = TableDef {
     label: "Entry settings",
     columns: &[&OF_ENTRY, &ITEM_OWNER, &ITEM_KEY, &ITEM_VALUE],
     cap: MAX_ITEMS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The problems of the last import, one row for each line that was not read.
 pub const PROBLEMS: TableDef = TableDef {
@@ -109,6 +113,7 @@ pub const PROBLEMS: TableDef = TableDef {
     label: "Import problems",
     columns: &[&LINE, &PROBLEM],
     cap: MAX_PROBLEMS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 // Arguments.

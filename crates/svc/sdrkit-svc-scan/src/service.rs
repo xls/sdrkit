@@ -270,6 +270,7 @@ pub const ENTRIES: TableDef = TableDef {
         &FREQ, &STACK, &SUBMODE, &NAME, &DWELL_COL, &LOCKOUT, &PRIORITY, &BANDWIDTH,
     ],
     cap: MAX_ENTRIES,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The settings of the entries of [`ENTRIES`]: the owner key, the setting key and the typed value.
 pub const ENTRY_SETTINGS: TableDef = TableDef {
@@ -277,6 +278,7 @@ pub const ENTRY_SETTINGS: TableDef = TableDef {
     label: "Scan list settings",
     columns: &[&OF_ENTRY, &ITEM_OWNER, &ITEM_KEY, &ITEM_VALUE],
     cap: MAX_ITEMS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// What the running or last scan found: the stops of an activity scan, or the channels of a channel scan.
 pub const HITS: TableDef = TableDef {
@@ -287,6 +289,7 @@ pub const HITS: TableDef = TableDef {
         &CHANNEL, &EMPTY, &PASS, &TEXT,
     ],
     cap: MAX_HITS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The candidates of the running or last survey: what stage one saw and what the visit gave. The row key is the sequence
 /// number of the candidate.
@@ -304,6 +307,7 @@ pub const CANDIDATES: TableDef = TableDef {
         &UNTIL,
     ],
     cap: crate::survey::MAX_CANDIDATES,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The occupied channels that stage one of the running or last survey saw: power over the noise across 2 to 30 kHz, of
 /// any modulation. A lone carrier, a run at the end of a block and the edge of a wider signal are not listed. The row
@@ -313,6 +317,7 @@ pub const OCCUPIED: TableDef = TableDef {
     label: "Occupied channels of a survey, 2 to 30 kHz wide; a lone carrier is not listed",
     columns: &[&FREQ, &WIDTH, &SNR, &PASS, &SEEN],
     cap: crate::survey::MAX_OCCUPIED,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The result fields that the lock profile of the stack keeps for each hit of a channel scan, by key, typed.
 pub const HIT_VALUES: TableDef = TableDef {
@@ -320,6 +325,7 @@ pub const HIT_VALUES: TableDef = TableDef {
     label: "Hit values",
     columns: &[&OF_HIT, &ITEM_KEY, &ITEM_VALUE],
     cap: MAX_ITEMS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// One page of the saved scan table of the stack that the command table names.
 pub const TABLE: TableDef = TableDef {
@@ -340,6 +346,7 @@ pub const TABLE: TableDef = TableDef {
         &EMPTY,
     ],
     cap: MAX_PAGE,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The settings that the rows of [`TABLE`] were found with.
 pub const TABLE_SETTINGS: TableDef = TableDef {
@@ -347,6 +354,7 @@ pub const TABLE_SETTINGS: TableDef = TableDef {
     label: "Scan table settings",
     columns: &[&OF_ROW, &ITEM_OWNER, &ITEM_KEY, &ITEM_VALUE],
     cap: MAX_ITEMS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The kept result fields of the rows of [`TABLE`].
 pub const TABLE_VALUES: TableDef = TableDef {
@@ -354,6 +362,7 @@ pub const TABLE_VALUES: TableDef = TableDef {
     label: "Scan table values",
     columns: &[&OF_ROW, &ITEM_KEY, &ITEM_VALUE],
     cap: MAX_ITEMS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The frequencies locked out in the running activity scan.
 pub const LOCKOUTS: TableDef = TableDef {
@@ -361,6 +370,7 @@ pub const LOCKOUTS: TableDef = TableDef {
     label: "Lockouts",
     columns: &[&FREQ],
     cap: MAX_ENTRIES,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The problems of the last import, one row for each line that was not read.
 pub const PROBLEMS: TableDef = TableDef {
@@ -368,6 +378,7 @@ pub const PROBLEMS: TableDef = TableDef {
     label: "Import problems",
     columns: &[&LINE, &PROBLEM],
     cap: MAX_PROBLEMS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 // Arguments.

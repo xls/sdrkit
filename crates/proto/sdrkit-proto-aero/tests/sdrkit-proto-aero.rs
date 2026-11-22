@@ -866,7 +866,9 @@ mod adsc_groups {
 
 mod cpdlc_messages {
     use sdrkit_proto_aero::arinc622::Imi;
-    use sdrkit_proto_aero::cpdlc::{self, element_text, read, write, Body, Element, Header, Message};
+    use sdrkit_proto_aero::cpdlc::{
+        self, element_text, read, write, Body, Element, Header, Message,
+    };
     use sdrkit_util_bits::per_schema::Value;
 
     /// The real envelopes of FANS-1/A messages: four AT1 downlinks and a CR1.
@@ -912,11 +914,19 @@ mod cpdlc_messages {
         write(&climb(350), true, &mut b).unwrap();
         assert_eq!(b, [0x03, 0x8A, 0x65, 0x00]);
         let mut b = Vec::new();
-        write(&free_text(12, "REQUEST HIGHER DUE TURBULENCE"), false, &mut b).unwrap();
+        write(
+            &free_text(12, "REQUEST HIGHER DUE TURBULENCE"),
+            false,
+            &mut b,
+        )
+        .unwrap();
         assert_eq!(&b[..3], [0x06, 0x21, 0x8E]);
         // 1 + 2 + 6 + 8 + 8 bits, then 29 characters of 7 bits, padded to octets.
         assert_eq!(b.len(), (25 + 29 * 7usize).div_ceil(8));
-        assert_eq!(read(&b, false).unwrap(), free_text(12, "REQUEST HIGHER DUE TURBULENCE"));
+        assert_eq!(
+            read(&b, false).unwrap(),
+            free_text(12, "REQUEST HIGHER DUE TURBULENCE")
+        );
     }
 
     #[test]
@@ -940,7 +950,10 @@ mod cpdlc_messages {
         assert!(t.contains("Flight level: 340"), "{t}");
         assert!(t.contains("Fix: GORLO"), "{t}");
         assert_eq!(cpdlc::DOWNLINK_ELEMENTS, 129);
-        assert_eq!(element_text(false, 80), Some("DEVIATING [distanceoffset][direction] OF ROUTE"));
+        assert_eq!(
+            element_text(false, 80),
+            Some("DEVIATING [distanceoffset][direction] OF ROUTE")
+        );
         assert_eq!(element_text(false, 81), None);
         assert_eq!(element_text(true, 182), Some("CONFIRM ATIS CODE"));
     }
@@ -955,9 +968,14 @@ mod cpdlc_messages {
             assert!(c.text().len() > 40, "{t}");
         }
         let c = cpdlc::decode(CR1, false, "").unwrap();
-        assert_eq!((c.imi, c.ground.as_str(), c.aircraft.as_str()), (Imi::Cr1, "ATLTWXA", "N856DN"));
+        assert_eq!(
+            (c.imi, c.ground.as_str(), c.aircraft.as_str()),
+            (Imi::Cr1, "ATLTWXA", "N856DN")
+        );
         assert!(c.crc_ok && c.parsed(), "{:?}", c.body);
-        assert!(c.description().starts_with("FANS-1/A CPDLC connect request (CR1)"));
+        assert!(c
+            .description()
+            .starts_with("FANS-1/A CPDLC connect request (CR1)"));
     }
 
     #[test]
@@ -968,7 +986,10 @@ mod cpdlc_messages {
             assert!(t.starts_with("/EGTTYGA.AT1.G-ABCD"));
             let c = cpdlc::decode(&t, false, "").unwrap();
             assert!(c.crc_ok && c.parsed());
-            assert_eq!((c.ground.as_str(), c.aircraft.as_str()), ("EGTTYGA", "G-ABCD"));
+            assert_eq!(
+                (c.ground.as_str(), c.aircraft.as_str()),
+                ("EGTTYGA", "G-ABCD")
+            );
             let text = c.text();
             assert!(text.contains("CLIMB TO AND MAINTAIN"), "{text}");
             assert!(text.contains(&format!("Flight level: {fl}")), "{text}");
@@ -1000,7 +1021,14 @@ mod cpdlc_messages {
     #[test]
     fn downlink_free_text() {
         let mut t = String::new();
-        cpdlc::build("KZNYCAY", "N123AB", &free_text(12, "REQUEST HIGHER DUE TURBULENCE"), false, &mut t).unwrap();
+        cpdlc::build(
+            "KZNYCAY",
+            "N123AB",
+            &free_text(12, "REQUEST HIGHER DUE TURBULENCE"),
+            false,
+            &mut t,
+        )
+        .unwrap();
         let c = cpdlc::decode(&t, true, "").unwrap();
         assert!(c.crc_ok && c.parsed());
         assert!(c.text().contains("REQUEST HIGHER DUE TURBULENCE"));
@@ -1509,6 +1537,7 @@ mod aircraft_table {
             label: "Aircraft",
             columns: COLUMNS,
             cap: 10,
+            marks: sdrkit_core::RowMarks::NONE,
         };
         assert_eq!(columns::STANDARD.len() + 1, COLUMNS.len());
         let mut t: AircraftTable<Carrier> = AircraftTable::new(10);
@@ -1973,11 +2002,19 @@ mod trails_pending_rows_and_the_log {
 }
 
 mod plain_text_formats {
-    use sdrkit_proto_aero::acars::{self, Block, BlockSpec, End, Message, Reading};
     use sdrkit_proto_aero::acars::assemble::Quality;
+    use sdrkit_proto_aero::acars::{self, Block, BlockSpec, End, Message, Reading};
     use sdrkit_proto_aero::formats::{self, Category, LABELS};
 
-    type Ex = (&'static str, &'static str, Option<(f64, f64)>, Option<f64>, &'static str, &'static str, &'static str);
+    type Ex = (
+        &'static str,
+        &'static str,
+        Option<(f64, f64)>,
+        Option<f64>,
+        &'static str,
+        &'static str,
+        &'static str,
+    );
 
     /// Label, text, latitude and longitude, altitude, origin, destination, flight ("" not stated).
     const EXAMPLES: [Ex; 39] = [
@@ -2024,7 +2061,11 @@ mod plain_text_formats {
 
     fn matches(e: &Ex) -> Result<(), String> {
         let (label, text, pos, alt, o, d, fl) = *e;
-        let r = if label == "QQ" { formats::read_qq(text) } else { formats::read(label, text) };
+        let r = if label == "QQ" {
+            formats::read_qq(text)
+        } else {
+            formats::read(label, text)
+        };
         let r = r.ok_or("no reading")?;
         if let Some((la, lo)) = pos {
             let p = r.position.ok_or("no position")?;
@@ -2037,7 +2078,11 @@ mod plain_text_formats {
                 return Err(format!("altitude {:?}", r.alt_ft));
             }
         }
-        for (want, have, what) in [(o, &r.origin, "origin"), (d, &r.destination, "destination"), (fl, &r.flight, "flight")] {
+        for (want, have, what) in [
+            (o, &r.origin, "origin"),
+            (d, &r.destination, "destination"),
+            (fl, &r.flight, "flight"),
+        ] {
             if !want.is_empty() && have.as_deref() != Some(want) {
                 return Err(format!("{what} {have:?}"));
             }
@@ -2060,12 +2105,20 @@ mod plain_text_formats {
 
     #[test]
     fn one_line_form_and_refusals() {
-        let r = formats::read("44", "00ETA03,N38241W081357,330,KBNA,KBWI,1107,0123,0208,008.1").unwrap();
+        let r = formats::read(
+            "44",
+            "00ETA03,N38241W081357,330,KBNA,KBWI,1107,0123,0208,008.1",
+        )
+        .unwrap();
         assert!(r.line().starts_with("ETA report"));
         assert!(r.line().contains("KBNA"));
         assert_eq!(r.category, Category::Eta);
         assert!(formats::read("44", "GOOD MORNING CAPTAIN").is_none());
-        assert!(formats::read("44", "00ETA03,N99999W999999,330,KBNA,KBWI,1107,0123,0208,008.1").is_none());
+        assert!(formats::read(
+            "44",
+            "00ETA03,N99999W999999,330,KBNA,KBWI,1107,0123,0208,008.1"
+        )
+        .is_none());
     }
 
     #[test]
@@ -2081,7 +2134,10 @@ mod plain_text_formats {
         let Reading::Format(f) = &m.reading else {
             panic!("{:?}", m.reading)
         };
-        assert_eq!((f.flight.as_deref(), f.origin.as_deref()), (Some("QF0073"), Some("YSSY")));
+        assert_eq!(
+            (f.flight.as_deref(), f.origin.as_deref()),
+            (Some("QF0073"), Some("YSSY"))
+        );
         let (p, alt) = m.position().unwrap();
         assert!((p.lat_deg + 4.9985).abs() < 1e-6 && alt == Some(35003.0));
     }
@@ -2097,9 +2153,16 @@ mod plain_text_formats {
     }
 
     fn check(label: &str, t: &str) {
-        let r = if label == "QQ" { formats::read_qq(t) } else { formats::read(label, t) };
+        let r = if label == "QQ" {
+            formats::read_qq(t)
+        } else {
+            formats::read(label, t)
+        };
         if let Some(p) = r.and_then(|r| r.position) {
-            assert!(p.lat_deg.abs() <= 90.0 && p.lon_deg.abs() <= 180.0, "{label} {t:?}");
+            assert!(
+                p.lat_deg.abs() <= 90.0 && p.lon_deg.abs() <= 180.0,
+                "{label} {t:?}"
+            );
         }
     }
 

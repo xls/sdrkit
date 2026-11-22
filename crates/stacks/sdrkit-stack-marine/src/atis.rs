@@ -570,7 +570,7 @@ pub struct AtisMessageRow<'a> {
 
 /// The messages, newest first.
 pub static MESSAGE_TABLE: Table<AtisMessageRow<'static>> =
-    Table::new("messages", "Messages", MESSAGE_CAP);
+    Table::new("messages", "Messages", MESSAGE_CAP).label(&AtisMessageRow::NAME);
 
 /// A row of the ATIS station table. The row key is the digits of the identity.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -603,7 +603,7 @@ pub struct AtisStationRow<'a> {
 
 /// The stations heard.
 pub static STATION_TABLE: Table<AtisStationRow<'static>> =
-    Table::new("stations", "Stations", STATION_CAP);
+    Table::new("stations", "Stations", STATION_CAP).label(&AtisStationRow::NAME);
 
 /// The fields of the event of an ATIS message.
 #[derive(Clone, Debug, PartialEq, Fields)]

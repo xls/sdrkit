@@ -27,6 +27,7 @@ field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [
 field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
 table "drones" "Drones" cap 200
+  marks TableMarks { label: Some(1), sort: None, position: Some(8), latitude: None, longitude: None, altitude: Some(9), course: Some(15), speed: Some(13) }
   column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "address", label: "Address", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "serial", label: "Serial number", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -70,6 +71,7 @@ table "drones" "Drones" cap 200
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "messages" "Messages" cap 400
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time", label: "Time (UTC)", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "via", label: "Via", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ble", label: "BLE" }, ChoiceDecl { key: "wifi", label: "Wi-Fi" }], refers_to: None, content: None }
@@ -79,6 +81,7 @@ table "messages" "Messages" cap 400
   column FieldDecl { key: "type", label: "Type", unit: "", kind: Choice, choices: [ChoiceDecl { key: "basic_id", label: "Basic ID" }, ChoiceDecl { key: "location", label: "Location" }, ChoiceDecl { key: "authentication", label: "Authentication" }, ChoiceDecl { key: "self_id", label: "Self-ID" }, ChoiceDecl { key: "system", label: "System" }, ChoiceDecl { key: "operator_id", label: "Operator ID" }], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "drone_tracks" "Tracks" cap 24000
+  marks TableMarks { label: None, sort: None, position: Some(1), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "drone", label: "Drone", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "drones" }), content: None }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -117,6 +120,7 @@ field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, ch
 field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
 table "signals" "Signals" cap 24
+  marks TableMarks { label: None, sort: Some((13, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "track", label: "Track", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "class", label: "Class", unit: "", kind: Choice, choices: [ChoiceDecl { key: "other_wideband", label: "other wideband (not OFDM-like)" }, ChoiceDecl { key: "unknown_ofdm", label: "unknown wideband OFDM" }, ChoiceDecl { key: "ocusync_like", label: "DJI OcuSync-like" }, ChoiceDecl { key: "lightbridge_like", label: "DJI Lightbridge-like" }, ChoiceDecl { key: "droneid", label: "DJI DroneID" }], refers_to: None, content: None }
   column FieldDecl { key: "confidence_pct", label: "Confidence", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
@@ -140,6 +144,7 @@ table "signals" "Signals" cap 24
   column FieldDecl { key: "near_droneid", label: "Near a DroneID frequency", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_s", label: "Last burst", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
 table "drones" "Drones" cap 50
+  marks TableMarks { label: Some(0), sort: None, position: Some(1), latitude: None, longitude: None, altitude: Some(2), course: Some(5), speed: Some(4) }
   column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "alt_m", label: "Altitude", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
@@ -177,6 +182,7 @@ table "bursts" "Bursts" cap 300
   column FieldDecl { key: "ofdm_pct", label: "OFDM-like", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "droneid", label: "DroneID", unit: "", kind: Choice, choices: [ChoiceDecl { key: "not_tried", label: "not tried" }, ChoiceDecl { key: "no_droneid", label: "no DroneID" }, ChoiceDecl { key: "crc_failed", label: "CRC failed" }, ChoiceDecl { key: "decoded", label: "decoded" }], refers_to: None, content: None }
 table "drone_tracks" "Tracks" cap 6000
+  marks TableMarks { label: None, sort: None, position: Some(1), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "drone", label: "Drone", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "drones" }), content: None }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -219,6 +225,7 @@ field FieldDecl { key: "needs_station", label: "Needs the station position", uni
 field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "noise_dbfs", label: "Noise floor", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
 table "aircraft" "Aircraft" cap 128
+  marks TableMarks { label: Some(0), sort: None, position: Some(3), latitude: None, longitude: None, altitude: Some(4), course: Some(6), speed: Some(5) }
   column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "address_type", label: "Address type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "type", label: "Type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -236,6 +243,7 @@ table "aircraft" "Aircraft" cap 128
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "aircraft_tracks" "Tracks" cap 25600
+  marks TableMarks { label: None, sort: None, position: Some(1), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "aircraft", label: "Aircraft", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "aircraft" }), content: None }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -296,6 +304,7 @@ field FieldDecl { key: "with_position", label: "With a position", unit: "", kind
 field FieldDecl { key: "max_range_km", label: "Maximum range", unit: "km", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "flarm_packets", label: "FLARM packets", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "aircraft" "Aircraft" cap 128
+  marks TableMarks { label: Some(0), sort: None, position: Some(5), latitude: None, longitude: None, altitude: Some(6), course: Some(8), speed: Some(7) }
   column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "address_source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "category", label: "Category", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -322,6 +331,7 @@ table "aircraft" "Aircraft" cap 128
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "aircraft_tracks" "Tracks" cap 25600
+  marks TableMarks { label: None, sort: None, position: Some(1), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "aircraft", label: "Aircraft", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "aircraft" }), content: None }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -363,6 +373,7 @@ field FieldDecl { key: "noise_dbfs", label: "Noise floor", unit: "dBFS", kind: F
 field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "packets" "Packets" cap 500
+  marks TableMarks { label: Some(7), sort: None, position: Some(4), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "position", label: "Position" }, ChoiceDecl { key: "status", label: "Status" }, ChoiceDecl { key: "encrypted", label: "Encrypted" }], refers_to: None, content: None }
   column FieldDecl { key: "id", label: "Id", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -372,6 +383,7 @@ table "packets" "Packets" cap 500
   column FieldDecl { key: "repaired", label: "Repaired", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "hex", label: "Hex", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "aircraft" "Aircraft" cap 256
+  marks TableMarks { label: Some(0), sort: None, position: Some(3), latitude: None, longitude: None, altitude: Some(4), course: Some(6), speed: Some(5) }
   column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "address_type", label: "Address type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "aircraft_type", label: "Aircraft type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -393,6 +405,7 @@ table "aircraft" "Aircraft" cap 256
   column FieldDecl { key: "first_heard", label: "First heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
 table "aircraft_tracks" "Tracks" cap 51200
+  marks TableMarks { label: None, sort: None, position: Some(1), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "aircraft", label: "Aircraft", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "aircraft" }), content: None }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -450,6 +463,7 @@ field FieldDecl { key: "channel_pct", label: "PPM channels in travel", unit: "%"
 field FieldDecl { key: "ppm_frames_ok", label: "PPM frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "ppm_frames_bad", label: "PPM frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "links" "Links" cap 100
+  marks TableMarks { label: Some(1), sort: None, position: Some(7), latitude: None, longitude: None, altitude: Some(8), course: None, speed: None }
   column FieldDecl { key: "link", label: "Link", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "id", label: "Id", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frames", label: "Frames", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -460,6 +474,7 @@ table "links" "Links" cap 100
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "alt_m", label: "Altitude", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
 table "frames" "Frames" cap 300
+  marks TableMarks { label: Some(6), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "link", label: "Link", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -503,6 +518,7 @@ field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "links" "Links" cap 100
+  marks TableMarks { label: Some(1), sort: None, position: Some(7), latitude: None, longitude: None, altitude: Some(8), course: None, speed: None }
   column FieldDecl { key: "link", label: "Link", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "id", label: "Id", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frames", label: "Frames", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -513,6 +529,7 @@ table "links" "Links" cap 100
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "alt_m", label: "Altitude", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
 table "frames" "Frames" cap 300
+  marks TableMarks { label: Some(6), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "link", label: "Link", unit: "", kind: Text, choices: [], refers_to: None, content: None }

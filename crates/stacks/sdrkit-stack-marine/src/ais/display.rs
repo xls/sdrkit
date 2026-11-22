@@ -163,7 +163,7 @@ pub struct AisStationRow<'a> {
 
 /// The stations heard.
 pub static STATION_TABLE: Table<AisStationRow<'static>> =
-    Table::new("stations", "Stations", st::MAX_STATIONS);
+    Table::new("stations", "Stations", st::MAX_STATIONS).label(&AisStationRow::NAME);
 
 /// A row of the track points of the stations whose track is shown. The row key is the MMSI, `/` and the time of the point.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -181,7 +181,7 @@ pub struct AisTrackPointRow<'a> {
 
 /// The track points.
 pub static TRACK_POINTS: Table<AisTrackPointRow<'static>> =
-    Table::new("track_points", "Tracks", TRACKS * st::MAX_TRACK);
+    Table::new("track_points", "Tracks", TRACKS * st::MAX_TRACK).label(&AisTrackPointRow::STATION);
 
 /// A row of the count of messages by type. The row key is the message type in two digits.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -242,7 +242,8 @@ pub struct AisChannelRow<'a> {
 }
 
 /// The AIS channels.
-pub static CHANNEL_TABLE: Table<AisChannelRow<'static>> = Table::new("channels", "Channels", 4);
+pub static CHANNEL_TABLE: Table<AisChannelRow<'static>> =
+    Table::new("channels", "Channels", 4).label(&AisChannelRow::NAME);
 
 /// A row of the NMEA sentence table. The row key is the place of the sentence in the log.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -284,7 +285,7 @@ pub struct AisReceptionRow<'a> {
 
 /// The receptions, newest first.
 pub static RECEPTIONS: Table<AisReceptionRow<'static>> =
-    Table::new("receptions", "Receptions", RECEPTION_CAP);
+    Table::new("receptions", "Receptions", RECEPTION_CAP).label(&AisReceptionRow::MMSI);
 
 /// A row of the alert table. The row key is the place of the alert in the log.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -319,7 +320,8 @@ pub struct AisAlertRow<'a> {
 }
 
 /// The alerts, newest first.
-pub static ALERTS: Table<AisAlertRow<'static>> = Table::new("alerts", "Alerts", ALERT_CAP);
+pub static ALERTS: Table<AisAlertRow<'static>> =
+    Table::new("alerts", "Alerts", ALERT_CAP).label(&AisAlertRow::NAME);
 
 /// A row of the hop plan of a receiver that is narrower than the four channels. The row key is the number of the step.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -387,7 +389,7 @@ pub struct AisSelectedRow<'a> {
     #[field(label = "Rate of turn", unit = "°/min")]
     pub rate_of_turn_deg_min: Option<f64>,
     /// The altitude of a SAR aircraft.
-    #[field(label = "Altitude", unit = "m")]
+    #[field(label = "Altitude", unit = "m", role = Altitude)]
     pub altitude_m: Option<f64>,
     /// The navigational status in words.
     #[field(label = "Status")]
@@ -416,7 +418,8 @@ pub struct AisSelectedRow<'a> {
 }
 
 /// The selected station.
-pub static SELECTED: Table<AisSelectedRow<'static>> = Table::new("selected", "Selected station", 1);
+pub static SELECTED: Table<AisSelectedRow<'static>> =
+    Table::new("selected", "Selected station", 1).label(&AisSelectedRow::NAME);
 
 /// The fields of the event of a station heard.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -951,7 +954,6 @@ impl Default for Stations {
     }
 }
 
-
 /// The class of a station in the vessel event.
 fn class_text(c: StationClass) -> &'static str {
     match c {
@@ -1323,7 +1325,12 @@ impl Stations {
             p,
             |r| !r.record.hidden,
         );
-        shaped::points(&self.tables.stations.stations, "", p.results_mut());
+        shaped::row_points(
+            &self.tables.stations.stations,
+            &STATION_TABLE,
+            "",
+            p.results_mut(),
+        );
         // Messages by type.
         let mut key = String::new();
         for ty in 1..=28usize {
@@ -1369,8 +1376,11 @@ impl Stations {
                     frames_ok: self.good[i] as i64,
                     frames_bad: self.bad_ch[i] as i64,
                     messages_per_min: pm,
-                    level_dbfs: (lvl.level > 0.0).then(|| sdrkit_algo_dsp::meter::power_to_db(lvl.level)),
-                    noise_dbfs: lvl.floor.map(|f| sdrkit_algo_dsp::meter::power_to_db(f * self.noise_scale)),
+                    level_dbfs: (lvl.level > 0.0)
+                        .then(|| sdrkit_algo_dsp::meter::power_to_db(lvl.level)),
+                    noise_dbfs: lvl
+                        .floor
+                        .map(|f| sdrkit_algo_dsp::meter::power_to_db(f * self.noise_scale)),
                     doppler_hz: dop.map(Hertz),
                     doppler_rate_hz_s: rate,
                 },

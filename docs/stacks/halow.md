@@ -89,7 +89,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ha
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 2.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 2.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Networks and cells (`networks`). Media: none.
 
 ### Result fields
 
@@ -145,6 +147,8 @@ Struct `HalowNetworkRow`. A row of the networks of `halow`. The row key is the B
 | `country` | text | always | 1.0 | The country. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
 
+The column `ssid` names a row. Default order: the column `snr_db`, highest first.
+
 ### Table `frames`
 
 Struct `HalowFrameRow`. A row of the frame log of `halow`.
@@ -161,6 +165,8 @@ Struct `HalowFrameRow`. A row of the frame log of `halow`.
 | `bssid` | text | always | 1.0 | The BSSID. |
 | `length` | whole number | always | 1.0 | The length. |
 | `details` | text | always | 1.0 | The details of the frame. |
+
+The column `bssid` names a row.
 
 ### Table `widths`
 

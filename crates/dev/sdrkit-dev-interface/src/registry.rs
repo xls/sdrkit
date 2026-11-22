@@ -64,6 +64,11 @@ pub fn render(family: &Family) -> String {
         let id = stack.id;
         let since = |path: &str| family.since(path);
         let _ = writeln!(out, "{id} since={}", since(id));
+        // The kind of content and the media of the stack.
+        if let Some(marks) = crate::marks::stack_attributes(stack) {
+            let path = format!("{id}.content");
+            let _ = writeln!(out, "{path}{marks} since={}", since(&path));
+        }
         for f in &stack.fields {
             let path = format!("{id}.fields.{}", f.name);
             // A set that the receiver writes itself says so.
@@ -100,9 +105,11 @@ pub fn render(family: &Family) -> String {
                 .find(|(k, _)| *k == t.def.key)
                 .map(|(_, w)| format!(" writers={}", w.join(";")))
                 .unwrap_or_default();
+            // The column that names a row, the default order and the columns of a place.
+            let marks = crate::marks::table_attributes(t.def);
             let _ = writeln!(
                 out,
-                "{path} row={} cap={}{writers} since={}",
+                "{path} row={} cap={}{writers}{marks} since={}",
                 t.row.name,
                 t.def.cap,
                 since(&path)
@@ -299,12 +306,30 @@ fn appended(old: &str, new: &str, optional: bool) -> bool {
     }
 }
 
+/// The attributes of a registry line that hold a mark: of a table (the column that names a row, the default order, the
+/// columns of a place) and of the content line of a stack (the kind of content and the media).
+const MARKS: [&str; 13] = [
+    "label",
+    "sort",
+    "position",
+    "latitude",
+    "longitude",
+    "altitude",
+    "course",
+    "speed",
+    "kind",
+    "audio",
+    "pictures",
+    "video",
+    "text",
+];
+
 /// The differences from record `old` to record `new`. An added item is compatible. A removed item is breaking, so a
 /// renamed item is one breaking removal and one addition. Another order of the fields of a shape is breaking. A changed
 /// type, unit, row shape, argument list or version of appearance is breaking, and so is a field that became optional
 /// or stopped being optional. More options at the end of a choice, another row limit of a table, optional arguments at
 /// the end of the arguments of a command, fields at the end of the reply of a command, the content of a command
-/// that starts to transmit and the stop command of a transmission that had none are compatible: a struct grows at its end, and a host built earlier leaves out what it does
+/// that starts to transmit, the stop command of a transmission that had none and a mark of a table or of a stack are compatible: a struct grows at its end, and a host built earlier leaves out what it does
 /// not know.
 pub fn compare(old: &Record, new: &Record) -> Vec<Change> {
     let mut out = Vec::new();
@@ -335,9 +360,11 @@ pub fn compare(old: &Record, new: &Record) -> Vec<Change> {
             }
             let text =
                 |v: Option<&String>| v.map_or("nothing".to_owned(), |v| v.replace("%20", " "));
-            // Who writes a table of a stack is not seen by a consumer.
+            // Who writes a table of a stack is not seen by a consumer. A mark of a table or of a stack is a statement
+            // for a front end, and no layout depends on it.
             let compatible = name == "cap"
                 || name == "writers"
+                || MARKS.contains(&name.as_str())
                 || (name == "type" && options_added(&text(a), &text(b)))
                 || (name == "args" && appended(&text(a), &text(b), true))
                 || (name == "reply" && appended(&text(a), &text(b), false))

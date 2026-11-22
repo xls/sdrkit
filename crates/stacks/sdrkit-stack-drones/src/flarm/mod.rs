@@ -4,23 +4,20 @@ pub mod demod;
 pub mod generator;
 pub mod proto;
 
-use crate::family::{
-    min_rate_message, publish_tracks, wall, SignalClock, StatusLine, REPORT_S,
-};
-use demod::{Channel, ChannelItem, ChannelStats, FlarmChannelComponent, FlarmFrame};
-use proto::{AIRCRAFT_TYPES, PAYLOAD, V6};
-use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
+use crate::family::{min_rate_message, publish_tracks, wall, SignalClock, StatusLine, REPORT_S};
 use crate::typed::{
     AircraftTrackRow, FlarmAircraftEvent, FlarmAircraftRow, FlarmFields, AIRCRAFT_REMOVE,
     AIRCRAFT_ROW, FLARM_AIRCRAFT, FLARM_AIRCRAFT_SEEN, FLARM_TRACKS,
 };
+use demod::{Channel, ChannelItem, ChannelStats, FlarmChannelComponent, FlarmFrame};
+use proto::{AIRCRAFT_TYPES, PAYLOAD, V6};
+use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
 use sdrkit_core::interface::{Hertz, Time};
 use sdrkit_core::publish::keys::{Family, Urgency};
 use sdrkit_core::publish::{field, Published};
 use sdrkit_core::{
-    Clock, ConfigError, Event, LockState, Record, Results, ResultsDecl, Setting,
-    SettingError, SettingId, SettingSet, StackConfig, StateBlob, StateError, TableId, Value,
-    Values,
+    Clock, ConfigError, Event, LockState, Record, Results, ResultsDecl, Setting, SettingError,
+    SettingId, SettingSet, StackConfig, StateBlob, StateError, TableId, Value, Values,
 };
 use sdrkit_graph::{
     values_of, Applied, Catalog, Component, ComponentInfo, Format, GraphBuilder, GraphError, Io,
@@ -103,7 +100,6 @@ sdrkit_core::settings! {
         ExpiryS = EXPIRY_S,
     }
 }
-
 
 sdrkit_core::commands! {
     /// The commands of [`FlarmTracker`].
@@ -692,23 +688,21 @@ impl FlarmTracker {
         if let Some(at) = a.position {
             if a.event_t.is_none_or(|e| t - e >= 5.0) {
                 a.event_t = Some(t);
-                self.events.push(
-                    FLARM_AIRCRAFT_SEEN.event(
-                        t,
-                        channel.frequency_hz(),
-                        &FlarmAircraftEvent {
-                            source: &a.id,
-                            r#type: i64::from(a.aircraft_type),
-                            position: (at.lat_deg, at.lon_deg),
-                            alt_m: a.alt_m,
-                            speed_kt: a.speed_m_s / KNOT_M_S,
-                            course_deg: a.track,
-                            climb_m_s: a.climb,
-                            urgency: a.urgency(),
-                            family: Family::Aircraft,
-                        },
-                    ),
-                );
+                self.events.push(FLARM_AIRCRAFT_SEEN.event(
+                    t,
+                    channel.frequency_hz(),
+                    &FlarmAircraftEvent {
+                        source: &a.id,
+                        r#type: i64::from(a.aircraft_type),
+                        position: (at.lat_deg, at.lon_deg),
+                        alt_m: a.alt_m,
+                        speed_kt: a.speed_m_s / KNOT_M_S,
+                        course_deg: a.track,
+                        climb_m_s: a.climb,
+                        urgency: a.urgency(),
+                        family: Family::Aircraft,
+                    },
+                ));
             }
         }
         if let Some(d) = farthest {
@@ -900,12 +894,20 @@ impl FlarmTracker {
             p,
             &mut self.key,
             |p, key, aircraft, position, time_s| {
-                FLARM_TRACKS.put(p, key, &AircraftTrackRow { aircraft, position, time_s });
+                FLARM_TRACKS.put(
+                    p,
+                    key,
+                    &AircraftTrackRow {
+                        aircraft,
+                        position,
+                        time_s,
+                    },
+                );
             },
             &FLARM_TRACKS,
         );
         let r = p.results_mut();
-        shaped::points(&s.aircraft, "aircraft/", r);
+        shaped::row_points(&s.aircraft, &FLARM_AIRCRAFT, "aircraft/", r);
         match self.station {
             Some(st) => {
                 r.update_point("station", st.lat_deg, st.lon_deg, "station", None);

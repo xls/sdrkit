@@ -92,7 +92,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.4. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 1.5. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Utility decoders (`utility`). Media: sound (monitor).
 
 ### Result fields
 
@@ -149,6 +151,8 @@ Struct `Pactor1FrameRow`. A frame of PACTOR-I. The row key is the frame's number
 | `snr_db` | number (dB) | always | 1.0 | The SNR of the frame. |
 | `pair_low` | frequency | always | 1.0 | The lower tone of the frame. |
 
+The column `call` names a row.
+
 ### Table `stations`
 
 Struct `Pactor1StationRow`. A station of PACTOR-I. The row key is the callsign.
@@ -159,6 +163,8 @@ Struct `Pactor1StationRow`. A station of PACTOR-I. The row key is the callsign.
 | `seen_as` | choice | always | 1.0 | How the station was seen. |
 | `heard` | whole number | optional | 1.0 | Times heard. |
 | `last_heard` | time | optional | 1.0 | When last heard. |
+
+The column `call` names a row.
 
 ### Event `pactor.frame`
 

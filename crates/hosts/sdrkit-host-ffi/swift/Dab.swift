@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "dab", version 1.0. MIT licence.
+// sdrkit: the typed interface of the stack family "dab", version 1.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum DabInterface {
     public static let major = 1
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The measurements of the signal. No SNR before the lock, and no offset and clock error while the receiver searches.
@@ -1159,6 +1159,7 @@ public enum DabComponents {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum DabTables {
     /// The changed rows of the table "services" of the stack "dab", newest first, at most `capacity` rows.
+    /// The column `label` names a row.
     public static func dabServices(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[DabServiceRow], SDRKitCode> {
         var rows = [sdrkit_dab_service_row](repeating: sdrkit_dab_service_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1175,6 +1176,7 @@ public enum DabTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DabSubchannelRow.init))
     }
     /// The changed rows of the table "service_components" of the stack "dab", newest first, at most `capacity` rows.
+    /// The column `label` names a row.
     public static func dabServiceComponents(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[DabServiceComponentRow], SDRKitCode> {
         var rows = [sdrkit_dab_service_component_row](repeating: sdrkit_dab_service_component_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1183,6 +1185,7 @@ public enum DabTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DabServiceComponentRow.init))
     }
     /// The changed rows of the table "user_applications" of the stack "dab", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func dabUserApplications(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[DabUserApplicationRow], SDRKitCode> {
         var rows = [sdrkit_dab_user_application_row](repeating: sdrkit_dab_user_application_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1199,6 +1202,7 @@ public enum DabTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DabServiceClusterRow.init))
     }
     /// The changed rows of the table "tii_database" of the stack "dab", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
     public static func dabTiiDatabase(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[DabTiiEntryRow], SDRKitCode> {
         var rows = [sdrkit_dab_tii_entry_row](repeating: sdrkit_dab_tii_entry_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1223,6 +1227,7 @@ public enum DabTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DabAnnouncementRow.init))
     }
     /// The changed rows of the table "transmitters" of the stack "dab", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
     public static func dabTransmitters(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[DabTransmitterRow], SDRKitCode> {
         var rows = [sdrkit_dab_transmitter_row](repeating: sdrkit_dab_transmitter_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1231,6 +1236,7 @@ public enum DabTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DabTransmitterRow.init))
     }
     /// The changed rows of the table "journaline" of the stack "dab", newest first, at most `capacity` rows.
+    /// The column `title` names a row.
     public static func dabJournaline(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[DabJournalineRow], SDRKitCode> {
         var rows = [sdrkit_dab_journaline_row](repeating: sdrkit_dab_journaline_row(), count: capacity)
         var info = sdrkit_rows_info.sized

@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the shared interface "broadcast_scan", whose items the stacks of several families show, version 1.0. MIT licence.
+// sdrkit: the typed interface of the shared interface "broadcast_scan", whose items the stacks of several families show, version 1.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum BroadcastScanInterface {
     public static let major = 1
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The progress of a scan. No frequency to go to before the scan is over.

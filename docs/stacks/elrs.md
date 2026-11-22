@@ -74,7 +74,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `lora`, version 3.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 3.1. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Sensors and devices (`devices`). Media: none.
 
 ### Result fields
 
@@ -121,6 +123,8 @@ Struct `ElrsFrameRow`. A row of the frame log. The row key is the place of the f
 | `encrypted` | yes or no | always | 1.0 | The payload is encrypted. |
 | `hex` | text | always | 1.0 | The frame bytes as hex. |
 
+The column `hex` names a row.
+
 ### Table `links`
 
 Struct `ElrsLinkRow`. A row of the links. The row key and `source` are the link, 4 hex digits.
@@ -137,6 +141,8 @@ Struct `ElrsLinkRow`. A row of the links. The row key and `source` are the link,
 | `heard_on` | text | always | 1.0 | The hop channels on which the link was heard, in rising order. |
 | `first_heard` | time | optional | 1.0 | The UTC of the first frame. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+
+The column `source` names a row.
 
 ### Event `elrs.link`
 

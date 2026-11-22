@@ -128,7 +128,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `broadcast`, version 1.0. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `broadcast`, version 1.1. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Broadcast radio (`broadcast`). Media: sound (programme), pictures.
 
 ### Result fields
 
@@ -216,6 +218,8 @@ Struct `DrmServiceRow`. A service. The row key is its short id.
 | `mode_text` | text | optional | 1.0 | The mode text of a data service. |
 | `decoded` | yes or no | always | 1.0 | Whether the service is decoded. |
 
+The column `label` names a row.
+
 ### Table `streams`
 
 Struct `DrmStreamRow`. The bytes per logical frame of a stream. The row key is the stream number.
@@ -240,6 +244,8 @@ Struct `DrmObjectRow`. A MOT object of a data service. The row key is `<short id
 | `order` | whole number | always | 1.0 | The order of arrival. |
 | `note` | text | optional | 1.0 | What the object is, where the stack can say. |
 
+The column `name` names a row.
+
 ### Table `slides`
 
 Struct `DrmSlideRow`. The latest slide of a service. The row key is the short id.
@@ -260,6 +266,8 @@ Struct `DrmSlideRow`. The latest slide of a service. The row key is the short id
 | `width` | whole number | always | 1.0 | The width of the picture. |
 | `height` | whole number | always | 1.0 | The height of the picture. |
 
+The column `name` names a row.
+
 ### Table `journaline`
 
 Struct `DrmPageRow`. A Journaline object. The row key is its id.
@@ -270,6 +278,8 @@ Struct `DrmPageRow`. A Journaline object. The row key is its id.
 | `kind` | text | always | 1.0 | The object type. |
 | `title` | text | always | 1.0 | The title. |
 | `content` | text | always | 1.0 | The content: links (id and text), body or list items, one per line. |
+
+The column `title` names a row.
 
 ### Table `packets`
 

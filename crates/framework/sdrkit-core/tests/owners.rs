@@ -170,12 +170,14 @@ static HITS: TableDef = TableDef {
     label: "Hits",
     columns: &[&NAME, &LEVEL],
     cap: 8,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 static OTHER: TableDef = TableDef {
     key: "other",
     label: "Other",
     columns: &[&NAME],
     cap: 8,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 #[test]
@@ -362,6 +364,7 @@ fn a_column_of_any_kind_holds_values_of_two_kinds() {
         label: "Stored",
         columns: &[&KEY, &VALUE],
         cap: 10,
+        marks: sdrkit_core::RowMarks::NONE,
     };
     let mut p = Published::new(&[]).with_tables(&[&STORED]);
     p.row(

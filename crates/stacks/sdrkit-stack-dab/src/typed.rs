@@ -599,16 +599,17 @@ pub struct FigTypeRow<'a> {
 }
 
 /// The services of the ensemble.
-pub static SERVICES: Table<ServiceRow<'static>> = Table::new("services", "Services", 256);
+pub static SERVICES: Table<ServiceRow<'static>> =
+    Table::new("services", "Services", 256).label(&ServiceRow::LABEL);
 /// The sub-channels.
 pub static SUBCHANNELS: Table<SubchannelRow<'static>> =
     Table::new("subchannels", "Sub-channels", 64);
 /// The service components.
 pub static SERVICE_COMPONENTS: Table<ServiceComponentRow<'static>> =
-    Table::new("service_components", "Service components", 512);
+    Table::new("service_components", "Service components", 512).label(&ServiceComponentRow::LABEL);
 /// The user applications of the services.
 pub static USER_APPLICATIONS: Table<UserApplicationRow<'static>> =
-    Table::new("user_applications", "User applications", 512);
+    Table::new("user_applications", "User applications", 512).label(&UserApplicationRow::NAME);
 /// The announcement clusters of the services.
 pub static SERVICE_CLUSTERS: Table<ServiceClusterRow<'static>> =
     Table::new("service_clusters", "Announcement clusters", 512);
@@ -623,7 +624,8 @@ pub static ANNOUNCEMENTS: Table<AnnouncementRow> = Table::new("announcements", "
 /// The transmitters identified.
 pub static TRANSMITTERS: Table<TransmitterRow> = Table::new("transmitters", "Transmitters", 64);
 /// The Journaline objects.
-pub static JOURNALINE: Table<JournalineRow<'static>> = Table::new("journaline", "Journaline", 512);
+pub static JOURNALINE: Table<JournalineRow<'static>> =
+    Table::new("journaline", "Journaline", 512).label(&JournalineRow::TITLE);
 /// The menu entries of the Journaline objects.
 pub static JOURNALINE_LINKS: Table<JournalineLinkRow<'static>> =
     Table::new("journaline_links", "Journaline menu entries", 4096);
@@ -793,7 +795,11 @@ pub const KEPT: &[&str] = &[
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("dab", 1, 0)
+        Described::new("dab", 1, 1)
+            .added(1, 1, &["dab.content"])
+            .content(sdrkit_core::ContentKind::Broadcast, &["dab"])
+            .audio(sdrkit_core::AudioKind::Programme, &["dab"])
+            .pictures(&["dab"])
             .uses(sdrkit_proto_mpegts::publish::interface())
             .uses(bc::interface())
             .shared_source("components", &["dab"])

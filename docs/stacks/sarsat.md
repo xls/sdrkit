@@ -80,7 +80,9 @@ The stack puts points on a map: Beacons.
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.2. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 1.3. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -122,6 +124,8 @@ Struct `SarsatBurstRow`. A burst of the log. The row key is the sequence number 
 | `level_dbfs` | number (dBFS) | optional | 1.0 | The level of the input. |
 | `offset_hz` | frequency | always | 1.0 | The offset of the carrier from the tuned frequency. |
 
+The column `hex_id` names a row. Place of a row: the column `position`.
+
 ### Table `beacons`
 
 Struct `SarsatBeaconRow`. A beacon heard, with its last burst. The row key is the hex identity.
@@ -140,6 +144,8 @@ Struct `SarsatBeaconRow`. A beacon heard, with its last burst. The row key is th
 | `repair_cost` | number | optional | 1.0 | The reliability of the repaired bits over the mean reliability of a bit. |
 | `last_heard` | time | optional | 1.0 | When it was last heard. |
 | `heard` | whole number | optional | 1.0 | How many times it was heard. |
+
+The column `hex_id` names a row. Place of a row: the column `position`.
 
 ### Event `sarsat.beacon`
 

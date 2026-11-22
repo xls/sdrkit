@@ -89,6 +89,7 @@ table "fix_systems" "Systems in the fix" cap 6
   column FieldDecl { key: "satellites", label: "Satellites", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "clock_m", label: "Clock", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
 table "satellites" "Satellites" cap 160
+  marks TableMarks { label: None, sort: Some((5, Descending)), position: Some(25), latitude: None, longitude: None, altitude: Some(26), course: None, speed: None }
   column FieldDecl { key: "system", label: "System", unit: "", kind: Choice, choices: [ChoiceDecl { key: "gps", label: "GPS" }, ChoiceDecl { key: "qzss", label: "QZSS" }, ChoiceDecl { key: "sbas", label: "SBAS" }, ChoiceDecl { key: "galileo", label: "Galileo" }, ChoiceDecl { key: "beidou", label: "BeiDou" }, ChoiceDecl { key: "glonass", label: "GLONASS" }], refers_to: None, content: None }
   column FieldDecl { key: "prn", label: "PRN", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "glo_channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -223,6 +224,7 @@ field FieldDecl { key: "rx.course_deg", label: "Course", unit: "°", kind: F64, 
 field FieldDecl { key: "rx.clock_bias_m", label: "Clock bias", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "rx.first_fix", label: "First fix", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
 table "sbas_satellites" "SBAS satellites" cap 39
+  marks TableMarks { label: None, sort: Some((3, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "prn", label: "PRN", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "service", label: "Service", unit: "", kind: Choice, choices: [ChoiceDecl { key: "egnos", label: "EGNOS" }, ChoiceDecl { key: "waas", label: "WAAS" }, ChoiceDecl { key: "msas", label: "MSAS" }, ChoiceDecl { key: "gagan", label: "GAGAN" }, ChoiceDecl { key: "sdcm", label: "SDCM" }, ChoiceDecl { key: "bdsbas", label: "BDSBAS" }, ChoiceDecl { key: "kass", label: "KASS" }], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "pull_in", label: "Pull-in" }, ChoiceDecl { key: "locked", label: "Locked" }, ChoiceDecl { key: "bit_sync", label: "Bit sync" }, ChoiceDecl { key: "frame_sync", label: "Frame sync" }, ChoiceDecl { key: "ephemeris", label: "Ephemeris" }], refers_to: None, content: None }
@@ -234,6 +236,7 @@ table "sbas_satellite_types" "Types by satellite" cap 2496
   column FieldDecl { key: "prn", label: "PRN", unit: "", kind: I64, choices: [], refers_to: Some(RefersTo { owner: None, table: "sbas_satellites" }), content: None }
   column FieldDecl { key: "message_type", label: "Type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "types" "Types" cap 64
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "message_type", label: "Type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "count", label: "Count", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -283,6 +286,7 @@ table "rx.fix_systems" "Systems in the fix" cap 6
   column FieldDecl { key: "satellites", label: "Satellites", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "clock_m", label: "Clock", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
 table "rx.satellites" "Satellites" cap 160
+  marks TableMarks { label: None, sort: Some((5, Descending)), position: Some(25), latitude: None, longitude: None, altitude: Some(26), course: None, speed: None }
   column FieldDecl { key: "system", label: "System", unit: "", kind: Choice, choices: [ChoiceDecl { key: "gps", label: "GPS" }, ChoiceDecl { key: "qzss", label: "QZSS" }, ChoiceDecl { key: "sbas", label: "SBAS" }, ChoiceDecl { key: "galileo", label: "Galileo" }, ChoiceDecl { key: "beidou", label: "BeiDou" }, ChoiceDecl { key: "glonass", label: "GLONASS" }], refers_to: None, content: None }
   column FieldDecl { key: "prn", label: "PRN", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "glo_channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -335,6 +339,7 @@ field FieldDecl { key: "searching_prn", label: "Searching PRN", unit: "", kind: 
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "satellites" "Satellites" cap 14
+  marks TableMarks { label: None, sort: Some((2, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "prn", label: "PRN", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "cn0_dbhz", label: "C/N0", unit: "dB-Hz", kind: F64, choices: [], refers_to: None, content: None }

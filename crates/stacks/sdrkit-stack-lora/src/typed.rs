@@ -29,7 +29,52 @@ use std::sync::{Arc, OnceLock};
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("lora", 3, 0)
+        Described::new("lora", 3, 1)
+            .added(
+                3,
+                1,
+                &[
+                    "mesh.content",
+                    "meshtastic.content",
+                    "meshcore.content",
+                    "lorawan.content",
+                    "loraaprs.content",
+                    "meshcom.content",
+                    "lorawanwide.content",
+                    "loraraw.content",
+                    "aprs.content",
+                    "fanet.content",
+                    "reticulum.content",
+                    "elrs.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Mesh,
+                &[
+                    "mesh",
+                    "meshtastic",
+                    "meshcore",
+                    "loraaprs",
+                    "meshcom",
+                    "aprs",
+                    "reticulum",
+                ],
+            )
+            .content(sdrkit_core::ContentKind::Tracking, &["fanet"])
+            .content(
+                sdrkit_core::ContentKind::Devices,
+                &["lorawan", "lorawanwide", "loraraw", "elrs"],
+            )
+            .audio(sdrkit_core::AudioKind::Monitor, &["aprs"])
+            .text(&[
+                "mesh",
+                "meshtastic",
+                "meshcore",
+                "loraaprs",
+                "meshcom",
+                "aprs",
+                "reticulum",
+            ])
             .shared_source("results", ALL_STACKS)
             .shared_source("commands", ALL_STACKS)
             .shared_source(
@@ -549,10 +594,10 @@ pub struct ElrsLinkEvent<'a> {
 
 /// The frame log, newest last.
 pub static ELRS_FRAMES: Table<ElrsFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::components::elrs::FRAME_CAP);
+    Table::new("frames", "Frames", crate::components::elrs::FRAME_CAP).label(&ElrsFrameRow::HEX);
 /// The links.
 pub static ELRS_LINKS: Table<ElrsLinkRow<'static>> =
-    Table::new("links", "Links", crate::components::elrs::LINK_CAP);
+    Table::new("links", "Links", crate::components::elrs::LINK_CAP).label(&ElrsLinkRow::SOURCE);
 /// A link heard for the first time.
 pub static ELRS_LINK: EventKind<ElrsLinkEvent<'static>> =
     EventKind::new("elrs.link", "ExpressLRS link");
@@ -653,7 +698,7 @@ pub struct FanetStationRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// The altitude, from a tracking frame.
-    #[field(label = "Altitude", unit = "m")]
+    #[field(label = "Altitude", unit = "m", role = Altitude)]
     pub alt_m: Option<f64>,
     /// The speed, from a tracking frame.
     #[field(shared = keys::SPEED_KT)]
@@ -742,16 +787,18 @@ pub struct FanetDistressEvent<'a> {
 
 /// The FANET frame log, newest last.
 pub static FANET_FRAMES: Table<FanetFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::components::fanet::FRAME_CAP);
+    Table::new("frames", "Frames", crate::components::fanet::FRAME_CAP)
+        .label(&FanetFrameRow::SOURCE);
 /// The FANET stations.
 pub static FANET_STATIONS: Table<FanetStationRow<'static>> = Table::new(
     "stations",
     "Stations",
     crate::components::fanet::STATION_CAP,
-);
+)
+.label(&FanetStationRow::NAME);
 /// The track points of the FANET stations.
 pub static FANET_TRACKS: Table<FanetTrackRow<'static>> =
-    Table::new("station_tracks", "Tracks", 4000);
+    Table::new("station_tracks", "Tracks", 4000).label(&FanetTrackRow::STATION);
 /// A FANET station heard for the first time.
 pub static FANET_STATION: EventKind<FanetStationEvent<'static>> =
     EventKind::new("fanet.station", "FANET station");
@@ -923,7 +970,8 @@ pub static RNS_DESTINATIONS: Table<RnsDestinationRow<'static>> = Table::new(
     "destinations",
     "Destinations",
     crate::components::reticulum::DESTINATION_CAP,
-);
+)
+.label(&RnsDestinationRow::IDENTITY);
 /// A Reticulum destination heard for the first time.
 pub static RNS_DESTINATION: EventKind<RnsDestinationEvent<'static>> =
     EventKind::new("reticulum.destination", "Reticulum destination");
@@ -1043,7 +1091,7 @@ pub struct AprsStationRow<'a> {
     #[field(shared = keys::SPEED_KT)]
     pub speed_kt: Option<f64>,
     /// The altitude.
-    #[field(label = "Altitude", unit = "m")]
+    #[field(label = "Altitude", unit = "m", role = Altitude)]
     pub alt_m: Option<f64>,
     /// The comment or status.
     #[field(label = "Comment")]
@@ -1087,10 +1135,11 @@ pub struct AprsPacketEvent<'a> {
 
 /// The APRS frame log, newest last.
 pub static APRS_FRAMES: Table<AprsFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::aprs::station::FRAMES_CAP);
+    Table::new("frames", "Frames", crate::aprs::station::FRAMES_CAP).label(&AprsFrameRow::SOURCE);
 /// The APRS stations, objects and items.
 pub static APRS_STATIONS: Table<AprsStationRow<'static>> =
-    Table::new("stations", "Stations", crate::aprs::station::STATIONS_CAP);
+    Table::new("stations", "Stations", crate::aprs::station::STATIONS_CAP)
+        .label(&AprsStationRow::CALL);
 /// One AX.25 frame.
 pub static APRS_PACKET: EventKind<AprsPacketEvent<'static>> =
     EventKind::new("aprs.packet", "APRS packet");
@@ -1472,7 +1521,7 @@ pub struct MeshReadingRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// The altitude.
-    #[field(label = "Altitude", unit = "m")]
+    #[field(label = "Altitude", unit = "m", role = Altitude)]
     pub alt_m: Option<f64>,
 }
 
@@ -1766,22 +1815,24 @@ pub struct MeshNodeEvent<'a> {
 
 /// The packet list, newest last.
 pub static MESH_PACKETS: Table<MeshPacketRow<'static>> =
-    Table::new("packets", "Packets", crate::mesh::store::PACKETS_CAP);
+    Table::new("packets", "Packets", crate::mesh::store::PACKETS_CAP).label(&MeshPacketRow::SOURCE);
 /// The node list.
 pub static MESH_NODES: Table<MeshNodeRow<'static>> =
-    Table::new("nodes", "Nodes", crate::mesh::store::NODES_CAP);
+    Table::new("nodes", "Nodes", crate::mesh::store::NODES_CAP).label(&MeshNodeRow::NAME);
 /// The messages, newest last.
 pub static MESH_MESSAGES: Table<MeshMessageRow<'static>> =
-    Table::new("messages", "Messages", crate::mesh::store::MESSAGES_CAP);
+    Table::new("messages", "Messages", crate::mesh::store::MESSAGES_CAP)
+        .label(&MeshMessageRow::SENDER);
 /// The telemetry and position readings, newest last.
 pub static MESH_READINGS: Table<MeshReadingRow<'static>> =
     Table::new("readings", "Readings", crate::mesh::store::READINGS_SHOWN);
 /// The APRS stations of LoRa APRS and MeshCom.
 pub static MESH_STATIONS: Table<MeshStationRow<'static>> =
-    Table::new("stations", "Stations", crate::mesh::store::STATIONS_CAP);
+    Table::new("stations", "Stations", crate::mesh::store::STATIONS_CAP)
+        .label(&MeshStationRow::CALL);
 /// The LoRaWAN devices.
 pub static MESH_DEVICES: Table<MeshDeviceRow<'static>> =
-    Table::new("devices", "Devices", crate::mesh::store::DEVICES_CAP);
+    Table::new("devices", "Devices", crate::mesh::store::DEVICES_CAP).label(&MeshDeviceRow::ID);
 /// The packet counts by protocol and type.
 pub static MESH_TYPES: Table<MeshTypeRow<'static>> =
     Table::new("types", "Packet types", crate::mesh::store::TYPES_CAP);
@@ -1789,7 +1840,8 @@ pub static MESH_TYPES: Table<MeshTypeRow<'static>> =
 pub static MESH_DECODERS: Table<MeshDecoderRow<'static>> = Table::new("decoders", "Decoders", 400);
 /// The MeshCore contacts.
 pub static MESH_CONTACTS: Table<MeshContactRow<'static>> =
-    Table::new("contacts", "Contacts", crate::mesh::mc_client::CONTACTS_CAP);
+    Table::new("contacts", "Contacts", crate::mesh::mc_client::CONTACTS_CAP)
+        .label(&MeshContactRow::NAME);
 /// The channels with keys that the user supplied.
 pub static MESH_CHANNELS: Table<MeshChannelRow<'static>> = Table::new(
     "channels",
@@ -2228,7 +2280,8 @@ pub struct WideChannelRow {
 
 /// The LoRaWAN frame log, newest last.
 pub static WIDE_FRAMES: Table<WideFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::components::lorawan::WIDE_LOG_CAP);
+    Table::new("frames", "Frames", crate::components::lorawan::WIDE_LOG_CAP)
+        .label(&WideFrameRow::DEVICE);
 /// The LoRaWAN channels.
 pub static WIDE_CHANNELS: Table<WideChannelRow> = Table::new("channels", "Channels", 200);
 

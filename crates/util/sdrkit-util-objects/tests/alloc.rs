@@ -56,6 +56,7 @@ const SHIPS: TableDef = TableDef {
         &columns::HEARD,
     ],
     cap: 64,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 impl Object for Ship {

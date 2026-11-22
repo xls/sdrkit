@@ -1,5 +1,5 @@
 # The interface of the stack family adsb. The registry test of the family writes this file.
-family adsb version=1.1
+family adsb version=1.2
 shape.TrackerFields since=1.0
 shape.TrackerFields.aircraft_count type=i64 unit= optional=no since=1.0
 shape.TrackerFields.with_position type=i64 unit= optional=no since=1.0
@@ -267,15 +267,16 @@ shape.InterrogationEvent.confirmed type=bool unit= optional=yes since=1.1
 shape.InterrogationEvent.text type=text unit= optional=yes since=1.0
 shape.InterrogationEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 adsb since=1.0
+adsb.content kind=tracking since=1.2
 adsb.fields.TrackerFields since=1.0
 adsb.fields.FeedFields since=1.0
 adsb.fields.ModeAcFields since=1.0
-adsb.table.aircraft row=AircraftRow cap=160 since=1.0
-adsb.table.messages row=MessageRow cap=64 since=1.0
-adsb.table.sources row=SourceRow cap=32 since=1.0
+adsb.table.aircraft row=AircraftRow cap=160 label=callsign position=position altitude=alt_ft course=heading_deg speed=speed_kt since=1.0
+adsb.table.messages row=MessageRow cap=64 label=icao since=1.0
+adsb.table.sources row=SourceRow cap=32 label=name since=1.0
 adsb.table.by_df row=CountRow cap=32 since=1.0
-adsb.table.gps_cells row=GpsCellRow cap=4096 since=1.0
-adsb.table.feeds row=FeedRow cap=64 since=1.0
+adsb.table.gps_cells row=GpsCellRow cap=4096 position=corner since=1.0
+adsb.table.feeds row=FeedRow cap=64 label=name since=1.0
 adsb.table.modeac row=ModeAcRow cap=256 since=1.0
 adsb.series.coverage_range x_unit=° y_unit=m since=1.0
 adsb.series.coverage_histogram x_unit=m y_unit= since=1.0
@@ -311,13 +312,14 @@ adsb.setting.gen_centre_lon type=f64 unit=° since=1.0
 adsb.command.clear args= reply= since=1.0
 adsb.command.reset_stats args= reply= since=1.0
 uat since=1.0
+uat.content kind=tracking since=1.2
 uat.fields.UatFields since=1.0
-uat.table.aircraft row=UatAircraftRow cap=128 since=1.0
-uat.table.fisb_products row=FisbProductRow cap=64 since=1.0
-uat.table.fisb_records row=FisbRecordRow cap=512 since=1.0
-uat.table.fisb_blocks row=FisbBlockRow cap=2048 since=1.0
-uat.table.fisb_vertices row=FisbVertexRow cap=8192 since=1.0
-uat.table.log row=UatLogRow cap=64 since=1.0
+uat.table.aircraft row=UatAircraftRow cap=128 label=callsign position=position altitude=alt_ft course=heading_deg speed=speed_kt since=1.0
+uat.table.fisb_products row=FisbProductRow cap=64 label=name since=1.0
+uat.table.fisb_records row=FisbRecordRow cap=512 label=name position=position since=1.0
+uat.table.fisb_blocks row=FisbBlockRow cap=2048 label=name position=corner since=1.0
+uat.table.fisb_vertices row=FisbVertexRow cap=8192 position=position altitude=alt_ft since=1.0
+uat.table.log row=UatLogRow cap=64 label=address since=1.0
 uat.event.uat.message fields=UatMessage since=1.0
 uat.setting.expiry_s type=f64 unit=s since=1.0
 uat.setting.gen_aircraft type=i64 unit= since=1.0
@@ -326,6 +328,7 @@ uat.setting.gen_example type=bool unit= since=1.0
 uat.setting.gen_bursts type=i64 unit= since=1.0
 uat.command.clear args= reply= since=1.0
 modeac since=1.0
+modeac.content kind=tracking since=1.2
 modeac.fields.ModeAcFields since=1.0
 modeac.table.modeac row=ModeAcRow cap=256 since=1.0
 modeac.event.modeac.reply fields=ModeAcReplyEvent since=1.0
@@ -334,8 +337,9 @@ modeac.setting.min_replies type=i64 unit= since=1.0
 modeac.setting.gen_targets type=i64 unit= since=1.0
 modeac.command.clear args= reply= since=1.0
 uplink1030 since=1.0
+uplink1030.content kind=tracking since=1.2
 uplink1030.fields.UplinkFields since=1.0
-uplink1030.table.addressed row=AddressedRow cap=256 since=1.0
+uplink1030.table.addressed row=AddressedRow cap=256 label=icao since=1.0
 uplink1030.table.interrogators row=InterrogatorRow cap=64 since=1.0
 uplink1030.table.by_uf row=CountRow cap=32 since=1.0
 uplink1030.event.uplink.interrogation fields=InterrogationEvent since=1.0

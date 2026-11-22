@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "road", version 1.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "road", version 1.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_ROAD_VERSION_MAJOR 1
-#define SDRKIT_ROAD_VERSION_MINOR 0
+#define SDRKIT_ROAD_VERSION_MINOR 1
 
 // The stack "v2x": its id, and the keys of its event types.
 #define SDRKIT_STACK_V2X "v2x"
@@ -256,6 +256,9 @@ typedef struct sdrkit_v2x_vehicle_args {
 
 // Fills `rows` with the changed rows of the table "vehicles" of the stack "v2x" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `source` names a row.
+// Place of a row: the column `position`.
+// Course: `course_deg`. Speed: `speed_kt`.
 static inline int32_t sdrkit_v2x_vehicles_rows(SDRKIT_HANDLE handle,
                                               sdrkit_v2x_vehicle_row *rows,
                                               uint32_t capacity,
@@ -265,6 +268,7 @@ static inline int32_t sdrkit_v2x_vehicles_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "v2x" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `source` names a row.
 static inline int32_t sdrkit_v2x_frames_rows(SDRKIT_HANDLE handle,
                                             sdrkit_v2x_frame_row *rows,
                                             uint32_t capacity,

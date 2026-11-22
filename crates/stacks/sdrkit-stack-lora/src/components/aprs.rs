@@ -416,7 +416,7 @@ impl AprsTablesComp {
         });
         shaped::log_rows(&h.frames, &APRS_FRAMES, s.time, p);
         shaped::rows(&h.stations, &APRS_STATIONS, s.time, p);
-        shaped::points(&h.stations, "stations/", p.results_mut());
+        shaped::row_points(&h.stations, &APRS_STATIONS, "stations/", p.results_mut());
         self.tables.heard.messages.publish(p, s.time);
     }
 }

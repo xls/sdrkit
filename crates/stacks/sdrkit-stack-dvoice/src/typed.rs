@@ -423,7 +423,10 @@ pub struct DmrTxFields<'a> {
 #[derive(Arguments)]
 pub struct DataSendArgs<'a> {
     /// The text of the message.
-    #[arg(label = "Text", help = "The text of the message; its limit depends on the stack.")]
+    #[arg(
+        label = "Text",
+        help = "The text of the message; its limit depends on the stack."
+    )]
     pub text: &'a str,
 }
 
@@ -1098,17 +1101,20 @@ pub struct YsfFields<'a> {
 }
 
 /// The call log of DMR (at most 100 entries).
-pub static CALLS_100: Table<CallRow<'static>> = Table::new("calls", "Calls", 100);
+pub static CALLS_100: Table<CallRow<'static>> =
+    Table::new("calls", "Calls", 100).label(&CallRow::ALIAS);
 /// The call log of the other stacks (at most 300 entries).
-pub static CALLS_300: Table<CallRow<'static>> = Table::new("calls", "Calls", 300);
+pub static CALLS_300: Table<CallRow<'static>> =
+    Table::new("calls", "Calls", 300).label(&CallRow::ALIAS);
 /// The facts of a call that only some stacks send.
 pub static CALL_DETAILS: Table<CallDetailRow<'static>> =
-    Table::new("call_details", "Call details", 3000);
+    Table::new("call_details", "Call details", 3000).label(&CallDetailRow::CALL);
 /// Text messages.
-pub static MESSAGES: Table<MessageRow<'static>> = Table::new("messages", "Messages", 100);
+pub static MESSAGES: Table<MessageRow<'static>> =
+    Table::new("messages", "Messages", 100).label(&MessageRow::SRC);
 /// Positions.
 pub static POSITIONS: Table<PositionRow<'static>> =
-    Table::new("positions", "Positions", crate::calls::POSITION_CAP);
+    Table::new("positions", "Positions", crate::calls::POSITION_CAP).label(&PositionRow::SRC);
 /// The site and system identity of the stack.
 pub static SITES: Table<SiteRow<'static>> = Table::new("sites", "Sites", 1);
 /// Channel grants.
@@ -1126,13 +1132,13 @@ pub static ADJACENT: Table<AdjacentRow<'static>> =
     Table::new("adjacent_sites", "Adjacent sites", 64);
 /// The rows of DCR: calls, call ends, call signs, data blocks and messages.
 pub static DCR_EVENTS: Table<DcrEventRow<'static>> =
-    Table::new("events", "Events", crate::dcr::ROW_CAP);
+    Table::new("events", "Events", crate::dcr::ROW_CAP).label(&DcrEventRow::IDENTITY);
 /// The calls the monitor heard, newest first.
 pub static HISTORY: Table<HistoryRow<'static>> =
-    Table::new("history", "Heard calls", monitor::HISTORY_CAP);
+    Table::new("history", "Heard calls", monitor::HISTORY_CAP).label(&HistoryRow::CALL);
 /// One row per source radio or callsign.
 pub static HEARD: Table<HeardRow<'static>> =
-    Table::new("heard", "Heard stations", monitor::HEARD_CAP);
+    Table::new("heard", "Heard stations", monitor::HEARD_CAP).label(&HeardRow::SRC);
 
 /// A call started, ended, or was a single transmission.
 pub static CALL: EventKind<CallEvent<'static>> = EventKind::new("dvoice.call", "Call");
@@ -1216,7 +1222,65 @@ pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         let plain = |id| common(id, &CALLS_300);
-        Described::new("dvoice", 2, 0)
+        Described::new("dvoice", 2, 1)
+            .added(
+                2,
+                1,
+                &[
+                    "dmr.content",
+                    "p25.content",
+                    "m17.content",
+                    "dstar.content",
+                    "nxdn.content",
+                    "dpmr.content",
+                    "ysf.content",
+                    "p25p2.content",
+                    "tetrapol.content",
+                    "tetra.content",
+                    "tetra_dmo.content",
+                    "freedv.content",
+                    "dvoice-auto.content",
+                    "dcr.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Voice,
+                &[
+                    "dmr",
+                    "p25",
+                    "m17",
+                    "dstar",
+                    "nxdn",
+                    "dpmr",
+                    "ysf",
+                    "p25p2",
+                    "tetrapol",
+                    "tetra",
+                    "tetra_dmo",
+                    "freedv",
+                    "dvoice-auto",
+                    "dcr",
+                ],
+            )
+            .audio(
+                sdrkit_core::AudioKind::Voice,
+                &[
+                    "dmr",
+                    "p25",
+                    "m17",
+                    "dstar",
+                    "nxdn",
+                    "dpmr",
+                    "ysf",
+                    "p25p2",
+                    "tetrapol",
+                    "tetra",
+                    "tetra_dmo",
+                    "freedv",
+                    "dvoice-auto",
+                    "dcr",
+                ],
+            )
             .stack(
                 finish(common("dmr", &CALLS_100).fields::<DmrFields>())
                     .settings(&[&crate::dmr::GEN_CC])
@@ -1253,9 +1317,7 @@ pub fn family() -> &'static Described {
             )
             .stack(finish(plain("nxdn").fields::<NxdnFields>()))
             .stack(finish(plain("dpmr").fields::<DpmrFields>()))
-            .stack(
-                finish(plain("ysf").fields::<YsfFields>()).settings(&[&crate::ysf::GEN_VOICE]),
-            )
+            .stack(finish(plain("ysf").fields::<YsfFields>()).settings(&[&crate::ysf::GEN_VOICE]))
             .stack(finish(plain("p25p2").fields::<P25p2Fields>()))
             .stack(finish(plain("tetrapol").fields::<TetrapolFields>()))
             .stack(finish(plain("tetra").fields::<TetraFields>()))

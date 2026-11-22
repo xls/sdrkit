@@ -260,6 +260,7 @@ pub static CONNECTIONS: sdrkit_core::TableDef = sdrkit_core::TableDef {
         &CONN_LOST,
     ],
     cap: 1024,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The components of the stack of a session in run order, each followed by its sections. The row key is the id of the
@@ -281,6 +282,7 @@ pub static COMPONENTS: sdrkit_core::TableDef = sdrkit_core::TableDef {
         &LOAD_UNITS,
     ],
     cap: 1024,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The stages of the stack of a session in run order. The row key is the name of the stage.
@@ -301,6 +303,7 @@ pub static STAGES: sdrkit_core::TableDef = sdrkit_core::TableDef {
         &LOAD_DECLARED_UNITS,
     ],
     cap: 64,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The result fields of every session, after those of its receiver.

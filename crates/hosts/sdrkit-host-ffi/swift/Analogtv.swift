@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "analogtv", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "analogtv", version 1.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum AnalogtvInterface {
     public static let major = 1
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The result fields of the `atv` receiver, which its status component writes.
@@ -719,6 +719,7 @@ public struct FpvStateEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum AnalogtvTables {
     /// The changed rows of the table "channels" of the stack "atv", newest first, at most `capacity` rows.
+    /// The column `label` names a row.
     public static func atvChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[AtvChannelRow], SDRKitCode> {
         var rows = [sdrkit_atv_channel_row](repeating: sdrkit_atv_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -743,6 +744,7 @@ public enum AnalogtvTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MpegtsTeletextSubpageRow.init))
     }
     /// The changed rows of the table "channels" of the stack "fpv", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func fpvChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[FpvChannelRow], SDRKitCode> {
         var rows = [sdrkit_fpv_channel_row](repeating: sdrkit_fpv_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized

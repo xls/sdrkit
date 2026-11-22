@@ -7,7 +7,6 @@ pub mod demod;
 pub mod gen;
 pub mod su;
 
-use sdrkit_algo_dsp::meter::power_to_db as db;
 use crate::display::Clock;
 use crate::typed::{
     AeroAircraftArgs, AeroAircraftRow, AeroChannelRow, AeroFactRow, AeroFields, AeroLogonEvent,
@@ -16,6 +15,7 @@ use crate::typed::{
 };
 use demod::{AeroFrame, Msk, Oqpsk};
 use sdrkit_algo_dsp::fft::Fft;
+use sdrkit_algo_dsp::meter::power_to_db as db;
 use sdrkit_algo_dsp::spectrum::percentile;
 use sdrkit_algo_dsp::window::Window;
 use sdrkit_core::command::{CommandError, CommandId, CommandSet};
@@ -1303,8 +1303,9 @@ impl AeroDisplay {
                 });
             },
         );
-        shaped::points_by(
+        shaped::row_points_by(
             self.aircraft.rows(),
+            AERO_AIRCRAFT.def(),
             "aircraft/",
             p.results_mut(),
             Aircraft::standard_point,

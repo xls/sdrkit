@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "hfdata", version 1.4. MIT licence.
+// sdrkit: the typed interface of the stack family "hfdata", version 1.5. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum HfdataInterface {
     public static let major = 1
-    public static let minor = 4
+    public static let minor = 5
 }
 
 /// The result fields of the CROWD36 stack.
@@ -3949,6 +3949,7 @@ public struct RprBurstEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum HfdataTables {
     /// The changed rows of the table "rows" of the stack "crowd36", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func crowd36Rows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3957,6 +3958,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "xpa", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func xpaRows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3965,6 +3967,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "fsk200", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func fsk200Rows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3973,6 +3976,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "gwfsk", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func gwfskRows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3981,6 +3985,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "fsk_modems", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func fskModemsRows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3989,6 +3994,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "uvb76", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func uvb76Rows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3997,6 +4003,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "vlf_msk", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func vlfMskRows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4061,6 +4068,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfidCandidateRow.init))
     }
     /// The changed rows of the table "events" of the stack "ale", newest first, at most `capacity` rows.
+    /// The column `from` names a row.
     public static func aleEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[AleEventRow], SDRKitCode> {
         var rows = [sdrkit_ale_event_row](repeating: sdrkit_ale_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4069,6 +4077,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AleEventRow.init))
     }
     /// The changed rows of the table "stations" of the stack "ale", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func aleStations(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[AleStationRow], SDRKitCode> {
         var rows = [sdrkit_ale_station_row](repeating: sdrkit_ale_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4085,6 +4094,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AleWordRow.init))
     }
     /// The changed rows of the table "learned_nets" of the stack "ale", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func aleLearnedNets(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[AleNetRow], SDRKitCode> {
         var rows = [sdrkit_ale_net_row](repeating: sdrkit_ale_net_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4093,6 +4103,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AleNetRow.init))
     }
     /// The changed rows of the table "lqa" of the stack "ale", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func aleLqa(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[AleLqaRow], SDRKitCode> {
         var rows = [sdrkit_ale_lqa_row](repeating: sdrkit_ale_lqa_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4101,6 +4112,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AleLqaRow.init))
     }
     /// The changed rows of the table "messages" of the stack "ale", newest first, at most `capacity` rows.
+    /// The column `from` names a row.
     public static func aleMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[AleMessageRow], SDRKitCode> {
         var rows = [sdrkit_ale_message_row](repeating: sdrkit_ale_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4109,6 +4121,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AleMessageRow.init))
     }
     /// The changed rows of the table "radars" of the stack "hfradar", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func hfradarRadars(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[HfradarRadarRow], SDRKitCode> {
         var rows = [sdrkit_hfradar_radar_row](repeating: sdrkit_hfradar_radar_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4125,6 +4138,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfradarHeardRow.init))
     }
     /// The changed rows of the table "bands" of the stack "hfradar", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func hfradarBands(_ handle: SDRKIT_HANDLE, capacity: Int = 8) -> Result<[HfradarBandRow], SDRKitCode> {
         var rows = [sdrkit_hfradar_band_row](repeating: sdrkit_hfradar_band_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4181,6 +4195,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataPactorhfEventRow.init))
     }
     /// The changed rows of the table "frames" of the stack "pactor1", newest first, at most `capacity` rows.
+    /// The column `call` names a row.
     public static func pactor1Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[Pactor1FrameRow], SDRKitCode> {
         var rows = [sdrkit_pactor1_frame_row](repeating: sdrkit_pactor1_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4189,6 +4204,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Pactor1FrameRow.init))
     }
     /// The changed rows of the table "stations" of the stack "pactor1", newest first, at most `capacity` rows.
+    /// The column `call` names a row.
     public static func pactor1Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[Pactor1StationRow], SDRKitCode> {
         var rows = [sdrkit_pactor1_station_row](repeating: sdrkit_pactor1_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4197,6 +4213,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Pactor1StationRow.init))
     }
     /// The changed rows of the table "beacons" of the stack "hfbeacons", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
+    /// Place of a row: the column `position`.
     public static func hfbeaconsBeacons(_ handle: SDRKIT_HANDLE, capacity: Int = 4096) -> Result<[HfbeaconsBeaconRow], SDRKitCode> {
         var rows = [sdrkit_hfbeacons_beacon_row](repeating: sdrkit_hfbeacons_beacon_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4237,6 +4255,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WavebuoySystemWordRow.init))
     }
     /// The changed rows of the table "frames" of the stack "wavebuoy", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
     public static func wavebuoyFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 40) -> Result<[WavebuoyFrameRow], SDRKitCode> {
         var rows = [sdrkit_wavebuoy_frame_row](repeating: sdrkit_wavebuoy_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4245,6 +4264,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WavebuoyFrameRow.init))
     }
     /// The changed rows of the table "dpdus" of the stack "ms110", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
     public static func ms110Dpdus(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataDpduRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_dpdu_row](repeating: sdrkit_hfdata_dpdu_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4253,6 +4273,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataDpduRow.init))
     }
     /// The changed rows of the table "dpdus" of the stack "s4285", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
     public static func s4285Dpdus(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataDpduRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_dpdu_row](repeating: sdrkit_hfdata_dpdu_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4261,6 +4282,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataDpduRow.init))
     }
     /// The changed rows of the table "dpdus" of the stack "s4539", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
     public static func s4539Dpdus(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataDpduRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_dpdu_row](repeating: sdrkit_hfdata_dpdu_row(), count: capacity)
         var info = sdrkit_rows_info.sized

@@ -1,5 +1,5 @@
 # The interface of the stack family satimg. The registry test of the family writes this file.
-family satimg version=1.1
+family satimg version=1.2
 uses.image major=1 since=1.0
 uses.dvbs2 major=1 since=1.0
 uses.ipcast major=1 since=1.0
@@ -436,6 +436,7 @@ shape.EodbFields.gate_skipped_pct type=f64 unit=% optional=yes since=1.0
 shape.EodbFields.gate_line type=f64 unit= optional=yes since=1.0
 shape.EodbFields.hint type=text unit= optional=no since=1.0
 meteor_lrpt since=1.0
+meteor_lrpt.content kind=satellite_imagery pictures=yes since=1.2
 meteor_lrpt.fields.LinkFields since=1.0
 meteor_lrpt.fields.MeteorLrptFields since=1.0
 meteor_lrpt.fields.PictureFields since=1.0
@@ -456,6 +457,7 @@ meteor_lrpt.setting.gen_night type=bool unit= since=1.0
 meteor_lrpt.setting.gen_rows type=i64 unit= since=1.0
 meteor_lrpt.command.clear args= reply= since=1.0
 goes_hrit since=1.0
+goes_hrit.content kind=satellite_imagery pictures=yes since=1.2
 goes_hrit.fields.LinkFields since=1.0
 goes_hrit.fields.XritFields since=1.0
 goes_hrit.kept.products since=1.0
@@ -480,6 +482,7 @@ goes_hrit.setting.gen_counter type=i64 unit= since=1.0
 goes_hrit.command.open_cadu args=path:text reply= since=1.0
 goes_hrit.command.clear args= reply= since=1.0
 gk2a_lrit since=1.0
+gk2a_lrit.content kind=satellite_imagery pictures=yes since=1.2
 gk2a_lrit.fields.LinkFields since=1.0
 gk2a_lrit.fields.XritFields since=1.0
 gk2a_lrit.kept.products since=1.0
@@ -507,6 +510,7 @@ gk2a_lrit.command.clear args= reply= since=1.0
 gk2a_lrit.command.import_keys args=path:text reply= since=1.0
 gk2a_lrit.command.add_keys args=keys:text reply= since=1.0
 gk2a_hrit since=1.0
+gk2a_hrit.content kind=satellite_imagery pictures=yes since=1.2
 gk2a_hrit.fields.LinkFields since=1.0
 gk2a_hrit.fields.XritFields since=1.0
 gk2a_hrit.kept.products since=1.0
@@ -534,6 +538,7 @@ gk2a_hrit.command.clear args= reply= since=1.0
 gk2a_hrit.command.import_keys args=path:text reply= since=1.0
 gk2a_hrit.command.add_keys args=keys:text reply= since=1.0
 fy2_svissr since=1.0
+fy2_svissr.content kind=satellite_imagery pictures=yes since=1.2
 fy2_svissr.fields.LinkFields since=1.0
 fy2_svissr.fields.Fy2SvissrFields since=1.0
 fy2_svissr.fields.PictureFields since=1.0
@@ -551,6 +556,7 @@ fy2_svissr.setting.gen_lines type=i64 unit= since=1.0
 fy2_svissr.command.open_svissr args=path:text reply= since=1.0
 fy2_svissr.command.clear args= reply= since=1.0
 fy3_ahrpt since=1.0
+fy3_ahrpt.content kind=satellite_imagery pictures=yes since=1.2
 fy3_ahrpt.fields.LinkFields since=1.0
 fy3_ahrpt.fields.Fy3Fields since=1.0
 fy3_ahrpt.fields.PictureFields since=1.0
@@ -574,6 +580,7 @@ fy3_ahrpt.setting.gen_swap type=bool unit= since=1.0
 fy3_ahrpt.setting.gen_fill_every type=i64 unit= since=1.0
 fy3_ahrpt.command.clear args= reply= since=1.0
 fy3_mpt since=1.0
+fy3_mpt.content kind=satellite_imagery pictures=yes since=1.2
 fy3_mpt.fields.LinkFields since=1.0
 fy3_mpt.fields.Fy3Fields since=1.0
 fy3_mpt.fields.PictureFields since=1.0
@@ -597,6 +604,7 @@ fy3_mpt.setting.gen_swap type=bool unit= since=1.0
 fy3_mpt.setting.gen_fill_every type=i64 unit= since=1.0
 fy3_mpt.command.clear args= reply= since=1.0
 noaa_apt since=1.0
+noaa_apt.content kind=satellite_imagery pictures=yes since=1.2
 noaa_apt.fields.NoaaAptFields since=1.0
 noaa_apt.fields.PictureFields since=1.0
 noaa_apt.kept.images since=1.0
@@ -607,6 +615,7 @@ noaa_apt.setting.line_filter type=bool unit= since=1.0
 noaa_apt.setting.gen_lines type=i64 unit= since=1.0
 noaa_apt.command.clear args= reply= since=1.0
 noaa_dsb since=1.0
+noaa_dsb.content kind=satellite_imagery pictures=yes since=1.2
 noaa_dsb.fields.NoaaDsbFields since=1.0
 noaa_dsb.fields.PictureFields since=1.0
 noaa_dsb.kept.images since=1.0
@@ -622,6 +631,7 @@ noaa_dsb.setting.gen_pm_index type=f64 unit=deg since=1.0
 noaa_dsb.setting.gen_lines type=i64 unit= since=1.0
 noaa_dsb.command.clear args= reply= since=1.0
 goes_gvar since=1.0
+goes_gvar.content kind=satellite_imagery pictures=yes since=1.2
 goes_gvar.fields.GoesGvarFields since=1.0
 goes_gvar.fields.PictureFields since=1.0
 goes_gvar.kept.images since=1.0
@@ -637,6 +647,7 @@ goes_gvar.setting.follow type=bool unit= since=1.0
 goes_gvar.setting.gen_lines type=i64 unit= since=1.0
 goes_gvar.command.clear args= reply= since=1.0
 aws since=1.0
+aws.content kind=satellite_imagery pictures=yes since=1.2
 aws.fields.LinkFields since=1.0
 aws.fields.AwsFields since=1.0
 aws.fields.PictureFields since=1.0
@@ -653,6 +664,7 @@ aws.setting.follow type=bool unit= since=1.0
 aws.setting.gen_lines type=i64 unit= since=1.0
 aws.command.clear args= reply= since=1.0
 noaa_gac since=1.0
+noaa_gac.content kind=satellite_imagery pictures=yes since=1.2
 noaa_gac.fields.NoaaGacFields since=1.0
 noaa_gac.fields.PictureFields since=1.0
 noaa_gac.kept.images since=1.0
@@ -668,6 +680,7 @@ noaa_gac.setting.gen_scid type=i64 unit= since=1.0
 noaa_gac.setting.gen_lines type=i64 unit= since=1.0
 noaa_gac.command.clear args= reply= since=1.0
 msg_raw since=1.0
+msg_raw.content kind=satellite_imagery pictures=yes since=1.2
 msg_raw.fields.LinkFields since=1.0
 msg_raw.fields.MsgRawFields since=1.0
 msg_raw.fields.PictureFields since=1.0
@@ -686,8 +699,9 @@ msg_raw.setting.gen_lines type=i64 unit= since=1.0
 msg_raw.setting.gen_start type=i64 unit= since=1.0
 msg_raw.command.clear args= reply= since=1.0
 goes_cda since=1.0
+goes_cda.content kind=satellite_links since=1.2
 goes_cda.fields.FrameTableFields since=1.0
-goes_cda.table.frames row=FrameRow cap=64 since=1.0
+goes_cda.table.frames row=FrameRow cap=64 label=hex since=1.0
 goes_cda.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
 goes_cda.series.esn0 x_unit=s y_unit=dB since=1.0
 goes_cda.series.byte_errors x_unit=s y_unit=% since=1.0
@@ -696,8 +710,9 @@ goes_cda.series.constellation x_unit= y_unit= since=1.0
 goes_cda.setting.gen_pm_index type=f64 unit=deg since=1.0
 goes_cda.command.clear args= reply= since=1.0
 goes_mdl since=1.0
+goes_mdl.content kind=satellite_links since=1.2
 goes_mdl.fields.FrameTableFields since=1.0
-goes_mdl.table.frames row=FrameRow cap=64 since=1.0
+goes_mdl.table.frames row=FrameRow cap=64 label=hex since=1.0
 goes_mdl.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
 goes_mdl.series.esn0 x_unit=s y_unit=dB since=1.0
 goes_mdl.series.byte_errors x_unit=s y_unit=% since=1.0
@@ -705,8 +720,9 @@ goes_mdl.series.frames_per_s x_unit=s y_unit= since=1.0
 goes_mdl.series.constellation x_unit= y_unit= since=1.0
 goes_mdl.command.clear args= reply= since=1.0
 gk2a_cdas since=1.0
+gk2a_cdas.content kind=satellite_links since=1.2
 gk2a_cdas.fields.FrameTableFields since=1.0
-gk2a_cdas.table.frames row=FrameRow cap=64 since=1.0
+gk2a_cdas.table.frames row=FrameRow cap=64 label=hex since=1.0
 gk2a_cdas.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
 gk2a_cdas.series.esn0 x_unit=s y_unit=dB since=1.0
 gk2a_cdas.series.byte_errors x_unit=s y_unit=% since=1.0
@@ -714,9 +730,10 @@ gk2a_cdas.series.frames_per_s x_unit=s y_unit= since=1.0
 gk2a_cdas.series.constellation x_unit= y_unit= since=1.0
 gk2a_cdas.command.clear args= reply= since=1.0
 sband_ccsds since=1.0
+sband_ccsds.content kind=satellite_links since=1.2
 sband_ccsds.fields.FrameTableFields since=1.0
 sband_ccsds.fields.SbandCcsdsFields since=1.0
-sband_ccsds.table.frames row=FrameRow cap=64 since=1.0
+sband_ccsds.table.frames row=FrameRow cap=64 label=hex since=1.0
 sband_ccsds.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
 sband_ccsds.series.esn0 x_unit=s y_unit=dB since=1.0
 sband_ccsds.series.byte_errors x_unit=s y_unit=% since=1.0
@@ -736,10 +753,11 @@ sband_ccsds.setting.rs_interleave type=i64 unit= since=1.0
 sband_ccsds.setting.rs_basis type=choice(dual,conventional) unit= since=1.0
 sband_ccsds.command.clear args= reply= since=1.0
 rdas since=1.0
+rdas.content kind=satellite_imagery pictures=yes since=1.2
 rdas.fields.FrameTableFields since=1.0
 rdas.fields.RdasFields since=1.0
 rdas.fields.PictureFields since=1.0
-rdas.table.frames row=FrameRow cap=64 since=1.0
+rdas.table.frames row=FrameRow cap=64 label=hex since=1.0
 rdas.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
 rdas.series.esn0 x_unit=s y_unit=dB since=1.0
 rdas.series.byte_errors x_unit=s y_unit=% since=1.0
@@ -749,6 +767,7 @@ rdas.setting.symbol_rate type=hz unit=Hz since=1.0
 rdas.setting.roll_off type=f64 unit= since=1.0
 rdas.command.clear args= reply= since=1.0
 gk2a_uhrit since=1.0
+gk2a_uhrit.content kind=satellite_imagery pictures=yes since=1.2
 gk2a_uhrit.fields.Dvbs2Fields since=1.0
 gk2a_uhrit.fields.CaduFields since=1.0
 gk2a_uhrit.fields.UhritFields since=1.0
@@ -783,6 +802,7 @@ gk2a_uhrit.command.import_keys args=path:text reply= since=1.0
 gk2a_uhrit.command.add_keys args=keys:text reply= since=1.0
 gk2a_uhrit.command.clear args= reply= since=1.0
 fy4_lrit since=1.0
+fy4_lrit.content kind=satellite_imagery pictures=yes since=1.2
 fy4_lrit.fields.Dvbs2Fields since=1.0
 fy4_lrit.fields.Fy4Fields since=1.0
 fy4_lrit.component.s2_report.fields.Dvbs2Fields shared=standard;signal_note;symbol_rate_hz;spectrum_rate;clock_ppm;manual_rate;spectrum_snr_db;misfit;edge_low;edge_high;offset_hz;inverted;roll_off;roll_off_source;modulation;code_rate;modcod;frame;pilots;vcm;single_stream;pl_scrambling_code;plframes;dummy_frames;unsupported_frames;other_modcod_frames;pilot_mismatch;bbheader_bad;net_bit_rate;esn0_db;mer_db;ebn0_db;margin_to_qef_db;ldpc_iterations;bch_ok;bch_bad;rs_clean;rs_corrected;rs_failed;carrier_lock;timing_lock;frame_lock;fec_lock;ts_lock;level_dbfs;lnb_mismatch since=1.0
@@ -815,6 +835,7 @@ fy4_lrit.setting.follow_newest type=bool unit= since=1.0
 fy4_lrit.command.open_cadu args=path:text reply= since=1.0
 fy4_lrit.command.clear args= reply= since=1.0
 fy4a_hrit since=1.0
+fy4a_hrit.content kind=satellite_imagery pictures=yes since=1.2
 fy4a_hrit.fields.Dvbs2Fields since=1.0
 fy4a_hrit.fields.Fy4Fields since=1.0
 fy4a_hrit.component.s2_report.fields.Dvbs2Fields shared=standard;signal_note;symbol_rate_hz;spectrum_rate;clock_ppm;manual_rate;spectrum_snr_db;misfit;edge_low;edge_high;offset_hz;inverted;roll_off;roll_off_source;modulation;code_rate;modcod;frame;pilots;vcm;single_stream;pl_scrambling_code;plframes;dummy_frames;unsupported_frames;other_modcod_frames;pilot_mismatch;bbheader_bad;net_bit_rate;esn0_db;mer_db;ebn0_db;margin_to_qef_db;ldpc_iterations;bch_ok;bch_bad;rs_clean;rs_corrected;rs_failed;carrier_lock;timing_lock;frame_lock;fec_lock;ts_lock;level_dbfs;lnb_mismatch since=1.0
@@ -846,6 +867,7 @@ fy4a_hrit.setting.follow_newest type=bool unit= since=1.0
 fy4a_hrit.command.open_cadu args=path:text reply= since=1.0
 fy4a_hrit.command.clear args= reply= since=1.0
 goes_grb since=1.0
+goes_grb.content kind=satellite_imagery pictures=yes since=1.2
 goes_grb.fields.Dvbs2Fields since=1.0
 goes_grb.fields.CaduFields since=1.0
 goes_grb.fields.GrbFields since=1.0
@@ -857,11 +879,11 @@ goes_grb.kept.groups since=1.1
 goes_grb.table.carriers row=Dvbs2CarrierRow cap=32 writers=s2_report since=1.0
 goes_grb.table.streams row=Dvbs2StreamRow cap=256 writers=s2_report since=1.0
 goes_grb.table.stream_modcods row=Dvbs2StreamModcodRow cap=1024 writers=s2_report since=1.0
-goes_grb.table.grb_products row=GrbProductRow cap=256 since=1.0
-goes_grb.table.packets_by_apid row=GrbApidRow cap=32 since=1.0
+goes_grb.table.grb_products row=GrbProductRow cap=256 label=name since=1.0
+goes_grb.table.packets_by_apid row=GrbApidRow cap=32 label=name since=1.0
 goes_grb.table.frames row=UhritFrameRow cap=64 since=1.0
-goes_grb.table.flashes row=GlmFlashRow cap=64 since=1.1
-goes_grb.table.groups row=GlmGroupRow cap=64 since=1.1
+goes_grb.table.flashes row=GlmFlashRow cap=64 position=position since=1.1
+goes_grb.table.groups row=GlmGroupRow cap=64 position=position since=1.1
 goes_grb.series.constellation x_unit= y_unit= since=1.0
 goes_grb.series.spectrum x_unit=bin y_unit=dB since=1.0
 goes_grb.series.mer_history x_unit=frame y_unit=dB since=1.0
@@ -878,6 +900,7 @@ goes_grb.setting.pilots type=choice(any,on,off) unit= since=1.0
 goes_grb.setting.pl_scrambling type=i64 unit= since=1.0
 goes_grb.command.clear args= reply= since=1.0
 sat_filecast since=1.0
+sat_filecast.content kind=satellite_imagery pictures=yes since=1.2
 sat_filecast.fields.Dvbs2Fields since=1.0
 sat_filecast.fields.FilecastFields since=1.0
 sat_filecast.component.s2_report.fields.Dvbs2Fields shared=standard;signal_note;symbol_rate_hz;spectrum_rate;clock_ppm;manual_rate;spectrum_snr_db;misfit;edge_low;edge_high;offset_hz;inverted;roll_off;roll_off_source;modulation;code_rate;modcod;frame;pilots;vcm;single_stream;pl_scrambling_code;plframes;dummy_frames;unsupported_frames;other_modcod_frames;pilot_mismatch;bbheader_bad;net_bit_rate;esn0_db;mer_db;ebn0_db;margin_to_qef_db;ldpc_iterations;bch_ok;bch_bad;rs_clean;rs_corrected;rs_failed;carrier_lock;timing_lock;frame_lock;fec_lock;ts_lock;level_dbfs;lnb_mismatch since=1.0
@@ -887,7 +910,7 @@ sat_filecast.kept.pictures since=1.0
 sat_filecast.table.carriers row=Dvbs2CarrierRow cap=32 writers=s2_report since=1.0
 sat_filecast.table.streams row=Dvbs2StreamRow cap=256 writers=s2_report since=1.0
 sat_filecast.table.stream_modcods row=Dvbs2StreamModcodRow cap=1024 writers=s2_report since=1.0
-sat_filecast.table.recent_files row=RecentFileRow cap=60 since=1.0
+sat_filecast.table.recent_files row=RecentFileRow cap=60 label=name since=1.0
 sat_filecast.table.pictures row=FilecastPictureRow cap=64 since=1.0
 sat_filecast.series.constellation x_unit= y_unit= since=1.0
 sat_filecast.series.spectrum x_unit=bin y_unit=dB since=1.0
@@ -909,6 +932,7 @@ sat_filecast.setting.pl_scrambling type=i64 unit= since=1.0
 sat_filecast.setting.gen_symbol_rate type=hz unit=Hz since=1.0
 sat_filecast.command.clear args= reply= since=1.0
 elektro_l since=1.0
+elektro_l.content kind=satellite_imagery pictures=yes since=1.2
 elektro_l.fields.LinkFields since=1.0
 elektro_l.fields.XritFields since=1.0
 elektro_l.kept.products since=1.0
@@ -937,6 +961,7 @@ elektro_l.setting.gen_link type=choice(hrit665,hrit1000,lrit128,lrit64,ggak) uni
 elektro_l.command.open_cadu args=path:text reply= since=1.0
 elektro_l.command.clear args= reply= since=1.0
 hrpt since=1.0
+hrpt.content kind=satellite_imagery pictures=yes since=1.2
 hrpt.fields.LinkFields since=1.0
 hrpt.fields.HrptFields since=1.0
 hrpt.fields.PictureFields since=1.0
@@ -959,10 +984,11 @@ hrpt.setting.gen_polarity type=bool unit= since=1.0
 hrpt.setting.gen_pm_index type=f64 unit=deg since=1.0
 hrpt.command.clear args= reply= since=1.0
 eodb since=1.0
+eodb.content kind=satellite_imagery pictures=yes since=1.2
 eodb.fields.FrameTableFields since=1.0
 eodb.fields.EodbFields since=1.0
 eodb.fields.PictureFields since=1.0
-eodb.table.frames row=FrameRow cap=64 since=1.0
+eodb.table.frames row=FrameRow cap=64 label=hex since=1.0
 eodb.table.virtual_channels row=VirtualChannelRow cap=64 since=1.0
 eodb.series.esn0 x_unit=s y_unit=dB since=1.0
 eodb.series.byte_errors x_unit=s y_unit=% since=1.0

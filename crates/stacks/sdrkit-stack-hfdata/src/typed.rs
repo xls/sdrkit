@@ -366,7 +366,8 @@ pub struct S4539MessageEvent<'a> {
 }
 
 /// The D_PDUs found in the bits of a modem, newest first.
-pub static DPDUS: Table<DpduRow<'static>> = Table::new("dpdus", "D_PDUs", 500);
+pub static DPDUS: Table<DpduRow<'static>> =
+    Table::new("dpdus", "D_PDUs", 500).label(&DpduRow::SOURCE);
 /// A status event of MIL-STD-188-110.
 pub static MS110_EVENT: EventKind<Ms110Event<'static>> = EventKind::new("ms110.event", "Event");
 /// A message of MIL-STD-188-110.
@@ -1116,14 +1117,16 @@ pub struct AleStationArgs<'a> {
 }
 
 /// The calls of ALE, oldest first.
-pub static ALE_EVENTS: Table<AleEventRow<'static>> = Table::new("events", "Events", 500);
+pub static ALE_EVENTS: Table<AleEventRow<'static>> =
+    Table::new("events", "Events", 500).label(&AleEventRow::FROM);
 /// The callers of ALE, the one heard last first.
-pub static ALE_STATIONS: Table<AleStationRow<'static>> = Table::new("stations", "Stations", 500);
+pub static ALE_STATIONS: Table<AleStationRow<'static>> =
+    Table::new("stations", "Stations", 500).label(&AleStationRow::ADDRESS);
 /// The decoded ALE words.
 pub static ALE_WORDS: Table<AleWordRow<'static>> = Table::new("words", "Words", 400);
 /// The net addresses learned from the answers.
 pub static ALE_LEARNED_NETS: Table<AleNetRow<'static>> =
-    Table::new("learned_nets", "Learned nets", 64);
+    Table::new("learned_nets", "Learned nets", 64).label(&AleNetRow::ADDRESS);
 /// An ALE call.
 pub static ALE_CALL: EventKind<AleCallEvent<'static>> = EventKind::new("ale.call", "ALE call");
 /// The row key of an ALE station.
@@ -1301,9 +1304,11 @@ pub struct AleMessageRow<'a> {
 }
 
 /// The link quality of the stations heard, per station and channel.
-pub static ALE_LQA: Table<AleLqaRow<'static>> = Table::new("lqa", "Link quality", 500);
+pub static ALE_LQA: Table<AleLqaRow<'static>> =
+    Table::new("lqa", "Link quality", 500).label(&AleLqaRow::ADDRESS);
 /// The AMD texts heard, oldest first.
-pub static ALE_MESSAGES: Table<AleMessageRow<'static>> = Table::new("messages", "Messages", 200);
+pub static ALE_MESSAGES: Table<AleMessageRow<'static>> =
+    Table::new("messages", "Messages", 200).label(&AleMessageRow::FROM);
 
 /// The arguments of the ALE `amd`.
 #[derive(Arguments)]
@@ -1507,7 +1512,8 @@ pub struct HfradarRadarHeardEvent<'a> {
 }
 
 /// The radars.
-pub static HFRADAR_RADARS: Table<HfradarRadarRow<'static>> = Table::new("radars", "Radars", 64);
+pub static HFRADAR_RADARS: Table<HfradarRadarRow<'static>> =
+    Table::new("radars", "Radars", 64).label(&HfradarRadarRow::ID);
 /// The radars heard, oldest first.
 pub static HFRADAR_HEARD: Table<HfradarHeardRow<'static>> = Table::new("heard", "Heard", 300);
 /// A radar heard.
@@ -1535,7 +1541,8 @@ pub struct HfradarBandRow<'a> {
 }
 
 /// The oceanographic radar bands, lowest first.
-pub static HFRADAR_BANDS: Table<HfradarBandRow<'static>> = Table::new("bands", "Radar bands", 8);
+pub static HFRADAR_BANDS: Table<HfradarBandRow<'static>> =
+    Table::new("bands", "Radar bands", 8).label(&HfradarBandRow::NAME);
 
 /// The arguments of `band.tune` of the `hfradar` stack.
 #[derive(Arguments)]
@@ -2140,10 +2147,11 @@ pub struct Pactor1StationArgs<'a> {
 }
 
 /// The frames of PACTOR-I, oldest first.
-pub static PACTOR1_FRAMES: Table<Pactor1FrameRow<'static>> = Table::new("frames", "Frames", 300);
+pub static PACTOR1_FRAMES: Table<Pactor1FrameRow<'static>> =
+    Table::new("frames", "Frames", 300).label(&Pactor1FrameRow::CALL);
 /// The stations of PACTOR-I.
 pub static PACTOR1_STATIONS: Table<Pactor1StationRow<'static>> =
-    Table::new("stations", "Stations", 60);
+    Table::new("stations", "Stations", 60).label(&Pactor1StationRow::CALL);
 /// A frame of PACTOR-I.
 pub static PACTOR_FRAME: EventKind<PactorFrameEvent<'static>> =
     EventKind::new("pactor.frame", "PACTOR-I frame");
@@ -2340,7 +2348,7 @@ pub struct HfbDetectionEvent<'a> {
 
 /// The beacons of the list.
 pub static HFBEACONS_BEACONS: Table<HfbeaconsBeaconRow<'static>> =
-    Table::new("beacons", "Beacons", 4096);
+    Table::new("beacons", "Beacons", 4096).label(&HfbeaconsBeaconRow::NAME);
 /// The bands of the list.
 pub static HFBEACONS_BANDS: Table<HfbeaconsBandRow<'static>> =
     Table::new("bands", "Bands open", 16);
@@ -2681,7 +2689,7 @@ pub static WAVEBUOY_SYSTEM_WORDS: Table<WavebuoySystemWordRow> =
     Table::new("system_words", "System words", 16);
 /// The frames cut at the sync, oldest first.
 pub static WAVEBUOY_FRAMES: Table<WavebuoyFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::buoy::results::FRAMES_CAP);
+    Table::new("frames", "Frames", crate::buoy::results::FRAMES_CAP).label(&WavebuoyFrameRow::HEX);
 /// An accepted HXV vector.
 pub static WAVEBUOY_VECTOR: EventKind<WavebuoyVectorEvent> =
     EventKind::new("wavebuoy.vector", "HXV vector");
@@ -2737,7 +2745,8 @@ pub struct TonesLostEvent<'a> {
 }
 
 /// The rows of a number-sender stack, newest first.
-pub static SENDER_ROWS: Table<SenderRow<'static>> = Table::new("rows", "Rows", 500);
+pub static SENDER_ROWS: Table<SenderRow<'static>> =
+    Table::new("rows", "Rows", 500).label(&SenderRow::ID);
 /// The tones were found.
 pub static TONES_FOUND: EventKind<TonesFoundEvent<'static>> =
     EventKind::new("tones.found", "Tones found");
@@ -3276,7 +3285,82 @@ const ADDED_1_2: &[&str] = &[
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("hfdata", 1, 4)
+        Described::new("hfdata", 1, 5)
+            .added(
+                1,
+                5,
+                &[
+                    "crowd36.content",
+                    "xpa.content",
+                    "fsk200.content",
+                    "gwfsk.content",
+                    "fsk_modems.content",
+                    "uvb76.content",
+                    "vlf_msk.content",
+                    "efr.content",
+                    "gtor.content",
+                    "arqe.content",
+                    "autospec.content",
+                    "piccolo.content",
+                    "coquelet.content",
+                    "ale3g.content",
+                    "s4481.content",
+                    "link11.content",
+                    "cis_hf.content",
+                    "hfid.content",
+                    "ale.content",
+                    "hfradar.content",
+                    "pactor2.content",
+                    "pactor3.content",
+                    "pactor4.content",
+                    "pactor1.content",
+                    "hfbeacons.content",
+                    "wavebuoy.content",
+                    "ms110.content",
+                    "s4285.content",
+                    "s4539.content",
+                    "rpr.content",
+                ],
+            )
+            .content(sdrkit_core::ContentKind::Measurement, &["hfid"])
+            .content(sdrkit_core::ContentKind::Science, &["hfradar", "hfbeacons"])
+            .content(
+                sdrkit_core::ContentKind::Utility,
+                &[
+                    "crowd36",
+                    "xpa",
+                    "fsk200",
+                    "gwfsk",
+                    "fsk_modems",
+                    "uvb76",
+                    "vlf_msk",
+                    "efr",
+                    "gtor",
+                    "arqe",
+                    "autospec",
+                    "piccolo",
+                    "coquelet",
+                    "ale3g",
+                    "s4481",
+                    "link11",
+                    "cis_hf",
+                    "ale",
+                    "pactor2",
+                    "pactor3",
+                    "pactor4",
+                    "pactor1",
+                    "wavebuoy",
+                    "ms110",
+                    "s4285",
+                    "s4539",
+                    "rpr",
+                ],
+            )
+            .audio(
+                sdrkit_core::AudioKind::Monitor,
+                &["ale", "pactor1", "hfbeacons"],
+            )
+            .pictures(&["hfradar"])
             .added(1, 4, ADDED_1_4)
             .added(1, 3, ADDED_1_3)
             .added(1, 2, ADDED_1_2)

@@ -21,6 +21,7 @@ table "events" "Events" cap 60
   column FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "frames" "Frames" cap 200
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -142,6 +143,7 @@ field FieldDecl { key: "centre_hz", label: "Centre", unit: "Hz", kind: Hz, choic
 field FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "calls" "Calls" cap 600
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -156,6 +158,7 @@ table "calls" "Calls" cap 600
   column FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 512
+  marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -234,6 +237,7 @@ field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices
 field FieldDecl { key: "bursts", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "check_failures", label: "Check failures", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "calls" "Calls" cap 600
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -248,6 +252,7 @@ table "calls" "Calls" cap 600
   column FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 512
+  marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -270,6 +275,7 @@ table "channels" "Channels" cap 512
   column FieldDecl { key: "last_heard_utc", label: "Last heard at", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
 table "bursts" "Bursts" cap 400
+  marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
@@ -354,6 +360,7 @@ field FieldDecl { key: "bursts", label: "Bursts", unit: "", kind: I64, choices: 
 field FieldDecl { key: "check_failures", label: "Check failures", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "units", label: "Units", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "calls" "Calls" cap 600
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -368,6 +375,7 @@ table "calls" "Calls" cap 600
   column FieldDecl { key: "tone", label: "Tone", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 512
+  marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "key", label: "Key", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -390,6 +398,7 @@ table "channels" "Channels" cap 512
   column FieldDecl { key: "last_heard_utc", label: "Last heard at", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
 table "bursts" "Bursts" cap 400
+  marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_utc", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
@@ -468,6 +477,7 @@ field FieldDecl { key: "centre_hz", label: "Centre", unit: "Hz", kind: Hz, choic
 field FieldDecl { key: "signal_time_s", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "candidates" "Candidates" cap 64
+  marks TableMarks { label: None, sort: Some((4, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "id", label: "Id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "width_hz", label: "Width", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }

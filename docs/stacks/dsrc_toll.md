@@ -62,7 +62,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 2.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 2.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Sensors and devices (`devices`). Media: none.
 
 ### Result fields
 
@@ -96,6 +98,8 @@ Struct `DsrcFrameRow`. A row of the frame log. The row key is the number of the 
 | `bytes` | whole number | always | 1.0 | The bytes of the frame, without the check. |
 | `control` | text | optional | 1.0 | The control byte as hex, if the frame has one. |
 | `identifier` | text | always | 1.0 | What is not shown. |
+
+The column `identifier` names a row.
 
 ### Event `dsrc_toll.frame`
 

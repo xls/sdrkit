@@ -1260,6 +1260,7 @@ static HEARD: TableDef = TableDef {
     label: "Heard",
     columns: &[],
     cap: 4,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// A sink whose results the test writes through the graph's owner access.
@@ -1310,6 +1311,28 @@ fn publishers(decl: Option<&ResultsDecl>) -> Graph {
 
 fn publish(g: &mut Graph, id: &str, f: impl FnOnce(&mut Published)) {
     f(&mut g.component_as_mut::<Publisher>(id).unwrap().0);
+}
+
+#[test]
+fn a_point_of_a_component_states_its_row_in_the_table_of_the_graph() {
+    let mut g = publishers(None);
+    g.configure(&info(48e3)).unwrap();
+    publish(&mut g, "mt", |p| {
+        let _ = p.row_mut(&HEARD, "node7");
+        let table = p.results().decl().table_id(HEARD.key).unwrap();
+        let r = p.results_mut();
+        r.update_point("nodes/node7", 1.0, 2.0, "Seven", None);
+        r.link_point("nodes/node7", Some((table, "node7")));
+        r.update_point("here", 3.0, 4.0, "Here", None);
+    });
+    g.refresh_results();
+    let r = Owner::results(&g);
+    // The table of the component is `mt.heard` in the graph, with another id than in the component.
+    let table = r.decl().table_id("mt.heard").unwrap();
+    let link = r.points()["mt.nodes/node7"].row.clone().unwrap();
+    assert_eq!((link.table, link.key.as_str()), (table, "node7"));
+    assert!(r.table(table).unwrap().row("node7").is_some());
+    assert!(r.points()["mt.here"].row.is_none());
 }
 
 #[test]

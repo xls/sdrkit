@@ -801,7 +801,8 @@ pub struct VdesAsmRow<'a> {
 }
 
 /// The ASM frames, newest first.
-pub static ASM_TABLE: Table<VdesAsmRow<'static>> = Table::new("asm", "ASM frames", ASM_CAP);
+pub static ASM_TABLE: Table<VdesAsmRow<'static>> =
+    Table::new("asm", "ASM frames", ASM_CAP).label(&VdesAsmRow::MMSI);
 
 /// A row of the VDE-TER burst table. The row key is the place of the burst in the log.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -878,7 +879,8 @@ pub struct VdesChannelRow<'a> {
 }
 
 /// The channels of VDES.
-pub static CHANNEL_TABLE: Table<VdesChannelRow<'static>> = Table::new("channels", "Channels", 6);
+pub static CHANNEL_TABLE: Table<VdesChannelRow<'static>> =
+    Table::new("channels", "Channels", 6).label(&VdesChannelRow::NAME);
 
 /// A row of the count of bursts by modulation. The row key is the name of the modulation.
 #[derive(Clone, Debug, PartialEq, Fields)]

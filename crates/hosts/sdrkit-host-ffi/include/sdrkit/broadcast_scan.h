@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the shared interface "broadcast_scan", whose items the stacks of several families show, version 1.0. MIT licence.
+ * sdrkit: the typed interface of the shared interface "broadcast_scan", whose items the stacks of several families show, version 1.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_BROADCAST_SCAN_VERSION_MAJOR 1
-#define SDRKIT_BROADCAST_SCAN_VERSION_MINOR 0
+#define SDRKIT_BROADCAST_SCAN_VERSION_MINOR 1
 
 // The keys of the event types.
 

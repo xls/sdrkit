@@ -77,7 +77,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `tags`, version 1.0. The C header `sdrkit/tags.h`, the registry record `registry/tags.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `tags`, version 1.1. The C header `sdrkit/tags.h`, the registry record `registry/tags.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Sensors and devices (`devices`). Media: none.
 
 ### Result fields
 
@@ -133,6 +135,8 @@ Struct `QiPacketRow`. A row of the packet table.
 | `device_id` | text | optional | 1.0 | The basic device identifier of an Identification packet, 8 hex digits (31 bits). |
 | `extended` | yes or no | optional | 1.0 | An Extended Identification packet follows an Identification packet. |
 | `level_db` | number (dB) | always | 1.0 | The power signal level, relative. |
+
+The column `device_id` names a row.
 
 ### Event `qi.packet`
 

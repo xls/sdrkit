@@ -90,7 +90,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 2.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 2.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Sensors and devices (`devices`). Media: none.
 
 ### Result fields
 
@@ -141,6 +143,8 @@ Struct `WisunNetworkRow`. A row of the Wi-SUN networks. The row key is the PAN i
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
 | `schedule` | text | optional | 1.0 | The unicast schedule, once heard. |
 
+The column `name` names a row. Default order: the column `level_dbfs`, highest first.
+
 ### Table `nodes`
 
 Struct `WisunNodeRow`. A row of the Wi-SUN nodes. The row key is the EUI-64.
@@ -172,6 +176,8 @@ Struct `WisunLinkRow`. A row of the Wi-SUN links. The row key is the two ends.
 | `rsl_dbm` | number (dBm) | optional | 1.0 | The level the receiver reported for the frames of the sender, once reported. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the sender here. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+
+The column `from` names a row.
 
 ### Table `frames`
 

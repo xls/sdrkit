@@ -83,7 +83,9 @@ The stack puts points on a map: Horus balloons.
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.1. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -139,6 +141,8 @@ Struct `HorusPayloadRow`. A row of the table `payloads`. The row key is the payl
 | `first_heard` | time | optional | 1.0 | Wall-clock time when first heard, in whole seconds. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
 
+Place of a row: the column `position`. Height: `height_m`. Speed: `speed_kmh`.
+
 ### Table `custom_fields`
 
 Struct `HorusCustomFieldRow`. A custom field of the last v2 packet of a payload, or a field after the altitude of its last RTTY sentence. The row key is the payload, "/" and the place of the field from 1.
@@ -148,6 +152,8 @@ Struct `HorusCustomFieldRow`. A custom field of the last v2 packet of a payload,
 | `payload` | text | always | 1.0 | The payload. |
 | `name` | text | always | 1.0 | The name of the field. |
 | `value` | text | always | 1.0 | The value, written by its post-processing. |
+
+The column `name` names a row.
 
 ### Table `packets`
 

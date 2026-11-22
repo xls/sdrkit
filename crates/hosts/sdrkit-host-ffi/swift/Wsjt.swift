@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "wsjt", version 4.0. MIT licence.
+// sdrkit: the typed interface of the stack family "wsjt", version 4.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum WsjtInterface {
     public static let major = 4
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of a slot stack: the slot clock, the clock estimate from the decodes, and the counts since Clear.
@@ -1727,6 +1727,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "wsjt", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func wsjtWsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1743,6 +1744,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "wsjt", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func wsjtStations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1767,6 +1769,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "wsjt", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func wsjtJs8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1791,6 +1794,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "ft8", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func ft8WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1807,6 +1811,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "ft8", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func ft8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1831,6 +1836,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "ft8", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func ft8Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1855,6 +1861,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "ft4", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func ft4WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1871,6 +1878,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "ft4", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func ft4Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1895,6 +1903,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "ft4", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func ft4Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1919,6 +1928,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "ft2", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func ft2WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1935,6 +1945,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "ft2", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func ft2Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1959,6 +1970,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "ft2", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func ft2Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1983,6 +1995,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "wspr", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func wsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1999,6 +2012,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "wspr", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func wsprStations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2023,6 +2037,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "wspr", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func wsprJs8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2047,6 +2062,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "jt65", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func jt65WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2063,6 +2079,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "jt65", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func jt65Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2087,6 +2104,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "jt65", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func jt65Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2103,6 +2121,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "jt9", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func jt9WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2119,6 +2138,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "jt9", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func jt9Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2143,6 +2163,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "jt9", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func jt9Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2159,6 +2180,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "jt4", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func jt4WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2175,6 +2197,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "jt4", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func jt4Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2199,6 +2222,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "jt4", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func jt4Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2215,6 +2239,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "q65", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func q65WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2231,6 +2256,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "q65", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func q65Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2255,6 +2281,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "q65", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func q65Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2271,6 +2298,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "fst4", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func fst4WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2287,6 +2315,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "fst4", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func fst4Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2311,6 +2340,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "fst4", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func fst4Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2327,6 +2357,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "fst4w", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func fst4wWsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2343,6 +2374,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "fst4w", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func fst4wStations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2367,6 +2399,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "fst4w", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func fst4wJs8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2383,6 +2416,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "msk144", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func msk144WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2399,6 +2433,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "msk144", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func msk144Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2423,6 +2458,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "msk144", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func msk144Js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2439,6 +2475,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtDecodeRow.init))
     }
     /// The changed rows of the table "wspr_spots" of the stack "js8", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func js8WsprSpots(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsprSpotRow], SDRKitCode> {
         var rows = [sdrkit_wspr_spot_row](repeating: sdrkit_wspr_spot_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2455,6 +2492,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WsjtModeRow.init))
     }
     /// The changed rows of the table "stations" of the stack "js8", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func js8WsjtStations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WsjtStationRow], SDRKitCode> {
         var rows = [sdrkit_wsjt_station_row](repeating: sdrkit_wsjt_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2479,6 +2517,7 @@ public enum WsjtTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Js8MessageRow.init))
     }
     /// The changed rows of the table "js8_stations" of the stack "js8", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func js8Stations(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[Js8StationRow], SDRKitCode> {
         var rows = [sdrkit_js8_station_row](repeating: sdrkit_js8_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized

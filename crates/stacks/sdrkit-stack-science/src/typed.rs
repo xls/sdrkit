@@ -107,10 +107,10 @@ pub struct SsdvPictureRow<'a> {
 
 /// The SSDV packets, newest first.
 pub static SSDV_PACKETS: Table<SsdvPacketRow<'static>> =
-    Table::new("packets", "Packets", crate::ssdv::MAX_PACKETS);
+    Table::new("packets", "Packets", crate::ssdv::MAX_PACKETS).label(&SsdvPacketRow::CALL);
 /// The SSDV pictures, newest first.
 pub static SSDV_PICTURES: Table<SsdvPictureRow<'static>> =
-    Table::new("pictures", "Pictures", crate::ssdv::MAX_PICTURES);
+    Table::new("pictures", "Pictures", crate::ssdv::MAX_PICTURES).label(&SsdvPictureRow::CALL);
 
 // ---- the event monitors ----
 
@@ -452,7 +452,10 @@ pub struct SchumannPeakRow {
 }
 
 /// The five lowest resonances.
-pub static SCHUMANN_PEAKS: Table<SchumannPeakRow> = Table::new("peaks", "Resonances", 5);
+pub static SCHUMANN_PEAKS: Table<SchumannPeakRow> = Table::new("peaks", "Resonances", 5).sorted(
+    &SchumannPeakRow::HEIGHT_DB,
+    sdrkit_core::SortOrder::Descending,
+);
 
 // ---- jove and callisto ----
 
@@ -1002,7 +1005,7 @@ pub static MSCATTER_PINGS: Table<MscatterPingRow> =
     Table::new("pings", "Pings", crate::mscatter::MAX_PINGS);
 /// The showers active or peaking within 45 days, by name.
 pub static MSCATTER_SHOWERS: Table<MscatterShowerRow<'static>> =
-    Table::new("showers", "Showers", 64);
+    Table::new("showers", "Showers", 64).label(&MscatterShowerRow::NAME);
 /// A meteor ping.
 pub static MS_PING: EventKind<MscatterPingEvent<'static>> =
     EventKind::new("ms.ping", "Meteor ping");
@@ -1526,7 +1529,7 @@ pub struct SameEndEvent<'a> {
 
 /// Messages.
 pub static SAME_ALERTS: Table<SameAlertRow<'static>> =
-    Table::new("alerts", "Messages", crate::same::MAX_ALERTS);
+    Table::new("alerts", "Messages", crate::same::MAX_ALERTS).label(&SameAlertRow::CALLSIGN);
 /// Locations.
 pub static SAME_ALERT_LOCATIONS: Table<SameAlertLocationRow<'static>> = Table::new(
     "alert_locations",
@@ -1741,10 +1744,13 @@ pub struct SondeFrameEvent<'a> {
 
 /// The sondes, the most recently heard first.
 pub static SONDE_SONDES: Table<SondeRow<'static>> =
-    Table::new("sondes", "Radiosondes", crate::sonde::table::MAX_SONDES);
+    Table::new("sondes", "Radiosondes", crate::sonde::table::MAX_SONDES).label(&SondeRow::SERIAL);
 /// The carriers of the last search, strongest first.
 pub static SONDE_CARRIERS: Table<SondeCarrierRow> =
-    Table::new("carriers", "Carriers", crate::sonde::table::MAX_CARRIERS);
+    Table::new("carriers", "Carriers", crate::sonde::table::MAX_CARRIERS).sorted(
+        &SondeCarrierRow::LEVEL_DB,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// A sonde frame.
 pub static SONDE_FRAME: EventKind<SondeFrameEvent<'static>> =
     EventKind::new("sonde.frame", "Radiosonde frame");
@@ -2397,19 +2403,22 @@ pub static SUPERSID_TRANSMITTERS: Table<SupersidTransmitterRow<'static>> = Table
     "transmitters",
     "Transmitters",
     crate::supersid::list::MAX_TRANSMITTERS,
-);
+)
+.label(&SupersidTransmitterRow::LABEL);
 /// Sudden changes.
 pub static SUPERSID_EVENTS: Table<SupersidEventRow<'static>> = Table::new(
     "sid_events",
     "Sudden changes",
     crate::supersid::EVENT_LOG_CAP,
-);
+)
+.label(&SupersidEventRow::LABEL);
 /// Terminator marks.
 pub static SUPERSID_MARKS: Table<SupersidMarkRow<'static>> = Table::new(
     "marks",
     "Terminator marks",
     crate::supersid::list::MAX_TRANSMITTERS * 12,
-);
+)
+.label(&SupersidMarkRow::LABEL);
 /// Sudden ionospheric disturbance.
 pub static SID_EVENT: EventKind<SupersidSidEvent<'static>> =
     EventKind::new("sid.event", "Sudden ionospheric disturbance");
@@ -2732,10 +2741,10 @@ pub struct LightningTdoaStrikeRow {
     #[field(label = "Time (UTC ns)", unit = "ns")]
     pub utc_ns: i64,
     /// Latitude.
-    #[field(label = "Latitude", unit = "°")]
+    #[field(label = "Latitude", unit = "°", role = Latitude)]
     pub lat: f64,
     /// Longitude.
-    #[field(label = "Longitude", unit = "°")]
+    #[field(label = "Longitude", unit = "°", role = Longitude)]
     pub lon: f64,
     /// The semi-major axis of the 95 % ellipse.
     #[field(label = "Ellipse major", unit = "km")]
@@ -2782,10 +2791,10 @@ pub struct LightningTdoaStationRow<'a> {
     #[field(label = "Name")]
     pub name: &'a str,
     /// Latitude.
-    #[field(label = "Latitude", unit = "°")]
+    #[field(label = "Latitude", unit = "°", role = Latitude)]
     pub lat: f64,
     /// Longitude.
-    #[field(label = "Longitude", unit = "°")]
+    #[field(label = "Longitude", unit = "°", role = Longitude)]
     pub lon: f64,
     /// The best usable time source.
     #[field(label = "Time source")]
@@ -2868,7 +2877,8 @@ pub static LIGHTNING_TDOA_STATIONS: Table<LightningTdoaStationRow<'static>> = Ta
     "stations",
     "Stations",
     crate::lightning::server::MAX_STATIONS,
-);
+)
+.label(&LightningTdoaStationRow::NAME);
 /// A strike located (server).
 pub static LIGHTNING_STRIKE: EventKind<LightningStrikeEvent> =
     EventKind::new("lightning.strike", "Lightning strike");
@@ -2998,7 +3008,7 @@ pub struct HorusPayloadRow<'a> {
     #[field(label = "Climb", unit = "m/s")]
     pub climb_m_s: Option<f64>,
     /// The speed of a binary packet.
-    #[field(label = "Speed", unit = "km/h")]
+    #[field(label = "Speed", unit = "km/h", role = Speed)]
     pub speed_kmh: Option<f64>,
     /// The satellites of a binary packet.
     #[field(label = "Satellites")]
@@ -3220,8 +3230,12 @@ pub struct HorusChannelClosedEvent<'a> {
 pub static HORUS_PAYLOADS: Table<HorusPayloadRow<'static>> =
     Table::new("payloads", "Payloads", crate::horus::payloads::MAX_PAYLOADS);
 /// The custom fields of the last v2 packet of each payload, and the fields after the altitude of its last RTTY sentence.
-pub static HORUS_CUSTOM_FIELDS: Table<HorusCustomFieldRow<'static>> =
-    Table::new("custom_fields", "Custom fields", crate::horus::payloads::MAX_CUSTOM_ROWS);
+pub static HORUS_CUSTOM_FIELDS: Table<HorusCustomFieldRow<'static>> = Table::new(
+    "custom_fields",
+    "Custom fields",
+    crate::horus::payloads::MAX_CUSTOM_ROWS,
+)
+.label(&HorusCustomFieldRow::NAME);
 /// The packet log, the newest first.
 pub static HORUS_PACKETS: Table<HorusPacketRow<'static>> =
     Table::new("packets", "Packets", crate::horus::payloads::MAX_LOG);
@@ -3229,7 +3243,8 @@ pub static HORUS_PACKETS: Table<HorusPacketRow<'static>> =
 pub static HORUS_CHANNELS: Table<HorusChannelRow> =
     Table::new("channels", "Channels", crate::horus::bank::MAX_CHANNELS);
 /// A Horus packet.
-pub static HORUS_PACKET: EventKind<HorusPacketEvent<'static>> = EventKind::new("horus.packet", "Horus packet");
+pub static HORUS_PACKET: EventKind<HorusPacketEvent<'static>> =
+    EventKind::new("horus.packet", "Horus packet");
 /// The span search opened a channel.
 pub static HORUS_CHANNEL_OPENED: EventKind<HorusChannelOpenedEvent<'static>> =
     EventKind::new("horus.channel_opened", "Channel opened");
@@ -3250,7 +3265,63 @@ pub fn family() -> &'static Family {
     FAMILY.get_or_init(|| {
         let objects_clear = &sdrkit_util_objects::commands::CLEAR;
         let decoder_clear = &sdrkit_graph::decoder::CLEAR;
-        Family::new("science", 1, 0)
+        Family::new("science", 1, 1)
+            .added(
+                1,
+                1,
+                &[
+                    "sonde.content",
+                    "time.content",
+                    "eczas.content",
+                    "same.content",
+                    "mscatter.content",
+                    "ssdv.content",
+                    "astro.content",
+                    "iono.content",
+                    "sferics.content",
+                    "supersid.content",
+                    "schumann.content",
+                    "whistler.content",
+                    "lightning_tdoa.content",
+                    "jove.content",
+                    "callisto.content",
+                    "riometer.content",
+                    "eme_echo.content",
+                    "beacon_events.content",
+                    "pulsar.content",
+                    "radar_detect.content",
+                    "horus.content",
+                ],
+            )
+            .content(sdrkit_core::ContentKind::Tracking, &["sonde", "horus"])
+            .content(sdrkit_core::ContentKind::Datalink, &["same"])
+            .content(sdrkit_core::ContentKind::Pictures, &["ssdv"])
+            .content(
+                sdrkit_core::ContentKind::Science,
+                &[
+                    "time",
+                    "eczas",
+                    "mscatter",
+                    "astro",
+                    "iono",
+                    "sferics",
+                    "supersid",
+                    "schumann",
+                    "whistler",
+                    "lightning_tdoa",
+                    "jove",
+                    "callisto",
+                    "riometer",
+                    "eme_echo",
+                    "beacon_events",
+                    "pulsar",
+                    "radar_detect",
+                ],
+            )
+            .audio(sdrkit_core::AudioKind::Programme, &["same"])
+            .audio(sdrkit_core::AudioKind::Monitor, &["time", "eczas"])
+            .pictures(&["ssdv", "iono"])
+            .text(&["same"])
             .stack(
                 StackShape::new("sonde")
                     .fields::<SondeFields>()

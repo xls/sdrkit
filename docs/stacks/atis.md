@@ -64,7 +64,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:at
 
 ## Typed interface
 
-The stack is in the family `marine`, version 1.0. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `marine`, version 1.1. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Voice calls (`voice`). Media: sound (voice).
 
 ### Result fields
 
@@ -100,6 +102,8 @@ Struct `AtisMessageRow`. A row of the ATIS message table. The row key is the pla
 | `level_db` | number (dB) | always | 1.0 | The level over the floor. |
 | `branch_hz` | frequency | always | 1.0 | The offset of the branch that found the message. |
 
+The column `name` names a row.
+
 ### Table `stations`
 
 Struct `AtisStationRow`. A row of the ATIS station table. The row key is the digits of the identity.
@@ -114,6 +118,8 @@ Struct `AtisStationRow`. A row of the ATIS station table. The row key is the dig
 | `best_level_db` | number (dB) | always | 1.0 | The best level over the floor. |
 | `heard` | whole number | optional | 1.0 | Times heard. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
+
+The column `name` names a row.
 
 ### Event `atis.message`
 

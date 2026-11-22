@@ -333,15 +333,19 @@ pub struct DrmNoteRow<'a> {
 }
 
 /// The services.
-pub static SERVICES: Table<DrmServiceRow<'static>> = Table::new("services", "Services", 4);
+pub static SERVICES: Table<DrmServiceRow<'static>> =
+    Table::new("services", "Services", 4).label(&DrmServiceRow::LABEL);
 /// The bytes per logical frame of each stream.
 pub static STREAMS: Table<DrmStreamRow> = Table::new("streams", "Streams", 4);
 /// The objects of every data service.
-pub static OBJECTS: Table<DrmObjectRow<'static>> = Table::new("objects", "Objects", 96);
+pub static OBJECTS: Table<DrmObjectRow<'static>> =
+    Table::new("objects", "Objects", 96).label(&DrmObjectRow::NAME);
 /// The latest slide of each service.
-pub static SLIDES: Table<DrmSlideRow<'static>> = Table::new("slides", "Slides", 4);
+pub static SLIDES: Table<DrmSlideRow<'static>> =
+    Table::new("slides", "Slides", 4).label(&DrmSlideRow::NAME);
 /// The Journaline objects.
-pub static PAGES: Table<DrmPageRow<'static>> = Table::new("journaline", "Journaline", 512);
+pub static PAGES: Table<DrmPageRow<'static>> =
+    Table::new("journaline", "Journaline", 512).label(&DrmPageRow::TITLE);
 /// The packet counters of each packet-mode service.
 pub static PACKET_COUNTERS: Table<DrmPacketRow> = Table::new("packets", "Packets", 4);
 /// The notes on what the receiver cannot decode.

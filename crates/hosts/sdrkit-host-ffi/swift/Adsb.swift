@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "adsb", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "adsb", version 1.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum AdsbInterface {
     public static let major = 1
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The result fields of the tracker.
@@ -1163,6 +1163,9 @@ public struct Uplink1030UplinkInterrogationEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum AdsbTables {
     /// The changed rows of the table "aircraft" of the stack "adsb", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`. Course: `heading_deg`. Speed: `speed_kt`.
     public static func adsbAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 160) -> Result<[AdsbAircraftRow], SDRKitCode> {
         var rows = [sdrkit_adsb_aircraft_row](repeating: sdrkit_adsb_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1171,6 +1174,7 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AdsbAircraftRow.init))
     }
     /// The changed rows of the table "messages" of the stack "adsb", newest first, at most `capacity` rows.
+    /// The column `icao` names a row.
     public static func adsbMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[AdsbMessageRow], SDRKitCode> {
         var rows = [sdrkit_adsb_message_row](repeating: sdrkit_adsb_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1179,6 +1183,7 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AdsbMessageRow.init))
     }
     /// The changed rows of the table "sources" of the stack "adsb", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func adsbSources(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[AdsbSourceRow], SDRKitCode> {
         var rows = [sdrkit_adsb_source_row](repeating: sdrkit_adsb_source_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1195,6 +1200,7 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AdsbCountRow.init))
     }
     /// The changed rows of the table "gps_cells" of the stack "adsb", newest first, at most `capacity` rows.
+    /// Place of a row: the column `corner`.
     public static func adsbGpsCells(_ handle: SDRKIT_HANDLE, capacity: Int = 4096) -> Result<[AdsbGpsCellRow], SDRKitCode> {
         var rows = [sdrkit_adsb_gps_cell_row](repeating: sdrkit_adsb_gps_cell_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1203,6 +1209,7 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AdsbGpsCellRow.init))
     }
     /// The changed rows of the table "feeds" of the stack "adsb", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func adsbFeeds(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[AdsbFeedRow], SDRKitCode> {
         var rows = [sdrkit_adsb_feed_row](repeating: sdrkit_adsb_feed_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1219,6 +1226,9 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ModeacRow.init))
     }
     /// The changed rows of the table "aircraft" of the stack "uat", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`. Course: `heading_deg`. Speed: `speed_kt`.
     public static func uatAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 128) -> Result<[UatAircraftRow], SDRKitCode> {
         var rows = [sdrkit_uat_aircraft_row](repeating: sdrkit_uat_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1227,6 +1237,7 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(UatAircraftRow.init))
     }
     /// The changed rows of the table "fisb_products" of the stack "uat", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func uatFisbProducts(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[UatFisbProductRow], SDRKitCode> {
         var rows = [sdrkit_uat_fisb_product_row](repeating: sdrkit_uat_fisb_product_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1235,6 +1246,8 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(UatFisbProductRow.init))
     }
     /// The changed rows of the table "fisb_records" of the stack "uat", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
+    /// Place of a row: the column `position`.
     public static func uatFisbRecords(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[UatFisbRecordRow], SDRKitCode> {
         var rows = [sdrkit_uat_fisb_record_row](repeating: sdrkit_uat_fisb_record_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1243,6 +1256,8 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(UatFisbRecordRow.init))
     }
     /// The changed rows of the table "fisb_blocks" of the stack "uat", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
+    /// Place of a row: the column `corner`.
     public static func uatFisbBlocks(_ handle: SDRKIT_HANDLE, capacity: Int = 2048) -> Result<[UatFisbBlockRow], SDRKitCode> {
         var rows = [sdrkit_uat_fisb_block_row](repeating: sdrkit_uat_fisb_block_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1251,6 +1266,8 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(UatFisbBlockRow.init))
     }
     /// The changed rows of the table "fisb_vertices" of the stack "uat", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`.
     public static func uatFisbVertices(_ handle: SDRKIT_HANDLE, capacity: Int = 8192) -> Result<[UatFisbVertexRow], SDRKitCode> {
         var rows = [sdrkit_uat_fisb_vertex_row](repeating: sdrkit_uat_fisb_vertex_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1259,6 +1276,7 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(UatFisbVertexRow.init))
     }
     /// The changed rows of the table "log" of the stack "uat", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func uatLog(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[UatLogRow], SDRKitCode> {
         var rows = [sdrkit_uat_log_row](repeating: sdrkit_uat_log_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1275,6 +1293,7 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ModeacRow.init))
     }
     /// The changed rows of the table "addressed" of the stack "uplink1030", newest first, at most `capacity` rows.
+    /// The column `icao` names a row.
     public static func uplink1030Addressed(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[Uplink1030AddressedRow], SDRKitCode> {
         var rows = [sdrkit_uplink1030_addressed_row](repeating: sdrkit_uplink1030_addressed_row(), count: capacity)
         var info = sdrkit_rows_info.sized

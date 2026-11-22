@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "dvbt", version 2.5. MIT licence.
+// sdrkit: the typed interface of the stack family "dvbt", version 2.6. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum DvbtInterface {
     public static let major = 2
-    public static let minor = 5
+    public static let minor = 6
 }
 
 /// The result fields of `dvbt`, which `report` writes: the input, the OFDM parameters, the TPS, the error correction and the quality. A value of the TPS has no value while the TPS is not locked; a value of the FFT mode has no value before the mode is found.

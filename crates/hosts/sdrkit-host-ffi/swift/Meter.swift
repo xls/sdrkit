@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "meter", version 1.0. MIT licence.
+// sdrkit: the typed interface of the stack family "meter", version 1.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum MeterInterface {
     public static let major = 1
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of `fm_monitor`, measured once a second from the FM-demodulated multiplex (MPX).
@@ -3898,6 +3898,7 @@ public struct BeaconMonitorChangeEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum MeterTables {
     /// The changed rows of the table "log" of the stack "fm_monitor", newest first, at most `capacity` rows.
+    /// The column `identity` names a row.
     public static func fmMonitorLog(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[FmMonitorLogRow], SDRKitCode> {
         var rows = [sdrkit_fm_monitor_log_row](repeating: sdrkit_fm_monitor_log_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3906,6 +3907,7 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FmMonitorLogRow.init))
     }
     /// The changed rows of the table "log" of the stack "am_monitor", newest first, at most `capacity` rows.
+    /// The column `identity` names a row.
     public static func amMonitorLog(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[AmMonitorLogRow], SDRKitCode> {
         var rows = [sdrkit_am_monitor_log_row](repeating: sdrkit_am_monitor_log_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3970,6 +3972,7 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HopperRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "birdie", newest first, at most `capacity` rows.
+    /// Default order: the column `level_db`, highest first.
     public static func birdieCarriers(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[BirdieCarrierRow], SDRKitCode> {
         var rows = [sdrkit_birdie_carrier_row](repeating: sdrkit_birdie_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4066,6 +4069,7 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AfskTunerBurstRow.init))
     }
     /// The changed rows of the table "spurs" of the stack "phase_noise", newest first, at most `capacity` rows.
+    /// Default order: the column `level_dbc`, highest first.
     public static func phaseNoiseSpurs(_ handle: SDRKIT_HANDLE, capacity: Int = 6) -> Result<[PhaseNoiseSpurRow], SDRKitCode> {
         var rows = [sdrkit_phase_noise_spur_row](repeating: sdrkit_phase_noise_spur_row(), count: capacity)
         var info = sdrkit_rows_info.sized

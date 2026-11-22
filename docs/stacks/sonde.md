@@ -91,7 +91,9 @@ The stack puts points on a map: Radiosondes.
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.1. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -148,6 +150,8 @@ Struct `SondeRow`. A row of the table `sondes`.
 | `heard` | whole number | optional | 1.0 | Times heard. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
 
+The column `serial` names a row. Place of a row: the column `position`. Height: `height_m`. Course: `course_deg`. Speed: `speed_kt`.
+
 ### Table `carriers`
 
 Struct `SondeCarrierRow`. A carrier of the last search. The row key is the place in the list, two digits.
@@ -158,6 +162,8 @@ Struct `SondeCarrierRow`. A carrier of the last search. The row key is the place
 | `frequency` | frequency | optional | 1.0 | The absolute frequency. |
 | `level_db` | number (dB) | always | 1.0 | The carrier level. |
 | `channel` | whole number | optional | 1.0 | The receiving channel. |
+
+Default order: the column `level_db`, highest first.
 
 ### Event `sonde.frame`
 

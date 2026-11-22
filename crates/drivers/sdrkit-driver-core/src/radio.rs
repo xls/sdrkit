@@ -1102,6 +1102,7 @@ mod tests {
             label: "List",
             columns: &[&NAME],
             cap: 4,
+            marks: sdrkit_core::RowMarks::NONE,
         };
         static PICTURE: RasterDef = RasterDef {
             key: "picture",
@@ -1193,6 +1194,7 @@ mod tests {
         label: "Found",
         columns: &[&ADDRESS],
         cap: 8,
+        marks: sdrkit_core::RowMarks::NONE,
     };
     const DISCOVER: Command = Command::new("discover", "Discover");
     static SPECTRUM: SeriesDef = SeriesDef {

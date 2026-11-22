@@ -94,7 +94,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfkbd`, version 2.7. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfkbd`, version 2.8. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Keyboard text (`text_chat`). Media: sound (monitor), pictures, text.
 
 ### Result fields
 
@@ -150,6 +152,8 @@ Struct `StationRow`. A row of the stations heard. The row key is the callsign.
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last time heard. |
 
+The column `callsign` names a row.
+
 ### Table `signals`
 
 Struct `PskSignalRow`. A PSK signal heard, or one gone whose text stays. The row key is the signal id. The rows of the gone signals stay over a change of frequency: they are the log of the decoded texts.
@@ -168,6 +172,8 @@ Struct `PskSignalRow`. A PSK signal heard, or one gone whose text stays. The row
 | `characters` | whole number | always | 1.0 | Characters decoded. |
 | `text` | text | always | 1.0 | The decoded text. |
 | `gone` | yes or no | always | 1.0 | It is no longer heard. |
+
+Default order: the column `snr_db`, highest first.
 
 ### Event `hfkbd.spot`
 

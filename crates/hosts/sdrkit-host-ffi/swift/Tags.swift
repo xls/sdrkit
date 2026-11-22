@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "tags", version 1.0. MIT licence.
+// sdrkit: the typed interface of the stack family "tags", version 1.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum TagsInterface {
     public static let major = 1
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The status of a stack of the family: the headline, the state, the counts of results and the input level.
@@ -684,6 +684,7 @@ public enum TagsTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(RfidLfTagRow.init))
     }
     /// The changed rows of the table "packets" of the stack "qi", newest first, at most `capacity` rows.
+    /// The column `device_id` names a row.
     public static func qiPackets(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[QiPacketRow], SDRKitCode> {
         var rows = [sdrkit_qi_packet_row](repeating: sdrkit_qi_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized

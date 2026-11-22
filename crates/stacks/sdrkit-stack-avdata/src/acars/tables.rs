@@ -451,8 +451,9 @@ impl Tables {
                 });
             },
         );
-        shaped::points_by(
+        shaped::row_points_by(
             self.store.aircraft.rows(),
+            ACARS_AIRCRAFT.def(),
             "aircraft/",
             p.results_mut(),
             aircraft_point,

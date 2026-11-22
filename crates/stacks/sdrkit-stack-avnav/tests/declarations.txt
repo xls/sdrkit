@@ -32,9 +32,11 @@ field FieldDecl { key: "ident_fold_text", label: "Read from the average", unit: 
 field FieldDecl { key: "id_tone_hz", label: "Identification tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "id_depth_pct", label: "Identification depth", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
 table "idents" "Identifications heard" cap 16
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "ident", label: "Identification", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "scan" "Beacons in the input" cap 64
+  marks TableMarks { label: None, sort: Some((2, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "cn0_dbhz", label: "C/N0", unit: "dB-Hz", kind: F64, choices: [], refers_to: None, content: None }
@@ -85,6 +87,7 @@ field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, ch
 field FieldDecl { key: "id_tone_hz", label: "Identification tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "id_depth_pct", label: "Identification depth", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
 table "idents" "Identifications heard" cap 16
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "ident", label: "Identification", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 points ""
@@ -151,6 +154,7 @@ field FieldDecl { key: "pattern", label: "Pattern heard", unit: "", kind: Choice
 field FieldDecl { key: "id_tone_hz", label: "Identification tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "id_depth_pct", label: "Identification depth", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
 table "idents" "Identifications heard" cap 16
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "ident", label: "Identification", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "passages" "Marker passages" cap 64
@@ -203,6 +207,7 @@ field FieldDecl { key: "ident", label: "Identification", unit: "", kind: Text, c
 field FieldDecl { key: "last_ident", label: "Last heard", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "ident_wpm", label: "Morse speed", unit: "wpm", kind: F64, choices: [], refers_to: None, content: None }
 table "idents" "Identifications heard" cap 16
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "ident", label: "Identification", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 points ""
@@ -232,6 +237,7 @@ field FieldDecl { key: "master", label: "Master", unit: "", kind: Bool, choices:
 field FieldDecl { key: "master_snr_db", label: "Master SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "fixes", label: "Measurements", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "stations" "Stations" cap 16
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "station", label: "Station", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "td_us", label: "TD", unit: "µs", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "ecd_us", label: "ECD", unit: "µs", kind: F64, choices: [], refers_to: None, content: None }
@@ -277,6 +283,7 @@ table "corrections" "Corrections" cap 32
   column FieldDecl { key: "iod", label: "IOD", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "udre", label: "UDRE", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "almanac" "Beacon almanac" cap 64
+  marks TableMarks { label: None, sort: None, position: Some(3), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "station_id", label: "Station", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "bit_rate_hz", label: "Bit rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }

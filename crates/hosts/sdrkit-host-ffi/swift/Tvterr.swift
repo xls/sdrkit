@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "tvterr", version 1.5. MIT licence.
+// sdrkit: the typed interface of the stack family "tvterr", version 1.6. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum TvterrInterface {
     public static let major = 1
-    public static let minor = 5
+    public static let minor = 6
 }
 
 /// The result fields of `isdbt` and `isdbtsb`: the detection, the transmission parameters, the signal and the TMCC. A parameter of the mode has no value before the mode is found. A value of the TMCC has no value while no TMCC is decoded.
@@ -1337,6 +1337,7 @@ public enum TvterrTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MpegtsTsSectionRow.init))
     }
     /// The changed rows of the table "services" of the stack "atsc3", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func atsc3Services(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[Atsc3ServiceRow], SDRKitCode> {
         var rows = [sdrkit_atsc3_service_row](repeating: sdrkit_atsc3_service_row(), count: capacity)
         var info = sdrkit_rows_info.sized

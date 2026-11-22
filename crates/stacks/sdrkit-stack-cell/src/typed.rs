@@ -1,7 +1,9 @@
 //! The interface of the cell family: the shapes of the result sets, the rows and the events, the tables, the event types
 //! and what each stack declares.
 
-use sdrkit_core::interface::{Arguments, CommandKind, EventKind, Family, Fields, Hertz, Seconds, StackShape, Table, Time};
+use sdrkit_core::interface::{
+    Arguments, CommandKind, EventKind, Family, Fields, Hertz, Seconds, StackShape, Table, Time,
+};
 use sdrkit_core::publish::{field, keys};
 use sdrkit_core::settings::Argument;
 use sdrkit_core::SettingSet;
@@ -207,7 +209,8 @@ pub struct RailwayCirTdcsEvent<'a> {
 pub static RAILWAY_CIR_MESSAGES: Table<RailwayCirMessageRow<'static>> =
     Table::new("messages", "Messages", crate::railway_cir::HISTORY_MAX);
 /// A message of the end-of-train device.
-pub static RAILWAY_CIR_KLW: EventKind<RailwayCirKlwEvent<'static>> = EventKind::new("railway_cir.klw", "KLW message");
+pub static RAILWAY_CIR_KLW: EventKind<RailwayCirKlwEvent<'static>> =
+    EventKind::new("railway_cir.klw", "KLW message");
 /// A dispatch message.
 pub static RAILWAY_CIR_TDCS: EventKind<RailwayCirTdcsEvent<'static>> =
     EventKind::new("railway_cir.tdcs", "TDCS message");
@@ -266,11 +269,18 @@ pub struct SearchRemoveArgs<'a> {
 pub const SEARCH_REMOVE: CommandKind<SearchRemoveArgs<'static>> = objcmd::remove_kind();
 
 /// The fields of every search stack that a change of frequency keeps: the counts of the search.
-const SEARCH_KEPT: [&str; 3] = ["SearchFields.retunes", "SearchFields.decoded", "SearchFields.failed"];
+const SEARCH_KEPT: [&str; 3] = [
+    "SearchFields.retunes",
+    "SearchFields.decoded",
+    "SearchFields.failed",
+];
 
 /// The shape of the search stack `id`: the search counts, the result set `F` of the stack and the dropped count.
 fn search_stack<F: Fields>(id: &'static str) -> StackShape {
-    StackShape::new(id).fields::<SearchFields>().fields::<F>().fields::<DecoderFields>()
+    StackShape::new(id)
+        .fields::<SearchFields>()
+        .fields::<F>()
+        .fields::<DecoderFields>()
 }
 
 /// Lists the event, the settings and the commands of a search stack, and what a change of frequency keeps.
@@ -280,7 +290,9 @@ fn search_end(
     settings: &[&[&'static dyn sdrkit_core::DeclareSetting]],
     kept: &[&'static str],
 ) -> StackShape {
-    let s = settings.iter().fold(s.event(event), |s, list| s.settings(list));
+    let s = settings
+        .iter()
+        .fold(s.event(event), |s, list| s.settings(list));
     s.command(&sdrkit_graph::decoder::CLEAR)
         .command(&SEARCH_REMOVE)
         .kept(&SEARCH_KEPT)
@@ -336,7 +348,8 @@ pub struct TdscdmaCellRow<'a> {
 pub static TDSCDMA_CELLS: Table<TdscdmaCellRow<'static>> =
     Table::new(crate::decoder::CELLS_KEY, "Cells", crate::tdscdma::CELL_CAP);
 /// A TD-SCDMA cell found or identified.
-pub static TDSCDMA_CELL: EventKind<FoundCellEvent<'static>> = EventKind::new("cell.tdscdma_cell", "TD-SCDMA cell");
+pub static TDSCDMA_CELL: EventKind<FoundCellEvent<'static>> =
+    EventKind::new("cell.tdscdma_cell", "TD-SCDMA cell");
 
 // ---- umts ----
 
@@ -402,7 +415,8 @@ pub struct UmtsCellRow<'a> {
 pub static UMTS_CELLS: Table<UmtsCellRow<'static>> =
     Table::new(crate::decoder::CELLS_KEY, "Cells", crate::umts::CELL_CAP);
 /// A UMTS cell found or identified.
-pub static UMTS_CELL: EventKind<FoundCellEvent<'static>> = EventKind::new("cell.umts_cell", "UMTS cell");
+pub static UMTS_CELL: EventKind<FoundCellEvent<'static>> =
+    EventKind::new("cell.umts_cell", "UMTS cell");
 
 // ---- cdma2000 ----
 
@@ -465,8 +479,11 @@ pub struct Cdma2000CellRow<'a> {
 }
 
 /// The base stations of `cdma2000`.
-pub static CDMA2000_CELLS: Table<Cdma2000CellRow<'static>> =
-    Table::new(crate::decoder::CELLS_KEY, "Base stations", crate::cdma2000::CELL_CAP);
+pub static CDMA2000_CELLS: Table<Cdma2000CellRow<'static>> = Table::new(
+    crate::decoder::CELLS_KEY,
+    "Base stations",
+    crate::cdma2000::CELL_CAP,
+);
 /// A base station found or identified.
 pub static CDMA2000_CELL: EventKind<FoundCellEvent<'static>> =
     EventKind::new("cell.cdma2000_cell", "CDMA2000 base station");
@@ -535,7 +552,8 @@ pub struct NbiotCellRow<'a> {
 pub static NBIOT_CELLS: Table<NbiotCellRow<'static>> =
     Table::new(crate::decoder::CELLS_KEY, "Cells", crate::nbiot::CELL_CAP);
 /// An NB-IoT cell found or identified.
-pub static NBIOT_CELL: EventKind<FoundCellEvent<'static>> = EventKind::new("cell.nbiot_cell", "NB-IoT cell");
+pub static NBIOT_CELL: EventKind<FoundCellEvent<'static>> =
+    EventKind::new("cell.nbiot_cell", "NB-IoT cell");
 
 // ---- nr ----
 
@@ -604,7 +622,8 @@ pub struct NrCellRow {
 }
 
 /// The cells of `nr`.
-pub static NR_CELLS: Table<NrCellRow> = Table::new(crate::decoder::CELLS_KEY, "Cells", crate::nr::CELL_CAP);
+pub static NR_CELLS: Table<NrCellRow> =
+    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::nr::CELL_CAP);
 /// An NR cell found or identified.
 pub static NR_CELL: EventKind<FoundCellEvent<'static>> = EventKind::new("cell.nr_cell", "NR cell");
 
@@ -683,13 +702,20 @@ pub struct GsmrCarrierRow {
 }
 
 /// The cells of `gsmr`.
-pub static GSMR_CELLS: Table<GsmrCellRow<'static>> =
-    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::gsm::table::CELL_CAP);
+pub static GSMR_CELLS: Table<GsmrCellRow<'static>> = Table::new(
+    crate::decoder::CELLS_KEY,
+    "Cells",
+    crate::gsm::table::CELL_CAP,
+);
 /// The carriers of the newest capture of `gsmr`.
 pub static GSMR_CARRIERS: Table<GsmrCarrierRow> =
-    Table::new("carriers", "Carriers", crate::gsm::table::CARRIER_CAP);
+    Table::new("carriers", "Carriers", crate::gsm::table::CARRIER_CAP).sorted(
+        &GsmrCarrierRow::LEVEL_DB,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// A GSM cell found or identified.
-pub static GSMR_CELL: EventKind<FoundCellEvent<'static>> = EventKind::new("cell.gsm_cell", "GSM cell");
+pub static GSMR_CELL: EventKind<FoundCellEvent<'static>> =
+    EventKind::new("cell.gsm_cell", "GSM cell");
 
 // ---- cell (LTE) ----
 
@@ -1028,7 +1054,8 @@ pub struct CellCarrierRow {
 pub static CELL_CELLS: Table<CellRow<'static>> =
     Table::new(crate::decoder::CELLS_KEY, "Cells", crate::lte::CELL_CAP);
 /// The details of the cells of `cell`.
-pub static CELL_DETAILS: Table<CellDetailRow<'static>> = Table::new("details", "Details", crate::lte::CELL_CAP);
+pub static CELL_DETAILS: Table<CellDetailRow<'static>> =
+    Table::new("details", "Details", crate::lte::CELL_CAP);
 /// The networks of the cells of `cell`.
 pub static CELL_PLMNS: Table<CellPlmnRow<'static>> =
     Table::new("cell_plmns", "Networks", crate::lte::DETAIL_CAP);
@@ -1036,8 +1063,11 @@ pub static CELL_PLMNS: Table<CellPlmnRow<'static>> =
 pub static CELL_BANDS: Table<CellBandRow<'static>> =
     Table::new("cell_bands", "Other bands", crate::lte::DETAIL_CAP);
 /// The system information blocks of the cells of `cell`.
-pub static CELL_SIBS: Table<CellSibRow<'static>> =
-    Table::new("cell_sibs", "System information blocks", crate::lte::DETAIL_CAP);
+pub static CELL_SIBS: Table<CellSibRow<'static>> = Table::new(
+    "cell_sibs",
+    "System information blocks",
+    crate::lte::DETAIL_CAP,
+);
 /// The neighbours of the cells of `cell`.
 pub static CELL_NEIGHBOURS: Table<CellNeighbourRow<'static>> =
     Table::new("neighbours", "Neighbours", crate::lte::DETAIL_CAP);
@@ -1045,14 +1075,20 @@ pub static CELL_NEIGHBOURS: Table<CellNeighbourRow<'static>> =
 pub static CELL_INTER_CARRIERS: Table<CellInterCarrierRow<'static>> =
     Table::new("inter_carriers", "Other carriers", crate::lte::DETAIL_CAP);
 /// The sites of `cell`.
-pub static CELL_SITES: Table<CellSiteRow<'static>> = Table::new("sites", "Sites", crate::lte::CELL_CAP);
+pub static CELL_SITES: Table<CellSiteRow<'static>> =
+    Table::new("sites", "Sites", crate::lte::CELL_CAP);
 /// The operators of `cell`.
 pub static CELL_OPERATORS: Table<CellOperatorRow<'static>> =
     Table::new("operators", "Operators", crate::lte::CELL_CAP);
 /// The carriers of the newest capture of `cell`.
-pub static CELL_CARRIERS: Table<CellCarrierRow> = Table::new("carriers", "Carriers", crate::lte::CARRIER_CAP);
+pub static CELL_CARRIERS: Table<CellCarrierRow> =
+    Table::new("carriers", "Carriers", crate::lte::CARRIER_CAP).sorted(
+        &CellCarrierRow::LEVEL_DB,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// An LTE cell found or identified.
-pub static CELL_LTE_CELL: EventKind<FoundCellEvent<'static>> = EventKind::new("cell.lte_cell", "LTE cell");
+pub static CELL_LTE_CELL: EventKind<FoundCellEvent<'static>> =
+    EventKind::new("cell.lte_cell", "LTE cell");
 
 // ---- cv2x ----
 
@@ -1223,9 +1259,11 @@ pub struct EotFrameEvent<'a> {
 }
 
 /// The frames of `eot`.
-pub static EOT_FRAMES: Table<EotFrameRow<'static>> = Table::new("frames", "Frames", crate::eot::FRAME_CAP);
+pub static EOT_FRAMES: Table<EotFrameRow<'static>> =
+    Table::new("frames", "Frames", crate::eot::FRAME_CAP);
 /// One frame of `eot`.
-pub static EOT_FRAME: EventKind<EotFrameEvent<'static>> = EventKind::new("eot.frame", "End-of-train frame");
+pub static EOT_FRAME: EventKind<EotFrameEvent<'static>> =
+    EventKind::new("eot.frame", "End-of-train frame");
 
 // ---- lbj ----
 
@@ -1265,7 +1303,7 @@ pub struct LbjMessageRow<'a> {
     #[field(label = "Train")]
     pub train: Option<&'a str>,
     /// The speed.
-    #[field(label = "Speed", unit = "km/h")]
+    #[field(label = "Speed", unit = "km/h", role = Speed)]
     pub speed_kmh: Option<i64>,
     /// The kilometre post.
     #[field(label = "Km post", unit = "km")]
@@ -1323,9 +1361,11 @@ pub struct LbjMessageEvent<'a> {
 }
 
 /// The messages of `lbj`, newest last.
-pub static LBJ_MESSAGES: Table<LbjMessageRow<'static>> = Table::new("messages", "Messages", crate::lbj::MESSAGE_CAP);
+pub static LBJ_MESSAGES: Table<LbjMessageRow<'static>> =
+    Table::new("messages", "Messages", crate::lbj::MESSAGE_CAP);
 /// A message of `lbj`.
-pub static LBJ_MESSAGE: EventKind<LbjMessageEvent<'static>> = EventKind::new("lbj.message", "LBJ message");
+pub static LBJ_MESSAGE: EventKind<LbjMessageEvent<'static>> =
+    EventKind::new("lbj.message", "LBJ message");
 
 // ---- ebicab ----
 
@@ -1472,7 +1512,8 @@ pub struct EbicabTelegramEvent<'a> {
 pub static EBICAB_TELEGRAMS: Table<EbicabTelegramRow> =
     Table::new("telegrams", "Telegrams", crate::balise::TELEGRAM_CAP);
 /// The balises of `ebicab` heard, newest last.
-pub static EBICAB_BALISES: Table<EbicabBaliseRow> = Table::new("balises", "Balises", crate::balise::BALISE_CAP);
+pub static EBICAB_BALISES: Table<EbicabBaliseRow> =
+    Table::new("balises", "Balises", crate::balise::BALISE_CAP);
 /// The other bursts of `ebicab`, newest last.
 pub static EBICAB_OTHER_BURSTS: Table<EbicabOtherBurstRow> =
     Table::new("other_bursts", "Other bursts", crate::balise::OTHER_CAP);
@@ -1498,8 +1539,46 @@ pub const EBICAB_REMOVE: CommandKind<EbicabRemoveArgs<'static>> = objcmd::remove
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Family::new("cell", 1, 0)
-            .shared_source("decoder", &["cell", "nr", "nbiot", "gsmr", "umts", "cdma2000", "tdscdma"])
+        Family::new("cell", 1, 1)
+            .added(
+                1,
+                1,
+                &[
+                    "railway_cir.content",
+                    "cell.content",
+                    "nr.content",
+                    "nbiot.content",
+                    "gsmr.content",
+                    "lbj.content",
+                    "ebicab.content",
+                    "umts.content",
+                    "cdma2000.content",
+                    "tdscdma.content",
+                    "eot.content",
+                    "cv2x.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Networks,
+                &[
+                    "railway_cir",
+                    "cell",
+                    "nr",
+                    "nbiot",
+                    "gsmr",
+                    "lbj",
+                    "ebicab",
+                    "umts",
+                    "cdma2000",
+                    "tdscdma",
+                    "eot",
+                    "cv2x",
+                ],
+            )
+            .shared_source(
+                "decoder",
+                &["cell", "nr", "nbiot", "gsmr", "umts", "cdma2000", "tdscdma"],
+            )
             .shared_source("lte", &["cell"])
             .shared_source("gsm", &["gsmr"])
             .shared_source("balise", &["ebicab"])
@@ -1545,16 +1624,26 @@ pub fn family() -> &'static Family {
                 search_stack::<NrFields>(crate::nr::ID).table(&NR_CELLS),
                 &NR_CELL,
                 &[crate::nr::NrSetting::SETTINGS, crate::nr::gen::SETTINGS],
-                &["cells", "NrFields.cell_count", "NrFields.with_mib", "NrFields.banner"],
+                &[
+                    "cells",
+                    "NrFields.cell_count",
+                    "NrFields.with_mib",
+                    "NrFields.banner",
+                ],
             ))
             .stack(search_end(
                 search_stack::<NbiotFields>(crate::nbiot::ID).table(&NBIOT_CELLS),
                 &NBIOT_CELL,
-                &[crate::nbiot::NbSetting::SETTINGS, crate::nbiot::gen::SETTINGS],
+                &[
+                    crate::nbiot::NbSetting::SETTINGS,
+                    crate::nbiot::gen::SETTINGS,
+                ],
                 &["cells", "NbiotFields"],
             ))
             .stack(search_end(
-                search_stack::<GsmrFields>(crate::gsm::ID).table(&GSMR_CELLS).table(&GSMR_CARRIERS),
+                search_stack::<GsmrFields>(crate::gsm::ID)
+                    .table(&GSMR_CELLS)
+                    .table(&GSMR_CARRIERS),
                 &GSMR_CELL,
                 &[crate::gsm::GsmSetting::SETTINGS, crate::gsm::GEN_SETTINGS],
                 &["cells", "GsmrFields"],
@@ -1617,7 +1706,10 @@ pub fn family() -> &'static Family {
             .stack(search_end(
                 search_stack::<TdscdmaFields>(crate::tdscdma::ID).table(&TDSCDMA_CELLS),
                 &TDSCDMA_CELL,
-                &[crate::tdscdma::TdSetting::SETTINGS, &[&crate::tdscdma::GEN_MULTIPLIERS]],
+                &[
+                    crate::tdscdma::TdSetting::SETTINGS,
+                    &[&crate::tdscdma::GEN_MULTIPLIERS],
+                ],
                 &["cells", "TdscdmaFields"],
             ))
             .stack(

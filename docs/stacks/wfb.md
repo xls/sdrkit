@@ -54,7 +54,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:wf
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 2.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 2.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Networks and cells (`networks`). Media: none.
 
 ### Result fields
 
@@ -95,6 +97,8 @@ Struct `WfbLinkRow`. A row of the links of `wfb`. The row key is the system and 
 | `last_type` | text | always | 1.0 | The type of the last frame. |
 | `last_detail` | text | always | 1.0 | The detail of the last frame. |
 
+The column `id` names a row.
+
 ### Table `frames`
 
 Struct `WfbFrameRow`. A row of the frame log of `wfb`.
@@ -109,6 +113,8 @@ Struct `WfbFrameRow`. A row of the frame log of `wfb`.
 | `detail` | text | always | 1.0 | The detail of the frame. |
 | `hex` | text | always | 1.0 | The first payload bytes, hex. |
 | `snr_db` | number (dB) | always | 1.0 | The SNR of the frame. |
+
+The column `hex` names a row.
 
 ### Commands
 

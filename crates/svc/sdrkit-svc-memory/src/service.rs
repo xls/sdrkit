@@ -153,6 +153,7 @@ pub const MEMORIES: TableDef = TableDef {
         &LAST_HIT, &TONE,
     ],
     cap: MAX_PAGE,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The tags of the memories in [`MEMORIES`].
 pub const MEMORY_TAGS: TableDef =
@@ -175,6 +176,7 @@ pub const GROUPS: TableDef = TableDef {
     label: "Groups",
     columns: &[&NAME],
     cap: MEMORY_CAP,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The tags in use.
 pub const TAGS: TableDef = TableDef {
@@ -182,6 +184,7 @@ pub const TAGS: TableDef = TableDef {
     label: "Tags",
     columns: &[&NAME],
     cap: MEMORY_CAP,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The bookmarks.
 pub const BOOKMARKS: TableDef = TableDef {
@@ -189,6 +192,7 @@ pub const BOOKMARKS: TableDef = TableDef {
     label: "Bookmarks",
     columns: &[&NAME, &FREQ, &END, &COLOR, &STACK, &NOTES],
     cap: crate::bookmark::MAX_BOOKMARKS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The presets of every stack.
 pub const PRESETS: TableDef = TableDef {
@@ -207,6 +211,7 @@ pub const PRESETS: TableDef = TableDef {
         &SQUELCH,
     ],
     cap: crate::preset::MAX_PRESETS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The stored stack settings of the presets, in the form of [`MEMORY_SETTINGS`].
 pub const PRESET_SETTINGS: TableDef = item_table(
@@ -232,6 +237,7 @@ pub const PROBLEMS: TableDef = TableDef {
     label: "Import problems",
     columns: &[&LINE, &KIND],
     cap: MAX_PROBLEMS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 const MAX_PAGE: usize = 1000;
@@ -248,6 +254,7 @@ const fn item_table(
         label,
         columns,
         cap: MAX_ITEMS,
+        marks: sdrkit_core::RowMarks::NONE,
     }
 }
 

@@ -518,7 +518,7 @@
 
 // The minor version of the C interface of this library. It rises when the base header gets a function, a constant or
 // a member at the end of a struct that starts with `size`.
-#define SDRKIT_INTERFACE_VERSION_MINOR 0
+#define SDRKIT_INTERFACE_VERSION_MINOR 1
 
 // No value.
 #define SDRKIT_TYPE_NONE 0
@@ -915,6 +915,28 @@ typedef struct sdrkit_table_info {
   uint32_t columns;
   // The most rows that the table keeps. When the table is full, a new row removes the oldest row.
   size_t cap;
+  // The id of the column that names a row for people (a call sign, a station name), or `SDRKIT_NO_ID`.
+  sdrkit_id label_column;
+  // The id of the column that orders the rows by default, or `SDRKIT_NO_ID`: the newest row is first. It is a hint
+  // for a front end. The rows of a snapshot are always newest first.
+  sdrkit_id sort_column;
+  // With `sort_column`: true for the highest value first, false for the lowest value first.
+  bool sort_descending;
+  // The id of the column of type `SDRKIT_TYPE_POSITION` that holds the place of a row on the map, or
+  // `SDRKIT_NO_ID`.
+  sdrkit_id position_column;
+  // The id of the column of the latitude in degrees north, for a table without a position column, or
+  // `SDRKIT_NO_ID`.
+  sdrkit_id latitude_column;
+  // The id of the column of the longitude in degrees east, for a table without a position column, or
+  // `SDRKIT_NO_ID`.
+  sdrkit_id longitude_column;
+  // The id of the column of the height, or `SDRKIT_NO_ID`. The declaration of the column has the unit.
+  sdrkit_id altitude_column;
+  // The id of the column of the direction of travel in degrees from north, or `SDRKIT_NO_ID`.
+  sdrkit_id course_column;
+  // The id of the column of the speed, or `SDRKIT_NO_ID`. The declaration of the column has the unit.
+  sdrkit_id speed_column;
 } sdrkit_table_info;
 
 // The declaration of one series (a small plot) or raster (an image of values, such as a waterfall).
@@ -989,6 +1011,10 @@ typedef struct sdrkit_point {
   struct sdrkit_string label;
   // Degrees from north for a moving target, or NaN.
   float heading;
+  // The id of the table that holds the row of the point, or `SDRKIT_NO_ID` for a point without a row.
+  sdrkit_id table;
+  // The key of that row, or empty. The row can be absent from the table: a table drops its oldest rows.
+  struct sdrkit_string row;
 } sdrkit_point;
 
 // The points of a series.

@@ -88,7 +88,9 @@ The stack puts points on a map: Base station.
 
 ## Typed interface
 
-The stack is in the family `avnav`, version 1.1. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avnav`, version 1.2. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Navigation aids (`navigation`). Media: none.
 
 ### Result fields
 
@@ -152,6 +154,8 @@ Struct `DgpsAlmanacRow`. A row of the beacon almanac. The row key is the station
 | `position` | position | always | 1.0 | The position of the beacon. |
 | `range_km` | number (km) | always | 1.0 | The range of the beacon. |
 | `health` | whole number | always | 1.0 | The health of the beacon, 0 (healthy) to 3. |
+
+Place of a row: the column `position`.
 
 ### Event `rtcm.frame`
 

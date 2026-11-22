@@ -2327,8 +2327,9 @@ impl Tracker {
             |_| true,
             |r, out| ModeS::row_write(r.record, Some(r.seen), now, out),
         );
-        sdrkit_util_objects::shaped::points_by(
+        sdrkit_util_objects::shaped::row_points_by(
             self.table.held.aircraft.rows(),
+            AIRCRAFT.def(),
             "",
             p.results_mut(),
             ModeS::row_point,

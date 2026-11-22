@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the settings that every engine has, version 1.6. MIT licence.
+ * sdrkit: the typed interface of the settings that every engine has, version 1.7. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_ENGINE_VERSION_MAJOR 1
-#define SDRKIT_ENGINE_VERSION_MINOR 6
+#define SDRKIT_ENGINE_VERSION_MINOR 7
 
 // The options of the setting "backend_fft" of the stack "engine".
 typedef enum sdrkit_engine_backend_fft {
@@ -131,6 +131,58 @@ typedef enum sdrkit_engine_stack_row_auto_gain {
   SDRKIT_ENGINE_STACK_ROW_AUTO_GAIN_HOLD = 2,
 } sdrkit_engine_stack_row_auto_gain;
 
+// The options of `kind` of `sdrkit_engine_stack_row`.
+typedef enum sdrkit_engine_stack_row_kind {
+  // Broadcast radio
+  SDRKIT_ENGINE_STACK_ROW_KIND_BROADCAST = 0,
+  // Television and video
+  SDRKIT_ENGINE_STACK_ROW_KIND_TELEVISION = 1,
+  // Voice calls
+  SDRKIT_ENGINE_STACK_ROW_KIND_VOICE = 2,
+  // Keyboard text
+  SDRKIT_ENGINE_STACK_ROW_KIND_TEXT_CHAT = 3,
+  // Weak-signal messages
+  SDRKIT_ENGINE_STACK_ROW_KIND_WEAK_SIGNAL = 4,
+  // Mesh messaging
+  SDRKIT_ENGINE_STACK_ROW_KIND_MESH = 5,
+  // Position tracking
+  SDRKIT_ENGINE_STACK_ROW_KIND_TRACKING = 6,
+  // Datalink messages
+  SDRKIT_ENGINE_STACK_ROW_KIND_DATALINK = 7,
+  // Pictures and fax
+  SDRKIT_ENGINE_STACK_ROW_KIND_PICTURES = 8,
+  // Satellite imagery
+  SDRKIT_ENGINE_STACK_ROW_KIND_SATELLITE_IMAGERY = 9,
+  // Measurement and analysis
+  SDRKIT_ENGINE_STACK_ROW_KIND_MEASUREMENT = 10,
+  // Science and propagation
+  SDRKIT_ENGINE_STACK_ROW_KIND_SCIENCE = 11,
+  // Navigation aids
+  SDRKIT_ENGINE_STACK_ROW_KIND_NAVIGATION = 12,
+  // Networks and cells
+  SDRKIT_ENGINE_STACK_ROW_KIND_NETWORKS = 13,
+  // Paging
+  SDRKIT_ENGINE_STACK_ROW_KIND_PAGING = 14,
+  // Sensors and devices
+  SDRKIT_ENGINE_STACK_ROW_KIND_DEVICES = 15,
+  // Utility decoders
+  SDRKIT_ENGINE_STACK_ROW_KIND_UTILITY = 16,
+  // Satellite links
+  SDRKIT_ENGINE_STACK_ROW_KIND_SATELLITE_LINKS = 17,
+  // General receiver
+  SDRKIT_ENGINE_STACK_ROW_KIND_GENERAL = 18,
+} sdrkit_engine_stack_row_kind;
+
+// The options of `audio` of `sdrkit_engine_stack_row`.
+typedef enum sdrkit_engine_stack_row_audio {
+  // Programme
+  SDRKIT_ENGINE_STACK_ROW_AUDIO_PROGRAMME = 0,
+  // Voice
+  SDRKIT_ENGINE_STACK_ROW_AUDIO_VOICE = 1,
+  // Monitor
+  SDRKIT_ENGINE_STACK_ROW_AUDIO_MONITOR = 2,
+} sdrkit_engine_stack_row_audio;
+
 // A row of the table "stacks" (Stacks).
 typedef struct sdrkit_engine_stack_row {
   // The number of bytes of this struct that the library wrote.
@@ -171,6 +223,20 @@ typedef struct sdrkit_engine_stack_row {
   bool transmit;
   // The channels of host audio that the graph of the stack takes for a transmission: 0 for none, 1 for mono, 2 for stereo.
   int64_t host_audio_channels;
+  // True if `kind` holds a value.
+  bool has_kind;
+  // The kind of content of the stack. A front end chooses its view of the stack from it. No value for a stack without an interface description. A value of `sdrkit_engine_stack_row_kind`.
+  int32_t kind;
+  // True if `audio` holds a value.
+  bool has_audio;
+  // The kind of sound that the stack gives. No value for a stack without sound. A value of `sdrkit_engine_stack_row_audio`.
+  int32_t audio;
+  // The stack gives still pictures.
+  bool pictures;
+  // The stack gives moving pictures.
+  bool video;
+  // The stack gives running text for people: decoded characters or whole messages.
+  bool text;
 } sdrkit_engine_stack_row;
 
 // A row of the table "submodes" (Variants).
@@ -921,6 +987,7 @@ typedef struct sdrkit_engine_benchmark_run_args {
 
 // Fills `rows` with the changed rows of the table "stacks" of the stack "engine" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_engine_stacks_rows(SDRKIT_HANDLE handle,
                                                sdrkit_engine_stack_row *rows,
                                                uint32_t capacity,

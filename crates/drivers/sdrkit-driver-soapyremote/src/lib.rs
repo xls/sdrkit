@@ -302,6 +302,7 @@ pub static SENSORS: TableDef = TableDef {
     label: "Sensors",
     columns: &[&ITEM_NAME, &ITEM_VALUE],
     cap: 64,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The hardware information of the radio, one row per item (row key: its name).
 pub static HARDWARE_INFO: TableDef = TableDef {
@@ -309,6 +310,7 @@ pub static HARDWARE_INFO: TableDef = TableDef {
     label: "Hardware information",
     columns: &[&ITEM_NAME, &ITEM_VALUE],
     cap: 64,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 const fn iq(sample: SampleType) -> StreamFormat {

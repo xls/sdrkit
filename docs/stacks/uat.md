@@ -81,7 +81,9 @@ The stack puts points on a map: Aircraft.
 
 ## Typed interface
 
-The stack is in the family `adsb`, version 1.1. The C header `sdrkit/adsb.h`, the registry record `registry/adsb.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `adsb`, version 1.2. The C header `sdrkit/adsb.h`, the registry record `registry/adsb.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -130,6 +132,8 @@ Struct `UatAircraftRow`. A row of the UAT aircraft table. The row key is the add
 | `heard` | whole number | optional | 1.0 | Times heard. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. |
 
+The column `callsign` names a row. Place of a row: the column `position`. Height: `alt_ft`. Course: `heading_deg`. Speed: `speed_kt`.
+
 ### Table `fisb_products`
 
 Struct `FisbProductRow`. A FIS-B product held. The row key is the number of the product in six digits.
@@ -143,6 +147,8 @@ Struct `FisbProductRow`. A FIS-B product held. The row key is the number of the 
 | `text` | text | always | 1.0 | The text. |
 | `records` | whole number | always | 1.0 | TWGO records in the product. |
 | `blocks` | whole number | always | 1.0 | Grid blocks in the product. |
+
+The column `name` names a row.
 
 ### Table `fisb_records`
 
@@ -169,6 +175,8 @@ Struct `FisbRecordRow`. A text or graphic record (TWGO) of a product held: a NOT
 | `alt_top_ft` | whole number (ft) | optional | 1.0 | The highest altitude. |
 | `text` | text | optional | 1.0 | The text of a text record. |
 
+The column `name` names a row. Place of a row: the column `position`.
+
 ### Table `fisb_blocks`
 
 Struct `FisbBlockRow`. A block of a gridded product held (NEXRAD, icing, cloud tops, turbulence, lightning).
@@ -188,6 +196,8 @@ Struct `FisbBlockRow`. A block of a gridded product held (NEXRAD, icing, cloud t
 | `max_bin` | whole number | always | 1.0 | The highest bin value. |
 | `bins` | text | optional | 1.0 | The 128 bins, one hex digit each, rows from the north. An empty block has none. |
 
+The column `name` names a row. Place of a row: the column `corner`.
+
 ### Table `fisb_vertices`
 
 Struct `FisbVertexRow`. A vertex of the path of a graphic record held.
@@ -198,6 +208,8 @@ Struct `FisbVertexRow`. A vertex of the path of a graphic record held.
 | `index` | whole number | always | 1.0 | The place of the vertex in its path, from 0. |
 | `position` | position (°) | always | 1.0 | The position. |
 | `alt_ft` | whole number (ft) | always | 1.0 | The altitude. |
+
+Place of a row: the column `position`. Height: `alt_ft`.
 
 ### Table `log`
 
@@ -210,6 +222,8 @@ Struct `UatLogRow`. A line of the UAT message log.
 | `address` | text | optional | 1.0 | The address. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | Level. |
 | `summary` | text | always | 1.0 | What it said. |
+
+The column `address` names a row.
 
 ### Event `uat.message`
 

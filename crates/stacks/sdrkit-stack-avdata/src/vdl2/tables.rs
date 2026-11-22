@@ -602,14 +602,20 @@ impl Tables {
                 });
             },
         );
-        shaped::points_by(
+        shaped::row_points_by(
             self.store.aircraft.rows(),
+            VDL2_AIRCRAFT.def(),
             "aircraft/",
             p.results_mut(),
             aircraft_point,
         );
         shaped::rows(&self.store.stations, &VDL2_STATIONS, now, p);
-        shaped::points(&self.store.stations, "station/", p.results_mut());
+        shaped::row_points(
+            &self.store.stations,
+            &VDL2_STATIONS,
+            "station/",
+            p.results_mut(),
+        );
         shaped::rows_of(
             &self.channels,
             |c, w| write!(w, "{}", c.freq_hz.round() as u64),

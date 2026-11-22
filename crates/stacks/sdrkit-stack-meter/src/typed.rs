@@ -118,7 +118,7 @@ pub struct AmMonitorOverModulationEvent<'a> {
 
 /// The log of `am_monitor`, newest first.
 pub static AM_MONITOR_LOG: Table<AmMonitorLogRow<'static>> =
-    Table::new("log", "Log", crate::am_monitor::ROWS_KEPT);
+    Table::new("log", "Log", crate::am_monitor::ROWS_KEPT).label(&AmMonitorLogRow::IDENTITY);
 /// The carrier was seen, was lost or came back.
 pub static AM_MONITOR_CARRIER: EventKind<AmMonitorCarrierEvent<'static>> =
     EventKind::new("am_monitor.carrier", "Carrier");
@@ -302,13 +302,16 @@ pub struct FmMonitorOverDeviationEvent<'a> {
 
 /// The log of `fm_monitor`, newest first.
 pub static FM_MONITOR_LOG: Table<FmMonitorLogRow<'static>> =
-    Table::new("log", "Log", crate::fm_monitor::ROWS_KEPT);
+    Table::new("log", "Log", crate::fm_monitor::ROWS_KEPT).label(&FmMonitorLogRow::IDENTITY);
 /// The pilot was present or absent at first, came or went.
-pub static FM_MONITOR_PILOT: EventKind<FmMonitorPilotEvent<'static>> = EventKind::new("fm_monitor.pilot", "Pilot");
+pub static FM_MONITOR_PILOT: EventKind<FmMonitorPilotEvent<'static>> =
+    EventKind::new("fm_monitor.pilot", "Pilot");
 /// RDS came or went.
-pub static FM_MONITOR_RDS: EventKind<FmMonitorRdsEvent<'static>> = EventKind::new("fm_monitor.rds", "RDS");
+pub static FM_MONITOR_RDS: EventKind<FmMonitorRdsEvent<'static>> =
+    EventKind::new("fm_monitor.rds", "RDS");
 /// A subcarrier came or went.
-pub static FM_MONITOR_SCA: EventKind<FmMonitorScaEvent<'static>> = EventKind::new("fm_monitor.sca", "Subcarrier");
+pub static FM_MONITOR_SCA: EventKind<FmMonitorScaEvent<'static>> =
+    EventKind::new("fm_monitor.sca", "Subcarrier");
 /// A second over the over-deviation threshold.
 pub static FM_MONITOR_OVER_DEVIATION: EventKind<FmMonitorOverDeviationEvent<'static>> =
     EventKind::new("fm_monitor.over_deviation", "Over-deviation");
@@ -959,7 +962,10 @@ pub struct BirdieEvent {
 
 /// The persistent carriers listed now, the strongest first.
 pub static BIRDIE_CARRIERS: Table<BirdieCarrierRow> =
-    Table::new("carriers", "Persistent carriers", 200);
+    Table::new("carriers", "Persistent carriers", 200).sorted(
+        &BirdieCarrierRow::LEVEL_DB,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// The carrier log, newest first.
 pub static BIRDIE_CARRIER_EVENTS: Table<BirdieEventRow> =
     Table::new("carrier_events", "Carrier events", crate::birdie::ROWS_KEPT);
@@ -1459,11 +1465,14 @@ pub struct FreqAccuracyEvent {
 }
 
 /// The Allan deviation at the averaging times 1, 2, 4, 8 and 16 reading windows.
-pub static FREQ_ACCURACY_ALLAN: Table<FreqAccuracyAllanRow> = Table::new("allan", "Allan deviation", 8);
+pub static FREQ_ACCURACY_ALLAN: Table<FreqAccuracyAllanRow> =
+    Table::new("allan", "Allan deviation", 8);
 /// The frequency, step and carrier rows, newest first.
-pub static FREQ_ACCURACY_EVENTS: Table<FreqAccuracyEventRow> = Table::new("events", "Events", crate::txtest::ROWS_KEPT);
+pub static FREQ_ACCURACY_EVENTS: Table<FreqAccuracyEventRow> =
+    Table::new("events", "Events", crate::txtest::ROWS_KEPT);
 /// A row of the log was written.
-pub static FREQ_ACCURACY_EVENT: EventKind<FreqAccuracyEvent> = EventKind::new("freq_accuracy.event", "Event");
+pub static FREQ_ACCURACY_EVENT: EventKind<FreqAccuracyEvent> =
+    EventKind::new("freq_accuracy.event", "Event");
 
 // ---- sinad ----
 
@@ -1555,9 +1564,11 @@ pub struct SinadCrossingEvent {
 }
 
 /// The readings, newest first.
-pub static SINAD_EVENTS: Table<SinadEventRow> = Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
+pub static SINAD_EVENTS: Table<SinadEventRow> =
+    Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
 /// The SINAD crossed the mark.
-pub static SINAD_CROSSING: EventKind<SinadCrossingEvent> = EventKind::new("sinad.crossing", "Crossing");
+pub static SINAD_CROSSING: EventKind<SinadCrossingEvent> =
+    EventKind::new("sinad.crossing", "Crossing");
 
 // ---- nfm_meter ----
 
@@ -1641,7 +1652,8 @@ pub struct NfmMeterEventRow {
 }
 
 /// The tone and over-deviation rows, newest first.
-pub static NFM_METER_EVENTS: Table<NfmMeterEventRow> = Table::new("events", "Events", crate::txtest::ROWS_KEPT);
+pub static NFM_METER_EVENTS: Table<NfmMeterEventRow> =
+    Table::new("events", "Events", crate::txtest::ROWS_KEPT);
 
 // ---- tx_stability ----
 
@@ -1987,7 +1999,8 @@ pub struct SsbTestEventRow {
 }
 
 /// The test rows, newest first.
-pub static SSB_TEST_EVENTS: Table<SsbTestEventRow> = Table::new("events", "Tests", crate::txtest::ROWS_KEPT);
+pub static SSB_TEST_EVENTS: Table<SsbTestEventRow> =
+    Table::new("events", "Tests", crate::txtest::ROWS_KEPT);
 
 // ---- afsk_tuner ----
 
@@ -2082,9 +2095,11 @@ pub struct AfskTunerBurstEvent {
 }
 
 /// The analysed bursts, newest first.
-pub static AFSK_TUNER_BURSTS: Table<AfskTunerBurstRow> = Table::new("bursts", "Bursts", crate::txtest::ROWS_KEPT);
+pub static AFSK_TUNER_BURSTS: Table<AfskTunerBurstRow> =
+    Table::new("bursts", "Bursts", crate::txtest::ROWS_KEPT);
 /// A burst was analysed.
-pub static AFSK_TUNER_BURST: EventKind<AfskTunerBurstEvent> = EventKind::new("afsk_tuner.burst", "Burst");
+pub static AFSK_TUNER_BURST: EventKind<AfskTunerBurstEvent> =
+    EventKind::new("afsk_tuner.burst", "Burst");
 
 // ---- phase_noise ----
 
@@ -2186,9 +2201,13 @@ pub struct PhaseNoiseEventRow {
 }
 
 /// The spurs, the strongest first.
-pub static PHASE_NOISE_SPURS: Table<PhaseNoiseSpurRow> = Table::new("spurs", "Spurs", 6);
+pub static PHASE_NOISE_SPURS: Table<PhaseNoiseSpurRow> = Table::new("spurs", "Spurs", 6).sorted(
+    &PhaseNoiseSpurRow::LEVEL_DBC,
+    sdrkit_core::SortOrder::Descending,
+);
 /// The readings and losses, newest first.
-pub static PHASE_NOISE_EVENTS: Table<PhaseNoiseEventRow> = Table::new("events", "Events", crate::txtest::ROWS_KEPT);
+pub static PHASE_NOISE_EVENTS: Table<PhaseNoiseEventRow> =
+    Table::new("events", "Events", crate::txtest::ROWS_KEPT);
 
 // ---- cw_keying ----
 
@@ -2294,7 +2313,8 @@ pub struct CwKeyingEventRow {
 }
 
 /// The keying rows, newest first.
-pub static CW_KEYING_EVENTS: Table<CwKeyingEventRow> = Table::new("events", "Keying", crate::txtest::ROWS_KEPT);
+pub static CW_KEYING_EVENTS: Table<CwKeyingEventRow> =
+    Table::new("events", "Keying", crate::txtest::ROWS_KEPT);
 
 // ---- fsk_analyser ----
 
@@ -2381,9 +2401,11 @@ pub struct FskAnalyserEventRow {
 }
 
 /// The frequencies of the levels, from the lowest.
-pub static FSK_ANALYSER_LEVEL_FREQS: Table<FskAnalyserLevelRow> = Table::new("level_freqs", "Levels", 4);
+pub static FSK_ANALYSER_LEVEL_FREQS: Table<FskAnalyserLevelRow> =
+    Table::new("level_freqs", "Levels", 4);
 /// The readings, newest first.
-pub static FSK_ANALYSER_EVENTS: Table<FskAnalyserEventRow> = Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
+pub static FSK_ANALYSER_EVENTS: Table<FskAnalyserEventRow> =
+    Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
 
 // ---- mer ----
 
@@ -2455,7 +2477,8 @@ pub struct MerEventRow {
 }
 
 /// The readings, newest first.
-pub static MER_EVENTS: Table<MerEventRow> = Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
+pub static MER_EVENTS: Table<MerEventRow> =
+    Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
 
 // ---- papr ----
 
@@ -2551,7 +2574,8 @@ pub struct PaprEventRow {
 }
 
 /// The readings, newest first.
-pub static PAPR_EVENTS: Table<PaprEventRow> = Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
+pub static PAPR_EVENTS: Table<PaprEventRow> =
+    Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
 
 // ---- input_health ----
 
@@ -2645,7 +2669,8 @@ pub struct InputHealthEventRow {
 }
 
 /// The changes of the verdict and the clipping, newest first.
-pub static INPUT_HEALTH_EVENTS: Table<InputHealthEventRow> = Table::new("events", "Changes", crate::txtest::ROWS_KEPT);
+pub static INPUT_HEALTH_EVENTS: Table<InputHealthEventRow> =
+    Table::new("events", "Changes", crate::txtest::ROWS_KEPT);
 
 // ---- noise_figure ----
 
@@ -2717,9 +2742,11 @@ pub struct NoiseFigureEventRow {
 }
 
 /// The noise figure for each source ENR.
-pub static NOISE_FIGURE_TABLE: Table<NoiseFigureRow> = Table::new("noise_figure", "Noise figure", 32);
+pub static NOISE_FIGURE_TABLE: Table<NoiseFigureRow> =
+    Table::new("noise_figure", "Noise figure", 32);
 /// The steps, newest first.
-pub static NOISE_FIGURE_EVENTS: Table<NoiseFigureEventRow> = Table::new("events", "Steps", crate::txtest::ROWS_KEPT);
+pub static NOISE_FIGURE_EVENTS: Table<NoiseFigureEventRow> =
+    Table::new("events", "Steps", crate::txtest::ROWS_KEPT);
 
 // ---- kurtosis ----
 
@@ -2814,7 +2841,8 @@ pub struct KurtosisEventRow {
 /// The flagged regions, the largest departure from 1 first.
 pub static KURTOSIS_REGIONS: Table<KurtosisRegionRow> = Table::new("regions", "Regions", 8);
 /// The changes, newest first.
-pub static KURTOSIS_EVENTS: Table<KurtosisEventRow> = Table::new("events", "Changes", crate::txtest::ROWS_KEPT);
+pub static KURTOSIS_EVENTS: Table<KurtosisEventRow> =
+    Table::new("events", "Changes", crate::txtest::ROWS_KEPT);
 
 // ---- glitch ----
 
@@ -2913,7 +2941,8 @@ pub struct GlitchEvent {
 }
 
 /// The stream faults, newest first.
-pub static GLITCH_EVENTS: Table<GlitchEventRow> = Table::new("events", "Faults", crate::txtest::ROWS_KEPT);
+pub static GLITCH_EVENTS: Table<GlitchEventRow> =
+    Table::new("events", "Faults", crate::txtest::ROWS_KEPT);
 /// A stream fault.
 pub static GLITCH_EVENT: EventKind<GlitchEvent> = EventKind::new("glitch.event", "Stream fault");
 
@@ -3086,9 +3115,11 @@ pub static INTERMOD_INPUTS: Table<IntermodInputRow> = Table::new("inputs", "Stro
 /// The peaks at product frequencies, the least under their parents first.
 pub static INTERMOD_PRODUCTS: Table<IntermodProductRow> = Table::new("products", "Products", 200);
 /// The verdicts that held, newest first.
-pub static INTERMOD_EVENTS: Table<IntermodEventRow> = Table::new("events", "Verdicts", crate::txtest::ROWS_KEPT);
+pub static INTERMOD_EVENTS: Table<IntermodEventRow> =
+    Table::new("events", "Verdicts", crate::txtest::ROWS_KEPT);
 /// A verdict of a product held for two evaluations.
-pub static INTERMOD_PRODUCT: EventKind<IntermodProductEvent> = EventKind::new("intermod.product", "Product");
+pub static INTERMOD_PRODUCT: EventKind<IntermodProductEvent> =
+    EventKind::new("intermod.product", "Product");
 
 // ---- spur ----
 
@@ -3243,7 +3274,8 @@ pub struct SpurEventRow {
 /// The findings of the last evaluation.
 pub static SPUR_FINDINGS: Table<SpurFindingRow> = Table::new("findings", "Findings", 200);
 /// The verdicts that held and the DC spike, newest first.
-pub static SPUR_EVENTS: Table<SpurEventRow> = Table::new("events", "Findings log", crate::txtest::ROWS_KEPT);
+pub static SPUR_EVENTS: Table<SpurEventRow> =
+    Table::new("events", "Findings log", crate::txtest::ROWS_KEPT);
 
 // ---- fading ----
 
@@ -3350,7 +3382,8 @@ pub struct FadingEventRow {
 }
 
 /// The carrier changes, the deep and long fades and the readings, newest first.
-pub static FADING_EVENTS: Table<FadingEventRow> = Table::new("events", "Log", crate::txtest::ROWS_KEPT);
+pub static FADING_EVENTS: Table<FadingEventRow> =
+    Table::new("events", "Log", crate::txtest::ROWS_KEPT);
 
 // ---- beacon_monitor ----
 
@@ -3438,9 +3471,11 @@ pub struct BeaconMonitorChangeEvent {
 }
 
 /// The class changes, newest first.
-pub static BEACON_MONITOR_EVENTS: Table<BeaconMonitorEventRow> = Table::new("events", "Class changes", crate::txtest::ROWS_KEPT);
+pub static BEACON_MONITOR_EVENTS: Table<BeaconMonitorEventRow> =
+    Table::new("events", "Class changes", crate::txtest::ROWS_KEPT);
 /// A change of class.
-pub static BEACON_MONITOR_CHANGE: EventKind<BeaconMonitorChangeEvent> = EventKind::new("beacon_monitor.change", "Path change");
+pub static BEACON_MONITOR_CHANGE: EventKind<BeaconMonitorChangeEvent> =
+    EventKind::new("beacon_monitor.change", "Path change");
 
 /// The interface of the family.
 pub fn family() -> &'static Family {
@@ -3448,7 +3483,76 @@ pub fn family() -> &'static Family {
     FAMILY.get_or_init(|| {
         let decoder_clear = &sdrkit_graph::decoder::CLEAR;
         let watcher_clear = &sdrkit_graph::decoder::CLEAR;
-        Family::new("meter", 1, 0)
+        Family::new("meter", 1, 1)
+            .added(
+                1,
+                1,
+                &[
+                    "fm_monitor.content",
+                    "am_monitor.content",
+                    "occupancy.content",
+                    "noise_floor.content",
+                    "burst_finder.content",
+                    "hopper.content",
+                    "birdie.content",
+                    "obw.content",
+                    "ptt_log.content",
+                    "noise_locator.content",
+                    "freq_accuracy.content",
+                    "sinad.content",
+                    "nfm_meter.content",
+                    "tx_stability.content",
+                    "ssb_test.content",
+                    "afsk_tuner.content",
+                    "phase_noise.content",
+                    "cw_keying.content",
+                    "fsk_analyser.content",
+                    "mer.content",
+                    "papr.content",
+                    "input_health.content",
+                    "noise_figure.content",
+                    "kurtosis.content",
+                    "glitch.content",
+                    "intermod.content",
+                    "spur.content",
+                    "fading.content",
+                    "beacon_monitor.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Measurement,
+                &[
+                    "fm_monitor",
+                    "am_monitor",
+                    "occupancy",
+                    "noise_floor",
+                    "burst_finder",
+                    "hopper",
+                    "birdie",
+                    "obw",
+                    "ptt_log",
+                    "noise_locator",
+                    "freq_accuracy",
+                    "sinad",
+                    "nfm_meter",
+                    "tx_stability",
+                    "ssb_test",
+                    "afsk_tuner",
+                    "phase_noise",
+                    "cw_keying",
+                    "fsk_analyser",
+                    "mer",
+                    "papr",
+                    "input_health",
+                    "noise_figure",
+                    "kurtosis",
+                    "glitch",
+                    "intermod",
+                    "spur",
+                    "fading",
+                    "beacon_monitor",
+                ],
+            )
             .stack(
                 StackShape::new(crate::fm_monitor::ID)
                     .fields::<FmMonitorFields>()

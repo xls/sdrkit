@@ -5,14 +5,14 @@ use crate::typed::{
     HeardLinkRow, LinkFields, LinkFrameRow, MavlinkSikVehicleEvent, RcLinksLinkEvent, FRAMES,
     LINKS, LINK_REMOVE, LINK_ROW, MAVLINK_SIK_VEHICLE, RC_LINKS_LINK,
 };
+use sdrkit_core::command::CommandError;
 use sdrkit_core::interface::{Fields as _, Time};
 use sdrkit_core::publish::keys::Family;
 use sdrkit_core::publish::Published;
 use sdrkit_core::{EventDef, Record};
+use sdrkit_core::{TableId, Values};
 use sdrkit_graph::Item;
 use sdrkit_util_geo::Position;
-use sdrkit_core::command::CommandError;
-use sdrkit_core::{TableId, Values};
 use sdrkit_util_objects::commands::Tables;
 use sdrkit_util_objects::publish::{columns, Point};
 use sdrkit_util_objects::shaped::{self, RowOut, Shaped};
@@ -170,10 +170,12 @@ impl Shaped for LinkRow {
     }
     fn point(&self) -> Option<Point<'_>> {
         let (p, alt) = self.position?;
-        Some(Point::new(p, format!("{} {} {alt:.0} m", self.link, self.id)))
+        Some(Point::new(
+            p,
+            format!("{} {} {alt:.0} m", self.link, self.id),
+        ))
     }
 }
-
 
 sdrkit_core::commands! {
     /// The object commands of the link table.
@@ -383,7 +385,7 @@ impl LinkHeld {
         shaped::rows(&self.links, &LINKS, now, p);
         shaped::log_rows(&self.frames, &FRAMES, now, p);
         if points {
-            shaped::points(&self.links, "links/", p.results_mut());
+            shaped::row_points(&self.links, &LINKS, "links/", p.results_mut());
         }
     }
 }

@@ -49,8 +49,9 @@ pub struct ShipRow<'a> {
 | `&Value` | a value that carries its own kind, for a column whose rows hold values of several kinds | `sdrkit_variant` |
 
 Attributes of a field: `label` (required unless `shared`), `unit`, `refers_to = "table"` for a row key of another
-table, `content = PATH` for what a bytes field holds (a constant of the content type), and `shared = PATH` for a field
-that a constant of a shared crate declares.
+table, `content = PATH` for what a bytes field holds (a constant of the content type), `shared = PATH` for a field
+that a constant of a shared crate declares, and `role = Altitude` (or another role) for a column of the place of a
+row ("What a front end reads to show a stack").
 
 ### Tables, event types and commands
 
@@ -318,6 +319,101 @@ description, or if no component declares a field, a table, a series or a raster 
 the keys that differ. A receive chain that is not a `StackGraph` makes the same comparison with
 `StackShape::difference` when it is made.
 
+### What a front end reads to show a stack
+
+A front end (an app, the terminal app, the CLI) builds the view of a stack from the description. Five facts tell it
+how, so that it holds no list of stack ids and guesses no key names. A stack states a fact in its description, or the
+fact follows from what the stack declares. A stack that states nothing behaves as before.
+
+| Fact | Where it is stated | What follows without a statement |
+|---|---|---|
+| The kind of content of the stack | `StackShape::content(ContentKind::..)` | Nothing: every stack of a family states it. The test `families` fails for a stack without it. |
+| The sound | `StackShape::audio(AudioKind::..)` | No sound. The test `media_marks` of `sdrkit-host-catalog` compares the statement with the graph of the stack. |
+| Pictures, video, text | `.pictures()`, `.video()`, `.text()` | Pictures follow from a field, a column or an event field of bytes with the content of a picture. |
+| The column that names a row | `Table::new(..).label(&ShipRow::NAME)` | No such column. |
+| The default order of the rows | `Table::new(..).sorted(&CarrierRow::SNR_DB, SortOrder::Descending)` | The newest row first, by arrival. |
+| The place of a row | `#[field(.., role = Altitude)]` and the other roles | The first column of the position kind is the position. |
+| The row of a map point | `shaped::row_points(&objects, &TABLE, "prefix/", results)`, or `Results::link_point` | A point without a row. |
+
+The kinds of content are a closed set, the enum `ContentKind`. A kind names what the results are, not a page:
+
+| Key | What the stack gives |
+|---|---|
+| `broadcast` | Broadcast sound with programme data: station name, text, services. |
+| `television` | Television and video, with services and a guide where the standard has them. |
+| `voice` | Voice calls between stations, with a log of the calls. |
+| `text_chat` | Text that operators type to each other. |
+| `weak_signal` | Short messages of weak-signal protocols, decoded in time slots. |
+| `mesh` | Messages of a mesh or packet network, with its nodes. |
+| `tracking` | Things that report their position: aircraft, ships, balloons, drones, satellites. |
+| `datalink` | Messages of a data link, as a log. |
+| `pictures` | Pictures and fax pages sent as a signal. |
+| `satellite_imagery` | Images and data products of weather and earth observation satellites. |
+| `measurement` | Measurements of a signal or of the band. |
+| `science` | Observations of nature, of propagation and of time signals. |
+| `navigation` | Navigation aids and beacons. |
+| `networks` | Cells, access points and links of a network. |
+| `paging` | Paging messages with their addresses. |
+| `devices` | Sensors, meters, tags and other devices that send their own readings. |
+| `utility` | Frames and carriers of a utility protocol. |
+| `satellite_links` | Carriers, frames and reports of a satellite link. |
+| `general` | A receiver for any signal: demodulated sound and a spectrum. |
+
+A new kind is a new option at the end of the enum, and a compatible change. The kinds of sound are `programme` (a
+broadcast programme), `voice` (speech of calls; there is sound only while a call lasts) and `monitor` (the demodulated
+signal, to hear that it is there).
+
+The roles of a column are `Position`, `Latitude`, `Longitude`, `Altitude`, `Course` and `Speed`. `Position` is for a
+table with several columns of the position kind. `Latitude` and `Longitude` are for a table that holds the two numbers
+in two columns. The unit of a height or a speed is the unit of its column. The standard keys `height_m`, `speed_kt`
+and `course_deg` of `sdrkit_core::publish::keys` have their roles, so a row struct that names them with
+`#[field(shared = ..)]` states nothing. A `shared` field can take a role of its own: `#[field(shared = PATH, role =
+Speed)]`.
+
+```rust
+/// The ships.
+pub static SHIPS: Table<ShipRow<'static>> = Table::new("ships", "Ships", 300).label(&ShipRow::NAME);
+
+StackShape::new("ais")
+    .content(ContentKind::Tracking)
+    .fields::<AisFields>()
+    .table(&SHIPS)
+```
+
+A family can state the kinds and the media of its stacks in one place, by stack id. The calls can stand before the
+stacks are added:
+
+```rust
+Family::new("marine", 1, 1)
+    .added(1, 1, &["ais.content", "marinevhf.content"])
+    .content(ContentKind::Tracking, &["ais"])
+    .content(ContentKind::Voice, &["marinevhf"])
+    .audio(AudioKind::Voice, &["marinevhf"])
+```
+
+The test `families` fails for an id that is no stack of the family.
+
+The order of a table is a statement for the view. The rows of a snapshot are always newest first, whatever the
+table states.
+
+A map point of a row states its row when the component publishes it. `shaped::row_points` does this for the rows of
+an `ObjectTable`. A component that writes its points with `Results::update_point` calls
+`Results::link_point(id, Some((table, key)))` after it. The id of the point stays as it is, and a front end does not
+read it to find the row.
+
+Where a consumer reads the facts:
+
+| Fact | Rust | C | Swift |
+|---|---|---|---|
+| Kind of content, sound, pictures, video, text of each stack | The columns `kind`, `audio`, `pictures`, `video` and `text` of the table `stacks` of the engine; `StackShape::content`, `StackShape::media()` | `sdrkit_engine_stacks_rows()` of `sdrkit/engine.h`: the members of `sdrkit_engine_stack_row` | `EngineStackRow` of `Engine.swift` |
+| Marks of a table | `TableDecl::marks` (`TableMarks`) | `sdrkit_table_decl()`: `label_column`, `sort_column`, `sort_descending`, `position_column`, `latitude_column`, `longitude_column`, `altitude_column`, `course_column`, `speed_column` of `sdrkit_table_info`; `SDRKIT_NO_ID` for none | `TableDeclaration.labelColumn`, `.sort`, `.place` |
+| Row of a map point | `MapPoint::row` (`RowLink`) | `table` and `row` of `sdrkit_point` | `MapPoint.row` |
+
+In the registry record, the kind and the media of a stack are the line `<stack>.content`, and the marks of a table are
+attributes of its line (`label=`, `sort=`, `position=`, `altitude=`, ...). A change of a mark is compatible. The docs
+page of a stack and the comments of the typed table functions say the same in words. `sdrkit show <owner>` prints
+the marks with each table, and the table `stacks` of `sdrkit show engine stacks` has the kind and the media.
+
 ### The catalog
 
 The catalog needs no line. Its build script finds `src/typed.rs` in a stack crate, and the family list then holds
@@ -451,7 +547,7 @@ The crates that still declare by hand, with the number of declared fields, event
 (`publish::LabelTagRow`, `LABEL_TAG_TABLE` and the others): name them in the description. `sdrkit-proto-aero` returns
 the standard columns of an aircraft as one value (`Aircraft::standard`): copy its members into the struct of the row,
 whose fields name the constants of `aircraft::columns` with `#[field(shared = ...)]`. The map point of an aircraft is
-`Aircraft::standard_point`: give it to `shaped::points_by` with the rows of the aircraft table. A shared
+`Aircraft::standard_point`: give it to `shaped::row_points_by` with the rows of the aircraft table and the table. A shared
 interface of the crate, with its own header and record, is open: the crate declares columns, and each stack has its
 own row struct with them. A stack with a decoder component
 names `sdrkit_graph::DecoderFields` as its last result set.
@@ -481,8 +577,8 @@ option at the end of a list of options.
 3. Say in which version the item appeared: `.added(1, 1, &["shape.ShipRow.draught_m", "ais.table.fences"])`. A path is
    `shape.<Struct>` or `shape.<Struct>.<key>`, `<stack>`, `<stack>.fields.<Struct>`, `<stack>.table.<key>`,
    `<stack>.series.<key>`, `<stack>.raster.<key>`, `<stack>.event.<type>`, `<stack>.setting.<key>`,
-   `<stack>.command.<key>`, `<stack>.component.<name>.fields.<Struct>`, `<stack>.component.<name>.dropped` or
-   `<stack>.kept.<entry>`.
+   `<stack>.command.<key>`, `<stack>.component.<name>.fields.<Struct>`, `<stack>.component.<name>.dropped`,
+   `<stack>.kept.<entry>` or `<stack>.content` (the kind of content and the media of a stack).
 4. Write the files again.
 
 For a version that adds whole stacks, do not list the paths by hand: `.added_in(1, 1, |f| f.stack(..).stack(..))` marks

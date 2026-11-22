@@ -5,24 +5,21 @@ pub mod channels;
 pub mod generator;
 pub mod proto;
 
-use crate::family::{
-    min_rate_message, publish_tracks, wall, SignalClock, StatusLine, REPORT_S,
-};
-use channels::{ChannelState, OgnChannels, OgnItem, OgnPacket, CHANNELS, CHANNEL_STEP_HZ};
-use proto::{Content, Header, PositionReport, PACKET};
-use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
+use crate::family::{min_rate_message, publish_tracks, wall, SignalClock, StatusLine, REPORT_S};
 use crate::typed::{
     AircraftTrackRow, OgnAircraftRow, OgnEmergencyEvent, OgnFields, OgnPacketRow, OgnTrackerEvent,
     AIRCRAFT_REMOVE, AIRCRAFT_ROW, OGN_AIRCRAFT, OGN_EMERGENCY, OGN_PACKETS, OGN_TRACKER,
     OGN_TRACKS,
 };
+use channels::{ChannelState, OgnChannels, OgnItem, OgnPacket, CHANNELS, CHANNEL_STEP_HZ};
+use proto::{Content, Header, PositionReport, PACKET};
+use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
 use sdrkit_core::interface::{Hertz, Time};
 use sdrkit_core::publish::keys::{Family, Urgency};
 use sdrkit_core::publish::{field, Published};
 use sdrkit_core::{
-    Clock, ConfigError, Event, LockState, Record, Results, ResultsDecl, Setting,
-    SettingError, SettingId, SettingSet, StackConfig, StateBlob, StateError, TableId, Value,
-    Values,
+    Clock, ConfigError, Event, LockState, Record, Results, ResultsDecl, Setting, SettingError,
+    SettingId, SettingSet, StackConfig, StateBlob, StateError, TableId, Value, Values,
 };
 use sdrkit_graph::{
     values_of, Applied, Catalog, Component, ComponentInfo, Format, GraphBuilder, GraphError, Io,
@@ -107,7 +104,6 @@ sdrkit_core::settings! {
         ExpiryS = EXPIRY_S,
     }
 }
-
 
 sdrkit_core::commands! {
     /// The commands of [`OgnTracker`].
@@ -600,19 +596,18 @@ impl OgnTracker {
         let at = a.report.map(|r| (r.position.lat_deg, r.position.lon_deg));
         if let (false, Some(r)) = (a.announced, a.report) {
             a.announced = true;
-            self.events.push(
-                OGN_TRACKER.event(
-                    t, p.freq_hz,
-                    &OgnTrackerEvent {
-                        source: &a.id,
-                        address_type: proto::ADDRESS_TYPES[usize::from(a.address_type & 3)],
-                        aircraft_type: proto::AIRCRAFT_TYPES[usize::from(r.aircraft_type & 15)],
-                        position: (r.position.lat_deg, r.position.lon_deg),
-                        private: a.private(),
-                        family: Family::Aircraft,
-                    },
-                ),
-            );
+            self.events.push(OGN_TRACKER.event(
+                t,
+                p.freq_hz,
+                &OgnTrackerEvent {
+                    source: &a.id,
+                    address_type: proto::ADDRESS_TYPES[usize::from(a.address_type & 3)],
+                    aircraft_type: proto::AIRCRAFT_TYPES[usize::from(r.aircraft_type & 15)],
+                    position: (r.position.lat_deg, r.position.lon_deg),
+                    private: a.private(),
+                    family: Family::Aircraft,
+                },
+            ));
         }
         if head.emergency && a.alarm_at.is_none_or(|l| t - l >= EMERGENCY_HOLD_S) {
             a.alarm_at = Some(t);
@@ -758,11 +753,19 @@ impl OgnTracker {
             p,
             &mut self.key,
             |p, key, aircraft, position, time_s| {
-                OGN_TRACKS.put(p, key, &AircraftTrackRow { aircraft, position, time_s });
+                OGN_TRACKS.put(
+                    p,
+                    key,
+                    &AircraftTrackRow {
+                        aircraft,
+                        position,
+                        time_s,
+                    },
+                );
             },
             &OGN_TRACKS,
         );
-        shaped::points(&s.aircraft, "aircraft/", p.results_mut());
+        shaped::row_points(&s.aircraft, &OGN_AIRCRAFT, "aircraft/", p.results_mut());
         self.dirty = false;
     }
 }

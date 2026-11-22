@@ -33,6 +33,7 @@ use std::hash::Hash;
 ///     label: "Ships",
 ///     columns: &[&NAME as &dyn Declare, &columns::HEARD],
 ///     cap: 300,
+///     marks: sdrkit_core::RowMarks::NONE,
 /// };
 ///
 /// impl Object for Ship {
@@ -388,12 +389,24 @@ where
     K: Hash + Eq + Clone + Display,
     R: Object,
 {
-    points_with(objects, prefix, r, R::point);
+    points_with(objects, None, prefix, r, R::point);
 }
 
-/// Makes the map points under `prefix` hold the points that `point` returns for the objects of `objects`.
+/// As [`points`], for objects whose rows are in table `table` under the text of their keys: each point states its row
+/// ([`Results::link_point`]), so a front end finds the row of a point without reading the point id.
+pub fn row_points<K, R>(objects: &ObjectTable<K, R>, table: &TableDef, prefix: &str, r: &mut Results)
+where
+    K: Hash + Eq + Clone + Display,
+    R: Object,
+{
+    points_with(objects, Some(table), prefix, r, R::point);
+}
+
+/// Makes the map points under `prefix` hold the points that `point` returns for the objects of `objects`. With
+/// `table`, each point states the row of its object in that table.
 pub(crate) fn points_with<K, R>(
     objects: &ObjectTable<K, R>,
+    table: Option<&TableDef>,
     prefix: &str,
     r: &mut Results,
     point: impl for<'x> Fn(&'x R) -> Option<Point<'x>>,
@@ -402,6 +415,7 @@ pub(crate) fn points_with<K, R>(
 {
     let mut id = KeyText::new();
     let mut written = 0;
+    let table = table.and_then(|t| r.decl().table_id(t.key));
     for row in objects.iter() {
         let Some(pt) = point(row.record) else {
             continue;
@@ -418,6 +432,9 @@ pub(crate) fn points_with<K, R>(
             &pt.label,
             pt.heading_deg,
         );
+        if let Some(table) = table {
+            r.link_point(id, Some((table, id.get(prefix.len()..).unwrap_or_default())));
+        }
     }
     let held = r.points().keys().filter(|k| k.starts_with(prefix)).count();
     if held == written {

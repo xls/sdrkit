@@ -196,6 +196,7 @@ pub const WATCHES: TableDef = TableDef {
         &ENABLED.field,
     ],
     cap: 10_000,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// When.
@@ -228,6 +229,7 @@ pub const ALERTS: TableDef = TableDef {
         &PUSHED,
     ],
     cap: 500,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// Alerts sent.
@@ -253,6 +255,7 @@ pub const PUSHES: TableDef = TableDef {
         &LAST_ERROR,
     ],
     cap: 100,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// An alert: the event `watch.alert`.

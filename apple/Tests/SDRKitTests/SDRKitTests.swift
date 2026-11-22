@@ -254,6 +254,25 @@ final class SDRKitTests: XCTestCase {
         XCTAssertEqual(try engine.object.snapshot().table("stacks")?.rows.count, all)
     }
 
+    func testStacksStateTheirKindAndTheirMedia() throws {
+        let engine = try Engine()
+        let rows = try engine.object.allRows { EngineTables.engineStacks($0) }
+        // Every stack states its kind of content.
+        XCTAssertTrue(rows.allSatisfy { $0.kind != nil })
+        let fm = try XCTUnwrap(rows.first { $0.key == "fm" })
+        XCTAssertEqual(fm.kind, .broadcast)
+        XCTAssertEqual(fm.audio, .programme)
+        let adsb = try XCTUnwrap(rows.first { $0.key == "adsb" })
+        XCTAssertEqual(adsb.kind, .tracking)
+        XCTAssertNil(adsb.audio)
+        XCTAssertTrue(rows.first { $0.key == "dvbt" }?.video ?? false)
+        // The table of the stacks names its rows by the column `name`, and states no order and no place.
+        let stacks = try XCTUnwrap(try engine.object.resultsDeclaration().tables.first { $0.key == "stacks" })
+        XCTAssertEqual(stacks.labelColumn.map { stacks.columns[Int($0)].key }, "name")
+        XCTAssertNil(stacks.sort)
+        XCTAssertFalse(stacks.place.onMap)
+    }
+
     func testSettingErrors() throws {
         let engine = try Engine()
 

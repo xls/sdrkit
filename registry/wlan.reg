@@ -1,5 +1,5 @@
 # The interface of the stack family wlan. The registry test of the family writes this file.
-family wlan version=2.0
+family wlan version=2.1
 shape.BleFields since=1.0
 shape.BleFields.devices type=i64 unit= optional=no since=1.0
 shape.BleFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -405,6 +405,7 @@ shape.EspnowDeviceEvent.source type=text unit= optional=no since=1.1
 shape.EspnowDeviceEvent.vendor type=text unit= optional=no since=1.1
 shape.EspnowDeviceEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.1
 ble since=1.0
+ble.content kind=networks since=2.1
 ble.fields.BleFields since=1.0
 ble.fields.BleTxFields since=1.0
 ble.component.adv.dropped since=1.0
@@ -412,10 +413,10 @@ ble.kept.devices since=1.0
 ble.kept.packets since=1.0
 ble.kept.device_levels since=1.0
 ble.kept.BleFields.devices since=1.0
-ble.table.devices row=BleDeviceRow cap=400 since=1.0
-ble.table.packets row=BlePacketRow cap=400 since=1.0
+ble.table.devices row=BleDeviceRow cap=400 label=name since=1.0
+ble.table.packets row=BlePacketRow cap=400 label=address since=1.0
 ble.table.pdu_types row=BlePduTypeRow cap=16 since=1.0
-ble.table.device_levels row=BleDeviceLevelRow cap=9600 since=1.0
+ble.table.device_levels row=BleDeviceLevelRow cap=9600 label=device since=1.0
 ble.event.ble.device fields=BleDeviceEvent since=1.0
 ble.event.ble.tx fields=BleTxEvent since=1.0
 ble.setting.channel type=choice(37,38,39) unit= since=1.0
@@ -431,6 +432,7 @@ ble.command.remove args=row:text reply= since=1.0
 ble.command.send args=address:text;address_type:choice(public,random)?;pdu_type:choice(adv_nonconn_ind,adv_ind,adv_scan_ind)?;data:text?;name:text?;uuid16:text?;company:text?;manufacturer_data:text?;count:i64?;interval_ms:i64? reply= transmits=beacon stop=halt since=1.0
 ble.command.halt args= reply= since=1.0
 bletracker since=1.0
+bletracker.content kind=networks since=2.1
 bletracker.fields.BletrackerFields since=1.0
 bletracker.fields.BleTxFields since=1.0
 bletracker.component.adv.dropped since=1.0
@@ -441,7 +443,7 @@ bletracker.kept.BletrackerFields.following_now since=1.0
 bletracker.kept.BletrackerFields.trackers_now since=1.0
 bletracker.kept.BletrackerFields.trackers since=1.0
 bletracker.kept.BletrackerFields.now_s since=1.0
-bletracker.table.trackers row=BletrackerTrackerRow cap=200 since=1.0
+bletracker.table.trackers row=BletrackerTrackerRow cap=200 label=identifier since=1.0
 bletracker.table.alerts row=BletrackerAlertRow cap=50 since=1.0
 bletracker.table.tracker_kinds row=BletrackerKindRow cap=5 since=1.0
 bletracker.event.ble.tracker fields=BletrackerAlertEvent since=1.0
@@ -457,14 +459,15 @@ bletracker.command.mine args=row:text;mine:bool? reply= since=1.0
 bletracker.command.send args=tracker:choice(find_my,google,tile,chipolo,smart_tag)?;address:text;address_type:choice(public,random)?;pdu_type:choice(adv_nonconn_ind,adv_ind,adv_scan_ind)?;status:i64?;protection:bool?;payload:text?;count:i64?;interval_ms:i64?;shipping:bool?;service_data:text?;tag_state:choice(premature_lost,lost,overmature_lost,paired,connected_one,connected_two)?;aging_counter:i64?;privacy_id:text?;region:i64?;e2e:bool?;uwb:bool?;battery:i64?;signature:text? reply= transmits=beacon stop=halt since=1.0
 bletracker.command.halt args= reply= since=1.0
 wifi since=1.0
+wifi.content kind=networks since=2.1
 wifi.fields.WifiFields since=1.0
 wifi.component.rx.dropped since=1.0
 wifi.kept.networks since=1.0
 wifi.kept.beacons since=1.0
 wifi.kept.bands since=1.0
 wifi.kept.WifiFields.networks since=1.0
-wifi.table.networks row=WifiNetworkRow cap=300 since=1.0
-wifi.table.beacons row=WifiBeaconRow cap=400 since=1.0
+wifi.table.networks row=WifiNetworkRow cap=300 label=ssid sort=level_dbfs:descending since=1.0
+wifi.table.beacons row=WifiBeaconRow cap=400 label=bssid since=1.0
 wifi.table.ofdm_rates row=WifiRateRow cap=8 since=1.0
 wifi.table.bands row=WifiBandRow cap=3 since=1.0
 wifi.setting.band type=choice(2.4,5,6) unit= since=1.0
@@ -484,13 +487,14 @@ wifi.setting.gen_channel type=i64 unit= since=1.0
 wifi.command.clear args= reply= since=1.0
 wifi.command.remove args=row:text reply= since=1.0
 halow since=1.0
+halow.content kind=networks since=2.1
 halow.fields.HalowFields since=1.0
 halow.component.rx.dropped since=1.0
 halow.kept.networks since=1.0
 halow.kept.frames since=1.0
 halow.kept.HalowFields.networks since=1.0
-halow.table.networks row=HalowNetworkRow cap=200 since=1.0
-halow.table.frames row=HalowFrameRow cap=600 since=1.0
+halow.table.networks row=HalowNetworkRow cap=200 label=ssid sort=snr_db:descending since=1.0
+halow.table.frames row=HalowFrameRow cap=600 label=bssid since=1.0
 halow.table.widths row=HalowWidthRow cap=5 since=1.0
 halow.table.by_mcs row=HalowMcsRow cap=11 since=1.0
 halow.table.by_preamble row=HalowPreambleRow cap=3 since=1.0
@@ -511,12 +515,13 @@ halow.setting.sub_channel_scan type=bool unit= since=1.0
 halow.command.clear args= reply= since=1.0
 halow.command.remove args=row:text reply= since=1.0
 btclassic since=1.0
+btclassic.content kind=networks since=2.1
 btclassic.fields.BtclassicFields since=1.0
 btclassic.fields.DecoderFields since=1.0
 btclassic.kept.devices since=1.0
 btclassic.kept.packets since=1.0
 btclassic.kept.BtclassicFields.devices since=1.0
-btclassic.table.devices row=BtclassicDeviceRow cap=400 since=1.0
+btclassic.table.devices row=BtclassicDeviceRow cap=400 label=address since=1.0
 btclassic.table.packets row=BtclassicPacketRow cap=300 since=1.0
 btclassic.event.btclassic.device_new fields=BtclassicDeviceEvent since=1.0
 btclassic.event.btclassic.inquiry_response fields=BtclassicInquiryEvent since=1.0
@@ -526,24 +531,26 @@ btclassic.setting.wide_channels type=i64 unit=channels since=1.0
 btclassic.setting.gen_wideband type=bool unit= since=1.0
 btclassic.command.clear_devices args= reply= since=1.0
 wfb since=1.0
+wfb.content kind=networks since=2.1
 wfb.fields.WfbFields since=1.0
 wfb.fields.DecoderFields since=1.0
 wfb.kept.links since=1.0
 wfb.kept.frames since=1.0
 wfb.kept.WfbFields.links_heard since=1.0
 wfb.kept.WfbFields.frames_lost since=1.0
-wfb.table.links row=WfbLinkRow cap=64 since=1.0
-wfb.table.frames row=WfbFrameRow cap=400 since=1.0
+wfb.table.links row=WfbLinkRow cap=64 label=id since=1.0
+wfb.table.frames row=WfbFrameRow cap=400 label=hex since=1.0
 wfb.setting.links type=choice(wfb-ng,openhd,both) unit= since=1.0
 wfb.command.clear args= reply= since=1.0
 espnow since=1.1
+espnow.content kind=networks since=2.1
 espnow.fields.EspnowFields since=1.1
 espnow.component.rx.dropped since=1.1
 espnow.kept.devices since=1.1
 espnow.kept.frames since=1.1
 espnow.kept.EspnowFields.devices since=1.1
-espnow.table.devices row=EspnowDeviceRow cap=300 since=1.1
-espnow.table.frames row=EspnowFrameRow cap=500 since=1.1
+espnow.table.devices row=EspnowDeviceRow cap=300 label=address since=1.1
+espnow.table.frames row=EspnowFrameRow cap=500 label=from since=1.1
 espnow.table.by_rate row=EspnowRateRow cap=5 since=1.1
 espnow.table.by_channel row=EspnowChannelRow cap=14 since=1.1
 espnow.event.espnow.frame fields=EspnowFrameEvent since=1.1

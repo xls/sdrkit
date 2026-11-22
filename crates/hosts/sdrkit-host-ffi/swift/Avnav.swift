@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "avnav", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "avnav", version 1.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum AvnavInterface {
     public static let major = 1
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The tuned frequency.
@@ -901,6 +901,7 @@ public enum AvnavComponents {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum AvnavTables {
     /// The changed rows of the table "idents" of the stack "ndb", newest first, at most `capacity` rows.
+    /// The column `ident` names a row.
     public static func ndbIdents(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[AvnavIdentRow], SDRKitCode> {
         var rows = [sdrkit_avnav_ident_row](repeating: sdrkit_avnav_ident_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -909,6 +910,7 @@ public enum AvnavTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AvnavIdentRow.init))
     }
     /// The changed rows of the table "scan" of the stack "ndb", newest first, at most `capacity` rows.
+    /// Default order: the column `cn0_dbhz`, highest first.
     public static func ndbScan(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[NdbScanRow], SDRKitCode> {
         var rows = [sdrkit_ndb_scan_row](repeating: sdrkit_ndb_scan_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -917,6 +919,7 @@ public enum AvnavTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NdbScanRow.init))
     }
     /// The changed rows of the table "idents" of the stack "vor", newest first, at most `capacity` rows.
+    /// The column `ident` names a row.
     public static func vorIdents(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[AvnavIdentRow], SDRKitCode> {
         var rows = [sdrkit_avnav_ident_row](repeating: sdrkit_avnav_ident_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -925,6 +928,7 @@ public enum AvnavTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AvnavIdentRow.init))
     }
     /// The changed rows of the table "idents" of the stack "ils", newest first, at most `capacity` rows.
+    /// The column `ident` names a row.
     public static func ilsIdents(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[AvnavIdentRow], SDRKitCode> {
         var rows = [sdrkit_avnav_ident_row](repeating: sdrkit_avnav_ident_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -941,6 +945,7 @@ public enum AvnavTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(IlsMarkerPassageRow.init))
     }
     /// The changed rows of the table "idents" of the stack "dme", newest first, at most `capacity` rows.
+    /// The column `ident` names a row.
     public static func dmeIdents(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[AvnavIdentRow], SDRKitCode> {
         var rows = [sdrkit_avnav_ident_row](repeating: sdrkit_avnav_ident_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -949,6 +954,7 @@ public enum AvnavTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AvnavIdentRow.init))
     }
     /// The changed rows of the table "stations" of the stack "loran", newest first, at most `capacity` rows.
+    /// The column `station` names a row.
     public static func loranStations(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[LoranStationRow], SDRKitCode> {
         var rows = [sdrkit_loran_station_row](repeating: sdrkit_loran_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -973,6 +979,7 @@ public enum AvnavTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DgpsCorrectionRow.init))
     }
     /// The changed rows of the table "almanac" of the stack "dgps", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
     public static func dgpsAlmanac(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[DgpsAlmanacRow], SDRKitCode> {
         var rows = [sdrkit_dgps_almanac_row](repeating: sdrkit_dgps_almanac_row(), count: capacity)
         var info = sdrkit_rows_info.sized

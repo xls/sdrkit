@@ -2484,11 +2484,14 @@ impl App {
         };
         let r = &owner.results;
         let t = r.table_id(table)?;
-        // The name of a row is its `label` or `name` column, else its first text column.
+        // The name of a row is the column that the table states, else its `label` or `name` column, else its first
+        // text column.
         let columns = &r.decl.tables[t].columns;
-        let named = columns
-            .iter()
-            .position(|c| c.key == "label" || c.key == "name");
+        let named = r.decl.tables[t].label_column.or_else(|| {
+            columns
+                .iter()
+                .position(|c| c.key == "label" || c.key == "name")
+        });
         let name = named.or_else(|| columns.iter().position(|c| c.ty == Type::String));
         let rows = &r.tables[t].rows;
         let lines = rows

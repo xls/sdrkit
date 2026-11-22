@@ -1,5 +1,5 @@
 # The interface of the stack family voice. The registry test of the family writes this file.
-family voice version=1.1
+family voice version=1.2
 uses.tones major=1 since=1.0
 shape.DetectorFields since=1.0
 shape.DetectorFields.state type=choice(searching,signal,confirmed) unit= optional=no since=1.0
@@ -221,6 +221,7 @@ shape.FleetsyncUnitRow.last_heard type=time unit= optional=yes since=1.1
 shape.FleetsyncUnitRow.hz type=hz unit=Hz optional=no since=1.1
 shape.FleetsyncUnitRow.kind type=text unit= optional=no since=1.1
 hfpacket since=1.0
+hfpacket.content kind=utility since=1.2
 hfpacket.fields.DetectorFields since=1.0
 hfpacket.fields.HfpacketFields since=1.0
 hfpacket.component.guard.fields.GuardFields since=1.0
@@ -231,7 +232,7 @@ hfpacket.kept.DetectorFields.bad since=1.0
 hfpacket.kept.HfpacketFields.stations since=1.0
 hfpacket.kept.HfpacketFields.last_frame since=1.0
 hfpacket.table.events row=DetectorEventRow cap=60 since=1.0
-hfpacket.table.frames row=HfpacketFrameRow cap=200 since=1.0
+hfpacket.table.frames row=HfpacketFrameRow cap=200 label=source since=1.0
 hfpacket.event.hfpacket.frame fields=HfpacketFrameEvent since=1.0
 hfpacket.event.hfpacket.station fields=HfpacketStationEvent since=1.0
 hfpacket.setting.sideband type=choice(usb,lsb) unit= since=1.0
@@ -242,6 +243,7 @@ hfpacket.setting.gen_mark_hz type=hz unit=Hz since=1.0
 hfpacket.setting.gen_space_hz type=hz unit=Hz since=1.0
 hfpacket.command.clear args= reply= since=1.0
 elt121 since=1.0
+elt121.content kind=navigation since=1.2
 elt121.fields.DetectorFields since=1.0
 elt121.fields.Elt121Fields since=1.0
 elt121.component.guard.fields.GuardFields since=1.0
@@ -257,6 +259,7 @@ elt121.setting.gen_depth type=f64 unit= since=1.0
 elt121.setting.gen_seconds type=duration unit=s since=1.0
 elt121.command.clear args= reply= since=1.0
 voice_inversion since=1.0
+voice_inversion.content kind=measurement audio=voice since=1.2
 voice_inversion.fields.DetectorFields since=1.0
 voice_inversion.fields.VoiceInversionFields since=1.0
 voice_inversion.component.guard.fields.GuardFields since=1.0
@@ -271,12 +274,13 @@ voice_inversion.setting.gen_seconds type=duration unit=s since=1.0
 voice_inversion.setting.gen_deviation_hz type=hz unit=Hz since=1.0
 voice_inversion.command.clear args= reply= since=1.0
 voice_channels since=1.0
+voice_channels.content kind=voice audio=voice since=1.2
 voice_channels.fields.VoiceChannelsFields since=1.0
 voice_channels.kept.calls since=1.0
 voice_channels.kept.channels since=1.0
 voice_channels.kept.VoiceChannelsFields since=1.0
-voice_channels.table.calls row=CallRow cap=600 since=1.0
-voice_channels.table.channels row=ChannelRow cap=512 since=1.0
+voice_channels.table.calls row=CallRow cap=600 label=label since=1.0
+voice_channels.table.channels row=ChannelRow cap=512 label=name since=1.0
 voice_channels.event.voice_channels.call fields=VoiceChannelsCallEvent since=1.0
 voice_channels.event.tones.subaudio fields=SubAudioFields since=1.0
 voice_channels.setting.plan type=text unit= since=1.0
@@ -298,6 +302,7 @@ voice_channels.setting.gen_cnr_db type=f64 unit=dB since=1.0
 voice_channels.setting.gen_scene type=choice(auto,mixed,am_fm_ssb,fm_tones,sideband) unit= since=1.0
 voice_channels.command.clear args= reply= since=1.0
 mdc1200 since=1.0
+mdc1200.content kind=voice audio=voice since=1.2
 mdc1200.fields.VoiceChannelsFields since=1.0
 mdc1200.fields.Mdc1200Fields since=1.0
 mdc1200.kept.calls since=1.0
@@ -305,9 +310,9 @@ mdc1200.kept.channels since=1.0
 mdc1200.kept.bursts since=1.0
 mdc1200.kept.VoiceChannelsFields since=1.0
 mdc1200.kept.Mdc1200Fields since=1.0
-mdc1200.table.calls row=CallRow cap=600 since=1.0
-mdc1200.table.channels row=ChannelRow cap=512 since=1.0
-mdc1200.table.bursts row=Mdc1200BurstRow cap=400 since=1.0
+mdc1200.table.calls row=CallRow cap=600 label=label since=1.0
+mdc1200.table.channels row=ChannelRow cap=512 label=name since=1.0
+mdc1200.table.bursts row=Mdc1200BurstRow cap=400 label=label since=1.0
 mdc1200.event.mdc1200.call fields=Mdc1200CallEvent since=1.0
 mdc1200.event.mdc1200.burst fields=Mdc1200BurstEvent since=1.0
 mdc1200.event.tones.subaudio fields=SubAudioFields since=1.0
@@ -321,8 +326,9 @@ mdc1200.setting.time_base type=time unit= since=1.0
 mdc1200.setting.gen_cnr_db type=f64 unit=dB since=1.0
 mdc1200.command.clear args= reply= since=1.0
 wmic since=1.0
+wmic.content kind=measurement audio=monitor since=1.2
 wmic.fields.WmicFields since=1.0
-wmic.table.candidates row=WmicCandidateRow cap=64 since=1.0
+wmic.table.candidates row=WmicCandidateRow cap=64 sort=snr_db:descending since=1.0
 wmic.event.wmic.candidate fields=WmicCandidateEvent since=1.0
 wmic.setting.plan type=text unit= since=1.0
 wmic.setting.raster_step_hz type=hz unit=Hz since=1.0
@@ -334,6 +340,7 @@ wmic.setting.gen_cnr_db type=f64 unit=dB since=1.0
 wmic.command.clear args= reply= since=1.0
 wmic.command.listen args=id:i64 reply= since=1.0
 fleetsync since=1.1
+fleetsync.content kind=voice audio=voice since=1.2
 fleetsync.fields.VoiceChannelsFields since=1.1
 fleetsync.fields.FleetsyncFields since=1.1
 fleetsync.kept.calls since=1.1
@@ -342,9 +349,9 @@ fleetsync.kept.bursts since=1.1
 fleetsync.kept.units since=1.1
 fleetsync.kept.VoiceChannelsFields since=1.1
 fleetsync.kept.FleetsyncFields since=1.1
-fleetsync.table.calls row=CallRow cap=600 since=1.1
-fleetsync.table.channels row=ChannelRow cap=512 since=1.1
-fleetsync.table.bursts row=FleetsyncBurstRow cap=400 since=1.1
+fleetsync.table.calls row=CallRow cap=600 label=label since=1.1
+fleetsync.table.channels row=ChannelRow cap=512 label=name since=1.1
+fleetsync.table.bursts row=FleetsyncBurstRow cap=400 label=label since=1.1
 fleetsync.table.units row=FleetsyncUnitRow cap=400 since=1.1
 fleetsync.event.fleetsync.call fields=VoiceChannelsCallEvent since=1.1
 fleetsync.event.fleetsync.burst fields=FleetsyncBurstRow since=1.1

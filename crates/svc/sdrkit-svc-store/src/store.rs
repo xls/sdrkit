@@ -172,6 +172,7 @@ pub const MESSAGES: TableDef = TableDef {
         &REPEATS,
     ],
     cap: 10_000,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 const STATUS: &[&dyn Declare] = &[&ROWS, &BYTES, &FOLDED, &PRUNED, &BAD_LINES, &MATCHES];

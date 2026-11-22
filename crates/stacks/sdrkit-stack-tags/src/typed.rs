@@ -357,7 +357,7 @@ pub struct QiPacketEvent<'a> {
 
 /// The packets, newest first.
 pub static QI_PACKETS: Table<QiPacketRow<'static>> =
-    Table::new("packets", "Packets", crate::qi::ROWS_KEPT);
+    Table::new("packets", "Packets", crate::qi::ROWS_KEPT).label(&QiPacketRow::DEVICE_ID);
 /// A packet passed every check.
 pub static QI_PACKET: EventKind<QiPacketEvent<'static>> = EventKind::new("qi.packet", "Packet");
 
@@ -604,7 +604,12 @@ pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
         let clear = &sdrkit_graph::decoder::CLEAR;
-        Family::new("tags", 1, 0)
+        Family::new("tags", 1, 1)
+            .added(1, 1, &["rfid_lf.content", "qi.content", "rfid_uhf.content"])
+            .content(
+                sdrkit_core::ContentKind::Devices,
+                &["rfid_lf", "qi", "rfid_uhf"],
+            )
             .stack(
                 StackShape::new(crate::rfid_lf::ID)
                     .fields::<TagsStatusFields>()

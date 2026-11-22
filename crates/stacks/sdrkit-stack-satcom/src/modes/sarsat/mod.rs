@@ -964,7 +964,7 @@ impl Decoder for SarsatDisplay {
         if std::mem::take(&mut self.dirty) {
             shaped::log_rows(&h.bursts, &SARSAT_BURSTS, now, p);
             shaped::rows(&h.beacons, &SARSAT_BEACONS, now, p);
-            shaped::points(&h.beacons, "sarsat/", p.results_mut());
+            shaped::row_points(&h.beacons, &SARSAT_BEACONS, "sarsat/", p.results_mut());
         }
         let last = h.bursts.newest_first().next();
         let lock_state = LockState::from_level(state);

@@ -256,6 +256,7 @@ static ROWS: TableDef = TableDef {
     label: "Rows",
     columns: &[&N],
     cap: 16,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The blocks that the pacers were fed, and the time they worked on them in nanoseconds.
 static FEEDS: AtomicU64 = AtomicU64::new(0);

@@ -5,7 +5,6 @@ pub mod demod;
 pub mod gen;
 pub mod packet;
 
-use sdrkit_algo_dsp::meter::power_to_db as db;
 use crate::display::{set_series, Clock};
 use crate::typed::{
     OrbcommChannelArgs, OrbcommDecoderRow, OrbcommFields, OrbcommMessageEvent, OrbcommPacketRow,
@@ -16,6 +15,7 @@ use crate::typed::{
 use demod::Decoder as Downlink;
 use packet::{raster, Elements, Packet};
 use sdrkit_algo_dsp::floor::BinMedian;
+use sdrkit_algo_dsp::meter::power_to_db as db;
 use sdrkit_algo_dsp::spectrum::{Scaling, SpectrumAnalyzer, SpectrumConfig};
 use sdrkit_algo_dsp::window::Window;
 use sdrkit_core::command::{CommandError, CommandId, CommandSet};
@@ -1012,7 +1012,12 @@ impl OrbDisplay {
         let mut key = String::new();
         if std::mem::take(&mut self.dirty) {
             shaped::rows(&self.tables.satellites, &ORBCOMM_SATELLITES, now, p);
-            shaped::points(&self.tables.satellites, "orbcomm/", p.results_mut());
+            shaped::row_points(
+                &self.tables.satellites,
+                &ORBCOMM_SATELLITES,
+                "orbcomm/",
+                p.results_mut(),
+            );
             shaped::log_rows(&self.tables.log, &ORBCOMM_PACKETS, now, p);
             p.clear_rows(&ORBCOMM_SATELLITE_CHANNELS);
             for r in self.tables.satellites.iter() {

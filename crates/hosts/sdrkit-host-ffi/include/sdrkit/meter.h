@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "meter", version 1.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "meter", version 1.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_METER_VERSION_MAJOR 1
-#define SDRKIT_METER_VERSION_MINOR 0
+#define SDRKIT_METER_VERSION_MINOR 1
 
 // The stack "fm_monitor": its id, and the keys of its event types.
 #define SDRKIT_STACK_FM_MONITOR "fm_monitor"
@@ -3818,6 +3818,7 @@ typedef struct sdrkit_beacon_monitor_change_event {
 
 // Fills `rows` with the changed rows of the table "log" of the stack "fm_monitor" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `identity` names a row.
 static inline int32_t sdrkit_fm_monitor_log_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_fm_monitor_log_row *rows,
                                                 uint32_t capacity,
@@ -3990,6 +3991,7 @@ static inline int32_t sdrkit_fm_monitor_gen_set_sca_from_s(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "log" of the stack "am_monitor" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `identity` names a row.
 static inline int32_t sdrkit_am_monitor_log_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_am_monitor_log_row *rows,
                                                 uint32_t capacity,
@@ -4508,6 +4510,7 @@ static inline int32_t sdrkit_hopper_gen_set_fsk_bps(SDRKIT_HANDLE handle, double
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "birdie" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `level_db`, highest first.
 static inline int32_t sdrkit_birdie_carriers_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_birdie_carrier_row *rows,
                                                  uint32_t capacity,
@@ -5573,6 +5576,7 @@ static inline int32_t sdrkit_afsk_tuner_gen_set_first_s(SDRKIT_HANDLE handle, do
 
 // Fills `rows` with the changed rows of the table "spurs" of the stack "phase_noise" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `level_dbc`, highest first.
 static inline int32_t sdrkit_phase_noise_spurs_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_phase_noise_spur_row *rows,
                                                    uint32_t capacity,

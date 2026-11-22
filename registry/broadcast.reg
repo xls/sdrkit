@@ -1,5 +1,5 @@
 # The interface of the stack family broadcast. The registry test of the family writes this file.
-family broadcast version=1.0
+family broadcast version=1.1
 uses.mpegts major=1 since=1.0
 uses.bcdata major=1 since=1.0
 uses.broadcast_scan major=1 since=1.0
@@ -295,6 +295,7 @@ shape.CquamFields.signal_time type=duration unit=s optional=no since=1.0
 shape.CquamFrontFields since=1.0
 shape.CquamFrontFields.input_rate type=hz unit=Hz optional=no since=1.0
 drm since=1.0
+drm.content kind=broadcast audio=programme pictures=yes since=1.1
 drm.fields.DrmFields since=1.0
 drm.fields.LabelFields since=1.0
 drm.fields.SlideFields since=1.0
@@ -302,11 +303,11 @@ drm.kept.guide_services since=1.0
 drm.kept.guide_programmes since=1.0
 drm.kept.guide_groups since=1.0
 drm.kept.logos since=1.0
-drm.table.services row=DrmServiceRow cap=4 since=1.0
+drm.table.services row=DrmServiceRow cap=4 label=label since=1.0
 drm.table.streams row=DrmStreamRow cap=4 since=1.0
-drm.table.objects row=DrmObjectRow cap=96 since=1.0
-drm.table.slides row=DrmSlideRow cap=4 since=1.0
-drm.table.journaline row=DrmPageRow cap=512 since=1.0
+drm.table.objects row=DrmObjectRow cap=96 label=name since=1.0
+drm.table.slides row=DrmSlideRow cap=4 label=name since=1.0
+drm.table.journaline row=DrmPageRow cap=512 label=title since=1.0
 drm.table.packets row=DrmPacketRow cap=4 since=1.0
 drm.table.notes row=DrmNoteRow cap=16 since=1.0
 drm.table.label_tags row=LabelTagRow cap=128 since=1.0
@@ -333,10 +334,11 @@ drm.setting.gen_data type=choice(none,2,3,4,7,1098) unit= since=1.0
 drm.command.service.select args=row:text reply= since=1.0
 drm.command.clear args= reply= since=1.0
 hamdrm since=1.0
+hamdrm.content kind=pictures pictures=yes since=1.1
 hamdrm.fields.HamdrmFields since=1.0
 hamdrm.kept.history since=1.0
 hamdrm.kept.HamdrmFields.files_completed since=1.0
-hamdrm.table.history row=HamdrmFileRow cap=8 since=1.0
+hamdrm.table.history row=HamdrmFileRow cap=8 label=name since=1.0
 hamdrm.table.missing row=HamdrmMissingRow cap=64 since=1.0
 hamdrm.setting.hamdrm_format type=text unit= since=1.0
 hamdrm.setting.gen_mode type=choice(A,B,E) unit= since=1.0
@@ -348,6 +350,7 @@ hamdrm.setting.gen_skip_every type=i64 unit= since=1.0
 hamdrm.setting.gen_transmissions type=i64 unit= since=1.0
 hamdrm.command.clear args= reply= since=1.0
 hdradio since=1.0
+hdradio.content kind=broadcast pictures=yes since=1.1
 hdradio.fields.HdradioFields since=1.0
 hdradio.fields.LabelFields since=1.0
 hdradio.fields.SlideFields since=1.0
@@ -355,9 +358,9 @@ hdradio.kept.guide_services since=1.0
 hdradio.kept.guide_programmes since=1.0
 hdradio.kept.guide_groups since=1.0
 hdradio.kept.logos since=1.0
-hdradio.table.programs row=HdradioProgramRow cap=8 since=1.0
-hdradio.table.data_services row=HdradioDataServiceRow cap=64 since=1.0
-hdradio.table.files row=HdradioFileRow cap=64 since=1.0
+hdradio.table.programs row=HdradioProgramRow cap=8 label=name since=1.0
+hdradio.table.data_services row=HdradioDataServiceRow cap=64 label=name since=1.0
+hdradio.table.files row=HdradioFileRow cap=64 label=name since=1.0
 hdradio.table.label_tags row=LabelTagRow cap=128 since=1.0
 hdradio.table.guide_services row=GuideServiceRow cap=256 since=1.0
 hdradio.table.guide_programmes row=GuideProgrammeRow cap=500 since=1.0
@@ -371,6 +374,7 @@ hdradio.setting.gen_analog_db type=f64 unit=dB since=1.0
 hdradio.command.service.select args=row:text reply= since=1.0
 hdradio.command.clear args= reply= since=1.0
 cdr since=1.0
+cdr.content kind=broadcast audio=programme since=1.1
 cdr.fields.CdrFields since=1.0
 cdr.table.services row=CdrServiceRow cap=32 since=1.0
 cdr.table.service_data_types row=CdrDataTypeRow cap=256 since=1.0
@@ -391,6 +395,7 @@ cdr.command.service.select args=row:text reply= since=1.0
 cdr.command.clear args= reply= since=1.0
 cdr.command.resync args= reply= since=1.0
 cquam since=1.0
+cquam.content kind=broadcast audio=programme since=1.1
 cquam.fields.CquamFields since=1.0
 cquam.fields.CquamFrontFields since=1.0
 cquam.series.pilot_spectrum x_unit=Hz y_unit=dB since=1.0

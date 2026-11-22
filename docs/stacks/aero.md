@@ -86,7 +86,9 @@ The stack puts points on a map: Aircraft.
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.2. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 1.3. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Datalink messages (`datalink`). Media: text.
 
 ### Result fields
 
@@ -187,6 +189,8 @@ Struct `AeroMessageRow`. An ACARS message. The row key is the place of the messa
 | `cpdlc_parsed` | yes or no | optional | 1.0 | The CPDLC message body decoded completely. |
 | `cpdlc_text` | text | optional | 1.0 | The decoded CPDLC message. |
 
+The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`.
+
 ### Table `aircraft`
 
 Struct `AeroAircraftRow`. An aircraft heard: the standard aircraft columns, then the frequency last heard on. The row key is the address, else the registration.
@@ -206,6 +210,8 @@ Struct `AeroAircraftRow`. An aircraft heard: the standard aircraft columns, then
 | `vs_fpm` | number (ft/min) | optional | 1.0 | The vertical rate. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard. |
 | `frequency` | frequency | always | 1.0 | The frequency last heard on. |
+
+The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
 
 ### Table `facts`
 

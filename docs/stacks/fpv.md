@@ -130,7 +130,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `analogtv`, version 1.1. The C header `sdrkit/analogtv.h`, the registry record `registry/analogtv.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `analogtv`, version 1.2. The C header `sdrkit/analogtv.h`, the registry record `registry/analogtv.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Television and video (`television`). Media: sound (programme), video.
 
 ### Result fields
 
@@ -199,6 +201,8 @@ Struct `FpvChannelRow`. A channel of the FPV meter. The row key is the channel n
 | `present` | yes or no | always | 1.0 | A transmitter is on the channel. |
 | `inside` | yes or no | always | 1.0 | The channel is inside the capture. |
 | `heard` | duration (s) | optional | 1.0 | The stream time at which a transmitter was last heard on the channel. |
+
+The column `name` names a row.
 
 ### Table `teletext_pages`
 

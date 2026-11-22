@@ -29,11 +29,11 @@
 #define SDRKIT_REPORT_PORT_INIT {sizeof(sdrkit_report_port), {0}, 0, 0, 0, 0}
 #define SDRKIT_REPORT_ADAPTER_INIT {sizeof(sdrkit_report_adapter), {0}, {0}, {0}, {0}, 0}
 #define SDRKIT_RESULTS_INFO_INIT {sizeof(sdrkit_results_info), 0, 0, 0, 0, {0}}
-#define SDRKIT_TABLE_INFO_INIT {sizeof(sdrkit_table_info), {0}, {0}, 0, 0}
+#define SDRKIT_TABLE_INFO_INIT {sizeof(sdrkit_table_info), {0}, {0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define SDRKIT_PLOT_INFO_INIT {sizeof(sdrkit_plot_info), {0}, {0}, {0}, {0}, {0}}
 #define SDRKIT_SNAPSHOT_INFO_INIT {sizeof(sdrkit_snapshot_info), 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0}
 #define SDRKIT_ROWS_INFO_INIT {sizeof(sdrkit_rows_info), 0, 0, 0}
-#define SDRKIT_POINT_INIT {sizeof(sdrkit_point), {0}, 0, 0, {0}, 0}
+#define SDRKIT_POINT_INIT {sizeof(sdrkit_point), {0}, 0, 0, {0}, 0, 0, {0}}
 #define SDRKIT_SERIES_INFO_INIT {sizeof(sdrkit_series_info), 0, 0, 0, 0, 0}
 #define SDRKIT_RASTER_INFO_INIT {sizeof(sdrkit_raster_info), 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define SDRKIT_STORE_ENTRY_INIT {sizeof(sdrkit_store_entry), 0, 0, 0, 0}

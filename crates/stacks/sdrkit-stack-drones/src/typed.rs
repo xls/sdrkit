@@ -3,17 +3,17 @@
 
 use crate::adsl::AdslSetting;
 use crate::dji::DjiSetting;
+use crate::dji::{Attempt, Class, RadioBand, Reason};
 use crate::flarm::FlarmSetting;
+use crate::flarm::KeyTime;
 use crate::mavlink_sik::SikSetting;
 use crate::ogn::OgnSetting;
-use crate::rc_links::RcStackSetting;
-use crate::remote_id::RidSetting;
-use crate::dji::{Attempt, Class, RadioBand, Reason};
-use crate::flarm::KeyTime;
 use crate::ogn::PacketKind;
+use crate::rc_links::RcStackSetting;
 use crate::remote_id::messages::{MsgType, Transport};
 use crate::remote_id::table::Via;
 use crate::remote_id::Band;
+use crate::remote_id::RidSetting;
 use sdrkit_core::interface::{
     Arguments, CommandKind, EventKind, Family as Described, Fields, Hertz, Seconds, StackShape,
     Table, Time,
@@ -126,7 +126,7 @@ pub struct RemoteIdDroneRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// Geodetic altitude.
-    #[field(label = "Altitude", unit = "m")]
+    #[field(label = "Altitude", unit = "m", role = Altitude)]
     pub alt_geo_m: Option<f64>,
     /// Pressure altitude.
     #[field(label = "Pressure altitude", unit = "m")]
@@ -426,7 +426,7 @@ pub struct DjiDroneidDroneRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// The drone's altitude.
-    #[field(label = "Altitude", unit = "m")]
+    #[field(label = "Altitude", unit = "m", role = Altitude)]
     pub alt_m: f64,
     /// The drone's height above home.
     #[field(label = "Height", unit = "m")]
@@ -638,7 +638,7 @@ pub struct FlarmAircraftRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// Altitude.
-    #[field(label = "Altitude", unit = "m")]
+    #[field(label = "Altitude", unit = "m", role = Altitude)]
     pub alt_m: f64,
     /// The speed over the ground of the object that the event is about, knots.
     #[field(shared = keys::SPEED_KT)]
@@ -829,7 +829,7 @@ pub struct AdslAircraftRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// The drone's altitude.
-    #[field(label = "Altitude", unit = "m")]
+    #[field(label = "Altitude", unit = "m", role = Altitude)]
     pub alt_m: Option<f64>,
     /// The speed over the ground of the object that the event is about, knots.
     #[field(shared = keys::SPEED_KT)]
@@ -1016,7 +1016,7 @@ pub struct OgnAircraftRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// The drone's altitude.
-    #[field(label = "Altitude", unit = "m")]
+    #[field(label = "Altitude", unit = "m", role = Altitude)]
     pub alt_m: Option<f64>,
     /// The speed over the ground of the object that the event is about, knots.
     #[field(shared = keys::SPEED_KT)]
@@ -1168,7 +1168,7 @@ pub struct HeardLinkRow<'a> {
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
     /// The altitude of the last position.
-    #[field(label = "Altitude", unit = "m")]
+    #[field(label = "Altitude", unit = "m", role = Altitude)]
     pub alt_m: Option<f64>,
 }
 
@@ -1240,10 +1240,12 @@ pub struct MavlinkSikVehicleEvent<'a> {
 
 /// The drones of Remote ID.
 pub static REMOTE_ID_DRONES: Table<RemoteIdDroneRow<'static>> =
-    Table::new("drones", "Drones", crate::remote_id::table::DRONE_CAP);
+    Table::new("drones", "Drones", crate::remote_id::table::DRONE_CAP)
+        .label(&RemoteIdDroneRow::ADDRESS);
 /// The message log of Remote ID, newest first.
 pub static REMOTE_ID_MESSAGES: Table<RemoteIdMessageRow<'static>> =
-    Table::new("messages", "Messages", crate::remote_id::table::LOG_CAP);
+    Table::new("messages", "Messages", crate::remote_id::table::LOG_CAP)
+        .label(&RemoteIdMessageRow::ADDRESS);
 /// The track points of the Remote ID drones.
 pub static REMOTE_ID_TRACKS: Table<DroneTrackRow<'static>> = Table::new(
     "drone_tracks",
@@ -1256,10 +1258,13 @@ pub static REMOTE_ID_DRONE: EventKind<RemoteIdDroneEvent<'static>> =
 
 /// The drone links recognised by their shape.
 pub static DJI_SIGNALS: Table<DjiDroneidSignalRow> =
-    Table::new("signals", "Signals", crate::dji::TRACK_CAP);
+    Table::new("signals", "Signals", crate::dji::TRACK_CAP).sorted(
+        &DjiDroneidSignalRow::SNR_DB,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// The DJI drones.
 pub static DJI_DRONES: Table<DjiDroneidDroneRow<'static>> =
-    Table::new("drones", "Drones", crate::dji::DRONE_CAP);
+    Table::new("drones", "Drones", crate::dji::DRONE_CAP).label(&DjiDroneidDroneRow::SOURCE);
 /// The burst log of DJI drones.
 pub static DJI_BURSTS: Table<DjiDroneidBurstRow> =
     Table::new("bursts", "Bursts", crate::dji::BURST_LOG);
@@ -1275,7 +1280,7 @@ pub static DJI_DRONEID: EventKind<DjiDroneidEvent<'static>> =
 
 /// The aircraft of FLARM.
 pub static FLARM_AIRCRAFT: Table<FlarmAircraftRow<'static>> =
-    Table::new("aircraft", "Aircraft", crate::flarm::AIRCRAFT_CAP);
+    Table::new("aircraft", "Aircraft", crate::flarm::AIRCRAFT_CAP).label(&FlarmAircraftRow::SOURCE);
 /// The track points of the FLARM aircraft.
 pub static FLARM_TRACKS: Table<AircraftTrackRow<'static>> = Table::new(
     "aircraft_tracks",
@@ -1288,7 +1293,7 @@ pub static FLARM_AIRCRAFT_SEEN: EventKind<FlarmAircraftEvent<'static>> =
 
 /// The aircraft of ADS-L.
 pub static ADSL_AIRCRAFT: Table<AdslAircraftRow<'static>> =
-    Table::new("aircraft", "Aircraft", crate::adsl::AIRCRAFT_CAP);
+    Table::new("aircraft", "Aircraft", crate::adsl::AIRCRAFT_CAP).label(&AdslAircraftRow::SOURCE);
 /// The track points of the ADS-L aircraft.
 pub static ADSL_TRACKS: Table<AircraftTrackRow<'static>> = Table::new(
     "aircraft_tracks",
@@ -1304,10 +1309,10 @@ pub static ADSL_EMERGENCY: EventKind<AdslEmergencyEvent<'static>> =
 
 /// The packet log of OGN.
 pub static OGN_PACKETS: Table<OgnPacketRow<'static>> =
-    Table::new("packets", "Packets", crate::ogn::PACKET_CAP);
+    Table::new("packets", "Packets", crate::ogn::PACKET_CAP).label(&OgnPacketRow::HEX);
 /// The aircraft of OGN.
 pub static OGN_AIRCRAFT: Table<OgnAircraftRow<'static>> =
-    Table::new("aircraft", "Aircraft", crate::ogn::AIRCRAFT_CAP);
+    Table::new("aircraft", "Aircraft", crate::ogn::AIRCRAFT_CAP).label(&OgnAircraftRow::SOURCE);
 /// The track points of the OGN aircraft.
 pub static OGN_TRACKS: Table<AircraftTrackRow<'static>> = Table::new(
     "aircraft_tracks",
@@ -1322,17 +1327,20 @@ pub static OGN_EMERGENCY: EventKind<OgnEmergencyEvent<'static>> =
     EventKind::new("ogn.emergency", "OGN tracker emergency");
 
 /// The links heard.
-pub static LINKS: Table<HeardLinkRow<'static>> = Table::new("links", "Links", crate::links::LINK_CAP);
+pub static LINKS: Table<HeardLinkRow<'static>> =
+    Table::new("links", "Links", crate::links::LINK_CAP).label(&HeardLinkRow::ID);
 /// The frame log.
 pub static FRAMES: Table<LinkFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::links::FRAME_CAP);
+    Table::new("frames", "Frames", crate::links::FRAME_CAP).label(&LinkFrameRow::HEX);
 /// A new radio-control link.
 pub static RC_LINKS_LINK: EventKind<RcLinksLinkEvent<'static>> =
     EventKind::new("rc_links.link", "New radio-control link");
 /// The PPM frames, newest first, at most one per row interval.
-pub static RC_LINKS_PPM_FRAMES: Table<RcLinksPpmFrameRow<'static>> = Table::new("ppm_frames", "PPM frames", 500);
+pub static RC_LINKS_PPM_FRAMES: Table<RcLinksPpmFrameRow<'static>> =
+    Table::new("ppm_frames", "PPM frames", 500);
 /// A good PPM frame.
-pub static RC_PPM_FRAME: EventKind<RcPpmFrameEvent<'static>> = EventKind::new("rc.ppm_frame", "PPM frame");
+pub static RC_PPM_FRAME: EventKind<RcPpmFrameEvent<'static>> =
+    EventKind::new("rc.ppm_frame", "PPM frame");
 
 sdrkit_core::choice_enum! {
     /// The carrier state of a PPM pulse.
@@ -1463,7 +1471,32 @@ pub fn family() -> &'static Described {
     FAMILY.get_or_init(|| {
         // Each stack holds what it heard in one component: the objects heard and the logs are its history, and they
         // stay over a change of frequency, with the counters of the same component.
-        Described::new("drones", 1, 0)
+        Described::new("drones", 1, 1)
+            .added(
+                1,
+                1,
+                &[
+                    "remote_id.content",
+                    "dji_droneid.content",
+                    "flarm.content",
+                    "adsl.content",
+                    "ogn.content",
+                    "rc_links.content",
+                    "mavlink_sik.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Tracking,
+                &[
+                    "remote_id",
+                    "dji_droneid",
+                    "flarm",
+                    "adsl",
+                    "ogn",
+                    "mavlink_sik",
+                ],
+            )
+            .content(sdrkit_core::ContentKind::Networks, &["rc_links"])
             .stack(
                 StackShape::new("remote_id")
                     .fields::<RemoteIdFields>()
@@ -1495,7 +1528,13 @@ pub fn family() -> &'static Described {
                     .settings(DjiSetting::SETTINGS)
                     .command(&objcmd::CLEAR)
                     .command(&DRONE_REMOVE)
-                    .kept(&["signals", "drones", "bursts", "drone_tracks", "DjiDroneidFields"]),
+                    .kept(&[
+                        "signals",
+                        "drones",
+                        "bursts",
+                        "drone_tracks",
+                        "DjiDroneidFields",
+                    ]),
             )
             .stack(
                 StackShape::new("flarm")
@@ -1545,7 +1584,13 @@ pub fn family() -> &'static Described {
                     .settings(RcStackSetting::SETTINGS)
                     .command(&sdrkit_graph::decoder::CLEAR)
                     .command(&LINK_REMOVE)
-                    .kept(&["links", "frames", "LinkFields", "DecoderFields", "ppm_frames"]),
+                    .kept(&[
+                        "links",
+                        "frames",
+                        "LinkFields",
+                        "DecoderFields",
+                        "ppm_frames",
+                    ]),
             )
             .stack(
                 links_stack("mavlink_sik")

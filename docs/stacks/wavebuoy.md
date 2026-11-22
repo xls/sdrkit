@@ -128,7 +128,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.4. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 1.5. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Utility decoders (`utility`). Media: none.
 
 ### Result fields
 
@@ -228,6 +230,8 @@ Struct `WavebuoyFrameRow`. A frame cut at the sync. The row key is the frame's n
 | `start` | duration (s) | always | 1.0 | The signal time of the frame. |
 | `hex` | text | always | 1.0 | The bits of the frame in hex. |
 | `accepted` | yes or no | always | 1.0 | The CRC attempt accepts the frame. |
+
+The column `hex` names a row.
 
 ### Event `wavebuoy.vector`
 

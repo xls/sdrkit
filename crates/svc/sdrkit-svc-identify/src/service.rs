@@ -155,6 +155,7 @@ pub const SIGNALS: TableDef = TableDef {
         &DUTY,
     ],
     cap: MAX_SIGNALS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The candidates of each signal, best first, and the stack that opens each. The row key is `<signal>/c<n>`.
 pub const CANDIDATES: TableDef = TableDef {
@@ -177,6 +178,7 @@ pub const CANDIDATES: TableDef = TableDef {
         &SUBMODE,
     ],
     cap: MAX_CANDIDATES,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// One line for each rule that scored a candidate.
 pub const EVIDENCE: TableDef = TableDef {
@@ -184,6 +186,7 @@ pub const EVIDENCE: TableDef = TableDef {
     label: "Evidence",
     columns: &[&OF_CANDIDATE, &keys::TEXT],
     cap: MAX_LINES,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// What the detectors of a candidate found.
 pub const NOTES: TableDef = TableDef {
@@ -191,6 +194,7 @@ pub const NOTES: TableDef = TableDef {
     label: "Detector notes",
     columns: &[&OF_CANDIDATE, &keys::TEXT],
     cap: MAX_LINES,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The priors from band plans and the frequency database that moved a candidate.
 pub const PRIORS: TableDef = TableDef {
@@ -198,6 +202,7 @@ pub const PRIORS: TableDef = TableDef {
     label: "Priors",
     columns: &[&OF_CANDIDATE, &keys::TEXT],
     cap: MAX_LINES,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The settings that the stack of a candidate applies to open it: owner key, setting key and typed value.
 pub const OPEN_SETTINGS: TableDef = TableDef {
@@ -205,6 +210,7 @@ pub const OPEN_SETTINGS: TableDef = TableDef {
     label: "Settings to open",
     columns: &[&OF_CANDIDATE, &ITEM_OWNER, &ITEM_KEY, &ITEM_VALUE],
     cap: MAX_LINES,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The measurements of each signal with the reason for each, in plain words.
 pub const WHY: TableDef = TableDef {
@@ -212,6 +218,7 @@ pub const WHY: TableDef = TableDef {
     label: "Why",
     columns: &[&OF_SIGNAL, &FEATURE, &VALUE_TEXT, &keys::TEXT],
     cap: MAX_LINES,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The voice systems that the automatic digital voice choice saw at its last look, loudest first.
 pub const SYSTEMS: TableDef = TableDef {
@@ -228,6 +235,7 @@ pub const SYSTEMS: TableDef = TableDef {
         &ANALOGUE,
     ],
     cap: MAX_SYSTEMS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 // Events.

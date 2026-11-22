@@ -117,6 +117,37 @@ pub fn print_table(
     Ok(t.counter)
 }
 
+/// The marks of table `t` as text after its line, each with `; ` before it: the column that names a row, the default
+/// order and the columns of the place of a row. Empty for a table without marks.
+fn table_marks(t: &sdrkit_core::TableDecl) -> String {
+    let m = &t.marks;
+    let key = |c: u16| t.columns.fields()[usize::from(c)].key.as_ref();
+    let mut out = String::new();
+    if let Some(c) = m.label {
+        let _ = write!(out, "; label {}", key(c));
+    }
+    if let Some((c, order)) = m.sort {
+        let order = match order {
+            sdrkit_core::SortOrder::Ascending => "ascending",
+            sdrkit_core::SortOrder::Descending => "descending",
+        };
+        let _ = write!(out, "; sort {} {order}", key(c));
+    }
+    for (name, c) in [
+        ("position", m.position),
+        ("latitude", m.latitude),
+        ("longitude", m.longitude),
+        ("altitude", m.altitude),
+        ("course", m.course),
+        ("speed", m.speed),
+    ] {
+        if let Some(c) = c {
+            let _ = write!(out, "; {name} {}", key(c));
+        }
+    }
+    out
+}
+
 /// The fields, the status, the log and the declared tables of `o`, as text, with the fields changed after `since`.
 fn results_text(o: &dyn Owner, since: u64, now: f64) -> String {
     let r = o.results();
@@ -147,7 +178,13 @@ fn results_text(o: &dyn Owner, since: u64, now: f64) -> String {
             .ok()
             .and_then(|i| r.table(sdrkit_core::TableId(i)))
             .map_or(0, sdrkit_core::Table::len);
-        let _ = writeln!(s, "Table {} ({}): {rows} rows", t.key, t.label);
+        let _ = writeln!(
+            s,
+            "Table {} ({}): {rows} rows{}",
+            t.key,
+            t.label,
+            table_marks(t)
+        );
     }
     for x in decl.series_decls() {
         let _ = writeln!(s, "Series {} ({})", x.key, x.label);

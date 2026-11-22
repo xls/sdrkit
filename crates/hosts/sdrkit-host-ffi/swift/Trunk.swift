@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "trunk", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "trunk", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum TrunkInterface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The result fields of MPT 1327.
@@ -2775,6 +2775,7 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Mpt1327ChannelRow.init))
     }
     /// The changed rows of the table "words" of the stack "ltr", newest first, at most `capacity` rows.
+    /// The column `talkgroup` names a row.
     public static func ltrWords(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[LtrWordRow], SDRKitCode> {
         var rows = [sdrkit_ltr_word_row](repeating: sdrkit_ltr_word_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2791,6 +2792,7 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(LtrRepeaterRow.init))
     }
     /// The changed rows of the table "calls" of the stack "edacs", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
     public static func edacsCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[EdacsCallRow], SDRKitCode> {
         var rows = [sdrkit_edacs_call_row](repeating: sdrkit_edacs_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2911,6 +2913,7 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MultitoneBurstRow.init))
     }
     /// The changed rows of the table "messages" of the stack "motorola_type2", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
     public static func motorolaType2Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[MotorolaType2MessageRow], SDRKitCode> {
         var rows = [sdrkit_motorola_type2_message_row](repeating: sdrkit_motorola_type2_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2919,6 +2922,7 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MotorolaType2MessageRow.init))
     }
     /// The changed rows of the table "talkgroups" of the stack "motorola_type2", newest first, at most `capacity` rows.
+    /// The column `talkgroup` names a row.
     public static func motorolaType2Talkgroups(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MotorolaType2TalkgroupRow], SDRKitCode> {
         var rows = [sdrkit_motorola_type2_talkgroup_row](repeating: sdrkit_motorola_type2_talkgroup_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2935,6 +2939,7 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MotorolaType2SiteRow.init))
     }
     /// The changed rows of the table "patches" of the stack "motorola_type2", newest first, at most `capacity` rows.
+    /// The column `talkgroup` names a row.
     public static func motorolaType2Patches(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[MotorolaType2PatchRow], SDRKitCode> {
         var rows = [sdrkit_motorola_type2_patch_row](repeating: sdrkit_motorola_type2_patch_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2943,6 +2948,7 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MotorolaType2PatchRow.init))
     }
     /// The changed rows of the table "calls" of the stack "motorola_type2", newest first, at most `capacity` rows.
+    /// The column `talkgroup` names a row.
     public static func motorolaType2Calls(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MotorolaType2CallRow], SDRKitCode> {
         var rows = [sdrkit_motorola_type2_call_row](repeating: sdrkit_motorola_type2_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2959,6 +2965,7 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(OpenskyBlockRow.init))
     }
     /// The changed rows of the table "pages" of the stack "gsc", newest first, at most `capacity` rows.
+    /// The column `call` names a row.
     public static func gscPages(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[GscPageRow], SDRKitCode> {
         var rows = [sdrkit_gsc_page_row](repeating: sdrkit_gsc_page_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2967,6 +2974,7 @@ public enum TrunkTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GscPageRow.init))
     }
     /// The changed rows of the table "messages" of the stack "scada", newest first, at most `capacity` rows.
+    /// The column `from` names a row.
     public static func scadaMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[ScadaMessageRow], SDRKitCode> {
         var rows = [sdrkit_scada_message_row](repeating: sdrkit_scada_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized

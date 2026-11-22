@@ -537,9 +537,20 @@ fn engine() -> Family {
     // The fields of the calibration and the load tables of the benchmarks are new in 1.2, and so are three columns of
     // the table of benchmarks. The table of transmit commands and the transmit columns of the tables of stacks, drivers
     // and radios are new in 1.3, the stop command of a transmit command in 1.4, the content `carrier` in 1.5, the host
-    // audio channels of a stack in 1.6.
-    Family::object("engine", 1, 6)
+    // audio channels of a stack in 1.6, the content kind and the media of a stack in 1.7.
+    Family::object("engine", 1, 7)
         .stack(engine_shape(0))
+        .added(
+            1,
+            7,
+            &[
+                "shape.StackRow.kind",
+                "shape.StackRow.audio",
+                "shape.StackRow.pictures",
+                "shape.StackRow.video",
+                "shape.StackRow.text",
+            ],
+        )
         .added(1, 6, &["shape.StackRow.host_audio_channels"])
         .added(1, 1, &["engine.setting.cores_max"])
         // The table of transmit commands of 1.3 brings this column too: the first listing of a path gives its version.
@@ -618,11 +629,27 @@ fn engine_shape(level: u8) -> StackShape {
     s.tables.push(table_with_docs(
         &c::STACKS,
         "StackRow",
-        &[],
-        &[(
-            c::HOST_AUDIO_CHANNELS.key,
-            "The channels of host audio that the graph of the stack takes for a transmission: 0 for none, 1 for mono, 2 for stereo.",
-        )],
+        &[c::KIND.key, c::AUDIO.key],
+        &[
+            (
+                c::HOST_AUDIO_CHANNELS.key,
+                "The channels of host audio that the graph of the stack takes for a transmission: 0 for none, 1 for mono, 2 for stereo.",
+            ),
+            (
+                c::KIND.key,
+                "The kind of content of the stack. A front end chooses its view of the stack from it. No value for a stack without an interface description.",
+            ),
+            (
+                c::AUDIO.key,
+                "The kind of sound that the stack gives. No value for a stack without sound.",
+            ),
+            (c::PICTURES.key, "The stack gives still pictures."),
+            (c::VIDEO.key, "The stack gives moving pictures."),
+            (
+                c::TEXT.key,
+                "The stack gives running text for people: decoded characters or whole messages.",
+            ),
+        ],
     ));
     for (def, name, optional) in [
         (&c::SUBMODES, "SubmodeRow", &[][..]),

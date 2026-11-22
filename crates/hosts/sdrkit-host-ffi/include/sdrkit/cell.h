@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "cell", version 1.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "cell", version 1.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_CELL_VERSION_MAJOR 1
-#define SDRKIT_CELL_VERSION_MINOR 0
+#define SDRKIT_CELL_VERSION_MINOR 1
 
 // The stack "railway_cir": its id, and the keys of its event types.
 #define SDRKIT_STACK_RAILWAY_CIR "railway_cir"
@@ -2232,6 +2232,7 @@ static inline int32_t sdrkit_cell_operators_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "cell" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `level_db`, highest first.
 static inline int32_t sdrkit_cell_carriers_rows(SDRKIT_HANDLE handle,
                                                sdrkit_cell_carrier_row *rows,
                                                uint32_t capacity,
@@ -2614,6 +2615,7 @@ static inline int32_t sdrkit_gsmr_cells_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "gsmr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `level_db`, highest first.
 static inline int32_t sdrkit_gsmr_carriers_rows(SDRKIT_HANDLE handle,
                                                sdrkit_gsmr_carrier_row *rows,
                                                uint32_t capacity,
@@ -2688,6 +2690,8 @@ static inline int32_t sdrkit_gsmr_gen_set_centre_hz(SDRKIT_HANDLE handle, double
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "lbj" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
+// Speed: `speed_kmh`.
 static inline int32_t sdrkit_lbj_messages_rows(SDRKIT_HANDLE handle,
                                               sdrkit_lbj_message_row *rows,
                                               uint32_t capacity,

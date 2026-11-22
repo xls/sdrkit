@@ -86,6 +86,7 @@ const HEARD: TableDef = TableDef {
     label: "Heard",
     columns: &[&keys::SNR_DB, &keys::LOCKED],
     cap: 100,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 #[test]

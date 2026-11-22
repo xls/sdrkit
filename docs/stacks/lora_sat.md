@@ -93,7 +93,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.2. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 1.3. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Satellite links (`satellite_links`). Media: none.
 
 ### Result fields
 
@@ -137,6 +139,8 @@ Struct `LoraSatFrameRow`. A frame of the log. The row key is the sequence number
 | `satellite` | text | optional | 1.0 | The pass planner's name of the satellite overhead. |
 | `payload` | bytes | always | 1.0 | The payload of a frame. |
 | `text` | text | always | 1.0 | The payload as printable text. |
+
+The column `satellite` names a row.
 
 ### Table `demodulators`
 

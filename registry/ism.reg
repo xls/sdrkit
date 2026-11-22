@@ -1,5 +1,5 @@
 # The interface of the stack family ism. The registry test of the family writes this file.
-family ism version=2.0
+family ism version=2.1
 uses.ookdev major=1 since=1.0
 shape.IsmDetectFields since=1.0
 shape.IsmDetectFields.bursts_detected type=i64 unit= optional=no since=1.0
@@ -742,6 +742,7 @@ shape.DsrcFrameEvent.kind type=text unit= optional=no since=1.0
 shape.DsrcFrameEvent.bytes type=i64 unit= optional=no since=1.0
 shape.DsrcFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 ism since=1.0
+ism.content kind=devices since=2.1
 ism.fields.IsmDetectFields since=1.0
 ism.fields.DecodeFields since=1.0
 ism.fields.SigfoxFinderFields since=1.0
@@ -762,11 +763,11 @@ ism.kept.IsmFields since=1.0
 ism.kept.DecodeFields since=1.0
 ism.kept.SigfoxFinderFields since=1.0
 ism.kept.IsmDetectFields.bursts_detected since=1.0
-ism.table.devices row=IsmDeviceRow cap=300 since=1.0
+ism.table.devices row=IsmDeviceRow cap=300 label=id since=1.0
 ism.table.zwave row=IsmZwaveRow cap=300 since=1.0
-ism.table.log row=IsmLogRow cap=400 since=1.0
+ism.table.log row=IsmLogRow cap=400 label=id since=1.0
 ism.table.unknown row=IsmUnknownRow cap=60 since=1.0
-ism.table.sigfox row=IsmSigfoxRow cap=300 since=1.0
+ism.table.sigfox row=IsmSigfoxRow cap=300 label=device_id since=1.0
 ism.table.pulse_frames row=IsmPulseFrameRow cap=500 since=1.0
 ism.series.sfx_finder.waterfall x_unit=column y_unit=level since=1.0
 ism.event.ism.device fields=IsmDeviceEvent since=1.0
@@ -796,6 +797,7 @@ ism.command.remove args=row:text reply= since=1.0
 ism.command.send args=family:choice(remote,tx141thbv2,nexus,acurite_tower,wh1080,f007th,oregon_thgr810,oregon_thgr228n,schrader,toyota,renault,ford,efergy,currentcost,bresser6,bresser5,tx29,tx35,wh24,prologue,acurite_txr,bresser3ch,citroen,schrader_eg53,bresser7)?;id:i64;command:i64?;channel:i64?;battery_ok:bool?;temperature:f64?;humidity:i64?;wind_speed:f64?;wind_gust:f64?;wind_dir:f64?;rain:f64?;uv:f64?;light:f64?;pressure:f64?;flags:i64?;current:f64?;interval:i64?;power:i64?;payload:text? reply= transmits=frame stop=halt since=1.0
 ism.command.halt args= reply= since=1.0
 wmbus since=1.0
+wmbus.content kind=devices since=2.1
 wmbus.fields.WmbusFields since=1.0
 wmbus.fields.GuardFields writer=receiver since=1.0
 wmbus.fields.IsmTxFields since=1.0
@@ -821,6 +823,7 @@ wmbus.command.remove args=row:text reply= since=1.0
 wmbus.command.send args=mode:choice(S1,T1,C1A,C1B,R2,N1)?;manufacturer:text;address:text;version:i64;device_type:i64;payload:text reply= transmits=frame stop=halt since=1.0
 wmbus.command.halt args= reply= since=1.0
 zwave since=1.0
+zwave.content kind=devices since=2.1
 zwave.fields.ZwaveFields since=1.0
 zwave.fields.GuardFields writer=receiver since=1.0
 zwave.fields.IsmTxFields since=1.0
@@ -840,7 +843,7 @@ zwave.kept.ZwaveFields.s2_frames since=1.0
 zwave.kept.ZwaveFields.acks since=1.0
 zwave.table.frames row=ZwaveFrameRow cap=600 since=1.0
 zwave.table.nodes row=ZwaveNodeRow cap=1000 since=1.0
-zwave.table.networks row=ZwaveNetworkRow cap=64 since=1.0
+zwave.table.networks row=ZwaveNetworkRow cap=64 sort=level_dbfs:descending since=1.0
 zwave.table.channels row=ZwaveChannelRow cap=32 since=1.0
 zwave.table.classes row=ZwaveClassRow cap=256 since=1.0
 zwave.event.zwave.frame fields=ZwaveFrameEvent since=1.0
@@ -855,6 +858,7 @@ zwave.command.remove args=row:text reply= since=1.0
 zwave.command.send args=home_id:text;source:i64;destination:i64;payload:text;rate:choice(r1,r2,r3)?;ack:bool?;sequence:i64? reply= transmits=frame stop=halt since=1.0
 zwave.command.halt args= reply= since=1.0
 zigbee since=1.0
+zigbee.content kind=devices since=2.1
 zigbee.fields.ZigbeeFields since=1.0
 zigbee.fields.GuardFields writer=receiver since=1.0
 zigbee.fields.IsmTxFields since=1.0
@@ -867,7 +871,7 @@ zigbee.kept.ZigbeeFields.candidates since=1.0
 zigbee.kept.ZigbeeFields.encrypted_frames since=1.0
 zigbee.kept.ZigbeeFields.networks since=1.0
 zigbee.kept.ZigbeeFields.devices since=1.0
-zigbee.table.networks row=ZigbeeNetworkRow cap=100 since=1.0
+zigbee.table.networks row=ZigbeeNetworkRow cap=100 sort=level_dbfs:descending since=1.0
 zigbee.table.devices row=PanDeviceRow cap=600 since=1.0
 zigbee.table.frames row=ZigbeeFrameRow cap=600 since=1.0
 zigbee.series.frames_per_second x_unit=s y_unit=frames since=1.0
@@ -886,6 +890,7 @@ zigbee.command.remove args=row:text reply= since=1.0
 zigbee.command.send args=pan_id:text;destination:text;source:text;payload:text;frame_type:choice(beacon,data,command)?;sequence:i64?;ack:bool?;security_level:i64?;key:text?;frame_counter:i64?;key_id_mode:i64?;key_index:i64?;key_source:text? reply= transmits=frame stop=halt since=1.0
 zigbee.command.halt args= reply= since=1.0
 sigfox since=1.0
+sigfox.content kind=devices since=2.1
 sigfox.fields.SigfoxFields since=1.0
 sigfox.fields.SigfoxFinderFields since=1.0
 sigfox.fields.SigfoxDemodFields since=1.0
@@ -897,7 +902,7 @@ sigfox.kept.SigfoxFields.frames_ok since=1.0
 sigfox.kept.SigfoxFields.messages since=1.0
 sigfox.kept.SigfoxFinderFields since=1.0
 sigfox.kept.SigfoxDemodFields since=1.0
-sigfox.table.sigfox row=SigfoxMessageRow cap=300 since=1.0
+sigfox.table.sigfox row=SigfoxMessageRow cap=300 label=device_id since=1.0
 sigfox.series.waterfall x_unit=column y_unit=level since=1.0
 sigfox.event.sigfox.message fields=SigfoxMessageEvent since=1.0
 sigfox.setting.gen_bit_rate type=choice(100,600) unit= since=1.0
@@ -905,6 +910,7 @@ sigfox.setting.gen_reps type=choice(3,1) unit= since=1.0
 sigfox.setting.gen_gap type=duration unit=s since=1.0
 sigfox.command.clear args= reply= since=1.0
 ant since=1.0
+ant.content kind=devices since=2.1
 ant.fields.AntFields since=1.0
 ant.fields.AntDemodFields since=1.0
 ant.fields.IsmTxFields since=1.0
@@ -930,6 +936,7 @@ ant.command.remove args=row:text reply= since=1.0
 ant.command.send args=device:i64;device_type:i64;tx_type:i64;payload:text;pairing:bool? reply= transmits=frame stop=halt since=1.0
 ant.command.halt args= reply= since=1.0
 nrf24 since=1.0
+nrf24.content kind=devices since=2.1
 nrf24.fields.NrfFields since=1.0
 nrf24.component.demod.dropped since=1.0
 nrf24.kept.frames since=1.0
@@ -941,8 +948,8 @@ nrf24.kept.NrfFields.bursts since=1.0
 nrf24.kept.NrfFields.crc16_frames since=1.0
 nrf24.kept.NrfFields.crc8_frames since=1.0
 nrf24.kept.NrfFields.addresses since=1.0
-nrf24.table.frames row=NrfFrameRow cap=300 since=1.0
-nrf24.table.addresses row=NrfAddressRow cap=100 since=1.0
+nrf24.table.frames row=NrfFrameRow cap=300 label=address since=1.0
+nrf24.table.addresses row=NrfAddressRow cap=100 label=address since=1.0
 nrf24.table.bad_bursts row=NrfBadBurstRow cap=60 since=1.0
 nrf24.event.nrf24.address fields=NrfAddressEvent since=1.0
 nrf24.setting.channel type=i64 unit= since=1.0
@@ -952,6 +959,7 @@ nrf24.setting.gen_random type=bool unit= since=1.0
 nrf24.command.clear args= reply= since=1.0
 nrf24.command.remove args=row:text reply= since=1.0
 subghzchat since=1.0
+subghzchat.content kind=text_chat text=yes since=2.1
 subghzchat.fields.SubghzchatFields since=1.0
 subghzchat.fields.GuardFields writer=receiver since=1.0
 subghzchat.kept.chat since=1.0
@@ -966,7 +974,7 @@ subghzchat.kept.SubghzchatFields.repeats since=1.0
 subghzchat.kept.SubghzchatFields.sent since=1.0
 subghzchat.kept.SubghzchatFields.key_set since=1.0
 subghzchat.table.chat row=SubghzchatLineRow cap=500 since=1.0
-subghzchat.table.packets row=SubghzchatPacketRow cap=200 since=1.0
+subghzchat.table.packets row=SubghzchatPacketRow cap=200 label=hex since=1.0
 subghzchat.event.subghzchat.line fields=SubghzchatLineEvent since=1.0
 subghzchat.event.subghzchat.state fields=SubghzchatStateEvent since=1.0
 subghzchat.setting.name type=text unit= since=1.0
@@ -976,6 +984,7 @@ subghzchat.setting.key type=text unit= since=1.0
 subghzchat.setting.frequency type=choice(433.92,315.00,390.00,868.35,915.00) unit= since=1.0
 subghzchat.command.clear args= reply= since=1.0
 dect since=1.0
+dect.content kind=voice since=2.1
 dect.fields.DectFields since=1.0
 dect.fields.DectDemodFields since=1.0
 dect.component.demod.fields.DectDemodFields shared=frames_ok;frames_bad since=1.0
@@ -986,8 +995,8 @@ dect.kept.DectFields.bases since=1.0
 dect.kept.DectFields.base_bursts since=1.0
 dect.kept.DectFields.handset_bursts since=1.0
 dect.kept.DectDemodFields since=1.0
-dect.table.bases row=DectBaseRow cap=60 since=1.0
-dect.table.bursts row=DectBurstRow cap=300 since=1.0
+dect.table.bases row=DectBaseRow cap=60 sort=level_dbfs:descending since=1.0
+dect.table.bursts row=DectBurstRow cap=300 label=from since=1.0
 dect.event.dect.base fields=DectBaseEvent since=1.0
 dect.setting.band type=choice(eu,us,br,la,ism900) unit= since=1.0
 dect.setting.scan type=bool unit= since=1.0
@@ -996,6 +1005,7 @@ dect.setting.gen_option type=choice(0,1,2) unit= since=1.0
 dect.command.clear args= reply= since=1.0
 dect.command.remove args=row:text reply= since=1.0
 nfc since=1.0
+nfc.content kind=devices since=2.1
 nfc.fields.NfcFields since=1.0
 nfc.fields.NfcDetectFields since=1.0
 nfc.fields.GuardFields writer=receiver since=1.0
@@ -1003,12 +1013,13 @@ nfc.component.detect.fields.NfcDetectFields shared=field_dbfs;subcarrier_dbfs si
 nfc.kept.tags since=1.0
 nfc.kept.frames since=1.0
 nfc.kept.NfcFields since=1.0
-nfc.table.tags row=NfcTagRow cap=100 since=1.0
-nfc.table.frames row=NfcFrameRow cap=200 since=1.0
+nfc.table.tags row=NfcTagRow cap=100 label=uid since=1.0
+nfc.table.frames row=NfcFrameRow cap=200 label=name since=1.0
 nfc.event.nfc.tag fields=NfcTagEvent since=1.0
 nfc.command.clear args= reply= since=1.0
 nfc.command.remove args=row:text reply= since=1.0
 wisun since=1.0
+wisun.content kind=devices since=2.1
 wisun.fields.WisunFields since=1.0
 wisun.fields.GuardFields writer=receiver since=1.0
 wisun.fields.IsmTxFields since=1.0
@@ -1025,9 +1036,9 @@ wisun.kept.WisunFields.encrypted_frames since=1.0
 wisun.kept.WisunFields.networks since=1.0
 wisun.kept.WisunFields.nodes since=1.0
 wisun.kept.WisunFields.links since=1.0
-wisun.table.networks row=WisunNetworkRow cap=64 since=1.0
+wisun.table.networks row=WisunNetworkRow cap=64 label=name sort=level_dbfs:descending since=1.0
 wisun.table.nodes row=WisunNodeRow cap=2000 since=1.0
-wisun.table.links row=WisunLinkRow cap=4000 since=1.0
+wisun.table.links row=WisunLinkRow cap=4000 label=from since=1.0
 wisun.table.frames row=WisunFrameRow cap=800 since=1.0
 wisun.series.hops x_unit=s y_unit=MHz since=1.0
 wisun.event.wisun.pan fields=WisunPanEvent since=1.0
@@ -1042,6 +1053,7 @@ wisun.command.remove args=row:text reply= since=1.0
 wisun.command.send args=frame_type:choice(pa,pas,pc,pcs,data,ack,eapol)?;pan_id:text;source:text;destination:text;payload:text;header_ies:text?;sequence:i64?;kbps:i64?;ufsi:i64? reply= transmits=frame stop=halt since=1.0
 wisun.command.halt args= reply= since=1.0
 thread since=1.0
+thread.content kind=devices since=2.1
 thread.fields.ThreadFields since=1.0
 thread.fields.GuardFields writer=receiver since=1.0
 thread.kept.networks since=1.0
@@ -1072,9 +1084,9 @@ thread.kept.ThreadFields.ch25 since=1.0
 thread.kept.ThreadFields.ch26 since=1.0
 thread.kept.ThreadFields.networks since=1.0
 thread.kept.ThreadFields.devices since=1.0
-thread.table.networks row=ThreadNetworkRow cap=100 since=1.0
+thread.table.networks row=ThreadNetworkRow cap=100 label=network_name sort=level_dbfs:descending since=1.0
 thread.table.devices row=PanDeviceRow cap=600 since=1.0
-thread.table.frames row=ThreadFrameRow cap=600 since=1.0
+thread.table.frames row=ThreadFrameRow cap=600 label=source since=1.0
 thread.event.thread.network fields=ThreadNetworkEvent since=1.0
 thread.event.thread.device fields=ThreadDeviceEvent since=1.0
 thread.setting.channel type=i64 unit= since=1.0
@@ -1087,6 +1099,7 @@ thread.setting.gen_interferer_hz type=hz unit=Hz since=1.0
 thread.command.clear args= reply= since=1.0
 thread.command.remove args=row:text reply= since=1.0
 mioty since=1.0
+mioty.content kind=devices since=2.1
 mioty.fields.MiotyFields since=1.0
 mioty.fields.DecoderFields since=1.0
 mioty.kept.frames since=1.0
@@ -1095,12 +1108,13 @@ mioty.kept.MiotyFields.frames_ok since=1.0
 mioty.kept.MiotyFields.bursts_detected since=1.0
 mioty.kept.MiotyFields.failed_hypotheses since=1.0
 mioty.kept.MiotyFields.devices since=1.0
-mioty.table.frames row=MiotyFrameRow cap=200 since=1.0
-mioty.table.devices row=MiotyDeviceRow cap=200 since=1.0
+mioty.table.frames row=MiotyFrameRow cap=200 label=id since=1.0
+mioty.table.devices row=MiotyDeviceRow cap=200 label=id since=1.0
 mioty.event.mioty.frame fields=MiotyFrameEvent since=1.0
 mioty.setting.min_bursts type=i64 unit=count since=1.0
 mioty.command.clear args= reply= since=1.0
 dect_nrplus since=1.0
+dect_nrplus.content kind=devices since=2.1
 dect_nrplus.fields.NrPlusFields since=1.0
 dect_nrplus.fields.DecoderFields since=1.0
 dect_nrplus.kept.packets since=1.0
@@ -1108,11 +1122,12 @@ dect_nrplus.kept.devices since=1.0
 dect_nrplus.kept.NrPlusFields.frames_ok since=1.0
 dect_nrplus.kept.NrPlusFields.stf_detections since=1.0
 dect_nrplus.kept.NrPlusFields.devices since=1.0
-dect_nrplus.table.packets row=NrPlusPacketRow cap=300 since=1.0
-dect_nrplus.table.devices row=NrPlusDeviceRow cap=200 since=1.0
+dect_nrplus.table.packets row=NrPlusPacketRow cap=300 label=id since=1.0
+dect_nrplus.table.devices row=NrPlusDeviceRow cap=200 label=id since=1.0
 dect_nrplus.event.dect_nrplus.packet fields=NrPlusPacketEvent since=1.0
 dect_nrplus.command.clear args= reply= since=1.0
 npr70 since=1.0
+npr70.content kind=networks since=2.1
 npr70.fields.NprFields since=1.0
 npr70.fields.DecoderFields since=1.0
 npr70.kept.frames since=1.0
@@ -1124,6 +1139,7 @@ npr70.event.npr70.frame fields=NprFrameEvent since=1.0
 npr70.setting.rates type=text unit=ksym/s since=1.0
 npr70.command.clear args= reply= since=1.0
 dsrc_toll since=1.0
+dsrc_toll.content kind=devices since=2.1
 dsrc_toll.fields.DsrcFields since=1.0
 dsrc_toll.fields.DecoderFields since=1.0
 dsrc_toll.kept.frames since=1.0
@@ -1131,7 +1147,7 @@ dsrc_toll.kept.DsrcFields.frames_ok since=1.0
 dsrc_toll.kept.DsrcFields.broadcast_frames since=1.0
 dsrc_toll.kept.DsrcFields.private_frames since=1.0
 dsrc_toll.kept.DsrcFields.frames_bad since=1.0
-dsrc_toll.table.frames row=DsrcFrameRow cap=300 since=1.0
+dsrc_toll.table.frames row=DsrcFrameRow cap=300 label=identifier since=1.0
 dsrc_toll.event.dsrc_toll.frame fields=DsrcFrameEvent since=1.0
 dsrc_toll.setting.bit_rate type=hz unit=Hz since=1.0
 dsrc_toll.setting.gen_depth type=f64 unit= since=1.0

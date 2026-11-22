@@ -237,7 +237,12 @@ fn a_table_is_read_by_counter_and_only_the_changed_rows_come_again() {
             sdrkit_column_find(e, stacks, c("name").as_ptr(), &mut name),
             OK
         );
-        let mut col = Decl::default();
+// The table names its rows by the column `name`, and states no order and no place.
+        assert_eq!(t.label_column, name);
+        assert_eq!(t.sort_column, crate::value::SDRKIT_NO_ID);
+        assert_eq!(t.position_column, crate::value::SDRKIT_NO_ID);
+        assert_eq!(t.speed_column, crate::value::SDRKIT_NO_ID);
+                let mut col = Decl::default();
         assert_eq!(sdrkit_column_decl(e, stacks, name, &mut col), OK);
         assert_eq!(col.r#type, SDRKIT_TYPE_STRING);
         let mut r = SnapshotInfo::default();

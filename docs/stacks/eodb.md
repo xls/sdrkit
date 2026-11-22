@@ -125,7 +125,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.1. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 1.2. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
 
 ### Result fields
 
@@ -194,6 +196,8 @@ Struct `FrameRow`. A frame of a stack that lists frames. The row key is the plac
 | `bytes` | whole number | always | 1.0 | Bytes of a frame with its sync word. |
 | `check` | text | always | 1.0 | The check of a frame: good, check failed, or none. |
 | `hex` | text | always | 1.0 | The first 24 bytes of a frame after decoding. |
+
+The column `hex` names a row.
 
 ### Table `virtual_channels`
 

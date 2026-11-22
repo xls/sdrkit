@@ -15,8 +15,8 @@ use sdrkit_core::interface::{Hertz, Time};
 use sdrkit_core::publish::keys::{Family, Urgency};
 use sdrkit_core::publish::Published;
 use sdrkit_core::{
-    Clock, ConfigError, Event, HostRequest, LockState, Record, Results, ResultsDecl,
-    SettingError, SettingId, SettingSet, StateBlob, StateError, TableId, Value, Values,
+    Clock, ConfigError, Event, HostRequest, LockState, Record, Results, ResultsDecl, SettingError,
+    SettingId, SettingSet, StateBlob, StateError, TableId, Value, Values,
 };
 use sdrkit_graph::{
     values_of, Applied, Component, ComponentInfo, Format, Io, Kind, Port, RateFrom, RunContext,
@@ -370,7 +370,6 @@ sdrkit_core::settings! {
     }
 }
 
-
 sdrkit_core::commands! {
     /// The commands of [`DroneTable`].
     pub enum DroneTableCommand {
@@ -669,11 +668,19 @@ impl DroneTable {
             p,
             &mut self.key,
             |p, key, drone, position, time_s| {
-                REMOTE_ID_TRACKS.put(p, key, &DroneTrackRow { drone, position, time_s });
+                REMOTE_ID_TRACKS.put(
+                    p,
+                    key,
+                    &DroneTrackRow {
+                        drone,
+                        position,
+                        time_s,
+                    },
+                );
             },
             &REMOTE_ID_TRACKS,
         );
-        shaped::points(&s.drones, "drone/", p.results_mut());
+        shaped::row_points(&s.drones, &REMOTE_ID_DRONES, "drone/", p.results_mut());
         self.dirty = false;
     }
 }

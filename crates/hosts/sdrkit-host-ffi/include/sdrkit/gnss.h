@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "gnss", version 1.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "gnss", version 1.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_GNSS_VERSION_MAJOR 1
-#define SDRKIT_GNSS_VERSION_MINOR 0
+#define SDRKIT_GNSS_VERSION_MINOR 1
 
 // The stack "gnss": its id, and the keys of its event types.
 #define SDRKIT_STACK_GNSS "gnss"
@@ -1044,6 +1044,9 @@ static inline int32_t sdrkit_gnss_fix_systems_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "satellites" of the stack "gnss" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `cn0_dbhz`, highest first.
+// Place of a row: the column `sub_point`.
+// Height: `height_km`.
 static inline int32_t sdrkit_gnss_satellites_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_gnss_satellite_row *rows,
                                                  uint32_t capacity,
@@ -1278,6 +1281,7 @@ static inline int32_t sdrkit_gnss_gen_set_cold(SDRKIT_HANDLE handle, bool value)
 
 // Fills `rows` with the changed rows of the table "sbas_satellites" of the stack "sbas" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `cn0_dbhz`, highest first.
 static inline int32_t sdrkit_sbas_satellites_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_sbas_satellite_row *rows,
                                                  uint32_t capacity,
@@ -1296,6 +1300,7 @@ static inline int32_t sdrkit_sbas_satellite_types_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "types" of the stack "sbas" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_sbas_types_rows(SDRKIT_HANDLE handle,
                                             sdrkit_sbas_type_row *rows,
                                             uint32_t capacity,
@@ -1368,6 +1373,9 @@ static inline int32_t sdrkit_sbas_rx_fix_systems_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "rx.satellites" of the stack "sbas" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `cn0_dbhz`, highest first.
+// Place of a row: the column `sub_point`.
+// Height: `height_km`.
 static inline int32_t sdrkit_sbas_rx_satellites_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_gnss_satellite_row *rows,
                                                     uint32_t capacity,
@@ -1424,6 +1432,7 @@ static inline int32_t sdrkit_sbas_set_acquisition_effort(SDRKIT_HANDLE handle, d
 
 // Fills `rows` with the changed rows of the table "satellites" of the stack "navic" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `cn0_dbhz`, highest first.
 static inline int32_t sdrkit_navic_satellites_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_navic_satellite_row *rows,
                                                   uint32_t capacity,

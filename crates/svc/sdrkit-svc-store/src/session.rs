@@ -157,6 +157,7 @@ pub const SESSIONS: TableDef = TableDef {
         &OPEN,
     ],
     cap: 30_000,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The id of a session, as the table shows it.

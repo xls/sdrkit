@@ -101,7 +101,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `dvbcs`, version 1.4. The C header `sdrkit/dvbcs.h`, the registry record `registry/dvbcs.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvbcs`, version 1.5. The C header `sdrkit/dvbcs.h`, the registry record `registry/dvbcs.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Satellite links (`satellite_links`). Media: none.
 
 ### Result fields
 
@@ -152,6 +154,8 @@ Struct `SatbeaconLineRow`. A row of the narrow lines of the spectrum, strongest 
 | `level_dbfs` | number (dBFS) | always | 1.0 | Its level. |
 | `over_noise_db` | number (dB) | always | 1.0 | Its height over the noise. |
 
+Default order: the column `level_dbfs`, highest first.
+
 ### Table `frames`
 
 Struct `SatbeaconFrameRow`. A row of the frames received. The row key is the frame number.
@@ -176,6 +180,8 @@ Struct `SatbeaconDecodedRow`. A row of the decoded view. The row key is the name
 | `bytes` | text | always | 1.0 | Its bytes in the frame, for people. |
 | `confidence` | choice | always | 1.0 | How sure the reading is. |
 | `reason` | text | always | 1.0 | Why, for people. |
+
+The column `name` names a row.
 
 ### Event `beacon.frame`
 

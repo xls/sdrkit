@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 2.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 2.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WLAN_VERSION_MAJOR 2
-#define SDRKIT_WLAN_VERSION_MINOR 0
+#define SDRKIT_WLAN_VERSION_MINOR 1
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -2019,6 +2019,7 @@ typedef struct sdrkit_wlan_network_args {
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "ble" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_ble_devices_rows(SDRKIT_HANDLE handle,
                                              sdrkit_ble_device_row *rows,
                                              uint32_t capacity,
@@ -2028,6 +2029,7 @@ static inline int32_t sdrkit_ble_devices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "ble" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_ble_packets_rows(SDRKIT_HANDLE handle,
                                              sdrkit_ble_packet_row *rows,
                                              uint32_t capacity,
@@ -2046,6 +2048,7 @@ static inline int32_t sdrkit_ble_pdu_types_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "device_levels" of the stack "ble" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `device` names a row.
 static inline int32_t sdrkit_ble_device_levels_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_ble_device_level_row *rows,
                                                    uint32_t capacity,
@@ -2160,6 +2163,7 @@ static inline int32_t sdrkit_ble_gen_set_channel(SDRKIT_HANDLE handle, sdrkit_bl
 
 // Fills `rows` with the changed rows of the table "trackers" of the stack "bletracker" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `identifier` names a row.
 static inline int32_t sdrkit_bletracker_trackers_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_bletracker_tracker_row *rows,
                                                      uint32_t capacity,
@@ -2270,6 +2274,8 @@ static inline int32_t sdrkit_bletracker_gen_set_schedule(SDRKIT_HANDLE handle, s
 
 // Fills `rows` with the changed rows of the table "networks" of the stack "wifi" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `ssid` names a row.
+// Default order: the column `level_dbfs`, highest first.
 static inline int32_t sdrkit_wifi_networks_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wifi_network_row *rows,
                                                uint32_t capacity,
@@ -2279,6 +2285,7 @@ static inline int32_t sdrkit_wifi_networks_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "beacons" of the stack "wifi" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `bssid` names a row.
 static inline int32_t sdrkit_wifi_beacons_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wifi_beacon_row *rows,
                                               uint32_t capacity,
@@ -2440,6 +2447,8 @@ static inline int32_t sdrkit_wifi_gen_set_channel(SDRKIT_HANDLE handle, int64_t 
 
 // Fills `rows` with the changed rows of the table "networks" of the stack "halow" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `ssid` names a row.
+// Default order: the column `snr_db`, highest first.
 static inline int32_t sdrkit_halow_networks_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_halow_network_row *rows,
                                                 uint32_t capacity,
@@ -2449,6 +2458,7 @@ static inline int32_t sdrkit_halow_networks_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "halow" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `bssid` names a row.
 static inline int32_t sdrkit_halow_frames_rows(SDRKIT_HANDLE handle,
                                               sdrkit_halow_frame_row *rows,
                                               uint32_t capacity,
@@ -2613,6 +2623,7 @@ static inline int32_t sdrkit_halow_set_sub_channel_scan(SDRKIT_HANDLE handle, bo
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "btclassic" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_btclassic_devices_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_btclassic_device_row *rows,
                                                    uint32_t capacity,
@@ -2683,6 +2694,7 @@ static inline int32_t sdrkit_btclassic_gen_set_wideband(SDRKIT_HANDLE handle, bo
 
 // Fills `rows` with the changed rows of the table "links" of the stack "wfb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `id` names a row.
 static inline int32_t sdrkit_wfb_links_rows(SDRKIT_HANDLE handle,
                                            sdrkit_wfb_link_row *rows,
                                            uint32_t capacity,
@@ -2692,6 +2704,7 @@ static inline int32_t sdrkit_wfb_links_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "wfb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex` names a row.
 static inline int32_t sdrkit_wfb_frames_rows(SDRKIT_HANDLE handle,
                                             sdrkit_wfb_frame_row *rows,
                                             uint32_t capacity,
@@ -2717,6 +2730,7 @@ static inline int32_t sdrkit_wfb_set_links(SDRKIT_HANDLE handle, sdrkit_wfb_link
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "espnow" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_espnow_devices_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_espnow_device_row *rows,
                                                 uint32_t capacity,
@@ -2726,6 +2740,7 @@ static inline int32_t sdrkit_espnow_devices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "espnow" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `from` names a row.
 static inline int32_t sdrkit_espnow_frames_rows(SDRKIT_HANDLE handle,
                                                sdrkit_espnow_frame_row *rows,
                                                uint32_t capacity,

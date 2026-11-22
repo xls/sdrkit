@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "dvbt2", version 1.3. MIT licence.
+// sdrkit: the typed interface of the stack family "dvbt2", version 1.4. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum Dvbt2Interface {
     public static let major = 1
-    public static let minor = 3
+    public static let minor = 4
 }
 
 /// The result fields of `dvbt2`, which the receiver `rx` writes. A value of the frame shape has no value before the P2 symbols are found, and a value of the L1 signalling has no value before the L1-pre is decoded.

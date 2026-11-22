@@ -95,7 +95,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 2.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 2.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Networks and cells (`networks`). Media: none.
 
 ### Result fields
 
@@ -157,6 +159,8 @@ Struct `WifiNetworkRow`. A row of the networks of `wifi`. The row key is the BSS
 | `capability` | text | always | 1.0 | The capability bits as text. |
 | `details` | text | always | 1.0 | The other elements as text. |
 
+The column `ssid` names a row. Default order: the column `level_dbfs`, highest first.
+
 ### Table `beacons`
 
 Struct `WifiBeaconRow`. A row of the frame log of `wifi`.
@@ -169,6 +173,8 @@ Struct `WifiBeaconRow`. A row of the frame log of `wifi`.
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the frame. |
 | `bytes` | whole number | always | 1.0 | The length, FCS included. |
 | `details` | text | always | 1.0 | The summary. |
+
+The column `bssid` names a row.
 
 ### Table `ofdm_rates`
 

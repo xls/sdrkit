@@ -125,7 +125,9 @@ The stack puts points on a map: Lightning strikes.
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.1. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Science and propagation (`science`). Media: none.
 
 ### Result fields
 
@@ -199,6 +201,8 @@ Struct `LightningTdoaStrikeRow`. A located strike (server). The row key is the s
 | `ambiguous` | yes or no | always | 1.0 | A second solution fits as well. |
 | `utc` | yes or no | always | 1.0 | The time is UTC. |
 
+Place of a row: the columns `lat` and `lon`.
+
 ### Table `stations`
 
 Struct `LightningTdoaStationRow`. A station of the network (server). The row key is the station id, eight hex digits.
@@ -217,6 +221,8 @@ Struct `LightningTdoaStationRow`. A station of the network (server). The row key
 | `fine` | yes or no | always | 1.0 | A detection now would be fine. |
 | `tied_to_utc` | yes or no | always | 1.0 | The station's clock is UTC. |
 | `cv_correction_us` | number (µs) | optional | 1.0 | The common-view correction. |
+
+The column `name` names a row. Place of a row: the columns `lat` and `lon`.
 
 ### Event `lightning.strike`
 

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "adsb", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "adsb", version 1.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_ADSB_VERSION_MAJOR 1
-#define SDRKIT_ADSB_VERSION_MINOR 1
+#define SDRKIT_ADSB_VERSION_MINOR 2
 
 // The stack "adsb": its id, and the keys of its event types.
 #define SDRKIT_STACK_ADSB "adsb"
@@ -1247,6 +1247,9 @@ typedef struct sdrkit_uplink1030_uplink_interrogation_event {
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "adsb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_ft`. Course: `heading_deg`. Speed: `speed_kt`.
 static inline int32_t sdrkit_adsb_aircraft_rows(SDRKIT_HANDLE handle,
                                                sdrkit_adsb_aircraft_row *rows,
                                                uint32_t capacity,
@@ -1256,6 +1259,7 @@ static inline int32_t sdrkit_adsb_aircraft_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "adsb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `icao` names a row.
 static inline int32_t sdrkit_adsb_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_adsb_message_row *rows,
                                                uint32_t capacity,
@@ -1265,6 +1269,7 @@ static inline int32_t sdrkit_adsb_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "sources" of the stack "adsb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_adsb_sources_rows(SDRKIT_HANDLE handle,
                                               sdrkit_adsb_source_row *rows,
                                               uint32_t capacity,
@@ -1283,6 +1288,7 @@ static inline int32_t sdrkit_adsb_by_df_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "gps_cells" of the stack "adsb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `corner`.
 static inline int32_t sdrkit_adsb_gps_cells_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_adsb_gps_cell_row *rows,
                                                 uint32_t capacity,
@@ -1292,6 +1298,7 @@ static inline int32_t sdrkit_adsb_gps_cells_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "feeds" of the stack "adsb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_adsb_feeds_rows(SDRKIT_HANDLE handle,
                                             sdrkit_adsb_feed_row *rows,
                                             uint32_t capacity,
@@ -1554,6 +1561,9 @@ static inline int32_t sdrkit_adsb_gen_set_centre_lon(SDRKIT_HANDLE handle, doubl
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "uat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_ft`. Course: `heading_deg`. Speed: `speed_kt`.
 static inline int32_t sdrkit_uat_aircraft_rows(SDRKIT_HANDLE handle,
                                               sdrkit_uat_aircraft_row *rows,
                                               uint32_t capacity,
@@ -1563,6 +1573,7 @@ static inline int32_t sdrkit_uat_aircraft_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "fisb_products" of the stack "uat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_uat_fisb_products_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_uat_fisb_product_row *rows,
                                                    uint32_t capacity,
@@ -1572,6 +1583,8 @@ static inline int32_t sdrkit_uat_fisb_products_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "fisb_records" of the stack "uat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_uat_fisb_records_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_uat_fisb_record_row *rows,
                                                   uint32_t capacity,
@@ -1581,6 +1594,8 @@ static inline int32_t sdrkit_uat_fisb_records_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "fisb_blocks" of the stack "uat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
+// Place of a row: the column `corner`.
 static inline int32_t sdrkit_uat_fisb_blocks_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_uat_fisb_block_row *rows,
                                                  uint32_t capacity,
@@ -1590,6 +1605,8 @@ static inline int32_t sdrkit_uat_fisb_blocks_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "fisb_vertices" of the stack "uat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
+// Height: `alt_ft`.
 static inline int32_t sdrkit_uat_fisb_vertices_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_uat_fisb_vertex_row *rows,
                                                    uint32_t capacity,
@@ -1599,6 +1616,7 @@ static inline int32_t sdrkit_uat_fisb_vertices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "log" of the stack "uat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_uat_log_rows(SDRKIT_HANDLE handle,
                                          sdrkit_uat_log_row *rows,
                                          uint32_t capacity,
@@ -1709,6 +1727,7 @@ static inline int32_t sdrkit_modeac_gen_set_targets(SDRKIT_HANDLE handle, int64_
 
 // Fills `rows` with the changed rows of the table "addressed" of the stack "uplink1030" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `icao` names a row.
 static inline int32_t sdrkit_uplink1030_addressed_rows(SDRKIT_HANDLE handle,
                                                       sdrkit_uplink1030_addressed_row *rows,
                                                       uint32_t capacity,

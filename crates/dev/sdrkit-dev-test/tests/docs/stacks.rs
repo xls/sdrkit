@@ -254,12 +254,19 @@ fn interface_section(d: &StackDescriptor, family: &Family) -> String {
         code(&format!("sdrkit/{}.h", family.key)),
         code(&format!("registry/{}.reg", family.key)),
     );
+    if let Some(line) = sdrkit_dev_interface::marks::stack_sentence(stack) {
+        out.push_str(&format!("{line}\n\n"));
+    }
     for f in &stack.fields {
         out.push_str(&shape_table(family, "Result fields", f));
     }
     for t in &stack.tables {
         let title = format!("Table {}", code(t.def.key));
         out.push_str(&shape_table(family, &title, &t.row));
+        let marks = sdrkit_dev_interface::marks::table_sentences(t.def);
+        if !marks.is_empty() {
+            out.push_str(&format!("{}\n\n", marks.join(" ")));
+        }
     }
     for e in &stack.events {
         let title = format!("Event {}", code(e.def.kind));

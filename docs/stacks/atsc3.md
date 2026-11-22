@@ -104,7 +104,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:at
 
 ## Typed interface
 
-The stack is in the family `tvterr`, version 1.5. The C header `sdrkit/tvterr.h`, the registry record `registry/tvterr.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `tvterr`, version 1.6. The C header `sdrkit/tvterr.h`, the registry record `registry/tvterr.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Television and video (`television`). Media: none.
 
 ### Result fields
 
@@ -184,6 +186,8 @@ Struct `Atsc3ServiceRow`. A row of the services of the service list. The row key
 | `sls_objects` | whole number | always | 1.0 | Service layer signalling objects received on TSI 0 of the ROUTE session of the service. |
 | `sls_documents` | whole number | always | 1.0 | Signalling documents (USBD, S-TSID, MPD and others) read from those objects. |
 | `sls_signed_packages` | whole number | always | 1.0 | Those objects that were signed packages. The signature is not verified. |
+
+The column `name` names a row.
 
 ### Table `components`
 

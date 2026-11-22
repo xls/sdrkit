@@ -18,7 +18,24 @@ pub fn family() -> &'static Family {
 }
 
 fn describe() -> Family {
-    Family::new("marine", 1, 0)
+    Family::new("marine", 1, 1)
+        .added(
+            1,
+            1,
+            &[
+                "ais.content",
+                "marine.content",
+                "vdes.content",
+                "marinevhf.content",
+                "atis.content",
+            ],
+        )
+        .content(sdrkit_core::ContentKind::Voice, &["marinevhf", "atis"])
+        .content(sdrkit_core::ContentKind::Tracking, &["ais", "vdes"])
+        .content(sdrkit_core::ContentKind::Datalink, &["marine"])
+        .audio(sdrkit_core::AudioKind::Voice, &["marinevhf", "atis"])
+        .audio(sdrkit_core::AudioKind::Monitor, &["marine"])
+        .text(&["marine"])
         .stack(
             StackShape::new("ais")
                 .fields::<ais::AisFields>()

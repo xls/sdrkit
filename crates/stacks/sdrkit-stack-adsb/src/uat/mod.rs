@@ -667,8 +667,9 @@ impl UatTracker {
             |_| true,
             |r, out| UatExtra::row_write(r.record, Some(r.seen), out),
         );
-        sdrkit_util_objects::shaped::points_by(
+        sdrkit_util_objects::shaped::row_points_by(
             self.held.aircraft.rows(),
+            UAT_AIRCRAFT.def(),
             "",
             p.results_mut(),
             UatExtra::row_point,

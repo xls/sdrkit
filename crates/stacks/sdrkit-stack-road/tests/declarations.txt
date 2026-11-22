@@ -13,6 +13,7 @@ field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [],
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "vehicles" "Vehicles" cap 256
+  marks TableMarks { label: Some(1), sort: None, position: Some(2), latitude: None, longitude: None, altitude: None, course: Some(4), speed: Some(3) }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "bsm", label: "BSM" }, ChoiceDecl { key: "cam", label: "CAM" }, ChoiceDecl { key: "denm", label: "DENM" }, ChoiceDecl { key: "wsmp", label: "WSMP" }, ChoiceDecl { key: "geonetworking", label: "GeoNetworking" }], refers_to: None, content: None }
   column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
@@ -24,6 +25,7 @@ table "vehicles" "Vehicles" cap 256
   column FieldDecl { key: "first_heard", label: "First heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
 table "frames" "Frames" cap 300
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "bsm", label: "BSM" }, ChoiceDecl { key: "cam", label: "CAM" }, ChoiceDecl { key: "denm", label: "DENM" }, ChoiceDecl { key: "wsmp", label: "WSMP" }, ChoiceDecl { key: "geonetworking", label: "GeoNetworking" }], refers_to: None, content: None }
   column FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }

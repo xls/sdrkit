@@ -20,6 +20,9 @@ fn dump(d: &StackDescriptor, out: &mut String) {
     }
     for t in decl.tables() {
         let _ = writeln!(out, "table {:?} {:?} cap {}", t.key, t.label, t.cap);
+        if !t.marks.is_empty() {
+            let _ = writeln!(out, "  marks {:?}", t.marks);
+        }
         for c in t.columns.fields() {
             let _ = writeln!(out, "  column {c:?}");
         }

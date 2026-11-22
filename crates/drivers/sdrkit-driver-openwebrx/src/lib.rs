@@ -237,6 +237,7 @@ pub static BOOKMARKS: TableDef = TableDef {
     label: "Bookmarks",
     columns: &[&B_NAME, &B_FREQ, &B_MODE, &B_TUNE],
     cap: view::MAX_LIST,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The mode of a dial frequency.
@@ -250,6 +251,7 @@ pub static DIAL_FREQUENCIES: TableDef = TableDef {
     label: "Dial frequencies",
     columns: &[&D_MODE, &D_FREQ],
     cap: view::MAX_LIST,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// When a decode came.
@@ -275,6 +277,7 @@ pub static DECODES: TableDef = TableDef {
         &C_TIME, &C_MODE, &C_FREQ, &C_LEVEL, &C_OFFSET, &C_MESSAGE, &C_REST,
     ],
     cap: view::MAX_DECODES,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The id of a profile, `<sdr id>|<profile id>`.
@@ -292,6 +295,7 @@ pub static PROFILES: TableDef = TableDef {
     label: "Profiles",
     columns: &[&P_ID, &P_NAME, &P_LOW, &P_HIGH],
     cap: view::MAX_LIST,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The id of a mode.
@@ -311,6 +315,7 @@ pub static MODES: TableDef = TableDef {
     label: "Modes",
     columns: &[&M_ID, &M_NAME, &M_DECODER, &M_UNDERLYING, &M_AVAILABLE],
     cap: view::MAX_LIST,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The name of a digital voice value.
@@ -324,6 +329,7 @@ pub static METADATA: TableDef = TableDef {
     label: "Digital voice",
     columns: &[&V_NAME, &V_VALUE],
     cap: view::MAX_METADATA,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The waterfall of the band of the server: one row per line, the newest last, in dB.

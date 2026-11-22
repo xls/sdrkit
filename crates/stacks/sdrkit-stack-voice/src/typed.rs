@@ -751,7 +751,7 @@ pub static DETECTOR_EVENTS: Table<DetectorEventRow<'static>> =
     Table::new("events", "Events", crate::common::EVENT_CAP);
 /// The frames of HF packet, newest first.
 pub static HFPACKET_FRAMES: Table<HfpacketFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::hfpacket::FRAME_CAP);
+    Table::new("frames", "Frames", crate::hfpacket::FRAME_CAP).label(&HfpacketFrameRow::SOURCE);
 /// A frame with a good FCS.
 pub static HFPACKET_FRAME: EventKind<HfpacketFrameEvent<'static>> =
     EventKind::new("hfpacket.frame", "Frame");
@@ -771,15 +771,17 @@ pub static VOICE_INVERSION_FOUND: EventKind<VoiceInversionFoundEvent<'static>> =
 pub static VOICE_INVERSION_CLEAR: EventKind<VoiceInversionClearEvent<'static>> =
     EventKind::new("voice_inversion.clear", "Speech, not inverted");
 /// The call log, newest first.
-pub static CALLS: Table<CallRow<'static>> = Table::new("calls", "Calls", crate::channels::CALL_CAP);
+pub static CALLS: Table<CallRow<'static>> =
+    Table::new("calls", "Calls", crate::channels::CALL_CAP).label(&CallRow::LABEL);
 /// The channels.
-pub static CHANNELS: Table<ChannelRow<'static>> = Table::new("channels", "Channels", 512);
+pub static CHANNELS: Table<ChannelRow<'static>> =
+    Table::new("channels", "Channels", 512).label(&ChannelRow::NAME);
 /// A call that ended.
 pub static VOICE_CHANNELS_CALL: EventKind<VoiceChannelsCallEvent<'static>> =
     EventKind::new("voice_channels.call", "Call");
 /// The bursts of MDC-1200, newest first.
 pub static MDC1200_BURSTS: Table<Mdc1200BurstRow<'static>> =
-    Table::new("bursts", "Bursts", crate::mdc::BURST_CAP);
+    Table::new("bursts", "Bursts", crate::mdc::BURST_CAP).label(&Mdc1200BurstRow::LABEL);
 /// A call of MDC-1200 that ended.
 pub static MDC1200_CALL: EventKind<Mdc1200CallEvent<'static>> =
     EventKind::new("mdc1200.call", "Call");
@@ -788,7 +790,7 @@ pub static MDC1200_BURST: EventKind<Mdc1200BurstEvent<'static>> =
     EventKind::new("mdc1200.burst", "Burst");
 /// The FleetSync bursts, newest first.
 pub static FLEETSYNC_BURSTS: Table<FleetsyncBurstRow<'static>> =
-    Table::new("bursts", "Bursts", crate::fleetsync::BURST_CAP);
+    Table::new("bursts", "Bursts", crate::fleetsync::BURST_CAP).label(&FleetsyncBurstRow::LABEL);
 /// The fleet and unit pairs heard.
 pub static FLEETSYNC_UNITS: Table<FleetsyncUnitRow<'static>> =
     Table::new("units", "Units", crate::fleetsync::UNIT_CAP);
@@ -800,7 +802,10 @@ pub static FLEETSYNC_BURST: EventKind<FleetsyncBurstRow<'static>> =
     EventKind::new("fleetsync.burst", "Burst");
 /// The candidates of the wireless microphone finder.
 pub static WMIC_CANDIDATES: Table<WmicCandidateRow<'static>> =
-    Table::new("candidates", "Candidates", 64);
+    Table::new("candidates", "Candidates", 64).sorted(
+        &WmicCandidateRow::SNR_DB,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// A new candidate carrier.
 pub static WMIC_CANDIDATE: EventKind<WmicCandidateEvent<'static>> =
     EventKind::new("wmic.candidate", "Candidate");
@@ -824,7 +829,35 @@ pub fn family() -> &'static Described {
         // stay over a change of frequency, with the counts of frames and stations and the last frame of HF packet. The
         // level, the quality, the state and the measures of a detector belong to the signal of one frequency and are
         // cleared. The candidates of the microphone finder are carriers of the present capture and are cleared.
-        Described::new("voice", 1, 1)
+        Described::new("voice", 1, 2)
+            .added(
+                1,
+                2,
+                &[
+                    "hfpacket.content",
+                    "elt121.content",
+                    "voice_inversion.content",
+                    "voice_channels.content",
+                    "mdc1200.content",
+                    "wmic.content",
+                    "fleetsync.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Voice,
+                &["voice_channels", "mdc1200", "fleetsync"],
+            )
+            .content(
+                sdrkit_core::ContentKind::Measurement,
+                &["voice_inversion", "wmic"],
+            )
+            .content(sdrkit_core::ContentKind::Navigation, &["elt121"])
+            .content(sdrkit_core::ContentKind::Utility, &["hfpacket"])
+            .audio(
+                sdrkit_core::AudioKind::Voice,
+                &["voice_inversion", "voice_channels", "mdc1200", "fleetsync"],
+            )
+            .audio(sdrkit_core::AudioKind::Monitor, &["wmic"])
             .uses(tones::interface())
             .stack(
                 detector::<HfpacketFields>("hfpacket")

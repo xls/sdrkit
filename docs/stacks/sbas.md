@@ -146,7 +146,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:sb
 
 ## Typed interface
 
-The stack is in the family `gnss`, version 1.0. The C header `sdrkit/gnss.h`, the registry record `registry/gnss.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `gnss`, version 1.1. The C header `sdrkit/gnss.h`, the registry record `registry/gnss.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Navigation aids (`navigation`). Media: none.
 
 ### Result fields
 
@@ -212,6 +214,8 @@ Struct `SbasSatelliteRow`. A row of the SBAS satellite table. The row key is the
 | `messages` | whole number | always | 1.0 | The messages received. |
 | `messages_missed` | whole number | always | 1.0 | The messages missed. |
 
+Default order: the column `cn0_dbhz`, highest first.
+
 ### Table `sbas_satellite_types`
 
 Struct `SbasSatelliteTypeRow`. A message type that an SBAS satellite sent. The row key is the PRN and the type, as `123/9`.
@@ -230,6 +234,8 @@ Struct `SbasTypeRow`. The count of one message type. The row key is the type.
 | `message_type` | whole number | always | 1.0 | The message type. |
 | `name` | text | optional | 1.0 | The name of the type. |
 | `count` | whole number | always | 1.0 | The messages of the type. |
+
+The column `name` names a row.
 
 ### Table `messages`
 
@@ -352,6 +358,8 @@ Struct `GnssSatelliteRow`. A satellite: what the channels, the navigation data, 
 | `sub_point` | position (°) | optional | 1.0 | The point below the satellite. |
 | `height_km` | number (km) | optional | 1.0 | The height of the satellite. |
 | `orbit` | choice | optional | 1.0 | Where the satellite's position comes from. |
+
+Default order: the column `cn0_dbhz`, highest first. Place of a row: the column `sub_point`. Height: `height_km`.
 
 ### Commands
 

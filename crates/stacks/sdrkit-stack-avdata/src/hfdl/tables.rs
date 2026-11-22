@@ -729,9 +729,19 @@ impl Tables {
         });
         shaped::log_rows(&self.store.messages, &HFDL_MESSAGES, now, p);
         shaped::rows(&self.store.aircraft, &HFDL_AIRCRAFT, now, p);
-        shaped::points(&self.store.aircraft, "aircraft/", p.results_mut());
+        shaped::row_points(
+            &self.store.aircraft,
+            &HFDL_AIRCRAFT,
+            "aircraft/",
+            p.results_mut(),
+        );
         shaped::rows(&self.store.stations, &HFDL_STATIONS, now, p);
-        shaped::points(&self.store.stations, "station/", p.results_mut());
+        shaped::row_points(
+            &self.store.stations,
+            &HFDL_STATIONS,
+            "station/",
+            p.results_mut(),
+        );
         shaped::rows_of(
             &self.channels,
             |c, w| write!(w, "{}", c.dial_hz.round() as u64),

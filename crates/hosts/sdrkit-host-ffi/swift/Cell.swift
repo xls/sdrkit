@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "cell", version 1.0. MIT licence.
+// sdrkit: the typed interface of the stack family "cell", version 1.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum CellInterface {
     public static let major = 1
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of `railway_cir`.
@@ -2153,6 +2153,7 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(CellOperatorRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "cell", newest first, at most `capacity` rows.
+    /// Default order: the column `level_db`, highest first.
     public static func cellCarriers(_ handle: SDRKIT_HANDLE, capacity: Int = 24) -> Result<[CellCarrierRow], SDRKitCode> {
         var rows = [sdrkit_cell_carrier_row](repeating: sdrkit_cell_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2185,6 +2186,7 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GsmrCellRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "gsmr", newest first, at most `capacity` rows.
+    /// Default order: the column `level_db`, highest first.
     public static func gsmrCarriers(_ handle: SDRKIT_HANDLE, capacity: Int = 24) -> Result<[GsmrCarrierRow], SDRKitCode> {
         var rows = [sdrkit_gsmr_carrier_row](repeating: sdrkit_gsmr_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2193,6 +2195,8 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GsmrCarrierRow.init))
     }
     /// The changed rows of the table "messages" of the stack "lbj", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
+    /// Speed: `speed_kmh`.
     public static func lbjMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[LbjMessageRow], SDRKitCode> {
         var rows = [sdrkit_lbj_message_row](repeating: sdrkit_lbj_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized

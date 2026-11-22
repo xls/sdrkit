@@ -112,7 +112,9 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `marine`, version 1.0. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `marine`, version 1.1. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -159,6 +161,8 @@ Struct `AisStationRow`. A row of the AIS station table. The row key is the MMSI.
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
 | `heard` | whole number | optional | 1.0 | Times heard. |
 
+The column `name` names a row. Place of a row: the column `position`. Course: `course_deg`. Speed: `speed_kt`.
+
 ### Table `track_points`
 
 Struct `AisTrackPointRow`. A row of the track points of the stations whose track is shown. The row key is the MMSI, `/` and the time of the point.
@@ -168,6 +172,8 @@ Struct `AisTrackPointRow`. A row of the track points of the stations whose track
 | `station` | text | always | 1.0 | The station a track point belongs to. |
 | `position` | position | always | 1.0 | The position of the object that the event is about. |
 | `time` | time | optional | 1.0 | When (wall-clock time, when known). |
+
+The column `station` names a row. Place of a row: the column `position`.
 
 ### Table `counters`
 
@@ -198,6 +204,8 @@ Struct `AisChannelRow`. A row of the channel table of the AIS stack. The row key
 | `doppler_hz` | frequency | optional | 1.0 | The Doppler of the channel's bursts now (satellite mode). |
 | `doppler_rate_hz_s` | number (Hz/s) | optional | 1.0 | The rate of the Doppler (satellite mode). |
 
+The column `name` names a row.
+
 ### Table `sentences`
 
 Struct `AisSentenceRow`. A row of the NMEA sentence table. The row key is the place of the sentence in the log.
@@ -220,6 +228,8 @@ Struct `AisReceptionRow`. A row of the reception table. The row key is the place
 | `offset_hz` | frequency | always | 1.0 | Carrier offset from where it was expected, Hz. |
 | `layer` | choice | always | 1.0 | How a message was found. |
 
+The column `mmsi` names a row.
+
 ### Table `alerts`
 
 Struct `AisAlertRow`. A row of the alert table. The row key is the place of the alert in the log.
@@ -235,6 +245,8 @@ Struct `AisAlertRow`. A row of the alert table. The row key is the place of the 
 | `distance_m` | number (m) | always | 1.0 | The distance from the station (CPA) or the fence. |
 | `cpa_m` | number (m) | optional | 1.0 | The distance at the closest point of approach. |
 | `tcpa` | duration (s) | optional | 1.0 | The time to the closest point of approach. |
+
+The column `name` names a row. Place of a row: the column `position`.
 
 ### Table `hop_plan`
 
@@ -276,6 +288,8 @@ Struct `AisSelectedRow`. The row of the selected station, with every value that 
 | `long_range` | yes or no | always | 1.0 | It sent message 27. |
 | `latency` | yes or no | optional | 1.0 | The position latency flag of message 27. |
 | `sentences` | text | always | 1.0 | The last sentences, one per line. |
+
+The column `name` names a row. Place of a row: the column `position`. Height: `altitude_m`. Course: `course_deg`. Speed: `speed_kt`.
 
 ### Event `ais.vessel`
 

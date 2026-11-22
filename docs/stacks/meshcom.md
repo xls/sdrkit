@@ -129,7 +129,9 @@ The stack puts points on a map: Nodes and stations.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 3.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 3.1. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Mesh messaging (`mesh`). Media: text.
 
 ### Result fields
 
@@ -226,6 +228,8 @@ Struct `MeshPacketRow`. A row of the packet list. The row key is the number of t
 | `bw` | frequency | always | 1.0 | The bandwidth. |
 | `summary` | text | optional | 1.0 | More about the packet. |
 
+The column `source` names a row.
+
 ### Table `nodes`
 
 Struct `MeshNodeRow`. A row of the node list. The row key is `<net key>/<id>`.
@@ -245,6 +249,8 @@ Struct `MeshNodeRow`. A row of the node list. The row key is `<net key>/<id>`.
 | `battery_pct` | number (%) | optional | 1.0 | The battery charge; above 100 the node is powered from outside. |
 | `voltage_v` | number (V) | optional | 1.0 | The battery voltage. |
 | `position` | position | optional | 1.0 | The last position. |
+
+The column `name` names a row. Place of a row: the column `position`.
 
 ### Table `messages`
 
@@ -270,6 +276,8 @@ Struct `MeshMessageRow`. A row of the messages. The row key is the place of the 
 | `crc_ok` | yes or no | optional | 1.0 | The text comes from a copy with a good CRC. False for a damaged copy that was shown after the wait without a good copy; a later good copy replaces the text and sets it. None for an own message. |
 | `copies` | whole number | optional | 1.0 | The copies of the packet heard while the message is remembered (10 minutes), damaged ones included. None for an own message. |
 
+The column `sender` names a row.
+
 ### Table `readings`
 
 Struct `MeshReadingRow`. A row of the telemetry and position readings. The row key is the number of the reading.
@@ -288,6 +296,8 @@ Struct `MeshReadingRow`. A row of the telemetry and position readings. The row k
 | `position` | position | optional | 1.0 | The position. |
 | `alt_m` | number (m) | optional | 1.0 | The altitude. |
 
+Place of a row: the column `position`. Height: `alt_m`.
+
 ### Table `stations`
 
 Struct `MeshStationRow`. A row of the APRS stations of LoRa APRS and MeshCom. The row key is `<net key>/<call>`.
@@ -305,6 +315,8 @@ Struct `MeshStationRow`. A row of the APRS stations of LoRa APRS and MeshCom. Th
 | `path` | text | optional | 1.0 | The relay path. |
 | `comment` | text | optional | 1.0 | The comment. |
 | `battery_pct` | number (%) | optional | 1.0 | The battery charge. |
+
+The column `call` names a row. Place of a row: the column `position`.
 
 ### Table `devices`
 
@@ -329,6 +341,8 @@ Struct `MeshDeviceRow`. A row of the LoRaWAN devices. The row key is the device 
 | `type` | text | optional | 1.0 | The type of the last frame. |
 | `fport` | whole number | optional | 1.0 | The last FPort. |
 | `mac` | text | optional | 1.0 | The last MAC commands or status. |
+
+The column `id` names a row.
 
 ### Table `types`
 
@@ -374,6 +388,8 @@ Struct `MeshContactRow`. A row of the MeshCore contacts. The row key is the hex 
 | `last_heard` | time | optional | 1.0 | The UTC of the last packet, when the clock is known. |
 | `snr_db` | number (dB) | always | 1.0 | The signal to noise ratio of the last packet. |
 | `path` | text | always | 1.0 | The learned path, or "flood". |
+
+The column `name` names a row.
 
 ### Table `channels`
 

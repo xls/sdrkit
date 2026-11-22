@@ -196,7 +196,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `dab`, version 1.0. The C header `sdrkit/dab.h`, the registry record `registry/dab.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dab`, version 1.1. The C header `sdrkit/dab.h`, the registry record `registry/dab.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Broadcast radio (`broadcast`). Media: sound (programme), pictures.
 
 ### Result fields
 
@@ -417,6 +419,8 @@ Struct `ServiceRow`. A service of the ensemble. The row key is the SId in hexade
 | `now_playing` | text | optional | 1.0 | The dynamic label of the service, while it plays. |
 | `playing` | yes or no | always | 1.0 | The service plays. |
 
+The column `label` names a row.
+
 ### Table `subchannels`
 
 Struct `SubchannelRow`. A sub-channel. The row key is its id.
@@ -445,6 +449,8 @@ Struct `ServiceComponentRow`. A service component. The row key is `<service>/<n>
 | `scrambled` | yes or no | always | 1.0 | Scrambled (conditional access). |
 | `label` | text | optional | 1.0 | The component label. |
 
+The column `label` names a row.
+
 ### Table `user_applications`
 
 Struct `UserApplicationRow`. A user application of a service (FIG 0/13). The row key is `<service>/<SCIdS>/<type>`.
@@ -455,6 +461,8 @@ Struct `UserApplicationRow`. A user application of a service (FIG 0/13). The row
 | `scids` | whole number | always | 1.0 | The service component identifier within the service (SCIdS). |
 | `app_type` | whole number | always | 1.0 | The user application type (TS 101 756 table 16). |
 | `name` | text | always | 1.0 | The name of the type. |
+
+The column `name` names a row.
 
 ### Table `service_clusters`
 
@@ -475,6 +483,8 @@ Struct `TiiEntryRow`. A transmitter of the database of FIG 0/22. The row key is 
 | `sub` | whole number | always | 1.0 | The transmitter sub-identifier. |
 | `position` | position | always | 1.0 | The position. |
 | `delay_us` | whole number (µs) | always | 1.0 | The delay. |
+
+Place of a row: the column `position`.
 
 ### Table `following`
 
@@ -508,6 +518,8 @@ Struct `TransmitterRow`. A transmitter identified. The row key is `<main>.<sub>`
 | `position` | position | optional | 1.0 | The position, from the transmitter database. |
 | `delay_us` | whole number (µs) | optional | 1.0 | The delay, from the transmitter database. |
 
+Place of a row: the column `position`.
+
 ### Table `journaline`
 
 Struct `JournalineRow`. A Journaline object. The row key is its id in hexadecimal.
@@ -518,6 +530,8 @@ Struct `JournalineRow`. A Journaline object. The row key is its id in hexadecima
 | `kind` | choice | always | 1.0 | The kind of the object. |
 | `title` | text | always | 1.0 | The title. |
 | `body` | text | optional | 1.0 | The body text. |
+
+The column `title` names a row.
 
 ### Table `journaline_links`
 

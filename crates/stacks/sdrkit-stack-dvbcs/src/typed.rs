@@ -760,12 +760,15 @@ pub struct SatbeaconCarrierEvent {
 }
 
 /// The narrow lines of the spectrum.
-pub static SATBEACON_LINES: Table<SatbeaconLineRow> = Table::new("lines", "Lines", 6);
+pub static SATBEACON_LINES: Table<SatbeaconLineRow> = Table::new("lines", "Lines", 6).sorted(
+    &SatbeaconLineRow::LEVEL_DBFS,
+    sdrkit_core::SortOrder::Descending,
+);
 /// The frames received.
 pub static SATBEACON_FRAMES: Table<SatbeaconFrameRow> = Table::new("frames", "Frames", 48);
 /// The decoded view.
 pub static SATBEACON_DECODED: Table<SatbeaconDecodedRow<'static>> =
-    Table::new("decoded", "Decoded", 256);
+    Table::new("decoded", "Decoded", 256).label(&SatbeaconDecodedRow::NAME);
 
 /// A telemetry frame was found.
 pub static SATBEACON_FRAME: EventKind<SatbeaconFrameEvent> =
@@ -829,7 +832,28 @@ pub fn family() -> &'static Family {
             .table(&DVBC2_PLPS)
             .table(&DVBC2_NOTCHES);
         let dvbc2 = with_bbframes(with_monitor(dvbc2));
-        Family::new("dvbcs", 1, 4)
+        Family::new("dvbcs", 1, 5)
+            .added(
+                1,
+                5,
+                &[
+                    "satbeacon.content",
+                    "dvbc.content",
+                    "dvbc2.content",
+                    "dvbs.content",
+                    "isdbs.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Television,
+                &["dvbc", "dvbc2", "dvbs", "isdbs"],
+            )
+            .content(sdrkit_core::ContentKind::SatelliteLinks, &["satbeacon"])
+            .audio(
+                sdrkit_core::AudioKind::Programme,
+                &["dvbc", "dvbc2", "dvbs", "isdbs"],
+            )
+            .video(&["dvbc", "dvbc2", "dvbs", "isdbs"])
             .shared_source("beacon", &["satbeacon"])
             .stack(satbeacon)
             .uses(sdrkit_proto_mpegts::publish::interface())

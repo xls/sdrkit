@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "fm", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "fm", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum FmInterface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The result fields of the FM receiver, in the order a screen lists them. The display writes the band plan ([`BandPart`]) and the measurements and RDS data ([`RdsPart`]); the broadcast data publisher writes the RadioText and whether its item is running.
@@ -746,6 +746,7 @@ public enum FmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FmOdaRow.init))
     }
     /// The changed rows of the table "eon" of the stack "fm", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func fmEon(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[FmEonRow], SDRKitCode> {
         var rows = [sdrkit_fm_eon_row](repeating: sdrkit_fm_eon_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -802,6 +803,7 @@ public enum FmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FmOdaRow.init))
     }
     /// The changed rows of the table "eon" of the stack "stl", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func stlEon(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[FmEonRow], SDRKitCode> {
         var rows = [sdrkit_fm_eon_row](repeating: sdrkit_fm_eon_row(), count: capacity)
         var info = sdrkit_rows_info.sized

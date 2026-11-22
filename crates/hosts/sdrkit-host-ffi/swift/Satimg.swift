@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "satimg", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "satimg", version 1.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum SatimgInterface {
     public static let major = 1
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The fields of the link layers that every coded stack publishes: the front end, the demodulator, the code, the frames and the packets. A field whose report has not come has no value.
@@ -2090,6 +2090,7 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgImageRow.init))
     }
     /// The changed rows of the table "frames" of the stack "goes_cda", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
     public static func goesCdaFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2106,6 +2107,7 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgVirtualChannelRow.init))
     }
     /// The changed rows of the table "frames" of the stack "goes_mdl", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
     public static func goesMdlFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2122,6 +2124,7 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgVirtualChannelRow.init))
     }
     /// The changed rows of the table "frames" of the stack "gk2a_cdas", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
     public static func gk2aCdasFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2138,6 +2141,7 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgVirtualChannelRow.init))
     }
     /// The changed rows of the table "frames" of the stack "sband_ccsds", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
     public static func sbandCcsdsFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2154,6 +2158,7 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgVirtualChannelRow.init))
     }
     /// The changed rows of the table "frames" of the stack "rdas", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
     public static func rdasFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2330,6 +2335,7 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Dvbs2StreamModcodRow.init))
     }
     /// The changed rows of the table "grb_products" of the stack "goes_grb", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func goesGrbProducts(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[GoesGrbProductRow], SDRKitCode> {
         var rows = [sdrkit_goes_grb_product_row](repeating: sdrkit_goes_grb_product_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2338,6 +2344,7 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GoesGrbProductRow.init))
     }
     /// The changed rows of the table "packets_by_apid" of the stack "goes_grb", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func goesGrbPacketsByApid(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[GoesGrbApidRow], SDRKitCode> {
         var rows = [sdrkit_goes_grb_apid_row](repeating: sdrkit_goes_grb_apid_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2354,6 +2361,7 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgUhritFrameRow.init))
     }
     /// The changed rows of the table "flashes" of the stack "goes_grb", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
     public static func goesGrbFlashes(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[GoesGrbGlmFlashRow], SDRKitCode> {
         var rows = [sdrkit_goes_grb_glm_flash_row](repeating: sdrkit_goes_grb_glm_flash_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2362,6 +2370,7 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GoesGrbGlmFlashRow.init))
     }
     /// The changed rows of the table "groups" of the stack "goes_grb", newest first, at most `capacity` rows.
+    /// Place of a row: the column `position`.
     public static func goesGrbGroups(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[GoesGrbGlmGroupRow], SDRKitCode> {
         var rows = [sdrkit_goes_grb_glm_group_row](repeating: sdrkit_goes_grb_glm_group_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2394,6 +2403,7 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Dvbs2StreamModcodRow.init))
     }
     /// The changed rows of the table "recent_files" of the stack "sat_filecast", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func satFilecastRecentFiles(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[SatFilecastRecentFileRow], SDRKitCode> {
         var rows = [sdrkit_sat_filecast_recent_file_row](repeating: sdrkit_sat_filecast_recent_file_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2450,6 +2460,7 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgImageRow.init))
     }
     /// The changed rows of the table "frames" of the stack "eodb", newest first, at most `capacity` rows.
+    /// The column `hex` names a row.
     public static func eodbFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized

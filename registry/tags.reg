@@ -1,5 +1,5 @@
 # The interface of the stack family tags. The registry test of the family writes this file.
-family tags version=1.0
+family tags version=1.1
 shape.TagsStatusFields since=1.0
 shape.TagsStatusFields.text type=text unit= optional=no since=1.0
 shape.TagsStatusFields.state type=choice(no_signal,energy,decoding) unit= optional=no since=1.0
@@ -142,6 +142,7 @@ shape.RfidCommandEvent.action type=i64 unit= optional=yes since=1.0
 shape.RfidCommandEvent.lock_payload type=text unit= optional=yes since=1.0
 shape.RfidCommandEvent.level_db type=f64 unit=dB optional=no since=1.0
 rfid_lf since=1.0
+rfid_lf.content kind=devices since=1.1
 rfid_lf.fields.TagsStatusFields since=1.0
 rfid_lf.fields.RfidLfFields since=1.0
 rfid_lf.fields.DecoderFields since=1.0
@@ -167,6 +168,7 @@ rfid_lf.setting.gen_invert type=bool unit= since=1.0
 rfid_lf.command.clear args= reply= since=1.0
 rfid_lf.command.reset args= reply= since=1.0
 qi since=1.0
+qi.content kind=devices since=1.1
 qi.fields.TagsStatusFields since=1.0
 qi.fields.QiFields since=1.0
 qi.fields.DecoderFields since=1.0
@@ -174,7 +176,7 @@ qi.kept.packets since=1.0
 qi.kept.QiFields.packets_ok since=1.0
 qi.kept.QiFields.packets_failed since=1.0
 qi.kept.QiFields.last_message since=1.0
-qi.table.packets row=QiPacketRow cap=500 since=1.0
+qi.table.packets row=QiPacketRow cap=500 label=device_id since=1.0
 qi.event.qi.packet fields=QiPacketEvent since=1.0
 qi.setting.gate_sigmas type=f64 unit=sigma since=1.0
 qi.setting.clock_tolerance_pct type=f64 unit=% since=1.0
@@ -189,6 +191,7 @@ qi.setting.gen_end_edge_bits type=f64 unit=bit since=1.0
 qi.command.clear args= reply= since=1.0
 qi.command.reset args= reply= since=1.0
 rfid_uhf since=1.0
+rfid_uhf.content kind=devices since=1.1
 rfid_uhf.fields.TagsStatusFields since=1.0
 rfid_uhf.fields.RfidUhfFields since=1.0
 rfid_uhf.fields.DecoderFields since=1.0

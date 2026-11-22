@@ -89,7 +89,9 @@ The stack puts points on a map: Drones.
 
 ## Typed interface
 
-The stack is in the family `drones`, version 1.0. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `drones`, version 1.1. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -168,6 +170,8 @@ Struct `RemoteIdDroneRow`. A drone heard on Remote ID. The row key is the broadc
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
 | `heard` | whole number | optional | 1.0 | Times heard. |
 
+The column `address` names a row. Place of a row: the column `position`. Height: `alt_geo_m`. Course: `course_deg`. Speed: `speed_kt`.
+
 ### Table `messages`
 
 Struct `RemoteIdMessageRow`. A line of the message log. The row key is the sequence number of the line.
@@ -183,6 +187,8 @@ Struct `RemoteIdMessageRow`. A line of the message log. The row key is the seque
 | `type` | choice | always | 1.0 | The message type. |
 | `message` | text | always | 1.0 | The summary line of a message. |
 
+The column `address` names a row.
+
 ### Table `drone_tracks`
 
 Struct `DroneTrackRow`. A track point of a drone. The row key is the drone key and the signal time of the point.
@@ -192,6 +198,8 @@ Struct `DroneTrackRow`. A track point of a drone. The row key is the drone key a
 | `drone` | text | always | 1.0 | The drone a track point belongs to. |
 | `position` | position | always | 1.0 | The position of the object that the event is about. |
 | `time_s` | number (s) | always | 1.0 | The signal time of a track point. |
+
+Place of a row: the column `position`.
 
 ### Event `remote_id.drone`
 

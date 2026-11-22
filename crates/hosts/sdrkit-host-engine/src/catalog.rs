@@ -3,10 +3,10 @@
 use crate::services::ServiceKind;
 use crate::session::SessionState;
 use crate::EngineError;
-use sdrkit_core::interface::Family;
+use sdrkit_core::interface::{Family, StackShape};
 use sdrkit_core::publish::field;
 use sdrkit_core::{
-    AdapterCatalog, AutoGain, Command, Commands, Facilities, Field, Owner, Published, Receiver,
+    AdapterCatalog, AudioKind, AutoGain, Command, ContentKind, Commands, Facilities, Field, Owner, Published, Receiver,
     ResultsDecl, Schema, SignalType, StackConfig, StackDescriptor, TableDef, TxContent, Values,
 };
 use sdrkit_driver_core::DriverDescriptor;
@@ -56,6 +56,16 @@ pub const TRANSMIT: Field<field::Bool> = Field::new("transmit", "Transmit", "");
 /// The channels of host audio that the graph of a stack takes: 0, 1 or 2.
 pub const HOST_AUDIO_CHANNELS: Field<field::I64> =
     Field::new("host_audio_channels", "Host audio channels", "");
+/// The kind of content of a stack.
+pub const KIND: Field<field::Choice<ContentKind>> = Field::new("kind", "Content kind", "");
+/// The kind of sound that a stack gives. No value for a stack without sound.
+pub const AUDIO: Field<field::Choice<AudioKind>> = Field::new("audio", "Sound", "");
+/// The stack gives still pictures.
+pub const PICTURES: Field<field::Bool> = Field::new("pictures", "Pictures", "");
+/// The stack gives moving pictures.
+pub const VIDEO: Field<field::Bool> = Field::new("video", "Video", "");
+/// The stack gives running text for people.
+pub const TEXT: Field<field::Bool> = Field::new("text", "Text", "");
 /// The key of a command.
 pub const COMMAND: Field<field::Text> = Field::new("command", "Command", "");
 /// What a command sends on the air.
@@ -111,8 +121,17 @@ pub static STACKS: TableDef = TableDef {
         &LOCK_COLLECT_S,
         &TRANSMIT,
         &HOST_AUDIO_CHANNELS,
+        &KIND,
+        &AUDIO,
+        &PICTURES,
+        &VIDEO,
+        &TEXT,
     ],
     cap: ROWS,
+    marks: sdrkit_core::RowMarks {
+        label: NAME.key,
+        ..sdrkit_core::RowMarks::NONE
+    },
 };
 
 /// The variants of the stacks. The row key is `<stack>/<variant>`.
@@ -121,6 +140,7 @@ pub static SUBMODES: TableDef = TableDef {
     label: "Variants",
     columns: &[&STACK, &NAME, &DEFAULT_HZ],
     cap: ROWS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The signal types each stack receives. The row key is `<stack>/<signal type>`.
@@ -129,6 +149,7 @@ pub static STACK_SIGNALS: TableDef = TableDef {
     label: "Signal types",
     columns: &[&STACK, &SIGNAL],
     cap: ROWS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The driver kinds. The row key is the driver key.
@@ -144,6 +165,7 @@ pub static DRIVERS: TableDef = TableDef {
         &TX_MAX_RATE_HZ,
     ],
     cap: ROWS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The component kinds. The row key is the kind key.
@@ -152,6 +174,7 @@ pub static COMPONENT_KINDS: TableDef = TableDef {
     label: "Component kinds",
     columns: &[&INPUTS, &OUTPUTS, &SETTINGS],
     cap: ROWS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The service kinds. The row key is the service key.
@@ -160,6 +183,7 @@ pub static SERVICES: TableDef = TableDef {
     label: "Services",
     columns: &[&NAME],
     cap: ROWS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The open radios. The row key is the object key of the radio, `radio.r<n>`.
@@ -175,6 +199,7 @@ pub static RADIOS: TableDef = TableDef {
         &TX_MAX_RATE_HZ,
     ],
     cap: ROWS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The commands of the stacks that transmit, with what each sends and the command that stops a transmission that lasts.
@@ -184,6 +209,7 @@ pub static STACK_TRANSMITS: TableDef = TableDef {
     label: "Transmit commands",
     columns: &[&STACK, &COMMAND, &CONTENT, &STOPPED_BY],
     cap: ROWS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The sessions. The row key is the object key of the session, `session.s<n>`.
@@ -192,6 +218,7 @@ pub static SESSIONS: TableDef = TableDef {
     label: "Sessions",
     columns: &[&STACK, &RADIO, &STATE],
     cap: ROWS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// `decl` with the catalog tables added.
@@ -284,6 +311,15 @@ pub(crate) fn fill(p: &mut Published, sources: &Sources<'_>) {
                 &HOST_AUDIO_CHANNELS,
                 i64::from(host_audio.get(i).copied().unwrap_or(0)),
             );
+            // The content kind and the media come from the description of the stack. A stack without a description
+            // has no kind and no media.
+            let shape = families.iter().find_map(|f| f.stack_shape(s.id));
+            let media = shape.map(StackShape::media).unwrap_or_default();
+            r.opt(&KIND, shape.and_then(|x| x.content));
+            r.opt(&AUDIO, media.audio);
+            r.set(&PICTURES, media.pictures);
+            r.set(&VIDEO, media.video);
+            r.set(&TEXT, media.text);
         }
         for m in s.submodes {
             if let Some(mut r) = p.row_mut(&SUBMODES, &format!("{}/{}", s.id, m.id)) {

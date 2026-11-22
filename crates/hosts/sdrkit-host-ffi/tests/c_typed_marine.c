@@ -29,6 +29,28 @@ int main(int argc, char **argv) {
     const sdrkit_ais_station_row *first = &stations[0];
     CHECK(first->size == sizeof *first && first->mmsi.len == 9 && first->key.len == 9);
 
+    /* The declaration of the table names the column that names a row and the columns of its place. A map point of a
+       station names its row. */
+    sdrkit_id table, name_column, position_column;
+    OK(sdrkit_table_find(session, "stations", &table));
+    OK(sdrkit_column_find(session, table, "name", &name_column));
+    OK(sdrkit_column_find(session, table, "position", &position_column));
+    sdrkit_table_info decl = SDRKIT_TABLE_INFO_INIT;
+    OK(sdrkit_table_decl(session, table, &decl));
+    CHECK(decl.label_column == name_column && decl.position_column == position_column);
+    CHECK(decl.sort_column == SDRKIT_NO_ID && decl.latitude_column == SDRKIT_NO_ID);
+    CHECK(decl.course_column != SDRKIT_NO_ID && decl.speed_column != SDRKIT_NO_ID);
+    uint32_t linked = 0;
+    for (uint32_t n = 0; n < snapshot.points; n++) {
+        sdrkit_point point = SDRKIT_POINT_INIT;
+        OK(sdrkit_snapshot_point(session, n, &point));
+        if (point.table != SDRKIT_NO_ID) {
+            CHECK(point.table == table && point.row.len == 9);
+            linked++;
+        }
+    }
+    CHECK(linked == snapshot.points);
+
     /* A command with arguments: select the first station, and read it from the table of the selected station. */
     char mmsi[10] = {0};
     memcpy(mmsi, first->mmsi.ptr, 9);

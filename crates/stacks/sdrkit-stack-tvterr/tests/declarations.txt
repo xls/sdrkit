@@ -645,6 +645,7 @@ field FieldDecl { key: "ip.encrypted_flows", label: "Encrypted flows", unit: "",
 field FieldDecl { key: "route.objects", label: "Objects", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "route.objects_dropped", label: "Objects dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "services" "Services" cap 64
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "major", label: "Major channel", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "minor", label: "Minor channel", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }

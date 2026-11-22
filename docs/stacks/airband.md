@@ -81,7 +81,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ai
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.1. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 1.2. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Voice calls (`voice`). Media: sound (voice).
 
 ### Result fields
 
@@ -128,6 +130,8 @@ Struct `AirbandChannelRow`. A row of the channels. The row key is the name of th
 | `offset_hz` | frequency | always | 1.0 | The carrier offset. |
 | `count` | whole number | always | 1.0 | Transmissions on the channel. |
 
+The column `name` names a row.
+
 ### Table `seen`
 
 Struct `AirbandSeenRow`. A row of the band watch: a carrier on the air that is not in the list. The row key is its name.
@@ -142,6 +146,8 @@ Struct `AirbandSeenRow`. A row of the band watch: a carrier on the air that is n
 | `active` | yes or no | always | 1.0 | The carrier is on now. |
 | `approximate` | yes or no | always | 1.0 | The frequency is approximate. |
 | `last_s` | number (s) | always | 1.0 | The signal time it was last seen. |
+
+The column `name` names a row.
 
 ### Table `activity`
 
@@ -158,6 +164,8 @@ Struct `AirbandActivityRow`. A row of the transmissions. The row key is the plac
 | `cn_db` | number (dB) | always | 1.0 | The carrier over the noise. |
 | `level_db` | number (dB) | always | 1.0 | The level. |
 | `heterodyne` | yes or no | always | 1.0 | Two stations at once. |
+
+The column `name` names a row.
 
 ### Event `airband.activity`
 

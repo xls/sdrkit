@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "avdata", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "avdata", version 1.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum AvdataInterface {
     public static let major = 1
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The result fields of ACARS.
@@ -1827,6 +1827,9 @@ public struct HfdlMessageEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum AvdataTables {
     /// The changed rows of the table "messages" of the stack "acars", newest first, at most `capacity` rows.
+    /// The column `flight` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`.
     public static func acarsMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[AcarsMessageRow], SDRKitCode> {
         var rows = [sdrkit_acars_message_row](repeating: sdrkit_acars_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1835,6 +1838,9 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AcarsMessageRow.init))
     }
     /// The changed rows of the table "aircraft" of the stack "acars", newest first, at most `capacity` rows.
+    /// The column `flight` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
     public static func acarsAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[AcarsAircraftRow], SDRKitCode> {
         var rows = [sdrkit_acars_aircraft_row](repeating: sdrkit_acars_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1851,6 +1857,9 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AcarsChannelRow.init))
     }
     /// The changed rows of the table "messages" of the stack "vdl2", newest first, at most `capacity` rows.
+    /// The column `flight` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`.
     public static func vdl2Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[Vdl2MessageRow], SDRKitCode> {
         var rows = [sdrkit_vdl2_message_row](repeating: sdrkit_vdl2_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1859,6 +1868,9 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Vdl2MessageRow.init))
     }
     /// The changed rows of the table "aircraft" of the stack "vdl2", newest first, at most `capacity` rows.
+    /// The column `flight` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
     public static func vdl2Aircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Vdl2AircraftRow], SDRKitCode> {
         var rows = [sdrkit_vdl2_aircraft_row](repeating: sdrkit_vdl2_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1867,6 +1879,8 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Vdl2AircraftRow.init))
     }
     /// The changed rows of the table "ground_stations" of the stack "vdl2", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
+    /// Place of a row: the column `position`.
     public static func vdl2GroundStations(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[Vdl2StationRow], SDRKitCode> {
         var rows = [sdrkit_vdl2_station_row](repeating: sdrkit_vdl2_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1883,6 +1897,9 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Vdl2ChannelRow.init))
     }
     /// The changed rows of the table "messages" of the stack "vdl4", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`.
     public static func vdl4Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[Vdl4MessageRow], SDRKitCode> {
         var rows = [sdrkit_vdl4_message_row](repeating: sdrkit_vdl4_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1891,6 +1908,9 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Vdl4MessageRow.init))
     }
     /// The changed rows of the table "aircraft" of the stack "vdl4", newest first, at most `capacity` rows.
+    /// The column `flight` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
     public static func vdl4Aircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Vdl4AircraftRow], SDRKitCode> {
         var rows = [sdrkit_vdl4_aircraft_row](repeating: sdrkit_vdl4_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1899,6 +1919,8 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Vdl4AircraftRow.init))
     }
     /// The changed rows of the table "ground_stations" of the stack "vdl4", newest first, at most `capacity` rows.
+    /// The column `address` names a row.
+    /// Place of a row: the column `position`.
     public static func vdl4GroundStations(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[Vdl4StationRow], SDRKitCode> {
         var rows = [sdrkit_vdl4_station_row](repeating: sdrkit_vdl4_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1931,6 +1953,7 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SelcalCodeRow.init))
     }
     /// The changed rows of the table "channels" of the stack "airband", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func airbandChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[AirbandChannelRow], SDRKitCode> {
         var rows = [sdrkit_airband_channel_row](repeating: sdrkit_airband_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1939,6 +1962,7 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AirbandChannelRow.init))
     }
     /// The changed rows of the table "seen" of the stack "airband", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func airbandSeen(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[AirbandSeenRow], SDRKitCode> {
         var rows = [sdrkit_airband_seen_row](repeating: sdrkit_airband_seen_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1947,6 +1971,7 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AirbandSeenRow.init))
     }
     /// The changed rows of the table "activity" of the stack "airband", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func airbandActivity(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[AirbandActivityRow], SDRKitCode> {
         var rows = [sdrkit_airband_activity_row](repeating: sdrkit_airband_activity_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1955,6 +1980,8 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AirbandActivityRow.init))
     }
     /// The changed rows of the table "messages" of the stack "hfdl", newest first, at most `capacity` rows.
+    /// The column `flight` names a row.
+    /// Place of a row: the column `position`.
     public static func hfdlMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[HfdlMessageRow], SDRKitCode> {
         var rows = [sdrkit_hfdl_message_row](repeating: sdrkit_hfdl_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1963,6 +1990,9 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdlMessageRow.init))
     }
     /// The changed rows of the table "aircraft" of the stack "hfdl", newest first, at most `capacity` rows.
+    /// The column `flight` names a row.
+    /// Place of a row: the column `position`.
+    /// Height: `alt_ft`.
     public static func hfdlAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[HfdlAircraftRow], SDRKitCode> {
         var rows = [sdrkit_hfdl_aircraft_row](repeating: sdrkit_hfdl_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1971,6 +2001,7 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdlAircraftRow.init))
     }
     /// The changed rows of the table "ground_stations" of the stack "hfdl", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func hfdlGroundStations(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[HfdlStationRow], SDRKitCode> {
         var rows = [sdrkit_hfdl_station_row](repeating: sdrkit_hfdl_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1979,6 +2010,7 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdlStationRow.init))
     }
     /// The changed rows of the table "channels" of the stack "hfdl", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func hfdlChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[HfdlChannelRow], SDRKitCode> {
         var rows = [sdrkit_hfdl_channel_row](repeating: sdrkit_hfdl_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized

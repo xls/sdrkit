@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "voice", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "voice", version 1.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,7 +36,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_VOICE_VERSION_MAJOR 1
-#define SDRKIT_VOICE_VERSION_MINOR 1
+#define SDRKIT_VOICE_VERSION_MINOR 2
 
 // The stack "hfpacket": its id, and the keys of its event types.
 #define SDRKIT_STACK_HFPACKET "hfpacket"
@@ -943,6 +943,7 @@ static inline int32_t sdrkit_hfpacket_events_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "hfpacket" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `source` names a row.
 static inline int32_t sdrkit_hfpacket_frames_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_hfpacket_frame_row *rows,
                                                  uint32_t capacity,
@@ -1161,6 +1162,7 @@ static inline int32_t sdrkit_voice_inversion_gen_set_deviation_hz(SDRKIT_HANDLE 
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "voice_channels" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `label` names a row.
 static inline int32_t sdrkit_voice_channels_calls_rows(SDRKIT_HANDLE handle,
                                                       sdrkit_voice_call_row *rows,
                                                       uint32_t capacity,
@@ -1170,6 +1172,7 @@ static inline int32_t sdrkit_voice_channels_calls_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "voice_channels" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_voice_channels_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_voice_channel_row *rows,
                                                 uint32_t capacity,
@@ -1335,6 +1338,7 @@ static inline int32_t sdrkit_voice_channels_gen_set_scene(SDRKIT_HANDLE handle, 
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "mdc1200" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `label` names a row.
 static inline int32_t sdrkit_mdc1200_calls_rows(SDRKIT_HANDLE handle,
                                                sdrkit_voice_call_row *rows,
                                                uint32_t capacity,
@@ -1344,6 +1348,7 @@ static inline int32_t sdrkit_mdc1200_calls_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "mdc1200" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_mdc1200_channels_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_voice_channel_row *rows,
                                                   uint32_t capacity,
@@ -1353,6 +1358,7 @@ static inline int32_t sdrkit_mdc1200_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "bursts" of the stack "mdc1200" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `label` names a row.
 static inline int32_t sdrkit_mdc1200_bursts_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_mdc1200_burst_row *rows,
                                                 uint32_t capacity,
@@ -1446,6 +1452,7 @@ static inline int32_t sdrkit_mdc1200_gen_set_cnr_db(SDRKIT_HANDLE handle, double
 
 // Fills `rows` with the changed rows of the table "candidates" of the stack "wmic" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `snr_db`, highest first.
 static inline int32_t sdrkit_wmic_candidates_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_wmic_candidate_row *rows,
                                                  uint32_t capacity,
@@ -1530,6 +1537,7 @@ static inline int32_t sdrkit_wmic_gen_set_cnr_db(SDRKIT_HANDLE handle, double va
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "fleetsync" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `label` names a row.
 static inline int32_t sdrkit_fleetsync_calls_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_voice_call_row *rows,
                                                  uint32_t capacity,
@@ -1539,6 +1547,7 @@ static inline int32_t sdrkit_fleetsync_calls_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "fleetsync" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_fleetsync_channels_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_voice_channel_row *rows,
                                                     uint32_t capacity,
@@ -1548,6 +1557,7 @@ static inline int32_t sdrkit_fleetsync_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "bursts" of the stack "fleetsync" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `label` names a row.
 static inline int32_t sdrkit_fleetsync_bursts_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_fleetsync_burst_row *rows,
                                                   uint32_t capacity,

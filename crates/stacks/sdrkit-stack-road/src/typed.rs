@@ -6,8 +6,8 @@ use crate::v2x::FrameKind;
 use sdrkit_core::interface::{
     Arguments, CommandKind, EventKind, Family as Described, Fields, Hertz, StackShape, Table, Time,
 };
-use sdrkit_core::publish::keys::{self, Family};
 use sdrkit_core::publish::field;
+use sdrkit_core::publish::keys::{self, Family};
 use sdrkit_core::settings::Argument;
 use sdrkit_core::SettingSet;
 use sdrkit_graph::DecoderFields;
@@ -130,10 +130,10 @@ pub struct V2xVehicleEvent<'a> {
 
 /// The vehicles, most recently heard first.
 pub static V2X_VEHICLES: Table<V2xVehicleRow<'static>> =
-    Table::new("vehicles", "Vehicles", crate::v2x::VEHICLE_CAP);
+    Table::new("vehicles", "Vehicles", crate::v2x::VEHICLE_CAP).label(&V2xVehicleRow::SOURCE);
 /// The frame log, newest first.
 pub static V2X_FRAMES: Table<V2xFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::v2x::FRAME_CAP);
+    Table::new("frames", "Frames", crate::v2x::FRAME_CAP).label(&V2xFrameRow::SOURCE);
 /// A vehicle heard for the first time.
 pub static V2X_VEHICLE: EventKind<V2xVehicleEvent<'static>> =
     EventKind::new("v2x.vehicle", "V2X vehicle");
@@ -154,20 +154,23 @@ pub const V2X_REMOVE: CommandKind<V2xVehicleArgs<'static>> = objcmd::remove_kind
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("road", 1, 0).stack(
-            StackShape::new("v2x")
-                .fields::<V2xFields>()
-                .fields::<DecoderFields>()
-                .table(&V2X_VEHICLES)
-                .table(&V2X_FRAMES)
-                .points("Vehicles")
-                .event(&V2X_VEHICLE)
-                .settings(V2xSetting::SETTINGS)
-                .command(&sdrkit_graph::decoder::CLEAR)
-                .command(&V2X_REMOVE)
-                // The vehicles heard and the frame log are history: the decoder that holds them stays.
-                .kept(&["vehicles", "frames", "V2xFields", "DecoderFields"]),
-        )
+        Described::new("road", 1, 1)
+            .added(1, 1, &["v2x.content"])
+            .content(sdrkit_core::ContentKind::Tracking, &["v2x"])
+            .stack(
+                StackShape::new("v2x")
+                    .fields::<V2xFields>()
+                    .fields::<DecoderFields>()
+                    .table(&V2X_VEHICLES)
+                    .table(&V2X_FRAMES)
+                    .points("Vehicles")
+                    .event(&V2X_VEHICLE)
+                    .settings(V2xSetting::SETTINGS)
+                    .command(&sdrkit_graph::decoder::CLEAR)
+                    .command(&V2X_REMOVE)
+                    // The vehicles heard and the frame log are history: the decoder that holds them stays.
+                    .kept(&["vehicles", "frames", "V2xFields", "DecoderFields"]),
+            )
     })
 }
 

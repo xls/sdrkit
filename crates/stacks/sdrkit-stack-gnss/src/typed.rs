@@ -308,7 +308,7 @@ pub struct GnssSatelliteRow {
     #[field(label = "Sub-point", unit = "°")]
     pub sub_point: Option<(f64, f64)>,
     /// The height of the satellite.
-    #[field(label = "Height", unit = "km")]
+    #[field(label = "Height", unit = "km", role = Altitude)]
     pub height_km: Option<f64>,
     /// Where the satellite's position comes from.
     #[field(label = "Orbit from")]
@@ -655,12 +655,16 @@ pub struct SbasIonosphereRow {
 
 /// The SBAS satellites.
 pub static SBAS_SATELLITES: Table<SbasSatelliteRow> =
-    Table::new("sbas_satellites", "SBAS satellites", 39);
+    Table::new("sbas_satellites", "SBAS satellites", 39).sorted(
+        &SbasSatelliteRow::CN0_DBHZ,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// The message types that each SBAS satellite sent.
 pub static SBAS_SATELLITE_TYPES: Table<SbasSatelliteTypeRow> =
     Table::new("sbas_satellite_types", "Types by satellite", 39 * 64);
 /// The SBAS messages by type.
-pub static SBAS_TYPES: Table<SbasTypeRow<'static>> = Table::new("types", "Types", 64);
+pub static SBAS_TYPES: Table<SbasTypeRow<'static>> =
+    Table::new("types", "Types", 64).label(&SbasTypeRow::NAME);
 /// The newest SBAS messages.
 pub static SBAS_MESSAGES: Table<SbasMessageRow<'static>> = Table::new("messages", "Messages", 100);
 /// The fast corrections of the selected PRN.
@@ -702,7 +706,11 @@ pub static SYSTEMS: Table<GnssSystemRow> = Table::new("systems", "Systems", 6);
 pub static FIX_SYSTEMS: Table<GnssFixSystemRow> =
     Table::new("fix_systems", "Systems in the fix", 6);
 /// The satellites.
-pub static SATELLITES: Table<GnssSatelliteRow> = Table::new("satellites", "Satellites", 160);
+pub static SATELLITES: Table<GnssSatelliteRow> = Table::new("satellites", "Satellites", 160)
+    .sorted(
+        &GnssSatelliteRow::CN0_DBHZ,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// The lines of the interference spectrum.
 pub static INTERFERENCE_LINES: Table<InterferenceLineRow> =
     Table::new("interference_lines", "Interference lines", 16);
@@ -715,8 +723,11 @@ pub static FIX: EventKind<GnssFixEvent> = EventKind::new("gnss.fix", "Fix");
 pub static NMEA: EventKind<NmeaEvent<'static>> = EventKind::new("text.nmea", "NMEA sentence");
 
 /// The NavIC satellites.
-pub static NAVIC_SATELLITES: Table<NavicSatelliteRow> =
-    Table::new("satellites", "Satellites", 14);
+pub static NAVIC_SATELLITES: Table<NavicSatelliteRow> = Table::new("satellites", "Satellites", 14)
+    .sorted(
+        &NavicSatelliteRow::CN0_DBHZ,
+        sdrkit_core::SortOrder::Descending,
+    );
 /// A NavIC subframe.
 pub static NAVIC_SUBFRAME: EventKind<NavicSubframeEvent> =
     EventKind::new("navic.subframe", "NavIC subframe");
@@ -736,7 +747,10 @@ pub const MONITOR_SERIES: [(&str, &str, &str, &str); 2] = [
 ];
 
 /// `shape` with the series `series`.
-fn with_series(mut shape: StackShape, series: &[(&'static str, &'static str, &'static str, &'static str)]) -> StackShape {
+fn with_series(
+    mut shape: StackShape,
+    series: &[(&'static str, &'static str, &'static str, &'static str)],
+) -> StackShape {
     for &(key, label, x_unit, y_unit) in series {
         shape = shape.series(SeriesDef {
             key,
@@ -813,15 +827,21 @@ pub fn family() -> &'static Described {
                 "SbasFields.sbas_messages",
                 "SbasFields.messages_missed",
             ]);
-        Described::new("gnss", 1, 0).stack(gnss).stack(sbas).stack(
-            StackShape::new("navic")
-                .fields::<NavicFields>()
-                .fields::<DecoderFields>()
-                .table(&NAVIC_SATELLITES)
-                .event(&NAVIC_SUBFRAME)
-                .settings(NavicSetting::SETTINGS)
-                .command(&sdrkit_graph::decoder::CLEAR),
-        )
+        Described::new("gnss", 1, 1)
+            .added(1, 1, &["gnss.content", "sbas.content", "navic.content"])
+            .content(sdrkit_core::ContentKind::Tracking, &["gnss"])
+            .content(sdrkit_core::ContentKind::Navigation, &["sbas", "navic"])
+            .stack(gnss)
+            .stack(sbas)
+            .stack(
+                StackShape::new("navic")
+                    .fields::<NavicFields>()
+                    .fields::<DecoderFields>()
+                    .table(&NAVIC_SATELLITES)
+                    .event(&NAVIC_SUBFRAME)
+                    .settings(NavicSetting::SETTINGS)
+                    .command(&sdrkit_graph::decoder::CLEAR),
+            )
     })
 }
 

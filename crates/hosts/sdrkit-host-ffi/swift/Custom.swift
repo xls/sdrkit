@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "custom", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "custom", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum CustomInterface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The result fields of `slotted_voice`. A value of the signal has no value while no receiver is locked.
@@ -1048,6 +1048,8 @@ public struct HfChatTxEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum CustomTables {
     /// The changed rows of the table "stations" of the stack "slotted_voice", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
+    /// Place of a row: the column `position`.
     public static func slottedVoiceStations(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[SlottedVoiceStationRow], SDRKitCode> {
         var rows = [sdrkit_slotted_voice_station_row](repeating: sdrkit_slotted_voice_station_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1064,6 +1066,7 @@ public enum CustomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(QamVideoStreamRow.init))
     }
     /// The changed rows of the table "pictures" of the stack "picture_burst", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func pictureBurstPictures(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[PictureBurstPictureRow], SDRKitCode> {
         var rows = [sdrkit_picture_burst_picture_row](repeating: sdrkit_picture_burst_picture_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1072,6 +1075,7 @@ public enum CustomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(PictureBurstPictureRow.init))
     }
     /// The changed rows of the table "messages" of the stack "arq_packet", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func arqPacketMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[ArqPacketMessageRow], SDRKitCode> {
         var rows = [sdrkit_arq_packet_message_row](repeating: sdrkit_arq_packet_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1080,6 +1084,7 @@ public enum CustomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ArqPacketMessageRow.init))
     }
     /// The changed rows of the table "files" of the stack "file_transfer", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func fileTransferFiles(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[FileTransferFileRow], SDRKitCode> {
         var rows = [sdrkit_file_transfer_file_row](repeating: sdrkit_file_transfer_file_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1088,6 +1093,7 @@ public enum CustomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FileTransferFileRow.init))
     }
     /// The changed rows of the table "messages" of the stack "hf_chat", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
     public static func hfChatMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[HfChatMessageRow], SDRKitCode> {
         var rows = [sdrkit_hf_chat_message_row](repeating: sdrkit_hf_chat_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1096,6 +1102,8 @@ public enum CustomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfChatMessageRow.init))
     }
     /// The changed rows of the table "beacons" of the stack "hf_chat", newest first, at most `capacity` rows.
+    /// The column `callsign` names a row.
+    /// Place of a row: the column `position`.
     public static func hfChatBeacons(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[HfChatBeaconRow], SDRKitCode> {
         var rows = [sdrkit_hf_chat_beacon_row](repeating: sdrkit_hf_chat_beacon_row(), count: capacity)
         var info = sdrkit_rows_info.sized

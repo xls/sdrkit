@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "satimg", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "satimg", version 1.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -38,7 +38,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_SATIMG_VERSION_MAJOR 1
-#define SDRKIT_SATIMG_VERSION_MINOR 1
+#define SDRKIT_SATIMG_VERSION_MINOR 2
 
 // The stack "meteor_lrpt": its id, and the keys of its event types.
 #define SDRKIT_STACK_METEOR_LRPT "meteor_lrpt"
@@ -3894,6 +3894,7 @@ static inline int32_t sdrkit_msg_raw_gen_set_start(SDRKIT_HANDLE handle, int64_t
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "goes_cda" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex` names a row.
 static inline int32_t sdrkit_goes_cda_frames_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_satimg_frame_row *rows,
                                                  uint32_t capacity,
@@ -3928,6 +3929,7 @@ static inline int32_t sdrkit_goes_cda_gen_set_pm_index(SDRKIT_HANDLE handle, dou
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "goes_mdl" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex` names a row.
 static inline int32_t sdrkit_goes_mdl_frames_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_satimg_frame_row *rows,
                                                  uint32_t capacity,
@@ -3951,6 +3953,7 @@ static inline int32_t sdrkit_goes_mdl_clear(SDRKIT_HANDLE handle) {
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "gk2a_cdas" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex` names a row.
 static inline int32_t sdrkit_gk2a_cdas_frames_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_satimg_frame_row *rows,
                                                   uint32_t capacity,
@@ -3974,6 +3977,7 @@ static inline int32_t sdrkit_gk2a_cdas_clear(SDRKIT_HANDLE handle) {
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "sband_ccsds" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex` names a row.
 static inline int32_t sdrkit_sband_ccsds_frames_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_satimg_frame_row *rows,
                                                     uint32_t capacity,
@@ -4105,6 +4109,7 @@ static inline int32_t sdrkit_sband_ccsds_set_rs_basis(SDRKIT_HANDLE handle, sdrk
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "rdas" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex` names a row.
 static inline int32_t sdrkit_rdas_frames_rows(SDRKIT_HANDLE handle,
                                              sdrkit_satimg_frame_row *rows,
                                              uint32_t capacity,
@@ -4703,6 +4708,7 @@ static inline int32_t sdrkit_goes_grb_stream_modcods_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "grb_products" of the stack "goes_grb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_goes_grb_products_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_goes_grb_product_row *rows,
                                                    uint32_t capacity,
@@ -4712,6 +4718,7 @@ static inline int32_t sdrkit_goes_grb_products_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "packets_by_apid" of the stack "goes_grb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_goes_grb_packets_by_apid_rows(SDRKIT_HANDLE handle,
                                                           sdrkit_goes_grb_apid_row *rows,
                                                           uint32_t capacity,
@@ -4730,6 +4737,7 @@ static inline int32_t sdrkit_goes_grb_frames_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "flashes" of the stack "goes_grb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_goes_grb_flashes_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_goes_grb_glm_flash_row *rows,
                                                   uint32_t capacity,
@@ -4739,6 +4747,7 @@ static inline int32_t sdrkit_goes_grb_flashes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "groups" of the stack "goes_grb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_goes_grb_groups_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_goes_grb_glm_group_row *rows,
                                                  uint32_t capacity,
@@ -4880,6 +4889,7 @@ static inline int32_t sdrkit_sat_filecast_stream_modcods_rows(SDRKIT_HANDLE hand
 
 // Fills `rows` with the changed rows of the table "recent_files" of the stack "sat_filecast" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_sat_filecast_recent_files_rows(SDRKIT_HANDLE handle,
                                                            sdrkit_sat_filecast_recent_file_row *rows,
                                                            uint32_t capacity,
@@ -5308,6 +5318,7 @@ static inline int32_t sdrkit_hrpt_gen_set_pm_index(SDRKIT_HANDLE handle, double 
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "eodb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex` names a row.
 static inline int32_t sdrkit_eodb_frames_rows(SDRKIT_HANDLE handle,
                                              sdrkit_satimg_frame_row *rows,
                                              uint32_t capacity,

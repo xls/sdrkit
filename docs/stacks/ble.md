@@ -91,7 +91,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 2.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 2.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Networks and cells (`networks`). Media: none.
 
 ### Result fields
 
@@ -145,6 +147,8 @@ Struct `BleDeviceRow`. A row of the devices of `ble`. The row key is the address
 | `manufacturer_data` | text | optional | 1.0 | The first 32 bytes of manufacturer data after the company identifier, hex, if a packet gave them. |
 | `first_heard` | time | optional | 1.0 | The UTC of the first packet. |
 
+The column `name` names a row.
+
 ### Table `packets`
 
 Struct `BlePacketRow`. A row of the packet log of `ble`.
@@ -158,6 +162,8 @@ Struct `BlePacketRow`. A row of the packet log of `ble`.
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the packet. |
 | `length` | whole number (bytes) | always | 1.0 | The payload length. |
 | `details` | text | always | 1.0 | The one-line summary. |
+
+The column `address` names a row.
 
 ### Table `pdu_types`
 
@@ -177,6 +183,8 @@ Struct `BleDeviceLevelRow`. A row of the level history of the devices of `ble`. 
 | `device` | text | always | 1.0 | The row of the device. |
 | `sample` | whole number | always | 1.0 | The number of the level in the history of its device, counted from the first one heard. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level. |
+
+The column `device` names a row.
 
 ### Event `ble.device`
 

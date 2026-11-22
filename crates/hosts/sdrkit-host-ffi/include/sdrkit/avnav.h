@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "avnav", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "avnav", version 1.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_AVNAV_VERSION_MAJOR 1
-#define SDRKIT_AVNAV_VERSION_MINOR 1
+#define SDRKIT_AVNAV_VERSION_MINOR 2
 
 // The stack "ndb": its id, and the keys of its event types.
 #define SDRKIT_STACK_NDB "ndb"
@@ -992,6 +992,7 @@ typedef struct sdrkit_dgps_rtcm_frame_event {
 
 // Fills `rows` with the changed rows of the table "idents" of the stack "ndb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `ident` names a row.
 static inline int32_t sdrkit_ndb_idents_rows(SDRKIT_HANDLE handle,
                                             sdrkit_avnav_ident_row *rows,
                                             uint32_t capacity,
@@ -1001,6 +1002,7 @@ static inline int32_t sdrkit_ndb_idents_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "scan" of the stack "ndb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `cn0_dbhz`, highest first.
 static inline int32_t sdrkit_ndb_scan_rows(SDRKIT_HANDLE handle,
                                           sdrkit_ndb_scan_row *rows,
                                           uint32_t capacity,
@@ -1169,6 +1171,7 @@ static inline int32_t sdrkit_ndb_gen_set_others(SDRKIT_HANDLE handle, int64_t va
 
 // Fills `rows` with the changed rows of the table "idents" of the stack "vor" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `ident` names a row.
 static inline int32_t sdrkit_vor_idents_rows(SDRKIT_HANDLE handle,
                                             sdrkit_avnav_ident_row *rows,
                                             uint32_t capacity,
@@ -1269,6 +1272,7 @@ static inline int32_t sdrkit_vor_gen_set_rotate(SDRKIT_HANDLE handle, double val
 
 // Fills `rows` with the changed rows of the table "idents" of the stack "ils" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `ident` names a row.
 static inline int32_t sdrkit_ils_idents_rows(SDRKIT_HANDLE handle,
                                             sdrkit_avnav_ident_row *rows,
                                             uint32_t capacity,
@@ -1422,6 +1426,7 @@ static inline int32_t sdrkit_ils_gen_set_marker_stop(SDRKIT_HANDLE handle, doubl
 
 // Fills `rows` with the changed rows of the table "idents" of the stack "dme" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `ident` names a row.
 static inline int32_t sdrkit_dme_idents_rows(SDRKIT_HANDLE handle,
                                             sdrkit_avnav_ident_row *rows,
                                             uint32_t capacity,
@@ -1520,6 +1525,7 @@ static inline int32_t sdrkit_dme_gen_set_pause(SDRKIT_HANDLE handle, double valu
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "loran" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `station` names a row.
 static inline int32_t sdrkit_loran_stations_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_loran_station_row *rows,
                                                 uint32_t capacity,
@@ -1619,6 +1625,7 @@ static inline int32_t sdrkit_dgps_corrections_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "almanac" of the stack "dgps" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_dgps_almanac_rows(SDRKIT_HANDLE handle,
                                               sdrkit_dgps_almanac_row *rows,
                                               uint32_t capacity,

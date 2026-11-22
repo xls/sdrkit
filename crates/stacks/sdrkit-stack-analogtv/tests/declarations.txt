@@ -102,6 +102,7 @@ field FieldDecl { key: "tx_system", label: "System sent", unit: "", kind: Text, 
 field FieldDecl { key: "tx_frames", label: "Frames shown", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "tx_fields", label: "Fields sent", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 256
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "label", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "vision", label: "Vision carrier", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
 table "teletext_pages" "Teletext pages" cap 800
@@ -241,6 +242,7 @@ field FieldDecl { key: "tx_system", label: "System sent", unit: "", kind: Text, 
 field FieldDecl { key: "tx_frames", label: "Frames shown", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "tx_fields", label: "Fields sent", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 64
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }

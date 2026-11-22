@@ -137,6 +137,7 @@ pub static BENCHMARKS: TableDef = TableDef {
         &BENCH_STATUS,
     ],
     cap: 4096,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The components of the stack of each benchmark, as `session.components` shows them for a session. The row key is
@@ -159,6 +160,7 @@ pub static BENCH_COMPONENTS: TableDef = TableDef {
         &s::LOAD_UNITS,
     ],
     cap: 16384,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The stages of the stack of each benchmark. The row key is `<benchmark>/<stage>`.
@@ -174,6 +176,7 @@ pub static BENCH_STAGES: TableDef = TableDef {
         &s::LOAD_DECLARED_UNITS,
     ],
     cap: 4096,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The connections of the stack of each benchmark. The row key is `<benchmark>/<from>.<output>><to>.<input>`. The
@@ -201,6 +204,7 @@ pub static BENCH_CONNECTIONS: TableDef = TableDef {
         &s::CONN_BOUNDARY,
     ],
     cap: 16384,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The state of every owner, as the bytes of a state file.

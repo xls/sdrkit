@@ -78,7 +78,9 @@ The stack puts points on a map: Aircraft and ground stations.
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.1. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 1.2. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Datalink messages (`datalink`). Media: text.
 
 ### Result fields
 
@@ -135,6 +137,8 @@ Struct `Vdl2MessageRow`. A row of the frames. The row key is the place in the lo
 | `alt_ft` | number (ft) | optional | 1.0 | The altitude the frame gives. |
 | `detail` | text | optional | 1.0 | Every layer, one line each, joined by " \| ". |
 
+The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`.
+
 ### Table `aircraft`
 
 Struct `Vdl2AircraftRow`. A row of the aircraft. The row key is the address.
@@ -159,6 +163,8 @@ Struct `Vdl2AircraftRow`. A row of the aircraft. The row key is the address.
 | `estimate` | position | optional | 1.0 | The position now, by dead reckoning from the last fix. |
 | `trail_points` | whole number | always | 1.0 | The points of the trail. |
 
+The column `flight` names a row. Place of a row: the column `position`. Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
+
 ### Table `ground_stations`
 
 Struct `Vdl2StationRow`. A row of the ground stations. The row key is the address.
@@ -173,6 +179,8 @@ Struct `Vdl2StationRow`. A row of the ground stations. The row key is the addres
 | `last_heard` | time | optional | 1.0 | When the station was last heard. |
 | `airports` | text | optional | 1.0 | The airports the station covers. |
 | `position` | position | optional | 1.0 | The position from its GSIF. |
+
+The column `address` names a row. Place of a row: the column `position`.
 
 ### Table `channels`
 

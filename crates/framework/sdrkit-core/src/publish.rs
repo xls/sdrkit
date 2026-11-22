@@ -3,6 +3,7 @@
 
 use crate::command::CommandError;
 use crate::event::{Event, EventDef};
+use crate::marks::{Role, RowMarks, TableMarks};
 
 use crate::owner::OwnerKey;
 use crate::record::{refuse_write, ContentType, FieldDecl, FieldId, Kind, RecordDecl, RefersTo};
@@ -74,6 +75,7 @@ pub struct Field<K> {
     pub unit: &'static str,
     refers_to: Option<(Option<&'static str>, &'static str)>,
     content: Option<ContentType>,
+    role: Option<Role>,
     kind: PhantomData<fn() -> K>,
 }
 
@@ -98,8 +100,19 @@ impl<K: Kind> Field<K> {
             unit,
             refers_to: None,
             content: None,
+            role: None,
             kind: PhantomData,
         }
+    }
+    /// The same field with the role `role`: what it holds for a front end that places a row on a map.
+    #[must_use]
+    pub const fn role(mut self, role: Role) -> Self {
+        self.role = Some(role);
+        self
+    }
+    /// The role of the field, if it has one.
+    pub const fn role_of(&self) -> Option<Role> {
+        self.role
     }
     /// The same field, holding row keys of table `table` of owner `owner`.
     ///
@@ -152,6 +165,10 @@ pub trait Declare: Sync {
     fn kind(&self) -> ValueKind;
     /// The declaration.
     fn decl(&self) -> FieldDecl;
+    /// What the field holds for a front end that places a row on a map. `None` for a field without a role.
+    fn role(&self) -> Option<Role> {
+        None
+    }
 }
 
 impl<K: Kind> Declare for Field<K> {
@@ -160,6 +177,9 @@ impl<K: Kind> Declare for Field<K> {
     }
     fn kind(&self) -> ValueKind {
         K::VALUE_KIND
+    }
+    fn role(&self) -> Option<Role> {
+        self.role
     }
     fn decl(&self) -> FieldDecl {
         Field::decl(self)
@@ -176,6 +196,9 @@ pub struct TableDef {
     pub columns: &'static [&'static dyn Declare],
     /// The most rows kept. The oldest row goes first.
     pub cap: usize,
+    /// The column that names a row and the default order of the rows. [`RowMarks::NONE`] for a table that states
+    /// neither.
+    pub marks: RowMarks,
 }
 
 impl TableDef {
@@ -183,13 +206,14 @@ impl TableDef {
     ///
     /// # Panics
     ///
-    /// If two columns share a key.
+    /// If two columns share a key, or if the marks name a column that the table does not have.
     pub fn decl(&self) -> TableDecl {
         TableDecl {
             key: Cow::Borrowed(self.key),
             label: Cow::Borrowed(self.label),
             columns: Arc::new(RecordDecl::of(self.columns)),
             cap: self.cap,
+            marks: TableMarks::of(self.key, self.columns, &self.marks),
         }
     }
 }
@@ -486,11 +510,11 @@ pub mod keys {
     /// The position of the object that the event is about.
     pub const POSITION: Field<field::Position> = Field::new("position", "Position", "");
     /// The height of the object that the event is about, metres above mean sea level.
-    pub const HEIGHT_M: Field<field::F64> = Field::new("height_m", "Height", "m");
+    pub const HEIGHT_M: Field<field::F64> = Field::new("height_m", "Height", "m").role(crate::Role::Altitude);
     /// The speed over the ground of the object that the event is about, knots.
-    pub const SPEED_KT: Field<field::F64> = Field::new("speed_kt", "Speed", "kt");
+    pub const SPEED_KT: Field<field::F64> = Field::new("speed_kt", "Speed", "kt").role(crate::Role::Speed);
     /// The course over the ground of the object that the event is about, degrees clockwise from true north.
-    pub const COURSE_DEG: Field<field::F64> = Field::new("course_deg", "Course", "°");
+    pub const COURSE_DEG: Field<field::F64> = Field::new("course_deg", "Course", "°").role(crate::Role::Course);
     /// The receiver of a message or call: an address, a call sign or a talk group member.
     pub const TARGET: Field<field::Text> = Field::new("target", "Target", "");
     /// The channel or talk group of a call.
@@ -613,12 +637,14 @@ mod tests {
             label: "List",
             columns: &[&NAME],
             cap: 4,
+            marks: RowMarks::NONE,
         };
         static OTHER: TableDef = TableDef {
             key: "other",
             label: "Other",
             columns: &[&NAME],
             cap: 4,
+            marks: RowMarks::NONE,
         };
         let p = Published::from_decl(Arc::new(ResultsDecl::new().with_table(&LIST)));
         assert_eq!(

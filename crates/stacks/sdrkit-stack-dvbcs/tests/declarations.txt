@@ -1021,6 +1021,7 @@ field FieldDecl { key: "pilot_spacing", label: "Second carrier spacing", unit: "
 field FieldDecl { key: "lines", label: "Lines", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "first_frames", label: "First frames found at", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
 table "lines" "Lines" cap 6
+  marks TableMarks { label: None, sort: Some((1, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "offset", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "over_noise_db", label: "Over noise", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1031,6 +1032,7 @@ table "frames" "Frames" cap 48
   column FieldDecl { key: "good", label: "Good", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "bytes", label: "Bytes", unit: "", kind: Bytes, choices: [], refers_to: None, content: None }
 table "decoded" "Decoded" cap 256
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "field", label: "Field" }, ChoiceDecl { key: "summary", label: "Summary" }], refers_to: None, content: None }
   column FieldDecl { key: "value", label: "Value", unit: "", kind: Text, choices: [], refers_to: None, content: None }

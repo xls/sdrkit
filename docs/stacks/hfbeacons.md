@@ -113,7 +113,9 @@ The stack puts points on a map: Beacons heard.
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.4. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 1.5. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Science and propagation (`science`). Media: sound (monitor).
 
 ### Result fields
 
@@ -179,6 +181,8 @@ Struct `HfbeaconsBeaconRow`. A beacon of the list. The row key is the place in t
 | `note` | text | always | 1.0 | A note on the beacon. |
 | `band` | text | always | 1.0 | The band of the beacon. |
 | `position` | position | optional | 1.0 | The position of the beacon. |
+
+The column `name` names a row. Place of a row: the column `position`.
 
 ### Table `bands`
 

@@ -958,6 +958,7 @@ mod publish {
         label: "Nodes",
         columns: COLUMNS,
         cap: 150,
+        marks: sdrkit_core::RowMarks::NONE,
     };
     static NODE_HEARD: EventDef = EventDef::new("test.node", "Node heard", COLUMNS);
 
@@ -1119,6 +1120,7 @@ mod publish {
                 lon: 0.0,
                 label: String::new(),
                 heading: None,
+                row: None,
             },
         );
         assert_eq!(r.points().len(), 3);
@@ -1131,6 +1133,31 @@ mod publish {
         assert!(!r.points().contains_key("nodes/1"));
         assert!(r.points().contains_key("ships/9"));
         assert!(r.points().contains_key("nodes/3"));
+    }
+
+    #[test]
+    fn a_point_of_a_row_states_its_table_and_its_row_key() {
+        let t = nodes();
+        let mut p = Published::new(&[]).with_tables(&[&NODES]);
+        publish::rows(&t, &NODES, 0.0, &mut p);
+        publish::row_points(&t, &NODES, "nodes/", p.results_mut());
+        let r = p.results();
+        let table = r.decl().table_id(NODES.key).unwrap();
+        let row = r.points()["nodes/1"].row.clone().unwrap();
+        assert_eq!((row.table, row.key.as_str()), (table, "1"));
+        // The row of each point is a row of the table.
+        for point in r.points().values() {
+            let link = point.row.as_ref().unwrap();
+            assert!(r.table(link.table).unwrap().row(&link.key).is_some());
+        }
+        // Nothing changes when the same points are written again.
+        let before = r.change_counter();
+        publish::row_points(&t, &NODES, "nodes/", p.results_mut());
+        assert_eq!(p.results().change_counter(), before);
+        // A point that is written without a table states no row.
+        let mut plain = Results::default();
+        publish::points(&t, "nodes/", &mut plain);
+        assert!(plain.points()["nodes/1"].row.is_none());
     }
 
     #[test]

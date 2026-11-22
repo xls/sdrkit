@@ -73,7 +73,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.2. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 1.3. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Satellite links (`satellite_links`). Media: none.
 
 ### Result fields
 
@@ -122,6 +124,8 @@ Struct `HrdcpReportRow`. A message of the log. The row key is the sequence numbe
 | `snr_db` | number (dB) | always | 1.0 | The signal to noise ratio. |
 | `text` | text | always | 1.0 | The data of the message. |
 
+The column `address` names a row.
+
 ### Table `platforms`
 
 Struct `HrdcpPlatformRow`. A platform heard. The row key is the address.
@@ -136,6 +140,8 @@ Struct `HrdcpPlatformRow`. A platform heard. The row key is the address.
 | `last_heard` | time | optional | 1.0 | When it was last heard. |
 | `heard` | whole number | optional | 1.0 | How many times it was heard. |
 
+The column `address` names a row.
+
 ### Table `carriers`
 
 Struct `HrdcpCarrierRow`. A carrier followed now. The row key is its place in the list ("000").
@@ -148,6 +154,8 @@ Struct `HrdcpCarrierRow`. A carrier followed now. The row key is its place in th
 | `state` | whole number | always | 1.0 | The carrier state: 0 looking for the marker, 2 decoding. |
 | `bit_rate_hz` | frequency | optional | 1.0 | The bit rate. |
 | `bytes` | whole number | always | 1.0 | Platform data bytes. |
+
+Default order: the column `snr_db`, highest first.
 
 ### Event `hrdcp.report`
 

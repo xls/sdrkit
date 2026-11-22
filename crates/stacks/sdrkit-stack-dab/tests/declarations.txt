@@ -109,6 +109,7 @@ field FieldDecl { key: "muted", label: "Muted", unit: "s", kind: Duration, choic
 field FieldDecl { key: "concealments", label: "Concealments", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "underruns", label: "Underruns", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "services" "Services" cap 256
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "sid", label: "SId", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "label", label: "Label", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "short_label", label: "Short label", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -133,6 +134,7 @@ table "subchannels" "Sub-channels" cap 64
   column FieldDecl { key: "protection", label: "Protection", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "bitrate_kbps", label: "Bit rate", unit: "kbit/s", kind: I64, choices: [], refers_to: None, content: None }
 table "service_components" "Service components" cap 512
+  marks TableMarks { label: Some(8), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "service", label: "Service", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "services" }), content: None }
   column FieldDecl { key: "tmid", label: "Transport", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "component_type", label: "Component type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -143,6 +145,7 @@ table "service_components" "Service components" cap 512
   column FieldDecl { key: "scrambled", label: "Scrambled", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "label", label: "Label", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "user_applications" "User applications" cap 512
+  marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "service", label: "Service", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "services" }), content: None }
   column FieldDecl { key: "scids", label: "SCIdS", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "app_type", label: "Application type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -151,6 +154,7 @@ table "service_clusters" "Announcement clusters" cap 512
   column FieldDecl { key: "service", label: "Service", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "services" }), content: None }
   column FieldDecl { key: "cluster", label: "Cluster", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "tii_database" "Transmitter database" cap 256
+  marks TableMarks { label: None, sort: None, position: Some(2), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "main", label: "Main id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "sub", label: "Sub id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
@@ -164,12 +168,14 @@ table "announcements" "Announcements" cap 32
   column FieldDecl { key: "asw", label: "Types", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "subchannel", label: "Sub-channel", unit: "", kind: I64, choices: [], refers_to: Some(RefersTo { owner: None, table: "subchannels" }), content: None }
 table "transmitters" "Transmitters" cap 64
+  marks TableMarks { label: None, sort: None, position: Some(3), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "main", label: "Main id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "sub", label: "Sub id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "delay_us", label: "Delay", unit: "µs", kind: I64, choices: [], refers_to: None, content: None }
 table "journaline" "Journaline" cap 512
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "id", label: "Id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "menu", label: "Menu" }, ChoiceDecl { key: "text", label: "Plain text" }, ChoiceDecl { key: "title", label: "Title only" }, ChoiceDecl { key: "list", label: "List" }], refers_to: None, content: None }
   column FieldDecl { key: "title", label: "Title", unit: "", kind: Text, choices: [], refers_to: None, content: None }

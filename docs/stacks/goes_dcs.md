@@ -71,7 +71,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.2. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 1.3. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Satellite links (`satellite_links`). Media: none.
 
 ### Result fields
 
@@ -110,6 +112,8 @@ Struct `GoesDcsReportRow`. A platform report. The row key is the sequence number
 | `parity_errors` | whole number | always | 1.0 | Characters whose parity failed. |
 | `text` | text | always | 1.0 | The data of the report. |
 
+The column `address` names a row.
+
 ### Table `platforms`
 
 Struct `GoesDcsPlatformRow`. A platform heard. The row key is the address.
@@ -125,6 +129,8 @@ Struct `GoesDcsPlatformRow`. A platform heard. The row key is the address.
 | `last_heard` | time | optional | 1.0 | When it was last heard. |
 | `heard` | whole number | optional | 1.0 | How many times it was heard. |
 
+The column `address` names a row.
+
 ### Table `carriers`
 
 Struct `GoesDcsCarrierRow`. A carrier followed now. The row key is its place in the list ("000").
@@ -135,6 +141,8 @@ Struct `GoesDcsCarrierRow`. A carrier followed now. The row key is its place in 
 | `channel` | whole number | always | 1.0 | The channel number. |
 | `snr_db` | number (dB) | always | 1.0 | The signal to noise ratio. |
 | `bit_rate_hz` | frequency | optional | 1.0 | The bit rate. |
+
+Default order: the column `snr_db`, highest first.
 
 ### Event `goes_dcs.report`
 

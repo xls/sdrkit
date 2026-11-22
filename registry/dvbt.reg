@@ -1,5 +1,5 @@
 # The interface of the stack family dvbt. The registry test of the family writes this file.
-family dvbt version=2.5
+family dvbt version=2.6
 uses.mpegts major=1 since=1.0
 shape.DvbtFields since=1.0
 shape.DvbtFields.detect_level type=i64 unit= optional=no since=1.0
@@ -139,6 +139,7 @@ shape.DvbshChainFields.snr_db type=f64 unit=dB optional=yes since=1.0
 shape.DvbshChainFields.tps_frames_ok type=i64 unit= optional=no since=1.0
 shape.DvbshChainFields.tps_frames_failed type=i64 unit= optional=no since=1.0
 dvbt since=1.0
+dvbt.content kind=television audio=programme video=yes since=2.6
 dvbt.fields.DvbtFields since=1.0
 dvbt.fields.DvbtMultiplexFields since=1.0
 dvbt.fields.DvbtTxFields since=2.4
@@ -220,6 +221,7 @@ dvbt.command.stop args= reply= since=2.4
 dvbt.command.append args=packets:bytes reply= since=2.4
 dvbt.command.append_lp args=packets:bytes reply= since=2.4
 dvb_terrestrial since=1.0
+dvb_terrestrial.content kind=television audio=programme video=yes since=2.6
 dvb_terrestrial.fields.DvbtFields since=1.0
 dvb_terrestrial.fields.DvbtMultiplexFields since=1.0
 dvb_terrestrial.fields.DvbTerrestrialFields since=1.0
@@ -289,6 +291,7 @@ dvb_terrestrial.command.service.select args=row:text reply= since=1.0
 dvb_terrestrial.command.teletext.select args=row:text reply= since=1.0
 dvb_terrestrial.command.track.select args=row:text reply= since=1.0
 dvbsh since=1.0
+dvbsh.content kind=television audio=programme video=yes since=2.6
 dvbsh.fields.DvbshFields since=1.0
 dvbsh.fields.DvbshChainFields since=1.0
 dvbsh.component.sync.fields.SyncFields since=1.0

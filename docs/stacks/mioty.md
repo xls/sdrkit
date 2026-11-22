@@ -58,7 +58,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:mi
 
 ## Typed interface
 
-The stack is in the family `ism`, version 2.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 2.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Sensors and devices (`devices`). Media: none.
 
 ### Result fields
 
@@ -100,6 +102,8 @@ Struct `MiotyFrameRow`. A row of the frame log. The row key is the number of the
 | `snr_db` | number (dB) | always | 1.0 | The SNR. |
 | `bursts_matched` | whole number (of 24) | always | 1.0 | The bursts of the pattern that matched. |
 
+The column `id` names a row.
+
 ### Table `devices`
 
 Struct `MiotyDeviceRow`. A row of the devices. The row key is the device.
@@ -113,6 +117,8 @@ Struct `MiotyDeviceRow`. A row of the devices. The row key is the device.
 | `freq_hz` | frequency | always | 1.0 | The frequency of the last frame. |
 | `first_heard` | time | optional | 1.0 | The UTC of the first frame. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+
+The column `id` names a row.
 
 ### Event `mioty.frame`
 

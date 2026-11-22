@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "general", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "general", version 1.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,7 +36,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_GENERAL_VERSION_MAJOR 1
-#define SDRKIT_GENERAL_VERSION_MINOR 2
+#define SDRKIT_GENERAL_VERSION_MINOR 3
 
 // The stack "general": its id, and the keys of its event types.
 #define SDRKIT_STACK_GENERAL "general"
@@ -587,6 +587,7 @@ static inline int32_t sdrkit_general_width_presets_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "presets" of the stack "general" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_general_presets_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_general_preset_row *rows,
                                                  uint32_t capacity,

@@ -48,6 +48,7 @@ field FieldDecl { key: "feed_messages", label: "Messages fed", unit: "", kind: I
 field FieldDecl { key: "modeac_replies", label: "Mode A/C replies", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "modeac_codes", label: "Mode A/C codes", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "aircraft" "Aircraft" cap 160
+  marks TableMarks { label: Some(1), sort: None, position: Some(11), latitude: None, longitude: None, altitude: Some(14), course: Some(18), speed: Some(16) }
   column FieldDecl { key: "icao", label: "ICAO", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "registration", label: "Registration", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -105,6 +106,7 @@ table "aircraft" "Aircraft" cap 160
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
 table "messages" "Messages" cap 64
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "hex", label: "Hex", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "icao", label: "ICAO", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -113,6 +115,7 @@ table "messages" "Messages" cap 64
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "sources" "Sources" cap 32
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "format", label: "Format", unit: "", kind: Choice, choices: [ChoiceDecl { key: "beast", label: "Beast" }, ChoiceDecl { key: "sbs", label: "SBS" }, ChoiceDecl { key: "asterix", label: "ASTERIX" }], refers_to: None, content: None }
   column FieldDecl { key: "connected", label: "Connected", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
@@ -123,10 +126,12 @@ table "by_df" "Messages by format" cap 32
   column FieldDecl { key: "format_number", label: "Format", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "count", label: "Count", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "gps_cells" "GPS interference" cap 4096
+  marks TableMarks { label: None, sort: None, position: Some(0), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "corner", label: "South-west corner", unit: "°", kind: Position, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "aircraft", label: "Aircraft", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "level", label: "Level", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "feeds" "Feeds" cap 64
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "name", label: "Feed", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "port", label: "Port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "clients", label: "Clients", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -184,6 +189,7 @@ field FieldDecl { key: "noise_dbfs", label: "Noise floor", unit: "dBFS", kind: F
 field FieldDecl { key: "report", label: "Report", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "time_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
 table "aircraft" "Aircraft" cap 128
+  marks TableMarks { label: Some(2), sort: None, position: Some(6), latitude: None, longitude: None, altitude: Some(7), course: Some(10), speed: Some(9) }
   column FieldDecl { key: "icao", label: "ICAO", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "address_qualifier", label: "Address qualifier", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -207,6 +213,7 @@ table "aircraft" "Aircraft" cap 128
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
 table "fisb_products" "FIS-B products" cap 64
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Received", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "product_id", label: "Product", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -215,6 +222,7 @@ table "fisb_products" "FIS-B products" cap 64
   column FieldDecl { key: "records", label: "Records", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "blocks", label: "Blocks", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "fisb_records" "FIS-B records" cap 512
+  marks TableMarks { label: Some(3), sort: None, position: Some(12), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "product", label: "Product", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "fisb_products" }), content: None }
   column FieldDecl { key: "time_s", label: "Received", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "product_id", label: "Product", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -234,6 +242,7 @@ table "fisb_records" "FIS-B records" cap 512
   column FieldDecl { key: "alt_top_ft", label: "Top", unit: "ft", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "fisb_blocks" "FIS-B grid blocks" cap 2048
+  marks TableMarks { label: Some(3), sort: None, position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "product", label: "Product", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "fisb_products" }), content: None }
   column FieldDecl { key: "time_s", label: "Received", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "product_id", label: "Product", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -247,11 +256,13 @@ table "fisb_blocks" "FIS-B grid blocks" cap 2048
   column FieldDecl { key: "max_bin", label: "Highest bin", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "bins", label: "Bins", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "fisb_vertices" "FIS-B vertices" cap 8192
+  marks TableMarks { label: None, sort: None, position: Some(2), latitude: None, longitude: None, altitude: Some(3), course: None, speed: None }
   column FieldDecl { key: "record", label: "Record", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "fisb_records" }), content: None }
   column FieldDecl { key: "index", label: "Index", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "position", label: "Position", unit: "°", kind: Position, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "alt_ft", label: "Altitude", unit: "ft", kind: I64, choices: [], refers_to: None, content: None }
 table "log" "Log" cap 64
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "adsb", label: "ADS-B" }, ChoiceDecl { key: "tisb", label: "TIS-B" }, ChoiceDecl { key: "fisb", label: "FIS-B" }, ChoiceDecl { key: "uat", label: "UAT" }], refers_to: None, content: None }
   column FieldDecl { key: "address", label: "Address", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -300,6 +311,7 @@ field FieldDecl { key: "all_call_a", label: "Mode A/C/S all-call", unit: "", kin
 field FieldDecl { key: "all_call_c", label: "Mode C/S all-call", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "ac_only_all_call", label: "Mode A/C-only all-call", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "addressed" "Addressed aircraft" cap 256
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "icao", label: "ICAO", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "interrogations", label: "Interrogations", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "formats", label: "Formats", unit: "", kind: Text, choices: [], refers_to: None, content: None }

@@ -106,7 +106,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.4. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 1.5. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Utility decoders (`utility`). Media: sound (monitor).
 
 ### Result fields
 
@@ -162,6 +164,8 @@ Struct `AleEventRow`. A call in the ALE event log. The row key is the sequence n
 | `offset_hz` | frequency | always | 1.0 | The frequency correction at the end of the call. |
 | `words` | whole number | always | 1.0 | Words in the transmission. |
 
+The column `from` names a row.
+
 ### Table `stations`
 
 Struct `AleStationRow`. A caller of ALE. The row key is the address.
@@ -175,6 +179,8 @@ Struct `AleStationRow`. A caller of ALE. The row key is the address.
 | `last_type` | choice | always | 1.0 | The type of the last call. |
 | `heard` | whole number | optional | 1.0 | Times heard. |
 | `last_heard` | time | optional | 1.0 | When last heard. |
+
+The column `address` names a row.
 
 ### Table `words`
 
@@ -197,6 +203,8 @@ Struct `AleNetRow`. A net address learned from the answers. The row key is the a
 |---|---|---|---|---|
 | `address` | text | always | 1.0 | The address. |
 
+The column `address` names a row.
+
 ### Table `lqa`
 
 Struct `AleLqaRow`. The link quality of a station on a channel. The row key is the address and the dial.
@@ -214,6 +222,8 @@ Struct `AleLqaRow`. The link quality of a station on a channel. The row key is t
 | `heard` | whole number | optional | 1.3 | Calls heard from it on this channel. |
 | `last_heard` | time | optional | 1.3 | When last heard on this channel. |
 
+The column `address` names a row.
+
 ### Table `messages`
 
 Struct `AleMessageRow`. An AMD text heard. The row key is the sequence number of the text.
@@ -226,6 +236,8 @@ Struct `AleMessageRow`. An AMD text heard. The row key is the sequence number of
 | `from` | text | optional | 1.3 | The caller, when known. |
 | `to` | text | always | 1.3 | The called addresses. |
 | `text` | text | always | 1.3 | The text. |
+
+The column `from` names a row.
 
 ### Event `ale.call`
 

@@ -88,7 +88,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 2.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 2.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Networks and cells (`networks`). Media: none.
 
 ### Result fields
 
@@ -154,6 +156,8 @@ Struct `BletrackerTrackerRow`. A row of the trackers of `bletracker`. The row ke
 | `battery` | whole number | optional | 1.0 | The SmartTag battery code, 0 to 3. |
 | `identifier` | text | optional | 1.0 | The rolling identifier in hex, opaque: the SmartTag privacy ID. |
 | `service_data` | text | optional | 1.0 | The service data value under the family's UUID in hex, as sent (Tile, Chipolo, SmartTag). |
+
+The column `identifier` names a row.
 
 ### Table `alerts`
 

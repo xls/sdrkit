@@ -260,6 +260,7 @@ impl<X: RowLayout> Object for Aircraft<X> {
 ///     label: "Aircraft",
 ///     columns: columns::STANDARD,
 ///     cap: 100,
+///     marks: sdrkit_core::RowMarks::NONE,
 /// };
 /// let mut t: AircraftTable = AircraftTable::new(100);
 /// let a = t.heard(Some(0x7C1234), "VH-OQA", Stamp::at(10.0)).unwrap();
@@ -291,11 +292,14 @@ pub mod columns {
     /// The last position.
     pub const POSITION: Field<field::Position> = Field::new("position", "Position", "");
     /// The altitude of the last position, feet.
-    pub const ALT_FT: Field<field::F64> = Field::new("alt_ft", "Altitude", "ft");
+    pub const ALT_FT: Field<field::F64> =
+        Field::new("alt_ft", "Altitude", "ft").role(sdrkit_core::Role::Altitude);
     /// The track, degrees true.
-    pub const TRACK_DEG: Field<field::F64> = Field::new("track_deg", "Track", "deg");
+    pub const TRACK_DEG: Field<field::F64> =
+        Field::new("track_deg", "Track", "deg").role(sdrkit_core::Role::Course);
     /// The ground speed, knots.
-    pub const GS_KT: Field<field::F64> = Field::new("gs_kt", "Ground speed", "kt");
+    pub const GS_KT: Field<field::F64> =
+        Field::new("gs_kt", "Ground speed", "kt").role(sdrkit_core::Role::Speed);
     /// The vertical rate, feet per minute.
     pub const VS_FPM: Field<field::F64> = Field::new("vs_fpm", "Vertical rate", "ft/min");
 
@@ -372,7 +376,7 @@ impl<X> Aircraft<X> {
 
     /// The map point of the standard layout: the last fix, labelled with the flight id, else the registration, else
     /// the address, and headed along the track. `None` without a position. A stack with an interface description
-    /// gives it to `sdrkit_util_objects::shaped::points_by` for the rows of its aircraft table.
+    /// gives it to `sdrkit_util_objects::shaped::row_points_by` with its aircraft table.
     ///
     /// ```
     /// use sdrkit_proto_aero::aircraft::{Aircraft, AircraftTable, Fix, Source};

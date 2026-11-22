@@ -123,7 +123,9 @@ The stack puts points on a map: Aircraft.
 
 ## Typed interface
 
-The stack is in the family `adsb`, version 1.1. The C header `sdrkit/adsb.h`, the registry record `registry/adsb.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `adsb`, version 1.2. The C header `sdrkit/adsb.h`, the registry record `registry/adsb.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -230,6 +232,8 @@ Struct `AircraftRow`. A row of the ADS-B aircraft table: the tracker's state for
 | `heard` | whole number | optional | 1.0 | Times heard. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. |
 
+The column `callsign` names a row. Place of a row: the column `position`. Height: `alt_ft`. Course: `heading_deg`. Speed: `speed_kt`.
+
 ### Table `messages`
 
 Struct `MessageRow`. A row of the message monitor: one good message of this receiver.
@@ -244,6 +248,8 @@ Struct `MessageRow`. A row of the message monitor: one good message of this rece
 | `level_dbfs` | number (dBFS) | always | 1.0 | Level. |
 | `message` | text | always | 1.0 | The description in words. |
 
+The column `icao` names a row.
+
 ### Table `sources`
 
 Struct `SourceRow`. A receiver that the table takes messages from. The row key is the number of the source: "0" for this receiver, then the number of each feed in.
@@ -256,6 +262,8 @@ Struct `SourceRow`. A receiver that the table takes messages from. The row key i
 | `messages` | whole number | always | 1.0 | Messages taken. |
 | `aircraft` | whole number | always | 1.0 | Aircraft whose last update came from it. |
 | `error` | text | optional | 1.0 | The last error. |
+
+The column `name` names a row.
 
 ### Table `by_df`
 
@@ -276,6 +284,8 @@ Struct `GpsCellRow`. A GPS interference cell of half a degree with at least thre
 | `aircraft` | whole number | always | 1.0 | Aircraft in the cell. |
 | `level` | whole number | always | 1.0 | The level, 0 to 3. |
 
+Place of a row: the column `corner`.
+
 ### Table `feeds`
 
 Struct `FeedRow`. A feed out: a server or an outbound target. The row key is the name.
@@ -288,6 +298,8 @@ Struct `FeedRow`. A feed out: a server or an outbound target. The row key is the
 | `dropped` | whole number | optional | 1.0 | Messages dropped because a client or target was slow. |
 | `connected` | yes or no | optional | 1.0 | A target is connected. |
 | `error` | text | optional | 1.0 | Why a server did not start. |
+
+The column `name` names a row.
 
 ### Table `modeac`
 

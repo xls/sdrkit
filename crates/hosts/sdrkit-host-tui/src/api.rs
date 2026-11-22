@@ -544,6 +544,8 @@ pub struct TableDecl {
     pub columns: Vec<Decl>,
     /// The most rows that the table keeps.
     pub cap: usize,
+    /// The column that names a row for people, if the table states one.
+    pub label_column: Option<usize>,
 }
 
 /// The declaration of the results of an object.
@@ -1069,6 +1071,8 @@ impl Handle {
                 label: owned(ti.label),
                 columns: Vec::with_capacity(ti.columns as usize),
                 cap: ti.cap,
+                label_column: (ti.label_column != sys::SDRKIT_NO_ID)
+                    .then_some(ti.label_column as usize),
             };
             for c in 0..ti.columns {
                 table.columns.push(self.decl(

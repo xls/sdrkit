@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "drones", version 1.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "drones", version 1.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DRONES_VERSION_MAJOR 1
-#define SDRKIT_DRONES_VERSION_MINOR 0
+#define SDRKIT_DRONES_VERSION_MINOR 1
 
 // The stack "remote_id": its id, and the keys of its event types.
 #define SDRKIT_STACK_REMOTE_ID "remote_id"
@@ -1965,6 +1965,9 @@ typedef struct sdrkit_drones_link_args {
 
 // Fills `rows` with the changed rows of the table "drones" of the stack "remote_id" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_geo_m`. Course: `course_deg`. Speed: `speed_kt`.
 static inline int32_t sdrkit_remote_id_drones_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_remote_id_drone_row *rows,
                                                   uint32_t capacity,
@@ -1974,6 +1977,7 @@ static inline int32_t sdrkit_remote_id_drones_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "remote_id" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_remote_id_messages_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_remote_id_message_row *rows,
                                                     uint32_t capacity,
@@ -1983,6 +1987,7 @@ static inline int32_t sdrkit_remote_id_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "drone_tracks" of the stack "remote_id" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_remote_id_drone_tracks_rows(SDRKIT_HANDLE handle,
                                                         sdrkit_drones_drone_track_row *rows,
                                                         uint32_t capacity,
@@ -2068,6 +2073,7 @@ static inline int32_t sdrkit_remote_id_gen_set_wifi_phy(SDRKIT_HANDLE handle, sd
 
 // Fills `rows` with the changed rows of the table "signals" of the stack "dji_droneid" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `snr_db`, highest first.
 static inline int32_t sdrkit_dji_droneid_signals_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_dji_droneid_signal_row *rows,
                                                      uint32_t capacity,
@@ -2077,6 +2083,9 @@ static inline int32_t sdrkit_dji_droneid_signals_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "drones" of the stack "dji_droneid" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `source` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
 static inline int32_t sdrkit_dji_droneid_drones_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_dji_droneid_drone_row *rows,
                                                     uint32_t capacity,
@@ -2095,6 +2104,7 @@ static inline int32_t sdrkit_dji_droneid_bursts_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "drone_tracks" of the stack "dji_droneid" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_dji_droneid_drone_tracks_rows(SDRKIT_HANDLE handle,
                                                           sdrkit_drones_drone_track_row *rows,
                                                           uint32_t capacity,
@@ -2174,6 +2184,9 @@ static inline int32_t sdrkit_dji_droneid_gen_set_wide(SDRKIT_HANDLE handle, bool
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "flarm" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `source` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
 static inline int32_t sdrkit_flarm_aircraft_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_flarm_aircraft_row *rows,
                                                 uint32_t capacity,
@@ -2183,6 +2196,7 @@ static inline int32_t sdrkit_flarm_aircraft_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "aircraft_tracks" of the stack "flarm" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_flarm_aircraft_tracks_rows(SDRKIT_HANDLE handle,
                                                        sdrkit_drones_aircraft_track_row *rows,
                                                        uint32_t capacity,
@@ -2243,6 +2257,9 @@ static inline int32_t sdrkit_flarm_gen_set_centre(SDRKIT_HANDLE handle, sdrkit_p
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "adsl" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `source` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
 static inline int32_t sdrkit_adsl_aircraft_rows(SDRKIT_HANDLE handle,
                                                sdrkit_adsl_aircraft_row *rows,
                                                uint32_t capacity,
@@ -2252,6 +2269,7 @@ static inline int32_t sdrkit_adsl_aircraft_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "aircraft_tracks" of the stack "adsl" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_adsl_aircraft_tracks_rows(SDRKIT_HANDLE handle,
                                                       sdrkit_drones_aircraft_track_row *rows,
                                                       uint32_t capacity,
@@ -2398,6 +2416,8 @@ static inline int32_t sdrkit_adsl_gen_set_bad_bit(SDRKIT_HANDLE handle, int64_t 
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "ogn" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex` names a row.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_ogn_packets_rows(SDRKIT_HANDLE handle,
                                              sdrkit_ogn_packet_row *rows,
                                              uint32_t capacity,
@@ -2407,6 +2427,9 @@ static inline int32_t sdrkit_ogn_packets_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "ogn" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `source` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
 static inline int32_t sdrkit_ogn_aircraft_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ogn_aircraft_row *rows,
                                               uint32_t capacity,
@@ -2416,6 +2439,7 @@ static inline int32_t sdrkit_ogn_aircraft_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "aircraft_tracks" of the stack "ogn" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_ogn_aircraft_tracks_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_drones_aircraft_track_row *rows,
                                                      uint32_t capacity,
@@ -2506,6 +2530,9 @@ static inline int32_t sdrkit_ogn_gen_set_emergency(SDRKIT_HANDLE handle, bool va
 
 // Fills `rows` with the changed rows of the table "links" of the stack "rc_links" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `id` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_m`.
 static inline int32_t sdrkit_rc_links_rows(SDRKIT_HANDLE handle,
                                           sdrkit_drones_heard_link_row *rows,
                                           uint32_t capacity,
@@ -2515,6 +2542,7 @@ static inline int32_t sdrkit_rc_links_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "rc_links" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex` names a row.
 static inline int32_t sdrkit_rc_links_frames_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_drones_link_frame_row *rows,
                                                  uint32_t capacity,
@@ -2706,6 +2734,9 @@ static inline int32_t sdrkit_rc_links_gen_set_ppm_invert(SDRKIT_HANDLE handle, b
 
 // Fills `rows` with the changed rows of the table "links" of the stack "mavlink_sik" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `id` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_m`.
 static inline int32_t sdrkit_mavlink_sik_links_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_drones_heard_link_row *rows,
                                                    uint32_t capacity,
@@ -2715,6 +2746,7 @@ static inline int32_t sdrkit_mavlink_sik_links_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "mavlink_sik" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex` names a row.
 static inline int32_t sdrkit_mavlink_sik_frames_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_drones_link_frame_row *rows,
                                                     uint32_t capacity,

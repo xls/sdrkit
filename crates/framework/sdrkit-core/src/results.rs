@@ -5,6 +5,7 @@
 //! writing is cheap and never shared. Every table and the log have a cap, so a busy band cannot grow memory without bound.
 
 use crate::event::{EventDecl, EventDef};
+use crate::marks::TableMarks;
 use crate::publish::Field;
 use crate::publish::{Declare, TableDef};
 use crate::record::{DeclError, FieldDecl, FieldId, Kind, Record, RecordDecl, RecordError};
@@ -78,6 +79,18 @@ pub struct MapPoint {
     pub label: String,
     /// Degrees from north, for a moving target.
     pub heading: Option<f32>,
+    /// The table row that the point shows, for a point of a row ([`Results::link_point`]).
+    #[serde(default)]
+    pub row: Option<RowLink>,
+}
+
+/// One row of a table of the same results: the table and the row key.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RowLink {
+    /// The table.
+    pub table: TableId,
+    /// The row key.
+    pub key: String,
 }
 
 /// A small plot: points, or a line when `line` is set.
@@ -297,11 +310,13 @@ impl Clone for MapPoint {
             lon: self.lon,
             label: self.label.clone(),
             heading: self.heading,
+            row: self.row.clone(),
         }
     }
     fn clone_from(&mut self, s: &Self) {
         self.id.clone_from(&s.id);
         self.label.clone_from(&s.label);
+        self.row.clone_from(&s.row);
         (self.lat, self.lon, self.heading) = (s.lat, s.lon, s.heading);
     }
 }
@@ -387,6 +402,8 @@ pub struct TableDecl {
     pub columns: Arc<RecordDecl>,
     /// The most rows kept. The oldest row goes first.
     pub cap: usize,
+    /// The column that names a row, the default order of the rows and the columns of a place on the map.
+    pub marks: TableMarks,
 }
 
 /// What a receiver publishes, declared before it runs: fields, tables, series, rasters, map points and event kinds.
@@ -1270,7 +1287,8 @@ impl Results {
     pub fn points(&self) -> &BTreeMap<String, MapPoint> {
         &self.points
     }
-    /// Sets the map point `id`, as [`Results::update_point`] does.
+    /// Sets the map point `id`, as [`Results::update_point`] does. The row of `p` is not copied: its table is a table
+    /// of the results that `p` is from ([`Results::link_point`] states the row here).
     pub fn set_point(&mut self, id: &str, p: &MapPoint) -> bool {
         self.update_point(id, p.lat, p.lon, &p.label, p.heading)
     }
@@ -1307,12 +1325,32 @@ impl Results {
                         lon,
                         label: label.to_owned(),
                         heading,
+                        row: None,
                     },
                 );
                 true
             }
         };
         self.tick(c)
+    }
+    /// States that the map point `id` shows row `key` of table `table`, or no row for `None`. Nothing is allocated for
+    /// a link that is there already. Returns true if something changed. False if there is no point `id`.
+    pub fn link_point(&mut self, id: &str, row: Option<(TableId, &str)>) -> bool {
+        let Some(p) = self.points.get_mut(id) else {
+            return false;
+        };
+        let same = match (&p.row, row) {
+            (None, None) => true,
+            (Some(a), Some((table, key))) => a.table == table && a.key == key,
+            _ => false,
+        };
+        if !same {
+            p.row = row.map(|(table, key)| RowLink {
+                table,
+                key: key.to_owned(),
+            });
+        }
+        self.tick(!same)
     }
     /// Removes the map point `id`.
     pub fn remove_point(&mut self, id: &str) -> bool {

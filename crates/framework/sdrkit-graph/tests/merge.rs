@@ -13,6 +13,7 @@ const PRESETS: TableDef = TableDef {
     label: "Presets",
     columns: &[&NAME],
     cap: 16,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// A sink that publishes a level and a trace of 1000 points with room for 4096.

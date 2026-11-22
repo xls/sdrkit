@@ -112,7 +112,9 @@ The stack puts points on a map: Positions.
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 2.0. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 2.1. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Voice calls (`voice`). Media: sound (voice).
 
 ### Result fields
 
@@ -198,6 +200,8 @@ Struct `CallRow`. A row of the call log. The row key is the call id.
 | `carrier_hz` | frequency | always | 1.0 | The carrier frequency. |
 | `end` | choice | always | 1.0 | Where a call is in its life. |
 
+The column `alias` names a row.
+
 ### Table `call_details`
 
 Struct `CallDetailRow`. A fact of a call that only some stacks send. The row key is the call id, a slash and the detail key.
@@ -207,6 +211,8 @@ Struct `CallDetailRow`. A fact of a call that only some stacks send. The row key
 | `call` | text | always | 1.0 | The call a row belongs to: a row key of the `calls` table. |
 | `detail` | choice | always | 1.0 | Which fact a detail row holds. |
 | `value` | any | always | 1.0 | The value of a detail. |
+
+The column `call` names a row.
 
 ### Table `messages`
 
@@ -225,6 +231,8 @@ Struct `MessageRow`. A text message. The row key counts the messages.
 | `slot` | whole number | always | 1.0 | The time slot, 0 when the stack has none. |
 | `sms` | yes or no | always | 1.0 | An SMS. |
 
+The column `src` names a row.
+
 ### Table `positions`
 
 Struct `PositionRow`. A position. The row key counts the positions.
@@ -242,6 +250,8 @@ Struct `PositionRow`. A position. The row key counts the positions.
 | `comment` | text | always | 1.0 | The comment sent with a position. |
 | `station_type` | choice | optional | 1.0 | The kind of station that sent a position. |
 | `data_source` | whole number | optional | 1.0 | The data source code of a position. |
+
+The column `src` names a row. Place of a row: the column `position`. Height: `height_m`. Course: `course_deg`. Speed: `speed_kt`.
 
 ### Table `sites`
 
@@ -316,6 +326,8 @@ Struct `HistoryRow`. A call the monitor heard. The row key is the call id.
 | `encrypted` | yes or no | always | 1.0 | The call is encrypted. |
 | `active` | yes or no | always | 1.0 | The call is on air. |
 
+The column `call` names a row.
+
 ### Table `heard`
 
 Struct `HeardRow`. A source radio or callsign. The row key is the source.
@@ -328,6 +340,8 @@ Struct `HeardRow`. A source radio or callsign. The row key is the source.
 | `last_s` | number (s) | always | 1.0 | Signal time of the end of the last call, seconds. |
 | `mean_ber` | number | always | 1.0 | The mean bit error rate. |
 | `emergency` | yes or no | always | 1.0 | An emergency call. |
+
+The column `src` names a row.
 
 ### Event `dvoice.call`
 

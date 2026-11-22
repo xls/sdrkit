@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "voice", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "voice", version 1.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum VoiceInterface {
     public static let major = 1
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The result fields that every single-channel stack shares.
@@ -1155,6 +1155,7 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceDetectorEventRow.init))
     }
     /// The changed rows of the table "frames" of the stack "hfpacket", newest first, at most `capacity` rows.
+    /// The column `source` names a row.
     public static func hfpacketFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[HfpacketFrameRow], SDRKitCode> {
         var rows = [sdrkit_hfpacket_frame_row](repeating: sdrkit_hfpacket_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1179,6 +1180,7 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceDetectorEventRow.init))
     }
     /// The changed rows of the table "calls" of the stack "voice_channels", newest first, at most `capacity` rows.
+    /// The column `label` names a row.
     public static func voiceChannelsCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[VoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_voice_call_row](repeating: sdrkit_voice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1187,6 +1189,7 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceCallRow.init))
     }
     /// The changed rows of the table "channels" of the stack "voice_channels", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func voiceChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[VoiceChannelRow], SDRKitCode> {
         var rows = [sdrkit_voice_channel_row](repeating: sdrkit_voice_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1195,6 +1198,7 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceChannelRow.init))
     }
     /// The changed rows of the table "calls" of the stack "mdc1200", newest first, at most `capacity` rows.
+    /// The column `label` names a row.
     public static func mdc1200Calls(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[VoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_voice_call_row](repeating: sdrkit_voice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1203,6 +1207,7 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceCallRow.init))
     }
     /// The changed rows of the table "channels" of the stack "mdc1200", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func mdc1200Channels(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[VoiceChannelRow], SDRKitCode> {
         var rows = [sdrkit_voice_channel_row](repeating: sdrkit_voice_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1211,6 +1216,7 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceChannelRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "mdc1200", newest first, at most `capacity` rows.
+    /// The column `label` names a row.
     public static func mdc1200Bursts(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[Mdc1200BurstRow], SDRKitCode> {
         var rows = [sdrkit_mdc1200_burst_row](repeating: sdrkit_mdc1200_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1219,6 +1225,7 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Mdc1200BurstRow.init))
     }
     /// The changed rows of the table "candidates" of the stack "wmic", newest first, at most `capacity` rows.
+    /// Default order: the column `snr_db`, highest first.
     public static func wmicCandidates(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[WmicCandidateRow], SDRKitCode> {
         var rows = [sdrkit_wmic_candidate_row](repeating: sdrkit_wmic_candidate_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1227,6 +1234,7 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WmicCandidateRow.init))
     }
     /// The changed rows of the table "calls" of the stack "fleetsync", newest first, at most `capacity` rows.
+    /// The column `label` names a row.
     public static func fleetsyncCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[VoiceCallRow], SDRKitCode> {
         var rows = [sdrkit_voice_call_row](repeating: sdrkit_voice_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1235,6 +1243,7 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceCallRow.init))
     }
     /// The changed rows of the table "channels" of the stack "fleetsync", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func fleetsyncChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 512) -> Result<[VoiceChannelRow], SDRKitCode> {
         var rows = [sdrkit_voice_channel_row](repeating: sdrkit_voice_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1243,6 +1252,7 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceChannelRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "fleetsync", newest first, at most `capacity` rows.
+    /// The column `label` names a row.
     public static func fleetsyncBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[FleetsyncBurstRow], SDRKitCode> {
         var rows = [sdrkit_fleetsync_burst_row](repeating: sdrkit_fleetsync_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized

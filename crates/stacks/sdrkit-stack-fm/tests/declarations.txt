@@ -120,6 +120,7 @@ table "oda" "Open data applications" cap 16
   column FieldDecl { key: "aid", label: "Application", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "group", label: "Group", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "eon" "Other networks" cap 16
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "pi", label: "PI", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "tp", label: "Traffic programme", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
@@ -253,6 +254,7 @@ table "oda" "Open data applications" cap 16
   column FieldDecl { key: "aid", label: "Application", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "group", label: "Group", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "eon" "Other networks" cap 16
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "pi", label: "PI", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "tp", label: "Traffic programme", unit: "", kind: Bool, choices: [], refers_to: None, content: None }

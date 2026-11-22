@@ -256,6 +256,7 @@ pub const OUTPUTS: TableDef = TableDef {
         &HAS_TOKEN,
     ],
     cap: 1000,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// The output that could not start.
@@ -270,6 +271,7 @@ pub const PROBLEMS: TableDef = TableDef {
     label: "Problems",
     columns: &[&OF, &PROBLEM],
     cap: 1000,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 /// An output as the user set it, as kept in [`FILE`].

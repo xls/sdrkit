@@ -76,7 +76,9 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 3.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 3.1. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -115,6 +117,8 @@ Struct `FanetFrameRow`. A row of the FANET frame log. The row key is the place o
 | `level_db` | number (dB) | always | 1.0 | The level of the frame. |
 | `snr_db` | number (dB) | always | 1.0 | The signal to noise ratio of the frame. |
 
+The column `source` names a row. Place of a row: the column `position`.
+
 ### Table `stations`
 
 Struct `FanetStationRow`. A row of the FANET stations. The row key and `source` are the station id "MM:DDDD".
@@ -135,6 +139,8 @@ Struct `FanetStationRow`. A row of the FANET stations. The row key and `source` 
 | `first_heard` | time | optional | 1.0 | The UTC of the first frame. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
 
+The column `name` names a row. Place of a row: the column `position`. Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
+
 ### Table `station_tracks`
 
 Struct `FanetTrackRow`. A track point of a FANET station. The row key is the station id and the signal time of the point.
@@ -144,6 +150,8 @@ Struct `FanetTrackRow`. A track point of a FANET station. The row key is the sta
 | `station` | text | always | 1.0 | The station that the point belongs to. |
 | `position` | position | always | 1.0 | The position. |
 | `time_s` | number (s) | always | 1.0 | The signal time of the point. |
+
+The column `station` names a row. Place of a row: the column `position`.
 
 ### Event `fanet.station`
 

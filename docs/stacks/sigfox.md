@@ -75,7 +75,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 2.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 2.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Sensors and devices (`devices`). Media: none.
 
 ### Result fields
 
@@ -134,6 +136,8 @@ Struct `SigfoxMessageRow`. A row of the messages. The row key is the device id, 
 | `container_bytes` | whole number (bytes) | always | 1.0 | The container size. |
 | `downlink` | yes or no | always | 1.0 | The device requests a downlink. |
 | `control` | yes or no | always | 1.0 | A control message. |
+
+The column `device_id` names a row.
 
 ### Event `sigfox.message`
 

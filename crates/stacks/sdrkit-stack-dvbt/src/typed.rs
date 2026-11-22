@@ -11,19 +11,17 @@ use crate::dvbsh::settings::DvbshSetting;
 use crate::params::{CodeRate, Constellation, Guard, Hierarchy, Mode};
 use crate::results::{Decoding, Quality, TS_LAYER};
 use crate::settings::{DvbtSetting, StreamChoice, TerrestrialSetting};
-use sdrkit_core::interface::{
-    CommandKind, Family, Fields, Hertz, Seconds, StackShape, Time,
-};
+use sdrkit_core::interface::{CommandKind, Family, Fields, Hertz, Seconds, StackShape, Time};
 use sdrkit_core::publish::keys;
 use sdrkit_core::settings::DeclareSetting;
 use sdrkit_core::{Command, SettingSet, TxContent};
 use sdrkit_proto_mpegts::demux::PlayerStatus;
 use sdrkit_proto_mpegts::layer::{self, TsLayer};
-use sdrkit_proto_mpegts::sendqueue::TxAppendArgs;
 use sdrkit_proto_mpegts::publish::{
     NETWORK_ID, NETWORK_NAME, SERVICE_COUNT, SERVICE_SELECT_KIND, TELETEXT_SELECT,
     TRACK_SELECT_KIND, UTC,
 };
+use sdrkit_proto_mpegts::sendqueue::TxAppendArgs;
 use std::sync::OnceLock;
 
 // The components of the OFDM chain.
@@ -612,7 +610,21 @@ pub fn family() -> &'static Family {
         let terrestrial = terrestrial_receiver()
             .clone()
             .fields_after_components::<DvbTerrestrialFields>();
-        Family::new("dvbt", 2, 5)
+        Family::new("dvbt", 2, 6)
+            .added(
+                2,
+                6,
+                &["dvbt.content", "dvb_terrestrial.content", "dvbsh.content"],
+            )
+            .content(
+                sdrkit_core::ContentKind::Television,
+                &["dvbt", "dvb_terrestrial", "dvbsh"],
+            )
+            .audio(
+                sdrkit_core::AudioKind::Programme,
+                &["dvbt", "dvb_terrestrial", "dvbsh"],
+            )
+            .video(&["dvbt", "dvb_terrestrial", "dvbsh"])
             .uses(sdrkit_proto_mpegts::publish::interface())
             .shared_source("results", &["dvbt"])
             .shared_source("report", &["dvbt"])

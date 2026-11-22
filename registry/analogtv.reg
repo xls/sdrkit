@@ -1,5 +1,5 @@
 # The interface of the stack family analogtv. The registry test of the family writes this file.
-family analogtv version=1.1
+family analogtv version=1.2
 uses.mpegts major=1 since=1.0
 shape.AtvFields since=1.0
 shape.AtvFields.state type=choice(searching,sync,locked) unit= optional=no since=1.0
@@ -145,11 +145,12 @@ shape.FpvStateEvent.state type=choice(searching,sync,locked) unit= optional=no s
 shape.FpvStateEvent.text type=text unit= optional=no since=1.0
 shape.FpvStateEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 atv since=1.0
+atv.content kind=television audio=programme video=yes since=1.2
 atv.fields.AtvFields since=1.0
 atv.fields.TeletextFields since=1.0
 atv.fields.TvTxFields since=1.1
 atv.kept.channels since=1.0
-atv.table.channels row=AtvChannelRow cap=256 since=1.0
+atv.table.channels row=AtvChannelRow cap=256 label=label since=1.0
 atv.table.teletext_pages row=TeletextPageRow cap=800 since=1.0
 atv.table.teletext_subpages row=TeletextSubpageRow cap=8192 since=1.0
 atv.series.line x_unit=µs y_unit= since=1.0
@@ -208,6 +209,7 @@ atv.command.stop args= reply= since=1.1
 atv.command.frame args=pixels:bytes;width:i64;height:i64;pixel_format:choice(rgb8,bgra,grey8) reply= since=1.1
 atv.command.teletext.select args=row:text reply= since=1.0
 mac since=1.0
+mac.content kind=television audio=programme video=yes since=1.2
 mac.fields.MacFields since=1.0
 mac.series.eye x_unit= y_unit= since=1.0
 mac.event.mac.state fields=MacStateEvent since=1.0
@@ -220,11 +222,12 @@ mac.setting.gen_channel type=text unit= since=1.0
 mac.setting.gen_network type=text unit= since=1.0
 mac.setting.gen_country type=text unit= since=1.0
 fpv since=1.0
+fpv.content kind=television audio=programme video=yes since=1.2
 fpv.fields.FpvFields since=1.0
 fpv.fields.TeletextFields since=1.0
 fpv.fields.TvTxFields since=1.1
 fpv.kept.channels since=1.0
-fpv.table.channels row=FpvChannelRow cap=64 since=1.0
+fpv.table.channels row=FpvChannelRow cap=64 label=name since=1.0
 fpv.table.teletext_pages row=TeletextPageRow cap=800 since=1.0
 fpv.table.teletext_subpages row=TeletextSubpageRow cap=8192 since=1.0
 fpv.series.spectrum x_unit=MHz y_unit=dB since=1.0

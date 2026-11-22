@@ -113,7 +113,7 @@ pub struct SlottedVoiceStationEvent<'a> {
 
 /// The stations heard in beacons.
 pub static SLOTTED_VOICE_STATIONS: Table<SlottedVoiceStationRow<'static>> =
-    Table::new("stations", "Stations heard", 200);
+    Table::new("stations", "Stations heard", 200).label(&SlottedVoiceStationRow::CALLSIGN);
 /// A beacon of a station.
 pub static SLOTTED_VOICE_STATION: EventKind<SlottedVoiceStationEvent<'static>> =
     EventKind::new("voice.station", "Station beacon");
@@ -264,7 +264,7 @@ pub struct PictureBurstEvent<'a> {
 
 /// The pictures received.
 pub static PICTURE_BURST_PICTURES: Table<PictureBurstPictureRow<'static>> =
-    Table::new("pictures", "Pictures", 100);
+    Table::new("pictures", "Pictures", 100).label(&PictureBurstPictureRow::CALLSIGN);
 /// A burst was decoded.
 pub static PICTURE_BURST_PICTURE: EventKind<PictureBurstEvent<'static>> =
     EventKind::new("picture.burst", "Picture received");
@@ -394,7 +394,7 @@ pub struct ArqPacketAckInEvent<'a> {
 
 /// The messages received.
 pub static ARQ_PACKET_MESSAGES: Table<ArqPacketMessageRow<'static>> =
-    Table::new("messages", "Messages", 200);
+    Table::new("messages", "Messages", 200).label(&ArqPacketMessageRow::CALLSIGN);
 /// A message was completed.
 pub static ARQ_PACKET_MESSAGE: EventKind<ArqPacketMessageEvent<'static>> =
     EventKind::new("packet.message", "Message received");
@@ -529,7 +529,7 @@ pub struct FileTransferOpenEvent<'a> {
 
 /// The files heard.
 pub static FILE_TRANSFER_FILES: Table<FileTransferFileRow<'static>> =
-    Table::new("files", "Files", 200);
+    Table::new("files", "Files", 200).label(&FileTransferFileRow::NAME);
 /// A file passed every check and was saved.
 pub static FILE_TRANSFER_RECEIVED: EventKind<FileTransferReceivedEvent<'static>> =
     EventKind::new("file.received", "File received");
@@ -702,9 +702,10 @@ pub struct HfChatVoiceEvent<'a> {
 
 /// The messages received.
 pub static HF_CHAT_MESSAGES: Table<HfChatMessageRow<'static>> =
-    Table::new("messages", "Messages", 200);
+    Table::new("messages", "Messages", 200).label(&HfChatMessageRow::CALLSIGN);
 /// The beacons received.
-pub static HF_CHAT_BEACONS: Table<HfChatBeaconRow<'static>> = Table::new("beacons", "Beacons", 200);
+pub static HF_CHAT_BEACONS: Table<HfChatBeaconRow<'static>> =
+    Table::new("beacons", "Beacons", 200).label(&HfChatBeaconRow::CALLSIGN);
 /// A chat or data message was completed.
 pub static HF_CHAT_MESSAGE: EventKind<HfChatMessageEvent<'static>> =
     EventKind::new("chat.message", "Message received");
@@ -752,7 +753,31 @@ pub fn family() -> &'static Family {
         // What a stack heard from stations stays over a change of frequency: the station list, the logs of messages,
         // pictures and files, and the counts of these logs. The streams of `qam_video` belong to the signal on air.
         // 1.2: each `send` names `stop` as the command that ends its transmission.
-        Family::new("custom", 1, 2)
+        Family::new("custom", 1, 3)
+            .added(
+                1,
+                3,
+                &[
+                    "slotted_voice.content",
+                    "qam_video.content",
+                    "picture_burst.content",
+                    "arq_packet.content",
+                    "file_transfer.content",
+                    "hf_chat.content",
+                ],
+            )
+            .content(sdrkit_core::ContentKind::Television, &["qam_video"])
+            .content(sdrkit_core::ContentKind::Voice, &["slotted_voice"])
+            .content(sdrkit_core::ContentKind::TextChat, &["hf_chat"])
+            .content(
+                sdrkit_core::ContentKind::Datalink,
+                &["arq_packet", "file_transfer"],
+            )
+            .content(sdrkit_core::ContentKind::Pictures, &["picture_burst"])
+            .audio(sdrkit_core::AudioKind::Voice, &["slotted_voice"])
+            .video(&["qam_video"])
+            .pictures(&["picture_burst"])
+            .text(&["arq_packet", "hf_chat"])
             .stack(commands(
                 StackShape::new("slotted_voice")
                     .fields::<SlottedVoiceFields>()

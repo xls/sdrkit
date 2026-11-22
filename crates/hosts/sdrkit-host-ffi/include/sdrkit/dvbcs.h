@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dvbcs", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "dvbcs", version 1.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -38,7 +38,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DVBCS_VERSION_MAJOR 1
-#define SDRKIT_DVBCS_VERSION_MINOR 4
+#define SDRKIT_DVBCS_VERSION_MINOR 5
 
 // The stack "satbeacon": its id, and the keys of its event types.
 #define SDRKIT_STACK_SATBEACON "satbeacon"
@@ -1298,6 +1298,7 @@ typedef struct sdrkit_dvbs_tx_append_args {
 
 // Fills `rows` with the changed rows of the table "lines" of the stack "satbeacon" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `level_dbfs`, highest first.
 static inline int32_t sdrkit_satbeacon_lines_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_satbeacon_line_row *rows,
                                                  uint32_t capacity,
@@ -1316,6 +1317,7 @@ static inline int32_t sdrkit_satbeacon_frames_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "decoded" of the stack "satbeacon" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_satbeacon_decoded_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_satbeacon_decoded_row *rows,
                                                    uint32_t capacity,

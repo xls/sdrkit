@@ -1,5 +1,5 @@
 # The interface of the stack family cell. The registry test of the family writes this file.
-family cell version=1.0
+family cell version=1.1
 shape.RailwayCirFields since=1.0
 shape.RailwayCirFields.text type=text unit= optional=no since=1.0
 shape.RailwayCirFields.messages type=i64 unit= optional=no since=1.0
@@ -405,6 +405,7 @@ shape.Cv2xDetectionRow.offset_hz type=hz unit=Hz optional=no since=1.0
 shape.Cv2xDetectionRow.correlation type=f64 unit= optional=no since=1.0
 shape.Cv2xDetectionRow.slot_timing type=i64 unit=samples optional=no since=1.0
 railway_cir since=1.0
+railway_cir.content kind=networks since=1.1
 railway_cir.fields.RailwayCirFields since=1.0
 railway_cir.fields.DecoderFields since=1.0
 railway_cir.kept.messages since=1.0
@@ -418,6 +419,7 @@ railway_cir.setting.gen_deviation_hz type=f64 unit=Hz since=1.0
 railway_cir.setting.locomotives type=text unit= since=1.0
 railway_cir.command.clear args= reply= since=1.0
 cell since=1.0
+cell.content kind=networks since=1.1
 cell.fields.SearchFields since=1.0
 cell.fields.CellFields since=1.0
 cell.fields.DecoderFields since=1.0
@@ -443,7 +445,7 @@ cell.table.neighbours row=CellNeighbourRow cap=1600 since=1.0
 cell.table.inter_carriers row=CellInterCarrierRow cap=1600 since=1.0
 cell.table.sites row=CellSiteRow cap=400 since=1.0
 cell.table.operators row=CellOperatorRow cap=400 since=1.0
-cell.table.carriers row=CellCarrierRow cap=24 since=1.0
+cell.table.carriers row=CellCarrierRow cap=24 sort=level_db:descending since=1.0
 cell.event.cell.lte_cell fields=FoundCellEvent since=1.0
 cell.setting.capture_s type=f64 unit=s since=1.0
 cell.setting.system_information type=bool unit= since=1.0
@@ -465,6 +467,7 @@ cell.setting.gen_load type=bool unit= since=1.0
 cell.command.clear args= reply= since=1.0
 cell.command.remove args=row:text reply= since=1.0
 nr since=1.0
+nr.content kind=networks since=1.1
 nr.fields.SearchFields since=1.0
 nr.fields.NrFields since=1.0
 nr.fields.DecoderFields since=1.0
@@ -490,6 +493,7 @@ nr.setting.gen_scene type=choice(0,1,2) unit= since=1.0
 nr.command.clear args= reply= since=1.0
 nr.command.remove args=row:text reply= since=1.0
 nbiot since=1.0
+nbiot.content kind=networks since=1.1
 nbiot.fields.SearchFields since=1.0
 nbiot.fields.NbiotFields since=1.0
 nbiot.fields.DecoderFields since=1.0
@@ -511,6 +515,7 @@ nbiot.setting.gen_npbch_rotation type=bool unit= since=1.0
 nbiot.command.clear args= reply= since=1.0
 nbiot.command.remove args=row:text reply= since=1.0
 gsmr since=1.0
+gsmr.content kind=networks since=1.1
 gsmr.fields.SearchFields since=1.0
 gsmr.fields.GsmrFields since=1.0
 gsmr.fields.DecoderFields since=1.0
@@ -520,7 +525,7 @@ gsmr.kept.SearchFields.failed since=1.0
 gsmr.kept.cells since=1.0
 gsmr.kept.GsmrFields since=1.0
 gsmr.table.cells row=GsmrCellRow cap=200 since=1.0
-gsmr.table.carriers row=GsmrCarrierRow cap=24 since=1.0
+gsmr.table.carriers row=GsmrCarrierRow cap=24 sort=level_db:descending since=1.0
 gsmr.event.cell.gsm_cell fields=FoundCellEvent since=1.0
 gsmr.setting.capture_s type=f64 unit=s since=1.0
 gsmr.setting.max_carriers type=i64 unit= since=1.0
@@ -530,6 +535,7 @@ gsmr.setting.gen_centre_hz type=hz unit=Hz since=1.0
 gsmr.command.clear args= reply= since=1.0
 gsmr.command.remove args=row:text reply= since=1.0
 lbj since=1.0
+lbj.content kind=networks since=1.1
 lbj.fields.LbjFields since=1.0
 lbj.fields.DecoderFields since=1.0
 lbj.component.modem.dropped since=1.0
@@ -538,12 +544,13 @@ lbj.kept.LbjFields.bursts since=1.0
 lbj.kept.LbjFields.messages since=1.0
 lbj.kept.LbjFields.failed_checks since=1.0
 lbj.kept.LbjFields.blank_frames since=1.0
-lbj.table.messages row=LbjMessageRow cap=400 since=1.0
+lbj.table.messages row=LbjMessageRow cap=400 position=position speed=speed_kmh since=1.0
 lbj.event.lbj.message fields=LbjMessageEvent since=1.0
 lbj.setting.locomotives type=text unit= since=1.0
 lbj.setting.gen_deviation_hz type=hz unit=Hz since=1.0
 lbj.command.clear args= reply= since=1.0
 ebicab since=1.0
+ebicab.content kind=networks since=1.1
 ebicab.fields.EbicabFields since=1.0
 ebicab.fields.DecoderFields since=1.0
 ebicab.component.uplink.dropped since=1.0
@@ -569,6 +576,7 @@ ebicab.setting.gen_bit_rate_pct type=f64 unit=% since=1.0
 ebicab.command.clear args= reply= since=1.0
 ebicab.command.remove args=row:text reply= since=1.0
 umts since=1.0
+umts.content kind=networks since=1.1
 umts.fields.SearchFields since=1.0
 umts.fields.UmtsFields since=1.0
 umts.fields.DecoderFields since=1.0
@@ -587,6 +595,7 @@ umts.setting.roll_off type=f64 unit= since=1.0
 umts.command.clear args= reply= since=1.0
 umts.command.remove args=row:text reply= since=1.0
 cdma2000 since=1.0
+cdma2000.content kind=networks since=1.1
 cdma2000.fields.SearchFields since=1.0
 cdma2000.fields.Cdma2000Fields since=1.0
 cdma2000.fields.DecoderFields since=1.0
@@ -605,6 +614,7 @@ cdma2000.setting.threshold type=f64 unit= since=1.0
 cdma2000.command.clear args= reply= since=1.0
 cdma2000.command.remove args=row:text reply= since=1.0
 tdscdma since=1.0
+tdscdma.content kind=networks since=1.1
 tdscdma.fields.SearchFields since=1.0
 tdscdma.fields.TdscdmaFields since=1.0
 tdscdma.fields.DecoderFields since=1.0
@@ -623,6 +633,7 @@ tdscdma.setting.gen_multipliers type=bool unit= since=1.0
 tdscdma.command.clear args= reply= since=1.0
 tdscdma.command.remove args=row:text reply= since=1.0
 eot since=1.0
+eot.content kind=networks since=1.1
 eot.fields.EotFields since=1.0
 eot.fields.DecoderFields since=1.0
 eot.component.modem.dropped since=1.0
@@ -641,6 +652,7 @@ eot.setting.gen_type type=i64 unit= since=1.0
 eot.setting.gen_motion type=bool unit= since=1.0
 eot.command.clear args= reply= since=1.0
 cv2x since=1.0
+cv2x.content kind=networks since=1.1
 cv2x.fields.Cv2xFields since=1.0
 cv2x.fields.DecoderFields since=1.0
 cv2x.table.detections row=Cv2xDetectionRow cap=100 since=1.0

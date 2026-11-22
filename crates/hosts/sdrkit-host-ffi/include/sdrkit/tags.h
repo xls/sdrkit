@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "tags", version 1.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "tags", version 1.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_TAGS_VERSION_MAJOR 1
-#define SDRKIT_TAGS_VERSION_MINOR 0
+#define SDRKIT_TAGS_VERSION_MINOR 1
 
 // The stack "rfid_lf": its id, and the keys of its event types.
 #define SDRKIT_STACK_RFID_LF "rfid_lf"
@@ -933,6 +933,7 @@ static inline int32_t sdrkit_rfid_lf_gen_set_invert(SDRKIT_HANDLE handle, bool v
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "qi" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `device_id` names a row.
 static inline int32_t sdrkit_qi_packets_rows(SDRKIT_HANDLE handle,
                                             sdrkit_qi_packet_row *rows,
                                             uint32_t capacity,

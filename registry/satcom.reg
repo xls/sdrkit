@@ -1,5 +1,5 @@
 # The interface of the stack family satcom. The registry test of the family writes this file.
-family satcom version=1.2
+family satcom version=1.3
 shape.InmarsatcFields since=1.0
 shape.InmarsatcFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.InmarsatcFields.frames_bad type=i64 unit= optional=no since=1.0
@@ -892,6 +892,7 @@ shape.SatSurveyCarrierEvent.norad type=i64 unit= optional=yes since=1.0
 shape.SatSurveyCarrierEvent.rms_hz type=f64 unit=Hz optional=yes since=1.0
 shape.SatSurveyCarrierEvent.ambiguous type=bool unit= optional=no since=1.0
 inmarsatc since=1.0
+inmarsatc.content kind=datalink text=yes since=1.3
 inmarsatc.fields.InmarsatcFields since=1.0
 inmarsatc.fields.DecoderFields since=1.0
 inmarsatc.component.demod.dropped since=1.0
@@ -912,6 +913,7 @@ inmarsatc.setting.gen_extra type=i64 unit= since=1.0
 inmarsatc.setting.gen_start_symbols type=i64 unit=symbols since=1.0
 inmarsatc.command.clear args= reply= since=1.0
 aero since=1.0
+aero.content kind=datalink text=yes since=1.3
 aero.fields.AeroFields since=1.0
 aero.fields.DecoderFields since=1.0
 aero.component.receiver.dropped since=1.0
@@ -929,8 +931,8 @@ aero.kept.AeroFields.aircraft since=1.0
 aero.table.channels row=AeroChannelRow cap=12 since=1.0
 aero.table.su_types row=AeroSuTypeRow cap=64 since=1.0
 aero.table.logons row=AeroLogonRow cap=100 since=1.0
-aero.table.messages row=AeroMessageRow cap=200 since=1.0
-aero.table.aircraft row=AeroAircraftRow cap=100 since=1.0
+aero.table.messages row=AeroMessageRow cap=200 label=flight position=position altitude=alt_ft since=1.0
+aero.table.aircraft row=AeroAircraftRow cap=100 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt since=1.0
 aero.table.facts row=AeroFactRow cap=24 since=1.0
 aero.event.aero.message fields=AeroMessageEvent since=1.0
 aero.event.aero.logon fields=AeroLogonEvent since=1.0
@@ -944,6 +946,7 @@ aero.setting.gen_plain type=bool unit= since=1.0
 aero.command.clear args= reply= since=1.0
 aero.command.remove args=row:text reply= since=1.0
 inmarsat since=1.0
+inmarsat.content kind=satellite_links since=1.3
 inmarsat.fields.InmarsatFields since=1.0
 inmarsat.fields.DecoderFields since=1.0
 inmarsat.component.receiver.dropped since=1.0
@@ -964,14 +967,14 @@ inmarsat.kept.InmarsatFields.egc_frames since=1.0
 inmarsat.kept.AeroFields.frames_bad since=1.0
 inmarsat.kept.AeroFields.aircraft since=1.0
 inmarsat.kept.InmarsatcFields.message_count since=1.0
-inmarsat.table.carriers row=InmarsatCarrierRow cap=256 since=1.0
-inmarsat.table.candidates row=InmarsatCandidateRow cap=8 since=1.0
+inmarsat.table.carriers row=InmarsatCarrierRow cap=256 label=satellite sort=snr_db:descending since=1.0
+inmarsat.table.candidates row=InmarsatCandidateRow cap=8 label=name since=1.0
 inmarsat.table.candidate_reasons row=InmarsatCandidateReasonRow cap=128 since=1.0
 inmarsat.table.aero_display.channels row=AeroChannelRow cap=12 since=1.0
 inmarsat.table.aero_display.su_types row=AeroSuTypeRow cap=64 since=1.0
 inmarsat.table.aero_display.logons row=AeroLogonRow cap=100 since=1.0
-inmarsat.table.aero_display.messages row=AeroMessageRow cap=200 since=1.0
-inmarsat.table.aero_display.aircraft row=AeroAircraftRow cap=100 since=1.0
+inmarsat.table.aero_display.messages row=AeroMessageRow cap=200 label=flight position=position altitude=alt_ft since=1.0
+inmarsat.table.aero_display.aircraft row=AeroAircraftRow cap=100 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt since=1.0
 inmarsat.table.aero_display.facts row=AeroFactRow cap=24 since=1.0
 inmarsat.table.egc.messages row=InmarsatcMessageRow cap=150 since=1.0
 inmarsat.table.egc.channels row=InmarsatcChannelRow cap=4 since=1.0
@@ -988,6 +991,7 @@ inmarsat.setting.gen_plain type=bool unit= since=1.0
 inmarsat.command.clear args= reply= since=1.0
 inmarsat.command.carrier.focus args=row:text reply= since=1.0
 iridium since=1.0
+iridium.content kind=datalink text=yes since=1.3
 iridium.fields.IridiumFields since=1.0
 iridium.table.raw row=IridiumRawRow cap=200 since=1.0
 iridium.series.scatter_detected x_unit=s y_unit=Hz since=1.0
@@ -1000,6 +1004,7 @@ iridium.setting.gen_bursts type=i64 unit= since=1.0
 iridium.setting.gen_centre_hz type=hz unit=Hz since=1.0
 iridium.command.clear args= reply= since=1.0
 globalstar since=1.0
+globalstar.content kind=satellite_links since=1.3
 globalstar.fields.GlobalstarFields since=1.0
 globalstar.fields.DecoderFields since=1.0
 globalstar.component.channels.dropped since=1.0
@@ -1027,6 +1032,7 @@ globalstar.setting.gen_time_scale type=f64 unit= since=1.0
 globalstar.setting.gen_centre_hz type=hz unit=Hz since=1.0
 globalstar.command.clear args= reply= since=1.0
 goes_dcs since=1.0
+goes_dcs.content kind=satellite_links since=1.3
 goes_dcs.fields.GoesDcsFields since=1.0
 goes_dcs.fields.DecoderFields since=1.0
 goes_dcs.component.rx.dropped since=1.0
@@ -1034,9 +1040,9 @@ goes_dcs.kept.reports since=1.0
 goes_dcs.kept.platforms since=1.0
 goes_dcs.kept.carriers since=1.0
 goes_dcs.kept.GoesDcsFields since=1.0
-goes_dcs.table.reports row=GoesDcsReportRow cap=300 since=1.0
-goes_dcs.table.platforms row=GoesDcsPlatformRow cap=300 since=1.0
-goes_dcs.table.carriers row=GoesDcsCarrierRow cap=8 since=1.0
+goes_dcs.table.reports row=GoesDcsReportRow cap=300 label=address since=1.0
+goes_dcs.table.platforms row=GoesDcsPlatformRow cap=300 label=address since=1.0
+goes_dcs.table.carriers row=GoesDcsCarrierRow cap=8 sort=snr_db:descending since=1.0
 goes_dcs.series.spectrum x_unit=Hz y_unit=dB since=1.0
 goes_dcs.event.goes_dcs.report fields=GoesDcsReportEvent since=1.0
 goes_dcs.setting.threshold_db type=f64 unit=dB since=1.0
@@ -1044,6 +1050,7 @@ goes_dcs.setting.gen_scenario type=choice(0,1,2,3) unit= since=1.0
 goes_dcs.command.clear args= reply= since=1.0
 goes_dcs.command.remove args=row:text reply= since=1.0
 argos since=1.0
+argos.content kind=tracking since=1.3
 argos.fields.ArgosFields since=1.0
 argos.fields.DecoderFields since=1.0
 argos.component.rx.dropped since=1.0
@@ -1051,8 +1058,8 @@ argos.kept.bursts since=1.0
 argos.kept.platforms since=1.0
 argos.kept.frames since=1.0
 argos.kept.ArgosFields since=1.0
-argos.table.bursts row=ArgosBurstRow cap=300 since=1.0
-argos.table.platforms row=ArgosPlatformRow cap=200 since=1.0
+argos.table.bursts row=ArgosBurstRow cap=300 label=platform since=1.0
+argos.table.platforms row=ArgosPlatformRow cap=200 label=platform since=1.0
 argos.table.frames row=ArgosFrameRow cap=300 since=1.0
 argos.series.doppler x_unit=s y_unit=Hz since=1.0
 argos.event.argos.ptt fields=ArgosPttEvent since=1.0
@@ -1070,6 +1077,7 @@ argos.setting.gen_nrzi type=bool unit= since=1.0
 argos.command.clear args= reply= since=1.0
 argos.command.remove args=row:text reply= since=1.0
 hrdcp since=1.0
+hrdcp.content kind=satellite_links since=1.3
 hrdcp.fields.HrdcpFields since=1.0
 hrdcp.fields.DecoderFields since=1.0
 hrdcp.component.rx.dropped since=1.0
@@ -1077,9 +1085,9 @@ hrdcp.kept.reports since=1.0
 hrdcp.kept.platforms since=1.0
 hrdcp.kept.carriers since=1.0
 hrdcp.kept.HrdcpFields since=1.0
-hrdcp.table.reports row=HrdcpReportRow cap=300 since=1.0
-hrdcp.table.platforms row=HrdcpPlatformRow cap=300 since=1.0
-hrdcp.table.carriers row=HrdcpCarrierRow cap=6 since=1.0
+hrdcp.table.reports row=HrdcpReportRow cap=300 label=address since=1.0
+hrdcp.table.platforms row=HrdcpPlatformRow cap=300 label=address since=1.0
+hrdcp.table.carriers row=HrdcpCarrierRow cap=6 sort=snr_db:descending since=1.0
 hrdcp.series.spectrum x_unit=Hz y_unit=dB since=1.0
 hrdcp.event.hrdcp.report fields=HrdcpReportEvent since=1.0
 hrdcp.setting.threshold_db type=f64 unit=dB since=1.0
@@ -1087,14 +1095,15 @@ hrdcp.setting.channel_plan type=text unit= since=1.0
 hrdcp.setting.gen_scene type=choice(0,1) unit= since=1.0
 hrdcp.command.clear args= reply= since=1.0
 sarsat since=1.0
+sarsat.content kind=tracking since=1.3
 sarsat.fields.SarsatFields since=1.0
 sarsat.fields.DecoderFields since=1.0
 sarsat.component.rx.dropped since=1.0
 sarsat.kept.bursts since=1.0
 sarsat.kept.beacons since=1.0
 sarsat.kept.SarsatFields since=1.0
-sarsat.table.bursts row=SarsatBurstRow cap=200 since=1.0
-sarsat.table.beacons row=SarsatBeaconRow cap=200 since=1.0
+sarsat.table.bursts row=SarsatBurstRow cap=200 label=hex_id position=position since=1.0
+sarsat.table.beacons row=SarsatBeaconRow cap=200 label=hex_id position=position since=1.0
 sarsat.event.sarsat.beacon fields=SarsatBeaconEvent since=1.0
 sarsat.setting.wide_search type=bool unit= since=1.0
 sarsat.setting.repeat_combining type=bool unit= since=1.0
@@ -1109,10 +1118,11 @@ sarsat.command.clear args= reply= since=1.0
 sarsat.command.remove args=row:text reply= since=1.0
 sarsat.command.preset.apply args=preset:choice(406.028,1544.500)? reply= since=1.0
 lora_sat since=1.0
+lora_sat.content kind=satellite_links since=1.3
 lora_sat.fields.LoraSatFields since=1.0
 lora_sat.fields.DecoderFields since=1.0
 lora_sat.component.receiver.dropped since=1.0
-lora_sat.table.frames row=LoraSatFrameRow cap=400 since=1.0
+lora_sat.table.frames row=LoraSatFrameRow cap=400 label=satellite since=1.0
 lora_sat.table.demodulators row=LoraSatDemodulatorRow cap=64 since=1.0
 lora_sat.table.demodulator_syncs row=LoraSatDemodulatorSyncRow cap=256 since=1.0
 lora_sat.table.frames_per_sf row=LoraSatSfRow cap=16 since=1.0
@@ -1138,6 +1148,7 @@ lora_sat.setting.gen_start_s type=duration unit=s since=1.0
 lora_sat.setting.gen_sync type=i64 unit= since=1.0
 lora_sat.command.clear args= reply= since=1.0
 orbcomm since=1.0
+orbcomm.content kind=tracking since=1.3
 orbcomm.fields.OrbcommFields since=1.0
 orbcomm.fields.DecoderFields since=1.0
 orbcomm.component.receiver.dropped since=1.0
@@ -1147,7 +1158,7 @@ orbcomm.kept.decoders since=1.0
 orbcomm.kept.packets since=1.0
 orbcomm.kept.packet_types since=1.0
 orbcomm.kept.OrbcommFields since=1.0
-orbcomm.table.satellites row=OrbcommSatelliteRow cap=64 since=1.0
+orbcomm.table.satellites row=OrbcommSatelliteRow cap=64 sort=snr_db:descending position=position altitude=height_m since=1.0
 orbcomm.table.satellite_channels row=OrbcommSatelliteChannelRow cap=1024 since=1.0
 orbcomm.table.decoders row=OrbcommDecoderRow cap=2 since=1.0
 orbcomm.table.packets row=OrbcommPacketRow cap=500 since=1.0
@@ -1166,6 +1177,7 @@ orbcomm.command.clear args= reply= since=1.0
 orbcomm.command.preset.apply args=channel:choice(137.2500,137.2875,137.3125,137.4625,137.6625,137.7375,137.5)? reply= since=1.0
 orbcomm.command.remove args=row:text reply= since=1.0
 psk_demod since=1.0
+psk_demod.content kind=satellite_links since=1.3
 psk_demod.fields.PskDemodFields since=1.0
 psk_demod.fields.DecoderFields since=1.0
 psk_demod.component.receiver.dropped since=1.0
@@ -1200,15 +1212,16 @@ psk_demod.setting.gen_sync type=text unit= since=1.0
 psk_demod.setting.gen_conjugate type=bool unit= since=1.0
 psk_demod.command.clear args= reply= since=1.0
 qo100 since=1.0
+qo100.content kind=satellite_links since=1.3
 qo100.fields.Qo100Fields since=1.0
 qo100.fields.DecoderFields since=1.0
 qo100.fields.Qo100TxFields since=1.2
 qo100.component.receiver.dropped since=1.0
-qo100.table.beacons row=Qo100BeaconRow cap=3 since=1.0
-qo100.table.signals row=Qo100SignalRow cap=256 since=1.0
+qo100.table.beacons row=Qo100BeaconRow cap=3 label=name since=1.0
+qo100.table.signals row=Qo100SignalRow cap=256 sort=snr_db:descending since=1.0
 qo100.table.tracks row=Qo100TrackRow cap=256 since=1.0
 qo100.table.conversations row=Qo100ConversationRow cap=60 since=1.0
-qo100.table.conversation_callsigns row=Qo100CallsignRow cap=480 since=1.0
+qo100.table.conversation_callsigns row=Qo100CallsignRow cap=480 label=callsign since=1.0
 qo100.table.datv row=Qo100DatvCarrierRow cap=32 since=1.0
 qo100.series.narrowband x_unit=Hz y_unit=dBFS since=1.0
 qo100.series.wideband x_unit=Hz y_unit=dBFS since=1.0
@@ -1233,14 +1246,15 @@ qo100.command.conversation.listen args=row:text reply= since=1.0
 qo100.command.remove args=row:text reply= since=1.0
 qo100.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.2
 cubesat since=1.0
+cubesat.content kind=satellite_links since=1.3
 cubesat.fields.CubesatFields since=1.0
 cubesat.fields.DecoderFields since=1.0
 cubesat.fields.CubesatTxFields since=1.1
 cubesat.component.receiver.dropped since=1.0
 cubesat.component.naming.dropped since=1.0
-cubesat.table.frames row=CubesatFrameRow cap=300 since=1.0
+cubesat.table.frames row=CubesatFrameRow cap=300 label=satellite since=1.0
 cubesat.table.frames_per_framing row=CubesatFramingRow cap=32 since=1.0
-cubesat.table.carriers row=CubesatCarrierRow cap=16 since=1.0
+cubesat.table.carriers row=CubesatCarrierRow cap=16 sort=snr_db:descending since=1.0
 cubesat.event.cubesat.frame fields=CubesatFrameEvent since=1.0
 cubesat.event.cubesat.kiss fields=CubesatKissEvent since=1.0
 cubesat.event.cubesat.tx fields=CubesatTxEvent since=1.1
@@ -1273,6 +1287,7 @@ cubesat.command.clear args= reply= since=1.0
 cubesat.command.send args=destination:text?;path:text?;text:text?;hex:text?;pid:i64? reply= transmits=text stop=halt since=1.1
 cubesat.command.halt args= reply= since=1.1
 fleet_broadcast since=1.0
+fleet_broadcast.content kind=satellite_links since=1.3
 fleet_broadcast.fields.FleetBroadcastFields since=1.0
 fleet_broadcast.fields.DecoderFields since=1.0
 fleet_broadcast.table.channels row=FleetBroadcastChannelRow cap=16 since=1.0
@@ -1285,9 +1300,10 @@ fleet_broadcast.setting.gen_fade_db type=f64 unit=dB since=1.0
 fleet_broadcast.setting.gen_invert type=bool unit= since=1.0
 fleet_broadcast.command.clear args= reply= since=1.0
 bgan since=1.0
+bgan.content kind=satellite_links since=1.3
 bgan.fields.BganFields since=1.0
 bgan.fields.DecoderFields since=1.0
-bgan.table.carrier_table row=BganCarrierRow cap=64 since=1.0
+bgan.table.carrier_table row=BganCarrierRow cap=64 label=satellite sort=snr_db:descending since=1.0
 bgan.table.beam_table row=BganBeamRow cap=256 since=1.0
 bgan.table.log row=BganLogRow cap=200 since=1.0
 bgan.event.bgan.signalling fields=BganSignallingEvent since=1.0
@@ -1310,10 +1326,11 @@ bgan.setting.gen_fade_depth type=f64 unit= since=1.0
 bgan.setting.gen_spot type=i64 unit= since=1.0
 bgan.command.clear args= reply= since=1.0
 sat_survey since=1.0
+sat_survey.content kind=satellite_links since=1.3
 sat_survey.fields.SatSurveyFields since=1.0
 sat_survey.fields.DecoderFields since=1.0
-sat_survey.table.carriers row=SatSurveyCarrierRow cap=64 since=1.0
-sat_survey.table.channels row=SatSurveyChannelRow cap=128 since=1.0
+sat_survey.table.carriers row=SatSurveyCarrierRow cap=64 label=satellite sort=snr_db:descending since=1.0
+sat_survey.table.channels row=SatSurveyChannelRow cap=128 label=name since=1.0
 sat_survey.series.spectrum x_unit=Hz y_unit=dB since=1.0
 sat_survey.event.survey.carrier fields=SatSurveyCarrierEvent since=1.0
 sat_survey.setting.threshold_db type=f64 unit=dB since=1.0

@@ -123,7 +123,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 2.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 2.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Sensors and devices (`devices`). Media: none.
 
 ### Result fields
 
@@ -224,6 +226,8 @@ Struct `IsmDeviceRow`. A row of the devices. The row key is the model, the id an
 | `frequency` | frequency | always | 1.0 | The frequency of the last transmission. |
 | `check` | choice | always | 1.0 | The frame test of the last reading. |
 
+The column `id` names a row.
+
 ### Table `zwave`
 
 Struct `IsmZwaveRow`. A row of the Z-Wave view of the devices. The row key is the key of the device.
@@ -251,6 +255,8 @@ Struct `IsmLogRow`. A row of the reading log.
 | `frequency` | frequency | always | 1.0 | The frequency. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level. |
 | `text` | text | always | 1.0 | The fields of the reading as one line. |
+
+The column `id` names a row.
 
 ### Table `unknown`
 
@@ -283,6 +289,8 @@ Struct `IsmSigfoxRow`. A row of the Sigfox messages heard inside the ISM sensor 
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the strongest repetition. |
 | `reps` | whole number | always | 1.0 | Repetitions heard. |
 | `mac_crc` | text | always | 1.0 | The authentication code, never checked, and the CRC. |
+
+The column `device_id` names a row.
 
 ### Table `pulse_frames`
 

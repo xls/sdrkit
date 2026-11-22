@@ -74,7 +74,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `meter`, version 1.0. The C header `sdrkit/meter.h`, the registry record `registry/meter.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `meter`, version 1.1. The C header `sdrkit/meter.h`, the registry record `registry/meter.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Measurement and analysis (`measurement`). Media: none.
 
 ### Result fields
 
@@ -122,6 +124,8 @@ Struct `BirdieCarrierRow`. A row of the list of persistent carriers, the stronge
 | `scatter_hz` | number (Hz) | always | 1.0 | The RMS of the frequency about the drift line. |
 | `present` | whole number | always | 1.0 | The snapshots of the presence window in which it was seen. |
 | `of` | whole number | always | 1.0 | The snapshots of the presence window. |
+
+Default order: the column `level_db`, highest first.
 
 ### Table `carrier_events`
 

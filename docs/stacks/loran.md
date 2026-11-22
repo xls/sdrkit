@@ -62,7 +62,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `avnav`, version 1.1. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avnav`, version 1.2. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Navigation aids (`navigation`). Media: none.
 
 ### Result fields
 
@@ -87,6 +89,8 @@ Struct `LoranStationRow`. A row of the stations of the chain. The row key is the
 | `ecd_us` | number (µs) | always | 1.0 | The envelope-to-cycle difference relative to the master. |
 | `snr_db` | number (dB) | always | 1.0 | The signal to noise ratio of the correlation. |
 | `level_db` | number (dB) | always | 1.0 | The level relative to the master. |
+
+The column `station` names a row.
 
 ### Commands
 

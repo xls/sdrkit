@@ -183,6 +183,7 @@ impl Regional {
                 label: "Known stations".into(),
                 cap: rows.len(),
                 columns,
+                label_column: None,
             }],
         };
         results.tables = vec![Rows { rows }];

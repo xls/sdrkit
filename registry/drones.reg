@@ -1,5 +1,5 @@
 # The interface of the stack family drones. The registry test of the family writes this file.
-family drones version=1.0
+family drones version=1.1
 shape.RemoteIdFields since=1.0
 shape.RemoteIdFields.ble_channel type=i64 unit= optional=yes since=1.0
 shape.RemoteIdFields.ble_offset_hz type=hz unit=Hz optional=yes since=1.0
@@ -409,14 +409,15 @@ shape.MavlinkSikVehicleEvent.link type=text unit= optional=no since=1.0
 shape.MavlinkSikVehicleEvent.position type=position unit= optional=yes since=1.0
 shape.MavlinkSikVehicleEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 remote_id since=1.0
+remote_id.content kind=tracking since=1.1
 remote_id.fields.RemoteIdFields since=1.0
 remote_id.kept.drones since=1.0
 remote_id.kept.messages since=1.0
 remote_id.kept.drone_tracks since=1.0
 remote_id.kept.RemoteIdFields since=1.0
-remote_id.table.drones row=RemoteIdDroneRow cap=200 since=1.0
-remote_id.table.messages row=RemoteIdMessageRow cap=400 since=1.0
-remote_id.table.drone_tracks row=DroneTrackRow cap=24000 since=1.0
+remote_id.table.drones row=RemoteIdDroneRow cap=200 label=address position=position altitude=alt_geo_m course=course_deg speed=speed_kt since=1.0
+remote_id.table.messages row=RemoteIdMessageRow cap=400 label=address since=1.0
+remote_id.table.drone_tracks row=DroneTrackRow cap=24000 position=position since=1.0
 remote_id.event.remote_id.drone fields=RemoteIdDroneEvent since=1.0
 remote_id.setting.band type=choice(2432,2437,2412,2462,2403,2426,2478) unit= since=1.0
 remote_id.setting.ble type=bool unit= since=1.0
@@ -427,16 +428,17 @@ remote_id.setting.gen_wifi_phy type=choice(dsss,ofdm) unit= since=1.0
 remote_id.command.clear args= reply= since=1.0
 remote_id.command.remove args=row:text reply= since=1.0
 dji_droneid since=1.0
+dji_droneid.content kind=tracking since=1.1
 dji_droneid.fields.DjiDroneidFields since=1.0
 dji_droneid.kept.signals since=1.0
 dji_droneid.kept.drones since=1.0
 dji_droneid.kept.bursts since=1.0
 dji_droneid.kept.drone_tracks since=1.0
 dji_droneid.kept.DjiDroneidFields since=1.0
-dji_droneid.table.signals row=DjiDroneidSignalRow cap=24 since=1.0
-dji_droneid.table.drones row=DjiDroneidDroneRow cap=50 since=1.0
+dji_droneid.table.signals row=DjiDroneidSignalRow cap=24 sort=snr_db:descending since=1.0
+dji_droneid.table.drones row=DjiDroneidDroneRow cap=50 label=source position=position altitude=alt_m course=course_deg speed=speed_kt since=1.0
 dji_droneid.table.bursts row=DjiDroneidBurstRow cap=300 since=1.0
-dji_droneid.table.drone_tracks row=DroneTrackRow cap=6000 since=1.0
+dji_droneid.table.drone_tracks row=DroneTrackRow cap=6000 position=position since=1.0
 dji_droneid.series.level x_unit=s y_unit=dBFS since=1.0
 dji_droneid.event.dji.droneid fields=DjiDroneidEvent since=1.0
 dji_droneid.setting.decode_droneid type=bool unit= since=1.0
@@ -448,12 +450,13 @@ dji_droneid.setting.gen_wide type=bool unit= since=1.0
 dji_droneid.command.clear args= reply= since=1.0
 dji_droneid.command.remove args=row:text reply= since=1.0
 flarm since=1.0
+flarm.content kind=tracking since=1.1
 flarm.fields.FlarmFields since=1.0
 flarm.kept.aircraft since=1.0
 flarm.kept.aircraft_tracks since=1.0
 flarm.kept.FlarmFields since=1.0
-flarm.table.aircraft row=FlarmAircraftRow cap=128 since=1.0
-flarm.table.aircraft_tracks row=AircraftTrackRow cap=25600 since=1.0
+flarm.table.aircraft row=FlarmAircraftRow cap=128 label=source position=position altitude=alt_m course=course_deg speed=speed_kt since=1.0
+flarm.table.aircraft_tracks row=AircraftTrackRow cap=25600 position=position since=1.0
 flarm.event.flarm.aircraft fields=FlarmAircraftEvent since=1.0
 flarm.setting.wall_clock type=bool unit= since=1.0
 flarm.setting.start_time type=f64 unit=s since=1.0
@@ -462,12 +465,13 @@ flarm.setting.gen_centre type=position unit= since=1.0
 flarm.command.clear args= reply= since=1.0
 flarm.command.remove args=row:text reply= since=1.0
 adsl since=1.0
+adsl.content kind=tracking since=1.1
 adsl.fields.AdslFields since=1.0
 adsl.kept.aircraft since=1.0
 adsl.kept.aircraft_tracks since=1.0
 adsl.kept.AdslFields since=1.0
-adsl.table.aircraft row=AdslAircraftRow cap=128 since=1.0
-adsl.table.aircraft_tracks row=AircraftTrackRow cap=25600 since=1.0
+adsl.table.aircraft row=AdslAircraftRow cap=128 label=source position=position altitude=alt_m course=course_deg speed=speed_kt since=1.0
+adsl.table.aircraft_tracks row=AircraftTrackRow cap=25600 position=position since=1.0
 adsl.event.adsl.aircraft fields=AdslAircraftEvent since=1.0
 adsl.event.adsl.emergency fields=AdslEmergencyEvent since=1.0
 adsl.setting.m1_hz type=hz unit=Hz since=1.0
@@ -487,14 +491,15 @@ adsl.setting.gen_bad_bit type=i64 unit= since=1.0
 adsl.command.clear args= reply= since=1.0
 adsl.command.remove args=row:text reply= since=1.0
 ogn since=1.0
+ogn.content kind=tracking since=1.1
 ogn.fields.OgnFields since=1.0
 ogn.kept.packets since=1.0
 ogn.kept.aircraft since=1.0
 ogn.kept.aircraft_tracks since=1.0
 ogn.kept.OgnFields since=1.0
-ogn.table.packets row=OgnPacketRow cap=500 since=1.0
-ogn.table.aircraft row=OgnAircraftRow cap=256 since=1.0
-ogn.table.aircraft_tracks row=AircraftTrackRow cap=51200 since=1.0
+ogn.table.packets row=OgnPacketRow cap=500 label=hex position=position since=1.0
+ogn.table.aircraft row=OgnAircraftRow cap=256 label=source position=position altitude=alt_m course=course_deg speed=speed_kt since=1.0
+ogn.table.aircraft_tracks row=AircraftTrackRow cap=51200 position=position since=1.0
 ogn.event.ogn.tracker fields=OgnTrackerEvent since=1.0
 ogn.event.ogn.emergency fields=OgnEmergencyEvent since=1.0
 ogn.setting.channels type=i64 unit= since=1.0
@@ -507,6 +512,7 @@ ogn.setting.gen_emergency type=bool unit= since=1.0
 ogn.command.clear args= reply= since=1.0
 ogn.command.remove args=row:text reply= since=1.0
 rc_links since=1.0
+rc_links.content kind=networks since=1.1
 rc_links.fields.LinkFields since=1.0
 rc_links.fields.DecoderFields since=1.0
 rc_links.fields.RcLinksPpmFields since=1.0
@@ -515,8 +521,8 @@ rc_links.kept.frames since=1.0
 rc_links.kept.LinkFields since=1.0
 rc_links.kept.DecoderFields since=1.0
 rc_links.kept.ppm_frames since=1.0
-rc_links.table.links row=HeardLinkRow cap=100 since=1.0
-rc_links.table.frames row=LinkFrameRow cap=300 since=1.0
+rc_links.table.links row=HeardLinkRow cap=100 label=id position=position altitude=alt_m since=1.0
+rc_links.table.frames row=LinkFrameRow cap=300 label=hex since=1.0
 rc_links.table.ppm_frames row=RcLinksPpmFrameRow cap=500 since=1.0
 rc_links.event.rc_links.link fields=RcLinksLinkEvent since=1.0
 rc_links.event.rc.ppm_frame fields=RcPpmFrameEvent since=1.0
@@ -540,14 +546,15 @@ rc_links.setting.gen_ppm_invert type=bool unit= since=1.0
 rc_links.command.clear args= reply= since=1.0
 rc_links.command.remove args=row:text reply= since=1.0
 mavlink_sik since=1.0
+mavlink_sik.content kind=tracking since=1.1
 mavlink_sik.fields.LinkFields since=1.0
 mavlink_sik.fields.DecoderFields since=1.0
 mavlink_sik.kept.links since=1.0
 mavlink_sik.kept.frames since=1.0
 mavlink_sik.kept.LinkFields since=1.0
 mavlink_sik.kept.DecoderFields since=1.0
-mavlink_sik.table.links row=HeardLinkRow cap=100 since=1.0
-mavlink_sik.table.frames row=LinkFrameRow cap=300 since=1.0
+mavlink_sik.table.links row=HeardLinkRow cap=100 label=id position=position altitude=alt_m since=1.0
+mavlink_sik.table.frames row=LinkFrameRow cap=300 label=hex since=1.0
 mavlink_sik.event.mavlink_sik.vehicle fields=MavlinkSikVehicleEvent since=1.0
 mavlink_sik.setting.air_rate type=choice(auto,2,4,8,16,19,24,32,48,64,96,128,192,250) unit= since=1.0
 mavlink_sik.setting.threshold_db type=f64 unit=dB since=1.0

@@ -113,7 +113,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `broadcast`, version 1.0. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `broadcast`, version 1.1. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Broadcast radio (`broadcast`). Media: pictures.
 
 ### Result fields
 
@@ -210,6 +212,8 @@ Struct `HdradioProgramRow`. An audio program. The row key is "HD1" to "HD8".
 | `logo_port` | whole number | optional | 1.0 | The port of the station logo. |
 | `art_port` | whole number | optional | 1.0 | The port of the album art. |
 
+The column `name` names a row.
+
 ### Table `data_services`
 
 Struct `HdradioDataServiceRow`. A data service component. The row key is its port.
@@ -223,6 +227,8 @@ Struct `HdradioDataServiceRow`. A data service component. The row key is its por
 | `mime` | text | always | 1.0 | The content type. |
 | `packets` | whole number | always | 1.0 | Packets. |
 | `bytes` | whole number | always | 1.0 | Bytes. |
+
+The column `name` names a row.
 
 ### Table `files`
 
@@ -240,6 +246,8 @@ Struct `HdradioFileRow`. A file of the LOT transport. The row key is `<port>:<lo
 | `version` | whole number | always | 1.0 | The version. |
 | `expiry_mjd` | whole number (MJD) | always | 1.0 | The expiry date. |
 | `updated` | duration (s) | always | 1.0 | When it last changed, in signal time. |
+
+The column `name` names a row.
 
 ### Table `label_tags`
 

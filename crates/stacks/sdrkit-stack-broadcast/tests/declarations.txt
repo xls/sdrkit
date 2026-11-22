@@ -48,6 +48,7 @@ field FieldDecl { key: "slide_category", label: "Slide category", unit: "", kind
 field FieldDecl { key: "slide_link", label: "Slide link", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "slide_alert", label: "Emergency slide", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "services" "Services" cap 4
+  marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "short_id", label: "Short id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "service_id", label: "Service id", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -70,6 +71,7 @@ table "streams" "Streams" cap 4
   column FieldDecl { key: "part_a", label: "Part A", unit: "bytes", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "part_b", label: "Part B", unit: "bytes", kind: I64, choices: [], refers_to: None, content: None }
 table "objects" "Objects" cap 96
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "short_id", label: "Short id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "transport_id", label: "Transport id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -79,6 +81,7 @@ table "objects" "Objects" cap 96
   column FieldDecl { key: "order", label: "Order", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "slides" "Slides" cap 4
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "short_id", label: "Short id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "order", label: "Order", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -93,6 +96,7 @@ table "slides" "Slides" cap 4
   column FieldDecl { key: "width", label: "Width", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "height", label: "Height", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "journaline" "Journaline" cap 512
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "id", label: "Id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "kind", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "title", label: "Title", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -188,6 +192,7 @@ field FieldDecl { key: "segments_received", label: "Segments received", unit: ""
 field FieldDecl { key: "transmissions", label: "Transmissions", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "done", label: "Done", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "history" "Files" cap 8
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "id", label: "Id", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "call", label: "Call sign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -244,6 +249,7 @@ field FieldDecl { key: "slide_category", label: "Slide category", unit: "", kind
 field FieldDecl { key: "slide_link", label: "Slide link", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "slide_alert", label: "Emergency slide", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "programs" "Programs" cap 8
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "label", label: "Program", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -272,6 +278,7 @@ table "programs" "Programs" cap 8
   column FieldDecl { key: "logo_port", label: "Logo port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "art_port", label: "Art port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "data_services" "Data services" cap 64
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "service", label: "Service", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "port", label: "Port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -280,6 +287,7 @@ table "data_services" "Data services" cap 64
   column FieldDecl { key: "packets", label: "Packets", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "bytes", label: "Bytes", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "files" "Files" cap 64
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "port", label: "Port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "lot", label: "LOT", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }

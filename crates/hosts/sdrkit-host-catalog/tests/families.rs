@@ -105,3 +105,29 @@ fn a_stack_is_in_at_most_one_family_and_every_described_stack_exists() {
         }
     }
 }
+
+/// Every stack of the stack list has a kind of content in the description of its family. A family states a kind or a
+/// medium only for a stack that it holds.
+#[test]
+fn every_stack_states_its_kind_of_content() {
+    let mut problems = Vec::new();
+    for d in sdrkit_host_catalog::all() {
+        let shape = sdrkit_host_catalog::family_of(d.id).and_then(|f| f.stack_shape(d.id));
+        match shape {
+            Some(s) if s.content.is_some() => {}
+            Some(_) => problems.push(format!("{}: no kind of content", d.id)),
+            None => problems.push(format!("{}: no description", d.id)),
+        }
+    }
+    for family in sdrkit_host_catalog::families() {
+        for (mark, ids) in &family.stack_marks {
+            for id in ids.iter().filter(|id| family.stack_shape(id).is_none()) {
+                problems.push(format!(
+                    "{}: {mark:?} is stated for {id}, which is no stack of the family",
+                    family.key
+                ));
+            }
+        }
+    }
+    assert!(problems.is_empty(), "{}", problems.join("\n"));
+}

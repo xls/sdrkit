@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dab", version 1.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "dab", version 1.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -37,7 +37,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DAB_VERSION_MAJOR 1
-#define SDRKIT_DAB_VERSION_MINOR 0
+#define SDRKIT_DAB_VERSION_MINOR 1
 
 // The stack "dab": its id, and the keys of its event types.
 #define SDRKIT_STACK_DAB "dab"
@@ -1200,6 +1200,7 @@ typedef struct sdrkit_dab_service_select_args {
 
 // Fills `rows` with the changed rows of the table "services" of the stack "dab" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `label` names a row.
 static inline int32_t sdrkit_dab_services_rows(SDRKIT_HANDLE handle,
                                               sdrkit_dab_service_row *rows,
                                               uint32_t capacity,
@@ -1218,6 +1219,7 @@ static inline int32_t sdrkit_dab_subchannels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "service_components" of the stack "dab" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `label` names a row.
 static inline int32_t sdrkit_dab_service_components_rows(SDRKIT_HANDLE handle,
                                                         sdrkit_dab_service_component_row *rows,
                                                         uint32_t capacity,
@@ -1227,6 +1229,7 @@ static inline int32_t sdrkit_dab_service_components_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "user_applications" of the stack "dab" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_dab_user_applications_rows(SDRKIT_HANDLE handle,
                                                        sdrkit_dab_user_application_row *rows,
                                                        uint32_t capacity,
@@ -1245,6 +1248,7 @@ static inline int32_t sdrkit_dab_service_clusters_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "tii_database" of the stack "dab" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_dab_tii_database_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_dab_tii_entry_row *rows,
                                                   uint32_t capacity,
@@ -1272,6 +1276,7 @@ static inline int32_t sdrkit_dab_announcements_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "transmitters" of the stack "dab" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_dab_transmitters_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_dab_transmitter_row *rows,
                                                   uint32_t capacity,
@@ -1281,6 +1286,7 @@ static inline int32_t sdrkit_dab_transmitters_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "journaline" of the stack "dab" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `title` names a row.
 static inline int32_t sdrkit_dab_journaline_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_dab_journaline_row *rows,
                                                 uint32_t capacity,

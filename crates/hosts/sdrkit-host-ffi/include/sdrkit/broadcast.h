@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "broadcast", version 1.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "broadcast", version 1.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -38,7 +38,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_BROADCAST_VERSION_MAJOR 1
-#define SDRKIT_BROADCAST_VERSION_MINOR 0
+#define SDRKIT_BROADCAST_VERSION_MINOR 1
 
 // The stack "drm": its id, and the keys of its event types.
 #define SDRKIT_STACK_DRM "drm"
@@ -1411,6 +1411,7 @@ typedef struct sdrkit_broadcast_service_select_args {
 
 // Fills `rows` with the changed rows of the table "services" of the stack "drm" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `label` names a row.
 static inline int32_t sdrkit_drm_services_rows(SDRKIT_HANDLE handle,
                                               sdrkit_drm_service_row *rows,
                                               uint32_t capacity,
@@ -1429,6 +1430,7 @@ static inline int32_t sdrkit_drm_streams_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "objects" of the stack "drm" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_drm_objects_rows(SDRKIT_HANDLE handle,
                                              sdrkit_drm_object_row *rows,
                                              uint32_t capacity,
@@ -1438,6 +1440,7 @@ static inline int32_t sdrkit_drm_objects_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "slides" of the stack "drm" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_drm_slides_rows(SDRKIT_HANDLE handle,
                                             sdrkit_drm_slide_row *rows,
                                             uint32_t capacity,
@@ -1447,6 +1450,7 @@ static inline int32_t sdrkit_drm_slides_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "journaline" of the stack "drm" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `title` names a row.
 static inline int32_t sdrkit_drm_journaline_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_drm_page_row *rows,
                                                 uint32_t capacity,
@@ -1638,6 +1642,7 @@ static inline int32_t sdrkit_drm_gen_set_data(SDRKIT_HANDLE handle, sdrkit_drm_g
 
 // Fills `rows` with the changed rows of the table "history" of the stack "hamdrm" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_hamdrm_history_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_hamdrm_file_row *rows,
                                                 uint32_t capacity,
@@ -1743,6 +1748,7 @@ static inline int32_t sdrkit_hamdrm_gen_set_transmissions(SDRKIT_HANDLE handle, 
 
 // Fills `rows` with the changed rows of the table "programs" of the stack "hdradio" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_hdradio_programs_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_hdradio_program_row *rows,
                                                   uint32_t capacity,
@@ -1752,6 +1758,7 @@ static inline int32_t sdrkit_hdradio_programs_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "data_services" of the stack "hdradio" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_hdradio_data_services_rows(SDRKIT_HANDLE handle,
                                                        sdrkit_hdradio_data_service_row *rows,
                                                        uint32_t capacity,
@@ -1761,6 +1768,7 @@ static inline int32_t sdrkit_hdradio_data_services_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "files" of the stack "hdradio" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_hdradio_files_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hdradio_file_row *rows,
                                                uint32_t capacity,

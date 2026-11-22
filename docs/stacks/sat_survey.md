@@ -100,7 +100,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.2. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 1.3. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Satellite links (`satellite_links`). Media: none.
 
 ### Result fields
 
@@ -149,6 +151,8 @@ Struct `SatSurveyCarrierRow`. A carrier line. The row key is the number of the l
 | `rms_hz` | number (Hz) | optional | 1.0 | The rms of the Doppler match. |
 | `ambiguous` | yes or no | always | 1.0 | Another satellite fits about as well. |
 
+The column `satellite` names a row. Default order: the column `snr_db`, highest first.
+
 ### Table `channels`
 
 Struct `SatSurveyChannelRow`. A channel that has been active. The row key is its grid frequency in whole Hz.
@@ -164,6 +168,8 @@ Struct `SatSurveyChannelRow`. A channel that has been active. The row key is its
 | `last_seen_s` | number (s) | always | 1.0 | The signal time a channel was last on. |
 | `active` | yes or no | always | 1.0 | The line or channel is active. |
 | `name` | text | always | 1.0 | The name of a channel. |
+
+The column `name` names a row.
 
 ### Event `survey.carrier`
 

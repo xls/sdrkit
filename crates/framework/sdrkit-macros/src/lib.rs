@@ -110,6 +110,7 @@ struct FieldAttr {
     refers_to: Option<LitStr>,
     content: Option<Path>,
     shared: Option<Path>,
+    role: Option<Ident>,
 }
 
 fn field_attr(attrs: &[Attribute]) -> syn::Result<FieldAttr> {
@@ -126,8 +127,10 @@ fn field_attr(attrs: &[Attribute]) -> syn::Result<FieldAttr> {
                 out.content = Some(m.value()?.parse()?);
             } else if m.path.is_ident("shared") {
                 out.shared = Some(m.value()?.parse()?);
+            } else if m.path.is_ident("role") {
+                out.role = Some(m.value()?.parse()?);
             } else {
-                return Err(m.error("expected label, unit, refers_to, content or shared"));
+                return Err(m.error("expected label, unit, refers_to, content, shared or role"));
             }
             Ok(())
         })?;
@@ -248,6 +251,7 @@ fn fields_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
             }
             continue;
         }
+        let role = attr.role.iter();
         let value = match (&attr.shared, &attr.label) {
             (Some(path), None) => {
                 if attr.unit.is_some() || attr.refers_to.is_some() {
@@ -261,7 +265,7 @@ fn fields_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
                         #core::interface::same_text(#path.key, #key),
                         "the key of the shared field is not the name of the struct field"
                     );
-                    #path
+                    #path #(.role(#core::Role::#role))*
                 })
             }
             (None, Some(label)) => {
@@ -271,7 +275,7 @@ fn fields_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
                     .unwrap_or_else(|| LitStr::new("", Span::call_site()));
                 let refers = attr.refers_to.iter();
                 let content = attr.content.iter();
-                quote!(#core::Field::new(#key, #label, #unit) #(.refers_to_table(#refers))* #(.content(#content))*)
+                quote!(#core::Field::new(#key, #label, #unit) #(.refers_to_table(#refers))* #(.content(#content))* #(.role(#core::Role::#role))*)
             }
             _ => {
                 return Err(syn::Error::new_spanned(

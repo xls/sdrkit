@@ -346,7 +346,8 @@ pub struct EonRow<'a> {
 }
 
 /// The other networks.
-pub static EON: Table<EonRow<'static>> = Table::new("eon", "Other networks", 16);
+pub static EON: Table<EonRow<'static>> =
+    Table::new("eon", "Other networks", 16).label(&EonRow::NAME);
 
 /// A row of the alternative frequencies of the other networks. The row key is `<PI>/<place>` (`4A21/00`).
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -464,8 +465,8 @@ pub const START: Command = Command::new("start", "Start sending")
     .transmits(TxContent::File)
     .stopped_by("stop");
 /// Ends the transmission.
-pub const STOP: Command =
-    Command::new("stop", "Stop sending").help("Ends the transmission at once, with the fall of the carrier.");
+pub const STOP: Command = Command::new("stop", "Stop sending")
+    .help("Ends the transmission at once, with the fall of the carrier.");
 
 /// What version 1.2 added: the sender of the FM stack.
 const ADDED_1_2: &[&str] = &[
@@ -500,28 +501,32 @@ const ADDED_1_2: &[&str] = &[
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Family::new("fm", 1, 2).stack(
-            StackShape::new(crate::graph::ID)
-                .fields::<FmFields>()
-                .fields::<FmTxFields>()
-                .table(&AF)
-                .table(&LABEL_TAGS)
-                .table(&ODA)
-                .table(&EON)
-                .table(&EON_AF)
-                .table(&TMC)
-                .series(MPX)
-                .series(RDS_SYMBOLS)
-                .event(&STATION_NAMED)
-                .event(&TEXT_DONE)
-                .settings(crate::settings::FmSetting::SETTINGS)
-                .command(&crate::graph::CLEAR)
-                .command(&START)
-                .command(&STOP),
-        )
-        // Version 1.1 added the STL stack.
-        .added_in(1, 1, |f| f.stack(crate::stl::typed::shape()))
-        .added(1, 2, ADDED_1_2)
+        Family::new("fm", 1, 3)
+            .added(1, 3, &["fm.content", "stl.content"])
+            .content(sdrkit_core::ContentKind::Broadcast, &["fm", "stl"])
+            .audio(sdrkit_core::AudioKind::Programme, &["fm", "stl"])
+            .stack(
+                StackShape::new(crate::graph::ID)
+                    .fields::<FmFields>()
+                    .fields::<FmTxFields>()
+                    .table(&AF)
+                    .table(&LABEL_TAGS)
+                    .table(&ODA)
+                    .table(&EON)
+                    .table(&EON_AF)
+                    .table(&TMC)
+                    .series(MPX)
+                    .series(RDS_SYMBOLS)
+                    .event(&STATION_NAMED)
+                    .event(&TEXT_DONE)
+                    .settings(crate::settings::FmSetting::SETTINGS)
+                    .command(&crate::graph::CLEAR)
+                    .command(&START)
+                    .command(&STOP),
+            )
+            // Version 1.1 added the STL stack.
+            .added_in(1, 1, |f| f.stack(crate::stl::typed::shape()))
+            .added(1, 2, ADDED_1_2)
     })
 }
 

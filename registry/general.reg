@@ -1,5 +1,5 @@
 # The interface of the stack family general. The registry test of the family writes this file.
-family general version=1.2
+family general version=1.3
 uses.tones major=1 since=1.0
 shape.AmFields since=1.0
 shape.AmFields.am_active type=bool unit= optional=no since=1.0
@@ -76,13 +76,14 @@ shape.ChannelRow.demod type=choice(nfm,wfm,am,usb,lsb,cw) unit= optional=yes sin
 shape.ChannelRow.squelch_open type=bool unit= optional=yes since=1.0
 shape.ChannelRow.summary type=text unit= optional=no since=1.0
 general since=1.0
+general.content kind=general audio=monitor since=1.3
 general.fields.AmFields since=1.0
 general.fields.GeneralFields since=1.0
 general.fields.TransmitFields since=1.1
 general.kept.width_presets since=1.0
 general.kept.presets since=1.0
 general.table.width_presets row=WidthPresetRow cap=32 since=1.0
-general.table.presets row=PresetRow cap=64 since=1.0
+general.table.presets row=PresetRow cap=64 label=name since=1.0
 general.table.channels row=ChannelRow cap=4 since=1.0
 general.series.whistles x_unit= y_unit=Hz since=1.0
 general.event.tones.subaudio fields=SubAudioFields since=1.0

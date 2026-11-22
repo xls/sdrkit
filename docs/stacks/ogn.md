@@ -79,7 +79,9 @@ The stack puts points on a map: Aircraft.
 
 ## Typed interface
 
-The stack is in the family `drones`, version 1.0. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `drones`, version 1.1. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -114,6 +116,8 @@ Struct `OgnPacketRow`. A packet in the packet log.
 | `repaired` | yes or no | always | 1.0 | The repair changed a bit of the packet. |
 | `hex` | text | always | 1.0 | The 26 bytes of a packet after the repair. |
 
+The column `hex` names a row. Place of a row: the column `position`.
+
 ### Table `aircraft`
 
 Struct `OgnAircraftRow`. An aircraft heard on OGN.
@@ -141,6 +145,8 @@ Struct `OgnAircraftRow`. An aircraft heard on OGN.
 | `first_heard` | time | optional | 1.0 | Wall-clock time when first heard. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
 
+The column `source` names a row. Place of a row: the column `position`. Height: `alt_m`. Course: `course_deg`. Speed: `speed_kt`.
+
 ### Table `aircraft_tracks`
 
 Struct `AircraftTrackRow`. A track point of an aircraft. The row key is the aircraft key and the signal time of the point.
@@ -150,6 +156,8 @@ Struct `AircraftTrackRow`. A track point of an aircraft. The row key is the airc
 | `aircraft` | text | always | 1.0 | The aircraft a track point belongs to. |
 | `position` | position | always | 1.0 | The position of the object that the event is about. |
 | `time_s` | number (s) | always | 1.0 | The signal time of a track point. |
+
+Place of a row: the column `position`.
 
 ### Event `ogn.tracker`
 

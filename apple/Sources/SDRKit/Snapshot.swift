@@ -85,6 +85,16 @@ public struct MapPoint: Equatable, Sendable {
     public var label: String
     /// Degrees from north for a moving target, if known.
     public var heading: Float?
+    /// The row that the point shows, if the stack states one.
+    public var row: RowLink? = nil
+}
+
+/// One row of a table of the same results.
+public struct RowLink: Equatable, Sendable {
+    /// The id of the table.
+    public var table: UInt32
+    /// The row key. The row can be absent from the table: a table drops its oldest rows.
+    public var key: String
 }
 
 /// The results of an object at one moment.

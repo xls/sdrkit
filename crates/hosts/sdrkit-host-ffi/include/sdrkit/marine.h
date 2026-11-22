@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "marine", version 1.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "marine", version 1.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_MARINE_VERSION_MAJOR 1
-#define SDRKIT_MARINE_VERSION_MINOR 0
+#define SDRKIT_MARINE_VERSION_MINOR 1
 
 // The stack "ais": its id, and the keys of its event types.
 #define SDRKIT_STACK_AIS "ais"
@@ -1927,6 +1927,9 @@ typedef struct sdrkit_atis_remove_args {
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
+// Place of a row: the column `position`.
+// Course: `course_deg`. Speed: `speed_kt`.
 static inline int32_t sdrkit_ais_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ais_station_row *rows,
                                               uint32_t capacity,
@@ -1936,6 +1939,8 @@ static inline int32_t sdrkit_ais_stations_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "track_points" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `station` names a row.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_ais_track_points_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_ais_track_point_row *rows,
                                                   uint32_t capacity,
@@ -1954,6 +1959,7 @@ static inline int32_t sdrkit_ais_counters_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_ais_channels_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ais_channel_row *rows,
                                               uint32_t capacity,
@@ -1972,6 +1978,7 @@ static inline int32_t sdrkit_ais_sentences_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "receptions" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `mmsi` names a row.
 static inline int32_t sdrkit_ais_receptions_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_ais_reception_row *rows,
                                                 uint32_t capacity,
@@ -1981,6 +1988,8 @@ static inline int32_t sdrkit_ais_receptions_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "alerts" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_ais_alerts_rows(SDRKIT_HANDLE handle,
                                             sdrkit_ais_alert_row *rows,
                                             uint32_t capacity,
@@ -1999,6 +2008,9 @@ static inline int32_t sdrkit_ais_hop_plan_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "selected" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
+// Place of a row: the column `position`.
+// Height: `altitude_m`. Course: `course_deg`. Speed: `speed_kt`.
 static inline int32_t sdrkit_ais_selected_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ais_selected_row *rows,
                                               uint32_t capacity,
@@ -2230,6 +2242,7 @@ static inline int32_t sdrkit_marine_navtex_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "dsc" of the stack "marine" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_marine_dsc_rows(SDRKIT_HANDLE handle,
                                             sdrkit_marine_dsc_row *rows,
                                             uint32_t capacity,
@@ -2447,6 +2460,9 @@ static inline int32_t sdrkit_marine_gen_set_phasing_s(SDRKIT_HANDLE handle, doub
 
 // Fills `rows` with the changed rows of the table "asm" of the stack "vdes" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `mmsi` names a row.
+// Place of a row: the column `position`.
+// Course: `course_deg`. Speed: `speed_kt`.
 static inline int32_t sdrkit_vdes_asm_rows(SDRKIT_HANDLE handle,
                                           sdrkit_vdes_asm_row *rows,
                                           uint32_t capacity,
@@ -2465,6 +2481,7 @@ static inline int32_t sdrkit_vdes_bursts_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "vdes" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_vdes_channels_rows(SDRKIT_HANDLE handle,
                                                sdrkit_vdes_channel_row *rows,
                                                uint32_t capacity,
@@ -2661,6 +2678,7 @@ static inline int32_t sdrkit_marinevhf_set_time_base(SDRKIT_HANDLE handle, doubl
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "atis" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_atis_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_atis_message_row *rows,
                                                uint32_t capacity,
@@ -2670,6 +2688,7 @@ static inline int32_t sdrkit_atis_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "atis" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_atis_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_atis_station_row *rows,
                                                uint32_t capacity,

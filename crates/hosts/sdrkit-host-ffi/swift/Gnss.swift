@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "gnss", version 1.0. MIT licence.
+// sdrkit: the typed interface of the stack family "gnss", version 1.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum GnssInterface {
     public static let major = 1
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of the receiver.
@@ -979,6 +979,9 @@ public enum GnssTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GnssFixSystemRow.init))
     }
     /// The changed rows of the table "satellites" of the stack "gnss", newest first, at most `capacity` rows.
+    /// Default order: the column `cn0_dbhz`, highest first.
+    /// Place of a row: the column `sub_point`.
+    /// Height: `height_km`.
     public static func gnssSatellites(_ handle: SDRKIT_HANDLE, capacity: Int = 160) -> Result<[GnssSatelliteRow], SDRKitCode> {
         var rows = [sdrkit_gnss_satellite_row](repeating: sdrkit_gnss_satellite_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1003,6 +1006,7 @@ public enum GnssTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GnssInterferenceEventRow.init))
     }
     /// The changed rows of the table "sbas_satellites" of the stack "sbas", newest first, at most `capacity` rows.
+    /// Default order: the column `cn0_dbhz`, highest first.
     public static func sbasSatellites(_ handle: SDRKIT_HANDLE, capacity: Int = 39) -> Result<[SbasSatelliteRow], SDRKitCode> {
         var rows = [sdrkit_sbas_satellite_row](repeating: sdrkit_sbas_satellite_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1019,6 +1023,7 @@ public enum GnssTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SbasSatelliteTypeRow.init))
     }
     /// The changed rows of the table "types" of the stack "sbas", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     public static func sbasTypes(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SbasTypeRow], SDRKitCode> {
         var rows = [sdrkit_sbas_type_row](repeating: sdrkit_sbas_type_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1083,6 +1088,9 @@ public enum GnssTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GnssFixSystemRow.init))
     }
     /// The changed rows of the table "rx.satellites" of the stack "sbas", newest first, at most `capacity` rows.
+    /// Default order: the column `cn0_dbhz`, highest first.
+    /// Place of a row: the column `sub_point`.
+    /// Height: `height_km`.
     public static func sbasRxSatellites(_ handle: SDRKIT_HANDLE, capacity: Int = 160) -> Result<[GnssSatelliteRow], SDRKitCode> {
         var rows = [sdrkit_gnss_satellite_row](repeating: sdrkit_gnss_satellite_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1091,6 +1099,7 @@ public enum GnssTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GnssSatelliteRow.init))
     }
     /// The changed rows of the table "satellites" of the stack "navic", newest first, at most `capacity` rows.
+    /// Default order: the column `cn0_dbhz`, highest first.
     public static func navicSatellites(_ handle: SDRKIT_HANDLE, capacity: Int = 14) -> Result<[NavicSatelliteRow], SDRKitCode> {
         var rows = [sdrkit_navic_satellite_row](repeating: sdrkit_navic_satellite_row(), count: capacity)
         var info = sdrkit_rows_info.sized

@@ -75,7 +75,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 2.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 2.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Sensors and devices (`devices`). Media: none.
 
 ### Result fields
 
@@ -110,6 +112,8 @@ Struct `NrfFrameRow`. A row of the frame log. The row key is the number of the f
 | `snr_db` | number (dB) | always | 1.0 | The SNR. |
 | `repeats` | whole number | always | 1.0 | The same frame again in a row within 2 s. |
 
+The column `address` names a row.
+
 ### Table `addresses`
 
 Struct `NrfAddressRow`. A row of the addresses. The row key is the address as hex.
@@ -124,6 +128,8 @@ Struct `NrfAddressRow`. A row of the addresses. The row key is the address as he
 | `frequency` | frequency | always | 1.0 | The carrier frequency. |
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+
+The column `address` names a row.
 
 ### Table `bad_bursts`
 

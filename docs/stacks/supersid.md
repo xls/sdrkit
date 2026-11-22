@@ -117,7 +117,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.1. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Science and propagation (`science`). Media: none.
 
 ### Result fields
 
@@ -166,6 +168,8 @@ Struct `SupersidTransmitterRow`. A monitored transmitter, in list order. The row
 | `sunlit` | number | optional | 1.0 | The sunlit share of the path. |
 | `series` | text | always | 1.0 | The key of the series of minute means. |
 
+The column `label` names a row.
+
 ### Table `sid_events`
 
 Struct `SupersidEventRow`. A row of the table `sid_events`.
@@ -180,6 +184,8 @@ Struct `SupersidEventRow`. A row of the table `sid_events`.
 | `peak_db` | number (dB) | always | 1.0 | The peak step of an event. |
 | `end_utc` | time | optional | 1.0 | The UTC of an event's end. |
 
+The column `label` names a row.
+
 ### Table `marks`
 
 Struct `SupersidMarkRow`. A terminator mark of the UTC day. The row key is its place in time order, three digits.
@@ -190,6 +196,8 @@ Struct `SupersidMarkRow`. A terminator mark of the UTC day. The row key is its p
 | `point` | text | always | 1.0 | The point of the path of a mark. |
 | `mark` | text | always | 1.0 | The crossing of a mark. |
 | `utc` | time | always | 1.0 | The UTC of a mark. |
+
+The column `label` names a row.
 
 ### Event `sid.event`
 

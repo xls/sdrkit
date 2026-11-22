@@ -86,7 +86,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.2. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 1.3. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -128,6 +130,8 @@ Struct `ArgosBurstRow`. An uplink burst. The row key is the sequence number of t
 | `data_bits` | whole number | optional | 1.0 | The number of user data bits. |
 | `data` | bytes | optional | 1.0 | The user data, the first bit the high bit of the first byte. |
 
+The column `platform` names a row.
+
 ### Table `platforms`
 
 Struct `ArgosPlatformRow`. A platform heard. The row key is the platform id.
@@ -139,6 +143,8 @@ Struct `ArgosPlatformRow`. A platform heard. The row key is the platform id.
 | `drift_hz_s` | number (Hz/s) | always | 1.0 | The drift. |
 | `last_heard` | time | optional | 1.0 | When it was last heard. |
 | `heard` | whole number | optional | 1.0 | How many times it was heard. |
+
+The column `platform` names a row.
 
 ### Table `frames`
 

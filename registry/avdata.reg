@@ -1,5 +1,5 @@
 # The interface of the stack family avdata. The registry test of the family writes this file.
-family avdata version=1.1
+family avdata version=1.2
 uses.tones major=1 since=1.0
 shape.AcarsFields since=1.0
 shape.AcarsFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -458,13 +458,14 @@ shape.OfdmShapeDetectionRow.offset_hz type=hz unit=Hz optional=no since=1.0
 shape.OfdmShapeDetectionRow.correlation type=f64 unit= optional=no since=1.0
 shape.OfdmShapeDetectionRow.frame type=text unit= optional=yes since=1.0
 acars since=1.0
+acars.content kind=datalink text=yes since=1.2
 acars.fields.AcarsFields since=1.0
 acars.kept.messages since=1.0
 acars.kept.aircraft since=1.0
 acars.kept.AcarsFields.aircraft since=1.0
 acars.kept.AcarsFields.messages since=1.0
-acars.table.messages row=AcarsMessageRow cap=200 since=1.0
-acars.table.aircraft row=AcarsAircraftRow cap=100 since=1.0
+acars.table.messages row=AcarsMessageRow cap=200 label=flight position=position altitude=alt_ft since=1.0
+acars.table.aircraft row=AcarsAircraftRow cap=100 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt since=1.0
 acars.table.channels row=AcarsChannelRow cap=24 since=1.0
 acars.event.acars.message fields=AcarsMessageEvent since=1.0
 acars.setting.channels type=text unit= since=1.0
@@ -475,6 +476,7 @@ acars.setting.gen_rate_factor type=f64 unit= since=1.0
 acars.setting.gen_positions type=bool unit= since=1.0
 acars.command.clear args= reply= since=1.0
 vdl2 since=1.0
+vdl2.content kind=datalink text=yes since=1.2
 vdl2.fields.Vdl2Fields since=1.0
 vdl2.kept.messages since=1.0
 vdl2.kept.aircraft since=1.0
@@ -482,9 +484,9 @@ vdl2.kept.ground_stations since=1.0
 vdl2.kept.Vdl2Fields.aircraft since=1.0
 vdl2.kept.Vdl2Fields.ground_stations since=1.0
 vdl2.kept.Vdl2Fields.messages since=1.0
-vdl2.table.messages row=Vdl2MessageRow cap=400 since=1.0
-vdl2.table.aircraft row=Vdl2AircraftRow cap=200 since=1.0
-vdl2.table.ground_stations row=Vdl2StationRow cap=64 since=1.0
+vdl2.table.messages row=Vdl2MessageRow cap=400 label=flight position=position altitude=alt_ft since=1.0
+vdl2.table.aircraft row=Vdl2AircraftRow cap=200 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt since=1.0
+vdl2.table.ground_stations row=Vdl2StationRow cap=64 label=address position=position since=1.0
 vdl2.table.channels row=Vdl2ChannelRow cap=64 since=1.0
 vdl2.event.vdl2.message fields=Vdl2MessageEvent since=1.0
 vdl2.setting.channels type=text unit= since=1.0
@@ -494,6 +496,7 @@ vdl2.setting.gen_aircraft type=i64 unit= since=1.0
 vdl2.command.clear args= reply= since=1.0
 vdl2.command.remove args=row:text reply= since=1.0
 vdl4 since=1.0
+vdl4.content kind=datalink text=yes since=1.2
 vdl4.fields.Vdl4Fields since=1.0
 vdl4.kept.messages since=1.0
 vdl4.kept.aircraft since=1.0
@@ -501,15 +504,16 @@ vdl4.kept.ground_stations since=1.0
 vdl4.kept.Vdl4Fields.frames since=1.0
 vdl4.kept.Vdl4Fields.aircraft since=1.0
 vdl4.kept.Vdl4Fields.ground_stations since=1.0
-vdl4.table.messages row=Vdl4MessageRow cap=400 since=1.0
-vdl4.table.aircraft row=Vdl4AircraftRow cap=200 since=1.0
-vdl4.table.ground_stations row=Vdl4StationRow cap=64 since=1.0
+vdl4.table.messages row=Vdl4MessageRow cap=400 label=address position=position altitude=alt_ft since=1.0
+vdl4.table.aircraft row=Vdl4AircraftRow cap=200 label=flight position=position altitude=alt_ft course=track_deg speed=gs_kt since=1.0
+vdl4.table.ground_stations row=Vdl4StationRow cap=64 label=address position=position since=1.0
 vdl4.table.channels row=Vdl4ChannelRow cap=64 since=1.0
 vdl4.event.vdl4.message fields=Vdl4MessageEvent since=1.0
 vdl4.setting.channels type=text unit= since=1.0
 vdl4.command.clear args= reply= since=1.0
 vdl4.command.remove args=row:text reply= since=1.0
 selcal since=1.0
+selcal.content kind=datalink text=yes since=1.2
 selcal.fields.SelcalFields since=1.0
 selcal.kept.calls since=1.0
 selcal.kept.codes since=1.0
@@ -526,14 +530,15 @@ selcal.setting.aircraft_table type=text unit= since=1.0
 selcal.command.clear args= reply= since=1.0
 selcal.command.remove args=row:text reply= since=1.0
 airband since=1.0
+airband.content kind=voice audio=voice since=1.2
 airband.fields.AirbandFields since=1.0
 airband.fields.AirbandTxFields since=1.1
 airband.kept.seen since=1.0
 airband.kept.activity since=1.0
 airband.kept.AirbandFields.transmissions since=1.0
-airband.table.channels row=AirbandChannelRow cap=256 since=1.0
-airband.table.seen row=AirbandSeenRow cap=200 since=1.0
-airband.table.activity row=AirbandActivityRow cap=300 since=1.0
+airband.table.channels row=AirbandChannelRow cap=256 label=name since=1.0
+airband.table.seen row=AirbandSeenRow cap=200 label=name since=1.0
+airband.table.activity row=AirbandActivityRow cap=300 label=name since=1.0
 airband.event.airband.activity fields=AirbandActivityEvent since=1.0
 airband.setting.channels type=text unit= since=1.0
 airband.setting.squelch_db type=f64 unit=dB since=1.0
@@ -552,16 +557,17 @@ airband.command.clear args= reply= since=1.0
 airband.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.1
 airband.command.halt args= reply= since=1.1
 hfdl since=1.0
+hfdl.content kind=datalink text=yes since=1.2
 hfdl.fields.HfdlFields since=1.0
 hfdl.kept.messages since=1.0
 hfdl.kept.aircraft since=1.0
 hfdl.kept.ground_stations since=1.0
 hfdl.kept.HfdlFields.hopper since=1.0
 hfdl.kept.HfdlFields.aircraft since=1.0
-hfdl.table.messages row=HfdlMessageRow cap=400 since=1.0
-hfdl.table.aircraft row=HfdlAircraftRow cap=200 since=1.0
-hfdl.table.ground_stations row=HfdlStationRow cap=64 since=1.0
-hfdl.table.channels row=HfdlChannelRow cap=512 since=1.0
+hfdl.table.messages row=HfdlMessageRow cap=400 label=flight position=position since=1.0
+hfdl.table.aircraft row=HfdlAircraftRow cap=200 label=flight position=position altitude=alt_ft since=1.0
+hfdl.table.ground_stations row=HfdlStationRow cap=64 label=name since=1.0
+hfdl.table.channels row=HfdlChannelRow cap=512 label=name since=1.0
 hfdl.event.hfdl.message fields=HfdlMessageEvent since=1.0
 hfdl.setting.channels type=text unit= since=1.0
 hfdl.setting.whole_span type=bool unit= since=1.0
@@ -571,6 +577,7 @@ hfdl.setting.follow_best_band type=bool unit= since=1.0
 hfdl.command.clear args= reply= since=1.0
 hfdl.command.remove args=row:text reply= since=1.0
 vdl3 since=1.0
+vdl3.content kind=datalink since=1.2
 vdl3.fields.Vdl3Fields since=1.0
 vdl3.fields.DecoderFields since=1.0
 vdl3.kept.bursts since=1.0
@@ -593,6 +600,7 @@ vdl3.setting.rs_bit_order type=choice(lsb_first,msb_first) unit= since=1.0
 vdl3.setting.gen_adjacent type=bool unit= since=1.0
 vdl3.command.clear args= reply= since=1.0
 gbas_vdb since=1.0
+gbas_vdb.content kind=navigation since=1.2
 gbas_vdb.fields.GbasVdbFields since=1.0
 gbas_vdb.fields.DecoderFields since=1.0
 gbas_vdb.kept.bursts since=1.0
@@ -602,6 +610,7 @@ gbas_vdb.setting.gen_slots type=text unit= since=1.0
 gbas_vdb.setting.gen_frames type=i64 unit= since=1.0
 gbas_vdb.command.clear args= reply= since=1.0
 ldacs since=1.0
+ldacs.content kind=datalink since=1.2
 ldacs.fields.OfdmShapeFields since=1.0
 ldacs.fields.DecoderFields since=1.0
 ldacs.kept.detections since=1.0
@@ -612,6 +621,7 @@ ldacs.setting.frame_ms type=f64 unit=ms since=1.0
 ldacs.setting.gen_duty type=f64 unit=% since=1.0
 ldacs.command.clear args= reply= since=1.0
 aeromacs since=1.0
+aeromacs.content kind=datalink since=1.2
 aeromacs.fields.OfdmShapeFields since=1.0
 aeromacs.fields.DecoderFields since=1.0
 aeromacs.kept.detections since=1.0

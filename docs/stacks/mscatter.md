@@ -74,7 +74,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.1. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Science and propagation (`science`). Media: none.
 
 ### Result fields
 
@@ -115,6 +117,8 @@ Struct `MscatterShowerRow`. A meteor shower. The row key is its name.
 | `peak_in_days` | whole number (d) | always | 1.0 | Days to the peak of a shower (below 0 after it). |
 | `active` | yes or no | always | 1.0 | The shower is active. |
 | `zhr` | whole number | always | 1.0 | The zenithal hourly rate of a shower. |
+
+The column `name` names a row.
 
 ### Event `ms.ping`
 

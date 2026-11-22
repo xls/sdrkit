@@ -61,7 +61,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:up
 
 ## Typed interface
 
-The stack is in the family `adsb`, version 1.1. The C header `sdrkit/adsb.h`, the registry record `registry/adsb.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `adsb`, version 1.2. The C header `sdrkit/adsb.h`, the registry record `registry/adsb.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Position tracking (`tracking`). Media: none.
 
 ### Result fields
 
@@ -88,6 +90,8 @@ Struct `AddressedRow`. An aircraft that the interrogations address. The row key 
 | `formats` | text | always | 1.0 | Uplink formats with their counts ("UF4x3 UF5x1"). |
 | `last` | text | always | 1.0 | The fields of the last interrogation. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. |
+
+The column `icao` names a row.
 
 ### Table `interrogators`
 

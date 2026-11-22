@@ -54,7 +54,8 @@ pub struct StationRow<'a> {
 }
 
 /// The stations heard: one row for each callsign in the decoded text.
-pub static STATIONS: Table<StationRow<'static>> = Table::new("stations", "Stations heard", 100);
+pub static STATIONS: Table<StationRow<'static>> =
+    Table::new("stations", "Stations heard", 100).label(&StationRow::CALLSIGN);
 
 /// The fields of a callsign heard for the first time.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -364,7 +365,8 @@ pub struct PskSignalRow<'a> {
 
 /// The PSK signals.
 pub static PSK_SIGNALS: Table<PskSignalRow<'static>> =
-    Table::new("signals", "Signals", crate::psk::SIGNALS_CAP);
+    Table::new("signals", "Signals", crate::psk::SIGNALS_CAP)
+        .sorted(&PskSignalRow::SNR_DB, sdrkit_core::SortOrder::Descending);
 
 /// The window spectrum of PSK.
 pub const PSK_SPECTRUM: SeriesDef = SeriesDef {
@@ -505,7 +507,8 @@ pub struct CwSignalRow<'a> {
 
 /// The CW signals.
 pub static CW_SIGNALS: Table<CwSignalRow<'static>> =
-    Table::new("signals", "Signals", crate::cw::SIGNALS_CAP);
+    Table::new("signals", "Signals", crate::cw::SIGNALS_CAP)
+        .sorted(&CwSignalRow::SNR_DB, sdrkit_core::SortOrder::Descending);
 
 /// The mark lengths of the signal in focus.
 pub const CW_MARKS: SeriesDef = SeriesDef {
@@ -709,7 +712,8 @@ pub struct FsqMessageRow<'a> {
 }
 
 /// The FSQ messages, newest first.
-pub static FSQ_MESSAGES: Table<FsqMessageRow<'static>> = Table::new("messages", "Messages", 60);
+pub static FSQ_MESSAGES: Table<FsqMessageRow<'static>> =
+    Table::new("messages", "Messages", 60).label(&FsqMessageRow::FROM);
 
 /// The fields of an FSQ message.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1075,10 +1079,11 @@ pub struct ArdopStationRow<'a> {
 }
 
 /// The ARDOP frames, newest first.
-pub static ARDOP_FRAMES: Table<ArdopFrameRow<'static>> = Table::new("frames", "Frames", 300);
+pub static ARDOP_FRAMES: Table<ArdopFrameRow<'static>> =
+    Table::new("frames", "Frames", 300).label(&ArdopFrameRow::NAME);
 /// The ARDOP stations.
 pub static ARDOP_STATIONS: Table<ArdopStationRow<'static>> =
-    Table::new("stations", "Stations", 100);
+    Table::new("stations", "Stations", 100).label(&ArdopStationRow::CALLSIGN);
 
 /// The level of the ARDOP signal over time.
 pub const ARDOP_LEVELS: SeriesDef = SeriesDef {
@@ -1332,7 +1337,7 @@ pub struct RosDetectionRow<'a> {
 
 /// The ROS identifications, newest first.
 pub static ROS_DETECTIONS: Table<RosDetectionRow<'static>> =
-    Table::new("detections", "Identifications", 100);
+    Table::new("detections", "Identifications", 100).label(&RosDetectionRow::NAME);
 
 /// The newest spectrum of the ROS band.
 pub const ROS_WATERFALL: SeriesDef = SeriesDef {
@@ -2048,7 +2053,123 @@ pub fn family() -> &'static Described {
         let olivia = k::olivia::OliviaSetting::SETTINGS;
         let olivia_gen = k::olivia::OliviaGenSetting::SETTINGS;
         let ifk_gen = k::domino::IfkGenSetting::SETTINGS;
-        let mut f = Described::new("hfkbd", 2, 7)
+        let mut f = Described::new("hfkbd", 2, 8)
+            .added(
+                2,
+                8,
+                &[
+                    "rtty.content",
+                    "psk.content",
+                    "cw.content",
+                    "olivia.content",
+                    "contestia.content",
+                    "mfsk.content",
+                    "dominoex.content",
+                    "thor.content",
+                    "hell.content",
+                    "mt63.content",
+                    "fsq.content",
+                    "ifkp.content",
+                    "sstv.content",
+                    "sitor.content",
+                    "ardop.content",
+                    "ros.content",
+                    "throb.content",
+                    "qrss.content",
+                    "cp16.content",
+                    "winmor.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::TextChat,
+                &[
+                    "rtty",
+                    "psk",
+                    "cw",
+                    "olivia",
+                    "contestia",
+                    "mfsk",
+                    "dominoex",
+                    "thor",
+                    "hell",
+                    "mt63",
+                    "fsq",
+                    "ifkp",
+                    "sitor",
+                    "ardop",
+                    "throb",
+                    "cp16",
+                    "winmor",
+                ],
+            )
+            .content(sdrkit_core::ContentKind::Pictures, &["sstv", "qrss"])
+            .content(sdrkit_core::ContentKind::Utility, &["ros"])
+            .audio(
+                sdrkit_core::AudioKind::Monitor,
+                &[
+                    "rtty",
+                    "psk",
+                    "cw",
+                    "olivia",
+                    "contestia",
+                    "mfsk",
+                    "dominoex",
+                    "thor",
+                    "hell",
+                    "mt63",
+                    "fsq",
+                    "ifkp",
+                    "sstv",
+                    "sitor",
+                    "ardop",
+                    "ros",
+                    "throb",
+                    "qrss",
+                    "cp16",
+                    "winmor",
+                ],
+            )
+            .pictures(&[
+                "rtty",
+                "psk",
+                "cw",
+                "olivia",
+                "contestia",
+                "mfsk",
+                "dominoex",
+                "thor",
+                "hell",
+                "mt63",
+                "fsq",
+                "ifkp",
+                "sstv",
+                "sitor",
+                "ardop",
+                "ros",
+                "throb",
+                "qrss",
+                "cp16",
+                "winmor",
+            ])
+            .text(&[
+                "rtty",
+                "psk",
+                "cw",
+                "olivia",
+                "contestia",
+                "mfsk",
+                "dominoex",
+                "thor",
+                "hell",
+                "mt63",
+                "fsq",
+                "ifkp",
+                "sitor",
+                "ardop",
+                "throb",
+                "cp16",
+                "winmor",
+            ])
             .added(2, 7, ADDED_2_7)
             .added(2, 6, ADDED_2_6)
             .added(2, 5, ADDED_2_5)

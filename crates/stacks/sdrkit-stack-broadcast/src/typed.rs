@@ -110,7 +110,25 @@ pub const GUIDE: &[&str] = &[
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("broadcast", 1, 0)
+        Described::new("broadcast", 1, 1)
+            .added(
+                1,
+                1,
+                &[
+                    "drm.content",
+                    "hamdrm.content",
+                    "hdradio.content",
+                    "cdr.content",
+                    "cquam.content",
+                ],
+            )
+            .content(
+                sdrkit_core::ContentKind::Broadcast,
+                &["drm", "hdradio", "cdr", "cquam"],
+            )
+            .content(sdrkit_core::ContentKind::Pictures, &["hamdrm"])
+            .audio(sdrkit_core::AudioKind::Programme, &["drm", "cdr", "cquam"])
+            .pictures(&["hamdrm", "hdradio"])
             .uses(sdrkit_proto_mpegts::publish::interface())
             .uses(bc::interface())
             .uses(scan_interface())
@@ -211,7 +229,7 @@ pub const SCAN_KEY: &str = "broadcast_scan";
 pub fn scan_interface() -> &'static Described {
     static SCAN: OnceLock<Described> = OnceLock::new();
     SCAN.get_or_init(|| {
-        Described::shared(SCAN_KEY, 1, 0).stack(
+        Described::shared(SCAN_KEY, 1, 1).stack(
             StackShape::new(SCAN_KEY)
                 .fields::<ProgressFields>()
                 .table(&STATIONS),

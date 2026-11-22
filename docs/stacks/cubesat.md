@@ -114,7 +114,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.2. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 1.3. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Satellite links (`satellite_links`). Media: none.
 
 ### Result fields
 
@@ -176,6 +178,8 @@ Struct `CubesatFrameRow`. A frame of the log. The row key is the sequence number
 | `vc` | whole number | optional | 1.0 | The virtual channel of a CCSDS header. |
 | `flags` | whole number | optional | 1.0 | The NGHam flags. |
 
+The column `satellite` names a row.
+
 ### Table `frames_per_framing`
 
 Struct `CubesatFramingRow`. The frames of one framing. The row key is the key of the framing.
@@ -195,6 +199,8 @@ Struct `CubesatCarrierRow`. A carrier found now. The row key is its place ("000"
 |---|---|---|---|---|
 | `offset_hz` | frequency | always | 1.0 | A carrier's offset from the dial. |
 | `snr_db` | number (dB) | always | 1.0 | The signal to noise ratio. |
+
+Default order: the column `snr_db`, highest first.
 
 ### Event `cubesat.frame`
 

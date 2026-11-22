@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "satcom", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "satcom", version 1.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_SATCOM_VERSION_MAJOR 1
-#define SDRKIT_SATCOM_VERSION_MINOR 2
+#define SDRKIT_SATCOM_VERSION_MINOR 3
 
 // The stack "inmarsatc": its id, and the keys of its event types.
 #define SDRKIT_STACK_INMARSATC "inmarsatc"
@@ -5049,6 +5049,9 @@ static inline int32_t sdrkit_aero_logons_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "aero" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `flight` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_ft`.
 static inline int32_t sdrkit_aero_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_aero_message_row *rows,
                                                uint32_t capacity,
@@ -5058,6 +5061,9 @@ static inline int32_t sdrkit_aero_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "aero" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `flight` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
 static inline int32_t sdrkit_aero_aircraft_rows(SDRKIT_HANDLE handle,
                                                sdrkit_aero_aircraft_row *rows,
                                                uint32_t capacity,
@@ -5160,6 +5166,8 @@ static inline int32_t sdrkit_aero_gen_set_plain(SDRKIT_HANDLE handle, bool value
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "inmarsat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `satellite` names a row.
+// Default order: the column `snr_db`, highest first.
 static inline int32_t sdrkit_inmarsat_carriers_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_inmarsat_carrier_row *rows,
                                                    uint32_t capacity,
@@ -5169,6 +5177,7 @@ static inline int32_t sdrkit_inmarsat_carriers_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "candidates" of the stack "inmarsat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_inmarsat_candidates_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_inmarsat_candidate_row *rows,
                                                      uint32_t capacity,
@@ -5214,6 +5223,9 @@ static inline int32_t sdrkit_inmarsat_aero_display_logons_rows(SDRKIT_HANDLE han
 
 // Fills `rows` with the changed rows of the table "aero_display.messages" of the stack "inmarsat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `flight` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_ft`.
 static inline int32_t sdrkit_inmarsat_aero_display_messages_rows(SDRKIT_HANDLE handle,
                                                                 sdrkit_aero_message_row *rows,
                                                                 uint32_t capacity,
@@ -5223,6 +5235,9 @@ static inline int32_t sdrkit_inmarsat_aero_display_messages_rows(SDRKIT_HANDLE h
 
 // Fills `rows` with the changed rows of the table "aero_display.aircraft" of the stack "inmarsat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `flight` names a row.
+// Place of a row: the column `position`.
+// Height: `alt_ft`. Course: `track_deg`. Speed: `gs_kt`.
 static inline int32_t sdrkit_inmarsat_aero_display_aircraft_rows(SDRKIT_HANDLE handle,
                                                                 sdrkit_aero_aircraft_row *rows,
                                                                 uint32_t capacity,
@@ -5470,6 +5485,7 @@ static inline int32_t sdrkit_globalstar_gen_set_centre_hz(SDRKIT_HANDLE handle, 
 
 // Fills `rows` with the changed rows of the table "reports" of the stack "goes_dcs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_goes_dcs_reports_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_goes_dcs_report_row *rows,
                                                   uint32_t capacity,
@@ -5479,6 +5495,7 @@ static inline int32_t sdrkit_goes_dcs_reports_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "platforms" of the stack "goes_dcs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_goes_dcs_platforms_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_goes_dcs_platform_row *rows,
                                                     uint32_t capacity,
@@ -5488,6 +5505,7 @@ static inline int32_t sdrkit_goes_dcs_platforms_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "goes_dcs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `snr_db`, highest first.
 static inline int32_t sdrkit_goes_dcs_carriers_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_goes_dcs_carrier_row *rows,
                                                    uint32_t capacity,
@@ -5535,6 +5553,7 @@ static inline int32_t sdrkit_goes_dcs_gen_set_scenario(SDRKIT_HANDLE handle, sdr
 
 // Fills `rows` with the changed rows of the table "bursts" of the stack "argos" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `platform` names a row.
 static inline int32_t sdrkit_argos_bursts_rows(SDRKIT_HANDLE handle,
                                               sdrkit_argos_burst_row *rows,
                                               uint32_t capacity,
@@ -5544,6 +5563,7 @@ static inline int32_t sdrkit_argos_bursts_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "platforms" of the stack "argos" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `platform` names a row.
 static inline int32_t sdrkit_argos_platforms_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_argos_platform_row *rows,
                                                  uint32_t capacity,
@@ -5670,6 +5690,7 @@ static inline int32_t sdrkit_argos_gen_set_nrzi(SDRKIT_HANDLE handle, bool value
 
 // Fills `rows` with the changed rows of the table "reports" of the stack "hrdcp" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_hrdcp_reports_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hrdcp_report_row *rows,
                                                uint32_t capacity,
@@ -5679,6 +5700,7 @@ static inline int32_t sdrkit_hrdcp_reports_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "platforms" of the stack "hrdcp" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `address` names a row.
 static inline int32_t sdrkit_hrdcp_platforms_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_hrdcp_platform_row *rows,
                                                  uint32_t capacity,
@@ -5688,6 +5710,7 @@ static inline int32_t sdrkit_hrdcp_platforms_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "hrdcp" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `snr_db`, highest first.
 static inline int32_t sdrkit_hrdcp_carriers_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_hrdcp_carrier_row *rows,
                                                 uint32_t capacity,
@@ -5738,6 +5761,8 @@ static inline int32_t sdrkit_hrdcp_gen_set_scene(SDRKIT_HANDLE handle, sdrkit_hr
 
 // Fills `rows` with the changed rows of the table "bursts" of the stack "sarsat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex_id` names a row.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_sarsat_bursts_rows(SDRKIT_HANDLE handle,
                                                sdrkit_sarsat_burst_row *rows,
                                                uint32_t capacity,
@@ -5747,6 +5772,8 @@ static inline int32_t sdrkit_sarsat_bursts_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "beacons" of the stack "sarsat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `hex_id` names a row.
+// Place of a row: the column `position`.
 static inline int32_t sdrkit_sarsat_beacons_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_sarsat_beacon_row *rows,
                                                 uint32_t capacity,
@@ -5852,6 +5879,7 @@ static inline int32_t sdrkit_sarsat_gen_set_gap_s(SDRKIT_HANDLE handle, double v
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "lora_sat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `satellite` names a row.
 static inline int32_t sdrkit_lora_sat_frames_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_lora_sat_frame_row *rows,
                                                  uint32_t capacity,
@@ -6064,6 +6092,9 @@ static inline int32_t sdrkit_lora_sat_gen_set_sync(SDRKIT_HANDLE handle, int64_t
 
 // Fills `rows` with the changed rows of the table "satellites" of the stack "orbcomm" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `snr_db`, highest first.
+// Place of a row: the column `position`.
+// Height: `height_m`.
 static inline int32_t sdrkit_orbcomm_satellites_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_orbcomm_satellite_row *rows,
                                                     uint32_t capacity,
@@ -6418,6 +6449,7 @@ static inline int32_t sdrkit_psk_demod_gen_set_conjugate(SDRKIT_HANDLE handle, b
 
 // Fills `rows` with the changed rows of the table "beacons" of the stack "qo100" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_qo100_beacons_rows(SDRKIT_HANDLE handle,
                                                sdrkit_qo100_beacon_row *rows,
                                                uint32_t capacity,
@@ -6427,6 +6459,7 @@ static inline int32_t sdrkit_qo100_beacons_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "signals" of the stack "qo100" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `snr_db`, highest first.
 static inline int32_t sdrkit_qo100_signals_rows(SDRKIT_HANDLE handle,
                                                sdrkit_qo100_signal_row *rows,
                                                uint32_t capacity,
@@ -6454,6 +6487,7 @@ static inline int32_t sdrkit_qo100_conversations_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "conversation_callsigns" of the stack "qo100" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `callsign` names a row.
 static inline int32_t sdrkit_qo100_conversation_callsigns_rows(SDRKIT_HANDLE handle,
                                                               sdrkit_qo100_callsign_row *rows,
                                                               uint32_t capacity,
@@ -6617,6 +6651,7 @@ static inline int32_t sdrkit_qo100_gen_set_lo(SDRKIT_HANDLE handle, sdrkit_qo100
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "cubesat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `satellite` names a row.
 static inline int32_t sdrkit_cubesat_frames_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_cubesat_frame_row *rows,
                                                 uint32_t capacity,
@@ -6635,6 +6670,7 @@ static inline int32_t sdrkit_cubesat_frames_per_framing_rows(SDRKIT_HANDLE handl
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "cubesat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `snr_db`, highest first.
 static inline int32_t sdrkit_cubesat_carriers_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_cubesat_carrier_row *rows,
                                                   uint32_t capacity,
@@ -6988,6 +7024,8 @@ static inline int32_t sdrkit_fleet_broadcast_gen_set_invert(SDRKIT_HANDLE handle
 
 // Fills `rows` with the changed rows of the table "carrier_table" of the stack "bgan" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `satellite` names a row.
+// Default order: the column `snr_db`, highest first.
 static inline int32_t sdrkit_bgan_carrier_table_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_bgan_carrier_row *rows,
                                                     uint32_t capacity,
@@ -7180,6 +7218,8 @@ static inline int32_t sdrkit_bgan_gen_set_spot(SDRKIT_HANDLE handle, int64_t val
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "sat_survey" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `satellite` names a row.
+// Default order: the column `snr_db`, highest first.
 static inline int32_t sdrkit_sat_survey_carriers_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_sat_survey_carrier_row *rows,
                                                      uint32_t capacity,
@@ -7189,6 +7229,7 @@ static inline int32_t sdrkit_sat_survey_carriers_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "sat_survey" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 static inline int32_t sdrkit_sat_survey_channels_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_sat_survey_channel_row *rows,
                                                      uint32_t capacity,

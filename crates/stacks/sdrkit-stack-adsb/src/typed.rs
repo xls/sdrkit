@@ -81,19 +81,19 @@ pub struct AircraftRow<'a> {
     #[field(label = "Position heard")]
     pub position_time: Option<Time>,
     /// The barometric altitude.
-    #[field(label = "Altitude", unit = "ft")]
+    #[field(label = "Altitude", unit = "ft", role = Altitude)]
     pub alt_ft: Option<i64>,
     /// The GNSS height.
     #[field(label = "GNSS altitude", unit = "ft")]
     pub gnss_alt_ft: Option<i64>,
     /// The speed.
-    #[field(label = "Speed", unit = "kt")]
+    #[field(label = "Speed", unit = "kt", role = Speed)]
     pub speed_kt: Option<f64>,
     /// What the speed is.
     #[field(label = "Speed kind")]
     pub speed_kind: Option<crate::message::SpeedKind>,
     /// The track or heading.
-    #[field(label = "Heading", unit = "°")]
+    #[field(label = "Heading", unit = "°", role = Course)]
     pub heading_deg: Option<f64>,
     /// Whether the heading is the track over the ground.
     #[field(label = "Heading is track")]
@@ -209,7 +209,8 @@ pub struct AircraftRow<'a> {
 }
 
 /// The ADS-B aircraft table, most recently heard first.
-pub static AIRCRAFT: Table<AircraftRow<'static>> = Table::new("aircraft", "Aircraft", 160);
+pub static AIRCRAFT: Table<AircraftRow<'static>> =
+    Table::new("aircraft", "Aircraft", 160).label(&AircraftRow::CALLSIGN);
 
 /// A row of the message monitor: one good message of this receiver.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -238,7 +239,8 @@ pub struct MessageRow<'a> {
 }
 
 /// The last 64 good messages of this receiver, newest first.
-pub static MESSAGES: Table<MessageRow<'static>> = Table::new("messages", "Messages", 64);
+pub static MESSAGES: Table<MessageRow<'static>> =
+    Table::new("messages", "Messages", 64).label(&MessageRow::ICAO);
 
 /// A receiver that the table takes messages from. The row key is the number of the source: "0" for this receiver, then
 /// the number of each feed in.
@@ -265,7 +267,8 @@ pub struct SourceRow<'a> {
 }
 
 /// The receivers the table takes messages from: this one first, then the feeds in.
-pub static SOURCES: Table<SourceRow<'static>> = Table::new("sources", "Sources", 32);
+pub static SOURCES: Table<SourceRow<'static>> =
+    Table::new("sources", "Sources", 32).label(&SourceRow::NAME);
 
 /// A count of messages of one format. The row key is the format number in two digits.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -389,7 +392,7 @@ pub struct FeedRow<'a> {
 }
 
 /// The feeds out: the servers and the outbound targets.
-pub static FEEDS: Table<FeedRow<'static>> = Table::new("feeds", "Feeds", 64);
+pub static FEEDS: Table<FeedRow<'static>> = Table::new("feeds", "Feeds", 64).label(&FeedRow::NAME);
 
 /// The series of the range statistics.
 pub mod series {
@@ -541,16 +544,16 @@ pub struct UatAircraftRow<'a> {
     #[field(label = "Position", unit = "°")]
     pub position: Option<(f64, f64)>,
     /// The barometric altitude.
-    #[field(label = "Altitude", unit = "ft")]
+    #[field(label = "Altitude", unit = "ft", role = Altitude)]
     pub alt_ft: Option<i64>,
     /// The geometric altitude.
     #[field(label = "Geometric altitude", unit = "ft")]
     pub geo_alt_ft: Option<i64>,
     /// The speed.
-    #[field(label = "Speed", unit = "kt")]
+    #[field(label = "Speed", unit = "kt", role = Speed)]
     pub speed_kt: Option<f64>,
     /// The track or heading.
-    #[field(label = "Heading", unit = "°")]
+    #[field(label = "Heading", unit = "°", role = Course)]
     pub heading_deg: Option<f64>,
     /// The vertical rate.
     #[field(label = "Vertical rate", unit = "ft/min")]
@@ -588,7 +591,8 @@ pub struct UatAircraftRow<'a> {
 }
 
 /// The UAT aircraft table, most recently heard first.
-pub static UAT_AIRCRAFT: Table<UatAircraftRow<'static>> = Table::new("aircraft", "Aircraft", 128);
+pub static UAT_AIRCRAFT: Table<UatAircraftRow<'static>> =
+    Table::new("aircraft", "Aircraft", 128).label(&UatAircraftRow::CALLSIGN);
 
 sdrkit_core::choice_enum! {
     /// What a TWGO record is.
@@ -644,7 +648,7 @@ pub struct FisbProductRow<'a> {
 
 /// The FIS-B products held, newest first.
 pub static FISB_PRODUCTS: Table<FisbProductRow<'static>> =
-    Table::new("fisb_products", "FIS-B products", 64);
+    Table::new("fisb_products", "FIS-B products", 64).label(&FisbProductRow::NAME);
 
 /// A text or graphic record (TWGO) of a product held: a NOTAM, AIRMET, SIGMET, G-AIRMET, CWA, SUA or TFR.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -707,7 +711,7 @@ pub struct FisbRecordRow<'a> {
 
 /// The text and graphic records of the products held.
 pub static FISB_RECORDS: Table<FisbRecordRow<'static>> =
-    Table::new("fisb_records", "FIS-B records", 512);
+    Table::new("fisb_records", "FIS-B records", 512).label(&FisbRecordRow::NAME);
 
 /// A block of a gridded product held (NEXRAD, icing, cloud tops, turbulence, lightning).
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -752,7 +756,7 @@ pub struct FisbBlockRow<'a> {
 
 /// The blocks of the gridded products held.
 pub static FISB_BLOCKS: Table<FisbBlockRow<'static>> =
-    Table::new("fisb_blocks", "FIS-B grid blocks", 2048);
+    Table::new("fisb_blocks", "FIS-B grid blocks", 2048).label(&FisbBlockRow::NAME);
 
 /// A vertex of the path of a graphic record held.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -767,7 +771,7 @@ pub struct FisbVertexRow<'a> {
     #[field(label = "Position", unit = "°")]
     pub position: (f64, f64),
     /// The altitude.
-    #[field(label = "Altitude", unit = "ft")]
+    #[field(label = "Altitude", unit = "ft", role = Altitude)]
     pub alt_ft: i64,
 }
 
@@ -811,7 +815,8 @@ pub struct UatLogRow<'a> {
 }
 
 /// The last 64 UAT messages, newest first.
-pub static UAT_LOG: Table<UatLogRow<'static>> = Table::new("log", "Log", 64);
+pub static UAT_LOG: Table<UatLogRow<'static>> =
+    Table::new("log", "Log", 64).label(&UatLogRow::ADDRESS);
 
 /// The result fields of the UAT tracker.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -971,7 +976,7 @@ pub struct AddressedRow<'a> {
 
 /// The aircraft the interrogations address.
 pub static ADDRESSED: Table<AddressedRow<'static>> =
-    Table::new("addressed", "Addressed aircraft", 256);
+    Table::new("addressed", "Addressed aircraft", 256).label(&AddressedRow::ICAO);
 
 /// An interrogator heard in all-calls. The row key is its code.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1083,7 +1088,21 @@ pub fn family() -> &'static Family {
 
 fn describe() -> Family {
     let clear = &sdrkit_util_objects::commands::CLEAR;
-    Family::new("adsb", 1, 1)
+    Family::new("adsb", 1, 2)
+        .added(
+            1,
+            2,
+            &[
+                "adsb.content",
+                "uat.content",
+                "modeac.content",
+                "uplink1030.content",
+            ],
+        )
+        .content(
+            sdrkit_core::ContentKind::Tracking,
+            &["adsb", "uat", "modeac", "uplink1030"],
+        )
         .added(1, 1, &["shape.InterrogationEvent.confirmed"])
         .stack(
             StackShape::new("adsb")

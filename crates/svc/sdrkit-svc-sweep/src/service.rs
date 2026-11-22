@@ -204,6 +204,7 @@ pub const FINDINGS: TableDef = TableDef {
         &PRIORITY,
     ],
     cap: MAX_PAGE,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The bursts seen at the frequency `burst_hz`, oldest first.
 pub const BURSTS: TableDef = TableDef {
@@ -211,6 +212,7 @@ pub const BURSTS: TableDef = TableDef {
     label: "Bursts",
     columns: &[&START, &DURATION, &PEAK, &BASE, &SAMPLES],
     cap: MAX_BURSTS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The ranges whose occupancy changed against an older survey (the command diff).
 pub const DIFFS: TableDef = TableDef {
@@ -218,6 +220,7 @@ pub const DIFFS: TableDef = TableDef {
     label: "Survey changes",
     columns: &[&LOW_C, &HIGH_C, &OCC_CHANGE, &CHANGE],
     cap: MAX_DIFFS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The drifting carriers found.
 pub const DRIFT: TableDef = TableDef {
@@ -233,6 +236,7 @@ pub const DRIFT: TableDef = TableDef {
         &FRAMES,
     ],
     cap: MAX_DRIFT,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The interference that the hunter found. The row key is its id.
 pub const INTERFERENCE: TableDef = TableDef {
@@ -251,6 +255,7 @@ pub const INTERFERENCE: TableDef = TableDef {
         &SWEEPS_TOTAL,
     ],
     cap: MAX_INTERFERENCE,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The signals of the survey present at least `persistent_share` of the time.
 pub const PERSISTENT: TableDef = TableDef {
@@ -258,6 +263,7 @@ pub const PERSISTENT: TableDef = TableDef {
     label: "Persistent signals",
     columns: &[&LOW_C, &HIGH_C, &OCCUPANCY, &MEAN, &PEAK],
     cap: MAX_PERSISTENT,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The quietest slots of the survey that the command quiet requested, quietest first.
 pub const QUIET: TableDef = TableDef {
@@ -265,6 +271,7 @@ pub const QUIET: TableDef = TableDef {
     label: "Quiet channels",
     columns: &[&POSITION, &LOW_C, &HIGH_C, &OCCUPANCY, &MEAN],
     cap: MAX_QUIET,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The range presets. The row key is the name that the command start takes.
 pub const PRESETS: TableDef = TableDef {
@@ -272,6 +279,7 @@ pub const PRESETS: TableDef = TableDef {
     label: "Presets",
     columns: &[&LOW_C, &HIGH_C, &BIN_F],
     cap: MAX_PRESETS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The bands of the presets.
 pub const PRESET_BANDS: TableDef = TableDef {
@@ -279,6 +287,7 @@ pub const PRESET_BANDS: TableDef = TableDef {
     label: "Preset bands",
     columns: &[&OF_PRESET, &LABEL, &LOW_C, &HIGH_C],
     cap: MAX_PRESETS * 4,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The channels that the engine must record now.
 pub const RECORDINGS: TableDef = TableDef {
@@ -286,6 +295,7 @@ pub const RECORDINGS: TableDef = TableDef {
     label: "Recordings",
     columns: &[&OF_FINDING, &keys::FREQ_HZ, &WIDTH, &DEMOD, &RECORD_AS],
     cap: MAX_RECORDINGS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The advice of the station health check, worst first.
 pub const ADVICE: TableDef = TableDef {
@@ -293,6 +303,7 @@ pub const ADVICE: TableDef = TableDef {
     label: "Advice",
     columns: &[&POSITION, &LEVEL, &keys::TEXT],
     cap: MAX_ADVICE,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 /// The bands of the station health check.
 pub const HEALTH_BANDS: TableDef = TableDef {
@@ -300,6 +311,7 @@ pub const HEALTH_BANDS: TableDef = TableDef {
     label: "Health bands",
     columns: &[&FLOOR_C, &PEAK, &SIGNALS],
     cap: MAX_HEALTH_BANDS,
+    marks: sdrkit_core::RowMarks::NONE,
 };
 
 // Events.

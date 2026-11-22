@@ -67,7 +67,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:pi
 
 ## Typed interface
 
-The stack is in the family `custom`, version 1.2. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `custom`, version 1.3. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+
+Content kind: Pictures and fax (`pictures`). Media: pictures.
 
 ### Result fields
 
@@ -106,6 +108,8 @@ Struct `PictureBurstPictureRow`. A row of the pictures received. The row key is 
 | `size` | text | always | 1.0 | The picture size, "width x height". |
 | `layers` | whole number | always | 1.0 | Layers decoded. |
 | `time` | time | always | 1.0 | When the burst was decoded. |
+
+The column `callsign` names a row.
 
 ### Event `picture.burst`
 
