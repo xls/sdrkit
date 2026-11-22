@@ -302,6 +302,16 @@ fn p25_schema() -> Arc<Schema> {
     }))
 }
 
+/// The settings of the System Fusion stack: the monitor's and the voice type of the test signal.
+fn ysf_schema() -> Arc<Schema> {
+    static S: OnceLock<Arc<Schema>> = OnceLock::new();
+    Arc::clone(S.get_or_init(|| {
+        Arc::new(Schema::of(
+            &[MonitorSetting::SETTINGS, &[&ysf::GEN_VOICE]].concat(),
+        ))
+    }))
+}
+
 /// DMR (Tiers I, II and III).
 pub static DMR: StackDescriptor = StackDescriptor {
     id: "dmr",
@@ -447,10 +457,10 @@ pub static YSF: StackDescriptor = StackDescriptor {
     id: "ysf",
     name: "Yaesu System Fusion",
     group: GROUP,
-    blurb: "System Fusion (C4FM): callsigns, data type, text and GPS from the data channel.",
+    blurb: "System Fusion (C4FM): calls with their speech in V/D mode 1, V/D mode 2 and voice full rate, callsigns, data type, text and GPS from the data channel.",
     tuning: narrow(28.0, 1300.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0),
     submodes: &[],
-    settings: MonitorSetting::schema,
+    settings: ysf_schema,
     lock_profile: LockProfile::DEFAULT,
     signal_types: &[SignalType::YaesuFusion],
     auto_gain: AutoGain::Radio,

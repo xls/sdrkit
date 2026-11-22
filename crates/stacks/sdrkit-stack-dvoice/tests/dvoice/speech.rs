@@ -1,5 +1,7 @@
 //! The speech decoders of the stacks: a DMR signal and a P25 Phase 1 signal whose voice frames come from the encoder of
-//! a vowel decode, through the whole graph of the stack and its voice monitor, to sound with the pitch of the vowel.
+//! a vowel decode, through the whole graph of the stack and its voice monitor, to sound with the pitch of the vowel; the
+//! test signals of the speech stacks, System Fusion in each of its voice types, sound with both pitches of their test
+//! speech.
 
 use crate::common::*;
 use sdrkit_codec_mbe::{Coder, Encoder, FRAME};
@@ -146,9 +148,9 @@ fn a_p25_call_of_coded_vowel_frames_sounds_with_the_pitch_of_the_vowel() {
     assert!((f0 - VOWEL_F0).abs() < 0.04 * VOWEL_F0, "pitch {f0} Hz");
 }
 
-/// The audio of the stack `id` for its own test signal with the default settings: its samples and their rate.
-fn test_signal_sound(id: &str) -> (Vec<f32>, f64) {
-    let mut g = generator(id, RATE, 1, &[]);
+/// The audio of the stack `id` for its own test signal with the settings `extra`: its samples and their rate.
+fn test_signal_sound(id: &str, extra: &[(&str, &str)]) -> (Vec<f32>, f64) {
+    let mut g = generator(id, RATE, 1, extra);
     let x = generate_all(g.as_mut());
     let (_, out) = run(
         receiver_with_codecs(id, &[], speech_codecs()).as_mut(),
@@ -180,26 +182,56 @@ fn pitch_track(x: &[f32], rate: f64) -> Vec<f64> {
         .collect()
 }
 
+/// Asserts that the test signal of `id` with the settings `extra` sounds with both pitches of the test speech.
+fn sounds_with_both_pitches(id: &str, extra: &[(&str, &str)]) {
+    use sdrkit_stack_dvoice::voice::TEST_SPEECH_F0;
+    let (audio, rate) = test_signal_sound(id, extra);
+    assert!(rate > 0.0, "{id} {extra:?}: no sound");
+    let track = pitch_track(&audio, rate);
+    let near = |f0: f64| track.iter().filter(|&&f| (f - f0).abs() < 0.05 * f0).count();
+    let (lo, hi) = (near(TEST_SPEECH_F0[0]), near(TEST_SPEECH_F0[1]));
+    println!(
+        "{id} {extra:?}: {:.1} s of sound, {} loud windows, {lo} at {} Hz, {hi} at {} Hz",
+        audio.len() as f64 / rate,
+        track.len(),
+        TEST_SPEECH_F0[0],
+        TEST_SPEECH_F0[1]
+    );
+    assert!(lo >= 3 && hi >= 3, "{id} {extra:?}: pitches {track:?}");
+    assert!(
+        (lo + hi) as f64 >= 0.7 * track.len() as f64,
+        "{id} {extra:?}: pitches {track:?}"
+    );
+}
+
 #[test]
 fn the_test_signals_of_the_speech_stacks_sound_with_both_pitches_of_the_test_speech() {
-    use sdrkit_stack_dvoice::voice::TEST_SPEECH_F0;
-    for id in ["dmr", "nxdn", "dpmr", "p25", "p25p2"] {
-        let (audio, rate) = test_signal_sound(id);
-        assert!(rate > 0.0, "{id}: no sound");
-        let track = pitch_track(&audio, rate);
-        let near = |f0: f64| track.iter().filter(|&&f| (f - f0).abs() < 0.05 * f0).count();
-        let (lo, hi) = (near(TEST_SPEECH_F0[0]), near(TEST_SPEECH_F0[1]));
-        println!(
-            "{id}: {:.1} s of sound, {} loud windows, {lo} at {} Hz, {hi} at {} Hz",
-            audio.len() as f64 / rate,
-            track.len(),
-            TEST_SPEECH_F0[0],
-            TEST_SPEECH_F0[1]
-        );
-        assert!(lo >= 3 && hi >= 3, "{id}: pitches {track:?}");
-        assert!(
-            (lo + hi) as f64 >= 0.7 * track.len() as f64,
-            "{id}: pitches {track:?}"
-        );
+    for id in ["dmr", "nxdn", "dpmr", "p25", "p25p2", "ysf"] {
+        sounds_with_both_pitches(id, &[]);
+    }
+}
+
+#[test]
+fn a_system_fusion_frame_with_a_lost_fich_keeps_the_length_of_the_sound() {
+    use sdrkit_stack_dvoice::ysf::{render_bits, transmission, YsfVoice};
+    for voice in [YsfVoice::Vd1, YsfVoice::Vd2, YsfVoice::VoiceFr] {
+        let clean = transmission("N0CALL", "ALL", "Fusion test one", None, 20, voice);
+        let mut lost = clean.clone();
+        // Communication frame 10 (after two header frames): every other bit of its FICH inverted.
+        let at = 960 * 12 + 40;
+        for b in lost[at..at + 200].iter_mut().step_by(2) {
+            *b ^= 1;
+        }
+        let (a, rate) = sound("ysf", render_bits(&[clean]));
+        let (b, _) = sound("ysf", render_bits(&[lost]));
+        println!("{voice:?}: {} and {} samples at {rate} Hz", a.len(), b.len());
+        assert!(!a.is_empty() && a.len() == b.len(), "{voice:?}: {} and {}", a.len(), b.len());
+    }
+}
+
+#[test]
+fn the_system_fusion_test_signal_sounds_with_both_pitches_in_each_voice_type() {
+    for voice in ["vd1", "vd2", "voice_fr"] {
+        sounds_with_both_pitches("ysf", &[("gen_voice", voice)]);
     }
 }

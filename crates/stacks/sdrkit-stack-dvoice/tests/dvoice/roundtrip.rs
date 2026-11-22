@@ -192,6 +192,23 @@ fn ysf_round_trip_with_offset_clock_error_and_noise() {
 }
 
 #[test]
+fn ysf_call_signs_and_text_decode_in_every_voice_type() {
+    for (voice, text) in [("vd1", true), ("vd2", true), ("voice_fr", false)] {
+        let x = generate_all(generator("ysf", 96_000.0, 1, &[("gen_voice", voice)]).as_mut());
+        let c = decode("ysf", 96_000.0, &x);
+        let s = show(&c);
+        assert!(
+            c.iter().any(|c| c["src"] == "N0CALL"
+                && c["dst"] == "ALL"
+                && (!text || c["text"] == "Fusion test one")
+                && c["voice_frames"].as_u64().unwrap() >= 90),
+            "{voice}: {s}"
+        );
+        assert!(c.iter().any(|c| c["src"] == "N1TEST"), "{voice}: {s}");
+    }
+}
+
+#[test]
 fn p25p2_round_trip_with_offset_and_noise() {
     let x = impaired("p25p2", 96_000.0, 300.0, 0.0, 22.0);
     let c = decode("p25p2", 96_000.0, &x);

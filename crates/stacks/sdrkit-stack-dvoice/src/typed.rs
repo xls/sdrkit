@@ -1307,12 +1307,15 @@ const ADDED_1_5: &[&str] = &["dmr.setting.tx_timeout", "dmr.command.ptt"];
 /// data. It adds no path.
 const ADDED_1_6: &[&str] = &[];
 
+/// What version 1.7 added: the voice type of the System Fusion test signal.
+const ADDED_1_7: &[&str] = &["ysf.setting.gen_voice"];
+
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         let plain = |id| common(id, &CALLS_300);
-        Described::new("dvoice", 1, 6)
+        Described::new("dvoice", 1, 7)
             .stack(
                 finish(common("dmr", &CALLS_100).fields::<DmrFields>())
                     .settings(&[&crate::dmr::GEN_CC])
@@ -1349,7 +1352,9 @@ pub fn family() -> &'static Described {
             )
             .stack(finish(plain("nxdn").fields::<NxdnFields>()))
             .stack(finish(plain("dpmr").fields::<DpmrFields>()))
-            .stack(finish(plain("ysf").fields::<YsfFields>()))
+            .stack(
+                finish(plain("ysf").fields::<YsfFields>()).settings(&[&crate::ysf::GEN_VOICE]),
+            )
             .stack(finish(plain("p25p2").fields::<P25p2Fields>()))
             .stack(finish(plain("tetrapol").fields::<TetrapolFields>()))
             .stack(finish(plain("tetra").fields::<TetraFields>()))
@@ -1389,5 +1394,6 @@ pub fn family() -> &'static Described {
             .added(1, 4, ADDED_1_4)
             .added(1, 5, ADDED_1_5)
             .added(1, 6, ADDED_1_6)
+            .added(1, 7, ADDED_1_7)
     })
 }

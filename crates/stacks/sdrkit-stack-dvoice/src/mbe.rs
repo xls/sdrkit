@@ -1,6 +1,7 @@
 //! The decoders of the two multi-band excitation speech coders as codec plug-ins of the host's codec set: the half-rate
-//! coder for frames of the `codewords` packaging (DMR, NXDN, dPMR, P25 Phase 2) and the full-rate coder for frames of the
-//! `p25_144` packaging (P25 Phase 1). Each frame gives 160 samples at 8 kHz, mono. An erasure is a lost frame: the decoder
+//! coder for frames of the `codewords` packaging (DMR, NXDN, dPMR, P25 Phase 2, System Fusion V/D mode 1) and of the
+//! `info49` packaging (System Fusion V/D mode 2), and the full-rate coder for frames of the `p25_144` packaging (P25
+//! Phase 1, System Fusion voice full rate). Each frame gives 160 samples at 8 kHz, mono. An erasure is a lost frame: the decoder
 //! repeats the last good frame and mutes a long run of them by the rules of the coder, so the sound keeps its timing.
 
 use sdrkit_codec_mbe::{codeword_channel_bits, Coder, Decoder, FRAME};
@@ -12,14 +13,16 @@ use std::sync::Arc;
 /// The rate of the decoded speech, Hz.
 const RATE_HZ: u32 = 8000;
 
-/// Registers the two decoders in `set`: [`Codec::Ambe2`] for the `codewords` packaging and [`Codec::Imbe`] for the
-/// `p25_144` packaging.
+/// Registers the two decoders in `set`: [`Codec::Ambe2`] for the `codewords` and `info49` packagings and [`Codec::Imbe`]
+/// for the `p25_144` packaging. One half-rate decoder takes both of its packagings, told apart by their length.
 pub fn register(set: &mut CodecSet) {
-    set.register(
-        Codec::Ambe2.fourcc(),
-        Some(SpeechPackaging::Codewords.key()),
-        factory(Coder::HalfRate),
-    );
+    for packaging in [SpeechPackaging::Codewords, SpeechPackaging::Info49] {
+        set.register(
+            Codec::Ambe2.fourcc(),
+            Some(packaging.key()),
+            factory(Coder::HalfRate),
+        );
+    }
     set.register(
         Codec::Imbe.fourcc(),
         Some(SpeechPackaging::P25_144.key()),
@@ -62,29 +65,34 @@ impl SpeechDecoder {
 }
 
 impl AudioCodec for SpeechDecoder {
-    /// Takes a half-rate frame as 12 bytes of code words ([`codewords`]) or a full-rate frame as the 18
+    /// Takes a half-rate frame as 12 bytes of code words ([`codewords`]) or as the 7 bytes of its 49 error-corrected
+    /// speech bits (`info49`: u0 to u3, most significant bit first, 7 zero bits of padding), or a full-rate frame as the 18
     /// bytes of its channel bits as sent. A frame of another length is [`CodecError::Frame`].
     fn decode(&mut self, frame: &[u8], erasure: bool, pcm: &mut Pcm) -> Result<(), CodecError> {
+        let unpack = |bits: &mut [u8]| {
+            for (i, b) in bits.iter_mut().enumerate() {
+                *b = (frame[i / 8] >> (7 - i % 8)) & 1;
+            }
+        };
         if erasure || frame.is_empty() {
             self.dec.lost(&mut self.out);
         } else {
-            let n = match self.dec.coder() {
-                Coder::HalfRate => {
+            match (self.dec.coder(), frame.len()) {
+                (Coder::HalfRate, 7) => {
+                    unpack(&mut self.bits[..49]);
+                    self.dec.decode_speech(&self.bits[..49], &mut self.out);
+                }
+                (Coder::HalfRate, 12) => {
                     let cw: &[u8; 12] = frame.try_into().map_err(|_| CodecError::Frame)?;
                     self.bits[..72].copy_from_slice(&codeword_channel_bits(cw));
-                    72
+                    self.dec.decode(&self.bits[..72], &mut self.out);
                 }
-                Coder::FullRate => {
-                    if frame.len() != 18 {
-                        return Err(CodecError::Frame);
-                    }
-                    for (i, b) in self.bits.iter_mut().enumerate() {
-                        *b = (frame[i / 8] >> (7 - i % 8)) & 1;
-                    }
-                    144
+                (Coder::FullRate, 18) => {
+                    unpack(&mut self.bits);
+                    self.dec.decode(&self.bits, &mut self.out);
                 }
-            };
-            self.dec.decode(&self.bits[..n], &mut self.out);
+                _ => return Err(CodecError::Frame),
+            }
         }
         pcm.rate_hz = RATE_HZ;
         pcm.channels = 1;

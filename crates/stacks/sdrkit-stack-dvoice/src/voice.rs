@@ -50,10 +50,10 @@ fn test_vowel() -> Vec<i16> {
         .collect()
 }
 
-/// One period of the test speech through the encoder of `coder`: the channel bits of each frame as sent. Two periods are
-/// coded and the second is kept, so that the state of the coder at the end of the period matches its start and the
-/// period repeats without a seam.
-fn coded_test_speech<const N: usize>(coder: Coder) -> Vec<[u8; N]> {
+/// One period of the test speech through the encoder of `coder`: the channel bits of each frame as sent, or its speech
+/// bits before the error correction when `speech` is set. Two periods are coded and the second is kept, so that the
+/// state of the coder at the end of the period matches its start and the period repeats without a seam.
+fn coded_test_speech<const N: usize>(coder: Coder, speech: bool) -> Vec<[u8; N]> {
     let pcm = test_vowel();
     let mut enc = Encoder::new(coder);
     let frames: Vec<[u8; N]> = pcm
@@ -62,7 +62,11 @@ fn coded_test_speech<const N: usize>(coder: Coder) -> Vec<[u8; N]> {
         .iter()
         .map(|x| {
             let mut bits = [0u8; N];
-            enc.encode(x, &mut bits);
+            if speech {
+                enc.encode_speech(x, &mut bits);
+            } else {
+                enc.encode(x, &mut bits);
+            }
             bits
         })
         .collect();
@@ -73,13 +77,20 @@ fn coded_test_speech<const N: usize>(coder: Coder) -> Vec<[u8; N]> {
 /// of the test signals carry them in turn.
 pub fn test_speech_half() -> &'static [[u8; 72]] {
     static FRAMES: OnceLock<Vec<[u8; 72]>> = OnceLock::new();
-    FRAMES.get_or_init(|| coded_test_speech(Coder::HalfRate))
+    FRAMES.get_or_init(|| coded_test_speech(Coder::HalfRate, false))
 }
 
 /// The test speech as frames of the full-rate coder (144 channel bits each, as sent), coded once and kept.
 pub fn test_speech_full() -> &'static [[u8; 144]] {
     static FRAMES: OnceLock<Vec<[u8; 144]>> = OnceLock::new();
-    FRAMES.get_or_init(|| coded_test_speech(Coder::FullRate))
+    FRAMES.get_or_init(|| coded_test_speech(Coder::FullRate, false))
+}
+
+/// The test speech as the 49 speech bits of each half-rate frame (u0 to u3, most significant bit first), with no error
+/// correction, coded once and kept.
+pub fn test_speech_half_bits() -> &'static [[u8; 49]] {
+    static FRAMES: OnceLock<Vec<[u8; 49]>> = OnceLock::new();
+    FRAMES.get_or_init(|| coded_test_speech(Coder::HalfRate, true))
 }
 
 /// The packaging of the 72 channel bits of a D-STAR AMBE frame as they are sent (9 bytes, the first bit most significant).
