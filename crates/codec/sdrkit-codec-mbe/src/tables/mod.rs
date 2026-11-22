@@ -1,5 +1,6 @@
 //! The printed tables of both coders. The large ones are in [`full`] and [`half`]; the short ones are here.
 
+pub mod dstar;
 pub mod full;
 pub mod half;
 

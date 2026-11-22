@@ -1,7 +1,7 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
 # D-STAR
 
-D-STAR digital voice: callsigns and repeaters from the header, slow-data messages and positions. Transmits a slow-data text with the radio header; the voice frames carry AMBE silence (no AMBE encoder).
+D-STAR digital voice: voice calls with their speech, callsigns and repeaters from the header, slow-data messages and positions. Transmits voice from the microphone and slow-data texts, with the radio header.
 
 Stack id: `dstar`. Group: Digital voice.
 
@@ -43,6 +43,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ds
 | `rpt2` | Repeater 2 | text | `DIRECT` |  | RPT2 of the radio header: DIRECT for simplex, or the repeater with G in position 8 for the gateway. |
 | `via_repeater` | Via repeater | yes or no | false |  | Sets bit 6 (0x40) of flag byte 1: the transmission goes through a repeater. |
 | `tx_split` | Transmit offset | frequency | 0 Hz | -10 GHz to 10 GHz | The transmit frequency less the listening frequency: 0 for simplex, the shift of a repeater for duplex. |
+| `tx_timeout` | Time-out | duration (s) | 180 s | 1 to 3600 | A voice stream ends after this time on air. |
 
 ## Result fields
 
@@ -120,12 +121,13 @@ The stack puts points on a map: Positions.
 | `hold_current` | Hold current |  |  | Plays only the target of the call that plays now, or of the newest call. |
 | `release` | Release |  |  | Lets the held target go. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
-| `send` | Send a text | `text` (text, required) |  | Sends the radio header from the setting callsign to the setting your_call, and the text in the slow data of voice frames that carry AMBE silence: the library has no AMBE encoder. The transmission ends after every slow-data block went out once, or at halt. |
+| `ptt` | Push to talk | `on` (yes or no, required) |  | With on true, sends the radio header from the setting callsign to the setting your_call, then the microphone input in voice frames of 20 ms with the header copy in the slow data, until ptt with on false, halt or the time-out. The speech is coded with the D-STAR voice coder. |
+| `send` | Send a text | `text` (text, required) |  | Sends the radio header from the setting callsign to the setting your_call, and the text in the slow data of voice frames that carry the silence pattern. The transmission ends after every slow-data block went out once, or at halt. |
 | `halt` | Halt |  |  | Ends the transmission after the frame or the burst on air, with the end sequence of the stack. |
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 2.1. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 2.2. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Voice calls (`voice`). Media: sound (voice).
 
@@ -422,6 +424,7 @@ Struct `PositionEvent`. A position.
 | `hold_current` | `sdrkit_dstar_hold_current` | none | none |
 | `release` | `sdrkit_dstar_release` | none | none |
 | `remove` | `sdrkit_dstar_remove` | `sdrkit_dvoice_talkgroup_args` | none |
+| `ptt` | `sdrkit_dstar_ptt` | `sdrkit_dvoice_ptt_args` | none |
 | `send` | `sdrkit_dstar_send` | `sdrkit_dstar_send_args` | none |
 | `halt` | `sdrkit_dstar_halt` | none | none |
 
@@ -446,6 +449,7 @@ Struct `PositionEvent`. A position.
 | `rpt2` | `sdrkit_dstar_get_rpt2` | `sdrkit_dstar_set_rpt2` |
 | `via_repeater` | `sdrkit_dstar_get_via_repeater` | `sdrkit_dstar_set_via_repeater` |
 | `tx_split` | `sdrkit_dstar_get_tx_split` | `sdrkit_dstar_set_tx_split` |
+| `tx_timeout` | `sdrkit_dstar_get_tx_timeout` | `sdrkit_dstar_set_tx_timeout` |
 
 ## Try it
 
@@ -461,20 +465,23 @@ sdrkit run dstar --source <driver>:<address> --freq 0
 
 ## Transmit
 
-The stack sends a D-STAR DV transmission with a text in the slow data, by the JARL D-STAR specification. The library has
-no AMBE encoder: the voice frames carry AMBE silence, and the stack sends no speech. The engine setting
-`transmit_allowed` is the only switch; the stack adds no other gate.
+The stack sends a D-STAR DV transmission by the JARL D-STAR specification: voice from the microphone input
+(push-to-talk), or a text in the slow data. The speech is coded with the D-STAR voice coder of the library, in frames of
+20 ms. The engine setting `transmit_allowed` is the only switch; the stack adds no other gate.
 
 Commands:
 
+- `ptt` with `on` true starts a voice transmission from the setting `callsign` to the setting `your_call`; with `on`
+  false it ends the transmission after the frame on air, with the end pattern. The setting `tx_timeout` ends a voice
+  transmission after its time on air.
 - `send` sends a text (up to 20 printable ASCII characters) from the setting `callsign` to the setting `your_call`.
 - `halt` ends the transmission after the frame on air, with the end pattern.
 
 Settings: `callsign` (MY, up to 8 characters of A to Z, 0 to 9, / and space; empty by default), `suffix` (up to 4
 characters), `your_call` (`CQCQCQ`), `rpt1` and `rpt2` (`DIRECT`; for a repeater, the repeater with its module letter in
-position 8, and with `G` for the gateway), `via_repeater` (bit 6 of flag byte 1) and `tx_split` (transmit offset). Text
-is upper case. A setting change applies to the next transmission. While `callsign` is empty, `send` is refused with an
-error that names the setting.
+position 8, and with `G` for the gateway), `via_repeater` (bit 6 of flag byte 1), `tx_split` (transmit offset) and
+`tx_timeout` (180 s). Text is upper case. A setting change applies to the next transmission. While `callsign` is empty,
+`ptt` and `send` are refused with an error that names the setting.
 
 The signal:
 
@@ -485,20 +492,25 @@ The signal:
 - A voice frame of 20 ms is 72 voice bits and 24 slow-data bits. Frame 0 of every 21 carries the data sync; the others
   carry the slow-data blocks in turn, 3 bytes a frame, XORed with `70 4F 93`: the text (4 blocks of 5 characters, type
   0x40 to 0x43) and the header copy (9 blocks, type 0x5n), so a receiver that missed the header takes it from the slow
-  data. The transmission lasts the groups of 21 frames that send every block once: 42 frames (0.84 s).
-- The voice bits of every frame are the AMBE silence frame `9E 8D 32 88 26 1A 3F 61 E8` (the 72 channel bits as sent,
-  the first bit most significant). This value is not confirmed against a radio or the vocoder documentation.
+  data. A text lasts the groups of 21 frames that send every block once: 42 frames (0.84 s). A voice transmission
+  carries the header copy only, again and again.
+- The voice bits of a voice transmission are the frames of the D-STAR voice coder for the microphone audio: 48 speech
+  bits, two Golay words and the interleave. The pitch table of that coder is in no public document; the one in use is
+  not confirmed against a radio, so another radio can play the speech up to about 6 % off pitch.
+- The voice bits of every frame of a text are the silence pattern of the specification, `9E 8D 32 88 26 1A 3F 61 E8`,
+  each byte sent least significant bit first.
 - The carrier rises and falls with a 5 ms raised cosine. The magnitude is 0.9 of full scale, constant over the burst.
 - The output has the rate of the session; its samples carry the signal at 0 Hz, and its centre is the transmit frequency
   (the listening frequency plus `tx_split`). Every transmission ends with an end mark. On a live radio whose host times
   bursts, the first sample states its time on air.
 
-Results: `transmitting`, `tx_freq_hz` (while transmitting), `tx_kind` (`text`), `tx_frames` (the voice frames sent in
-the transmission on air, or in the last one) and `tx_note` ("AMBE encoder not installed: identities and data go on the
-air, voice frames are silence").
+Results: `transmitting`, `tx_freq_hz` (while transmitting), `tx_kind` (`voice` or `text`), `tx_frames` (the voice frames
+sent in the transmission on air, or in the last one) and `tx_note` ("voice from the microphone with the D-STAR voice
+coder, and texts in the slow data of silence frames").
 
-The receiver of the stack decodes what the stack sends: MY, the suffix, YOUR, RPT1, RPT2, the flags, the text and every
-voice frame as the silence frame, byte for byte; with the start of the transmission lost, the header from the slow data.
+The receiver of the stack decodes what the stack sends: MY, the suffix, YOUR, RPT1, RPT2, the flags, the text, and every
+voice frame bit for bit (the frames of the microphone audio, or the silence pattern); it plays the speech with the pitch
+of the microphone audio. With the start of the transmission lost, it takes the header from the slow data.
 
-Not sent: speech (no AMBE encoder), pre-coded voice frames from the host, a GPS position, the code squelch, listen before
-talk. The receive audio is muted while the stack sends.
+Not sent: a text during a voice transmission, pre-coded voice frames from the host, a GPS position, the code squelch,
+listen before talk. The receive audio is muted while the stack sends.

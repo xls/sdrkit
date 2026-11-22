@@ -1,10 +1,10 @@
-//! The decoder of both coders: FEC, error estimate, frame repeat and mute, parameter reconstruction, enhancement, smoothing
+//! The decoder of the coders: FEC, error estimate, frame repeat and mute, parameter reconstruction, enhancement, smoothing
 //! and synthesis.
 
 use crate::enhance::Enhancer;
 use crate::model::{Params, FRAME};
 use crate::synth::Synth;
-use crate::{full, half, Coder, FrameKind, FrameStatus};
+use crate::{dstar, full, half, Coder, FrameKind, FrameStatus};
 
 /// Full-rate error-rate weight (Equation 96).
 const FULL_EPS_WEIGHT: f64 = 0.000365;
@@ -16,6 +16,8 @@ pub const FULL_MUTE_RATE: f64 = 0.0875;
 const HALF_MUTE_RATE: f64 = 0.096;
 /// The consecutive invalid half-rate frame that is muted instead of repeated (clause 5.7).
 const HALF_MUTE_RUN: u32 = 4;
+/// The consecutive repeated D-STAR frame that is muted instead.
+const DSTAR_MUTE_RUN: u32 = 4;
 /// The consecutive invalid full-rate frame that is muted instead of repeated when it is a lost frame: the count of flow
 /// chart 9. The text of sections 7.7 and 7.8 gives no count, and the error rate does not rise for a frame that is not
 /// received, so without it a run of lost frames would repeat without end. Received frames keep the text rules.
@@ -62,7 +64,10 @@ impl Decoder {
             enh: Enhancer::default(),
             eps_r: 0.0,
             full_amp: full::AmpState::default(),
-            half_amp: half::AmpState::default(),
+            half_amp: match coder {
+                Coder::Dstar => dstar::BOOKS.start(),
+                _ => half::BOOKS.start(),
+            },
             invalid_run: 0,
             tone: false,
             noise: 1,
@@ -80,7 +85,7 @@ impl Decoder {
         self.synth.last()
     }
 
-    /// The running error rate epsilon_R.
+    /// The running error rate epsilon_R. The D-STAR coder has none: 0.
     pub fn error_rate(&self) -> f64 {
         self.eps_r
     }
@@ -104,11 +109,17 @@ impl Decoder {
                 half::decode_channel(bits, &mut sb, &mut eps);
                 self.half_frame(&sb, &eps, out)
             }
+            Coder::Dstar => {
+                let mut sb = [0u8; dstar::SPEECH_BITS];
+                let e = dstar::decode_channel(bits, &mut sb);
+                self.dstar_frame(&sb, e, out)
+            }
         }
     }
 
-    /// Decodes one frame of error-corrected speech bits, one bit per byte: the vectors u0..u7 (full rate, 88 bits) or
-    /// u0..u3 (half rate, 49 bits) in turn, each most significant bit first. A frame of another length is muted.
+    /// Decodes one frame of error-corrected speech bits, one bit per byte: the vectors u0..u7 (full rate, 88 bits),
+    /// u0..u3 (half rate, 49 bits) or u0..u2 (D-STAR, 48 bits) in turn, each most significant bit first. A frame of
+    /// another length is muted.
     pub fn decode_speech(&mut self, bits: &[u8], out: &mut [i16; FRAME]) -> FrameStatus {
         if bits.len() != self.coder.speech_bits() {
             return self.mute(0, out);
@@ -128,18 +139,26 @@ impl Decoder {
                 }
                 self.half_frame(&sb, &[0; 2], out)
             }
+            Coder::Dstar => {
+                let mut sb = [0u8; dstar::SPEECH_BITS];
+                for (s, &b) in sb.iter_mut().zip(bits) {
+                    *s = b & 1;
+                }
+                self.dstar_frame(&sb, dstar::Errors::default(), out)
+            }
         }
     }
 
     /// Conceals one frame that was not received (an erasure of the channel) by the repeat and mute rules of the coder,
     /// into 160 samples. The frame counts as invalid: the previous parameters are synthesised again, and the frame is
     /// muted instead when it is the fourth consecutive invalid frame (half rate, clause 5.7; full rate,
-    /// [`FULL_LOST_MUTE_RUN`]) or when the running error rate is above the mute limit. The error rate is not updated:
-    /// no bits were received.
+    /// [`FULL_LOST_MUTE_RUN`]; D-STAR, the fourth repeat) or when the running error rate is above the mute limit. The
+    /// error rate is not updated: no bits were received.
     pub fn lost(&mut self, out: &mut [i16; FRAME]) -> FrameStatus {
         let limit = match self.coder {
             Coder::FullRate => FULL_MUTE_RATE,
             Coder::HalfRate => HALF_MUTE_RATE,
+            Coder::Dstar => f64::INFINITY,
         };
         if self.eps_r > limit {
             self.invalid_run = self.invalid_run.saturating_add(1);
@@ -202,16 +221,16 @@ impl Decoder {
             match half::kind_of(b[0]) {
                 half::Kind::Erasure | half::Kind::Invalid => return self.invalid(eps_t, out),
                 half::Kind::Voice => {
-                    half::voice_params(b[0], b[1], &mut p);
+                    half::voice_params(&half::BOOKS, b[0], b[1], &mut p);
                     let mut next = self.half_amp;
-                    half::dequantise_amps(&b, &self.half_amp, &mut next, &mut p);
+                    half::dequantise_amps(&half::BOOKS, &b, &self.half_amp, &mut next, &mut p);
                     self.half_amp = next;
                     kind = FrameKind::Voice;
                 }
                 half::Kind::Silence => {
                     p = Params::silent(half::SILENCE_W0, half::SILENCE_L);
                     let mut next = self.half_amp;
-                    half::dequantise_amps(&b, &self.half_amp, &mut next, &mut p);
+                    half::dequantise_amps(&half::BOOKS, &b, &self.half_amp, &mut next, &mut p);
                     kind = FrameKind::Silence;
                 }
             }
@@ -225,6 +244,46 @@ impl Decoder {
         FrameStatus { kind, errors: eps_t }
     }
 
+    /// One D-STAR frame. A frame with too many errors ([`dstar::Errors::repeats`]) is repeated. A tone frame gives
+    /// silence and puts the amplitude state back to its start. Every other frame is a voice frame and updates the state.
+    fn dstar_frame(&mut self, sb: &[u8; dstar::SPEECH_BITS], e: dstar::Errors, out: &mut [i16; FRAME]) -> FrameStatus {
+        if e.repeats() {
+            return self.invalid(e.corrected, out);
+        }
+        self.invalid_run = 0;
+        if dstar::is_tone(sb) {
+            let t = dstar::tone_from(sb);
+            self.dstar_silence(out);
+            return FrameStatus {
+                kind: FrameKind::Tone {
+                    id: t.id,
+                    amplitude: t.level,
+                },
+                errors: e.corrected,
+            };
+        }
+        let mut b = [0u32; 9];
+        dstar::unpack(sb, &mut b);
+        let mut p = Params::silent(0.0, 0);
+        half::voice_params(&dstar::BOOKS, b[0], b[1], &mut p);
+        let mut next = self.half_amp;
+        half::dequantise_amps(&dstar::BOOKS, &b, &self.half_amp, &mut next, &mut p);
+        self.half_amp = next;
+        self.enh.enhance(&mut p);
+        self.synthesise(&p, out);
+        FrameStatus {
+            kind: FrameKind::Voice,
+            errors: e.corrected,
+        }
+    }
+
+    /// D-STAR silence: a frame of no harmonic sound through the synthesis, so that the frame before it ends without a
+    /// step and every later frame of silence is zeros. The amplitude state goes back to its start.
+    fn dstar_silence(&mut self, out: &mut [i16; FRAME]) {
+        self.half_amp = dstar::BOOKS.start();
+        self.synthesise(&Params::silent(half::SILENCE_W0, half::SILENCE_L), out);
+    }
+
     /// A frame that is not valid: repeated, or muted when it is the fourth in a row (for full rate, only a lost frame
     /// comes here).
     fn invalid(&mut self, eps_t: u32, out: &mut [i16; FRAME]) -> FrameStatus {
@@ -232,6 +291,7 @@ impl Decoder {
         let run = match self.coder {
             Coder::FullRate => FULL_LOST_MUTE_RUN,
             Coder::HalfRate => HALF_MUTE_RUN,
+            Coder::Dstar => DSTAR_MUTE_RUN,
         };
         if self.invalid_run >= run {
             self.mute(eps_t, out)
@@ -250,8 +310,15 @@ impl Decoder {
         }
     }
 
-    /// Comfort noise, uniform in [-5, 5], without synthesis (section 7.8).
+    /// Comfort noise, uniform in [-5, 5], without synthesis (section 7.8). The D-STAR coder gives silence instead.
     fn mute(&mut self, eps_t: u32, out: &mut [i16; FRAME]) -> FrameStatus {
+        if self.coder == Coder::Dstar {
+            self.dstar_silence(out);
+            return FrameStatus {
+                kind: FrameKind::Muted,
+                errors: eps_t,
+            };
+        }
         for o in out.iter_mut() {
             self.noise = self.noise.wrapping_mul(1_664_525).wrapping_add(1_013_904_223);
             let u = (self.noise >> 8) as f64 / (1u32 << 24) as f64;

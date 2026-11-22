@@ -348,8 +348,10 @@ pub const FREEDV_PTT: CommandKind<PttArgs> = CommandKind::new("ptt", "Push to ta
 sdrkit_core::choice_enum! {
     /// What a D-STAR transmission sends.
     pub enum DstarTxKind {
-        /// A text in the slow data, with the radio header and voice frames of AMBE silence.
+        /// A text in the slow data, with the radio header and voice frames of the silence pattern.
         Text = ("text", "Text"),
+        /// A voice transmission from the microphone input (push-to-talk).
+        Voice = ("voice", "Voice"),
     }
 }
 
@@ -384,9 +386,15 @@ pub struct DstarSendArgs<'a> {
 
 /// Sends a text in the slow data of a D-STAR transmission.
 pub const DSTAR_SEND: CommandKind<DstarSendArgs<'static>> = CommandKind::new("send", "Send a text")
-    .help("Sends the radio header from the setting callsign to the setting your_call, and the text in the slow data of voice frames that carry AMBE silence: the library has no AMBE encoder. The transmission ends after every slow-data block went out once, or at halt.")
+    .help("Sends the radio header from the setting callsign to the setting your_call, and the text in the slow data of voice frames that carry the silence pattern. The transmission ends after every slow-data block went out once, or at halt.")
     .transmits(TxContent::Text)
     .stopped_by("halt");
+
+/// Push-to-talk of D-STAR: a voice transmission from the microphone input, coded with the D-STAR voice coder.
+pub const DSTAR_PTT: CommandKind<PttArgs> = CommandKind::new("ptt", "Push to talk")
+    .help("With on true, sends the radio header from the setting callsign to the setting your_call, then the microphone input in voice frames of 20 ms with the header copy in the slow data, until ptt with on false, halt or the time-out. The speech is coded with the D-STAR voice coder.")
+    .transmits(TxContent::Voice)
+    .stopped_by("ptt");
 
 sdrkit_core::choice_enum! {
     /// What a DMR transmission sends.
@@ -1222,7 +1230,8 @@ pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         let plain = |id| common(id, &CALLS_300);
-        Described::new("dvoice", 2, 1)
+        Described::new("dvoice", 2, 2)
+            .added(2, 2, &["dstar.command.ptt", "dstar.setting.tx_timeout"])
             .added(
                 2,
                 1,
@@ -1312,6 +1321,7 @@ pub fn family() -> &'static Described {
                 finish(plain("dstar").fields::<DstarFields>())
                     .fields::<DstarTxFields>()
                     .settings(crate::dstar_tx::TxSetting::SETTINGS)
+                    .command(&DSTAR_PTT)
                     .command(&DSTAR_SEND)
                     .command(&HALT),
             )

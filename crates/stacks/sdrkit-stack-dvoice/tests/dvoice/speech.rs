@@ -64,7 +64,7 @@ pub fn pitch_hz(x: &[f32], rate: f64) -> f64 {
     rate / (lo + k) as f64
 }
 
-/// The codec set with the speech decoders of the half-rate and full-rate coders.
+/// The codec set with the speech decoders of the half-rate, full-rate and D-STAR coders.
 pub fn speech_codecs() -> CodecSet {
     let mut set = CodecSet::default();
     sdrkit_stack_dvoice::mbe::register(&mut set);
@@ -206,7 +206,7 @@ fn sounds_with_both_pitches(id: &str, extra: &[(&str, &str)]) {
 
 #[test]
 fn the_test_signals_of_the_speech_stacks_sound_with_both_pitches_of_the_test_speech() {
-    for id in ["dmr", "nxdn", "dpmr", "p25", "p25p2", "ysf"] {
+    for id in ["dmr", "nxdn", "dpmr", "p25", "p25p2", "ysf", "dstar"] {
         sounds_with_both_pitches(id, &[]);
     }
 }

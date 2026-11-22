@@ -4,7 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
-description = "Full-rate (144-bit) and half-rate (72-bit) multi-band excitation voice coders of digital voice radio, decoder and encoder at 8 kHz (TIA-102.BABA, TIA-102.BABA-1)"
+description = "Full-rate (144-bit), half-rate (72-bit) and D-STAR (72-bit) multi-band excitation voice coders of digital voice radio, decoder and encoder at 8 kHz (TIA-102.BABA, TIA-102.BABA-1, JARL D-STAR)"
 
 [dependencies]
 sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }

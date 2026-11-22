@@ -1,7 +1,8 @@
-//! The decoders of the two multi-band excitation speech coders as codec plug-ins of the host's codec set: the half-rate
+//! The decoders of the multi-band excitation speech coders as codec plug-ins of the host's codec set: the half-rate
 //! coder for frames of the `codewords` packaging (DMR, NXDN, dPMR, P25 Phase 2, System Fusion V/D mode 1) and of the
-//! `info49` packaging (System Fusion V/D mode 2), and the full-rate coder for frames of the `p25_144` packaging (P25
-//! Phase 1, System Fusion voice full rate). Each frame gives 160 samples at 8 kHz, mono. An erasure is a lost frame: the decoder
+//! `info49` packaging (System Fusion V/D mode 2), the full-rate coder for frames of the `p25_144` packaging (P25
+//! Phase 1, System Fusion voice full rate), and the D-STAR coder for frames of the `dstar72` packaging. Each frame gives
+//! 160 samples at 8 kHz, mono. An erasure is a lost frame: the decoder
 //! repeats the last good frame and mutes a long run of them by the rules of the coder, so the sound keeps its timing.
 
 use sdrkit_codec_mbe::{codeword_channel_bits, Coder, Decoder, FRAME};
@@ -13,8 +14,9 @@ use std::sync::Arc;
 /// The rate of the decoded speech, Hz.
 const RATE_HZ: u32 = 8000;
 
-/// Registers the two decoders in `set`: [`Codec::Ambe2`] for the `codewords` and `info49` packagings and [`Codec::Imbe`]
-/// for the `p25_144` packaging. One half-rate decoder takes both of its packagings, told apart by their length.
+/// Registers the decoders in `set`: [`Codec::Ambe2`] for the `codewords` and `info49` packagings, [`Codec::Imbe`] for the
+/// `p25_144` packaging and [`Codec::Ambe`] for the `dstar72` packaging. One half-rate decoder takes both of its
+/// packagings, told apart by their length.
 pub fn register(set: &mut CodecSet) {
     for packaging in [SpeechPackaging::Codewords, SpeechPackaging::Info49] {
         set.register(
@@ -28,6 +30,11 @@ pub fn register(set: &mut CodecSet) {
         Some(SpeechPackaging::P25_144.key()),
         factory(Coder::FullRate),
     );
+    set.register(
+        Codec::Ambe.fourcc(),
+        Some(SpeechPackaging::Dstar72.key()),
+        factory(Coder::Dstar),
+    );
 }
 
 /// The codec of the frames of `coder`.
@@ -35,6 +42,7 @@ fn codec_of(coder: Coder) -> Codec {
     match coder {
         Coder::HalfRate => Codec::Ambe2,
         Coder::FullRate => Codec::Imbe,
+        Coder::Dstar => Codec::Ambe,
     }
 }
 
@@ -66,8 +74,9 @@ impl SpeechDecoder {
 
 impl AudioCodec for SpeechDecoder {
     /// Takes a half-rate frame as 12 bytes of code words ([`codewords`]) or as the 7 bytes of its 49 error-corrected
-    /// speech bits (`info49`: u0 to u3, most significant bit first, 7 zero bits of padding), or a full-rate frame as the 18
-    /// bytes of its channel bits as sent. A frame of another length is [`CodecError::Frame`].
+    /// speech bits (`info49`: u0 to u3, most significant bit first, 7 zero bits of padding), a full-rate frame as the 18
+    /// bytes of its channel bits as sent, or a D-STAR frame as the 9 bytes of its channel bits as sent (the first bit
+    /// sent most significant). A frame of another length is [`CodecError::Frame`].
     fn decode(&mut self, frame: &[u8], erasure: bool, pcm: &mut Pcm) -> Result<(), CodecError> {
         let unpack = |bits: &mut [u8]| {
             for (i, b) in bits.iter_mut().enumerate() {
@@ -91,6 +100,10 @@ impl AudioCodec for SpeechDecoder {
                     unpack(&mut self.bits);
                     self.dec.decode(&self.bits, &mut self.out);
                 }
+                (Coder::Dstar, 9) => {
+                    unpack(&mut self.bits[..72]);
+                    self.dec.decode(&self.bits[..72], &mut self.out);
+                }
                 _ => return Err(CodecError::Frame),
             }
         }
@@ -104,9 +117,9 @@ impl AudioCodec for SpeechDecoder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sdrkit_codec_mbe::{codewords, Encoder};
     use sdrkit_algo_dsp::goertzel::goertzel_power;
     use sdrkit_algo_fec::voice::{VocoderTestFrame, NXDN_EHR_SILENCE, NXDN_EHR_TONE};
+    use sdrkit_codec_mbe::{codewords, Encoder};
 
     /// The samples of `frames` frames of the test frame `t`, through the plug-in in the `codewords` packaging.
     fn decode_test_frame(t: &VocoderTestFrame, frames: usize) -> Vec<f32> {
@@ -142,6 +155,41 @@ mod tests {
     }
 
     #[test]
+    fn the_dstar_silence_pattern_and_the_test_speech_decode_through_the_plug_in() {
+        let mut d = SpeechDecoder::new(Coder::Dstar);
+        let mut pcm = Pcm::default();
+        let silence = crate::voice::channel_bits::<9>(&sdrkit_codec_mbe::dstar_silence_bits());
+        for _ in 0..10 {
+            d.decode(&silence, false, &mut pcm).unwrap();
+        }
+        assert_eq!(
+            (pcm.rate_hz, pcm.channels, pcm.samples.len()),
+            (8000, 1, 10 * FRAME)
+        );
+        assert!(
+            pcm.samples.iter().all(|&s| s.abs() < 40),
+            "the silence pattern is quiet"
+        );
+        // The first note of the test speech, 120 Hz: frames 4 to 15 of it.
+        let mut pcm = Pcm::default();
+        for f in &crate::voice::test_speech_dstar()[..16] {
+            d.decode(&crate::voice::channel_bits::<9>(f), false, &mut pcm)
+                .unwrap();
+        }
+        let x: Vec<f32> = pcm.samples[4 * FRAME..]
+            .iter()
+            .map(|&s| f32::from(s))
+            .collect();
+        let harmonic = |k: f64| goertzel_power(&x, k * 120.0 / 8000.0);
+        let between = |k: f64| goertzel_power(&x, (k + 0.5) * 120.0 / 8000.0);
+        assert!(
+            harmonic(5.0) > 20.0 * between(5.0),
+            "the fifth harmonic of 120 Hz stands out"
+        );
+        assert!(harmonic(5.0) > 1e3 * goertzel_power(&x, 3900.0 / 8000.0));
+    }
+
+    #[test]
     fn both_packagings_take_the_encoder_frames_and_an_erasure_keeps_the_timing() {
         let pcm_in: [i16; FRAME] =
             std::array::from_fn(|i| (8000.0 * (i as f64 * 0.3).sin()) as i16);
@@ -152,6 +200,7 @@ mod tests {
             let key = match coder {
                 Coder::HalfRate => "codewords",
                 Coder::FullRate => "p25_144",
+                Coder::Dstar => "dstar72",
             };
             let entry = set.find(codec.fourcc(), key).unwrap();
             let mut d =
@@ -163,6 +212,7 @@ mod tests {
             let payload: Vec<u8> = match coder {
                 Coder::HalfRate => codewords(&bits[..n]).to_vec(),
                 Coder::FullRate => crate::voice::channel_bits::<18>(&bits[..n]).to_vec(),
+                Coder::Dstar => crate::voice::channel_bits::<9>(&bits[..n]).to_vec(),
             };
             let mut pcm = Pcm::default();
             d.decode(&payload, false, &mut pcm).unwrap();
@@ -170,8 +220,12 @@ mod tests {
             d.decode(&[], true, &mut pcm).unwrap();
             assert_eq!(pcm.samples.len(), 2 * FRAME);
             // The lost frame repeats the sound of the first one, at the level of a frame of speech.
-            let level = |x: &[i16]| x.iter().map(|&v| f64::from(v).abs()).sum::<f64>() / x.len() as f64;
-            assert!(level(&pcm.samples[FRAME..]) > 0.3 * level(&first), "{coder:?}");
+            let level =
+                |x: &[i16]| x.iter().map(|&v| f64::from(v).abs()).sum::<f64>() / x.len() as f64;
+            assert!(
+                level(&pcm.samples[FRAME..]) > 0.3 * level(&first),
+                "{coder:?}"
+            );
             assert_eq!(
                 d.decode(&payload[1..], false, &mut pcm),
                 Err(CodecError::Frame)

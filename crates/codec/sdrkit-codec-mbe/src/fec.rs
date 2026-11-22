@@ -1,6 +1,6 @@
 //! The error-control codes, the bit modulation and the interleaving of both frames.
 
-use crate::tables::{full, half, GOLAY24_EXTRA, GOLAY_PARITY, HAMMING_PARITY};
+use crate::tables::{dstar, full, half, GOLAY24_EXTRA, GOLAY_PARITY, HAMMING_PARITY};
 use sdrkit_algo_fec::small::SmallCode;
 use sdrkit_algo_fec::voice::VoiceLayout;
 use std::sync::OnceLock;
@@ -26,6 +26,8 @@ pub struct Codes {
     pub full_layout: VoiceLayout,
     /// Half-rate interleaving (72 channel bits into c0..c3).
     pub half_layout: VoiceLayout,
+    /// D-STAR interleaving (72 channel bits into the words A, B, C).
+    pub dstar_layout: VoiceLayout,
 }
 
 /// The shared codes and layouts.
@@ -39,11 +41,12 @@ pub fn codes() -> &'static Codes {
             hamming: SmallCode::from_parity_rows(15, 11, &HAMMING_PARITY).expect("printed Hamming rows"),
             full_layout: layout(&full::INTERLEAVE, &FULL_WORDS),
             half_layout: layout(&half::INTERLEAVE, &HALF_WORDS),
+            dstar_layout: layout(&dstar::INTERLEAVE, &crate::dstar::WORDS),
         }
     })
 }
 
-/// The layout of a dibit interleaving table: channel bit `2 s` is the first (high) bit of symbol `s`, `2 s + 1` the second.
+/// The layout of an interleaving table of pairs: channel bit `2 s` is the first (high) bit of pair `s`, `2 s + 1` the second.
 fn layout(table: &[[(u8, u8); 2]], lens: &[usize]) -> VoiceLayout {
     let mut start = [0usize; 8];
     for k in 1..lens.len() {

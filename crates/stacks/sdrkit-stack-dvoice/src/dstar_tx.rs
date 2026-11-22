@@ -1,24 +1,30 @@
-//! The sender of the D-STAR stack (`dstar.transmit`): a DV transmission with the radio header of the settings and a text
-//! in the slow data. Standard: JARL D-STAR specification (the frame layout that [`crate::dstar`] decodes).
+//! The sender of the D-STAR stack (`dstar.transmit`): a DV transmission with the radio header of the settings, as a voice
+//! transmission from the microphone input (push-to-talk) or as a text in the slow data. Standard: JARL D-STAR
+//! specification (the frame layout that [`crate::dstar`] decodes).
 //!
-//! The library has no AMBE encoder, so the sender sends no speech: every voice frame carries the 72 channel bits of AMBE
-//! silence ([`SILENCE`]), and the transmission is a text, not push-to-talk.
-//!
-//! Input `in` is the session's samples: their rate, pace and dial. Output `out` is complex baseband at the session's rate
-//! for `tx.sink`: the signal at 0 Hz, centred on the transmit frequency, which is the dial plus the transmit offset.
-//! Output `keyed` mutes the receive audio of the stack from key down to a short hold after the end mark.
+//! Input `in` is the session's samples: their rate, pace and dial. Input `mic` is mono audio of any rate: the speech of a
+//! voice transmission, coded with the D-STAR voice coder ([`sdrkit_codec_mbe`]) in frames of 20 ms. Output `out` is
+//! complex baseband at the session's rate for `tx.sink`: the signal at 0 Hz, centred on the transmit frequency, which is
+//! the dial plus the transmit offset. Output `keyed` mutes the receive audio of the stack from key down to a short hold
+//! after the end mark.
 //!
 //! A transmission is the bit sync, the frame sync, the radio header, voice frames of 20 ms (the data sync in frame 0 of
-//! every 21, the slow-data blocks in the others: the text, the header copy), then the end pattern. It lasts the groups of
-//! 21 frames that send every slow-data block once; `halt` ends it after the frame on air. GMSK at 4800 bit/s, BT 0.5,
+//! every 21, the slow-data blocks in the others), then the end pattern. A voice transmission carries the header copy in
+//! the slow data; push-to-talk off, `halt` and the time-out end it after the frame on air. A text carries the text and the
+//! header copy in the slow data of voice frames with the silence pattern of the specification
+//! ([`sdrkit_codec_mbe::DSTAR_SILENCE`]); it lasts the groups of 21 frames that send every slow-data block once; `halt`
+//! ends it after the frame on air. GMSK at 4800 bit/s, BT 0.5,
 //! deviation ±1.2 kHz. The carrier rises and falls with a 5 ms raised cosine; its magnitude is 0.9 of full scale. Every
 //! transmission ends with an end mark; on a live radio whose host times bursts, the first sample states its time on air.
 
 use crate::dstar::{end_bits, slow_blocks, start_bits, Header, VoiceFrames};
 use crate::front::RATE;
 use crate::gen::{FskModulator, TxPulse};
-use crate::sender::{failed, FskBurst, Maker, TxCore, RISE_S, TX, TX_SPLIT};
-use crate::typed::{DstarSendArgs, DstarTxFields, DstarTxKind, DSTAR_SEND, HALT};
+use crate::sender::{failed, FskBurst, Maker, TxCore, RISE_S, TX, TX_SPLIT, TX_TIMEOUT};
+use crate::typed::{
+    DstarSendArgs, DstarTxFields, DstarTxKind, PttArgs, DSTAR_PTT, DSTAR_SEND, HALT,
+};
+use sdrkit_codec_mbe::{Coder, Encoder, FRAME};
 use sdrkit_components::tx::{KeyedOut, MicInput};
 use sdrkit_core::interface::{Fields, Hertz};
 use sdrkit_core::publish::field;
@@ -30,14 +36,13 @@ use sdrkit_graph::{Applied, Component, ComponentInfo, Format, Io, Port, RunConte
 
 /// The name of the component.
 pub const ID: &str = "dstar.transmit";
-/// The 72 channel bits of one frame of AMBE silence as sent, the first bit most significant. The value is not confirmed
-/// against a radio or the vocoder documentation.
-pub const SILENCE: [u8; 9] = [0x9E, 0x8D, 0x32, 0x88, 0x26, 0x1A, 0x3F, 0x61, 0xE8];
 /// The most characters of a text.
 pub const TEXT_MAX: usize = 20;
-/// What the voice frames carry.
+/// The duration of a voice frame, seconds.
+pub const FRAME_S: f64 = 0.02;
+/// What the sender sends.
 pub const NOTE: &str =
-    "AMBE encoder not installed: identities and data go on the air, voice frames are silence";
+    "voice from the microphone with the D-STAR voice coder, and texts in the slow data of silence frames";
 
 /// The own call sign: MY of the radio header.
 pub const CALLSIGN: Setting<field::Text> = Setting::new("callsign", "Own call sign", "", "")
@@ -82,12 +87,16 @@ sdrkit_core::settings! {
         ViaRepeater = VIA_REPEATER,
         /// The transmit offset.
         Split = TX_SPLIT,
+        /// The time-out of a voice transmission.
+        Timeout = TX_TIMEOUT,
     }
 }
 
 sdrkit_core::commands! {
     /// The commands of the sender.
     pub enum TxCommand {
+        /// Push-to-talk.
+        Ptt = DSTAR_PTT.command,
         /// A text.
         Send = DSTAR_SEND.command,
         /// Ends the transmission.
@@ -96,7 +105,7 @@ sdrkit_core::commands! {
 }
 
 /// The keys of the commands of the sender, which the stack routes to it.
-pub const COMMANDS: [&str; 2] = [DSTAR_SEND.command.key, HALT.key];
+pub const COMMANDS: [&str; 3] = [DSTAR_PTT.command.key, DSTAR_SEND.command.key, HALT.key];
 
 /// Why a transmit command was refused.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -141,37 +150,55 @@ impl std::fmt::Display for DstarTxError {
 
 impl std::error::Error for DstarTxError {}
 
-/// The bits of [`SILENCE`] in the order sent.
-fn silence_bits() -> [u8; 72] {
-    std::array::from_fn(|i| (SILENCE[i / 8] >> (7 - i % 8)) & 1)
+/// The 72 channel bits, as sent, of the silence pattern of the specification (JARL D-STAR section 6.6).
+pub fn silence_frame() -> [u8; 72] {
+    sdrkit_codec_mbe::dstar_silence_bits()
 }
 
 /// One transmission as 48 kHz samples: the start, the voice frames, the end pattern, the rise, the level and the fall. It
 /// knows nothing of the graph, so a test can drive it.
 pub struct Sender {
+    kind: DstarTxKind,
     start: Option<Vec<u8>>,
     frames: VoiceFrames,
     limit: usize,
     stopping: bool,
     end_sent: bool,
-    voice: [u8; 72],
+    encoder: Option<Box<Encoder>>,
     bits: Vec<u8>,
     burst: FskBurst,
 }
 
 impl Sender {
     /// A transmission with the header `h` and the text `text` in the slow data, of the groups of 21 frames that send
-    /// every slow-data block once.
+    /// every slow-data block once. Its voice frames carry the silence pattern.
     pub fn text(h: &Header, text: &str) -> Sender {
         let frames = VoiceFrames::new(slow_blocks(h, text, &[], None));
         let limit = frames.cycle();
+        Sender::new(DstarTxKind::Text, h, frames, limit)
+    }
+
+    /// A voice transmission with the header `h`, of at most `limit` voice frames. The slow data carries the header copy.
+    pub fn voice(h: &Header, limit: usize) -> Sender {
+        // The first four slow-data blocks are the text; a voice transmission has none.
+        let blocks = slow_blocks(h, "", &[], None).split_off(4);
+        Sender::new(
+            DstarTxKind::Voice,
+            h,
+            VoiceFrames::new(blocks),
+            limit.max(1),
+        )
+    }
+
+    fn new(kind: DstarTxKind, h: &Header, frames: VoiceFrames, limit: usize) -> Sender {
         Sender {
+            kind,
             start: Some(start_bits(h)),
             frames,
             limit,
             stopping: false,
             end_sent: false,
-            voice: silence_bits(),
+            encoder: (kind == DstarTxKind::Voice).then(|| Box::new(Encoder::new(Coder::Dstar))),
             bits: Vec::with_capacity(96),
             burst: FskBurst::new(
                 FskModulator::new(4800.0, TxPulse::Gaussian(0.5), 1200.0),
@@ -179,6 +206,16 @@ impl Sender {
                 RISE_S,
             ),
         }
+    }
+
+    /// What the transmission sends.
+    pub fn kind(&self) -> DstarTxKind {
+        self.kind
+    }
+
+    /// Whether the transmission is a voice transmission that has not been told to end.
+    pub fn speaking(&self) -> bool {
+        self.kind == DstarTxKind::Voice && !self.stopping && !self.end_sent
     }
 
     /// The voice frames modulated so far.
@@ -196,9 +233,13 @@ impl Sender {
         self.stopping = true;
     }
 
-    /// Appends the 48 kHz samples of the next part to `out`: the start, one voice frame, the end pattern, or the fall;
-    /// then it returns false and appends nothing more.
-    pub fn next(&mut self, out: &mut Vec<Complex32>) -> bool {
+    /// Appends the 48 kHz samples of the next part to `out`: the start, one voice frame whose 72 channel bits (as sent)
+    /// `speech` fills, the end pattern, or the fall; then it returns false and appends nothing more.
+    pub fn next_with(
+        &mut self,
+        mut speech: impl FnMut(&mut [u8; 72]),
+        out: &mut Vec<Complex32>,
+    ) -> bool {
         if self.burst.done() {
             return false;
         }
@@ -206,7 +247,9 @@ impl Sender {
         if let Some(s) = self.start.take() {
             self.burst.bits(&s, out);
         } else if !self.stopping && self.frames.frames() < self.limit {
-            self.frames.push(&self.voice, &mut self.bits);
+            let mut voice = [0u8; 72];
+            speech(&mut voice);
+            self.frames.push(&voice, &mut self.bits);
             self.burst.bits(&self.bits, out);
         } else if !self.end_sent {
             self.end_sent = true;
@@ -216,11 +259,37 @@ impl Sender {
         }
         true
     }
+
+    /// As [`Sender::next_with`], with the silence pattern in the voice frames.
+    pub fn next(&mut self, out: &mut Vec<Complex32>) -> bool {
+        let silence = silence_frame();
+        self.next_with(|f| *f = silence, out)
+    }
 }
 
 impl Maker for Sender {
-    fn next(&mut self, _mic: &mut MicInput, out: &mut Vec<Complex32>) -> bool {
-        Sender::next(self, out)
+    /// Codes the speech of each voice frame of a voice transmission from 20 ms of `mic`; a text reads no audio.
+    fn next(&mut self, mic: &mut MicInput, out: &mut Vec<Complex32>) -> bool {
+        let mut encoder = self.encoder.take();
+        let more = self.next_with(
+            |frame| match encoder.as_mut() {
+                Some(e) => {
+                    let mut speech = [0f32; FRAME];
+                    mic.read(&mut speech);
+                    let pcm: [i16; FRAME] = std::array::from_fn(|i| {
+                        (speech[i].clamp(-1.0, 1.0) * 32767.0).round() as i16
+                    });
+                    e.encode(&pcm, frame);
+                }
+                None => *frame = silence_frame(),
+            },
+            out,
+        );
+        self.encoder = encoder;
+        more
+    }
+    fn speaks(&self) -> bool {
+        self.speaking()
     }
     fn stop(&mut self) {
         Sender::stop(self);
@@ -240,6 +309,7 @@ struct TxConfig {
     rpt2: String,
     via_repeater: bool,
     split: f64,
+    timeout: f64,
 }
 
 impl Default for TxConfig {
@@ -252,6 +322,7 @@ impl Default for TxConfig {
             rpt2: RPT2.default.to_string(),
             via_repeater: false,
             split: TX_SPLIT.default,
+            timeout: TX_TIMEOUT.default,
         }
     }
 }
@@ -313,6 +384,36 @@ impl DstarTransmit {
         }
     }
 
+    /// Push-to-talk on: starts a voice transmission with the radio header of the settings; one already under way goes
+    /// on.
+    ///
+    /// # Errors
+    ///
+    /// [`CommandError::TransmitOff`], or [`DstarTxError`] when another transmission runs, the stack has no input, or the
+    /// setting `callsign` is empty.
+    pub fn key_down(&mut self) -> Result<(), CommandError> {
+        if self.core.speaking() {
+            return Ok(());
+        }
+        self.core.ready(DstarTxError::Busy, DstarTxError::NoInput)?;
+        if self.cfg.callsign.is_empty() {
+            return Err(failed(DstarTxError::NoSource));
+        }
+        let limit = (self.cfg.timeout / FRAME_S).ceil() as usize;
+        let sender = Sender::voice(&self.header(), limit);
+        self.core
+            .begin(Box::new(sender), RATE, DstarTxError::NoInput)?;
+        self.last_kind = Some(DstarTxKind::Voice);
+        Ok(())
+    }
+
+    /// Push-to-talk off: the voice transmission ends after the frame on air, with the end pattern.
+    pub fn key_up(&mut self) {
+        if self.core.speaking() {
+            self.core.halt();
+        }
+    }
+
     /// Sends `text` in the slow data.
     ///
     /// # Errors
@@ -353,7 +454,7 @@ impl Component for DstarTransmit {
             ID,
             vec![
                 Port::iq("in"),
-                Port::audio("mic").optional("not used: the library has no AMBE encoder"),
+                Port::audio("mic").optional("silence: the voice frames carry coded silence"),
             ],
             vec![Port::iq("out"), KeyedOut::port()],
         )
@@ -401,6 +502,7 @@ impl Component for DstarTransmit {
             TxSetting::Rpt1 => self.cfg.rpt1 = field(RPT1.read(id, v)?, 8)?,
             TxSetting::Rpt2 => self.cfg.rpt2 = field(RPT2.read(id, v)?, 8)?,
             TxSetting::ViaRepeater => self.cfg.via_repeater = VIA_REPEATER.read(id, v)?,
+            TxSetting::Timeout => self.cfg.timeout = TX_TIMEOUT.read(id, v)?,
             TxSetting::Split => {
                 let s = TX_SPLIT.read(id, v)?;
                 let moved = s != self.cfg.split;
@@ -423,6 +525,7 @@ impl Component for DstarTransmit {
             (TxSetting::Rpt2, Value::Text(self.cfg.rpt2.clone())),
             (TxSetting::ViaRepeater, Value::Bool(self.cfg.via_repeater)),
             (TxSetting::Split, Value::Hz(self.cfg.split)),
+            (TxSetting::Timeout, Value::Duration(self.cfg.timeout)),
         ])
     }
     fn results(&self) -> Option<&Results> {
@@ -433,6 +536,14 @@ impl Component for DstarTransmit {
     }
     fn invoke(&mut self, id: CommandId, args: &Values) -> Result<Option<Record>, CommandError> {
         match TxCommand::from_id(id).ok_or(CommandError::NoSuchId { id })? {
+            TxCommand::Ptt => {
+                let PttArgs { on } = DSTAR_PTT.args(args)?;
+                if on {
+                    self.key_down()?;
+                } else {
+                    self.key_up();
+                }
+            }
             TxCommand::Send => {
                 let DstarSendArgs { text } = DSTAR_SEND.args(args)?;
                 self.send(text)?;

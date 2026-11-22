@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dvoice", version 2.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "dvoice", version 2.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DVOICE_VERSION_MAJOR 2
-#define SDRKIT_DVOICE_VERSION_MINOR 1
+#define SDRKIT_DVOICE_VERSION_MINOR 2
 
 // The stack "dmr": its id, and the keys of its event types.
 #define SDRKIT_STACK_DMR "dmr"
@@ -1042,6 +1042,8 @@ typedef struct sdrkit_dstar_fields {
 typedef enum sdrkit_dstar_tx_fields_tx_kind {
   // Text
   SDRKIT_DSTAR_TX_FIELDS_TX_KIND_TEXT = 0,
+  // Voice
+  SDRKIT_DSTAR_TX_FIELDS_TX_KIND_VOICE = 1,
 } sdrkit_dstar_tx_fields_tx_kind;
 
 // The result fields of the D-STAR sender.
@@ -2605,7 +2607,12 @@ static inline int32_t sdrkit_dstar_remove(SDRKIT_HANDLE handle, const sdrkit_dvo
   return sdrkit_typed_command(handle, "remove", "dvoice.TalkgroupArgs", args, NULL, NULL, 0);
 }
 
-// Runs the command "send" (Send a text) of the stack "dstar" on the session of `handle`. Sends the radio header from the setting callsign to the setting your_call, and the text in the slow data of voice frames that carry AMBE silence: the library has no AMBE encoder. The transmission ends after every slow-data block went out once, or at halt. It transmits (text). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+// Runs the command "ptt" (Push to talk) of the stack "dstar" on the session of `handle`. With on true, sends the radio header from the setting callsign to the setting your_call, then the microphone input in voice frames of 20 ms with the header copy in the slow data, until ptt with on false, halt or the time-out. The speech is coded with the D-STAR voice coder. It transmits (voice). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "ptt" stops it.
+static inline int32_t sdrkit_dstar_ptt(SDRKIT_HANDLE handle, const sdrkit_dvoice_ptt_args *args) {
+  return sdrkit_typed_command(handle, "ptt", "dvoice.PttArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "send" (Send a text) of the stack "dstar" on the session of `handle`. Sends the radio header from the setting callsign to the setting your_call, and the text in the slow data of voice frames that carry the silence pattern. The transmission ends after every slow-data block went out once, or at halt. It transmits (text). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
 static inline int32_t sdrkit_dstar_send(SDRKIT_HANDLE handle, const sdrkit_dstar_send_args *args) {
   return sdrkit_typed_command(handle, "send", "dvoice.DstarSendArgs", args, NULL, NULL, 0);
 }
@@ -2749,6 +2756,14 @@ static inline int32_t sdrkit_dstar_get_tx_split(SDRKIT_HANDLE handle, double *va
 }
 static inline int32_t sdrkit_dstar_set_tx_split(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "tx_split", value);
+}
+
+// The setting "tx_timeout" (Time-out) of the stack "dstar". A length of time in seconds. A voice stream ends after this time on air.
+static inline int32_t sdrkit_dstar_get_tx_timeout(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "tx_timeout", value);
+}
+static inline int32_t sdrkit_dstar_set_tx_timeout(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "tx_timeout", value);
 }
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "nxdn" in the snapshot of `handle`,

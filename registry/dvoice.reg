@@ -1,5 +1,5 @@
 # The interface of the stack family dvoice. The registry test of the family writes this file.
-family dvoice version=2.1
+family dvoice version=2.2
 shape.SharedFields since=1.0
 shape.SharedFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.SharedFields.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
@@ -209,7 +209,7 @@ shape.DstarFields.sync_inverted type=bool unit= optional=no since=1.0
 shape.DstarTxFields since=1.0
 shape.DstarTxFields.transmitting type=bool unit= optional=no since=1.0
 shape.DstarTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.0
-shape.DstarTxFields.tx_kind type=choice(text) unit= optional=yes since=1.0
+shape.DstarTxFields.tx_kind type=choice(text,voice) unit= optional=yes since=1.0
 shape.DstarTxFields.tx_frames type=i64 unit= optional=no since=1.0
 shape.DstarTxFields.tx_note type=text unit= optional=no since=1.0
 shape.NxdnFields since=1.0
@@ -471,10 +471,12 @@ dstar.setting.rpt1 type=text unit= since=1.0
 dstar.setting.rpt2 type=text unit= since=1.0
 dstar.setting.via_repeater type=bool unit= since=1.0
 dstar.setting.tx_split type=hz unit=Hz since=1.0
+dstar.setting.tx_timeout type=duration unit=s since=2.2
 dstar.command.clear args= reply= since=1.0
 dstar.command.hold_current args= reply= since=1.0
 dstar.command.release args= reply= since=1.0
 dstar.command.remove args=row:text reply= since=1.0
+dstar.command.ptt args=on:bool reply= transmits=voice stop=ptt since=2.2
 dstar.command.send args=text:text reply= transmits=text stop=halt since=1.0
 dstar.command.halt args= reply= since=1.0
 nxdn since=1.0

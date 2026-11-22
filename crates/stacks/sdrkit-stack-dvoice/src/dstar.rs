@@ -817,13 +817,14 @@ impl VoiceFrames {
     }
 }
 
-fn tx_bits(t: &Tx, rng: &mut sdrkit_algo_sim::rng::Rng) -> Vec<u8> {
+/// The bits of the transmission `t`. Its voice frames carry the test speech ([`crate::voice::test_speech_dstar`]) in
+/// turn.
+fn tx_bits(t: &Tx) -> Vec<u8> {
     let mut bits = start_bits(&t.header);
     let mut frames = VoiceFrames::new(slow_blocks(&t.header, &t.message, &t.gps, t.squelch));
-    let mut voice = [0u8; 72];
-    for _ in 0..t.frames {
-        rng.fill_bits(&mut voice);
-        frames.push(&voice, &mut bits);
+    let speech = crate::voice::test_speech_dstar();
+    for k in 0..t.frames {
+        frames.push(&speech[k % speech.len()], &mut bits);
     }
     bits.extend(end_bits());
     bits
@@ -840,9 +841,8 @@ fn dprs_line(tnc2: &str) -> String {
 }
 
 /// The D-STAR test signal: a call via a repeater with a message and NMEA positions, and a simplex call with a D-PRS position and
-/// a code squelch.
-pub fn render(seed: u64) -> Vec<Complex32> {
-    let mut rng = sdrkit_algo_sim::rng::Rng::new(seed);
+/// a code squelch; the voice frames of both carry the test speech.
+pub fn render() -> Vec<Complex32> {
     let mut m = FskModulator::new(4800.0, TxPulse::Gaussian(0.5), 1200.0);
     let mut out = Vec::new();
     silence(0.3, &mut out);
@@ -884,7 +884,7 @@ pub fn render(seed: u64) -> Vec<Complex32> {
         },
     ];
     for c in &calls {
-        let bits = tx_bits(c, &mut rng);
+        let bits = tx_bits(c);
         let lv: Vec<f32> = bits
             .iter()
             .map(|&b| if b != 0 { 1.0 } else { -1.0 })
@@ -899,7 +899,7 @@ pub fn render(seed: u64) -> Vec<Complex32> {
 
 /// The D-STAR generator from the settings of the stack.
 pub fn generator(cfg: &GenConfig) -> Prepared {
-    Prepared::new(render(cfg.seed), cfg.rate_hz, true).with_info(6_250.0, 4800.0, 4800.0)
+    Prepared::new(render(), cfg.rate_hz, true).with_info(6_250.0, 4800.0, 4800.0)
 }
 
 #[cfg(test)]

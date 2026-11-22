@@ -1,7 +1,7 @@
 //! The digital voice stacks: DMR, NXDN, dPMR, TETRA (trunked and direct mode), P25 Phase 1 and 2, TETRAPOL, D-STAR, Yaesu System Fusion, M17, FreeDV, DCR and
 //! the automatic detector. Each stack is a decoder and a voice monitor in one graph. Speech leaves as compressed frames for
-//! the codec plug-ins of the host; [`mbe::register`] adds the decoders of the half-rate and full-rate coders to a codec
-//! set. Encrypted content is never decoded. [`descriptors`] lists the stacks.
+//! the codec plug-ins of the host; [`mbe::register`] adds the decoders of the half-rate, full-rate and D-STAR coders to a
+//! codec set. Encrypted content is never decoded. [`descriptors`] lists the stacks.
 
 // Bit and sample loops index several slices at once. Plain index loops read more clearly there.
 #![allow(clippy::needless_range_loop)]
@@ -395,7 +395,7 @@ pub static DSTAR: StackDescriptor = StackDescriptor {
     id: "dstar",
     name: "D-STAR",
     group: GROUP,
-    blurb: "D-STAR digital voice: callsigns and repeaters from the header, slow-data messages and positions. Transmits a slow-data text with the radio header; the voice frames carry AMBE silence (no AMBE encoder).",
+    blurb: "D-STAR digital voice: voice calls with their speech, callsigns and repeaters from the header, slow-data messages and positions. Transmits voice from the microphone and slow-data texts, with the radio header.",
     tuning: narrow(28.0, 1300.0, 0.0, 2e6, 6_250.0, 96_000.0, 50_000.0),
     submodes: &[],
     settings: dstar_schema,

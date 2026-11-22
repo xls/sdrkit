@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "dvoice", version 2.1. MIT licence.
+// sdrkit: the typed interface of the stack family "dvoice", version 2.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum DvoiceInterface {
     public static let major = 2
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The measurements that every digital voice stack publishes.
@@ -901,6 +901,7 @@ public struct DstarFields {
 public struct DstarTxFields {
     public enum TxKind: Int32 {
         case text = 0
+        case voice = 1
     }
     /// Whether a transmission is under way.
     public var transmitting: Bool
@@ -2899,7 +2900,17 @@ public enum DvoiceCommands {
         }() }
         return sdrkitResult(code)
     }
-    /// Send a text. Sends the radio header from the setting callsign to the setting your_call, and the text in the slow data of voice frames that carry AMBE silence: the library has no AMBE encoder. The transmission ends after every slow-data block went out once, or at halt. It transmits (text). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    /// Push to talk. With on true, sends the radio header from the setting callsign to the setting your_call, then the microphone input in voice frames of 20 ms with the header copy in the slow data, until ptt with on false, halt or the time-out. The speech is coded with the D-STAR voice coder. It transmits (voice). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "ptt" stops it.
+    public static func dstarPtt(_ handle: SDRKIT_HANDLE, on: Bool) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_dvoice_ptt_args()
+        args.size = UInt32(MemoryLayout<sdrkit_dvoice_ptt_args>.size)
+        let code: Int32 = { () -> Int32 in
+        args.on = on
+        return sdrkit_dstar_ptt(handle, &args)
+        }()
+        return sdrkitResult(code)
+    }
+    /// Send a text. Sends the radio header from the setting callsign to the setting your_call, and the text in the slow data of voice frames that carry the silence pattern. The transmission ends after every slow-data block went out once, or at halt. It transmits (text). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
     public static func dstarSend(_ handle: SDRKIT_HANDLE, text: String) -> Result<Void, SDRKitCode> {
         var args = sdrkit_dstar_send_args()
         args.size = UInt32(MemoryLayout<sdrkit_dstar_send_args>.size)
@@ -3741,6 +3752,15 @@ public enum DvoiceSettings {
     }
     public static func setDstarTxSplit(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_split", value))
+    }
+    /// Time-out.
+    public static func dstarTxTimeout(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "tx_timeout", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setDstarTxTimeout(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_timeout", value))
     }
     /// Error squelch.
     public static func nxdnSquelchPct(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {

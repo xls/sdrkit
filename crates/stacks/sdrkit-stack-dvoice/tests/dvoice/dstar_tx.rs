@@ -1,24 +1,30 @@
 //! The sender of the D-STAR stack: the headers, the slow-data block and the CRC equal the worked examples of the
-//! specification; the stack's own receiver decodes what it sends (the header fields, the text, the voice frames of AMBE
-//! silence byte for byte, the end pattern), and with the header lost it takes the header from the slow data; the signal
-//! fits its channel at its level; halt ends with the end pattern; a text is refused without an own call sign and with
-//! the transmitter off. Nothing goes to a radio.
+//! specification; the stack's own receiver decodes what it sends (the header fields, the text, the voice frames of the
+//! silence pattern byte for byte, the end pattern), and with the header lost it takes the header from the slow data; a
+//! voice transmission decodes to the speech frames sent, and push-to-talk sends the frames of the microphone audio,
+//! which sound with its pitch; the signal fits its channel at its level; halt ends with the end pattern; a text or a
+//! voice transmission is refused without an own call sign and with the transmitter off; the time-out ends a voice
+//! transmission. Nothing goes to a radio.
 
 use crate::common::*;
+use crate::speech::{pitch_hz, speech_codecs, vowel, vowel_frames, VOWEL_F0};
 use crate::tx_host::*;
 use sdrkit_algo_dsp::bandwidth::power_share_edges;
+use sdrkit_algo_dsp::resample::Resampler;
 use sdrkit_algo_dsp::spectrum::{welch, Scaling};
 use sdrkit_algo_dsp::window::Window;
+use sdrkit_codec_mbe::{Coder, Encoder};
 use sdrkit_core::codec::{AudioCodec, CodecSet};
 use sdrkit_core::interface::ReadFields;
 use sdrkit_core::media::Codec;
 use sdrkit_core::{CommandError, Complex32, InputInfo, Owner, Receiver, StackConfig, Value};
 use sdrkit_graph::{Graph, RunContext};
 use sdrkit_stack_dvoice::dstar::{slow_blocks, Header, SLOW_XOR};
-use sdrkit_stack_dvoice::dstar_tx::{DstarTxError, Sender, NOTE, SILENCE};
+use sdrkit_stack_dvoice::dstar_tx::{silence_frame, DstarTxError, Sender, NOTE};
 use sdrkit_stack_dvoice::gen::Prepared;
 use sdrkit_stack_dvoice::sender::PEAK;
 use sdrkit_stack_dvoice::typed::{DstarTxFields, DstarTxKind};
+use sdrkit_stack_dvoice::voice::channel_bits;
 use serde_json::Value as Json;
 use std::sync::{Arc, Mutex};
 
@@ -109,7 +115,7 @@ fn samples(mut s: Sender) -> Vec<Complex32> {
     out
 }
 
-/// The receiver decodes the header fields of a repeater transmission, the text, and every voice frame as the AMBE silence
+/// The receiver decodes the header fields of a repeater transmission, the text, and every voice frame as the silence
 /// frame byte for byte; the end pattern ends the call.
 #[test]
 fn the_receiver_decodes_the_header_the_text_and_the_silence_frames() {
@@ -148,9 +154,16 @@ fn the_receiver_decodes_the_header_the_text_and_the_silence_frames() {
     assert_eq!(c[0]["end"], "terminator");
     assert_eq!(c[0]["voice_frames"], n);
     assert_eq!(got.len(), n);
+    // The payload holds the bits as sent, the first most significant: each byte of the pattern with its bits in the
+    // other order.
+    let silence = channel_bits::<9>(&silence_frame());
+    assert_eq!(
+        silence.map(u8::reverse_bits),
+        [0x9E, 0x8D, 0x32, 0x88, 0x26, 0x1A, 0x3F, 0x61, 0xE8]
+    );
     assert!(
-        got.iter().all(|f| f[..] == SILENCE),
-        "every voice frame is AMBE silence"
+        got.iter().all(|f| f[..] == silence),
+        "every voice frame is the silence pattern"
     );
     assert_eq!(r["detail"]["messages"][0]["text"], "HELLO FROM VK2ABC");
 }
@@ -304,6 +317,175 @@ fn a_text_on_the_graph_carries_the_settings_and_halt_ends_it() {
     );
 }
 
+/// A voice transmission of 40 frames: the receiver reports the call of the header, ended by the end pattern, and hands
+/// on the speech frames sent, bit for bit.
+#[test]
+fn a_voice_transmission_decodes_to_the_frames_sent() {
+    let frames = vowel_frames::<72>(Coder::Dstar, 40);
+    let mut s = Sender::voice(&direct("VK2ABC"), 40);
+    assert!(s.speaking());
+    let mut next = frames.iter();
+    let mut s48 = Vec::new();
+    while s.next_with(|f| *f = *next.next().expect("40 frames"), &mut s48) {}
+    assert_eq!(s.frames_sent(), 40);
+    let (r, got) = receive(&on_air(&s48));
+    let c = calls(&r);
+    assert_eq!(c.len(), 1, "{}", show(&c));
+    assert_eq!(
+        (
+            &c[0]["src"],
+            &c[0]["dst"],
+            &c[0]["end"],
+            &c[0]["voice_frames"]
+        ),
+        (
+            &"VK2ABC".into(),
+            &"CQCQCQ".into(),
+            &"terminator".into(),
+            &40.into()
+        )
+    );
+    let want: Vec<Vec<u8>> = frames
+        .iter()
+        .map(|f| channel_bits::<9>(f).to_vec())
+        .collect();
+    assert!(got == want, "the speech frames, bit for bit");
+}
+
+/// The vowel at `t` seconds, as audio of full scale 1.
+fn vowel_at(t: f64) -> f32 {
+    let n = t * 8000.0;
+    let (a, b) = (vowel(n.floor() as usize), vowel(n.floor() as usize + 1));
+    let w = (n - n.floor()) as f32;
+    (f32::from(a) * (1.0 - w) + f32::from(b) * w) / 32768.0
+}
+
+/// Push-to-talk sends the speech of the host's microphone: the receiver reports the call of the settings and gets the
+/// frames that an encoder makes of the same audio at 8 kHz, bit for bit; the speech decoder plays them with the pitch
+/// of the vowel; key up ends the transmission with the end pattern after the frame on air.
+#[test]
+fn push_to_talk_sends_the_microphone_bit_for_bit() {
+    let (mut rx, host) = station(&[("callsign", "VK2ABC"), ("your_call", "N0CALL")]);
+    host.mic.lock().unwrap().0 = (0..96_000).map(|i| vowel_at(i as f64 / 48_000.0)).collect();
+    idle(rx.as_mut(), &host, 0.2, false);
+    ptt(rx.as_mut(), true).unwrap();
+    ptt(rx.as_mut(), true).expect("a transmission on air goes on");
+    assert_eq!(
+        refusal(&send(rx.as_mut(), "hi").unwrap_err()),
+        Some(DstarTxError::Busy)
+    );
+    idle(rx.as_mut(), &host, 1.0, true);
+    let (on, kind, freq, _, note) = fields(rx.as_ref());
+    assert!(on);
+    assert_eq!(
+        (kind, freq, note.as_str()),
+        (Some(DstarTxKind::Voice), Some(DIAL), NOTE)
+    );
+    ptt(rx.as_mut(), false).unwrap();
+    idle(rx.as_mut(), &host, 0.5, true);
+    let (on, _, _, sent, _) = fields(rx.as_ref());
+    assert!(!on);
+    assert!(
+        (40..=60).contains(&sent),
+        "{sent} voice frames for about 1 s"
+    );
+    let b = host.bursts();
+    assert_eq!(b.len(), 1, "one transmission");
+    assert!(b[0].2 && b[0].1 == DIAL);
+    let mut x = vec![Complex32::default(); 9600];
+    x.extend_from_slice(&b[0].0);
+    let (r, got) = receive(&x);
+    let c = calls(&r);
+    assert_eq!(c.len(), 1, "{}", show(&c));
+    assert_eq!(
+        (&c[0]["src"], &c[0]["dst"], &c[0]["end"]),
+        (&"VK2ABC".into(), &"N0CALL".into(), &"terminator".into())
+    );
+    assert_eq!(got.len() as i64, sent);
+    // The same audio through a rate change to 8 kHz and a fresh encoder.
+    let audio = host.mic.lock().unwrap().0.clone();
+    let mut s8 = Vec::new();
+    Resampler::<f32>::new(48_000.0, 8000.0)
+        .unwrap()
+        .process(&audio, &mut s8);
+    let mut enc = Encoder::new(Coder::Dstar);
+    let want: Vec<Vec<u8>> = s8
+        .as_chunks::<160>()
+        .0
+        .iter()
+        .take(got.len())
+        .map(|c| {
+            let pcm: [i16; 160] =
+                std::array::from_fn(|i| (c[i].clamp(-1.0, 1.0) * 32767.0).round() as i16);
+            let mut f = [0u8; 72];
+            enc.encode(&pcm, &mut f);
+            channel_bits::<9>(&f).to_vec()
+        })
+        .collect();
+    assert!(
+        got == want,
+        "the speech frames of the microphone, bit for bit"
+    );
+    // The speech decoder of the stack plays the transmission with the pitch of the vowel.
+    let (_, out) = run(
+        receiver_with_codecs("dstar", &[], speech_codecs()).as_mut(),
+        RATE,
+        &x,
+        4800,
+    );
+    let mut sound = Vec::new();
+    let mut rate = 0.0;
+    for p in out.audio_runs() {
+        sound.extend_from_slice(p.samples);
+        rate = p.rate_hz;
+    }
+    let f0 = pitch_hz(&sound[(0.3 * rate) as usize..(0.8 * rate) as usize], rate);
+    println!(
+        "D-STAR push-to-talk: {} s of sound, pitch {f0:.1} Hz",
+        sound.len() as f64 / rate
+    );
+    assert!((f0 - VOWEL_F0).abs() < 0.04 * VOWEL_F0, "pitch {f0} Hz");
+}
+
+/// Without an own call sign push-to-talk is refused with the error that names the setting, and with the transmitter
+/// off it is refused as such; the time-out ends a voice transmission with the end pattern.
+#[test]
+fn voice_is_refused_and_the_time_out_ends_it() {
+    let (mut rx, host) = station(&[]);
+    idle(rx.as_mut(), &host, 0.2, false);
+    assert_eq!(
+        refusal(&ptt(rx.as_mut(), true).unwrap_err()),
+        Some(DstarTxError::NoSource)
+    );
+    rx.set_transmit(false);
+    idle(rx.as_mut(), &host, 0.2, false);
+    assert!(matches!(
+        ptt(rx.as_mut(), true),
+        Err(CommandError::TransmitOff)
+    ));
+    assert!(host.bursts().is_empty());
+    let (mut rx, host) = station(&[("callsign", "VK2ABC"), ("tx_timeout", "1")]);
+    idle(rx.as_mut(), &host, 0.2, false);
+    ptt(rx.as_mut(), true).unwrap();
+    idle(rx.as_mut(), &host, 2.0, true);
+    let (on, _, _, sent, _) = fields(rx.as_ref());
+    assert!(!on, "the time-out ended the transmission");
+    assert_eq!(sent, 50, "1 s of voice frames");
+    let b = host.bursts();
+    assert_eq!(b.len(), 1);
+    let mut x = vec![Complex32::default(); 9600];
+    x.extend_from_slice(&b[0].0);
+    let (r, got) = receive(&x);
+    let c = calls(&r);
+    assert_eq!(
+        (c.len(), &c[0]["end"]),
+        (1, &"terminator".into()),
+        "{}",
+        show(&c)
+    );
+    assert_eq!(got.len(), 50);
+}
+
 /// Without an own call sign a text is refused with the error that names the setting; a text that does not fit is
 /// refused; with the transmitter off it is refused as such. Nothing goes on air.
 #[test]
@@ -339,4 +521,3 @@ fn texts_are_refused_and_nothing_is_sent() {
     .unwrap();
     assert!((desc("dstar").make_receiver)(&StackConfig::new(bad)).is_err());
 }
-

@@ -40,6 +40,7 @@ fn corrupt(coder: Coder, chan: &mut [u8], count: &[usize]) {
     let (layout, lens): (_, &[usize]) = match coder {
         Coder::FullRate => (&codes().full_layout, &FULL_WORDS),
         Coder::HalfRate => (&codes().half_layout, &HALF_WORDS),
+        Coder::Dstar => (&codes().dstar_layout, &crate::dstar::WORDS),
     };
     let mut e = vec![0u8; chan.len()];
     let mut start = 0;
@@ -267,7 +268,10 @@ fn a_run_of_lost_frames_mutes_at_the_fourth() {
             let s = dec.lost(&mut out);
             let want = if k < 3 { FrameKind::Repeated } else { FrameKind::Muted };
             assert_eq!(s.kind, want, "{coder:?}, lost frame {k}");
-            if want == FrameKind::Muted {
+            if want == FrameKind::Muted && coder == Coder::Dstar {
+                // The first muted frame ends the sound; the later ones are zeros.
+                assert!(k == 3 || out.iter().all(|&v| v == 0), "{coder:?}: silence");
+            } else if want == FrameKind::Muted {
                 assert!(out.iter().all(|&v| v.abs() <= 5), "{coder:?}: comfort noise");
             }
         }
@@ -275,6 +279,16 @@ fn a_run_of_lost_frames_mutes_at_the_fourth() {
         assert_eq!(dec.decode(&fr[20], &mut out).kind, FrameKind::Voice, "{coder:?}");
         // A lost frame after three invalid received frames is the fourth invalid frame.
         let mut sb = [0u8; 88];
+        if coder == Coder::Dstar {
+            // No speech bits of the D-STAR coder are invalid: a word A with four errors is.
+            let mut f = fr[21].clone();
+            corrupt(coder, &mut f, &[4]);
+            for _ in 0..3 {
+                assert_eq!(dec.decode(&f, &mut out).kind, FrameKind::Repeated);
+            }
+            assert_eq!(dec.lost(&mut out).kind, FrameKind::Muted);
+            continue;
+        }
         if coder == Coder::FullRate {
             let mut v = full::Values::default();
             v.b[0] = 230;
@@ -288,4 +302,109 @@ fn a_run_of_lost_frames_mutes_at_the_fourth() {
         }
         assert_eq!(dec.lost(&mut out).kind, FrameKind::Muted, "{coder:?}");
     }
+}
+
+#[test]
+fn dstar_repeat_and_mute_limits() {
+    let fr = frames(Coder::Dstar, 20);
+    // Errors in the data bits of the words A and B: more than three in all, or four in word A, repeat the frame.
+    for (errs, want, corrected) in [
+        ([4, 0], FrameKind::Repeated, 4),
+        ([3, 3], FrameKind::Repeated, 6),
+        ([2, 2], FrameKind::Repeated, 4),
+        ([3, 0], FrameKind::Voice, 3),
+        ([2, 1], FrameKind::Voice, 3),
+        ([0, 3], FrameKind::Voice, 3),
+    ] {
+        let mut dec = Decoder::new(Coder::Dstar);
+        let mut clean = Decoder::new(Coder::Dstar);
+        for f in &fr[..10] {
+            run(&mut dec, f);
+            run(&mut clean, f);
+        }
+        let before = *dec.params();
+        let mut f = fr[10].clone();
+        corrupt(Coder::Dstar, &mut f, &errs);
+        let s = run(&mut dec, &f);
+        assert_eq!((s.kind, s.errors), (want, corrected), "{errs:?}");
+        run(&mut clean, &fr[10]);
+        if want == FrameKind::Repeated {
+            assert_eq!(*dec.params(), before, "{errs:?}");
+        } else {
+            assert_eq!(dec.params(), clean.params(), "{errs:?}: the errors are corrected");
+        }
+    }
+    // The fourth repeat in a row is muted; the next good frame is voice again, from the start state.
+    let mut dec = Decoder::new(Coder::Dstar);
+    for f in &fr[..10] {
+        run(&mut dec, f);
+    }
+    let kinds: Vec<FrameKind> = (0..5)
+        .map(|k| {
+            let mut f = fr[10 + k].clone();
+            corrupt(Coder::Dstar, &mut f, &[4]);
+            run(&mut dec, &f).kind
+        })
+        .collect();
+    assert_eq!(kinds[..3], [FrameKind::Repeated; 3]);
+    assert_eq!(kinds[3..], [FrameKind::Muted; 2]);
+    assert_eq!(dec.half_amp.gamma, 0.0);
+    assert_eq!(run(&mut dec, &fr[15]).kind, FrameKind::Voice);
+    assert_eq!(dec.error_rate(), 0.0);
+}
+
+#[test]
+fn the_dstar_silence_pattern_is_quiet_and_a_tone_frame_is_silence() {
+    let fr = frames(Coder::Dstar, 12);
+    let mut dec = Decoder::new(Coder::Dstar);
+    let mut out = [0i16; FRAME];
+    for f in &fr {
+        dec.decode(f, &mut out);
+    }
+    let voiced = rms(&out);
+    assert!(voiced > 500.0, "RMS {voiced}");
+    // The silence pattern is a voice frame with no error. Its gain is a difference to the frame before it, so the level
+    // falls over a few frames, then stays below 8 of 32768.
+    let silence = crate::dstar_silence_bits();
+    for k in 0..50 {
+        let s = dec.decode(&silence, &mut out);
+        assert_eq!((s.kind, s.errors), (FrameKind::Voice, 0));
+        assert!(k < 3 || rms(&out) < 8.0, "frame {k}: RMS {}", rms(&out));
+    }
+    assert_eq!((dec.params().l, dec.params().voiced.iter().any(|&v| v)), (56, false));
+    // A tone frame gives its index and level, silence, and the start state.
+    for f in &fr {
+        dec.decode(f, &mut out);
+    }
+    assert!(dec.half_amp.gamma > 1.0);
+    let mut enc = Encoder::new(Coder::Dstar);
+    let mut tone = [0u8; 72];
+    assert_eq!(enc.encode_tone(32, 200, &mut tone), 72);
+    for k in 0..3 {
+        let s = dec.decode(&tone, &mut out);
+        assert_eq!(s.kind, FrameKind::Tone { id: 32, amplitude: 200 });
+        assert!(k == 0 || out.iter().all(|&v| v == 0), "tone frame {k}");
+    }
+    assert_eq!((dec.half_amp.gamma, dec.half_amp.l), (0.0, 30));
+    assert_eq!(dec.decode(&fr[5], &mut out).kind, FrameKind::Voice);
+}
+
+#[test]
+fn dstar_speech_bits_decode_as_the_channel_bits_do() {
+    let mut enc_a = Encoder::new(Coder::Dstar);
+    let mut enc_b = Encoder::new(Coder::Dstar);
+    let mut a = Decoder::new(Coder::Dstar);
+    let mut b = Decoder::new(Coder::Dstar);
+    let mut pcm = [0i16; FRAME];
+    for k in 0..12 {
+        voiced(150.0, k, &mut pcm);
+        let (mut chan, mut speech) = ([0u8; 72], [0u8; 48]);
+        assert_eq!(enc_a.encode(&pcm, &mut chan), 72);
+        assert_eq!(enc_b.encode_speech(&pcm, &mut speech), 48);
+        let (mut x, mut y) = ([0i16; FRAME], [0i16; FRAME]);
+        assert_eq!(a.decode(&chan, &mut x), b.decode_speech(&speech, &mut y));
+        assert_eq!(x, y);
+        assert_eq!(enc_a.coded().l, a.params().l);
+    }
+    assert!((a.params().f0_hz() - 150.0).abs() < 2.0, "{} Hz", a.params().f0_hz());
 }

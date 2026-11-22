@@ -86,6 +86,12 @@ pub fn test_speech_full() -> &'static [[u8; 144]] {
     FRAMES.get_or_init(|| coded_test_speech(Coder::FullRate, false))
 }
 
+/// The test speech as frames of the D-STAR coder (72 channel bits each, as sent), coded once and kept.
+pub fn test_speech_dstar() -> &'static [[u8; 72]] {
+    static FRAMES: OnceLock<Vec<[u8; 72]>> = OnceLock::new();
+    FRAMES.get_or_init(|| coded_test_speech(Coder::Dstar, false))
+}
+
 /// The test speech as the 49 speech bits of each half-rate frame (u0 to u3, most significant bit first), with no error
 /// correction, coded once and kept.
 pub fn test_speech_half_bits() -> &'static [[u8; 49]] {
@@ -93,8 +99,8 @@ pub fn test_speech_half_bits() -> &'static [[u8; 49]] {
     FRAMES.get_or_init(|| coded_test_speech(Coder::HalfRate, true))
 }
 
-/// The packaging of the 72 channel bits of a D-STAR AMBE frame as they are sent (9 bytes, the first bit most significant).
-/// The codec does the voice de-interleave.
+/// The packaging of the 72 channel bits of a D-STAR AMBE frame as they are sent (9 bytes, the first bit sent most
+/// significant). The codec does the voice de-interleave.
 pub const DSTAR_PACKAGING: sdrkit_graph::SpeechPackaging = sdrkit_graph::SpeechPackaging::Dstar72;
 
 /// The packaging of the 144 channel bits of a P25 IMBE frame as they are sent (18 bytes, the first bit most significant).
@@ -194,7 +200,7 @@ mod tests {
     }
 
     #[test]
-    fn the_test_speech_decodes_to_its_notes_through_both_coders_and_across_the_repeat() {
+    fn the_test_speech_decodes_to_its_notes_through_every_coder_and_across_the_repeat() {
         fn check<const N: usize>(coder: Coder, frames: &[[u8; N]]) {
             assert_eq!(frames.len(), 2 * TEST_SPEECH_STEP);
             let mut dec = sdrkit_codec_mbe::Decoder::new(coder);
@@ -211,5 +217,6 @@ mod tests {
         }
         check(Coder::HalfRate, test_speech_half());
         check(Coder::FullRate, test_speech_full());
+        check(Coder::Dstar, test_speech_dstar());
     }
 }

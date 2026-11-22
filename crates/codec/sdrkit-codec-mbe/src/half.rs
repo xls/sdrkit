@@ -20,8 +20,77 @@ pub const WIDTHS: [u8; 9] = [7, 5, 5, 9, 7, 5, 4, 4, 3];
 
 /// Prediction coefficient (Equation 13).
 const RHO: f64 = 0.65;
-/// Number of voicing vectors the encoder searches (clause 4.2).
-const VOICING_SEARCH: usize = 17;
+
+/// The tables of one coder that quantises as the half-rate coder does: 7 bits of pitch, a voicing vector, a differential
+/// gain, two PRBA vectors and four higher-order vectors. The quantisers of this module take the tables they work with.
+pub struct Books {
+    /// omega_0 of b0.
+    pub w0: fn(u32) -> f64,
+    /// L of b0.
+    pub l: fn(u32) -> usize,
+    /// The b0 values 0..`voice_b0` that an encoder sends.
+    pub voice_b0: u32,
+    /// Voicing vectors nu_0..nu_7, row b1.
+    pub voicing: &'static [[u8; 8]],
+    /// The number of voicing vectors the encoder searches, from row 0.
+    pub voicing_search: usize,
+    /// Differential gain levels, row b2.
+    pub gain: &'static [f64],
+    /// [G2, G3, G4], row b3.
+    pub prba24: &'static [[f64; 3]],
+    /// [G5, G6, G7, G8], row b4.
+    pub prba58: &'static [[f64; 4]],
+    /// The higher-order codebook of each block.
+    pub hoc: [&'static [[f64; 4]]; 4],
+    /// The row of each higher-order codebook that the field value 1 selects: field value b is row `hoc_step * b`.
+    pub hoc_step: [usize; 4],
+    /// L(-1) of the initial state.
+    pub start_l: usize,
+    /// Lambda(-1) of the initial state, every harmonic.
+    pub start_lambda: f64,
+}
+
+/// The tables of the half-rate coder (Annexes A to G); the encoder searches voicing vectors 0 to 16 (clause 4.2) and
+/// the state starts at Lambda(-1) = 1, L(-1) = 15 (clauses 4.3 and 4.4).
+pub static BOOKS: Books = Books {
+    w0: w0_of,
+    l: l_of,
+    voice_b0: 120,
+    voicing: &VOICING,
+    voicing_search: 17,
+    gain: &GAIN_LEVELS,
+    prba24: &PRBA24,
+    prba58: &PRBA58,
+    hoc: [&HOC_B5, &HOC_B6, &HOC_B7, &HOC_B8],
+    hoc_step: [1; 4],
+    start_l: 15,
+    start_lambda: 1.0,
+};
+
+impl Books {
+    /// The amplitude state before the first frame; gamma(-1) = 0.
+    pub fn start(&self) -> AmpState {
+        AmpState {
+            lambda: [self.start_lambda; MAX_L + 2],
+            l: self.start_l,
+            gamma: 0.0,
+        }
+    }
+
+    /// The voice b0 whose omega_0 is nearest `w0` in absolute difference (clause 4.1).
+    pub fn b0_of(&self, w0: f64) -> u32 {
+        let mut best = 0;
+        let mut d = f64::INFINITY;
+        for b in 0..self.voice_b0 {
+            let e = ((self.w0)(b) - w0).abs();
+            if e < d {
+                d = e;
+                best = b;
+            }
+        }
+        best
+    }
+}
 
 /// What b0 says a frame is (Table 4).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -55,19 +124,29 @@ pub static LAYOUT: [(u8, u8); SPEECH_BITS] = [
     (1, 0), (2, 0), (0, 2), (0, 1), (0, 0), (3, 0), (4, 2), (4, 1), (4, 0), (5, 0), (6, 0), (7, 0), (8, 1), (8, 0),
 ];
 
-/// The 49 speech bits of b0..b8.
-pub fn pack(b: &[u32; 9], out: &mut [u8; SPEECH_BITS]) {
-    for (o, &(v, i)) in out.iter_mut().zip(LAYOUT.iter()) {
+/// The speech bits of b0..b8, where speech bit `p` is bit `layout[p].1` of value `layout[p].0`.
+pub fn pack_fields(layout: &[(u8, u8)], b: &[u32; 9], out: &mut [u8]) {
+    for (o, &(v, i)) in out.iter_mut().zip(layout.iter()) {
         *o = (b[v as usize] >> i & 1) as u8;
     }
 }
 
-/// b0..b8 of the 49 speech bits.
-pub fn unpack(bits: &[u8; SPEECH_BITS], b: &mut [u32; 9]) {
+/// The inverse of [`pack_fields`].
+pub fn unpack_fields(layout: &[(u8, u8)], bits: &[u8], b: &mut [u32; 9]) {
     *b = [0; 9];
-    for (&x, &(v, i)) in bits.iter().zip(LAYOUT.iter()) {
+    for (&x, &(v, i)) in bits.iter().zip(layout.iter()) {
         b[v as usize] |= ((x & 1) as u32) << i;
     }
+}
+
+/// The 49 speech bits of b0..b8.
+pub fn pack(b: &[u32; 9], out: &mut [u8; SPEECH_BITS]) {
+    pack_fields(&LAYOUT, b, out);
+}
+
+/// b0..b8 of the 49 speech bits.
+pub fn unpack(bits: &[u8; SPEECH_BITS], b: &mut [u32; 9]) {
+    unpack_fields(&LAYOUT, bits, b);
 }
 
 /// A tone frame's index and amplitude.
@@ -151,7 +230,7 @@ pub fn from_vectors(u: &[u32; 4], bits: &mut [u8; SPEECH_BITS]) {
 }
 
 /// The modulation vector m1 for u0 (Equations 52 to 54).
-fn modulation_word(u0: u32) -> u32 {
+pub fn modulation_word(u0: u32) -> u32 {
     let mut pr = [0u8; 23];
     fec::modulation(u0, &mut pr);
     fec::word_of(&pr)
@@ -207,20 +286,6 @@ pub fn l_of(b0: u32) -> usize {
     PITCH[b0 as usize % 120].0 as usize
 }
 
-/// The voice b0 whose omega_0 is nearest `w0` in absolute difference (clause 4.1).
-pub fn b0_of(w0: f64) -> u32 {
-    let mut best = 0;
-    let mut d = f64::INFINITY;
-    for b in 0..120 {
-        let e = (w0_of(b) - w0).abs();
-        if e < d {
-            d = e;
-            best = b;
-        }
-    }
-    best
-}
-
 /// Element of a voicing vector for harmonic `l` at `w0`: floor(16 l omega_0 / 2 pi), read with `l` in the product
 /// (Equation 5), limited to 0..=7.
 pub fn voicing_element(l: usize, w0: f64) -> usize {
@@ -244,13 +309,9 @@ pub struct AmpState {
 }
 
 impl Default for AmpState {
-    /// The initial values: Lambda(-1) = 1, L(-1) = 15, gamma(-1) = 0 (clauses 4.3 and 4.4).
+    /// The initial values of the half-rate coder.
     fn default() -> Self {
-        AmpState {
-            lambda: [1.0; MAX_L + 2],
-            l: 15,
-            gamma: 0.0,
-        }
+        BOOKS.start()
     }
 }
 
@@ -260,29 +321,19 @@ fn prediction(st: &AmpState, l: usize, out: &mut [f64; MAX_L + 1]) {
     predict(&prev, st.l, l, RHO, out);
 }
 
-/// The higher-order codebook of block `i` (0-based).
-fn hoc_book(i: usize) -> &'static [[f64; 4]] {
-    match i {
-        0 => &HOC_B5,
-        1 => &HOC_B6,
-        2 => &HOC_B7,
-        _ => &HOC_B8,
-    }
-}
-
 /// Highest DCT coefficient index (1-based) that a higher-order vector fills: C_{i,k} = H_{i,k-2} for 3 <= k <= min(J, 6),
 /// the inverse of the encoder's H_{i,j} = C_{i,j+2} (Equation 37).
 const HOC_LAST_K: usize = 6;
 
-/// Decodes the amplitudes of a voice or silence frame (`w0`, `l`, `voiced` set in `out`) from b2..b8 (clause 4.4). The
-/// new state is written to `next`; the caller keeps it only for voice frames.
-pub fn dequantise_amps(b: &[u32; 9], st: &AmpState, next: &mut AmpState, out: &mut Params) {
+/// Decodes the amplitudes of a voice or silence frame (`w0`, `l`, `voiced` set in `out`) from b2..b8 with the tables `k`
+/// (clause 4.4). The new state is written to `next`; the caller keeps it only for voice frames.
+pub fn dequantise_amps(k: &Books, b: &[u32; 9], st: &AmpState, next: &mut AmpState, out: &mut Params) {
     let l = out.l;
     let row = l - MIN_L;
-    let gamma = GAIN_LEVELS[b[2] as usize & 31] + 0.5 * st.gamma;
+    let gamma = k.gain[b[2] as usize % k.gain.len()] + 0.5 * st.gamma;
     let mut g = [0.0f64; 8];
-    g[1..4].copy_from_slice(&PRBA24[b[3] as usize & 511]);
-    g[4..8].copy_from_slice(&PRBA58[b[4] as usize & 127]);
+    g[1..4].copy_from_slice(&k.prba24[b[3] as usize % k.prba24.len()]);
+    g[4..8].copy_from_slice(&k.prba58[b[4] as usize % k.prba58.len()]);
     let mut r = [0.0f64; 8];
     idct(&g, &mut r);
     let mut t = [0.0f64; MAX_L + 1];
@@ -292,7 +343,7 @@ pub fn dequantise_amps(b: &[u32; 9], st: &AmpState, next: &mut AmpState, out: &m
         let mut c = [0.0f64; 17];
         c[0] = (r[2 * i] + r[2 * i + 1]) / 2.0;
         c[1] = (r[2 * i] - r[2 * i + 1]) / (2.0 * SQRT_2);
-        let h = &hoc_book(i)[b[5 + i] as usize % hoc_book(i).len()];
+        let h = &k.hoc[i][k.hoc_step[i] * b[5 + i] as usize % k.hoc[i].len()];
         let last = ji.min(HOC_LAST_K);
         if last >= 3 {
             c[2..last].copy_from_slice(&h[..last - 2]);
@@ -319,10 +370,10 @@ pub fn dequantise_amps(b: &[u32; 9], st: &AmpState, next: &mut AmpState, out: &m
     }
 }
 
-/// Sets `out.w0`, `out.l` and the voicing of a voice frame from b0 and b1 (clauses 4.1, 4.2).
-pub fn voice_params(b0: u32, b1: u32, out: &mut Params) {
-    *out = Params::silent(w0_of(b0), l_of(b0));
-    let row = &VOICING[b1 as usize & 31];
+/// Sets `out.w0`, `out.l` and the voicing of a voice frame from b0 and b1 with the tables `k` (clauses 4.1, 4.2).
+pub fn voice_params(k: &Books, b0: u32, b1: u32, out: &mut Params) {
+    *out = Params::silent((k.w0)(b0), (k.l)(b0));
+    let row = &k.voicing[b1 as usize % k.voicing.len()];
     for li in 1..=out.l {
         out.voiced[li] = row[voicing_element(li, out.w0)] == 1;
     }
@@ -331,16 +382,24 @@ pub fn voice_params(b0: u32, b1: u32, out: &mut Params) {
 /// The smallest amplitude whose logarithm the encoder takes.
 const MIN_AMP: f64 = 1e-3;
 
-/// Quantises analysed parameters `p` into b0..b8, where `p.w0` and `p.l` are already the Annex A values of the chosen b0
-/// and `bands[1..=K]` are the band decisions, then runs the decoder to update `st` (clause 4, B3).
-pub fn quantise_frame(b0: u32, p: &Params, bands: &[bool], st: &mut AmpState, b: &mut [u32; 9], rec: &mut Params) {
+/// Quantises analysed parameters `p` into b0..b8 with the tables `k`, where `p.w0` and `p.l` are already the table values
+/// of the chosen b0 and `bands[1..=K]` are the band decisions, then runs the decoder to update `st` (clause 4, B3).
+pub fn quantise_frame(
+    k: &Books,
+    b0: u32,
+    p: &Params,
+    bands: &[bool],
+    st: &mut AmpState,
+    b: &mut [u32; 9],
+    rec: &mut Params,
+) {
     *b = [0; 9];
     b[0] = b0;
-    let l = l_of(b0);
-    let w0 = w0_of(b0);
+    let l = (k.l)(b0);
+    let w0 = (k.w0)(b0);
     // b1: the voicing vector of least weighted mismatch (Equation 4).
     let mut best = (f64::INFINITY, 0usize);
-    for (n, row) in VOICING.iter().enumerate().take(VOICING_SEARCH) {
+    for (n, row) in k.voicing.iter().enumerate().take(k.voicing_search) {
         let mut e = 0.0;
         for li in 1..=l {
             let v = bands.get(band_of(li)).copied().unwrap_or(false) as u8;
@@ -353,7 +412,7 @@ pub fn quantise_frame(b0: u32, p: &Params, bands: &[bool], st: &mut AmpState, b:
         }
     }
     b[1] = best.1 as u32;
-    voice_params(b0, b[1], rec);
+    voice_params(k, b0, b[1], rec);
     // Log amplitudes and gain (Equations 8 to 10).
     let mut lam = [0.0f64; MAX_L + 1];
     let log2l = (l as f64).log2();
@@ -366,7 +425,7 @@ pub fn quantise_frame(b0: u32, p: &Params, bands: &[bool], st: &mut AmpState, b:
         };
     }
     let gamma = lam[1..=l].iter().sum::<f64>() / l as f64;
-    b[2] = nearest(&GAIN_LEVELS, gamma - 0.5 * st.gamma);
+    b[2] = nearest(k.gain, gamma - 0.5 * st.gamma);
     // Residuals, blocks, PRBA and higher-order vectors (Equations 11 to 25).
     let mut pred = [0.0f64; MAX_L + 1];
     prediction(st, l, &mut pred);
@@ -385,23 +444,24 @@ pub fn quantise_frame(b0: u32, p: &Params, bands: &[bool], st: &mut AmpState, b:
         rr[2 * i + 1] = c[0] - SQRT_2 * c[1];
         let n = ji.saturating_sub(2).min(4);
         if n > 0 {
-            b[5 + i] = nearest_vector(hoc_book(i), &c[2..2 + n]);
+            b[5 + i] = nearest_vector(k.hoc[i], k.hoc_step[i], &c[2..2 + n]);
         }
         at += ji;
     }
     let mut g = [0.0f64; 8];
     dct(&rr, &mut g);
-    b[3] = nearest_vector(&PRBA24, &g[1..4]);
-    b[4] = nearest_vector(&PRBA58, &g[4..8]);
+    b[3] = nearest_vector(k.prba24, 1, &g[1..4]);
+    b[4] = nearest_vector(k.prba58, 1, &g[4..8]);
     let mut next = *st;
-    dequantise_amps(b, st, &mut next, rec);
+    dequantise_amps(k, b, st, &mut next, rec);
     *st = next;
 }
 
-/// The index of the codebook row with the smallest squared error to `x` over the first `x.len()` elements.
-fn nearest_vector<const N: usize>(book: &[[f64; N]], x: &[f64]) -> u32 {
+/// The field value of the codebook row with the smallest squared error to `x` over the first `x.len()` elements, among
+/// the rows `step * value`.
+fn nearest_vector<const N: usize>(book: &[[f64; N]], step: usize, x: &[f64]) -> u32 {
     let mut best = (f64::INFINITY, 0usize);
-    for (i, row) in book.iter().enumerate() {
+    for (i, row) in book.iter().step_by(step).enumerate() {
         let e: f64 = x.iter().zip(row.iter()).map(|(a, b)| (a - b) * (a - b)).sum();
         if e < best.0 {
             best = (e, i);
@@ -445,7 +505,7 @@ mod tests {
     #[test]
     fn pitch_round_trip_and_voicing_index() {
         for b0 in 0..120 {
-            assert_eq!(b0_of(w0_of(b0)), b0);
+            assert_eq!(BOOKS.b0_of(w0_of(b0)), b0);
             let (l, w0) = (l_of(b0), w0_of(b0));
             assert!((9..=56).contains(&l));
             assert!(voicing_element(l, w0) <= 7);
@@ -490,11 +550,11 @@ mod tests {
         let mut rec = Params::silent(0.0, 0);
         let mut err = 0.0;
         for _ in 0..20 {
-            quantise_frame(b0, &p, &bands, &mut enc, &mut b, &mut rec);
+            quantise_frame(&BOOKS, b0, &p, &bands, &mut enc, &mut b, &mut rec);
             let mut out = Params::silent(0.0, 0);
-            voice_params(b[0], b[1], &mut out);
+            voice_params(&BOOKS, b[0], b[1], &mut out);
             let mut next = dec;
-            dequantise_amps(&b, &dec, &mut next, &mut out);
+            dequantise_amps(&BOOKS, &b, &dec, &mut next, &mut out);
             dec = next;
             assert_eq!(rec, out);
             assert_eq!((enc.lambda, enc.l, enc.gamma), (dec.lambda, dec.l, dec.gamma));
