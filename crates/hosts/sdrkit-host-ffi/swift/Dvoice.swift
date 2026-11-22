@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "dvoice", version 1.5. MIT licence.
+// sdrkit: the typed interface of the stack family "dvoice", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum DvoiceInterface {
-    public static let major = 1
-    public static let minor = 5
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The measurements that every digital voice stack publishes.
@@ -211,7 +211,7 @@ public struct DvoiceDecoderFields {
 }
 
 /// The result fields of the DMR sender.
-public struct DmrDataTxFields {
+public struct DmrTxFields {
     public enum TxKind: Int32 {
         case text = 0
         case voice = 1
@@ -227,7 +227,7 @@ public struct DmrDataTxFields {
     /// What the sender sends.
     public var txNote: String
 
-    init(_ c: sdrkit_dmr_data_tx_fields) {
+    init(_ c: sdrkit_dmr_tx_fields) {
         transmitting = c.transmitting
         txFreqHz = c.has_tx_freq_hz ? c.tx_freq_hz : nil
         txKind = c.has_tx_kind ? TxKind(rawValue: c.tx_kind) : nil
@@ -236,10 +236,10 @@ public struct DmrDataTxFields {
     }
 
     /// The result fields of the snapshot of `handle`, or the code of the error.
-    public static func read(_ handle: SDRKIT_HANDLE) -> Result<DmrDataTxFields, SDRKitCode> {
-        var c = sdrkit_dmr_data_tx_fields()
-        let code = sdrkit_dmr_data_tx_fields_read(handle, &c)
-        return code == SDRKIT_OK ? .success(DmrDataTxFields(c)) : .failure(SDRKitCode(code: code))
+    public static func read(_ handle: SDRKIT_HANDLE) -> Result<DmrTxFields, SDRKitCode> {
+        var c = sdrkit_dmr_tx_fields()
+        let code = sdrkit_dmr_tx_fields_read(handle, &c)
+        return code == SDRKIT_OK ? .success(DmrTxFields(c)) : .failure(SDRKitCode(code: code))
     }
 }
 
@@ -4623,6 +4623,21 @@ public enum DvoiceGeneratorSettings {
     }
     public static func setP25Nac(_ handle: SDRKIT_HANDLE, _ value: Int64) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_i64(handle, "gen_nac", value))
+    }
+    /// The options of the setting "gen_voice" of the stack "ysf".
+    public enum YsfVoice: Int32 {
+        case vd1 = 0
+        case vd2 = 1
+        case voiceFr = 2
+    }
+    /// Voice type.
+    public static func ysfVoice(_ handle: SDRKIT_HANDLE) -> Result<YsfVoice, SDRKitCode> {
+        var v: Int32 = 0
+        let code = sdrkit_typed_setting_get_enum(handle, "gen_voice", &v)
+        return code == SDRKIT_OK ? .success(YsfVoice(rawValue: v) ?? YsfVoice(rawValue: 0)!) : .failure(SDRKitCode(code: code))
+    }
+    public static func setYsfVoice(_ handle: SDRKIT_HANDLE, _ value: YsfVoice) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_enum(handle, "gen_voice", value.rawValue))
     }
     /// Test signal communication type.
     public static func tetraDmoCommType(_ handle: SDRKIT_HANDLE) -> Result<Int64, SDRKitCode> {

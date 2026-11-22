@@ -112,7 +112,7 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `wsjt`, version 3.0. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wsjt`, version 4.0. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 

@@ -1211,111 +1211,12 @@ fn finish(shape: StackShape) -> StackShape {
         .command(&REMOVE)
 }
 
-/// What version 1.1 added: the sender of M17.
-const ADDED_1_1: &[&str] = &[
-    "m17.fields.M17TxFields",
-    "shape.M17TxFields",
-    "shape.M17TxFields.transmitting",
-    "shape.M17TxFields.tx_freq_hz",
-    "shape.M17TxFields.tx_kind",
-    "shape.M17TxFields.tx_frames",
-    "m17.setting.callsign",
-    "m17.setting.destination",
-    "m17.setting.can",
-    "m17.setting.voice_mode",
-    "m17.setting.meta_text",
-    "m17.setting.tx_split",
-    "m17.setting.tx_timeout",
-    "m17.command.ptt",
-    "m17.command.send",
-    "m17.command.send_data",
-    "m17.command.halt",
-];
-
-/// What version 1.2 added: the OFDM waveforms of FreeDV.
-const ADDED_1_2: &[&str] = &[
-    "shape.FreedvFields.sync_700d",
-    "shape.FreedvFields.sync_700e",
-    "shape.FreedvFields.sync_1600",
-    "shape.FreedvFields.confirmed",
-    "shape.FreedvFields.freq_offset_hz",
-    "shape.FreedvFields.clock_offset_ppm",
-    "shape.FreedvFields.timing_metric",
-    "shape.FreedvFields.uw_ber_pct",
-    "shape.FreedvFields.ldpc_failed_frames",
-    "shape.FreedvFields.speech_frames",
-    "freedv.setting.gen_clip",
-];
-
-/// What version 1.3 added: the senders of FreeDV, D-STAR and DMR.
-const ADDED_1_3: &[&str] = &[
-    "freedv.fields.FreedvTxFields",
-    "shape.FreedvTxFields",
-    "shape.FreedvTxFields.transmitting",
-    "shape.FreedvTxFields.tx_freq_hz",
-    "shape.FreedvTxFields.tx_kind",
-    "shape.FreedvTxFields.tx_frames",
-    "freedv.setting.callsign",
-    "freedv.setting.tx_clip",
-    "freedv.setting.tx_filter",
-    "freedv.setting.tx_split",
-    "freedv.setting.tx_timeout",
-    "freedv.command.ptt",
-    "freedv.command.halt",
-    "dstar.fields.DstarTxFields",
-    "shape.DstarTxFields",
-    "shape.DstarTxFields.transmitting",
-    "shape.DstarTxFields.tx_freq_hz",
-    "shape.DstarTxFields.tx_kind",
-    "shape.DstarTxFields.tx_frames",
-    "shape.DstarTxFields.tx_note",
-    "dstar.setting.callsign",
-    "dstar.setting.suffix",
-    "dstar.setting.your_call",
-    "dstar.setting.rpt1",
-    "dstar.setting.rpt2",
-    "dstar.setting.via_repeater",
-    "dstar.setting.tx_split",
-    "dstar.command.send",
-    "dstar.command.halt",
-    "dmr.fields.DmrTxFields",
-    "shape.DmrTxFields",
-    "shape.DmrTxFields.transmitting",
-    "shape.DmrTxFields.tx_freq_hz",
-    "shape.DmrTxFields.tx_kind",
-    "shape.DmrTxFields.tx_frames",
-    "shape.DmrTxFields.tx_note",
-    "dmr.setting.radio_id",
-    "dmr.setting.called_id",
-    "dmr.setting.talkgroup",
-    "dmr.setting.colour_code",
-    "dmr.setting.slot",
-    "dmr.setting.tx_split",
-    "dmr.command.send",
-    "dmr.command.halt",
-];
-
-/// What version 1.4 added: the sender of FreeDV 1600, the value `1600` of the choice `shape.FreedvTxFields.tx_kind` (a
-/// value of a choice has no path of its own).
-const ADDED_1_4: &[&str] = &[];
-
-/// What version 1.5 added: the voice of the DMR sender, and the value `voice` of the choice `shape.DmrTxFields.tx_kind`
-/// (a value of a choice has no path of its own).
-const ADDED_1_5: &[&str] = &["dmr.setting.tx_timeout", "dmr.command.ptt"];
-
-/// What version 1.6 changed: the result set of the DMR sender is named `DmrTxFields`, as it carries voice as well as
-/// data. It adds no path.
-const ADDED_1_6: &[&str] = &[];
-
-/// What version 1.7 added: the voice type of the System Fusion test signal.
-const ADDED_1_7: &[&str] = &["ysf.setting.gen_voice"];
-
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         let plain = |id| common(id, &CALLS_300);
-        Described::new("dvoice", 1, 7)
+        Described::new("dvoice", 2, 0)
             .stack(
                 finish(common("dmr", &CALLS_100).fields::<DmrFields>())
                     .settings(&[&crate::dmr::GEN_CC])
@@ -1388,12 +1289,5 @@ pub fn family() -> &'static Described {
                 finish(plain("dcr").fields::<DcrFields>().table(&DCR_EVENTS))
                     .settings(crate::dcr::SETTINGS),
             )
-            .added(1, 1, ADDED_1_1)
-            .added(1, 2, ADDED_1_2)
-            .added(1, 3, ADDED_1_3)
-            .added(1, 4, ADDED_1_4)
-            .added(1, 5, ADDED_1_5)
-            .added(1, 6, ADDED_1_6)
-            .added(1, 7, ADDED_1_7)
     })
 }

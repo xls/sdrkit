@@ -728,7 +728,7 @@ pub static DSRC_FRAME: EventKind<DsrcFrameEvent<'static>> =
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("ism", 1, 2)
+        Described::new("ism", 2, 0)
             .uses(sdrkit_proto_ookdev::components::interface())
             .stack(ism())
             .stack(wmbus())
@@ -746,58 +746,8 @@ pub fn family() -> &'static Described {
             .stack(dect_nrplus())
             .stack(npr70())
             .stack(dsrc_toll())
-            .added(1, 1, ADDED_1_1)
-            .added(1, 2, ADDED_1_2)
     })
 }
-
-/// What version 1.2 added: the keys of secured frames of the stack `zigbee`. The device families of the `ism` sender and the
-/// security arguments of the `zigbee` sender are new options and optional arguments of the `send` of version 1.1.
-const ADDED_1_2: &[&str] = &["zigbee.setting.keys"];
-
-/// What version 1.1 added: the senders of the stacks `ism`, `wmbus`, `zwave`, `zigbee`, `ant` and `wisun`.
-const ADDED_1_1: &[&str] = &[
-    "ism.fields.IsmTxFields",
-    "ism.event.ism.tx",
-    "ism.setting.tx_level",
-    "ism.command.send",
-    "ism.command.halt",
-    "wmbus.fields.IsmTxFields",
-    "wmbus.event.wmbus.tx",
-    "wmbus.setting.tx_level",
-    "wmbus.command.send",
-    "wmbus.command.halt",
-    "zwave.fields.IsmTxFields",
-    "zwave.event.zwave.tx",
-    "zwave.setting.tx_level",
-    "zwave.command.send",
-    "zwave.command.halt",
-    "zigbee.fields.IsmTxFields",
-    "zigbee.event.zigbee.tx",
-    "zigbee.setting.tx_level",
-    "zigbee.command.send",
-    "zigbee.command.halt",
-    "ant.fields.IsmTxFields",
-    "ant.event.ant.tx",
-    "ant.setting.tx_level",
-    "ant.command.send",
-    "ant.command.halt",
-    "wisun.fields.IsmTxFields",
-    "wisun.event.wisun.tx",
-    "wisun.setting.tx_level",
-    "wisun.command.send",
-    "wisun.command.halt",
-    "shape.IsmTxFields",
-    "shape.IsmTxFields.tx_sending",
-    "shape.IsmTxFields.tx_sent",
-    "shape.IsmTxFields.tx_waiting",
-    "shape.IsmTxEvent",
-    "shape.IsmTxEvent.state",
-    "shape.IsmTxEvent.reason",
-    "shape.IsmTxEvent.target",
-    "shape.IsmTxEvent.text",
-    "shape.IsmTxEvent.family",
-];
 
 /// The DSRC road toll stack.
 fn dsrc_toll() -> StackShape {

@@ -66,7 +66,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `trackers` | Trackers | `tracker` (text), `kind` (choice), `state` (choice), `stays` (duration (s)), `near_pct` (number (%)), `level_dbfs` (number (dBFS)), `peak_dbfs` (number (dBFS)), `trend` (choice), `addresses` (whole number), `last_s` (number (s)), `packets` (whole number), `separated` (yes or no), `status` (whole number), `following` (yes or no), `mine` (yes or no), `id` (whole number) |
+| `trackers` | Trackers | `tracker` (text), `kind` (choice), `state` (choice), `stays` (duration (s)), `near_pct` (number (%)), `level_dbfs` (number (dBFS)), `peak_dbfs` (number (dBFS)), `trend` (choice), `addresses` (whole number), `last_s` (number (s)), `packets` (whole number), `separated` (yes or no), `status` (whole number), `following` (yes or no), `mine` (yes or no), `id` (whole number), `mode` (choice), `tag_state` (choice), `tag_state_code` (whole number), `aging_counter` (whole number), `region` (whole number), `e2e` (yes or no), `uwb` (yes or no), `battery` (whole number), `identifier` (text), `service_data` (text) |
 | `alerts` | Alerts | `time` (time), `signal_s` (number (s)), `level_dbfs` (number (dBFS)), `alert` (text) |
 | `tracker_kinds` | Tracker kinds | `kind` (choice), `last_minute` (whole number), `last_30_min` (whole number) |
 
@@ -83,12 +83,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything decoded so far. |
 | `mine` | Mark as mine | `row` (text, required), `mine` (yes or no, default true) |  | A tracker marked as the user's own raises no alert. |
-| `send` | Send a tracker advertisement | `tracker` (choice, default `find_my`), `address` (text, required), `address_type` (choice, default `random`), `pdu_type` (choice, default `adv_nonconn_ind`), `status` (whole number, default 0), `protection` (yes or no, default false), `payload` (text, default empty), `count` (whole number, default 1), `interval_ms` (whole number (ms), default 100) |  | Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: Find My manufacturer data of company 0x004C (type 0x12, length 25, the status, the payload) or Google service data of UUID 0xFEAA (frame type 0x40 or 0x41, the payload). A send during another waits for it. Transmit must be on. |
+| `send` | Send a tracker advertisement | `tracker` (choice, default `find_my`), `address` (text, required), `address_type` (choice, default `random`), `pdu_type` (choice, default `adv_nonconn_ind`), `status` (whole number, default 0), `protection` (yes or no, default false), `payload` (text, default empty), `count` (whole number, default 1), `interval_ms` (whole number (ms), default 100), `shipping` (yes or no, default false), `service_data` (text, default empty), `tag_state` (choice, default `lost`), `aging_counter` (whole number, default 0), `privacy_id` (text, default empty), `region` (whole number, default 0), `e2e` (yes or no, default false), `uwb` (yes or no, default false), `battery` (whole number, default 3), `signature` (text, default empty) |  | Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: Find My manufacturer data of company 0x004C (type 0x12, length 25, the status, the payload); Google service data of UUID 0xFEAA (frame type 0x40 or 0x41, the payload); Tile, a UUID list of 0xFEED and the service data under 0xFEED, or in shipping mode a UUID list of 0xFEEC alone; Chipolo, a UUID list of 0xFE33 and the service data under 0xFE33; SmartTag, the 20-byte service data of UUID 0xFD5A from the tag state, the aging counter, the privacy ID, the region, the E2E and UWB flags, the battery code and the signature. No flags structure goes out. A send during another waits for it. Transmit must be on. |
 | `halt` | Halt |  |  | Drops the packets of the send on air that are still to go, and the sends that wait. |
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 1.2. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 2.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -118,9 +118,9 @@ Struct `BleTxFields`. The result fields of the advertising sender of `ble` and `
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tx_sending` | yes or no | always | 1.2 | Whether a send is on air. |
-| `tx_sent` | whole number | always | 1.2 | The packets of the send on air that went out. |
-| `tx_left` | whole number | always | 1.2 | The packets still to go: the rest of the send on air and the sends that wait. |
+| `tx_sending` | yes or no | always | 1.0 | Whether a send is on air. |
+| `tx_sent` | whole number | always | 1.0 | The packets of the send on air that went out. |
+| `tx_left` | whole number | always | 1.0 | The packets still to go: the rest of the send on air and the sends that wait. |
 
 ### Table `trackers`
 
@@ -144,6 +144,16 @@ Struct `BletrackerTrackerRow`. A row of the trackers of `bletracker`. The row ke
 | `following` | yes or no | always | 1.0 | It follows the radio. |
 | `mine` | yes or no | always | 1.0 | It is marked as the user's own. |
 | `id` | whole number | always | 1.0 | The tracker id. |
+| `mode` | choice | optional | 1.0 | The mode that the advertised UUID tells: Tile activated or shipping, SmartTag registered or unregistered, Chipolo disconnected from its owner. No value for other families. |
+| `tag_state` | choice | optional | 1.0 | The SmartTag tag state. No value for the codes 0 and 7, which have no name, and for other families. |
+| `tag_state_code` | whole number | optional | 1.0 | The SmartTag tag state code, 0 to 7. |
+| `aging_counter` | whole number | optional | 1.0 | The SmartTag aging counter: 15-minute steps of the tag's clock from 2020-07-02 00:00 UTC. |
+| `region` | whole number | optional | 1.0 | The SmartTag region ID, 0 to 15. |
+| `e2e` | yes or no | optional | 1.0 | The SmartTag E2E flag: finders must encrypt their location reports. |
+| `uwb` | yes or no | optional | 1.0 | The SmartTag UWB flag. |
+| `battery` | whole number | optional | 1.0 | The SmartTag battery code, 0 to 3. |
+| `identifier` | text | optional | 1.0 | The rolling identifier in hex, opaque: the SmartTag privacy ID. |
+| `service_data` | text | optional | 1.0 | The service data value under the family's UUID in hex, as sent (Tile, Chipolo, SmartTag). |
 
 ### Table `alerts`
 
@@ -186,11 +196,11 @@ Struct `BleTxEvent`. The fields of a change of an advertising send.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | text | always | 1.2 | The state: started, queued, finished or refused. |
-| `reason` | text | always | 1.2 | Why it changed: empty, halted, the transmitter is off, the format changed, the frequency changed, or why a send was refused. |
-| `target` | text | always | 1.2 | The advertiser address. |
-| `text` | text | always | 1.2 | The PDU type, the channel, the packets and the advertising data in hex; empty for finished. |
-| `family` | choice | always | 1.2 | The family of the source. |
+| `state` | text | always | 1.0 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.0 | Why it changed: empty, halted, the transmitter is off, the format changed, the frequency changed, or why a send was refused. |
+| `target` | text | always | 1.0 | The advertiser address. |
+| `text` | text | always | 1.0 | The PDU type, the channel, the packets and the advertising data in hex; empty for finished. |
+| `family` | choice | always | 1.0 | The family of the source. |
 
 ### Commands
 

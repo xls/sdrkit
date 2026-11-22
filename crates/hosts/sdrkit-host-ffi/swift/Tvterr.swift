@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "tvterr", version 1.4. MIT licence.
+// sdrkit: the typed interface of the stack family "tvterr", version 1.5. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum TvterrInterface {
     public static let major = 1
-    public static let minor = 4
+    public static let minor = 5
 }
 
 /// The result fields of `isdbt` and `isdbtsb`: the detection, the transmission parameters, the signal and the TMCC. A parameter of the mode has no value before the mode is found. A value of the TMCC has no value while no TMCC is decoded.
@@ -700,7 +700,7 @@ public struct Atsc3PlpRow {
     public var id: Int64
     /// The layer: 0 core, above 0 enhanced.
     public var layer: Int64
-    /// The constellation points, also 1024 and 4096 that the stack does not decode. No value for a reserved code.
+    /// The constellation points, also of a coding that the stack does not decode. No value for a reserved code.
     public var points: Int64?
     /// The code rate in fifteenths.
     public var codeRate: Int64?
@@ -712,6 +712,10 @@ public struct Atsc3PlpRow {
     public var timeInterleaver: Int64
     /// The PLP is the one that the stack decodes.
     public var decoded: Bool
+    /// The channel bonding format (table 9.25): 0 plain, 1 SNR averaging, 2 and 3 reserved. No value when the PLP is not bonded with another RF channel.
+    public var bonding: Int64?
+    /// The BSID of the RF channel that the PLP is bonded with, as L1-Detail lists it.
+    public var bondedBsid: Int64?
 
     init(_ c: sdrkit_atsc3_plp_row) {
         key = sdrkitText(c.key)
@@ -724,6 +728,8 @@ public struct Atsc3PlpRow {
         cells = c.cells
         timeInterleaver = c.time_interleaver
         decoded = c.decoded
+        bonding = c.has_bonding ? c.bonding : nil
+        bondedBsid = c.has_bonded_bsid ? c.bonded_bsid : nil
     }
 }
 

@@ -1,5 +1,5 @@
 # The interface of the stack family dvoice. The registry test of the family writes this file.
-family dvoice version=1.5
+family dvoice version=2.0
 shape.SharedFields since=1.0
 shape.SharedFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.SharedFields.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
@@ -32,12 +32,12 @@ shape.MonitorFields.held type=text unit= optional=yes since=1.0
 shape.MonitorFields.codec type=text unit= optional=yes since=1.0
 shape.DecoderFields since=1.0
 shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
-shape.DataTxFields since=1.3
-shape.DataTxFields.transmitting type=bool unit= optional=no since=1.3
-shape.DataTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.3
-shape.DataTxFields.tx_kind type=choice(text,voice) unit= optional=yes since=1.3
-shape.DataTxFields.tx_frames type=i64 unit= optional=no since=1.3
-shape.DataTxFields.tx_note type=text unit= optional=no since=1.3
+shape.DmrTxFields since=1.0
+shape.DmrTxFields.transmitting type=bool unit= optional=no since=1.0
+shape.DmrTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.DmrTxFields.tx_kind type=choice(text,voice) unit= optional=yes since=1.0
+shape.DmrTxFields.tx_frames type=i64 unit= optional=no since=1.0
+shape.DmrTxFields.tx_note type=text unit= optional=no since=1.0
 shape.CallRow since=1.0
 shape.CallRow.id type=i64 unit= optional=no since=1.0
 shape.CallRow.start_s type=f64 unit=s optional=no since=1.0
@@ -197,21 +197,21 @@ shape.M17Fields since=1.0
 shape.M17Fields.lsf_ok type=i64 unit= optional=no since=1.0
 shape.M17Fields.stream_frames type=i64 unit= optional=no since=1.0
 shape.M17Fields.packets_ok type=i64 unit= optional=no since=1.0
-shape.M17TxFields since=1.1
-shape.M17TxFields.transmitting type=bool unit= optional=no since=1.1
-shape.M17TxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.1
-shape.M17TxFields.tx_kind type=choice(voice,packet) unit= optional=yes since=1.1
-shape.M17TxFields.tx_frames type=i64 unit= optional=no since=1.1
+shape.M17TxFields since=1.0
+shape.M17TxFields.transmitting type=bool unit= optional=no since=1.0
+shape.M17TxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.M17TxFields.tx_kind type=choice(voice,packet) unit= optional=yes since=1.0
+shape.M17TxFields.tx_frames type=i64 unit= optional=no since=1.0
 shape.DstarFields since=1.0
 shape.DstarFields.headers_ok type=i64 unit= optional=no since=1.0
 shape.DstarFields.dstar_voice_frames type=i64 unit= optional=no since=1.0
 shape.DstarFields.sync_inverted type=bool unit= optional=no since=1.0
-shape.DstarTxFields since=1.3
-shape.DstarTxFields.transmitting type=bool unit= optional=no since=1.3
-shape.DstarTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.3
-shape.DstarTxFields.tx_kind type=choice(text) unit= optional=yes since=1.3
-shape.DstarTxFields.tx_frames type=i64 unit= optional=no since=1.3
-shape.DstarTxFields.tx_note type=text unit= optional=no since=1.3
+shape.DstarTxFields since=1.0
+shape.DstarTxFields.transmitting type=bool unit= optional=no since=1.0
+shape.DstarTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.DstarTxFields.tx_kind type=choice(text) unit= optional=yes since=1.0
+shape.DstarTxFields.tx_frames type=i64 unit= optional=no since=1.0
+shape.DstarTxFields.tx_note type=text unit= optional=no since=1.0
 shape.NxdnFields since=1.0
 shape.NxdnFields.ran type=i64 unit= optional=yes since=1.0
 shape.NxdnFields.nxdn_frames type=i64 unit= optional=no since=1.0
@@ -245,23 +245,23 @@ shape.TetraDmoFields.mni type=text unit= optional=yes since=1.0
 shape.TetraDmoFields.note type=text unit= optional=no since=1.0
 shape.FreedvFields since=1.0
 shape.FreedvFields.submode type=text unit= optional=no since=1.0
-shape.FreedvFields.sync_700d type=text unit= optional=no since=1.2
-shape.FreedvFields.sync_700e type=text unit= optional=no since=1.2
-shape.FreedvFields.sync_1600 type=text unit= optional=no since=1.2
-shape.FreedvFields.confirmed type=bool unit= optional=no since=1.2
-shape.FreedvFields.freq_offset_hz type=f64 unit=Hz optional=no since=1.2
-shape.FreedvFields.clock_offset_ppm type=f64 unit=ppm optional=no since=1.2
-shape.FreedvFields.timing_metric type=f64 unit= optional=no since=1.2
-shape.FreedvFields.uw_ber_pct type=f64 unit=% optional=no since=1.2
-shape.FreedvFields.ldpc_failed_frames type=i64 unit= optional=no since=1.2
+shape.FreedvFields.sync_700d type=text unit= optional=no since=1.0
+shape.FreedvFields.sync_700e type=text unit= optional=no since=1.0
+shape.FreedvFields.sync_1600 type=text unit= optional=no since=1.0
+shape.FreedvFields.confirmed type=bool unit= optional=no since=1.0
+shape.FreedvFields.freq_offset_hz type=f64 unit=Hz optional=no since=1.0
+shape.FreedvFields.clock_offset_ppm type=f64 unit=ppm optional=no since=1.0
+shape.FreedvFields.timing_metric type=f64 unit= optional=no since=1.0
+shape.FreedvFields.uw_ber_pct type=f64 unit=% optional=no since=1.0
+shape.FreedvFields.ldpc_failed_frames type=i64 unit= optional=no since=1.0
 shape.FreedvFields.freedv_frames type=i64 unit= optional=no since=1.0
-shape.FreedvFields.speech_frames type=i64 unit= optional=no since=1.2
+shape.FreedvFields.speech_frames type=i64 unit= optional=no since=1.0
 shape.FreedvFields.callsign type=text unit= optional=no since=1.0
-shape.FreedvTxFields since=1.3
-shape.FreedvTxFields.transmitting type=bool unit= optional=no since=1.3
-shape.FreedvTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.3
-shape.FreedvTxFields.tx_kind type=choice(700D,700E,1600) unit= optional=yes since=1.3
-shape.FreedvTxFields.tx_frames type=i64 unit= optional=no since=1.3
+shape.FreedvTxFields since=1.0
+shape.FreedvTxFields.transmitting type=bool unit= optional=no since=1.0
+shape.FreedvTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.FreedvTxFields.tx_kind type=choice(700D,700E,1600) unit= optional=yes since=1.0
+shape.FreedvTxFields.tx_frames type=i64 unit= optional=no since=1.0
 shape.AutoFields since=1.0
 shape.AutoFields.detected type=choice(dmr,nxdn,dpmr,p25,ysf,m17) unit= optional=yes since=1.0
 shape.SeenRow since=1.0
@@ -297,7 +297,7 @@ dmr.fields.SharedFields since=1.0
 dmr.fields.DmrFields since=1.0
 dmr.fields.MonitorFields since=1.0
 dmr.fields.DecoderFields since=1.0
-dmr.fields.DataTxFields since=1.3
+dmr.fields.DmrTxFields since=1.0
 dmr.table.calls row=CallRow cap=100 since=1.0
 dmr.table.call_details row=CallDetailRow cap=3000 since=1.0
 dmr.table.messages row=MessageRow cap=100 since=1.0
@@ -326,20 +326,20 @@ dmr.setting.hold_timeout_s type=f64 unit=s since=1.0
 dmr.setting.hang_s type=f64 unit=s since=1.0
 dmr.setting.listen type=bool unit= since=1.0
 dmr.setting.gen_cc type=i64 unit= since=1.0
-dmr.setting.radio_id type=i64 unit= since=1.3
-dmr.setting.called_id type=i64 unit= since=1.3
-dmr.setting.talkgroup type=i64 unit= since=1.3
-dmr.setting.colour_code type=i64 unit= since=1.3
-dmr.setting.slot type=choice(1,2) unit= since=1.3
-dmr.setting.tx_split type=hz unit=Hz since=1.3
-dmr.setting.tx_timeout type=duration unit=s since=1.5
+dmr.setting.radio_id type=i64 unit= since=1.0
+dmr.setting.called_id type=i64 unit= since=1.0
+dmr.setting.talkgroup type=i64 unit= since=1.0
+dmr.setting.colour_code type=i64 unit= since=1.0
+dmr.setting.slot type=choice(1,2) unit= since=1.0
+dmr.setting.tx_split type=hz unit=Hz since=1.0
+dmr.setting.tx_timeout type=duration unit=s since=1.0
 dmr.command.clear args= reply= since=1.0
 dmr.command.hold_current args= reply= since=1.0
 dmr.command.release args= reply= since=1.0
 dmr.command.remove args=row:text reply= since=1.0
-dmr.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.5
-dmr.command.send args=text:text reply= transmits=text stop=halt since=1.3
-dmr.command.halt args= reply= since=1.3
+dmr.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.0
+dmr.command.send args=text:text reply= transmits=text stop=halt since=1.0
+dmr.command.halt args= reply= since=1.0
 p25 since=1.0
 p25.fields.SharedFields since=1.0
 p25.fields.P25Fields since=1.0
@@ -384,7 +384,7 @@ m17.fields.SharedFields since=1.0
 m17.fields.M17Fields since=1.0
 m17.fields.MonitorFields since=1.0
 m17.fields.DecoderFields since=1.0
-m17.fields.M17TxFields since=1.1
+m17.fields.M17TxFields since=1.0
 m17.table.calls row=CallRow cap=300 since=1.0
 m17.table.call_details row=CallDetailRow cap=3000 since=1.0
 m17.table.messages row=MessageRow cap=100 since=1.0
@@ -412,27 +412,27 @@ m17.setting.labels type=text unit= since=1.0
 m17.setting.hold_timeout_s type=f64 unit=s since=1.0
 m17.setting.hang_s type=f64 unit=s since=1.0
 m17.setting.listen type=bool unit= since=1.0
-m17.setting.callsign type=text unit= since=1.1
-m17.setting.destination type=text unit= since=1.1
-m17.setting.can type=i64 unit= since=1.1
-m17.setting.voice_mode type=choice(3200) unit= since=1.1
-m17.setting.meta_text type=text unit= since=1.1
-m17.setting.tx_split type=hz unit=Hz since=1.1
-m17.setting.tx_timeout type=duration unit=s since=1.1
+m17.setting.callsign type=text unit= since=1.0
+m17.setting.destination type=text unit= since=1.0
+m17.setting.can type=i64 unit= since=1.0
+m17.setting.voice_mode type=choice(3200) unit= since=1.0
+m17.setting.meta_text type=text unit= since=1.0
+m17.setting.tx_split type=hz unit=Hz since=1.0
+m17.setting.tx_timeout type=duration unit=s since=1.0
 m17.command.clear args= reply= since=1.0
 m17.command.hold_current args= reply= since=1.0
 m17.command.release args= reply= since=1.0
 m17.command.remove args=row:text reply= since=1.0
-m17.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.1
-m17.command.send args=text:text reply= transmits=text stop=halt since=1.1
-m17.command.send_data args=protocol:i64;data:bytes reply= transmits=frame stop=halt since=1.1
-m17.command.halt args= reply= since=1.1
+m17.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.0
+m17.command.send args=text:text reply= transmits=text stop=halt since=1.0
+m17.command.send_data args=protocol:i64;data:bytes reply= transmits=frame stop=halt since=1.0
+m17.command.halt args= reply= since=1.0
 dstar since=1.0
 dstar.fields.SharedFields since=1.0
 dstar.fields.DstarFields since=1.0
 dstar.fields.MonitorFields since=1.0
 dstar.fields.DecoderFields since=1.0
-dstar.fields.DstarTxFields since=1.3
+dstar.fields.DstarTxFields since=1.0
 dstar.table.calls row=CallRow cap=300 since=1.0
 dstar.table.call_details row=CallDetailRow cap=3000 since=1.0
 dstar.table.messages row=MessageRow cap=100 since=1.0
@@ -460,19 +460,19 @@ dstar.setting.labels type=text unit= since=1.0
 dstar.setting.hold_timeout_s type=f64 unit=s since=1.0
 dstar.setting.hang_s type=f64 unit=s since=1.0
 dstar.setting.listen type=bool unit= since=1.0
-dstar.setting.callsign type=text unit= since=1.3
-dstar.setting.suffix type=text unit= since=1.3
-dstar.setting.your_call type=text unit= since=1.3
-dstar.setting.rpt1 type=text unit= since=1.3
-dstar.setting.rpt2 type=text unit= since=1.3
-dstar.setting.via_repeater type=bool unit= since=1.3
-dstar.setting.tx_split type=hz unit=Hz since=1.3
+dstar.setting.callsign type=text unit= since=1.0
+dstar.setting.suffix type=text unit= since=1.0
+dstar.setting.your_call type=text unit= since=1.0
+dstar.setting.rpt1 type=text unit= since=1.0
+dstar.setting.rpt2 type=text unit= since=1.0
+dstar.setting.via_repeater type=bool unit= since=1.0
+dstar.setting.tx_split type=hz unit=Hz since=1.0
 dstar.command.clear args= reply= since=1.0
 dstar.command.hold_current args= reply= since=1.0
 dstar.command.release args= reply= since=1.0
 dstar.command.remove args=row:text reply= since=1.0
-dstar.command.send args=text:text reply= transmits=text stop=halt since=1.3
-dstar.command.halt args= reply= since=1.3
+dstar.command.send args=text:text reply= transmits=text stop=halt since=1.0
+dstar.command.halt args= reply= since=1.0
 nxdn since=1.0
 nxdn.fields.SharedFields since=1.0
 nxdn.fields.NxdnFields since=1.0
@@ -577,6 +577,7 @@ ysf.setting.labels type=text unit= since=1.0
 ysf.setting.hold_timeout_s type=f64 unit=s since=1.0
 ysf.setting.hang_s type=f64 unit=s since=1.0
 ysf.setting.listen type=bool unit= since=1.0
+ysf.setting.gen_voice type=choice(vd1,vd2,voice_fr) unit= since=1.0
 ysf.command.clear args= reply= since=1.0
 ysf.command.hold_current args= reply= since=1.0
 ysf.command.release args= reply= since=1.0
@@ -736,7 +737,7 @@ freedv.fields.SharedFields since=1.0
 freedv.fields.FreedvFields since=1.0
 freedv.fields.MonitorFields since=1.0
 freedv.fields.DecoderFields since=1.0
-freedv.fields.FreedvTxFields since=1.3
+freedv.fields.FreedvTxFields since=1.0
 freedv.table.calls row=CallRow cap=300 since=1.0
 freedv.table.call_details row=CallDetailRow cap=3000 since=1.0
 freedv.table.messages row=MessageRow cap=100 since=1.0
@@ -764,18 +765,18 @@ freedv.setting.labels type=text unit= since=1.0
 freedv.setting.hold_timeout_s type=f64 unit=s since=1.0
 freedv.setting.hang_s type=f64 unit=s since=1.0
 freedv.setting.listen type=bool unit= since=1.0
-freedv.setting.gen_clip type=bool unit= since=1.2
-freedv.setting.callsign type=text unit= since=1.3
-freedv.setting.tx_clip type=bool unit= since=1.3
-freedv.setting.tx_filter type=bool unit= since=1.3
-freedv.setting.tx_split type=hz unit=Hz since=1.3
-freedv.setting.tx_timeout type=duration unit=s since=1.3
+freedv.setting.gen_clip type=bool unit= since=1.0
+freedv.setting.callsign type=text unit= since=1.0
+freedv.setting.tx_clip type=bool unit= since=1.0
+freedv.setting.tx_filter type=bool unit= since=1.0
+freedv.setting.tx_split type=hz unit=Hz since=1.0
+freedv.setting.tx_timeout type=duration unit=s since=1.0
 freedv.command.clear args= reply= since=1.0
 freedv.command.hold_current args= reply= since=1.0
 freedv.command.release args= reply= since=1.0
 freedv.command.remove args=row:text reply= since=1.0
-freedv.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.3
-freedv.command.halt args= reply= since=1.3
+freedv.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.0
+freedv.command.halt args= reply= since=1.0
 dvoice-auto since=1.0
 dvoice-auto.fields.SharedFields since=1.0
 dvoice-auto.fields.AutoFields since=1.0

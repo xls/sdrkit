@@ -427,11 +427,3 @@ fn the_verification_cases_of_700d_and_700e_pass_their_checks() {
     }
 }
 
-#[test]
-fn the_ofdm_fields_and_the_clipper_setting_are_of_family_version_1_2() {
-    let f = sdrkit_stack_dvoice::typed::family();
-    for path in ["shape.FreedvFields.sync_700d", "shape.FreedvFields.speech_frames", "freedv.setting.gen_clip"] {
-        assert_eq!(f.since(path).minor, 2, "{path}");
-    }
-    assert_eq!(f.since("shape.FreedvFields.callsign").minor, 0);
-}

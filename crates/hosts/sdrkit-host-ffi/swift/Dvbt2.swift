@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "dvbt2", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "dvbt2", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum Dvbt2Interface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The result fields of `dvbt2`, which the receiver `rx` writes. A value of the frame shape has no value before the P2 symbols are found, and a value of the L1 signalling has no value before the L1-pre is decoded.
@@ -591,6 +591,8 @@ public enum Dvbt2Settings {
         case n34 = 3
         case n45 = 4
         case n56 = 5
+        case n13 = 6
+        case n25 = 7
     }
     /// Code rate.
     public static func dvbt2TxRate(_ handle: SDRKIT_HANDLE) -> Result<Dvbt2TxRate, SDRKitCode> {
@@ -684,6 +686,35 @@ public enum Dvbt2Settings {
     }
     public static func setDvbt2TxSystemId(_ handle: SDRKIT_HANDLE, _ value: Int64) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_i64(handle, "tx_system_id", value))
+    }
+    /// The options of the setting "tx_profile" of the stack "dvbt2".
+    public enum Dvbt2TxProfile: Int32 {
+        case base = 0
+        case lite = 1
+    }
+    /// Profile.
+    public static func dvbt2TxProfile(_ handle: SDRKIT_HANDLE) -> Result<Dvbt2TxProfile, SDRKitCode> {
+        var v: Int32 = 0
+        let code = sdrkit_typed_setting_get_enum(handle, "tx_profile", &v)
+        return code == SDRKIT_OK ? .success(Dvbt2TxProfile(rawValue: v) ?? Dvbt2TxProfile(rawValue: 0)!) : .failure(SDRKitCode(code: code))
+    }
+    public static func setDvbt2TxProfile(_ handle: SDRKIT_HANDLE, _ value: Dvbt2TxProfile) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_enum(handle, "tx_profile", value.rawValue))
+    }
+    /// The options of the setting "tx_miso" of the stack "dvbt2".
+    public enum Dvbt2TxMiso: Int32 {
+        case siso = 0
+        case group1 = 1
+        case group2 = 2
+    }
+    /// MISO.
+    public static func dvbt2TxMiso(_ handle: SDRKIT_HANDLE) -> Result<Dvbt2TxMiso, SDRKitCode> {
+        var v: Int32 = 0
+        let code = sdrkit_typed_setting_get_enum(handle, "tx_miso", &v)
+        return code == SDRKIT_OK ? .success(Dvbt2TxMiso(rawValue: v) ?? Dvbt2TxMiso(rawValue: 0)!) : .failure(SDRKitCode(code: code))
+    }
+    public static func setDvbt2TxMiso(_ handle: SDRKIT_HANDLE, _ value: Dvbt2TxMiso) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_enum(handle, "tx_miso", value.rawValue))
     }
 }
 

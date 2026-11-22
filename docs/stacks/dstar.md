@@ -125,7 +125,7 @@ The stack puts points on a map: Positions.
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 1.5. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 2.0. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -183,11 +183,11 @@ Struct `DstarTxFields`. The result fields of the D-STAR sender.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `transmitting` | yes or no | always | 1.3 | Whether a transmission is under way. |
-| `tx_freq_hz` | frequency | optional | 1.3 | The transmit frequency: the listening frequency plus the transmit offset. No value while the stack does not transmit. |
-| `tx_kind` | choice | optional | 1.3 | What the transmission sends, or the last one sent. |
-| `tx_frames` | whole number | always | 1.3 | The voice frames of the transmission, or of the last one, that are written. |
-| `tx_note` | text | always | 1.3 | What the sender puts in the voice frames. |
+| `transmitting` | yes or no | always | 1.0 | Whether a transmission is under way. |
+| `tx_freq_hz` | frequency | optional | 1.0 | The transmit frequency: the listening frequency plus the transmit offset. No value while the stack does not transmit. |
+| `tx_kind` | choice | optional | 1.0 | What the transmission sends, or the last one sent. |
+| `tx_frames` | whole number | always | 1.0 | The voice frames of the transmission, or of the last one, that are written. |
+| `tx_note` | text | always | 1.0 | What the sender puts in the voice frames. |
 
 ### Table `calls`
 

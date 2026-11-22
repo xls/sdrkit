@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_WLAN_VERSION_MAJOR 1
-#define SDRKIT_WLAN_VERSION_MINOR 2
+#define SDRKIT_WLAN_VERSION_MAJOR 2
+#define SDRKIT_WLAN_VERSION_MINOR 0
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -453,6 +453,36 @@ typedef enum sdrkit_bletracker_tracker_row_trend {
   SDRKIT_BLETRACKER_TRACKER_ROW_TREND_STEADY = 2,
 } sdrkit_bletracker_tracker_row_trend;
 
+// The options of `mode` of `sdrkit_bletracker_tracker_row`.
+typedef enum sdrkit_bletracker_tracker_row_mode {
+  // activated
+  SDRKIT_BLETRACKER_TRACKER_ROW_MODE_ACTIVATED = 0,
+  // shipping mode
+  SDRKIT_BLETRACKER_TRACKER_ROW_MODE_SHIPPING = 1,
+  // registered
+  SDRKIT_BLETRACKER_TRACKER_ROW_MODE_REGISTERED = 2,
+  // unregistered
+  SDRKIT_BLETRACKER_TRACKER_ROW_MODE_UNREGISTERED = 3,
+  // disconnected from its owner
+  SDRKIT_BLETRACKER_TRACKER_ROW_MODE_DISCONNECTED = 4,
+} sdrkit_bletracker_tracker_row_mode;
+
+// The options of `tag_state` of `sdrkit_bletracker_tracker_row`.
+typedef enum sdrkit_bletracker_tracker_row_tag_state {
+  // premature lost
+  SDRKIT_BLETRACKER_TRACKER_ROW_TAG_STATE_PREMATURE_LOST = 0,
+  // lost
+  SDRKIT_BLETRACKER_TRACKER_ROW_TAG_STATE_LOST = 1,
+  // overmature lost
+  SDRKIT_BLETRACKER_TRACKER_ROW_TAG_STATE_OVERMATURE_LOST = 2,
+  // paired with one device
+  SDRKIT_BLETRACKER_TRACKER_ROW_TAG_STATE_PAIRED = 3,
+  // connected to one device
+  SDRKIT_BLETRACKER_TRACKER_ROW_TAG_STATE_CONNECTED_ONE = 4,
+  // connected to two devices
+  SDRKIT_BLETRACKER_TRACKER_ROW_TAG_STATE_CONNECTED_TWO = 5,
+} sdrkit_bletracker_tracker_row_tag_state;
+
 // A row of the trackers of `bletracker`. The row key is the tracker id.
 typedef struct sdrkit_bletracker_tracker_row {
   // The number of bytes of this struct that the library wrote.
@@ -495,6 +525,46 @@ typedef struct sdrkit_bletracker_tracker_row {
   bool mine;
   // The tracker id.
   int64_t id;
+  // True if `mode` holds a value.
+  bool has_mode;
+  // The mode that the advertised UUID tells: Tile activated or shipping, SmartTag registered or unregistered, Chipolo disconnected from its owner. No value for other families. A value of `sdrkit_bletracker_tracker_row_mode`.
+  int32_t mode;
+  // True if `tag_state` holds a value.
+  bool has_tag_state;
+  // The SmartTag tag state. No value for the codes 0 and 7, which have no name, and for other families. A value of `sdrkit_bletracker_tracker_row_tag_state`.
+  int32_t tag_state;
+  // True if `tag_state_code` holds a value.
+  bool has_tag_state_code;
+  // The SmartTag tag state code, 0 to 7.
+  int64_t tag_state_code;
+  // True if `aging_counter` holds a value.
+  bool has_aging_counter;
+  // The SmartTag aging counter: 15-minute steps of the tag's clock from 2020-07-02 00:00 UTC.
+  int64_t aging_counter;
+  // True if `region` holds a value.
+  bool has_region;
+  // The SmartTag region ID, 0 to 15.
+  int64_t region;
+  // True if `e2e` holds a value.
+  bool has_e2e;
+  // The SmartTag E2E flag: finders must encrypt their location reports.
+  bool e2e;
+  // True if `uwb` holds a value.
+  bool has_uwb;
+  // The SmartTag UWB flag.
+  bool uwb;
+  // True if `battery` holds a value.
+  bool has_battery;
+  // The SmartTag battery code, 0 to 3.
+  int64_t battery;
+  // True if `identifier` holds a value.
+  bool has_identifier;
+  // The rolling identifier in hex, opaque: the SmartTag privacy ID.
+  sdrkit_string identifier;
+  // True if `service_data` holds a value.
+  bool has_service_data;
+  // The service data value under the family's UUID in hex, as sent (Tile, Chipolo, SmartTag).
+  sdrkit_string service_data;
 } sdrkit_bletracker_tracker_row;
 
 // A row of the alerts of `bletracker`.
@@ -1891,10 +1961,50 @@ typedef struct sdrkit_bletracker_send_args {
   bool has_interval_ms;
   // The interval. Unit: ms.
   int64_t interval_ms;
+  // True if `shipping` holds a value.
+  bool has_shipping;
+  // The Tile shipping mode.
+  bool shipping;
+  // True if `service_data` holds a value.
+  bool has_service_data;
+  // The service data value of Tile and Chipolo.
+  sdrkit_string service_data;
+  // True if `tag_state` holds a value.
+  bool has_tag_state;
+  // The SmartTag tag state. The index of an option.
+  int32_t tag_state;
+  // True if `aging_counter` holds a value.
+  bool has_aging_counter;
+  // The SmartTag aging counter.
+  int64_t aging_counter;
+  // True if `privacy_id` holds a value.
+  bool has_privacy_id;
+  // The SmartTag privacy ID.
+  sdrkit_string privacy_id;
+  // True if `region` holds a value.
+  bool has_region;
+  // The SmartTag region ID.
+  int64_t region;
+  // True if `e2e` holds a value.
+  bool has_e2e;
+  // The SmartTag E2E flag.
+  bool e2e;
+  // True if `uwb` holds a value.
+  bool has_uwb;
+  // The SmartTag UWB flag.
+  bool uwb;
+  // True if `battery` holds a value.
+  bool has_battery;
+  // The SmartTag battery code.
+  int64_t battery;
+  // True if `signature` holds a value.
+  bool has_signature;
+  // The SmartTag signature.
+  sdrkit_string signature;
 } sdrkit_bletracker_send_args;
 
 // An arguments struct with its size set and every argument at 0.
-#define SDRKIT_BLETRACKER_SEND_ARGS_INIT {sizeof(sdrkit_bletracker_send_args), 0, 0, {0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, 0, 0}
+#define SDRKIT_BLETRACKER_SEND_ARGS_INIT {sizeof(sdrkit_bletracker_send_args), 0, 0, {0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, 0, 0, 0, {0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}}
 
 // The arguments of `remove` of `wifi` and `halow`.
 typedef struct sdrkit_wlan_network_args {
@@ -2091,7 +2201,7 @@ static inline int32_t sdrkit_bletracker_mine(SDRKIT_HANDLE handle, const sdrkit_
   return sdrkit_typed_command(handle, "mine", "wlan.BletrackerMineArgs", args, NULL, NULL, 0);
 }
 
-// Runs the command "send" (Send a tracker advertisement) of the stack "bletracker" on the session of `handle`. Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: Find My manufacturer data of company 0x004C (type 0x12, length 25, the status, the payload) or Google service data of UUID 0xFEAA (frame type 0x40 or 0x41, the payload). A send during another waits for it. Transmit must be on. It transmits (beacon). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+// Runs the command "send" (Send a tracker advertisement) of the stack "bletracker" on the session of `handle`. Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: Find My manufacturer data of company 0x004C (type 0x12, length 25, the status, the payload); Google service data of UUID 0xFEAA (frame type 0x40 or 0x41, the payload); Tile, a UUID list of 0xFEED and the service data under 0xFEED, or in shipping mode a UUID list of 0xFEEC alone; Chipolo, a UUID list of 0xFE33 and the service data under 0xFE33; SmartTag, the 20-byte service data of UUID 0xFD5A from the tag state, the aging counter, the privacy ID, the region, the E2E and UWB flags, the battery code and the signature. No flags structure goes out. A send during another waits for it. Transmit must be on. It transmits (beacon). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
 static inline int32_t sdrkit_bletracker_send(SDRKIT_HANDLE handle, const sdrkit_bletracker_send_args *args) {
   return sdrkit_typed_command(handle, "send", "wlan.BletrackerSendArgs", args, NULL, NULL, 0);
 }

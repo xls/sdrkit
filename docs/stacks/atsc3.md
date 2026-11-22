@@ -94,7 +94,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:at
 |---|---|---|
 | `services` | Services | `major` (whole number), `minor` (whole number), `name` (text), `hidden` (yes or no), `id` (whole number), `category` (choice), `delivery` (choice), `action` (choice), `sls_objects` (whole number), `sls_documents` (whole number), `sls_signed_packages` (whole number) |
 | `components` | Media components | `tsi` (whole number), `fourcc` (text) |
-| `plps` | PLPs | `subframe` (whole number), `id` (whole number), `layer` (whole number), `points` (whole number), `code_rate` (whole number (/15)), `ldpc_bits` (whole number (bit)), `cells` (whole number), `time_interleaver` (whole number), `decoded` (yes or no) |
+| `plps` | PLPs | `subframe` (whole number), `id` (whole number), `layer` (whole number), `points` (whole number), `code_rate` (whole number (/15)), `ldpc_bits` (whole number (bit)), `cells` (whole number), `time_interleaver` (whole number), `decoded` (yes or no), `bonding` (whole number), `bonded_bsid` (whole number) |
 
 ## Commands
 
@@ -104,7 +104,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:at
 
 ## Typed interface
 
-The stack is in the family `tvterr`, version 1.4. The C header `sdrkit/tvterr.h`, the registry record `registry/tvterr.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `tvterr`, version 1.5. The C header `sdrkit/tvterr.h`, the registry record `registry/tvterr.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -203,12 +203,14 @@ Struct `Atsc3PlpRow`. A row of the PLPs of the last frame: one row for each PLP 
 | `subframe` | whole number | always | 1.4 | The number of the subframe in the frame, from 0. |
 | `id` | whole number | always | 1.2 | The PLP id. |
 | `layer` | whole number | always | 1.2 | The layer: 0 core, above 0 enhanced. |
-| `points` | whole number | optional | 1.2 | The constellation points, also 1024 and 4096 that the stack does not decode. No value for a reserved code. |
+| `points` | whole number | optional | 1.2 | The constellation points, also of a coding that the stack does not decode. No value for a reserved code. |
 | `code_rate` | whole number (/15) | optional | 1.2 | The code rate in fifteenths. |
 | `ldpc_bits` | whole number (bit) | optional | 1.2 | The LDPC code word, bits. |
 | `cells` | whole number | always | 1.2 | The data cells of the PLP in the subframe. |
 | `time_interleaver` | whole number | always | 1.2 | The time interleaver: 0 none, 1 convolutional, 2 hybrid. |
 | `decoded` | yes or no | always | 1.2 | The PLP is the one that the stack decodes. |
+| `bonding` | whole number | optional | 1.5 | The channel bonding format (table 9.25): 0 plain, 1 SNR averaging, 2 and 3 reserved. No value when the PLP is not bonded with another RF channel. |
+| `bonded_bsid` | whole number | optional | 1.5 | The BSID of the RF channel that the PLP is bonded with, as L1-Detail lists it. |
 
 ### Commands
 

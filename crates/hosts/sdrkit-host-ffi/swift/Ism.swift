@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "ism", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "ism", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum IsmInterface {
-    public static let major = 1
-    public static let minor = 1
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of the burst finder of the ISM sensor stack.
@@ -4257,11 +4257,11 @@ public enum IsmCommands {
         }() }
         return sdrkitResult(code)
     }
-    /// Send a frame. Sends one transmission of the device family (its copies of the frame, as the device sends them) as OOK on the tuned frequency. Transmissions sent during one wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
-    public static func ismSend(_ handle: SDRKIT_HANDLE, family: Int32? = nil, id: Int64, command: Int64? = nil, channel: Int64? = nil, batteryOk: Bool? = nil, temperature: Double? = nil, humidity: Int64? = nil) -> Result<Void, SDRKitCode> {
+    /// Send a frame. Sends one transmission of the device family (its copies of the frame, as the device sends them) on the tuned frequency, as OOK or FSK by the family. Transmissions sent during one wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    public static func ismSend(_ handle: SDRKIT_HANDLE, family: Int32? = nil, id: Int64, command: Int64? = nil, channel: Int64? = nil, batteryOk: Bool? = nil, temperature: Double? = nil, humidity: Int64? = nil, windSpeed: Double? = nil, windGust: Double? = nil, windDir: Double? = nil, rain: Double? = nil, uv: Double? = nil, light: Double? = nil, pressure: Double? = nil, flags: Int64? = nil, current: Double? = nil, interval: Int64? = nil, power: Int64? = nil, payload: String? = nil) -> Result<Void, SDRKitCode> {
         var args = sdrkit_ism_send_args()
         args.size = UInt32(MemoryLayout<sdrkit_ism_send_args>.size)
-        let code: Int32 = { () -> Int32 in
+        let code: Int32 = sdrkitWithString(payload ?? "") { payload_ in { () -> Int32 in
         args.has_family = family != nil
         if let given = family { args.family = given }
         args.id = id
@@ -4275,8 +4275,32 @@ public enum IsmCommands {
         if let given = temperature { args.temperature = given }
         args.has_humidity = humidity != nil
         if let given = humidity { args.humidity = given }
+        args.has_wind_speed = windSpeed != nil
+        if let given = windSpeed { args.wind_speed = given }
+        args.has_wind_gust = windGust != nil
+        if let given = windGust { args.wind_gust = given }
+        args.has_wind_dir = windDir != nil
+        if let given = windDir { args.wind_dir = given }
+        args.has_rain = rain != nil
+        if let given = rain { args.rain = given }
+        args.has_uv = uv != nil
+        if let given = uv { args.uv = given }
+        args.has_light = light != nil
+        if let given = light { args.light = given }
+        args.has_pressure = pressure != nil
+        if let given = pressure { args.pressure = given }
+        args.has_flags = flags != nil
+        if let given = flags { args.flags = given }
+        args.has_current = current != nil
+        if let given = current { args.current = given }
+        args.has_interval = interval != nil
+        if let given = interval { args.interval = given }
+        args.has_power = power != nil
+        if let given = power { args.power = given }
+        args.has_payload = payload != nil
+        args.payload = payload_
         return sdrkit_ism_send(handle, &args)
-        }()
+        }() }
         return sdrkitResult(code)
     }
     /// Halt. Drops the frames waiting and ends the frame on air with the fall of the carrier.
@@ -4374,11 +4398,11 @@ public enum IsmCommands {
         }() }
         return sdrkitResult(code)
     }
-    /// Send a frame. Sends an IEEE 802.15.4 MAC frame (frame version 2003, no security) on the tuned frequency. With both addresses the source PAN id is left out. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
-    public static func zigbeeSend(_ handle: SDRKIT_HANDLE, panId: String, destination: String, source: String, payload: String, frameType: Int32? = nil, sequence: Int64? = nil, ack: Bool? = nil) -> Result<Void, SDRKitCode> {
+    /// Send a frame. Sends an IEEE 802.15.4 MAC frame on the tuned frequency: frame version 2003 without security, frame version 2006 with the auxiliary security header and CCM* at the security level. With both addresses the source PAN id is left out. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    public static func zigbeeSend(_ handle: SDRKIT_HANDLE, panId: String, destination: String, source: String, payload: String, frameType: Int32? = nil, sequence: Int64? = nil, ack: Bool? = nil, securityLevel: Int64? = nil, key: String? = nil, frameCounter: Int64? = nil, keyIdMode: Int64? = nil, keyIndex: Int64? = nil, keySource: String? = nil) -> Result<Void, SDRKitCode> {
         var args = sdrkit_zigbee_send_args()
         args.size = UInt32(MemoryLayout<sdrkit_zigbee_send_args>.size)
-        let code: Int32 = sdrkitWithString(panId) { pan_id_ in sdrkitWithString(destination) { destination_ in sdrkitWithString(source) { source_ in sdrkitWithString(payload) { payload_ in { () -> Int32 in
+        let code: Int32 = sdrkitWithString(panId) { pan_id_ in sdrkitWithString(destination) { destination_ in sdrkitWithString(source) { source_ in sdrkitWithString(payload) { payload_ in sdrkitWithString(key ?? "") { key_ in sdrkitWithString(keySource ?? "") { key_source_ in { () -> Int32 in
         args.pan_id = pan_id_
         args.destination = destination_
         args.source = source_
@@ -4389,8 +4413,20 @@ public enum IsmCommands {
         if let given = sequence { args.sequence = given }
         args.has_ack = ack != nil
         if let given = ack { args.ack = given }
+        args.has_security_level = securityLevel != nil
+        if let given = securityLevel { args.security_level = given }
+        args.has_key = key != nil
+        args.key = key_
+        args.has_frame_counter = frameCounter != nil
+        if let given = frameCounter { args.frame_counter = given }
+        args.has_key_id_mode = keyIdMode != nil
+        if let given = keyIdMode { args.key_id_mode = given }
+        args.has_key_index = keyIndex != nil
+        if let given = keyIndex { args.key_index = given }
+        args.has_key_source = keySource != nil
+        args.key_source = key_source_
         return sdrkit_zigbee_send(handle, &args)
-        }() } } } }
+        }() } } } } } }
         return sdrkitResult(code)
     }
     /// Halt. Drops the frames waiting and ends the frame on air with the fall of the carrier.
@@ -4692,6 +4728,15 @@ public enum IsmSettings {
     }
     public static func setZigbeeDwell(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "dwell", value))
+    }
+    /// Keys (kept in memory only).
+    public static func zigbeeKeys(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
+        var v: sdrkit_string = sdrkit_string()
+        let code = sdrkit_typed_setting_get_string(handle, "keys", &v)
+        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
+    }
+    public static func setZigbeeKeys(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "keys", $0) })
     }
     /// Level.
     public static func zigbeeTxLevel(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {

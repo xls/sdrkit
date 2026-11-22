@@ -91,7 +91,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 1.2. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 2.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -121,9 +121,9 @@ Struct `BleTxFields`. The result fields of the advertising sender of `ble` and `
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tx_sending` | yes or no | always | 1.2 | Whether a send is on air. |
-| `tx_sent` | whole number | always | 1.2 | The packets of the send on air that went out. |
-| `tx_left` | whole number | always | 1.2 | The packets still to go: the rest of the send on air and the sends that wait. |
+| `tx_sending` | yes or no | always | 1.0 | Whether a send is on air. |
+| `tx_sent` | whole number | always | 1.0 | The packets of the send on air that went out. |
+| `tx_left` | whole number | always | 1.0 | The packets still to go: the rest of the send on air and the sends that wait. |
 
 ### Table `devices`
 
@@ -195,11 +195,11 @@ Struct `BleTxEvent`. The fields of a change of an advertising send.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | text | always | 1.2 | The state: started, queued, finished or refused. |
-| `reason` | text | always | 1.2 | Why it changed: empty, halted, the transmitter is off, the format changed, the frequency changed, or why a send was refused. |
-| `target` | text | always | 1.2 | The advertiser address. |
-| `text` | text | always | 1.2 | The PDU type, the channel, the packets and the advertising data in hex; empty for finished. |
-| `family` | choice | always | 1.2 | The family of the source. |
+| `state` | text | always | 1.0 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.0 | Why it changed: empty, halted, the transmitter is off, the format changed, the frequency changed, or why a send was refused. |
+| `target` | text | always | 1.0 | The advertiser address. |
+| `text` | text | always | 1.0 | The PDU type, the channel, the packets and the advertising data in hex; empty for finished. |
+| `family` | choice | always | 1.0 | The family of the source. |
 
 ### Commands
 

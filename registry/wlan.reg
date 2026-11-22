@@ -1,5 +1,5 @@
 # The interface of the stack family wlan. The registry test of the family writes this file.
-family wlan version=1.2
+family wlan version=2.0
 shape.BleFields since=1.0
 shape.BleFields.devices type=i64 unit= optional=no since=1.0
 shape.BleFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -16,10 +16,10 @@ shape.BleFields.packets_38 type=i64 unit= optional=no since=1.0
 shape.BleFields.packets_39 type=i64 unit= optional=no since=1.0
 shape.BleFields.hopping type=bool unit= optional=no since=1.0
 shape.BleFields.privacy type=text unit= optional=no since=1.0
-shape.BleTxFields since=1.2
-shape.BleTxFields.tx_sending type=bool unit= optional=no since=1.2
-shape.BleTxFields.tx_sent type=i64 unit= optional=no since=1.2
-shape.BleTxFields.tx_left type=i64 unit= optional=no since=1.2
+shape.BleTxFields since=1.0
+shape.BleTxFields.tx_sending type=bool unit= optional=no since=1.0
+shape.BleTxFields.tx_sent type=i64 unit= optional=no since=1.0
+shape.BleTxFields.tx_left type=i64 unit= optional=no since=1.0
 shape.BleDeviceRow since=1.0
 shape.BleDeviceRow.address type=text unit= optional=no since=1.0
 shape.BleDeviceRow.address_type type=choice(public,random_static,resolvable_private,non_resolvable_private,random) unit= optional=no since=1.0
@@ -54,12 +54,12 @@ shape.BleDeviceEvent.source type=text unit= optional=no since=1.0
 shape.BleDeviceEvent.text type=text unit= optional=yes since=1.0
 shape.BleDeviceEvent.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.BleDeviceEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
-shape.BleTxEvent since=1.2
-shape.BleTxEvent.state type=text unit= optional=no since=1.2
-shape.BleTxEvent.reason type=text unit= optional=no since=1.2
-shape.BleTxEvent.target type=text unit= optional=no since=1.2
-shape.BleTxEvent.text type=text unit= optional=no since=1.2
-shape.BleTxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.2
+shape.BleTxEvent since=1.0
+shape.BleTxEvent.state type=text unit= optional=no since=1.0
+shape.BleTxEvent.reason type=text unit= optional=no since=1.0
+shape.BleTxEvent.target type=text unit= optional=no since=1.0
+shape.BleTxEvent.text type=text unit= optional=no since=1.0
+shape.BleTxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.BletrackerFields since=1.0
 shape.BletrackerFields.following_now type=i64 unit= optional=no since=1.0
 shape.BletrackerFields.tracker_packets type=i64 unit= optional=no since=1.0
@@ -93,6 +93,16 @@ shape.BletrackerTrackerRow.status type=i64 unit= optional=yes since=1.0
 shape.BletrackerTrackerRow.following type=bool unit= optional=no since=1.0
 shape.BletrackerTrackerRow.mine type=bool unit= optional=no since=1.0
 shape.BletrackerTrackerRow.id type=i64 unit= optional=no since=1.0
+shape.BletrackerTrackerRow.mode type=choice(activated,shipping,registered,unregistered,disconnected) unit= optional=yes since=1.0
+shape.BletrackerTrackerRow.tag_state type=choice(premature_lost,lost,overmature_lost,paired,connected_one,connected_two) unit= optional=yes since=1.0
+shape.BletrackerTrackerRow.tag_state_code type=i64 unit= optional=yes since=1.0
+shape.BletrackerTrackerRow.aging_counter type=i64 unit= optional=yes since=1.0
+shape.BletrackerTrackerRow.region type=i64 unit= optional=yes since=1.0
+shape.BletrackerTrackerRow.e2e type=bool unit= optional=yes since=1.0
+shape.BletrackerTrackerRow.uwb type=bool unit= optional=yes since=1.0
+shape.BletrackerTrackerRow.battery type=i64 unit= optional=yes since=1.0
+shape.BletrackerTrackerRow.identifier type=text unit= optional=yes since=1.0
+shape.BletrackerTrackerRow.service_data type=text unit= optional=yes since=1.0
 shape.BletrackerAlertRow since=1.0
 shape.BletrackerAlertRow.time type=time unit= optional=yes since=1.0
 shape.BletrackerAlertRow.signal_s type=f64 unit=s optional=no since=1.0
@@ -396,7 +406,7 @@ shape.EspnowDeviceEvent.vendor type=text unit= optional=no since=1.1
 shape.EspnowDeviceEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.1
 ble since=1.0
 ble.fields.BleFields since=1.0
-ble.fields.BleTxFields since=1.2
+ble.fields.BleTxFields since=1.0
 ble.component.adv.dropped since=1.0
 ble.kept.devices since=1.0
 ble.kept.packets since=1.0
@@ -407,22 +417,22 @@ ble.table.packets row=BlePacketRow cap=400 since=1.0
 ble.table.pdu_types row=BlePduTypeRow cap=16 since=1.0
 ble.table.device_levels row=BleDeviceLevelRow cap=9600 since=1.0
 ble.event.ble.device fields=BleDeviceEvent since=1.0
-ble.event.ble.tx fields=BleTxEvent since=1.2
+ble.event.ble.tx fields=BleTxEvent since=1.0
 ble.setting.channel type=choice(37,38,39) unit= since=1.0
 ble.setting.hop type=bool unit= since=1.0
 ble.setting.hop_seconds type=duration unit=s since=1.0
 ble.setting.filter_text type=text unit= since=1.0
 ble.setting.min_level_dbfs type=f64 unit=dBFS since=1.0
 ble.setting.named_only type=bool unit= since=1.0
-ble.setting.tx_level type=f64 unit=of%20full%20scale since=1.2
+ble.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
 ble.setting.gen_channel type=choice(round,37,38,39) unit= since=1.0
 ble.command.clear args= reply= since=1.0
 ble.command.remove args=row:text reply= since=1.0
-ble.command.send args=address:text;address_type:choice(public,random)?;pdu_type:choice(adv_nonconn_ind,adv_ind,adv_scan_ind)?;data:text?;name:text?;uuid16:text?;company:text?;manufacturer_data:text?;count:i64?;interval_ms:i64? reply= transmits=beacon stop=halt since=1.2
-ble.command.halt args= reply= since=1.2
+ble.command.send args=address:text;address_type:choice(public,random)?;pdu_type:choice(adv_nonconn_ind,adv_ind,adv_scan_ind)?;data:text?;name:text?;uuid16:text?;company:text?;manufacturer_data:text?;count:i64?;interval_ms:i64? reply= transmits=beacon stop=halt since=1.0
+ble.command.halt args= reply= since=1.0
 bletracker since=1.0
 bletracker.fields.BletrackerFields since=1.0
-bletracker.fields.BleTxFields since=1.2
+bletracker.fields.BleTxFields since=1.0
 bletracker.component.adv.dropped since=1.0
 bletracker.kept.trackers since=1.0
 bletracker.kept.alerts since=1.0
@@ -435,17 +445,17 @@ bletracker.table.trackers row=BletrackerTrackerRow cap=200 since=1.0
 bletracker.table.alerts row=BletrackerAlertRow cap=50 since=1.0
 bletracker.table.tracker_kinds row=BletrackerKindRow cap=5 since=1.0
 bletracker.event.ble.tracker fields=BletrackerAlertEvent since=1.0
-bletracker.event.ble.tx fields=BleTxEvent since=1.2
+bletracker.event.ble.tx fields=BleTxEvent since=1.0
 bletracker.setting.channel type=choice(37,38,39) unit= since=1.0
 bletracker.setting.alert_after_min type=f64 unit=min since=1.0
 bletracker.setting.near_dbfs type=f64 unit=dBFS since=1.0
 bletracker.setting.alert_after_s type=duration unit=s since=1.0
-bletracker.setting.tx_level type=f64 unit=of%20full%20scale since=1.2
+bletracker.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
 bletracker.setting.gen_schedule type=choice(all,find_my) unit= since=1.0
 bletracker.command.clear args= reply= since=1.0
 bletracker.command.mine args=row:text;mine:bool? reply= since=1.0
-bletracker.command.send args=tracker:choice(find_my,google)?;address:text;address_type:choice(public,random)?;pdu_type:choice(adv_nonconn_ind,adv_ind,adv_scan_ind)?;status:i64?;protection:bool?;payload:text?;count:i64?;interval_ms:i64? reply= transmits=beacon stop=halt since=1.2
-bletracker.command.halt args= reply= since=1.2
+bletracker.command.send args=tracker:choice(find_my,google,tile,chipolo,smart_tag)?;address:text;address_type:choice(public,random)?;pdu_type:choice(adv_nonconn_ind,adv_ind,adv_scan_ind)?;status:i64?;protection:bool?;payload:text?;count:i64?;interval_ms:i64?;shipping:bool?;service_data:text?;tag_state:choice(premature_lost,lost,overmature_lost,paired,connected_one,connected_two)?;aging_counter:i64?;privacy_id:text?;region:i64?;e2e:bool?;uwb:bool?;battery:i64?;signature:text? reply= transmits=beacon stop=halt since=1.0
+bletracker.command.halt args= reply= since=1.0
 wifi since=1.0
 wifi.fields.WifiFields since=1.0
 wifi.component.rx.dropped since=1.0

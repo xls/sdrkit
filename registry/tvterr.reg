@@ -1,5 +1,5 @@
 # The interface of the stack family tvterr. The registry test of the family writes this file.
-family tvterr version=1.4
+family tvterr version=1.5
 uses.mpegts major=1 since=1.0
 uses.ipcast major=1 since=1.0
 uses.graph major=1 since=1.0
@@ -166,6 +166,8 @@ shape.Atsc3PlpRow.ldpc_bits type=i64 unit=bit optional=yes since=1.2
 shape.Atsc3PlpRow.cells type=i64 unit= optional=no since=1.2
 shape.Atsc3PlpRow.time_interleaver type=i64 unit= optional=no since=1.2
 shape.Atsc3PlpRow.decoded type=bool unit= optional=no since=1.2
+shape.Atsc3PlpRow.bonding type=i64 unit= optional=yes since=1.5
+shape.Atsc3PlpRow.bonded_bsid type=i64 unit= optional=yes since=1.5
 shape.DtmbFields since=1.0
 shape.DtmbFields.detection type=i64 unit= optional=no since=1.0
 shape.DtmbFields.tracking type=bool unit= optional=no since=1.0

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dvoice", version 1.5. MIT licence.
+ * sdrkit: the typed interface of the stack family "dvoice", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_DVOICE_VERSION_MAJOR 1
-#define SDRKIT_DVOICE_VERSION_MINOR 5
+#define SDRKIT_DVOICE_VERSION_MAJOR 2
+#define SDRKIT_DVOICE_VERSION_MINOR 0
 
 // The stack "dmr": its id, and the keys of its event types.
 #define SDRKIT_STACK_DMR "dmr"
@@ -95,6 +95,16 @@ typedef enum sdrkit_m17_voice_mode {
   // Voice, 3200 bit/s
   SDRKIT_M17_VOICE_MODE_VOICE_3200_BIT_S = 0,
 } sdrkit_m17_voice_mode;
+
+// The options of the setting "gen_voice" of the stack "ysf".
+typedef enum sdrkit_ysf_gen_voice {
+  // V/D mode 1
+  SDRKIT_YSF_GEN_VOICE_VD1 = 0,
+  // V/D mode 2
+  SDRKIT_YSF_GEN_VOICE_VD2 = 1,
+  // Voice full rate
+  SDRKIT_YSF_GEN_VOICE_VOICE_FR = 2,
+} sdrkit_ysf_gen_voice;
 
 // The options of the setting "gen_content" of the stack "dcr".
 typedef enum sdrkit_dcr_gen_content {
@@ -338,16 +348,16 @@ typedef struct sdrkit_dvoice_decoder_fields {
   int64_t dropped;
 } sdrkit_dvoice_decoder_fields;
 
-// The options of `tx_kind` of `sdrkit_dmr_data_tx_fields`.
-typedef enum sdrkit_dmr_data_tx_fields_tx_kind {
+// The options of `tx_kind` of `sdrkit_dmr_tx_fields`.
+typedef enum sdrkit_dmr_tx_fields_tx_kind {
   // Text
-  SDRKIT_DMR_DATA_TX_FIELDS_TX_KIND_TEXT = 0,
+  SDRKIT_DMR_TX_FIELDS_TX_KIND_TEXT = 0,
   // Voice
-  SDRKIT_DMR_DATA_TX_FIELDS_TX_KIND_VOICE = 1,
-} sdrkit_dmr_data_tx_fields_tx_kind;
+  SDRKIT_DMR_TX_FIELDS_TX_KIND_VOICE = 1,
+} sdrkit_dmr_tx_fields_tx_kind;
 
 // The result fields of the DMR sender.
-typedef struct sdrkit_dmr_data_tx_fields {
+typedef struct sdrkit_dmr_tx_fields {
   // The number of bytes of this struct that the library wrote.
   uint32_t size;
   // Whether a transmission is under way.
@@ -358,13 +368,13 @@ typedef struct sdrkit_dmr_data_tx_fields {
   double tx_freq_hz;
   // True if `tx_kind` holds a value.
   bool has_tx_kind;
-  // What the transmission sends, or the last one sent. A value of `sdrkit_dmr_data_tx_fields_tx_kind`.
+  // What the transmission sends, or the last one sent. A value of `sdrkit_dmr_tx_fields_tx_kind`.
   int32_t tx_kind;
   // The bursts or frames of the transmission, or of the last one, that are written.
   int64_t tx_frames;
   // What the sender sends.
   sdrkit_string tx_note;
-} sdrkit_dmr_data_tx_fields;
+} sdrkit_dmr_tx_fields;
 
 // The options of `kind` of `sdrkit_dvoice_call_row`.
 typedef enum sdrkit_dvoice_call_row_kind {
@@ -1168,10 +1178,6 @@ typedef struct sdrkit_freedv_fields {
   uint32_t size;
   // The active waveform: "700D", "700E", "1600", or empty when none is.
   sdrkit_string submode;
-  // Modem frames decoded with sync.
-  int64_t freedv_frames;
-  // The text line in progress, or the last finished line.
-  sdrkit_string callsign;
   // The sync state of the 700D waveform: "search", "trial" or "synced"; empty when it does not run.
   sdrkit_string sync_700d;
   // The sync state of the 700E waveform: "search", "trial" or "synced"; empty when it does not run.
@@ -1190,8 +1196,12 @@ typedef struct sdrkit_freedv_fields {
   double uw_ber_pct;
   // Frames whose LDPC decoder did not satisfy every check, since the call started.
   int64_t ldpc_failed_frames;
+  // Modem frames decoded with sync.
+  int64_t freedv_frames;
   // Codec frames sent to the speech output.
   int64_t speech_frames;
+  // The text line in progress, or the last finished line.
+  sdrkit_string callsign;
 } sdrkit_freedv_fields;
 
 // The options of `tx_kind` of `sdrkit_freedv_tx_fields`.
@@ -3172,6 +3182,9 @@ static inline int32_t sdrkit_ysf_remove(SDRKIT_HANDLE handle, const sdrkit_dvoic
   return sdrkit_typed_command(handle, "remove", "dvoice.TalkgroupArgs", args, NULL, NULL, 0);
 }
 
+// The settings of the test signal generator of the stack "ysf" are the sdrkit_ysf_gen_*() functions
+// after the settings of its receiver.
+
 // The setting "squelch_pct" (Error squelch) of the stack "ysf". Unit: %. Frames with a higher bit error rate are not played.
 static inline int32_t sdrkit_ysf_get_squelch_pct(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "squelch_pct", value);
@@ -3250,6 +3263,17 @@ static inline int32_t sdrkit_ysf_get_listen(SDRKIT_HANDLE handle, bool *value) {
 }
 static inline int32_t sdrkit_ysf_set_listen(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "listen", value);
+}
+
+// The setting "gen_voice" (Voice type) of the test signal generator of the stack "ysf". A value of `sdrkit_ysf_gen_voice`. The data type of the voice of the test signal: V/D mode 1, V/D mode 2 or voice full rate.
+static inline int32_t sdrkit_ysf_gen_get_voice(SDRKIT_HANDLE handle, sdrkit_ysf_gen_voice *value) {
+  int32_t index = 0;
+  int32_t code = sdrkit_typed_setting_get_enum(handle, "gen_voice", &index);
+  if (code == SDRKIT_OK && value) *value = (sdrkit_ysf_gen_voice)index;
+  return code;
+}
+static inline int32_t sdrkit_ysf_gen_set_voice(SDRKIT_HANDLE handle, sdrkit_ysf_gen_voice value) {
+  return sdrkit_typed_setting_set_enum(handle, "gen_voice", (int32_t)value);
 }
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "p25p2" in the snapshot of `handle`,
@@ -4734,8 +4758,8 @@ static inline int32_t sdrkit_dvoice_decoder_fields_read(SDRKIT_HANDLE handle, sd
 }
 
 // Fills `fields` with the result fields of the snapshot of `handle`.
-static inline int32_t sdrkit_dmr_data_tx_fields_read(SDRKIT_HANDLE handle, sdrkit_dmr_data_tx_fields *fields) {
-  return sdrkit_typed_fields(handle, "dvoice.DataTxFields", fields, sizeof(sdrkit_dmr_data_tx_fields));
+static inline int32_t sdrkit_dmr_tx_fields_read(SDRKIT_HANDLE handle, sdrkit_dmr_tx_fields *fields) {
+  return sdrkit_typed_fields(handle, "dvoice.DmrTxFields", fields, sizeof(sdrkit_dmr_tx_fields));
 }
 
 // Fills `fields` with the result fields of the snapshot of `handle`.

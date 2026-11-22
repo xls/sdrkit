@@ -1,7 +1,7 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
 # Yaesu System Fusion
 
-System Fusion (C4FM): callsigns, data type, text and GPS from the data channel.
+System Fusion (C4FM): calls with their speech in V/D mode 1, V/D mode 2 and voice full rate, callsigns, data type, text and GPS from the data channel.
 
 Stack id: `ysf`. Group: Digital voice.
 
@@ -36,6 +36,12 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ys
 | `hold_timeout_s` | Hold timeout | number (s) | 0 | 0 to 3600 | The hold lets go after this long without a call on it (0: until released). |
 | `hang_s` | Hang time | number (s) | 2 | 0.5 to 10 |  |
 | `listen` | Listen | yes or no | true |  | Off: decode and list, never play speech. |
+
+Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `gen_voice` | Voice type | choice | `vd2` | `vd1` (V/D mode 1), `vd2` (V/D mode 2), `voice_fr` (Voice full rate) | The data type of the voice of the test signal: V/D mode 1, V/D mode 2 or voice full rate. |
 
 ## Result fields
 
@@ -109,7 +115,7 @@ The stack puts points on a map: Positions.
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 1.5. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 2.0. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -393,6 +399,12 @@ Struct `PositionEvent`. A position.
 | `hold_timeout_s` | `sdrkit_ysf_get_hold_timeout_s` | `sdrkit_ysf_set_hold_timeout_s` |
 | `hang_s` | `sdrkit_ysf_get_hang_s` | `sdrkit_ysf_set_hang_s` |
 | `listen` | `sdrkit_ysf_get_listen` | `sdrkit_ysf_set_listen` |
+
+### Settings of the test signal generator
+
+| Key | C getter | C setter |
+|---|---|---|
+| `gen_voice` | `sdrkit_ysf_gen_get_voice` | `sdrkit_ysf_gen_set_voice` |
 
 ## Try it
 

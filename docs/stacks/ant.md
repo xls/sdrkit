@@ -86,7 +86,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 1.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 2.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -115,9 +115,9 @@ Struct `IsmTxFields`. The result fields of the sender of a frame stack.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tx_sending` | yes or no | always | 1.1 | Whether a frame is on air. |
-| `tx_sent` | whole number | always | 1.1 | The frames sent since the stack started. |
-| `tx_waiting` | whole number | always | 1.1 | The frames waiting for the transmitter. |
+| `tx_sending` | yes or no | always | 1.0 | Whether a frame is on air. |
+| `tx_sent` | whole number | always | 1.0 | The frames sent since the stack started. |
+| `tx_waiting` | whole number | always | 1.0 | The frames waiting for the transmitter. |
 
 ### Table `sensors`
 
@@ -172,11 +172,11 @@ Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | text | always | 1.1 | The state: started, queued, finished or refused. |
-| `reason` | text | always | 1.1 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
-| `target` | text | always | 1.1 | The addressee or the identity of the frame. |
-| `text` | text | always | 1.1 | What the frame carries, for started and queued; empty otherwise. |
-| `family` | choice | always | 1.1 | The family of the source: a sensor. |
+| `state` | text | always | 1.0 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.0 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
+| `target` | text | always | 1.0 | The addressee or the identity of the frame. |
+| `text` | text | always | 1.0 | What the frame carries, for started and queued; empty otherwise. |
+| `family` | choice | always | 1.0 | The family of the source: a sensor. |
 
 ### Commands
 

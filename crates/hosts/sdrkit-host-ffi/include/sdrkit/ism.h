@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "ism", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "ism", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,8 +35,8 @@
 #include "ookdev.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_ISM_VERSION_MAJOR 1
-#define SDRKIT_ISM_VERSION_MINOR 1
+#define SDRKIT_ISM_VERSION_MAJOR 2
+#define SDRKIT_ISM_VERSION_MINOR 0
 
 // The stack "ism": its id, and the keys of its event types.
 #define SDRKIT_STACK_ISM "ism"
@@ -3552,7 +3552,7 @@ typedef struct sdrkit_ism_pan_device_args {
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_ISM_PAN_DEVICE_ARGS_INIT {sizeof(sdrkit_ism_pan_device_args), {0}}
 
-// The arguments of `send` of the ISM sensor stack.
+// The arguments of `send` of the ISM sensor stack. Each family reads only the arguments its help names; the values are those that the stack reports for the family.
 typedef struct sdrkit_ism_send_args {
   // The size of this struct: sizeof of the type. The caller sets it.
   uint32_t size;
@@ -3582,10 +3582,58 @@ typedef struct sdrkit_ism_send_args {
   bool has_humidity;
   // The humidity of a sensor. Unit: %.
   int64_t humidity;
+  // True if `wind_speed` holds a value.
+  bool has_wind_speed;
+  // The mean wind speed. Unit: m/s.
+  double wind_speed;
+  // True if `wind_gust` holds a value.
+  bool has_wind_gust;
+  // The wind gust. Unit: m/s.
+  double wind_gust;
+  // True if `wind_dir` holds a value.
+  bool has_wind_dir;
+  // The wind direction. Unit: °.
+  double wind_dir;
+  // True if `rain` holds a value.
+  bool has_rain;
+  // The rain count. Unit: mm.
+  double rain;
+  // True if `uv` holds a value.
+  bool has_uv;
+  // The UV index.
+  double uv;
+  // True if `light` holds a value.
+  bool has_light;
+  // The light level. Unit: lx.
+  double light;
+  // True if `pressure` holds a value.
+  bool has_pressure;
+  // The tyre pressure. Unit: kPa.
+  double pressure;
+  // True if `flags` holds a value.
+  bool has_flags;
+  // The flags of a tyre sensor.
+  int64_t flags;
+  // True if `current` holds a value.
+  bool has_current;
+  // The current of a clamp. Unit: A.
+  double current;
+  // True if `interval` holds a value.
+  bool has_interval;
+  // The report interval. Unit: s.
+  int64_t interval;
+  // True if `power` holds a value.
+  bool has_power;
+  // The power of a meter. Unit: W.
+  int64_t power;
+  // True if `payload` holds a value.
+  bool has_payload;
+  // The frame octets of a family with a raw payload.
+  sdrkit_string payload;
 } sdrkit_ism_send_args;
 
 // An arguments struct with its size set and every argument at 0.
-#define SDRKIT_ISM_SEND_ARGS_INIT {sizeof(sdrkit_ism_send_args), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define SDRKIT_ISM_SEND_ARGS_INIT {sizeof(sdrkit_ism_send_args), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}}
 
 // The arguments of `remove` of the Wireless M-Bus stack.
 typedef struct sdrkit_wmbus_meter_args {
@@ -3685,10 +3733,34 @@ typedef struct sdrkit_zigbee_send_args {
   bool has_ack;
   // Whether the frame asks for an acknowledgement.
   bool ack;
+  // True if `security_level` holds a value.
+  bool has_security_level;
+  // The security level.
+  int64_t security_level;
+  // True if `key` holds a value.
+  bool has_key;
+  // The key of a secured frame.
+  sdrkit_string key;
+  // True if `frame_counter` holds a value.
+  bool has_frame_counter;
+  // The frame counter of a secured frame.
+  int64_t frame_counter;
+  // True if `key_id_mode` holds a value.
+  bool has_key_id_mode;
+  // The key identifier mode of a secured frame.
+  int64_t key_id_mode;
+  // True if `key_index` holds a value.
+  bool has_key_index;
+  // The key index of a secured frame.
+  int64_t key_index;
+  // True if `key_source` holds a value.
+  bool has_key_source;
+  // The key source of a secured frame.
+  sdrkit_string key_source;
 } sdrkit_zigbee_send_args;
 
 // An arguments struct with its size set and every argument at 0.
-#define SDRKIT_ZIGBEE_SEND_ARGS_INIT {sizeof(sdrkit_zigbee_send_args), {0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, 0}
+#define SDRKIT_ZIGBEE_SEND_ARGS_INIT {sizeof(sdrkit_zigbee_send_args), {0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, 0, 0, 0, 0, 0, {0}}
 
 // The arguments of `remove` of the ANT+ stack.
 typedef struct sdrkit_ant_sensor_args {
@@ -3891,7 +3963,7 @@ static inline int32_t sdrkit_ism_remove(SDRKIT_HANDLE handle, const sdrkit_ism_p
   return sdrkit_typed_command(handle, "remove", "ism.PanDeviceArgs", args, NULL, NULL, 0);
 }
 
-// Runs the command "send" (Send a frame) of the stack "ism" on the session of `handle`. Sends one transmission of the device family (its copies of the frame, as the device sends them) as OOK on the tuned frequency. Transmissions sent during one wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+// Runs the command "send" (Send a frame) of the stack "ism" on the session of `handle`. Sends one transmission of the device family (its copies of the frame, as the device sends them) on the tuned frequency, as OOK or FSK by the family. Transmissions sent during one wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
 static inline int32_t sdrkit_ism_send(SDRKIT_HANDLE handle, const sdrkit_ism_send_args *args) {
   return sdrkit_typed_command(handle, "send", "ism.IsmSendArgs", args, NULL, NULL, 0);
 }
@@ -4333,7 +4405,7 @@ static inline int32_t sdrkit_zigbee_remove(SDRKIT_HANDLE handle, const sdrkit_is
   return sdrkit_typed_command(handle, "remove", "ism.PanDeviceArgs", args, NULL, NULL, 0);
 }
 
-// Runs the command "send" (Send a frame) of the stack "zigbee" on the session of `handle`. Sends an IEEE 802.15.4 MAC frame (frame version 2003, no security) on the tuned frequency. With both addresses the source PAN id is left out. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+// Runs the command "send" (Send a frame) of the stack "zigbee" on the session of `handle`. Sends an IEEE 802.15.4 MAC frame on the tuned frequency: frame version 2003 without security, frame version 2006 with the auxiliary security header and CCM* at the security level. With both addresses the source PAN id is left out. Frames sent during a frame wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
 static inline int32_t sdrkit_zigbee_send(SDRKIT_HANDLE handle, const sdrkit_zigbee_send_args *args) {
   return sdrkit_typed_command(handle, "send", "ism.ZigbeeSendArgs", args, NULL, NULL, 0);
 }
@@ -4368,6 +4440,14 @@ static inline int32_t sdrkit_zigbee_get_dwell(SDRKIT_HANDLE handle, double *valu
 }
 static inline int32_t sdrkit_zigbee_set_dwell(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "dwell", value);
+}
+
+// The setting "keys" (Keys (kept in memory only)) of the stack "zigbee". AES-128 keys of 32 hex digits, separated by ';', tried in turn on each secured MAC frame (IEEE 802.15.4 CCM*). Empty: secured payloads are shown as encrypted.
+static inline int32_t sdrkit_zigbee_get_keys(SDRKIT_HANDLE handle, sdrkit_string *value) {
+  return sdrkit_typed_setting_get_string(handle, "keys", value);
+}
+static inline int32_t sdrkit_zigbee_set_keys(SDRKIT_HANDLE handle, sdrkit_string value) {
+  return sdrkit_typed_setting_set_string(handle, "keys", value);
 }
 
 // The setting "tx_level" (Level) of the stack "zigbee". Unit: of full scale. The magnitude of the signal sent, of full scale.

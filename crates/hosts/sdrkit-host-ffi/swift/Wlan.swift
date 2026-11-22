@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "wlan", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum WlanInterface {
-    public static let major = 1
-    public static let minor = 2
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of `ble`.
@@ -292,6 +292,21 @@ public struct BletrackerTrackerRow {
         case farther = 1
         case steady = 2
     }
+    public enum Mode: Int32 {
+        case activated = 0
+        case shipping = 1
+        case registered = 2
+        case unregistered = 3
+        case disconnected = 4
+    }
+    public enum TagState: Int32 {
+        case prematureLost = 0
+        case lost = 1
+        case overmatureLost = 2
+        case paired = 3
+        case connectedOne = 4
+        case connectedTwo = 5
+    }
     /// The row key.
     public var key: String
     /// The label of the tracker: its kind and the last two address bytes.
@@ -326,6 +341,26 @@ public struct BletrackerTrackerRow {
     public var mine: Bool
     /// The tracker id.
     public var id: Int64
+    /// The mode that the advertised UUID tells: Tile activated or shipping, SmartTag registered or unregistered, Chipolo disconnected from its owner. No value for other families.
+    public var mode: Mode?
+    /// The SmartTag tag state. No value for the codes 0 and 7, which have no name, and for other families.
+    public var tagState: TagState?
+    /// The SmartTag tag state code, 0 to 7.
+    public var tagStateCode: Int64?
+    /// The SmartTag aging counter: 15-minute steps of the tag's clock from 2020-07-02 00:00 UTC.
+    public var agingCounter: Int64?
+    /// The SmartTag region ID, 0 to 15.
+    public var region: Int64?
+    /// The SmartTag E2E flag: finders must encrypt their location reports.
+    public var e2e: Bool?
+    /// The SmartTag UWB flag.
+    public var uwb: Bool?
+    /// The SmartTag battery code, 0 to 3.
+    public var battery: Int64?
+    /// The rolling identifier in hex, opaque: the SmartTag privacy ID.
+    public var identifier: String?
+    /// The service data value under the family's UUID in hex, as sent (Tile, Chipolo, SmartTag).
+    public var serviceData: String?
 
     init(_ c: sdrkit_bletracker_tracker_row) {
         key = sdrkitText(c.key)
@@ -345,6 +380,16 @@ public struct BletrackerTrackerRow {
         following = c.following
         mine = c.mine
         id = c.id
+        mode = c.has_mode ? Mode(rawValue: c.mode) : nil
+        tagState = c.has_tag_state ? TagState(rawValue: c.tag_state) : nil
+        tagStateCode = c.has_tag_state_code ? c.tag_state_code : nil
+        agingCounter = c.has_aging_counter ? c.aging_counter : nil
+        region = c.has_region ? c.region : nil
+        e2e = c.has_e2e ? c.e2e : nil
+        uwb = c.has_uwb ? c.uwb : nil
+        battery = c.has_battery ? c.battery : nil
+        identifier = c.has_identifier ? sdrkitText(c.identifier) : nil
+        serviceData = c.has_service_data ? sdrkitText(c.service_data) : nil
     }
 }
 
@@ -2109,11 +2154,11 @@ public enum WlanCommands {
         }() }
         return sdrkitResult(code)
     }
-    /// Send a tracker advertisement. Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: Find My manufacturer data of company 0x004C (type 0x12, length 25, the status, the payload) or Google service data of UUID 0xFEAA (frame type 0x40 or 0x41, the payload). A send during another waits for it. Transmit must be on. It transmits (beacon). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
-    public static func bletrackerSend(_ handle: SDRKIT_HANDLE, tracker: Int32? = nil, address: String, addressType: Int32? = nil, pduType: Int32? = nil, status: Int64? = nil, protection: Bool? = nil, payload: String? = nil, count: Int64? = nil, intervalMs: Int64? = nil) -> Result<Void, SDRKitCode> {
+    /// Send a tracker advertisement. Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: Find My manufacturer data of company 0x004C (type 0x12, length 25, the status, the payload); Google service data of UUID 0xFEAA (frame type 0x40 or 0x41, the payload); Tile, a UUID list of 0xFEED and the service data under 0xFEED, or in shipping mode a UUID list of 0xFEEC alone; Chipolo, a UUID list of 0xFE33 and the service data under 0xFE33; SmartTag, the 20-byte service data of UUID 0xFD5A from the tag state, the aging counter, the privacy ID, the region, the E2E and UWB flags, the battery code and the signature. No flags structure goes out. A send during another waits for it. Transmit must be on. It transmits (beacon). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    public static func bletrackerSend(_ handle: SDRKIT_HANDLE, tracker: Int32? = nil, address: String, addressType: Int32? = nil, pduType: Int32? = nil, status: Int64? = nil, protection: Bool? = nil, payload: String? = nil, count: Int64? = nil, intervalMs: Int64? = nil, shipping: Bool? = nil, serviceData: String? = nil, tagState: Int32? = nil, agingCounter: Int64? = nil, privacyId: String? = nil, region: Int64? = nil, e2e: Bool? = nil, uwb: Bool? = nil, battery: Int64? = nil, signature: String? = nil) -> Result<Void, SDRKitCode> {
         var args = sdrkit_bletracker_send_args()
         args.size = UInt32(MemoryLayout<sdrkit_bletracker_send_args>.size)
-        let code: Int32 = sdrkitWithString(address) { address_ in sdrkitWithString(payload ?? "") { payload_ in { () -> Int32 in
+        let code: Int32 = sdrkitWithString(address) { address_ in sdrkitWithString(payload ?? "") { payload_ in sdrkitWithString(serviceData ?? "") { service_data_ in sdrkitWithString(privacyId ?? "") { privacy_id_ in sdrkitWithString(signature ?? "") { signature_ in { () -> Int32 in
         args.has_tracker = tracker != nil
         if let given = tracker { args.tracker = given }
         args.address = address_
@@ -2131,8 +2176,28 @@ public enum WlanCommands {
         if let given = count { args.count = given }
         args.has_interval_ms = intervalMs != nil
         if let given = intervalMs { args.interval_ms = given }
+        args.has_shipping = shipping != nil
+        if let given = shipping { args.shipping = given }
+        args.has_service_data = serviceData != nil
+        args.service_data = service_data_
+        args.has_tag_state = tagState != nil
+        if let given = tagState { args.tag_state = given }
+        args.has_aging_counter = agingCounter != nil
+        if let given = agingCounter { args.aging_counter = given }
+        args.has_privacy_id = privacyId != nil
+        args.privacy_id = privacy_id_
+        args.has_region = region != nil
+        if let given = region { args.region = given }
+        args.has_e2e = e2e != nil
+        if let given = e2e { args.e2e = given }
+        args.has_uwb = uwb != nil
+        if let given = uwb { args.uwb = given }
+        args.has_battery = battery != nil
+        if let given = battery { args.battery = given }
+        args.has_signature = signature != nil
+        args.signature = signature_
         return sdrkit_bletracker_send(handle, &args)
-        }() } }
+        }() } } } } }
         return sdrkitResult(code)
     }
     /// Halt. Drops the packets of the send on air that are still to go, and the sends that wait.

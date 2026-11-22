@@ -340,15 +340,3 @@ fn texts_are_refused_and_nothing_is_sent() {
     assert!((desc("dstar").make_receiver)(&StackConfig::new(bad)).is_err());
 }
 
-/// The sender's fields, settings and commands are of family version 1.3.
-#[test]
-fn the_sender_of_dstar_is_of_family_version_1_3() {
-    let f = sdrkit_stack_dvoice::typed::family();
-    for path in [
-        "shape.DstarTxFields.tx_note",
-        "dstar.setting.your_call",
-        "dstar.command.send",
-    ] {
-        assert_eq!(f.since(path).minor, 3, "{path}");
-    }
-}

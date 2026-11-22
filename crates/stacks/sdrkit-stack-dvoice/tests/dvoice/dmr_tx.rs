@@ -570,29 +570,6 @@ fn calls_are_refused_and_the_time_out_ends_one() {
     assert_eq!(host.bursts().len(), 1);
 }
 
-/// The voice of the sender is of family version 1.5.
-#[test]
-fn the_voice_of_the_dmr_sender_is_of_family_version_1_5() {
-    let f = sdrkit_stack_dvoice::typed::family();
-    for path in ["dmr.command.ptt", "dmr.setting.tx_timeout"] {
-        assert_eq!(f.since(path).minor, 5, "{path}");
-    }
-}
-
-/// The sender's fields, settings and commands are of family version 1.3.
-#[test]
-fn the_sender_of_dmr_is_of_family_version_1_3() {
-    let f = sdrkit_stack_dvoice::typed::family();
-    for path in [
-        "shape.DmrTxFields.tx_note",
-        "dmr.setting.radio_id",
-        "dmr.setting.slot",
-        "dmr.command.send",
-    ] {
-        assert_eq!(f.since(path).minor, 3, "{path}");
-    }
-}
-
 /// A voice call in direct mode through noise at 15 dB in the channel: the receiver holds the timing and the levels across
 /// the noise of the silent slot, so every speech frame arrives with at most a few bit errors.
 #[test]

@@ -150,7 +150,7 @@ The stack puts points on a map: Positions.
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 1.5. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 2.0. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -181,17 +181,17 @@ Struct `FreedvFields`. The result fields of FreeDV.
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `submode` | text | always | 1.0 | The active waveform: "700D", "700E", "1600", or empty when none is. |
-| `sync_700d` | text | always | 1.2 | The sync state of the 700D waveform: "search", "trial" or "synced"; empty when it does not run. |
-| `sync_700e` | text | always | 1.2 | The sync state of the 700E waveform: "search", "trial" or "synced"; empty when it does not run. |
-| `sync_1600` | text | always | 1.2 | The sync state of the 1600 waveform: "search" or "synced"; empty when it does not run. |
-| `confirmed` | yes or no | always | 1.2 | The active waveform held sync at 3 dB or more for 1.5 s. |
-| `freq_offset_hz` | number (Hz) | always | 1.2 | The frequency estimate of the active OFDM waveform, relative to the 1500 Hz centre. |
-| `clock_offset_ppm` | number (ppm) | always | 1.2 | The sample clock offset of the active OFDM waveform. |
-| `timing_metric` | number | always | 1.2 | The last timing metric of the active OFDM waveform (0 to about 1). |
-| `uw_ber_pct` | number (%) | always | 1.2 | Unique word bit errors of the bits of the unique word, since the call started. |
-| `ldpc_failed_frames` | whole number | always | 1.2 | Frames whose LDPC decoder did not satisfy every check, since the call started. |
+| `sync_700d` | text | always | 1.0 | The sync state of the 700D waveform: "search", "trial" or "synced"; empty when it does not run. |
+| `sync_700e` | text | always | 1.0 | The sync state of the 700E waveform: "search", "trial" or "synced"; empty when it does not run. |
+| `sync_1600` | text | always | 1.0 | The sync state of the 1600 waveform: "search" or "synced"; empty when it does not run. |
+| `confirmed` | yes or no | always | 1.0 | The active waveform held sync at 3 dB or more for 1.5 s. |
+| `freq_offset_hz` | number (Hz) | always | 1.0 | The frequency estimate of the active OFDM waveform, relative to the 1500 Hz centre. |
+| `clock_offset_ppm` | number (ppm) | always | 1.0 | The sample clock offset of the active OFDM waveform. |
+| `timing_metric` | number | always | 1.0 | The last timing metric of the active OFDM waveform (0 to about 1). |
+| `uw_ber_pct` | number (%) | always | 1.0 | Unique word bit errors of the bits of the unique word, since the call started. |
+| `ldpc_failed_frames` | whole number | always | 1.0 | Frames whose LDPC decoder did not satisfy every check, since the call started. |
 | `freedv_frames` | whole number | always | 1.0 | Modem frames decoded with sync. |
-| `speech_frames` | whole number | always | 1.2 | Codec frames sent to the speech output. |
+| `speech_frames` | whole number | always | 1.0 | Codec frames sent to the speech output. |
 | `callsign` | text | always | 1.0 | The text line in progress, or the last finished line. |
 
 ### Result fields
@@ -218,10 +218,10 @@ Struct `FreedvTxFields`. The result fields of the FreeDV sender.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `transmitting` | yes or no | always | 1.3 | Whether a transmission is under way. |
-| `tx_freq_hz` | frequency | optional | 1.3 | The transmit frequency (the suppressed carrier): the listening frequency plus the transmit offset. No value while the stack does not transmit. |
-| `tx_kind` | choice | optional | 1.3 | What the transmission sends, or the last one sent. |
-| `tx_frames` | whole number | always | 1.3 | The modem frames of the transmission, or of the last one, that are written. |
+| `transmitting` | yes or no | always | 1.0 | Whether a transmission is under way. |
+| `tx_freq_hz` | frequency | optional | 1.0 | The transmit frequency (the suppressed carrier): the listening frequency plus the transmit offset. No value while the stack does not transmit. |
+| `tx_kind` | choice | optional | 1.0 | What the transmission sends, or the last one sent. |
+| `tx_frames` | whole number | always | 1.0 | The modem frames of the transmission, or of the last one, that are written. |
 
 ### Table `calls`
 

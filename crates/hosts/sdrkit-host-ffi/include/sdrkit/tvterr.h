@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "tvterr", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "tvterr", version 1.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -38,7 +38,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_TVTERR_VERSION_MAJOR 1
-#define SDRKIT_TVTERR_VERSION_MINOR 4
+#define SDRKIT_TVTERR_VERSION_MINOR 5
 
 // The stack "isdbt": its id, and the keys of its event types.
 #define SDRKIT_STACK_ISDBT "isdbt"
@@ -944,7 +944,7 @@ typedef struct sdrkit_atsc3_plp_row {
   int64_t layer;
   // True if `points` holds a value.
   bool has_points;
-  // The constellation points, also 1024 and 4096 that the stack does not decode. No value for a reserved code.
+  // The constellation points, also of a coding that the stack does not decode. No value for a reserved code.
   int64_t points;
   // True if `code_rate` holds a value.
   bool has_code_rate;
@@ -962,6 +962,14 @@ typedef struct sdrkit_atsc3_plp_row {
   bool decoded;
   // The number of the subframe in the frame, from 0.
   int64_t subframe;
+  // True if `bonding` holds a value.
+  bool has_bonding;
+  // The channel bonding format (table 9.25): 0 plain, 1 SNR averaging, 2 and 3 reserved. No value when the PLP is not bonded with another RF channel.
+  int64_t bonding;
+  // True if `bonded_bsid` holds a value.
+  bool has_bonded_bsid;
+  // The BSID of the RF channel that the PLP is bonded with, as L1-Detail lists it.
+  int64_t bonded_bsid;
 } sdrkit_atsc3_plp_row;
 
 // The options of `header` of `sdrkit_dtmb_fields`.

@@ -446,20 +446,6 @@ fn the_time_out_and_halt_end_a_transmission() {
     assert!(!fields(rx.as_ref()).transmitting);
 }
 
-/// The sender's fields, settings and commands are of family version 1.3.
-#[test]
-fn the_sender_of_freedv_is_of_family_version_1_3() {
-    let f = sdrkit_stack_dvoice::typed::family();
-    for path in [
-        "shape.FreedvTxFields.tx_frames",
-        "freedv.setting.callsign",
-        "freedv.setting.tx_clip",
-        "freedv.command.ptt",
-    ] {
-        assert_eq!(f.since(path).minor, 3, "{path}");
-    }
-}
-
 // ---------------------------------------------------------------------------------------------------------------------------
 // 1600.
 

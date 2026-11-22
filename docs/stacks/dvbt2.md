@@ -34,7 +34,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:dv
 | `tx_pilots` | Pilot pattern | choice | `pp7` | `pp1` (PP1), `pp2` (PP2), `pp3` (PP3), `pp4` (PP4), `pp5` (PP5), `pp6` (PP6), `pp7` (PP7), `pp8` (PP8) | A pattern that EN 302 755 tables 58 and 59 do not allow with the FFT size and the guard interval is refused at start. |
 | `tx_extended` | Extended carriers | yes or no | false |  | 8K, 16K and 32K only. |
 | `tx_modulation` | Constellation | choice | `64qam` | `qpsk` (QPSK), `16qam` (16-QAM), `64qam` (64-QAM), `256qam` (256-QAM) |  |
-| `tx_rate` | Code rate | choice | `2/3` | `1/2`, `3/5`, `2/3`, `3/4`, `4/5`, `5/6` |  |
+| `tx_rate` | Code rate | choice | `2/3` | `1/2`, `3/5`, `2/3`, `3/4`, `4/5`, `5/6`, `1/3` (1/3 (T2-Lite)), `2/5` (2/5 (T2-Lite)) |  |
 | `tx_rotation` | Rotated constellation | yes or no | true |  |  |
 | `tx_fec_frame` | FEC frame | choice | `64800` | `16200` (16 200 bits), `64800` (64 800 bits) |  |
 | `tx_ti_blocks` | Time interleaver | whole number (TI-blocks) | 3 | 0 to 8 | The TI-blocks of a T2-frame. 0: no time interleaving. Fewer TI-blocks interleave deeper and hold fewer FEC blocks a frame. |
@@ -43,6 +43,8 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:dv
 | `tx_cell_id` | Cell id | whole number | 0 | 0 to 65535 |  |
 | `tx_network_id` | Network id | whole number | 0 | 0 to 65535 |  |
 | `tx_system_id` | T2 system id | whole number | 0 | 0 to 65535 |  |
+| `tx_profile` | Profile | choice | `base` | `base` (T2-base), `lite` (T2-Lite) | T2-Lite (EN 302 755 annex I) takes 2K to 16K, the code rates 1/2 to 3/4, 1/3 and 2/5, always the 16 200-bit FEC frame, 256-QAM only with 1/3, 2/5, 1/2 and 3/5 and never rotated, and at most 4 Mbit/s. A pattern that tables I.5 and I.6 do not allow is refused at start. |
+| `tx_miso` | MISO | choice | `siso` | `siso` (SISO), `group1` (MISO group 1), `group2` (MISO group 2) | In MISO each transmitter of group 2 sends the modified Alamouti code of the cells that group 1 sends, and its own pilot signs (EN 302 755 clause 9.1). A receiver decodes the sum of both groups. A pattern that table 59 does not allow is refused at start. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -167,7 +169,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `dvbt2`, version 1.2. The C header `sdrkit/dvbt2.h`, the registry record `registry/dvbt2.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvbt2`, version 1.3. The C header `sdrkit/dvbt2.h`, the registry record `registry/dvbt2.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -492,6 +494,8 @@ Struct `DvbSubtitleEvent`. The fields of a subtitle display.
 | `tx_cell_id` | `sdrkit_dvbt2_get_tx_cell_id` | `sdrkit_dvbt2_set_tx_cell_id` |
 | `tx_network_id` | `sdrkit_dvbt2_get_tx_network_id` | `sdrkit_dvbt2_set_tx_network_id` |
 | `tx_system_id` | `sdrkit_dvbt2_get_tx_system_id` | `sdrkit_dvbt2_set_tx_system_id` |
+| `tx_profile` | `sdrkit_dvbt2_get_tx_profile` | `sdrkit_dvbt2_set_tx_profile` |
+| `tx_miso` | `sdrkit_dvbt2_get_tx_miso` | `sdrkit_dvbt2_set_tx_miso` |
 
 ### Settings of the test signal generator
 

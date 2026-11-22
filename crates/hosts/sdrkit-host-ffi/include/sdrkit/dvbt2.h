@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dvbt2", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "dvbt2", version 1.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -37,7 +37,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DVBT2_VERSION_MAJOR 1
-#define SDRKIT_DVBT2_VERSION_MINOR 2
+#define SDRKIT_DVBT2_VERSION_MINOR 3
 
 // The stack "dvbt2": its id, and the keys of its event types.
 #define SDRKIT_STACK_DVBT2 "dvbt2"
@@ -264,6 +264,10 @@ typedef enum sdrkit_dvbt2_tx_rate {
   SDRKIT_DVBT2_TX_RATE_4_5 = 4,
   // 5/6
   SDRKIT_DVBT2_TX_RATE_5_6 = 5,
+  // 1/3 (T2-Lite)
+  SDRKIT_DVBT2_TX_RATE_1_3 = 6,
+  // 2/5 (T2-Lite)
+  SDRKIT_DVBT2_TX_RATE_2_5 = 7,
 } sdrkit_dvbt2_tx_rate;
 
 // The options of the setting "tx_fec_frame" of the stack "dvbt2".
@@ -285,6 +289,24 @@ typedef enum sdrkit_dvbt2_tx_l1_mod {
   // 64-QAM
   SDRKIT_DVBT2_TX_L1_MOD_64QAM = 3,
 } sdrkit_dvbt2_tx_l1_mod;
+
+// The options of the setting "tx_profile" of the stack "dvbt2".
+typedef enum sdrkit_dvbt2_tx_profile {
+  // T2-base
+  SDRKIT_DVBT2_TX_PROFILE_BASE = 0,
+  // T2-Lite
+  SDRKIT_DVBT2_TX_PROFILE_LITE = 1,
+} sdrkit_dvbt2_tx_profile;
+
+// The options of the setting "tx_miso" of the stack "dvbt2".
+typedef enum sdrkit_dvbt2_tx_miso {
+  // SISO
+  SDRKIT_DVBT2_TX_MISO_SISO = 0,
+  // MISO group 1
+  SDRKIT_DVBT2_TX_MISO_GROUP1 = 1,
+  // MISO group 2
+  SDRKIT_DVBT2_TX_MISO_GROUP2 = 2,
+} sdrkit_dvbt2_tx_miso;
 
 // The options of `detection` of `sdrkit_dvbt2_fields`.
 typedef enum sdrkit_dvbt2_fields_detection {
@@ -957,6 +979,28 @@ static inline int32_t sdrkit_dvbt2_get_tx_system_id(SDRKIT_HANDLE handle, int64_
 }
 static inline int32_t sdrkit_dvbt2_set_tx_system_id(SDRKIT_HANDLE handle, int64_t value) {
   return sdrkit_typed_setting_set_i64(handle, "tx_system_id", value);
+}
+
+// The setting "tx_profile" (Profile) of the stack "dvbt2". A value of `sdrkit_dvbt2_tx_profile`. T2-Lite (EN 302 755 annex I) takes 2K to 16K, the code rates 1/2 to 3/4, 1/3 and 2/5, always the 16 200-bit FEC frame, 256-QAM only with 1/3, 2/5, 1/2 and 3/5 and never rotated, and at most 4 Mbit/s. A pattern that tables I.5 and I.6 do not allow is refused at start.
+static inline int32_t sdrkit_dvbt2_get_tx_profile(SDRKIT_HANDLE handle, sdrkit_dvbt2_tx_profile *value) {
+  int32_t index = 0;
+  int32_t code = sdrkit_typed_setting_get_enum(handle, "tx_profile", &index);
+  if (code == SDRKIT_OK && value) *value = (sdrkit_dvbt2_tx_profile)index;
+  return code;
+}
+static inline int32_t sdrkit_dvbt2_set_tx_profile(SDRKIT_HANDLE handle, sdrkit_dvbt2_tx_profile value) {
+  return sdrkit_typed_setting_set_enum(handle, "tx_profile", (int32_t)value);
+}
+
+// The setting "tx_miso" (MISO) of the stack "dvbt2". A value of `sdrkit_dvbt2_tx_miso`. In MISO each transmitter of group 2 sends the modified Alamouti code of the cells that group 1 sends, and its own pilot signs (EN 302 755 clause 9.1). A receiver decodes the sum of both groups. A pattern that table 59 does not allow is refused at start.
+static inline int32_t sdrkit_dvbt2_get_tx_miso(SDRKIT_HANDLE handle, sdrkit_dvbt2_tx_miso *value) {
+  int32_t index = 0;
+  int32_t code = sdrkit_typed_setting_get_enum(handle, "tx_miso", &index);
+  if (code == SDRKIT_OK && value) *value = (sdrkit_dvbt2_tx_miso)index;
+  return code;
+}
+static inline int32_t sdrkit_dvbt2_set_tx_miso(SDRKIT_HANDLE handle, sdrkit_dvbt2_tx_miso value) {
+  return sdrkit_typed_setting_set_enum(handle, "tx_miso", (int32_t)value);
 }
 
 // The setting "gen_fft" (FFT size) of the test signal generator of the stack "dvbt2". A value of `sdrkit_dvbt2_gen_fft`.

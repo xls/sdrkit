@@ -1732,7 +1732,7 @@ pub fn family() -> &'static Described {
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 1, 3)
+        Described::new("wlan", 2, 0)
             .shared_source("tracker", &["bletracker"])
             .stack(
                 StackShape::new("ble")
@@ -1847,51 +1847,8 @@ pub fn family() -> &'static Described {
                         .kept(&["devices", "frames", "EspnowFields.devices"]),
                 )
             })
-            .added(1, 2, ADDED_1_2)
-            .added(1, 3, ADDED_1_3)
     })
 }
-
-/// What version 1.2 added: the advertising senders of the stacks `ble` and `bletracker`.
-const ADDED_1_2: &[&str] = &[
-    "ble.fields.BleTxFields",
-    "ble.event.ble.tx",
-    "ble.setting.tx_level",
-    "ble.command.send",
-    "ble.command.halt",
-    "bletracker.fields.BleTxFields",
-    "bletracker.event.ble.tx",
-    "bletracker.setting.tx_level",
-    "bletracker.command.send",
-    "bletracker.command.halt",
-    "shape.BleTxFields",
-    "shape.BleTxFields.tx_sending",
-    "shape.BleTxFields.tx_sent",
-    "shape.BleTxFields.tx_left",
-    "shape.BleTxEvent",
-    "shape.BleTxEvent.state",
-    "shape.BleTxEvent.reason",
-    "shape.BleTxEvent.target",
-    "shape.BleTxEvent.text",
-    "shape.BleTxEvent.family",
-];
-
-/// What version 1.3 added: the Tile, Chipolo and SmartTag columns of the trackers of `bletracker`. The same version
-/// appends the choices `tile`, `chipolo` and `smart_tag` to the argument `tracker` of its `send`, and the arguments
-/// `shipping`, `service_data`, `tag_state`, `aging_counter`, `privacy_id`, `region`, `e2e`, `uwb`, `battery` and
-/// `signature` at the end of them.
-const ADDED_1_3: &[&str] = &[
-    "shape.BletrackerTrackerRow.mode",
-    "shape.BletrackerTrackerRow.tag_state",
-    "shape.BletrackerTrackerRow.tag_state_code",
-    "shape.BletrackerTrackerRow.aging_counter",
-    "shape.BletrackerTrackerRow.region",
-    "shape.BletrackerTrackerRow.e2e",
-    "shape.BletrackerTrackerRow.uwb",
-    "shape.BletrackerTrackerRow.battery",
-    "shape.BletrackerTrackerRow.identifier",
-    "shape.BletrackerTrackerRow.service_data",
-];
 
 /// The description of the stack `id`.
 ///

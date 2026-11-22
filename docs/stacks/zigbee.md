@@ -1,11 +1,11 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
 # Zigbee / 802.15.4
 
-IEEE 802.15.4 frames on 2.4 GHz channels 11 to 26: MAC headers, beacons, Zigbee NWK and APS headers and device announcements; secured payloads shown as encrypted.
+IEEE 802.15.4 frames on 2.4 GHz channels 11 to 26: MAC headers, beacons, Zigbee NWK and APS headers and device announcements; secured MAC frames opened with the keys of the setting `keys`, else shown as encrypted.
 
 Stack id: `zigbee`. Group: IoT, 2.4 GHz.
 
-Zigbee and IEEE 802.15.4 on 2.4 GHz : O-QPSK chips, frames with their FCS, the MAC, Zigbee NWK and APS headers, beacons and device announcements. Secured payloads are shown as encrypted, and no key is used.
+Zigbee and IEEE 802.15.4 on 2.4 GHz : O-QPSK chips, frames with their FCS, the MAC, Zigbee NWK and APS headers, beacons and device announcements. A secured MAC frame opens with a key of the setting `keys` ; without one its payload is shown as encrypted.
 
 Standard: IEEE 802.15.4-2020 clause 12 (2450 MHz O-QPSK) and clause 7 (MAC frames), Zigbee specification R22 (NWK, APS).
 
@@ -32,6 +32,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:zi
 | `channel` | Channel | whole number | 11 | 11 to 26 | Asks the host to tune 2405 + 5 (k - 11) MHz. |
 | `scan` | Scan channels 11 to 26 | yes or no | false |  | Asks the host to visit each channel in turn. |
 | `dwell` | Scan dwell | duration (s) | 5 s | 1 to 60 |  |
+| `keys` | Keys (kept in memory only) | text | empty |  | AES-128 keys of 32 hex digits, separated by ';', tried in turn on each secured MAC frame (IEEE 802.15.4 CCM*). Empty: secured payloads are shown as encrypted. |
 | `tx_level` | Level | number (of full scale) | 0.5 | 0.05 to 0.9 | The magnitude of the signal sent, of full scale. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
@@ -88,12 +89,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything heard so far. Favourites stay. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
-| `send` | Send a frame | `pan_id` (text, required), `destination` (text, required), `source` (text, required), `payload` (text, required), `frame_type` (choice, default `data`), `sequence` (whole number, default 0), `ack` (yes or no, default false) |  | Sends an IEEE 802.15.4 MAC frame (frame version 2003, no security) on the tuned frequency. With both addresses the source PAN id is left out. Frames sent during a frame wait for it. Transmit must be on. |
+| `send` | Send a frame | `pan_id` (text, required), `destination` (text, required), `source` (text, required), `payload` (text, required), `frame_type` (choice, default `data`), `sequence` (whole number, default 0), `ack` (yes or no, default false), `security_level` (whole number, default 0), `key` (text, default empty), `frame_counter` (whole number, default 0), `key_id_mode` (whole number, default 1), `key_index` (whole number, default 1), `key_source` (text, default empty) |  | Sends an IEEE 802.15.4 MAC frame on the tuned frequency: frame version 2003 without security, frame version 2006 with the auxiliary security header and CCM* at the security level. With both addresses the source PAN id is left out. Frames sent during a frame wait for it. Transmit must be on. |
 | `halt` | Halt |  |  | Drops the frames waiting and ends the frame on air with the fall of the carrier. |
 
 ## Typed interface
 
-The stack is in the family `ism`, version 1.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 2.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -126,9 +127,9 @@ Struct `IsmTxFields`. The result fields of the sender of a frame stack.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tx_sending` | yes or no | always | 1.1 | Whether a frame is on air. |
-| `tx_sent` | whole number | always | 1.1 | The frames sent since the stack started. |
-| `tx_waiting` | whole number | always | 1.1 | The frames waiting for the transmitter. |
+| `tx_sending` | yes or no | always | 1.0 | Whether a frame is on air. |
+| `tx_sent` | whole number | always | 1.0 | The frames sent since the stack started. |
+| `tx_waiting` | whole number | always | 1.0 | The frames waiting for the transmitter. |
 
 ### Table `networks`
 
@@ -196,11 +197,11 @@ Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | text | always | 1.1 | The state: started, queued, finished or refused. |
-| `reason` | text | always | 1.1 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
-| `target` | text | always | 1.1 | The addressee or the identity of the frame. |
-| `text` | text | always | 1.1 | What the frame carries, for started and queued; empty otherwise. |
-| `family` | choice | always | 1.1 | The family of the source: a sensor. |
+| `state` | text | always | 1.0 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.0 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
+| `target` | text | always | 1.0 | The addressee or the identity of the frame. |
+| `text` | text | always | 1.0 | What the frame carries, for started and queued; empty otherwise. |
+| `family` | choice | always | 1.0 | The family of the source: a sensor. |
 
 ### Commands
 
@@ -218,6 +219,7 @@ Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
 | `channel` | `sdrkit_zigbee_get_channel` | `sdrkit_zigbee_set_channel` |
 | `scan` | `sdrkit_zigbee_get_scan` | `sdrkit_zigbee_set_scan` |
 | `dwell` | `sdrkit_zigbee_get_dwell` | `sdrkit_zigbee_set_dwell` |
+| `keys` | `sdrkit_zigbee_get_keys` | `sdrkit_zigbee_set_keys` |
 | `tx_level` | `sdrkit_zigbee_get_tx_level` | `sdrkit_zigbee_set_tx_level` |
 
 ### Settings of the test signal generator
