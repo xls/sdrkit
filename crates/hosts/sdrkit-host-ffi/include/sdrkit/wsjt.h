@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wsjt", version 3.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "wsjt", version 4.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,7 +34,7 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_WSJT_VERSION_MAJOR 3
+#define SDRKIT_WSJT_VERSION_MAJOR 4
 #define SDRKIT_WSJT_VERSION_MINOR 0
 
 // The stack "wsjt": its id, and the keys of its event types.
@@ -777,10 +777,8 @@ typedef struct sdrkit_wspr_spot_row {
 typedef enum sdrkit_wsjt_mode_row_state {
   // Decoding
   SDRKIT_WSJT_MODE_ROW_STATE_DECODING = 0,
-  // No code table
-  SDRKIT_WSJT_MODE_ROW_STATE_NO_TABLE = 1,
   // No decoder
-  SDRKIT_WSJT_MODE_ROW_STATE_NO_DECODER = 2,
+  SDRKIT_WSJT_MODE_ROW_STATE_NO_DECODER = 1,
 } sdrkit_wsjt_mode_row_state;
 
 // A row of the modes table: the counters and the state of one mode heard, or of one JS8 speed. The row key is the mode id, or `js8n`, `js8f` and `js8t`.
@@ -2300,14 +2298,6 @@ static inline int32_t sdrkit_wsjt_get_msk144_period(SDRKIT_HANDLE handle, double
 }
 static inline int32_t sdrkit_wsjt_set_msk144_period(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "msk144_period", value);
-}
-
-// The setting "code_dir" (Code tables) of the stack "wsjt". The folder of the FST4, FST4W and MSK144 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist). These stacks decode only once their tables are loaded.
-static inline int32_t sdrkit_wsjt_get_code_dir(SDRKIT_HANDLE handle, sdrkit_string *value) {
-  return sdrkit_typed_setting_get_string(handle, "code_dir", value);
-}
-static inline int32_t sdrkit_wsjt_set_code_dir(SDRKIT_HANDLE handle, sdrkit_string value) {
-  return sdrkit_typed_setting_set_string(handle, "code_dir", value);
 }
 
 // The setting "js8_normal" (JS8 Normal (15 s)) of the stack "wsjt".
@@ -4873,14 +4863,6 @@ static inline int32_t sdrkit_fst4_set_fst4_period(SDRKIT_HANDLE handle, double v
   return sdrkit_typed_setting_set_f64(handle, "fst4_period", value);
 }
 
-// The setting "code_dir" (Code tables) of the stack "fst4". The folder of the FST4, FST4W and MSK144 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist). These stacks decode only once their tables are loaded.
-static inline int32_t sdrkit_fst4_get_code_dir(SDRKIT_HANDLE handle, sdrkit_string *value) {
-  return sdrkit_typed_setting_get_string(handle, "code_dir", value);
-}
-static inline int32_t sdrkit_fst4_set_code_dir(SDRKIT_HANDLE handle, sdrkit_string value) {
-  return sdrkit_typed_setting_set_string(handle, "code_dir", value);
-}
-
 // The setting "deep" (Deep decoding) of the stack "fst4". A second stage with coherent soft bits, OSD and a-priori CQ decoding. FT8, FT4 and FT2 also add the soft bits of candidates that failed in earlier slots, and assume the calls heard on the band.
 static inline int32_t sdrkit_fst4_get_deep(SDRKIT_HANDLE handle, bool *value) {
   return sdrkit_typed_setting_get_bool(handle, "deep", value);
@@ -5059,14 +5041,6 @@ static inline int32_t sdrkit_fst4w_set_fst4w_period(SDRKIT_HANDLE handle, double
   return sdrkit_typed_setting_set_f64(handle, "fst4w_period", value);
 }
 
-// The setting "code_dir" (Code tables) of the stack "fst4w". The folder of the FST4, FST4W and MSK144 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist). These stacks decode only once their tables are loaded.
-static inline int32_t sdrkit_fst4w_get_code_dir(SDRKIT_HANDLE handle, sdrkit_string *value) {
-  return sdrkit_typed_setting_get_string(handle, "code_dir", value);
-}
-static inline int32_t sdrkit_fst4w_set_code_dir(SDRKIT_HANDLE handle, sdrkit_string value) {
-  return sdrkit_typed_setting_set_string(handle, "code_dir", value);
-}
-
 // The setting "deep" (Deep decoding) of the stack "fst4w". A second stage with coherent soft bits, OSD and a-priori CQ decoding. FT8, FT4 and FT2 also add the soft bits of candidates that failed in earlier slots, and assume the calls heard on the band.
 static inline int32_t sdrkit_fst4w_get_deep(SDRKIT_HANDLE handle, bool *value) {
   return sdrkit_typed_setting_get_bool(handle, "deep", value);
@@ -5243,14 +5217,6 @@ static inline int32_t sdrkit_msk144_get_msk144_period(SDRKIT_HANDLE handle, doub
 }
 static inline int32_t sdrkit_msk144_set_msk144_period(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "msk144_period", value);
-}
-
-// The setting "code_dir" (Code tables) of the stack "msk144". The folder of the FST4, FST4W and MSK144 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist). These stacks decode only once their tables are loaded.
-static inline int32_t sdrkit_msk144_get_code_dir(SDRKIT_HANDLE handle, sdrkit_string *value) {
-  return sdrkit_typed_setting_get_string(handle, "code_dir", value);
-}
-static inline int32_t sdrkit_msk144_set_code_dir(SDRKIT_HANDLE handle, sdrkit_string value) {
-  return sdrkit_typed_setting_set_string(handle, "code_dir", value);
 }
 
 // The setting "deep" (Deep decoding) of the stack "msk144". A second stage with coherent soft bits, OSD and a-priori CQ decoding. FT8, FT4 and FT2 also add the soft bits of candidates that failed in earlier slots, and assume the calls heard on the band.

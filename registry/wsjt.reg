@@ -1,5 +1,5 @@
 # The interface of the stack family wsjt. The registry test of the family writes this file.
-family wsjt version=3.0
+family wsjt version=4.0
 shape.WsjtFields since=1.0
 shape.WsjtFields.time_source type=choice(system_clock,recording_start,searching,found_from_signals) unit= optional=yes since=1.0
 shape.WsjtFields.utc type=time unit= optional=no since=1.0
@@ -49,7 +49,7 @@ shape.ModeRow.decodes type=i64 unit= optional=no since=1.0
 shape.ModeRow.last_count type=i64 unit= optional=no since=1.0
 shape.ModeRow.utc type=time unit= optional=yes since=1.0
 shape.ModeRow.decode_ms type=f64 unit=ms optional=no since=1.0
-shape.ModeRow.state type=choice(decoding,no_table,no_decoder) unit= optional=no since=1.0
+shape.ModeRow.state type=choice(decoding,no_decoder) unit= optional=no since=1.0
 shape.StationRow since=1.0
 shape.StationRow.callsign type=text unit= optional=no since=1.0
 shape.StationRow.locator type=text unit= optional=yes since=1.0
@@ -300,7 +300,6 @@ wsjt.setting.q65_period type=duration unit=s since=1.0
 wsjt.setting.fst4_period type=duration unit=s since=1.0
 wsjt.setting.fst4w_period type=duration unit=s since=1.0
 wsjt.setting.msk144_period type=duration unit=s since=1.0
-wsjt.setting.code_dir type=text unit= since=1.0
 wsjt.setting.js8_normal type=bool unit= since=1.0
 wsjt.setting.js8_fast type=bool unit= since=1.0
 wsjt.setting.js8_turbo type=bool unit= since=1.0
@@ -796,7 +795,6 @@ fst4.event.js8.frame fields=Js8FrameEvent since=1.0
 fst4.event.js8.message fields=Js8MessageEvent since=1.0
 fst4.event.wsjt.tx fields=TxEvent since=1.0
 fst4.setting.fst4_period type=duration unit=s since=1.0
-fst4.setting.code_dir type=text unit= since=1.0
 fst4.setting.deep type=bool unit= since=1.0
 fst4.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
 fst4.setting.listen type=bool unit= since=1.0
@@ -837,7 +835,6 @@ fst4w.event.js8.frame fields=Js8FrameEvent since=1.0
 fst4w.event.js8.message fields=Js8MessageEvent since=1.0
 fst4w.event.wsjt.tx fields=TxEvent since=1.0
 fst4w.setting.fst4w_period type=duration unit=s since=1.0
-fst4w.setting.code_dir type=text unit= since=1.0
 fst4w.setting.deep type=bool unit= since=1.0
 fst4w.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
 fst4w.setting.listen type=bool unit= since=1.0
@@ -878,7 +875,6 @@ msk144.event.js8.frame fields=Js8FrameEvent since=1.0
 msk144.event.js8.message fields=Js8MessageEvent since=1.0
 msk144.event.wsjt.tx fields=TxEvent since=1.0
 msk144.setting.msk144_period type=duration unit=s since=1.0
-msk144.setting.code_dir type=text unit= since=1.0
 msk144.setting.deep type=bool unit= since=1.0
 msk144.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
 msk144.setting.listen type=bool unit= since=1.0

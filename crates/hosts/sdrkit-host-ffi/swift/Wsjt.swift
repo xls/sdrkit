@@ -1,11 +1,11 @@
-// sdrkit: the typed interface of the stack family "wsjt", version 3.0. MIT licence.
+// sdrkit: the typed interface of the stack family "wsjt", version 4.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum WsjtInterface {
-    public static let major = 3
+    public static let major = 4
     public static let minor = 0
 }
 
@@ -185,8 +185,7 @@ public struct WsprSpotRow {
 public struct WsjtModeRow {
     public enum State: Int32 {
         case decoding = 0
-        case noTable = 1
-        case noDecoder = 2
+        case noDecoder = 1
     }
     /// The row key.
     public var key: String
@@ -3039,15 +3038,6 @@ public enum WsjtSettings {
     public static func setWsjtMsk144Period(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "msk144_period", value))
     }
-    /// Code tables.
-    public static func wsjtCodeDir(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
-        var v: sdrkit_string = sdrkit_string()
-        let code = sdrkit_typed_setting_get_string(handle, "code_dir", &v)
-        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
-    }
-    public static func setWsjtCodeDir(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
-        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "code_dir", $0) })
-    }
     /// JS8 Normal (15 s).
     public static func wsjtJs8Normal(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
         var v: Bool = false
@@ -4806,15 +4796,6 @@ public enum WsjtSettings {
     public static func setFst4Period(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "fst4_period", value))
     }
-    /// Code tables.
-    public static func fst4CodeDir(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
-        var v: sdrkit_string = sdrkit_string()
-        let code = sdrkit_typed_setting_get_string(handle, "code_dir", &v)
-        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
-    }
-    public static func setFst4CodeDir(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
-        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "code_dir", $0) })
-    }
     /// Deep decoding.
     public static func fst4Deep(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
         var v: Bool = false
@@ -4901,15 +4882,6 @@ public enum WsjtSettings {
     public static func setFst4wPeriod(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "fst4w_period", value))
     }
-    /// Code tables.
-    public static func fst4wCodeDir(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
-        var v: sdrkit_string = sdrkit_string()
-        let code = sdrkit_typed_setting_get_string(handle, "code_dir", &v)
-        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
-    }
-    public static func setFst4wCodeDir(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
-        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "code_dir", $0) })
-    }
     /// Deep decoding.
     public static func fst4wDeep(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
         var v: Bool = false
@@ -4995,15 +4967,6 @@ public enum WsjtSettings {
     }
     public static func setMsk144Period(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "msk144_period", value))
-    }
-    /// Code tables.
-    public static func msk144CodeDir(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
-        var v: sdrkit_string = sdrkit_string()
-        let code = sdrkit_typed_setting_get_string(handle, "code_dir", &v)
-        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
-    }
-    public static func setMsk144CodeDir(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
-        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "code_dir", $0) })
     }
     /// Deep decoding.
     public static func msk144Deep(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
