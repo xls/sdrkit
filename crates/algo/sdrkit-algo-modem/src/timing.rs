@@ -367,6 +367,15 @@ pub trait RunInterpolator: Interpolator {
     fn place(&self, mu: f32) -> Self::Place;
     /// [`Interpolator::at`] for the fraction of `place`.
     fn read<T: Sample>(&self, hist: &[T], place: Self::Place) -> T;
+    /// Appends to `out` the [`read`](Self::read) of each instant of `places`: the first sample of its window in `held`,
+    /// and its place. Panics if a window does not fit in `held`.
+    #[inline]
+    fn read_run<T: Sample>(&self, held: &[T], places: &[(u32, Self::Place)], out: &mut Vec<T>) {
+        out.extend(places.iter().map(|&(from, place)| {
+            let from = from as usize;
+            self.read(&held[from..from + Self::TAPS], place)
+        }));
+    }
 }
 
 impl<const TAPS: usize, const PHASES: usize> RunInterpolator for MatchedBank<TAPS, PHASES> {
@@ -387,6 +396,26 @@ impl<const TAPS: usize, const PHASES: usize> RunInterpolator for MatchedBank<TAP
             T::dot_lanes(&self.pairs[p * 2 * TAPS..(p + 1) * 2 * TAPS], &h[..TAPS])
         } else {
             T::dot(&self.rows[p * TAPS..(p + 1) * TAPS], &h[..TAPS])
+        }
+    }
+    /// The reads of [`read`](RunInterpolator::read), with the rows of the bank checked once for the whole run.
+    #[inline]
+    fn read_run<T: Sample>(&self, held: &[T], places: &[(u32, u32)], out: &mut Vec<T>) {
+        if T::LANES == 2 {
+            let pairs = &self.pairs[..(PHASES + 1) * 2 * TAPS];
+            out.extend(places.iter().map(|&(from, place)| {
+                let (from, p) = (from as usize, (place as usize).min(PHASES));
+                T::dot_lanes(
+                    &pairs[p * 2 * TAPS..(p + 1) * 2 * TAPS],
+                    &held[from..from + TAPS],
+                )
+            }));
+        } else {
+            let rows = &self.rows[..(PHASES + 1) * TAPS];
+            out.extend(places.iter().map(|&(from, place)| {
+                let (from, p) = (from as usize, (place as usize).min(PHASES));
+                T::dot(&rows[p * TAPS..(p + 1) * TAPS], &held[from..from + TAPS])
+            }));
         }
     }
 }
@@ -1517,10 +1546,7 @@ impl<T: Symbol, I: RunInterpolator> RunSymbolSync<T, I> {
         self.places
             .extend((0..2 * span.n).map(|j| span.instant(interp, frac, j)));
         self.raw.clear();
-        self.raw.extend(self.places.iter().map(|&(from, place)| {
-            let from = from as usize;
-            interp.read(&held[from..from + I::TAPS], place)
-        }));
+        interp.read_run(held, &self.places, &mut self.raw);
         // The symbols of the run and the sum of their errors, with the gain found up to the run before.
         let was = self.tracking();
         let (errors, any) = if self.cfg.oqpsk {
