@@ -359,10 +359,9 @@ fn dot_lanes_fixed_neon<const N: usize>(t: &[f32; N], x: &[f32; N]) -> [f32; 2] 
         zero,
     );
     let s = vaddq_f32(lo, hi);
-    [
-        vgetq_lane_f32::<0>(s) + vgetq_lane_f32::<2>(s),
-        vgetq_lane_f32::<1>(s) + vgetq_lane_f32::<3>(s),
-    ]
+    // Lanes 0 + 2 and 1 + 3 in one add, which leaves the pair in one register.
+    let p = vadd_f32(vget_low_f32(s), vget_high_f32(s));
+    [vget_lane_f32::<0>(p), vget_lane_f32::<1>(p)]
 }
 
 // NEON is a required part of every ARM64 target that this module is compiled for, so the functions marked with it can
@@ -553,6 +552,18 @@ mod tests {
                     (want.0.to_bits(), want.1.to_bits())
                 );
             }
+        }
+        // Zero samples with negative taps make products of -0, which the sums must turn to +0 as the plain kernel does.
+        for n in [16, 32, 64, 20] {
+            let t = vec![-0.5f32; 2 * n];
+            let x = vec![0f32; 2 * n];
+            let want = crate::sample::dot_flat2(&t, x.as_chunks::<2>().0);
+            let got = dot_lanes_pairs(&t, &x);
+            assert_eq!(
+                (got[0].to_bits(), got[1].to_bits()),
+                (want.0.to_bits(), want.1.to_bits()),
+                "{n} taps of zero samples"
+            );
         }
     }
 
