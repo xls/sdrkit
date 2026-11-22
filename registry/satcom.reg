@@ -1,5 +1,5 @@
 # The interface of the stack family satcom. The registry test of the family writes this file.
-family satcom version=1.3
+family satcom version=1.4
 shape.InmarsatcFields since=1.0
 shape.InmarsatcFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.InmarsatcFields.frames_bad type=i64 unit= optional=no since=1.0
@@ -1050,7 +1050,7 @@ goes_dcs.setting.gen_scenario type=choice(0,1,2,3) unit= since=1.0
 goes_dcs.command.clear args= reply= since=1.0
 goes_dcs.command.remove args=row:text reply= since=1.0
 argos since=1.0
-argos.content kind=tracking since=1.3
+argos.content kind=satellite_links since=1.3
 argos.fields.ArgosFields since=1.0
 argos.fields.DecoderFields since=1.0
 argos.component.rx.dropped since=1.0
@@ -1177,7 +1177,7 @@ orbcomm.command.clear args= reply= since=1.0
 orbcomm.command.preset.apply args=channel:choice(137.2500,137.2875,137.3125,137.4625,137.6625,137.7375,137.5)? reply= since=1.0
 orbcomm.command.remove args=row:text reply= since=1.0
 psk_demod since=1.0
-psk_demod.content kind=satellite_links since=1.3
+psk_demod.content kind=measurement since=1.3
 psk_demod.fields.PskDemodFields since=1.0
 psk_demod.fields.DecoderFields since=1.0
 psk_demod.component.receiver.dropped since=1.0

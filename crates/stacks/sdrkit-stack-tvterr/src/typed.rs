@@ -900,7 +900,7 @@ pub fn family() -> &'static Family {
                 .fields::<IsdbtNarrowFields<'static>>(),
         )
         .settings(IsdbtsbSetting::SETTINGS);
-        Family::new("tvterr", 1, 6)
+        Family::new("tvterr", 1, 7)
             .added(
                 1,
                 6,
@@ -915,8 +915,9 @@ pub fn family() -> &'static Family {
             )
             .content(
                 sdrkit_core::ContentKind::Television,
-                &["isdbt", "isdbtsb", "atsc", "atsc3", "dtmb", "tv-auto"],
+                &["isdbt", "isdbtsb", "atsc", "atsc3", "dtmb"],
             )
+            .content(sdrkit_core::ContentKind::Measurement, &["tv-auto"])
             .audio(
                 sdrkit_core::AudioKind::Programme,
                 &["isdbt", "isdbtsb", "atsc", "dtmb"],

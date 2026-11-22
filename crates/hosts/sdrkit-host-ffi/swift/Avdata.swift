@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "avdata", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "avdata", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum AvdataInterface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The result fields of ACARS.

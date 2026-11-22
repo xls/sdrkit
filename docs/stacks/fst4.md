@@ -69,12 +69,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `decodes` | Decodes | `utc` (time), `snr_db` (number (dB)), `dt_s` (number (s)), `audio_hz` (frequency), `band` (text), `dial_hz` (frequency), `mode` (text), `message` (text), `mirrored` (yes or no), `how` (choice), `early` (yes or no) |
-| `wspr_spots` | WSPR spots | `utc` (time), `snr_db` (number (dB)), `dt_s` (number (s)), `audio_hz` (frequency), `callsign` (text), `locator` (text), `power_dbm` (whole number (dBm)), `message` (text) |
+| `wspr_spots` | WSPR spots | `utc` (time), `snr_db` (number (dB)), `dt_s` (number (s)), `audio_hz` (frequency), `callsign` (text), `locator` (text), `power_dbm` (whole number (dBm)), `message` (text), `position` (position) |
 | `modes` | Modes | `mode` (text), `period` (duration (s)), `slots` (whole number), `decodes` (whole number), `last_count` (whole number), `utc` (time), `decode_ms` (number (ms)), `state` (choice) |
-| `stations` | Stations | `callsign` (text), `locator` (text), `mode` (choice), `snr_db` (number (dB)), `freq_hz` (frequency), `heard` (whole number), `last_heard` (time) |
+| `stations` | Stations | `callsign` (text), `locator` (text), `mode` (choice), `snr_db` (number (dB)), `freq_hz` (frequency), `heard` (whole number), `last_heard` (time), `position` (position) |
 | `js8_frames` | JS8 frames | `utc` (time), `submode` (choice), `snr_db` (number (dB)), `dt_s` (number (s)), `audio_hz` (frequency), `frame` (text) |
 | `js8_messages` | JS8 messages | `utc` (time), `snr_db` (number (dB)), `audio_hz` (frequency), `message` (text) |
-| `js8_stations` | JS8 stations | `callsign` (text), `locator` (text), `snr_db` (number (dB)), `audio_hz` (frequency), `utc` (time), `last_text` (text), `last_heard` (time) |
+| `js8_stations` | JS8 stations | `callsign` (text), `locator` (text), `snr_db` (number (dB)), `audio_hz` (frequency), `utc` (time), `last_text` (text), `last_heard` (time), `position` (position) |
 
 ## Result series
 
@@ -92,8 +92,8 @@ The stack puts points on a map: Stations.
 |---|---|---|
 | `wsjt.decode` | Decode | `mode` (choice), `text` (text), `snr_db` (number (dB)), `dt_s` (number (s)), `audio_hz` (frequency), `callsign` (text), `locator` (text), `cq` (yes or no), `mirrored` (yes or no), `how` (choice), `power_dbm` (whole number (dBm)), `source` (text), `position` (position), `family` (choice) |
 | `wsjt.spot` | Station heard | `callsign` (text), `locator` (text), `snr_db` (number (dB)), `freq_hz` (frequency), `mode` (text), `source` (text), `family` (choice) |
-| `js8.frame` | JS8 frame | `text` (text), `chars` (text), `snr_db` (number (dB)), `submode` (choice), `source` (text), `target` (text), `family` (choice) |
-| `js8.message` | JS8 message | `text` (text), `complete` (yes or no), `source` (text), `target` (text), `family` (choice) |
+| `js8.frame` | JS8 frame | `text` (text), `chars` (text), `snr_db` (number (dB)), `submode` (choice), `source` (text), `target` (text), `cq` (yes or no), `family` (choice) |
+| `js8.message` | JS8 message | `text` (text), `complete` (yes or no), `source` (text), `target` (text), `cq` (yes or no), `family` (choice) |
 | `wsjt.tx` | Message to send | `mode` (choice), `text` (text), `audio_hz` (frequency), `slot` (time), `period` (duration (s)), `family` (choice) |
 
 ## Commands
@@ -105,7 +105,7 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `wsjt`, version 4.1. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wsjt`, version 4.2. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Weak-signal messages (`weak_signal`). Media: sound (monitor), text.
 
@@ -145,6 +145,8 @@ Struct `DecodeRow`. A row of the decode table. The row key is the place of the d
 | `how` | choice | always | 1.0 | How the decode was made. |
 | `early` | yes or no | always | 1.0 | The decode is from the first part of a slot. The decode of the whole slot replaces it. |
 
+Default order: the column `utc`, highest first.
+
 ### Table `wspr_spots`
 
 Struct `WsprSpotRow`. A row of the WSPR and FST4W spots. The row key is the place of the spot in the log.
@@ -159,8 +161,9 @@ Struct `WsprSpotRow`. A row of the WSPR and FST4W spots. The row key is the plac
 | `locator` | text | always | 1.0 | The locator of the beacon. |
 | `power_dbm` | whole number (dBm) | always | 1.0 | The power that the beacon states. |
 | `message` | text | always | 1.0 | The decoded message. |
+| `position` | position | optional | 4.2 | The centre of the locator, if the spot holds one. |
 
-The column `callsign` names a row.
+The column `callsign` names a row. Default order: the column `utc`, highest first. Place of a row: the column `position`.
 
 ### Table `modes`
 
@@ -190,8 +193,9 @@ Struct `StationRow`. A row of the station table: a station heard in any mode. Th
 | `freq_hz` | frequency | always | 1.0 | The radio frequency of the newest decode. |
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last decode. |
+| `position` | position | optional | 4.2 | The centre of the locator, if one was heard. |
 
-The column `callsign` names a row.
+The column `callsign` names a row. Default order: the column `last_heard`, highest first. Place of a row: the column `position`.
 
 ### Table `js8_frames`
 
@@ -206,6 +210,8 @@ Struct `Js8FrameRow`. A row of the JS8 frames. The row key is the place of the f
 | `audio_hz` | frequency | always | 1.0 | The audio frequency. |
 | `frame` | text | always | 1.0 | The text of the frame. |
 
+Default order: the column `utc`, highest first.
+
 ### Table `js8_messages`
 
 Struct `Js8MessageRow`. A row of the JS8 messages. The row key is the place of the message in the log.
@@ -216,6 +222,8 @@ Struct `Js8MessageRow`. A row of the JS8 messages. The row key is the place of t
 | `snr_db` | number (dB) | always | 1.0 | The SNR in 2500 Hz. |
 | `audio_hz` | frequency | always | 1.0 | The audio frequency. |
 | `message` | text | always | 1.0 | The message. |
+
+Default order: the column `utc`, highest first.
 
 ### Table `js8_stations`
 
@@ -230,8 +238,9 @@ Struct `Js8StationRow`. A row of the JS8 stations. The row key is the callsign.
 | `utc` | time | always | 1.0 | The UTC of the newest frame. |
 | `last_text` | text | always | 1.0 | The newest text of the station. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+| `position` | position | optional | 4.2 | The centre of the locator, if one was heard. |
 
-The column `callsign` names a row.
+The column `callsign` names a row. Default order: the column `last_heard`, highest first. Place of a row: the column `position`.
 
 ### Event `wsjt.decode`
 
@@ -280,6 +289,7 @@ Struct `Js8FrameEvent`. The fields of a JS8 frame.
 | `submode` | choice | optional | 1.0 | The speed of the frame. |
 | `source` | text | optional | 1.0 | The sending station, if the frame names one. |
 | `target` | text | optional | 1.0 | The station or group addressed, if the frame names one. |
+| `cq` | yes or no | always | 4.2 | The frame is a CQ: a heartbeat to all with a CQ. |
 | `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Event `js8.message`
@@ -292,6 +302,7 @@ Struct `Js8MessageEvent`. The fields of a JS8 message, sent when its last frame 
 | `complete` | yes or no | always | 1.0 | The last frame of the message came. |
 | `source` | text | optional | 1.0 | The sending station, if it is known. |
 | `target` | text | optional | 1.0 | The station or group addressed, if it is known. |
+| `cq` | yes or no | always | 4.2 | The message is a CQ. |
 | `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Event `wsjt.tx`

@@ -67,7 +67,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wsjt`, version 4.1. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wsjt`, version 4.2. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Weak-signal messages (`weak_signal`). Media: sound (monitor), text.
 
@@ -105,6 +105,8 @@ Struct `Pi4DecodeRow`. A row of the decode table of `pi4`. The row key is the nu
 | `carrier_hz` | number (Hz) | always | 1.0 | The carrier frequency: tone 0 plus half a spacing. |
 | `sync` | number | always | 1.0 | The sync value c. |
 | `k` | whole number | always | 1.0 | The tone spacing factor of the decode. |
+
+Default order: the column `utc`, highest first.
 
 ### Event `wsjt.decode`
 

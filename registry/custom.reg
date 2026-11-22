@@ -1,5 +1,5 @@
 # The interface of the stack family custom. The registry test of the family writes this file.
-family custom version=1.3
+family custom version=1.4
 shape.SlottedVoiceFields since=1.0
 shape.SlottedVoiceFields.locked type=bool unit= optional=no since=1.0
 shape.SlottedVoiceFields.offset_hz type=hz unit=Hz optional=yes since=1.0
@@ -221,7 +221,7 @@ slotted_voice.command.clear args= reply= since=1.0
 slotted_voice.command.send args= reply= transmits=voice stop=stop since=1.0
 slotted_voice.command.stop args= reply= since=1.0
 qam_video since=1.0
-qam_video.content kind=television video=yes since=1.3
+qam_video.content kind=television audio=programme video=yes since=1.3
 qam_video.fields.QamVideoFields since=1.0
 qam_video.fields.DecoderFields since=1.0
 qam_video.table.streams row=QamVideoStreamRow cap=64 since=1.0

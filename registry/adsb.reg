@@ -1,5 +1,5 @@
 # The interface of the stack family adsb. The registry test of the family writes this file.
-family adsb version=1.2
+family adsb version=1.3
 shape.TrackerFields since=1.0
 shape.TrackerFields.aircraft_count type=i64 unit= optional=no since=1.0
 shape.TrackerFields.with_position type=i64 unit= optional=no since=1.0
@@ -328,7 +328,7 @@ uat.setting.gen_example type=bool unit= since=1.0
 uat.setting.gen_bursts type=i64 unit= since=1.0
 uat.command.clear args= reply= since=1.0
 modeac since=1.0
-modeac.content kind=tracking since=1.2
+modeac.content kind=utility since=1.2
 modeac.fields.ModeAcFields since=1.0
 modeac.table.modeac row=ModeAcRow cap=256 since=1.0
 modeac.event.modeac.reply fields=ModeAcReplyEvent since=1.0
@@ -337,7 +337,7 @@ modeac.setting.min_replies type=i64 unit= since=1.0
 modeac.setting.gen_targets type=i64 unit= since=1.0
 modeac.command.clear args= reply= since=1.0
 uplink1030 since=1.0
-uplink1030.content kind=tracking since=1.2
+uplink1030.content kind=networks since=1.2
 uplink1030.fields.UplinkFields since=1.0
 uplink1030.table.addressed row=AddressedRow cap=256 label=icao since=1.0
 uplink1030.table.interrogators row=InterrogatorRow cap=64 since=1.0

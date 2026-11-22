@@ -114,6 +114,7 @@ field FieldDecl { key: "wide.channels", label: "Dials decoded", unit: "", kind: 
 field FieldDecl { key: "wide.load_pct", label: "Decoding load", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "wide.too_slow", label: "Too slow", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -126,7 +127,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -135,6 +136,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -145,7 +147,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -153,7 +155,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -161,12 +165,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -174,6 +179,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "wide.multiband" "Multi-band monitor" cap 64
   column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -214,12 +220,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -287,6 +295,7 @@ field FieldDecl { key: "wide.too_slow", label: "Too slow", unit: "", kind: Bool,
 field FieldDecl { key: "hop.band", label: "Hop band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "hop.next_utc", label: "Next band change", unit: "", kind: Time, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -299,7 +308,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -308,6 +317,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -318,7 +328,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -326,7 +336,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -334,12 +346,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -347,6 +360,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "wide.multiband" "Multi-band monitor" cap 64
   column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -387,12 +401,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -457,6 +473,7 @@ field FieldDecl { key: "wide.too_slow", label: "Too slow", unit: "", kind: Bool,
 field FieldDecl { key: "hop.band", label: "Hop band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "hop.next_utc", label: "Next band change", unit: "", kind: Time, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -469,7 +486,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -478,6 +495,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -488,7 +506,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -496,7 +514,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -504,12 +524,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -517,6 +538,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "wide.multiband" "Multi-band monitor" cap 64
   column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -557,12 +579,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -626,6 +650,7 @@ field FieldDecl { key: "wide.too_slow", label: "Too slow", unit: "", kind: Bool,
 field FieldDecl { key: "hop.band", label: "Hop band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "hop.next_utc", label: "Next band change", unit: "", kind: Time, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -638,7 +663,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -647,6 +672,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -657,7 +683,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -665,7 +691,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -673,12 +701,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -686,6 +715,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "wide.multiband" "Multi-band monitor" cap 64
   column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -726,12 +756,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -793,6 +825,7 @@ field FieldDecl { key: "wide.too_slow", label: "Too slow", unit: "", kind: Bool,
 field FieldDecl { key: "hop.band", label: "Hop band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "hop.next_utc", label: "Next band change", unit: "", kind: Time, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -805,7 +838,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -814,6 +847,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -824,7 +858,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -832,7 +866,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -840,12 +876,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -853,6 +890,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "wide.multiband" "Multi-band monitor" cap 64
   column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -893,12 +931,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -947,6 +987,7 @@ field FieldDecl { key: "dec_jt65.decodes", label: "Decodes", unit: "", kind: I64
 field FieldDecl { key: "dec_jt65.decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dec_jt65.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -959,7 +1000,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -968,6 +1009,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -978,7 +1020,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -986,7 +1028,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -994,12 +1038,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1007,6 +1052,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 series SeriesDecl { key: "js8_waterfall", label: "JS8 waterfall", x_unit: "Hz", y_unit: "dB" }
 points "Stations"
 event "wsjt.decode" "Decode"
@@ -1039,12 +1085,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1092,6 +1140,7 @@ field FieldDecl { key: "dec_jt9.decodes", label: "Decodes", unit: "", kind: I64,
 field FieldDecl { key: "dec_jt9.decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dec_jt9.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1104,7 +1153,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1113,6 +1162,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -1123,7 +1173,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1131,7 +1181,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1139,12 +1191,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1152,6 +1205,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 series SeriesDecl { key: "js8_waterfall", label: "JS8 waterfall", x_unit: "Hz", y_unit: "dB" }
 points "Stations"
 event "wsjt.decode" "Decode"
@@ -1184,12 +1238,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1238,6 +1294,7 @@ field FieldDecl { key: "dec_jt4.decodes", label: "Decodes", unit: "", kind: I64,
 field FieldDecl { key: "dec_jt4.decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dec_jt4.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1250,7 +1307,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1259,6 +1316,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -1269,7 +1327,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1277,7 +1335,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1285,12 +1345,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1298,6 +1359,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 series SeriesDecl { key: "js8_waterfall", label: "JS8 waterfall", x_unit: "Hz", y_unit: "dB" }
 points "Stations"
 event "wsjt.decode" "Decode"
@@ -1330,12 +1392,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1379,6 +1443,7 @@ field FieldDecl { key: "dec_q65.decodes", label: "Decodes", unit: "", kind: I64,
 field FieldDecl { key: "dec_q65.decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dec_q65.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1391,7 +1456,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1400,6 +1465,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -1410,7 +1476,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1418,7 +1484,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1426,12 +1494,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1439,6 +1508,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 series SeriesDecl { key: "js8_waterfall", label: "JS8 waterfall", x_unit: "Hz", y_unit: "dB" }
 points "Stations"
 event "wsjt.decode" "Decode"
@@ -1471,12 +1541,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1517,6 +1589,7 @@ field FieldDecl { key: "dec_fst4.decodes", label: "Decodes", unit: "", kind: I64
 field FieldDecl { key: "dec_fst4.decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dec_fst4.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1529,7 +1602,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1538,6 +1611,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -1548,7 +1622,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1556,7 +1630,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1564,12 +1640,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1577,6 +1654,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 series SeriesDecl { key: "js8_waterfall", label: "JS8 waterfall", x_unit: "Hz", y_unit: "dB" }
 points "Stations"
 event "wsjt.decode" "Decode"
@@ -1609,12 +1687,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1655,6 +1735,7 @@ field FieldDecl { key: "dec_fst4w.decodes", label: "Decodes", unit: "", kind: I6
 field FieldDecl { key: "dec_fst4w.decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dec_fst4w.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1667,7 +1748,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1676,6 +1757,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -1686,7 +1768,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1694,7 +1776,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1702,12 +1786,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1715,6 +1800,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 series SeriesDecl { key: "js8_waterfall", label: "JS8 waterfall", x_unit: "Hz", y_unit: "dB" }
 points "Stations"
 event "wsjt.decode" "Decode"
@@ -1747,12 +1833,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1793,6 +1881,7 @@ field FieldDecl { key: "dec_msk144.decodes", label: "Decodes", unit: "", kind: I
 field FieldDecl { key: "dec_msk144.decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dec_msk144.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1805,7 +1894,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1814,6 +1903,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -1824,7 +1914,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1832,7 +1922,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1840,12 +1932,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1853,6 +1946,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 series SeriesDecl { key: "js8_waterfall", label: "JS8 waterfall", x_unit: "Hz", y_unit: "dB" }
 points "Stations"
 event "wsjt.decode" "Decode"
@@ -1885,12 +1979,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1935,6 +2031,7 @@ field FieldDecl { key: "dec_js8.decodes", label: "Decodes", unit: "", kind: I64,
 field FieldDecl { key: "dec_js8.decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dec_js8.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1947,7 +2044,7 @@ table "decodes" "Decodes" cap 1000
   column FieldDecl { key: "how", label: "How", unit: "", kind: Choice, choices: [ChoiceDecl { key: "alone", label: "This slot" }, ChoiceDecl { key: "combined", label: "(combined)" }, ChoiceDecl { key: "a_priori", label: "(a-priori)" }], refers_to: None, content: None }
   column FieldDecl { key: "early", label: "Early", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "wspr_spots" "WSPR spots" cap 1000
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(4), sort: Some((0, Descending)), position: Some(8), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "dt_s", label: "DT", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
@@ -1956,6 +2053,7 @@ table "wspr_spots" "WSPR spots" cap 1000
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "power_dbm", label: "Power", unit: "dBm", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "modes" "Modes" cap 32
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
@@ -1966,7 +2064,7 @@ table "modes" "Modes" cap 32
   column FieldDecl { key: "decode_ms", label: "Decoding time", unit: "ms", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "decoding", label: "Decoding" }, ChoiceDecl { key: "no_decoder", label: "No decoder" }], refers_to: None, content: None }
 table "stations" "Stations" cap 1000
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -1974,7 +2072,9 @@ table "stations" "Stations" cap 1000
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 table "js8_frames" "JS8 frames" cap 600
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1982,12 +2082,13 @@ table "js8_frames" "JS8 frames" cap 600
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "frame", label: "Frame", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_messages" "JS8 messages" cap 200
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "audio_hz", label: "Audio", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "message", label: "Message", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "js8_stations" "JS8 stations" cap 600
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: Some(7), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "callsign", label: "Call", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "locator", label: "Locator", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -1995,6 +2096,7 @@ table "js8_stations" "JS8 stations" cap 600
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_text", label: "Last", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
 series SeriesDecl { key: "js8_waterfall", label: "JS8 waterfall", x_unit: "Hz", y_unit: "dB" }
 points "Stations"
 event "wsjt.decode" "Decode"
@@ -2027,12 +2129,14 @@ event "js8.frame" "JS8 frame"
   field FieldDecl { key: "submode", label: "Sub-mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "fast", label: "Fast" }, ChoiceDecl { key: "turbo", label: "Turbo" }], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "js8.message" "JS8 message"
   field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "cq", label: "CQ", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
 event "wsjt.tx" "Message to send"
   field FieldDecl { key: "mode", label: "Mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "ft8", label: "FT8" }, ChoiceDecl { key: "ft4", label: "FT4" }, ChoiceDecl { key: "ft2", label: "FT2" }, ChoiceDecl { key: "wspr", label: "WSPR" }, ChoiceDecl { key: "jt65", label: "JT65" }, ChoiceDecl { key: "jt9", label: "JT9" }, ChoiceDecl { key: "jt4", label: "JT4" }, ChoiceDecl { key: "q65", label: "Q65" }, ChoiceDecl { key: "fst4", label: "FST4" }, ChoiceDecl { key: "fst4w", label: "FST4W" }, ChoiceDecl { key: "msk144", label: "MSK144" }, ChoiceDecl { key: "js8", label: "JS8" }], refers_to: None, content: None }
@@ -2060,6 +2164,7 @@ field FieldDecl { key: "burst_level_db", label: "Burst level", unit: "dB", kind:
 field FieldDecl { key: "bursts", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -2102,6 +2207,7 @@ field FieldDecl { key: "fold_period", label: "Fold period", unit: "", kind: I64,
 field FieldDecl { key: "tuning_hz", label: "Tuning", unit: "Hz", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Pings" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -2143,6 +2249,7 @@ field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, ch
 field FieldDecl { key: "variant", label: "Variant", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
@@ -2188,6 +2295,7 @@ field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [],
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decodes" "Decodes" cap 1000
+  marks TableMarks { label: None, sort: Some((0, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }

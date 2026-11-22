@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "hfkbd", version 2.8. MIT licence.
+// sdrkit: the typed interface of the stack family "hfkbd", version 2.9. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum HfkbdInterface {
     public static let major = 2
-    public static let minor = 8
+    public static let minor = 9
 }
 
 /// The levels that the front end measures. A level has no value before the first input.

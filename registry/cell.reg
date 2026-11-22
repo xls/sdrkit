@@ -1,5 +1,5 @@
 # The interface of the stack family cell. The registry test of the family writes this file.
-family cell version=1.1
+family cell version=1.2
 shape.RailwayCirFields since=1.0
 shape.RailwayCirFields.text type=text unit= optional=no since=1.0
 shape.RailwayCirFields.messages type=i64 unit= optional=no since=1.0
@@ -535,7 +535,7 @@ gsmr.setting.gen_centre_hz type=hz unit=Hz since=1.0
 gsmr.command.clear args= reply= since=1.0
 gsmr.command.remove args=row:text reply= since=1.0
 lbj since=1.0
-lbj.content kind=networks since=1.1
+lbj.content kind=tracking since=1.1
 lbj.fields.LbjFields since=1.0
 lbj.fields.DecoderFields since=1.0
 lbj.component.modem.dropped since=1.0
@@ -550,7 +550,7 @@ lbj.setting.locomotives type=text unit= since=1.0
 lbj.setting.gen_deviation_hz type=hz unit=Hz since=1.0
 lbj.command.clear args= reply= since=1.0
 ebicab since=1.0
-ebicab.content kind=networks since=1.1
+ebicab.content kind=utility since=1.1
 ebicab.fields.EbicabFields since=1.0
 ebicab.fields.DecoderFields since=1.0
 ebicab.component.uplink.dropped since=1.0
@@ -633,7 +633,7 @@ tdscdma.setting.gen_multipliers type=bool unit= since=1.0
 tdscdma.command.clear args= reply= since=1.0
 tdscdma.command.remove args=row:text reply= since=1.0
 eot since=1.0
-eot.content kind=networks since=1.1
+eot.content kind=devices since=1.1
 eot.fields.EotFields since=1.0
 eot.fields.DecoderFields since=1.0
 eot.component.modem.dropped since=1.0

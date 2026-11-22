@@ -1,5 +1,5 @@
 # The interface of the stack family tvterr. The registry test of the family writes this file.
-family tvterr version=1.6
+family tvterr version=1.7
 uses.mpegts major=1 since=1.0
 uses.ipcast major=1 since=1.0
 uses.graph major=1 since=1.0
@@ -344,7 +344,7 @@ dtmb.setting.decode_video type=bool unit= since=1.1
 dtmb.command.service.select args=row:text reply= since=1.0
 dtmb.command.track.select args=row:text reply= since=1.0
 tv-auto since=1.0
-tv-auto.content kind=television since=1.6
+tv-auto.content kind=measurement since=1.6
 tv-auto.fields.AutoFields since=1.0
 tv-auto.fields.DecoderFields since=1.0
 tv-auto.event.tv-auto.found fields=AutoFoundEvent since=1.0

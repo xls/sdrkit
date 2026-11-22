@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "trunk", version 1.3. MIT licence.
+// sdrkit: the typed interface of the stack family "trunk", version 1.4. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum TrunkInterface {
     public static let major = 1
-    public static let minor = 3
+    public static let minor = 4
 }
 
 /// The result fields of MPT 1327.

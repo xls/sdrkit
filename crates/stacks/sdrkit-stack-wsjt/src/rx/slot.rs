@@ -69,7 +69,7 @@ pub struct Decode {
     pub text: String,
     /// Heard upside down.
     pub mirrored: bool,
-    /// A CQ (every WSPR decode counts as one).
+    /// A CQ. WSPR and FST4W have none.
     pub cq: bool,
     /// The calling station.
     pub call: String,
@@ -128,7 +128,7 @@ impl Decode {
     ) -> Decode {
         let wspr = matches!(slot.sub.mode, Mode::Wspr | Mode::Fst4w);
         let (call, grid) = call_and_grid(&text, wspr);
-        let cq = wspr || text.starts_with("CQ ");
+        let cq = !wspr && text.starts_with("CQ ");
         Decode {
             slot: slot.utc,
             mode: slot.sub.mode,

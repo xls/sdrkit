@@ -1913,7 +1913,7 @@ pub fn family() -> &'static Described {
         let objects_clear = &sdrkit_util_objects::commands::CLEAR;
         let decoder_clear = &sdrkit_graph::decoder::CLEAR;
         use sdrkit_proto_tones::components as tones;
-        Described::new("trunk", 1, 3)
+        Described::new("trunk", 1, 4)
             .added(
                 1,
                 3,
@@ -1932,10 +1932,10 @@ pub fn family() -> &'static Described {
                 ],
             )
             .content(
-                sdrkit_core::ContentKind::Voice,
-                &["mpt1327", "ltr", "edacs", "motorola_type2", "opensky"],
+                sdrkit_core::ContentKind::Networks,
+                &["mpt1327", "ltr", "edacs", "motorola_type2"],
             )
-            .content(sdrkit_core::ContentKind::Measurement, &["tones"])
+            .content(sdrkit_core::ContentKind::Measurement, &["tones", "opensky"])
             .content(
                 sdrkit_core::ContentKind::Paging,
                 &["pager", "ermes", "multitone", "gsc"],

@@ -1088,7 +1088,7 @@ pub fn family() -> &'static Family {
 
 fn describe() -> Family {
     let clear = &sdrkit_util_objects::commands::CLEAR;
-    Family::new("adsb", 1, 2)
+    Family::new("adsb", 1, 3)
         .added(
             1,
             2,
@@ -1099,10 +1099,9 @@ fn describe() -> Family {
                 "uplink1030.content",
             ],
         )
-        .content(
-            sdrkit_core::ContentKind::Tracking,
-            &["adsb", "uat", "modeac", "uplink1030"],
-        )
+        .content(sdrkit_core::ContentKind::Tracking, &["adsb", "uat"])
+        .content(sdrkit_core::ContentKind::Utility, &["modeac"])
+        .content(sdrkit_core::ContentKind::Networks, &["uplink1030"])
         .added(1, 1, &["shape.InterrogationEvent.confirmed"])
         .stack(
             StackShape::new("adsb")

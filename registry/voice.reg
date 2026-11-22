@@ -1,5 +1,5 @@
 # The interface of the stack family voice. The registry test of the family writes this file.
-family voice version=1.2
+family voice version=1.3
 uses.tones major=1 since=1.0
 shape.DetectorFields since=1.0
 shape.DetectorFields.state type=choice(searching,signal,confirmed) unit= optional=no since=1.0
@@ -243,7 +243,7 @@ hfpacket.setting.gen_mark_hz type=hz unit=Hz since=1.0
 hfpacket.setting.gen_space_hz type=hz unit=Hz since=1.0
 hfpacket.command.clear args= reply= since=1.0
 elt121 since=1.0
-elt121.content kind=navigation since=1.2
+elt121.content kind=measurement since=1.2
 elt121.fields.DetectorFields since=1.0
 elt121.fields.Elt121Fields since=1.0
 elt121.component.guard.fields.GuardFields since=1.0
@@ -259,7 +259,7 @@ elt121.setting.gen_depth type=f64 unit= since=1.0
 elt121.setting.gen_seconds type=duration unit=s since=1.0
 elt121.command.clear args= reply= since=1.0
 voice_inversion since=1.0
-voice_inversion.content kind=measurement audio=voice since=1.2
+voice_inversion.content kind=voice audio=voice since=1.2
 voice_inversion.fields.DetectorFields since=1.0
 voice_inversion.fields.VoiceInversionFields since=1.0
 voice_inversion.component.guard.fields.GuardFields since=1.0

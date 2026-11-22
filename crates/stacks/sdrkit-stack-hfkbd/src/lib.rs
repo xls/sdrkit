@@ -70,6 +70,7 @@ const fn opts(id: &'static str, input: InputPort, demod: bool) -> RxOptions {
         sideband_only: false,
         listen: true,
         span: false,
+        pictures: false,
         outputs: &[],
         sender: None,
     }
@@ -190,6 +191,7 @@ pub static CW: StackDescriptor = StackDescriptor {
 
 pub(crate) const MFSK_RX: RxOptions = RxOptions {
     sender: Some(mfsk::sender),
+    pictures: true,
     ..opts("mfsk", InputPort::CAudio, true)
 };
 stack_fns!(mfsk_schema, make_mfsk, MFSK_RX, mfsk::MfskDecoder::new());
@@ -412,6 +414,7 @@ pub static IFKP: StackDescriptor = StackDescriptor {
 
 pub(crate) const HELL_RX: RxOptions = RxOptions {
     sender: Some(hell::sender),
+    pictures: true,
     ..opts("hell", InputPort::CAudio, true)
 };
 stack_fns!(hell_schema, make_hell, HELL_RX, hell::HellDecoder::new());
@@ -434,7 +437,10 @@ pub static HELL: StackDescriptor = StackDescriptor {
     benchmarks: None,
 };
 
-pub(crate) const SSTV_RX: RxOptions = opts("sstv", InputPort::CAudio, true);
+pub(crate) const SSTV_RX: RxOptions = RxOptions {
+    pictures: true,
+    ..opts("sstv", InputPort::CAudio, true)
+};
 fn sstv_schema() -> Arc<Schema> {
     static CELL: OnceLock<Arc<Schema>> = OnceLock::new();
     typed::schema(&CELL, SSTV_RX.id)
@@ -579,7 +585,10 @@ pub static THROB: StackDescriptor = StackDescriptor {
     benchmarks: Some(throb_benchmarks),
 };
 
-pub(crate) const QRSS_RX: RxOptions = opts("qrss", InputPort::CAudio, true);
+pub(crate) const QRSS_RX: RxOptions = RxOptions {
+    pictures: true,
+    ..opts("qrss", InputPort::CAudio, true)
+};
 fn qrss_schema() -> Arc<Schema> {
     static CELL: OnceLock<Arc<Schema>> = OnceLock::new();
     typed::schema(&CELL, "qrss")

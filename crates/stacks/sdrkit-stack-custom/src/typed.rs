@@ -753,7 +753,7 @@ pub fn family() -> &'static Family {
         // What a stack heard from stations stays over a change of frequency: the station list, the logs of messages,
         // pictures and files, and the counts of these logs. The streams of `qam_video` belong to the signal on air.
         // 1.2: each `send` names `stop` as the command that ends its transmission.
-        Family::new("custom", 1, 3)
+        Family::new("custom", 1, 4)
             .added(
                 1,
                 3,
@@ -775,6 +775,7 @@ pub fn family() -> &'static Family {
             )
             .content(sdrkit_core::ContentKind::Pictures, &["picture_burst"])
             .audio(sdrkit_core::AudioKind::Voice, &["slotted_voice"])
+            .audio(sdrkit_core::AudioKind::Programme, &["qam_video"])
             .video(&["qam_video"])
             .pictures(&["picture_burst"])
             .text(&["arq_packet", "hf_chat"])

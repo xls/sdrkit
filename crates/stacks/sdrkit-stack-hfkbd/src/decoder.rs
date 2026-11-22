@@ -128,6 +128,8 @@ pub struct RxOptions {
     pub listen: bool,
     /// The front end has a span and gives the wide stream only ([`HfFront::with_span`]): CW.
     pub span: bool,
+    /// The decoder makes pictures, and its output `pictures` leaves the graph.
+    pub pictures: bool,
     /// Outputs of the decoder past the four standard ones that leave the graph ("dec.messages").
     pub outputs: &'static [&'static str],
     /// The stack's sender, if it has one ([`crate::sender::TextSender`]).
@@ -181,9 +183,11 @@ where
         .input("front")
         .connect(port, "dec.in")
         .output("dec.events")
-        .output("dec.pictures")
         .status_from("dec")
         .clock(0.1);
+    if opt.pictures {
+        b = b.output("dec.pictures");
+    }
     let sender = opt.sender.map(|make| make());
     let sender_keys: Vec<String> = sender
         .as_ref()

@@ -1,5 +1,5 @@
 # The interface of the stack family hfkbd. The registry test of the family writes this file.
-family hfkbd version=2.8
+family hfkbd version=2.9
 shape.FrontFields since=1.0
 shape.FrontFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.FrontFields.audio_dbfs type=f64 unit=dBFS optional=yes since=1.0
@@ -391,7 +391,7 @@ shape.WinmorPilotEvent.error_hz type=f64 unit=Hz optional=no since=1.0
 shape.WinmorPilotEvent.pilot_symbols type=i64 unit= optional=no since=1.0
 shape.WinmorPilotEvent.tones type=text unit= optional=no since=1.0
 rtty since=1.0
-rtty.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+rtty.content kind=text_chat audio=monitor text=yes since=2.8
 rtty.fields.FrontFields since=1.0
 rtty.fields.RttyFields since=1.0
 rtty.fields.DecoderFields since=1.0
@@ -426,7 +426,7 @@ rtty.command.send args=text:text reply= transmits=text stop=stop since=2.4
 rtty.command.stop args= reply= since=2.4
 rtty.command.tune args= reply= transmits=carrier stop=stop since=2.4
 psk since=1.0
-psk.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+psk.content kind=text_chat audio=monitor text=yes since=2.8
 psk.fields.FrontFields since=1.0
 psk.fields.PskFields since=1.0
 psk.fields.DecoderFields since=1.0
@@ -458,7 +458,7 @@ psk.command.send args=text:text reply= transmits=text stop=stop since=2.4
 psk.command.stop args= reply= since=2.4
 psk.command.tune args= reply= transmits=carrier stop=stop since=2.4
 cw since=1.0
-cw.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+cw.content kind=text_chat audio=monitor text=yes since=2.8
 cw.fields.FrontFields since=1.0
 cw.fields.CwFields since=1.0
 cw.fields.DecoderFields since=1.0
@@ -495,7 +495,7 @@ cw.setting.gen_noise_only type=bool unit= since=2.1
 cw.command.remove args=row:text reply= since=1.0
 cw.command.clear args= reply= since=1.0
 olivia since=1.0
-olivia.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+olivia.content kind=text_chat audio=monitor text=yes since=2.8
 olivia.fields.FrontFields since=1.0
 olivia.fields.KeyboardFields since=1.0
 olivia.fields.DecoderFields since=1.0
@@ -524,7 +524,7 @@ olivia.command.send args=text:text reply= transmits=text stop=stop since=2.5
 olivia.command.stop args= reply= since=2.5
 olivia.command.tune args= reply= transmits=carrier stop=stop since=2.5
 contestia since=1.0
-contestia.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+contestia.content kind=text_chat audio=monitor text=yes since=2.8
 contestia.fields.FrontFields since=1.0
 contestia.fields.KeyboardFields since=1.0
 contestia.fields.DecoderFields since=1.0
@@ -586,7 +586,7 @@ mfsk.command.send args=text:text reply= transmits=text stop=stop since=2.5
 mfsk.command.stop args= reply= since=2.5
 mfsk.command.tune args= reply= transmits=carrier stop=stop since=2.5
 dominoex since=1.0
-dominoex.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+dominoex.content kind=text_chat audio=monitor text=yes since=2.8
 dominoex.fields.FrontFields since=1.0
 dominoex.fields.KeyboardFields since=1.0
 dominoex.fields.DecoderFields since=1.0
@@ -614,7 +614,7 @@ dominoex.command.send args=text:text reply= transmits=text stop=stop since=2.4
 dominoex.command.stop args= reply= since=2.4
 dominoex.command.tune args= reply= transmits=carrier stop=stop since=2.4
 thor since=1.0
-thor.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+thor.content kind=text_chat audio=monitor text=yes since=2.8
 thor.fields.FrontFields since=1.0
 thor.fields.KeyboardFields since=1.0
 thor.fields.DecoderFields since=1.0
@@ -642,7 +642,7 @@ thor.command.send args=text:text reply= transmits=text stop=stop since=2.4
 thor.command.stop args= reply= since=2.4
 thor.command.tune args= reply= transmits=carrier stop=stop since=2.4
 hell since=1.0
-hell.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+hell.content kind=pictures audio=monitor pictures=yes since=2.8
 hell.fields.FrontFields since=1.0
 hell.fields.HellFields since=1.0
 hell.fields.DecoderFields since=1.0
@@ -663,7 +663,7 @@ hell.command.send args=text:text reply= transmits=text stop=stop since=2.4
 hell.command.stop args= reply= since=2.4
 hell.command.tune args= reply= transmits=carrier stop=stop since=2.4
 mt63 since=1.0
-mt63.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+mt63.content kind=text_chat audio=monitor text=yes since=2.8
 mt63.fields.FrontFields since=1.0
 mt63.fields.Mt63Fields since=1.0
 mt63.fields.DecoderFields since=1.0
@@ -695,7 +695,7 @@ mt63.command.send args=text:text reply= transmits=text stop=stop since=2.5
 mt63.command.stop args= reply= since=2.5
 mt63.command.tune args= reply= transmits=carrier stop=stop since=2.5
 fsq since=1.0
-fsq.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+fsq.content kind=text_chat audio=monitor text=yes since=2.8
 fsq.fields.FrontFields since=1.0
 fsq.fields.FsqFields since=1.0
 fsq.fields.DecoderFields since=1.0
@@ -726,7 +726,7 @@ fsq.command.send args=text:text;to:text?;trigger:choice(text,report,ack,file,rel
 fsq.command.stop args= reply= since=2.4
 fsq.command.tune args= reply= transmits=carrier stop=stop since=2.4
 ifkp since=1.0
-ifkp.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+ifkp.content kind=text_chat audio=monitor text=yes since=2.8
 ifkp.fields.FrontFields since=1.0
 ifkp.fields.FsqFields since=1.0
 ifkp.fields.DecoderFields since=1.0
@@ -778,7 +778,7 @@ sstv.command.clear args= reply= since=1.0
 sstv.command.send args=pixels:bytes;width:i64;height:i64;pixel_format:choice(rgb8,bgra,grey8) reply= transmits=file stop=stop since=2.3
 sstv.command.stop args= reply= since=2.3
 sitor since=1.0
-sitor.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+sitor.content kind=text_chat audio=monitor text=yes since=2.8
 sitor.fields.FrontFields since=1.0
 sitor.fields.SitorFields since=1.0
 sitor.fields.DecoderFields since=1.0
@@ -797,7 +797,7 @@ sitor.setting.gen_lower_hz type=hz unit=Hz since=1.0
 sitor.command.remove args=row:text reply= since=1.0
 sitor.command.clear args= reply= since=1.0
 ardop since=1.0
-ardop.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+ardop.content kind=text_chat audio=monitor text=yes since=2.8
 ardop.fields.FrontFields since=1.0
 ardop.fields.ArdopFields since=1.0
 ardop.fields.DecoderFields since=1.0
@@ -827,7 +827,7 @@ ardop.command.connect args=target:text reply= transmits=frame stop=stop since=2.
 ardop.command.disconnect args= reply= transmits=frame stop=stop since=2.6
 ardop.command.stop args= reply= since=2.6
 ros since=1.0
-ros.content kind=utility audio=monitor pictures=yes since=2.8
+ros.content kind=measurement audio=monitor since=2.8
 ros.fields.FrontFields since=1.0
 ros.fields.RosFields since=1.0
 ros.fields.DecoderFields since=1.0
@@ -844,7 +844,7 @@ ros.setting.gen_signal type=choice(grid,noise,fsk,carrier,sweep) unit= since=1.0
 ros.setting.gen_baud type=f64 unit=Bd since=1.0
 ros.command.clear args= reply= since=1.0
 throb since=1.0
-throb.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+throb.content kind=text_chat audio=monitor text=yes since=2.8
 throb.fields.FrontFields since=1.0
 throb.fields.ThrobFields since=1.0
 throb.fields.DecoderFields since=1.0
@@ -925,7 +925,7 @@ cp16.command.clear args= reply= since=1.0
 cp16.command.send args=text:text reply= transmits=text since=1.0
 cp16.command.stop args= reply= since=1.0
 winmor since=1.0
-winmor.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+winmor.content kind=measurement audio=monitor since=2.8
 winmor.fields.FrontFields since=1.0
 winmor.fields.WinmorFields since=1.0
 winmor.fields.DecoderFields since=1.0

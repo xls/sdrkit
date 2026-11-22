@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "hfkbd", version 2.8. MIT licence.
+ * sdrkit: the typed interface of the stack family "hfkbd", version 2.9. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_HFKBD_VERSION_MAJOR 2
-#define SDRKIT_HFKBD_VERSION_MINOR 8
+#define SDRKIT_HFKBD_VERSION_MINOR 9
 
 // The stack "rtty": its id, and the keys of its event types.
 #define SDRKIT_STACK_RTTY "rtty"

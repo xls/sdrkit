@@ -1,5 +1,5 @@
 # The interface of the stack family wsjt. The registry test of the family writes this file.
-family wsjt version=4.1
+family wsjt version=4.2
 shape.WsjtFields since=1.0
 shape.WsjtFields.time_source type=choice(system_clock,recording_start,searching,found_from_signals) unit= optional=yes since=1.0
 shape.WsjtFields.utc type=time unit= optional=no since=1.0
@@ -41,6 +41,7 @@ shape.WsprSpotRow.callsign type=text unit= optional=no since=1.0
 shape.WsprSpotRow.locator type=text unit= optional=no since=1.0
 shape.WsprSpotRow.power_dbm type=i64 unit=dBm optional=no since=1.0
 shape.WsprSpotRow.message type=text unit= optional=no since=1.0
+shape.WsprSpotRow.position type=position unit= optional=yes since=4.2
 shape.ModeRow since=1.0
 shape.ModeRow.mode type=text unit= optional=no since=1.0
 shape.ModeRow.period type=duration unit=s optional=no since=1.0
@@ -58,6 +59,7 @@ shape.StationRow.snr_db type=f64 unit=dB optional=no since=1.0
 shape.StationRow.freq_hz type=hz unit=Hz optional=no since=1.0
 shape.StationRow.heard type=i64 unit= optional=yes since=1.0
 shape.StationRow.last_heard type=time unit= optional=yes since=1.0
+shape.StationRow.position type=position unit= optional=yes since=4.2
 shape.Js8FrameRow since=1.0
 shape.Js8FrameRow.utc type=time unit= optional=no since=1.0
 shape.Js8FrameRow.submode type=choice(normal,fast,turbo) unit= optional=yes since=1.0
@@ -78,6 +80,7 @@ shape.Js8StationRow.audio_hz type=hz unit=Hz optional=no since=1.0
 shape.Js8StationRow.utc type=time unit= optional=no since=1.0
 shape.Js8StationRow.last_text type=text unit= optional=no since=1.0
 shape.Js8StationRow.last_heard type=time unit= optional=yes since=1.0
+shape.Js8StationRow.position type=position unit= optional=yes since=4.2
 shape.MultibandRow since=1.0
 shape.MultibandRow.band type=text unit= optional=no since=1.0
 shape.MultibandRow.mode type=choice(ft8,ft4,ft2,wspr,jt65,jt9,jt4,q65,fst4,fst4w,msk144,js8) unit= optional=no since=1.0
@@ -116,12 +119,14 @@ shape.Js8FrameEvent.snr_db type=f64 unit=dB optional=no since=1.0
 shape.Js8FrameEvent.submode type=choice(normal,fast,turbo) unit= optional=yes since=1.0
 shape.Js8FrameEvent.source type=text unit= optional=yes since=1.0
 shape.Js8FrameEvent.target type=text unit= optional=yes since=1.0
+shape.Js8FrameEvent.cq type=bool unit= optional=no since=4.2
 shape.Js8FrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.Js8MessageEvent since=1.0
 shape.Js8MessageEvent.text type=text unit= optional=no since=1.0
 shape.Js8MessageEvent.complete type=bool unit= optional=no since=1.0
 shape.Js8MessageEvent.source type=text unit= optional=yes since=1.0
 shape.Js8MessageEvent.target type=text unit= optional=yes since=1.0
+shape.Js8MessageEvent.cq type=bool unit= optional=no since=4.2
 shape.Js8MessageEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.TxEvent since=1.0
 shape.TxEvent.mode type=choice(ft8,ft4,ft2,wspr,jt65,jt9,jt4,q65,fst4,fst4w,msk144,js8) unit= optional=no since=1.0
@@ -269,13 +274,13 @@ wsjt.kept.js8_stations since=1.0
 wsjt.kept.WsjtFields.decodes_total since=1.0
 wsjt.kept.WsjtFields.js8_frames since=1.0
 wsjt.kept.WsjtFields.js8_failed since=1.0
-wsjt.table.decodes row=DecodeRow cap=1000 since=1.0
-wsjt.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+wsjt.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+wsjt.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 wsjt.table.modes row=ModeRow cap=32 since=1.0
-wsjt.table.stations row=StationRow cap=1000 label=callsign since=1.0
-wsjt.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-wsjt.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-wsjt.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+wsjt.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+wsjt.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+wsjt.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+wsjt.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 wsjt.table.wide.multiband row=MultibandRow cap=64 since=1.0
 wsjt.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 wsjt.event.wsjt.decode fields=DecodeEvent since=1.0
@@ -357,13 +362,13 @@ ft8.kept.js8_stations since=1.0
 ft8.kept.WsjtFields.decodes_total since=1.0
 ft8.kept.WsjtFields.js8_frames since=1.0
 ft8.kept.WsjtFields.js8_failed since=1.0
-ft8.table.decodes row=DecodeRow cap=1000 since=1.0
-ft8.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+ft8.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+ft8.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 ft8.table.modes row=ModeRow cap=32 since=1.0
-ft8.table.stations row=StationRow cap=1000 label=callsign since=1.0
-ft8.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-ft8.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-ft8.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+ft8.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+ft8.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+ft8.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+ft8.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 ft8.table.wide.multiband row=MultibandRow cap=64 since=1.0
 ft8.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 ft8.event.wsjt.decode fields=DecodeEvent since=1.0
@@ -420,13 +425,13 @@ ft4.kept.js8_stations since=1.0
 ft4.kept.WsjtFields.decodes_total since=1.0
 ft4.kept.WsjtFields.js8_frames since=1.0
 ft4.kept.WsjtFields.js8_failed since=1.0
-ft4.table.decodes row=DecodeRow cap=1000 since=1.0
-ft4.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+ft4.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+ft4.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 ft4.table.modes row=ModeRow cap=32 since=1.0
-ft4.table.stations row=StationRow cap=1000 label=callsign since=1.0
-ft4.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-ft4.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-ft4.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+ft4.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+ft4.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+ft4.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+ft4.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 ft4.table.wide.multiband row=MultibandRow cap=64 since=1.0
 ft4.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 ft4.event.wsjt.decode fields=DecodeEvent since=1.0
@@ -483,13 +488,13 @@ ft2.kept.js8_stations since=1.0
 ft2.kept.WsjtFields.decodes_total since=1.0
 ft2.kept.WsjtFields.js8_frames since=1.0
 ft2.kept.WsjtFields.js8_failed since=1.0
-ft2.table.decodes row=DecodeRow cap=1000 since=1.0
-ft2.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+ft2.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+ft2.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 ft2.table.modes row=ModeRow cap=32 since=1.0
-ft2.table.stations row=StationRow cap=1000 label=callsign since=1.0
-ft2.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-ft2.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-ft2.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+ft2.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+ft2.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+ft2.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+ft2.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 ft2.table.wide.multiband row=MultibandRow cap=64 since=1.0
 ft2.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 ft2.event.wsjt.decode fields=DecodeEvent since=1.0
@@ -545,13 +550,13 @@ wspr.kept.js8_stations since=1.0
 wspr.kept.WsjtFields.decodes_total since=1.0
 wspr.kept.WsjtFields.js8_frames since=1.0
 wspr.kept.WsjtFields.js8_failed since=1.0
-wspr.table.decodes row=DecodeRow cap=1000 since=1.0
-wspr.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+wspr.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+wspr.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 wspr.table.modes row=ModeRow cap=32 since=1.0
-wspr.table.stations row=StationRow cap=1000 label=callsign since=1.0
-wspr.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-wspr.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-wspr.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+wspr.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+wspr.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+wspr.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+wspr.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 wspr.table.wide.multiband row=MultibandRow cap=64 since=1.0
 wspr.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 wspr.event.wsjt.decode fields=DecodeEvent since=1.0
@@ -603,13 +608,13 @@ jt65.kept.js8_stations since=1.0
 jt65.kept.WsjtFields.decodes_total since=1.0
 jt65.kept.WsjtFields.js8_frames since=1.0
 jt65.kept.WsjtFields.js8_failed since=1.0
-jt65.table.decodes row=DecodeRow cap=1000 since=1.0
-jt65.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+jt65.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+jt65.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 jt65.table.modes row=ModeRow cap=32 since=1.0
-jt65.table.stations row=StationRow cap=1000 label=callsign since=1.0
-jt65.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-jt65.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-jt65.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+jt65.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+jt65.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+jt65.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+jt65.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 jt65.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 jt65.event.wsjt.decode fields=DecodeEvent since=1.0
 jt65.event.wsjt.spot fields=SpotEvent since=1.0
@@ -652,13 +657,13 @@ jt9.kept.js8_stations since=1.0
 jt9.kept.WsjtFields.decodes_total since=1.0
 jt9.kept.WsjtFields.js8_frames since=1.0
 jt9.kept.WsjtFields.js8_failed since=1.0
-jt9.table.decodes row=DecodeRow cap=1000 since=1.0
-jt9.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+jt9.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+jt9.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 jt9.table.modes row=ModeRow cap=32 since=1.0
-jt9.table.stations row=StationRow cap=1000 label=callsign since=1.0
-jt9.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-jt9.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-jt9.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+jt9.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+jt9.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+jt9.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+jt9.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 jt9.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 jt9.event.wsjt.decode fields=DecodeEvent since=1.0
 jt9.event.wsjt.spot fields=SpotEvent since=1.0
@@ -700,13 +705,13 @@ jt4.kept.js8_stations since=1.0
 jt4.kept.WsjtFields.decodes_total since=1.0
 jt4.kept.WsjtFields.js8_frames since=1.0
 jt4.kept.WsjtFields.js8_failed since=1.0
-jt4.table.decodes row=DecodeRow cap=1000 since=1.0
-jt4.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+jt4.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+jt4.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 jt4.table.modes row=ModeRow cap=32 since=1.0
-jt4.table.stations row=StationRow cap=1000 label=callsign since=1.0
-jt4.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-jt4.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-jt4.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+jt4.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+jt4.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+jt4.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+jt4.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 jt4.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 jt4.event.wsjt.decode fields=DecodeEvent since=1.0
 jt4.event.wsjt.spot fields=SpotEvent since=1.0
@@ -749,13 +754,13 @@ q65.kept.js8_stations since=1.0
 q65.kept.WsjtFields.decodes_total since=1.0
 q65.kept.WsjtFields.js8_frames since=1.0
 q65.kept.WsjtFields.js8_failed since=1.0
-q65.table.decodes row=DecodeRow cap=1000 since=1.0
-q65.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+q65.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+q65.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 q65.table.modes row=ModeRow cap=32 since=1.0
-q65.table.stations row=StationRow cap=1000 label=callsign since=1.0
-q65.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-q65.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-q65.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+q65.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+q65.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+q65.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+q65.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 q65.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 q65.event.wsjt.decode fields=DecodeEvent since=1.0
 q65.event.wsjt.spot fields=SpotEvent since=1.0
@@ -791,13 +796,13 @@ fst4.kept.js8_stations since=1.0
 fst4.kept.WsjtFields.decodes_total since=1.0
 fst4.kept.WsjtFields.js8_frames since=1.0
 fst4.kept.WsjtFields.js8_failed since=1.0
-fst4.table.decodes row=DecodeRow cap=1000 since=1.0
-fst4.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+fst4.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+fst4.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 fst4.table.modes row=ModeRow cap=32 since=1.0
-fst4.table.stations row=StationRow cap=1000 label=callsign since=1.0
-fst4.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-fst4.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-fst4.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+fst4.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+fst4.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+fst4.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+fst4.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 fst4.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 fst4.event.wsjt.decode fields=DecodeEvent since=1.0
 fst4.event.wsjt.spot fields=SpotEvent since=1.0
@@ -832,13 +837,13 @@ fst4w.kept.js8_stations since=1.0
 fst4w.kept.WsjtFields.decodes_total since=1.0
 fst4w.kept.WsjtFields.js8_frames since=1.0
 fst4w.kept.WsjtFields.js8_failed since=1.0
-fst4w.table.decodes row=DecodeRow cap=1000 since=1.0
-fst4w.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+fst4w.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+fst4w.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 fst4w.table.modes row=ModeRow cap=32 since=1.0
-fst4w.table.stations row=StationRow cap=1000 label=callsign since=1.0
-fst4w.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-fst4w.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-fst4w.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+fst4w.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+fst4w.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+fst4w.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+fst4w.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 fst4w.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 fst4w.event.wsjt.decode fields=DecodeEvent since=1.0
 fst4w.event.wsjt.spot fields=SpotEvent since=1.0
@@ -873,13 +878,13 @@ msk144.kept.js8_stations since=1.0
 msk144.kept.WsjtFields.decodes_total since=1.0
 msk144.kept.WsjtFields.js8_frames since=1.0
 msk144.kept.WsjtFields.js8_failed since=1.0
-msk144.table.decodes row=DecodeRow cap=1000 since=1.0
-msk144.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+msk144.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+msk144.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 msk144.table.modes row=ModeRow cap=32 since=1.0
-msk144.table.stations row=StationRow cap=1000 label=callsign since=1.0
-msk144.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-msk144.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-msk144.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+msk144.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+msk144.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+msk144.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+msk144.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 msk144.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 msk144.event.wsjt.decode fields=DecodeEvent since=1.0
 msk144.event.wsjt.spot fields=SpotEvent since=1.0
@@ -914,13 +919,13 @@ js8.kept.js8_stations since=1.0
 js8.kept.WsjtFields.decodes_total since=1.0
 js8.kept.WsjtFields.js8_frames since=1.0
 js8.kept.WsjtFields.js8_failed since=1.0
-js8.table.decodes row=DecodeRow cap=1000 since=1.0
-js8.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign since=1.0
+js8.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
+js8.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 js8.table.modes row=ModeRow cap=32 since=1.0
-js8.table.stations row=StationRow cap=1000 label=callsign since=1.0
-js8.table.js8_frames row=Js8FrameRow cap=600 since=1.0
-js8.table.js8_messages row=Js8MessageRow cap=200 since=1.0
-js8.table.js8_stations row=Js8StationRow cap=600 label=callsign since=1.0
+js8.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+js8.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
+js8.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
+js8.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
 js8.series.js8_waterfall x_unit=Hz y_unit=dB since=1.0
 js8.event.wsjt.decode fields=DecodeEvent since=1.0
 js8.event.wsjt.spot fields=SpotEvent since=1.0
@@ -954,7 +959,7 @@ fsk441.fields.Fsk441Fields since=1.0
 fsk441.fields.DecoderFields since=1.0
 fsk441.kept.decodes since=1.0
 fsk441.kept.ScatterFields.decodes_total since=1.0
-fsk441.table.decodes row=Fsk441DecodeRow cap=1000 since=1.0
+fsk441.table.decodes row=Fsk441DecodeRow cap=1000 sort=utc:descending since=1.0
 fsk441.event.wsjt.decode fields=Fsk441DecodeEvent since=1.0
 fsk441.event.wsjt.spot fields=SpotEvent since=1.0
 fsk441.setting.tol_hz type=hz unit=Hz since=1.0
@@ -970,7 +975,7 @@ jt6m.fields.Jt6mFields since=1.0
 jt6m.fields.DecoderFields since=1.0
 jt6m.kept.decodes since=1.0
 jt6m.kept.ScatterFields.decodes_total since=1.0
-jt6m.table.decodes row=Jt6mDecodeRow cap=1000 since=1.0
+jt6m.table.decodes row=Jt6mDecodeRow cap=1000 sort=utc:descending since=1.0
 jt6m.event.wsjt.decode fields=Jt6mDecodeEvent since=1.0
 jt6m.event.wsjt.spot fields=SpotEvent since=1.0
 jt6m.setting.tol_hz type=hz unit=Hz since=1.0
@@ -986,7 +991,7 @@ iscat.fields.IscatFields since=1.0
 iscat.fields.DecoderFields since=1.0
 iscat.kept.decodes since=1.0
 iscat.kept.ScatterFields.decodes_total since=1.0
-iscat.table.decodes row=IscatDecodeRow cap=1000 since=1.0
+iscat.table.decodes row=IscatDecodeRow cap=1000 sort=utc:descending since=1.0
 iscat.event.wsjt.decode fields=IscatDecodeEvent since=1.0
 iscat.event.wsjt.spot fields=SpotEvent since=1.0
 iscat.setting.submode type=choice(auto,a,b) unit= since=1.0
@@ -1002,7 +1007,7 @@ pi4.fields.ScatterFields since=1.0
 pi4.fields.DecoderFields since=1.0
 pi4.kept.decodes since=1.0
 pi4.kept.ScatterFields.decodes_total since=1.0
-pi4.table.decodes row=Pi4DecodeRow cap=1000 since=1.0
+pi4.table.decodes row=Pi4DecodeRow cap=1000 sort=utc:descending since=1.0
 pi4.event.wsjt.decode fields=Pi4DecodeEvent since=1.0
 pi4.event.wsjt.spot fields=SpotEvent since=1.0
 pi4.setting.k type=choice(40,80,96,120) unit= since=1.0

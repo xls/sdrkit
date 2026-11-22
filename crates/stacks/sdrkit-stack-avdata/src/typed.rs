@@ -1837,7 +1837,7 @@ pub fn family() -> &'static Described {
                 "Vdl4Fields.ground_stations",
             ]);
         // The keys of the training sequences differ by a star only, so the starred ones get a name of their own.
-        Described::new("avdata", 1, 2)
+        Described::new("avdata", 1, 3)
             .added(
                 1,
                 2,
@@ -1857,10 +1857,9 @@ pub fn family() -> &'static Described {
             .content(sdrkit_core::ContentKind::Voice, &["airband"])
             .content(
                 sdrkit_core::ContentKind::Datalink,
-                &[
-                    "acars", "vdl2", "vdl4", "selcal", "hfdl", "vdl3", "ldacs", "aeromacs",
-                ],
+                &["acars", "vdl2", "vdl4", "hfdl", "vdl3", "ldacs", "aeromacs"],
             )
+            .content(sdrkit_core::ContentKind::Paging, &["selcal"])
             .content(sdrkit_core::ContentKind::Navigation, &["gbas_vdb"])
             .audio(sdrkit_core::AudioKind::Voice, &["airband"])
             .text(&["acars", "vdl2", "vdl4", "selcal", "hfdl"])

@@ -829,7 +829,7 @@ pub fn family() -> &'static Described {
         // stay over a change of frequency, with the counts of frames and stations and the last frame of HF packet. The
         // level, the quality, the state and the measures of a detector belong to the signal of one frequency and are
         // cleared. The candidates of the microphone finder are carriers of the present capture and are cleared.
-        Described::new("voice", 1, 2)
+        Described::new("voice", 1, 3)
             .added(
                 1,
                 2,
@@ -845,13 +845,9 @@ pub fn family() -> &'static Described {
             )
             .content(
                 sdrkit_core::ContentKind::Voice,
-                &["voice_channels", "mdc1200", "fleetsync"],
+                &["voice_inversion", "voice_channels", "mdc1200", "fleetsync"],
             )
-            .content(
-                sdrkit_core::ContentKind::Measurement,
-                &["voice_inversion", "wmic"],
-            )
-            .content(sdrkit_core::ContentKind::Navigation, &["elt121"])
+            .content(sdrkit_core::ContentKind::Measurement, &["wmic", "elt121"])
             .content(sdrkit_core::ContentKind::Utility, &["hfpacket"])
             .audio(
                 sdrkit_core::AudioKind::Voice,

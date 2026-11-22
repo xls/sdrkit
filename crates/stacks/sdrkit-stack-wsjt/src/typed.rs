@@ -18,7 +18,7 @@ use sdrkit_core::publish::field;
 use sdrkit_core::publish::keys::{self, Family};
 use sdrkit_core::publish::SeriesDef;
 use sdrkit_core::settings::Argument;
-use sdrkit_core::TxContent;
+use sdrkit_core::{SortOrder, TxContent};
 use sdrkit_util_objects::commands as objcmd;
 use sdrkit_util_objects::publish::columns;
 use std::sync::OnceLock;
@@ -128,6 +128,9 @@ pub struct WsprSpotRow<'a> {
     /// The decoded message.
     #[field(label = "Message")]
     pub message: &'a str,
+    /// The centre of the locator, if the spot holds one.
+    #[field(shared = keys::POSITION)]
+    pub position: Option<(f64, f64)>,
 }
 
 /// A row of the modes table: the counters and the state of one mode heard, or of one JS8 speed. The row key is the
@@ -184,6 +187,9 @@ pub struct StationRow<'a> {
     /// The UTC of the last decode.
     #[field(shared = columns::LAST_HEARD)]
     pub last_heard: Option<Time>,
+    /// The centre of the locator, if one was heard.
+    #[field(shared = keys::POSITION)]
+    pub position: Option<(f64, f64)>,
 }
 
 /// A row of the JS8 frames. The row key is the place of the frame in the log.
@@ -250,35 +256,46 @@ pub struct Js8StationRow<'a> {
     /// The UTC of the last frame.
     #[field(shared = columns::LAST_HEARD)]
     pub last_heard: Option<Time>,
+    /// The centre of the locator, if one was heard.
+    #[field(shared = keys::POSITION)]
+    pub position: Option<(f64, f64)>,
 }
 
 /// The decodes, newest first. An early decode is replaced in place by the same message of the whole slot.
 pub static DECODES: Table<DecodeRow<'static>> =
-    Table::new("decodes", "Decodes", crate::table::DECODES_CAP);
+    Table::new("decodes", "Decodes", crate::table::DECODES_CAP)
+        .sorted(&DecodeRow::UTC, SortOrder::Descending);
 /// The WSPR and FST4W spots, newest first.
 pub static WSPR_SPOTS: Table<WsprSpotRow<'static>> =
-    Table::new("wspr_spots", "WSPR spots", crate::table::DECODES_CAP).label(&WsprSpotRow::CALLSIGN);
+    Table::new("wspr_spots", "WSPR spots", crate::table::DECODES_CAP)
+        .label(&WsprSpotRow::CALLSIGN)
+        .sorted(&WsprSpotRow::UTC, SortOrder::Descending);
 /// One row per mode heard (per speed for JS8).
 pub static MODES: Table<ModeRow<'static>> = Table::new("modes", "Modes", 32);
 /// The stations heard, by callsign, in every mode.
 pub static STATIONS: Table<StationRow<'static>> =
-    Table::new("stations", "Stations", crate::table::STATIONS_CAP).label(&StationRow::CALLSIGN);
+    Table::new("stations", "Stations", crate::table::STATIONS_CAP)
+        .label(&StationRow::CALLSIGN)
+        .sorted(&StationRow::LAST_HEARD, SortOrder::Descending);
 /// The JS8 frames, newest first.
 pub static JS8_FRAMES: Table<Js8FrameRow<'static>> =
-    Table::new("js8_frames", "JS8 frames", crate::table::JS8_FRAMES_CAP);
+    Table::new("js8_frames", "JS8 frames", crate::table::JS8_FRAMES_CAP)
+        .sorted(&Js8FrameRow::UTC, SortOrder::Descending);
 /// The JS8 messages, newest first.
 pub static JS8_MESSAGES: Table<Js8MessageRow<'static>> = Table::new(
     "js8_messages",
     "JS8 messages",
     crate::table::JS8_MESSAGES_CAP,
-);
+)
+.sorted(&Js8MessageRow::UTC, SortOrder::Descending);
 /// The JS8 stations.
 pub static JS8_STATIONS: Table<Js8StationRow<'static>> = Table::new(
     "js8_stations",
     "JS8 stations",
     crate::table::JS8_STATIONS_CAP,
 )
-.label(&Js8StationRow::CALLSIGN);
+.label(&Js8StationRow::CALLSIGN)
+.sorted(&Js8StationRow::LAST_HEARD, SortOrder::Descending);
 
 /// The JS8 waterfall: (Hz, dB) of the newest line.
 pub const WATERFALL: SeriesDef = SeriesDef {
@@ -382,6 +399,9 @@ pub struct Js8FrameEvent<'a> {
     /// The station or group addressed, if the frame names one.
     #[field(shared = keys::TARGET)]
     pub target: Option<&'a str>,
+    /// The frame is a CQ: a heartbeat to all with a CQ.
+    #[field(label = "CQ")]
+    pub cq: bool,
     /// The family of the source: a message.
     #[field(shared = keys::FAMILY)]
     pub family: Family,
@@ -402,6 +422,9 @@ pub struct Js8MessageEvent<'a> {
     /// The station or group addressed, if it is known.
     #[field(shared = keys::TARGET)]
     pub target: Option<&'a str>,
+    /// The message is a CQ.
+    #[field(label = "CQ")]
+    pub cq: bool,
     /// The family of the source: a message.
     #[field(shared = keys::FAMILY)]
     pub family: Family,
@@ -857,16 +880,20 @@ pub struct IscatFields<'a> {
 
 /// The decodes of `fsk441`.
 pub static FSK441_DECODES: Table<Fsk441DecodeRow<'static>> =
-    Table::new("decodes", "Decodes", crate::scatter::ROWS_CAP);
+    Table::new("decodes", "Decodes", crate::scatter::ROWS_CAP)
+        .sorted(&Fsk441DecodeRow::UTC, SortOrder::Descending);
 /// The pings of `jt6m`.
 pub static JT6M_DECODES: Table<Jt6mDecodeRow<'static>> =
-    Table::new("decodes", "Pings", crate::scatter::ROWS_CAP);
+    Table::new("decodes", "Pings", crate::scatter::ROWS_CAP)
+        .sorted(&Jt6mDecodeRow::UTC, SortOrder::Descending);
 /// The decodes of `iscat`.
 pub static ISCAT_DECODES: Table<IscatDecodeRow<'static>> =
-    Table::new("decodes", "Decodes", crate::scatter::ROWS_CAP);
+    Table::new("decodes", "Decodes", crate::scatter::ROWS_CAP)
+        .sorted(&IscatDecodeRow::UTC, SortOrder::Descending);
 /// The decodes of `pi4`.
 pub static PI4_DECODES: Table<Pi4DecodeRow<'static>> =
-    Table::new("decodes", "Decodes", crate::scatter::ROWS_CAP);
+    Table::new("decodes", "Decodes", crate::scatter::ROWS_CAP)
+        .sorted(&Pi4DecodeRow::UTC, SortOrder::Descending);
 
 /// A decode of `fsk441`.
 pub static FSK441_DECODE: EventKind<Fsk441DecodeEvent<'static>> =
@@ -931,7 +958,18 @@ pub fn family() -> &'static Described {
     // `beacon` and no setting, and `cq`, `beacon` and `send` transmit. 3.0: the Q65 stack has its code built in and no
     // setting `code_dir`. 4.0: no stack has the setting `code_dir`, and a mode row has no state `no_table`.
     FAMILY.get_or_init(|| {
-        let mut f = Described::new("wsjt", 4, 1)
+        let mut f = Described::new("wsjt", 4, 2)
+            .added(
+                4,
+                2,
+                &[
+                    "shape.Js8FrameEvent.cq",
+                    "shape.Js8MessageEvent.cq",
+                    "shape.StationRow.position",
+                    "shape.Js8StationRow.position",
+                    "shape.WsprSpotRow.position",
+                ],
+            )
             .added(
                 4,
                 1,

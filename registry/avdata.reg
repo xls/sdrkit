@@ -1,5 +1,5 @@
 # The interface of the stack family avdata. The registry test of the family writes this file.
-family avdata version=1.2
+family avdata version=1.3
 uses.tones major=1 since=1.0
 shape.AcarsFields since=1.0
 shape.AcarsFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -513,7 +513,7 @@ vdl4.setting.channels type=text unit= since=1.0
 vdl4.command.clear args= reply= since=1.0
 vdl4.command.remove args=row:text reply= since=1.0
 selcal since=1.0
-selcal.content kind=datalink text=yes since=1.2
+selcal.content kind=paging text=yes since=1.2
 selcal.fields.SelcalFields since=1.0
 selcal.kept.calls since=1.0
 selcal.kept.codes since=1.0

@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "tvterr", version 1.6. MIT licence.
+// sdrkit: the typed interface of the stack family "tvterr", version 1.7. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum TvterrInterface {
     public static let major = 1
-    public static let minor = 6
+    public static let minor = 7
 }
 
 /// The result fields of `isdbt` and `isdbtsb`: the detection, the transmission parameters, the signal and the TMCC. A parameter of the mode has no value before the mode is found. A value of the TMCC has no value while no TMCC is decoded.

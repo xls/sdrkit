@@ -1539,7 +1539,7 @@ pub const EBICAB_REMOVE: CommandKind<EbicabRemoveArgs<'static>> = objcmd::remove
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Family::new("cell", 1, 1)
+        Family::new("cell", 1, 2)
             .added(
                 1,
                 1,
@@ -1566,15 +1566,15 @@ pub fn family() -> &'static Family {
                     "nr",
                     "nbiot",
                     "gsmr",
-                    "lbj",
-                    "ebicab",
                     "umts",
                     "cdma2000",
                     "tdscdma",
-                    "eot",
                     "cv2x",
                 ],
             )
+            .content(sdrkit_core::ContentKind::Tracking, &["lbj"])
+            .content(sdrkit_core::ContentKind::Utility, &["ebicab"])
+            .content(sdrkit_core::ContentKind::Devices, &["eot"])
             .shared_source(
                 "decoder",
                 &["cell", "nr", "nbiot", "gsmr", "umts", "cdma2000", "tdscdma"],

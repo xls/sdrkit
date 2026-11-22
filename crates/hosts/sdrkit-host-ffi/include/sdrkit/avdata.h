@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "avdata", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "avdata", version 1.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,7 +36,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_AVDATA_VERSION_MAJOR 1
-#define SDRKIT_AVDATA_VERSION_MINOR 2
+#define SDRKIT_AVDATA_VERSION_MINOR 3
 
 // The stack "acars": its id, and the keys of its event types.
 #define SDRKIT_STACK_ACARS "acars"

@@ -174,6 +174,9 @@ pub struct Js8Message {
     pub relay: bool,
     /// The relay's destination.
     pub relay_dest: String,
+    /// A CQ: its first frame is a heartbeat to all with a CQ.
+    #[serde(default)]
+    pub cq: bool,
     #[serde(skip)]
     last_slot: f64,
     #[serde(skip)]
@@ -303,6 +306,7 @@ impl Js8Assembler {
                         complete: false,
                         relay,
                         relay_dest: String::new(),
+                        cq: first && f.kind == Js8FrameKind::Cq,
                         last_slot: slot_utc,
                         open: true,
                     };
@@ -578,6 +582,7 @@ impl Shaped for WsprSpot {
             locator: &d.grid,
             power_dbm: i64::from(d.dbm),
             message: &d.text,
+            position: locator_centre(&d.grid),
         });
     }
 }
@@ -593,6 +598,7 @@ impl Shaped for Station {
             freq_hz: Hertz(self.freq_hz),
             heard: columns::heard(seen),
             last_heard: columns::last_heard(seen).map(Time),
+            position: locator_centre(&self.grid),
         });
     }
     fn point(&self) -> Option<Point<'_>> {
@@ -641,6 +647,7 @@ impl Shaped for Js8Station {
             utc: Time(self.last),
             last_text: &self.last_text,
             last_heard: columns::last_heard(seen).map(Time),
+            position: locator_centre(&self.grid),
         });
     }
 }
@@ -884,6 +891,7 @@ impl Display {
                     submode: Js8Speed::from_index(u16::from(f.submode)),
                     source: from,
                     target: (!f.to.is_empty()).then_some(f.to.as_str()),
+                    cq: f.kind == Js8FrameKind::Cq,
                     family: Family::Message,
                 },
             ));
@@ -917,6 +925,7 @@ impl Display {
                     complete: m.complete,
                     source: (!m.from.is_empty()).then_some(m.from.as_str()),
                     target: (!m.to.is_empty()).then_some(m.to.as_str()),
+                    cq: m.cq,
                     family: Family::Message,
                 },
             ));

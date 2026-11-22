@@ -519,6 +519,7 @@ pub(crate) const CP16_RX: decoder::RxOptions = decoder::RxOptions {
     sideband_only: false,
     listen: true,
     span: false,
+    pictures: true,
     outputs: &[],
     sender: None,
 };

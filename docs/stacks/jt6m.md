@@ -68,7 +68,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wsjt`, version 4.1. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wsjt`, version 4.2. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Weak-signal messages (`weak_signal`). Media: sound (monitor), text.
 
@@ -114,6 +114,8 @@ Struct `Jt6mDecodeRow`. A row of the ping table of `jt6m`. The row key is the nu
 | `message` | text | always | 1.0 | The decoded text. |
 | `duration_s` | number (s) | always | 1.0 | The length of the ping. |
 | `clear_frames` | whole number | always | 1.0 | The clear frames of the ping. |
+
+Default order: the column `utc`, highest first.
 
 ### Event `wsjt.decode`
 

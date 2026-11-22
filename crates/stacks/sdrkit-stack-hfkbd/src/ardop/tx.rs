@@ -1116,7 +1116,6 @@ pub fn graph(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .connect("dec.frames", "sender.frames")
         .connect("sender.out", "tx.in")
         .output("dec.events")
-        .output("dec.pictures")
         .output("sender.events")
         .output("front.listen")
         .status_from("dec")

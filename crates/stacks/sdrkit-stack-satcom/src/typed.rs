@@ -3509,7 +3509,7 @@ pub const INMARSAT_CARRIER_FOCUS: CommandKind<InmarsatCarrierArgs<'static>> =
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("satcom", 1, 3)
+        Described::new("satcom", 1, 4)
             .added(
                 1,
                 3,
@@ -3533,10 +3533,7 @@ pub fn family() -> &'static Described {
                     "sat_survey.content",
                 ],
             )
-            .content(
-                sdrkit_core::ContentKind::Tracking,
-                &["argos", "sarsat", "orbcomm"],
-            )
+            .content(sdrkit_core::ContentKind::Tracking, &["sarsat", "orbcomm"])
             .content(
                 sdrkit_core::ContentKind::Datalink,
                 &["inmarsatc", "aero", "iridium"],
@@ -3544,12 +3541,12 @@ pub fn family() -> &'static Described {
             .content(
                 sdrkit_core::ContentKind::SatelliteLinks,
                 &[
+                    "argos",
                     "inmarsat",
                     "globalstar",
                     "goes_dcs",
                     "hrdcp",
                     "lora_sat",
-                    "psk_demod",
                     "qo100",
                     "cubesat",
                     "fleet_broadcast",
@@ -3557,6 +3554,7 @@ pub fn family() -> &'static Described {
                     "sat_survey",
                 ],
             )
+            .content(sdrkit_core::ContentKind::Measurement, &["psk_demod"])
             .text(&["inmarsatc", "aero", "iridium"])
             .stack(
                 StackShape::new(inmarsatc::ID)

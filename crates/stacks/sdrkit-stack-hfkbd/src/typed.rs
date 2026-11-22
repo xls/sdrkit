@@ -2053,7 +2053,7 @@ pub fn family() -> &'static Described {
         let olivia = k::olivia::OliviaSetting::SETTINGS;
         let olivia_gen = k::olivia::OliviaGenSetting::SETTINGS;
         let ifk_gen = k::domino::IfkGenSetting::SETTINGS;
-        let mut f = Described::new("hfkbd", 2, 8)
+        let mut f = Described::new("hfkbd", 2, 9)
             .added(
                 2,
                 8,
@@ -2091,7 +2091,6 @@ pub fn family() -> &'static Described {
                     "mfsk",
                     "dominoex",
                     "thor",
-                    "hell",
                     "mt63",
                     "fsq",
                     "ifkp",
@@ -2099,11 +2098,13 @@ pub fn family() -> &'static Described {
                     "ardop",
                     "throb",
                     "cp16",
-                    "winmor",
                 ],
             )
-            .content(sdrkit_core::ContentKind::Pictures, &["sstv", "qrss"])
-            .content(sdrkit_core::ContentKind::Utility, &["ros"])
+            .content(
+                sdrkit_core::ContentKind::Pictures,
+                &["sstv", "qrss", "hell"],
+            )
+            .content(sdrkit_core::ContentKind::Measurement, &["ros", "winmor"])
             .audio(
                 sdrkit_core::AudioKind::Monitor,
                 &[
@@ -2129,28 +2130,7 @@ pub fn family() -> &'static Described {
                     "winmor",
                 ],
             )
-            .pictures(&[
-                "rtty",
-                "psk",
-                "cw",
-                "olivia",
-                "contestia",
-                "mfsk",
-                "dominoex",
-                "thor",
-                "hell",
-                "mt63",
-                "fsq",
-                "ifkp",
-                "sstv",
-                "sitor",
-                "ardop",
-                "ros",
-                "throb",
-                "qrss",
-                "cp16",
-                "winmor",
-            ])
+            .pictures(&["mfsk", "hell", "sstv", "qrss", "cp16"])
             .text(&[
                 "rtty",
                 "psk",
@@ -2160,7 +2140,6 @@ pub fn family() -> &'static Described {
                 "mfsk",
                 "dominoex",
                 "thor",
-                "hell",
                 "mt63",
                 "fsq",
                 "ifkp",
@@ -2168,7 +2147,6 @@ pub fn family() -> &'static Described {
                 "ardop",
                 "throb",
                 "cp16",
-                "winmor",
             ])
             .added(2, 7, ADDED_2_7)
             .added(2, 6, ADDED_2_6)
