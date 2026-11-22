@@ -9,6 +9,7 @@ use crate::halow::phy::Preamble;
 use crate::halow::table::WidthState;
 use crate::halow::HalowSetting;
 use crate::tracker::book::{TrackerKind, TrackerState, Trend};
+use crate::tracker::layout::{SmartTagState, TagMode};
 use crate::tracker::TrackerSetting;
 use crate::wfb::WfbSetting;
 use crate::wifi::plan::Band;
@@ -558,6 +559,37 @@ pub struct BletrackerTrackerRow<'a> {
     /// The tracker id.
     #[field(label = "Id")]
     pub id: i64,
+    /// The mode that the advertised UUID tells: Tile activated or shipping, SmartTag registered or unregistered, Chipolo
+    /// disconnected from its owner. No value for other families.
+    #[field(label = "Mode")]
+    pub mode: Option<TagMode>,
+    /// The SmartTag tag state. No value for the codes 0 and 7, which have no name, and for other families.
+    #[field(label = "Tag state")]
+    pub tag_state: Option<SmartTagState>,
+    /// The SmartTag tag state code, 0 to 7.
+    #[field(label = "Tag state code")]
+    pub tag_state_code: Option<i64>,
+    /// The SmartTag aging counter: 15-minute steps of the tag's clock from 2020-07-02 00:00 UTC.
+    #[field(label = "Aging counter")]
+    pub aging_counter: Option<i64>,
+    /// The SmartTag region ID, 0 to 15.
+    #[field(label = "Region")]
+    pub region: Option<i64>,
+    /// The SmartTag E2E flag: finders must encrypt their location reports.
+    #[field(label = "E2E")]
+    pub e2e: Option<bool>,
+    /// The SmartTag UWB flag.
+    #[field(label = "UWB")]
+    pub uwb: Option<bool>,
+    /// The SmartTag battery code, 0 to 3.
+    #[field(label = "Battery code")]
+    pub battery: Option<i64>,
+    /// The rolling identifier in hex, opaque: the SmartTag privacy ID.
+    #[field(label = "Rolling identifier")]
+    pub identifier: Option<&'a str>,
+    /// The service data value under the family's UUID in hex, as sent (Tile, Chipolo, SmartTag).
+    #[field(label = "Service data")]
+    pub service_data: Option<&'a str>,
 }
 
 /// A row of the alerts of `bletracker`.
@@ -715,6 +747,77 @@ pub struct BletrackerSendArgs<'a> {
         step = 1
     )]
     pub interval_ms: Option<i64>,
+    /// The Tile shipping mode.
+    #[arg(
+        label = "Shipping mode",
+        help = "Tile: the UUID list holds 0xFEEC, a Tile not yet activated, and no service data goes out. Else the UUID list holds 0xFEED and the service data follows.",
+        default = false
+    )]
+    pub shipping: Option<bool>,
+    /// The service data value of Tile and Chipolo.
+    #[arg(
+        label = "Service data",
+        help = "Tile (activated) and Chipolo: the service data value after the UUID, in hex, 1 to 23 bytes. It goes out as is.",
+        default = ""
+    )]
+    pub service_data: Option<&'a str>,
+    /// The SmartTag tag state.
+    #[arg(shared = crate::ble::tx::TAG_STATE)]
+    pub tag_state: Option<SmartTagState>,
+    /// The SmartTag aging counter.
+    #[arg(
+        label = "Aging counter",
+        help = "SmartTag: the tag's clock in 15-minute steps, (UTC seconds - 1593648000) / 900.",
+        default = 0,
+        min = 0,
+        max = 16777215,
+        step = 1
+    )]
+    pub aging_counter: Option<i64>,
+    /// The SmartTag privacy ID.
+    #[arg(
+        label = "Privacy ID",
+        help = "SmartTag: the rolling identifier, 8 bytes in hex.",
+        default = ""
+    )]
+    pub privacy_id: Option<&'a str>,
+    /// The SmartTag region ID.
+    #[arg(
+        label = "Region",
+        help = "SmartTag: the region ID, 0 to 15.",
+        default = 0,
+        min = 0,
+        max = 15,
+        step = 1
+    )]
+    pub region: Option<i64>,
+    /// The SmartTag E2E flag.
+    #[arg(
+        label = "E2E",
+        help = "SmartTag: the E2E flag, finders must encrypt their location reports.",
+        default = false
+    )]
+    pub e2e: Option<bool>,
+    /// The SmartTag UWB flag.
+    #[arg(label = "UWB", help = "SmartTag: the UWB flag.", default = false)]
+    pub uwb: Option<bool>,
+    /// The SmartTag battery code.
+    #[arg(
+        label = "Battery code",
+        help = "SmartTag: the battery code, 0 to 3.",
+        default = 3,
+        min = 0,
+        max = 3,
+        step = 1
+    )]
+    pub battery: Option<i64>,
+    /// The SmartTag signature.
+    #[arg(
+        label = "Signature",
+        help = "SmartTag: the signature, 4 bytes in hex.",
+        default = ""
+    )]
+    pub signature: Option<&'a str>,
 }
 
 /// Sends tracker advertisements in the form that the detector reads.
@@ -724,8 +827,12 @@ pub const BLETRACKER_SEND: CommandKind<BletrackerSendArgs<'static>> = CommandKin
 )
 .help(
     "Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: Find My manufacturer \
-     data of company 0x004C (type 0x12, length 25, the status, the payload) or Google service data of UUID 0xFEAA (frame \
-     type 0x40 or 0x41, the payload). A send during another waits for it. Transmit must be on.",
+     data of company 0x004C (type 0x12, length 25, the status, the payload); Google service data of UUID 0xFEAA (frame \
+     type 0x40 or 0x41, the payload); Tile, a UUID list of 0xFEED and the service data under 0xFEED, or in shipping mode \
+     a UUID list of 0xFEEC alone; Chipolo, a UUID list of 0xFE33 and the service data under 0xFE33; SmartTag, the 20-byte \
+     service data of UUID 0xFD5A from the tag state, the aging counter, the privacy ID, the region, the E2E and UWB \
+     flags, the battery code and the signature. No flags structure goes out. A send during another waits for it. \
+     Transmit must be on.",
 )
 .transmits(sdrkit_core::TxContent::Beacon)
 .stopped_by("halt");
@@ -1625,7 +1732,7 @@ pub fn family() -> &'static Described {
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 1, 2)
+        Described::new("wlan", 1, 3)
             .shared_source("tracker", &["bletracker"])
             .stack(
                 StackShape::new("ble")
@@ -1741,6 +1848,7 @@ pub fn family() -> &'static Described {
                 )
             })
             .added(1, 2, ADDED_1_2)
+            .added(1, 3, ADDED_1_3)
     })
 }
 
@@ -1766,6 +1874,23 @@ const ADDED_1_2: &[&str] = &[
     "shape.BleTxEvent.target",
     "shape.BleTxEvent.text",
     "shape.BleTxEvent.family",
+];
+
+/// What version 1.3 added: the Tile, Chipolo and SmartTag columns of the trackers of `bletracker`. The same version
+/// appends the choices `tile`, `chipolo` and `smart_tag` to the argument `tracker` of its `send`, and the arguments
+/// `shipping`, `service_data`, `tag_state`, `aging_counter`, `privacy_id`, `region`, `e2e`, `uwb`, `battery` and
+/// `signature` at the end of them.
+const ADDED_1_3: &[&str] = &[
+    "shape.BletrackerTrackerRow.mode",
+    "shape.BletrackerTrackerRow.tag_state",
+    "shape.BletrackerTrackerRow.tag_state_code",
+    "shape.BletrackerTrackerRow.aging_counter",
+    "shape.BletrackerTrackerRow.region",
+    "shape.BletrackerTrackerRow.e2e",
+    "shape.BletrackerTrackerRow.uwb",
+    "shape.BletrackerTrackerRow.battery",
+    "shape.BletrackerTrackerRow.identifier",
+    "shape.BletrackerTrackerRow.service_data",
 ];
 
 /// The description of the stack `id`.

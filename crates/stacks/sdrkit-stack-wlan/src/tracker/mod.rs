@@ -1,8 +1,9 @@
 //! The BLE tracker detector (`bletracker`): recognises item trackers from their public advertisements and raises an unwanted
 //! tracking alert for one that stays with the receiver. Identifiers stay in memory only and are never saved. The stack sends
-//! the Find My and Google frames that the detector reads ([`crate::ble::tx`]) into a transmit sink.
+//! the Find My, Google, Tile, Chipolo and SmartTag frames that the detector reads ([`crate::ble::tx`]) into a transmit sink.
 
 pub mod book;
+pub mod layout;
 
 use crate::ble::gen::{tracker_schedule, BleGenParams, BleGenerator};
 use crate::ble::{self, AdvChannel, AdvStats, Advert};
@@ -40,7 +41,7 @@ pub const ID: &str = "bletracker";
 /// The note on what the detector can and cannot tell.
 pub const LIMITS_NOTE: &str = "A tracker that stays near a fixed radio, such as a neighbour's tag, is reported too, and the levels are the radio's own, not calibrated distances. The detector is meant for a radio that travels with you.";
 /// The privacy note of the detector.
-pub const TRACKER_PRIVACY_NOTE: &str = "Item trackers are recognised from their public advertisements. Nothing is ever connected to, sent to, or read from a tracker's owner. Tracker advertisements go out only on the command send. Identifiers stay in memory for 30 minutes after a tracker was last heard, are shown as the last two address bytes only and are never saved.";
+pub const TRACKER_PRIVACY_NOTE: &str = "Item trackers are recognised from their public advertisements. Nothing is ever connected to, sent to, or read from a tracker's owner. Tracker advertisements go out only on the command send. Identifiers stay in memory for 30 minutes after a tracker was last heard and are never saved. The table shows the last two address bytes, and the rolling identifier and service data that a tracker broadcasts as hex.";
 
 /// The advertising channel to listen on. The host tunes to it.
 pub const CHANNEL_SETTING: Setting<field::Choice<AdvChannel>> =
@@ -371,6 +372,16 @@ impl TrackerBook {
                     following: t.following,
                     mine: t.mine,
                     id: i64::from(t.id),
+                    mode: t.mode,
+                    tag_state: t.smarttag.and_then(|v| v.state()),
+                    tag_state_code: t.smarttag.map(|v| i64::from(v.state_code)),
+                    aging_counter: t.smarttag.map(|v| i64::from(v.aging_counter)),
+                    region: t.smarttag.map(|v| i64::from(v.region)),
+                    e2e: t.smarttag.map(|v| v.e2e),
+                    uwb: t.smarttag.map(|v| v.uwb),
+                    battery: t.smarttag.map(|v| i64::from(v.battery)),
+                    identifier: (!t.identifier.is_empty()).then_some(t.identifier.as_str()),
+                    service_data: (!t.service_data.is_empty()).then_some(t.service_data.as_str()),
                 },
             );
         }

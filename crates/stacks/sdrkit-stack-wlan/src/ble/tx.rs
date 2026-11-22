@@ -18,6 +18,7 @@
 
 use super::gen::{packet_samples, parse_addr, GenPacket};
 use crate::testgen::GenError;
+use crate::tracker::layout::{self, SmartTagAdvert, SmartTagState};
 use crate::typed::{
     BleSendArgs, BleTxEvent, BleTxFields, BletrackerSendArgs, BLETRACKER_SEND, BLE_HALT, BLE_SEND,
     BLE_TX,
@@ -107,6 +108,12 @@ sdrkit_core::choice_enum! {
         FindMy = ("find_my", "Apple Find My"),
         /// Google Find My Device.
         Google = ("google", "Google Find My Device"),
+        /// Tile.
+        Tile = ("tile", "Tile"),
+        /// Chipolo on its own network.
+        Chipolo = ("chipolo", "Chipolo"),
+        /// Samsung SmartTag, registered.
+        SmartTag = ("smart_tag", "Samsung SmartTag"),
     }
 }
 
@@ -121,7 +128,11 @@ pub const PDU_TYPE: Setting<field::Choice<SendPdu>> =
 /// The argument `tracker` of `send` of `bletracker`.
 pub const TRACKER: Setting<field::Choice<SendTracker>> =
     Setting::choice("tracker", "Tracker", SendTracker::FindMy)
-        .help("The family whose frame is sent: Find My or Google.");
+        .help("The family whose frame is sent: Find My, Google, Tile, Chipolo or SmartTag.");
+/// The argument `tag_state` of `send` of `bletracker`.
+pub const TAG_STATE: Setting<field::Choice<SmartTagState>> =
+    Setting::choice("tag_state", "Tag state", SmartTagState::Lost)
+        .help("SmartTag: the tag state, bits 0x07 of the first byte, 1 to 6.");
 /// The peak of the signal sent.
 pub const TX_LEVEL: Setting<field::F64> = Setting::new("tx_level", "Level", "of full scale", 0.5)
     .range(0.05, 0.9, 0.0)
@@ -181,6 +192,8 @@ pub enum TxError {
     GooglePayload(usize),
     /// An argument of this key is out of its range.
     Range(&'static str),
+    /// The hex of this key is the given number of bytes, not from the first to the second bound.
+    Size(&'static str, usize, usize, usize),
     /// [`MAX_WAITING`] sends wait already.
     Waiting,
     /// The packet cannot be made.
@@ -211,6 +224,8 @@ impl std::fmt::Display for TxError {
                 write!(f, "the Google payload is {n} bytes, over {GOOGLE_PAYLOAD}")
             }
             TxError::Range(k) => write!(f, "{k} is out of its range"),
+            TxError::Size(k, n, lo, hi) if lo == hi => write!(f, "{k} is {n} bytes, not {lo}"),
+            TxError::Size(k, n, lo, hi) => write!(f, "{k} is {n} bytes, not {lo} to {hi}"),
             TxError::Waiting => write!(f, "{MAX_WAITING} sends wait already"),
             TxError::Make(e) => write!(f, "{e}"),
         }
@@ -286,15 +301,88 @@ pub fn ble_data(a: &BleSendArgs<'_>) -> Result<Vec<u8>, TxError> {
     Ok(d)
 }
 
-/// The advertising data of `send` of `bletracker`: the Find My manufacturer data or the Google service data.
+/// The most bytes of the Tile and Chipolo service data value: the data less the UUID list and the service data header.
+pub const TAG_SERVICE_DATA: usize = MAX_DATA - 8;
+
+/// The hex of argument `key`, `lo` to `hi` bytes.
+fn hex_sized(text: &str, key: &'static str, lo: usize, hi: usize) -> Result<Vec<u8>, TxError> {
+    let v = hex(text, key)?;
+    if (lo..=hi).contains(&v.len()) {
+        Ok(v)
+    } else {
+        Err(TxError::Size(key, v.len(), lo, hi))
+    }
+}
+
+/// The value of the integer argument `s` given as `v`, checked against its range.
+fn ranged(s: &Setting<field::I64>, v: Option<i64>) -> Result<i64, TxError> {
+    let v = v.unwrap_or(s.default);
+    if in_range(s, v) {
+        Ok(v)
+    } else {
+        Err(TxError::Range(s.key()))
+    }
+}
+
+/// The 20-byte SmartTag value of `send` of `bletracker`.
 ///
 /// # Errors
 ///
-/// [`TxError`] for a payload that is not hex or not of its length, or a status out of range.
+/// [`TxError`] for a privacy ID that is not 8 bytes of hex, a signature that is not 4, or a number out of its range.
+pub fn smarttag_value(a: &BletrackerSendArgs<'_>) -> Result<[u8; layout::SMARTTAG_LEN], TxError> {
+    let id = hex_sized(a.privacy_id.unwrap_or(""), "privacy_id", 8, 8)?;
+    let sig = hex_sized(a.signature.unwrap_or(""), "signature", 4, 4)?;
+    let mut v = SmartTagAdvert {
+        state_code: a.tag_state.unwrap_or(TAG_STATE.default).code(),
+        aging_counter: ranged(&BletrackerSendArgs::AGING_COUNTER, a.aging_counter)? as u32,
+        region: ranged(&BletrackerSendArgs::REGION, a.region)? as u8,
+        e2e: a.e2e.unwrap_or(false),
+        uwb: a.uwb.unwrap_or(false),
+        battery: ranged(&BletrackerSendArgs::BATTERY, a.battery)? as u8,
+        ..SmartTagAdvert::default()
+    };
+    v.privacy_id.copy_from_slice(&id);
+    v.signature.copy_from_slice(&sig);
+    Ok(v.bytes())
+}
+
+/// The advertising data of `send` of `bletracker`: the Find My manufacturer data, the Google service data, the Tile or
+/// Chipolo UUID list and service data, or the SmartTag service data.
+///
+/// # Errors
+///
+/// [`TxError`] for a payload that is not hex or not of its length, a status out of range, or a Tile, Chipolo or
+/// SmartTag argument that [`smarttag_value`] or the service data refuses.
 pub fn tracker_data(a: &BletrackerSendArgs<'_>) -> Result<Vec<u8>, TxError> {
     let payload = hex(a.payload.unwrap_or(""), "payload")?;
     let mut d = Vec::new();
+    let long = |_| TxError::Long(MAX_DATA + 1);
+    let service_data = || {
+        hex_sized(
+            a.service_data.unwrap_or(""),
+            "service_data",
+            1,
+            TAG_SERVICE_DATA,
+        )
+    };
     match a.tracker.unwrap_or_default() {
+        SendTracker::Tile if a.shipping.unwrap_or(false) => {
+            ad::push_uuids16(&mut d, &[layout::TILE_SHIPPING_UUID]).map_err(long)?;
+        }
+        SendTracker::Tile => {
+            let v = service_data()?;
+            ad::push_uuids16(&mut d, &[layout::TILE_UUID]).map_err(long)?;
+            ad::push_service_data16(&mut d, layout::TILE_UUID, &v).map_err(long)?;
+        }
+        SendTracker::Chipolo => {
+            let v = service_data()?;
+            ad::push_uuids16(&mut d, &[layout::CHIPOLO_UUID]).map_err(long)?;
+            ad::push_service_data16(&mut d, layout::CHIPOLO_UUID, &v).map_err(long)?;
+        }
+        SendTracker::SmartTag => {
+            let v = smarttag_value(a)?;
+            ad::push_service_data16(&mut d, layout::SMARTTAG_UUID, &v).map_err(long)?;
+        }
         SendTracker::FindMy => {
             if payload.len() != FIND_MY_PAYLOAD {
                 return Err(TxError::FindMyPayload(payload.len()));

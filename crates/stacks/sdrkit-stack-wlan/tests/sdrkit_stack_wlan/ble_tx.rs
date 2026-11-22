@@ -453,3 +453,194 @@ fn a_tracker_frame_of_the_wrong_length_is_refused() {
     idle(rx.as_mut(), 0.01, 4000, |_| {});
     assert!(sink.bursts().is_empty());
 }
+
+/// A Tile, Chipolo or SmartTag send: the tracker choice, the arguments, the advertising data it must build, the mode and
+/// the service data hex that the table must show.
+struct TagCase {
+    family: TrackerKind,
+    args: Vec<(&'static str, Value)>,
+    data: Vec<u8>,
+    mode: sdrkit_stack_wlan::tracker::layout::TagMode,
+    service_data: Option<&'static str>,
+}
+
+fn tag_cases() -> Vec<TagCase> {
+    use sdrkit_stack_wlan::tracker::layout::{SmartTagState, TagMode};
+    let tile_value = [0x02, 0x00, 0x8C, 0x1F, 0x3A, 0x77, 0x05, 0xE1, 0x42, 0x9B];
+    let mut tile = Vec::new();
+    ad::push_uuids16(&mut tile, &[0xFEED]).unwrap();
+    ad::push_service_data16(&mut tile, 0xFEED, &tile_value).unwrap();
+    let mut shipping = Vec::new();
+    ad::push_uuids16(&mut shipping, &[0xFEEC]).unwrap();
+    let mut chipolo = Vec::new();
+    ad::push_uuids16(&mut chipolo, &[0xFE33]).unwrap();
+    ad::push_service_data16(&mut chipolo, 0xFE33, &[0x10, 0x01, 0xF6, 0x55, 0x44]).unwrap();
+    // State overmature lost (3), aging 0x0A1B2C, region 5, E2E, UWB, battery 1.
+    let value = [
+        0x13, 0x2C, 0x1B, 0x0A, 1, 2, 3, 4, 5, 6, 7, 8, 0x5D, 0, 0, 0, 0xDE, 0xAD, 0xBE, 0xEF,
+    ];
+    let mut smarttag = Vec::new();
+    ad::push_service_data16(&mut smarttag, 0xFD5A, &value).unwrap();
+    let text = |k: &'static str, v: &str| (k, Value::Text(v.into()));
+    vec![
+        TagCase {
+            family: TrackerKind::Tile,
+            args: vec![
+                ("tracker", Value::Choice(2)),
+                text("service_data", "02 00 8C 1F 3A 77 05 E1 42 9B"),
+            ],
+            data: tile,
+            mode: TagMode::Activated,
+            service_data: Some("02008C1F3A7705E1429B"),
+        },
+        TagCase {
+            family: TrackerKind::Tile,
+            args: vec![
+                ("tracker", Value::Choice(2)),
+                ("shipping", Value::Bool(true)),
+            ],
+            data: shipping,
+            mode: TagMode::Shipping,
+            service_data: None,
+        },
+        TagCase {
+            family: TrackerKind::Chipolo,
+            args: vec![
+                ("tracker", Value::Choice(3)),
+                text("service_data", "1001F65544"),
+            ],
+            data: chipolo,
+            mode: TagMode::Disconnected,
+            service_data: Some("1001F65544"),
+        },
+        TagCase {
+            family: TrackerKind::SmartTag,
+            args: vec![
+                ("tracker", Value::Choice(4)),
+                (
+                    "tag_state",
+                    Value::Choice(SmartTagState::OvermatureLost.index()),
+                ),
+                ("aging_counter", Value::I64(0x0A1B2C)),
+                text("privacy_id", "0102030405060708"),
+                ("region", Value::I64(5)),
+                ("e2e", Value::Bool(true)),
+                ("uwb", Value::Bool(true)),
+                ("battery", Value::I64(1)),
+                text("signature", "DEADBEEF"),
+            ],
+            data: smarttag,
+            mode: TagMode::Registered,
+            service_data: Some("132C1B0A01020304050607085D000000DEADBEEF"),
+        },
+    ]
+}
+
+#[test]
+fn a_tile_chipolo_or_smarttag_frame_decodes_to_its_fields_on_each_channel() {
+    use sdrkit_stack_wlan::tracker::layout::SmartTagState;
+    for (ch, hz) in CHANNELS {
+        for c in tag_cases() {
+            let (mut rx, sink) = station(&BLETRACKER, hz, hz, true);
+            let mut a = args(&[("address", "D1:22:33:44:55:66")]);
+            a.extend(c.args.iter().cloned());
+            a.push(("pdu_type", Value::Choice(1)));
+            command(rx.as_mut(), "send", &a).unwrap();
+            idle(rx.as_mut(), 0.01, 4000, |_| {});
+            let bursts = sink.bursts();
+            assert_eq!(bursts.len(), 1);
+            let mut want = Vec::new();
+            build_adv(
+                &mut want,
+                PduType::AdvInd,
+                &addr("D1:22:33:44:55:66", true),
+                &c.data,
+            )
+            .unwrap();
+            assert_eq!(
+                decode(&bursts[0].0),
+                vec![(ch, want)],
+                "channel {ch} {:?}",
+                c.mode
+            );
+
+            let (mut back, _) = station(&BLETRACKER, hz, hz, false);
+            let mut x = bursts[0].0.clone();
+            x.extend(std::iter::repeat_n(Complex32::default(), 40_000));
+            feed(back.as_mut(), &x, 4096);
+            let r = Owner::results(back.as_ref());
+            let trackers = rows(r, "trackers");
+            assert_eq!(trackers.len(), 1, "channel {ch} {:?}", c.mode);
+            let row = trackers[0];
+            assert_eq!(cell(row, &T::KIND), Some(&Value::Choice(c.family.index())));
+            assert_eq!(cell(row, &T::MODE), Some(&Value::Choice(c.mode.index())));
+            match c.service_data {
+                Some(h) => assert_eq!(text(row, &T::SERVICE_DATA), h),
+                None => assert!(cell(row, &T::SERVICE_DATA).is_none()),
+            }
+            if c.family == TrackerKind::SmartTag {
+                assert_eq!(
+                    cell(row, &T::TAG_STATE),
+                    Some(&Value::Choice(SmartTagState::OvermatureLost.index()))
+                );
+                assert_eq!(cell(row, &T::TAG_STATE_CODE), Some(&Value::I64(3)));
+                assert_eq!(cell(row, &T::AGING_COUNTER), Some(&Value::I64(0x0A1B2C)));
+                assert_eq!(cell(row, &T::REGION), Some(&Value::I64(5)));
+                assert_eq!(cell(row, &T::E2E), Some(&Value::Bool(true)));
+                assert_eq!(cell(row, &T::UWB), Some(&Value::Bool(true)));
+                assert_eq!(cell(row, &T::BATTERY), Some(&Value::I64(1)));
+                assert_eq!(text(row, &T::IDENTIFIER), "0102030405060708");
+            }
+        }
+    }
+}
+
+#[test]
+fn a_tile_chipolo_or_smarttag_frame_out_of_its_sizes_is_refused() {
+    let (mut rx, sink) = station(&BLETRACKER, 2402e6, 2402e6, true);
+    let refused = |rx: &mut dyn Receiver, extra: Vec<(&'static str, Value)>| {
+        let mut a = args(&[("address", "D1:22:33:44:55:66")]);
+        a.extend(extra);
+        command(rx, "send", &a).unwrap_err().to_string()
+    };
+    let t = |v: &str| Value::Text(v.into());
+    let e = refused(rx.as_mut(), vec![("tracker", Value::Choice(2))]);
+    assert!(e.contains("service_data is 0 bytes, not 1 to 23"), "{e}");
+    let e = refused(
+        rx.as_mut(),
+        vec![
+            ("tracker", Value::Choice(3)),
+            ("service_data", t(&"00".repeat(24))),
+        ],
+    );
+    assert!(e.contains("not 1 to 23"), "{e}");
+    let e = refused(
+        rx.as_mut(),
+        vec![
+            ("tracker", Value::Choice(4)),
+            ("privacy_id", t("0102")),
+            ("signature", t("01020304")),
+        ],
+    );
+    assert!(e.contains("privacy_id is 2 bytes, not 8"), "{e}");
+    let e = refused(
+        rx.as_mut(),
+        vec![
+            ("tracker", Value::Choice(4)),
+            ("privacy_id", t("0102030405060708")),
+        ],
+    );
+    assert!(e.contains("signature is 0 bytes, not 4"), "{e}");
+    let e = refused(
+        rx.as_mut(),
+        vec![
+            ("tracker", Value::Choice(4)),
+            ("privacy_id", t("0102030405060708")),
+            ("signature", t("01020304")),
+            ("battery", Value::I64(4)),
+        ],
+    );
+    assert!(e.contains("outside 0 to 3"), "{e}");
+    idle(rx.as_mut(), 0.01, 4000, |_| {});
+    assert!(sink.bursts().is_empty());
+}

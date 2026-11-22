@@ -1,6 +1,7 @@
 //! Tracker recognition from the public structure of an advertisement, and the tracker book: how long and how near each
 //! tracker stays, with rotating addresses joined, kept on signal time only.
 
+use super::layout::{self, ServiceData, SmartTagAdvert, TagDetail, TagMode};
 use sdrkit_proto_wlan_phy::ble::ad::{self, AdValue};
 use sdrkit_proto_wlan_phy::ble::{Addr, AdvPdu, PduType};
 use sdrkit_util_objects::{fingerprint, LogRing, ObjectTable, Shift, Stamp};
@@ -69,13 +70,17 @@ pub struct Recognised {
     pub status: Option<u8>,
     /// Unwanted-tracking protection (Google frame type 0x41).
     pub unwanted_protection: bool,
+    /// The mode, the SmartTag fields and the service data (Tile, Chipolo, SmartTag).
+    pub detail: TagDetail,
 }
 
 fn uuid_kind(u: u32) -> Option<TrackerKind> {
-    match u {
-        0xFEED | 0xFD84 => Some(TrackerKind::Tile),
-        0xFE33 => Some(TrackerKind::Chipolo),
-        0xFD5A => Some(TrackerKind::SmartTag),
+    match u16::try_from(u).ok()? {
+        layout::TILE_UUID | layout::TILE_SHIPPING_UUID | layout::TILE_OTHER_UUID => {
+            Some(TrackerKind::Tile)
+        }
+        layout::CHIPOLO_UUID => Some(TrackerKind::Chipolo),
+        layout::SMARTTAG_UUID | layout::SMARTTAG_UNREGISTERED_UUID => Some(TrackerKind::SmartTag),
         _ => None,
     }
 }
@@ -86,11 +91,13 @@ fn plain(kind: TrackerKind) -> Recognised {
         separated: false,
         status: None,
         unwanted_protection: false,
+        detail: TagDetail::default(),
     }
 }
 
-/// Recognises a tracker from advertising data. Only the public structure bytes are read: company identifier, service UUID,
-/// frame type and status. The first structure that names a kind sets it, but a Find My frame always sets Find My.
+/// Recognises a tracker from advertising data: company identifier, service UUID, frame type and status, and for Tile,
+/// Chipolo and SmartTag the mode that the UUID tells and the service data. The first structure that names a kind sets
+/// it, later structures of the same kind add their detail, and a Find My frame always sets Find My.
 pub fn recognise(data: &[u8]) -> Option<Recognised> {
     let mut found: Option<Recognised> = None;
     for s in ad::structures(data) {
@@ -104,15 +111,28 @@ pub fn recognise(data: &[u8]) -> Option<Recognised> {
                     kind: TrackerKind::FindMy,
                     separated: true,
                     status: Some(m[2]),
-                    unwanted_protection: false,
+                    ..plain(TrackerKind::FindMy)
                 });
                 continue;
             }
+            // The first UUID of a family names the kind; any UUID of that kind with a mode gives the mode.
             AdValue::Uuids { list, .. } if list.width == 2 => {
-                list.values().find_map(uuid_kind).map(plain)
+                list.values().find_map(uuid_kind).map(|k| Recognised {
+                    detail: TagDetail {
+                        mode: list
+                            .values()
+                            .filter(|&u| uuid_kind(u) == Some(k))
+                            .find_map(|u| layout::mode_of(u16::try_from(u).ok()?)),
+                        ..TagDetail::default()
+                    },
+                    ..plain(k)
+                })
             }
-            AdValue::ServiceData16 { uuid, data: d } => match uuid_kind(uuid as u32) {
-                Some(k) => Some(plain(k)),
+            AdValue::ServiceData16 { uuid, data: d } => match uuid_kind(u32::from(uuid)) {
+                Some(k) => Some(Recognised {
+                    detail: layout::detail_of_service(uuid, d),
+                    ..plain(k)
+                }),
                 None if uuid == 0xFEAA && matches!(d.first(), Some(0x40 | 0x41)) => {
                     Some(Recognised {
                         unwanted_protection: d[0] == 0x41,
@@ -123,8 +143,10 @@ pub fn recognise(data: &[u8]) -> Option<Recognised> {
             },
             _ => None,
         };
-        if found.is_none() {
-            found = this;
+        match (&mut found, this) {
+            (None, t) => found = t,
+            (Some(f), Some(t)) if f.kind == t.kind => f.detail.merge(&t.detail),
+            _ => {}
         }
     }
     found
@@ -231,6 +253,15 @@ pub struct Tracker {
     pub status: Option<u8>,
     /// Unwanted-tracking protection seen.
     pub unwanted_protection: bool,
+    /// The last mode that the UUID told (Tile, Chipolo, SmartTag).
+    pub mode: Option<TagMode>,
+    /// The last decoded SmartTag value.
+    pub smarttag: Option<SmartTagAdvert>,
+    /// The last rolling identifier in hex (the SmartTag privacy ID); empty when none was heard.
+    pub identifier: String,
+    /// The last service data value under the family's UUID in hex; empty when none was heard.
+    pub service_data: String,
+    last_data: Option<ServiceData>,
     /// The last level, dBFS.
     pub level: f64,
     /// The average level, dBFS.
@@ -285,6 +316,26 @@ impl Shift for Tracker {
 }
 
 impl Tracker {
+    /// Keeps the parts of `d` that it holds; the hex text is made again only when its bytes changed.
+    fn take_detail(&mut self, d: &TagDetail) {
+        if d.mode.is_some() {
+            self.mode = d.mode;
+        }
+        if let Some(t) = d.smarttag {
+            if self.smarttag.is_none_or(|o| o.privacy_id != t.privacy_id) {
+                self.identifier.clear();
+                sdrkit_core::base64::hex_into(&t.privacy_id, &mut self.identifier);
+            }
+            self.smarttag = Some(t);
+        }
+        if let Some(v) = d.service_data {
+            if self.last_data != Some(v) {
+                self.service_data.clear();
+                sdrkit_core::base64::hex_into(v.as_slice(), &mut self.service_data);
+                self.last_data = Some(v);
+            }
+        }
+    }
     /// `"<short kind> ..<last two address bytes>"`.
     pub fn label(&self) -> &str {
         &self.label
@@ -482,6 +533,14 @@ impl Book {
         {
             r.label = format!("{} ..{}", s.what.kind.short(), r.tail);
         }
+        if r.kind.is_some_and(|k| k != s.what.kind) {
+            r.mode = None;
+            r.smarttag = None;
+            r.identifier.clear();
+            r.service_data.clear();
+            r.last_data = None;
+        }
+        r.take_detail(&s.what.detail);
         r.kind = Some(s.what.kind);
         r.separated |= s.what.separated;
         r.unwanted_protection |= s.what.unwanted_protection;

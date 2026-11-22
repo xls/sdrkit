@@ -65,6 +65,67 @@ fn only(b: &Book) -> &sdrkit_stack_wlan::tracker::book::Tracker {
     b.trackers.iter().next().unwrap().record
 }
 
+/// The registered SmartTag value printed in the published analysis of the first SmartTag.
+const SMARTTAG_EXAMPLE: [u8; 20] = [
+    0x15, 0x6B, 0xFA, 0x00, 0xC8, 0x40, 0x62, 0xB2, 0x8F, 0x00, 0xE2, 0x60, 0xC3, 0x00, 0x00, 0x00,
+    0xAD, 0x01, 0x8B, 0x47,
+];
+
+#[test]
+fn the_uuid_tells_the_mode_and_the_service_data_is_kept() {
+    use sdrkit_stack_wlan::tracker::layout::{SmartTagState, TagMode};
+    let mode = |d: &[u8]| recognise(d).unwrap().detail.mode;
+    assert_eq!(mode(&uuids(&[0xFEED])), Some(TagMode::Activated));
+    let t = recognise(&uuids(&[0xFEEC])).unwrap();
+    assert_eq!(t.kind, TrackerKind::Tile);
+    assert_eq!(t.detail.mode, Some(TagMode::Shipping));
+    assert_eq!(mode(&uuids(&[0xFD84])), None);
+    assert_eq!(mode(&uuids(&[0xFD84, 0xFEEC])), Some(TagMode::Shipping));
+    assert_eq!(mode(&uuids(&[0xFE33])), Some(TagMode::Disconnected));
+    assert_eq!(mode(&service(0xFD59, &[1, 2])), Some(TagMode::Unregistered));
+    assert_eq!(
+        recognise(&service(0xFD59, &[1])).unwrap().kind,
+        TrackerKind::SmartTag
+    );
+
+    // A UUID list first, then the service data of the same family: both parts count.
+    let mut d = uuids(&[0xFEED]);
+    d.extend(service(0xFEED, &[0x02, 0x00, 1, 2, 3, 4, 5, 6, 7, 8]));
+    let t = recognise(&d).unwrap();
+    assert_eq!(t.detail.mode, Some(TagMode::Activated));
+    assert_eq!(
+        t.detail.service_data.unwrap().as_slice(),
+        &[0x02, 0x00, 1, 2, 3, 4, 5, 6, 7, 8]
+    );
+    assert!(t.detail.smarttag.is_none());
+
+    // The printed SmartTag value.
+    let t = recognise(&service(0xFD5A, &SMARTTAG_EXAMPLE)).unwrap();
+    assert_eq!(t.detail.mode, Some(TagMode::Registered));
+    let v = t.detail.smarttag.unwrap();
+    assert_eq!(v.state(), Some(SmartTagState::ConnectedOne));
+    assert_eq!(
+        (v.aging_counter, v.region, v.e2e, v.uwb, v.battery),
+        (64_107, 12, false, false, 3)
+    );
+    assert_eq!(
+        v.privacy_id,
+        [0xC8, 0x40, 0x62, 0xB2, 0x8F, 0x00, 0xE2, 0x60]
+    );
+    // Under the unregistered UUID the value is kept, not decoded.
+    let t = recognise(&service(0xFD59, &SMARTTAG_EXAMPLE)).unwrap();
+    assert!(t.detail.smarttag.is_none() && t.detail.service_data.is_some());
+
+    // The book keeps the hex of the privacy ID and of the service data.
+    let mut b = Book::default();
+    let t = recognise(&service(0xFD5A, &SMARTTAG_EXAMPLE)).unwrap();
+    b.hear(&s("D1:22:33:44:55:66", -50.0, 1.0, t));
+    let r = only(&b);
+    assert_eq!(r.identifier, "C84062B28F00E260");
+    assert_eq!(r.service_data, "156BFA00C84062B28F00E260C3000000AD018B47");
+    assert_eq!(r.mode, Some(TagMode::Registered));
+}
+
 #[test]
 fn recognition_reads_only_the_public_structure() {
     let r = recognise(&findmy(0x24, 27)).unwrap();
