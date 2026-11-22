@@ -174,7 +174,12 @@ fn jt4a_recording() {
     check("jt4a", Sub::new(Mode::Jt4));
 }
 
-/// FST4, FST4W, MSK144 and Q65 without their codes: nothing is decoded, so nothing false either.
+#[test]
+fn q65_recording() {
+    check("q65_60a", Sub::new(Mode::Q65));
+}
+
+/// FST4, FST4W and MSK144 without their codes: nothing is decoded, so nothing false either.
 #[test]
 fn modes_without_their_codes_give_nothing() {
     let e = expected();
@@ -182,7 +187,6 @@ fn modes_without_their_codes_give_nothing() {
         ("msk144_15", Sub::new(Mode::Msk144)),
         ("fst4_60", Sub::new(Mode::Fst4).with_period(60.0)),
         ("fst4w_120", Sub::new(Mode::Fst4w).with_period(120.0)),
-        ("q65_60a", Sub::new(Mode::Q65)),
     ] {
         let r = &e["recordings"][key];
         let name = r["recording"]

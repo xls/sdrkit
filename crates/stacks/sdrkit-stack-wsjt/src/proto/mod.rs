@@ -7,4 +7,5 @@ pub mod jt65;
 pub mod k32;
 pub mod msg72;
 pub mod msg77;
+pub mod q65code;
 pub mod wsprmsg;

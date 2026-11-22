@@ -1,7 +1,6 @@
 //! The encoder vectors of `tests/vectors/wsjt/encode_vectors.json`, made by an independent encoder. FT8, FT4, WSPR, JT65, JT9,
-//! JT4 and JS8 must be reproduced exactly; for Q65 the 78 message bits must match (and every tone, in the Q65 tests, when the
-//! recordings folder holds its code table). For FST4, FST4W and MSK144, which have no
-//! code table here, the sync symbols and the information part (the packed message, the CRC and the bit order) must match.
+//! JT4, JS8 and Q65 must be reproduced exactly (Q65 also here: the 78 message bits). For FST4, FST4W and MSK144, which have
+//! no code table here, the sync symbols and the information part (the packed message, the CRC and the bit order) must match.
 
 use sdrkit_stack_wsjt::encode::{self, channel_symbols};
 use sdrkit_stack_wsjt::proto::codes::CodeStore;
@@ -137,7 +136,7 @@ fn codes_without_tables_match_sync_and_information() {
                 }
                 assert_eq!(bits[..77], pack77(msg).unwrap()[..], "Q65 {msg}");
                 assert_eq!(bits[77], 0);
-                assert!(channel_symbols(&Sub::new(Mode::Q65), msg, &none).is_err());
+                assert_eq!(channel_symbols(&Sub::new(Mode::Q65), msg, &none).unwrap(), want, "Q65 {msg}");
                 n += 1;
             }
             "FST4" | "FST4W" => {

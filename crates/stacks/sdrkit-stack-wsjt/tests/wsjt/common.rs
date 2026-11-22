@@ -298,33 +298,6 @@ pub fn rng(seed: u64) -> sdrkit_algo_sim::rng::Rng {
     sdrkit_algo_sim::rng::Rng::new(seed)
 }
 
-/// A test-only repeat-accumulate code over GF(64) in the text form of the code files: 65 symbols, the 15 information symbols
-/// first (five of them in 4 checks, ten in 3), 50 accumulator checks, with the order and the weights chosen from a fixed seed.
-/// It is not the protocol code. It only carries the Q65 stack through a loaded table, which sdrkit cannot ship.
-pub fn test_q65_code() -> String {
-    use sdrkit_algo_fec::nbldpc::{NbCode, RepeatAccumulate};
-    let mut r = rng(65);
-    let mut repeats = vec![4usize; 5];
-    repeats.extend([3; 10]);
-    let mut permutation: Vec<usize> = (0..50).collect();
-    for i in (1..50).rev() {
-        permutation.swap(i, r.below(i as u64 + 1) as usize);
-    }
-    let weights: Vec<u16> = (0..50).map(|_| 1 + r.below(63) as u16).collect();
-    NbCode::repeat_accumulate(
-        6,
-        0x43,
-        &RepeatAccumulate {
-            repeats: &repeats,
-            permutation: &permutation,
-            weights: &weights,
-            combine: 1,
-        },
-    )
-    .unwrap()
-    .to_text()
-}
-
 /// A test-only parity-check matrix of `n` columns and `n - k` rows with the information bits first: each parity bit checks itself
 /// and three information bits chosen from a fixed seed. It is not a protocol code. It only carries the receivers through a loaded
 /// table, which sdrkit cannot ship for FST4, FST4W and MSK144.

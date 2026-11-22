@@ -23,19 +23,16 @@ fn alist_text(n: usize, rows: &[Vec<u16>]) -> String {
     Alist::from_rows(n, rows).unwrap().to_text()
 }
 
-/// The test code of `id` as the text of its file: an alist text, or the text form of the code over GF(64).
+/// The test code of `id` as the text of its alist file.
 pub fn test_code_text(id: CodeId) -> String {
-    if id.over_gf64() {
-        return test_q65_code();
-    }
     alist_text(id.n(), &test_code_rows(id.n(), id.k(), id as u64 + 7))
 }
 
-/// A store with the test codes of FST4, FST4W, MSK144 and Q65, loaded through the parsers of their files.
+/// A store with the test codes of FST4, FST4W and MSK144, loaded through the parser of their files.
 pub fn test_codes() -> CodeStore {
     let mut s = CodeStore::default();
     for id in CodeId::ALL {
-        s.install(CodeTable::parse(id, &test_code_text(id)).unwrap());
+        s.install(CodeTable::parse_alist(id, &test_code_text(id)).unwrap());
     }
     s
 }
@@ -134,12 +131,7 @@ fn a_folder_loads_the_files_it_holds() {
     let d = folder("full", true);
     assert_eq!(s.load_dir(&d).unwrap(), CodeId::ALL.to_vec());
     for id in CodeId::ALL {
-        let n = if id.over_gf64() {
-            s.symbols(id).unwrap().n()
-        } else {
-            s.get(id).unwrap().n()
-        };
-        assert_eq!(n, id.n());
+        assert_eq!(s.get(id).unwrap().n(), id.n());
     }
     // A broken file refuses the folder, and nothing is loaded.
     std::fs::write(d.join(CodeId::Fst4w.file_name()), "not a table").unwrap();
@@ -154,7 +146,6 @@ fn without_a_table_the_status_says_which_file_to_load() {
         (Mode::Fst4, "fst4_240_101.alist"),
         (Mode::Fst4w, "fst4w_240_74.alist"),
         (Mode::Msk144, "msk144_128_90.alist"),
-        (Mode::Q65, "q65_65_15.nbcode"),
     ] {
         let a = noise(16 * 8000, SIGMA, 1);
         let mut rx = receiver(Some(m), &[], 8000.0, 0.0);

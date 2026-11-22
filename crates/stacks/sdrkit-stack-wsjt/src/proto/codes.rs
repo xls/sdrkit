@@ -1,12 +1,10 @@
-//! The codes of the family. FT8, FT4, FT2 and JS8 use the tables that `sdrkit-algo-fec` ships. The FST4, FST4W, MSK144 and Q65
-//! tables are not shipped, so a host loads them at run time from files: the binary codes in the alist format, the Q65 code over
-//! GF(64) in the text form of [`NbCode::parse`].
+//! The codes of the family. FT8, FT4, FT2 and JS8 use the tables that `sdrkit-algo-fec` ships, and Q65 the tables of
+//! [`super::q65code`]. The FST4, FST4W and MSK144 tables are not shipped, so a host loads them at run time from alist files.
 //! Standard: QEX July/August 2020 "The FT4 and FT8 Communication Protocols" section 3.
 
 use crate::mode::Mode;
 use sdrkit_algo_fec::ldpc::alist::{Alist, AlistError};
 use sdrkit_algo_fec::ldpc::{tables::wsjt, InfoAt, LdpcCode};
-use sdrkit_algo_fec::nbldpc::NbCode;
 use sdrkit_algo_fec::FecError;
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -39,13 +37,11 @@ pub enum CodeId {
     Fst4w,
     /// The (128,90) code of MSK144.
     Msk144,
-    /// The (65,15) repeat-accumulate code of Q65 over GF(64), counted in six-bit symbols.
-    Q65,
 }
 
 impl CodeId {
     /// Every code a host can load.
-    pub const ALL: [CodeId; 4] = [CodeId::Fst4, CodeId::Fst4w, CodeId::Msk144, CodeId::Q65];
+    pub const ALL: [CodeId; 3] = [CodeId::Fst4, CodeId::Fst4w, CodeId::Msk144];
 
     /// The code of `mode`, if that mode needs a loaded code.
     pub fn of(mode: Mode) -> Option<CodeId> {
@@ -53,33 +49,25 @@ impl CodeId {
             Mode::Fst4 => Some(CodeId::Fst4),
             Mode::Fst4w => Some(CodeId::Fst4w),
             Mode::Msk144 => Some(CodeId::Msk144),
-            Mode::Q65 => Some(CodeId::Q65),
             _ => None,
         }
     }
 
-    /// The code length `n` (Q65: symbols).
+    /// The code length `n`.
     pub fn n(self) -> usize {
         match self {
             CodeId::Fst4 | CodeId::Fst4w => 240,
             CodeId::Msk144 => 128,
-            CodeId::Q65 => 65,
         }
     }
 
-    /// The information bits `k` (Q65: symbols).
+    /// The information bits `k`.
     pub fn k(self) -> usize {
         match self {
             CodeId::Fst4 => 101,
             CodeId::Fst4w => 74,
             CodeId::Msk144 => 90,
-            CodeId::Q65 => 15,
         }
-    }
-
-    /// Whether the code is over GF(64) (a file in the text form of [`NbCode::parse`]) and not a binary code (an alist file).
-    pub fn over_gf64(self) -> bool {
-        self == CodeId::Q65
     }
 
     /// A name for people, such as "FST4 LDPC (240,101)".
@@ -88,7 +76,6 @@ impl CodeId {
             CodeId::Fst4 => "FST4 LDPC (240,101)",
             CodeId::Fst4w => "FST4W LDPC (240,74)",
             CodeId::Msk144 => "MSK144 LDPC (128,90)",
-            CodeId::Q65 => "Q65 GF(64) (65,15)",
         }
     }
 
@@ -98,7 +85,6 @@ impl CodeId {
             CodeId::Fst4 => "fst4_240_101.alist",
             CodeId::Fst4w => "fst4w_240_74.alist",
             CodeId::Msk144 => "msk144_128_90.alist",
-            CodeId::Q65 => "q65_65_15.nbcode",
         }
     }
 }
@@ -136,14 +122,6 @@ pub enum CodeError {
     /// The checks do not make a code.
     #[error(transparent)]
     Checks(#[from] FecError),
-    /// The file of the code over GF(64) is not in the text form.
-    #[error("{}: {fault}", code.file_name())]
-    Text {
-        /// The code whose file it is.
-        code: CodeId,
-        /// What the parser refused.
-        fault: FecError,
-    },
     /// The checks do not give an encoder with the information bits first.
     #[error("the checks of {} do not give an encoder with the information bits first", .0.name())]
     NoEncoder(CodeId),
@@ -157,19 +135,11 @@ pub enum CodeError {
     },
 }
 
-/// A loaded code: the parity checks of one [`CodeId`], with the information bits (or symbols) first, checked to give an
-/// encoder.
+/// A loaded code: the parity checks of one [`CodeId`], with the information bits first, checked to give an encoder.
 #[derive(Clone, Debug)]
 pub struct CodeTable {
     id: CodeId,
-    code: Loaded,
-}
-
-/// The two kinds of loaded code.
-#[derive(Clone, Debug)]
-enum Loaded {
-    Bits(Arc<LdpcCode>),
-    Symbols(Arc<NbCode>),
+    code: Arc<LdpcCode>,
 }
 
 impl CodeTable {
@@ -193,46 +163,8 @@ impl CodeTable {
         }
         Ok(CodeTable {
             id,
-            code: Loaded::Bits(Arc::new(code)),
+            code: Arc::new(code),
         })
-    }
-
-    /// The code `id` over GF(64) from the text form of [`NbCode::parse`]: 64 values a symbol, `n` symbols, the information
-    /// symbols the first `k`.
-    ///
-    /// # Errors
-    ///
-    /// [`CodeError::Text`] if the text is refused, [`CodeError::Size`] if the field or the size is wrong,
-    /// [`CodeError::NoEncoder`] if the information symbols are not the first `k`.
-    pub fn parse_symbols(id: CodeId, text: &str) -> Result<CodeTable, CodeError> {
-        let code = NbCode::parse(text).map_err(|fault| CodeError::Text { code: id, fault })?;
-        if !id.over_gf64() || code.q() != 64 || code.n() != id.n() || code.k() != id.k() {
-            return Err(CodeError::Size {
-                code: id,
-                found: (code.n(), code.checks()),
-            });
-        }
-        if code.info_positions().iter().enumerate().any(|(i, &p)| p as usize != i) {
-            return Err(CodeError::NoEncoder(id));
-        }
-        Ok(CodeTable {
-            id,
-            code: Loaded::Symbols(Arc::new(code)),
-        })
-    }
-
-    /// The code `id` from the text of its file: [`CodeTable::parse_symbols`] for a code over GF(64), else
-    /// [`CodeTable::parse_alist`].
-    ///
-    /// # Errors
-    ///
-    /// The errors of the parser used.
-    pub fn parse(id: CodeId, text: &str) -> Result<CodeTable, CodeError> {
-        if id.over_gf64() {
-            Self::parse_symbols(id, text)
-        } else {
-            Self::parse_alist(id, text)
-        }
     }
 
     /// The code `id` from the text of an alist file.
@@ -255,27 +187,16 @@ impl CodeTable {
         self.id
     }
 
-    /// The binary code (`None` for a code over GF(64)).
-    pub fn code(&self) -> Option<&Arc<LdpcCode>> {
-        match &self.code {
-            Loaded::Bits(c) => Some(c),
-            Loaded::Symbols(_) => None,
-        }
-    }
-
-    /// The code over GF(64) (`None` for a binary code).
-    pub fn symbol_code(&self) -> Option<&Arc<NbCode>> {
-        match &self.code {
-            Loaded::Symbols(c) => Some(c),
-            Loaded::Bits(_) => None,
-        }
+    /// The code.
+    pub fn code(&self) -> &Arc<LdpcCode> {
+        &self.code
     }
 }
 
 /// The loaded codes of a receiver or a generator. Cloning is cheap: the codes are shared and never change.
 #[derive(Clone, Debug, Default)]
 pub struct CodeStore {
-    codes: BTreeMap<CodeId, Loaded>,
+    codes: BTreeMap<CodeId, Arc<LdpcCode>>,
 }
 
 impl CodeStore {
@@ -289,27 +210,16 @@ impl CodeStore {
         self.codes.contains_key(&id)
     }
 
-    /// The binary code `id`, if loaded.
+    /// The code `id`, if loaded.
     pub fn get(&self, id: CodeId) -> Option<&Arc<LdpcCode>> {
-        match self.codes.get(&id)? {
-            Loaded::Bits(c) => Some(c),
-            Loaded::Symbols(_) => None,
-        }
-    }
-
-    /// The code `id` over GF(64), if loaded.
-    pub fn symbols(&self, id: CodeId) -> Option<&Arc<NbCode>> {
-        match self.codes.get(&id)? {
-            Loaded::Symbols(c) => Some(c),
-            Loaded::Bits(_) => None,
-        }
+        self.codes.get(&id)
     }
 
     /// Loads every code whose file ([`CodeId::file_name`]) is in the folder `dir`, and returns the codes loaded.
     ///
     /// # Errors
     ///
-    /// [`CodeError::Io`] for a file that cannot be read, and the errors of [`CodeTable::parse`] for a file that is
+    /// [`CodeError::Io`] for a file that cannot be read, and the errors of [`CodeTable::parse_alist`] for a file that is
     /// refused. Nothing is loaded then.
     pub fn load_dir(&mut self, dir: &Path) -> Result<Vec<CodeId>, CodeError> {
         let mut found = Vec::new();
@@ -322,7 +232,7 @@ impl CodeStore {
                 code: id,
                 kind: e.kind(),
             })?;
-            found.push(CodeTable::parse(id, &text)?);
+            found.push(CodeTable::parse_alist(id, &text)?);
         }
         let ids = found.iter().map(CodeTable::id).collect();
         for t in found {

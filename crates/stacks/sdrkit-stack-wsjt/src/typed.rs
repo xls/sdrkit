@@ -927,9 +927,10 @@ fn scatter_stacks() -> [StackShape; 4] {
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     // 2.0: a stack has only the transmit commands and settings of its modes, the WSPR beacon starts with the command
-    // `beacon` and no setting, and `cq`, `beacon` and `send` transmit.
+    // `beacon` and no setting, and `cq`, `beacon` and `send` transmit. 3.0: the Q65 stack has its code built in and no
+    // setting `code_dir`.
     FAMILY.get_or_init(|| {
-        let mut f = Described::new("wsjt", 2, 1)
+        let mut f = Described::new("wsjt", 3, 0)
             .shared_source("table", SLOT_STACKS)
             .shared_source("components", SLOT_STACKS)
             .shared_source("runner", SLOT_STACKS)
@@ -939,15 +940,9 @@ pub fn family() -> &'static Described {
         for m in Mode::ALL {
             f = f.stack(slot_stack(Some(m)));
         }
-        scatter_stacks()
-            .into_iter()
-            .fold(f, Described::stack)
-            .added(2, 1, ADDED_2_1)
+        scatter_stacks().into_iter().fold(f, Described::stack)
     })
 }
-
-/// What version 2.1 added: the folder of the code tables of the Q65 stack.
-const ADDED_2_1: &[&str] = &["q65.setting.code_dir"];
 
 /// The ids of the slot stacks.
 const SLOT_STACKS: &[&str] = &[

@@ -7,14 +7,15 @@ use super::slot::fft_in_place;
 use super::slow::{Fit, SlowSpec};
 use crate::encode::{q65_channel, q65_crc, q65_tones, Q65_SYNC};
 use num_complex::Complex32;
-use sdrkit_algo_fec::nbldpc::{NbCode, NbDecoder, NbStop};
+use crate::proto::q65code;
+use sdrkit_algo_fec::nbldpc::{NbDecoder, NbStop};
 use std::f64::consts::PI;
 
 /// What the status says about the parts of Q65 that no public document states.
 pub const UNCONFIRMED: &str = "Q65 parts that no public document confirms: the sync positions, the tone numbering of the \
-    data symbols, the pad bit and the bit order of the symbols, the CRC-12 polynomial and its bit order (unproven until a \
-    real recording decodes), the GF(64) polynomial, the code table and the order of the sent symbols, the samples per \
-    symbol and the start time, the audio band and the dial frequencies; the constants of the metric are design values";
+    data symbols, the pad bit and the bit order of the symbols, the CRC-12 polynomial and its bit order, the GF(64) \
+    polynomial, the code table and the order of the sent symbols, the samples per symbol and the start time, the audio \
+    band and the dial frequencies; the constants of the metric are design values";
 
 /// The symbol Es/N0 the metric assumes (linear).
 const ES_N0: f64 = 2.3591;
@@ -223,10 +224,16 @@ pub struct Decoder {
     hard: Vec<u16>,
 }
 
+impl Default for Decoder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Decoder {
-    /// A decoder for the loaded code (65 symbols over GF(64), the 15 information symbols first).
-    pub fn new(code: &NbCode) -> Decoder {
-        let mut dec = NbDecoder::new(code);
+    /// A decoder of the Q65 code ([`q65code::code`]).
+    pub fn new() -> Decoder {
+        let mut dec = NbDecoder::new(q65code::code());
         dec.set_stop(NbStop::Confidence { slack: SLACK });
         Decoder {
             dec,
@@ -249,9 +256,6 @@ impl Decoder {
         symbol_rate: f64,
         mut unpack: impl FnMut(&[u8]) -> Option<String>,
     ) -> Option<Word> {
-        if self.dec.code().n() != 65 || self.dec.code().q() != 64 {
-            return None;
-        }
         for sigma in g.widths() {
             g.energies(sigma, &mut self.e);
             // The message symbols are rows 0 to 12, the check symbols rows 15 to 64.
@@ -274,10 +278,7 @@ impl Decoder {
             if q65_crc(msg) != info[13..] || info[12] & 1 != 0 {
                 continue;
             }
-            let channel = q65_channel(self.dec.code(), &info);
-            if channel.len() != 63 {
-                continue;
-            }
+            let channel = q65_channel(&info);
             let likelihood: f64 = channel
                 .iter()
                 .enumerate()

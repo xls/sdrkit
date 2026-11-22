@@ -1,10 +1,10 @@
 //! Benchmarks of the family, for `sdrkit_benchmark` on the device (see [`sdrkit_core::bench`]): the front end at 2
 //! Msps, one slot of each decoder whose code sdrkit ships with 8 stations at -15 dB, the crowded FT8 slot, and Q65 slots of
-//! 15 s and 60 s with a stand-in code. `items_per_second` counts input samples (slots for the decoders), and
+//! 15 s and 60 s. `items_per_second` counts input samples (slots for the decoders), and
 //! `cpu_fraction_of_realtime` is the time taken over the signal time.
 
 use crate::encode::{audio, Transmission};
-use crate::proto::codes::{CodeStore, CodeTable};
+use crate::proto::codes::CodeStore;
 use crate::front::{Demod, FrontEnd};
 use crate::mode::{Mode, Sub};
 use crate::runner::{decode_slot, DecodeState};
@@ -33,41 +33,8 @@ fn noise(n: usize, seed: u64) -> Vec<f32> {
     a
 }
 
-/// A stand-in for the Q65 code table, which sdrkit does not ship: a repeat-accumulate code of the same size over GF(64) from
-/// a fixed seed. It is not the protocol code. It costs the decoder the same time.
-fn q65_stand_in() -> CodeStore {
-    use sdrkit_algo_fec::nbldpc::{NbCode, RepeatAccumulate};
-    let mut r = sdrkit_algo_sim::rng::Rng::new(65);
-    let mut repeats = vec![4usize; 5];
-    repeats.extend([3; 10]);
-    let mut permutation: Vec<usize> = (0..50).collect();
-    for i in (1..50).rev() {
-        permutation.swap(i, r.below(i as u64 + 1) as usize);
-    }
-    let weights: Vec<u16> = (0..50).map(|_| 1 + r.below(63) as u16).collect();
-    let shape = RepeatAccumulate {
-        repeats: &repeats,
-        permutation: &permutation,
-        weights: &weights,
-        combine: 1,
-    };
-    let mut codes = CodeStore::default();
-    if let Ok(t) = NbCode::repeat_accumulate(6, 0x43, &shape)
-        .map_err(|_| ())
-        .and_then(|c| CodeTable::parse_symbols(crate::proto::codes::CodeId::Q65, &c.to_text()).map_err(|_| ()))
-    {
-        codes.install(t);
-    }
-    codes
-}
-
 /// A slot of `sub` with `n` stations at `snr` dB.
 pub fn test_slot(sub: Sub, n: usize, snr: f64) -> Slot {
-    test_slot_with(sub, n, snr, &CodeStore::default())
-}
-
-/// As [`test_slot`], with the loaded `codes`.
-fn test_slot_with(sub: Sub, n: usize, snr: f64, codes: &CodeStore) -> Slot {
     let (w0, w1) = sub.window();
     let len = ((w1 - w0) * 8000.0) as usize;
     let mut a = noise(len, 1);
@@ -100,7 +67,7 @@ fn test_slot_with(sub: Sub, n: usize, snr: f64, codes: &CodeStore) -> Slot {
             },
             &text,
             8000.0,
-            codes,
+            &CodeStore::default(),
         ) {
             let st = ((sub.t0() - w0) * 8000.0) as usize;
             for (j, v) in s.iter().enumerate() {
@@ -134,15 +101,11 @@ fn decoder(mode: Mode, n: usize, seconds: f64) -> BenchResult {
     })
 }
 
-/// One Q65-A slot of `period` seconds with 8 stations at -15 dB, decoded with the stand-in code.
+/// One Q65-A slot of `period` seconds with 8 stations at -15 dB.
 fn q65(period: f64, seconds: f64) -> BenchResult {
     let sub = Sub::new(Mode::Q65).with_period(period);
-    let codes = q65_stand_in();
-    let slot = test_slot_with(sub, 8, -15.0, &codes);
-    let mut st = DecodeState {
-        codes,
-        ..Default::default()
-    };
+    let slot = test_slot(sub, 8, -15.0);
+    let mut st = DecodeState::default();
     measure(seconds, 1, sub.period, || {
         st.clear();
         let _ = decode_slot(&slot, &mut st);
@@ -222,9 +185,5 @@ mod tests {
         let b = front(0.05);
         assert!(b.items_per_second > 0.0);
         assert_eq!(benchmarks().len(), 11);
-        // The Q65 benchmarks have a code to decode with.
-        assert!(q65_stand_in()
-            .symbols(crate::proto::codes::CodeId::Q65)
-            .is_some());
     }
 }

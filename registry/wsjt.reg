@@ -1,5 +1,5 @@
 # The interface of the stack family wsjt. The registry test of the family writes this file.
-family wsjt version=2.1
+family wsjt version=3.0
 shape.WsjtFields since=1.0
 shape.WsjtFields.time_source type=choice(system_clock,recording_start,searching,found_from_signals) unit= optional=yes since=1.0
 shape.WsjtFields.utc type=time unit= optional=no since=1.0
@@ -756,7 +756,6 @@ q65.event.js8.message fields=Js8MessageEvent since=1.0
 q65.event.wsjt.tx fields=TxEvent since=1.0
 q65.setting.q65_submode type=choice(A,B,C,D,E) unit= since=1.0
 q65.setting.q65_period type=duration unit=s since=1.0
-q65.setting.code_dir type=text unit= since=2.1
 q65.setting.deep type=bool unit= since=1.0
 q65.setting.demod type=choice(auto,usb,lsb,nfm,am) unit= since=1.0
 q65.setting.listen type=bool unit= since=1.0

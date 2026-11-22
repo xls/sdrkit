@@ -28,8 +28,8 @@ fn msk144_needs_a_loaded_table() {
     assert!(st.summary.contains("msk144_128_90.alist"), "{}", st.summary);
 }
 
-/// JS8 uses the published (174,87) code of `sdrkit-algo-fec`, so its tones equal the vector's, parity included. FST4, FST4W
-/// and Q65 refuse to encode without their code.
+/// JS8 uses the published (174,87) code of `sdrkit-algo-fec`, so its tones equal the vector's, parity included. FST4 and
+/// FST4W refuse to encode without their code.
 #[test]
 fn every_code_is_the_published_one() {
     let v: serde_json::Value = serde_json::from_str(
@@ -58,7 +58,6 @@ fn every_code_is_the_published_one() {
     for (m, t) in [
         (Mode::Fst4, "CQ K1ABC FN42"),
         (Mode::Fst4w, "K1ABC FN42 37"),
-        (Mode::Q65, "CQ K1ABC FN42"),
     ] {
         assert!(matches!(
             encode::channel_symbols(&Sub::new(m), t, &none),

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wsjt", version 2.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "wsjt", version 3.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_WSJT_VERSION_MAJOR 2
-#define SDRKIT_WSJT_VERSION_MINOR 1
+#define SDRKIT_WSJT_VERSION_MAJOR 3
+#define SDRKIT_WSJT_VERSION_MINOR 0
 
 // The stack "wsjt": its id, and the keys of its event types.
 #define SDRKIT_STACK_WSJT "wsjt"
@@ -2302,7 +2302,7 @@ static inline int32_t sdrkit_wsjt_set_msk144_period(SDRKIT_HANDLE handle, double
   return sdrkit_typed_setting_set_f64(handle, "msk144_period", value);
 }
 
-// The setting "code_dir" (Code tables) of the stack "wsjt". The folder of the FST4, FST4W, MSK144 and Q65 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist, q65_65_15.nbcode). These stacks decode only once their tables are loaded.
+// The setting "code_dir" (Code tables) of the stack "wsjt". The folder of the FST4, FST4W and MSK144 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist). These stacks decode only once their tables are loaded.
 static inline int32_t sdrkit_wsjt_get_code_dir(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "code_dir", value);
 }
@@ -4695,14 +4695,6 @@ static inline int32_t sdrkit_q65_set_q65_period(SDRKIT_HANDLE handle, double val
   return sdrkit_typed_setting_set_f64(handle, "q65_period", value);
 }
 
-// The setting "code_dir" (Code tables) of the stack "q65". The folder of the FST4, FST4W, MSK144 and Q65 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist, q65_65_15.nbcode). These stacks decode only once their tables are loaded.
-static inline int32_t sdrkit_q65_get_code_dir(SDRKIT_HANDLE handle, sdrkit_string *value) {
-  return sdrkit_typed_setting_get_string(handle, "code_dir", value);
-}
-static inline int32_t sdrkit_q65_set_code_dir(SDRKIT_HANDLE handle, sdrkit_string value) {
-  return sdrkit_typed_setting_set_string(handle, "code_dir", value);
-}
-
 // The setting "deep" (Deep decoding) of the stack "q65". A second stage with coherent soft bits, OSD and a-priori CQ decoding. FT8, FT4 and FT2 also add the soft bits of candidates that failed in earlier slots, and assume the calls heard on the band.
 static inline int32_t sdrkit_q65_get_deep(SDRKIT_HANDLE handle, bool *value) {
   return sdrkit_typed_setting_get_bool(handle, "deep", value);
@@ -4881,7 +4873,7 @@ static inline int32_t sdrkit_fst4_set_fst4_period(SDRKIT_HANDLE handle, double v
   return sdrkit_typed_setting_set_f64(handle, "fst4_period", value);
 }
 
-// The setting "code_dir" (Code tables) of the stack "fst4". The folder of the FST4, FST4W, MSK144 and Q65 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist, q65_65_15.nbcode). These stacks decode only once their tables are loaded.
+// The setting "code_dir" (Code tables) of the stack "fst4". The folder of the FST4, FST4W and MSK144 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist). These stacks decode only once their tables are loaded.
 static inline int32_t sdrkit_fst4_get_code_dir(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "code_dir", value);
 }
@@ -5067,7 +5059,7 @@ static inline int32_t sdrkit_fst4w_set_fst4w_period(SDRKIT_HANDLE handle, double
   return sdrkit_typed_setting_set_f64(handle, "fst4w_period", value);
 }
 
-// The setting "code_dir" (Code tables) of the stack "fst4w". The folder of the FST4, FST4W, MSK144 and Q65 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist, q65_65_15.nbcode). These stacks decode only once their tables are loaded.
+// The setting "code_dir" (Code tables) of the stack "fst4w". The folder of the FST4, FST4W and MSK144 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist). These stacks decode only once their tables are loaded.
 static inline int32_t sdrkit_fst4w_get_code_dir(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "code_dir", value);
 }
@@ -5253,7 +5245,7 @@ static inline int32_t sdrkit_msk144_set_msk144_period(SDRKIT_HANDLE handle, doub
   return sdrkit_typed_setting_set_f64(handle, "msk144_period", value);
 }
 
-// The setting "code_dir" (Code tables) of the stack "msk144". The folder of the FST4, FST4W, MSK144 and Q65 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist, q65_65_15.nbcode). These stacks decode only once their tables are loaded.
+// The setting "code_dir" (Code tables) of the stack "msk144". The folder of the FST4, FST4W and MSK144 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist). These stacks decode only once their tables are loaded.
 static inline int32_t sdrkit_msk144_get_code_dir(SDRKIT_HANDLE handle, sdrkit_string *value) {
   return sdrkit_typed_setting_get_string(handle, "code_dir", value);
 }

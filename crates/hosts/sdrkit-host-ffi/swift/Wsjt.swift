@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "wsjt", version 2.1. MIT licence.
+// sdrkit: the typed interface of the stack family "wsjt", version 3.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum WsjtInterface {
-    public static let major = 2
-    public static let minor = 1
+    public static let major = 3
+    public static let minor = 0
 }
 
 /// The result fields of a slot stack: the slot clock, the clock estimate from the decodes, and the counts since Clear.
@@ -4719,15 +4719,6 @@ public enum WsjtSettings {
     }
     public static func setQ65Period(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "q65_period", value))
-    }
-    /// Code tables.
-    public static func q65CodeDir(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
-        var v: sdrkit_string = sdrkit_string()
-        let code = sdrkit_typed_setting_get_string(handle, "code_dir", &v)
-        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
-    }
-    public static func setQ65CodeDir(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
-        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "code_dir", $0) })
     }
     /// Deep decoding.
     public static func q65Deep(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {

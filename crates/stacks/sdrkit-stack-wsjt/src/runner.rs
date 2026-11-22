@@ -211,8 +211,8 @@ pub(crate) const DEEP: Setting<field::Bool> = Setting::new("deep", "Deep decodin
          candidates that failed in earlier slots, and assume the calls heard on the band.",
     );
 pub(crate) const CODE_DIR: Setting<field::Text> = Setting::new("code_dir", "Code tables", "", "").help(
-    "The folder of the FST4, FST4W, MSK144 and Q65 code tables (fst4_240_101.alist, fst4w_240_74.alist, \
-     msk144_128_90.alist, q65_65_15.nbcode). These stacks decode only once their tables are loaded.",
+    "The folder of the FST4, FST4W and MSK144 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist). \
+     These stacks decode only once their tables are loaded.",
 );
 
 sdrkit_core::settings! {
@@ -224,6 +224,16 @@ sdrkit_core::settings! {
         Deep = DEEP,
         /// The folder of the code tables.
         CodeDir = CODE_DIR,
+    }
+}
+
+sdrkit_core::settings! {
+    /// The settings of a [`SlotDecoder`] whose mode loads no code: those of [`SlotDecoderSetting`] without the folder.
+    pub enum SlotDecoderBaseSetting {
+        /// Upside down too.
+        Mirrored = MIRRORED,
+        /// Deep decoding.
+        Deep = DEEP,
     }
 }
 
@@ -273,6 +283,11 @@ impl SlotDecoder {
         &self.state
     }
 
+    /// Whether the mode loads a code from a folder, and so has the setting `code_dir`.
+    fn loads_code(&self) -> bool {
+        CodeId::of(self.mode).is_some()
+    }
+
     /// Loads the codes of the folder `dir` (see [`CodeStore::load_dir`]). An empty text keeps the codes as they are.
     fn load(&mut self, id: SettingId, dir: &str) -> Result<(), SettingError> {
         if !dir.is_empty() {
@@ -316,11 +331,20 @@ impl Decoder for SlotDecoder {
             Port::typed::<SlotResult>("results").rate_from(RateFrom::Fixed(0.0)),
         ]
     }
+    /// The settings of [`SlotDecoderSetting`] when the mode loads a code ([`CodeId::of`]), else those of
+    /// [`SlotDecoderBaseSetting`].
     fn settings(&self) -> Arc<Schema> {
-        SlotDecoderSetting::schema()
+        if self.loads_code() {
+            SlotDecoderSetting::schema()
+        } else {
+            SlotDecoderBaseSetting::schema()
+        }
     }
     fn apply(&mut self, id: SettingId, value: &Value) -> Result<(), SettingError> {
-        match SlotDecoderSetting::from_id(id).ok_or(SettingError::NoSuchId { id })? {
+        let setting = SlotDecoderSetting::from_id(id)
+            .filter(|s| self.loads_code() || *s != SlotDecoderSetting::CodeDir)
+            .ok_or(SettingError::NoSuchId { id })?;
+        match setting {
             SlotDecoderSetting::Mirrored => self.state.opt.mirrored = MIRRORED.read(id, value)?,
             SlotDecoderSetting::Deep => self.state.opt.deep = DEEP.read(id, value)?,
             SlotDecoderSetting::CodeDir => {
@@ -331,6 +355,15 @@ impl Decoder for SlotDecoder {
         Ok(())
     }
     fn values(&self) -> Values {
+        if !self.loads_code() {
+            return values_of([
+                (
+                    SlotDecoderBaseSetting::Mirrored,
+                    Value::Bool(self.state.opt.mirrored),
+                ),
+                (SlotDecoderBaseSetting::Deep, Value::Bool(self.state.opt.deep)),
+            ]);
+        }
         values_of([
             (
                 SlotDecoderSetting::Mirrored,

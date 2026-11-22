@@ -222,18 +222,15 @@ fn jt9_and_jt4_targets() {
 }
 
 #[test]
-fn q65_without_its_table_refuses_and_says_why() {
-    // sdrkit does not ship the code table of Q65: without it the receiver decodes nothing and its status says so.
+fn q65_on_noise_decodes_nothing_and_is_not_refused() {
+    // The code of Q65 is built in: on noise the receiver decodes nothing, refuses nothing and states the unconfirmed parts.
     let a = noise(70 * 8000, SIGMA, 83);
     let mut rx = receiver(Some(Mode::Q65), &[], 8000.0, 0.0);
     assert!(texts(&feed(&mut rx, &iq_of(&a), 8000)).is_empty());
     let st = sdrkit_core::owner::Owner::results(&rx).status();
-    assert_eq!(st.lock_state, LockState::Off);
-    assert!(
-        st.summary.contains("q65_65_15.nbcode") && st.summary.contains("no public document"),
-        "{}",
-        st.summary
-    );
+    assert_ne!(st.lock_state, LockState::Off, "{}", st.summary);
+    assert!(st.summary.contains("no public document"), "{}", st.summary);
+    assert!(!st.summary.contains("to decode"), "{}", st.summary);
 }
 
 #[test]

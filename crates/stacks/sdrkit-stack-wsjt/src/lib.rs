@@ -1,6 +1,7 @@
 //! The weak-signal digital stacks: FT8, FT4, FT2, WSPR, JT65, JT9, JT4, Q65, FST4, FST4W, MSK144 and JS8, each with its decoder,
 //! encoder, test signal, settings and results, and the combined stack `wsjt` that runs every enabled decoder on the same audio.
-//! FST4, FST4W, MSK144 and Q65 decode once a host loads their code tables ([`proto::codes`]).
+//! FST4, FST4W and MSK144 decode once a host loads their code tables ([`proto::codes`]); Q65 has its code built in
+//! ([`proto::q65code`]).
 
 #![warn(missing_docs)]
 
@@ -253,7 +254,7 @@ descriptor!(
     Q65,
     "q65",
     "Q65",
-    "Weak-signal contacts by ionoscatter, troposcatter and EME (decodes once its code table is loaded).",
+    "Weak-signal contacts by ionoscatter, troposcatter and EME.",
     0.0,
     &[
         SubMode { id: "q65-60a", name: "Q65-60A", default_hz: 0.0 },
@@ -262,7 +263,7 @@ descriptor!(
     ],
     rx_q65,
     gen_q65,
-    schema_q65, &verify::REFUSED, None, &[SignalType::Q65]);
+    schema_q65, &verify::SLOW, None, &[SignalType::Q65]);
 descriptor!(
     FST4,
     "fst4",

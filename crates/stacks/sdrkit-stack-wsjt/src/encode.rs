@@ -3,12 +3,12 @@
 use crate::mode::FskSpec;
 use crate::mode::{Mode, Sub};
 use crate::proto::codes::{self, CodeId, CodeMissing, CodeStore};
+use crate::proto::q65code;
 use crate::proto::js8msg;
 use crate::proto::msg77::{pack77, PackError, RVEC};
 use crate::proto::{jt65, k32, msg72, wsprmsg};
 use num_complex::Complex32;
 use sdrkit_algo_fec::ldpc::LdpcCode;
-use sdrkit_algo_fec::nbldpc::NbCode;
 use sdrkit_util_bits::crc::cyclic::{FST4_CRC24, FT8_CRC14, MSK144_CRC13, Q65_CRC12};
 use sdrkit_util_bits::pack::push_u64;
 
@@ -207,19 +207,11 @@ pub fn q65_info(bits77: &[u8]) -> [u8; 15] {
     x
 }
 
-/// The 63 Q65 channel symbols of 15 information symbols with the loaded code: the 13 message symbols, then the 50 check
-/// symbols. The two CRC symbols are not sent. Empty when the code does not fit.
-pub fn q65_channel(code: &NbCode, info: &[u8; 15]) -> Vec<u8> {
-    let x: Vec<u16> = info.iter().map(|&v| u16::from(v)).collect();
-    let mut word = [0u16; 65];
-    if code.n() != 65 || code.encode(&x, &mut word).is_err() {
-        return Vec::new();
-    }
-    word[..13]
-        .iter()
-        .chain(&word[15..])
-        .map(|&v| v as u8)
-        .collect()
+/// The 63 Q65 channel symbols of 15 information symbols: the 13 message symbols, then the 50 check symbols. The two CRC
+/// symbols are not sent.
+pub fn q65_channel(info: &[u8; 15]) -> Vec<u8> {
+    let word = q65code::encode(info);
+    word[..13].iter().chain(&word[15..]).copied().collect()
 }
 
 /// The 85 Q65 tones of 63 channel symbols: tone 0 at the sync positions, else the channel symbol plus 1.
@@ -305,8 +297,8 @@ pub fn js8_tones(sub: u8, frame72: &[u8], flags: u8) -> Vec<u8> {
 }
 
 /// The channel symbols of a message as the encoder vectors list them: FT8 79 tones, FT4 / FT2 103 tones (no ramp symbols), WSPR
-/// 162, JT65 126, JT9 85, JT4 206, FST4 / FST4W 160, MSK144 the 144 frame bits. FST4, FST4W and MSK144 take their code from
-/// `codes`, and so does Q65 (85 tones). (JS8 frames: [`js8_tones`].)
+/// 162, JT65 126, JT9 85, JT4 206, Q65 85, FST4 / FST4W 160, MSK144 the 144 frame bits. FST4, FST4W and MSK144 take their
+/// code from `codes`. (JS8 frames: [`js8_tones`].)
 pub fn channel_symbols(sub: &Sub, text: &str, codes: &CodeStore) -> Result<Vec<u8>, EncodeError> {
     Ok(match sub.mode {
         Mode::Ft8 => ft8_tones(&ft_codeword(&pack77(text)?, false)),
@@ -315,13 +307,7 @@ pub fn channel_symbols(sub: &Sub, text: &str, codes: &CodeStore) -> Result<Vec<u
         Mode::Jt65 => jt65_symbols(&msg72::pack72(text)?),
         Mode::Jt9 => jt9_symbols(&msg72::pack72(text)?),
         Mode::Jt4 => jt4_symbols(&msg72::pack72(text)?),
-        Mode::Q65 => {
-            let info = q65_info(&pack77(text)?);
-            let code = codes
-                .symbols(CodeId::Q65)
-                .ok_or(EncodeError::NoCode(CodeMissing::Table(CodeId::Q65)))?;
-            q65_tones(&q65_channel(code, &info))
-        }
+        Mode::Q65 => q65_tones(&q65_channel(&q65_info(&pack77(text)?))),
         Mode::Fst4 => {
             let info = fst4_info(&pack77(text)?, false);
             fst4_tones(&encode_with(loaded(codes, CodeId::Fst4)?, &info))
@@ -505,7 +491,7 @@ mod tests {
         for m in Mode::ALL {
             if matches!(
                 m,
-                Mode::Js8 | Mode::Q65 | Mode::Fst4 | Mode::Fst4w | Mode::Msk144
+                Mode::Js8 | Mode::Fst4 | Mode::Fst4w | Mode::Msk144
             ) {
                 continue;
             }

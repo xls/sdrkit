@@ -687,7 +687,7 @@ mod tests {
         for m in Mode::ALL {
             if matches!(
                 m,
-                Mode::Js8 | Mode::Q65 | Mode::Fst4 | Mode::Fst4w | Mode::Msk144
+                Mode::Js8 | Mode::Fst4 | Mode::Fst4w | Mode::Msk144
             ) {
                 assert!(
                     m == Mode::Js8

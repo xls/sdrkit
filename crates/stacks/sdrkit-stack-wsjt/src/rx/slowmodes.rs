@@ -506,14 +506,10 @@ fn fst4_group_llrs(c: &[Complex32], data: &[usize], g: usize, label: &[u8], out:
     normalise_llrs(out);
 }
 
-/// Q65, with its code from `ctx.codes`: nothing is decoded when it is not loaded. Up to three passes; each decoded signal is
-/// subtracted before the next pass.
+/// Q65: up to three passes; each decoded signal is subtracted before the next pass.
 pub fn decode_q65(slot: &Slot, ctx: &mut SlowCtx) -> Vec<Decode> {
-    let Some(code) = ctx.codes.symbols(CodeId::Q65).cloned() else {
-        return Vec::new();
-    };
     let s = spec(&slot.sub);
-    let mut dec = q65::Decoder::new(&code);
+    let mut dec = q65::Decoder::new();
     let hashes = &mut *ctx.hashes;
     let (mut out, _) = run(slot, &s, 3, false, false, |f, _, _| {
         let mut g = q65::Grid::new(f, &s);

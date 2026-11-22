@@ -353,10 +353,6 @@ fn check_vector(run: &VectorRun) -> Vec<CheckLine> {
             "decodes_with_code_table",
             "needs the code table, which the host loads (the family's tests check it when the recordings folder holds it)",
         ),
-        (
-            "decodes_independent_decoder",
-            "needs the Q65 code table, which the host loads (the family's tests check it when the recordings folder holds it)",
-        ),
     ] {
         if sec.get(k).is_some() {
             out.push(CheckLine::not_checked(k, why));

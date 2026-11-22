@@ -1126,15 +1126,7 @@
           false
         ]
       ],
-      "decodes": [],
-      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
-      "tolerance": {
-        "msg": "exact",
-        "hz": 2.0,
-        "dt_s": 0.2,
-        "snr_db": 3.0
-      },
-      "decodes_independent_decoder": [
+      "decodes": [
         {
           "slot_offset_s": 0.0,
           "msg": "CQ K1ABC FN42",
@@ -1188,11 +1180,13 @@
           "pass": 1
         }
       ],
-      "status": {
-        "lock_state": "off",
-        "summary_contains": "GF(64)"
-      },
-      "without_code_table": "sdrkit ships no table for the code of Q65 over GF(64): without it the receiver decodes nothing and its status names the file to load (q65_65_15.nbcode). A host gives the folder of the table in the setting code_dir. decodes_independent_decoder is what an independent decoder found in this audio, and the list expected once the table is loaded (from wsjt/codes/ of the recordings folder in the tests)."
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 2.0,
+        "dt_s": 0.2,
+        "snr_db": 3.0
+      }
     },
     "fst4_60": {
       "recording": "wsjt_fst4_60_8k.sigmf-meta",

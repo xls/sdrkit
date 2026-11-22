@@ -2,9 +2,9 @@
 //! samples with the slot clock set from the recording's start time, against `expected.json`.
 
 //!
-//! FST4, FST4W, MSK144 and Q65 decode nothing without their code tables, which sdrkit cannot ship: their recordings must give no
-//! decode and the refusal in the status. When the recordings folder holds the tables (`wsjt/codes`: the alist files and
-//! `q65_65_15.nbcode`), they must also give every listed decode with them.
+//! FST4, FST4W and MSK144 decode nothing without their code tables, which sdrkit cannot ship: their recordings must give no
+//! decode and the refusal in the status. When the recordings folder holds the tables (`wsjt/codes`, the alist files), they
+//! must also give every listed decode with them. Q65 has its code built in and gives every decode of its list.
 
 use super::common::{choice_key, table};
 use sdrkit_core::owner::Owner;
@@ -157,14 +157,13 @@ fn check_refused(key: &str, words: &str) {
     assert!(st.summary.contains(words), "{key}: {}", st.summary);
     let want = &expected()["recordings"][key];
     assert_eq!(want["decodes"].as_array().map_or(0, Vec::len), 0, "{key}");
-    assert!(want["decodes_with_code_table"].is_array() || key.starts_with("q65"));
+    assert!(want["decodes_with_code_table"].is_array(), "{key}");
     // With the tables of the recordings folder, every listed decode.
     if let Some(codes) = folder_codes() {
-        let (id, list) = match key {
-            k if k.starts_with("q65") => (CodeId::Q65, "decodes_independent_decoder"),
-            k if k.starts_with("fst4w") => (CodeId::Fst4w, "decodes_with_code_table"),
-            k if k.starts_with("fst4") => (CodeId::Fst4, "decodes_with_code_table"),
-            _ => (CodeId::Msk144, "decodes_with_code_table"),
+        let id = match key {
+            k if k.starts_with("fst4w") => CodeId::Fst4w,
+            k if k.starts_with("fst4") => CodeId::Fst4,
+            _ => CodeId::Msk144,
         };
         if !codes.has(id) {
             return;
@@ -172,7 +171,7 @@ fn check_refused(key: &str, words: &str) {
         let Some((events, rx)) = run_with(key, 8000, codes) else {
             return;
         };
-        compare(key, list, &events, &rx);
+        compare(key, "decodes_with_code_table", &events, &rx);
     }
 }
 
@@ -228,7 +227,7 @@ fn msk144_through_the_receiver() {
 
 #[test]
 fn q65_through_the_receiver() {
-    check_refused("q65_60a", "GF(64)");
+    check("q65_60a");
 }
 
 #[test]

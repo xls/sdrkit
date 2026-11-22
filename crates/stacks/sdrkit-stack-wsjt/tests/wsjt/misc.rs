@@ -29,8 +29,9 @@ fn t_jt9_1_t_jt4_1_t_q65_2_t_fst_2_t_msk_1_frames() {
     assert_eq!(s.len(), 206);
     assert!(s.iter().all(|&t| t <= 3));
     assert!((Sub::new(Mode::Jt4).tx_s() - 47.088).abs() < 0.005);
-    // Q65, FST4, FST4W and MSK144 need a loaded code.
-    for m in [Mode::Q65, Mode::Fst4, Mode::Fst4w, Mode::Msk144] {
+    // Q65 has its code built in; FST4, FST4W and MSK144 need a loaded code.
+    assert_eq!(channel_symbols(&Sub::new(Mode::Q65), "CQ K1ABC FN42", &none).unwrap().len(), 85);
+    for m in [Mode::Fst4, Mode::Fst4w, Mode::Msk144] {
         let t = if m == Mode::Fst4w {
             "K1ABC FN42 37"
         } else {
