@@ -1,5 +1,5 @@
 # The interface of the stack family dvoice. The registry test of the family writes this file.
-family dvoice version=1.4
+family dvoice version=1.5
 shape.SharedFields since=1.0
 shape.SharedFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.SharedFields.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
@@ -35,7 +35,7 @@ shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
 shape.DataTxFields since=1.3
 shape.DataTxFields.transmitting type=bool unit= optional=no since=1.3
 shape.DataTxFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.3
-shape.DataTxFields.tx_kind type=choice(text) unit= optional=yes since=1.3
+shape.DataTxFields.tx_kind type=choice(text,voice) unit= optional=yes since=1.3
 shape.DataTxFields.tx_frames type=i64 unit= optional=no since=1.3
 shape.DataTxFields.tx_note type=text unit= optional=no since=1.3
 shape.CallRow since=1.0
@@ -332,10 +332,12 @@ dmr.setting.talkgroup type=i64 unit= since=1.3
 dmr.setting.colour_code type=i64 unit= since=1.3
 dmr.setting.slot type=choice(1,2) unit= since=1.3
 dmr.setting.tx_split type=hz unit=Hz since=1.3
+dmr.setting.tx_timeout type=duration unit=s since=1.5
 dmr.command.clear args= reply= since=1.0
 dmr.command.hold_current args= reply= since=1.0
 dmr.command.release args= reply= since=1.0
 dmr.command.remove args=row:text reply= since=1.0
+dmr.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.5
 dmr.command.send args=text:text reply= transmits=text stop=halt since=1.3
 dmr.command.halt args= reply= since=1.3
 p25 since=1.0

@@ -997,10 +997,13 @@ impl Protocol for P25 {
 // ---------------------------------------------------------------------------------------------------------------------------
 // Generator.
 
-struct Frames {
+struct Frames<'a> {
     nac: u16,
     bits: Vec<u8>,
     codecs: Codecs,
+    /// The voice frames to send in turn (144 channel bits each, as sent); pseudo-random bits when empty.
+    speech: &'a [[u8; 144]],
+    next_speech: usize,
 }
 
 type Rng = sdrkit_algo_sim::rng::Rng;
@@ -1015,7 +1018,7 @@ fn trellis_half(codecs: &mut Codecs, t: &[u8; 12]) -> [u8; 196] {
     out
 }
 
-impl Frames {
+impl Frames<'_> {
     fn header(&mut self, duid: u8) -> Vec<u8> {
         let mut d = Vec::with_capacity(1700);
         push_u64(&mut d, u64::from_str_radix(FS, 16).unwrap_or(0), 48);
@@ -1064,8 +1067,13 @@ impl Frames {
         let mut d = self.header(duid);
         d.resize(1680, 0);
         for &p in &LDU_VOICE {
-            for i in 0..144 {
-                d[p + i] = rng.bit();
+            if self.speech.is_empty() {
+                for i in 0..144 {
+                    d[p + i] = rng.bit();
+                }
+            } else {
+                d[p..p + 144].copy_from_slice(&self.speech[self.next_speech % self.speech.len()]);
+                self.next_speech += 1;
             }
         }
         for (k, &p) in LDU_LC.iter().enumerate() {
@@ -1138,12 +1146,20 @@ fn tsbk_args(op: u8, args: [u8; 8]) -> [u8; 10] {
 }
 
 /// The P25 test signal: a control channel with site, identifiers and a grant, then voice calls (one encrypted), a data header
-/// and an emergency unit-to-unit call.
+/// and an emergency unit-to-unit call. The voice frames are pseudo-random bits.
 pub fn render(nac: u16, seed: u64) -> Vec<Complex32> {
+    render_with_speech(nac, seed, &[])
+}
+
+/// The P25 test signal of [`render`] whose voice frames are those of `speech` in turn (144 channel bits each, as sent), or
+/// pseudo-random bits when it is empty.
+pub fn render_with_speech(nac: u16, seed: u64, speech: &[[u8; 144]]) -> Vec<Complex32> {
     let mut f = Frames {
         nac,
         bits: Vec::new(),
         codecs: Codecs::default(),
+        speech,
+        next_speech: 0,
     };
     let mut rng = Rng::new(seed);
     // Control channel: 3 x (network, RFSS, adjacent. Identifiers. Grant).

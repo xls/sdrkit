@@ -389,14 +389,16 @@ pub const DSTAR_SEND: CommandKind<DstarSendArgs<'static>> = CommandKind::new("se
     .stopped_by("halt");
 
 sdrkit_core::choice_enum! {
-    /// What a data-only transmission of a stack without a speech encoder sends.
+    /// What a DMR transmission sends.
     pub enum DataTxKind {
         /// A text message as short data.
         Text = ("text", "Text"),
+        /// A voice call from the microphone input (push-to-talk).
+        Voice = ("voice", "Voice"),
     }
 }
 
-/// The result fields of a sender that sends text only, for want of a speech encoder: DMR.
+/// The result fields of the DMR sender.
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct DataTxFields<'a> {
     /// Whether a transmission is under way.
@@ -412,7 +414,7 @@ pub struct DataTxFields<'a> {
     /// The bursts or frames of the transmission, or of the last one, that are written.
     #[field(label = "Frames sent")]
     pub tx_frames: i64,
-    /// What the sender sends, and why it sends no voice.
+    /// What the sender sends.
     #[field(label = "Transmit note")]
     pub tx_note: &'a str,
 }
@@ -427,9 +429,15 @@ pub struct DataSendArgs<'a> {
 
 /// Sends a DMR text message as short data in direct mode.
 pub const DMR_SEND: CommandKind<DataSendArgs<'static>> = CommandKind::new("send", "Send a text")
-    .help("Sends the text as defined short data in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0: up to 752 ISO 8859-1 characters, or 376 other characters as UTF-16LE. The library has no AMBE+2 encoder, so the stack sends no voice.")
+    .help("Sends the text as defined short data in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0: up to 752 ISO 8859-1 characters, or 376 other characters as UTF-16LE.")
     .transmits(TxContent::Text)
     .stopped_by("halt");
+
+/// Push-to-talk of DMR: a voice call from the microphone input in direct mode, coded with the half-rate coder.
+pub const DMR_PTT: CommandKind<PttArgs> = CommandKind::new("ptt", "Push to talk")
+    .help("With on true, sends a voice call from the microphone input in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0, until ptt with on false, halt or the time-out. The speech is coded with the half-rate coder, three 20 ms frames to a burst.")
+    .transmits(TxContent::Voice)
+    .stopped_by("ptt");
 
 /// The result fields of the voice monitor.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1291,17 +1299,22 @@ const ADDED_1_3: &[&str] = &[
 /// value of a choice has no path of its own).
 const ADDED_1_4: &[&str] = &[];
 
+/// What version 1.5 added: the voice of the DMR sender, and the value `voice` of the choice `shape.DataTxFields.tx_kind`
+/// (a value of a choice has no path of its own).
+const ADDED_1_5: &[&str] = &["dmr.setting.tx_timeout", "dmr.command.ptt"];
+
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         let plain = |id| common(id, &CALLS_300);
-        Described::new("dvoice", 1, 4)
+        Described::new("dvoice", 1, 5)
             .stack(
                 finish(common("dmr", &CALLS_100).fields::<DmrFields>())
                     .settings(&[&crate::dmr::GEN_CC])
                     .fields::<DataTxFields>()
                     .settings(crate::dmr_tx::TxSetting::SETTINGS)
+                    .command(&DMR_PTT)
                     .command(&DMR_SEND)
                     .command(&HALT),
             )
@@ -1370,5 +1383,6 @@ pub fn family() -> &'static Described {
             .added(1, 2, ADDED_1_2)
             .added(1, 3, ADDED_1_3)
             .added(1, 4, ADDED_1_4)
+            .added(1, 5, ADDED_1_5)
     })
 }

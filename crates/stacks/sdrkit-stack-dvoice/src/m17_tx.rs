@@ -20,7 +20,8 @@
 use crate::front::RATE;
 use crate::gen::bits_to_levels;
 use crate::sender::{
-    failed, Codec2Tables, FskBurst, TableError, PEAK, RISE_S, TABLE_FOLDER, TX, TX_SPLIT, TX_TIMEOUT,
+    failed, Codec2Tables, FskBurst, TableError, MIC_KEEP_S, PEAK, RISE_S, SPEECH_RATE, TABLE_FOLDER,
+    TX, TX_SPLIT, TX_TIMEOUT,
 };
 use crate::m17::{
     encode_callsign, eot, lsf_bytes, lsf_frame, modulator, packet_frames, packet_payload, preamble,
@@ -45,12 +46,8 @@ use std::sync::Arc;
 pub const ID: &str = "m17.transmit";
 /// The length of one stream frame, seconds.
 pub const FRAME_S: f64 = 0.04;
-/// The rate of the speech the encoder takes, Hz.
-const SPEECH_RATE: f64 = 8000.0;
 /// The speech samples of one Codec 2 frame (20 ms).
 const SPEECH_FRAME: usize = 160;
-/// The microphone audio kept while it waits, seconds; older audio is dropped.
-const MIC_KEEP_S: f64 = 0.5;
 /// The most bytes of SMS text in one packet.
 pub const TEXT_MAX: usize = PACKET_FRAMES_MAX * crate::m17::PACKET_CHUNK - 4;
 /// The most bytes of data in one packet.

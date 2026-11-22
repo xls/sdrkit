@@ -30,7 +30,8 @@
 use crate::freedv::{frame_bits, text_bits, FdmdvModulator, Submode};
 use crate::freedv_ofdm::{Modulator, TxChain, TxShape, Waveform, RATE, W700D, W700E};
 use crate::sender::{
-    failed, Codec2Tables, TableError, PEAK, RISE_S, TABLE_FOLDER, TX, TX_SPLIT, TX_TIMEOUT,
+    failed, Codec2Tables, TableError, MIC_KEEP_S, PEAK, RISE_S, TABLE_FOLDER, TX, TX_SPLIT,
+    TX_TIMEOUT,
 };
 use crate::typed::{FreedvTxFields, FreedvTxKind, PttArgs, FREEDV_PTT, HALT};
 use sdrkit_codec_codec2::{Codebooks, Encoder, Mode};
@@ -62,8 +63,6 @@ pub const TX_1600: TxShape = TxShape {
     clip_gain: 1.5,
     cut_hz: 775.0,
 };
-/// The microphone audio kept while it waits, seconds; older audio is dropped.
-const MIC_KEEP_S: f64 = 0.5;
 /// The most characters of the callsign text.
 pub const TEXT_MAX: usize = 40;
 

@@ -2734,6 +2734,7 @@ dependencies = [
  "sdrkit-algo-modem",
  "sdrkit-algo-sim",
  "sdrkit-codec-codec2",
+ "sdrkit-codec-mbe",
  "sdrkit-components",
  "sdrkit-core",
  "sdrkit-data-plans",

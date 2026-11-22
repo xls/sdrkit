@@ -19,7 +19,7 @@ use crate::front::RATE;
 use crate::gen::{FskModulator, TxPulse};
 use crate::sender::{failed, FskBurst, Maker, TxCore, RISE_S, TX, TX_SPLIT};
 use crate::typed::{DstarSendArgs, DstarTxFields, DstarTxKind, DSTAR_SEND, HALT};
-use sdrkit_components::tx::KeyedOut;
+use sdrkit_components::tx::{KeyedOut, MicInput};
 use sdrkit_core::interface::{Fields, Hertz};
 use sdrkit_core::publish::field;
 use sdrkit_core::{
@@ -219,7 +219,7 @@ impl Sender {
 }
 
 impl Maker for Sender {
-    fn next(&mut self, out: &mut Vec<Complex32>) -> bool {
+    fn next(&mut self, _mic: &mut MicInput, out: &mut Vec<Complex32>) -> bool {
         Sender::next(self, out)
     }
     fn stop(&mut self) {
@@ -360,7 +360,7 @@ impl Component for DstarTransmit {
         .with_settings(TxSetting::schema())
     }
     fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
-        self.core.configure(&inputs[0]);
+        self.core.configure(inputs);
         self.publish();
         let c = self.frequency();
         Ok(vec![Format::iq(inputs[0].rate, c, c), KeyedOut::format()])

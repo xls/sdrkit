@@ -31,6 +31,23 @@ pub fn amb2_codewords(bits: &[u8]) -> [u8; 12] {
     out
 }
 
+/// The inverse of [`amb2_codewords`]: the 72 channel bits as sent, one bit per byte, of the four 24-bit rows `cw`.
+pub fn amb2_channel_bits(cw: &[u8; 12]) -> [u8; 72] {
+    let mut words = [0u8; 72];
+    let mut start = 0;
+    for (r, &len) in AMBE_HALF_RATE_WORDS.iter().enumerate() {
+        for j in 0..len {
+            let bit = 24 * r + j;
+            words[start + j] = (cw[bit / 8] >> (7 - bit % 8)) & 1;
+        }
+        start += len;
+    }
+    let mut bits = [0u8; 72];
+    AMB2.join(&words, &mut bits)
+        .expect("the layout has 72 bits");
+    bits
+}
+
 /// The packaging of the 72 channel bits of a D-STAR AMBE frame as they are sent (9 bytes, the first bit most significant).
 /// The codec does the voice de-interleave.
 pub const DSTAR_PACKAGING: sdrkit_graph::SpeechPackaging = sdrkit_graph::SpeechPackaging::Dstar72;
@@ -137,6 +154,7 @@ mod tests {
         assert!((0..23).all(|j| row_bit(24 + j) == words[24 + j]));
         assert_eq!(row_bit(47), 0);
         assert_eq!(amb2_codewords(&bits[..71]), [0; 12]);
+        assert_eq!(amb2_channel_bits(&cw), bits);
     }
 
     #[test]

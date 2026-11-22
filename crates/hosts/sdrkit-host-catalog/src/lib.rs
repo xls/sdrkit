@@ -176,13 +176,15 @@ pub fn family_of(id: &str) -> Option<&'static Family> {
 
 /// The codec plug-ins of the workspace: the AudioToolbox decoders on Apple platforms, then the decoders of
 /// `sdrkit-codec-aac` (AAC-LC, HE-AAC and HE-AAC v2) and of `sdrkit-codec-mpa` (Layer II), which take the place of
-/// AudioToolbox for those codecs.
+/// AudioToolbox for those codecs, and the half-rate and full-rate speech decoders of the digital voice stacks.
 pub fn codecs() -> CodecSet {
     let mut set = CodecSet::default();
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     sdrkit_codec_apple::register(&mut set);
     sdrkit_codec_aac::register(&mut set);
     sdrkit_codec_mpa::register(&mut set);
+    #[cfg(feature = "dvoice")]
+    sdrkit_stack_dvoice::mbe::register(&mut set);
     set
 }
 

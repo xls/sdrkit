@@ -1,25 +1,32 @@
-//! The sender of the DMR stack (`dmr.transmit`): a text message as defined short data in TDMA direct mode, one slot,
-//! simplex. Standard: ETSI TS 102 361-1 to -3 (the burst layout that [`crate::dmr`] decodes).
+//! The sender of the DMR stack (`dmr.transmit`): a voice call from the microphone input (push-to-talk) and a text message
+//! as defined short data, in TDMA direct mode, one slot, simplex. Standard: ETSI TS 102 361-1 to -3 (the burst layout
+//! that [`crate::dmr`] decodes).
 //!
-//! The library has no AMBE+2 encoder, so the sender sends no voice: a transmission is a text.
+//! Input `in` is the session's samples: their rate, pace and dial. Input `mic` is mono audio of any rate: the speech of a
+//! voice call, coded with the half-rate coder ([`sdrkit_codec_mbe`]) in frames of 20 ms. Output `out` is complex
+//! baseband at the session's rate for `tx.sink`: the signal at 0 Hz, centred on the transmit frequency, which is the dial
+//! plus the transmit offset. Output `keyed` mutes the receive audio of the stack from key down to a short hold after the
+//! end mark.
 //!
-//! Input `in` is the session's samples: their rate, pace and dial. Output `out` is complex baseband at the session's rate
-//! for `tx.sink`: the signal at 0 Hz, centred on the transmit frequency, which is the dial plus the transmit offset.
-//! Output `keyed` mutes the receive audio of the stack from key down to a short hold after the end mark.
-//!
-//! A transmission is two preamble CSBKs, the data header and the rate 1/2 data blocks of the message, each a burst of
-//! 27.5 ms with the direct-mode data sync of the slot, one burst every 60 ms; the carrier is off between the bursts. The
-//! last data block ends it; `halt` ends it after the burst on air. 4FSK at 4800 symbols/s, root raised cosine roll-off
-//! 0.2, 648 Hz a level step. Each burst rises and falls with a 1.5 ms raised cosine; its magnitude is 0.9 of full scale.
-//! Every transmission ends with an end mark; on a live radio whose host times bursts, the first sample states its time on
-//! air.
+//! A voice call is the voice LC header, then voice superframes of six bursts A to F, each with three speech frames (burst
+//! A with the voice sync of the slot, bursts B to E with the call's LC as embedded LC, burst F with no embedded message),
+//! then the terminator with LC. Push-to-talk off, `halt` and the time-out end a call after the voice burst on air. A text
+//! is two preamble CSBKs, the data header and the rate 1/2 data blocks of the message; the last data block ends it;
+//! `halt` ends it after the burst on air. Each burst is 27.5 ms with the direct-mode sync of the slot, one burst every
+//! 60 ms; the carrier is off between the bursts. 4FSK at 4800 symbols/s, root raised cosine roll-off 0.2, 648 Hz a level
+//! step. Each burst rises and falls with a 1.5 ms raised cosine; its magnitude is 0.9 of full scale. Every transmission
+//! ends with an end mark; on a live radio whose host times bursts, the first sample states its time on air.
 
-use crate::dmr::{text_bursts, ShortData, SHORT_DATA_BLOCKS_MAX};
+use crate::dmr::{
+    dt, embedded_bits, lc_burst, text_bursts, voice_burst, Lc, ShortData, SHORT_DATA_BLOCKS_MAX,
+};
 use crate::front::RATE;
 use crate::gen::{bits_to_levels, FskModulator, TxPulse};
-use crate::sender::{failed, FskBurst, Maker, TxCore, TX, TX_SPLIT};
-use crate::typed::{DataSendArgs, DataTxFields, DataTxKind, DMR_SEND, HALT};
-use sdrkit_components::tx::KeyedOut;
+use crate::sender::{failed, FskBurst, Maker, TxCore, TX, TX_SPLIT, TX_TIMEOUT};
+use crate::typed::{DataSendArgs, DataTxFields, DataTxKind, PttArgs, DMR_PTT, DMR_SEND, HALT};
+use sdrkit_algo_fec::voice::NXDN_EHR_SILENCE;
+use sdrkit_codec_mbe::{Coder, Encoder, FRAME};
+use sdrkit_components::tx::{KeyedOut, MicInput};
 use sdrkit_core::interface::{Fields, Hertz};
 use sdrkit_core::publish::field;
 use sdrkit_core::{
@@ -39,7 +46,7 @@ pub const BURST_PERIOD_S: f64 = 0.06;
 pub const DATA_MAX: usize = SHORT_DATA_BLOCKS_MAX * 12 - 4;
 /// What the sender sends.
 pub const NOTE: &str =
-    "AMBE+2 encoder not installed: the stack sends text messages as short data, no voice";
+    "voice from the microphone with the half-rate coder, and text messages as short data, in direct mode";
 /// The largest radio ID.
 const ID_MAX: i64 = 16_776_415;
 
@@ -55,6 +62,16 @@ sdrkit_core::choice_enum! {
     }
 }
 
+impl DmrSlot {
+    /// The voice sync and the data sync of direct mode in the slot: indexes of [`crate::dmr::SYNCS`].
+    pub fn syncs(self) -> (usize, usize) {
+        match self {
+            DmrSlot::S1 => (5, 6),
+            DmrSlot::S2 => (7, 8),
+        }
+    }
+}
+
 /// The radio ID of the station: the source of every burst.
 pub const RADIO_ID: Setting<field::I64> = Setting::new("radio_id", "Radio ID", "", 0)
     .range(0.0, ID_MAX as f64, 1.0)
@@ -63,17 +80,17 @@ pub const RADIO_ID: Setting<field::I64> = Setting::new("radio_id", "Radio ID", "
 /// The radio called.
 pub const CALLED_ID: Setting<field::I64> = Setting::new("called_id", "Radio ID called", "", 0)
     .range(0.0, ID_MAX as f64, 1.0)
-    .help("The radio a text goes to. With 0 the text goes to the setting talkgroup.")
+    .help("The radio a call or a text goes to. With 0 it goes to the setting talkgroup.")
     .section(TX);
 /// The talkgroup called.
 pub const TALKGROUP: Setting<field::I64> = Setting::new("talkgroup", "Talkgroup", "", 0)
     .range(0.0, ID_MAX as f64, 1.0)
-    .help("The talkgroup a text goes to when the setting called_id is 0.")
+    .help("The talkgroup a call or a text goes to when the setting called_id is 0.")
     .section(TX);
 /// The colour code.
 pub const COLOUR_CODE: Setting<field::I64> = Setting::new("colour_code", "Colour code", "", 1)
     .range(0.0, 15.0, 1.0)
-    .help("The colour code in the slot type of every burst, 0 to 15.")
+    .help("The colour code in the slot type and the EMB of every burst, 0 to 15.")
     .section(TX);
 /// The time slot.
 pub const SLOT: Setting<field::Choice<DmrSlot>> = Setting::choice("slot", "Time slot", DmrSlot::S1)
@@ -95,12 +112,16 @@ sdrkit_core::settings! {
         Slot = SLOT,
         /// The transmit offset.
         Split = TX_SPLIT,
+        /// The time-out of a voice call.
+        Timeout = TX_TIMEOUT,
     }
 }
 
 sdrkit_core::commands! {
     /// The commands of the sender.
     pub enum TxCommand {
+        /// Push-to-talk.
+        Ptt = DMR_PTT.command,
         /// A text.
         Send = DMR_SEND.command,
         /// Ends the transmission.
@@ -109,7 +130,7 @@ sdrkit_core::commands! {
 }
 
 /// The keys of the commands of the sender, which the stack routes to it.
-pub const COMMANDS: [&str; 2] = [DMR_SEND.command.key, HALT.key];
+pub const COMMANDS: [&str; 3] = [DMR_PTT.command.key, DMR_SEND.command.key, HALT.key];
 
 /// Why a transmit command was refused.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -173,15 +194,50 @@ pub fn text_octets(text: &str) -> (Vec<u8>, u8) {
     }
 }
 
+/// The 72 channel bits, as sent, of a half-rate silence frame (NXDN TS 1-A clause 7.2.1.2).
+pub fn silence_frame() -> [u8; 72] {
+    std::array::from_fn(|i| NXDN_EHR_SILENCE.coded_bit(i))
+}
+
+/// The voice part of a transmission: the call's LC, the place in the superframe, and the end.
+struct Voice {
+    lc: [u8; 9],
+    cc: u8,
+    data_sync: usize,
+    voice_sync: usize,
+    embedded: [u8; 128],
+    pos: u8,
+    made: u64,
+    limit: u64,
+    stopping: bool,
+    ended: bool,
+}
+
 /// One transmission as 48 kHz samples: the bursts in order, one every 60 ms, each with its rise and fall and the carrier
 /// off between them. It knows nothing of the graph, so a test can drive it.
 pub struct Sender {
+    kind: DataTxKind,
     bursts: VecDeque<[u8; 264]>,
+    voice: Option<Voice>,
+    encoder: Option<Box<Encoder>>,
     sent: u64,
     period: usize,
 }
 
 impl Sender {
+    fn new(kind: DataTxKind, bursts: VecDeque<[u8; 264]>, voice: Option<Voice>) -> Sender {
+        Sender {
+            kind,
+            bursts,
+            encoder: voice
+                .is_some()
+                .then(|| Box::new(Encoder::new(Coder::HalfRate))),
+            voice,
+            sent: 0,
+            period: (BURST_PERIOD_S * RATE).round() as usize,
+        }
+    }
+
     /// The text message `m` with colour code `cc` in `slot`.
     ///
     /// # Errors
@@ -191,15 +247,34 @@ impl Sender {
         if m.data.is_empty() || m.data.len() > DATA_MAX {
             return Err(DmrTxError::TooLong(m.data.len()));
         }
-        let sync = match slot {
-            DmrSlot::S1 => 6,
-            DmrSlot::S2 => 8,
+        let bursts = text_bursts(m, cc & 15, slot.syncs().1).into();
+        Ok(Sender::new(DataTxKind::Text, bursts, None))
+    }
+
+    /// A voice call with the full LC `lc`, colour code `cc`, in `slot`, of at most `limit` voice bursts.
+    pub fn voice(lc: &Lc, cc: u8, slot: DmrSlot, limit: u64) -> Sender {
+        let lc = lc.to_bytes();
+        let cc = cc & 15;
+        let (voice_sync, data_sync) = slot.syncs();
+        let header = lc_burst(&lc, dt::VOICE_LC_HEADER, cc, data_sync);
+        let voice = Voice {
+            lc,
+            cc,
+            data_sync,
+            voice_sync,
+            embedded: embedded_bits(&lc),
+            pos: 0,
+            made: 0,
+            limit: limit.max(1),
+            stopping: false,
+            ended: false,
         };
-        Ok(Sender {
-            bursts: text_bursts(m, cc & 15, sync).into(),
-            sent: 0,
-            period: (BURST_PERIOD_S * RATE).round() as usize,
-        })
+        Sender::new(DataTxKind::Voice, VecDeque::from([header]), Some(voice))
+    }
+
+    /// What the transmission sends.
+    pub fn kind(&self) -> DataTxKind {
+        self.kind
     }
 
     /// The bursts made so far.
@@ -207,15 +282,57 @@ impl Sender {
         self.sent
     }
 
-    /// The bursts not yet made.
+    /// The bursts of a text not yet made.
     pub fn bursts_left(&self) -> usize {
         self.bursts.len()
     }
 
-    /// Appends the 60 ms of the next burst to `out`: its samples with the rise, the fall and silence to the next burst.
-    /// False once the bursts are made.
-    pub fn next(&mut self, out: &mut Vec<Complex32>) -> bool {
-        let Some(b) = self.bursts.pop_front() else {
+    /// Whether the transmission is a voice call that has not been told to end.
+    pub fn speaking(&self) -> bool {
+        self.voice.as_ref().is_some_and(|v| !v.stopping && !v.ended)
+    }
+
+    /// Ends the transmission after the burst on air: a text drops the bursts not yet made, a voice call sends the
+    /// terminator next.
+    pub fn stop(&mut self) {
+        match &mut self.voice {
+            Some(v) => v.stopping = true,
+            None => self.bursts.clear(),
+        }
+    }
+
+    /// The bits of the next burst: a queued burst, a voice burst whose three frames `speech` fills (72 channel bits each,
+    /// as sent), or the terminator of a call; `None` after the last.
+    pub fn next_burst(&mut self, mut speech: impl FnMut(&mut [u8; 72])) -> Option<[u8; 264]> {
+        if let Some(b) = self.bursts.pop_front() {
+            return Some(b);
+        }
+        let v = self.voice.as_mut()?;
+        if v.ended {
+            return None;
+        }
+        if v.stopping || v.made >= v.limit {
+            v.ended = true;
+            return Some(lc_burst(&v.lc, dt::TERMINATOR, v.cc, v.data_sync));
+        }
+        let mut frames = [[0u8; 72]; 3];
+        for f in &mut frames {
+            speech(f);
+        }
+        let b = voice_burst(&frames, v.pos, v.cc, v.voice_sync, &v.embedded);
+        v.pos = (v.pos + 1) % 6;
+        v.made += 1;
+        Some(b)
+    }
+
+    /// Appends the 60 ms of the next burst of [`Sender::next_burst`] to `out`: its samples with the rise, the fall and
+    /// silence to the next burst. False once the bursts are made.
+    pub fn next_with(
+        &mut self,
+        speech: impl FnMut(&mut [u8; 72]),
+        out: &mut Vec<Complex32>,
+    ) -> bool {
+        let Some(b) = self.next_burst(speech) else {
             return false;
         };
         let start = out.len();
@@ -233,14 +350,43 @@ impl Sender {
         self.sent += 1;
         true
     }
+
+    /// As [`Sender::next_with`], with silence frames in the voice bursts.
+    pub fn next(&mut self, out: &mut Vec<Complex32>) -> bool {
+        let silence = silence_frame();
+        self.next_with(|f| *f = silence, out)
+    }
 }
 
 impl Maker for Sender {
-    fn next(&mut self, out: &mut Vec<Complex32>) -> bool {
-        Sender::next(self, out)
+    /// Codes the speech of each voice frame from 20 ms of `mic`.
+    fn next(&mut self, mic: &mut MicInput, out: &mut Vec<Complex32>) -> bool {
+        let mut encoder = self.encoder.take();
+        let mut speech = [0f32; FRAME];
+        let mut pcm = [0i16; FRAME];
+        let more = self.next_with(
+            |frame| {
+                mic.read(&mut speech);
+                for (p, s) in pcm.iter_mut().zip(speech) {
+                    *p = (s.clamp(-1.0, 1.0) * 32767.0).round() as i16;
+                }
+                match encoder.as_mut() {
+                    Some(e) => {
+                        e.encode(&pcm, frame);
+                    }
+                    None => *frame = silence_frame(),
+                }
+            },
+            out,
+        );
+        self.encoder = encoder;
+        more
+    }
+    fn speaks(&self) -> bool {
+        self.speaking()
     }
     fn stop(&mut self) {
-        self.bursts.clear();
+        Sender::stop(self);
     }
     fn frames_sent(&self) -> u64 {
         self.sent
@@ -256,6 +402,7 @@ struct TxConfig {
     colour_code: u8,
     slot: DmrSlot,
     split: f64,
+    timeout: f64,
 }
 
 impl Default for TxConfig {
@@ -267,6 +414,7 @@ impl Default for TxConfig {
             colour_code: COLOUR_CODE.default as u8,
             slot: DmrSlot::S1,
             split: TX_SPLIT.default,
+            timeout: TX_TIMEOUT.default,
         }
     }
 }
@@ -303,6 +451,58 @@ impl DmrTransmit {
         self.core.transmitting()
     }
 
+    /// The target of the settings: the radio called, else the talkgroup, and whether it is a talkgroup.
+    ///
+    /// # Errors
+    ///
+    /// [`DmrTxError::NoSource`] while the setting `radio_id` is 0, [`DmrTxError::NoTarget`] while no target is set.
+    fn target(&self) -> Result<(u32, bool), CommandError> {
+        if self.cfg.radio_id == 0 {
+            return Err(failed(DmrTxError::NoSource));
+        }
+        match (self.cfg.called_id, self.cfg.talkgroup) {
+            (0, 0) => Err(failed(DmrTxError::NoTarget)),
+            (0, tg) => Ok((tg, true)),
+            (id, _) => Ok((id, false)),
+        }
+    }
+
+    /// Push-to-talk on: starts a voice call to the radio or the talkgroup of the settings; a call already under way goes
+    /// on.
+    ///
+    /// # Errors
+    ///
+    /// [`CommandError::TransmitOff`], or [`DmrTxError`] when another transmission runs, the stack has no input, the
+    /// setting `radio_id` is 0 or no target is set.
+    pub fn key_down(&mut self) -> Result<(), CommandError> {
+        if self.core.speaking() {
+            return Ok(());
+        }
+        self.core.ready(DmrTxError::Busy, DmrTxError::NoInput)?;
+        let (dst, group) = self.target()?;
+        let lc = Lc {
+            pf: false,
+            flco: if group { 0 } else { 3 },
+            fid: 0,
+            opts: 0,
+            dst,
+            src: self.cfg.radio_id,
+        };
+        let limit = (self.cfg.timeout / BURST_PERIOD_S).ceil() as u64;
+        let sender = Sender::voice(&lc, self.cfg.colour_code, self.cfg.slot, limit);
+        self.core
+            .begin(Box::new(sender), RATE, DmrTxError::NoInput)?;
+        self.last_kind = Some(DataTxKind::Voice);
+        Ok(())
+    }
+
+    /// Push-to-talk off: the voice call ends after the burst on air, with the terminator.
+    pub fn key_up(&mut self) {
+        if self.core.speaking() {
+            self.core.halt();
+        }
+    }
+
     /// Sends `text` to the radio or the talkgroup of the settings.
     ///
     /// # Errors
@@ -311,14 +511,7 @@ impl DmrTransmit {
     /// setting `radio_id` is 0, no target is set, or the text does not fit.
     pub fn send(&mut self, text: &str) -> Result<(), CommandError> {
         self.core.ready(DmrTxError::Busy, DmrTxError::NoInput)?;
-        if self.cfg.radio_id == 0 {
-            return Err(failed(DmrTxError::NoSource));
-        }
-        let (dst, group) = match (self.cfg.called_id, self.cfg.talkgroup) {
-            (0, 0) => return Err(failed(DmrTxError::NoTarget)),
-            (0, tg) => (tg, true),
-            (id, _) => (id, false),
-        };
+        let (dst, group) = self.target()?;
         let (data, format) = text_octets(text);
         let m = ShortData {
             src: self.cfg.radio_id,
@@ -361,14 +554,14 @@ impl Component for DmrTransmit {
             ID,
             vec![
                 Port::iq("in"),
-                Port::audio("mic").optional("not used: the library has no AMBE+2 encoder"),
+                Port::audio("mic").optional("silence: the voice frames carry coded silence"),
             ],
             vec![Port::iq("out"), KeyedOut::port()],
         )
         .with_settings(TxSetting::schema())
     }
     fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
-        self.core.configure(&inputs[0]);
+        self.core.configure(inputs);
         self.publish();
         let c = self.frequency();
         Ok(vec![Format::iq(inputs[0].rate, c, c), KeyedOut::format()])
@@ -398,6 +591,7 @@ impl Component for DmrTransmit {
                     .ok_or(SettingError::Malformed { id, at: None })?;
             }
             TxSetting::Slot => self.cfg.slot = SLOT.read(id, v)?,
+            TxSetting::Timeout => self.cfg.timeout = TX_TIMEOUT.read(id, v)?,
             TxSetting::Split => {
                 let s = TX_SPLIT.read(id, v)?;
                 let moved = s != self.cfg.split;
@@ -428,6 +622,7 @@ impl Component for DmrTransmit {
             ),
             (TxSetting::Slot, Value::Choice(self.cfg.slot.index())),
             (TxSetting::Split, Value::Hz(self.cfg.split)),
+            (TxSetting::Timeout, Value::Duration(self.cfg.timeout)),
         ])
     }
     fn results(&self) -> Option<&Results> {
@@ -438,6 +633,14 @@ impl Component for DmrTransmit {
     }
     fn invoke(&mut self, id: CommandId, args: &Values) -> Result<Option<Record>, CommandError> {
         match TxCommand::from_id(id).ok_or(CommandError::NoSuchId { id })? {
+            TxCommand::Ptt => {
+                let PttArgs { on } = DMR_PTT.args(args)?;
+                if on {
+                    self.key_down()?;
+                } else {
+                    self.key_up();
+                }
+            }
             TxCommand::Send => {
                 let DataSendArgs { text } = DMR_SEND.args(args)?;
                 self.send(text)?;

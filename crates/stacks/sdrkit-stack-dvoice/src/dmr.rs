@@ -672,6 +672,8 @@ pub struct Dmr {
     slots_locked: [bool; 2],
     last_ok_cycle: [u32; 2],
     cycle: u32,
+    /// The cycle being read is the silent slot of a direct-mode voice superframe.
+    hold: bool,
     codecs: Codecs,
 }
 
@@ -692,6 +694,7 @@ impl Default for Dmr {
             slots_locked: [false; 2],
             last_ok_cycle: [0; 2],
             cycle: 0,
+            hold: false,
             codecs: Codecs::default(),
         }
     }
@@ -713,6 +716,15 @@ impl Dmr {
     fn process_burst(&mut self, ctx: &mut Ctx) {
         self.cycle += 1;
         if crate::symbols::carrier_gone(&self.buf[12..]) {
+            // In direct mode a radio sends in its own slot only: the cycle of the other slot is empty while the voice
+            // superframe of the last cycle runs, and the timing holds for it.
+            let voice = self.next_slot ^ 1;
+            let running = self.slots[voice as usize].voice_pos.is_some_and(|p| p < 5)
+                && self.last_ok_cycle[voice as usize] + 1 == self.cycle;
+            if !self.has_cach && running {
+                self.next_slot = voice;
+                return;
+            }
             self.bad_cycles = 8;
             return;
         }
@@ -1400,6 +1412,7 @@ impl Protocol for Dmr {
 
     fn on_symbol(&mut self, s: Sym, _at: u64, ctx: &mut Ctx) -> SymAnswer {
         self.buf.push(s);
+        let hold = self.hold;
         if self.buf.len() == 144 {
             self.process_burst(ctx);
             self.buf.clear();
@@ -1407,10 +1420,20 @@ impl Protocol for Dmr {
                 for st in self.slots.iter_mut() {
                     st.voice_pos = None;
                 }
+                self.hold = false;
                 return SymAnswer::Stop;
             }
+            // In direct mode the cycle after a voice burst is the other slot, silent or noise while the superframe runs.
+            let s = (self.next_slot ^ 1) as usize;
+            self.hold = !self.has_cach
+                && self.slots[s].voice_pos.is_some_and(|p| p < 5)
+                && self.last_ok_cycle[s] == self.cycle;
         }
-        SymAnswer::Continue
+        if hold {
+            SymAnswer::Hold
+        } else {
+            SymAnswer::Continue
+        }
     }
 
     fn on_tick(&mut self, ctx: &mut Ctx) {
@@ -1533,10 +1556,12 @@ pub fn text_bursts(m: &ShortData, cc: u8, sync: usize) -> Vec<[u8; 264]> {
     out
 }
 
-/// The DMR test signal: a base station downlink, both slots, colour code `cc`.
+/// The DMR test signal: a base station downlink, both slots, colour code `cc`. The voice bursts carry the frames of
+/// `speech` in turn (72 channel bits each, as sent), or pseudo-random bits when it is empty.
 pub struct DmrGen {
     pub cc: u8,
     pub schedule: Vec<(f64, DmrTx)>,
+    pub speech: Vec<[u8; 72]>,
 }
 
 fn burst_bits(info196: &[u8], cc: u8, dtype: u8, sync: usize) -> [u8; 264] {
@@ -1556,11 +1581,54 @@ fn burst_bits(info196: &[u8], cc: u8, dtype: u8, sync: usize) -> [u8; 264] {
     b
 }
 
-fn voice_bits(frames: &[[u8; 72]; 3], centre: &[u8; 48]) -> [u8; 264] {
+/// The burst of the full LC `lc` as a voice LC header ([`dt::VOICE_LC_HEADER`]) or a terminator with LC
+/// ([`dt::TERMINATOR`]), with colour code `cc` and the data sync `sync` (an index of [`SYNCS`]).
+pub fn lc_burst(lc: &[u8; 9], dtype: u8, cc: u8, sync: usize) -> [u8; 264] {
+    let w = encode_full_lc(lc, dtype);
+    burst_bits(&encode_bptc(&bits_of::<96>(&w)), cc, dtype, sync)
+}
+
+/// The 128 bits of embedded signalling that carry the embedded LC `elc` in bursts B to E of a voice superframe.
+pub fn embedded_bits(elc: &[u8; 9]) -> [u8; 128] {
+    encode_embedded(&bits_of::<72>(elc), embedded_lc_checksum(elc))
+}
+
+/// Voice burst `pos` (0 is A, 5 is F) of a voice superframe: the three speech frames `frames` (72 channel bits each, as
+/// sent) around the centre. Burst A has the voice sync `sync` (an index of [`SYNCS`]) in the centre. Bursts B to E have
+/// the EMB of colour code `cc` (PI 0) with LCSS 1, 3, 3 and 2 around the four fragments of `embedded`. Burst F has the
+/// EMB with LCSS 0 around 32 zero bits (no embedded message).
+pub fn voice_burst(
+    frames: &[[u8; 72]; 3],
+    pos: u8,
+    cc: u8,
+    sync: usize,
+    embedded: &[u8; 128],
+) -> [u8; 264] {
+    let centre: [u8; 48] = if pos == 0 {
+        sync_bits(sync)
+    } else {
+        let lcss = match pos {
+            1 => 1,
+            2 | 3 => 3,
+            4 => 2,
+            _ => 0,
+        };
+        let emb = EMB.encode((((cc & 15) as u128) << 3) | lcss);
+        let mut c = [0u8; 48];
+        for k in 0..8 {
+            c[k] = ((emb >> (15 - k)) & 1) as u8;
+            c[40 + k] = ((emb >> (7 - k)) & 1) as u8;
+        }
+        if (1..=4).contains(&pos) {
+            let f = (pos - 1) as usize;
+            c[8..40].copy_from_slice(&embedded[f * 32..f * 32 + 32]);
+        }
+        c
+    };
     let mut b = [0u8; 264];
     b[..72].copy_from_slice(&frames[0]);
     b[72..108].copy_from_slice(&frames[1][..36]);
-    b[108..156].copy_from_slice(centre);
+    b[108..156].copy_from_slice(&centre);
     b[156..192].copy_from_slice(&frames[1][36..]);
     b[192..].copy_from_slice(&frames[2]);
     b
@@ -1571,6 +1639,7 @@ impl DmrGen {
     pub fn default_schedule(cc: u8) -> DmrGen {
         DmrGen {
             cc,
+            speech: Vec::new(),
             schedule: vec![
                 (
                     0.0,
@@ -1663,6 +1732,7 @@ impl DmrGen {
     fn slot_bursts(&self, rng: &mut sdrkit_algo_sim::rng::Rng) -> [Vec<(f64, [u8; 264])>; 2] {
         let mut out: [Vec<(f64, [u8; 264])>; 2] = [Vec::new(), Vec::new()];
         let cc = self.cc;
+        let mut next_speech = 0usize;
         for (t0, tx) in &self.schedule {
             match tx {
                 DmrTx::Voice {
@@ -1688,9 +1758,7 @@ impl DmrGen {
                     let v = &mut out[*slot as usize];
                     let mut t = *t0;
                     for _ in 0..3 {
-                        let w = encode_full_lc(&lcb, dt::VOICE_LC_HEADER);
-                        let info = encode_bptc(&bits_of::<96>(&w));
-                        v.push((t, burst_bits(&info, cc, dt::VOICE_LC_HEADER, 1)));
+                        v.push((t, lc_burst(&lcb, dt::VOICE_LC_HEADER, cc, 1)));
                         t += 0.06;
                     }
                     // Embedded LCs: the voice LC, and the talker alias parts in turn.
@@ -1720,41 +1788,22 @@ impl DmrGen {
                         }
                     }
                     for sf in 0..*superframes {
-                        let elc = embedded[sf as usize % embedded.len()];
-                        let emb_bits =
-                            encode_embedded(&bits_of::<72>(&elc), embedded_lc_checksum(&elc));
+                        let emb_bits = embedded_bits(&embedded[sf as usize % embedded.len()]);
                         for p in 0..6u8 {
-                            let frames: [[u8; 72]; 3] =
-                                std::array::from_fn(|_| std::array::from_fn(|_| rng.bit()));
-                            let centre: [u8; 48] = if p == 0 {
-                                sync_bits(0)
+                            let frames: [[u8; 72]; 3] = if self.speech.is_empty() {
+                                std::array::from_fn(|_| std::array::from_fn(|_| rng.bit()))
                             } else {
-                                let lcss = match p {
-                                    1 => 1,
-                                    2 | 3 => 3,
-                                    4 => 2,
-                                    _ => 0,
-                                };
-                                let emb = EMB.encode(((cc as u128) << 3) | lcss);
-                                let mut c = [0u8; 48];
-                                for k in 0..8 {
-                                    c[k] = ((emb >> (15 - k)) & 1) as u8;
-                                    c[40 + k] = ((emb >> (7 - k)) & 1) as u8;
-                                }
-                                if (1..=4).contains(&p) {
-                                    let f = (p - 1) as usize;
-                                    c[8..40].copy_from_slice(&emb_bits[f * 32..f * 32 + 32]);
-                                }
-                                c
+                                std::array::from_fn(|_| {
+                                    next_speech += 1;
+                                    self.speech[(next_speech - 1) % self.speech.len()]
+                                })
                             };
-                            v.push((t, voice_bits(&frames, &centre)));
+                            v.push((t, voice_burst(&frames, p, cc, 0, &emb_bits)));
                             t += 0.06;
                         }
                     }
                     for _ in 0..2 {
-                        let w = encode_full_lc(&lcb, dt::TERMINATOR);
-                        let info = encode_bptc(&bits_of::<96>(&w));
-                        v.push((t, burst_bits(&info, cc, dt::TERMINATOR, 1)));
+                        v.push((t, lc_burst(&lcb, dt::TERMINATOR, cc, 1)));
                         t += 0.06;
                     }
                 }

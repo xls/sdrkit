@@ -122,6 +122,9 @@ pub enum SymAnswer {
     Continue,
     /// The carrier is gone: back to searching.
     Stop,
+    /// The symbol belongs to no burst of the stream (the silent slot of a TDMA channel): tracking goes on, and the level,
+    /// centre and clock loops do not move on it.
+    Hold,
 }
 
 /// A protocol fed by the symbol layer.
@@ -455,8 +458,10 @@ impl SymbolLayer {
                 let pos = self.next_pos;
                 let raw = self.interp(pos);
                 let s = self.decide(raw);
+                let answer = sink.symbol(s, pos as u64);
+                let moves = answer != SymAnswer::Hold;
                 // Gardner timing error with the midpoint between this and the previous symbol, at unit power.
-                if self.clock_on {
+                if self.clock_on && moves {
                     let mid = self.interp(pos - self.sps as f64 / 2.0);
                     let midn = (mid - self.dc) / self.gain * self.sign();
                     let err = self.ted.error(self.prev_v, midn, s.v) / self.level_power;
@@ -468,8 +473,10 @@ impl SymbolLayer {
                 // Slow level and centre refinement from the decisions.
                 let target = self.dc + self.gain * self.sign() * s.d as f32;
                 let e = raw - target;
-                self.dc += 0.002 * e;
-                if s.d.abs() == 3 || self.two_level {
+                if moves {
+                    self.dc += 0.002 * e;
+                }
+                if moves && (s.d.abs() == 3 || self.two_level) {
                     let g = (raw - self.dc) * self.sign() / s.d as f32;
                     if g.is_finite() && g * self.gain > 0.0 {
                         self.gain += 0.002 * (g - self.gain);
@@ -479,7 +486,7 @@ impl SymbolLayer {
                 self.record(s);
                 self.next_pos += self.sps as f64;
                 self.symbols_since_sync += 1;
-                if sink.symbol(s, pos as u64) == SymAnswer::Stop {
+                if answer == SymAnswer::Stop {
                     self.tracking = false;
                 }
             }

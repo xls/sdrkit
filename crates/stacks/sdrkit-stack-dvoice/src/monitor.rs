@@ -563,7 +563,13 @@ impl VoiceMonitor {
         self.history.iter()
     }
 
-    fn verdict(&mut self, call_id: u64, frame_ber: f32, fourcc: FourCc) -> Option<Verdict> {
+    fn verdict(
+        &mut self,
+        call_id: u64,
+        frame_ber: f32,
+        fourcc: FourCc,
+        layout: &str,
+    ) -> Option<Verdict> {
         let c = self.calls.get(&call_id)?;
         let s = &self.settings;
         let (src, dst) = (&c.record.src, &c.record.dst);
@@ -605,7 +611,7 @@ impl VoiceMonitor {
                 }
             }
         }
-        if !self.codecs.has(fourcc) {
+        if self.codecs.find(fourcc, layout).is_none() {
             return Some(Verdict::NoCodec);
         }
         Some(Verdict::Play)
@@ -866,7 +872,7 @@ impl Component for VoiceMonitor {
             let frame_ber = f.bit_errors.map_or(0.0, |e| {
                 f32::from(e) / (f.payload().len().max(1) * 8) as f32
             });
-            let Some(v) = self.verdict(f.call_id, frame_ber, f.fourcc) else {
+            let Some(v) = self.verdict(f.call_id, frame_ber, f.fourcc, f.packaging.key()) else {
                 continue;
             };
             if let Some(h) = self.history.iter_mut().find(|h| h.call_id == f.call_id) {

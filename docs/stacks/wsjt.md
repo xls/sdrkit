@@ -44,7 +44,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ws
 | `fst4_period` | FST4 T/R period | duration (s) | 60 s | 15 to 1800 | One of 15, 30, 60, 120, 300, 900, 1800 s. |
 | `fst4w_period` | FST4W T/R period | duration (s) | 120 s | 15 to 1800 | One of 15, 30, 60, 120, 300, 900, 1800 s. |
 | `msk144_period` | MSK144 T/R period | duration (s) | 15 s | 15 to 30 | One of 15, 30 s. |
-| `code_dir` | Code tables | text | empty |  | The folder of the FST4, FST4W, MSK144 and Q65 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist, q65_65_15.nbcode). These stacks decode only once their tables are loaded. |
+| `code_dir` | Code tables | text | empty |  | The folder of the FST4, FST4W and MSK144 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist). These stacks decode only once their tables are loaded. |
 | `js8_normal` | JS8 Normal (15 s) | yes or no | true |  |  |
 | `js8_fast` | JS8 Fast (10 s) | yes or no | true |  |  |
 | `js8_turbo` | JS8 Turbo (6 s) | yes or no | true |  |  |
@@ -198,7 +198,7 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `wsjt`, version 2.1. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wsjt`, version 3.0. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 

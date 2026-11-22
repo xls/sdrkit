@@ -16,6 +16,7 @@ sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
 sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
 sdrkit-algo-modem = { path = "../../algo/sdrkit-algo-modem" }
 sdrkit-codec-codec2 = { path = "../../codec/sdrkit-codec-codec2" }
+sdrkit-codec-mbe = { path = "../../codec/sdrkit-codec-mbe" }
 sdrkit-graph = { path = "../../framework/sdrkit-graph" }
 sdrkit-components = { path = "../../framework/sdrkit-components" }
 sdrkit-proto-link = { path = "../../proto/sdrkit-proto-link" }

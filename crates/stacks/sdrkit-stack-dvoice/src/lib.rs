@@ -1,6 +1,7 @@
 //! The digital voice stacks: DMR, NXDN, dPMR, TETRA (trunked and direct mode), P25 Phase 1 and 2, TETRAPOL, D-STAR, Yaesu System Fusion, M17, FreeDV, DCR and
 //! the automatic detector. Each stack is a decoder and a voice monitor in one graph. Speech leaves as compressed frames for
-//! the codec plug-ins of the host, and encrypted content is never decoded. [`descriptors`] lists the stacks.
+//! the codec plug-ins of the host; [`mbe::register`] adds the decoders of the half-rate and full-rate coders to a codec
+//! set. Encrypted content is never decoded. [`descriptors`] lists the stacks.
 
 // Bit and sample loops index several slices at once. Plain index loops read more clearly there.
 #![allow(clippy::needless_range_loop)]
@@ -26,6 +27,7 @@ pub mod gen;
 pub mod items;
 pub mod m17;
 pub mod m17_tx;
+pub mod mbe;
 pub mod monitor;
 pub mod nxdn;
 pub mod p25;
@@ -305,7 +307,7 @@ pub static DMR: StackDescriptor = StackDescriptor {
     id: "dmr",
     name: "DMR",
     group: GROUP,
-    blurb: "DMR two-slot TDMA: calls, talkgroups, talker aliases, text messages and positions. Transmits text messages as short data in direct mode (no AMBE+2 encoder, no voice).",
+    blurb: "DMR two-slot TDMA: calls with their speech, talkgroups, talker aliases, text messages and positions. Transmits voice from the microphone and text messages as short data in direct mode.",
     tuning: narrow(30.0, 1000.0, 0.0, 2.4e6, 12_500.0, 96_000.0, 0.0),
     submodes: &[],
     settings: dmr_schema,
@@ -323,7 +325,7 @@ pub static P25: StackDescriptor = StackDescriptor {
     id: "p25",
     name: "P25",
     group: GROUP,
-    blurb: "APCO P25 Phase 1: voice calls, talkgroups, encryption IDs, and the trunking control channel (sites, grants).",
+    blurb: "APCO P25 Phase 1: voice calls with their speech, talkgroups, encryption IDs, and the trunking control channel (sites, grants).",
     tuning: narrow(30.0, 1000.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0),
     submodes: &[],
     settings: p25_schema,
@@ -401,7 +403,7 @@ pub static NXDN: StackDescriptor = StackDescriptor {
     id: "nxdn",
     name: "NXDN",
     group: GROUP,
-    blurb: "NXDN 6.25 and 12.5 kHz: calls, status and short data, RAN, and the site of a trunked control channel.",
+    blurb: "NXDN 6.25 and 12.5 kHz: calls with their speech, status and short data, RAN, and the site of a trunked control channel.",
     tuning: narrow(30.0, 1000.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0),
     submodes: &[],
     settings: MonitorSetting::schema,
@@ -419,7 +421,7 @@ pub static DPMR: StackDescriptor = StackDescriptor {
     id: "dpmr",
     name: "dPMR",
     group: GROUP,
-    blurb: "dPMR and PMR446 digital: calls, colour codes, status, short messages and packet data.",
+    blurb: "dPMR and PMR446 digital: calls with their speech, colour codes, status, short messages and packet data.",
     tuning: narrow(
         30.0,
         1000.0,
@@ -463,7 +465,7 @@ pub static P25P2: StackDescriptor = StackDescriptor {
     id: "p25p2",
     name: "P25 Phase 2",
     group: GROUP,
-    blurb: "APCO P25 Phase 2 TDMA: two voice channels per carrier, talkgroups, encryption IDs and the network status.",
+    blurb: "APCO P25 Phase 2 TDMA: two voice channels per carrier with their speech, talkgroups, encryption IDs and the network status.",
     tuning: narrow(30.0, 1000.0, 0.0, 2e6, 12_500.0, 96_000.0, 50_000.0),
     submodes: &[],
     settings: MonitorSetting::schema,

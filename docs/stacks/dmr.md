@@ -1,7 +1,7 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
 # DMR
 
-DMR two-slot TDMA: calls, talkgroups, talker aliases, text messages and positions. Transmits text messages as short data in direct mode (no AMBE+2 encoder, no voice).
+DMR two-slot TDMA: calls with their speech, talkgroups, talker aliases, text messages and positions. Transmits voice from the microphone and text messages as short data in direct mode.
 
 Stack id: `dmr`. Group: Digital voice.
 
@@ -36,11 +36,12 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:dm
 | `hang_s` | Hang time | number (s) | 2 | 0.5 to 10 |  |
 | `listen` | Listen | yes or no | true |  | Off: decode and list, never play speech. |
 | `radio_id` | Radio ID | whole number | 0 | 0 to 16776415 | The source of every transmission: the ID registered to the call sign of the operator, 1 to 16776415. Nothing is sent while it is 0. |
-| `called_id` | Radio ID called | whole number | 0 | 0 to 16776415 | The radio a text goes to. With 0 the text goes to the setting talkgroup. |
-| `talkgroup` | Talkgroup | whole number | 0 | 0 to 16776415 | The talkgroup a text goes to when the setting called_id is 0. |
-| `colour_code` | Colour code | whole number | 1 | 0 to 15 | The colour code in the slot type of every burst, 0 to 15. |
+| `called_id` | Radio ID called | whole number | 0 | 0 to 16776415 | The radio a call or a text goes to. With 0 it goes to the setting talkgroup. |
+| `talkgroup` | Talkgroup | whole number | 0 | 0 to 16776415 | The talkgroup a call or a text goes to when the setting called_id is 0. |
+| `colour_code` | Colour code | whole number | 1 | 0 to 15 | The colour code in the slot type and the EMB of every burst, 0 to 15. |
 | `slot` | Time slot | choice | `1` | `1` (Slot 1), `2` (Slot 2) | The slot of direct mode: its sync patterns tell a receiver the slot. |
 | `tx_split` | Transmit offset | frequency | 0 Hz | -10 GHz to 10 GHz | The transmit frequency less the listening frequency: 0 for simplex, the shift of a repeater for duplex. |
+| `tx_timeout` | Time-out | duration (s) | 180 s | 1 to 3600 | A voice stream ends after this time on air. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -130,12 +131,13 @@ The stack puts points on a map: Positions.
 | `hold_current` | Hold current |  |  | Plays only the target of the call that plays now, or of the newest call. |
 | `release` | Release |  |  | Lets the held target go. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
-| `send` | Send a text | `text` (text, required) |  | Sends the text as defined short data in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0: up to 752 ISO 8859-1 characters, or 376 other characters as UTF-16LE. The library has no AMBE+2 encoder, so the stack sends no voice. |
+| `ptt` | Push to talk | `on` (yes or no, required) |  | With on true, sends a voice call from the microphone input in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0, until ptt with on false, halt or the time-out. The speech is coded with the half-rate coder, three 20 ms frames to a burst. |
+| `send` | Send a text | `text` (text, required) |  | Sends the text as defined short data in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0: up to 752 ISO 8859-1 characters, or 376 other characters as UTF-16LE. |
 | `halt` | Halt |  |  | Ends the transmission after the frame or the burst on air, with the end sequence of the stack. |
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 1.4. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 1.5. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -195,7 +197,7 @@ Struct `DecoderFields`. The result set that a [`DecoderComponent`] adds to the r
 
 ### Result fields
 
-Struct `DataTxFields`. The result fields of a sender that sends text only, for want of a speech encoder: DMR.
+Struct `DataTxFields`. The result fields of the DMR sender.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
@@ -203,7 +205,7 @@ Struct `DataTxFields`. The result fields of a sender that sends text only, for w
 | `tx_freq_hz` | frequency | optional | 1.3 | The transmit frequency: the listening frequency plus the transmit offset. No value while the stack does not transmit. |
 | `tx_kind` | choice | optional | 1.3 | What the transmission sends, or the last one sent. |
 | `tx_frames` | whole number | always | 1.3 | The bursts or frames of the transmission, or of the last one, that are written. |
-| `tx_note` | text | always | 1.3 | What the sender sends, and why it sends no voice. |
+| `tx_note` | text | always | 1.3 | What the sender sends. |
 
 ### Table `calls`
 
@@ -424,6 +426,7 @@ Struct `PositionEvent`. A position.
 | `hold_current` | `sdrkit_dmr_hold_current` | none | none |
 | `release` | `sdrkit_dmr_release` | none | none |
 | `remove` | `sdrkit_dmr_remove` | `sdrkit_dvoice_talkgroup_args` | none |
+| `ptt` | `sdrkit_dmr_ptt` | `sdrkit_dvoice_ptt_args` | none |
 | `send` | `sdrkit_dmr_send` | `sdrkit_dmr_data_send_args` | none |
 | `halt` | `sdrkit_dmr_halt` | none | none |
 
@@ -447,6 +450,7 @@ Struct `PositionEvent`. A position.
 | `colour_code` | `sdrkit_dmr_get_colour_code` | `sdrkit_dmr_set_colour_code` |
 | `slot` | `sdrkit_dmr_get_slot` | `sdrkit_dmr_set_slot` |
 | `tx_split` | `sdrkit_dmr_get_tx_split` | `sdrkit_dmr_set_tx_split` |
+| `tx_timeout` | `sdrkit_dmr_get_tx_timeout` | `sdrkit_dmr_set_tx_timeout` |
 
 ### Settings of the test signal generator
 

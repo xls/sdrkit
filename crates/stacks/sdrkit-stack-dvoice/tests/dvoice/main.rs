@@ -12,6 +12,7 @@ mod freedv_tx;
 mod m17_tx;
 mod roundtrip;
 mod sensitivity;
+mod speech;
 mod tx_host;
 mod tetra_dmo;
 mod vectors;

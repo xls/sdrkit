@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dvoice", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "dvoice", version 1.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DVOICE_VERSION_MAJOR 1
-#define SDRKIT_DVOICE_VERSION_MINOR 4
+#define SDRKIT_DVOICE_VERSION_MINOR 5
 
 // The stack "dmr": its id, and the keys of its event types.
 #define SDRKIT_STACK_DMR "dmr"
@@ -342,9 +342,11 @@ typedef struct sdrkit_dvoice_decoder_fields {
 typedef enum sdrkit_dmr_data_tx_fields_tx_kind {
   // Text
   SDRKIT_DMR_DATA_TX_FIELDS_TX_KIND_TEXT = 0,
+  // Voice
+  SDRKIT_DMR_DATA_TX_FIELDS_TX_KIND_VOICE = 1,
 } sdrkit_dmr_data_tx_fields_tx_kind;
 
-// The result fields of a sender that sends text only, for want of a speech encoder: DMR.
+// The result fields of the DMR sender.
 typedef struct sdrkit_dmr_data_tx_fields {
   // The number of bytes of this struct that the library wrote.
   uint32_t size;
@@ -360,7 +362,7 @@ typedef struct sdrkit_dmr_data_tx_fields {
   int32_t tx_kind;
   // The bursts or frames of the transmission, or of the last one, that are written.
   int64_t tx_frames;
-  // What the sender sends, and why it sends no voice.
+  // What the sender sends.
   sdrkit_string tx_note;
 } sdrkit_dmr_data_tx_fields;
 
@@ -1649,17 +1651,6 @@ typedef struct sdrkit_dvoice_talkgroup_args {
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_DVOICE_TALKGROUP_ARGS_INIT {sizeof(sdrkit_dvoice_talkgroup_args), {0}}
 
-// The arguments of a text `send` of short data.
-typedef struct sdrkit_dmr_data_send_args {
-  // The size of this struct: sizeof of the type. The caller sets it.
-  uint32_t size;
-  // The text of the message.
-  sdrkit_string text;
-} sdrkit_dmr_data_send_args;
-
-// An arguments struct with its size set and every argument at 0.
-#define SDRKIT_DMR_DATA_SEND_ARGS_INIT {sizeof(sdrkit_dmr_data_send_args), {0}}
-
 // The arguments of `ptt`.
 typedef struct sdrkit_dvoice_ptt_args {
   // The size of this struct: sizeof of the type. The caller sets it.
@@ -1670,6 +1661,17 @@ typedef struct sdrkit_dvoice_ptt_args {
 
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_DVOICE_PTT_ARGS_INIT {sizeof(sdrkit_dvoice_ptt_args), 0}
+
+// The arguments of a text `send` of short data.
+typedef struct sdrkit_dmr_data_send_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // The text of the message.
+  sdrkit_string text;
+} sdrkit_dmr_data_send_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_DMR_DATA_SEND_ARGS_INIT {sizeof(sdrkit_dmr_data_send_args), {0}}
 
 // The arguments of `send`.
 typedef struct sdrkit_m17_send_args {
@@ -1825,7 +1827,12 @@ static inline int32_t sdrkit_dmr_remove(SDRKIT_HANDLE handle, const sdrkit_dvoic
   return sdrkit_typed_command(handle, "remove", "dvoice.TalkgroupArgs", args, NULL, NULL, 0);
 }
 
-// Runs the command "send" (Send a text) of the stack "dmr" on the session of `handle`. Sends the text as defined short data in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0: up to 752 ISO 8859-1 characters, or 376 other characters as UTF-16LE. The library has no AMBE+2 encoder, so the stack sends no voice. It transmits (text). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+// Runs the command "ptt" (Push to talk) of the stack "dmr" on the session of `handle`. With on true, sends a voice call from the microphone input in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0, until ptt with on false, halt or the time-out. The speech is coded with the half-rate coder, three 20 ms frames to a burst. It transmits (voice). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "ptt" stops it.
+static inline int32_t sdrkit_dmr_ptt(SDRKIT_HANDLE handle, const sdrkit_dvoice_ptt_args *args) {
+  return sdrkit_typed_command(handle, "ptt", "dvoice.PttArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "send" (Send a text) of the stack "dmr" on the session of `handle`. Sends the text as defined short data in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0: up to 752 ISO 8859-1 characters, or 376 other characters as UTF-16LE. It transmits (text). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
 static inline int32_t sdrkit_dmr_send(SDRKIT_HANDLE handle, const sdrkit_dmr_data_send_args *args) {
   return sdrkit_typed_command(handle, "send", "dvoice.DataSendArgs", args, NULL, NULL, 0);
 }
@@ -1926,7 +1933,7 @@ static inline int32_t sdrkit_dmr_set_radio_id(SDRKIT_HANDLE handle, int64_t valu
   return sdrkit_typed_setting_set_i64(handle, "radio_id", value);
 }
 
-// The setting "called_id" (Radio ID called) of the stack "dmr". The radio a text goes to. With 0 the text goes to the setting talkgroup.
+// The setting "called_id" (Radio ID called) of the stack "dmr". The radio a call or a text goes to. With 0 it goes to the setting talkgroup.
 static inline int32_t sdrkit_dmr_get_called_id(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "called_id", value);
 }
@@ -1934,7 +1941,7 @@ static inline int32_t sdrkit_dmr_set_called_id(SDRKIT_HANDLE handle, int64_t val
   return sdrkit_typed_setting_set_i64(handle, "called_id", value);
 }
 
-// The setting "talkgroup" (Talkgroup) of the stack "dmr". The talkgroup a text goes to when the setting called_id is 0.
+// The setting "talkgroup" (Talkgroup) of the stack "dmr". The talkgroup a call or a text goes to when the setting called_id is 0.
 static inline int32_t sdrkit_dmr_get_talkgroup(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "talkgroup", value);
 }
@@ -1942,7 +1949,7 @@ static inline int32_t sdrkit_dmr_set_talkgroup(SDRKIT_HANDLE handle, int64_t val
   return sdrkit_typed_setting_set_i64(handle, "talkgroup", value);
 }
 
-// The setting "colour_code" (Colour code) of the stack "dmr". The colour code in the slot type of every burst, 0 to 15.
+// The setting "colour_code" (Colour code) of the stack "dmr". The colour code in the slot type and the EMB of every burst, 0 to 15.
 static inline int32_t sdrkit_dmr_get_colour_code(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "colour_code", value);
 }
@@ -1967,6 +1974,14 @@ static inline int32_t sdrkit_dmr_get_tx_split(SDRKIT_HANDLE handle, double *valu
 }
 static inline int32_t sdrkit_dmr_set_tx_split(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "tx_split", value);
+}
+
+// The setting "tx_timeout" (Time-out) of the stack "dmr". A length of time in seconds. A voice stream ends after this time on air.
+static inline int32_t sdrkit_dmr_get_tx_timeout(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "tx_timeout", value);
+}
+static inline int32_t sdrkit_dmr_set_tx_timeout(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "tx_timeout", value);
 }
 
 // The setting "gen_cc" (Colour code) of the test signal generator of the stack "dmr".

@@ -1,9 +1,9 @@
 //! What the senders of the crate share: the section, transmit offset and time-out settings, the level and the rise of the
 //! carrier, the Codec 2 tables of a speech encoder (handed over by the host or read from its storage), the refusal of a
-//! command, the constant-envelope burst of an FSK modulator, and the graph side of a sender of text ([`TxCore`]).
+//! command, the constant-envelope burst of an FSK modulator, and the graph side of a sender of bursts ([`TxCore`]).
 
 use sdrkit_codec_codec2::{Codebooks, Encoder, Mode};
-use sdrkit_components::tx::{end_mark, BurstOut, BurstTiming, KeyedOut};
+use sdrkit_components::tx::{end_mark, BurstOut, BurstTiming, KeyedOut, MicInput};
 use sdrkit_core::publish::field;
 use sdrkit_core::storage::{Storage, StorePath};
 use sdrkit_core::{CommandError, Complex32, Setting, StageError};
@@ -18,6 +18,10 @@ pub const TABLE_FOLDER: &str = "codec2";
 pub const PEAK: f32 = 0.9;
 /// The rise and the fall of the carrier (raised cosine), seconds.
 pub const RISE_S: f64 = 0.005;
+/// The rate of the microphone audio that a speech encoder takes, Hz.
+pub const SPEECH_RATE: f64 = 8000.0;
+/// The microphone audio kept while it waits, seconds; older audio is dropped.
+pub const MIC_KEEP_S: f64 = 0.5;
 
 /// The transmit frequency less the listening frequency.
 pub const TX_SPLIT: Setting<field::Hz> = Setting::new("tx_split", "Transmit offset", "Hz", 0.0)
@@ -174,19 +178,24 @@ impl FskBurst {
     }
 }
 
-/// A transmission that needs no host audio: it makes its samples at its own rate part by part.
+/// A transmission that makes its samples at its own rate part by part, from the microphone audio when it speaks.
 pub trait Maker: Send {
-    /// Appends the samples of the next part to `out`; false once the transmission is made and nothing was appended.
-    fn next(&mut self, out: &mut Vec<Complex32>) -> bool;
+    /// Appends the samples of the next part to `out`, reading the speech of the part from `mic` (8 kHz) when the
+    /// transmission speaks; false once the transmission is made and nothing was appended.
+    fn next(&mut self, mic: &mut MicInput, out: &mut Vec<Complex32>) -> bool;
+    /// Whether the transmission sends the microphone audio. The audio waits only while it does.
+    fn speaks(&self) -> bool {
+        false
+    }
     /// Ends the transmission after the part on air, with the end sequence of the stack.
     fn stop(&mut self);
     /// The bursts or frames made so far.
     fn frames_sent(&self) -> u64;
 }
 
-/// What every sender of text on the graph does around its [`Maker`]: the rate and the dial of the input, the transmit
-/// switch of the engine, the rate change to the session's rate with the stated start and the end mark, the keyed output,
-/// and the frames of the last transmission.
+/// What a sender of bursts on the graph does around its [`Maker`]: the rate and the dial of input `in`, the audio of
+/// input `mic` at 8 kHz, the transmit switch of the engine, the rate change to the session's rate with the stated start
+/// and the end mark, the keyed output, and the frames of the last transmission.
 pub struct TxCore {
     rate: f64,
     dial: f64,
@@ -197,6 +206,7 @@ pub struct TxCore {
     last_frames: u64,
     base: Vec<Complex32>,
     timing: BurstTiming,
+    mic: MicInput,
 }
 
 impl Default for TxCore {
@@ -211,6 +221,7 @@ impl Default for TxCore {
             last_frames: 0,
             base: Vec::new(),
             timing: BurstTiming::default(),
+            mic: MicInput::new(SPEECH_RATE, MIC_KEEP_S),
         }
     }
 }
@@ -273,9 +284,15 @@ impl TxCore {
         no_input: E,
     ) -> Result<(), CommandError> {
         let out = BurstOut::new(rate, self.rate, PEAK).map_err(|_| failed(no_input))?;
+        self.mic.restart();
         self.last_frames = 0;
         self.burst = Some((maker, out));
         Ok(())
+    }
+
+    /// Whether the transmission on air sends the microphone audio and has not been told to end.
+    pub fn speaking(&self) -> bool {
+        self.burst.as_ref().is_some_and(|b| b.0.speaks())
     }
 
     /// Ends the transmission after the part on air.
@@ -293,8 +310,13 @@ impl TxCore {
         }
     }
 
-    /// Takes the format of input `in`: its rate and its dial. Drops a transmission on air.
-    pub fn configure(&mut self, f: &Format) {
+    /// Takes the formats of input `in` (its rate and its dial) and of input `mic`, if there is one. Drops a transmission
+    /// on air.
+    pub fn configure(&mut self, inputs: &[Format]) {
+        if let Some(m) = inputs.get(1) {
+            self.mic.configure(m);
+        }
+        let f = &inputs[0];
         self.rate = f.rate;
         self.dial = if f.tuned_hz > 0.0 {
             f.tuned_hz
@@ -309,6 +331,7 @@ impl TxCore {
     pub fn attach(&mut self, ctx: &RunContext) {
         self.transmit = ctx.transmit;
         self.timing.attach(ctx);
+        self.mic.attach(ctx);
         if !ctx.transmit {
             self.cut();
         }
@@ -318,6 +341,8 @@ impl TxCore {
     /// the results should be written: a tick or the end of a transmission.
     pub fn run(&mut self, io: &mut Io) -> bool {
         let room = io.input_len(0);
+        let speaks = self.speaking();
+        self.mic.take(io, 1, speaks);
         let mut ended = std::mem::take(&mut self.end_owed);
         if ended {
             end_mark(io, 0);
@@ -325,7 +350,7 @@ impl TxCore {
         if let Some((maker, out)) = &mut self.burst {
             while out.wants(room) {
                 self.base.clear();
-                let more = maker.next(&mut self.base);
+                let more = maker.next(&mut self.mic, &mut self.base);
                 out.push(&self.base);
                 if !more {
                     out.finish(&mut self.base);

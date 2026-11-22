@@ -1,7 +1,7 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
 # NXDN
 
-NXDN 6.25 and 12.5 kHz: calls, status and short data, RAN, and the site of a trunked control channel.
+NXDN 6.25 and 12.5 kHz: calls with their speech, status and short data, RAN, and the site of a trunked control channel.
 
 Stack id: `nxdn`. Group: Digital voice.
 
@@ -112,7 +112,7 @@ The stack puts points on a map: Positions.
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 1.4. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 1.5. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 

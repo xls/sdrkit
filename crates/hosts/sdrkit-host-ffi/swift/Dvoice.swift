@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "dvoice", version 1.4. MIT licence.
+// sdrkit: the typed interface of the stack family "dvoice", version 1.5. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum DvoiceInterface {
     public static let major = 1
-    public static let minor = 4
+    public static let minor = 5
 }
 
 /// The measurements that every digital voice stack publishes.
@@ -210,10 +210,11 @@ public struct DvoiceDecoderFields {
     }
 }
 
-/// The result fields of a sender that sends text only, for want of a speech encoder: DMR.
+/// The result fields of the DMR sender.
 public struct DmrDataTxFields {
     public enum TxKind: Int32 {
         case text = 0
+        case voice = 1
     }
     /// Whether a transmission is under way.
     public var transmitting: Bool
@@ -223,7 +224,7 @@ public struct DmrDataTxFields {
     public var txKind: TxKind?
     /// The bursts or frames of the transmission, or of the last one, that are written.
     public var txFrames: Int64
-    /// What the sender sends, and why it sends no voice.
+    /// What the sender sends.
     public var txNote: String
 
     init(_ c: sdrkit_dmr_data_tx_fields) {
@@ -2649,7 +2650,17 @@ public enum DvoiceCommands {
         }() }
         return sdrkitResult(code)
     }
-    /// Send a text. Sends the text as defined short data in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0: up to 752 ISO 8859-1 characters, or 376 other characters as UTF-16LE. The library has no AMBE+2 encoder, so the stack sends no voice. It transmits (text). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    /// Push to talk. With on true, sends a voice call from the microphone input in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0, until ptt with on false, halt or the time-out. The speech is coded with the half-rate coder, three 20 ms frames to a burst. It transmits (voice). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "ptt" stops it.
+    public static func dmrPtt(_ handle: SDRKIT_HANDLE, on: Bool) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_dvoice_ptt_args()
+        args.size = UInt32(MemoryLayout<sdrkit_dvoice_ptt_args>.size)
+        let code: Int32 = { () -> Int32 in
+        args.on = on
+        return sdrkit_dmr_ptt(handle, &args)
+        }()
+        return sdrkitResult(code)
+    }
+    /// Send a text. Sends the text as defined short data in direct mode, on the setting slot with the setting colour_code, from the setting radio_id to the setting called_id, or to the setting talkgroup when called_id is 0: up to 752 ISO 8859-1 characters, or 376 other characters as UTF-16LE. It transmits (text). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
     public static func dmrSend(_ handle: SDRKIT_HANDLE, text: String) -> Result<Void, SDRKitCode> {
         var args = sdrkit_dmr_data_send_args()
         args.size = UInt32(MemoryLayout<sdrkit_dmr_data_send_args>.size)
@@ -3208,6 +3219,15 @@ public enum DvoiceSettings {
     }
     public static func setDmrTxSplit(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_split", value))
+    }
+    /// Time-out.
+    public static func dmrTxTimeout(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "tx_timeout", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setDmrTxTimeout(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_timeout", value))
     }
     /// Error squelch.
     public static func p25SquelchPct(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {

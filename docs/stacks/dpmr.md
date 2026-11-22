@@ -1,7 +1,7 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
 # dPMR
 
-dPMR and PMR446 digital: calls, colour codes, status, short messages and packet data.
+dPMR and PMR446 digital: calls with their speech, colour codes, status, short messages and packet data.
 
 Stack id: `dpmr`. Group: Digital voice.
 
@@ -109,7 +109,7 @@ The stack puts points on a map: Positions.
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 1.4. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 1.5. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
