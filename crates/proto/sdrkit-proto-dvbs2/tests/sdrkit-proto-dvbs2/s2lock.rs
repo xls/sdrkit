@@ -8,9 +8,10 @@
 //! for example `18,0,1,0,1.5`).
 
 use sdrkit_algo_sim::noise::{Awgn, NoiseLevel};
-use sdrkit_core::{Complex32, Output, Staged, Value};
+use sdrkit_core::{Complex32, Generator, Output, Staged, Value};
 use sdrkit_graph::{Buffer, Data, Format, GraphBuilder, RunContext};
 use sdrkit_proto_dvbs2::fec::FrameDecoder;
+use sdrkit_proto_dvbs2::gen::{DvbsGenParams, DvbsGenerator};
 use sdrkit_proto_dvbs2::front::{Front, FrontConfig};
 use sdrkit_proto_dvbs2::modcod::ModCod;
 use sdrkit_proto_dvbs2::s2encode::{roll_off_field, S2Encoder, TsAdapter};
@@ -48,6 +49,8 @@ struct Case {
     rate_set: bool,
     /// The carrier is off the centre by up to this share of the symbol rate, each way.
     offset: f64,
+    /// The dummy PLFRAMEs after data frame `k`: entry `k` modulo the length (none if empty).
+    dummies: &'static [usize],
 }
 
 impl Case {
@@ -62,6 +65,7 @@ impl Case {
             margin_db: 3.0,
             rate_set: false,
             offset: 0.005,
+            dummies: &[],
         }
     }
     fn modcod(&self) -> ModCod {
@@ -72,13 +76,14 @@ impl Case {
     }
     fn name(&self) -> String {
         format!(
-            "{}{}{}{}{}{} roll-off {} at {:.2} dB",
+            "{}{}{}{}{}{}{} roll-off {} at {:.2} dB",
             self.modcod().name(),
             if self.short { " short" } else { " normal" },
             if self.pilots { " pilots" } else { "" },
             if self.inverted { " inverted" } else { "" },
             if self.rate_set { ", rate set" } else { "" },
             if self.offset > 0.005 { " off the centre" } else { "" },
+            if self.dummies.is_empty() { String::new() } else { format!(", dummy frames {:?}", self.dummies) },
             self.roll_off,
             self.esn0_db()
         )
@@ -100,7 +105,13 @@ impl Rng {
     }
 }
 
-/// `frames` PLFRAMEs of `c` with data from `rng`: their symbols and the BBFRAMEs they carry.
+/// The dummy PLFRAMEs that `c` sends after data frame `k`.
+fn dummies_after(c: &Case, k: usize) -> usize {
+    if c.dummies.is_empty() { 0 } else { c.dummies[k % c.dummies.len()] }
+}
+
+/// `frames` PLFRAMEs of `c` with data from `rng`, each followed by the dummy PLFRAMEs of `c`: their symbols and the
+/// BBFRAMEs they carry.
 fn frames(c: &Case, rng: &mut Rng, frames: usize) -> (Vec<Complex32>, Vec<Vec<u8>>) {
     let mut enc = S2Encoder::new(c.modcod(), c.short, c.pilots, 0);
     let code = enc.code().expect("the frame size has a code");
@@ -108,7 +119,7 @@ fn frames(c: &Case, rng: &mut Rng, frames: usize) -> (Vec<Complex32>, Vec<Vec<u8
     let mut adapter = TsAdapter::default();
     let mut sent = Vec::with_capacity(frames);
     let (mut all, mut syms) = (Vec::new(), Vec::new());
-    for _ in 0..frames {
+    for k in 0..frames {
         let frame = enc.bbframe();
         adapter.fill(frame, dfl, None, roll_off_field(c.roll_off), &mut || {
             let mut p = [0u8; 188];
@@ -121,6 +132,10 @@ fn frames(c: &Case, rng: &mut Rng, frames: usize) -> (Vec<Complex32>, Vec<Vec<u8
         sent.push(frame.to_vec());
         assert!(enc.encode(&mut syms));
         all.extend_from_slice(&syms);
+        for _ in 0..dummies_after(c, k) {
+            enc.dummy(&mut syms);
+            all.extend_from_slice(&syms);
+        }
     }
     (all, sent)
 }
@@ -175,6 +190,10 @@ struct Got {
     symbols: [usize; 3],
     /// The symbols of the signal that the receiver had taken when it returned its first frame.
     first_after: Option<usize>,
+    /// The dummy frames, the missed headers and the failed searches that the sync stage reported.
+    dummies: u64,
+    misses: u64,
+    failed_hunts: u64,
 }
 
 impl Got {
@@ -285,6 +304,9 @@ fn direct_on(x: &[Complex32], sent: &[Vec<u8>]) -> Got {
         }
     }
     got.inverted = sync.report.locked.then_some(sync.report.inverted);
+    got.dummies = sync.report.dummies;
+    got.misses = sync.report.misses;
+    got.failed_hunts = sync.report.failed_hunts;
     got
 }
 
@@ -553,6 +575,125 @@ fn a_set_symbol_rate_locks_on_every_seed() {
     .map(|c| Case { rate_set: true, ..c });
     all_lock(&cases);
     all_lock(&cases.map(strong));
+}
+
+/// Dummy PLFRAMEs between the data frames, one at a time and several in a row: from its first frame on the receiver
+/// returns every data frame bit for bit, counts every dummy frame after it, misses no header and does not search again.
+#[test]
+fn dummy_frames_between_data_frames_keep_the_lock() {
+    let patterns: [&'static [usize]; 3] = [&[1], &[0, 3], &[0, 0, 6]];
+    let mut failed = Vec::new();
+    let cases = [
+        at_db(Case::new(1, false, false), 0.0),
+        at_db(Case::new(4, true, true), 1.7),
+        Case::new(6, false, false),
+        Case::new(13, false, true),
+        Case::new(19, true, false),
+        Case::new(25, true, true),
+        // As long as a dummy frame.
+        Case::new(25, true, false),
+    ];
+    for c in cases {
+        for dummies in patterns {
+            let c = Case { dummies, ..c };
+            for seed in 0..4 {
+                let g = direct(&c, seed, 300_000);
+                let first = g.idx.first().copied().unwrap_or(g.sent);
+                let end = g.sent - TAIL;
+                let due: usize = (first..end).map(|k| dummies_after(&c, k)).sum();
+                let all: usize = (0..g.sent).map(|k| dummies_after(&c, k)).sum();
+                let ok = g.locked()
+                    && g.misses == 0
+                    && g.failed_hunts == 0
+                    && (due as u64..=all as u64).contains(&g.dummies);
+                if !ok {
+                    failed.push(format!(
+                        "{} seed {seed}: from frame {first}, frames {:?} of {}, {} not sent, dummies {} (due {due} to {all}), misses {}, failed searches {}",
+                        c.name(), g.idx, g.sent, g.wrong, g.dummies, g.misses, g.failed_hunts
+                    ));
+                }
+            }
+        }
+    }
+    assert!(failed.is_empty(), "{failed:#?}");
+}
+
+/// The receiver graph with dummy PLFRAMEs between the data frames locks on every seed.
+#[test]
+fn dummy_frames_lock_through_the_graph() {
+    all_lock(&[
+        Case { dummies: &[0, 3], ..Case::new(6, false, false) },
+        Case { dummies: &[1], ..Case::new(19, true, false) },
+    ]);
+}
+
+/// The dummy frames of the test-signal generator (one after every two data frames) at 6 dB Es/N0: every frame that the
+/// sync stage gives decodes, and it counts the dummy frames without a missed header or a second search.
+#[test]
+fn the_dummy_frames_of_the_generator_are_skipped() {
+    let mut p = DvbsGenParams::new(FS);
+    p.symbol_rate = RS;
+    p.dummy_every = 3;
+    let mut x = vec![Complex32::default(); 800_000];
+    DvbsGenerator::new(p).generate(&mut x);
+    let level = NoiseLevel::EsN0Db { esn0_db: 6.0, symbol_rate_hz: RS };
+    Awgn::complex(level, 1.0, FS, 7).unwrap().process(&mut x);
+    let mut front = Front::new(FS, FrontConfig::default()).unwrap();
+    let mut sync = Sync::new(Standard::S2, 0);
+    let mut dec = FrameDecoder::default();
+    let (mut syms, mut bytes) = (Vec::new(), Vec::new());
+    let (mut out, mut good) = (0, 0);
+    for b in x.chunks(16384) {
+        front.hold_timing(sync.locked());
+        syms.clear();
+        front.process(b, &mut syms);
+        if std::mem::replace(&mut front.restarted, false) {
+            sync.restart();
+        }
+        sync.push(&syms);
+        for f in sync.frames_out.drain(..) {
+            let m = ModCod::new(f.modcod).unwrap();
+            out += 1;
+            good += usize::from(dec.decode(&m, f.short, &f.syms, 10f32.powf(-0.6), &mut bytes).is_some_and(|r| r.bch_ok));
+        }
+    }
+    let r = &sync.report;
+    eprintln!("{out} frames, {good} decoded, {} dummy frames", r.dummies);
+    assert!(out >= 6 && good == out, "{out} frames, {good} decoded");
+    let (d, m, h) = (r.dummies, r.misses, r.failed_hunts);
+    assert!(d >= 3 && m == 0 && h == 0, "dummies {d}, misses {m}, failed searches {h}");
+}
+
+/// A signal that starts with dummy PLFRAMEs: the sync stage locks on them, and the first data frame it gives is marked
+/// as the first after the lock.
+#[test]
+fn a_lock_on_dummy_frames_marks_the_first_data_frame() {
+    for c in [Case::new(6, false, false), Case::new(19, true, true)] {
+        for seed in 0..3u64 {
+            let mut rng = Rng(0x9e37_79b9_7f4a_7c15 ^ (seed + 1).wrapping_mul(0x2545_f491_4f6c_dd1d));
+            let enc = S2Encoder::new(c.modcod(), c.short, c.pilots, 0);
+            let (mut x, mut d) = (Vec::new(), Vec::new());
+            for _ in 0..40 {
+                enc.dummy(&mut d);
+                x.extend_from_slice(&d);
+            }
+            let (data, _) = frames(&c, &mut rng, 200_000usize.div_ceil(c.modcod().frame_symbols(c.short, c.pilots)));
+            x.extend_from_slice(&data);
+            let level = NoiseLevel::EsN0Db { esn0_db: c.esn0_db(), symbol_rate_hz: RS };
+            Awgn::complex(level, 1.0, RS, seed).unwrap().process(&mut x);
+            let mut sync = Sync::new(Standard::S2, 0);
+            let mut got = Vec::new();
+            for b in x.chunks(8192) {
+                sync.push(b);
+                got.extend(sync.frames_out.drain(..).map(|f| (f.modcod, f.restart)));
+            }
+            let name = c.name();
+            assert!(sync.log.iter().any(|l| l == "DVB-S2, dummy frames"), "{name} seed {seed}: {:?}", sync.log);
+            assert!(sync.report.dummies >= 30 && sync.report.misses == 0, "{name} seed {seed}");
+            assert!(got.len() > 4, "{name} seed {seed}: {got:?}");
+            assert!(got[0] == (c.id, true) && got[1..].iter().all(|&g| g == (c.id, false)), "{name} seed {seed}: {got:?}");
+        }
+    }
 }
 
 #[test]

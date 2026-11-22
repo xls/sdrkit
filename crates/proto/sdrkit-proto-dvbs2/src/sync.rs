@@ -33,9 +33,9 @@ pub struct S2Frame {
     pub esn0_db: f64,
     /// MER of the decided data, dB.
     pub mer_db: f64,
-    /// Frames since the lock.
+    /// PLFRAMEs since the lock, dummy frames included.
     pub index: u64,
-    /// The first frame after a (re)lock.
+    /// The first data frame after a (re)lock, also when dummy frames came first.
     pub restart: bool,
 }
 
@@ -137,6 +137,8 @@ enum Mode {
         index: u64,
         /// The amplitude of the symbols, for the constellations with rings.
         amp: f32,
+        /// No data frame was given since the lock: the next one is marked as the first.
+        fresh: bool,
     },
     S1 {
         variant: u8,
@@ -359,6 +361,7 @@ impl Sync {
                     code,
                     index: 0,
                     amp: 1.0,
+                    fresh: true,
                 };
                 self.follow_s2();
                 return;
@@ -884,6 +887,7 @@ impl Sync {
                 code,
                 index,
                 amp,
+                fresh,
             } = self.mode
             else {
                 return;
@@ -981,7 +985,7 @@ impl Sync {
                 pilots,
                 esn0_db: esn0,
                 index,
-                restart: index == 0,
+                restart: fresh,
                 ..Default::default()
             };
             let mut ph = 0f64;
@@ -1066,6 +1070,7 @@ impl Sync {
                 code: c7,
                 index: index + 1,
                 amp,
+                fresh: fresh && dummy,
             };
         }
     }

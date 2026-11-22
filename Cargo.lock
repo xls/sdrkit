@@ -1901,6 +1901,7 @@ name = "sdrkit-dev-test"
 version = "0.1.0"
 dependencies = [
  "sdrkit-algo-dsp",
+ "sdrkit-algo-fec",
  "sdrkit-algo-sim",
  "sdrkit-components",
  "sdrkit-core",
