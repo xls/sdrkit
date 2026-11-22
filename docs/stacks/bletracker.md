@@ -30,6 +30,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:bl
 | `alert_after_min` | Alert after | number (min) | 10 | 1 to 60 | How long a tracker must stay with the radio before the alert. |
 | `near_dbfs` | Near above | number (dBFS) | -60 | -100 to -20 | The averaged level from which a tracker counts as near. The radio's level, not a calibrated distance. |
 | `alert_after_s` | Alert after (seconds, for tests) | duration (s) | 0 s | 0 to 7200 | When above 0, replaces the alert time in minutes. |
+| `tx_level` | Level | number (of full scale) | 0.5 | 0.05 to 0.9 | The magnitude of the signal sent, of full scale. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -56,6 +57,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `channel` | Channel | whole number |
 | `limits` | Limits | text |
 | `privacy` | Privacy | text |
+| `tx_sending` | Sending | yes or no |
+| `tx_sent` | Packets sent | whole number |
+| `tx_left` | Packets left | whole number |
 | `adv.dropped` | Dropped | whole number |
 
 ## Result tables
@@ -71,6 +75,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Kind | Label | Fields |
 |---|---|---|
 | `ble.tracker` | Unwanted tracking alert | `source` (text), `kind` (choice), `text` (text), `stays` (duration (s)), `level_dbfs` (number (dBFS)), `urgency` (choice), `family` (choice) |
+| `ble.tx` | Bluetooth LE transmission | `state` (text), `reason` (text), `target` (text), `text` (text), `family` (choice) |
 
 ## Commands
 
@@ -78,10 +83,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything decoded so far. |
 | `mine` | Mark as mine | `row` (text, required), `mine` (yes or no, default true) |  | A tracker marked as the user's own raises no alert. |
+| `send` | Send a tracker advertisement | `tracker` (choice, default `find_my`), `address` (text, required), `address_type` (choice, default `random`), `pdu_type` (choice, default `adv_nonconn_ind`), `status` (whole number, default 0), `protection` (yes or no, default false), `payload` (text, default empty), `count` (whole number, default 1), `interval_ms` (whole number (ms), default 100) |  | Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: Find My manufacturer data of company 0x004C (type 0x12, length 25, the status, the payload) or Google service data of UUID 0xFEAA (frame type 0x40 or 0x41, the payload). A send during another waits for it. Transmit must be on. |
+| `halt` | Halt |  |  | Drops the packets of the send on air that are still to go, and the sends that wait. |
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 1.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 1.2. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -104,6 +111,16 @@ Struct `BletrackerFields`. The result fields of `bletracker`.
 | `channel` | whole number | optional | 1.0 | The tuned advertising channel. No value when it is not known, as for a recording. |
 | `limits` | text | always | 1.0 | What the detector cannot tell. |
 | `privacy` | text | always | 1.0 | The privacy note. |
+
+### Result fields
+
+Struct `BleTxFields`. The result fields of the advertising sender of `ble` and `bletracker`.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `tx_sending` | yes or no | always | 1.2 | Whether a send is on air. |
+| `tx_sent` | whole number | always | 1.2 | The packets of the send on air that went out. |
+| `tx_left` | whole number | always | 1.2 | The packets still to go: the rest of the send on air and the sends that wait. |
 
 ### Table `trackers`
 
@@ -163,12 +180,26 @@ Struct `BletrackerAlertEvent`. The fields of an unwanted tracking alert.
 | `urgency` | choice | always | 1.0 | Urgent for a tracker away from its owner, else a notice. |
 | `family` | choice | always | 1.0 | The family of the source: an alert. |
 
+### Event `ble.tx`
+
+Struct `BleTxEvent`. The fields of a change of an advertising send.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `state` | text | always | 1.2 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.2 | Why it changed: empty, halted, the transmitter is off, the format changed, the frequency changed, or why a send was refused. |
+| `target` | text | always | 1.2 | The advertiser address. |
+| `text` | text | always | 1.2 | The PDU type, the channel, the packets and the advertising data in hex; empty for finished. |
+| `family` | choice | always | 1.2 | The family of the source. |
+
 ### Commands
 
 | Key | C function | Arguments struct | Reply struct |
 |---|---|---|---|
 | `clear` | `sdrkit_bletracker_clear` | none | none |
 | `mine` | `sdrkit_bletracker_mine` | `sdrkit_bletracker_mine_args` | none |
+| `send` | `sdrkit_bletracker_send` | `sdrkit_bletracker_send_args` | none |
+| `halt` | `sdrkit_bletracker_halt` | none | none |
 
 ### Settings
 
@@ -178,6 +209,7 @@ Struct `BletrackerAlertEvent`. The fields of an unwanted tracking alert.
 | `alert_after_min` | `sdrkit_bletracker_get_alert_after_min` | `sdrkit_bletracker_set_alert_after_min` |
 | `near_dbfs` | `sdrkit_bletracker_get_near_dbfs` | `sdrkit_bletracker_set_near_dbfs` |
 | `alert_after_s` | `sdrkit_bletracker_get_alert_after_s` | `sdrkit_bletracker_set_alert_after_s` |
+| `tx_level` | `sdrkit_bletracker_get_tx_level` | `sdrkit_bletracker_set_tx_level` |
 
 ### Settings of the test signal generator
 

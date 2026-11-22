@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 1.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,11 +35,12 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WLAN_VERSION_MAJOR 1
-#define SDRKIT_WLAN_VERSION_MINOR 1
+#define SDRKIT_WLAN_VERSION_MINOR 2
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
 #define SDRKIT_EVENT_BLE_DEVICE "ble.device"
+#define SDRKIT_EVENT_BLE_TX "ble.tx"
 
 // The stack "bletracker": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLETRACKER "bletracker"
@@ -247,6 +248,18 @@ typedef struct sdrkit_ble_fields {
   // The privacy note.
   sdrkit_string privacy;
 } sdrkit_ble_fields;
+
+// The result fields of the advertising sender of `ble` and `bletracker`.
+typedef struct sdrkit_ble_tx_fields {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Whether a send is on air.
+  bool tx_sending;
+  // The packets of the send on air that went out.
+  int64_t tx_sent;
+  // The packets still to go: the rest of the send on air and the sends that wait.
+  int64_t tx_left;
+} sdrkit_ble_tx_fields;
 
 // The options of `address_type` of `sdrkit_ble_device_row`.
 typedef enum sdrkit_ble_device_row_address_type {
@@ -1447,6 +1460,56 @@ typedef struct sdrkit_ble_device_event {
   int32_t family;
 } sdrkit_ble_device_event;
 
+// The options of `family` of `sdrkit_ble_tx_event`.
+typedef enum sdrkit_ble_tx_event_family {
+  // Aircraft
+  SDRKIT_BLE_TX_EVENT_FAMILY_AIRCRAFT = 0,
+  // Vessel
+  SDRKIT_BLE_TX_EVENT_FAMILY_VESSEL = 1,
+  // APRS
+  SDRKIT_BLE_TX_EVENT_FAMILY_APRS = 2,
+  // Pager
+  SDRKIT_BLE_TX_EVENT_FAMILY_PAGER = 3,
+  // Radiosonde
+  SDRKIT_BLE_TX_EVENT_FAMILY_SONDE = 4,
+  // Broadcast
+  SDRKIT_BLE_TX_EVENT_FAMILY_BROADCAST = 5,
+  // Voice
+  SDRKIT_BLE_TX_EVENT_FAMILY_VOICE = 6,
+  // Message
+  SDRKIT_BLE_TX_EVENT_FAMILY_MESSAGE = 7,
+  // Sensor
+  SDRKIT_BLE_TX_EVENT_FAMILY_SENSOR = 8,
+  // Satellite
+  SDRKIT_BLE_TX_EVENT_FAMILY_SATELLITE = 9,
+  // Receiver
+  SDRKIT_BLE_TX_EVENT_FAMILY_RECEIVER = 10,
+  // Alert
+  SDRKIT_BLE_TX_EVENT_FAMILY_ALERT = 11,
+  // Other
+  SDRKIT_BLE_TX_EVENT_FAMILY_OTHER = 12,
+} sdrkit_ble_tx_event_family;
+
+// The fields of a change of an advertising send.
+typedef struct sdrkit_ble_tx_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The state: started, queued, finished or refused.
+  sdrkit_string state;
+  // Why it changed: empty, halted, the transmitter is off, the format changed, the frequency changed, or why a send was refused.
+  sdrkit_string reason;
+  // The advertiser address.
+  sdrkit_string target;
+  // The PDU type, the channel, the packets and the advertising data in hex; empty for finished.
+  sdrkit_string text;
+  // The family of the source. A value of `sdrkit_ble_tx_event_family`.
+  int32_t family;
+} sdrkit_ble_tx_event;
+
 // The options of `kind` of `sdrkit_ble_tracker_event`.
 typedef enum sdrkit_ble_tracker_event_kind {
   // Apple Find My (AirTag or compatible)
@@ -1728,6 +1791,53 @@ typedef struct sdrkit_ble_device_args {
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_BLE_DEVICE_ARGS_INIT {sizeof(sdrkit_ble_device_args), {0}}
 
+// The arguments of `send` of `ble`.
+typedef struct sdrkit_ble_send_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // The advertiser address.
+  sdrkit_string address;
+  // True if `address_type` holds a value.
+  bool has_address_type;
+  // Public or random. The index of an option.
+  int32_t address_type;
+  // True if `pdu_type` holds a value.
+  bool has_pdu_type;
+  // The PDU type. The index of an option.
+  int32_t pdu_type;
+  // True if `data` holds a value.
+  bool has_data;
+  // The advertising data.
+  sdrkit_string data;
+  // True if `name` holds a value.
+  bool has_name;
+  // The complete local name.
+  sdrkit_string name;
+  // True if `uuid16` holds a value.
+  bool has_uuid16;
+  // A 16-bit service UUID.
+  sdrkit_string uuid16;
+  // True if `company` holds a value.
+  bool has_company;
+  // The company identifier.
+  sdrkit_string company;
+  // True if `manufacturer_data` holds a value.
+  bool has_manufacturer_data;
+  // The manufacturer specific data.
+  sdrkit_string manufacturer_data;
+  // True if `count` holds a value.
+  bool has_count;
+  // The packets.
+  int64_t count;
+  // True if `interval_ms` holds a value.
+  bool has_interval_ms;
+  // The interval. Unit: ms.
+  int64_t interval_ms;
+} sdrkit_ble_send_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_BLE_SEND_ARGS_INIT {sizeof(sdrkit_ble_send_args), {0}, 0, 0, 0, 0, 0, {0}, 0, {0}, 0, {0}, 0, {0}, 0, {0}, 0, 0, 0, 0}
+
 // The arguments of `mine` of `bletracker`.
 typedef struct sdrkit_bletracker_mine_args {
   // The size of this struct: sizeof of the type. The caller sets it.
@@ -1742,6 +1852,49 @@ typedef struct sdrkit_bletracker_mine_args {
 
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_BLETRACKER_MINE_ARGS_INIT {sizeof(sdrkit_bletracker_mine_args), {0}, 0, 0}
+
+// The arguments of `send` of `bletracker`.
+typedef struct sdrkit_bletracker_send_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // True if `tracker` holds a value.
+  bool has_tracker;
+  // The tracker family. The index of an option.
+  int32_t tracker;
+  // The advertiser address.
+  sdrkit_string address;
+  // True if `address_type` holds a value.
+  bool has_address_type;
+  // Public or random. The index of an option.
+  int32_t address_type;
+  // True if `pdu_type` holds a value.
+  bool has_pdu_type;
+  // The PDU type. The index of an option.
+  int32_t pdu_type;
+  // True if `status` holds a value.
+  bool has_status;
+  // The Find My status byte.
+  int64_t status;
+  // True if `protection` holds a value.
+  bool has_protection;
+  // The Google frame type.
+  bool protection;
+  // True if `payload` holds a value.
+  bool has_payload;
+  // The rest of the frame.
+  sdrkit_string payload;
+  // True if `count` holds a value.
+  bool has_count;
+  // The packets.
+  int64_t count;
+  // True if `interval_ms` holds a value.
+  bool has_interval_ms;
+  // The interval. Unit: ms.
+  int64_t interval_ms;
+} sdrkit_bletracker_send_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_BLETRACKER_SEND_ARGS_INIT {sizeof(sdrkit_bletracker_send_args), 0, 0, {0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, 0, 0}
 
 // The arguments of `remove` of `wifi` and `halow`.
 typedef struct sdrkit_wlan_network_args {
@@ -1796,6 +1949,12 @@ static inline int32_t sdrkit_ble_device_event_read(SDRKIT_HANDLE handle, uint32_
   return sdrkit_typed_event(handle, n, "ble.device", "wlan.BleDeviceEvent", event, sizeof(sdrkit_ble_device_event));
 }
 
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "ble.tx"
+// (Bluetooth LE transmission). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_ble_tx_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_ble_tx_event *event) {
+  return sdrkit_typed_event(handle, n, "ble.tx", "wlan.BleTxEvent", event, sizeof(sdrkit_ble_tx_event));
+}
+
 // Runs the command "clear" (Clear) of the stack "ble" on the session of `handle`. Forgets everything decoded so far.
 static inline int32_t sdrkit_ble_clear(SDRKIT_HANDLE handle) {
   return sdrkit_typed_command(handle, "clear", NULL, NULL, NULL, NULL, 0);
@@ -1804,6 +1963,16 @@ static inline int32_t sdrkit_ble_clear(SDRKIT_HANDLE handle) {
 // Runs the command "remove" (Remove) of the stack "ble" on the session of `handle`. Forgets one object, a favourite too.
 static inline int32_t sdrkit_ble_remove(SDRKIT_HANDLE handle, const sdrkit_ble_device_args *args) {
   return sdrkit_typed_command(handle, "remove", "wlan.BleDeviceArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "send" (Send an advertisement) of the stack "ble" on the session of `handle`. Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: 2402, 2426 or 2480 MHz. A send during another waits for it. Transmit must be on. It transmits (beacon). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+static inline int32_t sdrkit_ble_send(SDRKIT_HANDLE handle, const sdrkit_ble_send_args *args) {
+  return sdrkit_typed_command(handle, "send", "wlan.BleSendArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "halt" (Halt) of the stack "ble" on the session of `handle`. Drops the packets of the send on air that are still to go, and the sends that wait.
+static inline int32_t sdrkit_ble_halt(SDRKIT_HANDLE handle) {
+  return sdrkit_typed_command(handle, "halt", NULL, NULL, NULL, NULL, 0);
 }
 
 // The settings of the test signal generator of the stack "ble" are the sdrkit_ble_gen_*() functions
@@ -1860,6 +2029,14 @@ static inline int32_t sdrkit_ble_set_named_only(SDRKIT_HANDLE handle, bool value
   return sdrkit_typed_setting_set_bool(handle, "named_only", value);
 }
 
+// The setting "tx_level" (Level) of the stack "ble". Unit: of full scale. The magnitude of the signal sent, of full scale.
+static inline int32_t sdrkit_ble_get_tx_level(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "tx_level", value);
+}
+static inline int32_t sdrkit_ble_set_tx_level(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "tx_level", value);
+}
+
 // The setting "gen_channel" (Whitening) of the test signal generator of the stack "ble". A value of `sdrkit_ble_gen_channel`.
 static inline int32_t sdrkit_ble_gen_get_channel(SDRKIT_HANDLE handle, sdrkit_ble_gen_channel *value) {
   int32_t index = 0;
@@ -1914,6 +2091,16 @@ static inline int32_t sdrkit_bletracker_mine(SDRKIT_HANDLE handle, const sdrkit_
   return sdrkit_typed_command(handle, "mine", "wlan.BletrackerMineArgs", args, NULL, NULL, 0);
 }
 
+// Runs the command "send" (Send a tracker advertisement) of the stack "bletracker" on the session of `handle`. Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: Find My manufacturer data of company 0x004C (type 0x12, length 25, the status, the payload) or Google service data of UUID 0xFEAA (frame type 0x40 or 0x41, the payload). A send during another waits for it. Transmit must be on. It transmits (beacon). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+static inline int32_t sdrkit_bletracker_send(SDRKIT_HANDLE handle, const sdrkit_bletracker_send_args *args) {
+  return sdrkit_typed_command(handle, "send", "wlan.BletrackerSendArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "halt" (Halt) of the stack "bletracker" on the session of `handle`. Drops the packets of the send on air that are still to go, and the sends that wait.
+static inline int32_t sdrkit_bletracker_halt(SDRKIT_HANDLE handle) {
+  return sdrkit_typed_command(handle, "halt", NULL, NULL, NULL, NULL, 0);
+}
+
 // The settings of the test signal generator of the stack "bletracker" are the sdrkit_bletracker_gen_*() functions
 // after the settings of its receiver.
 
@@ -1950,6 +2137,14 @@ static inline int32_t sdrkit_bletracker_get_alert_after_s(SDRKIT_HANDLE handle, 
 }
 static inline int32_t sdrkit_bletracker_set_alert_after_s(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "alert_after_s", value);
+}
+
+// The setting "tx_level" (Level) of the stack "bletracker". Unit: of full scale. The magnitude of the signal sent, of full scale.
+static inline int32_t sdrkit_bletracker_get_tx_level(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "tx_level", value);
+}
+static inline int32_t sdrkit_bletracker_set_tx_level(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "tx_level", value);
 }
 
 // The setting "gen_schedule" (Schedule) of the test signal generator of the stack "bletracker". A value of `sdrkit_bletracker_gen_schedule`.
@@ -2563,6 +2758,11 @@ static inline int32_t sdrkit_espnow_gen_set_version(SDRKIT_HANDLE handle, int64_
 // Fills `fields` with the result fields of the snapshot of `handle`.
 static inline int32_t sdrkit_ble_fields_read(SDRKIT_HANDLE handle, sdrkit_ble_fields *fields) {
   return sdrkit_typed_fields(handle, "wlan.BleFields", fields, sizeof(sdrkit_ble_fields));
+}
+
+// Fills `fields` with the result fields of the snapshot of `handle`.
+static inline int32_t sdrkit_ble_tx_fields_read(SDRKIT_HANDLE handle, sdrkit_ble_tx_fields *fields) {
+  return sdrkit_typed_fields(handle, "wlan.BleTxFields", fields, sizeof(sdrkit_ble_tx_fields));
 }
 
 // Fills `fields` with the result fields of the snapshot of `handle`.

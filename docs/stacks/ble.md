@@ -32,6 +32,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:bl
 | `filter_text` | Filter | text | empty |  | Shows only the devices whose name, address, vendor or beacon holds this text. |
 | `min_level_dbfs` | Level above | number (dBFS) | -120 | -120 to 0 |  |
 | `named_only` | Named only | yes or no | false |  |  |
+| `tx_level` | Level | number (of full scale) | 0.5 | 0.05 to 0.9 | The magnitude of the signal sent, of full scale. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -58,6 +59,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `packets_39` | Packets on 39 | whole number |
 | `hopping` | Hopping | yes or no |
 | `privacy` | Privacy | text |
+| `tx_sending` | Sending | yes or no |
+| `tx_sent` | Packets sent | whole number |
+| `tx_left` | Packets left | whole number |
 | `adv.dropped` | Dropped | whole number |
 
 ## Result tables
@@ -74,6 +78,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Kind | Label | Fields |
 |---|---|---|
 | `ble.device` | Bluetooth LE device | `source` (text), `text` (text), `level_dbfs` (number (dBFS)), `family` (choice) |
+| `ble.tx` | Bluetooth LE transmission | `state` (text), `reason` (text), `target` (text), `text` (text), `family` (choice) |
 
 ## Commands
 
@@ -81,10 +86,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything decoded so far. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
+| `send` | Send an advertisement | `address` (text, required), `address_type` (choice, default `random`), `pdu_type` (choice, default `adv_nonconn_ind`), `data` (text, default empty), `name` (text, default empty), `uuid16` (text, default empty), `company` (text, default empty), `manufacturer_data` (text, default empty), `count` (whole number, default 1), `interval_ms` (whole number (ms), default 100) |  | Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: 2402, 2426 or 2480 MHz. A send during another waits for it. Transmit must be on. |
+| `halt` | Halt |  |  | Drops the packets of the send on air that are still to go, and the sends that wait. |
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 1.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 1.2. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 
@@ -107,6 +114,16 @@ Struct `BleFields`. The result fields of `ble`.
 | `packets_39` | whole number | always | 1.0 | Good packets on channel 39. |
 | `hopping` | yes or no | always | 1.0 | The host steps through the advertising channels. |
 | `privacy` | text | always | 1.0 | The privacy note. |
+
+### Result fields
+
+Struct `BleTxFields`. The result fields of the advertising sender of `ble` and `bletracker`.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `tx_sending` | yes or no | always | 1.2 | Whether a send is on air. |
+| `tx_sent` | whole number | always | 1.2 | The packets of the send on air that went out. |
+| `tx_left` | whole number | always | 1.2 | The packets still to go: the rest of the send on air and the sends that wait. |
 
 ### Table `devices`
 
@@ -172,12 +189,26 @@ Struct `BleDeviceEvent`. The fields of a good packet with an address.
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the packet. |
 | `family` | choice | always | 1.0 | The family of the source. |
 
+### Event `ble.tx`
+
+Struct `BleTxEvent`. The fields of a change of an advertising send.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `state` | text | always | 1.2 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.2 | Why it changed: empty, halted, the transmitter is off, the format changed, the frequency changed, or why a send was refused. |
+| `target` | text | always | 1.2 | The advertiser address. |
+| `text` | text | always | 1.2 | The PDU type, the channel, the packets and the advertising data in hex; empty for finished. |
+| `family` | choice | always | 1.2 | The family of the source. |
+
 ### Commands
 
 | Key | C function | Arguments struct | Reply struct |
 |---|---|---|---|
 | `clear` | `sdrkit_ble_clear` | none | none |
 | `remove` | `sdrkit_ble_remove` | `sdrkit_ble_device_args` | none |
+| `send` | `sdrkit_ble_send` | `sdrkit_ble_send_args` | none |
+| `halt` | `sdrkit_ble_halt` | none | none |
 
 ### Settings
 
@@ -189,6 +220,7 @@ Struct `BleDeviceEvent`. The fields of a good packet with an address.
 | `filter_text` | `sdrkit_ble_get_filter_text` | `sdrkit_ble_set_filter_text` |
 | `min_level_dbfs` | `sdrkit_ble_get_min_level_dbfs` | `sdrkit_ble_set_min_level_dbfs` |
 | `named_only` | `sdrkit_ble_get_named_only` | `sdrkit_ble_set_named_only` |
+| `tx_level` | `sdrkit_ble_get_tx_level` | `sdrkit_ble_set_tx_level` |
 
 ### Settings of the test signal generator
 

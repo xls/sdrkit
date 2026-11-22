@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "wlan", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 1.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum WlanInterface {
     public static let major = 1
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The result fields of `ble`.
@@ -65,6 +65,29 @@ public struct BleFields {
         var c = sdrkit_ble_fields()
         let code = sdrkit_ble_fields_read(handle, &c)
         return code == SDRKIT_OK ? .success(BleFields(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// The result fields of the advertising sender of `ble` and `bletracker`.
+public struct BleTxFields {
+    /// Whether a send is on air.
+    public var txSending: Bool
+    /// The packets of the send on air that went out.
+    public var txSent: Int64
+    /// The packets still to go: the rest of the send on air and the sends that wait.
+    public var txLeft: Int64
+
+    init(_ c: sdrkit_ble_tx_fields) {
+        txSending = c.tx_sending
+        txSent = c.tx_sent
+        txLeft = c.tx_left
+    }
+
+    /// The result fields of the snapshot of `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE) -> Result<BleTxFields, SDRKitCode> {
+        var c = sdrkit_ble_tx_fields()
+        let code = sdrkit_ble_tx_fields_read(handle, &c)
+        return code == SDRKIT_OK ? .success(BleTxFields(c)) : .failure(SDRKitCode(code: code))
     }
 }
 
@@ -1432,6 +1455,56 @@ public struct BleDeviceEvent {
     }
 }
 
+/// The fields of a change of an advertising send.
+public struct BleTxEvent {
+    public enum Family: Int32 {
+        case aircraft = 0
+        case vessel = 1
+        case aprs = 2
+        case pager = 3
+        case sonde = 4
+        case broadcast = 5
+        case voice = 6
+        case message = 7
+        case sensor = 8
+        case satellite = 9
+        case receiver = 10
+        case alert = 11
+        case other = 12
+    }
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The state: started, queued, finished or refused.
+    public var state: String
+    /// Why it changed: empty, halted, the transmitter is off, the format changed, the frequency changed, or why a send was refused.
+    public var reason: String
+    /// The advertiser address.
+    public var target: String
+    /// The PDU type, the channel, the packets and the advertising data in hex; empty for finished.
+    public var text: String
+    /// The family of the source.
+    public var family: Family?
+
+    init(_ c: sdrkit_ble_tx_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        state = sdrkitText(c.state)
+        reason = sdrkitText(c.reason)
+        target = sdrkitText(c.target)
+        text = sdrkitText(c.text)
+        family = Family(rawValue: c.family)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<BleTxEvent, SDRKitCode> {
+        var c = sdrkit_ble_tx_event()
+        let code = sdrkit_ble_tx_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(BleTxEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
 /// The fields of an unwanted tracking alert.
 public struct BleTrackerEvent {
     public enum Kind: Int32 {
@@ -1986,6 +2059,39 @@ public enum WlanCommands {
         }() }
         return sdrkitResult(code)
     }
+    /// Send an advertisement. Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: 2402, 2426 or 2480 MHz. A send during another waits for it. Transmit must be on. It transmits (beacon). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    public static func bleSend(_ handle: SDRKIT_HANDLE, address: String, addressType: Int32? = nil, pduType: Int32? = nil, data: String? = nil, name: String? = nil, uuid16: String? = nil, company: String? = nil, manufacturerData: String? = nil, count: Int64? = nil, intervalMs: Int64? = nil) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_ble_send_args()
+        args.size = UInt32(MemoryLayout<sdrkit_ble_send_args>.size)
+        let code: Int32 = sdrkitWithString(address) { address_ in sdrkitWithString(data ?? "") { data_ in sdrkitWithString(name ?? "") { name_ in sdrkitWithString(uuid16 ?? "") { uuid16_ in sdrkitWithString(company ?? "") { company_ in sdrkitWithString(manufacturerData ?? "") { manufacturer_data_ in { () -> Int32 in
+        args.address = address_
+        args.has_address_type = addressType != nil
+        if let given = addressType { args.address_type = given }
+        args.has_pdu_type = pduType != nil
+        if let given = pduType { args.pdu_type = given }
+        args.has_data = data != nil
+        args.data = data_
+        args.has_name = name != nil
+        args.name = name_
+        args.has_uuid16 = uuid16 != nil
+        args.uuid16 = uuid16_
+        args.has_company = company != nil
+        args.company = company_
+        args.has_manufacturer_data = manufacturerData != nil
+        args.manufacturer_data = manufacturer_data_
+        args.has_count = count != nil
+        if let given = count { args.count = given }
+        args.has_interval_ms = intervalMs != nil
+        if let given = intervalMs { args.interval_ms = given }
+        return sdrkit_ble_send(handle, &args)
+        }() } } } } } }
+        return sdrkitResult(code)
+    }
+    /// Halt. Drops the packets of the send on air that are still to go, and the sends that wait.
+    public static func bleHalt(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
+        let code = sdrkit_ble_halt(handle)
+        return sdrkitResult(code)
+    }
     /// Clear. Forgets everything decoded so far.
     public static func bletrackerClear(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
         let code = sdrkit_bletracker_clear(handle)
@@ -2001,6 +2107,37 @@ public enum WlanCommands {
         if let given = mine { args.mine = given }
         return sdrkit_bletracker_mine(handle, &args)
         }() }
+        return sdrkitResult(code)
+    }
+    /// Send a tracker advertisement. Sends count packets, interval ms apart, on the advertising channel of the tuned frequency: Find My manufacturer data of company 0x004C (type 0x12, length 25, the status, the payload) or Google service data of UUID 0xFEAA (frame type 0x40 or 0x41, the payload). A send during another waits for it. Transmit must be on. It transmits (beacon). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
+    public static func bletrackerSend(_ handle: SDRKIT_HANDLE, tracker: Int32? = nil, address: String, addressType: Int32? = nil, pduType: Int32? = nil, status: Int64? = nil, protection: Bool? = nil, payload: String? = nil, count: Int64? = nil, intervalMs: Int64? = nil) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_bletracker_send_args()
+        args.size = UInt32(MemoryLayout<sdrkit_bletracker_send_args>.size)
+        let code: Int32 = sdrkitWithString(address) { address_ in sdrkitWithString(payload ?? "") { payload_ in { () -> Int32 in
+        args.has_tracker = tracker != nil
+        if let given = tracker { args.tracker = given }
+        args.address = address_
+        args.has_address_type = addressType != nil
+        if let given = addressType { args.address_type = given }
+        args.has_pdu_type = pduType != nil
+        if let given = pduType { args.pdu_type = given }
+        args.has_status = status != nil
+        if let given = status { args.status = given }
+        args.has_protection = protection != nil
+        if let given = protection { args.protection = given }
+        args.has_payload = payload != nil
+        args.payload = payload_
+        args.has_count = count != nil
+        if let given = count { args.count = given }
+        args.has_interval_ms = intervalMs != nil
+        if let given = intervalMs { args.interval_ms = given }
+        return sdrkit_bletracker_send(handle, &args)
+        }() } }
+        return sdrkitResult(code)
+    }
+    /// Halt. Drops the packets of the send on air that are still to go, and the sends that wait.
+    public static func bletrackerHalt(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
+        let code = sdrkit_bletracker_halt(handle)
         return sdrkitResult(code)
     }
     /// Clear. Forgets everything decoded so far.
@@ -2113,6 +2250,15 @@ public enum WlanSettings {
     public static func setBleNamedOnly(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "named_only", value))
     }
+    /// Level.
+    public static func bleTxLevel(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "tx_level", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setBleTxLevel(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_level", value))
+    }
     /// The options of the setting "channel" of the stack "bletracker".
     public enum BletrackerChannel: Int32 {
         case n372402Mhz = 0
@@ -2154,6 +2300,15 @@ public enum WlanSettings {
     }
     public static func setBletrackerAlertAfterS(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "alert_after_s", value))
+    }
+    /// Level.
+    public static func bletrackerTxLevel(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "tx_level", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setBletrackerTxLevel(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "tx_level", value))
     }
     /// The options of the setting "band" of the stack "wifi".
     public enum WifiBand: Int32 {
