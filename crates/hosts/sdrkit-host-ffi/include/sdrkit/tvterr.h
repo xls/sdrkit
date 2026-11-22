@@ -944,7 +944,7 @@ typedef struct sdrkit_atsc3_plp_row {
   int64_t layer;
   // True if `points` holds a value.
   bool has_points;
-  // The constellation points. No value for a modulation that the stack does not decode.
+  // The constellation points, also 1024 and 4096 that the stack does not decode. No value for a reserved code.
   int64_t points;
   // True if `code_rate` holds a value.
   bool has_code_rate;

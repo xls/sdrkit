@@ -65,16 +65,21 @@ pub struct PlpCoding {
     pub ldpc_bits: usize,
     /// The code rate in fifteenths, 2 to 13.
     pub rate: u8,
-    /// Bits per cell: 2, 4, 6 or 8.
+    /// Bits per cell: 2, 4, 6 or 8, and 10 or 12 for a signalled coding that the stack does not decode.
     pub bits: usize,
     /// The outer code.
     pub outer: Outer,
 }
 
 impl PlpCoding {
-    /// The coding that L1-Detail signals for `plp`, `None` when it is reserved or one the stack does not decode (1024 and
-    /// 4096 points, a code and modulation without an interleaver).
+    /// The coding that L1-Detail signals for `plp` and that the stack decodes, `None` when it is reserved or has 1024 or
+    /// 4096 points.
     pub fn of(plp: &Plp) -> Option<PlpCoding> {
+        PlpCoding::signalled(plp).filter(|c| c.bits <= 8)
+    }
+    /// The coding that L1-Detail signals for `plp` (tables 9.17, 9.18 and 9.20, 4 to 4096 points), `None` when a code
+    /// of it is reserved.
+    pub fn signalled(plp: &Plp) -> Option<PlpCoding> {
         let ldpc_bits = if plp.fec_type.is_multiple_of(2) {
             16200
         } else {
@@ -87,7 +92,7 @@ impl PlpCoding {
             _ => return None,
         };
         let bits = match plp.modulation? {
-            m @ 0..=3 => 2 * (usize::from(m) + 1),
+            m @ 0..=5 => 2 * (usize::from(m) + 1),
             _ => return None,
         };
         let rate = plp.code_rate?.checked_add(2).filter(|&r| r <= 13)?;
@@ -454,6 +459,17 @@ pub(super) mod tests {
         assert!(refuse(&|p| p.modulation = Some(4)).is_none());
         assert!(refuse(&|p| p.code_rate = Some(12)).is_none());
         assert!(refuse(&|p| p.modulation = None).is_none());
+        // 1024 and 4096 points are signalled but not decoded; codes 6 and above are reserved.
+        let signalled = |m| {
+            PlpCoding::signalled(&Plp {
+                modulation: Some(m),
+                ..plp
+            })
+        };
+        assert_eq!(signalled(4), Some(c(64800, 8, 10, Outer::Bch)));
+        assert_eq!(signalled(5).map(|c| c.bits), Some(12));
+        assert_eq!(signalled(6), None);
+        assert_eq!(PlpCoding::signalled(&plp), Some(coding));
     }
 
     pub(in crate::atsc3) use sdrkit_dev_test::fer::SCALES;

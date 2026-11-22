@@ -90,7 +90,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:to
 
 ## Typed interface
 
-The stack is in the family `trunk`, version 1.1. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `trunk`, version 1.2. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 

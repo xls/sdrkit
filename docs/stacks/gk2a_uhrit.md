@@ -142,7 +142,7 @@ Advanced settings. The owner works without any of them set.
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 1.1. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 ### Result fields
 

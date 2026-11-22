@@ -700,7 +700,7 @@ public struct Atsc3PlpRow {
     public var id: Int64
     /// The layer: 0 core, above 0 enhanced.
     public var layer: Int64
-    /// The constellation points. No value for a modulation that the stack does not decode.
+    /// The constellation points, also 1024 and 4096 that the stack does not decode. No value for a reserved code.
     public var points: Int64?
     /// The code rate in fifteenths.
     public var codeRate: Int64?

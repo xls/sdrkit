@@ -203,7 +203,7 @@ Struct `Atsc3PlpRow`. A row of the PLPs of the last frame: one row for each PLP 
 | `subframe` | whole number | always | 1.4 | The number of the subframe in the frame, from 0. |
 | `id` | whole number | always | 1.2 | The PLP id. |
 | `layer` | whole number | always | 1.2 | The layer: 0 core, above 0 enhanced. |
-| `points` | whole number | optional | 1.2 | The constellation points. No value for a modulation that the stack does not decode. |
+| `points` | whole number | optional | 1.2 | The constellation points, also 1024 and 4096 that the stack does not decode. No value for a reserved code. |
 | `code_rate` | whole number (/15) | optional | 1.2 | The code rate in fifteenths. |
 | `ldpc_bits` | whole number (bit) | optional | 1.2 | The LDPC code word, bits. |
 | `cells` | whole number | always | 1.2 | The data cells of the PLP in the subframe. |

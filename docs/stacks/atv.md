@@ -182,7 +182,7 @@ The stack is in the family `analogtv`, version 1.1. The C header `sdrkit/analogt
 
 ### Result fields
 
-Struct `AtvFields`. The result fields of the `atv` receiver, which its supervisor writes.
+Struct `AtvFields`. The result fields of the `atv` receiver, which its status component writes.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|

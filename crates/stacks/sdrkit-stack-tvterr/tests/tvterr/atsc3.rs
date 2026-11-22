@@ -456,6 +456,70 @@ fn the_setting_chooses_the_plp() {
     assert!(receiver_of_plp(63).configure(&InputInfo::new(rate, 539e6, 539e6)).is_ok());
 }
 
+/// Two non-dispersed PLPs in one subframe, QPSK 8/15 with BCH and no time interleaver, and 16 points 6/15 with a CRC
+/// through the hybrid time interleaver: each decodes when the setting chooses it, and the table lists both with the
+/// coding, cells and time interleaver that L1-Detail signals, and marks the one decoded.
+#[test]
+fn the_plp_table_lists_every_plp_of_the_subframe() {
+    use sdrkit_stack_tvterr::atsc3::gen::{FrameBuilder, GenPlp, GenTi};
+    use sdrkit_stack_tvterr::typed::{Atsc3PlpRow, ATSC3_PLPS};
+    let rate = 6.144e6;
+    let p = Atsc3GenParams {
+        rate_hz: rate,
+        coding: short_coding(false),
+        plp_cells: Some(200_000),
+        more_plps: vec![GenPlp {
+            coding: short_coding(true),
+            seed: 9,
+            start: 200_000,
+            cells: None,
+            subslices: 1,
+            interval: 0,
+            time_interleaver: GenTi::Hybrid {
+                inter_subframe: false,
+                ti_blocks: 2,
+                cell_interleaver: true,
+                spare: 0,
+            },
+            lls: false,
+        }],
+        ..Default::default()
+    };
+    let sent = FrameBuilder::new(p.clone()).unwrap().detail().subframes[0].plps.clone();
+    assert_eq!(sent.len(), 2);
+    let x = common::generate(Atsc3Generator::new(p).unwrap(), 0.5);
+    for (plp, id) in [(-1, 0), (1, 1)] {
+        let mut rx = receiver_of_plp(plp);
+        let r = common::run(rx.as_mut(), rate, &x, 65536, "");
+        assert_eq!(r.f("plp_id"), f64::from(id), "plp {plp}");
+        assert_eq!(r.f("frames_failed"), 0.0, "plp {plp}");
+        assert!(r.f("frames_ok") >= 3.0, "plp {plp}");
+        assert_eq!(r.f("baseband_packets_bad"), 0.0, "plp {plp}");
+        let mut rows: Vec<(String, Atsc3PlpRow)> = ATSC3_PLPS
+            .rows::<Atsc3PlpRow>(&r.results)
+            .map(|(k, row)| (k.to_owned(), row))
+            .collect();
+        rows.sort_by(|a, b| a.0.cmp(&b.0));
+        let want = |n: usize, points, rate, ti| {
+            (
+                format!("0.{n}"),
+                Atsc3PlpRow {
+                    subframe: 0,
+                    id: n as i64,
+                    layer: 0,
+                    points: Some(points),
+                    code_rate: Some(rate),
+                    ldpc_bits: Some(16200),
+                    cells: i64::from(sent[n].size),
+                    time_interleaver: ti,
+                    decoded: n == id as usize,
+                },
+            )
+        };
+        assert_eq!(rows, vec![want(0, 4, 8, 0), want(1, 16, 6, 2)], "plp {plp}");
+    }
+}
+
 /// Frames of three subframes (8K, 16K and 32K FFT). A PLP through the convolutional time interleaver continues in every
 /// subframe: the stack locks and no baseband packet is bad. A second PLP that only the second subframe carries is decoded
 /// when the setting names it.

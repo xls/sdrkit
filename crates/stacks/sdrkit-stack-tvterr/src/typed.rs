@@ -531,7 +531,7 @@ pub struct Atsc3PlpRow {
     /// The layer: 0 core, above 0 enhanced.
     #[field(label = "Layer")]
     pub layer: i64,
-    /// The constellation points. No value for a modulation that the stack does not decode.
+    /// The constellation points, also 1024 and 4096 that the stack does not decode. No value for a reserved code.
     #[field(label = "Constellation points")]
     pub points: Option<i64>,
     /// The code rate in fifteenths.

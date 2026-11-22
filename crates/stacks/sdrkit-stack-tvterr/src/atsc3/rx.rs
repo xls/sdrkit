@@ -43,7 +43,7 @@ const L1_ITERATIONS: [u32; 2] = [10, 50];
 pub struct PlpInfo {
     /// Its id.
     pub id: u8,
-    /// Its coding, when it is one of tables 9.17, 9.18 and 9.20 with 256 points or fewer.
+    /// Its coding as signalled ([`PlpCoding::signalled`]), also one that the stack does not decode.
     pub coding: Option<PlpCoding>,
     /// Its data cells in the subframe.
     pub cells: u32,
@@ -60,7 +60,7 @@ impl PlpInfo {
         PlpInfo {
             subframe: subframe as u16,
             id: p.id,
-            coding: PlpCoding::of(p),
+            coding: PlpCoding::signalled(p),
             cells: p.size,
             layer: p.layer,
             ti_mode: p.ti_mode,
