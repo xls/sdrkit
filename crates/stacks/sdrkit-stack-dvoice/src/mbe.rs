@@ -1,10 +1,9 @@
 //! The decoders of the two multi-band excitation speech coders as codec plug-ins of the host's codec set: the half-rate
 //! coder for frames of the `codewords` packaging (DMR, NXDN, dPMR, P25 Phase 2) and the full-rate coder for frames of the
-//! `p25_144` packaging (P25 Phase 1). Each frame gives 160 samples at 8 kHz, mono. An erasure gives the comfort noise of
-//! the decoder, so the sound keeps its timing.
+//! `p25_144` packaging (P25 Phase 1). Each frame gives 160 samples at 8 kHz, mono. An erasure is a lost frame: the decoder
+//! repeats the last good frame and mutes a long run of them by the rules of the coder, so the sound keeps its timing.
 
-use crate::voice::amb2_channel_bits;
-use sdrkit_codec_mbe::{Coder, Decoder, FRAME};
+use sdrkit_codec_mbe::{codeword_channel_bits, Coder, Decoder, FRAME};
 use sdrkit_core::codec::{AudioCodec, CodecError, CodecFactory, CodecSet, Pcm};
 use sdrkit_core::media::{Codec, MediaFormat};
 use sdrkit_graph::SpeechPackaging;
@@ -63,16 +62,16 @@ impl SpeechDecoder {
 }
 
 impl AudioCodec for SpeechDecoder {
-    /// Takes a half-rate frame as 12 bytes of code words ([`crate::voice::amb2_codewords`]) or a full-rate frame as the 18
+    /// Takes a half-rate frame as 12 bytes of code words ([`codewords`]) or a full-rate frame as the 18
     /// bytes of its channel bits as sent. A frame of another length is [`CodecError::Frame`].
     fn decode(&mut self, frame: &[u8], erasure: bool, pcm: &mut Pcm) -> Result<(), CodecError> {
-        let n = if erasure || frame.is_empty() {
-            0
+        if erasure || frame.is_empty() {
+            self.dec.lost(&mut self.out);
         } else {
-            match self.dec.coder() {
+            let n = match self.dec.coder() {
                 Coder::HalfRate => {
                     let cw: &[u8; 12] = frame.try_into().map_err(|_| CodecError::Frame)?;
-                    self.bits[..72].copy_from_slice(&amb2_channel_bits(cw));
+                    self.bits[..72].copy_from_slice(&codeword_channel_bits(cw));
                     72
                 }
                 Coder::FullRate => {
@@ -84,10 +83,9 @@ impl AudioCodec for SpeechDecoder {
                     }
                     144
                 }
-            }
-        };
-        // A frame of no bits is muted: the comfort noise of an erasure.
-        self.dec.decode(&self.bits[..n], &mut self.out);
+            };
+            self.dec.decode(&self.bits[..n], &mut self.out);
+        }
         pcm.rate_hz = RATE_HZ;
         pcm.channels = 1;
         pcm.samples.extend_from_slice(&self.out);
@@ -98,15 +96,14 @@ impl AudioCodec for SpeechDecoder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::voice::{amb2_codewords, channel_bits};
+    use sdrkit_codec_mbe::{codewords, Encoder};
     use sdrkit_algo_dsp::goertzel::goertzel_power;
     use sdrkit_algo_fec::voice::{VocoderTestFrame, NXDN_EHR_SILENCE, NXDN_EHR_TONE};
-    use sdrkit_codec_mbe::Encoder;
 
     /// The samples of `frames` frames of the test frame `t`, through the plug-in in the `codewords` packaging.
     fn decode_test_frame(t: &VocoderTestFrame, frames: usize) -> Vec<f32> {
         let bits: Vec<u8> = (0..72).map(|i| t.coded_bit(i)).collect();
-        let cw = amb2_codewords(&bits);
+        let cw = codewords(&bits);
         let mut d = SpeechDecoder::new(Coder::HalfRate);
         let mut pcm = Pcm::default();
         for _ in 0..frames {
@@ -156,13 +153,17 @@ mod tests {
             let mut bits = [0u8; 144];
             let n = enc.encode(&pcm_in, &mut bits);
             let payload: Vec<u8> = match coder {
-                Coder::HalfRate => amb2_codewords(&bits[..n]).to_vec(),
-                Coder::FullRate => channel_bits::<18>(&bits[..n]).to_vec(),
+                Coder::HalfRate => codewords(&bits[..n]).to_vec(),
+                Coder::FullRate => crate::voice::channel_bits::<18>(&bits[..n]).to_vec(),
             };
             let mut pcm = Pcm::default();
             d.decode(&payload, false, &mut pcm).unwrap();
+            let first = pcm.samples.clone();
             d.decode(&[], true, &mut pcm).unwrap();
             assert_eq!(pcm.samples.len(), 2 * FRAME);
+            // The lost frame repeats the sound of the first one, at the level of a frame of speech.
+            let level = |x: &[i16]| x.iter().map(|&v| f64::from(v).abs()).sum::<f64>() / x.len() as f64;
+            assert!(level(&pcm.samples[FRAME..]) > 0.3 * level(&first), "{coder:?}");
             assert_eq!(
                 d.decode(&payload[1..], false, &mut pcm),
                 Err(CodecError::Frame)

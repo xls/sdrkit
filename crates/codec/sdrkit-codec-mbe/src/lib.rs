@@ -1,11 +1,12 @@
 //! Decoder and encoder for the two multi-band excitation voice coders of digital voice radio, at 8 kHz, 16-bit, 160
 //! samples (20 ms) a frame:
 //!
-//! - the full-rate coder: 88 speech bits, 144 channel bits with [23,12] Golay and [15,11] Hamming codes;
-//! - the half-rate coder: 49 speech bits, 72 channel bits with [24,12] and [23,12] Golay codes, and tone frames.
+//! - the full-rate coder: 88 speech bits, 144 channel bits with \[23,12\] Golay and \[15,11\] Hamming codes;
+//! - the half-rate coder: 49 speech bits, 72 channel bits with \[24,12\] and \[23,12\] Golay codes, and tone frames.
 //!
 //! Both share one speech model ([`Params`]), one analysis and one synthesis; each has its own quantisers and bit layout.
 //! Channel bits are one bit per byte in the order sent.
+//! [`codewords`] packs a half-rate frame as the `codewords` payload of speech frames, [`codeword_channel_bits`] unpacks it.
 //!
 //! Standards: TIA-102.BABA (full rate) and TIA-102.BABA-1 (half rate).
 //!
@@ -14,7 +15,8 @@
 //! to 20 takes E at the best 1/8-sample period near P / n with 4-point lag interpolation, so that a period between half
 //! samples is not lost to two or three periods (`analysis::Analyser::refined_submultiple`); higher-order coefficients for k >= 2 of
 //! every block (`full::dequantise_frame`); the full-rate repeat and mute rules of the text, not of the flow chart
-//! ([`full_rate_repeats`], [`FULL_MUTE_RATE`]); tau_M starts at 20480 ([`TAU_M_START`]); the random phase of harmonic
+//! ([`full_rate_repeats`], [`FULL_MUTE_RATE`]), with the fourth-frame mute of the flow chart for lost frames only
+//! ([`FULL_LOST_MUTE_RUN`]); tau_M starts at 20480 ([`TAU_M_START`]); the random phase of harmonic
 //! l uses noise sample l of the frame's window (`synth::Synth::voiced`); the half-rate voicing element is
 //! floor(16 l omega_0 / 2 pi) (`half::voicing_element`); half-rate coefficients C_{i,k} = H_{i,k-2} for
 //! 3 <= k <= min(J, 6) (`half::HOC_LAST_K`); the half-rate pitch column is cycles per sample (`half::w0_of`); nearest pitch
@@ -40,6 +42,7 @@
 #![allow(clippy::needless_range_loop)]
 
 mod analysis;
+mod codewords;
 mod decoder;
 mod encoder;
 mod enhance;
@@ -52,7 +55,8 @@ mod tables;
 #[cfg(test)]
 mod tests;
 
-pub use decoder::{full_rate_repeats, Decoder, FULL_MUTE_RATE, HALF_RATE_SMOOTHING};
+pub use codewords::{codeword_channel_bits, codewords};
+pub use decoder::{full_rate_repeats, Decoder, FULL_LOST_MUTE_RUN, FULL_MUTE_RATE, HALF_RATE_SMOOTHING};
 pub use encoder::Encoder;
 pub use enhance::TAU_M_START;
 pub use model::{Params, FRAME, MAX_L};

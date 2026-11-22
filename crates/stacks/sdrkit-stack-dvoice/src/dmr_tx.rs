@@ -23,7 +23,7 @@ use crate::dmr::{
 use crate::front::RATE;
 use crate::gen::{bits_to_levels, FskModulator, TxPulse};
 use crate::sender::{failed, FskBurst, Maker, TxCore, TX, TX_SPLIT, TX_TIMEOUT};
-use crate::typed::{DataSendArgs, DataTxFields, DataTxKind, PttArgs, DMR_PTT, DMR_SEND, HALT};
+use crate::typed::{DataSendArgs, DataTxKind, DmrTxFields, PttArgs, DMR_PTT, DMR_SEND, HALT};
 use sdrkit_algo_fec::voice::NXDN_EHR_SILENCE;
 use sdrkit_codec_mbe::{Coder, Encoder, FRAME};
 use sdrkit_components::tx::{KeyedOut, MicInput};
@@ -433,7 +433,7 @@ impl Default for DmrTransmit {
             cfg: TxConfig::default(),
             core: TxCore::default(),
             last_kind: None,
-            results: Published::new(DataTxFields::SHAPE.fields),
+            results: Published::new(DmrTxFields::SHAPE.fields),
         };
         t.publish();
         t
@@ -529,7 +529,7 @@ impl DmrTransmit {
 
     /// Writes the result fields.
     fn publish(&mut self) {
-        let f = DataTxFields {
+        let f = DmrTxFields {
             transmitting: self.core.transmitting(),
             tx_freq_hz: self.core.transmitting().then(|| Hertz(self.frequency())),
             tx_kind: self.last_kind,

@@ -400,7 +400,7 @@ sdrkit_core::choice_enum! {
 
 /// The result fields of the DMR sender.
 #[derive(Clone, Debug, PartialEq, Fields)]
-pub struct DataTxFields<'a> {
+pub struct DmrTxFields<'a> {
     /// Whether a transmission is under way.
     #[field(label = "Transmitting")]
     pub transmitting: bool,
@@ -1278,13 +1278,13 @@ const ADDED_1_3: &[&str] = &[
     "dstar.setting.tx_split",
     "dstar.command.send",
     "dstar.command.halt",
-    "dmr.fields.DataTxFields",
-    "shape.DataTxFields",
-    "shape.DataTxFields.transmitting",
-    "shape.DataTxFields.tx_freq_hz",
-    "shape.DataTxFields.tx_kind",
-    "shape.DataTxFields.tx_frames",
-    "shape.DataTxFields.tx_note",
+    "dmr.fields.DmrTxFields",
+    "shape.DmrTxFields",
+    "shape.DmrTxFields.transmitting",
+    "shape.DmrTxFields.tx_freq_hz",
+    "shape.DmrTxFields.tx_kind",
+    "shape.DmrTxFields.tx_frames",
+    "shape.DmrTxFields.tx_note",
     "dmr.setting.radio_id",
     "dmr.setting.called_id",
     "dmr.setting.talkgroup",
@@ -1299,20 +1299,24 @@ const ADDED_1_3: &[&str] = &[
 /// value of a choice has no path of its own).
 const ADDED_1_4: &[&str] = &[];
 
-/// What version 1.5 added: the voice of the DMR sender, and the value `voice` of the choice `shape.DataTxFields.tx_kind`
+/// What version 1.5 added: the voice of the DMR sender, and the value `voice` of the choice `shape.DmrTxFields.tx_kind`
 /// (a value of a choice has no path of its own).
 const ADDED_1_5: &[&str] = &["dmr.setting.tx_timeout", "dmr.command.ptt"];
+
+/// What version 1.6 changed: the result set of the DMR sender is named `DmrTxFields`, as it carries voice as well as
+/// data. It adds no path.
+const ADDED_1_6: &[&str] = &[];
 
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         let plain = |id| common(id, &CALLS_300);
-        Described::new("dvoice", 1, 5)
+        Described::new("dvoice", 1, 6)
             .stack(
                 finish(common("dmr", &CALLS_100).fields::<DmrFields>())
                     .settings(&[&crate::dmr::GEN_CC])
-                    .fields::<DataTxFields>()
+                    .fields::<DmrTxFields>()
                     .settings(crate::dmr_tx::TxSetting::SETTINGS)
                     .command(&DMR_PTT)
                     .command(&DMR_SEND)
@@ -1384,5 +1388,6 @@ pub fn family() -> &'static Described {
             .added(1, 3, ADDED_1_3)
             .added(1, 4, ADDED_1_4)
             .added(1, 5, ADDED_1_5)
+            .added(1, 6, ADDED_1_6)
     })
 }

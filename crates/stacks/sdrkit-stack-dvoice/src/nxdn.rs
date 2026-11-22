@@ -370,7 +370,7 @@ impl Nxdn {
                                     .iter()
                                     .map(|&v| (v > 0.0) as u8)
                                     .collect();
-                                let cw = crate::voice::amb2_codewords(&b);
+                                let cw = sdrkit_codec_mbe::codewords(&b);
                                 let t = ctx.now + (half * 2 + k) as f64 * 0.02;
                                 let spec = crate::voice::FrameSpec {
                                     codec: Codec::Ambe2,
@@ -737,24 +737,24 @@ fn pad_bits(m: &[u8], n: usize) -> Vec<u8> {
 
 struct Gen {
     coders: Coders,
+    /// The next frame of the test speech.
+    next_speech: usize,
 }
 
 impl Gen {
-    fn traffic_frame(
-        &mut self,
-        lich: Lich,
-        sacch: &[u8],
-        halves: [Option<Vec<u8>>; 2],
-        rng: &mut sdrkit_algo_sim::rng::Rng,
-    ) -> Vec<u8> {
+    /// A traffic frame: the SACCH, and in each half a FACCH1 of `info` or, for `None`, the next two frames of the test
+    /// speech.
+    fn traffic_frame(&mut self, lich: Lich, sacch: &[u8], halves: [Option<Vec<u8>>; 2]) -> Vec<u8> {
         let mut payload = self.coders.sacch.encode(sacch);
+        let speech = crate::voice::test_speech_half();
         for h in halves.iter() {
             match h {
                 Some(info) => payload.extend(self.coders.facch1.encode(info)),
                 None => {
-                    let at = payload.len();
-                    payload.resize(at + 144, 0);
-                    rng.fill_bits(&mut payload[at..]);
+                    for _ in 0..2 {
+                        payload.extend_from_slice(&speech[self.next_speech % speech.len()]);
+                        self.next_speech += 1;
+                    }
                 }
             }
         }
@@ -778,7 +778,6 @@ fn voice_call(
     src: u16,
     dst: u16,
     frames: usize,
-    rng: &mut sdrkit_algo_sim::rng::Rng,
 ) -> Vec<u8> {
     let vcall = pad_bits(&l3_call(0x01, call_type, src, dst, &[0, 0]), 80);
     let sf = pad_bits(&l3_call(0x01, call_type, src, dst, &[0, 0]), 72);
@@ -793,7 +792,6 @@ fn voice_call(
         hdr,
         &sacch_info(0, ran, &[0; 18]),
         [Some(vcall.clone()), Some(vcall.clone())],
-        rng,
     ));
     let voice = Lich {
         rf: 1,
@@ -804,24 +802,23 @@ fn voice_call(
     for f in 0..frames {
         let idx = f % 4;
         let si = sacch_info(3 - idx as u8, ran, &sf[idx * 18..idx * 18 + 18]);
-        bits.extend(g.traffic_frame(voice, &si, [None, None], rng));
+        bits.extend(g.traffic_frame(voice, &si, [None, None]));
     }
     let rel = pad_bits(&l3_call(0x08, call_type, src, dst, &[]), 80);
     bits.extend(g.traffic_frame(
         hdr,
         &sacch_info(0, ran, &[0; 18]),
         [Some(rel.clone()), Some(rel)],
-        rng,
     ));
     bits
 }
 
 /// The NXDN test signal: a trunked site's control channel (NXDN96), an NXDN48 group call, a status, an NXDN96 short data call
-/// and an NXDN96 individual call.
-pub fn render(seed: u64) -> Vec<Complex32> {
-    let mut rng = sdrkit_algo_sim::rng::Rng::new(seed);
+/// and an NXDN96 individual call. The voice frames carry the test speech ([`crate::voice::test_speech_half`]).
+pub fn render() -> Vec<Complex32> {
     let mut g = Gen {
         coders: Coders::default(),
+        next_speech: 0,
     };
     let mut out = Vec::new();
     silence(0.3, &mut out);
@@ -856,7 +853,7 @@ pub fn render(seed: u64) -> Vec<Complex32> {
         ));
     }
     send(&mut m96, &cc, &mut out, 0.6);
-    let call = voice_call(&mut g, 1, 1, 1001, 200, 24, &mut rng);
+    let call = voice_call(&mut g, 1, 1, 1001, 200, 24);
     send(&mut m48, &call, &mut out, 0.6);
     // A status 17 from 1002 to 1001.
     let st = pad_bits(&l3_call(0x32, 4, 1002, 1001, &[17]), 80);
@@ -870,7 +867,6 @@ pub fn render(seed: u64) -> Vec<Complex32> {
         hdr,
         &sacch_info(0, 1, &[0; 18]),
         [Some(st.clone()), Some(st)],
-        &mut rng,
     );
     send(&mut m48, &f, &mut out, 0.6);
     // Short data 2005 -> 2001: header and two data blocks in FACCH1, then the release.
@@ -892,24 +888,22 @@ pub fn render(seed: u64) -> Vec<Complex32> {
             hdr,
             &sacch_info(0, 5, &[0; 18]),
             [Some(dh), Some(pad_bits(&b0, 80))],
-            &mut rng,
         );
         bits.extend(g.traffic_frame(
             hdr,
             &sacch_info(0, 5, &[0; 18]),
             [Some(pad_bits(&b1, 80)), Some(rel)],
-            &mut rng,
         ));
         send(&mut m96, &bits, &mut out, 0.6);
     }
-    let call = voice_call(&mut g, 5, 4, 2001, 2002, 36, &mut rng);
+    let call = voice_call(&mut g, 5, 4, 2001, 2002, 36);
     send(&mut m96, &call, &mut out, 0.6);
     out
 }
 
 /// The NXDN generator from the settings of the stack.
 pub fn generator(cfg: &GenConfig) -> Prepared {
-    Prepared::new(render(cfg.seed), cfg.rate_hz, true).with_info(12_500.0, 4800.0, 9600.0)
+    Prepared::new(render(), cfg.rate_hz, true).with_info(12_500.0, 4800.0, 9600.0)
 }
 
 #[cfg(test)]

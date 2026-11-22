@@ -582,7 +582,7 @@ fn a_scan_does_not_start_on_noise_a_carrier_or_a_tone() {
 fn nxdn48_into_dcr_and_dcr_into_nxdn() {
     // The NXDN test signal at 48 kHz holds an NXDN48 group call, a status and NXDN96 transmissions. The NXDN stack takes
     // 96 ksps or more.
-    let nxdn = sdrkit_stack_dvoice::nxdn::render(1);
+    let nxdn = sdrkit_stack_dvoice::nxdn::render();
     let rx = receive_one(&nxdn, 48e3);
     let rows = rows(Owner::results(rx.as_ref()));
     assert!(of_kind(&rows, DcrRowKind::Call).is_empty(), "{rows:#?}");

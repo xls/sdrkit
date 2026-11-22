@@ -227,3 +227,65 @@ fn full_rate_invalid_pitch_repeats() {
     assert_eq!(dec.decode_speech(&sb, &mut out).kind, FrameKind::Repeated);
 }
 
+
+/// The RMS of one output frame.
+fn rms(x: &[i16; FRAME]) -> f64 {
+    (x.iter().map(|&v| (v as f64).powi(2)).sum::<f64>() / FRAME as f64).sqrt()
+}
+
+#[test]
+fn one_lost_frame_in_a_vowel_repeats_its_sound_and_pitch() {
+    for coder in Coder::ALL {
+        let fr = frames(coder, 30);
+        let mut dec = Decoder::new(coder);
+        let mut out = [0i16; FRAME];
+        for f in &fr[..20] {
+            dec.decode(f, &mut out);
+        }
+        let voiced = rms(&out);
+        let before = *dec.params();
+        let s = dec.lost(&mut out);
+        assert_eq!(s.kind, FrameKind::Repeated, "{coder:?}");
+        assert_eq!(*dec.params(), before, "{coder:?}");
+        assert!((dec.params().f0_hz() - 120.0).abs() < 3.0, "{coder:?}: {} Hz", dec.params().f0_hz());
+        assert!(rms(&out) > 0.5 * voiced, "{coder:?}: RMS {} after {voiced}", rms(&out));
+        assert_eq!(dec.decode(&fr[20], &mut out).kind, FrameKind::Voice, "{coder:?}");
+    }
+}
+
+#[test]
+fn a_run_of_lost_frames_mutes_at_the_fourth() {
+    for coder in Coder::ALL {
+        let fr = frames(coder, 30);
+        let mut dec = Decoder::new(coder);
+        let mut out = [0i16; FRAME];
+        for f in &fr[..20] {
+            dec.decode(f, &mut out);
+        }
+        let rate = dec.error_rate();
+        for k in 0..10 {
+            let s = dec.lost(&mut out);
+            let want = if k < 3 { FrameKind::Repeated } else { FrameKind::Muted };
+            assert_eq!(s.kind, want, "{coder:?}, lost frame {k}");
+            if want == FrameKind::Muted {
+                assert!(out.iter().all(|&v| v.abs() <= 5), "{coder:?}: comfort noise");
+            }
+        }
+        assert_eq!(dec.error_rate(), rate, "{coder:?}: no bits were received");
+        assert_eq!(dec.decode(&fr[20], &mut out).kind, FrameKind::Voice, "{coder:?}");
+        // A lost frame after three invalid received frames is the fourth invalid frame.
+        let mut sb = [0u8; 88];
+        if coder == Coder::FullRate {
+            let mut v = full::Values::default();
+            v.b[0] = 230;
+            full::pack(&v, 30, &mut sb);
+        } else {
+            sb[..49].copy_from_slice(&half_bits([120, 0, 0, 0, 0, 0, 0, 0, 0]));
+        }
+        for _ in 0..3 {
+            let s = dec.decode_speech(&sb[..coder.speech_bits()], &mut out);
+            assert_eq!(s.kind, FrameKind::Repeated, "{coder:?}");
+        }
+        assert_eq!(dec.lost(&mut out).kind, FrameKind::Muted, "{coder:?}");
+    }
+}

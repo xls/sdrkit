@@ -183,7 +183,7 @@ impl P25p2 {
                 if ctx.has_call(k) {
                     ctx.update_call(k, |c| c.voice_frames += n as u32);
                     for i in 0..n {
-                        let cw = crate::voice::amb2_codewords(&payload[i * 72..i * 72 + 72]);
+                        let cw = sdrkit_codec_mbe::codewords(&payload[i * 72..i * 72 + 72]);
                         let spec = crate::voice::FrameSpec {
                             codec: Codec::Ambe2,
                             packaging: sdrkit_graph::SpeechPackaging::Codewords,
@@ -426,6 +426,7 @@ fn slot_bits(location: u8, sync: bool, d: u8, payload: &[u8]) -> Vec<u8> {
 }
 
 /// The Phase 2 test signal: network status, a clear group call on channel 0, an encrypted one on channel 1 at the same time.
+/// The clear call carries the test speech ([`crate::voice::test_speech_half`]), the encrypted one pseudo-random bits.
 pub fn render(seed: u64) -> Vec<Complex32> {
     let mut rng = sdrkit_algo_sim::rng::Rng::new(seed);
     let mut rnd = |n: usize| -> Vec<u8> {
@@ -455,6 +456,7 @@ pub fn render(seed: u64) -> Vec<Complex32> {
     let end = vec![mac::END_PTT << 5];
     let calls: [(u8, u16, u32, u16); 2] = [(0x80, 0, 1234567, 1201), (0x84, 0x1234, 7654321, 1300)];
     let mut bits = Vec::new();
+    let mut next_speech = 0;
     let total = 12 * 8;
     for i in 0..total {
         let loc = (i % 12) as u8;
@@ -467,6 +469,15 @@ pub fn render(seed: u64) -> Vec<Complex32> {
             (duid::FACCH, facch(&ptt(a, k, sr, tg)))
         } else if i >= total - 2 {
             (duid::FACCH, facch(&end))
+        } else if ch == 0 {
+            let speech = crate::voice::test_speech_half();
+            let mut p = Vec::with_capacity(312);
+            for _ in 0..4 {
+                p.extend_from_slice(&speech[next_speech % speech.len()]);
+                next_speech += 1;
+            }
+            p.resize(312, 0);
+            (duid::V4, p)
         } else {
             let mut p = rnd(288);
             p.resize(312, 0);

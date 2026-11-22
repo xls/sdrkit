@@ -667,7 +667,7 @@ fn gen_freedv(cfg: &GenConfig) -> Result<Box<dyn Generator>, ConfigError> {
 fn auto_generator(cfg: &GenConfig) -> gen::Prepared {
     let mut sig = dmr::DmrGen::default_schedule(1).render(cfg.seed);
     sig.extend(p25::render(0x293, cfg.seed));
-    sig.extend(dpmr::render(cfg.seed));
+    sig.extend(dpmr::render());
     gen::Prepared::new(sig, cfg.rate_hz, true).with_info(12_500.0, 4800.0, 9600.0)
 }
 

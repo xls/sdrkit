@@ -23,8 +23,7 @@ use sdrkit_stack_dvoice::dmr::{Lc, ShortData};
 use sdrkit_stack_dvoice::dmr_tx::{text_octets, DmrSlot, DmrTxError, Sender, NOTE};
 use sdrkit_stack_dvoice::gen::Prepared;
 use sdrkit_stack_dvoice::sender::PEAK;
-use sdrkit_stack_dvoice::typed::{DataTxFields, DataTxKind};
-use sdrkit_stack_dvoice::voice::amb2_channel_bits;
+use sdrkit_stack_dvoice::typed::{DmrTxFields, DataTxKind};
 use std::sync::{Arc, Mutex};
 
 /// The dial of the transmitting stack.
@@ -237,7 +236,7 @@ fn station(settings: &[(&str, &str)]) -> (Box<dyn Receiver>, Arc<Host>) {
 
 /// The sender's fields: transmitting, what it sends, the frequency, the bursts and the note.
 fn fields(rx: &dyn Receiver) -> (bool, Option<DataTxKind>, Option<f64>, i64, String) {
-    let f = DataTxFields::read(Owner::results(rx).fields()).expect("the sender's fields");
+    let f = DmrTxFields::read(Owner::results(rx).fields()).expect("the sender's fields");
     (
         f.transmitting,
         f.tx_kind,
@@ -382,7 +381,7 @@ fn received_frames(x: &[Complex32]) -> (serde_json::Value, Vec<[u8; 72]>) {
         .lock()
         .unwrap()
         .iter()
-        .map(|cw: &Vec<u8>| amb2_channel_bits(cw.as_slice().try_into().expect("12 bytes")))
+        .map(|cw: &Vec<u8>| sdrkit_codec_mbe::codeword_channel_bits(cw.as_slice().try_into().expect("12 bytes")))
         .collect();
     (r, frames)
 }
@@ -585,7 +584,7 @@ fn the_voice_of_the_dmr_sender_is_of_family_version_1_5() {
 fn the_sender_of_dmr_is_of_family_version_1_3() {
     let f = sdrkit_stack_dvoice::typed::family();
     for path in [
-        "shape.DataTxFields.tx_note",
+        "shape.DmrTxFields.tx_note",
         "dmr.setting.radio_id",
         "dmr.setting.slot",
         "dmr.command.send",

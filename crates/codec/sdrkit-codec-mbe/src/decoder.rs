@@ -16,6 +16,10 @@ pub const FULL_MUTE_RATE: f64 = 0.0875;
 const HALF_MUTE_RATE: f64 = 0.096;
 /// The consecutive invalid half-rate frame that is muted instead of repeated (clause 5.7).
 const HALF_MUTE_RUN: u32 = 4;
+/// The consecutive invalid full-rate frame that is muted instead of repeated when it is a lost frame: the count of flow
+/// chart 9. The text of sections 7.7 and 7.8 gives no count, and the error rate does not rise for a frame that is not
+/// received, so without it a run of lost frames would repeat without end. Received frames keep the text rules.
+pub const FULL_LOST_MUTE_RUN: u32 = 4;
 /// Whether the half-rate decoder runs adaptive smoothing, which TIA-102.BABA-1 names but does not define: it does not.
 pub const HALF_RATE_SMOOTHING: bool = false;
 /// Half-amplitude of the comfort noise of a muted frame (section 7.8).
@@ -127,6 +131,23 @@ impl Decoder {
         }
     }
 
+    /// Conceals one frame that was not received (an erasure of the channel) by the repeat and mute rules of the coder,
+    /// into 160 samples. The frame counts as invalid: the previous parameters are synthesised again, and the frame is
+    /// muted instead when it is the fourth consecutive invalid frame (half rate, clause 5.7; full rate,
+    /// [`FULL_LOST_MUTE_RUN`]) or when the running error rate is above the mute limit. The error rate is not updated:
+    /// no bits were received.
+    pub fn lost(&mut self, out: &mut [i16; FRAME]) -> FrameStatus {
+        let limit = match self.coder {
+            Coder::FullRate => FULL_MUTE_RATE,
+            Coder::HalfRate => HALF_MUTE_RATE,
+        };
+        if self.eps_r > limit {
+            self.invalid_run = self.invalid_run.saturating_add(1);
+            return self.mute(0, out);
+        }
+        self.invalid(0, out)
+    }
+
     fn full_frame(&mut self, sb: &[u8; full::SPEECH_BITS], eps: &[u8; 7], out: &mut [i16; FRAME]) -> FrameStatus {
         let eps_t: u32 = eps.iter().map(|&e| e as u32).sum();
         self.eps_r = 0.95 * self.eps_r + FULL_EPS_WEIGHT * eps_t as f64;
@@ -135,8 +156,10 @@ impl Decoder {
         }
         let b0 = full::b0_from(sb);
         if full_rate_repeats(b0, eps[0] as u32, eps_t, self.eps_r) {
+            self.invalid_run = self.invalid_run.saturating_add(1);
             return self.repeat(eps_t, out);
         }
+        self.invalid_run = 0;
         let l = full::l_of(full::w0_of(b0));
         let mut v = full::Values::default();
         full::unpack(sb, l, &mut v);
@@ -202,10 +225,15 @@ impl Decoder {
         FrameStatus { kind, errors: eps_t }
     }
 
-    /// A half-rate frame that is not valid: repeated, or muted when it is the fourth in a row.
+    /// A frame that is not valid: repeated, or muted when it is the fourth in a row (for full rate, only a lost frame
+    /// comes here).
     fn invalid(&mut self, eps_t: u32, out: &mut [i16; FRAME]) -> FrameStatus {
         self.invalid_run = self.invalid_run.saturating_add(1);
-        if self.invalid_run >= HALF_MUTE_RUN {
+        let run = match self.coder {
+            Coder::FullRate => FULL_LOST_MUTE_RUN,
+            Coder::HalfRate => HALF_MUTE_RUN,
+        };
+        if self.invalid_run >= run {
             self.mute(eps_t, out)
         } else {
             self.repeat(eps_t, out)

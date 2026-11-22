@@ -62,7 +62,7 @@ pub fn pitch_hz(x: &[f32], rate: f64) -> f64 {
     rate / (lo + k) as f64
 }
 
-/// The codec set with the speech decoders of the crate.
+/// The codec set with the speech decoders of the half-rate and full-rate coders.
 pub fn speech_codecs() -> CodecSet {
     let mut set = CodecSet::default();
     sdrkit_stack_dvoice::mbe::register(&mut set);
@@ -144,4 +144,62 @@ fn a_p25_call_of_coded_vowel_frames_sounds_with_the_pitch_of_the_vowel() {
         audio.len() as f64 / rate
     );
     assert!((f0 - VOWEL_F0).abs() < 0.04 * VOWEL_F0, "pitch {f0} Hz");
+}
+
+/// The audio of the stack `id` for its own test signal with the default settings: its samples and their rate.
+fn test_signal_sound(id: &str) -> (Vec<f32>, f64) {
+    let mut g = generator(id, RATE, 1, &[]);
+    let x = generate_all(g.as_mut());
+    let (_, out) = run(
+        receiver_with_codecs(id, &[], speech_codecs()).as_mut(),
+        RATE,
+        &x,
+        4800,
+    );
+    let mut audio = Vec::new();
+    let mut rate = 0.0;
+    for p in out.audio_runs() {
+        audio.extend_from_slice(p.samples);
+        rate = p.rate_hz;
+    }
+    (audio, rate)
+}
+
+/// The pitch of each loud 160 ms window of `x` at `rate`, a window every 80 ms. A window is loud when its RMS is at least
+/// a third of the loudest window's.
+fn pitch_track(x: &[f32], rate: f64) -> Vec<f64> {
+    let n = (0.16 * rate) as usize;
+    let hop = n / 2;
+    let rms = |w: &[f32]| (w.iter().map(|v| v * v).sum::<f32>() / w.len() as f32).sqrt();
+    let starts: Vec<usize> = (0..x.len().saturating_sub(n) / hop).map(|i| i * hop).collect();
+    let loudest = starts.iter().map(|&k| rms(&x[k..k + n])).fold(0.0f32, f32::max);
+    starts
+        .iter()
+        .filter(|&&k| rms(&x[k..k + n]) >= loudest / 3.0)
+        .map(|&k| pitch_hz(&x[k..k + n], rate))
+        .collect()
+}
+
+#[test]
+fn the_test_signals_of_the_speech_stacks_sound_with_both_pitches_of_the_test_speech() {
+    use sdrkit_stack_dvoice::voice::TEST_SPEECH_F0;
+    for id in ["dmr", "nxdn", "dpmr", "p25", "p25p2"] {
+        let (audio, rate) = test_signal_sound(id);
+        assert!(rate > 0.0, "{id}: no sound");
+        let track = pitch_track(&audio, rate);
+        let near = |f0: f64| track.iter().filter(|&&f| (f - f0).abs() < 0.05 * f0).count();
+        let (lo, hi) = (near(TEST_SPEECH_F0[0]), near(TEST_SPEECH_F0[1]));
+        println!(
+            "{id}: {:.1} s of sound, {} loud windows, {lo} at {} Hz, {hi} at {} Hz",
+            audio.len() as f64 / rate,
+            track.len(),
+            TEST_SPEECH_F0[0],
+            TEST_SPEECH_F0[1]
+        );
+        assert!(lo >= 3 && hi >= 3, "{id}: pitches {track:?}");
+        assert!(
+            (lo + hi) as f64 >= 0.7 * track.len() as f64,
+            "{id}: pitches {track:?}"
+        );
+    }
 }

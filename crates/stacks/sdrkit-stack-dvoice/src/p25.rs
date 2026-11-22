@@ -1001,7 +1001,7 @@ struct Frames<'a> {
     nac: u16,
     bits: Vec<u8>,
     codecs: Codecs,
-    /// The voice frames to send in turn (144 channel bits each, as sent); pseudo-random bits when empty.
+    /// The voice frames of the clear calls, sent in turn (144 channel bits each, as sent).
     speech: &'a [[u8; 144]],
     next_speech: usize,
 }
@@ -1063,11 +1063,13 @@ impl Frames<'_> {
         d.extend([0u8; 10]);
         self.push(d);
     }
-    fn ldu(&mut self, duid: u8, hexbits: Vec<u8>, rng: &mut Rng) {
+    /// A logical data unit with the link words `hexbits`. The voice frames of a `clear` call come from the speech in turn,
+    /// those of an encrypted call are pseudo-random bits.
+    fn ldu(&mut self, duid: u8, hexbits: Vec<u8>, clear: bool, rng: &mut Rng) {
         let mut d = self.header(duid);
         d.resize(1680, 0);
         for &p in &LDU_VOICE {
-            if self.speech.is_empty() {
+            if !clear {
                 for i in 0..144 {
                     d[p + i] = rng.bit();
                 }
@@ -1116,9 +1118,9 @@ impl Frames<'_> {
         let es_bits = encode_ldu_hexbits(&bits_to_hex(&es), &self.codecs.rs_24_16);
         for i in 0..ldus {
             if i % 2 == 0 {
-                self.ldu(duid::LDU1, lc_bits.clone(), rng);
+                self.ldu(duid::LDU1, lc_bits.clone(), alg == 0x80, rng);
             } else {
-                self.ldu(duid::LDU2, es_bits.clone(), rng);
+                self.ldu(duid::LDU2, es_bits.clone(), alg == 0x80, rng);
             }
         }
         // Terminator with LC.
@@ -1146,13 +1148,13 @@ fn tsbk_args(op: u8, args: [u8; 8]) -> [u8; 10] {
 }
 
 /// The P25 test signal: a control channel with site, identifiers and a grant, then voice calls (one encrypted), a data header
-/// and an emergency unit-to-unit call. The voice frames are pseudo-random bits.
+/// and an emergency unit-to-unit call. The clear calls carry the test speech ([`crate::voice::test_speech_full`]).
 pub fn render(nac: u16, seed: u64) -> Vec<Complex32> {
-    render_with_speech(nac, seed, &[])
+    render_with_speech(nac, seed, crate::voice::test_speech_full())
 }
 
-/// The P25 test signal of [`render`] whose voice frames are those of `speech` in turn (144 channel bits each, as sent), or
-/// pseudo-random bits when it is empty.
+/// The P25 test signal of [`render`] whose clear calls carry the voice frames of `speech` in turn (144 channel bits each,
+/// as sent); `speech` must not be empty. The encrypted call carries pseudo-random bits.
 pub fn render_with_speech(nac: u16, seed: u64, speech: &[[u8; 144]]) -> Vec<Complex32> {
     let mut f = Frames {
         nac,

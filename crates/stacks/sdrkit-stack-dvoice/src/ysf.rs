@@ -187,6 +187,18 @@ impl Default for Ysf {
 
 const KEY: u32 = 1;
 
+/// The data type of a communication frame of full-rate data: no voice.
+const DT_DATA_FR: u8 = 1;
+/// The data type of V/D mode 2.
+const DT_VD2: u8 = 2;
+
+/// The codec and packaging of the speech frames of a communication frame of data type `dt`, when the stack sends them.
+/// Only V/D mode 2 (`amb2`, `info49`). V/D mode 1 (`amb2` `codewords`) and voice FR (`imbe`) are not sent: the place of
+/// their bits in the frame is not known. Data FR has no voice.
+fn speech_of(dt: u8) -> Option<(Codec, sdrkit_graph::SpeechPackaging)> {
+    (dt == DT_VD2).then_some((Codec::Ambe2, sdrkit_graph::SpeechPackaging::Info49))
+}
+
 fn dt_name(dt: u8) -> &'static str {
     match dt {
         0 => "V/D mode 1",
@@ -256,27 +268,31 @@ impl Ysf {
                 if !ctx.has_call(KEY) {
                     return;
                 }
-                ctx.update_call(KEY, |c| c.voice_frames += 5);
-                for k in 0..5 {
-                    let sec: Vec<u8> = payload[k * 144 + 40..k * 144 + 144]
-                        .iter()
-                        .map(|&v| (v > 0.0) as u8)
-                        .collect();
-                    // V/D mode 2: 49 bits sent with their 4-bit repetition and parity in 104 bits. The first 49 are the information.
-                    let mut info = [0u8; 7];
-                    for (i, &b) in sec.iter().take(49).enumerate() {
-                        info[i / 8] |= b << (7 - i % 8);
+                if fich.dt != DT_DATA_FR {
+                    ctx.update_call(KEY, |c| c.voice_frames += 5);
+                }
+                if let Some((codec, packaging)) = speech_of(fich.dt) {
+                    for k in 0..5 {
+                        let sec: Vec<u8> = payload[k * 144 + 40..k * 144 + 144]
+                            .iter()
+                            .map(|&v| (v > 0.0) as u8)
+                            .collect();
+                        // V/D mode 2: 49 bits sent with their 4-bit repetition and parity in 104 bits. The first 49 are the information.
+                        let mut info = [0u8; 7];
+                        for (i, &b) in sec.iter().take(49).enumerate() {
+                            info[i / 8] |= b << (7 - i % 8);
+                        }
+                        let spec = crate::voice::FrameSpec {
+                            codec,
+                            packaging,
+                            codec_mode: None,
+                            duration_ms: 20,
+                            stack: "ysf",
+                            carrier_hz: ctx.carrier_hz,
+                            slot: 0,
+                        };
+                        ctx.speech(KEY, spec, &info, ctx.now + k as f64 * 0.02, false, None);
                     }
-                    let spec = crate::voice::FrameSpec {
-                        codec: Codec::Ambe2,
-                        packaging: sdrkit_graph::SpeechPackaging::Info49,
-                        codec_mode: None,
-                        duration_ms: 20,
-                        stack: "ysf",
-                        carrier_hz: ctx.carrier_hz,
-                        slot: 0,
-                    };
-                    ctx.speech(KEY, spec, &info, ctx.now + k as f64 * 0.02, false, None);
                 }
                 if let Some((b, _)) = d {
                     if fich.fn_ < 8 {
@@ -536,6 +552,17 @@ pub fn generator(cfg: &GenConfig) -> Prepared {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_v_d_mode_2_frames_leave_as_info49_speech() {
+        assert_eq!(
+            speech_of(2),
+            Some((Codec::Ambe2, sdrkit_graph::SpeechPackaging::Info49))
+        );
+        for dt in [0, 1, 3] {
+            assert_eq!(speech_of(dt), None, "data type {dt}");
+        }
+    }
 
     #[test]
     fn fich_and_dch_round_trip() {

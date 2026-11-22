@@ -313,7 +313,7 @@ impl Dpmr {
             if ctx.has_call(KEY) {
                 ctx.update_call(KEY, |c| c.voice_frames += 4);
                 for k in 0..4 {
-                    let cw = crate::voice::amb2_codewords(&tch[k * 72..k * 72 + 72]);
+                    let cw = sdrkit_codec_mbe::codewords(&tch[k * 72..k * 72 + 72]);
                     let spec = crate::voice::FrameSpec {
                         codec: Codec::Ambe2,
                         packaging: sdrkit_graph::SpeechPackaging::Codewords,
@@ -519,13 +519,15 @@ fn sync_bits(hex: &str) -> Vec<u8> {
     b
 }
 
+/// The bits of one transmission of header `h` and colour code `cc`: `frames` voice frames, whose voice is the test speech
+/// from frame `next_speech` on, or the blocks of `data`.
 fn transmission(
     h: HeaderInfo,
     cc: u8,
     packet: bool,
     frames: usize,
     data: &[u8],
-    rng: &mut sdrkit_algo_sim::rng::Rng,
+    next_speech: &mut usize,
 ) -> Vec<u8> {
     let mut b = Vec::new();
     for _ in 0..36 {
@@ -570,9 +572,11 @@ fn transmission(
         push_u64(&mut cch, crc as u64, 8);
         b.extend(encode_block(&cch));
         if voice {
-            let at = b.len();
-            b.resize(at + 288, 0);
-            rng.fill_bits(&mut b[at..]);
+            let speech = crate::voice::test_speech_half();
+            for _ in 0..4 {
+                b.extend_from_slice(&speech[*next_speech % speech.len()]);
+                *next_speech += 1;
+            }
         } else {
             b.extend(encode_block(&bytes_to_bits(&chunks[f])));
         }
@@ -583,8 +587,9 @@ fn transmission(
 }
 
 /// The dPMR test signal: a group voice call, a status, a short message, packet data to all, an emergency individual call.
-pub fn render(seed: u64) -> Vec<Complex32> {
-    let mut rng = sdrkit_algo_sim::rng::Rng::new(seed);
+/// The voice frames carry the test speech ([`crate::voice::test_speech_half`]).
+pub fn render() -> Vec<Complex32> {
+    let mut next_speech = 0;
     let mut m = FskModulator::new(2400.0, TxPulse::RootRaisedCosine(0.2), 350.0);
     let mut out = Vec::new();
     silence(0.3, &mut out);
@@ -656,7 +661,7 @@ pub fn render(seed: u64) -> Vec<Complex32> {
         ),
     ];
     for (h, cc, packet, frames, data) in txs {
-        let bits = transmission(h, cc, packet, frames, &data, &mut rng);
+        let bits = transmission(h, cc, packet, frames, &data, &mut next_speech);
         m.symbols(&bits_to_levels(&bits), &mut out);
         m.flush(8, &mut out);
         m.reset();
@@ -667,7 +672,7 @@ pub fn render(seed: u64) -> Vec<Complex32> {
 
 /// The dPMR generator from the settings of the stack.
 pub fn generator(cfg: &GenConfig) -> Prepared {
-    Prepared::new(render(cfg.seed), cfg.rate_hz, true).with_info(6_250.0, 2400.0, 4800.0)
+    Prepared::new(render(), cfg.rate_hz, true).with_info(6_250.0, 2400.0, 4800.0)
 }
 
 #[cfg(test)]

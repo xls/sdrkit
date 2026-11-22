@@ -1091,7 +1091,7 @@ impl Dmr {
         if ctx.has_call(key) {
             ctx.update_call(key, |c| c.voice_frames += 3);
             for (i, f) in frames.iter().enumerate() {
-                let cw = crate::voice::amb2_codewords(f);
+                let cw = sdrkit_codec_mbe::codewords(f);
                 let t = ctx.now + i as f64 * 0.02;
                 let spec = crate::voice::FrameSpec {
                     codec: Codec::Ambe2,
@@ -1556,8 +1556,9 @@ pub fn text_bursts(m: &ShortData, cc: u8, sync: usize) -> Vec<[u8; 264]> {
     out
 }
 
-/// The DMR test signal: a base station downlink, both slots, colour code `cc`. The voice bursts carry the frames of
-/// `speech` in turn (72 channel bits each, as sent), or pseudo-random bits when it is empty.
+/// The DMR test signal: a base station downlink, both slots, colour code `cc`. The voice bursts of a clear call carry the
+/// frames of `speech` in turn (72 channel bits each, as sent), or of [`crate::voice::test_speech_half`] when it is empty;
+/// those of a privacy call carry pseudo-random bits.
 pub struct DmrGen {
     pub cc: u8,
     pub schedule: Vec<(f64, DmrTx)>,
@@ -1733,6 +1734,11 @@ impl DmrGen {
         let mut out: [Vec<(f64, [u8; 264])>; 2] = [Vec::new(), Vec::new()];
         let cc = self.cc;
         let mut next_speech = 0usize;
+        let speech: &[[u8; 72]] = if self.speech.is_empty() {
+            crate::voice::test_speech_half()
+        } else {
+            &self.speech
+        };
         for (t0, tx) in &self.schedule {
             match tx {
                 DmrTx::Voice {
@@ -1790,12 +1796,12 @@ impl DmrGen {
                     for sf in 0..*superframes {
                         let emb_bits = embedded_bits(&embedded[sf as usize % embedded.len()]);
                         for p in 0..6u8 {
-                            let frames: [[u8; 72]; 3] = if self.speech.is_empty() {
+                            let frames: [[u8; 72]; 3] = if *privacy {
                                 std::array::from_fn(|_| std::array::from_fn(|_| rng.bit()))
                             } else {
                                 std::array::from_fn(|_| {
                                     next_speech += 1;
-                                    self.speech[(next_speech - 1) % self.speech.len()]
+                                    speech[(next_speech - 1) % speech.len()]
                                 })
                             };
                             v.push((t, voice_burst(&frames, p, cc, 0, &emb_bits)));
