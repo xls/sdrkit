@@ -1833,6 +1833,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "sdrkit-codec-mbe"
+version = "0.1.0"
+dependencies = [
+ "sdrkit-algo-dsp",
+ "sdrkit-algo-fec",
+]
+
+[[package]]
 name = "sdrkit-codec-mpa"
 version = "0.1.0"
 dependencies = [
