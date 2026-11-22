@@ -24,21 +24,21 @@ fn main() {
         let frames = speech.len() / FRAME;
         let mut chan = vec![0u8; frames * bits];
         let mut out = [0i16; FRAME];
-        let reps = 5;
-        let t0 = Instant::now();
-        for _ in 0..reps {
+        // The fastest of several passes, which a busy machine disturbs least.
+        let passes = 200;
+        let (mut te, mut td) = (f64::INFINITY, f64::INFINITY);
+        for _ in 0..passes {
+            let t0 = Instant::now();
             for (pcm, f) in speech.as_chunks::<FRAME>().0.iter().zip(chan.chunks_exact_mut(bits)) {
                 enc.encode(pcm, f);
             }
-        }
-        let te = t0.elapsed().as_secs_f64() / (reps * frames) as f64;
-        let t0 = Instant::now();
-        for _ in 0..reps {
+            te = te.min(t0.elapsed().as_secs_f64() / frames as f64);
+            let t0 = Instant::now();
             for f in chan.chunks_exact(bits) {
                 dec.decode(f, &mut out);
             }
+            td = td.min(t0.elapsed().as_secs_f64() / frames as f64);
         }
-        let td = t0.elapsed().as_secs_f64() / (reps * frames) as f64;
         println!(
             "{coder:?}: encode {:.1} us/frame, decode {:.1} us/frame (frame = 20 ms)",
             te * 1e6,

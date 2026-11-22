@@ -51,3 +51,31 @@ fn random_frames_never_panic_and_the_decoder_recovers() {
         assert!(dec.params().amp.iter().all(|a| a.is_finite()) && dec.params().w0.is_finite());
     }
 }
+
+#[test]
+fn the_encoder_takes_any_input() {
+    let inputs: [&dyn Fn(usize) -> i16; 7] = [
+        &|_| i16::MIN,
+        &|_| i16::MAX,
+        &|n| if n % 2 == 0 { i16::MAX } else { i16::MIN },
+        &|n| if n % 977 == 0 { i16::MAX } else { 0 },
+        &|n| (n % 3) as i16 - 1,
+        &|n| if (n / 20) % 2 == 0 { i16::MAX } else { i16::MIN },
+        &|n| if n < 2000 { 0 } else { ((n * 7919) % 65536) as i32 as i16 },
+    ];
+    for coder in Coder::ALL {
+        for input in inputs {
+            let mut enc = Encoder::new(coder);
+            let mut dec = Decoder::new(coder);
+            let mut chan = vec![0u8; coder.frame_bits()];
+            let mut out = [0i16; FRAME];
+            for k in 0..40 {
+                let pcm: [i16; FRAME] = std::array::from_fn(|i| input(k * FRAME + i));
+                assert_eq!(enc.encode(&pcm, &mut chan), coder.frame_bits());
+                assert_eq!(dec.decode(&chan, &mut out).errors, 0);
+                let p = enc.analysed();
+                assert!(p.w0.is_finite() && p.w0 > 0.0 && p.amp.iter().all(|a| a.is_finite()));
+            }
+        }
+    }
+}

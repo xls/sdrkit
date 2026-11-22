@@ -11,9 +11,7 @@
 //! Standards: TIA-102.BABA (full rate) and TIA-102.BABA-1 (half rate).
 //!
 //! Readings where the documents are unclear, each kept in one named item:
-//! sub-multiple rounding to the nearest half sample (`analysis::submultiple`); the sub-multiple test of Equations 18
-//! to 20 takes E at the best 1/8-sample period near P / n with 4-point lag interpolation, so that a period between half
-//! samples is not lost to two or three periods (`analysis::Analyser::refined_submultiple`); higher-order coefficients for k >= 2 of
+//! sub-multiple rounding to the nearest half sample (`analysis::submultiple`); higher-order coefficients for k >= 2 of
 //! every block (`full::dequantise_frame`); the full-rate repeat and mute rules of the text, not of the flow chart
 //! ([`full_rate_repeats`], [`FULL_MUTE_RATE`]), with the fourth-frame mute of the flow chart for lost frames only
 //! ([`FULL_LOST_MUTE_RUN`]); tau_M starts at 20480 ([`TAU_M_START`]); the random phase of harmonic
@@ -24,7 +22,14 @@
 //! amplitude LSB in u3 bit 4 (`half::TONE_AD_LSB_U3_BIT`); tones are synthesised through Annex J (`half::tone_params`),
 //! both tones of a pair at the level of Equation 68, without enhancement and without the random phase of Equation 141;
 //! no half-rate smoothing ([`HALF_RATE_SMOOTHING`]); the half-rate encoder measures the amplitudes at the Annex A
-//! fundamental and L; the encoder sends only voice frames; the first bit of a dibit is its high bit.
+//! fundamental and L and the voicing at the analysed fundamental; the encoder sends only voice frames; the first bit of
+//! a dibit is its high bit.
+//!
+//! Where the encoder's pitch estimation departs from the printed text, each in one named item: the error function
+//! E(P) sums the autocorrelation over every lag, not to lag 150 (`analysis::Lags::error`); above P = 80 it divides by
+//! the real window overlap (`analysis::fit_error`); the sub-multiple test of Equations 18 to 20 takes E at P / n not
+//! rounded, with a cubic between lags (`analysis::Analyser::submultiple_error`); sub-multiples count down to the
+//! period 19.875, with the divisor 6 (`analysis::submultiple`).
 //!
 //! ```
 //! use sdrkit_codec_mbe::{Coder, Decoder, Encoder};
