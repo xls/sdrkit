@@ -370,7 +370,10 @@ pub static BLE_TX: EventKind<BleTxEvent<'static>> =
 #[derive(Arguments)]
 pub struct BleSendArgs<'a> {
     /// The advertiser address.
-    #[arg(shared = crate::ble::tx::ADDRESS)]
+    #[arg(
+        label = "Address",
+        help = "The advertiser address: 12 hex digits, most significant byte first, with or without colons (C0:FF:EE:12:34:56)."
+    )]
     pub address: &'a str,
     /// Public or random.
     #[arg(shared = crate::ble::tx::ADDRESS_TYPE)]
@@ -414,10 +417,25 @@ pub struct BleSendArgs<'a> {
     )]
     pub manufacturer_data: Option<&'a str>,
     /// The packets.
-    #[arg(shared = crate::ble::tx::COUNT)]
+    #[arg(
+        label = "Packets",
+        help = "The packets of one send.",
+        default = 1,
+        min = 1,
+        max = 1000,
+        step = 1
+    )]
     pub count: Option<i64>,
     /// The interval.
-    #[arg(shared = crate::ble::tx::INTERVAL_MS)]
+    #[arg(
+        label = "Interval",
+        unit = "ms",
+        help = "From the start of one packet to the start of the next.",
+        default = 100,
+        min = 20,
+        max = 10000,
+        step = 1
+    )]
     pub interval_ms: Option<i64>,
 }
 
@@ -641,7 +659,10 @@ pub struct BletrackerSendArgs<'a> {
     #[arg(shared = crate::ble::tx::TRACKER)]
     pub tracker: Option<crate::ble::tx::SendTracker>,
     /// The advertiser address.
-    #[arg(shared = crate::ble::tx::ADDRESS)]
+    #[arg(
+        label = "Address",
+        help = "The advertiser address: 12 hex digits, most significant byte first, with or without colons (C0:FF:EE:12:34:56)."
+    )]
     pub address: &'a str,
     /// Public or random.
     #[arg(shared = crate::ble::tx::ADDRESS_TYPE)]
@@ -674,10 +695,25 @@ pub struct BletrackerSendArgs<'a> {
     )]
     pub payload: Option<&'a str>,
     /// The packets.
-    #[arg(shared = crate::ble::tx::COUNT)]
+    #[arg(
+        label = "Packets",
+        help = "The packets of one send.",
+        default = 1,
+        min = 1,
+        max = 1000,
+        step = 1
+    )]
     pub count: Option<i64>,
     /// The interval.
-    #[arg(shared = crate::ble::tx::INTERVAL_MS)]
+    #[arg(
+        label = "Interval",
+        unit = "ms",
+        help = "From the start of one packet to the start of the next.",
+        default = 100,
+        min = 20,
+        max = 10000,
+        step = 1
+    )]
     pub interval_ms: Option<i64>,
 }
 

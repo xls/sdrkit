@@ -26,8 +26,7 @@ use sdrkit_components::tx::{BurstOut, BurstTiming, Ramp};
 use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
 use sdrkit_core::interface::Fields as _;
 use sdrkit_core::publish::keys::Family;
-use sdrkit_core::publish::{field, Field, Published};
-use sdrkit_core::settings::Argument;
+use sdrkit_core::publish::{field, Published};
 use sdrkit_core::{
     Complex32, ConfigError, Event, Record, Results, Setting, SettingError, SettingId, SettingSet,
     StageError, Value, Values,
@@ -111,10 +110,6 @@ sdrkit_core::choice_enum! {
     }
 }
 
-/// The argument `address` of `send`.
-pub const ADDRESS: Argument<field::Text> = Argument::new(Field::new("address", "Address", "")).help(
-    "The advertiser address: 12 hex digits, most significant byte first, with or without colons (C0:FF:EE:12:34:56).",
-);
 /// The argument `address_type` of `send`.
 pub const ADDRESS_TYPE: Setting<field::Choice<SendAddress>> =
     Setting::choice("address_type", "Address type", SendAddress::Random)
@@ -127,14 +122,6 @@ pub const PDU_TYPE: Setting<field::Choice<SendPdu>> =
 pub const TRACKER: Setting<field::Choice<SendTracker>> =
     Setting::choice("tracker", "Tracker", SendTracker::FindMy)
         .help("The family whose frame is sent: Find My or Google.");
-/// The argument `count` of `send`.
-pub const COUNT: Setting<field::I64> = Setting::new("count", "Packets", "", 1)
-    .range(1.0, 1000.0, 1.0)
-    .help("The packets of one send.");
-/// The argument `interval_ms` of `send`.
-pub const INTERVAL_MS: Setting<field::I64> = Setting::new("interval_ms", "Interval", "ms", 100)
-    .range(20.0, 10000.0, 1.0)
-    .help("From the start of one packet to the start of the next.");
 /// The peak of the signal sent.
 pub const TX_LEVEL: Setting<field::F64> = Setting::new("tx_level", "Level", "of full scale", 0.5)
     .range(0.05, 0.9, 0.0)
@@ -231,6 +218,12 @@ impl std::fmt::Display for TxError {
 }
 
 impl std::error::Error for TxError {}
+
+/// True if `v` is within the range of the argument `s`.
+fn in_range(s: &Setting<field::I64>, v: i64) -> bool {
+    s.range
+        .is_none_or(|r| (r.min..=r.max).contains(&(v as f64)))
+}
 
 /// The bytes of hex text, with spaces, `:` and `-` between them allowed. `key` names the argument in the error.
 fn hex(text: &str, key: &'static str) -> Result<Vec<u8>, TxError> {
@@ -454,12 +447,12 @@ impl BleSender {
     ) -> Result<Job, TxError> {
         let random = kind.unwrap_or_default() == SendAddress::Random;
         let addr = parse_addr(address.trim(), random).ok_or(TxError::Address)?;
-        let count = count.unwrap_or(COUNT.default);
-        if !(1..=1000).contains(&count) {
+        let count = count.unwrap_or(BleSendArgs::COUNT.default);
+        if !in_range(&BleSendArgs::COUNT, count) {
             return Err(TxError::Range("count"));
         }
-        let interval_ms = interval_ms.unwrap_or(INTERVAL_MS.default);
-        if !(20..=10000).contains(&interval_ms) {
+        let interval_ms = interval_ms.unwrap_or(BleSendArgs::INTERVAL_MS.default);
+        if !in_range(&BleSendArgs::INTERVAL_MS, interval_ms) {
             return Err(TxError::Range("interval_ms"));
         }
         if !self.transmit {
