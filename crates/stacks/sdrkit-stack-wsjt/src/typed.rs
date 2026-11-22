@@ -928,9 +928,9 @@ pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     // 2.0: a stack has only the transmit commands and settings of its modes, the WSPR beacon starts with the command
     // `beacon` and no setting, and `cq`, `beacon` and `send` transmit. 3.0: the Q65 stack has its code built in and no
-    // setting `code_dir`.
+    // setting `code_dir`. 4.0: no stack has the setting `code_dir`, and a mode row has no state `no_table`.
     FAMILY.get_or_init(|| {
-        let mut f = Described::new("wsjt", 3, 0)
+        let mut f = Described::new("wsjt", 4, 0)
             .shared_source("table", SLOT_STACKS)
             .shared_source("components", SLOT_STACKS)
             .shared_source("runner", SLOT_STACKS)

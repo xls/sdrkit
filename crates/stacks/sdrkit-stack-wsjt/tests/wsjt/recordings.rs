@@ -1,20 +1,14 @@
 //! The recorded vectors through the whole receiver (front end, slot clock, cutters, decoders, decode table), fed in pieces of 8000
 //! samples with the slot clock set from the recording's start time, against `expected.json`.
 
-//!
-//! FST4, FST4W and MSK144 decode nothing without their code tables, which sdrkit cannot ship: their recordings must give no
-//! decode and the refusal in the status. When the recordings folder holds the tables (`wsjt/codes`, the alist files), they
-//! must also give every listed decode with them. Q65 has its code built in and gives every decode of its list.
-
 use super::common::{choice_key, table};
 use sdrkit_core::owner::Owner;
 use sdrkit_core::publish::keys;
 use sdrkit_core::{
-    Choice, Event, InputInfo, LockState, Output, Receiver, StackConfig, Value, Values,
+    Choice, Event, InputInfo, Output, Receiver, StackConfig, Value, Values,
 };
 use sdrkit_graph::StackGraph;
 use sdrkit_stack_wsjt::descriptors;
-use sdrkit_stack_wsjt::proto::codes::{CodeId, CodeStore};
 use sdrkit_stack_wsjt::slots::TimeChoice;
 use sdrkit_stack_wsjt::typed::{
     DecodeEvent, Js8FrameEvent, Js8MessageEvent, DECODE, JS8_FRAME, JS8_MESSAGE,
@@ -25,21 +19,9 @@ fn expected() -> Json {
     sdrkit_dev_test::sigmf::read_expected("wsjt").unwrap()
 }
 
-/// The code tables of the recordings folder, when it holds them.
-fn folder_codes() -> Option<CodeStore> {
-    let dir = sdrkit_dev_test::recordings_dir().join("wsjt").join("codes");
-    let mut c = CodeStore::default();
-    let loaded = c.load_dir(&dir).ok()?;
-    (!loaded.is_empty()).then_some(c)
-}
-
 /// Runs a recording through the receiver of its mode; returns the decode events, and the receiver.
 /// `None` when the recording is missing.
 fn run(key: &str, piece: usize) -> Option<(Vec<Event>, StackGraph)> {
-    run_with(key, piece, CodeStore::default())
-}
-
-fn run_with(key: &str, piece: usize, codes: CodeStore) -> Option<(Vec<Event>, StackGraph)> {
     let e = expected();
     let r = &e["recordings"][key];
     let name = r["recording"]
@@ -75,7 +57,7 @@ fn run_with(key: &str, piece: usize, codes: CodeStore) -> Option<(Vec<Event>, St
     }
     let cfg = StackConfig::new(settings);
     let mode_enum = sdrkit_stack_wsjt::Mode::from_id(mode);
-    let mut rx = sdrkit_stack_wsjt::receiver::receiver_with_codes(mode_enum, &cfg, codes).unwrap();
+    let mut rx = sdrkit_stack_wsjt::receiver::receiver(mode_enum, &cfg).unwrap();
     let dial = rc["dial_hz"].as_f64().unwrap();
     rx.configure(&InputInfo::new(rec.rate_hz, dial, dial).recording())
         .unwrap();
@@ -145,36 +127,6 @@ fn compare(key: &str, list: &str, events: &[Event], rx: &StackGraph) {
     assert_eq!(choice_key(rx.results(), "time_source"), "recording_start");
 }
 
-/// A recording of a mode whose code is not loaded: no decode, and the status says why.
-fn check_refused(key: &str, words: &str) {
-    let Some((events, rx)) = run(key, 8000) else {
-        return;
-    };
-    let n = events.iter().filter(|e| e.is(&DECODE)).count();
-    assert_eq!(n, 0, "{key}: decodes without a code table");
-    let st = rx.results().status();
-    assert_eq!(st.lock_state, LockState::Off, "{key}");
-    assert!(st.summary.contains(words), "{key}: {}", st.summary);
-    let want = &expected()["recordings"][key];
-    assert_eq!(want["decodes"].as_array().map_or(0, Vec::len), 0, "{key}");
-    assert!(want["decodes_with_code_table"].is_array(), "{key}");
-    // With the tables of the recordings folder, every listed decode.
-    if let Some(codes) = folder_codes() {
-        let id = match key {
-            k if k.starts_with("fst4w") => CodeId::Fst4w,
-            k if k.starts_with("fst4") => CodeId::Fst4,
-            _ => CodeId::Msk144,
-        };
-        if !codes.has(id) {
-            return;
-        }
-        let Some((events, rx)) = run_with(key, 8000, codes) else {
-            return;
-        };
-        compare(key, "decodes_with_code_table", &events, &rx);
-    }
-}
-
 #[test]
 fn ft8_through_the_receiver() {
     check("ft8");
@@ -212,17 +164,17 @@ fn jt4_through_the_receiver() {
 
 #[test]
 fn fst4_through_the_receiver() {
-    check_refused("fst4_60", "fst4_240_101.alist");
+    check("fst4_60");
 }
 
 #[test]
 fn fst4w_through_the_receiver() {
-    check_refused("fst4w_120", "fst4w_240_74.alist");
+    check("fst4w_120");
 }
 
 #[test]
 fn msk144_through_the_receiver() {
-    check_refused("msk144_15", "msk144_128_90.alist");
+    check("msk144_15");
 }
 
 #[test]
@@ -289,7 +241,7 @@ fn results_are_the_same_for_any_cut() {
 }
 
 /// The family's verification hooks on recorded vectors (what `sdrkit verify` runs): the settings they give the receiver and their
-/// comparison pass for a mode with its code, for JS8 and for the modes without their code.
+/// comparison pass for FT8, JS8, FST4 and Q65.
 #[test]
 fn the_vector_hooks_pass() {
     use sdrkit_core::verify::Outcome;

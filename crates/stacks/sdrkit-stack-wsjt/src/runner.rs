@@ -3,7 +3,6 @@
 //! when the decoder is idle), and a runner on the same helper threads for the dial chains of whole-span decoding.
 
 use crate::mode::Mode;
-use crate::proto::codes::{CodeId, CodeMissing, CodeStore};
 use crate::proto::msg77::CallHashes;
 use crate::proto::wsprmsg::WsprHashes;
 use crate::rx::js8::Js8Frame;
@@ -14,8 +13,8 @@ use crate::typed::SlotDecoderFields;
 use sdrkit_core::interface::Fields as _;
 use sdrkit_core::publish::{field, Published};
 use sdrkit_core::{
-    ConfigError, LockState, Schema, Setting, SettingError, SettingId, SettingSet, Status,
-    StorageError, StorePath, Value, Values,
+    ConfigError, LockState, Schema, Setting, SettingError, SettingId, SettingSet, Status, Value,
+    Values,
 };
 use sdrkit_graph::context::Ticket;
 use sdrkit_graph::{
@@ -66,21 +65,17 @@ pub struct SlotResult {
     pub submode: u8,
     /// The period, s.
     pub period: f64,
-    /// Why the mode decodes nothing, `None` when it decodes. A result with this set and no slot is a notice.
-    pub refused: Option<CodeMissing>,
     /// The decodes of an early slot (the slot is still being received): shown, not counted.
     pub early: bool,
 }
 
-/// The state of a mode's decoder: its hash tables, its loaded codes and its options.
+/// The state of a mode's decoder: its hash tables and its options.
 #[derive(Clone, Debug, Default)]
 pub struct DecodeState {
     /// The 77-bit callsign hashes.
     pub calls: CallHashes,
     /// The WSPR hashes.
     pub wspr: WsprHashes,
-    /// The codes loaded at run time.
-    pub codes: CodeStore,
     /// The options.
     pub opt: DecodeOptions,
     /// What FT8, FT4 and FT2 keep across slots: the failed candidates and the calls heard.
@@ -88,16 +83,11 @@ pub struct DecodeState {
 }
 
 impl DecodeState {
-    /// Forgets the hash tables (Clear); the codes stay.
+    /// Forgets the hash tables (Clear).
     pub fn clear(&mut self) {
         self.calls.clear();
         self.wspr.clear();
         self.ft.clear();
-    }
-
-    /// Why `mode` decodes nothing now, or `None` when it decodes.
-    pub fn refusal(&self, mode: Mode) -> Option<CodeMissing> {
-        CodeMissing::of(mode, &self.codes)
     }
 }
 
@@ -112,7 +102,6 @@ pub fn decode_slot(slot: &Slot, state: &mut DecodeState) -> SlotResult {
         label: slot.sub.label(),
         submode: slot.sub.sub,
         period: slot.sub.period,
-        refused: state.refusal(mode),
         early: slot.early,
         ..Default::default()
     };
@@ -136,8 +125,7 @@ pub fn decode_slot(slot: &Slot, state: &mut DecodeState) -> SlotResult {
             }
         }
         Mode::Msk144 => {
-            let code = state.codes.get(CodeId::Msk144).cloned();
-            r.decodes = msk144::decode(slot, &mut state.calls, code.as_deref());
+            r.decodes = msk144::decode(slot, &mut state.calls);
         }
         Mode::Js8 => {
             let mut failed = 0;
@@ -149,7 +137,6 @@ pub fn decode_slot(slot: &Slot, state: &mut DecodeState) -> SlotResult {
                 hashes: &mut state.calls,
                 wspr: &mut state.wspr,
                 mirrored: opt.mirrored,
-                codes: &state.codes,
             };
             r.decodes = match m {
                 Mode::Wspr => slowmodes::decode_wspr(slot, &mut ctx),
@@ -210,26 +197,10 @@ pub(crate) const DEEP: Setting<field::Bool> = Setting::new("deep", "Deep decodin
         "A second stage with coherent soft bits, OSD and a-priori CQ decoding. FT8, FT4 and FT2 also add the soft bits of \
          candidates that failed in earlier slots, and assume the calls heard on the band.",
     );
-pub(crate) const CODE_DIR: Setting<field::Text> = Setting::new("code_dir", "Code tables", "", "").help(
-    "The folder of the FST4, FST4W and MSK144 code tables (fst4_240_101.alist, fst4w_240_74.alist, msk144_128_90.alist). \
-     These stacks decode only once their tables are loaded.",
-);
 
 sdrkit_core::settings! {
     /// The settings of [`SlotDecoder`].
     pub enum SlotDecoderSetting {
-        /// Upside down too.
-        Mirrored = MIRRORED,
-        /// Deep decoding.
-        Deep = DEEP,
-        /// The folder of the code tables.
-        CodeDir = CODE_DIR,
-    }
-}
-
-sdrkit_core::settings! {
-    /// The settings of a [`SlotDecoder`] whose mode loads no code: those of [`SlotDecoderSetting`] without the folder.
-    pub enum SlotDecoderBaseSetting {
         /// Upside down too.
         Mirrored = MIRRORED,
         /// Deep decoding.
@@ -244,31 +215,24 @@ pub struct SlotDecoder {
     mode: Mode,
     queue: Option<Arc<SlotQueue>>,
     state: DecodeState,
-    code_dir: String,
-    notice: bool,
     slots: u64,
     decodes: u64,
     last_ms: f64,
-    /// The refusal that the status shows, once it was written.
-    shown: Option<Option<CodeMissing>>,
+    /// Whether the status was written.
+    shown: bool,
 }
 
 impl SlotDecoder {
-    /// The decoder of `mode` with the loaded `codes`.
-    pub fn new(mode: Mode, codes: CodeStore) -> Self {
+    /// The decoder of `mode`.
+    pub fn new(mode: Mode) -> Self {
         SlotDecoder {
             mode,
             queue: None,
-            state: DecodeState {
-                codes,
-                ..Default::default()
-            },
-            code_dir: String::new(),
-            notice: false,
+            state: DecodeState::default(),
             slots: 0,
             decodes: 0,
             last_ms: 0.0,
-            shown: None,
+            shown: false,
         }
     }
 
@@ -281,41 +245,6 @@ impl SlotDecoder {
     /// The decoder's state.
     pub fn state(&self) -> &DecodeState {
         &self.state
-    }
-
-    /// Whether the mode loads a code from a folder, and so has the setting `code_dir`.
-    fn loads_code(&self) -> bool {
-        CodeId::of(self.mode).is_some()
-    }
-
-    /// Loads the codes of the folder `dir` (see [`CodeStore::load_dir`]). An empty text keeps the codes as they are.
-    fn load(&mut self, id: SettingId, dir: &str) -> Result<(), SettingError> {
-        if !dir.is_empty() {
-            self.state
-                .codes
-                .load_dir(std::path::Path::new(dir))
-                .map_err(|e| code_refusal(id, &e))?;
-        }
-        self.code_dir = dir.into();
-        self.notice = false;
-        Ok(())
-    }
-}
-
-/// The refusal of setting `id` when a code table of its folder cannot be loaded. A file that cannot be read is a storage error
-/// that names the file. A file that is read but refused is malformed.
-fn code_refusal(id: SettingId, e: &crate::proto::codes::CodeError) -> SettingError {
-    use crate::proto::codes::CodeError;
-    match e {
-        CodeError::Io { code, kind } => match StorePath::new(code.file_name()) {
-            Ok(path) => SettingError::Storage {
-                id,
-                path,
-                source: StorageError::from(std::io::Error::from(*kind)),
-            },
-            Err(_) => SettingError::Malformed { id, at: None },
-        },
-        _ => SettingError::Malformed { id, at: None },
     }
 }
 
@@ -331,56 +260,29 @@ impl Decoder for SlotDecoder {
             Port::typed::<SlotResult>("results").rate_from(RateFrom::Fixed(0.0)),
         ]
     }
-    /// The settings of [`SlotDecoderSetting`] when the mode loads a code ([`CodeId::of`]), else those of
-    /// [`SlotDecoderBaseSetting`].
     fn settings(&self) -> Arc<Schema> {
-        if self.loads_code() {
-            SlotDecoderSetting::schema()
-        } else {
-            SlotDecoderBaseSetting::schema()
-        }
+        SlotDecoderSetting::schema()
     }
     fn apply(&mut self, id: SettingId, value: &Value) -> Result<(), SettingError> {
-        let setting = SlotDecoderSetting::from_id(id)
-            .filter(|s| self.loads_code() || *s != SlotDecoderSetting::CodeDir)
-            .ok_or(SettingError::NoSuchId { id })?;
-        match setting {
+        match SlotDecoderSetting::from_id(id).ok_or(SettingError::NoSuchId { id })? {
             SlotDecoderSetting::Mirrored => self.state.opt.mirrored = MIRRORED.read(id, value)?,
             SlotDecoderSetting::Deep => self.state.opt.deep = DEEP.read(id, value)?,
-            SlotDecoderSetting::CodeDir => {
-                let dir = CODE_DIR.read(id, value)?.to_owned();
-                self.load(id, &dir)?;
-            }
         }
         Ok(())
     }
     fn values(&self) -> Values {
-        if !self.loads_code() {
-            return values_of([
-                (
-                    SlotDecoderBaseSetting::Mirrored,
-                    Value::Bool(self.state.opt.mirrored),
-                ),
-                (SlotDecoderBaseSetting::Deep, Value::Bool(self.state.opt.deep)),
-            ]);
-        }
         values_of([
             (
                 SlotDecoderSetting::Mirrored,
                 Value::Bool(self.state.opt.mirrored),
             ),
             (SlotDecoderSetting::Deep, Value::Bool(self.state.opt.deep)),
-            (
-                SlotDecoderSetting::CodeDir,
-                Value::Text(self.code_dir.clone()),
-            ),
         ])
     }
     fn results(&self) -> Published {
         Published::new(SlotDecoderFields::SHAPE.fields)
     }
     fn configure(&mut self, _: &Format) -> Result<Vec<Format>, ConfigError> {
-        self.notice = false;
         Ok(vec![
             Format::new(Kind::typed::<Decode>(), 0.0),
             Format::new(Kind::typed::<Js8Frame>(), 0.0),
@@ -388,20 +290,6 @@ impl Decoder for SlotDecoder {
         ])
     }
     fn process(&mut self, x: &[Timed<Slot>], _first: u64, out: &mut Outbox) {
-        if !self.notice {
-            // Say once, before the first slot is cut, whether the mode can decode.
-            self.notice = true;
-            if let Some(why) = self.state.refusal(self.mode) {
-                out.items::<SlotResult>(2).push(Timed {
-                    time: 0.0,
-                    value: SlotResult {
-                        mode: Some(self.mode),
-                        refused: Some(why),
-                        ..Default::default()
-                    },
-                });
-            }
-        }
         for s in x {
             let r = decode_slot(&s.value, &mut self.state);
             if let Some(q) = &self.queue {
@@ -436,14 +324,11 @@ impl Decoder for SlotDecoder {
             decodes: self.decodes as i64,
             decode_ms: self.last_ms,
         });
-        let why = self.state.refusal(self.mode);
-        if self.shown != Some(why) {
-            self.shown = Some(why);
-            let status = match why {
-                Some(why) => Status::new(LockState::Off).with_summary(&why.to_string()),
-                None => Status::new(LockState::Searching),
-            };
-            results.results_mut().set_status(&status);
+        if !self.shown {
+            self.shown = true;
+            results
+                .results_mut()
+                .set_status(&Status::new(LockState::Searching));
         }
     }
     fn report_interval_s(&self) -> f64 {

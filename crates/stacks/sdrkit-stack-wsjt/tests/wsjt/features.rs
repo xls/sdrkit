@@ -5,7 +5,6 @@ use sdrkit_core::owner::Owner;
 use sdrkit_core::{Complex32, HostRequest, Output, Receiver, StackConfig, Value};
 use sdrkit_stack_wsjt::bands::{hours_text, parse_bands, parse_cycle, parse_hours, HopPlan};
 use sdrkit_stack_wsjt::encode::{audio, Transmission};
-use sdrkit_stack_wsjt::proto::codes::CodeStore;
 use sdrkit_stack_wsjt::runner::{decode_slot, DecodeState};
 use sdrkit_stack_wsjt::rx::slot::{Decode, How};
 use sdrkit_stack_wsjt::typed::{DecodeRow, DECODES};
@@ -23,7 +22,7 @@ fn audio_slots(sub: Sub, per_slot: &[Vec<St>], seconds: f64, seed: u64) -> Vec<f
                 amp: amp(snr),
                 mirrored: mir,
             };
-            let s = audio(&t, text, 8000.0, &CodeStore::default()).unwrap();
+            let s = audio(&t, text, 8000.0).unwrap();
             let start = ((k as f64 * sub.period + sub.t0() + dt) * 8000.0).round() as i64;
             for (i, v) in s.iter().enumerate() {
                 let j = start + i as i64;
@@ -169,7 +168,7 @@ fn a_priori_run(mode: Mode, snr: f64, shifted: bool, quiet: bool, seed: u64) -> 
                     amp: amp(snr),
                     mirrored: false,
                 };
-                let s = audio(&t, &text, 8000.0, &CodeStore::default()).unwrap();
+                let s = audio(&t, &text, 8000.0).unwrap();
                 let start = ((k as f64 * sub.period + sub.t0() + dt) * 8000.0).round() as usize;
                 for (o, v) in a[start..].iter_mut().zip(&s) {
                     *o += v;

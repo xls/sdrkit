@@ -4,7 +4,6 @@ use crate::bands;
 use crate::encode::{self, Transmission};
 use crate::front::{Demod, FrontEnd, FrontLevels, AUDIO_RATE};
 use crate::mode::{Mode, Sub};
-use crate::proto::codes::CodeStore;
 use crate::proto::js8msg::{command_code, Outgoing};
 use crate::proto::msg77::PackError;
 use crate::qso::{Beacon, Js8Sender, QsoSettings, Sequencer, TxMessage};
@@ -679,14 +678,10 @@ impl Component for CutterComponent {
     }
 }
 
-/// The decoder of `mode` with the loaded `codes`, as a component (kind `wsjt.decoder`), telling `queue` (shared with its cutter)
-/// which slots it decoded.
-pub fn decoder(
-    mode: Mode,
-    codes: CodeStore,
-    queue: Option<std::sync::Arc<SlotQueue>>,
-) -> DecoderComponent<SlotDecoder> {
-    let d = SlotDecoder::new(mode, codes);
+/// The decoder of `mode` as a component (kind `wsjt.decoder`), telling `queue` (shared with its cutter) which slots it
+/// decoded.
+pub fn decoder(mode: Mode, queue: Option<std::sync::Arc<SlotQueue>>) -> DecoderComponent<SlotDecoder> {
+    let d = SlotDecoder::new(mode);
     DecoderComponent::new(match queue {
         Some(q) => d.with_queue(q),
         None => d,
@@ -1740,8 +1735,8 @@ impl SenderComponent {
         };
         let symbols = match &m.js8 {
             Some((bits, flags)) => Ok(encode::js8_tones(m.submode, bits, *flags)),
-            // Only the modes offered for transmission are sent. None of them needs a loaded code.
-            None => encode::channel_symbols(&sub, &m.text, &CodeStore::default()),
+            // Only the modes offered for transmission are sent.
+            None => encode::channel_symbols(&sub, &m.text),
         };
         let out = BurstOut::with_quality(BASE_RATE, self.rate, 0.35, 70.0, 1.0);
         let (Ok(symbols), Ok(mut out)) = (symbols, out) else {
@@ -2379,7 +2374,7 @@ pub fn registry() -> Registry {
     r.add("wsjt.slot_clock", || Box::new(ClockComponent::default()));
     r.add("wsjt.cutter", || Box::new(CutterComponent::default()));
     r.add("wsjt.decoder", || {
-        Box::new(decoder(Mode::Ft8, CodeStore::default(), None))
+        Box::new(decoder(Mode::Ft8, None))
     });
     r.add("wsjt.merge", || Box::new(MergeComponent::default()));
     r.add("wsjt.display", || Box::new(DisplayComponent::default()));

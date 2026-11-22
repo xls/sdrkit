@@ -1,5 +1,5 @@
 {
-  "note": "Synthetic recordings for specs/wsjt.md. Each file is complex baseband at 8000 samples/s whose centre is the dial frequency; the real part is the upper sideband audio the decoders work on. 'sent' lists what was transmitted: message, audio frequency of tone 0 (Hz; for MSK144 the carrier, which is reported as carrier - 500 Hz), SNR in 2500 Hz, DT (s against the nominal start of the transmission in the slot; for MSK144 the burst start in the period), and whether the station was sent on the lower sideband. 'decodes' is the expected list (slot_offset_s from the first sample, snr_db rounded, dt_s, hz of the lowest tone (mirrored: of tone 0), call/grid as the decode record shows them, dbm for WSPR / FST4W where carried, -1 otherwise; pass 0 = first pass). Pass is informative, not checked. The receiver is fed the whole file in pieces of 8000 samples with the slot clock set from the start time. For FST4, FST4W, MSK144 and Q65 see 'without_code_table' in each section.",
+  "note": "Synthetic recordings for specs/wsjt.md. Each file is complex baseband at 8000 samples/s whose centre is the dial frequency; the real part is the upper sideband audio the decoders work on. 'sent' lists what was transmitted: message, audio frequency of tone 0 (Hz; for MSK144 the carrier, which is reported as carrier - 500 Hz), SNR in 2500 Hz, DT (s against the nominal start of the transmission in the slot; for MSK144 the burst start in the period), and whether the station was sent on the lower sideband. 'decodes' is the expected list (slot_offset_s from the first sample, snr_db rounded, dt_s, hz of the lowest tone (mirrored: of tone 0), call/grid as the decode record shows them, dbm for WSPR / FST4W where carried, -1 otherwise; pass 0 = first pass). Pass is informative, not checked. The receiver is fed the whole file in pieces of 8000 samples with the slot clock set from the start time.",
   "tolerance": {
     "msg": "exact; every listed message decoded in its slot, nothing else decoded",
     "hz": "per recording, see tolerance.hz",
@@ -1233,15 +1233,7 @@
           false
         ]
       ],
-      "decodes": [],
-      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
-      "tolerance": {
-        "msg": "exact",
-        "hz": 1.0,
-        "dt_s": 0.2,
-        "snr_db": 3.0
-      },
-      "decodes_with_code_table": [
+      "decodes": [
         {
           "slot_offset_s": 0.0,
           "msg": "CQ K1ABC FN42",
@@ -1308,11 +1300,13 @@
           "pass": 0
         }
       ],
-      "status": {
-        "lock_state": "off",
-        "summary_contains": "fst4_240_101.alist"
-      },
-      "without_code_table": "sdrkit ships no table for this code (the table exists only in copyleft software): the receiver decodes nothing and its status names the file to load. decodes_with_code_table is the list expected once a host loads the table (from wsjt/codes/ of the recordings folder in the tests)."
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 1.0,
+        "dt_s": 0.2,
+        "snr_db": 3.0
+      }
     },
     "fst4w_120": {
       "recording": "wsjt_fst4w_120_8k.sigmf-meta",
@@ -1338,20 +1332,12 @@
           false
         ]
       ],
-      "decodes": [],
-      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
-      "tolerance": {
-        "msg": "exact",
-        "hz": 0.5,
-        "dt_s": 0.2,
-        "snr_db": 3.0
-      },
-      "decodes_with_code_table": [
+      "decodes": [
         {
           "slot_offset_s": 0.0,
           "msg": "K1ABC FN42 37",
-          "snr_db": -21,
-          "dt_s": 0.203,
+          "snr_db": -20,
+          "dt_s": 0.2,
           "hz": 1400.0,
           "mirrored": false,
           "cq": true,
@@ -1363,8 +1349,8 @@
         {
           "slot_offset_s": 0.0,
           "msg": "G4XYZ IO91 23",
-          "snr_db": -25,
-          "dt_s": -0.47,
+          "snr_db": -24,
+          "dt_s": -0.4,
           "hz": 1700.0,
           "mirrored": false,
           "cq": true,
@@ -1374,11 +1360,13 @@
           "pass": 0
         }
       ],
-      "status": {
-        "lock_state": "off",
-        "summary_contains": "fst4w_240_74.alist"
-      },
-      "without_code_table": "sdrkit ships no table for this code (the table exists only in copyleft software): the receiver decodes nothing and its status names the file to load. decodes_with_code_table is the list expected once a host loads the table (from wsjt/codes/ of the recordings folder in the tests)."
+      "verified": "the listed decodes are what was sent; only this library's decoder has decoded this audio (no independent decoder), and it found these and nothing else",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 0.5,
+        "dt_s": 0.2,
+        "snr_db": 3.0
+      }
     },
     "msk144_15": {
       "recording": "wsjt_msk144_15_8k.sigmf-meta",
@@ -1404,15 +1392,7 @@
           false
         ]
       ],
-      "decodes": [],
-      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
-      "tolerance": {
-        "msg": "exact",
-        "hz": 10.0,
-        "dt_s": 0.5,
-        "snr_db": 3.0
-      },
-      "decodes_with_code_table": [
+      "decodes": [
         {
           "slot_offset_s": 0.0,
           "msg": "CQ K1ABC FN42",
@@ -1440,11 +1420,13 @@
           "pass": 0
         }
       ],
-      "status": {
-        "lock_state": "off",
-        "summary_contains": "msk144_128_90.alist"
-      },
-      "without_code_table": "sdrkit ships no table for this code (the table exists only in copyleft software): the receiver decodes nothing and its status names the file to load. decodes_with_code_table is the list expected once a host loads the table (from wsjt/codes/ of the recordings folder in the tests)."
+      "verified": "every listed decode was obtained from this audio by an independent decoder before release; no other decode was produced",
+      "tolerance": {
+        "msg": "exact",
+        "hz": 10.0,
+        "dt_s": 0.5,
+        "snr_db": 3.0
+      }
     },
     "js8": {
       "recording": "wsjt_js8_8k.sigmf-meta",

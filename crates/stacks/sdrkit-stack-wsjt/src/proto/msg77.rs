@@ -4,8 +4,10 @@
 use sdrkit_util_bits::pack::{push_u64 as put_bits, to_u64 as get_bits};
 use std::collections::{HashMap, VecDeque};
 
-const NTOKENS: u32 = 2_063_592;
-const MAX22: u32 = 4_194_304;
+/// The call field values below this are tokens (DE, QRZ, CQ and its forms).
+pub(crate) const NTOKENS: u32 = 2_063_592;
+/// The number of 22-bit hashes; the call field values from [`NTOKENS`] to [`NTOKENS`] + this are hashed calls.
+pub(crate) const MAX22: u32 = 4_194_304;
 const MAXGRID4: u32 = 32_400;
 const A1: &str = " 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const A2: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -190,7 +192,8 @@ pub fn is_standard_call(c: &str) -> bool {
     std_call_value(c).is_some()
 }
 
-fn std_call_value(call: &str) -> Option<u32> {
+/// The value of a standard call, below 37 · 36 · 10 · 27³, if it is one.
+pub(crate) fn std_call_value(call: &str) -> Option<u32> {
     let mut c = call.to_string();
     if c.starts_with("3DA0") && c.len() <= 7 {
         c = format!("3D0{}", &c[4..]);
@@ -235,7 +238,8 @@ fn std_call_value(call: &str) -> Option<u32> {
     Some(((((i1 * 36 + i2) * 10 + i3) * 27 + i4) * 27 + i5) * 27 + i6)
 }
 
-fn std_call_text(n: u32) -> String {
+/// The text of a standard call value.
+pub(crate) fn std_call_text(n: u32) -> String {
     let mut n = n;
     let i6 = n % 27;
     n /= 27;
@@ -355,7 +359,7 @@ fn unpack28(n: u32, hashes: &CallHashes) -> Option<String> {
 }
 
 /// A 4-character locator as a number below 32400, if it is one (not RR73).
-fn grid4_value(g: &str) -> Option<u32> {
+pub(crate) fn grid4_value(g: &str) -> Option<u32> {
     let b = g.as_bytes();
     if b.len() != 4 || g == "RR73" {
         return None;
@@ -376,7 +380,8 @@ fn grid4_value(g: &str) -> Option<u32> {
     Some(j1 * 18 * 10 * 10 + j2 * 10 * 10 + j3 * 10 + j4)
 }
 
-fn grid4_text(v: u32) -> String {
+/// The 4-character locator of a value below 32400.
+pub(crate) fn grid4_text(v: u32) -> String {
     let (j1, r) = (v / 1800, v % 1800);
     let (j2, r) = (r / 100, r % 100);
     let (j3, j4) = (r / 10, r % 10);

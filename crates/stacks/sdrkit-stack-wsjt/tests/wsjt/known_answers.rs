@@ -4,32 +4,28 @@ use super::common::*;
 use sdrkit_core::owner::Owner;
 use sdrkit_core::publish::keys;
 use sdrkit_core::LockState;
-use sdrkit_stack_wsjt::encode::{self, EncodeError};
-use sdrkit_stack_wsjt::proto::codes::CodeStore;
+use sdrkit_stack_wsjt::encode;
 use sdrkit_stack_wsjt::proto::{js8msg, jt65, msg72};
 use sdrkit_stack_wsjt::table::spot_event;
 use sdrkit_stack_wsjt::typed::SPOT;
-use sdrkit_stack_wsjt::{Mode, Sub};
+use sdrkit_stack_wsjt::Mode;
 use sdrkit_util_bits::crc::cyclic::{FST4_CRC24, FT8_CRC14, MSK144_CRC13};
 use sdrkit_util_bits::pack::to_u64;
 
-/// MSK144 encodes and decodes only with a table that the host loads, and its status says so otherwise.
+/// FST4, FST4W and MSK144 carry their codes: on noise the receiver decodes nothing and is not off.
 #[test]
-fn msk144_needs_a_loaded_table() {
-    let none = CodeStore::default();
-    assert!(matches!(
-        encode::channel_symbols(&Sub::new(Mode::Msk144), "CQ K1ABC FN42", &none),
-        Err(EncodeError::NoCode(_))
-    ));
-    let mut rx = receiver(Some(Mode::Msk144), &[], 8000.0, 0.0);
-    let _ = feed(&mut rx, &iq_of(&noise(16 * 8000, SIGMA, 2)), 8000);
-    let st = rx.results().status();
-    assert_eq!(st.lock_state, LockState::Off);
-    assert!(st.summary.contains("msk144_128_90.alist"), "{}", st.summary);
+fn the_coded_stacks_on_noise_are_not_off() {
+    for (m, s) in [(Mode::Msk144, 16), (Mode::Fst4, 65), (Mode::Fst4w, 125)] {
+        let mut rx = receiver(Some(m), &[], 8000.0, 0.0);
+        let got = texts(&feed(&mut rx, &iq_of(&noise(s * 8000, SIGMA, 2)), 8000));
+        assert!(got.is_empty(), "{m:?}: {got:?}");
+        let st = rx.results().status();
+        assert_ne!(st.lock_state, LockState::Off, "{m:?}");
+        assert!(!st.summary.contains("table"), "{m:?}: {}", st.summary);
+    }
 }
 
-/// JS8 uses the published (174,87) code of `sdrkit-algo-fec`, so its tones equal the vector's, parity included. FST4 and
-/// FST4W refuse to encode without their code.
+/// JS8 uses the published (174,87) code of `sdrkit-algo-fec`, so its tones equal the vector's, parity included.
 #[test]
 fn every_code_is_the_published_one() {
     let v: serde_json::Value = serde_json::from_str(
@@ -54,16 +50,6 @@ fn every_code_is_the_published_one() {
         .collect();
     let flags = js8["flags"].as_u64().unwrap() as u8;
     assert_eq!(encode::js8_tones(0, &frame, flags), want);
-    let none = CodeStore::default();
-    for (m, t) in [
-        (Mode::Fst4, "CQ K1ABC FN42"),
-        (Mode::Fst4w, "K1ABC FN42 37"),
-    ] {
-        assert!(matches!(
-            encode::channel_symbols(&Sub::new(m), t, &none),
-            Err(EncodeError::NoCode(_))
-        ));
-    }
 }
 
 /// The JT65 Reed-Solomon decoder refuses an erasure index of 63 or more.

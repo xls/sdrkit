@@ -1,12 +1,12 @@
 //! MSK144 decoding: bursts found from the spectrum of the squared analytic signal, whose two lines at 2(fc +- 500)
 //! give the carrier; frames found by correlation with the two sync words; 1, 2 and 3 frames averaged coherently; soft bits from
-//! the half-sine matched filter; belief propagation of the (128,90) code (loaded at run time) and the CRC-13.
+//! the half-sine matched filter; belief propagation of the (128,90) code and the CRC-13.
 
 use super::slot::*;
 use crate::encode::MSK_SYNC;
 use crate::proto::msg77::{unpack77_learn, CallHashes};
 use num_complex::Complex32;
-use sdrkit_algo_fec::ldpc::LdpcCode;
+use crate::proto::codes;
 use sdrkit_util_bits::crc::cyclic::MSK144_CRC13;
 use std::f64::consts::PI;
 
@@ -81,12 +81,10 @@ fn soft_bits(
     }
 }
 
-/// Decodes one MSK144 period with the (128,90) `code`; nothing without it.
+/// Decodes one MSK144 period.
 #[allow(clippy::needless_range_loop)]
-pub fn decode(slot: &Slot, hashes: &mut CallHashes, code: Option<&LdpcCode>) -> Vec<Decode> {
-    let Some(code) = code.filter(|c| c.n() == 128 && c.k() == 90) else {
-        return Vec::new();
-    };
+pub fn decode(slot: &Slot, hashes: &mut CallHashes) -> Vec<Decode> {
+    let code = codes::msk144();
     let audio: Vec<f32> = slot
         .audio
         .iter()

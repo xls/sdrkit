@@ -3,7 +3,6 @@
 
 use crate::components::*;
 use crate::mode::Mode;
-use crate::proto::codes::{CodeId, CodeStore};
 use crate::settings::{
     early_too, hop_too, qso_too, sub_of, transmits_too, wide_too, with_sub, GEN_LIVE,
 };
@@ -26,35 +25,13 @@ fn modes_of(mode: Option<Mode>) -> Vec<Mode> {
     }
 }
 
-/// The receiver of `mode` (`None`: the combined stack) with no loaded codes.
+/// The receiver of `mode` (`None`: the combined stack). A sub-mode that the host names (`jt65b`, `q65-30c`) wins over the
+/// sub-mode settings. The slot clock reads the wall clock of the run context ([`StackGraph::set_context`]).
 ///
 /// # Errors
 ///
 /// [`GraphError::Setting`] if a component refuses a value of `cfg`.
 pub fn receiver(mode: Option<Mode>, cfg: &StackConfig) -> Result<StackGraph, GraphError> {
-    receiver_with_codes(mode, cfg, CodeStore::default())
-}
-
-/// The receiver of `mode` with the codes a host loaded (FST4, FST4W, MSK144, see [`CodeStore`]).
-///
-/// # Errors
-///
-/// As [`receiver`].
-pub fn receiver_with_codes(
-    mode: Option<Mode>,
-    cfg: &StackConfig,
-    codes: CodeStore,
-) -> Result<StackGraph, GraphError> {
-    build(mode, cfg, codes)
-}
-
-/// The receiver of `mode` with the loaded `codes`. A sub-mode that the host names (`jt65b`, `q65-30c`) wins over the
-/// sub-mode settings. The slot clock reads the wall clock of the run context ([`StackGraph::set_context`]).
-fn build(
-    mode: Option<Mode>,
-    cfg: &StackConfig,
-    codes: CodeStore,
-) -> Result<StackGraph, GraphError> {
     let modes = modes_of(mode);
     let mut b = GraphBuilder::new()
         .add("front", FrontComponent::default())
@@ -67,7 +44,7 @@ fn build(
         let queue = crate::runner::SlotQueue::new();
         b = b
             .add(&cut, CutterComponent::new(sub).with_queue(queue.clone()))
-            .add(dec, decoder(m, codes.clone(), Some(queue)))
+            .add(dec, decoder(m, Some(queue)))
             .connect("front.audio", &format!("{cut}.in"))
             .connect("clock.time", &format!("{cut}.time"))
             .connect(&format!("{cut}.slots"), &format!("{dec}.in"))
@@ -232,14 +209,6 @@ fn routes(modes: &[Mode], mode: Option<Mode>) -> Vec<(String, Vec<String>)> {
         add("early_decode", early);
     }
     add("deep", decs("deep"));
-    let code_decs: Vec<String> = modes
-        .iter()
-        .filter(|m| CodeId::of(**m).is_some())
-        .map(|m| format!("dec_{}.code_dir", m.id()))
-        .collect();
-    if !code_decs.is_empty() {
-        add("code_dir", code_decs);
-    }
     for k in ["demod", "listen"] {
         add(k, vec![format!("front.{k}")]);
     }

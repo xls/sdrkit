@@ -119,7 +119,7 @@ fn the_worked_examples() {
         assert_eq!(channel[..13], x.info, "{}", x.text);
         assert_eq!(channel[13..], x.checks, "{}", x.text);
         assert_eq!(encode::q65_tones(&channel), x.tones, "{}", x.text);
-        assert_eq!(channel_symbols(&Sub::new(Mode::Q65), x.text, &Default::default()).unwrap(), x.tones);
+        assert_eq!(channel_symbols(&Sub::new(Mode::Q65), x.text).unwrap(), x.tones);
     }
     // The first example's CRC as a number, highest power first: 1100 1111 1110.
     let [a, b] = encode::q65_crc(&EXAMPLES[0].info);
@@ -131,7 +131,7 @@ fn the_worked_examples() {
 /// ninth and the last.
 #[test]
 fn the_tone_frame() {
-    let t = channel_symbols(&Sub::new(Mode::Q65), "CQ K1ABC FN42", &Default::default()).unwrap();
+    let t = channel_symbols(&Sub::new(Mode::Q65), "CQ K1ABC FN42").unwrap();
     assert_eq!(t.len(), 85);
     assert!(t.iter().all(|&x| x <= 64));
     assert_eq!(t.iter().filter(|&&x| x == 0).count(), 22);
@@ -155,7 +155,7 @@ fn the_encoder_vectors_tone_for_tone() {
             .iter()
             .map(|x| x.as_u64().unwrap() as u8)
             .collect();
-        assert_eq!(channel_symbols(&Sub::new(Mode::Q65), msg, &Default::default()).unwrap(), want, "{msg}");
+        assert_eq!(channel_symbols(&Sub::new(Mode::Q65), msg).unwrap(), want, "{msg}");
         n += 1;
     }
     assert_eq!(n, 3);
@@ -323,7 +323,7 @@ fn drifting_signals_decode() {
             amp: amp(-22.0),
             mirrored: false,
         };
-        let tones = channel_symbols(&sub, text, &Default::default()).unwrap();
+        let tones = channel_symbols(&sub, text).unwrap();
         let mut z = Vec::new();
         encode::baseband_of(&t, &tones, 8000.0, 0.0, &mut z);
         let mut a = noise((sub.period * 8000.0) as usize, SIGMA, 31 + i as u64);

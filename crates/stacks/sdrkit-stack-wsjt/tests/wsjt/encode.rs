@@ -1,9 +1,8 @@
 //! The encoder vectors of `tests/vectors/wsjt/encode_vectors.json`, made by an independent encoder. FT8, FT4, WSPR, JT65, JT9,
-//! JT4, JS8 and Q65 must be reproduced exactly (Q65 also here: the 78 message bits). For FST4, FST4W and MSK144, which have
-//! no code table here, the sync symbols and the information part (the packed message, the CRC and the bit order) must match.
+//! JT4, JS8, Q65, FST4, FST4W and MSK144 must be reproduced exactly (Q65 also here: the 78 message bits).
 
 use sdrkit_stack_wsjt::encode::{self, channel_symbols};
-use sdrkit_stack_wsjt::proto::codes::CodeStore;
+use sdrkit_stack_wsjt::proto::{codes, msg50};
 use sdrkit_stack_wsjt::proto::js8msg::{self, Frame};
 use sdrkit_stack_wsjt::proto::msg77::{pack77, unpack77, CallHashes};
 use sdrkit_stack_wsjt::proto::wsprmsg::{pack50, unpack50, WsprHashes};
@@ -55,7 +54,7 @@ fn exact_modes_reproduce_every_vector() {
             _ => continue,
         };
         assert_eq!(
-            channel_symbols(&sub, msg, &CodeStore::default()).unwrap(),
+            channel_symbols(&sub, msg).unwrap(),
             syms(&v),
             "{mode} {msg}"
         );
@@ -111,8 +110,7 @@ fn crc14_matches_every_ft8_vector() {
 }
 
 #[test]
-fn codes_without_tables_match_sync_and_information() {
-    let none = CodeStore::default();
+fn the_coded_stacks_match_the_vectors() {
     let mut n = 0;
     for v in vectors() {
         let mode = v["mode"].as_str().unwrap();
@@ -136,7 +134,7 @@ fn codes_without_tables_match_sync_and_information() {
                 }
                 assert_eq!(bits[..77], pack77(msg).unwrap()[..], "Q65 {msg}");
                 assert_eq!(bits[77], 0);
-                assert_eq!(channel_symbols(&Sub::new(Mode::Q65), msg, &none).unwrap(), want, "Q65 {msg}");
+                assert_eq!(channel_symbols(&Sub::new(Mode::Q65), msg).unwrap(), want, "Q65 {msg}");
                 n += 1;
             }
             "FST4" | "FST4W" => {
@@ -157,15 +155,6 @@ fn codes_without_tables_match_sync_and_information() {
                         bits.push(x & 1);
                     }
                 }
-                let (msg_bits, info) = if m == Mode::Fst4 {
-                    (
-                        pack77(msg).unwrap(),
-                        encode::fst4_info(&pack77(msg).unwrap(), false),
-                    )
-                } else {
-                    let p = pack50(msg).unwrap().to_vec();
-                    (p.clone(), encode::fst4_info(&p, true))
-                };
                 // The CRC-24 of the vector's message bits is the vector's own CRC (a known answer).
                 let nm = k - 24;
                 assert_eq!(
@@ -173,9 +162,13 @@ fn codes_without_tables_match_sync_and_information() {
                     get_bits(&bits[nm..k]),
                     "{mode} {msg}"
                 );
-                assert_eq!(bits[..k], info[..], "{mode} {msg}: message and CRC-24");
-                let _ = msg_bits;
-                assert!(channel_symbols(&Sub::new(m), msg, &none).is_err());
+                if m == Mode::Fst4 {
+                    assert!(codes::fst4().is_codeword(&bits), "{msg}");
+                } else {
+                    assert!(codes::fst4w().is_codeword(&bits), "{msg}");
+                    assert_eq!(bits[..50], msg50::pack50(msg).unwrap()[..], "{msg}");
+                }
+                assert_eq!(channel_symbols(&Sub::new(m), msg).unwrap(), want, "{mode} {msg}");
                 n += 1;
             }
             "MSK144" => {
@@ -190,7 +183,7 @@ fn codes_without_tables_match_sync_and_information() {
                     encode::msk144_info(&pack77(msg).unwrap()),
                     "MSK144 {msg}"
                 );
-                assert!(channel_symbols(&Sub::new(Mode::Msk144), msg, &none).is_err());
+                assert_eq!(channel_symbols(&Sub::new(Mode::Msk144), msg).unwrap(), want, "MSK144 {msg}");
                 n += 1;
             }
             m if m.starts_with("JS8") => {

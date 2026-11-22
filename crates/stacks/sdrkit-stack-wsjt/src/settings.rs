@@ -9,7 +9,7 @@ use crate::components::{
     WIDE_SPAN,
 };
 use crate::mode::{Mode, Sub};
-use crate::runner::{CODE_DIR, DEEP, MIRRORED};
+use crate::runner::{DEEP, MIRRORED};
 use sdrkit_core::publish::field;
 use sdrkit_core::settings::DeclareSetting;
 use sdrkit_core::{ChoiceDecl, FieldDecl, Schema, Setting, SettingDecl, Value, Values};
@@ -143,12 +143,6 @@ fn decls_for(mode: Option<Mode>) -> Vec<SettingDecl> {
     }
     if has(Mode::Msk144) {
         v.push(period(Mode::Msk144, 15.0));
-    }
-    if Mode::ALL
-        .into_iter()
-        .any(|m| has(m) && crate::proto::codes::CodeId::of(m).is_some())
-    {
-        v.push(CODE_DIR.decl().with_section("Modes"));
     }
     if has(Mode::Js8) {
         v.push(renamed(&JS8_NORMAL, "js8_normal".into(), "JS8"));

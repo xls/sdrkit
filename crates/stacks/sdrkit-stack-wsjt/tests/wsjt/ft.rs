@@ -69,7 +69,7 @@ fn t_ft8_2_six_stations_at_minus_15() {
 fn t_ft8_3_4_dial_and_clock_errors_through_the_receiver() {
     for (dial, ppm, rate) in [(100.0, 100.0, 48000.0), (-100.0, -100.0, 48000.0)] {
         let mut g =
-            WsjtGenerator::new(Sub::new(Mode::Ft8), rate, false, &Default::default())
+            WsjtGenerator::new(Sub::new(Mode::Ft8), rate, false)
                 .unwrap();
         let mut iq = vec![Complex32::default(); (rate * 31.0) as usize];
         g.generate(&mut iq);
@@ -216,7 +216,7 @@ fn t_ft8_10_slot_search() {
 fn t_ft8_11_12_generator_at_384_ksps_and_swapped_iq() {
     let rate = 384_000.0;
     let mut g =
-        WsjtGenerator::new(Sub::new(Mode::Ft8), rate, false, &Default::default()).unwrap();
+        WsjtGenerator::new(Sub::new(Mode::Ft8), rate, false).unwrap();
     let mut iq = vec![Complex32::default(); (rate * 16.0) as usize];
     g.generate(&mut iq);
     // The dial 20 kHz below the centre.

@@ -1,14 +1,11 @@
-//! The codes of the family. FT8, FT4, FT2 and JS8 use the tables that `sdrkit-algo-fec` ships, and Q65 the tables of
-//! [`super::q65code`]. The FST4, FST4W and MSK144 tables are not shipped, so a host loads them at run time from alist files.
+//! The binary LDPC codes of the family, each built once on first use. FT8, FT4, FT2 and JS8 use the tables that
+//! `sdrkit-algo-fec` ships, FST4 and FST4W the tables of [`super::fst4code`], and MSK144 the table of
+//! [`super::msk144code`]. Q65 uses the code over GF(64) of [`super::q65code`].
 //! Standard: QEX July/August 2020 "The FT4 and FT8 Communication Protocols" section 3.
 
-use crate::mode::Mode;
-use sdrkit_algo_fec::ldpc::alist::{Alist, AlistError};
+use super::{fst4code, msk144code};
 use sdrkit_algo_fec::ldpc::{tables::wsjt, InfoAt, LdpcCode};
-use sdrkit_algo_fec::FecError;
-use std::collections::BTreeMap;
-use std::path::Path;
-use std::sync::{Arc, OnceLock};
+use std::sync::OnceLock;
 
 /// The (174,91) code of FT8, FT4 and FT2: 91 information bits (77 message bits and the CRC-14), then 83 parity bits.
 pub fn ft8() -> &'static LdpcCode {
@@ -28,216 +25,96 @@ pub fn js8() -> &'static LdpcCode {
     })
 }
 
-/// A code that sdrkit does not ship and a host loads at run time.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum CodeId {
-    /// The (240,101) code of FST4.
-    Fst4,
-    /// The (240,74) code of FST4W.
-    Fst4w,
-    /// The (128,90) code of MSK144.
-    Msk144,
+/// The (240,101) code of FST4: 101 information bits (the 77 scrambled message bits and the CRC-24), then 139 parity bits.
+pub fn fst4() -> &'static LdpcCode {
+    static C: OnceLock<LdpcCode> = OnceLock::new();
+    C.get_or_init(|| {
+        LdpcCode::from_checks("fst4 (240,101)", 240, 101, &fst4code::FST4_CHECKS, InfoAt::Start)
+            .expect("the FST4 table is consistent")
+    })
 }
 
-impl CodeId {
-    /// Every code a host can load.
-    pub const ALL: [CodeId; 3] = [CodeId::Fst4, CodeId::Fst4w, CodeId::Msk144];
-
-    /// The code of `mode`, if that mode needs a loaded code.
-    pub fn of(mode: Mode) -> Option<CodeId> {
-        match mode {
-            Mode::Fst4 => Some(CodeId::Fst4),
-            Mode::Fst4w => Some(CodeId::Fst4w),
-            Mode::Msk144 => Some(CodeId::Msk144),
-            _ => None,
-        }
-    }
-
-    /// The code length `n`.
-    pub fn n(self) -> usize {
-        match self {
-            CodeId::Fst4 | CodeId::Fst4w => 240,
-            CodeId::Msk144 => 128,
-        }
-    }
-
-    /// The information bits `k`.
-    pub fn k(self) -> usize {
-        match self {
-            CodeId::Fst4 => 101,
-            CodeId::Fst4w => 74,
-            CodeId::Msk144 => 90,
-        }
-    }
-
-    /// A name for people, such as "FST4 LDPC (240,101)".
-    pub fn name(self) -> &'static str {
-        match self {
-            CodeId::Fst4 => "FST4 LDPC (240,101)",
-            CodeId::Fst4w => "FST4W LDPC (240,74)",
-            CodeId::Msk144 => "MSK144 LDPC (128,90)",
-        }
-    }
-
-    /// The file name [`CodeStore::load_dir`] looks for.
-    pub fn file_name(self) -> &'static str {
-        match self {
-            CodeId::Fst4 => "fst4_240_101.alist",
-            CodeId::Fst4w => "fst4w_240_74.alist",
-            CodeId::Msk144 => "msk144_128_90.alist",
-        }
-    }
+/// The (240,74) code of FST4W: 74 information bits (the 50 message bits and the CRC-24), then 166 parity bits.
+pub fn fst4w() -> &'static LdpcCode {
+    static C: OnceLock<LdpcCode> = OnceLock::new();
+    C.get_or_init(|| {
+        LdpcCode::from_checks("fst4w (240,74)", 240, 74, &fst4code::FST4W_CHECKS, InfoAt::Start)
+            .expect("the FST4W table is consistent")
+    })
 }
 
-/// Why a mode cannot decode or encode: its code is not there.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
-pub enum CodeMissing {
-    /// A host has not loaded the table of this code.
-    #[error("No {} table: load {} to decode", .0.name(), .0.file_name())]
-    Table(CodeId),
+/// The (128,90) code of MSK144: 90 information bits (the 77 message bits and the CRC-13), then 38 parity bits.
+pub fn msk144() -> &'static LdpcCode {
+    static C: OnceLock<LdpcCode> = OnceLock::new();
+    C.get_or_init(|| {
+        LdpcCode::from_checks("msk144 (128,90)", 128, 90, &msk144code::MSK144_CHECKS, InfoAt::Start)
+            .expect("the MSK144 table is consistent")
+    })
 }
 
-impl CodeMissing {
-    /// Why `mode` cannot decode with the codes of `codes`, or `None` if it can.
-    pub fn of(mode: Mode, codes: &CodeStore) -> Option<CodeMissing> {
-        let id = CodeId::of(mode)?;
-        (!codes.has(id)).then_some(CodeMissing::Table(id))
-    }
-}
+#[cfg(test)]
+pub(crate) mod tests {
+    use sdrkit_algo_fec::ldpc::LdpcCode;
 
-/// Why a code table was refused.
-#[derive(Clone, Debug, PartialEq, thiserror::Error)]
-pub enum CodeError {
-    /// The text is not an alist file.
-    #[error(transparent)]
-    Alist(#[from] AlistError),
-    /// The matrix has the wrong size for the code.
-    #[error("{} needs {} columns and at least {} rows, the file has {} columns and {} rows", code.name(), code.n(), code.n() - code.k(), found.0, found.1)]
-    Size {
-        /// The code.
-        code: CodeId,
-        /// Columns and rows found.
-        found: (usize, usize),
-    },
-    /// The checks do not make a code.
-    #[error(transparent)]
-    Checks(#[from] FecError),
-    /// The checks do not give an encoder with the information bits first.
-    #[error("the checks of {} do not give an encoder with the information bits first", .0.name())]
-    NoEncoder(CodeId),
-    /// The file of a code cannot be read.
-    #[error("{} cannot be read: {kind}", code.file_name())]
-    Io {
-        /// The code whose file it is.
-        code: CodeId,
-        /// What went wrong.
-        kind: std::io::ErrorKind,
-    },
-}
-
-/// A loaded code: the parity checks of one [`CodeId`], with the information bits first, checked to give an encoder.
-#[derive(Clone, Debug)]
-pub struct CodeTable {
-    id: CodeId,
-    code: Arc<LdpcCode>,
-}
-
-impl CodeTable {
-    /// The code `id` from its parity checks (0-based code word bits, information bits first).
-    ///
-    /// # Errors
-    ///
-    /// [`CodeError::Size`] if the size is wrong, [`CodeError::Checks`] if the checks make no code, [`CodeError::NoEncoder`] if
-    /// they give no encoder.
-    pub fn from_checks(id: CodeId, n: usize, rows: &[Vec<u16>]) -> Result<CodeTable, CodeError> {
-        if n != id.n() || rows.len() < id.n() - id.k() {
-            return Err(CodeError::Size {
-                code: id,
-                found: (n, rows.len()),
-            });
-        }
-        let checks: Vec<&[u16]> = rows.iter().map(Vec::as_slice).collect();
-        let code = LdpcCode::from_checks(id.name(), n, id.k(), &checks, InfoAt::Start)?;
-        if !code.can_encode() {
-            return Err(CodeError::NoEncoder(id));
-        }
-        Ok(CodeTable {
-            id,
-            code: Arc::new(code),
-        })
-    }
-
-    /// The code `id` from the text of an alist file.
-    ///
-    /// # Errors
-    ///
-    /// [`CodeError::Alist`] if the text is not an alist file, else the errors of [`CodeTable::from_checks`].
-    pub fn parse_alist(id: CodeId, text: &str) -> Result<CodeTable, CodeError> {
-        let a = Alist::parse(text)?;
-        let rows: Vec<Vec<u16>> = a
-            .rows()
-            .iter()
-            .map(|r| r.iter().map(|&c| c as u16).collect())
+    /// The `n` bits of a hex text, most significant bit of each digit first.
+    pub fn hex_bits(hex: &str, n: usize) -> Vec<u8> {
+        let mut v: Vec<u8> = hex
+            .chars()
+            .flat_map(|c| {
+                let d = c.to_digit(16).expect("a hex digit") as u8;
+                (0..4).rev().map(move |k| d >> k & 1)
+            })
             .collect();
-        Self::from_checks(id, a.n(), &rows)
+        assert!(v[n..].iter().all(|&b| b == 0), "pad bits of {hex}");
+        v.truncate(n);
+        v
     }
 
-    /// Which code it is.
-    pub fn id(&self) -> CodeId {
-        self.id
+    /// The (weight, count) pairs of the rows of `checks`, by weight.
+    pub fn row_weights(checks: &[&[u8]]) -> Vec<(usize, usize)> {
+        let mut w = std::collections::BTreeMap::new();
+        for c in checks {
+            *w.entry(c.len()).or_insert(0) += 1;
+        }
+        w.into_iter().collect()
     }
 
-    /// The code.
-    pub fn code(&self) -> &Arc<LdpcCode> {
-        &self.code
-    }
-}
-
-/// The loaded codes of a receiver or a generator. Cloning is cheap: the codes are shared and never change.
-#[derive(Clone, Debug, Default)]
-pub struct CodeStore {
-    codes: BTreeMap<CodeId, Arc<LdpcCode>>,
-}
-
-impl CodeStore {
-    /// Adds (or replaces) a code.
-    pub fn install(&mut self, table: CodeTable) {
-        self.codes.insert(table.id, table.code);
-    }
-
-    /// Whether the code `id` is loaded.
-    pub fn has(&self, id: CodeId) -> bool {
-        self.codes.contains_key(&id)
-    }
-
-    /// The code `id`, if loaded.
-    pub fn get(&self, id: CodeId) -> Option<&Arc<LdpcCode>> {
-        self.codes.get(&id)
-    }
-
-    /// Loads every code whose file ([`CodeId::file_name`]) is in the folder `dir`, and returns the codes loaded.
-    ///
-    /// # Errors
-    ///
-    /// [`CodeError::Io`] for a file that cannot be read, and the errors of [`CodeTable::parse_alist`] for a file that is
-    /// refused. Nothing is loaded then.
-    pub fn load_dir(&mut self, dir: &Path) -> Result<Vec<CodeId>, CodeError> {
-        let mut found = Vec::new();
-        for id in CodeId::ALL {
-            let p = dir.join(id.file_name());
-            if !p.is_file() {
-                continue;
+    /// The check lists, the variable lists and the generator rows describe `code`: the variable lists are the check lists
+    /// read by columns, each check list is in increasing order, and every single-bit information word encodes to the
+    /// generator row of its bit and satisfies every check.
+    pub fn check_table(code: &LdpcCode, checks: &[&[u8]], vars: &[[u8; 3]], parity: &[&str]) {
+        let (n, k) = (code.n(), code.k());
+        assert_eq!((checks.len(), vars.len(), parity.len()), (n - k, n, k));
+        let mut cols = vec![Vec::new(); n];
+        for (i, c) in checks.iter().enumerate() {
+            assert!(c.windows(2).all(|w| w[0] < w[1]), "check {i}");
+            for &b in *c {
+                cols[b as usize].push(i as u8);
             }
-            let text = std::fs::read_to_string(&p).map_err(|e| CodeError::Io {
-                code: id,
-                kind: e.kind(),
-            })?;
-            found.push(CodeTable::parse_alist(id, &text)?);
         }
-        let ids = found.iter().map(CodeTable::id).collect();
-        for t in found {
-            self.install(t);
+        for (j, v) in vars.iter().enumerate() {
+            assert_eq!(cols[j], v.to_vec(), "bit {j}");
         }
-        Ok(ids)
+        assert_eq!(checks.iter().map(|c| c.len()).sum::<usize>(), 3 * n);
+        let mut cw = vec![0u8; n];
+        for (j, row) in parity.iter().enumerate() {
+            let mut info = vec![0u8; k];
+            info[j] = 1;
+            code.encode(&info, &mut cw).unwrap();
+            assert_eq!(cw[..k], info[..], "row {j}");
+            assert_eq!(cw[k..], hex_bits(row, n - k)[..], "row {j}");
+            assert!(code.is_codeword(&cw), "row {j}");
+        }
+    }
+
+    /// The printed code word `hex` satisfies every check of `code`, has `weight` ones, and is the encoding of its
+    /// information bits.
+    pub fn check_word(code: &LdpcCode, hex: &str, weight: usize) {
+        let w = hex_bits(hex, code.n());
+        assert_eq!(w.iter().filter(|&&b| b == 1).count(), weight, "{hex}");
+        assert!(code.is_codeword(&w), "{hex}");
+        let mut cw = vec![0u8; code.n()];
+        code.encode(&w[..code.k()], &mut cw).unwrap();
+        assert_eq!(cw, w, "{hex}");
     }
 }

@@ -2,11 +2,11 @@
 
 use crate::mode::FskSpec;
 use crate::mode::{Mode, Sub};
-use crate::proto::codes::{self, CodeId, CodeMissing, CodeStore};
+use crate::proto::codes;
 use crate::proto::q65code;
 use crate::proto::js8msg;
 use crate::proto::msg77::{pack77, PackError, RVEC};
-use crate::proto::{jt65, k32, msg72, wsprmsg};
+use crate::proto::{jt65, k32, msg50, msg72, wsprmsg};
 use num_complex::Complex32;
 use sdrkit_algo_fec::ldpc::LdpcCode;
 use sdrkit_util_bits::crc::cyclic::{FST4_CRC24, FT8_CRC14, MSK144_CRC13, Q65_CRC12};
@@ -18,9 +18,6 @@ pub enum EncodeError {
     /// The text does not fit the mode's message.
     #[error(transparent)]
     Pack(#[from] PackError),
-    /// The mode's code is not available.
-    #[error(transparent)]
-    NoCode(#[from] CodeMissing),
 }
 
 /// The `n` code bits of `info` with `code` (empty when the lengths do not fit).
@@ -30,14 +27,6 @@ fn encode_with(code: &LdpcCode, info: &[u8]) -> Vec<u8> {
         cw.clear();
     }
     cw
-}
-
-/// The loaded code `id`, or the reason it is missing.
-fn loaded(codes: &CodeStore, id: CodeId) -> Result<&LdpcCode, EncodeError> {
-    codes
-        .get(id)
-        .map(|c| &**c)
-        .ok_or(EncodeError::NoCode(CodeMissing::Table(id)))
 }
 
 /// The FT8 Costas array.
@@ -228,10 +217,11 @@ pub fn q65_tones(channel: &[u8]) -> Vec<u8> {
         .collect()
 }
 
-/// The FST4 / FST4W information bits (FST4: the scrambled message and CRC-24; FST4W: the 50 bits and CRC-24).
-pub fn fst4_info(bits: &[u8], wspr: bool) -> Vec<u8> {
+/// The FST4 / FST4W information bits (FST4: the scrambled 77 message bits and their CRC-24; FST4W, `fst4w`: the 50
+/// message bits, not scrambled, and their CRC-24).
+pub fn fst4_info(bits: &[u8], fst4w: bool) -> Vec<u8> {
     let mut m = bits.to_vec();
-    if !wspr {
+    if !fst4w {
         for (b, r) in m.iter_mut().zip(RVEC.iter()) {
             *b ^= r;
         }
@@ -263,9 +253,10 @@ pub fn msk144_info(bits77: &[u8]) -> Vec<u8> {
     m
 }
 
-/// The 144 MSK144 channel bits of 77 message bits, with the loaded (128,90) code.
-pub fn msk144_bits(code: &LdpcCode, bits77: &[u8]) -> Vec<u8> {
-    let cw = encode_with(code, &msk144_info(bits77));
+/// The 144 MSK144 frame bits of 77 message bits: the sync word, code word bits 0 to 47, the sync word, code word bits 48
+/// to 127.
+pub fn msk144_bits(bits77: &[u8]) -> Vec<u8> {
+    let cw = encode_with(codes::msk144(), &msk144_info(bits77));
     if cw.len() != 128 {
         return Vec::new();
     }
@@ -297,9 +288,8 @@ pub fn js8_tones(sub: u8, frame72: &[u8], flags: u8) -> Vec<u8> {
 }
 
 /// The channel symbols of a message as the encoder vectors list them: FT8 79 tones, FT4 / FT2 103 tones (no ramp symbols), WSPR
-/// 162, JT65 126, JT9 85, JT4 206, Q65 85, FST4 / FST4W 160, MSK144 the 144 frame bits. FST4, FST4W and MSK144 take their
-/// code from `codes`. (JS8 frames: [`js8_tones`].)
-pub fn channel_symbols(sub: &Sub, text: &str, codes: &CodeStore) -> Result<Vec<u8>, EncodeError> {
+/// 162, JT65 126, JT9 85, JT4 206, Q65 85, FST4 / FST4W 160, MSK144 the 144 frame bits. (JS8 frames: [`js8_tones`].)
+pub fn channel_symbols(sub: &Sub, text: &str) -> Result<Vec<u8>, EncodeError> {
     Ok(match sub.mode {
         Mode::Ft8 => ft8_tones(&ft_codeword(&pack77(text)?, false)),
         Mode::Ft4 | Mode::Ft2 => ft4_tones(&ft_codeword(&pack77(text)?, true)),
@@ -308,15 +298,12 @@ pub fn channel_symbols(sub: &Sub, text: &str, codes: &CodeStore) -> Result<Vec<u
         Mode::Jt9 => jt9_symbols(&msg72::pack72(text)?),
         Mode::Jt4 => jt4_symbols(&msg72::pack72(text)?),
         Mode::Q65 => q65_tones(&q65_channel(&q65_info(&pack77(text)?))),
-        Mode::Fst4 => {
-            let info = fst4_info(&pack77(text)?, false);
-            fst4_tones(&encode_with(loaded(codes, CodeId::Fst4)?, &info))
-        }
+        Mode::Fst4 => fst4_tones(&encode_with(codes::fst4(), &fst4_info(&pack77(text)?, false))),
         Mode::Fst4w => {
-            let info = fst4_info(&wsprmsg::pack50(text)?, true);
-            fst4_tones(&encode_with(loaded(codes, CodeId::Fst4w)?, &info))
+            let info = fst4_info(&msg50::pack50(text)?, true);
+            fst4_tones(&encode_with(codes::fst4w(), &info))
         }
-        Mode::Msk144 => msk144_bits(loaded(codes, CodeId::Msk144)?, &pack77(text)?),
+        Mode::Msk144 => msk144_bits(&pack77(text)?),
         Mode::Js8 => {
             return Err(PackError::Js8Frames.into());
         }
@@ -424,27 +411,23 @@ pub fn waveform(spec: &FskSpec, tones: &[u8], f0_hz: f64, rate: f64, out: &mut V
     }
 }
 
-/// The MSK144 tone sequence of 144 channel bits: tone 0 is the carrier - 500 Hz, tone 1 the carrier + 500 Hz, two tones per
-/// millisecond.
+/// The MSK144 tone sequence of the frame bits b0 … b(n-1), b(n) meaning b0: tone 2i is 0 when b(2i) equals b(2i+1) and 1
+/// otherwise, tone 2i+1 is 1 when b(2i+1) equals b(2i+2) and 0 otherwise. Tone 0 is the carrier - 500 Hz, tone 1 the
+/// carrier + 500 Hz, two tones per millisecond.
 pub fn msk_tones(bits: &[u8]) -> Vec<u8> {
     let n = bits.len();
-    let s = |i: usize| 2 * bits[i % n] as i32 - 1;
+    let b = |i: usize| bits[i % n] & 1;
     let mut t = vec![0u8; n];
     for i in 0..n / 2 {
-        t[2 * i] = ((s(2 * i + 1) * s(2 * i) + 1) / 2) as u8;
-        t[2 * i + 1] = (-(s(2 * i + 1) * s(2 * i + 2) - 1) / 2) as u8;
+        t[2 * i] = u8::from(b(2 * i) != b(2 * i + 1));
+        t[2 * i + 1] = u8::from(b(2 * i + 1) == b(2 * i + 2));
     }
     t
 }
 
-/// The audio of a message: refuses a text that cannot be packed, or a mode whose code is missing (no audio is made).
-pub fn audio(
-    t: &Transmission,
-    text: &str,
-    rate: f64,
-    codes: &CodeStore,
-) -> Result<Vec<f32>, EncodeError> {
-    let s = channel_symbols(&t.sub, text, codes)?;
+/// The audio of a message: refuses a text that cannot be packed (no audio is made).
+pub fn audio(t: &Transmission, text: &str, rate: f64) -> Result<Vec<f32>, EncodeError> {
+    let s = channel_symbols(&t.sub, text)?;
     let mut out = Vec::new();
     audio_of(t, &s, rate, t.sub.period - 0.1, &mut out);
     Ok(out)
@@ -489,18 +472,15 @@ mod tests {
     #[test]
     fn every_mode_with_a_code_encodes() {
         for m in Mode::ALL {
-            if matches!(
-                m,
-                Mode::Js8 | Mode::Fst4 | Mode::Fst4w | Mode::Msk144
-            ) {
+            if m == Mode::Js8 {
                 continue;
             }
             let text = match m {
-                Mode::Wspr => "K1ABC FN42 37",
+                Mode::Wspr | Mode::Fst4w => "K1ABC FN42 37",
                 _ => "CQ K1ABC FN42",
             };
             let sub = Sub::new(m);
-            let s = channel_symbols(&sub, text, &CodeStore::default()).unwrap();
+            let s = channel_symbols(&sub, text).unwrap();
             let t = Transmission {
                 sub,
                 hz: 1500.0,

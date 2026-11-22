@@ -1,10 +1,9 @@
 //! Benchmarks of the family, for `sdrkit_benchmark` on the device (see [`sdrkit_core::bench`]): the front end at 2
-//! Msps, one slot of each decoder whose code sdrkit ships with 8 stations at -15 dB, the crowded FT8 slot, and Q65 slots of
-//! 15 s and 60 s. `items_per_second` counts input samples (slots for the decoders), and
+//! Msps, one slot of each decoder with 8 stations at -15 dB (MSK144: 4 stations at +2 dB), the crowded FT8 slot, and Q65
+//! slots of 15 s and 60 s. `items_per_second` counts input samples (slots for the decoders), and
 //! `cpu_fraction_of_realtime` is the time taken over the signal time.
 
 use crate::encode::{audio, Transmission};
-use crate::proto::codes::CodeStore;
 use crate::front::{Demod, FrontEnd};
 use crate::mode::{Mode, Sub};
 use crate::runner::{decode_slot, DecodeState};
@@ -67,7 +66,6 @@ pub fn test_slot(sub: Sub, n: usize, snr: f64) -> Slot {
             },
             &text,
             8000.0,
-            &CodeStore::default(),
         ) {
             let st = ((sub.t0() - w0) * 8000.0) as usize;
             for (j, v) in s.iter().enumerate() {
@@ -92,8 +90,13 @@ pub fn test_slot(sub: Sub, n: usize, snr: f64) -> Slot {
 }
 
 fn decoder(mode: Mode, n: usize, seconds: f64) -> BenchResult {
+    decoder_at(mode, n, -15.0, seconds)
+}
+
+/// One slot of `mode` with `n` stations at `snr` dB.
+fn decoder_at(mode: Mode, n: usize, snr: f64, seconds: f64) -> BenchResult {
     let sub = Sub::new(mode);
-    let slot = test_slot(sub, n, -15.0);
+    let slot = test_slot(sub, n, snr);
     let mut st = DecodeState::default();
     measure(seconds, 1, sub.period, || {
         st.clear();
@@ -173,6 +176,18 @@ pub fn benchmarks() -> Vec<Benchmark> {
             name: "wsjt.q65_60a_slot_8",
             run: |s| q65(60.0, s),
         },
+        Benchmark {
+            name: "wsjt.fst4_60_slot_8",
+            run: |s| decoder(Mode::Fst4, 8, s),
+        },
+        Benchmark {
+            name: "wsjt.fst4w_120_slot_8",
+            run: |s| decoder(Mode::Fst4w, 8, s),
+        },
+        Benchmark {
+            name: "wsjt.msk144_15_slot_4",
+            run: |s| decoder_at(Mode::Msk144, 4, 2.0, s),
+        },
     ]
 }
 
@@ -184,6 +199,6 @@ mod tests {
     fn the_front_end_is_quick() {
         let b = front(0.05);
         assert!(b.items_per_second > 0.0);
-        assert_eq!(benchmarks().len(), 11);
+        assert_eq!(benchmarks().len(), 14);
     }
 }

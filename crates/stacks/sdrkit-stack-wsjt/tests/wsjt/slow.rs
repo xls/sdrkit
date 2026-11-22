@@ -1,20 +1,11 @@
 //! The cases of WSPR, JT65, JT9, JT4, Q65, FST4, FST4W and MSK144: generator stations, the decode targets at their levels,
-//! impairments, and noise alone. FST4, FST4W and MSK144 run with the test codes of [`super::codes::test_codes`]: those carry
-//! the receivers through a loaded table, and do not stand for the protocol's thresholds.
+//! impairments, and noise alone.
 
-use super::codes::test_codes;
 use super::common::*;
 use sdrkit_core::{Choice, Complex32, Generator, LockState};
 use sdrkit_stack_wsjt::generator::{stations, WsjtGenerator};
 use sdrkit_stack_wsjt::runner::DecodeState;
 use sdrkit_stack_wsjt::{Mode, Sub};
-
-fn with_codes() -> DecodeState {
-    DecodeState {
-        codes: test_codes(),
-        ..Default::default()
-    }
-}
 
 fn list(mode: Mode, offset_db: f64) -> Vec<St<'static>> {
     stations(mode)
@@ -24,9 +15,8 @@ fn list(mode: Mode, offset_db: f64) -> Vec<St<'static>> {
 }
 
 fn all_decoded(sub: Sub, st: &[St], slots: f64, seed: u64) -> Vec<sdrkit_stack_wsjt::rx::Decode> {
-    let codes = test_codes();
-    let a = audio_with(sub, st, slots * sub.period, true, seed, &codes);
-    let d = decode_with(sub, &a, with_codes());
+    let a = audio_of(sub, st, slots * sub.period, true, seed);
+    let d = decode_with(sub, &a, DecodeState::default());
     let sent: Vec<&str> = st.iter().map(|s| s.0).collect();
     let (ok, bad) = score(&d, &sent);
     assert_eq!(
@@ -98,7 +88,7 @@ fn t_ws_3_wspr_impairments_and_mirrored() {
     );
     // A dial error and a clock error, through the receiver.
     let rate = 12000.0;
-    let mut g = WsjtGenerator::new(sub, rate, false, &Default::default()).unwrap();
+    let mut g = WsjtGenerator::new(sub, rate, false).unwrap();
     let mut iq = vec![Complex32::default(); (rate * 121.0) as usize];
     g.generate(&mut iq);
     shift(&mut iq, rate, 100.0);
@@ -253,7 +243,7 @@ fn fst4_and_fst4w_targets() {
     }
     let sub = Sub::new(Mode::Fst4);
     all_decoded(sub, &list(Mode::Fst4, -12.0), 1.0, 91);
-    assert!(decode_with(sub, &audio_of(sub, &[], 60.0, true, 93), with_codes()).is_empty());
+    assert!(decode_with(sub, &audio_of(sub, &[], 60.0, true, 93), DecodeState::default()).is_empty());
     let w = Sub::new(Mode::Fst4w);
     all_decoded(
         w,
@@ -264,18 +254,17 @@ fn fst4_and_fst4w_targets() {
         1.0,
         94,
     );
-    assert!(decode_with(w, &audio_of(w, &[], 120.0, true, 95), with_codes()).is_empty());
+    assert!(decode_with(w, &audio_of(w, &[], 120.0, true, 95), DecodeState::default()).is_empty());
 }
 
 #[test]
 fn msk144_targets() {
     let sub = Sub::new(Mode::Msk144);
-    let codes = test_codes();
     // A continuous transmission at -6 dB, and noise alone.
     let d = decode_with(
         sub,
-        &audio_with(sub, &list(Mode::Msk144, -6.0), 15.0, true, 100, &codes),
-        with_codes(),
+        &audio_of(sub, &list(Mode::Msk144, -6.0), 15.0, true, 100),
+        DecodeState::default(),
     );
     assert_eq!(
         d.iter().map(|x| x.text.as_str()).collect::<Vec<_>>(),
@@ -283,7 +272,7 @@ fn msk144_targets() {
     );
     for k in 0..4 {
         assert!(
-            decode_with(sub, &audio_of(sub, &[], 15.0, true, 101 + k), with_codes()).is_empty()
+            decode_with(sub, &audio_of(sub, &[], 15.0, true, 101 + k), DecodeState::default()).is_empty()
         );
     }
     // Meteor bursts of 150 ms at +4 dB at several times and carriers; two stations in one period.
@@ -292,7 +281,7 @@ fn msk144_targets() {
         ("CQ K1ABC FN42", 1200.0, 3.0),
         ("G4XYZ DL1ABC JO62", 1900.0, 9.5),
     ] {
-        let s = sdrkit_stack_wsjt::encode::channel_symbols(&sub, text, &codes).unwrap();
+        let s = sdrkit_stack_wsjt::encode::channel_symbols(&sub, text).unwrap();
         let mut w = Vec::new();
         sdrkit_stack_wsjt::encode::audio_of(
             &sdrkit_stack_wsjt::encode::Transmission {
@@ -311,7 +300,7 @@ fn msk144_targets() {
             a[st + i] += v;
         }
     }
-    let d = decode_with(sub, &a, with_codes());
+    let d = decode_with(sub, &a, DecodeState::default());
     assert_eq!(
         d.len(),
         2,

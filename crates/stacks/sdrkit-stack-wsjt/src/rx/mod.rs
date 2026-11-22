@@ -40,7 +40,7 @@ pub(crate) mod testutil {
                 amp,
                 mirrored: mir,
             };
-            let s = audio(&t, text, 8000.0, &Default::default()).unwrap();
+            let s = audio(&t, text, 8000.0).unwrap();
             let start = ((sub.t0() + dt - w0) * 8000.0).round() as i64;
             for (i, v) in s.iter().enumerate() {
                 let j = start + i as i64;
@@ -76,12 +76,10 @@ mod tests {
         let slot = slot_of(sub, st, seed);
         let mut h = CallHashes::default();
         let mut w = WsprHashes::default();
-        let codes = Default::default();
         let mut ctx = SlowCtx {
             hashes: &mut h,
             wspr: &mut w,
             mirrored: true,
-            codes: &codes,
         };
         let t = std::time::Instant::now();
         let d = match sub.mode {

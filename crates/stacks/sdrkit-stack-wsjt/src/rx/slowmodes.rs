@@ -6,7 +6,8 @@ use super::slot::*;
 use super::slow::{self, SlowCand, SlowSpec, SyncKind};
 use crate::encode::{self, sync_bits, GRAY4, JT4_SYNC, JT65_SYNC, JT9_SYNC, Q65_SYNC, WSPR_SYNC};
 use crate::mode::{Mode, Sub};
-use crate::proto::codes::{CodeId, CodeStore};
+use crate::proto::codes;
+use crate::proto::msg50;
 use crate::proto::msg77::{unpack77, unpack77_learn, CallHashes, RVEC};
 use crate::proto::wsprmsg::{unpack50, WsprHashes};
 use crate::proto::{jt65, k32, msg72};
@@ -18,12 +19,10 @@ use sdrkit_util_bits::crc::cyclic::FST4_CRC24;
 pub struct SlowCtx<'a> {
     /// The 77-bit call hash table.
     pub hashes: &'a mut CallHashes,
-    /// The WSPR hash table (WSPR and FST4W).
+    /// The WSPR hash table.
     pub wspr: &'a mut WsprHashes,
     /// Search upside-down signals too (WSPR).
     pub mirrored: bool,
-    /// The codes loaded at run time (FST4, FST4W, Q65).
-    pub codes: &'a CodeStore,
 }
 
 /// What a mode's decoding of one fitted candidate found.
@@ -32,7 +31,7 @@ pub struct Found {
     pub text: String,
     /// The tones sent (for subtraction and the SNR).
     pub tones: Vec<u8>,
-    /// Power, dBm (WSPR, FST4W), else -1.
+    /// Power, dBm (WSPR, FST4W types 1 and 2), else -1.
     pub dbm: i32,
     /// The SNR, when the mode measures it itself.
     pub snr: Option<f64>,
@@ -330,7 +329,7 @@ pub fn decode_jt9(slot: &Slot, _ctx: &mut SlowCtx) -> Vec<Decode> {
             return None;
         }
         let text = msg72::unpack72(&dat)?;
-        let tones = encode::channel_symbols(&s.sub, &text, &CodeStore::default()).ok()?;
+        let tones = encode::channel_symbols(&s.sub, &text).ok()?;
         Some(Found {
             text,
             tones,
@@ -448,7 +447,7 @@ pub fn decode_jt65(slot: &Slot, _ctx: &mut SlowCtx) -> Vec<Decode> {
         if !ok {
             return None;
         }
-        let tones = encode::channel_symbols(&s.sub, &text, &CodeStore::default()).ok()?;
+        let tones = encode::channel_symbols(&s.sub, &text).ok()?;
         Some(Found {
             text,
             tones,
@@ -535,24 +534,20 @@ pub fn decode_q65(slot: &Slot, ctx: &mut SlowCtx) -> Vec<Decode> {
     out
 }
 
-/// FST4 and FST4W, with their code from `ctx.codes`: nothing is decoded when it is not loaded.
+/// FST4 and FST4W. An FST4W type 3 message names its call from the 22-bit hashes of the 77-bit message.
 pub fn decode_fst4(slot: &Slot, ctx: &mut SlowCtx) -> Vec<Decode> {
     let s = spec(&slot.sub);
     let w = slot.sub.mode == Mode::Fst4w;
-    let id = if w { CodeId::Fst4w } else { CodeId::Fst4 };
-    let Some(code) = ctx.codes.get(id).cloned() else {
-        return Vec::new();
-    };
+    let code = if w { codes::fst4w() } else { codes::fst4() };
     let k = code.k();
     let mut label = vec![0u8; 4];
     for (v, &t) in GRAY4.iter().enumerate() {
         label[t as usize] = v as u8;
     }
     let data: Vec<usize> = (0..4).flat_map(|w| 38 * w + 8..38 * w + 38).collect();
-    let mut dec = LdpcDecoders::new(&code);
+    let mut dec = LdpcDecoders::new(code);
     let mut cw = vec![0u8; code.n()];
     let hashes = &mut *ctx.hashes;
-    let wspr = &mut *ctx.wspr;
     let (mut out, _) = run(slot, &s, 1, false, false, |_, c, cand| {
         let amps: Vec<f32> = data
             .iter()
@@ -590,9 +585,9 @@ pub fn decode_fst4(slot: &Slot, ctx: &mut SlowCtx) -> Vec<Decode> {
         }
         let bits = &cw[..k];
         let (text, dbm) = if w {
-            let u = unpack50(&bits[..50], wspr)?;
+            let u = msg50::unpack50(&bits[..50], hashes)?;
             if u.kind != 3 {
-                wspr.learn(&u.call);
+                hashes.learn(&u.call);
             }
             (u.text, u.dbm)
         } else {

@@ -8,7 +8,6 @@ use sdrkit_core::{
 };
 use sdrkit_graph::StackGraph;
 use sdrkit_stack_wsjt::encode::{audio, Transmission};
-use sdrkit_stack_wsjt::proto::codes::CodeStore;
 use sdrkit_stack_wsjt::receiver;
 use sdrkit_stack_wsjt::runner::{decode_slot, DecodeState};
 use sdrkit_stack_wsjt::rx::slot::{Decode, Slot};
@@ -69,25 +68,6 @@ pub type St<'a> = (&'a str, f64, f64, f64, bool);
 
 /// `seconds` of 8 kHz audio holding the stations in every slot of `sub` from 0 s, plus noise (sigma 0.05 when `noise`).
 pub fn audio_of(sub: Sub, stations: &[St], seconds: f64, with_noise: bool, seed: u64) -> Vec<f32> {
-    audio_with(
-        sub,
-        stations,
-        seconds,
-        with_noise,
-        seed,
-        &CodeStore::default(),
-    )
-}
-
-/// As [`audio_of`], with the loaded `codes`.
-pub fn audio_with(
-    sub: Sub,
-    stations: &[St],
-    seconds: f64,
-    with_noise: bool,
-    seed: u64,
-    codes: &CodeStore,
-) -> Vec<f32> {
     let n = (seconds * 8000.0) as usize;
     let mut a = if with_noise {
         noise(n, SIGMA, seed)
@@ -105,7 +85,6 @@ pub fn audio_with(
             },
             text,
             8000.0,
-            codes,
         )
         .unwrap();
         for k in 0..slots {
@@ -198,19 +177,8 @@ pub fn receiver(
     rate: f64,
     dial_offset: f64,
 ) -> StackGraph {
-    receiver_with(mode, extra, rate, dial_offset, CodeStore::default())
-}
-
-/// As [`receiver`], with the loaded `codes`.
-pub fn receiver_with(
-    mode: Option<Mode>,
-    extra: &[(&str, Value)],
-    rate: f64,
-    dial_offset: f64,
-    codes: CodeStore,
-) -> StackGraph {
     let cfg = StackConfig::new(settings(mode, extra));
-    let mut rx = receiver::receiver_with_codes(mode, &cfg, codes).unwrap();
+    let mut rx = receiver::receiver(mode, &cfg).unwrap();
     rx.configure(&InputInfo::new(rate, 14e6, 14e6 + dial_offset).recording())
         .unwrap();
     rx
@@ -296,28 +264,4 @@ pub fn score(d: &[Decode], sent: &[&str]) -> (usize, usize) {
 /// A seeded uniform random number source for test layouts.
 pub fn rng(seed: u64) -> sdrkit_algo_sim::rng::Rng {
     sdrkit_algo_sim::rng::Rng::new(seed)
-}
-
-/// A test-only parity-check matrix of `n` columns and `n - k` rows with the information bits first: each parity bit checks itself
-/// and three information bits chosen from a fixed seed. It is not a protocol code. It only carries the receivers through a loaded
-/// table, which sdrkit cannot ship for FST4, FST4W and MSK144.
-pub fn test_code_rows(n: usize, k: usize, seed: u64) -> Vec<Vec<u16>> {
-    let mut r = rng(seed);
-    let mut rows: Vec<Vec<u16>> = (0..n - k).map(|j| vec![(k + j) as u16]).collect();
-    for i in 0..k {
-        let mut picked: Vec<usize> = Vec::new();
-        while picked.len() < 3 {
-            let j = r.below((n - k) as u64) as usize;
-            if !picked.contains(&j) {
-                picked.push(j);
-            }
-        }
-        for j in picked {
-            rows[j].push(i as u16);
-        }
-    }
-    for row in &mut rows {
-        row.sort_unstable();
-    }
-    rows
 }

@@ -1,12 +1,11 @@
 //! The protocol, table and generator cases, the descriptors, and the cut independence of the receiver.
 
-use super::codes::test_codes;
 use super::common::*;
 use sdrkit_core::owner::{self, Owner};
 use sdrkit_core::{Complex32, GenConfig, InputInfo, Output, Receiver, StackConfig, Value, Values};
 use sdrkit_stack_wsjt::encode::{self, channel_symbols};
 use sdrkit_stack_wsjt::generator::{stations, StationSource, WsjtGenerator};
-use sdrkit_stack_wsjt::proto::codes::{CodeId, CodeStore};
+use sdrkit_stack_wsjt::proto::codes;
 use sdrkit_stack_wsjt::proto::{js8msg, k32, msg72, wsprmsg};
 use sdrkit_stack_wsjt::runner::SlotResult;
 use sdrkit_stack_wsjt::rx::slot::Decode;
@@ -16,45 +15,31 @@ use sdrkit_util_objects::Tables;
 
 #[test]
 fn t_jt9_1_t_jt4_1_t_q65_2_t_fst_2_t_msk_1_frames() {
-    let none = CodeStore::default();
-    let s = channel_symbols(&Sub::new(Mode::Jt9), "CQ K1ABC FN42", &none).unwrap();
+    let s = channel_symbols(&Sub::new(Mode::Jt9), "CQ K1ABC FN42").unwrap();
     assert_eq!(s.len(), 85);
     assert!(s.iter().all(|&t| t <= 8));
     assert_eq!(s.iter().filter(|&&t| t == 0).count(), 16);
     assert_ne!(
         s,
-        channel_symbols(&Sub::new(Mode::Jt9), "K1ABC W9XYZ -15", &none).unwrap()
+        channel_symbols(&Sub::new(Mode::Jt9), "K1ABC W9XYZ -15").unwrap()
     );
-    let s = channel_symbols(&Sub::new(Mode::Jt4), "CQ K1ABC FN42", &none).unwrap();
+    let s = channel_symbols(&Sub::new(Mode::Jt4), "CQ K1ABC FN42").unwrap();
     assert_eq!(s.len(), 206);
     assert!(s.iter().all(|&t| t <= 3));
     assert!((Sub::new(Mode::Jt4).tx_s() - 47.088).abs() < 0.005);
-    // Q65 has its code built in; FST4, FST4W and MSK144 need a loaded code.
-    assert_eq!(channel_symbols(&Sub::new(Mode::Q65), "CQ K1ABC FN42", &none).unwrap().len(), 85);
-    for m in [Mode::Fst4, Mode::Fst4w, Mode::Msk144] {
-        let t = if m == Mode::Fst4w {
-            "K1ABC FN42 37"
-        } else {
-            "CQ K1ABC FN42"
-        };
-        assert!(matches!(
-            channel_symbols(&Sub::new(m), t, &none),
-            Err(encode::EncodeError::NoCode(_))
-        ));
-    }
-    let codes = test_codes();
-    let f = channel_symbols(&Sub::new(Mode::Fst4), "CQ K1ABC FN42", &codes).unwrap();
+    assert_eq!(channel_symbols(&Sub::new(Mode::Q65), "CQ K1ABC FN42").unwrap().len(), 85);
+    let f = channel_symbols(&Sub::new(Mode::Fst4), "CQ K1ABC FN42").unwrap();
     assert_eq!(f.len(), 160);
     assert_eq!(f[..8], encode::FST4_SYNC[0]);
-    let w = channel_symbols(&Sub::new(Mode::Fst4w), "K1ABC FN42 37", &codes).unwrap();
+    let w = channel_symbols(&Sub::new(Mode::Fst4w), "K1ABC FN42 37").unwrap();
     assert_ne!(f, w);
-    let m = channel_symbols(&Sub::new(Mode::Msk144), "CQ K1ABC FN42", &codes).unwrap();
+    let m = channel_symbols(&Sub::new(Mode::Msk144), "CQ K1ABC FN42").unwrap();
     assert_eq!(m.len(), 144);
     assert_eq!(m[..8], encode::MSK_SYNC);
     assert_eq!(m[56..64], encode::MSK_SYNC);
     let mut cw = m[8..56].to_vec();
     cw.extend(&m[64..]);
-    assert!(codes.get(CodeId::Msk144).unwrap().is_codeword(&cw));
+    assert!(codes::msk144().is_codeword(&cw));
 }
 
 #[test]
@@ -241,8 +226,7 @@ fn t_gen_1_every_station_list_through_its_decoder() {
         Mode::Msk144,
     ] {
         let sub = Sub::new(m);
-        let codes = test_codes();
-        let mut s = StationSource::new(sub, 0.3, false, &codes).unwrap();
+        let mut s = StationSource::new(sub, 0.3, false).unwrap();
         let mut a = s.audio((sub.period * 12000.0) as usize);
         // 12 kHz to 8 kHz.
         let mut r = sdrkit_algo_dsp::resample::Resampler::<f32>::new(12000.0, 8000.0).unwrap();
@@ -256,10 +240,7 @@ fn t_gen_1_every_station_list_through_its_decoder() {
         let d = decode_with(
             sub,
             &a8,
-            sdrkit_stack_wsjt::runner::DecodeState {
-                codes,
-                ..Default::default()
-            },
+            sdrkit_stack_wsjt::runner::DecodeState::default(),
         );
         for st in stations(m) {
             assert!(
@@ -284,7 +265,6 @@ fn t_gen_2_refusals() {
             },
             t,
             48000.0,
-            &CodeStore::default()
         )
         .is_err());
         assert!(WsjtGenerator::single(
@@ -292,7 +272,6 @@ fn t_gen_2_refusals() {
             48000.0,
             t,
             1500.0,
-            &CodeStore::default()
         )
         .is_err());
     }

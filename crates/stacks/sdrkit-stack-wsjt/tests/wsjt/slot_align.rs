@@ -59,7 +59,7 @@ fn generator(mode: Mode, utc: Option<f64>) -> WsjtGenerator {
     let mut g = if mode == Mode::Js8 {
         WsjtGenerator::js8(RATE, &sdrkit_stack_wsjt::generator::js8_stations()).unwrap()
     } else {
-        WsjtGenerator::new(Sub::new(mode), RATE, false, &Default::default()).unwrap()
+        WsjtGenerator::new(Sub::new(mode), RATE, false).unwrap()
     };
     if let Some(t) = utc {
         g.start_at(t);

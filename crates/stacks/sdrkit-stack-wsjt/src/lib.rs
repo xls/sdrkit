@@ -1,7 +1,6 @@
 //! The weak-signal digital stacks: FT8, FT4, FT2, WSPR, JT65, JT9, JT4, Q65, FST4, FST4W, MSK144 and JS8, each with its decoder,
 //! encoder, test signal, settings and results, and the combined stack `wsjt` that runs every enabled decoder on the same audio.
-//! FST4, FST4W and MSK144 decode once a host loads their code tables ([`proto::codes`]); Q65 has its code built in
-//! ([`proto::q65code`]).
+//! Every stack carries its code tables ([`proto::codes`], [`proto::q65code`]).
 
 #![warn(missing_docs)]
 
@@ -268,33 +267,33 @@ descriptor!(
     FST4,
     "fst4",
     "FST4",
-    "Slow weak-signal contacts on LF to HF, 15 to 1800-second periods (decodes once its code table is loaded).",
+    "Slow weak-signal contacts on LF to HF, 15 to 1800-second periods.",
     0.0,
     &[],
     rx_fst4,
     gen_fst4,
-    schema_fst4, &verify::REFUSED, None, &[SignalType::Fst4]);
+    schema_fst4, &verify::SLOW, None, &[SignalType::Fst4]);
 descriptor!(
     FST4W,
     "fst4w",
     "FST4W",
-    "WSPR-style beacons in FST4, 15 to 1800-second periods (decodes once its code table is loaded).",
+    "WSPR-style beacons in FST4, 15 to 1800-second periods.",
     0.0,
     &[],
     rx_fst4w,
     gen_fst4w,
-    schema_fst4w, &verify::REFUSED, None, &[SignalType::Fst4w]);
+    schema_fst4w, &verify::SLOW, None, &[SignalType::Fst4w]);
 descriptor!(
     MSK144,
     "msk144",
     "MSK144",
-    "Meteor scatter: 72 ms frames at 2000 bit/s (decodes once its code table is loaded).",
+    "Meteor scatter: 72 ms frames at 2000 bit/s.",
     0.0,
     &[],
     rx_msk144,
     gen_msk144,
     schema_msk144,
-    &verify::REFUSED,
+    &verify::FAST,
     None,
     &[SignalType::Msk144]
 );

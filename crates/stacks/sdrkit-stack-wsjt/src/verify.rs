@@ -1,5 +1,5 @@
 //! What the family registers beside its descriptors: one verification case per mode (the mode's test signal, which must fill the
-//! decode table, or for a mode without its code the refusal in its status), and the settings and comparison of the recorded vectors.
+//! decode table), and the settings and comparison of the recorded vectors.
 
 use crate::mode::Mode;
 use crate::slots::TimeChoice;
@@ -7,7 +7,7 @@ use crate::typed::{DecodeEvent, Js8FrameEvent, Js8MessageEvent, DECODE, JS8_FRAM
 use sdrkit_core::verify::{
     CaseSetting, CheckLine, VectorRun, VerifyCase, VerifyHooks, VerifyOptions,
 };
-use sdrkit_core::{Choice, Event, LockState, Results, Value};
+use sdrkit_core::{Choice, Event, Results, Value};
 use serde_json::Value as Json;
 
 pub(crate) static COMBINED: VerifyHooks = VerifyHooks {
@@ -22,11 +22,6 @@ pub(crate) static FAST: VerifyHooks = VerifyHooks {
 };
 pub(crate) static SLOW: VerifyHooks = VerifyHooks {
     cases: slow_cases,
-    vector_settings: Some(vector_settings),
-    check_vector: Some(check_vector),
-};
-pub(crate) static REFUSED: VerifyHooks = VerifyHooks {
-    cases: refused_cases,
     vector_settings: Some(vector_settings),
     check_vector: Some(check_vector),
 };
@@ -65,17 +60,6 @@ fn slow_cases(o: &VerifyOptions) -> Vec<VerifyCase> {
     vec![case("test signal", o, 125.0)]
 }
 
-/// A mode whose code is not loaded: its status says so and it decodes nothing. Its generator makes silence, which states no
-/// bandwidth, so the case adds no noise and no offset.
-fn refused_cases(o: &VerifyOptions) -> Vec<VerifyCase> {
-    let mut c = case("no code table", o, 2.0);
-    c.snr_db = None;
-    c.offset_hz = 0.0;
-    c.expect_lock = false;
-    c.check = Some(check_refused);
-    vec![c]
-}
-
 fn rows(r: &Results) -> usize {
     ["decodes", "js8_frames"]
         .iter()
@@ -92,29 +76,6 @@ fn check_decodes(r: &Results) -> Vec<CheckLine> {
         n > 0,
         format!("{n} decodes listed"),
     )]
-}
-
-/// The status names the missing code and the lock state is off.
-fn check_refused(r: &Results) -> Vec<CheckLine> {
-    let status = r.status();
-    let summary = status.summary.as_str();
-    vec![
-        CheckLine::new(
-            "refusal",
-            summary.contains("sdrkit") || summary.contains("table"),
-            format!("status: {summary}"),
-        ),
-        CheckLine::new(
-            "lock_state",
-            status.lock_state == LockState::Off,
-            format!("lock_state {:?}", status.lock_state),
-        ),
-        CheckLine::new(
-            "nothing decoded",
-            rows(r) == 0,
-            format!("{} decodes", rows(r)),
-        ),
-    ]
 }
 
 /// The key of the sub-mode setting of `mode`, if it has one.
@@ -324,7 +285,7 @@ fn check_js8(run: &VectorRun, out: &mut Vec<CheckLine>) {
     ));
 }
 
-/// A recorded vector: the decodes (or JS8 frames) of its section and, for a mode without its code, the refusal in the status.
+/// A recorded vector: the decodes (or JS8 frames) of its section, and its status when the section gives one.
 fn check_vector(run: &VectorRun) -> Vec<CheckLine> {
     let sec = run.section;
     let mut out = Vec::new();
@@ -348,11 +309,6 @@ fn check_vector(run: &VectorRun) -> Vec<CheckLine> {
         ("sent", "what was sent; the decodes are checked"),
         ("verified", "a note"),
         ("receiver", "the stack's settings, applied"),
-        ("without_code_table", "a note"),
-        (
-            "decodes_with_code_table",
-            "needs the code table, which the host loads (the family's tests check it when the recordings folder holds it)",
-        ),
     ] {
         if sec.get(k).is_some() {
             out.push(CheckLine::not_checked(k, why));

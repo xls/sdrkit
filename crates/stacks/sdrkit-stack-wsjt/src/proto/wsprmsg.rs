@@ -1,4 +1,4 @@
-//! The 50-bit WSPR message of WSPR and FST4W: types 1, 2 and 3, the 15-bit callsign hash (R. Jenkins, `lookup3.c`) and the
+//! The 50-bit message of WSPR: types 1, 2 and 3, the 15-bit callsign hash (R. Jenkins, `lookup3.c`) and the
 //! table of calls learnt from decodes.
 //! Standard: A. Talbot (G4JNT), "The WSPR Coding Process".
 

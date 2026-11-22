@@ -75,7 +75,7 @@ pub struct Decode {
     pub call: String,
     /// Its locator.
     pub grid: String,
-    /// WSPR and FST4W: the power sent, dBm; else -1.
+    /// WSPR and FST4W: the power sent, dBm; else -1 (an FST4W type 3 message has no power).
     pub dbm: i32,
     /// 0 for the first pass.
     pub pass: u32,

@@ -5,7 +5,6 @@
 use crate::encode::{self, frame_tones, EncodeError};
 use crate::mode::FskSpec;
 use crate::mode::{Mode, Sub};
-use crate::proto::codes::CodeStore;
 use crate::proto::js8msg::{self, Outgoing};
 use num_complex::Complex32;
 use sdrkit_algo_dsp::resample::Resampler;
@@ -195,32 +194,26 @@ impl StationSource {
     pub const RATE: f64 = 12000.0;
 
     /// The station list of `sub` (levels relative to the strongest at amplitude `peak`), upside down when `mirrored`. An error
-    /// when the mode's code is not available.
-    pub fn new(
-        sub: Sub,
-        peak: f32,
-        mirrored: bool,
-        codes: &CodeStore,
-    ) -> Result<StationSource, EncodeError> {
+    /// when a text of the list cannot be packed.
+    pub fn new(sub: Sub, peak: f32, mirrored: bool) -> Result<StationSource, EncodeError> {
         let list: Vec<(String, f64, f64, f64)> = stations(sub.mode)
             .iter()
             .map(|s| (s.0.to_string(), s.1, s.2, s.3))
             .collect();
-        Self::from_list(sub, &list, peak, mirrored, codes)
+        Self::from_list(sub, &list, peak, mirrored)
     }
 
-    /// A list of (text, Hz, level dB, DT). Refuses a text that cannot be packed, or a mode whose code is not available.
+    /// A list of (text, Hz, level dB, DT). Refuses a text that cannot be packed.
     pub fn from_list(
         sub: Sub,
         list: &[(String, f64, f64, f64)],
         peak: f32,
         mirrored: bool,
-        codes: &CodeStore,
     ) -> Result<StationSource, EncodeError> {
         let rate = Self::RATE;
         let mut txs = Vec::new();
         for (text, hz, db, dt) in list {
-            let syms = encode::channel_symbols(&sub, text, codes)?;
+            let syms = encode::channel_symbols(&sub, text)?;
             let amp = peak * 10f32.powf(*db as f32 / 20.0);
             let msk = if sub.mode == Mode::Msk144 {
                 sub.period - 0.1
@@ -523,14 +516,9 @@ pub struct WsjtGenerator {
 
 impl WsjtGenerator {
     /// The station list of `sub` at `rate`, upside down when `mirrored`; the first sample is a slot start (see
-    /// [`WsjtGenerator::start_at`]). An error when the mode's code is not available.
-    pub fn new(
-        sub: Sub,
-        rate: Hz,
-        mirrored: bool,
-        codes: &CodeStore,
-    ) -> Result<WsjtGenerator, EncodeError> {
-        let s = StationSource::new(sub, 1.0, mirrored, codes)?;
+    /// [`WsjtGenerator::start_at`]). An error when a text of the list cannot be packed.
+    pub fn new(sub: Sub, rate: Hz, mirrored: bool) -> Result<WsjtGenerator, EncodeError> {
+        let s = StationSource::new(sub, 1.0, mirrored)?;
         Ok(Self::with(Src::Stations(s), sub, rate))
     }
 
@@ -544,17 +532,9 @@ impl WsjtGenerator {
         }
     }
 
-    /// A single station repeating one message every slot. Refuses a text that cannot be packed, or a mode whose code is not
-    /// available.
-    pub fn single(
-        sub: Sub,
-        rate: Hz,
-        text: &str,
-        hz: f64,
-        codes: &CodeStore,
-    ) -> Result<WsjtGenerator, EncodeError> {
-        let s =
-            StationSource::from_list(sub, &[(text.to_string(), hz, 0.0, 0.0)], 1.0, false, codes)?;
+    /// A single station repeating one message every slot. Refuses a text that cannot be packed.
+    pub fn single(sub: Sub, rate: Hz, text: &str, hz: f64) -> Result<WsjtGenerator, EncodeError> {
+        let s = StationSource::from_list(sub, &[(text.to_string(), hz, 0.0, 0.0)], 1.0, false)?;
         Ok(Self::with(Src::Stations(s), sub, rate))
     }
 
@@ -595,29 +575,19 @@ impl WsjtGenerator {
         &self.refusal
     }
 
-    /// From a generator configuration: the mode's sub-mode, the code folder and the `gen_*` settings of the mode.
+    /// From a generator configuration: the mode's sub-mode and the `gen_*` settings of the mode.
     pub fn from_config(mode: Mode, cfg: &GenConfig) -> Box<dyn Generator> {
         use crate::settings::{GEN_HZ, GEN_LIVE, GEN_MIRRORED, GEN_SINGLE};
         let s = &cfg.settings;
         let sub = crate::settings::sub_of(mode, s, cfg.submode.as_deref());
-        let mut codes = CodeStore::default();
-        let dir = match crate::settings::value(s, "code_dir") {
-            Some(sdrkit_core::Value::Text(t)) => t.as_str(),
-            _ => "",
-        };
-        if !dir.is_empty() {
-            if let Err(e) = codes.load_dir(std::path::Path::new(dir)) {
-                return Box::new(Self::silent(sub, cfg.rate_hz, e.to_string()));
-            }
-        }
         let made = if mode == Mode::Js8 {
             WsjtGenerator::js8(cfg.rate_hz, &js8_stations())
         } else {
             let single = s.get(&GEN_SINGLE);
             if single.is_empty() {
-                WsjtGenerator::new(sub, cfg.rate_hz, s.get(&GEN_MIRRORED), &codes)
+                WsjtGenerator::new(sub, cfg.rate_hz, s.get(&GEN_MIRRORED))
             } else {
-                WsjtGenerator::single(sub, cfg.rate_hz, single, s.get(&GEN_HZ), &codes)
+                WsjtGenerator::single(sub, cfg.rate_hz, single, s.get(&GEN_HZ))
             }
         };
         match made {
@@ -683,27 +653,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn every_list_with_a_code_packs() {
-        for m in Mode::ALL {
-            if matches!(
-                m,
-                Mode::Js8 | Mode::Fst4 | Mode::Fst4w | Mode::Msk144
-            ) {
-                assert!(
-                    m == Mode::Js8
-                        || StationSource::new(Sub::new(m), 1.0, false, &CodeStore::default())
-                            .is_err()
-                );
-                continue;
-            }
-            assert!(StationSource::new(Sub::new(m), 1.0, false, &CodeStore::default()).is_ok());
+    fn every_list_packs() {
+        for m in Mode::ALL.into_iter().filter(|&m| m != Mode::Js8) {
+            assert!(StationSource::new(Sub::new(m), 1.0, false).is_ok(), "{m:?}");
         }
         assert!(StationSource::from_list(
             Sub::new(Mode::Ft8),
             &[("K1ABC/ABCD W9XYZ".into(), 1000.0, 0.0, 0.0)],
             1.0,
             false,
-            &CodeStore::default()
         )
         .is_err());
         assert!(Js8Source::new(&js8_stations(), 1.0).is_ok());
@@ -711,8 +669,7 @@ mod tests {
 
     #[test]
     fn the_generator_makes_any_rate() {
-        let mut g =
-            WsjtGenerator::new(Sub::new(Mode::Ft8), 48000.0, false, &CodeStore::default()).unwrap();
+        let mut g = WsjtGenerator::new(Sub::new(Mode::Ft8), 48000.0, false).unwrap();
         let mut buf = vec![Complex32::default(); 48000];
         assert_eq!(g.generate(&mut buf), 48000);
         let p: f32 = buf[30000..].iter().map(|c| c.norm_sqr()).sum::<f32>() / 18000.0;

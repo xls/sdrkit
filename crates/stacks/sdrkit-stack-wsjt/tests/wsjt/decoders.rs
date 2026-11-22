@@ -179,25 +179,19 @@ fn q65_recording() {
     check("q65_60a", Sub::new(Mode::Q65));
 }
 
-/// FST4, FST4W and MSK144 without their codes: nothing is decoded, so nothing false either.
 #[test]
-fn modes_without_their_codes_give_nothing() {
-    let e = expected();
-    for (key, sub) in [
-        ("msk144_15", Sub::new(Mode::Msk144)),
-        ("fst4_60", Sub::new(Mode::Fst4).with_period(60.0)),
-        ("fst4w_120", Sub::new(Mode::Fst4w).with_period(120.0)),
-    ] {
-        let r = &e["recordings"][key];
-        let name = r["recording"]
-            .as_str()
-            .unwrap()
-            .trim_end_matches(".sigmf-meta");
-        let Some(audio) = audio_of(name) else {
-            return;
-        };
-        assert!(decode_all(sub, &audio).is_empty(), "{key}");
-    }
+fn fst4_recording() {
+    check("fst4_60", Sub::new(Mode::Fst4).with_period(60.0));
+}
+
+#[test]
+fn fst4w_recording() {
+    check("fst4w_120", Sub::new(Mode::Fst4w).with_period(120.0));
+}
+
+#[test]
+fn msk144_recording() {
+    check("msk144_15", Sub::new(Mode::Msk144));
 }
 
 #[test]

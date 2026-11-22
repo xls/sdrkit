@@ -3,7 +3,6 @@
 
 use crate::components::Js8Speed;
 use crate::mode::Mode;
-use crate::proto::codes::CodeMissing;
 use crate::proto::js8msg;
 use crate::rx::js8::{Js8Frame, Js8FrameKind};
 use crate::rx::slot::{locator_centre, Decode};
@@ -409,19 +408,8 @@ sdrkit_core::choice_enum! {
     pub enum ModeState {
         /// It decodes.
         Decoding = ("decoding", "Decoding"),
-        /// A host has not loaded its code table.
-        NoTable = ("no_table", "No code table"),
         /// sdrkit has no decoder for its code (no mode of the family is in this state).
         NoDecoder = ("no_decoder", "No decoder"),
-    }
-}
-
-impl ModeState {
-    fn of(missing: Option<CodeMissing>) -> ModeState {
-        match missing {
-            None => ModeState::Decoding,
-            Some(CodeMissing::Table(_)) => ModeState::NoTable,
-        }
     }
 }
 
@@ -674,8 +662,6 @@ pub struct ModeStats {
     pub label: String,
     /// Period, s.
     pub period: f64,
-    /// Why the mode decodes nothing (`None` when it decodes).
-    pub refused: Option<CodeMissing>,
 }
 
 /// The display hub: the decode table, counters, clock, JS8 and the published results.
@@ -783,22 +769,11 @@ impl Display {
         self.waterfall_seq += 1;
     }
 
-    /// Takes a decoded slot (or a decoder's notice that it cannot decode), and appends the events it makes to `ev`. The decodes
+    /// Takes a decoded slot and appends the events it makes to `ev`. The decodes
     /// of an early slot go to the decode table only, marked early, once each: no event, no count, no station, no spot. A decode
     /// of the whole slot replaces the early row of the same stack, slot and message.
     pub fn slot(&mut self, r: &crate::runner::SlotResult, ev: &mut Vec<Event>) {
         let Some(mode) = r.mode else { return };
-        if r.label.is_empty() {
-            // A notice: the mode cannot decode.
-            let st = self.modes.entry(mode.id().to_string()).or_default();
-            st.refused = r.refused;
-            mode.name().clone_into(&mut st.label);
-            if let Some(why) = r.refused {
-                self.published.results_mut().log(why.to_string());
-            }
-            self.publish();
-            return;
-        }
         if r.early {
             for d in &r.decodes {
                 let shown = self.heard.decodes.iter().rev().any(|x| {
@@ -828,7 +803,6 @@ impl Display {
             st.last_ms = r.ms;
             st.label.clone_from(&r.label);
             st.period = r.period;
-            st.refused = r.refused;
         }
         if mode == Mode::Js8 {
             self.js8_slot(r, ev);
@@ -989,10 +963,7 @@ impl Display {
 
     /// The lock state and the summary of the status.
     fn status(&mut self, js8: Js8State) -> LockState {
-        let refused = self.modes.values().filter(|m| m.refused.is_some()).count();
-        let lock_state = if refused > 0 && refused == self.modes.len() {
-            LockState::Off
-        } else if self.slots_seen == 0 {
+        let lock_state = if self.slots_seen == 0 {
             LockState::Searching
         } else if self
             .last_decode_utc
@@ -1026,10 +997,6 @@ impl Display {
                 self.js8_frames,
                 self.heard.js8.stations.len()
             );
-        }
-        for why in self.modes.values().filter_map(|m| m.refused) {
-            sep(s);
-            let _ = write!(s, "{why}");
         }
         if s.is_empty() {
             s.push_str("listening");
@@ -1101,7 +1068,7 @@ impl Display {
                     last_count: m.last_count as i64,
                     utc: (m.slots > 0).then_some(Time(m.last_slot)),
                     decode_ms: m.last_ms,
-                    state: ModeState::of(m.refused),
+                    state: ModeState::Decoding,
                 },
             );
         }
