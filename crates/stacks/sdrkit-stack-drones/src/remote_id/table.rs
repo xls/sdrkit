@@ -1,7 +1,7 @@
 //! The drone table of Remote ID: drones by broadcast address, the message log, the counters, the published results, the events,
 //! the commands, the saved state and the band request to the host.
 
-use super::messages::{summary, Location, Message, MsgType, System, Transport};
+use super::messages::{summary, Location, Message, MsgType, System, Transport, MSG_LEN};
 use super::phy::{Phy, PhyStats};
 use super::{plan, Band, Plan, RidItem, RidPacket, BAND};
 use crate::family::{publish_tracks, wall, SignalClock, StatusLine};
@@ -10,6 +10,7 @@ use crate::typed::{
     DRONE_REMOVE, DRONE_ROW, REMOTE_ID_DRONE, REMOTE_ID_DRONES, REMOTE_ID_MESSAGES,
     REMOTE_ID_TRACKS,
 };
+use remoteid::{Observation, TrustConfig, TrustState, Verdict};
 use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
 use sdrkit_core::interface::{Hertz, Time};
 use sdrkit_core::publish::keys::{Family, Urgency};
@@ -30,6 +31,7 @@ use sdrkit_util_objects::{
     Format as StateFormat, LogRing, ObjectTable, Seen, Shift, Spacing, Stamp, Trail,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 /// Most drones kept.
@@ -404,6 +406,8 @@ pub struct DroneTable {
     requests: Vec<HostRequest>,
     lines: Vec<String>,
     new_logged: u32,
+    /// Spoof evidence and the last verdict of each broadcast address.
+    trust: HashMap<String, (TrustState, Verdict)>,
     key: String,
     configured: bool,
     dirty: bool,
@@ -435,6 +439,7 @@ impl Default for DroneTable {
             requests: Vec::new(),
             lines: Vec::new(),
             new_logged: 0,
+            trust: HashMap::new(),
             key: String::new(),
             configured: false,
             dirty: true,
@@ -474,6 +479,31 @@ impl DroneTable {
         self.last_rid_t = Some(t);
         self.snr = Some(p.snr_db);
         self.cfo = Some(p.cfo_hz);
+        let rx = match p.transport {
+            Transport::Ble if p.payload.len() > MSG_LEN => remoteid::Transport::Bluetooth5,
+            Transport::Ble => remoteid::Transport::Bluetooth4,
+            Transport::WiFi => remoteid::Transport::WifiBeacon,
+        };
+        let obs = Observation::new(rx, Some(p.counter), &p.payload, (t.max(0.0) * 1e3) as u64);
+        if self.trust.len() >= DRONE_CAP && !self.trust.contains_key(&p.address) {
+            let drones = &s.drones;
+            self.trust.retain(|a, _| drones.contains(a.as_str()));
+        }
+        let (state, last) = self
+            .trust
+            .entry(p.address.clone())
+            .or_insert_with(|| (TrustState::new(), Verdict::Plausible));
+        let a = state.observe(&TrustConfig::default(), &obs);
+        if a.verdict != *last && a.verdict <= Verdict::Suspicious {
+            let why: Vec<&str> = a.reasons.iter().map(|r| r.name()).collect();
+            self.lines.push(format!(
+                "Remote ID: drone {} is {} ({})",
+                p.address,
+                a.verdict,
+                why.join(", ")
+            ));
+        }
+        *last = a.verdict;
         let Ok(up) = s.drones.upsert(p.address.as_str(), stamp, || Drone {
             address: p.address.clone(),
             ..Drone::default()
@@ -588,6 +618,7 @@ impl DroneTable {
         self.store.clear();
         self.bad_base = self.bad.iter().sum();
         self.new_logged = 0;
+        self.trust.clear();
         self.last_rid_t = None;
         self.snr = None;
         self.cfo = None;
@@ -801,5 +832,71 @@ impl Component for DroneTable {
             self.publish();
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::messages::{decode_message, encode_message};
+    use super::*;
+
+    fn packet(i: u16, lon: f64) -> RidPacket {
+        let loc = Message::Location(Location {
+            status: 2,
+            direction: Some(0.0),
+            speed: Some(5.0),
+            lat: Some(47.0),
+            lon: Some(lon),
+            alt_geo: Some(100.0),
+            h_acc: 10,
+            timestamp: Some(6000 + 10 * i),
+            ..Location::default()
+        });
+        let payload = encode_message(&loc, 2).to_vec();
+        RidPacket {
+            transport: Transport::Ble,
+            channel: 38,
+            address: "C6:12:34:56:78:9A".into(),
+            counter: i as u8,
+            messages: vec![decode_message(&payload).unwrap()],
+            payload,
+            level_dbfs: None,
+            cfo_hz: 0.0,
+            snr_db: 20.0,
+        }
+    }
+
+    fn spoof_lines(t: &DroneTable) -> Vec<&String> {
+        t.lines
+            .iter()
+            .filter(|l| l.contains(" is spoofed"))
+            .collect()
+    }
+
+    #[test]
+    fn a_steady_drone_is_not_flagged() {
+        let mut t = DroneTable::default();
+        for i in 0..20 {
+            t.take(
+                f64::from(i),
+                &packet(i, 8.0 + 5.0 * f64::from(i) / 75_800.0),
+            );
+        }
+        assert!(t.lines.iter().all(|l| !l.contains(" is ")), "{:?}", t.lines);
+    }
+
+    #[test]
+    fn a_teleporting_drone_is_logged_as_spoofed() {
+        // Claims 5 m/s north while jumping 2 km east every second.
+        let mut t = DroneTable::default();
+        for i in 0..20 {
+            t.take(
+                f64::from(i),
+                &packet(i, 8.0 + 2_000.0 * f64::from(i) / 75_800.0),
+            );
+        }
+        let l = spoof_lines(&t);
+        assert_eq!(l.len(), 1, "{:?}", t.lines);
+        assert!(l[0].contains("teleport"), "{l:?}");
     }
 }

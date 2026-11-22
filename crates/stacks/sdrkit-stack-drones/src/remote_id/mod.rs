@@ -238,6 +238,8 @@ pub struct RidPacket {
     pub counter: u8,
     /// The messages, in order.
     pub messages: Vec<Versioned>,
+    /// The first message or pack as received, header byte first, counter removed.
+    pub payload: Vec<u8>,
     /// Level, dBFS (`None` when it was not measured).
     pub level_dbfs: Option<f64>,
     /// Carrier offset, Hz.

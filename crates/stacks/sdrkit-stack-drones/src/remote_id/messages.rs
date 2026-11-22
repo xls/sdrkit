@@ -734,6 +734,8 @@ pub struct Carried {
     pub counter: u8,
     /// The messages, in order.
     pub messages: Vec<Versioned>,
+    /// The first message or pack as received, header byte first, counter removed.
+    pub payload: Vec<u8>,
 }
 
 fn carried(found: &mut Option<Carried>, s: &[u8]) {
@@ -750,6 +752,7 @@ fn carried(found: &mut Option<Carried>, s: &[u8]) {
                 *found = Some(Carried {
                     counter: s[1],
                     messages: msgs,
+                    payload: s[2..].to_vec(),
                 })
             }
         }
