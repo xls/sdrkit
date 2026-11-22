@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "hfdata", version 1.5. MIT licence.
+// sdrkit: the typed interface of the stack family "hfdata", version 1.6. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum HfdataInterface {
     public static let major = 1
-    public static let minor = 5
+    public static let minor = 6
 }
 
 /// The result fields of the CROWD36 stack.
@@ -4028,6 +4028,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Ale3gPduRow.init))
     }
     /// The changed rows of the table "channels" of the stack "s4481", newest first, at most `capacity` rows.
+    /// The column `channel` names a row.
+    /// Default order: the column `channel`, lowest first.
     public static func s4481Channels(_ handle: SDRKIT_HANDLE, capacity: Int = 17) -> Result<[S4481ChannelRow], SDRKitCode> {
         var rows = [sdrkit_s4481_channel_row](repeating: sdrkit_s4481_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4052,6 +4054,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(CisHfMessageRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "cis_hf", newest first, at most `capacity` rows.
+    /// The column `number` names a row.
+    /// Default order: the column `number`, lowest first.
     public static func cisHfCarriers(_ handle: SDRKIT_HANDLE, capacity: Int = 12) -> Result<[CisHfCarrierRow], SDRKitCode> {
         var rows = [sdrkit_cis_hf_carrier_row](repeating: sdrkit_cis_hf_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4060,6 +4064,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(CisHfCarrierRow.init))
     }
     /// The changed rows of the table "candidates" of the stack "hfid", newest first, at most `capacity` rows.
+    /// The column `waveform` names a row.
+    /// Default order: the column `confidence_pct`, highest first.
     public static func hfidCandidates(_ handle: SDRKIT_HANDLE, capacity: Int = 6) -> Result<[HfidCandidateRow], SDRKitCode> {
         var rows = [sdrkit_hfid_candidate_row](repeating: sdrkit_hfid_candidate_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4139,6 +4145,7 @@ public enum HfdataTables {
     }
     /// The changed rows of the table "bands" of the stack "hfradar", newest first, at most `capacity` rows.
     /// The column `name` names a row.
+    /// Default order: the column `low`, lowest first.
     public static func hfradarBands(_ handle: SDRKIT_HANDLE, capacity: Int = 8) -> Result<[HfradarBandRow], SDRKitCode> {
         var rows = [sdrkit_hfradar_band_row](repeating: sdrkit_hfradar_band_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4147,6 +4154,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfradarBandRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "pactor2", newest first, at most `capacity` rows.
+    /// Default order: the column `frequency`, lowest first.
     public static func pactor2Carriers(_ handle: SDRKIT_HANDLE, capacity: Int = 18) -> Result<[HfdataPactorhfCarrierRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_pactorhf_carrier_row](repeating: sdrkit_hfdata_pactorhf_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4163,6 +4171,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataPactorhfEventRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "pactor3", newest first, at most `capacity` rows.
+    /// Default order: the column `frequency`, lowest first.
     public static func pactor3Carriers(_ handle: SDRKIT_HANDLE, capacity: Int = 18) -> Result<[HfdataPactorhfCarrierRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_pactorhf_carrier_row](repeating: sdrkit_hfdata_pactorhf_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4179,6 +4188,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataPactorhfEventRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "pactor4", newest first, at most `capacity` rows.
+    /// Default order: the column `frequency`, lowest first.
     public static func pactor4Carriers(_ handle: SDRKIT_HANDLE, capacity: Int = 18) -> Result<[HfdataPactorhfCarrierRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_pactorhf_carrier_row](repeating: sdrkit_hfdata_pactorhf_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4223,6 +4233,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfbeaconsBeaconRow.init))
     }
     /// The changed rows of the table "bands" of the stack "hfbeacons", newest first, at most `capacity` rows.
+    /// The column `band` names a row.
     public static func hfbeaconsBands(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[HfbeaconsBandRow], SDRKitCode> {
         var rows = [sdrkit_hfbeacons_band_row](repeating: sdrkit_hfbeacons_band_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4231,6 +4242,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfbeaconsBandRow.init))
     }
     /// The changed rows of the table "propagation" of the stack "hfbeacons", newest first, at most `capacity` rows.
+    /// The column `band` names a row.
     public static func hfbeaconsPropagation(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[HfbeaconsPropagationRow], SDRKitCode> {
         var rows = [sdrkit_hfbeacons_propagation_row](repeating: sdrkit_hfbeacons_propagation_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4239,6 +4251,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfbeaconsPropagationRow.init))
     }
     /// The changed rows of the table "spectrum" of the stack "wavebuoy", newest first, at most `capacity` rows.
+    /// Default order: the column `entry`, lowest first.
     public static func wavebuoySpectrum(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[WavebuoySpectrumRow], SDRKitCode> {
         var rows = [sdrkit_wavebuoy_spectrum_row](repeating: sdrkit_wavebuoy_spectrum_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4247,6 +4260,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WavebuoySpectrumRow.init))
     }
     /// The changed rows of the table "system_words" of the stack "wavebuoy", newest first, at most `capacity` rows.
+    /// The column `word` names a row.
+    /// Default order: the column `word`, lowest first.
     public static func wavebuoySystemWords(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[WavebuoySystemWordRow], SDRKitCode> {
         var rows = [sdrkit_wavebuoy_system_word_row](repeating: sdrkit_wavebuoy_system_word_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4255,7 +4270,6 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WavebuoySystemWordRow.init))
     }
     /// The changed rows of the table "frames" of the stack "wavebuoy", newest first, at most `capacity` rows.
-    /// The column `hex` names a row.
     public static func wavebuoyFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 40) -> Result<[WavebuoyFrameRow], SDRKitCode> {
         var rows = [sdrkit_wavebuoy_frame_row](repeating: sdrkit_wavebuoy_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4291,6 +4305,7 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataDpduRow.init))
     }
     /// The changed rows of the table "carriers" of the stack "rpr", newest first, at most `capacity` rows.
+    /// Default order: the column `frequency`, lowest first.
     public static func rprCarriers(_ handle: SDRKIT_HANDLE, capacity: Int = 8) -> Result<[RprCarrierRow], SDRKitCode> {
         var rows = [sdrkit_rpr_carrier_row](repeating: sdrkit_rpr_carrier_row(), count: capacity)
         var info = sdrkit_rows_info.sized

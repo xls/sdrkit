@@ -1,5 +1,5 @@
 # The interface of the stack family marine. The registry test of the family writes this file.
-family marine version=1.1
+family marine version=1.2
 shape.AisFields since=1.0
 shape.AisFields.state type=choice(searching,signal,decoding) unit= optional=no since=1.0
 shape.AisFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -386,12 +386,12 @@ ais.content kind=tracking since=1.1
 ais.fields.AisFields since=1.0
 ais.table.stations row=AisStationRow cap=300 label=name position=position course=course_deg speed=speed_kt since=1.0
 ais.table.track_points row=AisTrackPointRow cap=2500 label=station position=position since=1.0
-ais.table.counters row=AisCounterRow cap=32 since=1.0
-ais.table.channels row=AisChannelRow cap=4 label=name since=1.0
+ais.table.counters row=AisCounterRow cap=32 label=type since=1.0
+ais.table.channels row=AisChannelRow cap=4 label=name sort=freq_hz:ascending since=1.0
 ais.table.sentences row=AisSentenceRow cap=50 since=1.0
 ais.table.receptions row=AisReceptionRow cap=500 label=mmsi since=1.0
 ais.table.alerts row=AisAlertRow cap=50 label=name position=position since=1.0
-ais.table.hop_plan row=AisHopRow cap=4 since=1.0
+ais.table.hop_plan row=AisHopRow cap=4 sort=centre_hz:ascending since=1.0
 ais.table.selected row=AisSelectedRow cap=1 label=name position=position altitude=altitude_m course=course_deg speed=speed_kt since=1.0
 ais.event.ais.vessel fields=AisVesselEvent since=1.0
 ais.event.ais.nmea fields=AisNmeaEvent since=1.0
@@ -424,8 +424,8 @@ ais.command.remove args=row:text reply= since=1.0
 marine since=1.0
 marine.content kind=datalink audio=monitor text=yes since=1.1
 marine.fields.HfFields since=1.0
-marine.table.navtex row=NavtexRow cap=100 since=1.0
-marine.table.dsc row=DscRow cap=100 position=position since=1.0
+marine.table.navtex row=NavtexRow cap=100 label=header since=1.0
+marine.table.dsc row=DscRow cap=100 label=from_mmsi position=position since=1.0
 marine.series.audio_spectrum x_unit=Hz y_unit=dB since=1.0
 marine.event.navtex.message fields=NavtexMessageEvent since=1.0
 marine.event.dsc.call fields=DscCallEvent since=1.0
@@ -457,9 +457,9 @@ vdes.content kind=tracking since=1.1
 vdes.fields.VdesFields since=1.0
 vdes.table.asm row=VdesAsmRow cap=200 label=mmsi position=position course=course_deg speed=speed_kt since=1.0
 vdes.table.bursts row=VdesBurstRow cap=300 since=1.0
-vdes.table.channels row=VdesChannelRow cap=6 label=name since=1.0
-vdes.table.by_modulation row=VdesModulationRow cap=4 since=1.0
-vdes.table.by_bandwidth row=VdesBandwidthRow cap=3 since=1.0
+vdes.table.channels row=VdesChannelRow cap=6 label=name sort=freq_hz:ascending since=1.0
+vdes.table.by_modulation row=VdesModulationRow cap=4 label=modulation since=1.0
+vdes.table.by_bandwidth row=VdesBandwidthRow cap=3 label=bandwidth_hz sort=bandwidth_hz:ascending since=1.0
 vdes.event.vdes.asm fields=VdesAsmEvent since=1.0
 vdes.event.vdes.nmea fields=VdesSentenceEvent since=1.0
 vdes.event.vdes.burst fields=VdesBurstEvent since=1.0
@@ -469,8 +469,8 @@ vdes.command.clear args= reply= since=1.0
 marinevhf since=1.0
 marinevhf.content kind=voice audio=voice since=1.1
 marinevhf.fields.VhfFields since=1.0
-marinevhf.table.calls row=VhfCallRow cap=600 since=1.0
-marinevhf.table.channels row=VhfChannelRow cap=400 since=1.0
+marinevhf.table.calls row=VhfCallRow cap=600 label=channel since=1.0
+marinevhf.table.channels row=VhfChannelRow cap=400 label=channel sort=freq_hz:ascending since=1.0
 marinevhf.event.marinevhf.call fields=VhfCallEvent since=1.0
 marinevhf.setting.plan type=text unit= since=1.0
 marinevhf.setting.channel_hz type=hz unit=Hz since=1.0

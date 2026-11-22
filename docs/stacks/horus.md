@@ -83,7 +83,7 @@ The stack puts points on a map: Horus balloons.
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.1. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.2. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -141,7 +141,7 @@ Struct `HorusPayloadRow`. A row of the table `payloads`. The row key is the payl
 | `first_heard` | time | optional | 1.0 | Wall-clock time when first heard, in whole seconds. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
 
-Place of a row: the column `position`. Height: `height_m`. Speed: `speed_kmh`.
+The column `payload` names a row. Place of a row: the column `position`. Height: `height_m`. Speed: `speed_kmh`.
 
 ### Table `custom_fields`
 
@@ -168,6 +168,8 @@ Struct `HorusPacketRow`. A row of the packet log. The row key is the number of t
 | `offset` | frequency | always | 1.0 | The middle of the tones, from the dial. |
 | `channel` | whole number | always | 1.0 | The channel that received it (0 is the dial). |
 | `sentence` | text | always | 1.0 | The packet as a sentence. |
+
+The column `payload` names a row.
 
 ### Table `channels`
 

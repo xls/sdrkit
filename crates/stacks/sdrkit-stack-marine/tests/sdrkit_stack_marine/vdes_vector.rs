@@ -46,6 +46,13 @@ fn the_vdes_vector_decodes_as_listed() {
         }
     }
     assert_eq!(r.points().len(), 1);
+    let id = r.points().keys().next().unwrap().clone();
+    let link = r.points()[&id].row.clone().expect("a row");
+    assert_eq!(Some(link.table), r.decl().table_id("asm"));
+    assert!(
+        r.table(link.table).unwrap().row(&link.key).is_some(),
+        "{id}"
+    );
     let want = exp["vde_bursts"].as_array().unwrap();
     assert_eq!(bursts.len(), want.len());
     for (w, g) in want.iter().zip(&bursts) {

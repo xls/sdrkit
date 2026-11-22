@@ -643,6 +643,8 @@ impl FanetDecode {
         publish::keep_newest_rows(&FANET_TRACKS, tracks, p);
         // The map points: one for each station with a position, under the prefix of its kind.
         let res = p.results_mut();
+        let table = res.decl().table_id(FANET_STATIONS.def().key);
+        let mut key = String::new();
         let mut now: Vec<String> = Vec::new();
         for r in h.stations.iter() {
             let s = r.record;
@@ -658,6 +660,10 @@ impl FanetDecode {
                 label,
                 s.heading_deg.map(|h| h as f32),
             );
+            // The row key of the station is the text of its address.
+            key.clear();
+            let _ = write!(key, "{}", r.key);
+            res.link_point(&id, table.map(|t| (t, key.as_str())));
             now.push(id);
         }
         for gone in self.points.iter().filter(|k| !now.contains(k)) {

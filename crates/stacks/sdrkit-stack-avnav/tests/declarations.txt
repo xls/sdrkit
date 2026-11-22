@@ -158,6 +158,7 @@ table "idents" "Identifications heard" cap 16
   column FieldDecl { key: "ident", label: "Identification", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "passages" "Marker passages" cap 64
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "marker", label: "Marker" }, ChoiceDecl { key: "tone_only", label: "Tone only" }], refers_to: None, content: None }
   column FieldDecl { key: "marker", label: "Marker", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "outer", label: "Outer" }, ChoiceDecl { key: "middle", label: "Middle" }, ChoiceDecl { key: "inner", label: "Inner" }], refers_to: None, content: None }
   column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -274,16 +275,18 @@ field FieldDecl { key: "msk100.offset_hz", label: "Offset", unit: "Hz", kind: Hz
 field FieldDecl { key: "msk200.clock_ppm", label: "Clock error", unit: "ppm", kind: F64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "msk200.offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
 table "messages" "Messages" cap 64
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "msg_type", label: "Type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "count", label: "Count", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "corrections" "Corrections" cap 32
+  marks TableMarks { label: Some(0), sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "prn", label: "PRN", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "prc_m", label: "Range correction", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "rrc_m_s", label: "Range-rate correction", unit: "m/s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "iod", label: "IOD", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "udre", label: "UDRE", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "almanac" "Beacon almanac" cap 64
-  marks TableMarks { label: None, sort: None, position: Some(3), latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: None, position: Some(3), latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "station_id", label: "Station", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "bit_rate_hz", label: "Bit rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }

@@ -84,7 +84,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.1. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.2. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: none.
 
@@ -123,7 +123,7 @@ Struct `SchumannPeakRow`. A resonance. The row key is its number, 1 to 5.
 | `height_db` | number (dB) | always | 1.0 | The height of a resonance over the baseline. |
 | `q` | number | always | 1.0 | The Q of a resonance. |
 
-Default order: the column `height_db`, highest first.
+The column `resonance` names a row. Default order: the column `resonance`, lowest first.
 
 ### Table `events`
 
@@ -140,6 +140,8 @@ Struct `ScienceEventRow`. An event of a monitor (`schumann`, `whistler`, `jove`,
 | `aux1` | number | always | 1.0 | Stack-specific value 1. |
 | `aux2` | number | always | 1.0 | Stack-specific value 2. |
 | `event_note` | text | always | 1.0 | The note of an event. |
+
+The column `type` names a row.
 
 ### Table `trend`
 

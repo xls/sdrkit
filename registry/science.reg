@@ -1,5 +1,5 @@
 # The interface of the stack family science. The registry test of the family writes this file.
-family science version=1.1
+family science version=1.2
 shape.SondeFields since=1.0
 shape.SondeFields.sondes type=i64 unit= optional=no since=1.0
 shape.SondeFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -840,7 +840,7 @@ same since=1.0
 same.content kind=datalink audio=programme text=yes since=1.1
 same.fields.SameFields since=1.0
 same.table.alerts row=SameAlertRow cap=100 label=callsign since=1.0
-same.table.alert_locations row=SameAlertLocationRow cap=3100 position=position since=1.0
+same.table.alert_locations row=SameAlertLocationRow cap=3100 label=place position=position since=1.0
 same.table.tones row=SameToneRow cap=40 since=1.0
 same.event.same.alert fields=SameAlertEvent since=1.0
 same.event.same.end fields=SameEndEvent since=1.0
@@ -878,10 +878,10 @@ ssdv.command.clear args= reply= since=1.0
 astro since=1.0
 astro.content kind=science since=1.1
 astro.fields.AstroFields since=1.0
-astro.table.calibrated row=AstroCalibratedRow cap=16384 since=1.0
+astro.table.calibrated row=AstroCalibratedRow cap=16384 sort=freq:ascending since=1.0
 astro.table.session row=AstroSessionRow cap=500 since=1.0
 astro.table.fit row=AstroFitRow cap=8 since=1.0
-astro.table.lv_rows row=AstroMapRow cap=721 since=1.0
+astro.table.lv_rows row=AstroMapRow cap=721 sort=longitude:ascending since=1.0
 astro.series.spectrum x_unit=km/s y_unit= since=1.0
 astro.series.total_power x_unit=s y_unit=dBFS since=1.0
 astro.series.drift x_unit=s y_unit= since=1.0
@@ -918,9 +918,9 @@ astro.command.restart args= reply= since=1.0
 iono since=1.0
 iono.content kind=science pictures=yes since=1.1
 iono.fields.IonoFields since=1.0
-iono.table.sounders row=IonoSounderRow cap=64 since=1.0
-iono.table.timeline row=IonoTimelineRow cap=200 since=1.0
-iono.table.bands row=IonoBandRow cap=32 since=1.0
+iono.table.sounders row=IonoSounderRow cap=64 label=id since=1.0
+iono.table.timeline row=IonoTimelineRow cap=200 label=id since=1.0
+iono.table.bands row=IonoBandRow cap=32 label=band since=1.0
 iono.series.coverage x_unit=MHz y_unit= since=1.0
 iono.series.history_foe x_unit=s y_unit=MHz since=1.0
 iono.series.history_fof1 x_unit=s y_unit=MHz since=1.0
@@ -1010,8 +1010,8 @@ schumann since=1.0
 schumann.content kind=science since=1.1
 schumann.fields.SchumannFields since=1.0
 schumann.fields.DecoderFields since=1.0
-schumann.table.peaks row=SchumannPeakRow cap=5 sort=height_db:descending since=1.0
-schumann.table.events row=ScienceEventRow cap=500 since=1.0
+schumann.table.peaks row=SchumannPeakRow cap=5 label=resonance sort=resonance:ascending since=1.0
+schumann.table.events row=ScienceEventRow cap=500 label=type since=1.0
 schumann.table.trend row=SchumannTrendRow cap=1440 since=1.0
 schumann.series.average_spectrum x_unit=Hz y_unit=dB since=1.0
 schumann.series.events_per_hour x_unit=h y_unit= since=1.0
@@ -1027,7 +1027,7 @@ whistler since=1.0
 whistler.content kind=science since=1.1
 whistler.fields.WhistlerFields since=1.0
 whistler.fields.DecoderFields since=1.0
-whistler.table.events row=ScienceEventRow cap=500 since=1.0
+whistler.table.events row=ScienceEventRow cap=500 label=type since=1.0
 whistler.table.trend row=WhistlerTrendRow cap=1440 since=1.0
 whistler.series.events_per_hour x_unit=h y_unit= since=1.0
 whistler.raster.spectrogram x_unit=Hz y_unit=s unit=dB since=1.0
@@ -1080,7 +1080,7 @@ jove since=1.0
 jove.content kind=science since=1.1
 jove.fields.BurstFields since=1.0
 jove.fields.DecoderFields since=1.0
-jove.table.events row=ScienceEventRow cap=500 since=1.0
+jove.table.events row=ScienceEventRow cap=500 label=type since=1.0
 jove.table.trend row=BurstTrendRow cap=1440 since=1.0
 jove.series.events_per_hour x_unit=h y_unit= since=1.0
 jove.raster.spectrogram x_unit=Hz y_unit=s unit=dB since=1.0
@@ -1094,7 +1094,7 @@ callisto since=1.0
 callisto.content kind=science since=1.1
 callisto.fields.BurstFields since=1.0
 callisto.fields.DecoderFields since=1.0
-callisto.table.events row=ScienceEventRow cap=500 since=1.0
+callisto.table.events row=ScienceEventRow cap=500 label=type since=1.0
 callisto.table.trend row=BurstTrendRow cap=1440 since=1.0
 callisto.series.events_per_hour x_unit=h y_unit= since=1.0
 callisto.raster.spectrogram x_unit=Hz y_unit=s unit=dB since=1.0
@@ -1132,7 +1132,7 @@ eme_echo since=1.0
 eme_echo.content kind=science since=1.1
 eme_echo.fields.EmeEchoFields since=1.0
 eme_echo.fields.DecoderFields since=1.0
-eme_echo.table.events row=ScienceEventRow cap=500 since=1.0
+eme_echo.table.events row=ScienceEventRow cap=500 label=type since=1.0
 eme_echo.table.trend row=EmeEchoTrendRow cap=1440 since=1.0
 eme_echo.series.events_per_hour x_unit=h y_unit= since=1.0
 eme_echo.raster.spectrogram x_unit=Hz y_unit=s unit=dB since=1.0
@@ -1149,7 +1149,7 @@ beacon_events since=1.0
 beacon_events.content kind=science since=1.1
 beacon_events.fields.BeaconEventsFields since=1.0
 beacon_events.fields.DecoderFields since=1.0
-beacon_events.table.events row=ScienceEventRow cap=500 since=1.0
+beacon_events.table.events row=ScienceEventRow cap=500 label=type since=1.0
 beacon_events.table.trend row=BeaconEventsTrendRow cap=1440 since=1.0
 beacon_events.series.events_per_hour x_unit=h y_unit= since=1.0
 beacon_events.raster.spectrogram x_unit=Hz y_unit=s unit=dB since=1.0
@@ -1205,9 +1205,9 @@ horus.kept.payloads since=1.0
 horus.kept.custom_fields since=1.0
 horus.kept.packets since=1.0
 horus.kept.HorusLogFields since=1.0
-horus.table.payloads row=HorusPayloadRow cap=64 position=position altitude=height_m speed=speed_kmh since=1.0
+horus.table.payloads row=HorusPayloadRow cap=64 label=payload position=position altitude=height_m speed=speed_kmh since=1.0
 horus.table.custom_fields row=HorusCustomFieldRow cap=512 label=name since=1.0
-horus.table.packets row=HorusPacketRow cap=200 since=1.0
+horus.table.packets row=HorusPacketRow cap=200 label=payload since=1.0
 horus.table.channels row=HorusChannelRow cap=8 since=1.0
 horus.series.spectrum x_unit=Hz y_unit=dB since=1.0
 horus.event.horus.packet fields=HorusPacketEvent since=1.0

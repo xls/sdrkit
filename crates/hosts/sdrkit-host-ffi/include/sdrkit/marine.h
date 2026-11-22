@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "marine", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "marine", version 1.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_MARINE_VERSION_MAJOR 1
-#define SDRKIT_MARINE_VERSION_MINOR 1
+#define SDRKIT_MARINE_VERSION_MINOR 2
 
 // The stack "ais": its id, and the keys of its event types.
 #define SDRKIT_STACK_AIS "ais"
@@ -1950,6 +1950,7 @@ static inline int32_t sdrkit_ais_track_points_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "counters" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `type` names a row.
 static inline int32_t sdrkit_ais_counters_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ais_counter_row *rows,
                                               uint32_t capacity,
@@ -1960,6 +1961,7 @@ static inline int32_t sdrkit_ais_counters_rows(SDRKIT_HANDLE handle,
 // Fills `rows` with the changed rows of the table "channels" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
 // The column `name` names a row.
+// Default order: the column `freq_hz`, lowest first.
 static inline int32_t sdrkit_ais_channels_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ais_channel_row *rows,
                                               uint32_t capacity,
@@ -1999,6 +2001,7 @@ static inline int32_t sdrkit_ais_alerts_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "hop_plan" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `centre_hz`, lowest first.
 static inline int32_t sdrkit_ais_hop_plan_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ais_hop_row *rows,
                                               uint32_t capacity,
@@ -2233,6 +2236,7 @@ static inline int32_t sdrkit_ais_gen_set_speed(SDRKIT_HANDLE handle, double valu
 
 // Fills `rows` with the changed rows of the table "navtex" of the stack "marine" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `header` names a row.
 static inline int32_t sdrkit_marine_navtex_rows(SDRKIT_HANDLE handle,
                                                sdrkit_marine_navtex_row *rows,
                                                uint32_t capacity,
@@ -2242,6 +2246,7 @@ static inline int32_t sdrkit_marine_navtex_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "dsc" of the stack "marine" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `from_mmsi` names a row.
 // Place of a row: the column `position`.
 static inline int32_t sdrkit_marine_dsc_rows(SDRKIT_HANDLE handle,
                                             sdrkit_marine_dsc_row *rows,
@@ -2482,6 +2487,7 @@ static inline int32_t sdrkit_vdes_bursts_rows(SDRKIT_HANDLE handle,
 // Fills `rows` with the changed rows of the table "channels" of the stack "vdes" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
 // The column `name` names a row.
+// Default order: the column `freq_hz`, lowest first.
 static inline int32_t sdrkit_vdes_channels_rows(SDRKIT_HANDLE handle,
                                                sdrkit_vdes_channel_row *rows,
                                                uint32_t capacity,
@@ -2491,6 +2497,7 @@ static inline int32_t sdrkit_vdes_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "by_modulation" of the stack "vdes" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `modulation` names a row.
 static inline int32_t sdrkit_vdes_by_modulation_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_vdes_modulation_row *rows,
                                                     uint32_t capacity,
@@ -2500,6 +2507,8 @@ static inline int32_t sdrkit_vdes_by_modulation_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "by_bandwidth" of the stack "vdes" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `bandwidth_hz` names a row.
+// Default order: the column `bandwidth_hz`, lowest first.
 static inline int32_t sdrkit_vdes_by_bandwidth_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_vdes_bandwidth_row *rows,
                                                    uint32_t capacity,
@@ -2548,6 +2557,7 @@ static inline int32_t sdrkit_vdes_set_time_base(SDRKIT_HANDLE handle, double val
 
 // Fills `rows` with the changed rows of the table "calls" of the stack "marinevhf" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `channel` names a row.
 static inline int32_t sdrkit_marinevhf_calls_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_marinevhf_vhf_call_row *rows,
                                                  uint32_t capacity,
@@ -2557,6 +2567,8 @@ static inline int32_t sdrkit_marinevhf_calls_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "marinevhf" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `channel` names a row.
+// Default order: the column `freq_hz`, lowest first.
 static inline int32_t sdrkit_marinevhf_channels_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_marinevhf_vhf_channel_row *rows,
                                                     uint32_t capacity,

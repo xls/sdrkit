@@ -85,6 +85,19 @@ fn a_county_table_names_the_locations() {
     assert!(places
         .rows_newest_first()
         .any(|(_, row)| row.at(&SameAlertLocationRow::PLACE).is_some_and(|p| p.contains("Harris"))));
+    assert!(!r.results.points().is_empty());
+    points_show_rows(&r.results, SAME_ALERT_LOCATIONS.key);
+}
+
+/// Asserts that every map point of `r` shows a row of table `table` that is there.
+fn points_show_rows(r: &sdrkit_core::Results, table: &str) {
+    let want = r.decl().table_id(table);
+    for p in r.points().values() {
+        let link = p.row.as_ref().expect("a row");
+        assert_eq!(Some(link.table), want, "{}", p.id);
+        let t = r.table(link.table).expect("the table");
+        assert!(t.row(&link.key).is_some(), "{}: no row {}", p.id, link.key);
+    }
 }
 
 #[test]

@@ -125,7 +125,7 @@ The stack puts points on a map: Lightning strikes.
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.1. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.2. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: none.
 

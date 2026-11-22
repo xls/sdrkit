@@ -316,7 +316,7 @@ pub struct MarkerPassageRow<'a> {
 
 /// The finished marker passages.
 pub static MARKER_PASSAGES: Table<MarkerPassageRow<'static>> =
-    Table::new("passages", "Marker passages", 64);
+    Table::new("passages", "Marker passages", 64).label(&MarkerPassageRow::MARKER);
 
 /// The fields of a finished marker passage.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -554,12 +554,16 @@ pub struct DgpsAlmanacRow {
 }
 
 /// The frames by message type.
-pub static DGPS_MESSAGES: Table<DgpsMessageRow> = Table::new("messages", "Messages", 64);
+pub static DGPS_MESSAGES: Table<DgpsMessageRow> =
+    Table::new("messages", "Messages", 64).label(&DgpsMessageRow::MSG_TYPE);
 /// The latest pseudorange corrections.
 pub static DGPS_CORRECTIONS: Table<DgpsCorrectionRow> =
-    Table::new("corrections", "Corrections", 32);
+    Table::new("corrections", "Corrections", 32)
+        .label(&DgpsCorrectionRow::PRN)
+        .sorted(&DgpsCorrectionRow::PRN, sdrkit_core::SortOrder::Ascending);
 /// The beacon almanac.
-pub static DGPS_ALMANAC: Table<DgpsAlmanacRow> = Table::new("almanac", "Beacon almanac", 64);
+pub static DGPS_ALMANAC: Table<DgpsAlmanacRow> =
+    Table::new("almanac", "Beacon almanac", 64).label(&DgpsAlmanacRow::STATION_ID);
 
 /// The fields of an RTCM frame.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -695,7 +699,8 @@ pub fn family() -> &'static Described {
                 "DgpsFields.frames_ok",
                 "DgpsFields.text",
             ]);
-        Described::new("avnav", 1, 2)
+        // Version 1.3 names rows and orders tables.
+        Described::new("avnav", 1, 3)
             .added(
                 1,
                 2,

@@ -524,6 +524,13 @@ fn a_server_receiver_fed_through_the_datagram_command_publishes_the_strikes() {
     assert_eq!(f.at(&LightningTdoaFields::FIXES), Some(fixes.len() as i64));
     assert_eq!(events, fixes.len());
     assert_eq!(r.points().len(), fixes.len());
+    // Each point shows its strike row.
+    let strikes = r.decl().table_id(LIGHTNING_TDOA_STRIKES.key);
+    for p in r.points().values() {
+        let link = p.row.as_ref().expect("a row");
+        assert_eq!(Some(link.table), strikes);
+        assert!(r.table(link.table).unwrap().row(&link.key).is_some(), "{}", p.id);
+    }
     let st = r.table(r.decl().table_id(LIGHTNING_TDOA_STATIONS.key).unwrap()).unwrap();
     assert_eq!(st.len(), 6);
 }

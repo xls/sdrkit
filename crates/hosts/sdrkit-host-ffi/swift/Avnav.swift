@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "avnav", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "avnav", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum AvnavInterface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The tuned frequency.
@@ -937,6 +937,7 @@ public enum AvnavTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AvnavIdentRow.init))
     }
     /// The changed rows of the table "passages" of the stack "ils", newest first, at most `capacity` rows.
+    /// The column `marker` names a row.
     public static func ilsPassages(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[IlsMarkerPassageRow], SDRKitCode> {
         var rows = [sdrkit_ils_marker_passage_row](repeating: sdrkit_ils_marker_passage_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -963,6 +964,7 @@ public enum AvnavTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(LoranStationRow.init))
     }
     /// The changed rows of the table "messages" of the stack "dgps", newest first, at most `capacity` rows.
+    /// The column `msg_type` names a row.
     public static func dgpsMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[DgpsMessageRow], SDRKitCode> {
         var rows = [sdrkit_dgps_message_row](repeating: sdrkit_dgps_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -971,6 +973,8 @@ public enum AvnavTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DgpsMessageRow.init))
     }
     /// The changed rows of the table "corrections" of the stack "dgps", newest first, at most `capacity` rows.
+    /// The column `prn` names a row.
+    /// Default order: the column `prn`, lowest first.
     public static func dgpsCorrections(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[DgpsCorrectionRow], SDRKitCode> {
         var rows = [sdrkit_dgps_correction_row](repeating: sdrkit_dgps_correction_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -979,6 +983,7 @@ public enum AvnavTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DgpsCorrectionRow.init))
     }
     /// The changed rows of the table "almanac" of the stack "dgps", newest first, at most `capacity` rows.
+    /// The column `station_id` names a row.
     /// Place of a row: the column `position`.
     public static func dgpsAlmanac(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[DgpsAlmanacRow], SDRKitCode> {
         var rows = [sdrkit_dgps_almanac_row](repeating: sdrkit_dgps_almanac_row(), count: capacity)

@@ -115,7 +115,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.1. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.2. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: none.
 
@@ -161,6 +161,8 @@ Struct `AstroCalibratedRow`. A bin of the calibrated spectrum of the last finish
 | `ta_k` | number (K) | always | 1.0 | The antenna temperature of a bin: the processed ratio times the system temperature. |
 | `flagged` | yes or no | always | 1.0 | The bin was flagged as RFI. |
 
+Default order: the column `freq`, lowest first.
+
 ### Table `session`
 
 Struct `AstroSessionRow`. A finished integration of the session. The row key is the sequence number of the integration.
@@ -190,6 +192,8 @@ Struct `AstroMapRow`. A row of the table `lv_rows`.
 |---|---|---|---|---|
 | `longitude` | number (°) | always | 1.0 | The galactic longitude of a row of the map. |
 | `terminal_kms` | number (km/s) | optional | 1.0 | The terminal velocity at a longitude. |
+
+Default order: the column `longitude`, lowest first.
 
 ### Commands
 

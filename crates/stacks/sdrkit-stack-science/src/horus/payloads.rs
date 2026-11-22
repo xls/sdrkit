@@ -426,7 +426,9 @@ impl PayloadTable {
             }
         }
         p.clear_rows(HORUS_PACKETS.def());
-        for e in self.log.iter().rev().take(MAX_LOG) {
+        // The last row written is shown first: write the newest packet last.
+        let skip = self.log.len().saturating_sub(MAX_LOG);
+        for e in self.log.iter().skip(skip) {
             self.key.clear();
             let _ = write!(self.key, "{:06}", e.number);
             HORUS_PACKETS.put(
@@ -445,11 +447,16 @@ impl PayloadTable {
         }
         let r = p.results_mut();
         r.clear_points();
+        let table = r.decl().table_id(HORUS_PAYLOADS.def().key);
         for q in &self.payloads {
             if let Some((lat, lon)) = q.last.position {
                 self.text.clear();
                 let _ = write!(self.text, "{} at {:.0} m", q.last.callsign, q.last.alt_m);
                 r.update_point(&q.last.callsign, lat, lon, &self.text, None);
+                r.link_point(
+                    &q.last.callsign,
+                    table.map(|t| (t, q.last.callsign.as_str())),
+                );
             }
         }
         let state = self.report.state;

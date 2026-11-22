@@ -145,7 +145,7 @@ The stack puts points on a map: Nodes and stations.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 3.1. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 3.2. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Mesh messaging (`mesh`). Media: text.
 
@@ -312,7 +312,7 @@ Struct `MeshReadingRow`. A row of the telemetry and position readings. The row k
 | `position` | position | optional | 1.0 | The position. |
 | `alt_m` | number (m) | optional | 1.0 | The altitude. |
 
-Place of a row: the column `position`. Height: `alt_m`.
+The column `node` names a row. Place of a row: the column `position`. Height: `alt_m`.
 
 ### Table `stations`
 
@@ -370,6 +370,8 @@ Struct `MeshTypeRow`. A row of the packet counts by protocol and type. The row k
 | `type` | text | always | 1.0 | The packet type. |
 | `count` | whole number | always | 1.0 | The packets of the type. |
 
+The column `type` names a row.
+
 ### Table `decoders`
 
 Struct `MeshDecoderRow`. A row of the decoders: one searched LoRa setting. The row key is the entry number of the plan.
@@ -392,6 +394,8 @@ Struct `MeshDecoderRow`. A row of the decoders: one searched LoRa setting. The r
 | `snr_db` | number (dB) | optional | 1.0 | The signal to noise ratio of the last good frame. |
 | `cfo` | frequency | optional | 1.0 | The carrier offset of the last good frame. |
 | `last_s` | number (s) | optional | 1.0 | The signal time of the last frame. |
+
+The column `preset` names a row. Default order: the column `freq`, lowest first.
 
 ### Table `contacts`
 
@@ -417,6 +421,8 @@ Struct `MeshChannelRow`. A row of the channels with keys. The row key is `<net k
 | `channel` | text | always | 1.0 | The name of the channel. |
 | `key_set` | yes or no | always | 1.0 | The channel holds a key. |
 
+The column `channel` names a row.
+
 ### Table `slots`
 
 Struct `MeshSlotRow`. A row of the Meshtastic frequency slots of the primary preset in the slot band. The row key is the slot number with four digits.
@@ -427,6 +433,8 @@ Struct `MeshSlotRow`. A row of the Meshtastic frequency slots of the primary pre
 | `freq_hz` | frequency | always | 1.0 | The centre of the slot plus the setting `mt_freq_offset`. |
 | `current` | yes or no | always | 1.0 | The slot that the stack listens on: that of `mt_channel_num`, else of the hash of `mt_channel_name`; with `mt_override_freq` the slot whose frequency it is, and no row for a frequency between slots. |
 | `preset_default` | yes or no | always | 1.0 | The slot of the default channel name of the primary preset. |
+
+The column `slot` names a row. Default order: the column `slot`, lowest first.
 
 ### Event `lora.packet`
 

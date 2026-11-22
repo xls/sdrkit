@@ -207,7 +207,8 @@ pub struct AisCounterRow<'a> {
 }
 
 /// The messages by type and channel.
-pub static COUNTERS: Table<AisCounterRow<'static>> = Table::new("counters", "Messages by type", 32);
+pub static COUNTERS: Table<AisCounterRow<'static>> =
+    Table::new("counters", "Messages by type", 32).label(&AisCounterRow::TYPE);
 
 /// A row of the channel table of the AIS stack. The row key is the letter of the channel.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -242,8 +243,9 @@ pub struct AisChannelRow<'a> {
 }
 
 /// The AIS channels.
-pub static CHANNEL_TABLE: Table<AisChannelRow<'static>> =
-    Table::new("channels", "Channels", 4).label(&AisChannelRow::NAME);
+pub static CHANNEL_TABLE: Table<AisChannelRow<'static>> = Table::new("channels", "Channels", 4)
+    .label(&AisChannelRow::NAME)
+    .sorted(&AisChannelRow::FREQ_HZ, sdrkit_core::SortOrder::Ascending);
 
 /// A row of the NMEA sentence table. The row key is the place of the sentence in the log.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -335,7 +337,8 @@ pub struct AisHopRow {
 }
 
 /// The hop plan.
-pub static HOP_PLAN: Table<AisHopRow> = Table::new("hop_plan", "Hopping plan", 4);
+pub static HOP_PLAN: Table<AisHopRow> = Table::new("hop_plan", "Hopping plan", 4)
+    .sorted(&AisHopRow::CENTRE_HZ, sdrkit_core::SortOrder::Ascending);
 
 /// The row of the selected station, with every value that the station sent. The row key is the MMSI.
 #[derive(Clone, Debug, PartialEq, Fields)]

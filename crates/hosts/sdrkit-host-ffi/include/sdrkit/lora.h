@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "lora", version 3.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "lora", version 3.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_LORA_VERSION_MAJOR 3
-#define SDRKIT_LORA_VERSION_MINOR 1
+#define SDRKIT_LORA_VERSION_MINOR 2
 
 // The stack "mesh": its id, and the keys of its event types.
 #define SDRKIT_STACK_MESH "mesh"
@@ -3049,6 +3049,7 @@ static inline int32_t sdrkit_mesh_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "mesh" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
 static inline int32_t sdrkit_mesh_readings_rows(SDRKIT_HANDLE handle,
@@ -3081,6 +3082,7 @@ static inline int32_t sdrkit_mesh_devices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "types" of the stack "mesh" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `type` names a row.
 static inline int32_t sdrkit_mesh_types_rows(SDRKIT_HANDLE handle,
                                             sdrkit_mesh_type_row *rows,
                                             uint32_t capacity,
@@ -3090,6 +3092,8 @@ static inline int32_t sdrkit_mesh_types_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "decoders" of the stack "mesh" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `preset` names a row.
+// Default order: the column `freq`, lowest first.
 static inline int32_t sdrkit_mesh_decoders_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mesh_decoder_row *rows,
                                                uint32_t capacity,
@@ -3109,6 +3113,7 @@ static inline int32_t sdrkit_mesh_contacts_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "mesh" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `channel` names a row.
 static inline int32_t sdrkit_mesh_channels_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mesh_channel_row *rows,
                                                uint32_t capacity,
@@ -3118,6 +3123,8 @@ static inline int32_t sdrkit_mesh_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "slots" of the stack "mesh" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `slot` names a row.
+// Default order: the column `slot`, lowest first.
 static inline int32_t sdrkit_mesh_slots_rows(SDRKIT_HANDLE handle,
                                             sdrkit_mesh_slot_row *rows,
                                             uint32_t capacity,
@@ -3651,6 +3658,7 @@ static inline int32_t sdrkit_meshtastic_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "meshtastic" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
 static inline int32_t sdrkit_meshtastic_readings_rows(SDRKIT_HANDLE handle,
@@ -3683,6 +3691,7 @@ static inline int32_t sdrkit_meshtastic_devices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "types" of the stack "meshtastic" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `type` names a row.
 static inline int32_t sdrkit_meshtastic_types_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_type_row *rows,
                                                   uint32_t capacity,
@@ -3692,6 +3701,8 @@ static inline int32_t sdrkit_meshtastic_types_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "decoders" of the stack "meshtastic" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `preset` names a row.
+// Default order: the column `freq`, lowest first.
 static inline int32_t sdrkit_meshtastic_decoders_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_mesh_decoder_row *rows,
                                                      uint32_t capacity,
@@ -3711,6 +3722,7 @@ static inline int32_t sdrkit_meshtastic_contacts_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "meshtastic" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `channel` names a row.
 static inline int32_t sdrkit_meshtastic_channels_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_mesh_channel_row *rows,
                                                      uint32_t capacity,
@@ -3720,6 +3732,8 @@ static inline int32_t sdrkit_meshtastic_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "slots" of the stack "meshtastic" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `slot` names a row.
+// Default order: the column `slot`, lowest first.
 static inline int32_t sdrkit_meshtastic_slots_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_slot_row *rows,
                                                   uint32_t capacity,
@@ -4106,6 +4120,7 @@ static inline int32_t sdrkit_meshcore_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "meshcore" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
 static inline int32_t sdrkit_meshcore_readings_rows(SDRKIT_HANDLE handle,
@@ -4138,6 +4153,7 @@ static inline int32_t sdrkit_meshcore_devices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "types" of the stack "meshcore" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `type` names a row.
 static inline int32_t sdrkit_meshcore_types_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_mesh_type_row *rows,
                                                 uint32_t capacity,
@@ -4147,6 +4163,8 @@ static inline int32_t sdrkit_meshcore_types_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "decoders" of the stack "meshcore" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `preset` names a row.
+// Default order: the column `freq`, lowest first.
 static inline int32_t sdrkit_meshcore_decoders_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_mesh_decoder_row *rows,
                                                    uint32_t capacity,
@@ -4166,6 +4184,7 @@ static inline int32_t sdrkit_meshcore_contacts_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "meshcore" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `channel` names a row.
 static inline int32_t sdrkit_meshcore_channels_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_mesh_channel_row *rows,
                                                    uint32_t capacity,
@@ -4175,6 +4194,8 @@ static inline int32_t sdrkit_meshcore_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "slots" of the stack "meshcore" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `slot` names a row.
+// Default order: the column `slot`, lowest first.
 static inline int32_t sdrkit_meshcore_slots_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_mesh_slot_row *rows,
                                                 uint32_t capacity,
@@ -4440,6 +4461,7 @@ static inline int32_t sdrkit_lorawan_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "lorawan" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
 static inline int32_t sdrkit_lorawan_readings_rows(SDRKIT_HANDLE handle,
@@ -4472,6 +4494,7 @@ static inline int32_t sdrkit_lorawan_devices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "types" of the stack "lorawan" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `type` names a row.
 static inline int32_t sdrkit_lorawan_types_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mesh_type_row *rows,
                                                uint32_t capacity,
@@ -4481,6 +4504,8 @@ static inline int32_t sdrkit_lorawan_types_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "decoders" of the stack "lorawan" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `preset` names a row.
+// Default order: the column `freq`, lowest first.
 static inline int32_t sdrkit_lorawan_decoders_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_decoder_row *rows,
                                                   uint32_t capacity,
@@ -4500,6 +4525,7 @@ static inline int32_t sdrkit_lorawan_contacts_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "lorawan" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `channel` names a row.
 static inline int32_t sdrkit_lorawan_channels_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_channel_row *rows,
                                                   uint32_t capacity,
@@ -4509,6 +4535,8 @@ static inline int32_t sdrkit_lorawan_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "slots" of the stack "lorawan" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `slot` names a row.
+// Default order: the column `slot`, lowest first.
 static inline int32_t sdrkit_lorawan_slots_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mesh_slot_row *rows,
                                                uint32_t capacity,
@@ -4688,6 +4716,7 @@ static inline int32_t sdrkit_loraaprs_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "loraaprs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
 static inline int32_t sdrkit_loraaprs_readings_rows(SDRKIT_HANDLE handle,
@@ -4720,6 +4749,7 @@ static inline int32_t sdrkit_loraaprs_devices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "types" of the stack "loraaprs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `type` names a row.
 static inline int32_t sdrkit_loraaprs_types_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_mesh_type_row *rows,
                                                 uint32_t capacity,
@@ -4729,6 +4759,8 @@ static inline int32_t sdrkit_loraaprs_types_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "decoders" of the stack "loraaprs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `preset` names a row.
+// Default order: the column `freq`, lowest first.
 static inline int32_t sdrkit_loraaprs_decoders_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_mesh_decoder_row *rows,
                                                    uint32_t capacity,
@@ -4748,6 +4780,7 @@ static inline int32_t sdrkit_loraaprs_contacts_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "loraaprs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `channel` names a row.
 static inline int32_t sdrkit_loraaprs_channels_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_mesh_channel_row *rows,
                                                    uint32_t capacity,
@@ -4757,6 +4790,8 @@ static inline int32_t sdrkit_loraaprs_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "slots" of the stack "loraaprs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `slot` names a row.
+// Default order: the column `slot`, lowest first.
 static inline int32_t sdrkit_loraaprs_slots_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_mesh_slot_row *rows,
                                                 uint32_t capacity,
@@ -5002,6 +5037,7 @@ static inline int32_t sdrkit_meshcom_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "meshcom" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
 static inline int32_t sdrkit_meshcom_readings_rows(SDRKIT_HANDLE handle,
@@ -5034,6 +5070,7 @@ static inline int32_t sdrkit_meshcom_devices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "types" of the stack "meshcom" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `type` names a row.
 static inline int32_t sdrkit_meshcom_types_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mesh_type_row *rows,
                                                uint32_t capacity,
@@ -5043,6 +5080,8 @@ static inline int32_t sdrkit_meshcom_types_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "decoders" of the stack "meshcom" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `preset` names a row.
+// Default order: the column `freq`, lowest first.
 static inline int32_t sdrkit_meshcom_decoders_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_decoder_row *rows,
                                                   uint32_t capacity,
@@ -5062,6 +5101,7 @@ static inline int32_t sdrkit_meshcom_contacts_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "meshcom" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `channel` names a row.
 static inline int32_t sdrkit_meshcom_channels_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_channel_row *rows,
                                                   uint32_t capacity,
@@ -5071,6 +5111,8 @@ static inline int32_t sdrkit_meshcom_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "slots" of the stack "meshcom" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `slot` names a row.
+// Default order: the column `slot`, lowest first.
 static inline int32_t sdrkit_meshcom_slots_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mesh_slot_row *rows,
                                                uint32_t capacity,
@@ -5229,6 +5271,7 @@ static inline int32_t sdrkit_lorawanwide_frames_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "lorawanwide" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `freq`, lowest first.
 static inline int32_t sdrkit_lorawanwide_channels_rows(SDRKIT_HANDLE handle,
                                                       sdrkit_lorawanwide_wide_channel_row *rows,
                                                       uint32_t capacity,
@@ -5248,6 +5291,7 @@ static inline int32_t sdrkit_lorawanwide_devices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "types" of the stack "lorawanwide" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `type` names a row.
 static inline int32_t sdrkit_lorawanwide_types_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_mesh_type_row *rows,
                                                    uint32_t capacity,
@@ -5829,6 +5873,7 @@ static inline int32_t sdrkit_fanet_gen_set_bad_crc(SDRKIT_HANDLE handle, int64_t
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "reticulum" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `destination` names a row.
 static inline int32_t sdrkit_reticulum_packets_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_reticulum_rns_packet_row *rows,
                                                    uint32_t capacity,
@@ -5838,7 +5883,7 @@ static inline int32_t sdrkit_reticulum_packets_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "destinations" of the stack "reticulum" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
-// The column `identity` names a row.
+// The column `destination` names a row.
 static inline int32_t sdrkit_reticulum_destinations_rows(SDRKIT_HANDLE handle,
                                                         sdrkit_reticulum_rns_destination_row *rows,
                                                         uint32_t capacity,
@@ -5911,7 +5956,7 @@ static inline int32_t sdrkit_reticulum_gen_set_tampered(SDRKIT_HANDLE handle, bo
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "elrs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
-// The column `hex` names a row.
+// The column `link` names a row.
 static inline int32_t sdrkit_elrs_frames_rows(SDRKIT_HANDLE handle,
                                              sdrkit_elrs_frame_row *rows,
                                              uint32_t capacity,

@@ -1327,7 +1327,7 @@ pub struct NavtexRow<'a> {
 
 /// The NAVTEX messages, newest first.
 pub static NAVTEX_TABLE: Table<NavtexRow<'static>> =
-    Table::new("navtex", "NAVTEX", crate::navtex::LIST_CAP);
+    Table::new("navtex", "NAVTEX", crate::navtex::LIST_CAP).label(&NavtexRow::HEADER);
 
 /// A row of the DSC call table. The row key is the place of the call in the log.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1386,7 +1386,8 @@ pub struct DscRow<'a> {
 }
 
 /// The DSC calls, newest first.
-pub static DSC_TABLE: Table<DscRow<'static>> = Table::new("dsc", "DSC", DSC_CAP);
+pub static DSC_TABLE: Table<DscRow<'static>> =
+    Table::new("dsc", "DSC", DSC_CAP).label(&DscRow::FROM_MMSI);
 
 /// The fields of the event of a DSC call.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -2041,8 +2042,10 @@ impl MarineDisplay {
         }
         // Each station placed by a checked call, at its newest position (the station in distress for relays and
         // acknowledgements).
+        // Each point shows the row of the newest call that placed it.
+        let table = r.decl().table_id(DSC_TABLE.def().key);
         let mut placed: Vec<String> = Vec::new();
-        for e in l.dsc.iter() {
+        for (seq, e) in l.dsc.iter_seq() {
             let c = &e.call;
             let (Some(lat), Some(lon)) = (c.lat, c.lon) else {
                 continue;
@@ -2058,6 +2061,8 @@ impl MarineDisplay {
             let id = format!("{POINT_PREFIX}{who}");
             let label = format!("{who} {}", c.kind);
             r.update_point(&id, lat, lon, &label, None);
+            let row = format!("{seq:06}");
+            r.link_point(&id, table.map(|t| (t, row.as_str())));
             placed.push(id);
         }
         let gone: Vec<String> = r

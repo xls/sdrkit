@@ -76,7 +76,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.5. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 1.6. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Measurement and analysis (`measurement`). Media: none.
 
@@ -127,6 +127,8 @@ Struct `HfidCandidateRow`. A candidate of the last analysis of the identifier. T
 | `basis` | text | always | 1.0 | What the score is based on. |
 | `note` | text | always | 1.0 | What the waveform is. |
 | `link` | text | always | 1.0 | A public source. |
+
+The column `waveform` names a row. Default order: the column `confidence_pct`, highest first.
 
 ### Settings of the test signal generator
 

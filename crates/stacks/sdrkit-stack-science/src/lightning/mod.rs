@@ -869,6 +869,7 @@ impl TdoaDecoder {
             );
             let r = p.results_mut();
             r.clear_points();
+            let table = r.decl().table_id(LIGHTNING_TDOA_STRIKES.def().key);
             let mut id = String::new();
             let mut label = String::new();
             for s in server.strikes() {
@@ -881,6 +882,8 @@ impl TdoaDecoder {
                     s.stations, s.major_km, s.minor_km, s.az_deg
                 );
                 r.update_point(&id, s.lat, s.lon, &label, None);
+                // The row key is the point id without "strike/".
+                r.link_point(&id, table.map(|t| (t, &id["strike/".len()..])));
             }
         }
         let rows: Vec<StationRow<'_>> = server

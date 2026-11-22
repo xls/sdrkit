@@ -388,7 +388,8 @@ impl ChannelBank {
             failed: failed as i64,
             snr_db: snr,
         });
-        for s in &self.slots {
+        // The last row written is shown first: write the dial channel last.
+        for s in self.slots.iter().rev() {
             let tones = s.ch.fsk.tones();
             let rtty = s.ch.rtty.tones();
             let tone = |k: usize| tones.map(|f| Hertz(f[k]));

@@ -86,7 +86,7 @@ Advanced settings. The owner works without any of them set.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 3.1. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 3.2. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
 
@@ -158,6 +158,8 @@ Struct `WideChannelRow`. A row of the LoRaWAN channels. The row key is the place
 | `frames` | whole number | always | 1.0 | Frames decoded. |
 | `crc_errors` | whole number | always | 1.0 | CRC errors. |
 
+Default order: the column `freq`, lowest first.
+
 ### Table `devices`
 
 Struct `MeshDeviceRow`. A row of the LoRaWAN devices. The row key is the device id.
@@ -193,6 +195,8 @@ Struct `MeshTypeRow`. A row of the packet counts by protocol and type. The row k
 | `net` | choice | always | 1.0 | The protocol. |
 | `type` | text | always | 1.0 | The packet type. |
 | `count` | whole number | always | 1.0 | The packets of the type. |
+
+The column `type` names a row.
 
 ### Event `lora.packet`
 

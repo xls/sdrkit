@@ -595,12 +595,29 @@ impl BeaconStats {
             offset_hz: None,
             summary,
         });
+        // One point for each beacon heard, at the row of the band where it was heard last. The row key is the place
+        // of the row in the list.
+        let table = r.decl().table_id(HFBEACONS_BEACONS.def().key);
+        let mut newest: Vec<(&str, usize)> = Vec::new();
+        for (i, x) in rows.iter().enumerate() {
+            if !x.heard || x.position.is_none() {
+                continue;
+            }
+            match newest.iter_mut().find(|(n, _)| *n == x.name) {
+                Some(n) if rows[n.1].last_t < x.last_t => n.1 = i,
+                Some(_) => {}
+                None => newest.push((&x.name, i)),
+            }
+        }
         let mut shown = Vec::new();
-        for x in rows.iter().filter(|x| x.heard) {
+        for &(name, i) in &newest {
+            let x = &rows[i];
             if let Some((la, lo)) = x.position {
-                let label = format!("{} {:+.0} dB", x.name, x.snr_db.unwrap_or(0.0));
-                r.update_point(&x.name, la, lo, &label, None);
-                shown.push(x.name.clone());
+                let label = format!("{name} {:+.0} dB", x.snr_db.unwrap_or(0.0));
+                r.update_point(name, la, lo, &label, None);
+                let key = format!("{i:04}");
+                r.link_point(name, table.map(|t| (t, key.as_str())));
+                shown.push(name.to_owned());
             }
         }
         for n in &self.points_shown {

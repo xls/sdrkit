@@ -131,7 +131,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "readings" "Readings" cap 200
-  marks TableMarks { label: None, sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
+  marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "node", label: "Node", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "battery_pct", label: "Battery", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
@@ -176,10 +176,12 @@ table "devices" "Devices" cap 200
   column FieldDecl { key: "fport", label: "Port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mac", label: "MAC / status", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "types" "Packet types" cap 200
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "count", label: "Count", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decoders" "Decoders" cap 400
+  marks TableMarks { label: Some(1), sort: Some((2, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "preset", label: "Preset", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
@@ -204,10 +206,12 @@ table "contacts" "Contacts" cap 200
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "path", label: "Path", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 64
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "key_set", label: "Key set", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "slots" "Meshtastic slots" cap 1024
+  marks TableMarks { label: Some(0), sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "slot", label: "Slot", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "current", label: "Current", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
@@ -433,7 +437,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "readings" "Readings" cap 200
-  marks TableMarks { label: None, sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
+  marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "node", label: "Node", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "battery_pct", label: "Battery", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
@@ -478,10 +482,12 @@ table "devices" "Devices" cap 200
   column FieldDecl { key: "fport", label: "Port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mac", label: "MAC / status", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "types" "Packet types" cap 200
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "count", label: "Count", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decoders" "Decoders" cap 400
+  marks TableMarks { label: Some(1), sort: Some((2, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "preset", label: "Preset", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
@@ -506,10 +512,12 @@ table "contacts" "Contacts" cap 200
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "path", label: "Path", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 64
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "key_set", label: "Key set", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "slots" "Meshtastic slots" cap 1024
+  marks TableMarks { label: Some(0), sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "slot", label: "Slot", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "current", label: "Current", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
@@ -702,7 +710,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "readings" "Readings" cap 200
-  marks TableMarks { label: None, sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
+  marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "node", label: "Node", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "battery_pct", label: "Battery", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
@@ -747,10 +755,12 @@ table "devices" "Devices" cap 200
   column FieldDecl { key: "fport", label: "Port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mac", label: "MAC / status", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "types" "Packet types" cap 200
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "count", label: "Count", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decoders" "Decoders" cap 400
+  marks TableMarks { label: Some(1), sort: Some((2, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "preset", label: "Preset", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
@@ -775,10 +785,12 @@ table "contacts" "Contacts" cap 200
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "path", label: "Path", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 64
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "key_set", label: "Key set", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "slots" "Meshtastic slots" cap 1024
+  marks TableMarks { label: Some(0), sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "slot", label: "Slot", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "current", label: "Current", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
@@ -956,7 +968,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "readings" "Readings" cap 200
-  marks TableMarks { label: None, sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
+  marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "node", label: "Node", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "battery_pct", label: "Battery", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
@@ -1001,10 +1013,12 @@ table "devices" "Devices" cap 200
   column FieldDecl { key: "fport", label: "Port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mac", label: "MAC / status", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "types" "Packet types" cap 200
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "count", label: "Count", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decoders" "Decoders" cap 400
+  marks TableMarks { label: Some(1), sort: Some((2, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "preset", label: "Preset", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
@@ -1029,10 +1043,12 @@ table "contacts" "Contacts" cap 200
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "path", label: "Path", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 64
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "key_set", label: "Key set", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "slots" "Meshtastic slots" cap 1024
+  marks TableMarks { label: Some(0), sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "slot", label: "Slot", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "current", label: "Current", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
@@ -1201,7 +1217,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "readings" "Readings" cap 200
-  marks TableMarks { label: None, sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
+  marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "node", label: "Node", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "battery_pct", label: "Battery", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
@@ -1246,10 +1262,12 @@ table "devices" "Devices" cap 200
   column FieldDecl { key: "fport", label: "Port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mac", label: "MAC / status", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "types" "Packet types" cap 200
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "count", label: "Count", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decoders" "Decoders" cap 400
+  marks TableMarks { label: Some(1), sort: Some((2, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "preset", label: "Preset", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
@@ -1274,10 +1292,12 @@ table "contacts" "Contacts" cap 200
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "path", label: "Path", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 64
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "key_set", label: "Key set", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "slots" "Meshtastic slots" cap 1024
+  marks TableMarks { label: Some(0), sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "slot", label: "Slot", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "current", label: "Current", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
@@ -1444,7 +1464,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "readings" "Readings" cap 200
-  marks TableMarks { label: None, sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
+  marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "node", label: "Node", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "battery_pct", label: "Battery", unit: "%", kind: F64, choices: [], refers_to: None, content: None }
@@ -1489,10 +1509,12 @@ table "devices" "Devices" cap 200
   column FieldDecl { key: "fport", label: "Port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mac", label: "MAC / status", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "types" "Packet types" cap 200
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "count", label: "Count", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "decoders" "Decoders" cap 400
+  marks TableMarks { label: Some(1), sort: Some((2, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "preset", label: "Preset", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
@@ -1517,10 +1539,12 @@ table "contacts" "Contacts" cap 200
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "path", label: "Path", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 64
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "key_set", label: "Key set", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
 table "slots" "Meshtastic slots" cap 1024
+  marks TableMarks { label: Some(0), sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "slot", label: "Slot", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "current", label: "Current", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
@@ -1625,6 +1649,7 @@ table "frames" "Frames" cap 600
   column FieldDecl { key: "freq", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "summary", label: "Detail", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "channels" "Channels" cap 200
+  marks TableMarks { label: None, sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "freq", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "bw", label: "Bandwidth", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "sf_min", label: "Least SF", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -1653,6 +1678,7 @@ table "devices" "Devices" cap 200
   column FieldDecl { key: "fport", label: "Port", unit: "", kind: I64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "mac", label: "MAC / status", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "types" "Packet types" cap 200
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None }
   column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "count", label: "Count", unit: "", kind: I64, choices: [], refers_to: None, content: None }
@@ -1954,6 +1980,7 @@ field FieldDecl { key: "searching", label: "Searching", unit: "", kind: Text, ch
 field FieldDecl { key: "destinations_heard", label: "Destinations", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "bad_samples", label: "Bad samples", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "packets" "Packets" cap 300
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -1965,7 +1992,7 @@ table "packets" "Packets" cap 300
   column FieldDecl { key: "hex", label: "First bytes", unit: "", kind: Bytes, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "setting", label: "LoRa setting", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 table "destinations" "Destinations" cap 100
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "type", label: "Type", unit: "", kind: Choice, choices: [ChoiceDecl { key: "data", label: "DATA" }, ChoiceDecl { key: "announce", label: "ANNOUNCE" }, ChoiceDecl { key: "linkrequest", label: "LINKREQUEST" }, ChoiceDecl { key: "proof", label: "PROOF" }], refers_to: None, content: None }
   column FieldDecl { key: "content", label: "Content", unit: "", kind: Text, choices: [], refers_to: None, content: None }
@@ -2006,7 +2033,7 @@ field FieldDecl { key: "links_heard", label: "Links", unit: "", kind: I64, choic
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None }
 field FieldDecl { key: "bad_samples", label: "Bad samples", unit: "", kind: I64, choices: [], refers_to: None, content: None }
 table "frames" "Frames" cap 300
-  marks TableMarks { label: Some(12), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None }
   column FieldDecl { key: "link", label: "Link", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "links" }), content: None }

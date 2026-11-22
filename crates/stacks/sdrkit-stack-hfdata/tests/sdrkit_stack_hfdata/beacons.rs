@@ -12,8 +12,30 @@ use sdrkit_stack_hfdata::beacons::{
 };
 use sdrkit_stack_hfdata::typed::{HFBEACONS_BANDS, HFBEACONS_BEACONS, HFBEACONS_PROPAGATION};
 
+/// Asserts that each map point shows a heard row of its beacon.
+fn points_show_rows(r: &sdrkit_core::Results) {
+    let want = r.decl().table_id(HFBEACONS_BEACONS.key);
+    for p in r.points().values() {
+        let link = p.row.as_ref().expect("a row");
+        assert_eq!(Some(link.table), want, "{}", p.id);
+        let row = r
+            .table(link.table)
+            .unwrap()
+            .row(&link.key)
+            .expect("the row");
+        let id = row.decl().id("name").expect("a name column");
+        assert_eq!(
+            row.text(id).map(|t| t.to_string()),
+            Some(p.id.clone()),
+            "{}",
+            p.id
+        );
+    }
+}
+
 /// The beacon rows inside the capture, in list order.
 fn in_capture(rx: &dyn Receiver) -> Vec<Row> {
+    points_show_rows(rx.results());
     rows(rx.results(), &HFBEACONS_BEACONS)
         .into_iter()
         .filter(|b| cell(b, "in_capture") == Value::Bool(true))
@@ -73,6 +95,9 @@ fn b13_recording() {
         assert!(num(&b, "confidence") <= 1.0, "{n}");
     }
     assert_eq!(number(rx.as_ref(), "heard_now"), 2.0);
+    // Each beacon heard has a point that shows its row.
+    assert!(!rx.results().points().is_empty());
+    points_show_rows(rx.results());
 }
 
 /// The clean sources of `o` through the standard impairments: the levels of the sources are SNRs in 100 Hz, so the strongest is

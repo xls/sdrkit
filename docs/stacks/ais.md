@@ -112,7 +112,7 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `marine`, version 1.1. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `marine`, version 1.2. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -188,6 +188,8 @@ Struct `AisCounterRow`. A row of the count of messages by type. The row key is t
 | `count_d` | whole number | always | 1.0 | Messages on channel 76. |
 | `total` | whole number | always | 1.0 | Messages on every channel. |
 
+The column `type` names a row.
+
 ### Table `channels`
 
 Struct `AisChannelRow`. A row of the channel table of the AIS stack. The row key is the letter of the channel.
@@ -204,7 +206,7 @@ Struct `AisChannelRow`. A row of the channel table of the AIS stack. The row key
 | `doppler_hz` | frequency | optional | 1.0 | The Doppler of the channel's bursts now (satellite mode). |
 | `doppler_rate_hz_s` | number (Hz/s) | optional | 1.0 | The rate of the Doppler (satellite mode). |
 
-The column `name` names a row.
+The column `name` names a row. Default order: the column `freq_hz`, lowest first.
 
 ### Table `sentences`
 
@@ -256,6 +258,8 @@ Struct `AisHopRow`. A row of the hop plan of a receiver that is narrower than th
 |---|---|---|---|---|
 | `centre_hz` | frequency | always | 1.0 | The centre of a hopping step. |
 | `dwell` | duration (s) | optional | 1.0 | The dwell of a hopping step (none for one step that covers all). |
+
+Default order: the column `centre_hz`, lowest first.
 
 ### Table `selected`
 

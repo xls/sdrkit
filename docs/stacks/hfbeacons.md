@@ -113,7 +113,7 @@ The stack puts points on a map: Beacons heard.
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.5. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 1.6. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: sound (monitor).
 
@@ -196,6 +196,8 @@ Struct `HfbeaconsBandRow`. A band of the beacon list. The row key is the place, 
 | `heard_now` | whole number | always | 1.0 | Beacons of the band heard now. |
 | `farthest_km` | number (km) | optional | 1.0 | The farthest beacon heard. |
 
+The column `band` names a row.
+
 ### Table `propagation`
 
 Struct `HfbeaconsPropagationRow`. The propagation of a band. The row key is the place, "00" first.
@@ -208,6 +210,8 @@ Struct `HfbeaconsPropagationRow`. The propagation of a band. The row key is the 
 | `best_snr_db` | number (dB) | optional | 1.0 | The best SNR. |
 | `farthest_km` | number (km) | optional | 1.0 | The farthest station heard. |
 | `score` | number | always | 1.0 | The score of the band. |
+
+The column `band` names a row.
 
 ### Event `hfb.detection`
 

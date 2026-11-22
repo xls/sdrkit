@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "hfdata", version 1.5. MIT licence.
+ * sdrkit: the typed interface of the stack family "hfdata", version 1.6. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_HFDATA_VERSION_MAJOR 1
-#define SDRKIT_HFDATA_VERSION_MINOR 5
+#define SDRKIT_HFDATA_VERSION_MINOR 6
 
 // The stack "crowd36": its id, and the keys of its event types.
 #define SDRKIT_STACK_CROWD36 "crowd36"
@@ -5820,6 +5820,8 @@ static inline int32_t sdrkit_ale3g_gen_set_set(SDRKIT_HANDLE handle, sdrkit_ale3
 
 // Fills `rows` with the changed rows of the table "channels" of the stack "s4481" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `channel` names a row.
+// Default order: the column `channel`, lowest first.
 static inline int32_t sdrkit_s4481_channels_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_s4481_channel_row *rows,
                                                 uint32_t capacity,
@@ -5979,6 +5981,8 @@ static inline int32_t sdrkit_cis_hf_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "cis_hf" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `number` names a row.
+// Default order: the column `number`, lowest first.
 static inline int32_t sdrkit_cis_hf_carriers_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_cis_hf_carrier_row *rows,
                                                  uint32_t capacity,
@@ -6116,6 +6120,8 @@ static inline int32_t sdrkit_cis_hf_gen_set_ofdm(SDRKIT_HANDLE handle, sdrkit_ci
 
 // Fills `rows` with the changed rows of the table "candidates" of the stack "hfid" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `waveform` names a row.
+// Default order: the column `confidence_pct`, highest first.
 static inline int32_t sdrkit_hfid_candidates_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_hfid_candidate_row *rows,
                                                  uint32_t capacity,
@@ -6390,6 +6396,7 @@ static inline int32_t sdrkit_hfradar_heard_rows(SDRKIT_HANDLE handle,
 // Fills `rows` with the changed rows of the table "bands" of the stack "hfradar" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
 // The column `name` names a row.
+// Default order: the column `low`, lowest first.
 static inline int32_t sdrkit_hfradar_bands_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hfradar_band_row *rows,
                                                uint32_t capacity,
@@ -6445,6 +6452,7 @@ static inline int32_t sdrkit_hfradar_gen_set_signal(SDRKIT_HANDLE handle, sdrkit
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "pactor2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `frequency`, lowest first.
 static inline int32_t sdrkit_pactor2_carriers_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_hfdata_pactorhf_carrier_row *rows,
                                                   uint32_t capacity,
@@ -6482,6 +6490,7 @@ static inline int32_t sdrkit_pactor2_set_analysis_interval_s(SDRKIT_HANDLE handl
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "pactor3" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `frequency`, lowest first.
 static inline int32_t sdrkit_pactor3_carriers_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_hfdata_pactorhf_carrier_row *rows,
                                                   uint32_t capacity,
@@ -6524,6 +6533,7 @@ static inline int32_t sdrkit_pactor3_gen_set_level(SDRKIT_HANDLE handle, int64_t
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "pactor4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `frequency`, lowest first.
 static inline int32_t sdrkit_pactor4_carriers_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_hfdata_pactorhf_carrier_row *rows,
                                                   uint32_t capacity,
@@ -6657,6 +6667,7 @@ static inline int32_t sdrkit_hfbeacons_beacons_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "bands" of the stack "hfbeacons" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `band` names a row.
 static inline int32_t sdrkit_hfbeacons_bands_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_hfbeacons_band_row *rows,
                                                  uint32_t capacity,
@@ -6666,6 +6677,7 @@ static inline int32_t sdrkit_hfbeacons_bands_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "propagation" of the stack "hfbeacons" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `band` names a row.
 static inline int32_t sdrkit_hfbeacons_propagation_rows(SDRKIT_HANDLE handle,
                                                        sdrkit_hfbeacons_propagation_row *rows,
                                                        uint32_t capacity,
@@ -6902,6 +6914,7 @@ static inline int32_t sdrkit_hfbeacons_gen_set_centre_hz(SDRKIT_HANDLE handle, d
 
 // Fills `rows` with the changed rows of the table "spectrum" of the stack "wavebuoy" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `entry`, lowest first.
 static inline int32_t sdrkit_wavebuoy_spectrum_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_wavebuoy_spectrum_row *rows,
                                                    uint32_t capacity,
@@ -6911,6 +6924,8 @@ static inline int32_t sdrkit_wavebuoy_spectrum_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "system_words" of the stack "wavebuoy" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `word` names a row.
+// Default order: the column `word`, lowest first.
 static inline int32_t sdrkit_wavebuoy_system_words_rows(SDRKIT_HANDLE handle,
                                                        sdrkit_wavebuoy_system_word_row *rows,
                                                        uint32_t capacity,
@@ -6920,7 +6935,6 @@ static inline int32_t sdrkit_wavebuoy_system_words_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "wavebuoy" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
-// The column `hex` names a row.
 static inline int32_t sdrkit_wavebuoy_frames_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_wavebuoy_frame_row *rows,
                                                  uint32_t capacity,
@@ -7173,6 +7187,7 @@ static inline int32_t sdrkit_s4539_gen_set_eom(SDRKIT_HANDLE handle, bool value)
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "rpr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// Default order: the column `frequency`, lowest first.
 static inline int32_t sdrkit_rpr_carriers_rows(SDRKIT_HANDLE handle,
                                               sdrkit_rpr_carrier_row *rows,
                                               uint32_t capacity,

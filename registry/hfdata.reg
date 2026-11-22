@@ -1,5 +1,5 @@
 # The interface of the stack family hfdata. The registry test of the family writes this file.
-family hfdata version=1.5
+family hfdata version=1.6
 shape.Crowd36Fields since=1.0
 shape.Crowd36Fields.note type=text unit= optional=no since=1.0
 shape.Crowd36Fields.text type=text unit= optional=no since=1.0
@@ -1092,7 +1092,7 @@ s4481.content kind=utility since=1.5
 s4481.fields.S4481Fields since=1.0
 s4481.fields.DecoderFields since=1.0
 s4481.kept.S4481Fields since=1.0
-s4481.table.channels row=S4481ChannelRow cap=17 since=1.0
+s4481.table.channels row=S4481ChannelRow cap=17 label=channel sort=channel:ascending since=1.0
 s4481.event.s4481.event fields=S4481Event since=1.0
 s4481.setting.channel_mode type=choice(auto,single,multi) unit= since=1.0
 s4481.setting.baud type=choice(auto,45.45,50,75,100) unit= since=1.0
@@ -1122,7 +1122,7 @@ cis_hf.fields.DecoderFields since=1.0
 cis_hf.kept.messages since=1.0
 cis_hf.kept.CisHfFields since=1.0
 cis_hf.table.messages row=CisHfMessageRow cap=200 since=1.0
-cis_hf.table.carriers row=CisHfCarrierRow cap=12 since=1.0
+cis_hf.table.carriers row=CisHfCarrierRow cap=12 label=number sort=number:ascending since=1.0
 cis_hf.event.text fields=TextEvent since=1.0
 cis_hf.event.cis.message fields=CisMessageEvent since=1.0
 cis_hf.event.cis.ident fields=CisIdentEvent since=1.0
@@ -1142,7 +1142,7 @@ cis_hf.command.reset args= reply= since=1.0
 hfid since=1.0
 hfid.content kind=measurement since=1.5
 hfid.fields.HfidFields since=1.0
-hfid.table.candidates row=HfidCandidateRow cap=6 since=1.0
+hfid.table.candidates row=HfidCandidateRow cap=6 label=waveform sort=confidence_pct:descending since=1.0
 hfid.setting.gen_calls type=choice(test_calls,sounding) unit= since=1.0
 hfid.setting.gen_ber type=f64 unit= since=1.0
 ale since=1.0
@@ -1193,7 +1193,7 @@ hfradar.kept.bands since=1.4
 hfradar.kept.HfradarFields since=1.0
 hfradar.table.radars row=HfradarRadarRow cap=64 label=id since=1.0
 hfradar.table.heard row=HfradarHeardRow cap=300 since=1.0
-hfradar.table.bands row=HfradarBandRow cap=8 label=name since=1.4
+hfradar.table.bands row=HfradarBandRow cap=8 label=name sort=low:ascending since=1.4
 hfradar.series.sweep_marks x_unit=s y_unit=Hz since=1.0
 hfradar.series.snr_history x_unit=s y_unit=dB since=1.0
 hfradar.event.hfradar.radar_heard fields=HfradarRadarHeardEvent since=1.0
@@ -1207,7 +1207,7 @@ pactor2.content kind=utility since=1.5
 pactor2.fields.PactorhfFields since=1.0
 pactor2.kept.events since=1.0
 pactor2.kept.PactorhfFields since=1.0
-pactor2.table.carriers row=PactorhfCarrierRow cap=18 since=1.0
+pactor2.table.carriers row=PactorhfCarrierRow cap=18 sort=frequency:ascending since=1.0
 pactor2.table.events row=PactorhfEventRow cap=60 since=1.0
 pactor2.series.level x_unit=s y_unit=dB since=1.0
 pactor2.event.pactorhf.analysis fields=PactorhfAnalysisEvent since=1.0
@@ -1218,7 +1218,7 @@ pactor3.content kind=utility since=1.5
 pactor3.fields.PactorhfFields since=1.0
 pactor3.kept.events since=1.0
 pactor3.kept.PactorhfFields since=1.0
-pactor3.table.carriers row=PactorhfCarrierRow cap=18 since=1.0
+pactor3.table.carriers row=PactorhfCarrierRow cap=18 sort=frequency:ascending since=1.0
 pactor3.table.events row=PactorhfEventRow cap=60 since=1.0
 pactor3.series.level x_unit=s y_unit=dB since=1.0
 pactor3.event.pactorhf.analysis fields=PactorhfAnalysisEvent since=1.0
@@ -1230,7 +1230,7 @@ pactor4.content kind=utility since=1.5
 pactor4.fields.PactorhfFields since=1.0
 pactor4.kept.events since=1.0
 pactor4.kept.PactorhfFields since=1.0
-pactor4.table.carriers row=PactorhfCarrierRow cap=18 since=1.0
+pactor4.table.carriers row=PactorhfCarrierRow cap=18 sort=frequency:ascending since=1.0
 pactor4.table.events row=PactorhfEventRow cap=60 since=1.0
 pactor4.series.level x_unit=s y_unit=dB since=1.0
 pactor4.event.pactorhf.analysis fields=PactorhfAnalysisEvent since=1.0
@@ -1262,8 +1262,8 @@ hfbeacons.kept.bands since=1.0
 hfbeacons.kept.propagation since=1.0
 hfbeacons.kept.HfbeaconsFields since=1.0
 hfbeacons.table.beacons row=HfbeaconsBeaconRow cap=4096 label=name position=position since=1.0
-hfbeacons.table.bands row=HfbeaconsBandRow cap=16 since=1.0
-hfbeacons.table.propagation row=HfbeaconsPropagationRow cap=16 since=1.0
+hfbeacons.table.bands row=HfbeaconsBandRow cap=16 label=band since=1.0
+hfbeacons.table.propagation row=HfbeaconsPropagationRow cap=16 label=band since=1.0
 hfbeacons.event.hfb.detection fields=HfbDetectionEvent since=1.0
 hfbeacons.event.hfb.tx fields=HfbTxEvent since=1.2
 hfbeacons.setting.ppm type=f64 unit=ppm since=1.0
@@ -1297,9 +1297,9 @@ hfbeacons.command.send args= reply= transmits=beacon stop=stop since=1.3
 wavebuoy since=1.0
 wavebuoy.content kind=utility since=1.5
 wavebuoy.fields.WavebuoyFields since=1.0
-wavebuoy.table.spectrum row=WavebuoySpectrumRow cap=64 since=1.0
-wavebuoy.table.system_words row=WavebuoySystemWordRow cap=16 since=1.0
-wavebuoy.table.frames row=WavebuoyFrameRow cap=40 label=hex since=1.0
+wavebuoy.table.spectrum row=WavebuoySpectrumRow cap=64 sort=entry:ascending since=1.0
+wavebuoy.table.system_words row=WavebuoySystemWordRow cap=16 label=word sort=word:ascending since=1.0
+wavebuoy.table.frames row=WavebuoyFrameRow cap=40 since=1.0
 wavebuoy.series.scatter x_unit=symbol y_unit=Hz since=1.0
 wavebuoy.series.heave x_unit=sample y_unit=cm since=1.0
 wavebuoy.series.north x_unit=sample y_unit=cm since=1.0
@@ -1357,7 +1357,7 @@ rpr.fields.RprFields since=1.1
 rpr.kept.bursts since=1.1
 rpr.kept.events since=1.1
 rpr.kept.RprFields since=1.1
-rpr.table.carriers row=RprCarrierRow cap=8 since=1.1
+rpr.table.carriers row=RprCarrierRow cap=8 sort=frequency:ascending since=1.1
 rpr.table.bursts row=RprBurstRow cap=60 since=1.1
 rpr.table.events row=RprEventRow cap=60 since=1.1
 rpr.series.level x_unit=s y_unit=dB since=1.1

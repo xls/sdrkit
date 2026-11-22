@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "science", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "science", version 1.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum ScienceInterface {
     public static let major = 1
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The result fields of `sonde`.
@@ -3480,6 +3480,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SameAlertRow.init))
     }
     /// The changed rows of the table "alert_locations" of the stack "same", newest first, at most `capacity` rows.
+    /// The column `place` names a row.
     /// Place of a row: the column `position`.
     public static func sameAlertLocations(_ handle: SDRKIT_HANDLE, capacity: Int = 3100) -> Result<[SameAlertLocationRow], SDRKitCode> {
         var rows = [sdrkit_same_alert_location_row](repeating: sdrkit_same_alert_location_row(), count: capacity)
@@ -3532,6 +3533,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SsdvPictureRow.init))
     }
     /// The changed rows of the table "calibrated" of the stack "astro", newest first, at most `capacity` rows.
+    /// Default order: the column `freq`, lowest first.
     public static func astroCalibrated(_ handle: SDRKIT_HANDLE, capacity: Int = 16384) -> Result<[AstroCalibratedRow], SDRKitCode> {
         var rows = [sdrkit_astro_calibrated_row](repeating: sdrkit_astro_calibrated_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3556,6 +3558,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AstroFitRow.init))
     }
     /// The changed rows of the table "lv_rows" of the stack "astro", newest first, at most `capacity` rows.
+    /// Default order: the column `longitude`, lowest first.
     public static func astroLvRows(_ handle: SDRKIT_HANDLE, capacity: Int = 721) -> Result<[AstroMapRow], SDRKitCode> {
         var rows = [sdrkit_astro_map_row](repeating: sdrkit_astro_map_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3564,6 +3567,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AstroMapRow.init))
     }
     /// The changed rows of the table "sounders" of the stack "iono", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func ionoSounders(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[IonoSounderRow], SDRKitCode> {
         var rows = [sdrkit_iono_sounder_row](repeating: sdrkit_iono_sounder_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3572,6 +3576,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(IonoSounderRow.init))
     }
     /// The changed rows of the table "timeline" of the stack "iono", newest first, at most `capacity` rows.
+    /// The column `id` names a row.
     public static func ionoTimeline(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[IonoTimelineRow], SDRKitCode> {
         var rows = [sdrkit_iono_timeline_row](repeating: sdrkit_iono_timeline_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3580,6 +3585,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(IonoTimelineRow.init))
     }
     /// The changed rows of the table "bands" of the stack "iono", newest first, at most `capacity` rows.
+    /// The column `band` names a row.
     public static func ionoBands(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[IonoBandRow], SDRKitCode> {
         var rows = [sdrkit_iono_band_row](repeating: sdrkit_iono_band_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3623,7 +3629,8 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SupersidMarkRow.init))
     }
     /// The changed rows of the table "peaks" of the stack "schumann", newest first, at most `capacity` rows.
-    /// Default order: the column `height_db`, highest first.
+    /// The column `resonance` names a row.
+    /// Default order: the column `resonance`, lowest first.
     public static func schumannPeaks(_ handle: SDRKIT_HANDLE, capacity: Int = 5) -> Result<[SchumannPeakRow], SDRKitCode> {
         var rows = [sdrkit_schumann_peak_row](repeating: sdrkit_schumann_peak_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3632,6 +3639,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SchumannPeakRow.init))
     }
     /// The changed rows of the table "events" of the stack "schumann", newest first, at most `capacity` rows.
+    /// The column `type` names a row.
     public static func schumannEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[ScienceEventRow], SDRKitCode> {
         var rows = [sdrkit_science_event_row](repeating: sdrkit_science_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3648,6 +3656,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SchumannTrendRow.init))
     }
     /// The changed rows of the table "events" of the stack "whistler", newest first, at most `capacity` rows.
+    /// The column `type` names a row.
     public static func whistlerEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[ScienceEventRow], SDRKitCode> {
         var rows = [sdrkit_science_event_row](repeating: sdrkit_science_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3683,6 +3692,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(LightningTdoaStationRow.init))
     }
     /// The changed rows of the table "events" of the stack "jove", newest first, at most `capacity` rows.
+    /// The column `type` names a row.
     public static func joveEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[ScienceEventRow], SDRKitCode> {
         var rows = [sdrkit_science_event_row](repeating: sdrkit_science_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3699,6 +3709,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ScienceBurstTrendRow.init))
     }
     /// The changed rows of the table "events" of the stack "callisto", newest first, at most `capacity` rows.
+    /// The column `type` names a row.
     public static func callistoEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[ScienceEventRow], SDRKitCode> {
         var rows = [sdrkit_science_event_row](repeating: sdrkit_science_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3715,6 +3726,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ScienceBurstTrendRow.init))
     }
     /// The changed rows of the table "events" of the stack "eme_echo", newest first, at most `capacity` rows.
+    /// The column `type` names a row.
     public static func emeEchoEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[ScienceEventRow], SDRKitCode> {
         var rows = [sdrkit_science_event_row](repeating: sdrkit_science_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3731,6 +3743,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(EmeEchoTrendRow.init))
     }
     /// The changed rows of the table "events" of the stack "beacon_events", newest first, at most `capacity` rows.
+    /// The column `type` names a row.
     public static func beaconEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[ScienceEventRow], SDRKitCode> {
         var rows = [sdrkit_science_event_row](repeating: sdrkit_science_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3763,6 +3776,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(RadarDetectRow.init))
     }
     /// The changed rows of the table "payloads" of the stack "horus", newest first, at most `capacity` rows.
+    /// The column `payload` names a row.
     /// Place of a row: the column `position`.
     /// Height: `height_m`. Speed: `speed_kmh`.
     public static func horusPayloads(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[HorusPayloadRow], SDRKitCode> {
@@ -3782,6 +3796,7 @@ public enum ScienceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HorusCustomFieldRow.init))
     }
     /// The changed rows of the table "packets" of the stack "horus", newest first, at most `capacity` rows.
+    /// The column `payload` names a row.
     public static func horusPackets(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[HorusPacketRow], SDRKitCode> {
         var rows = [sdrkit_horus_packet_row](repeating: sdrkit_horus_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized

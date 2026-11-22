@@ -18,7 +18,8 @@ pub fn family() -> &'static Family {
 }
 
 fn describe() -> Family {
-    Family::new("marine", 1, 1)
+    // Version 1.2 names rows and orders tables.
+    Family::new("marine", 1, 2)
         .added(
             1,
             1,

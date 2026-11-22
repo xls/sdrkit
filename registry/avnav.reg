@@ -1,5 +1,5 @@
 # The interface of the stack family avnav. The registry test of the family writes this file.
-family avnav version=1.2
+family avnav version=1.3
 shape.TunedFields since=1.0
 shape.TunedFields.tuned_hz type=hz unit=Hz optional=no since=1.0
 shape.IdentFields since=1.0
@@ -219,7 +219,7 @@ ils.fields.MarkerFields since=1.1
 ils.fields.KeyerFields since=1.0
 ils.component.keyer.fields.KeyerFields shared=id_tone_hz;id_depth_pct since=1.0
 ils.table.idents row=IdentRow cap=16 label=ident since=1.0
-ils.table.passages row=MarkerPassageRow cap=64 since=1.1
+ils.table.passages row=MarkerPassageRow cap=64 label=marker since=1.1
 ils.event.morse.word fields=IdentWordEvent since=1.0
 ils.event.ils.marker fields=MarkerEvent since=1.1
 ils.setting.part type=choice(auto,localizer,glideslope,marker) unit= since=1.0
@@ -279,9 +279,9 @@ dgps.kept.almanac since=1.0
 dgps.kept.messages since=1.0
 dgps.kept.DgpsFields.frames_ok since=1.0
 dgps.kept.DgpsFields.text since=1.0
-dgps.table.messages row=DgpsMessageRow cap=64 since=1.0
-dgps.table.corrections row=DgpsCorrectionRow cap=32 since=1.0
-dgps.table.almanac row=DgpsAlmanacRow cap=64 position=position since=1.0
+dgps.table.messages row=DgpsMessageRow cap=64 label=msg_type since=1.0
+dgps.table.corrections row=DgpsCorrectionRow cap=32 label=prn sort=prn:ascending since=1.0
+dgps.table.almanac row=DgpsAlmanacRow cap=64 label=station_id position=position since=1.0
 dgps.event.rtcm.frame fields=RtcmFrameEvent since=1.0
 dgps.setting.bitrate type=choice(0,50,100,200) unit= since=1.0
 dgps.setting.gen_bitrate type=choice(50,100,200) unit= since=1.0

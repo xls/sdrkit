@@ -91,6 +91,16 @@ fn check_calls(name: &str) {
     assert_eq!(count(r, "dsc_good"), calls.len() as u64);
     // The distress call's position is on the map.
     assert!(r.points().contains_key("dsc:232123456"));
+    shows_row(r, "dsc:232123456", "dsc");
+}
+
+/// Asserts that map point `id` shows a row of table `table` that is there.
+fn shows_row(r: &sdrkit_core::Results, id: &str, table: &str) {
+    let p = &r.points()[id];
+    let link = p.row.as_ref().expect("a row");
+    assert_eq!(Some(link.table), r.decl().table_id(table), "{id}");
+    let t = r.table(link.table).expect("the table");
+    assert!(t.row(&link.key).is_some(), "{id}: no row {}", link.key);
 }
 
 #[test]

@@ -85,7 +85,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.1. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 1.2. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: pictures.
 
@@ -143,6 +143,8 @@ Struct `IonoSounderRow`. A sounder heard. The row key is the sounder's id.
 | `path_muf_mhz` | number (MHz) | optional | 1.0 | The MUF of the path from an oblique sounder. |
 | `distance_km` | number (km) | optional | 1.0 | The distance of an oblique sounder. |
 
+The column `id` names a row.
+
 ### Table `timeline`
 
 Struct `IonoTimelineRow`. A sweep heard. The row key is the sequence number of the sweep.
@@ -157,6 +159,8 @@ Struct `IonoTimelineRow`. A sweep heard. The row key is the sequence number of t
 | `snr_db` | number (dB) | always | 1.0 | Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so). |
 | `predicted` | yes or no | always | 1.0 | The sweep was expected. |
 
+The column `id` names a row.
+
 ### Table `bands`
 
 Struct `IonoBandRow`. A band and its state, from the selected sounder's usable MUF. The row key is the name of the band.
@@ -165,6 +169,8 @@ Struct `IonoBandRow`. A band and its state, from the selected sounder's usable M
 |---|---|---|---|---|
 | `band` | text | always | 1.0 | A band. |
 | `state` | choice | always | 1.0 | The state of a band. |
+
+The column `band` names a row.
 
 ### Commands
 

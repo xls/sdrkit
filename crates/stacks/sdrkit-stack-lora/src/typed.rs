@@ -29,7 +29,8 @@ use std::sync::{Arc, OnceLock};
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("lora", 3, 1)
+        // Version 3.2 names rows and orders tables.
+        Described::new("lora", 3, 2)
             .added(
                 3,
                 1,
@@ -594,7 +595,7 @@ pub struct ElrsLinkEvent<'a> {
 
 /// The frame log, newest last.
 pub static ELRS_FRAMES: Table<ElrsFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::components::elrs::FRAME_CAP).label(&ElrsFrameRow::HEX);
+    Table::new("frames", "Frames", crate::components::elrs::FRAME_CAP).label(&ElrsFrameRow::LINK);
 /// The links.
 pub static ELRS_LINKS: Table<ElrsLinkRow<'static>> =
     Table::new("links", "Links", crate::components::elrs::LINK_CAP).label(&ElrsLinkRow::SOURCE);
@@ -964,14 +965,15 @@ pub static RNS_PACKETS: Table<RnsPacketRow<'static>> = Table::new(
     "packets",
     "Packets",
     crate::components::reticulum::PACKET_CAP,
-);
+)
+.label(&RnsPacketRow::DESTINATION);
 /// The Reticulum destinations.
 pub static RNS_DESTINATIONS: Table<RnsDestinationRow<'static>> = Table::new(
     "destinations",
     "Destinations",
     crate::components::reticulum::DESTINATION_CAP,
 )
-.label(&RnsDestinationRow::IDENTITY);
+.label(&RnsDestinationRow::DESTINATION);
 /// A Reticulum destination heard for the first time.
 pub static RNS_DESTINATION: EventKind<RnsDestinationEvent<'static>> =
     EventKind::new("reticulum.destination", "Reticulum destination");
@@ -1825,7 +1827,8 @@ pub static MESH_MESSAGES: Table<MeshMessageRow<'static>> =
         .label(&MeshMessageRow::SENDER);
 /// The telemetry and position readings, newest last.
 pub static MESH_READINGS: Table<MeshReadingRow<'static>> =
-    Table::new("readings", "Readings", crate::mesh::store::READINGS_SHOWN);
+    Table::new("readings", "Readings", crate::mesh::store::READINGS_SHOWN)
+        .label(&MeshReadingRow::NODE);
 /// The APRS stations of LoRa APRS and MeshCom.
 pub static MESH_STATIONS: Table<MeshStationRow<'static>> =
     Table::new("stations", "Stations", crate::mesh::store::STATIONS_CAP)
@@ -1835,9 +1838,11 @@ pub static MESH_DEVICES: Table<MeshDeviceRow<'static>> =
     Table::new("devices", "Devices", crate::mesh::store::DEVICES_CAP).label(&MeshDeviceRow::ID);
 /// The packet counts by protocol and type.
 pub static MESH_TYPES: Table<MeshTypeRow<'static>> =
-    Table::new("types", "Packet types", crate::mesh::store::TYPES_CAP);
+    Table::new("types", "Packet types", crate::mesh::store::TYPES_CAP).label(&MeshTypeRow::TYPE);
 /// The decoders.
-pub static MESH_DECODERS: Table<MeshDecoderRow<'static>> = Table::new("decoders", "Decoders", 400);
+pub static MESH_DECODERS: Table<MeshDecoderRow<'static>> = Table::new("decoders", "Decoders", 400)
+    .label(&MeshDecoderRow::PRESET)
+    .sorted(&MeshDecoderRow::FREQ, sdrkit_core::SortOrder::Ascending);
 /// The MeshCore contacts.
 pub static MESH_CONTACTS: Table<MeshContactRow<'static>> =
     Table::new("contacts", "Contacts", crate::mesh::mc_client::CONTACTS_CAP)
@@ -1847,10 +1852,13 @@ pub static MESH_CHANNELS: Table<MeshChannelRow<'static>> = Table::new(
     "channels",
     "Channels",
     crate::components::mesh::CHANNELS_CAP,
-);
+)
+.label(&MeshChannelRow::CHANNEL);
 /// The Meshtastic frequency slots of the primary preset.
 pub static MESH_SLOTS: Table<MeshSlotRow> =
-    Table::new("slots", "Meshtastic slots", crate::mesh::plan::SLOTS_CAP);
+    Table::new("slots", "Meshtastic slots", crate::mesh::plan::SLOTS_CAP)
+        .label(&MeshSlotRow::SLOT)
+        .sorted(&MeshSlotRow::SLOT, sdrkit_core::SortOrder::Ascending);
 /// A text message, sent or received.
 pub static MESH_TEXT: EventKind<MeshTextEvent<'static>> =
     EventKind::new("mesh.text", "Mesh text message");
@@ -2283,7 +2291,8 @@ pub static WIDE_FRAMES: Table<WideFrameRow<'static>> =
     Table::new("frames", "Frames", crate::components::lorawan::WIDE_LOG_CAP)
         .label(&WideFrameRow::DEVICE);
 /// The LoRaWAN channels.
-pub static WIDE_CHANNELS: Table<WideChannelRow> = Table::new("channels", "Channels", 200);
+pub static WIDE_CHANNELS: Table<WideChannelRow> = Table::new("channels", "Channels", 200)
+    .sorted(&WideChannelRow::FREQ, sdrkit_core::SortOrder::Ascending);
 
 /// The LoRaWAN stack of every channel.
 fn lorawanwide() -> StackShape {

@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "marine", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "marine", version 1.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum MarineInterface {
     public static let major = 1
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The result fields of the AIS stack.
@@ -1815,6 +1815,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AisTrackPointRow.init))
     }
     /// The changed rows of the table "counters" of the stack "ais", newest first, at most `capacity` rows.
+    /// The column `type` names a row.
     public static func aisCounters(_ handle: SDRKIT_HANDLE, capacity: Int = 32) -> Result<[AisCounterRow], SDRKitCode> {
         var rows = [sdrkit_ais_counter_row](repeating: sdrkit_ais_counter_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1824,6 +1825,7 @@ public enum MarineTables {
     }
     /// The changed rows of the table "channels" of the stack "ais", newest first, at most `capacity` rows.
     /// The column `name` names a row.
+    /// Default order: the column `freq_hz`, lowest first.
     public static func aisChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 4) -> Result<[AisChannelRow], SDRKitCode> {
         var rows = [sdrkit_ais_channel_row](repeating: sdrkit_ais_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1859,6 +1861,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AisAlertRow.init))
     }
     /// The changed rows of the table "hop_plan" of the stack "ais", newest first, at most `capacity` rows.
+    /// Default order: the column `centre_hz`, lowest first.
     public static func aisHopPlan(_ handle: SDRKIT_HANDLE, capacity: Int = 4) -> Result<[AisHopRow], SDRKitCode> {
         var rows = [sdrkit_ais_hop_row](repeating: sdrkit_ais_hop_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1878,6 +1881,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AisSelectedRow.init))
     }
     /// The changed rows of the table "navtex" of the stack "marine", newest first, at most `capacity` rows.
+    /// The column `header` names a row.
     public static func marineNavtex(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MarineNavtexRow], SDRKitCode> {
         var rows = [sdrkit_marine_navtex_row](repeating: sdrkit_marine_navtex_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1886,6 +1890,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MarineNavtexRow.init))
     }
     /// The changed rows of the table "dsc" of the stack "marine", newest first, at most `capacity` rows.
+    /// The column `from_mmsi` names a row.
     /// Place of a row: the column `position`.
     public static func marineDsc(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MarineDscRow], SDRKitCode> {
         var rows = [sdrkit_marine_dsc_row](repeating: sdrkit_marine_dsc_row(), count: capacity)
@@ -1915,6 +1920,7 @@ public enum MarineTables {
     }
     /// The changed rows of the table "channels" of the stack "vdes", newest first, at most `capacity` rows.
     /// The column `name` names a row.
+    /// Default order: the column `freq_hz`, lowest first.
     public static func vdesChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 6) -> Result<[VdesChannelRow], SDRKitCode> {
         var rows = [sdrkit_vdes_channel_row](repeating: sdrkit_vdes_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1923,6 +1929,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VdesChannelRow.init))
     }
     /// The changed rows of the table "by_modulation" of the stack "vdes", newest first, at most `capacity` rows.
+    /// The column `modulation` names a row.
     public static func vdesByModulation(_ handle: SDRKIT_HANDLE, capacity: Int = 4) -> Result<[VdesModulationRow], SDRKitCode> {
         var rows = [sdrkit_vdes_modulation_row](repeating: sdrkit_vdes_modulation_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1931,6 +1938,8 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VdesModulationRow.init))
     }
     /// The changed rows of the table "by_bandwidth" of the stack "vdes", newest first, at most `capacity` rows.
+    /// The column `bandwidth_hz` names a row.
+    /// Default order: the column `bandwidth_hz`, lowest first.
     public static func vdesByBandwidth(_ handle: SDRKIT_HANDLE, capacity: Int = 3) -> Result<[VdesBandwidthRow], SDRKitCode> {
         var rows = [sdrkit_vdes_bandwidth_row](repeating: sdrkit_vdes_bandwidth_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1939,6 +1948,7 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VdesBandwidthRow.init))
     }
     /// The changed rows of the table "calls" of the stack "marinevhf", newest first, at most `capacity` rows.
+    /// The column `channel` names a row.
     public static func marinevhfCalls(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[MarinevhfVhfCallRow], SDRKitCode> {
         var rows = [sdrkit_marinevhf_vhf_call_row](repeating: sdrkit_marinevhf_vhf_call_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1947,6 +1957,8 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MarinevhfVhfCallRow.init))
     }
     /// The changed rows of the table "channels" of the stack "marinevhf", newest first, at most `capacity` rows.
+    /// The column `channel` names a row.
+    /// Default order: the column `freq_hz`, lowest first.
     public static func marinevhfChannels(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[MarinevhfVhfChannelRow], SDRKitCode> {
         var rows = [sdrkit_marinevhf_vhf_channel_row](repeating: sdrkit_marinevhf_vhf_channel_row(), count: capacity)
         var info = sdrkit_rows_info.sized

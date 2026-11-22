@@ -178,7 +178,7 @@ pub struct ScienceEvent<'a> {
 
 /// The event rows of a monitor, newest first.
 pub static SCIENCE_EVENTS: Table<ScienceEventRow<'static>> =
-    Table::new("events", "Events", crate::events::MAX_EVENTS);
+    Table::new("events", "Events", crate::events::MAX_EVENTS).label(&ScienceEventRow::TYPE);
 /// One event of a monitor.
 pub static SCIENCE_EVENT: EventKind<ScienceEvent<'static>> =
     EventKind::new("science.event", "Science event");
@@ -451,11 +451,13 @@ pub struct SchumannPeakRow {
     pub q: f64,
 }
 
-/// The five lowest resonances.
-pub static SCHUMANN_PEAKS: Table<SchumannPeakRow> = Table::new("peaks", "Resonances", 5).sorted(
-    &SchumannPeakRow::HEIGHT_DB,
-    sdrkit_core::SortOrder::Descending,
-);
+/// The five lowest resonances, the fundamental first.
+pub static SCHUMANN_PEAKS: Table<SchumannPeakRow> = Table::new("peaks", "Resonances", 5)
+    .label(&SchumannPeakRow::RESONANCE)
+    .sorted(
+        &SchumannPeakRow::RESONANCE,
+        sdrkit_core::SortOrder::Ascending,
+    );
 
 // ---- jove and callisto ----
 
@@ -1535,7 +1537,8 @@ pub static SAME_ALERT_LOCATIONS: Table<SameAlertLocationRow<'static>> = Table::n
     "alert_locations",
     "Locations",
     crate::same::MAX_ALERTS * crate::same::MAX_LOCATIONS,
-);
+)
+.label(&SameAlertLocationRow::PLACE);
 /// Alert tones.
 pub static SAME_TONES: Table<SameToneRow> =
     Table::new("tones", "Alert tones", crate::same::MAX_TONES);
@@ -1935,7 +1938,8 @@ pub struct AstroMapRow {
 
 /// Calibrated spectrum.
 pub static ASTRO_CALIBRATED: Table<AstroCalibratedRow> =
-    Table::new("calibrated", "Calibrated spectrum", crate::astro::MAX_BINS);
+    Table::new("calibrated", "Calibrated spectrum", crate::astro::MAX_BINS)
+        .sorted(&AstroCalibratedRow::FREQ, sdrkit_core::SortOrder::Ascending);
 /// Session.
 pub static ASTRO_SESSION: Table<AstroSessionRow> =
     Table::new("session", "Session", crate::astro::MAX_SESSION);
@@ -1943,7 +1947,8 @@ pub static ASTRO_SESSION: Table<AstroSessionRow> =
 pub static ASTRO_FIT: Table<AstroFitRow> = Table::new("fit", "Line fit", 8);
 /// Map rows.
 pub static ASTRO_LV_ROWS: Table<AstroMapRow> =
-    Table::new("lv_rows", "Map rows", crate::astro::MAX_MAP_ROWS);
+    Table::new("lv_rows", "Map rows", crate::astro::MAX_MAP_ROWS)
+        .sorted(&AstroMapRow::LONGITUDE, sdrkit_core::SortOrder::Ascending);
 
 /// The arguments of `capture` of `astro`.
 #[derive(Clone, Debug, PartialEq, Arguments)]
@@ -2160,12 +2165,14 @@ pub struct IonoBandRow<'a> {
 }
 
 /// The sounders heard.
-pub static IONO_SOUNDERS: Table<IonoSounderRow<'static>> = Table::new("sounders", "Sounders", 64);
+pub static IONO_SOUNDERS: Table<IonoSounderRow<'static>> =
+    Table::new("sounders", "Sounders", 64).label(&IonoSounderRow::ID);
 /// The sweeps heard, newest first.
 pub static IONO_TIMELINE: Table<IonoTimelineRow> =
-    Table::new("timeline", "Timeline", crate::iono::MAX_TIMELINE);
+    Table::new("timeline", "Timeline", crate::iono::MAX_TIMELINE).label(&IonoTimelineRow::ID);
 /// The bands open now.
-pub static IONO_BANDS: Table<IonoBandRow<'static>> = Table::new("bands", "Bands open now", 32);
+pub static IONO_BANDS: Table<IonoBandRow<'static>> =
+    Table::new("bands", "Bands open now", 32).label(&IonoBandRow::BAND);
 
 /// The row key of a sounder, the argument of `select`.
 pub const IONO_SOUNDER_ROW: sdrkit_core::settings::Argument<sdrkit_core::publish::field::Text> =
@@ -3228,7 +3235,8 @@ pub struct HorusChannelClosedEvent<'a> {
 
 /// The payloads, the most recently heard first.
 pub static HORUS_PAYLOADS: Table<HorusPayloadRow<'static>> =
-    Table::new("payloads", "Payloads", crate::horus::payloads::MAX_PAYLOADS);
+    Table::new("payloads", "Payloads", crate::horus::payloads::MAX_PAYLOADS)
+        .label(&HorusPayloadRow::PAYLOAD);
 /// The custom fields of the last v2 packet of each payload, and the fields after the altitude of its last RTTY sentence.
 pub static HORUS_CUSTOM_FIELDS: Table<HorusCustomFieldRow<'static>> = Table::new(
     "custom_fields",
@@ -3238,7 +3246,8 @@ pub static HORUS_CUSTOM_FIELDS: Table<HorusCustomFieldRow<'static>> = Table::new
 .label(&HorusCustomFieldRow::NAME);
 /// The packet log, the newest first.
 pub static HORUS_PACKETS: Table<HorusPacketRow<'static>> =
-    Table::new("packets", "Packets", crate::horus::payloads::MAX_LOG);
+    Table::new("packets", "Packets", crate::horus::payloads::MAX_LOG)
+        .label(&HorusPacketRow::PAYLOAD);
 /// The channels, the dial channel first.
 pub static HORUS_CHANNELS: Table<HorusChannelRow> =
     Table::new("channels", "Channels", crate::horus::bank::MAX_CHANNELS);
@@ -3265,7 +3274,8 @@ pub fn family() -> &'static Family {
     FAMILY.get_or_init(|| {
         let objects_clear = &sdrkit_util_objects::commands::CLEAR;
         let decoder_clear = &sdrkit_graph::decoder::CLEAR;
-        Family::new("science", 1, 1)
+        // Version 1.2 names rows and orders tables.
+        Family::new("science", 1, 2)
             .added(
                 1,
                 1,

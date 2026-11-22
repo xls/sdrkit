@@ -790,6 +790,17 @@ mod stack {
     }
 
     fn payloads(rx: &StackGraph) -> Vec<(String, HorusPayloadRow<'_>)> {
+        // Each map point shows its payload row.
+        let r = Owner::results(rx);
+        for p in r.points().values() {
+            let link = p.row.as_ref().expect("a row");
+            assert_eq!(Some(link.table), r.decl().table_id(HORUS_PAYLOADS.key));
+            assert!(
+                r.table(link.table).unwrap().row(&link.key).is_some(),
+                "{}",
+                p.id
+            );
+        }
         HORUS_PAYLOADS
             .rows::<HorusPayloadRow>(Owner::results(rx))
             .map(|(k, r)| (k.to_string(), r))
@@ -809,6 +820,7 @@ mod stack {
         let mut rx = receiver(o.rate_hz, o.dial_hz);
         let events = feed(&mut rx, &o, 8.0, 60.0);
         let r = Owner::results(&rx);
+        assert!(!r.points().is_empty());
         let p = payloads(&rx);
         let names: Vec<&str> = p.iter().map(|(k, _)| k.as_str()).collect();
         println!("payloads {names:?}");

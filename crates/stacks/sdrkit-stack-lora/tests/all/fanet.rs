@@ -117,6 +117,9 @@ fn the_tracking_frame_decodes_on_the_250_khz_plan_with_carrier_and_clock_errors(
         assert!((lat - 47.5).abs() < 2e-5 && (lon + 8.25).abs() < 3e-5);
         let pt = &res.points()["aircraft/11:2233"];
         assert!((pt.lat - 47.5).abs() < 2e-5 && (pt.lon + 8.25).abs() < 3e-5);
+        let link = pt.row.as_ref().expect("a row");
+        assert_eq!(Some(link.table), res.decl().table_id(FANET_STATIONS.key));
+        assert!(res.table(link.table).unwrap().row(&link.key).is_some());
         let s = rows(res, &FANET_STATIONS);
         assert_eq!(s[0].at(&FanetStationRow::KIND), Some(StationKind::Aircraft));
     }

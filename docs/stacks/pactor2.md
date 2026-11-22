@@ -92,7 +92,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:pa
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.5. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 1.6. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: none.
 
@@ -146,6 +146,8 @@ Struct `PactorhfCarrierRow`. A carrier of the last analysis. The row key is the 
 | `steps` | whole number | always | 1.0 | Phase steps per symbol. |
 | `modulation` | choice | optional | 1.0 | The modulation, when the phase steps are 2, 4, 8 or 16. |
 | `concentration_pct` | number (%) | always | 1.0 | The concentration of the phase steps, 0 to 100 %. |
+
+Default order: the column `frequency`, lowest first.
 
 ### Table `events`
 

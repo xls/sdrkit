@@ -117,7 +117,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `avnav`, version 1.2. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avnav`, version 1.3. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Navigation aids (`navigation`). Media: sound (monitor).
 
@@ -213,6 +213,8 @@ Struct `MarkerPassageRow`. A row of the marker passages. The row key is the numb
 | `marker` | choice | always | 1.1 | The marker of the tone. |
 | `text` | text | always | 1.1 | The tone, the keying, the depth and the length ("400 Hz, 2.0 dashes per second (0.30 s long), depth 95 %, 7.8 s"). |
 | `level_dbfs` | number (dBFS) | optional | 1.1 | The carrier level at the end of the passage. No value before the first carrier measurement. |
+
+The column `marker` names a row.
 
 ### Event `morse.word`
 

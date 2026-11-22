@@ -531,7 +531,9 @@ pub struct S4481Event<'a> {
 }
 
 /// The channels of STANAG 4481.
-pub static S4481_CHANNELS: Table<S4481ChannelRow<'static>> = Table::new("channels", "Channels", 17);
+pub static S4481_CHANNELS: Table<S4481ChannelRow<'static>> = Table::new("channels", "Channels", 17)
+    .label(&S4481ChannelRow::CHANNEL)
+    .sorted(&S4481ChannelRow::CHANNEL, sdrkit_core::SortOrder::Ascending);
 /// An event of STANAG 4481.
 pub static S4481_EVENT: EventKind<S4481Event<'static>> = EventKind::new("s4481.event", "Event");
 
@@ -801,7 +803,9 @@ pub struct CisIdentEvent<'a> {
 pub static CIS_HF_MESSAGES: Table<CisHfMessageRow<'static>> =
     Table::new("messages", "Messages", 200);
 /// The carriers of CIS-12.
-pub static CIS_HF_CARRIERS: Table<CisHfCarrierRow> = Table::new("carriers", "Carriers", 12);
+pub static CIS_HF_CARRIERS: Table<CisHfCarrierRow> = Table::new("carriers", "Carriers", 12)
+    .label(&CisHfCarrierRow::NUMBER)
+    .sorted(&CisHfCarrierRow::NUMBER, sdrkit_core::SortOrder::Ascending);
 /// A `bee` message.
 pub static CIS_MESSAGE: EventKind<CisMessageEvent<'static>> =
     EventKind::new("cis.message", "Message");
@@ -924,7 +928,12 @@ pub struct HfidCandidateRow<'a> {
 
 /// The candidates of the last analysis, best first.
 pub static HFID_CANDIDATES: Table<HfidCandidateRow<'static>> =
-    Table::new("candidates", "Candidates", 6);
+    Table::new("candidates", "Candidates", 6)
+        .label(&HfidCandidateRow::WAVEFORM)
+        .sorted(
+            &HfidCandidateRow::CONFIDENCE_PCT,
+            sdrkit_core::SortOrder::Descending,
+        );
 
 // ALE.
 
@@ -1541,8 +1550,9 @@ pub struct HfradarBandRow<'a> {
 }
 
 /// The oceanographic radar bands, lowest first.
-pub static HFRADAR_BANDS: Table<HfradarBandRow<'static>> =
-    Table::new("bands", "Radar bands", 8).label(&HfradarBandRow::NAME);
+pub static HFRADAR_BANDS: Table<HfradarBandRow<'static>> = Table::new("bands", "Radar bands", 8)
+    .label(&HfradarBandRow::NAME)
+    .sorted(&HfradarBandRow::LOW, sdrkit_core::SortOrder::Ascending);
 
 /// The arguments of `band.tune` of the `hfradar` stack.
 #[derive(Arguments)]
@@ -1714,7 +1724,11 @@ pub struct PactorhfAnalysisEvent<'a> {
 }
 
 /// The carriers of the last analysis, lowest first.
-pub static PACTORHF_CARRIERS: Table<PactorhfCarrierRow> = Table::new("carriers", "Carriers", 18);
+pub static PACTORHF_CARRIERS: Table<PactorhfCarrierRow> = Table::new("carriers", "Carriers", 18)
+    .sorted(
+        &PactorhfCarrierRow::FREQUENCY,
+        sdrkit_core::SortOrder::Ascending,
+    );
 /// The events, oldest first.
 pub static PACTORHF_EVENTS: Table<PactorhfEventRow<'static>> = Table::new("events", "Events", 60);
 /// A new variant or carrier count.
@@ -1916,7 +1930,8 @@ pub struct RprBurstEvent<'a> {
 }
 
 /// The eight carriers of the last burst.
-pub static RPR_CARRIERS: Table<RprCarrierRow> = Table::new("carriers", "Carriers", 8);
+pub static RPR_CARRIERS: Table<RprCarrierRow> = Table::new("carriers", "Carriers", 8)
+    .sorted(&RprCarrierRow::FREQUENCY, sdrkit_core::SortOrder::Ascending);
 /// The bursts demodulated, oldest first.
 pub static RPR_BURSTS: Table<RprBurstRow<'static>> = Table::new("bursts", "Bursts", 60);
 /// The events, oldest first.
@@ -2351,10 +2366,10 @@ pub static HFBEACONS_BEACONS: Table<HfbeaconsBeaconRow<'static>> =
     Table::new("beacons", "Beacons", 4096).label(&HfbeaconsBeaconRow::NAME);
 /// The bands of the list.
 pub static HFBEACONS_BANDS: Table<HfbeaconsBandRow<'static>> =
-    Table::new("bands", "Bands open", 16);
+    Table::new("bands", "Bands open", 16).label(&HfbeaconsBandRow::BAND);
 /// The propagation of each band.
 pub static HFBEACONS_PROPAGATION: Table<HfbeaconsPropagationRow<'static>> =
-    Table::new("propagation", "Propagation", 16);
+    Table::new("propagation", "Propagation", 16).label(&HfbeaconsPropagationRow::BAND);
 /// A beacon heard.
 pub static HFB_DETECTION: EventKind<HfbDetectionEvent<'static>> =
     EventKind::new("hfb.detection", "Beacon heard");
@@ -2683,13 +2698,22 @@ pub struct WavebuoyVectorEvent {
 }
 
 /// The directional spectrum received.
-pub static WAVEBUOY_SPECTRUM: Table<WavebuoySpectrumRow> = Table::new("spectrum", "Spectrum", 64);
+pub static WAVEBUOY_SPECTRUM: Table<WavebuoySpectrumRow> = Table::new("spectrum", "Spectrum", 64)
+    .sorted(
+        &WavebuoySpectrumRow::ENTRY,
+        sdrkit_core::SortOrder::Ascending,
+    );
 /// The system file words received.
 pub static WAVEBUOY_SYSTEM_WORDS: Table<WavebuoySystemWordRow> =
-    Table::new("system_words", "System words", 16);
+    Table::new("system_words", "System words", 16)
+        .label(&WavebuoySystemWordRow::WORD)
+        .sorted(
+            &WavebuoySystemWordRow::WORD,
+            sdrkit_core::SortOrder::Ascending,
+        );
 /// The frames cut at the sync, oldest first.
 pub static WAVEBUOY_FRAMES: Table<WavebuoyFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::buoy::results::FRAMES_CAP).label(&WavebuoyFrameRow::HEX);
+    Table::new("frames", "Frames", crate::buoy::results::FRAMES_CAP);
 /// An accepted HXV vector.
 pub static WAVEBUOY_VECTOR: EventKind<WavebuoyVectorEvent> =
     EventKind::new("wavebuoy.vector", "HXV vector");
@@ -3285,7 +3309,8 @@ const ADDED_1_2: &[&str] = &[
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("hfdata", 1, 5)
+        // Version 1.6 names rows and orders tables.
+        Described::new("hfdata", 1, 6)
             .added(
                 1,
                 5,

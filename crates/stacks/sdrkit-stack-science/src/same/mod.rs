@@ -1323,6 +1323,10 @@ impl Alerts {
         let p = &mut self.published;
         p.clear_rows(&SAME_ALERT_LOCATIONS);
         p.results_mut().clear_points();
+        let table = p
+            .results_mut()
+            .decl()
+            .table_id(SAME_ALERT_LOCATIONS.def().key);
         for a in self
             .store
             .alerts
@@ -1346,8 +1350,9 @@ impl Alerts {
                 );
                 if let Some((lat, lon)) = l.marker {
                     let label = format!("{}: {}", a.message.event, l.text);
-                    p.results_mut()
-                        .update_point(&self.key, lat, lon, &label, None);
+                    let r = p.results_mut();
+                    r.update_point(&self.key, lat, lon, &label, None);
+                    r.link_point(&self.key, table.map(|t| (t, self.key.as_str())));
                 }
             }
         }

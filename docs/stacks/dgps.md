@@ -88,7 +88,7 @@ The stack puts points on a map: Base station.
 
 ## Typed interface
 
-The stack is in the family `avnav`, version 1.2. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avnav`, version 1.3. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Navigation aids (`navigation`). Media: none.
 
@@ -130,6 +130,8 @@ Struct `DgpsMessageRow`. A row of the frames by message type. The row key is the
 | `msg_type` | whole number | always | 1.0 | The message type. |
 | `count` | whole number | always | 1.0 | The frames of the type. |
 
+The column `msg_type` names a row.
+
 ### Table `corrections`
 
 Struct `DgpsCorrectionRow`. A row of the pseudorange corrections. The row key is the PRN in two digits.
@@ -141,6 +143,8 @@ Struct `DgpsCorrectionRow`. A row of the pseudorange corrections. The row key is
 | `rrc_m_s` | number (m/s) | always | 1.0 | The range-rate correction. |
 | `iod` | whole number | always | 1.0 | The issue of data. |
 | `udre` | whole number | always | 1.0 | The user differential range error. |
+
+The column `prn` names a row. Default order: the column `prn`, lowest first.
 
 ### Table `almanac`
 
@@ -155,7 +159,7 @@ Struct `DgpsAlmanacRow`. A row of the beacon almanac. The row key is the station
 | `range_km` | number (km) | always | 1.0 | The range of the beacon. |
 | `health` | whole number | always | 1.0 | The health of the beacon, 0 (healthy) to 3. |
 
-Place of a row: the column `position`.
+The column `station_id` names a row. Place of a row: the column `position`.
 
 ### Event `rtcm.frame`
 

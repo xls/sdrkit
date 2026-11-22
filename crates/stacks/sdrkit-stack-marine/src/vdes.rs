@@ -879,8 +879,9 @@ pub struct VdesChannelRow<'a> {
 }
 
 /// The channels of VDES.
-pub static CHANNEL_TABLE: Table<VdesChannelRow<'static>> =
-    Table::new("channels", "Channels", 6).label(&VdesChannelRow::NAME);
+pub static CHANNEL_TABLE: Table<VdesChannelRow<'static>> = Table::new("channels", "Channels", 6)
+    .label(&VdesChannelRow::NAME)
+    .sorted(&VdesChannelRow::FREQ_HZ, sdrkit_core::SortOrder::Ascending);
 
 /// A row of the count of bursts by modulation. The row key is the name of the modulation.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -895,7 +896,7 @@ pub struct VdesModulationRow {
 
 /// The bursts by modulation.
 pub static BY_MODULATION: Table<VdesModulationRow> =
-    Table::new("by_modulation", "Bursts by modulation", 4);
+    Table::new("by_modulation", "Bursts by modulation", 4).label(&VdesModulationRow::MODULATION);
 
 /// A row of the count of bursts by bandwidth. The row key is the bandwidth in Hz.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -910,7 +911,12 @@ pub struct VdesBandwidthRow {
 
 /// The bursts by bandwidth.
 pub static BY_BANDWIDTH: Table<VdesBandwidthRow> =
-    Table::new("by_bandwidth", "Bursts by bandwidth", 3);
+    Table::new("by_bandwidth", "Bursts by bandwidth", 3)
+        .label(&VdesBandwidthRow::BANDWIDTH_HZ)
+        .sorted(
+            &VdesBandwidthRow::BANDWIDTH_HZ,
+            sdrkit_core::SortOrder::Ascending,
+        );
 
 /// The fields of the event of an ASM frame.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1360,11 +1366,15 @@ impl VdesDisplay {
         }
         let r = p.results_mut();
         if std::mem::take(&mut self.points_stale) {
+            // Each point shows the row of the newest frame that placed it.
+            let table = r.decl().table_id(ASM_TABLE.def().key);
             let mut placed: Vec<String> = Vec::new();
-            for a in self.lists.asm.iter() {
+            for (seq, a) in self.lists.asm.iter_seq() {
                 if let (Some(lat), Some(lon)) = (a.lat, a.lon) {
                     let id = a.mmsi_text();
                     r.update_point(&id, lat, lon, &id, a.cog_deg.map(|c| c as f32));
+                    let row = format!("{seq:06}");
+                    r.link_point(&id, table.map(|t| (t, row.as_str())));
                     placed.push(id);
                 }
             }

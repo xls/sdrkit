@@ -128,7 +128,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.5. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 1.6. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: none.
 
@@ -212,6 +212,8 @@ Struct `WavebuoySpectrumRow`. An entry of the directional spectrum received. The
 | `k` | number | always | 1.0 | The check factor K (no unit). |
 | `relative_psd` | number | always | 1.0 | The density relative to PSDmax (no unit). |
 
+Default order: the column `entry`, lowest first.
+
 ### Table `system_words`
 
 Struct `WavebuoySystemWordRow`. A system file word received. The row key is the word number, "00" first.
@@ -220,6 +222,8 @@ Struct `WavebuoySystemWordRow`. A system file word received. The row key is the 
 |---|---|---|---|---|
 | `word` | whole number | always | 1.0 | The system file word number, 0 to 15. |
 | `value` | whole number | always | 1.0 | The 12-bit value of the word. |
+
+The column `word` names a row. Default order: the column `word`, lowest first.
 
 ### Table `frames`
 
@@ -230,8 +234,6 @@ Struct `WavebuoyFrameRow`. A frame cut at the sync. The row key is the frame's n
 | `start` | duration (s) | always | 1.0 | The signal time of the frame. |
 | `hex` | text | always | 1.0 | The bits of the frame in hex. |
 | `accepted` | yes or no | always | 1.0 | The CRC attempt accepts the frame. |
-
-The column `hex` names a row.
 
 ### Event `wavebuoy.vector`
 

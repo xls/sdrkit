@@ -66,7 +66,7 @@ The stack puts points on a map: ASM positions.
 
 ## Typed interface
 
-The stack is in the family `marine`, version 1.1. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `marine`, version 1.2. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -135,7 +135,7 @@ Struct `VdesChannelRow`. A row of the channel table of the VDES stack. The row k
 | `level_dbfs` | number (dBFS) | optional | 1.0 | Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). |
 | `noise_dbfs` | number (dBFS) | optional | 1.0 | Noise floor, dBFS. |
 
-The column `name` names a row.
+The column `name` names a row. Default order: the column `freq_hz`, lowest first.
 
 ### Table `by_modulation`
 
@@ -146,6 +146,8 @@ Struct `VdesModulationRow`. A row of the count of bursts by modulation. The row 
 | `modulation` | choice | always | 1.0 | The modulation of a burst. |
 | `count` | whole number | always | 1.0 | A number of bursts. |
 
+The column `modulation` names a row.
+
 ### Table `by_bandwidth`
 
 Struct `VdesBandwidthRow`. A row of the count of bursts by bandwidth. The row key is the bandwidth in Hz.
@@ -154,6 +156,8 @@ Struct `VdesBandwidthRow`. A row of the count of bursts by bandwidth. The row ke
 |---|---|---|---|---|
 | `bandwidth_hz` | frequency | always | 1.0 | The bandwidth of a burst. |
 | `count` | whole number | always | 1.0 | A number of bursts. |
+
+The column `bandwidth_hz` names a row. Default order: the column `bandwidth_hz`, lowest first.
 
 ### Event `vdes.asm`
 

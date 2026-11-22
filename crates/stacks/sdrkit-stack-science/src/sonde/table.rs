@@ -5,18 +5,18 @@ use super::channel::CarrierReport;
 use super::frame::{SondeFrame, SondeType};
 use super::landing::{self, Landing, LandingOptions, TrackPoint};
 use crate::family::{lock_state_of, status, wall, write_series};
-use sdrkit_core::publish::keys::Family;
 use crate::typed::{
     SondeCarrierRow, SondeFields, SondeFrameEvent, SondeRow, SondeRowArgs, SONDE_ALT_TIME,
-    SONDE_CARRIERS, SONDE_FRAME, SONDE_REMOVE, SONDE_ROW, SONDE_SELECT, SONDE_SONDES, SONDE_TEMP_ALT,
-    SONDE_TRACK,
+    SONDE_CARRIERS, SONDE_FRAME, SONDE_REMOVE, SONDE_ROW, SONDE_SELECT, SONDE_SONDES,
+    SONDE_TEMP_ALT, SONDE_TRACK,
 };
 use sdrkit_core::interface::{Hertz, Seconds, Time};
+use sdrkit_core::publish::keys::Family;
 use sdrkit_core::publish::{field, Published};
 use sdrkit_core::{
-    Clock, CommandError, CommandId, CommandSet, Commands, ConfigError, Event, Record,
-    Results, ResultsDecl, SeriesId, Setting, SettingError, SettingId, SettingSet, StateBlob,
-    StateError, Status, TableId, Value, Values,
+    Clock, CommandError, CommandId, CommandSet, Commands, ConfigError, Event, Record, Results,
+    ResultsDecl, SeriesId, Setting, SettingError, SettingId, SettingSet, StateBlob, StateError,
+    Status, TableId, Value, Values,
 };
 use sdrkit_graph::{
     values_of, Applied, Component, ComponentInfo, Format, Io, Port, RateFrom, RunContext,
@@ -219,7 +219,12 @@ pub fn declaration() -> ResultsDecl {
 impl Sonde {
     /// Writes the row of the sonde to `out`. `station` is the position of the station, for the distance and the bearing
     /// of the landing point.
-    fn put_row(&self, seen: Option<&Seen>, station: Option<&Position>, out: RowOut<'_, '_, SondeRow<'static>>) {
+    fn put_row(
+        &self,
+        seen: Option<&Seen>,
+        station: Option<&Position>,
+        out: RowOut<'_, '_, SondeRow<'static>>,
+    ) {
         let s = self;
         let land = s.landing.map(|l| Position::new(l.lat, l.lon));
         let to_land = station.zip(land);
@@ -713,12 +718,16 @@ impl SondeTable {
             true,
             pts.iter().map(|p| [p.lat as f32, p.lon as f32]),
         );
+        // Both points of a sonde show its row.
+        let table = r.decl().table_id(SONDE_SONDES.def().key);
         for x in self.store.sondes.iter() {
             let s = x.record;
+            let row = table.map(|t| (t, x.key.as_str()));
             if let Some((lat, lon)) = s.position() {
                 self.text.clear();
                 let _ = write!(self.text, "{} {}", s.kind.name(), s.serial);
                 r.update_point(x.key, lat, lon, &self.text, s.heading.map(|h| h as f32));
+                r.link_point(x.key, row);
             }
             self.key.clear();
             let _ = write!(self.key, "landing:{}", x.key);
@@ -727,6 +736,7 @@ impl SondeTable {
                     self.text.clear();
                     let _ = write!(self.text, "{} landing (estimate)", s.serial);
                     r.update_point(&self.key, l.lat, l.lon, &self.text, None);
+                    r.link_point(&self.key, row);
                 }
                 None => {
                     r.remove_point(&self.key);

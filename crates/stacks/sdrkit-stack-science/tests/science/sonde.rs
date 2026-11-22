@@ -58,8 +58,20 @@ fn scene_seeded(
     x
 }
 
+/// Asserts that every map point of `r` shows a row of table `table` that is there.
+fn points_show_rows(r: &sdrkit_core::Results, table: &str) {
+    let want = r.decl().table_id(table);
+    for p in r.points().values() {
+        let link = p.row.as_ref().expect("a row");
+        assert_eq!(Some(link.table), want, "{}", p.id);
+        let t = r.table(link.table).expect("the table");
+        assert!(t.row(&link.key).is_some(), "{}: no row {}", p.id, link.key);
+    }
+}
+
 /// The rows of the sondes table, the most recently heard first.
 fn sondes(r: &Run) -> Vec<Record> {
+    points_show_rows(&r.results, SONDE_SONDES.key);
     let id = r.results.decl().table_id(SONDE_SONDES.key).unwrap();
     r.results
         .table(id)
@@ -183,6 +195,8 @@ fn sonde_events_carry_the_standard_fields() {
         assert_eq!(e.get(&keys::FAMILY), Some(Family::Sonde));
     }
     assert!(r.events.iter().any(|e| e.get(&keys::POSITION).is_some()));
+    assert!(!r.results.points().is_empty());
+    points_show_rows(&r.results, SONDE_SONDES.key);
 }
 
 /// The GPS time of an RS41 frame is turned into UTC with the station's leap second table, so one more leap second results in a
