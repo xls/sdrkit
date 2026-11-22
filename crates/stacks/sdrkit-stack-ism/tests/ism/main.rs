@@ -15,6 +15,7 @@ mod nrf24;
 mod nrplus;
 mod send;
 mod pulse_analyser;
+mod pulse_timing;
 mod sigfox;
 mod subghzchat;
 mod thread;

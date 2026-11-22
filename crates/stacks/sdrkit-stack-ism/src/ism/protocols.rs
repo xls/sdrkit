@@ -70,6 +70,9 @@ macro_rules! dec {
     }};
 }
 
+/// The Manchester half-bit of the Itron ERT meters, µs: a data bit of 1/32768 s (32768 bit/s).
+pub const ERT_HALF_US: f32 = (1e6 / 65536.0) as f32;
+
 /// Every protocol, in the order of their numbers.
 pub static PROTOCOLS: [ProtocolDef; 46] = [
     pd(
@@ -183,13 +186,13 @@ pub static PROTOCOLS: [ProtocolDef; 46] = [
     pd(
         "Itron ERT SCM",
         OOK,
-        t(MZ, 30., 0., 64., 0., 0., 0.),
+        t(MZ, ERT_HALF_US, 0., 64., 0., 0., 0.),
         dec!(ert_scm),
     ),
     pd(
         "Itron ERT IDM",
         OOK,
-        t(MZ, 30., 0., 20000., 0., 0., 0.),
+        t(MZ, ERT_HALF_US, 0., 20000., 0., 0., 0.),
         dec!(ert_idm),
     ),
     pd(
@@ -1233,8 +1236,11 @@ fn honeywell(rows: &BitRows, _: &mut Ctx) -> Option<Reading> {
     let mut from = 0;
     while let Some(p) = rows.search(0, from, &[0x55, 0x55, 0x56], 24) {
         from = p + 1;
+        // A frame that ends with a 0 bit ends with a space chip, which the slicer does not see: 47 bits and one mark chip
+        // at the end of the row read as 48 bits (the bytes are zero padded).
+        let whole = rows.len(0) == p + 24 + 95;
         let b = manchester(rows, 0, p + 24, 96, ManchesterConv::Ieee, |d| {
-            (d.len(0) >= 48).then(|| bytes64(d, 0))
+            (d.len(0) >= 48 || (whole && d.len(0) == 47)).then(|| bytes64(d, 0))
         });
         let Some(b) = b else { continue };
         let ch = b[0] >> 4;
@@ -1873,10 +1879,12 @@ fn ford(rows: &BitRows, _: &mut Ctx) -> Option<Reading> {
 
 // 39
 fn hyundai(rows: &BitRows, _: &mut Ctx) -> Option<Reading> {
+    // The preamble (55 55 55 56 on air) starts with a space chip before the first mark, which the slicer does not see:
+    // the search takes the 31 chips after it.
     vdo(
         rows,
-        [0xAA, 0xAA, 0xAA, 0xA9],
-        32,
+        [0x55, 0x55, 0x55, 0x53],
+        31,
         false,
         80,
         2,

@@ -345,6 +345,17 @@ impl Component for Channelise {
 /// the signal's centre, and the edges of a pulse stay 20 µs long whatever its level.
 const OOK_AVERAGE_S: f64 = 20e-6;
 
+/// The floor of the whole-channel OOK retry under the burst's peak power, dB. With [`WIDE_OPEN_DB`] and
+/// [`WIDE_CLOSE_DB`] a pulse opens 7 dB and closes 10 dB under the peak, about at half the amplitude.
+const WIDE_FLOOR_DB: f32 = 13.0;
+/// The opening threshold of the whole-channel OOK retry above its floor, dB.
+const WIDE_OPEN_DB: f32 = 6.0;
+/// The closing threshold of the whole-channel OOK retry above its floor, dB.
+const WIDE_CLOSE_DB: f32 = 3.0;
+/// The power values per floor estimate of the whole-channel OOK retry: more than a burst holds, so the floor it is given
+/// stays.
+const WIDE_FLOOR_CHUNK: usize = 1 << 16;
+
 /// The boxcars of the narrow-envelope retry, seconds: about +-12.5, 6 and 3 kHz around the burst's carrier.
 const RETRY_BOXCARS_S: [f64; 3] = [40e-6, 80e-6, 160e-6];
 /// The windows of the retry's tone energies, seconds: about a chip of 19.2, 10 and 5 kchip/s and of 40 kchip/s.
@@ -360,6 +371,10 @@ const RETRY_FSK_FILL: f64 = 0.5;
 ///
 /// With the protocols given ([`Pulses::with_protocols`]), a burst whose trains no protocol decodes is tried again, and only
 /// trains a protocol decodes are kept from the retries (so the protocols' own checks hold the false-decode rate):
+/// 0. the OOK trains of the whole channel with the floor held at least 13 dB under the burst's peak power (a pulse opens
+///    7 dB and closes 10 dB under the peak): they keep the pulses
+///    shorter than the narrow channel's average (the 15 µs chips of the Itron ERT meters), and the floor lets the channel
+///    filter's ringing in their short gaps close a pulse at a high SNR;
 /// 1. the burst mixed to 0 Hz by its own phase step (`arg(sum z[k] conj(z[k-1]))`); for boxcars of 40, 80 and 160 us, the
 ///    magnitude of the boxcar mean, averaged over 8 us, sliced between its two levels
 ///    (`sdrkit_proto_ookdev::level_train`); the first width a protocol decodes is kept;
@@ -378,6 +393,8 @@ pub struct Pulses {
     rate: f64,
     buf: Vec<Complex32>,
     found: Vec<Train>,
+    held: Option<PulseDetector>,
+    wide: Vec<Train>,
     protocols: Option<Arc<ProtocolList>>,
     work: Decoding,
     readings: Vec<Reading>,
@@ -494,15 +511,21 @@ impl Pulses {
     }
 
     fn setup(&mut self, rate: f64) {
-        let det = |m: Modulation| {
+        let det = |m: Modulation, held: bool| {
             let mut c = DetectorConfig::new(rate);
             c.modulation = Some(m);
             // One burst is one transmission: a train ends only with the burst (the burst closes after 25 ms of quiet).
             c.reset_us = 25_000.0;
+            if held {
+                c.floor_chunk = WIDE_FLOOR_CHUNK;
+                c.open_db = WIDE_OPEN_DB;
+                c.close_db = WIDE_CLOSE_DB;
+            }
             PulseDetector::new(c).ok()
         };
-        self.fsk = det(Modulation::Fsk);
-        self.ook = det(Modulation::Ook);
+        self.fsk = det(Modulation::Fsk, false);
+        self.ook = det(Modulation::Ook, false);
+        self.held = det(Modulation::Ook, true);
         let n = ((OOK_AVERAGE_S * rate).round() as usize).max(1);
         self.narrow = Convolver::new(&vec![1.0 / n as f32; n]).ok();
         self.rate = rate;
@@ -561,8 +584,28 @@ impl Pulses {
         let mut carrier = 0.0;
         if self.protocols.is_some() && !self.analyse {
             let found = std::mem::take(&mut self.found);
-            let any = found.iter().any(|t| self.decodes(t));
+            let mut any = found.iter().any(|t| self.decodes(t));
             self.found = found;
+            if !any {
+                // 0. The whole channel with the floor at least WIDE_FLOOR_DB under the burst's peak power.
+                let peak = b
+                    .samples
+                    .iter()
+                    .map(|z| z.norm_sqr())
+                    .fold(0.0f32, f32::max);
+                let low = floor.max(peak * 10f32.powf(-WIDE_FLOOR_DB / 10.0));
+                let mut wide = std::mem::take(&mut self.wide);
+                wide.clear();
+                if let Some(det) = self.held.as_mut() {
+                    det.run_burst(&b.samples, low, |t| wide.push(t.clone()));
+                }
+                let good: Vec<Train> = wide.iter().filter(|t| self.decodes(t)).cloned().collect();
+                self.wide = wide;
+                if !good.is_empty() {
+                    self.found = good;
+                    any = true;
+                }
+            }
             if !any {
                 let first = std::mem::take(&mut self.found);
                 carrier = self.retry(b, marks_span, fill, &first);

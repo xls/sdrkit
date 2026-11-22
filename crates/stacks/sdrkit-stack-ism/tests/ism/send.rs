@@ -1094,8 +1094,219 @@ mod ism {
                 battery_ok: Some(true),
                 has: &["Temperature 21.7", "Humidity 55", "Wind direction 270", "Wind gust 5.5", "Wind speed 3.2", "Rain 12.3", "Light 12345", "UV index 4.5"],
             },
+            Case {
+                args: vec![fam(F::Rubicson), int("id", 91), int("channel", 3), batt(false), num("temperature", -3.4)],
+                model: "Rubicson-Temperature",
+                id: "91",
+                channel: Some("3"),
+                battery_ok: Some(false),
+                has: &["Temperature -3.4"],
+            },
+            Case {
+                args: vec![fam(F::Solight), int("id", 17), int("channel", 2), num("temperature", 25.0)],
+                model: "Solight-TE44",
+                id: "17",
+                channel: Some("2"),
+                battery_ok: Some(true),
+                has: &["Temperature 25.00"],
+            },
+            Case {
+                args: vec![fam(F::GenericTemp), int("id", 33), int("flags", 1), num("temperature", 12.5)],
+                model: "Generic-Temperature",
+                id: "33",
+                channel: None,
+                battery_ok: None,
+                has: &["Temperature 12.50", "Battery bits 1"],
+            },
+            Case {
+                args: vec![fam(F::Tx141b), int("id", 0x5B), int("channel", 0), num("temperature", 18.2)],
+                model: "LaCrosse-TX141B",
+                id: "5b",
+                channel: None,
+                battery_ok: Some(true),
+                has: &["Temperature 18.2"],
+            },
+            Case {
+                args: vec![fam(F::Tx141bv2), int("id", 0x22), int("channel", 1), batt(false), num("temperature", -7.5)],
+                model: "LaCrosse-TX141Bv2",
+                id: "22",
+                channel: Some("1"),
+                battery_ok: Some(false),
+                has: &["Temperature -7.5"],
+            },
+            Case {
+                args: vec![fam(F::Tx141bv3), int("id", 0x33), int("channel", 2), num("temperature", 30.1)],
+                model: "LaCrosse-TX141Bv3",
+                id: "33",
+                channel: Some("2"),
+                battery_ok: Some(true),
+                has: &["Temperature 30.1"],
+            },
+            Case {
+                args: vec![fam(F::Acurite606), int("id", 77), int("channel", 2), num("temperature", -1.2)],
+                model: "Acurite-606TX",
+                id: "77",
+                channel: Some("2"),
+                battery_ok: Some(true),
+                has: &["Temperature -1.2"],
+            },
+            Case {
+                args: vec![fam(F::Acurite609), int("id", 99), batt(false), num("temperature", 22.4), int("humidity", 61)],
+                model: "Acurite-609TXC",
+                id: "99",
+                channel: None,
+                battery_ok: Some(false),
+                has: &["Temperature 22.4", "Humidity 61"],
+            },
+            Case {
+                args: vec![fam(F::Kedsum), int("id", 12), int("channel", 3), num("temperature", 18.0), int("humidity", 52)],
+                model: "Kedsum-TH",
+                id: "12",
+                channel: Some("3"),
+                battery_ok: Some(true),
+                has: &["Temperature 18.0", "Humidity 52"],
+            },
+            Case {
+                args: vec![fam(F::Gtwt02), int("id", 40), int("channel", 2), num("temperature", 19.9), int("humidity", 55)],
+                model: "GT-WT02",
+                id: "40",
+                channel: Some("2"),
+                battery_ok: Some(true),
+                has: &["Temperature 19.9", "Humidity 55"],
+            },
+            Case {
+                args: vec![fam(F::Wh2), int("id", 120), num("temperature", -4.6), int("humidity", 70)],
+                model: "Fineoffset-WH2",
+                id: "120",
+                channel: None,
+                battery_ok: None,
+                has: &["Temperature -4.6", "Humidity 70"],
+            },
+            Case {
+                args: vec![fam(F::Wh2a), int("id", 121), num("temperature", 5.5), int("humidity", 40)],
+                model: "Fineoffset-WH2A",
+                id: "121",
+                channel: None,
+                battery_ok: None,
+                has: &["Temperature 5.5", "Humidity 40"],
+            },
+            Case {
+                args: vec![fam(F::Wh5), int("id", 122), num("temperature", 10.0), int("humidity", 33)],
+                model: "Fineoffset-WH5",
+                id: "122",
+                channel: None,
+                battery_ok: None,
+                has: &["Temperature 10.0", "Humidity 33"],
+            },
+            Case {
+                args: vec![fam(F::TelldusProove), int("id", 123), num("temperature", 2.2), int("humidity", 80)],
+                model: "Fineoffset-TelldusProove",
+                id: "123",
+                channel: None,
+                battery_ok: None,
+                has: &["Temperature 2.2", "Humidity 80"],
+            },
+            Case {
+                args: vec![fam(F::Tfa303225), int("id", 124), batt(false), num("temperature", 8.8)],
+                model: "TFA-303225",
+                id: "124",
+                channel: None,
+                battery_ok: Some(false),
+                has: &["Temperature 8.8"],
+            },
+            Case {
+                args: vec![fam(F::Tp11), int("id", 1234), num("temperature", 21.7)],
+                model: "Thermopro-TP11",
+                id: "1234",
+                channel: None,
+                battery_ok: None,
+                has: &["Temperature 21.7"],
+            },
+            Case {
+                args: vec![fam(F::Tp12), int("id", 200), num("temperature", 65.0), num("temperature_2", 110.5)],
+                model: "Thermopro-TP12",
+                id: "200",
+                channel: None,
+                battery_ok: None,
+                has: &["Temperature 1 65.0", "Temperature 2 110.5"],
+            },
+            Case {
+                args: vec![fam(F::Ft004b), int("id", 0), num("temperature", 25.0)],
+                model: "FT-004B",
+                id: "0",
+                channel: None,
+                battery_ok: None,
+                has: &["Temperature 25.0"],
+            },
+            Case {
+                args: vec![fam(F::ErtScm), int("id", 33_554_433), int("meter_type", 12), int("consumption", 98_765)],
+                model: "ERT-SCM",
+                id: "33554433",
+                channel: None,
+                battery_ok: None,
+                has: &["Consumption 98765", "ERT type 12"],
+            },
+            Case {
+                args: vec![fam(F::ErtIdm), int("id", 0), hex("1C 5C C6 04 07 00 AC 17 1D F6 BC 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 30 04 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 DC EA BA")],
+                model: "ERT-IDM",
+                id: "11278109",
+                channel: None,
+                battery_ok: None,
+                has: &["ERT type 7", "Last consumption count 339972"],
+            },
+            Case {
+                args: vec![fam(F::Honeywell), int("id", 0xABCDE), int("channel", 3), int("flags", 0x80), batt(false)],
+                model: "Honeywell-Security",
+                id: "abcde",
+                channel: Some("3"),
+                battery_ok: Some(false),
+                has: &["Door open"],
+            },
+            Case {
+                args: vec![fam(F::Kerui), int("id", 0x54321), int("command", 14)],
+                model: "Kerui-Security",
+                id: "54321",
+                channel: None,
+                battery_ok: Some(true),
+                has: &["open"],
+            },
+            Case {
+                args: vec![fam(F::Springfield), int("id", 66), int("channel", 2), num("temperature", 15.5), int("moisture", 70)],
+                model: "Springfield-Soil",
+                id: "66",
+                channel: Some("2"),
+                battery_ok: Some(true),
+                has: &["Temperature 15.5", "Moisture 70"],
+            },
+            Case {
+                args: vec![fam(F::Pmv107j), int("id", 0x123_4567), num("pressure", 230.0), num("temperature", 30.0)],
+                model: "PMV-107J",
+                id: "01234567",
+                channel: None,
+                battery_ok: Some(true),
+                has: &["Pressure 230.6", "Temperature 30"],
+            },
+            Case {
+                args: vec![fam(F::Hyundai), int("id", 0), hex("21 0A 0B 0C 0D 12 A0 4B 00")],
+                model: "Hyundai-VDO",
+                id: "0a0b0c0d",
+                channel: None,
+                battery_ok: None,
+                has: &["Pressure 220.0", "Repeat 2"],
+            },
+            Case {
+                args: vec![fam(F::Abarth), int("id", 0), hex("0A 0B 0C 0D 00 A0 4B 00")],
+                model: "Abarth-124Spider",
+                id: "0a0b0c0d",
+                channel: None,
+                battery_ok: None,
+                has: &["Pressure 220.8", "Temperature 25"],
+            },
         ]
     }
+
+    /// A family whose frames another protocol reads too: the Solight rows of 37 bits pass the Rubicson test (36 to 38 bits).
+    const ALSO: [(&str, &str); 1] = [("Solight-TE44", "Rubicson-Temperature")];
 
     #[test]
     fn every_family_comes_back_with_its_fields() {
@@ -1103,8 +1314,14 @@ mod ism {
         for c in cases() {
             let x = s.send(&c.args);
             let got = devices(&x);
-            assert_eq!(got.len(), 1, "{}: {got:?}", c.model);
-            let g = &got[0];
+            let mine: Vec<&DeviceLine> = got.iter().filter(|g| g.0 == c.model).collect();
+            assert_eq!(mine.len(), 1, "{}: {got:?}", c.model);
+            assert!(
+                got.iter().all(|g| g.0 == c.model || ALSO.contains(&(c.model, g.0.as_str()))),
+                "{}: {got:?}",
+                c.model
+            );
+            let g = mine[0];
             assert_eq!((g.0.as_str(), g.1.as_str()), (c.model, c.id), "{got:?}");
             assert_eq!(g.2.as_deref(), c.channel, "{}: {got:?}", c.model);
             assert_eq!(g.3, c.battery_ok, "{}: {got:?}", c.model);

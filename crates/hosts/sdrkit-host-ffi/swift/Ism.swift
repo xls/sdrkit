@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "ism", version 2.1. MIT licence.
+// sdrkit: the typed interface of the stack family "ism", version 3.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum IsmInterface {
-    public static let major = 2
-    public static let minor = 1
+    public static let major = 3
+    public static let minor = 0
 }
 
 /// The result fields of the burst finder of the ISM sensor stack.
@@ -4282,7 +4282,7 @@ public enum IsmCommands {
         return sdrkitResult(code)
     }
     /// Send a frame. Sends one transmission of the device family (its copies of the frame, as the device sends them) on the tuned frequency, as OOK or FSK by the family. Transmissions sent during one wait for it. Transmit must be on. It transmits (frame). While the transmitter of the session is off it returns SDRKIT_E_TRANSMIT_OFF and sends nothing. The transmission lasts until the command "halt" stops it.
-    public static func ismSend(_ handle: SDRKIT_HANDLE, family: Int32? = nil, id: Int64, command: Int64? = nil, channel: Int64? = nil, batteryOk: Bool? = nil, temperature: Double? = nil, humidity: Int64? = nil, windSpeed: Double? = nil, windGust: Double? = nil, windDir: Double? = nil, rain: Double? = nil, uv: Double? = nil, light: Double? = nil, pressure: Double? = nil, flags: Int64? = nil, current: Double? = nil, interval: Int64? = nil, power: Int64? = nil, payload: String? = nil) -> Result<Void, SDRKitCode> {
+    public static func ismSend(_ handle: SDRKIT_HANDLE, family: Int32? = nil, id: Int64, command: Int64? = nil, channel: Int64? = nil, batteryOk: Bool? = nil, temperature: Double? = nil, humidity: Int64? = nil, windSpeed: Double? = nil, windGust: Double? = nil, windDir: Double? = nil, rain: Double? = nil, uv: Double? = nil, light: Double? = nil, pressure: Double? = nil, flags: Int64? = nil, current: Double? = nil, interval: Int64? = nil, power: Int64? = nil, payload: String? = nil, temperature2: Double? = nil, meterType: Int64? = nil, consumption: Int64? = nil, moisture: Int64? = nil) -> Result<Void, SDRKitCode> {
         var args = sdrkit_ism_send_args()
         args.size = UInt32(MemoryLayout<sdrkit_ism_send_args>.size)
         let code: Int32 = sdrkitWithString(payload ?? "") { payload_ in { () -> Int32 in
@@ -4323,6 +4323,14 @@ public enum IsmCommands {
         if let given = power { args.power = given }
         args.has_payload = payload != nil
         args.payload = payload_
+        args.has_temperature_2 = temperature2 != nil
+        if let given = temperature2 { args.temperature_2 = given }
+        args.has_meter_type = meterType != nil
+        if let given = meterType { args.meter_type = given }
+        args.has_consumption = consumption != nil
+        if let given = consumption { args.consumption = given }
+        args.has_moisture = moisture != nil
+        if let given = moisture { args.moisture = given }
         return sdrkit_ism_send(handle, &args)
         }() }
         return sdrkitResult(code)

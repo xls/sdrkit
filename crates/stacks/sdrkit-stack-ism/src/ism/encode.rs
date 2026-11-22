@@ -5,14 +5,17 @@
 //! Each encoder states the timing that its devices send. A family with raw bytes takes the bytes of the frame as the protocol
 //! reads them and adds the checks.
 
-use super::checks::{CRC8_31, CRC8_SCHRADER, CRC8_TOYOTA};
+use super::checks::{
+    CRC16_ERT_IDM, CRC16_ERT_SCM, CRC16_HONEYWELL_8050, CRC4_KEDSUM, CRC8_31, CRC8_HYUNDAI,
+    CRC8_PMV107J, CRC8_RUBICSON, CRC8_SCHRADER, CRC8_TOYOTA,
+};
 use super::gen::TRAIN_RATE_HZ;
-use super::protocols::reflect_nibbles;
+use super::protocols::{reflect_nibbles, ERT_HALF_US};
 use sdrkit_proto_ookdev::{encode, Modulation, Pulse, Train};
 use sdrkit_util_bits::checksum::{
     lfsr_digest16, lfsr_digest8, lfsr_digest8_reflect, nibble_sum, sum8, xor8,
 };
-use sdrkit_util_bits::crc::catalog::{CRC8_NRSC_5, CRC8_SMBUS};
+use sdrkit_util_bits::crc::catalog::{CRC16_UMTS, CRC8_NRSC_5, CRC8_SMBUS};
 use sdrkit_util_bits::line::{Manchester, ManchesterConv};
 use sdrkit_util_bits::pack::{unpack, BitOrder};
 
@@ -100,7 +103,13 @@ pub fn nexus(id: u8, channel: u8, battery_ok: bool, t: i16, humidity: u8) -> Tra
 /// the LFSR digest (generator 0x31, key 0xF4) of the 4 octets before it.
 pub fn tx141th(id: u8, channel: u8, battery_ok: bool, raw: u16, humidity: u8) -> Train {
     let low = if battery_ok { 0 } else { 0x80 };
-    let mut b = [id, low | (channel & 3) << 4 | ((raw >> 8) as u8 & 0xF), raw as u8, humidity, 0];
+    let mut b = [
+        id,
+        low | (channel & 3) << 4 | ((raw >> 8) as u8 & 0xF),
+        raw as u8,
+        humidity,
+        0,
+    ];
     b[4] = lfsr_digest8_reflect(&b[0..4], 0x31, 0xF4);
     let bits = bits_of(&b);
     let mut tr = train(Modulation::Ook);
@@ -336,17 +345,21 @@ pub fn toyota(id: u32, p1: u8, temp: u8, status: u8) -> Train {
     b[8] = CRC8_TOYOTA.checksum(&b[0..8]);
     let mut data = bits_of(&b);
     data.extend_from_slice(&[0, 0, 0, 0]);
-    // The preamble, then the data in FM0 (biphase space): a level change at each cell start, and one in the middle for a 0.
     let mut bits: Vec<u8> = "01010101001111".bytes().map(|c| c - b'0').collect();
-    let mut lvl = 1u8;
-    for d in data {
+    fm0(&data, 1, &mut bits);
+    fsk(&bits, 52.0, 30e3)
+}
+
+/// Appends the FM0 (biphase space) chips of `data` to `out`, starting from level `lvl`: a level change at the start of each
+/// cell, and one more in its middle for a 0.
+fn fm0(data: &[u8], mut lvl: u8, out: &mut Vec<u8>) {
+    for &d in data {
         let a = 1 - lvl;
         let c = if d != 0 { a } else { 1 - a };
-        bits.push(a);
-        bits.push(c);
+        out.push(a);
+        out.push(c);
         lvl = c;
     }
-    fsk(&bits, 52.0, 30e3)
 }
 
 /// The VDO TPMS frame of the Renault and Ford sensors: as read after inversion, AA AA AA A9, the IEEE Manchester chips of
@@ -466,7 +479,11 @@ pub struct Bresser6 {
 /// the id, the type and channel, the wind values inverted in BCD, the direction, the temperature, the humidity, the UV index
 /// inverted, and the octet that makes the add sum of octets 2 to 17 0xFF.
 pub fn bresser6(w: &Bresser6) -> Train {
-    let traw = if w.t < 0 { 1000 + i32::from(w.t) } else { i32::from(w.t) } as u32;
+    let traw = if w.t < 0 {
+        1000 + i32::from(w.t)
+    } else {
+        i32::from(w.t)
+    } as u32;
     let (g, s, d, u) = (
         u32::from(w.gust),
         u32::from(w.speed),
@@ -646,7 +663,10 @@ pub fn prologue(id: u8, channel: u8, battery_ok: bool, t: i16, humidity: u8) -> 
 /// each 4 sync pulses of 750 µs on and 750 µs off and the bits in PWM (a sent 1 is 250 µs on and 500 µs off, a 0 the other
 /// way round).
 pub fn bresser3ch(b: [u8; 4]) -> Train {
-    let row: Vec<u8> = [b[0], b[1], b[2], b[3], sum8(&b)].iter().map(|x| !x).collect();
+    let row: Vec<u8> = [b[0], b[1], b[2], b[3], sum8(&b)]
+        .iter()
+        .map(|x| !x)
+        .collect();
     let bits = bits_of(&row);
     let mut tr = train(Modulation::Ook);
     for _ in 0..15 {
@@ -664,9 +684,15 @@ pub fn bresser3ch(b: [u8; 4]) -> Train {
 pub fn citroen(b: [u8; 9]) -> Train {
     let mut m = b.to_vec();
     m.push(xor8(&b[1..9]));
-    let mut bits = bits_of(&[0x55, 0x55, 0x55, 0x56]);
-    bits.extend(chips(&bits_of(&m), ManchesterConv::Thomas));
-    bits.extend(bits_of(&[0x7E]));
+    vdo_plain(&[0x55, 0x55, 0x55, 0x56], &m, 0x7E)
+}
+
+/// A VDO TPMS frame sent as it is read: the preamble `pre`, the message `m` in Manchester (1 is 10) and the trailer octet
+/// `tail`, as FSK NRZ at 52 µs, ±30 kHz.
+fn vdo_plain(pre: &[u8], m: &[u8], tail: u8) -> Train {
+    let mut bits = bits_of(pre);
+    bits.extend(chips(&bits_of(m), ManchesterConv::Thomas));
+    bits.extend(bits_of(&[tail]));
     fsk(&bits, 52.0, 30e3)
 }
 
@@ -689,4 +715,482 @@ pub fn bresser7(m: [u8; 23]) -> Train {
     let mut bits = bits_of(&[0xAA, 0xAA, 0xAA, 0x2D, 0xD4]);
     bits.extend(bits_of(&raw));
     fsk(&bits, 124.0, 40e3)
+}
+
+/// The 36 bits of a Rubicson frame: the id, the battery-good bit, the channel field (0 to 3), the 12-bit temperature `t`
+/// (tenths of °C), the nibble F and the CRC-8 (poly 0x31, register 0x6C) of the 4 octets that end with that nibble.
+fn rubicson_bits(id: u8, channel: u8, battery_ok: bool, t: i16) -> Vec<u8> {
+    let b = [
+        id,
+        u8::from(battery_ok) << 7 | (channel & 3) << 4 | ((t >> 8) as u8 & 0xF),
+        t as u8,
+        0xF0,
+    ];
+    let c = CRC8_RUBICSON.checksum(&b);
+    let mut bits = bits_of(&[b[0], b[1], b[2], 0xF0 | c >> 4, (c & 0xF) << 4]);
+    bits.truncate(36);
+    bits
+}
+
+/// Rubicson, TFA 30.3197, InFactory PT-310: 12 copies of the 36 bits of [`rubicson_bits`] in PPM (500 µs marks, the first
+/// of each copy 388 µs; a 976 µs space for a 0 and 1940 µs for a 1), each closed by a 500 µs mark and 4000 µs of silence.
+/// The wake-up pulses before the first copy are left out.
+pub fn rubicson(id: u8, channel: u8, battery_ok: bool, t: i16) -> Train {
+    let bits = rubicson_bits(id, channel, battery_ok, t);
+    let mut tr = train(Modulation::Ook);
+    for _ in 0..12 {
+        let first = tr.pulses.len();
+        encode::ppm(&bits, 500.0, 976.0, 1940.0, &mut tr);
+        tr.pulses[first].mark = tr.samples(388.0);
+        push(&mut tr, 500.0, 4000.0);
+    }
+    tr
+}
+
+/// Solight TE44, TE66, EMOS E0107T: 12 copies of the 36 bits of [`rubicson_bits`] and a 0 bit in PPM (490 µs marks, a
+/// 976 µs space for a 0 and 1946 µs for a 1, the space of the 37th bit 980 µs), each closed by a 490 µs mark and 3880 µs.
+/// Not confirmed from a device document: the 980 µs space of the 37th bit.
+pub fn solight(id: u8, channel: u8, battery_ok: bool, t: i16) -> Train {
+    let bits = rubicson_bits(id, channel, battery_ok, t);
+    let mut tr = train(Modulation::Ook);
+    for _ in 0..12 {
+        encode::ppm(&bits, 490.0, 976.0, 1946.0, &mut tr);
+        push(&mut tr, 490.0, 980.0);
+        push(&mut tr, 490.0, 3880.0);
+    }
+    tr
+}
+
+/// Generic temperature sensor 1: a 500 µs mark and 7000 µs, then 10 frames of 24 bits in PPM (500 µs marks, a 2000 µs space
+/// for a 0 and 4000 µs for a 1), each closed by a 500 µs mark and 7000 µs. The bits: the id, the 2-bit battery field and
+/// the temperature `t` (tenths of °C) times 4 as a 14-bit two's complement field.
+/// Not confirmed from a device document: the 500 µs mark and the 7000 µs space between frames.
+pub fn generic_temp(id: u8, battery: u8, t: i16) -> Train {
+    let f = (t as u16).wrapping_mul(4) & 0x3FFF;
+    let bits = bits_of(&[id, (battery & 3) << 6 | (f >> 8) as u8, f as u8]);
+    let mut tr = train(Modulation::Ook);
+    push(&mut tr, 500.0, 7000.0);
+    for _ in 0..10 {
+        encode::ppm(&bits, 500.0, 2000.0, 4000.0, &mut tr);
+        push(&mut tr, 500.0, 7000.0);
+    }
+    tr
+}
+
+/// LaCrosse TX141-B (`len` 32), TX141-Bv2 (37) and TX141-Bv3 (33): `copies` copies, each 4 sync pulses of 833 µs and the
+/// bits in PWM as the TX141TH-Bv2 sends them, then two 833 µs sync pulses. The bits: the id, the battery-good bit, the
+/// channel field (0 to 3), the 12-bit temperature `raw` (tenths of °C plus 500), then the TH layout cut to `len`: a
+/// humidity octet 0 and the digest.
+/// Not confirmed from a device document: the bits after the temperature, and 12 copies of the B and Bv2.
+pub fn tx141b(len: usize, copies: usize, id: u8, channel: u8, battery_ok: bool, raw: u16) -> Train {
+    let mut b = [
+        id,
+        u8::from(battery_ok) << 7 | (channel & 3) << 4 | ((raw >> 8) as u8 & 0xF),
+        raw as u8,
+        0,
+        0,
+    ];
+    b[4] = lfsr_digest8_reflect(&b[0..4], 0x31, 0xF4);
+    let mut bits = bits_of(&b);
+    bits.truncate(len);
+    let mut tr = train(Modulation::Ook);
+    for _ in 0..copies {
+        for _ in 0..4 {
+            push(&mut tr, 833.0, 833.0);
+        }
+        encode::pwm(&bits, (417.0, 208.0), (208.0, 417.0), &mut tr);
+    }
+    push(&mut tr, 833.0, 833.0);
+    push(&mut tr, 833.0, 833.0);
+    tr
+}
+
+/// Acurite 606TX, Technoline TX960: a 500 µs mark and an 8500 µs sync space, then 8 copies of 33 bits in PPM (500 µs marks,
+/// a 2000 µs space for a 0 and 4000 µs for a 1), each closed by a 500 µs mark and 8500 µs. The bits: the id, the
+/// battery-good bit, the button bit, the channel field (0 to 3), the 12-bit temperature `t` (tenths of °C), the LFSR digest
+/// (generator 0x98, key 0xF1) of the 3 octets before it and a 0 bit.
+/// Not confirmed from a device document: the 2000 µs space of the 33rd bit, and 8 copies (6 to 8).
+pub fn acurite606(id: u8, channel: u8, battery_ok: bool, button: bool, t: i16) -> Train {
+    let mut b = [
+        id,
+        u8::from(battery_ok) << 7
+            | u8::from(button) << 6
+            | (channel & 3) << 4
+            | ((t >> 8) as u8 & 0xF),
+        t as u8,
+        0,
+    ];
+    b[3] = lfsr_digest8(&b[0..3], 0x98, 0xF1);
+    let mut bits = bits_of(&b);
+    bits.push(0);
+    let mut tr = train(Modulation::Ook);
+    push(&mut tr, 500.0, 8500.0);
+    for _ in 0..8 {
+        encode::ppm(&bits, 500.0, 2000.0, 4000.0, &mut tr);
+        push(&mut tr, 500.0, 8500.0);
+    }
+    tr
+}
+
+/// Acurite 609TXC: a 500 µs mark and an 8500 µs sync space, then 3 copies of 40 bits in PPM (500 µs marks, a 1000 µs space
+/// for a 0 and 2000 µs for a 1), each closed by a 500 µs mark and 8500 µs. The bits: the id, the status nibble 2 with its
+/// battery-low bit (bit 3), the 12-bit temperature `t` (tenths of °C), the humidity and the add checksum.
+/// Not confirmed from a device document: 3 copies.
+pub fn acurite609(id: u8, battery_ok: bool, t: i16, humidity: u8) -> Train {
+    let mut b = [
+        id,
+        (0x2 | u8::from(!battery_ok) << 3) << 4 | ((t >> 8) as u8 & 0xF),
+        t as u8,
+        humidity,
+        0,
+    ];
+    b[4] = sum8(&b[0..4]);
+    let bits = bits_of(&b);
+    let mut tr = train(Modulation::Ook);
+    push(&mut tr, 500.0, 8500.0);
+    for _ in 0..3 {
+        encode::ppm(&bits, 500.0, 1000.0, 2000.0, &mut tr);
+        push(&mut tr, 500.0, 8500.0);
+    }
+    tr
+}
+
+/// Kedsum, Pearl NC-7415: 15 sync pulses (a 500 µs mark and 8000 µs), then 6 copies of 42 bits in PPM (500 µs marks, a
+/// 2000 µs space for a 0 and 4000 µs for a 1), each closed by a sync pulse. The bits: two 0 bits, the id, the battery
+/// field (10 good, 01 weak), the channel field (0 to 3), the 12-bit temperature `raw` (tenths of °F plus 900) as low,
+/// middle and high nibble, the humidity with its nibbles swapped, the flags nibble and the CRC-4 (poly 0x3) of the 4
+/// octets before it XOR the flags.
+pub fn kedsum(id: u8, channel: u8, battery_ok: bool, raw: u16, humidity: u8, flags: u8) -> Train {
+    let flags = flags & 0xF;
+    let mut b = [
+        id,
+        (if battery_ok { 2 } else { 1 }) << 6 | (channel & 3) << 4 | (raw & 0xF) as u8,
+        (((raw >> 4) & 0xF) as u8) << 4 | ((raw >> 8) & 0xF) as u8,
+        humidity.rotate_right(4),
+        flags << 4,
+    ];
+    b[4] |= (CRC4_KEDSUM.checksum(&b[0..4]) ^ flags) & 0xF;
+    let mut bits = vec![0u8, 0];
+    bits.extend(bits_of(&b));
+    let mut tr = train(Modulation::Ook);
+    for _ in 0..15 {
+        push(&mut tr, 500.0, 8000.0);
+    }
+    for _ in 0..6 {
+        encode::ppm(&bits, 500.0, 2000.0, 4000.0, &mut tr);
+        push(&mut tr, 500.0, 8000.0);
+    }
+    tr
+}
+
+/// Globaltronics GT-WT-02: a 500 µs mark and a 9000 µs sync space, then 3 copies of 37 bits in PPM (500 µs marks, a 2000 µs
+/// space for a 0 and 4000 µs for a 1), each closed by a 500 µs mark and 9000 µs. The bits: the id, the battery-low bit, the
+/// manual-send bit 0, the channel field (0 to 2), the 12-bit temperature `t` (tenths of °C), the 7-bit humidity code
+/// (20 to 90, 10 low, 110 high) and the sum of the nibbles of the 31 bits before it modulo 64 (the last nibble 3 bits).
+/// Not confirmed from a device document: 3 copies, and that the 2000 and 4000 µs widths are the spaces.
+pub fn gtwt02(id: u8, channel: u8, battery_ok: bool, t: i16, humidity: u8) -> Train {
+    let b = [
+        id,
+        u8::from(!battery_ok) << 7 | (channel & 3) << 4 | ((t >> 8) as u8 & 0xF),
+        t as u8,
+    ];
+    let h = humidity & 0x7F;
+    let nib = |x: u8| u32::from(x >> 4) + u32::from(x & 0xF);
+    let sum =
+        (nib(b[0]) + nib(b[1]) + nib(b[2]) + u32::from(h >> 3) + u32::from((h << 1) & 0xE)) % 64;
+    let mut bits = bits_of(&b);
+    bits.extend((0..7).rev().map(|i| (h >> i) & 1));
+    bits.extend((0..6).rev().map(|i| (sum >> i) as u8 & 1));
+    let mut tr = train(Modulation::Ook);
+    push(&mut tr, 500.0, 9000.0);
+    for _ in 0..3 {
+        encode::ppm(&bits, 500.0, 2000.0, 4000.0, &mut tr);
+        push(&mut tr, 500.0, 9000.0);
+    }
+    tr
+}
+
+/// A model of the Fine Offset WH2 family.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Wh2Model {
+    /// Fine Offset WH2: 8 leading 1 bits.
+    Wh2,
+    /// Fine Offset WH2A: 7 leading 1 bits and the add checksum.
+    Wh2a,
+    /// Fine Offset WH5: 7 leading 1 bits.
+    Wh5,
+    /// Telldus Proove: 9 leading 1 bits.
+    Telldus,
+    /// TFA 30.3225: 7 leading 1 bits and the add checksum.
+    Tfa,
+}
+
+/// The Fine Offset WH2 family: 2 copies of the bits in PWM (a 1 is a 544 µs mark, a 0 a 1524 µs mark, each followed by
+/// 1036 µs), 5000 µs between them. The bits: the leading 1 bits of the model, the type nibble 4, the id, the 12-bit
+/// temperature field `raw` as the model codes it, the humidity (0xFF for none), the CRC-8 (poly 0x31, register 0) of the 4
+/// octets before it and, for the WH2A and the TFA, the add checksum of the 5 octets before it.
+/// Not confirmed from a device document: the 5000 µs between the copies.
+pub fn wh2(model: Wh2Model, id: u8, raw: u16, humidity: u8) -> Train {
+    let mut b = vec![
+        0x40 | id >> 4,
+        (id & 0xF) << 4 | ((raw >> 8) as u8 & 0xF),
+        raw as u8,
+        humidity,
+        0,
+    ];
+    b[4] = CRC8_31.checksum(&b[0..4]);
+    if matches!(model, Wh2Model::Wh2a | Wh2Model::Tfa) {
+        b.push(sum8(&b));
+    }
+    let lead = match model {
+        Wh2Model::Wh2 => 8,
+        Wh2Model::Telldus => 9,
+        _ => 7,
+    };
+    let mut bits = vec![1u8; lead];
+    bits.extend(bits_of(&b));
+    let mut tr = train(Modulation::Ook);
+    for k in 0..2 {
+        encode::pwm(&bits, (544.0, 1036.0), (1524.0, 1036.0), &mut tr);
+        if k == 0 {
+            set_last_space(&mut tr, 5000.0);
+        }
+    }
+    tr
+}
+
+/// ThermoPro TP11: 4 copies of 32 bits in PPM (500 µs marks, a 500 µs space for a 0 and 1500 µs for a 1), each closed by a
+/// 500 µs mark and 3000 µs. The bits: the 12-bit id, the 12-bit temperature `raw` (tenths of °C plus 200) and the
+/// reflected LFSR digest (generator 0x51, key 0x04) of the 3 octets before it.
+/// Not confirmed from a device document: the 500 µs marks, the space widths, the 3000 µs between copies and 4 copies.
+pub fn tp11(id: u16, raw: u16) -> Train {
+    let mut b = [
+        (id >> 4) as u8,
+        ((id & 0xF) as u8) << 4 | ((raw >> 8) as u8 & 0xF),
+        raw as u8,
+        0,
+    ];
+    b[3] = lfsr_digest8_reflect(&b[0..3], 0x51, 0x04);
+    let bits = bits_of(&b);
+    let mut tr = train(Modulation::Ook);
+    for _ in 0..4 {
+        encode::ppm(&bits, 500.0, 500.0, 1500.0, &mut tr);
+        push(&mut tr, 500.0, 3000.0);
+    }
+    tr
+}
+
+/// ThermoPro TP08, TP12, TP20: 17 copies of 40 bits in PPM (500 µs marks, a 500 µs space for a 0 and 1500 µs for a 1),
+/// every copy but the last with a trailing 1 bit, each closed by a 500 µs mark and 3000 µs. The bits: the id, the two
+/// 12-bit temperatures `raw1` (the probe) and `raw2` (tenths of °C plus 200) and the reflected LFSR digest (generator 0x51,
+/// key 0x04) of the 4 octets before it.
+/// Not confirmed from a device document: the 500 µs marks, the space widths and the 3000 µs between copies.
+pub fn tp12(id: u8, raw1: u16, raw2: u16) -> Train {
+    let mut b = [
+        id,
+        raw1 as u8,
+        ((raw1 >> 8) as u8 & 0xF) << 4 | ((raw2 >> 8) as u8 & 0xF),
+        raw2 as u8,
+        0,
+    ];
+    b[4] = lfsr_digest8_reflect(&b[0..4], 0x51, 0x04);
+    let bits = bits_of(&b);
+    let mut tr = train(Modulation::Ook);
+    for k in 0..17 {
+        encode::ppm(&bits, 500.0, 500.0, 1500.0, &mut tr);
+        if k < 16 {
+            encode::ppm(&[1], 500.0, 500.0, 1500.0, &mut tr);
+        }
+        push(&mut tr, 500.0, 3000.0);
+    }
+    tr
+}
+
+/// FT-004-B: 3 copies of 46 bits back to back in PPM (500 µs marks, a 1956 µs space for a 0 and 3900 µs for a 1), closed by
+/// a 500 µs mark and 4000 µs. The bits are the octets F4 F3 24, the temperature `raw` (units of 0.05 °C from −40 °C, 11 bits)
+/// and 13, each least significant bit first; the octets other than the type F4 and the temperature bits are those of the
+/// published row.
+/// Not confirmed from a device document: the 500 µs marks and the content of the octets other than the type and temperature.
+pub fn ft004b(raw: u16) -> Train {
+    let m = [
+        0xF4,
+        0xF3,
+        0x24,
+        raw as u8,
+        0x80 | ((raw >> 8) as u8 & 7),
+        0x13,
+    ];
+    let mut copy = Vec::with_capacity(48);
+    unpack(&m, BitOrder::Lsb, &mut copy);
+    copy.truncate(46);
+    let mut tr = train(Modulation::Ook);
+    for _ in 0..3 {
+        encode::ppm(&copy, 500.0, 1956.0, 3900.0, &mut tr);
+    }
+    push(&mut tr, 500.0, 4000.0);
+    tr
+}
+
+/// Itron ERT SCM: the 96 bits in Manchester (1 is high then low) at a data bit of 1/32768 s: F9 53 (the sync bit and the
+/// preamble), the high 2 bits of the 26-bit id, the physical tamper (2 bits), the ERT type (4 bits), the encoder tamper (2
+/// bits), the 24-bit consumption, the low 24 bits of the id and the CRC-16 (poly 0x6F63, register 0) of octets 2 to 9.
+/// Not confirmed from a device document: the data bit (sources give 1/32768 s and 1/16384 s), the polarity of the sync bit
+/// (the stack reads it as a 0), one copy, the hop channel.
+pub fn ert_scm(id: u32, ert_type: u8, physical: u8, encoder: u8, consumption: u32) -> Train {
+    let [_, c2, c1, c0] = consumption.to_be_bytes();
+    let [_, i2, i1, i0] = id.to_be_bytes();
+    let mut b = [
+        0xF9,
+        0x53,
+        ((id >> 24) as u8 & 3) << 1,
+        (physical & 3) << 6 | (ert_type & 0xF) << 2 | (encoder & 3),
+        c2,
+        c1,
+        c0,
+        i2,
+        i1,
+        i0,
+        0,
+        0,
+    ];
+    let crc = CRC16_ERT_SCM.checksum(&b[2..10]).to_be_bytes();
+    b[10..12].copy_from_slice(&crc);
+    manchester_ook(&bits_of(&b), ERT_HALF_US)
+}
+
+/// Itron ERT IDM: `m` is octets 2 to 87 of the frame (from the packet type 0x1C to the meter-id CRC); the training sync 55 55
+/// and the frame sync 16 A3 go before it and the CRC-16 (poly 0x1021, register 0xD895) of `m` after it. Manchester (1 is
+/// high then low) at a data bit of 1/32768 s.
+/// Not confirmed from a device document: the data bit (sources give 1/32768 s and 1/16384 s), one copy, the hop channel.
+pub fn ert_idm(m: [u8; 86]) -> Train {
+    let mut f = vec![0x55, 0x55, 0x16, 0xA3];
+    f.extend_from_slice(&m);
+    f.extend_from_slice(&CRC16_ERT_IDM.checksum(&m).to_be_bytes());
+    manchester_ook(&bits_of(&f), ERT_HALF_US)
+}
+
+/// Honeywell / Ademco 345 MHz, 2Gig DW10/DW11: 6 copies, 2000 µs apart, of the 64 bits in Manchester (1 is low then high)
+/// with 136 µs half-bits: FF FE, the channel nibble, the 20-bit id, the event octet and the CRC-16 (register 0, poly 0x8050
+/// on channels 2, 4, 9, 10 and 12, else 0x8005) of the 4 octets before it.
+/// Not confirmed from a device document: the 2000 µs between copies; the second burst of 6 copies is not sent.
+pub fn honeywell(channel: u8, id: u32, event: u8) -> Train {
+    let mut b = [
+        0xFF,
+        0xFE,
+        (channel & 0xF) << 4 | ((id >> 16) as u8 & 0xF),
+        (id >> 8) as u8,
+        id as u8,
+        event,
+        0,
+        0,
+    ];
+    let crc = if matches!(channel, 2 | 4 | 9 | 10 | 12) {
+        CRC16_HONEYWELL_8050.checksum(&b[2..6])
+    } else {
+        CRC16_UMTS.checksum(&b[2..6])
+    };
+    b[6..8].copy_from_slice(&crc.to_be_bytes());
+    let levels = ieee_chips(&bits_of(&b));
+    let mut tr = train(Modulation::Ook);
+    for k in 0..6 {
+        if k > 0 {
+            set_last_space(&mut tr, 2000.0);
+        }
+        encode::nrz(&levels, 136.0, &mut tr);
+    }
+    tr
+}
+
+/// Kerui PIR and contact sensors: 25 copies of the 24 bits in PWM (a 1 is a 960 µs mark and 320 µs, a 0 a 320 µs mark and
+/// 960 µs), each closed by a 320 µs mark and 9000 µs. The bits: the 20-bit id and the 4-bit command.
+/// Not confirmed from a device document: the 320 µs and 960 µs widths, the 9000 µs space and the encoder chip.
+pub fn kerui(id: u32, command: u8) -> Train {
+    let code = [
+        (id >> 12) as u8,
+        (id >> 4) as u8,
+        ((id & 0xF) as u8) << 4 | (command & 0xF),
+    ];
+    let bits = bits_of(&code);
+    let mut tr = train(Modulation::Ook);
+    for _ in 0..25 {
+        encode::pwm(&bits, (960.0, 320.0), (320.0, 960.0), &mut tr);
+        push(&mut tr, 320.0, 9000.0);
+    }
+    tr
+}
+
+/// Springfield temperature and soil moisture: 4 copies of 36 bits in PPM (500 µs marks, a 2000 µs space for a 0 and
+/// 4000 µs for a 1), every copy but the last with a trailing 0 bit, each closed by a 500 µs mark and 7000 µs. The nibbles:
+/// the id (2), the flags (battery low, button, channel field 0 to 3), the 12-bit temperature `t` (tenths of °C), the
+/// moisture (0 to 10), the XOR of the 7 nibbles before it and 0.
+/// Not confirmed from a device document: the 500 µs marks, the space widths, 4 copies, the 7000 µs between copies, the
+/// last nibble and the trailing bit.
+pub fn springfield(
+    id: u8,
+    channel: u8,
+    battery_ok: bool,
+    button: bool,
+    t: i16,
+    moisture: u8,
+) -> Train {
+    let flags = u8::from(!battery_ok) << 3 | u8::from(button) << 2 | (channel & 3);
+    let mut b = [
+        id,
+        flags << 4 | ((t >> 8) as u8 & 0xF),
+        t as u8,
+        (moisture & 0xF) << 4,
+        0,
+    ];
+    let x = xor8(&b[0..4]);
+    b[3] |= (x >> 4) ^ (x & 0xF);
+    let mut bits = bits_of(&b);
+    bits.truncate(36);
+    let mut tr = train(Modulation::Ook);
+    for k in 0..4 {
+        encode::ppm(&bits, 500.0, 2000.0, 4000.0, &mut tr);
+        if k < 3 {
+            encode::ppm(&[0], 500.0, 2000.0, 4000.0, &mut tr);
+        }
+        push(&mut tr, 500.0, 7000.0);
+    }
+    tr
+}
+
+/// Pacific PMV-107J TPMS: FSK NRZ at 100 µs, ±30 kHz: the chips 1111110, then in FM0 the 66 bits (the 28-bit id, the 6
+/// flag bits, the pressure `p` (kPa / 2.48 plus 40), its inverse, the temperature (°C plus 40) and the CRC-8 (poly 0x13,
+/// register 0) of the 58 bits before it with 6 leading 0 bits) and two 1 cells.
+/// Not confirmed from a device document: the deviation, one copy, the two trailing cells.
+pub fn pmv107j(id: u32, flags: u8, p: u8, temp: u8) -> Train {
+    let v = (u64::from(id) & 0x0FFF_FFFF) << 6 | u64::from(flags & 0x3F);
+    let mut b = [0u8; 9];
+    b[0..5].copy_from_slice(&v.to_be_bytes()[3..8]);
+    b[5] = p;
+    b[6] = !p;
+    b[7] = temp;
+    b[8] = CRC8_PMV107J.checksum(&b[0..8]);
+    let mut data = bits_of(&b).split_off(6);
+    data.extend_from_slice(&[1, 1]);
+    let mut chips = vec![1u8, 1, 1, 1, 1, 1, 0];
+    fm0(&data, 0, &mut chips);
+    fsk(&chips, 100.0, 30e3)
+}
+
+/// Hyundai / Kia TPMS (VDO TG1C): `b` is octets 0 to 8 of the message (the state, the 32-bit id, the flags and repeat
+/// counter, the pressure in units of 1.375 kPa, the temperature in °C plus 50, the battery octet); the CRC-8 (poly 0x07,
+/// register 0xAA) follows. FSK NRZ at 52 µs, ±30 kHz: 55 55 55 56, the message in Manchester (1 is 10) and 55.
+/// Not confirmed from a device document: the deviation, one copy, the trailing 55.
+pub fn hyundai(b: [u8; 9]) -> Train {
+    let mut m = b.to_vec();
+    m.push(CRC8_HYUNDAI.checksum(&b));
+    vdo_plain(&[0x55, 0x55, 0x55, 0x56], &m, 0x55)
+}
+
+/// Abarth 124 Spider, Fiat 124, Mazda MX-5 ND TPMS (VDO TG1C): `b` is octets 0 to 7 of the message (the 32-bit id, the flags,
+/// the pressure in units of 1.38 kPa, the temperature in °C plus 50, the status); the octet that makes the XOR of the 9
+/// octets zero follows. FSK NRZ at 52 µs, ±30 kHz: 55 55 55 55 55 56, the message in Manchester (1 is 10) and 55.
+/// Not confirmed from a device document: the deviation, the 48 preamble chips, one copy, the trailing 55.
+pub fn abarth(b: [u8; 8]) -> Train {
+    let mut m = b.to_vec();
+    m.push(xor8(&b));
+    vdo_plain(&[0x55, 0x55, 0x55, 0x55, 0x55, 0x56], &m, 0x55)
 }

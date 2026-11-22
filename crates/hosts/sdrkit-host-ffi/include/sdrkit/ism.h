@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "ism", version 2.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "ism", version 3.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,8 +35,8 @@
 #include "ookdev.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_ISM_VERSION_MAJOR 2
-#define SDRKIT_ISM_VERSION_MINOR 1
+#define SDRKIT_ISM_VERSION_MAJOR 3
+#define SDRKIT_ISM_VERSION_MINOR 0
 
 // The stack "ism": its id, and the keys of its event types.
 #define SDRKIT_STACK_ISM "ism"
@@ -3630,10 +3630,26 @@ typedef struct sdrkit_ism_send_args {
   bool has_payload;
   // The frame octets of a family with a raw payload.
   sdrkit_string payload;
+  // True if `temperature_2` holds a value.
+  bool has_temperature_2;
+  // The second temperature of a sensor with two probes. Unit: °C.
+  double temperature_2;
+  // True if `meter_type` holds a value.
+  bool has_meter_type;
+  // The type of a meter.
+  int64_t meter_type;
+  // True if `consumption` holds a value.
+  bool has_consumption;
+  // The consumption count of a meter.
+  int64_t consumption;
+  // True if `moisture` holds a value.
+  bool has_moisture;
+  // The soil moisture of a sensor. Unit: %.
+  int64_t moisture;
 } sdrkit_ism_send_args;
 
 // An arguments struct with its size set and every argument at 0.
-#define SDRKIT_ISM_SEND_ARGS_INIT {sizeof(sdrkit_ism_send_args), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}}
+#define SDRKIT_ISM_SEND_ARGS_INIT {sizeof(sdrkit_ism_send_args), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, 0, 0, 0, 0, 0, 0}
 
 // The arguments of `remove` of the Wireless M-Bus stack.
 typedef struct sdrkit_wmbus_meter_args {

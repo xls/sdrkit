@@ -1,5 +1,5 @@
 # The interface of the stack family ism. The registry test of the family writes this file.
-family ism version=2.1
+family ism version=3.0
 uses.ookdev major=1 since=1.0
 shape.IsmDetectFields since=1.0
 shape.IsmDetectFields.bursts_detected type=i64 unit= optional=no since=1.0
@@ -742,7 +742,7 @@ shape.DsrcFrameEvent.kind type=text unit= optional=no since=1.0
 shape.DsrcFrameEvent.bytes type=i64 unit= optional=no since=1.0
 shape.DsrcFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 ism since=1.0
-ism.content kind=devices since=2.1
+ism.content kind=devices since=1.0
 ism.fields.IsmDetectFields since=1.0
 ism.fields.DecodeFields since=1.0
 ism.fields.SigfoxFinderFields since=1.0
@@ -794,10 +794,10 @@ ism.setting.gen_frame_gap_s type=f64 unit=s since=1.0
 ism.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
 ism.command.clear args= reply= since=1.0
 ism.command.remove args=row:text reply= since=1.0
-ism.command.send args=family:choice(remote,tx141thbv2,nexus,acurite_tower,wh1080,f007th,oregon_thgr810,oregon_thgr228n,schrader,toyota,renault,ford,efergy,currentcost,bresser6,bresser5,tx29,tx35,wh24,prologue,acurite_txr,bresser3ch,citroen,schrader_eg53,bresser7)?;id:i64;command:i64?;channel:i64?;battery_ok:bool?;temperature:f64?;humidity:i64?;wind_speed:f64?;wind_gust:f64?;wind_dir:f64?;rain:f64?;uv:f64?;light:f64?;pressure:f64?;flags:i64?;current:f64?;interval:i64?;power:i64?;payload:text? reply= transmits=frame stop=halt since=1.0
+ism.command.send args=family:choice(remote,tx141thbv2,nexus,acurite_tower,wh1080,f007th,oregon_thgr810,oregon_thgr228n,schrader,toyota,renault,ford,efergy,currentcost,bresser6,bresser5,tx29,tx35,wh24,prologue,acurite_txr,bresser3ch,citroen,schrader_eg53,bresser7,rubicson,solight,generic_temp,tx141b,tx141bv2,tx141bv3,acurite_606tx,acurite_609txc,kedsum,gtwt02,wh2,wh2a,wh5,telldus_proove,tfa_303225,tp11,tp12,ft004b,ert_scm,ert_idm,honeywell,kerui,springfield,pmv107j,hyundai,abarth)?;id:i64;command:i64?;channel:i64?;battery_ok:bool?;temperature:f64?;humidity:i64?;wind_speed:f64?;wind_gust:f64?;wind_dir:f64?;rain:f64?;uv:f64?;light:f64?;pressure:f64?;flags:i64?;current:f64?;interval:i64?;power:i64?;payload:text?;temperature_2:f64?;meter_type:i64?;consumption:i64?;moisture:i64? reply= transmits=frame stop=halt since=1.0
 ism.command.halt args= reply= since=1.0
 wmbus since=1.0
-wmbus.content kind=devices since=2.1
+wmbus.content kind=devices since=1.0
 wmbus.fields.WmbusFields since=1.0
 wmbus.fields.GuardFields writer=receiver since=1.0
 wmbus.fields.IsmTxFields since=1.0
@@ -823,7 +823,7 @@ wmbus.command.remove args=row:text reply= since=1.0
 wmbus.command.send args=mode:choice(S1,T1,C1A,C1B,R2,N1)?;manufacturer:text;address:text;version:i64;device_type:i64;payload:text reply= transmits=frame stop=halt since=1.0
 wmbus.command.halt args= reply= since=1.0
 zwave since=1.0
-zwave.content kind=devices since=2.1
+zwave.content kind=devices since=1.0
 zwave.fields.ZwaveFields since=1.0
 zwave.fields.GuardFields writer=receiver since=1.0
 zwave.fields.IsmTxFields since=1.0
@@ -858,7 +858,7 @@ zwave.command.remove args=row:text reply= since=1.0
 zwave.command.send args=home_id:text;source:i64;destination:i64;payload:text;rate:choice(r1,r2,r3)?;ack:bool?;sequence:i64? reply= transmits=frame stop=halt since=1.0
 zwave.command.halt args= reply= since=1.0
 zigbee since=1.0
-zigbee.content kind=devices since=2.1
+zigbee.content kind=devices since=1.0
 zigbee.fields.ZigbeeFields since=1.0
 zigbee.fields.GuardFields writer=receiver since=1.0
 zigbee.fields.IsmTxFields since=1.0
@@ -890,7 +890,7 @@ zigbee.command.remove args=row:text reply= since=1.0
 zigbee.command.send args=pan_id:text;destination:text;source:text;payload:text;frame_type:choice(beacon,data,command)?;sequence:i64?;ack:bool?;security_level:i64?;key:text?;frame_counter:i64?;key_id_mode:i64?;key_index:i64?;key_source:text? reply= transmits=frame stop=halt since=1.0
 zigbee.command.halt args= reply= since=1.0
 sigfox since=1.0
-sigfox.content kind=devices since=2.1
+sigfox.content kind=devices since=1.0
 sigfox.fields.SigfoxFields since=1.0
 sigfox.fields.SigfoxFinderFields since=1.0
 sigfox.fields.SigfoxDemodFields since=1.0
@@ -910,7 +910,7 @@ sigfox.setting.gen_reps type=choice(3,1) unit= since=1.0
 sigfox.setting.gen_gap type=duration unit=s since=1.0
 sigfox.command.clear args= reply= since=1.0
 ant since=1.0
-ant.content kind=devices since=2.1
+ant.content kind=devices since=1.0
 ant.fields.AntFields since=1.0
 ant.fields.AntDemodFields since=1.0
 ant.fields.IsmTxFields since=1.0
@@ -936,7 +936,7 @@ ant.command.remove args=row:text reply= since=1.0
 ant.command.send args=device:i64;device_type:i64;tx_type:i64;payload:text;pairing:bool? reply= transmits=frame stop=halt since=1.0
 ant.command.halt args= reply= since=1.0
 nrf24 since=1.0
-nrf24.content kind=devices since=2.1
+nrf24.content kind=devices since=1.0
 nrf24.fields.NrfFields since=1.0
 nrf24.component.demod.dropped since=1.0
 nrf24.kept.frames since=1.0
@@ -959,7 +959,7 @@ nrf24.setting.gen_random type=bool unit= since=1.0
 nrf24.command.clear args= reply= since=1.0
 nrf24.command.remove args=row:text reply= since=1.0
 subghzchat since=1.0
-subghzchat.content kind=text_chat text=yes since=2.1
+subghzchat.content kind=text_chat text=yes since=1.0
 subghzchat.fields.SubghzchatFields since=1.0
 subghzchat.fields.GuardFields writer=receiver since=1.0
 subghzchat.kept.chat since=1.0
@@ -984,7 +984,7 @@ subghzchat.setting.key type=text unit= since=1.0
 subghzchat.setting.frequency type=choice(433.92,315.00,390.00,868.35,915.00) unit= since=1.0
 subghzchat.command.clear args= reply= since=1.0
 dect since=1.0
-dect.content kind=voice since=2.1
+dect.content kind=voice since=1.0
 dect.fields.DectFields since=1.0
 dect.fields.DectDemodFields since=1.0
 dect.component.demod.fields.DectDemodFields shared=frames_ok;frames_bad since=1.0
@@ -1005,7 +1005,7 @@ dect.setting.gen_option type=choice(0,1,2) unit= since=1.0
 dect.command.clear args= reply= since=1.0
 dect.command.remove args=row:text reply= since=1.0
 nfc since=1.0
-nfc.content kind=devices since=2.1
+nfc.content kind=devices since=1.0
 nfc.fields.NfcFields since=1.0
 nfc.fields.NfcDetectFields since=1.0
 nfc.fields.GuardFields writer=receiver since=1.0
@@ -1019,7 +1019,7 @@ nfc.event.nfc.tag fields=NfcTagEvent since=1.0
 nfc.command.clear args= reply= since=1.0
 nfc.command.remove args=row:text reply= since=1.0
 wisun since=1.0
-wisun.content kind=devices since=2.1
+wisun.content kind=devices since=1.0
 wisun.fields.WisunFields since=1.0
 wisun.fields.GuardFields writer=receiver since=1.0
 wisun.fields.IsmTxFields since=1.0
@@ -1053,7 +1053,7 @@ wisun.command.remove args=row:text reply= since=1.0
 wisun.command.send args=frame_type:choice(pa,pas,pc,pcs,data,ack,eapol)?;pan_id:text;source:text;destination:text;payload:text;header_ies:text?;sequence:i64?;kbps:i64?;ufsi:i64? reply= transmits=frame stop=halt since=1.0
 wisun.command.halt args= reply= since=1.0
 thread since=1.0
-thread.content kind=devices since=2.1
+thread.content kind=devices since=1.0
 thread.fields.ThreadFields since=1.0
 thread.fields.GuardFields writer=receiver since=1.0
 thread.kept.networks since=1.0
@@ -1099,7 +1099,7 @@ thread.setting.gen_interferer_hz type=hz unit=Hz since=1.0
 thread.command.clear args= reply= since=1.0
 thread.command.remove args=row:text reply= since=1.0
 mioty since=1.0
-mioty.content kind=devices since=2.1
+mioty.content kind=devices since=1.0
 mioty.fields.MiotyFields since=1.0
 mioty.fields.DecoderFields since=1.0
 mioty.kept.frames since=1.0
@@ -1114,7 +1114,7 @@ mioty.event.mioty.frame fields=MiotyFrameEvent since=1.0
 mioty.setting.min_bursts type=i64 unit=count since=1.0
 mioty.command.clear args= reply= since=1.0
 dect_nrplus since=1.0
-dect_nrplus.content kind=devices since=2.1
+dect_nrplus.content kind=devices since=1.0
 dect_nrplus.fields.NrPlusFields since=1.0
 dect_nrplus.fields.DecoderFields since=1.0
 dect_nrplus.kept.packets since=1.0
@@ -1127,7 +1127,7 @@ dect_nrplus.table.devices row=NrPlusDeviceRow cap=200 label=id since=1.0
 dect_nrplus.event.dect_nrplus.packet fields=NrPlusPacketEvent since=1.0
 dect_nrplus.command.clear args= reply= since=1.0
 npr70 since=1.0
-npr70.content kind=networks since=2.1
+npr70.content kind=networks since=1.0
 npr70.fields.NprFields since=1.0
 npr70.fields.DecoderFields since=1.0
 npr70.kept.frames since=1.0
@@ -1139,7 +1139,7 @@ npr70.event.npr70.frame fields=NprFrameEvent since=1.0
 npr70.setting.rates type=text unit=ksym/s since=1.0
 npr70.command.clear args= reply= since=1.0
 dsrc_toll since=1.0
-dsrc_toll.content kind=devices since=2.1
+dsrc_toll.content kind=devices since=1.0
 dsrc_toll.fields.DsrcFields since=1.0
 dsrc_toll.fields.DecoderFields since=1.0
 dsrc_toll.kept.frames since=1.0

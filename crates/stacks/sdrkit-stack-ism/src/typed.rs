@@ -457,13 +457,15 @@ pub struct IsmSendArgs<'a> {
     #[arg(
         label = "ID",
         help = "The id as the stack reports it, as a number (an id shown in hex is the same number). Remote: 1 to 65535, \
-                the first 16 bits of the code. A family with a raw payload takes its id from the payload."
+                the first 16 bits of the code. Itron ERT SCM: 26 bits. Honeywell and Kerui: 20 bits. A family with a raw \
+                payload takes its id from the payload; FT-004-B has none."
     )]
     pub id: i64,
     /// The command of a remote.
     #[arg(
         label = "Command",
-        help = "Remote: 1 to 255, the last 8 bits of the code.",
+        help = "Remote: 1 to 255, the last 8 bits of the code. Kerui: 10 motion, 14 open, 7 close, 11 tamper, 5 water, 15 \
+                battery low.",
         default = 1,
         min = 1,
         max = 255,
@@ -473,8 +475,9 @@ pub struct IsmSendArgs<'a> {
     /// The channel of a sensor.
     #[arg(
         label = "Channel",
-        help = "As the stack reports it. TX141TH-Bv2 0 to 3; Nexus and Prologue 1 to 4; Acurite tower 1 to 3 (A, B, C); \
-                F007TH 1 to 8; Oregon 0 to 15; Bresser 6-in-1 0 to 7.",
+        help = "As the stack reports it. TX141TH-Bv2 and TX141-Bv2, Bv3 0 to 3; Nexus, Prologue, Rubicson, Solight, \
+                Acurite 606TX, Kedsum and Springfield 1 to 4; Acurite tower 1 to 3 (A, B, C); GT-WT-02 1 to 3; F007TH 1 \
+                to 8; Oregon and Honeywell 0 to 15; Bresser 6-in-1 0 to 7.",
         default = 1,
         min = 0,
         max = 15,
@@ -505,7 +508,7 @@ pub struct IsmSendArgs<'a> {
         label = "Humidity",
         unit = "%",
         help = "1 to 100 (Oregon, Bresser: to 99). 0 sends no humidity where the family has a value for that (Nexus-T, \
-                TX29-IT, TX35DTH-IT, Acurite tower, WH24, Prologue).",
+                TX29-IT, TX35DTH-IT, Acurite tower, WH24, Prologue). GT-WT-02: 20 to 90, 0 for low and 100 for high.",
         default = 50,
         min = 0,
         max = 100,
@@ -581,7 +584,8 @@ pub struct IsmSendArgs<'a> {
     #[arg(
         label = "Pressure",
         unit = "kPa",
-        help = "Schrader (units of 2.5 kPa), Toyota (0.25 PSI from -7 PSI), Renault (0.75 kPa), Ford (0.25 PSI).",
+        help = "Schrader (units of 2.5 kPa), Toyota (0.25 PSI from -7 PSI), Renault (0.75 kPa), Ford (0.25 PSI), PMV-107J \
+                (2.48 kPa from -99.2 kPa).",
         default = 0.0,
         min = 0.0,
         max = 1000.0,
@@ -591,7 +595,10 @@ pub struct IsmSendArgs<'a> {
     /// The flags of a tyre sensor.
     #[arg(
         label = "Flags",
-        help = "Schrader: the 8 flag bits. Renault: the 6 flag bits. Toyota: the status (bit 7 and bits 6-0).",
+        help = "Schrader: the 8 flag bits. Renault: the 6 flag bits. Toyota: the status (bit 7 and bits 6-0). PMV-107J: \
+                the 6 flag bits. Honeywell: the event octet. Kedsum: the flags nibble. Itron ERT SCM: the physical \
+                tamper (bits 3-2) and the encoder tamper (bits 1-0). Generic temperature sensor 1: the 2-bit battery \
+                field.",
         default = 0,
         min = 0,
         max = 255,
@@ -637,10 +644,54 @@ pub struct IsmSendArgs<'a> {
         help = "The octets as pairs of hex digits, spaces allowed, as the stack reads them; the checks are added. Acurite \
                 tower family: 5 to 9 octets (the message without its checksum; the parity bits are set). Bresser 3CH: 4 \
                 octets. Citroen: octets 0 to 8. Schrader EG53MA4: 14 octets (5 before the message, then octets 0 to 8; the \
-                first bit is 0). Bresser 7-in-1: octets 2 to 24 before whitening.",
+                first bit is 0). Bresser 7-in-1: octets 2 to 24 before whitening. Itron ERT IDM: octets 2 to 87 (from \
+                the packet type 1C to the meter-id CRC). Hyundai / Kia TPMS: octets 0 to 8. Abarth 124 TPMS: octets 0 \
+                to 7.",
         default = ""
     )]
     pub payload: Option<&'a str>,
+    /// The second temperature of a sensor with two probes.
+    #[arg(
+        label = "Temperature 2",
+        unit = "°C",
+        help = "ThermoPro TP12: the second probe (the temperature is the first probe), tenths of °C.",
+        default = 20.0,
+        min = -50.0,
+        max = 140.0,
+        step = 0.1
+    )]
+    pub temperature_2: Option<f64>,
+    /// The type of a meter.
+    #[arg(
+        label = "Meter type",
+        help = "Itron ERT SCM: the ERT type, 0 to 15.",
+        default = 0,
+        min = 0,
+        max = 15,
+        step = 1
+    )]
+    pub meter_type: Option<i64>,
+    /// The consumption count of a meter.
+    #[arg(
+        label = "Consumption",
+        help = "Itron ERT SCM: the consumption count, 0 to 16777215.",
+        default = 0,
+        min = 0,
+        max = 16_777_215,
+        step = 1
+    )]
+    pub consumption: Option<i64>,
+    /// The soil moisture of a sensor.
+    #[arg(
+        label = "Moisture",
+        unit = "%",
+        help = "Springfield: 0 to 100 in steps of 10.",
+        default = 0,
+        min = 0,
+        max = 100,
+        step = 10
+    )]
+    pub moisture: Option<i64>,
 }
 
 /// Sends the frames of a sensor or a remote.
@@ -774,29 +825,7 @@ pub static DSRC_FRAME: EventKind<DsrcFrameEvent<'static>> =
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("ism", 2, 1)
-            .added(
-                2,
-                1,
-                &[
-                    "ism.content",
-                    "wmbus.content",
-                    "zwave.content",
-                    "zigbee.content",
-                    "sigfox.content",
-                    "ant.content",
-                    "nrf24.content",
-                    "subghzchat.content",
-                    "dect.content",
-                    "nfc.content",
-                    "wisun.content",
-                    "thread.content",
-                    "mioty.content",
-                    "dect_nrplus.content",
-                    "npr70.content",
-                    "dsrc_toll.content",
-                ],
-            )
+        Described::new("ism", 3, 0)
             .content(sdrkit_core::ContentKind::Voice, &["dect"])
             .content(sdrkit_core::ContentKind::TextChat, &["subghzchat"])
             .content(sdrkit_core::ContentKind::Networks, &["npr70"])
