@@ -3,8 +3,8 @@
   "note": "Expected decode at the end of the recording (fed in blocks of 50000 samples, station finder off, RDS meanings Auto at 100.0 MHz = RDS/Europe). The 't_' values are the first report time (seconds of signal) at which the item appeared. Results are reported every 0.1 s of input, so they are quantised to 0.1 s. 'tolerance' gives the accepted range.",
   "rds": {
     "pi": "4A21",
-    "ps": "TUNEIT  ",
-    "rt": "Tuneit FM test signal",
+    "ps": "SDRKIT  ",
+    "rt": "sdrkit FM test signal",
     "rt_complete": true,
     "pty": 10,
     "pty_name": "Pop Music",

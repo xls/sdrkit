@@ -103,7 +103,7 @@ fn the_recording_decodes_as_expected() {
     let first = |f: &dyn Fn(&sdrkit_stack_fm::Reading) -> bool| {
         reports.iter().position(f).map(|i| (i + 1) as f64 * 0.1)
     };
-    let t_ps = first(&|d| d.station == "TUNEIT  ").unwrap();
+    let t_ps = first(&|d| d.station == "SDRKIT  ").unwrap();
     let t_rt = first(&|d| d.text_complete).unwrap();
     let t_lock = first(&|d| d.state == 2 && d.stereo && d.rds).unwrap();
     assert!(t_ps <= 1.5, "PS after {t_ps} s");
@@ -128,5 +128,5 @@ fn blocks_of_any_size_give_the_same_result() {
     assert_eq!(Owner::results(&a), Owner::results(&c));
     assert_eq!(audio_a, audio_b);
     assert_eq!(audio_a, audio_c);
-    assert_eq!(detail(&a).station, "TUNEIT  ");
+    assert_eq!(detail(&a).station, "SDRKIT  ");
 }
