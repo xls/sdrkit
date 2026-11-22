@@ -20,13 +20,6 @@ use sdrkit_proto_dvbs2::fec::{ldpc_rule, FrameDecoder, S2Codec};
 use sdrkit_proto_dvbs2::modcod::ModCod;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-/// The rules compared: scales 12 to 16 sixteenths, each with offset 0 and 1.
-fn rules() -> Vec<MinSum> {
-    (12..=16)
-        .flat_map(|s| [0, 1].map(|o| MinSum { scale_q4: s, offset: o }))
-        .collect()
-}
-
 fn mix(mut x: u64) -> u64 {
     x = x.wrapping_add(0x9E37_79B9_7F4A_7C15);
     x = (x ^ (x >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
@@ -142,7 +135,7 @@ struct Outcome {
 /// `step` dB apart from 0.15 dB below it until every rule loses under 0.25 % or the point is 0.4 dB above the 0.01
 /// crossing of the rule in use; then one point of `frames` frames 0.3 dB above that crossing.
 fn measure(m: ModCod, short: bool, frames: u64, step: f64, seed: u64) -> Outcome {
-    let rules = rules();
+    let rules = fer::rules();
     let present_rule = ldpc_rule(&m, short).expect("a code");
     let present = rules.iter().position(|&r| r == present_rule).expect("the rule in use is compared");
     let r = rules.len();

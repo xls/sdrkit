@@ -456,8 +456,7 @@ pub(super) mod tests {
         assert!(refuse(&|p| p.modulation = None).is_none());
     }
 
-    /// The scales in sixteenths that the measurements compare.
-    pub(in crate::atsc3) const SCALES: [u8; 5] = [12, 13, 14, 15, 16];
+    pub(in crate::atsc3) use sdrkit_dev_test::fer::SCALES;
     /// The frame error rate at which the measurements read the Es/N0 of a scale.
     pub(in crate::atsc3) const TARGET: f64 = 0.1;
     const LDPC_ITER: u32 = super::super::components::LDPC_ITERATIONS;

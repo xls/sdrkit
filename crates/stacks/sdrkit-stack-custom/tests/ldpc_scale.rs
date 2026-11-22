@@ -10,7 +10,7 @@ mod common;
 
 use common::Noise;
 use sdrkit_algo_fec::ldpc::{LdpcCode, LdpcDecoder, MinSum};
-use sdrkit_dev_test::fer::{self, Trial, SCALES};
+use sdrkit_dev_test::fer::{self, Trial};
 use sdrkit_stack_custom::family::ldpc;
 use sdrkit_stack_custom::hf_chat::{self, PROFILES};
 use sdrkit_stack_custom::slotted_voice::{phy, v4};
@@ -29,11 +29,6 @@ fn mean12(l: &[f32]) -> Vec<i8> {
 /// hf_chat: clipped at 30, 4 steps a unit.
 fn hf(l: &[f32]) -> Vec<i8> {
     l.iter().map(|v| (v.clamp(-30.0, 30.0) * 4.0).round() as i8).collect()
-}
-
-/// The check rules the measurements compare: every scale of [`SCALES`] with offset 0, then with offset 1.
-fn rules() -> Vec<MinSum> {
-    [0, 1].iter().flat_map(|&offset| SCALES.iter().map(move |&scale_q4| MinSum { scale_q4, offset })).collect()
 }
 
 /// An LLR quantiser of a receiver.
@@ -135,17 +130,9 @@ impl Trial for Run<'_> {
     }
 }
 
-/// An Eb/N0 or `-` when there is none.
-fn db(v: Option<f64>) -> String {
-    v.map_or("     -".into(), |v| format!(" {v:5.2}"))
-}
-
-/// The result line of one code: the Eb/N0 at 0.1 and at 0.01 per rule of [`rules`], the lost frames per rule in ten times
-/// the frames 0.3 dB above the crossing at 0.1 of the rule in use, and the best rule (the lowest crossing at 0.1 among the
-/// rules with no more of these losses than the rule in use) with its gain at 0.1 and at 0.01.
+/// The result line of one code, as [`fer::compare`] writes it, searched from the capacity limit of its rate.
 fn measure(job: &Job, frames: u64) -> String {
-    let rules = rules();
-    let used = rules.iter().position(|&r| r == job.used).expect("the rule in use is one of the rules");
+    let rules = fer::rules();
     let mut run = Run {
         job,
         decs: rules.iter().map(|&r| LdpcDecoder::new(job.code, r)).collect(),
@@ -158,31 +145,12 @@ fn measure(job: &Job, frames: u64) -> String {
     };
     let (k, n) = job.size();
     let from = limit_db(k as f64 / n as f64);
-    let points = fer::search(&mut run, rules.len(), from, from + 8.0, frames, 0.01);
-    let at = |t: f64| -> Vec<Option<f64>> { (0..rules.len()).map(|i| fer::threshold(&points, i, t)).collect() };
-    let (a1, a2) = (at(0.1), at(0.01));
-    let floor_db = a1[used].map(|d| d + 0.3);
-    let floor = floor_db.map(|d| fer::point(&mut run, rules.len(), d, 0xF1_00D, 10 * frames, None).lost);
-    let ok = |i: usize| floor.as_ref().is_none_or(|f| f[i] <= f[used]);
-    let best = (0..rules.len()).filter(|&i| ok(i) && a1[i].is_some()).min_by(|&a, &b| a1[a].unwrap_or(f64::MAX).total_cmp(&a1[b].unwrap_or(f64::MAX)));
-    let gain = |a: &[Option<f64>], b: usize| a[used].zip(a[b]).map(|(u, v)| u - v);
-    let rule = |i: usize| format!("{}/{}", rules[i].scale_q4, rules[i].offset);
-    let mut line = format!("{:<28} it {:2} | used {} | at 0.1:", job.name, job.iters, rule(used));
-    line += &a1.iter().map(|&v| db(v)).collect::<String>();
-    line += " | at 0.01:";
-    line += &a2.iter().map(|&v| db(v)).collect::<String>();
-    line += &format!(" | floor{}:", db(floor_db));
-    line += &floor.map_or(" -".to_string(), |f| f.iter().map(|n| format!(" {n}")).collect());
-    if let Some(b) = best {
-        line += &format!(" | best {} gain{}{}", rule(b), db(gain(&a1, b)), db(gain(&a2, b)));
-    }
-    line
+    fer::compare(&mut run, &format!("{:<28} it {:2}", job.name, job.iters), job.used, from, frames, true)
 }
 
 fn run(jobs: &[Job]) {
     let frames = fer::frames(1000);
-    let labels: Vec<String> = rules().iter().map(|r| format!("{}/{}", r.scale_q4, r.offset)).collect();
-    println!("Eb/N0 at frame error rate 0.1 and 0.01, {frames} frames a point; rules (scale/16, offset) = {labels:?}");
+    fer::header("Eb/N0", frames);
     for l in fer::parallel(jobs, |j| measure(j, frames)) {
         println!("{l}");
     }

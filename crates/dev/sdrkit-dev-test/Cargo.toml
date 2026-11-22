@@ -8,6 +8,7 @@ description = "Test helpers for stacks: generate, impair through sdrkit-algo-sim
 
 [dependencies]
 sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
 sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
 sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }
 sdrkit-components = { path = "../../framework/sdrkit-components" }

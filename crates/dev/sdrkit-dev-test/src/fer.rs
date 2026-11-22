@@ -2,6 +2,7 @@
 //! search, the ratio at which the error rate falls to a target, and the printed tables. The decoders of a point all decode
 //! the same frames, so their rates compare without the noise of separate draws.
 
+use sdrkit_algo_fec::ldpc::MinSum;
 use sdrkit_algo_sim::noise::Awgn;
 use sdrkit_core::Complex32;
 
@@ -162,4 +163,51 @@ pub fn line(name: &str, scales: &[u8], points: &[Point], target: f64) -> String 
         }
     }
     line
+}
+
+/// The check rules the measurements compare: every scale of [`SCALES`] with offset 0, then with offset 1.
+pub fn rules() -> Vec<MinSum> {
+    [0, 1].iter().flat_map(|&offset| SCALES.iter().map(move |&scale_q4| MinSum { scale_q4, offset })).collect()
+}
+
+/// A ratio or `-` when there is none.
+fn db(v: Option<f64>) -> String {
+    v.map_or("     -".into(), |v| format!(" {v:5.2}"))
+}
+
+/// The result line of one code: `t` holds one decoder per rule of [`rules`]. Searches the waterfall from `from_db` with
+/// `frames` frames a fine point (down to 0.01 with `deep`, else 0.1), then sends ten times `frames` frames 0.3 dB above
+/// the crossing at 0.1 of `used`. The line gives the crossing at 0.1 and at 0.01 per rule, the lost frames per rule at
+/// that point, and the best rule (the lowest crossing at 0.1 among the rules with no more of these losses than `used`)
+/// with its gain at 0.1 and 0.01.
+pub fn compare<T: Trial>(t: &mut T, name: &str, used: MinSum, from_db: f64, frames: u64, deep: bool) -> String {
+    let rules = rules();
+    let n = rules.len();
+    let u = rules.iter().position(|&r| r == used).expect("the rule in use is one of the rules");
+    let points = search(t, n, from_db, from_db + 8.0, frames, if deep { 0.01 } else { 0.1 });
+    let at = |x: f64| -> Vec<Option<f64>> { (0..n).map(|i| threshold(&points, i, x)).collect() };
+    let (a1, a2) = (at(0.1), if deep { at(0.01) } else { vec![None; n] });
+    let floor_db = a1[u].map(|d| d + 0.3);
+    let floor = floor_db.map(|d| point(t, n, d, 0xF1_00D, 10 * frames, None).lost);
+    let ok = |i: usize| floor.as_ref().is_none_or(|f| f[i] <= f[u]);
+    let key = |i: usize| a1[i].unwrap_or(f64::MAX);
+    let best = (0..n).filter(|&i| ok(i) && a1[i].is_some()).min_by(|&a, &b| key(a).total_cmp(&key(b)));
+    let gain = |a: &[Option<f64>], b: usize| a[u].zip(a[b]).map(|(x, y)| x - y);
+    let rule = |i: usize| format!("{}/{}", rules[i].scale_q4, rules[i].offset);
+    let mut line = format!("{name} | used {} | at 0.1:", rule(u));
+    line += &a1.iter().map(|&v| db(v)).collect::<String>();
+    line += " | at 0.01:";
+    line += &a2.iter().map(|&v| db(v)).collect::<String>();
+    line += &format!(" | floor{}:", db(floor_db));
+    line += &floor.map_or(" -".to_string(), |f| f.iter().map(|n| format!(" {n}")).collect());
+    if let Some(b) = best {
+        line += &format!(" | best {} gain{}{}", rule(b), db(gain(&a1, b)), db(gain(&a2, b)));
+    }
+    line
+}
+
+/// Prints the header of a table of [`compare`] lines; `what` names the ratio.
+pub fn header(what: &str, frames: u64) {
+    let labels: Vec<String> = rules().iter().map(|r| format!("{}/{}", r.scale_q4, r.offset)).collect();
+    println!("{what} at frame error rate 0.1 and 0.01, {frames} frames a point; rules (scale/16, offset) = {labels:?}");
 }
