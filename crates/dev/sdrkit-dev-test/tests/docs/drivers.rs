@@ -98,6 +98,16 @@ const FACTS: &[Facts] = &[
         connects: "A radio of the HPSDR protocol 2 (ANAN, Orion firmware).",
         example: "hpsdr2:192.168.1.43:1024",
     },
+    Facts {
+        key: "rtlusb",
+        connects: "An RTL2832U dongle (RTL-SDR) on a USB port of this computer.",
+        example: "usb:rtl:",
+    },
+    Facts {
+        key: "hackrf",
+        connects: "A HackRF One, HackRF Pro, Jawbreaker or rad1o on a USB port of this computer. It transmits.",
+        example: "usb:hackrf:",
+    },
 ];
 
 /// The keys of the drivers that have facts. The test makes sure that this list and the registry agree.
@@ -128,6 +138,7 @@ pub fn transmit_settings(key: &str) -> Vec<SettingDecl> {
     let own: &[&dyn sdrkit_core::DeclareSetting] = match key {
         "iiod" => IiodTxSetting::SETTINGS,
         "soapyremote" => SoapyTxSetting::SETTINGS,
+        "hackrf" => sdrkit_driver_hackrf::HackrfTxSetting::SETTINGS,
         _ => &[],
     };
     let all: Vec<&dyn sdrkit_core::DeclareSetting> =

@@ -66,10 +66,23 @@ pub mod cmd {
     pub const GAIN: u8 = 0x04;
     /// Frequency correction, ppm.
     pub const PPM: u8 = 0x05;
+    /// IF gain: the stage in the high 16 bits, the gain (tenths of a dB, signed) in the low 16. The client driver does
+    /// not send it.
+    pub const IF_GAIN: u8 = 0x06;
+    /// Test mode of the RTL2832 (a counter instead of samples). The client driver does not send it.
+    pub const TEST_MODE: u8 = 0x07;
     /// RTL2832 digital AGC.
     pub const AGC: u8 = 0x08;
     /// Direct sampling (0 off, 1 I, 2 Q).
     pub const DIRECT: u8 = 0x09;
+    /// Offset tuning of the tuner. The client driver does not send it.
+    pub const OFFSET_TUNING: u8 = 0x0a;
+    /// Crystal frequency of the RTL2832, Hz. The client driver does not send it.
+    pub const RTL_XTAL: u8 = 0x0b;
+    /// Crystal frequency of the tuner, Hz. The client driver does not send it.
+    pub const TUNER_XTAL: u8 = 0x0c;
+    /// Tuner gain by its index in the gain list. The client driver does not send it.
+    pub const GAIN_INDEX: u8 = 0x0d;
     /// Bias tee.
     pub const BIAS: u8 = 0x0e;
 }

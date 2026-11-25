@@ -4,7 +4,7 @@ use crate::handle::{run, Handle, Host, Out};
 use crate::value::{type_code, Id, Str, SDRKIT_NO_ID, SDRKIT_TYPE_NONE};
 use sdrkit_core::record::RecordError;
 use sdrkit_core::{CommandError, ConfigError, SettingError, StorageError};
-use sdrkit_driver_core::DriverError;
+use sdrkit_driver_core::{DriverError, Unavailable};
 use sdrkit_graph::{ConnectError, GraphError, Kind};
 use sdrkit_host_engine::EngineError;
 use std::ffi::{c_char, CStr};
@@ -124,6 +124,22 @@ pub const SDRKIT_E_TO_RADIO: i32 = 77;
 pub const SDRKIT_E_IN_MIX: i32 = 78;
 /// A later version of the library wrote the saved settings or the saved state. This version does not read them.
 pub const SDRKIT_E_VERSION: i32 = 79;
+/// The radio cannot be used on this system for a reason that stays until the user changes something. The member
+/// `index` of the error detail holds the reason, an `SDRKIT_UNAVAILABLE_*` constant.
+pub const SDRKIT_E_UNAVAILABLE: i32 = 80;
+/// The radio has a share: a radio has one. The engine table `shares` lists the shares.
+pub const SDRKIT_E_SHARE_OPEN: i32 = 81;
+
+/// The platform gives programs no USB access (iPhone, a web page), or the library was built without it.
+pub const SDRKIT_UNAVAILABLE_NO_USB_HERE: i32 = 0;
+/// The user may not open the device (Linux: no udev rule; Android: no permission from the system).
+pub const SDRKIT_UNAVAILABLE_NO_PERMISSION: i32 = 1;
+/// A driver of the operating system holds the device and cannot be detached.
+pub const SDRKIT_UNAVAILABLE_KERNEL_DRIVER: i32 = 2;
+/// Windows: the device is not bound to the WinUSB driver.
+pub const SDRKIT_UNAVAILABLE_NEEDS_WINUSB: i32 = 3;
+/// The device is not attached.
+pub const SDRKIT_UNAVAILABLE_NOT_FOUND: i32 = 4;
 
 /// No stream type, or the type is not known yet.
 pub const SDRKIT_STREAM_NONE: i32 = -1;
@@ -404,6 +420,10 @@ pub(crate) fn engine<'a>(e: &'a EngineError, d: &mut ErrorDetail, names: &mut Na
             SDRKIT_E_RADIO_IN_USE
         }
         EngineError::RadioOpen { .. } => SDRKIT_E_RADIO_OPEN,
+        EngineError::ShareOpen { key, .. } => {
+            names[3] = key;
+            SDRKIT_E_SHARE_OPEN
+        }
         EngineError::StillRunning => SDRKIT_E_STILL_RUNNING,
         EngineError::Stopped => SDRKIT_E_STOPPED,
         EngineError::NoSuchFeed { .. } => SDRKIT_E_NO_SUCH_OBJECT,
@@ -634,6 +654,16 @@ fn driver(e: &DriverError, d: &mut ErrorDetail) -> i32 {
         }
         DriverError::Setting(e) => setting(e, d),
         DriverError::Storage { source, .. } => storage(*source),
+        DriverError::Unavailable { why } => {
+            d.index = i64::from(match why {
+                Unavailable::NoUsbHere => SDRKIT_UNAVAILABLE_NO_USB_HERE,
+                Unavailable::NoPermission => SDRKIT_UNAVAILABLE_NO_PERMISSION,
+                Unavailable::KernelDriver => SDRKIT_UNAVAILABLE_KERNEL_DRIVER,
+                Unavailable::NeedsWinUsb => SDRKIT_UNAVAILABLE_NEEDS_WINUSB,
+                Unavailable::NotFound => SDRKIT_UNAVAILABLE_NOT_FOUND,
+            });
+            SDRKIT_E_UNAVAILABLE
+        }
         _ => SDRKIT_E_DRIVER,
     }
 }
@@ -769,6 +799,8 @@ pub extern "C" fn sdrkit_code_name(code: i32) -> *const c_char {
         SDRKIT_E_TO_RADIO => c"SDRKIT_E_TO_RADIO",
         SDRKIT_E_IN_MIX => c"SDRKIT_E_IN_MIX",
         SDRKIT_E_VERSION => c"SDRKIT_E_VERSION",
+        SDRKIT_E_UNAVAILABLE => c"SDRKIT_E_UNAVAILABLE",
+        SDRKIT_E_SHARE_OPEN => c"SDRKIT_E_SHARE_OPEN",
         _ => c"",
     };
     name.as_ptr()

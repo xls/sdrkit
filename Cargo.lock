@@ -1591,6 +1591,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
+name = "remoteid"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "265f4316fa34247037d01a935a715e49397cbd3a2312dedc2e03e4ba31026d8b"
+
+[[package]]
 name = "ring"
 version = "0.17.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1957,8 +1963,10 @@ dependencies = [
  "sdrkit-data-plans",
  "sdrkit-dev-interface",
  "sdrkit-driver-core",
+ "sdrkit-driver-hackrf",
  "sdrkit-driver-registry",
  "sdrkit-driver-soapyremote",
+ "sdrkit-driver-usb",
  "sdrkit-host-catalog",
  "sdrkit-host-engine",
  "serde_json",
@@ -2036,15 +2044,18 @@ version = "0.1.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-driver-core",
+ "sdrkit-driver-hackrf",
  "sdrkit-driver-hpsdr",
  "sdrkit-driver-kiwisdr",
  "sdrkit-driver-openwebrx",
  "sdrkit-driver-rsptcp",
+ "sdrkit-driver-rtlusb",
  "sdrkit-driver-sdrconnect",
  "sdrkit-driver-sdrpp",
  "sdrkit-driver-soapyremote",
  "sdrkit-driver-spyserver",
  "sdrkit-driver-tci",
+ "sdrkit-driver-usb",
 ]
 
 [[package]]
@@ -2225,6 +2236,7 @@ dependencies = [
  "sdrkit-core",
  "sdrkit-dev-test",
  "sdrkit-driver-core",
+ "sdrkit-driver-usb",
  "sdrkit-graph",
  "sdrkit-host-catalog",
  "sdrkit-host-engine",
@@ -2248,8 +2260,14 @@ dependencies = [
  "sdrkit-dev-test",
  "sdrkit-driver-core",
  "sdrkit-driver-registry",
+ "sdrkit-driver-rtlusb",
+ "sdrkit-driver-soapyremote",
+ "sdrkit-driver-usb",
  "sdrkit-graph",
  "sdrkit-host-catalog",
+ "sdrkit-serve-core",
+ "sdrkit-serve-rtltcp",
+ "sdrkit-serve-soapyremote",
  "sdrkit-stack-dvbt",
  "sdrkit-stack-fm",
  "sdrkit-stack-general",
@@ -2281,6 +2299,7 @@ dependencies = [
  "sdrkit-data-plans",
  "sdrkit-dev-interface",
  "sdrkit-driver-core",
+ "sdrkit-driver-usb",
  "sdrkit-graph",
  "sdrkit-host-catalog",
  "sdrkit-host-engine",
@@ -2753,6 +2772,7 @@ dependencies = [
 name = "sdrkit-stack-drones"
 version = "0.1.0"
 dependencies = [
+ "remoteid",
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
  "sdrkit-algo-modem",

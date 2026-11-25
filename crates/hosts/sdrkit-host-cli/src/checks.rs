@@ -810,7 +810,11 @@ mod tests {
     /// of another stack reads the radio first, so the radio keeps the rate of that stack.
     #[test]
     fn a_case_reads_its_length_at_the_input_rate() {
-        let engine = crate::host::engine(std::sync::Arc::new(MemStorage::new())).unwrap();
+        let engine = crate::host::engine(
+            std::sync::Arc::new(MemStorage::new()),
+            std::sync::Arc::new(sdrkit_driver_usb::NoUsb),
+        )
+        .unwrap();
         let d = live::stack("ptt_log").unwrap();
         assert_eq!(d.tuning.default_hz, 0.0);
         let o = VerifyOptions {

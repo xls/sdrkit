@@ -654,7 +654,7 @@ impl RtlStream {
                     gap += k;
                     if k < data.len() {
                         if gap > 0 {
-                            sink.lost((gap / 2) as u64);
+                            sink.deliberate_gap((gap / 2) as u64);
                             gap = 0;
                         }
                         sink.write(&data[k..]);

@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the settings that every engine has, version 1.7. MIT licence.
+// sdrkit: the typed interface of the settings that every engine has, version 1.8. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum EngineInterface {
     public static let major = 1
-    public static let minor = 7
+    public static let minor = 8
 }
 
 /// The calibration of the device and the cores of the engine.
@@ -327,6 +327,13 @@ public struct EngineStackSignalRow {
 
 /// A row of the table "drivers" (Drivers).
 public struct EngineDriverRow {
+    public enum UnavailableWhy: Int32 {
+        case noUsbHere = 0
+        case noPermission = 1
+        case kernelDriver = 2
+        case needsWinusb = 3
+        case notFound = 4
+    }
     /// The row key.
     public var key: String
     /// Name.
@@ -341,6 +348,10 @@ public struct EngineDriverRow {
     public var transmit: Bool
     /// Highest transmit rate.
     public var txMaxRateHz: Double?
+    /// False if no radio of the kind can be opened on this system, such as a USB radio on a platform without USB access.
+    public var available: Bool
+    /// Why no radio of the kind can be opened. No value for a kind that is available.
+    public var unavailableWhy: UnavailableWhy?
 
     init(_ c: sdrkit_engine_driver_row) {
         key = sdrkitText(c.key)
@@ -350,6 +361,8 @@ public struct EngineDriverRow {
         maxRateHz = c.has_max_rate_hz ? c.max_rate_hz : nil
         transmit = c.transmit
         txMaxRateHz = c.has_tx_max_rate_hz ? c.tx_max_rate_hz : nil
+        available = c.available
+        unavailableWhy = c.has_unavailable_why ? UnavailableWhy(rawValue: c.unavailable_why) : nil
     }
 }
 
@@ -672,6 +685,60 @@ public struct EngineStackTransmitRow {
     }
 }
 
+/// A row of the table `devices`. The row key is the bus position, `<bus>-<port path>`, which stays while the device stays attached.
+public struct EngineDeviceRow {
+    public enum State: Int32 {
+        case free = 0
+        case `open` = 1
+        case noPermission = 2
+        case needsDriver = 3
+        case busy = 4
+    }
+    /// The row key.
+    public var key: String
+    /// The address that opens the device, `usb:<family>:<selector>`. It finds the same device after a re-plug.
+    public var address: String
+    /// The driver kind that takes the device.
+    public var driver: String
+    /// The manufacturer and product strings of the device, or the name of its family.
+    public var name: String
+    /// The serial number string.
+    public var serial: String?
+    /// The bus position, `<bus>-<port path>`.
+    public var path: String
+    /// What can be done with the device.
+    public var state: State?
+    /// The radio that the device is open as.
+    public var radio: String?
+
+    init(_ c: sdrkit_engine_device_row) {
+        key = sdrkitText(c.key)
+        address = sdrkitText(c.address)
+        driver = sdrkitText(c.driver)
+        name = sdrkitText(c.name)
+        serial = c.has_serial ? sdrkitText(c.serial) : nil
+        path = sdrkitText(c.path)
+        state = State(rawValue: c.state)
+        radio = c.has_radio ? sdrkitText(c.radio) : nil
+    }
+}
+
+/// A row of the engine table `shares`. The row key is the key of the share.
+public struct EngineShareRow {
+    /// The row key.
+    public var key: String
+    /// The radio that the share serves.
+    public var radio: String
+    /// The session of the share on the radio.
+    public var session: String
+
+    init(_ c: sdrkit_engine_share_row) {
+        key = sdrkitText(c.key)
+        radio = sdrkitText(c.radio)
+        session = sdrkitText(c.session)
+    }
+}
+
 /// The reply of `state.save`.
 public struct EngineStateSaveReply {
     /// State.
@@ -679,6 +746,16 @@ public struct EngineStateSaveReply {
 
     init(_ c: sdrkit_engine_state_save_reply) {
         state = [UInt8](UnsafeBufferPointer(start: c.state.ptr, count: c.state.len))
+    }
+}
+
+/// The reply of the engine command `share.open`.
+public struct EngineShareOpenReply {
+    /// The key of the share (`share.h1`).
+    public var share: String
+
+    init(_ c: sdrkit_engine_share_open_reply) {
+        share = sdrkitText(c.share)
     }
 }
 
@@ -745,6 +822,80 @@ public struct EngineRequestEvent {
         var c = sdrkit_engine_request_event()
         let code = sdrkit_engine_request_event_read(handle, n, &c)
         return code == SDRKIT_OK ? .success(EngineRequestEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// The fields of the event `device.arrived`.
+public struct EngineDeviceArrivedEvent {
+    public enum State: Int32 {
+        case free = 0
+        case `open` = 1
+        case noPermission = 2
+        case needsDriver = 3
+        case busy = 4
+    }
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The address that opens the device.
+    public var address: String
+    /// The driver kind that takes the device.
+    public var driver: String
+    /// The name of the device.
+    public var name: String
+    /// The bus position: the row key of the device in the table `devices`.
+    public var path: String
+    /// What can be done with the device.
+    public var state: State?
+
+    init(_ c: sdrkit_engine_device_arrived_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        address = sdrkitText(c.address)
+        driver = sdrkitText(c.driver)
+        name = sdrkitText(c.name)
+        path = sdrkitText(c.path)
+        state = State(rawValue: c.state)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<EngineDeviceArrivedEvent, SDRKitCode> {
+        var c = sdrkit_engine_device_arrived_event()
+        let code = sdrkit_engine_device_arrived_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(EngineDeviceArrivedEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// The fields of the event `device.left`.
+public struct EngineDeviceLeftEvent {
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The address that opened the device.
+    public var address: String
+    /// The driver kind that took the device.
+    public var driver: String
+    /// The name of the device.
+    public var name: String
+    /// The bus position: the row key that the device had in the table `devices`.
+    public var path: String
+
+    init(_ c: sdrkit_engine_device_left_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        address = sdrkitText(c.address)
+        driver = sdrkitText(c.driver)
+        name = sdrkitText(c.name)
+        path = sdrkitText(c.path)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<EngineDeviceLeftEvent, SDRKitCode> {
+        var c = sdrkit_engine_device_left_event()
+        let code = sdrkit_engine_device_left_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(EngineDeviceLeftEvent(c)) : .failure(SDRKitCode(code: code))
     }
 }
 
@@ -863,6 +1014,23 @@ public enum EngineTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(EngineStackTransmitRow.init))
     }
+    /// The changed rows of the table "devices" of the stack "engine", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
+    public static func engineDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[EngineDeviceRow], SDRKitCode> {
+        var rows = [sdrkit_engine_device_row](repeating: sdrkit_engine_device_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_engine_devices_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(EngineDeviceRow.init))
+    }
+    /// The changed rows of the table "shares" of the stack "engine", newest first, at most `capacity` rows.
+    public static func engineShares(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[EngineShareRow], SDRKitCode> {
+        var rows = [sdrkit_engine_share_row](repeating: sdrkit_engine_share_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_engine_shares_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(EngineShareRow.init))
+    }
 }
 
 /// The commands of the family, each run on the handle of a session of its stack.
@@ -893,6 +1061,27 @@ public enum EngineCommands {
         args.has_only = only != nil
         args.only = only_
         return sdrkit_engine_benchmark_run(handle, &args)
+        }() }
+        return sdrkitResult(code)
+    }
+    /// Share a radio. Opens the share of a radio: an owner `share.h<n>` that serves the samples of the radio to network clients. A radio has one share. The share serves nobody until its command `listen` starts a listener.
+    public static func engineShareOpen(_ handle: SDRKIT_HANDLE, radio: String) -> Result<EngineShareOpenReply, SDRKitCode> {
+        var reply = sdrkit_engine_share_open_reply()
+        var args = sdrkit_engine_share_open_args()
+        args.size = UInt32(MemoryLayout<sdrkit_engine_share_open_args>.size)
+        let code: Int32 = sdrkitWithString(radio) { radio_ in { () -> Int32 in
+        args.radio = radio_
+        return sdrkit_engine_share_open(handle, &args, &reply)
+        }() }
+        return code == SDRKIT_OK ? .success(EngineShareOpenReply(reply)) : .failure(SDRKitCode(code: code))
+    }
+    /// Stop sharing. Closes a share: its listeners stop and its clients are disconnected.
+    public static func engineShareClose(_ handle: SDRKIT_HANDLE, share: String) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_engine_share_close_args()
+        args.size = UInt32(MemoryLayout<sdrkit_engine_share_close_args>.size)
+        let code: Int32 = sdrkitWithString(share) { share_ in { () -> Int32 in
+        args.share = share_
+        return sdrkit_engine_share_close(handle, &args)
         }() }
         return sdrkitResult(code)
     }

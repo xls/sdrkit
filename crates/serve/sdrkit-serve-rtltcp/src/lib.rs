@@ -9,22 +9,6 @@ use sdrkit_serve_core::{ConnOutlet, Context, Parser, Protocol, Request, SampleTy
 
 pub use sdrkit_driver_core::rtl_tcp::DEFAULT_PORT;
 
-/// The command bytes that the client driver does not send.
-pub mod more_cmd {
-    /// IF gain: the stage in the high 16 bits, the gain (tenths of a dB, signed) in the low 16.
-    pub const IF_GAIN: u8 = 0x06;
-    /// Test mode of the RTL2832 (a counter instead of samples).
-    pub const TEST_MODE: u8 = 0x07;
-    /// Offset tuning of the tuner.
-    pub const OFFSET_TUNING: u8 = 0x0a;
-    /// Crystal frequency of the RTL2832, Hz.
-    pub const RTL_XTAL: u8 = 0x0b;
-    /// Crystal frequency of the tuner, Hz.
-    pub const TUNER_XTAL: u8 = 0x0c;
-    /// Tuner gain by its index in the gain list.
-    pub const GAIN_INDEX: u8 = 0x0d;
-}
-
 /// The rtl_tcp protocol with the greeting it announces.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RtlTcp {
@@ -104,18 +88,18 @@ pub fn request(c: u8, v: u32, gains: &[i32]) -> Request {
         cmd::PPM => Request::Correction {
             ppm: f64::from(signed),
         },
-        more_cmd::IF_GAIN => other(
+        cmd::IF_GAIN => other(
             "if_gain",
             i64::from(v >> 16),
             i64::from((v & 0xFFFF) as u16 as i16),
         ),
-        more_cmd::TEST_MODE => other("test_mode", i64::from(v), 0),
+        cmd::TEST_MODE => other("test_mode", i64::from(v), 0),
         cmd::AGC => other("digital_agc", i64::from(v), 0),
         cmd::DIRECT => other("direct_sampling", i64::from(v), 0),
-        more_cmd::OFFSET_TUNING => other("offset_tuning", i64::from(v), 0),
-        more_cmd::RTL_XTAL => other("rtl_xtal", i64::from(v), 0),
-        more_cmd::TUNER_XTAL => other("tuner_xtal", i64::from(v), 0),
-        more_cmd::GAIN_INDEX => match gains.get(v as usize) {
+        cmd::OFFSET_TUNING => other("offset_tuning", i64::from(v), 0),
+        cmd::RTL_XTAL => other("rtl_xtal", i64::from(v), 0),
+        cmd::TUNER_XTAL => other("tuner_xtal", i64::from(v), 0),
+        cmd::GAIN_INDEX => match gains.get(v as usize) {
             Some(g) => Request::Gain {
                 db: f64::from(*g) / 10.0,
             },

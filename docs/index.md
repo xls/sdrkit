@@ -43,8 +43,8 @@ Each page lists the settings, results, events and commands of one stack or one d
 |---|---|
 | [DVB-T](stacks/dvbt.md) | Digital terrestrial TV (DVB-T): channels, programme guide, teletext and subtitles. Transmits a transport stream that the host gives. |
 | [DVB-T2 / DVB-T](stacks/dvb_terrestrial.md) | Digital terrestrial TV, DVB-T2 or DVB-T, whichever the multiplex is. |
-| [DVB-SH](stacks/dvbsh.md) | DVB-SH mobile TV to handhelds (ETSI EN 302 583): the OFDM form, 1K to 8K, QPSK and 16-QAM, 1.7 to 8 MHz, turbo coded with a long time interleaver. |
-| [DVB-T2](stacks/dvbt2.md) | Digital terrestrial TV (DVB-T2 and T2-Lite): PLPs, channels, programme guide and subtitles. |
+| [DVB-SH](stacks/dvbsh.md) | DVB-SH mobile TV to handhelds (ETSI EN 302 583): the OFDM form (1K to 8K, QPSK and 16-QAM, 1.7 to 8 MHz) and the TDM form (QPSK, 8PSK, 16APSK), turbo coded with a long time interleaver. |
+| [DVB-T2](stacks/dvbt2.md) | Digital terrestrial TV (DVB-T2 and T2-Lite): PLPs, channels, programme guide and subtitles. Transmits a transport stream that the host gives. |
 | [ISDB-T](stacks/isdbt.md) | ISDB-T (Japan, Brazil and most of South America; 8 MHz channels in the Maldives), 6, 7 or 8 MHz channel, 13 segments |
 | [ISDB-TSB](stacks/isdbtsb.md) | ISDB-TSB narrow-band digital sound and data broadcasting (ITU-R BS.1114 System F), 1 or 3 segments; also the one-segment service of ISDB-T |
 | [ATSC](stacks/atsc.md) | ATSC 1.0, 8-VSB, 6 MHz channel (US, Canada, Mexico, South Korea) |
@@ -53,7 +53,7 @@ Each page lists the settings, results, events and commands of one stack or one d
 | [TV (auto)](stacks/tv-auto.md) | Finds out which TV standard the channel carries (DVB-T, DVB-T2, DVB-C, DVB-S/S2, ISDB-T, ATSC 1.0 / 3.0, DTMB, analogue) and its parameters, then switches the right stack on |
 | [DVB-C](stacks/dvbc.md) | Cable television (DVB-C, J.83 annex A and C), 16- to 256-QAM: services, guide, teletext and subtitles. |
 | [DVB-C2](stacks/dvbc2.md) | Second-generation cable TV (DVB-C2, ETSI EN 302 769): one PLP with its common PLP put back into its transport stream, or a PLP bundled over several slices, 16- to 4096-QAM, transport stream, GSE, GFPS or GCS. |
-| [DVB-S/S2](stacks/dvbs.md) | Satellite television and data: DVB-S and DVB-S2 (transport streams, GSE and IP), services, guide and media. |
+| [DVB-S/S2](stacks/dvbs.md) | Satellite television and data: DVB-S and DVB-S2 (transport streams, GSE and IP), services, guide and media. Transmits a DVB-S or DVB-S2 transport stream that the host gives. |
 | [ISDB-S (BS)](stacks/isdbs.md) | Japanese BS satellite television (ISDB-S): TC8PSK, QPSK, BPSK and up to eight transport streams. |
 | [TV sat beacon decoder](stacks/satbeacon.md) | The beacon carrier of a TV satellite through an LNB: carrier measurements and PCM telemetry frames. |
 
@@ -61,17 +61,17 @@ Each page lists the settings, results, events and commands of one stack or one d
 
 | Stack | What it does |
 |---|---|
-| [DMR](stacks/dmr.md) | DMR two-slot TDMA: calls, talkgroups, talker aliases, text messages and positions. |
-| [NXDN](stacks/nxdn.md) | NXDN 6.25 and 12.5 kHz: calls, status and short data, RAN, and the site of a trunked control channel. |
-| [dPMR](stacks/dpmr.md) | dPMR and PMR446 digital: calls, colour codes, status, short messages and packet data. |
+| [DMR](stacks/dmr.md) | DMR two-slot TDMA: calls with their speech, talkgroups, talker aliases, text messages and positions. Transmits voice from the microphone and text messages as short data in direct mode. |
+| [NXDN](stacks/nxdn.md) | NXDN 6.25 and 12.5 kHz: calls with their speech, status and short data, RAN, and the site of a trunked control channel. |
+| [dPMR](stacks/dpmr.md) | dPMR and PMR446 digital: calls with their speech, colour codes, status, short messages and packet data. |
 | [TETRA](stacks/tetra.md) | TETRA downlink: the cell (MCC, MNC, colour code, location area) and its calls; encrypted calls without identities. |
-| [P25](stacks/p25.md) | APCO P25 Phase 1: voice calls, talkgroups, encryption IDs, and the trunking control channel (sites, grants). |
-| [P25 Phase 2](stacks/p25p2.md) | APCO P25 Phase 2 TDMA: two voice channels per carrier, talkgroups, encryption IDs and the network status. |
+| [P25](stacks/p25.md) | APCO P25 Phase 1: voice calls with their speech, talkgroups, encryption IDs, and the trunking control channel (sites, grants). |
+| [P25 Phase 2](stacks/p25p2.md) | APCO P25 Phase 2 TDMA: two voice channels per carrier with their speech, talkgroups, encryption IDs and the network status. |
 | [TETRAPOL](stacks/tetrapol.md) | TETRAPOL (GMSK 8 kbit/s): system identity and calls; encrypted calls are shown without identities. |
-| [D-STAR](stacks/dstar.md) | D-STAR digital voice: callsigns and repeaters from the header, slow-data messages and positions. |
-| [Yaesu System Fusion](stacks/ysf.md) | System Fusion (C4FM): callsigns, data type, text and GPS from the data channel. |
+| [D-STAR](stacks/dstar.md) | D-STAR digital voice: voice calls with their speech, callsigns and repeaters from the header, slow-data messages and positions. Transmits voice from the microphone and slow-data texts, with the radio header. |
+| [Yaesu System Fusion](stacks/ysf.md) | System Fusion (C4FM): calls with their speech in V/D mode 1, V/D mode 2 and voice full rate, callsigns, data type, text and GPS from the data channel. |
 | [M17](stacks/m17.md) | M17 amateur digital voice: callsigns, text, positions, SMS packets; Codec 2 speech through a plug-in. Transmits voice from the microphone (Codec 2 3200) and SMS or data packets. |
-| [FreeDV](stacks/freedv.md) | FreeDV on HF (upper sideband): the 1600 waveform's frames and callsign text; Codec 2 speech through a plug-in. |
+| [FreeDV](stacks/freedv.md) | FreeDV on HF (upper sideband): the 1600, 700D and 700E waveforms with their callsign text; Codec 2 speech through a plug-in. RADE is not received. Transmits voice from the microphone on 1600 (Codec 2 1300), 700D or 700E (Codec 2 700C) with the callsign text. |
 | [Digital voice (auto)](stacks/dvoice-auto.md) | Finds which digital voice mode is on the channel (DMR, NXDN, dPMR, P25, Fusion, M17) and decodes it. |
 | [TETRA DMO](stacks/tetra_dmo.md) | TETRA direct mode on one channel: synchronisation and normal bursts, DM messages, addresses and calls, and the speech of clear calls; encrypted calls are marked, never decoded. |
 | [DCR (Japan digital convenience radio)](stacks/dcr.md) | Japanese digital convenience radio (four-level FSK): calls by user code, call signs, manufacturer messages and data blocks, on one channel or every plan channel in the span; voice frames are counted, not played. |
@@ -102,7 +102,7 @@ Each page lists the settings, results, events and commands of one stack or one d
 | [GOES MDL](stacks/goes_mdl.md) | The multi-use data link of GOES-13, 14 and 15 (QPSK, 200 ksym/s): the frame list. |
 | [GK-2A CDAS](stacks/gk2a_cdas.md) | A QPSK data link of GEO-KOMPSAT-2A (3.096 Msym/s): the frame list. Its frequency is not known: tune by hand. |
 | [S-band CCSDS](stacks/sband_ccsds.md) | A CCSDS telemetry link on S or L band, set by its link settings (modulation, rate, code, frame): the frame list with spacecraft and virtual channel ids. It needs a tracking dish. |
-| [GOES-R Rebroadcast](stacks/goes_grb.md) | GOES-R Rebroadcast on L band (DVB-S2, 8.67 Msym/s): ABI and SUVI pictures, GLM and information files. |
+| [GOES-R Rebroadcast](stacks/goes_grb.md) | GOES-R Rebroadcast on L band (DVB-S2, 8.67 Msym/s): ABI and SUVI pictures, GLM lightning flashes, and files. |
 | [GK-2A UHRIT](stacks/gk2a_uhrit.md) | GEO-KOMPSAT-2A ultra high rate xRIT on X band (DVB-S2, 15.6 Msym/s): full-disk pictures, keys and texts. |
 | [Satellite file broadcasts](stacks/sat_filecast.md) | HimawariCast and GEONETCAST Americas on DVB-S2 (C band, through the LNB): files and HimawariCast full-disc pictures. |
 | [Elektro-L / Arktika-M RDAS](stacks/rdas.md) | The raw MSU-GS downlink of Elektro-L and Arktika-M on X band (BPSK, 30.72 Msym/s): infrared and visible pictures. It needs 40 Msps or more and an X-band dish with a down-converter; a recording is the usual input. |
@@ -144,10 +144,10 @@ Each page lists the settings, results, events and commands of one stack or one d
 | [GOES DCS](stacks/goes_dcs.md) | GOES / Meteosat data collection platforms at 100, 300 and 1200 bit/s: address, sensor data, platform table. Receive only. |
 | [Meteosat HRDCP](stacks/hrdcp.md) | Meteosat high-rate data collection platforms (1200 bit/s offset QPSK, coded): address, sequence, health, data and the platform table, for every carrier in the capture. Experimental: the demodulator's loop values are not confirmed by a public document. Receive only. |
 | [Argos](stacks/argos.md) | Argos PTT-A2 platform bursts (other modulations listed) and the A-DCS downlink's HDLC frames. Receive only. |
-| [CubeSat telemetry](stacks/cubesat.md) | Amateur and small-satellite packet telemetry: AX.25 (AFSK, G3RUH), AX100 Mode 5, CCSDS, and Geoscan, Lucky-7, Spino, Erminaz, USP, NGHam, U482C, Mobitex and CCSDS concatenated frames. Receive only. |
+| [CubeSat telemetry](stacks/cubesat.md) | Amateur and small-satellite packet telemetry: AX.25 (AFSK, G3RUH), AX100 Mode 5, CCSDS, and Geoscan, Lucky-7, Spino, Erminaz, USP, NGHam, U482C, Mobitex and CCSDS concatenated frames. Sends AX.25 UI frames in AFSK 1200 and G3RUH 9600 for an amateur satellite uplink. |
 | [Fleet Broadcast](stacks/fleet_broadcast.md) | The 16-channel 1200 Bd DBPSK multiplex of UHF Fleet Broadcast: carrier, clock, frame alignment and the activity of each channel. Nothing is decoded. Experimental: the sync channel's pattern is not public. Receive only. |
 | [LoRa satellites](stacks/lora_sat.md) | LoRa frames from and to satellites, with the Doppler shift and Doppler rate of each pass. Receive only. |
-| [QO-100](stacks/qo100.md) | QO-100 through a Ku LNB: beacon lock and LNB correction, the transponders' signals, conversations and DATV carriers. Receive only. |
+| [QO-100](stacks/qo100.md) | QO-100 through a Ku LNB: beacon lock and LNB correction, the transponders' signals, conversations and DATV carriers. Sends SSB voice on the narrowband uplink. |
 | [PSK demodulator](stacks/psk_demod.md) | A blind BPSK / QPSK / OQPSK / 8PSK analyser and demodulator for any narrow signal, with bit output. Receive only. |
 | [Inmarsat BGAN](stacks/bgan.md) | Inmarsat BGAN forward carriers of the L band: every carrier found and classed, frames and FEC blocks decoded with the published tables, and the broadcast signalling read (bulletin boards, networks, satellites, spot beams, return schedules). Broadcast signalling only: no user data. Synthetic signals only. Receive only. |
 | [Satellite carrier survey](stacks/sat_survey.md) | Carriers, channels and frame structures of satellite signals without a public specification: measured, never decoded; carriers named by their Doppler curve when element sets and the station position are given. Receive only. |
@@ -164,10 +164,10 @@ Each page lists the settings, results, events and commands of one stack or one d
 | [JT65](stacks/jt65.md) | One-minute contacts with Reed-Solomon coding (HF and EME). |
 | [JT9](stacks/jt9.md) | One-minute contacts in 16 Hz. |
 | [JT4](stacks/jt4.md) | One-minute contacts for EME and microwave weak signals. |
-| [Q65](stacks/q65.md) | Weak-signal contacts by ionoscatter, troposcatter and EME (decodes once its code table is loaded). |
-| [FST4](stacks/fst4.md) | Slow weak-signal contacts on LF to HF, 15 to 1800-second periods (decodes once its code table is loaded). |
-| [FST4W](stacks/fst4w.md) | WSPR-style beacons in FST4, 15 to 1800-second periods (decodes once its code table is loaded). |
-| [MSK144](stacks/msk144.md) | Meteor scatter: 72 ms frames at 2000 bit/s (decodes once its code table is loaded). |
+| [Q65](stacks/q65.md) | Weak-signal contacts by ionoscatter, troposcatter and EME. |
+| [FST4](stacks/fst4.md) | Slow weak-signal contacts on LF to HF, 15 to 1800-second periods. |
+| [FST4W](stacks/fst4w.md) | WSPR-style beacons in FST4, 15 to 1800-second periods. |
+| [MSK144](stacks/msk144.md) | Meteor scatter: 72 ms frames at 2000 bit/s. |
 | [JS8](stacks/js8.md) | Keyboard chat in FT8-style frames: heartbeats, directed messages and free text. |
 | [FSK441](stacks/fsk441.md) | Meteor scatter pings: 4-FSK at 441 baud, three tones a character, read burst by burst. |
 | [JT6M](stacks/jt6m.md) | 6 m scatter: 44-FSK at 21.5 baud with a sync tone every third symbol; pings read, a long signal folded into its message. |
@@ -302,8 +302,8 @@ Each page lists the settings, results, events and commands of one stack or one d
 
 | Stack | What it does |
 |---|---|
-| [Zigbee / 802.15.4](stacks/zigbee.md) | IEEE 802.15.4 frames on 2.4 GHz channels 11 to 26: MAC headers, beacons, Zigbee NWK and APS headers and device announcements; secured payloads shown as encrypted. |
-| [ANT+ sensors](stacks/ant.md) | ANT+ heart rate straps, bike speed, cadence and power sensors, footpods and environment sensors on 2457 MHz (receive only). |
+| [Zigbee / 802.15.4](stacks/zigbee.md) | IEEE 802.15.4 frames on 2.4 GHz channels 11 to 26: MAC headers, beacons, Zigbee NWK and APS headers and device announcements; secured MAC frames opened with the keys of the setting `keys`, else shown as encrypted. |
+| [ANT+ sensors](stacks/ant.md) | ANT+ heart rate straps, bike speed, cadence and power sensors, footpods and environment sensors on 2457 MHz; sends one ANT+ frame. |
 | [Thread](stacks/thread.md) | Thread networks on the 802.15.4 channels 11 to 26: beacons with the network name, devices, 6LoWPAN headers, and MLE and CoAP where they are sent in the clear. Encrypted frames are marked. |
 
 ### IoT, 868 / 902 MHz
@@ -361,7 +361,7 @@ Each page lists the settings, results, events and commands of one stack or one d
 | [IFKP](stacks/ifkp.md) | Incremental frequency keying with 33 tones, a slower relative of FSQ for keyboard chat. |
 | [SSTV](stacks/sstv.md) | Slow-scan television: colour pictures sent line by line as tones (Robot, Martin, Scottie, PD, Wraase). |
 | [SITOR](stacks/sitor.md) | Maritime teleprinter: SITOR-B broadcasts (as used by NAVTEX), four-of-seven code with time diversity, and SITOR-A (AMTOR) ARQ links read by a monitor. |
-| [ARDOP](stacks/ardop.md) | Lists the ARDOP frames and stations heard: frame types, IDs, connect requests and 4FSK data. Never transmits. |
+| [ARDOP](stacks/ardop.md) | Lists the ARDOP frames and stations heard: frame types, IDs, connect requests, and 4FSK, PSK and QAM data. Sends FEC text, the ID frame and Ping, and makes ARQ links. |
 | [ROS (HF)](stacks/ros.md) | Identifies ROS transmissions by their publicly reported tones and rate. The text itself is not public and is not read. |
 | [Throb](stacks/throb.md) | Throb and ThrobX: one or two tones at a time out of 9 or 11, each pair a character; the variant is found from the signal. |
 | [QRSS / DFCW](stacks/qrss.md) | Very slow Morse: a narrow spectrogram of the steady tone as picture rows, and the text read from its keying. |
@@ -541,6 +541,10 @@ Each page lists the settings, results, events and commands of one stack or one d
 | [ANAN / HPSDR (protocol 2)](drivers/hpsdr2.md) | `hpsdr2` | A radio of the HPSDR protocol 2 (ANAN, Orion firmware). |
 | [TCI (network)](drivers/tci.md) | `tci` | A program that serves the TCI interface, such as ExpertSDR3 for SunSDR radios. |
 | [SDRplay radio (SDRconnect)](drivers/sdrconnect.md) | `sdrconnect` | SDRconnect, the receiver program of SDRplay, through its WebSocket interface. |
+| [RTL-SDR dongle (USB)](drivers/rtlusb.md) | `rtlusb` | An RTL2832U dongle (RTL-SDR) on a USB port of this computer. |
+| [HackRF](drivers/hackrf.md) | `hackrf` | A HackRF One, HackRF Pro, Jawbreaker or rad1o on a USB port of this computer. It transmits. |
 <!-- generated: end -->
 
 [Packaging on Windows and Linux](packaging.md): build the tools and the C library, lay out an archive and check it.
+
+[USB radios and serving a radio to the network](serving.md): the addresses of USB radios, the setup on Windows and Linux, and the share that serves a radio over rtl_tcp and SoapyRemote.

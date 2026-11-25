@@ -21,6 +21,8 @@ sdrkit-host-engine = { path = "../sdrkit-host-engine" }
 sdrkit-host-catalog = { path = "../sdrkit-host-catalog", default-features = false }
 # The region data folder and the start of a stack from its preset.
 sdrkit-presets = { path = "../../helpers/sdrkit-presets" }
+# The USB bus of the system, and the recorder of `usb record`.
+sdrkit-driver-usb = { path = "../../drivers/sdrkit-driver-usb", features = ["nusb"] }
 # The settings of the radios and of the test-signal driver.
 sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core" }
 # The recordings folder and the manifest of the recordings.
@@ -40,6 +42,8 @@ hound = "3"
 ctrlc = "3"
 
 [dev-dependencies]
+# The scripted USB bus, for the tests of the USB commands.
+sdrkit-driver-usb = { path = "../../drivers/sdrkit-driver-usb", features = ["nusb", "fake"] }
 # The fake board that transmits, for the test of the transmit audio.
 sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core", features = ["fake"] }
 

@@ -735,7 +735,7 @@ impl Shared {
     pub(crate) fn resolve_rate_again(&self, r: crate::RadioId) -> Result<(), EngineError> {
         let readers: Vec<_> = lock(&self.sessions)
             .iter()
-            .filter(|(_, s)| s.input == Input::Radio(r))
+            .filter(|(_, s)| s.input == Input::Radio(r) && s.by != crate::session::By::Share)
             .map(|(_, s)| std::sync::Arc::clone(s))
             .collect();
         match readers.as_slice() {

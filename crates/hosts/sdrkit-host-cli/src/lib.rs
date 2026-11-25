@@ -9,6 +9,7 @@ pub mod host;
 pub mod live;
 pub mod out;
 pub mod reflect;
+pub mod serve;
 pub mod sound;
 pub mod text;
 pub mod txaudio;
@@ -20,6 +21,7 @@ use host::Mounted;
 use live::{Regional, Source, Tune, Watch};
 use out::Out;
 use sdrkit_core::Storage;
+use sdrkit_driver_usb::UsbBus;
 use sdrkit_host_engine::{DirStorage, Engine, EngineError, OwnerRef};
 use sound::SoundTo;
 use std::ffi::OsString;
@@ -126,6 +128,35 @@ enum SettingsAction {
     },
 }
 
+/// The USB commands.
+#[derive(Debug, Subcommand)]
+enum UsbAction {
+    /// Open a USB radio, let it stream, and write every USB exchange as a script file: the control transfers in
+    /// order and the bulk data cut short. A script replays on a bus without hardware, for a test or a problem report.
+    Record {
+        /// The source: usb:rtl:<selector> or usb:hackrf:<selector>.
+        source: String,
+        /// The script file to write.
+        #[arg(long, value_name = "FILE")]
+        out: PathBuf,
+        /// The time that the radio streams, seconds.
+        #[arg(long, default_value_t = 2.0)]
+        seconds: f64,
+        /// The frequency: 104.9, 919.875M, 919875000.
+        #[arg(long)]
+        freq: Option<String>,
+        /// The sample rate: 2.4M, 250k, 2400000.
+        #[arg(long)]
+        rate: Option<String>,
+        /// The gain in dB. Default: the radio's automatic gain.
+        #[arg(long)]
+        gain: Option<f64>,
+        /// A setting of the radio, as key=value. Repeat it.
+        #[arg(long = "set", value_name = "KEY=VALUE")]
+        set: Vec<String>,
+    },
+}
+
 /// The vectors commands.
 #[derive(Debug, Subcommand)]
 enum VectorsAction {
@@ -149,6 +180,56 @@ enum Command {
     Drivers,
     /// List the services.
     Services,
+    /// List the USB radios that are attached: address, driver, name, state and the radio that a device is open as.
+    /// Listing opens no device.
+    Devices {
+        /// Keep printing each device that arrives or leaves until Ctrl-C.
+        #[arg(long)]
+        follow: bool,
+    },
+    /// Serve the samples of a source to network clients over rtl_tcp and SoapyRemote, until Ctrl-C. Without
+    /// `--rtl-tcp` and `--soapy` it listens for rtl_tcp on port 1234 of every interface.
+    Serve {
+        /// The source, as <driver>:<address>: usb:rtl:<selector>, usb:hackrf:<selector>, rtl_tcp:<host:port>,
+        /// synth:<stack>, or any driver that `sdrkit drivers` lists.
+        source: String,
+        /// Listen for rtl_tcp clients at [host:]port. Without a host: every interface.
+        #[arg(long, value_name = "[HOST:]PORT")]
+        rtl_tcp: Option<String>,
+        /// Listen for SoapyRemote clients at [host:]port. Without a host: every interface.
+        #[arg(long, value_name = "[HOST:]PORT")]
+        soapy: Option<String>,
+        /// Who steers the radio: follow (this program alone), remote (one client, while no stack of this program
+        /// reads the radio) or slice (each client its own frequency and rate inside the capture).
+        #[arg(long, value_name = "follow|remote|slice")]
+        control: Option<String>,
+        /// The sample format that the share carries: native, cu8, cs8, cs16 or cf32.
+        #[arg(long)]
+        format: Option<String>,
+        /// A stack to run on the source beside the share.
+        #[arg(long, value_name = "ID")]
+        stack: Option<String>,
+        /// The frequency: 104.9, 919.875M, 919875000.
+        #[arg(long)]
+        freq: Option<String>,
+        /// The sample rate: 2.4M, 250k, 2400000.
+        #[arg(long)]
+        rate: Option<String>,
+        /// The gain in dB. Default: the radio's automatic gain.
+        #[arg(long)]
+        gain: Option<f64>,
+        /// A setting of the radio or the stack, as key=value. Repeat it.
+        #[arg(long = "set", value_name = "KEY=VALUE")]
+        set: Vec<String>,
+        /// Stop after this many seconds.
+        #[arg(long)]
+        seconds: Option<f64>,
+    },
+    /// Tools for USB radios.
+    Usb {
+        #[command(subcommand)]
+        action: UsbAction,
+    },
     /// Show the settings of an owner (key, label, kind, range, choices, value, help), and set them with key=value.
     #[command(args_conflicts_with_subcommands = true)]
     Settings {
@@ -354,11 +435,26 @@ fn storage_folder(given: Option<PathBuf>) -> PathBuf {
 }
 
 /// Runs the command line `args` (the program name first) and returns the exit code: 0, 1 if a check or a call failed, 2
-/// for bad usage. `storage` replaces the storage folder (a test supplies a `MemStorage`).
+/// for bad usage. `storage` replaces the storage folder (a test supplies a `MemStorage`). The program on its storage
+/// folder has the USB bus of the system; with a storage given it has none ([`run_on`] takes a bus).
 pub fn run(
     args: impl IntoIterator<Item = OsString>,
     storage: Option<Arc<dyn Storage>>,
     io: Io,
+) -> u8 {
+    let usb: Arc<dyn UsbBus> = match storage {
+        Some(_) => Arc::new(sdrkit_driver_usb::NoUsb),
+        None => sdrkit_driver_usb::platform_bus(),
+    };
+    run_on(args, storage, io, usb)
+}
+
+/// As [`run`], with the USB radios of the bus `usb`.
+pub fn run_on(
+    args: impl IntoIterator<Item = OsString>,
+    storage: Option<Arc<dyn Storage>>,
+    io: Io,
+    usb: Arc<dyn UsbBus>,
 ) -> u8 {
     let cli = match Cli::try_parse_from(args) {
         Ok(c) => c,
@@ -377,6 +473,7 @@ pub fn run(
     let r = command(
         cli,
         storage,
+        usb,
         &mut engine_slot,
         &mut Out::new(out, err, false, redraw),
         lines.as_ref(),
@@ -436,6 +533,7 @@ fn make_engine(
     folder: Option<PathBuf>,
     mount: Option<&PathBuf>,
     slot: &mut Option<Arc<Engine>>,
+    usb: &Arc<dyn UsbBus>,
 ) -> Result<(Arc<Engine>, Arc<dyn Storage>), CliError> {
     let main: Arc<dyn Storage> = match storage {
         Some(s) => s,
@@ -445,7 +543,7 @@ fn make_engine(
         Some(m) => Arc::new(Mounted::new(Arc::clone(&main), m)?),
         None => Arc::clone(&main),
     };
-    let engine = host::engine(st)?;
+    let engine = host::engine(st, Arc::clone(usb))?;
     *slot = Some(Arc::clone(&engine));
     Ok((engine, main))
 }
@@ -514,6 +612,7 @@ fn sound_of(json: bool, given: Option<SoundTo>) -> SoundTo {
 fn command(
     cli: Cli,
     storage: Option<Arc<dyn Storage>>,
+    usb: Arc<dyn UsbBus>,
     slot: &mut Option<Arc<Engine>>,
     out: &mut Out,
     lines: Option<&Receiver<String>>,
@@ -549,7 +648,7 @@ fn command(
                 .map(|p| txaudio::TxAudio::read(&p).map(Arc::new))
                 .transpose()?;
             let source = source_of(&tune, &stack);
-            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot)?;
+            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot, &usb)?;
             let desc = live::stack(&stack)?;
             let regional = regional(&engine, data, region, city, out)?;
             let tune_of = tune.tune(&values);
@@ -574,7 +673,7 @@ fn command(
         } => {
             tune.source = format!("file:{}", file.display());
             let source = source_of(&tune, &stack);
-            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot)?;
+            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot, &usb)?;
             let desc = live::stack(&stack)?;
             // A recording keeps its own frequency: no preset of the region.
             let live = live::start(&engine, &source, desc, &tune.tune(&values), None, out)?;
@@ -591,7 +690,7 @@ fn command(
         }
         Command::Record { stack, tune } => {
             let source = source_of(&tune, &stack);
-            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot)?;
+            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot, &usb)?;
             let desc = live::stack(&stack)?;
             let regional = regional(&engine, data, region, city, out)?;
             let tune_of = tune.tune(&[]);
@@ -645,7 +744,7 @@ fn command(
         }
         Command::Tap { stack, port, tune } => {
             let source = source_of(&tune, &stack);
-            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot)?;
+            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot, &usb)?;
             let desc = live::stack(&stack)?;
             let regional = regional(&engine, data, region, city, out)?;
             let tune_of = tune.tune(&[]);
@@ -656,7 +755,7 @@ fn command(
         }
         Command::Spectrum { stack, tune, width } => {
             let source = source_of(&tune, &stack);
-            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot)?;
+            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot, &usb)?;
             let desc = live::stack(&stack)?;
             let regional = regional(&engine, data, region, city, out)?;
             let tune_of = tune.tune(&[]);
@@ -667,7 +766,7 @@ fn command(
         }
         Command::Profile { stack, tune } => {
             let source = source_of(&tune, &stack);
-            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot)?;
+            let (engine, _) = make_engine(storage, folder, source.mount.as_ref(), slot, &usb)?;
             let desc = live::stack(&stack)?;
             let regional = regional(&engine, data, region, city, out)?;
             let tune_of = tune.tune(&[]);
@@ -676,8 +775,78 @@ fn command(
             let e = live::end(&engine, &live);
             r.and(e)
         }
+        Command::Serve {
+            source,
+            rtl_tcp,
+            soapy,
+            control,
+            format,
+            stack,
+            freq,
+            rate,
+            gain,
+            set,
+            seconds,
+        } => {
+            let s = serve::Serve {
+                source,
+                rtl_tcp,
+                soapy,
+                control,
+                format,
+                stack,
+                tune: Tune {
+                    freq,
+                    rate,
+                    gain,
+                    set,
+                    submode: None,
+                },
+                seconds,
+            };
+            let mount = Source::parse(&s.source, s.stack.as_deref().unwrap_or("")).mount;
+            let (engine, _) = make_engine(storage, folder, mount.as_ref(), slot, &usb)?;
+            serve::serve(&engine, &s, out, &stop)
+        }
+        Command::Usb {
+            action:
+                UsbAction::Record {
+                    source,
+                    out: file,
+                    seconds,
+                    freq,
+                    rate,
+                    gain,
+                    set,
+                },
+        } => {
+            // The engine works on a bus that writes down every exchange with the device.
+            let recorder = sdrkit_driver_usb::RecordingUsb::new(
+                usb,
+                sdrkit_driver_usb::RecordOptions::default(),
+            );
+            let bus: Arc<dyn UsbBus> = Arc::new(recorder.clone());
+            let (engine, _) = make_engine(storage, folder, None, slot, &bus)?;
+            let r = serve::UsbRecord {
+                source,
+                out: file,
+                seconds,
+                tune: Tune {
+                    freq,
+                    rate,
+                    gain,
+                    set,
+                    submode: None,
+                },
+            };
+            let done = serve::usb_record(&engine, &r, out, &stop);
+            // The script is written also after a failure: it shows where the device stopped.
+            recorder.save(&r.out)?;
+            out.note(&format!("wrote {}", r.out.display()))?;
+            done
+        }
         command => {
-            let (engine, main) = make_engine(storage, folder, None, slot)?;
+            let (engine, main) = make_engine(storage, folder, None, slot, &usb)?;
             regional(&engine, data, region, city, out)?;
             fixed(command, &engine, &*main, out, &stop)
         }
@@ -706,6 +875,7 @@ fn fixed(
         Command::Services => {
             reflect::catalog(engine, sdrkit_host_engine::SERVICES.key, None, &[], out)
         }
+        Command::Devices { follow } => serve::devices(engine, follow, out, stop),
         Command::Settings {
             action,
             owner,
@@ -805,6 +975,8 @@ fn fixed(
         | Command::Record { .. }
         | Command::Tap { .. }
         | Command::Profile { .. }
+        | Command::Serve { .. }
+        | Command::Usb { .. }
         | Command::Spectrum { .. } => Ok(()),
     }
 }

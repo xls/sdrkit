@@ -19,12 +19,16 @@ const SETTINGS: &str = "settings.bin";
 /// The folder of the storage under which [`Mounted`] shows a folder of the computer.
 pub const OUTSIDE: &str = "outside";
 
-/// Makes the engine with every stack, component kind and driver, on `storage`, and applies the saved settings.
+/// Makes the engine with every stack, component kind and driver, on `storage` and the USB bus `usb`, and applies the
+/// saved settings.
 ///
 /// # Errors
 ///
-/// What [`Engine::new`] returns, and [`CliError::Engine`] if the saved settings do not apply.
-pub fn engine(storage: Arc<dyn Storage>) -> Result<Arc<Engine>, CliError> {
+/// What [`Engine::with_usb`] returns, and [`CliError::Engine`] if the saved settings do not apply.
+pub fn engine(
+    storage: Arc<dyn Storage>,
+    usb: Arc<dyn sdrkit_driver_usb::UsbBus>,
+) -> Result<Arc<Engine>, CliError> {
     let facilities = Facilities {
         storage: Arc::clone(&storage),
         clock: system_clock(),
@@ -32,13 +36,16 @@ pub fn engine(storage: Arc<dyn Storage>) -> Result<Arc<Engine>, CliError> {
         codecs: Arc::new(sdrkit_host_catalog::codecs()),
     };
     let components = sdrkit_host_catalog::registry(&facilities);
-    let engine = Engine::new(Setup {
-        facilities,
-        transport: Arc::new(StdNet),
-        stacks: sdrkit_host_catalog::all(),
-        families: sdrkit_host_catalog::families(),
-        components,
-    })?;
+    let engine = Engine::with_usb(
+        Setup {
+            facilities,
+            transport: Arc::new(StdNet),
+            stacks: sdrkit_host_catalog::all(),
+            families: sdrkit_host_catalog::families(),
+            components,
+        },
+        usb,
+    )?;
     let path = settings_path()?;
     match storage.read(&path) {
         Ok(bytes) => engine.import_settings(&bytes)?,

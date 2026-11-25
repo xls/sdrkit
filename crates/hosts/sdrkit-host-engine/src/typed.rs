@@ -144,12 +144,12 @@ fn object(key: &'static str, s: StackShape) -> Family {
     Family::object(key, 1, 0).stack(s)
 }
 
-/// The interfaces of the session, the radio, the engine, the scan service and the record service, in this order. Each holds what every object of its kind
+/// The interfaces of the session, the radio, the engine, the scan service, the record service and the share, in this order. Each holds what every object of its kind
 /// has. A session has the settings, results, events and commands of its stack beside them, and a radio those of its
 /// driver.
 pub fn object_families() -> &'static [Family] {
     static ALL: OnceLock<Vec<Family>> = OnceLock::new();
-    ALL.get_or_init(|| vec![session(), radio(), engine(), scan(), record()])
+    ALL.get_or_init(|| vec![session(), radio(), engine(), scan(), record(), share()])
 }
 
 fn session() -> Family {
@@ -490,8 +490,10 @@ fn engine() -> Family {
     // The fields of the calibration and the load tables of the benchmarks are new in 1.2, and so are three columns of
     // the table of benchmarks. The table of transmit commands and the transmit columns of the tables of stacks, drivers
     // and radios are new in 1.3, the stop command of a transmit command in 1.4, the content `carrier` in 1.5, the host
-    // audio channels of a stack in 1.6, the content kind and the media of a stack in 1.7.
-    Family::object("engine", 1, 7)
+    // audio channels of a stack in 1.6, the content kind and the media of a stack in 1.7. The table of USB devices with
+    // its two events, the table of shares with the commands that open and close a share, and the two columns of the
+    // table of drivers that say whether a kind is available are new in 1.8.
+    Family::object("engine", 1, 8)
         .stack(engine_shape(0))
         .added(
             1,
@@ -537,10 +539,23 @@ fn engine() -> Family {
                 "shape.RadioRow.tx_max_rate_hz",
             ],
         )
+        .added_in(1, 8, |mut f| {
+            f.stacks = vec![engine_shape(3)];
+            f
+        })
+        .added(
+            1,
+            8,
+            &[
+                "shape.DriverRow.available",
+                "shape.DriverRow.unavailable_why",
+            ],
+        )
 }
 
 /// The shape of the engine at `level`: from 1 with the fields of the calibration and the load tables of the
-/// benchmarks, from 2 with the table of transmit commands.
+/// benchmarks, from 2 with the table of transmit commands, from 3 with the tables of USB devices and of shares, their
+/// events and the commands that open and close a share.
 fn engine_shape(level: u8) -> StackShape {
     let load = level >= 1;
     let mut s = StackShape::new("engine").settings(EngineSetting::SETTINGS);
@@ -614,6 +629,7 @@ fn engine_shape(level: u8) -> StackShape {
                 c::MIN_RATE_HZ.key,
                 c::MAX_RATE_HZ.key,
                 c::TX_MAX_RATE_HZ.key,
+                crate::devices::DriverAvailability::UNAVAILABLE_WHY.key,
             ],
         ),
         (&c::COMPONENT_KINDS, "ComponentKindRow", &[]),
@@ -631,7 +647,22 @@ fn engine_shape(level: u8) -> StackShape {
         ),
         (&eo::BENCHMARKS, "BenchmarkRow", &[]),
     ] {
-        s.tables.push(table(def, name, optional));
+        // The columns of the drivers that say whether a kind can be reached have their own texts.
+        let docs: &[(&str, &'static str)] = if std::ptr::eq(def, &c::DRIVERS) {
+            &[
+                (
+                    "available",
+                    "False if no radio of the kind can be opened on this system, such as a USB radio on a platform without USB access.",
+                ),
+                (
+                    "unavailable_why",
+                    "Why no radio of the kind can be opened. No value for a kind that is available.",
+                ),
+            ]
+        } else {
+            &[]
+        };
+        s.tables.push(table_with_docs(def, name, optional, docs));
     }
     if load {
         for (def, name, optional) in [
@@ -653,5 +684,35 @@ fn engine_shape(level: u8) -> StackShape {
             &[c::STOPPED_BY.key],
         ));
     }
+    if level >= 3 {
+        use crate::{devices as d, share as sh};
+        s = s
+            .table(&d::DEVICES)
+            .table(&sh::SHARES)
+            .event(&d::DEVICE_ARRIVED)
+            .event(&d::DEVICE_LEFT)
+            .command(&sh::SHARE_OPEN)
+            .command(&sh::SHARE_CLOSE);
+    }
     s
+}
+
+/// The share of a radio: its settings, its state and counts, the tables of its listeners and clients, its events and
+/// its commands.
+fn share() -> Family {
+    use crate::share as sh;
+    let s = StackShape::new("share")
+        .settings(sh::ShareSetting::SETTINGS)
+        .fields::<sh::ShareFields<'static>>()
+        .table(&sh::LISTENERS)
+        .table(&sh::CLIENTS)
+        .event(&sh::CLIENT_JOINED)
+        .event(&sh::CLIENT_LEFT)
+        .event(&sh::REFUSED)
+        .event(&sh::LISTEN_FAILED)
+        .command(&sh::LISTEN)
+        .command(&sh::UNLISTEN)
+        .command(&sh::KICK)
+        .command(&sh::GRANT);
+    object("share", s)
 }

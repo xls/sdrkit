@@ -83,7 +83,7 @@ The radio can add settings when it opens, such as the gain of each stage. `show 
 | `queue_dropped` | Dropped (receiver behind) | whole number (samples) |
 | `underruns` | Transmit underrun | whole number (samples) |
 | `mbps` | Throughput | number (Mbit/s) |
-| `pps` | Packets | number (/s) |
+| `pps` | Packets | number (1/s) |
 | `achieved` | Achieved rate | number (sps) |
 | `gaps` | Sequence gaps | whole number |
 | `settle_drops` | Dropped while settling | whole number (packets) |

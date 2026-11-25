@@ -107,7 +107,8 @@ impl HackrfError {
 
 impl From<HackrfError> for DriverError {
     /// An unplug is a closed link and a timeout a timed-out link, so the runner opens the device again; a busy device is
-    /// [`DriverError::Busy`]; every other error keeps its type in [`DriverError::Driver`].
+    /// [`DriverError::Busy`]; a lasting reason of the system is [`DriverError::Unavailable`]; every other error keeps
+    /// its type in [`DriverError::Driver`].
     fn from(e: HackrfError) -> DriverError {
         match e {
             HackrfError::Usb(UsbError::Unplugged | UsbError::NoDevice) => {
@@ -117,7 +118,45 @@ impl From<HackrfError> for DriverError {
                 DriverError::Net(NetError::TimedOut)
             }
             HackrfError::Usb(UsbError::Busy) => DriverError::Busy,
-            e => DriverError::driver(e),
+            e => e
+                .unavailable()
+                .and_then(|u| sdrkit_driver_core::Unavailable::error_of_key(u.key()))
+                .unwrap_or_else(|| DriverError::driver(e)),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sdrkit_core::Choice;
+
+    #[test]
+    fn every_reason_of_the_bus_is_a_reason_of_the_driver_error() {
+        let keys: Vec<&str> = Unavailable::ALL.iter().map(|u| u.key()).collect();
+        let ours: Vec<&str> = sdrkit_driver_core::Unavailable::CHOICES
+            .iter()
+            .map(|c| &*c.key)
+            .collect();
+        assert_eq!(keys, ours);
+        for u in Unavailable::ALL {
+            let e = DriverError::from(HackrfError::Unavailable(u));
+            let DriverError::Unavailable { why } = e else {
+                panic!("{u:?} became {e:?}");
+            };
+            assert_eq!((why.key(), why.text()), (u.key(), u.text()));
+        }
+        assert!(matches!(
+            DriverError::from(HackrfError::NotFound),
+            DriverError::Unavailable {
+                why: sdrkit_driver_core::Unavailable::NotFound
+            }
+        ));
+        assert!(matches!(
+            DriverError::from(HackrfError::Usb(UsbError::NoPermission)),
+            DriverError::Unavailable {
+                why: sdrkit_driver_core::Unavailable::NoPermission
+            }
+        ));
     }
 }

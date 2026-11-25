@@ -198,6 +198,7 @@ fn make_drivers() -> Vec<Box<dyn SourceDriver>> {
         Arc::new(MemStorage::new()),
         Arc::new(FakeTransport::new()),
         Clock::new(|| 0.0),
+        Arc::new(sdrkit_driver_usb::NoUsb),
     )
 }
 

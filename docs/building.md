@@ -79,7 +79,7 @@ A line before it looks like this:
 
        cc -std=c99 examples/c/fm_audio.c -I$SDRKIT/include $SDRKIT/lib/libsdrkit.a \
           -framework AudioToolbox -framework Security -framework CoreFoundation -framework Accelerate \
-          -liconv -lc -lm -o fm_audio
+          -framework IOKit -liconv -lc -lm -o fm_audio
 
 6. Run the program on the test signal:
 

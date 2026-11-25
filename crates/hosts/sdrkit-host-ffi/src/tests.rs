@@ -1,6 +1,6 @@
 //! Each family of the C API, called through its C functions, on an engine that keeps its files in memory.
 
-use crate::engine::make_engine;
+use crate::engine::make_engine_on;
 use crate::*;
 use sdrkit_core::Facilities;
 use std::ffi::CString;
@@ -9,8 +9,13 @@ use std::time::{Duration, Instant};
 const OK: i32 = SDRKIT_OK;
 const T: f64 = 20.0;
 
+/// An engine for a test: it has no USB bus, so no test reaches a device of the computer.
 fn engine() -> Handle {
-    make_engine(Facilities::default()).expect("an engine")
+    make_engine_on(
+        Facilities::default(),
+        std::sync::Arc::new(sdrkit_driver_usb::NoUsb),
+    )
+    .expect("an engine")
 }
 
 fn c(s: &str) -> CString {
@@ -1109,4 +1114,58 @@ fn a_picture_is_set_through_the_stack_object_of_a_session() {
     // Pixels for a part of the picture, and a width that the pixels do not fill.
     assert!(refused(invoke(stack, frame, &picture(&pixels[..255], 8))));
     assert!(refused(invoke(stack, frame, &picture(&pixels, 9))));
+}
+
+#[test]
+fn a_share_is_an_object_of_its_radio_and_a_usb_radio_without_usb_is_unavailable() {
+    let e = engine();
+    let mut radio = 0;
+    let mut share = 0;
+    // SAFETY: NUL-terminated strings and valid out pointers.
+    unsafe {
+        assert_eq!(
+            sdrkit_radio_open(e, c("synth:fm").as_ptr(), std::ptr::null(), &mut radio),
+            OK
+        );
+        assert_eq!(sdrkit_share_open(e, &mut share), SDRKIT_E_WRONG_HANDLE);
+        assert_eq!(sdrkit_share_open(radio, &mut share), OK);
+        let mut t = -1;
+        assert_eq!(sdrkit_object_type(share, &mut t), OK);
+        assert_eq!(t, SDRKIT_OBJECT_SHARE);
+        let mut key = zero();
+        assert_eq!(sdrkit_object_key(share, &mut key), OK);
+        let key = string(key);
+        assert!(key.starts_with("share.h"), "{key}");
+        // The share is in the list of the live objects, and a second handle finds it by its key.
+        let mut n = 0;
+        assert_eq!(sdrkit_objects(e, &mut n), OK);
+        let listed = (0..n).any(|i| {
+            let (mut k, mut ty) = (zero(), 0);
+            assert_eq!(sdrkit_object(e, i, &mut k, &mut ty), OK);
+            string(k) == key && ty == SDRKIT_OBJECT_SHARE
+        });
+        assert!(listed, "{key} is not in the object list");
+        let again = find(e, &key);
+        let mut second = 0;
+        assert_eq!(sdrkit_share_open(radio, &mut second), SDRKIT_E_SHARE_OPEN);
+        // The radio closes with its share: the handles of the share are dead after it.
+        assert_eq!(sdrkit_radio_close(radio), OK);
+        assert_eq!(sdrkit_share_close(share), SDRKIT_E_NO_SUCH_OBJECT);
+        assert_eq!(sdrkit_free(again), OK);
+
+        // No USB on this engine: the open of a USB radio says so with its own code and the reason.
+        let mut usb = 0;
+        assert_eq!(
+            sdrkit_radio_open(e, c("usb:hackrf:").as_ptr(), std::ptr::null(), &mut usb),
+            SDRKIT_E_UNAVAILABLE
+        );
+        let mut det = ErrorDetail::default();
+        assert_eq!(sdrkit_error_detail(e, &mut det), OK);
+        assert_eq!(det.index, i64::from(SDRKIT_UNAVAILABLE_NO_USB_HERE));
+        assert_eq!(
+            std::ffi::CStr::from_ptr(sdrkit_code_name(SDRKIT_E_UNAVAILABLE)).to_str(),
+            Ok("SDRKIT_E_UNAVAILABLE")
+        );
+        assert_eq!(sdrkit_free(e), OK);
+    }
 }

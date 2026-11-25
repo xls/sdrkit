@@ -7,7 +7,7 @@
 //! `v / 32768`) and its inverse with rounding to nearest, so 8- and 16-bit samples come back to their bytes exactly.
 
 use sdrkit_core::Complex32;
-use sdrkit_driver_core::sample::{size, to_iq};
+use sdrkit_driver_core::sample::{from_iq, size, to_iq};
 use sdrkit_graph::stream::SampleType;
 
 /// True if a hub carries samples of type `t`: Cu8, Cs8, Cs16 or Cf32.
@@ -85,45 +85,6 @@ pub fn convert(
             scratch.resize(whole.len() / 8, Complex32::default());
             to_iq(Cf32, whole, scratch);
             from_iq(to, scratch, out);
-        }
-        _ => unreachable!("only supported formats reach a conversion"),
-    }
-}
-
-/// Appends `iq` to `out` as samples of type `to`, the inverse of the `to_iq` scaling rounded to nearest and saturated:
-/// Cu8 `round(x * 128 + 127.5)`, Cs8 `round(x * 128)`, Cs16 `round(x * 32768)`. `to` must be [`supported`].
-pub fn from_iq(to: SampleType, iq: &[Complex32], out: &mut Vec<u8>) {
-    let q = |x: f32, scale: f32, offset: f32, lo: f32, hi: f32| {
-        (x * scale + offset).round().clamp(lo, hi)
-    };
-    match to {
-        SampleType::Cu8 => {
-            for c in iq {
-                out.push(q(c.re, 128.0, 127.5, 0.0, 255.0) as u8);
-                out.push(q(c.im, 128.0, 127.5, 0.0, 255.0) as u8);
-            }
-        }
-        SampleType::Cs8 => {
-            for c in iq {
-                out.push(q(c.re, 128.0, 0.0, -128.0, 127.0) as i8 as u8);
-                out.push(q(c.im, 128.0, 0.0, -128.0, 127.0) as i8 as u8);
-            }
-        }
-        SampleType::Cs16 => {
-            for c in iq {
-                let (i, v) = (
-                    q(c.re, 32768.0, 0.0, -32768.0, 32767.0) as i16,
-                    q(c.im, 32768.0, 0.0, -32768.0, 32767.0) as i16,
-                );
-                out.extend_from_slice(&i.to_le_bytes());
-                out.extend_from_slice(&v.to_le_bytes());
-            }
-        }
-        SampleType::Cf32 => {
-            for c in iq {
-                out.extend_from_slice(&c.re.to_le_bytes());
-                out.extend_from_slice(&c.im.to_le_bytes());
-            }
         }
         _ => unreachable!("only supported formats reach a conversion"),
     }

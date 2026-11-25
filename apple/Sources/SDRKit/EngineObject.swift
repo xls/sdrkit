@@ -44,9 +44,9 @@ public final class Engine {
         try object.typed(call)
     }
 
-    /// Returns a new handle of the object with the key `key`: `engine`, `radio.r<n>`, `session.s<n>`, `stack.<id>`,
-    /// `service.<key>`, `driver.<key>` or `component.<type>`. The object is a `Radio` for a radio and a `Session`
-    /// for a session. Throws `SDRKIT_E_BAD_KEY` if `key` is not an object key, `SDRKIT_E_NO_SUCH_KEY` if no object
+    /// Returns a new handle of the object with the key `key`: `engine`, `radio.r<n>`, `session.s<n>`, `share.h<n>`,
+    /// `stack.<id>`, `service.<key>`, `driver.<key>` or `component.<type>`. The object is a `Radio` for a radio, a
+    /// `Session` for a session and a `Share` for a share. Throws `SDRKIT_E_BAD_KEY` if `key` is not an object key, `SDRKIT_E_NO_SUCH_KEY` if no object
     /// has the key.
     public func find(_ key: String) throws -> Object {
         var o: UInt64 = 0
@@ -56,12 +56,13 @@ public final class Engine {
         switch type {
         case SDRKIT_OBJECT_RADIO: return Radio(handle: o, owner: core)
         case SDRKIT_OBJECT_SESSION: return Session(handle: o, owner: core)
+        case SDRKIT_OBJECT_SHARE: return Share(handle: o, owner: core)
         default: return Object(handle: o, owner: core)
         }
     }
 
-    /// Returns the keys and the types of the live objects: the engine, the radios, the sessions, the services, then
-    /// the stack, driver and component types.
+    /// Returns the keys and the types of the live objects: the engine, the radios, the sessions, the shares, the
+    /// services, then the stack, driver and component types.
     public func objects() throws -> [(key: String, kind: ObjectKind)] {
         let h = core.handle
         var count: UInt32 = 0
@@ -154,6 +155,28 @@ public final class Engine {
             }
         }
         return Radio(handle: radio, owner: core)
+    }
+
+    /// Returns the USB radios that are attached, from the engine table `devices`: for each the address that
+    /// `openRadio(_:settings:)` takes (`usb:rtl:<serial>`), its driver, name, serial number and USB port, its state
+    /// (free, open, no permission, needs a driver, busy) and the key of the radio that it is open as. Listing opens no
+    /// device. The events `device.arrived` and `device.left` of `object` say when to read the list again. The list is
+    /// empty on a platform without USB access, such as iOS; the table `drivers` then states `available` = false for
+    /// the USB kinds.
+    public func devices() throws -> [EngineDeviceRow] {
+        try object.allRows { EngineTables.engineDevices($0) }
+    }
+
+    /// Opens the share of `radio` and returns it: an object that serves the samples of the radio to network clients.
+    /// Start a listener with its command `listen` (rtl_tcp or SoapyRemote); its settings say who steers the radio and
+    /// which addresses may connect. The share never sets the rate or the frequency of the radio by itself and never
+    /// stops a session from doing so. No client transmits until the command `grant` lets it and the engine setting
+    /// `transmit_allowed` is on. `Radio.close()` closes the share of the radio first. Throws `SDRKIT_E_SHARE_OPEN` if
+    /// the radio has a share.
+    public func openShare(radio: Radio) throws -> Share {
+        var share: UInt64 = 0
+        try check(sdrkit_share_open(radio.handle, &share), handle: radio.handle)
+        return Share(handle: share, owner: core)
     }
 
     /// Opens a host feed of complex samples at `rateHz` around `centreHz` and returns it. Sessions read the feed,

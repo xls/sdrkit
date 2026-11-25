@@ -12,6 +12,8 @@ sdrkit-graph = { path = "../../framework/sdrkit-graph" }
 # The detail of a radio's errors.
 sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core" }
 sdrkit-host-engine = { path = "../sdrkit-host-engine" }
+# The USB bus of the system for the USB radios. On a platform without USB access (iOS, the web) the bus is empty.
+sdrkit-driver-usb = { path = "../../drivers/sdrkit-driver-usb", features = ["nusb"] }
 # The stacks and component kinds that an engine of the C API offers.
 sdrkit-host-catalog = { path = "../sdrkit-host-catalog", default-features = false }
 # The presets part of the C API (feature `presets`): the reader of a data folder and the types of its lookups.

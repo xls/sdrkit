@@ -2,7 +2,7 @@
 
 use super::{Conn, Datagram, DatagramOptions, Listener, NetError, Transport};
 use std::io::{self, Read, Write};
-use std::net::{Shutdown, SocketAddr, TcpListener, TcpStream, ToSocketAddrs, UdpSocket};
+use std::net::{IpAddr, Shutdown, SocketAddr, TcpListener, TcpStream, ToSocketAddrs, UdpSocket};
 use std::time::Duration;
 
 /// The operating system's network, plain TCP and UDP. A host turns on the `std-net` feature to use it.
@@ -212,7 +212,29 @@ impl Transport for StdNet {
                 s.set_multicast_if_v6(i.index)?;
             }
         }
+        if options.reuse_address {
+            s.set_reuse_address(true)?;
+            // The systems of the BSD family share a port for multicast only with this option too.
+            #[cfg(unix)]
+            let _ = s.set_reuse_port(true);
+        }
         s.bind(&options.local.into())?;
+        for group in &options.join {
+            match group {
+                IpAddr::V4(g) => {
+                    let on = options
+                        .multicast_interface
+                        .as_ref()
+                        .and_then(|i| i.v4)
+                        .map_or(std::net::Ipv4Addr::UNSPECIFIED, |n| n.addr);
+                    s.join_multicast_v4(g, &on)?;
+                }
+                IpAddr::V6(g) => {
+                    let on = options.multicast_interface.as_ref().map_or(0, |i| i.index);
+                    s.join_multicast_v6(g, on)?;
+                }
+            }
+        }
         Ok(Box::new(Udp {
             socket: s.into(),
             peer: None,

@@ -87,6 +87,7 @@ Text typed for a value is read by the type of the value: a frequency is a number
 
 ## Common tasks
 
+- A USB radio: on the Stacks screen, `a` shows the sources. The list has each RTL dongle and HackRF that is attached and not open, with its address and its state. Choose one and start a stack: the radio opens. `--source usb:rtl:` on the command line does the same for the first free dongle.
 - FM with sound: `sdrkit-tui --source <radio> --stack fm --freq 104.9`. `m` mutes the sound. On the Session screen, `f`, `105.6` and Enter tune to another station.
 - DAB: `sdrkit-tui --source <radio> --stack dab --freq 206.352`. The table "Services" of the Session screen lists the programmes: Tab, choose one, Enter plays it. "Scan the whole band" in the controls finds the ensembles of the region; Enter on a hit tunes to it.
 - Meshtastic: start the stack `meshtastic` on the radio with `--region AU` and the data folder (`--data data`), or with `--freq` and the frequency of the network. The session opens on the table `messages`. To send a text: press `i`, type the text, press Enter. To send it on another channel: show the table `channels` (`]`), press Enter on the channel, then `i`. `mt.channel.add` in the controls adds a channel with its key.

@@ -146,8 +146,9 @@ pub(crate) struct TxEnds {
     pub status_to: SocketAddr,
 }
 
-/// Receives the client's transmit datagrams into `w` until `stop`. Datagrams of `bpe`-byte samples; the window is `window`
-/// datagrams.
+/// Receives the client's transmit datagrams into `w` until `stop`, then takes the datagrams that wait already, so that a
+/// client that stops its stream right after its last samples loses none. Datagrams of `bpe`-byte samples; the window is
+/// `window` datagrams.
 pub(crate) fn tx_loop(
     mut e: TxEnds,
     mut w: TxWriter,
@@ -159,7 +160,8 @@ pub(crate) fn tx_loop(
     let _ = e.data.send_to(&ack(0, window), e.data_to);
     let (mut next, mut acked, mut reported) = (0u32, 0u32, 0u64);
     let mut buf = vec![0u8; 65_536];
-    while !stop.load(Ordering::Acquire) {
+    loop {
+        let stopping = stop.load(Ordering::Acquire);
         let under = w.counts().underrun_events;
         if under > reported {
             reported = under;
@@ -172,7 +174,16 @@ pub(crate) fn tx_loop(
             };
             let _ = e.status.send_to(&h.to_bytes(), e.status_to);
         }
-        let (n, from) = match e.data.recv_from(&mut buf) {
+        let received = if stopping {
+            // Only what waits already: nothing more is coming.
+            match e.data.try_recv_from(&mut buf) {
+                Ok(Some(x)) => Ok(x),
+                Ok(None) | Err(_) => return,
+            }
+        } else {
+            e.data.recv_from(&mut buf)
+        };
+        let (n, from) = match received {
             Ok(x) => x,
             Err(err) if timed_out(&err) || err.kind() == std::io::ErrorKind::Interrupted => {
                 continue
@@ -195,7 +206,7 @@ pub(crate) fn tx_loop(
             let k = w.write(payload);
             payload = &payload[k..];
             if k == 0 {
-                if stop.load(Ordering::Acquire) || w.closed() {
+                if stopping || stop.load(Ordering::Acquire) || w.closed() {
                     return;
                 }
                 std::thread::sleep(Duration::from_millis(1));

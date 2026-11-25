@@ -78,6 +78,50 @@ pub fn to_iq(t: SampleType, bytes: &[u8], out: &mut [Complex32]) -> usize {
     n
 }
 
+/// Appends `iq` to `out` as samples of type `to`: the inverse of the scaling of [`to_iq`], rounded to nearest and
+/// saturated. Cu8 is `round(x * 128 + 127.5)`, Cs8 `round(x * 128)`, Cs16 `round(x * 32768)`, Cf32 the floats
+/// themselves. Samples that [`to_iq`] made from 8- or 16-bit bytes return to those bytes exactly.
+///
+/// # Panics
+///
+/// If `to` is not Cu8, Cs8, Cs16 or Cf32.
+pub fn from_iq(to: SampleType, iq: &[Complex32], out: &mut Vec<u8>) {
+    let q = |x: f32, scale: f32, offset: f32, lo: f32, hi: f32| {
+        (x * scale + offset).round().clamp(lo, hi)
+    };
+    match to {
+        SampleType::Cu8 => {
+            for c in iq {
+                out.push(q(c.re, 128.0, 127.5, 0.0, 255.0) as u8);
+                out.push(q(c.im, 128.0, 127.5, 0.0, 255.0) as u8);
+            }
+        }
+        SampleType::Cs8 => {
+            for c in iq {
+                out.push(q(c.re, 128.0, 0.0, -128.0, 127.0) as i8 as u8);
+                out.push(q(c.im, 128.0, 0.0, -128.0, 127.0) as i8 as u8);
+            }
+        }
+        SampleType::Cs16 => {
+            for c in iq {
+                let (i, v) = (
+                    q(c.re, 32768.0, 0.0, -32768.0, 32767.0) as i16,
+                    q(c.im, 32768.0, 0.0, -32768.0, 32767.0) as i16,
+                );
+                out.extend_from_slice(&i.to_le_bytes());
+                out.extend_from_slice(&v.to_le_bytes());
+            }
+        }
+        SampleType::Cf32 => {
+            for c in iq {
+                out.extend_from_slice(&c.re.to_le_bytes());
+                out.extend_from_slice(&c.im.to_le_bytes());
+            }
+        }
+        other => panic!("no conversion from complex samples to {other:?}"),
+    }
+}
+
 /// Writes `iq` as [`SampleType::Cf32`] bytes into `out`, which must hold `8 * iq.len()` bytes.
 ///
 /// # Panics
@@ -113,6 +157,27 @@ mod tests {
         let b = [0, 0, 0, 0x40, 0, 0, 0, 0xc0, 1];
         assert_eq!(to_iq(SampleType::Cs32, &b, &mut out), 1);
         assert_eq!(out[0], Complex32::new(0.5, -0.5));
+    }
+
+    #[test]
+    fn integer_samples_return_to_their_bytes() {
+        let all8: Vec<u8> = (0..=255u8).collect();
+        let all16: Vec<u8> = (0..=u16::MAX).flat_map(u16::to_le_bytes).collect();
+        for (t, bytes) in [
+            (SampleType::Cu8, &all8),
+            (SampleType::Cs8, &all8),
+            (SampleType::Cs16, &all16),
+        ] {
+            let mut iq = vec![Complex32::default(); bytes.len() / size(t)];
+            to_iq(t, bytes, &mut iq);
+            let mut back = Vec::new();
+            from_iq(t, &iq, &mut back);
+            assert_eq!(&back, bytes, "{t:?}");
+        }
+        let mut b = Vec::new();
+        from_iq(SampleType::Cu8, &[Complex32::new(4.0, -4.0)], &mut b);
+        from_iq(SampleType::Cs8, &[Complex32::new(4.0, -4.0)], &mut b);
+        assert_eq!(b, [255, 0, 0x7F, 0x80]);
     }
 
     #[test]

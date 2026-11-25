@@ -38,6 +38,8 @@ struct State {
     hosts: HashMap<String, IpAddr>,
     silent: HashSet<IpAddr>,
     sockets: HashMap<SocketAddr, Arc<Inbox>>,
+    /// The multicast groups that each datagram socket joined.
+    groups: HashMap<SocketAddr, Vec<IpAddr>>,
     next_port: u16,
     connects: u64,
 }
@@ -221,6 +223,9 @@ impl FakeTransport {
         }
         let queue = Arc::new(Queue::default());
         state.sockets.insert(addr, queue.clone());
+        if !options.join.is_empty() {
+            state.groups.insert(addr, options.join.clone());
+        }
         Ok(FakeDatagram {
             shared: Arc::new(SocketShared {
                 addr,
@@ -491,7 +496,9 @@ struct SocketShared {
 
 impl Drop for SocketShared {
     fn drop(&mut self) {
-        lock(&self.net).sockets.remove(&self.addr);
+        let mut net = lock(&self.net);
+        net.sockets.remove(&self.addr);
+        net.groups.remove(&self.addr);
     }
 }
 
@@ -511,15 +518,20 @@ impl FakeDatagram {
     }
 }
 
-fn reaches(socket: SocketAddr, to: SocketAddr) -> bool {
+/// True if a datagram to `to` reaches the socket at `socket`, which joined the multicast groups `joined`: the same port,
+/// and the address of the socket, a broadcast address, or a multicast group that the socket joined.
+fn reaches(socket: SocketAddr, joined: &[IpAddr], to: SocketAddr) -> bool {
     if socket.port() != to.port() {
         return false;
     }
-    let group = match to.ip() {
-        IpAddr::V4(v4) => v4.is_broadcast() || v4.is_multicast() || v4.octets()[3] == 255,
-        IpAddr::V6(v6) => v6.is_multicast(),
+    if to.ip().is_multicast() {
+        return joined.contains(&to.ip());
+    }
+    let broadcast = match to.ip() {
+        IpAddr::V4(v4) => v4.is_broadcast() || v4.octets()[3] == 255,
+        IpAddr::V6(_) => false,
     };
-    group || socket.ip() == to.ip() || socket.ip().is_unspecified()
+    broadcast || socket.ip() == to.ip() || socket.ip().is_unspecified()
 }
 
 impl Datagram for FakeDatagram {
@@ -529,12 +541,17 @@ impl Datagram for FakeDatagram {
     }
     fn send_to(&mut self, bytes: &[u8], to: SocketAddr) -> io::Result<()> {
         let from = self.sender();
-        let targets: Vec<_> = lock(&self.shared.net)
-            .sockets
-            .iter()
-            .filter(|(a, _)| **a != self.shared.addr && reaches(**a, to))
-            .map(|(_, q)| q.clone())
-            .collect();
+        let targets: Vec<_> = {
+            let net = lock(&self.shared.net);
+            net.sockets
+                .iter()
+                .filter(|(a, _)| {
+                    let joined = net.groups.get(*a).map_or(&[][..], Vec::as_slice);
+                    **a != self.shared.addr && reaches(**a, joined, to)
+                })
+                .map(|(_, q)| q.clone())
+                .collect()
+        };
         for q in targets {
             q.push((bytes.to_vec(), from));
         }
@@ -695,6 +712,40 @@ mod tests {
             .unwrap();
         assert_eq!(b.recv_from(&mut buf).unwrap().0, 4);
         assert!(super::super::timed_out(&b.recv_from(&mut buf).unwrap_err()));
+    }
+
+    #[test]
+    fn a_multicast_datagram_reaches_only_the_members_of_its_group() {
+        let net = FakeTransport::new();
+        let group: SocketAddr = "239.255.255.250:1900".parse().unwrap();
+        let mut member = net.bind(&DatagramOptions::member_of(group)).unwrap();
+        let other: SocketAddr = "239.1.2.3:1900".parse().unwrap();
+        let mut elsewhere = net
+            .bind(&DatagramOptions {
+                join: vec![other.ip()],
+                ..DatagramOptions::at("127.0.0.2:1900".parse().unwrap())
+            })
+            .unwrap();
+        let mut plain = net
+            .bind(&DatagramOptions::at("127.0.0.3:1900".parse().unwrap()))
+            .unwrap();
+        let mut sender = net.bind(&DatagramOptions::any_v4()).unwrap();
+        sender.send_to(b"search", group).unwrap();
+        let mut buf = [0u8; 16];
+        let (n, from) = member.try_recv_from(&mut buf).unwrap().unwrap();
+        assert_eq!(
+            (&buf[..n], from.port()),
+            (&b"search"[..], sender.local_addr().port())
+        );
+        assert!(elsewhere.try_recv_from(&mut buf).unwrap().is_none());
+        assert!(plain.try_recv_from(&mut buf).unwrap().is_none());
+        // A socket that is closed leaves its groups.
+        drop(member);
+        let mut again = net
+            .bind(&DatagramOptions::at("0.0.0.0:1900".parse().unwrap()))
+            .unwrap();
+        sender.send_to(b"search", group).unwrap();
+        assert!(again.try_recv_from(&mut buf).unwrap().is_none());
     }
 
     #[test]

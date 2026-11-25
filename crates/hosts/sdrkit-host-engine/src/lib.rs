@@ -9,6 +9,7 @@ mod bank;
 mod byname;
 mod capture;
 mod catalog;
+mod devices;
 mod drive;
 mod engine_owner;
 mod error;
@@ -25,6 +26,7 @@ mod saved;
 mod services;
 mod session;
 mod settings_blob;
+mod share;
 mod stages;
 mod streams;
 mod transmit;
@@ -43,7 +45,19 @@ pub use error::{EngineError, ImportError, RestoreItem};
 pub use host::{
     memory_facilities, system_clock, system_facilities, system_random, DirStorage, StdNet,
 };
-pub use owners::{FeedId, OwnerRef, RadioId, SessionId};
+pub use devices::{
+    DeviceArrivedEvent, DeviceLeftEvent, DeviceRow, DeviceState, DriverAvailability, DEVICES,
+    DEVICE_ARRIVED, DEVICE_LEFT,
+};
+pub use owners::{FeedId, OwnerRef, RadioId, SessionId, ShareId};
+pub use share::{
+    ClientJoinedEvent, ClientLeftEvent, ClientRow, GrantArgs, KickArgs, LeftReason, ListenArgs,
+    ListenFailedEvent, ListenReply, ListenerRow, RefusedEvent, RefusedReason, ShareCloseArgs,
+    ShareCommand, ShareControl, ShareFields, ShareFormat, ShareOpenArgs, ShareOpenReply,
+    ShareProtocol, ShareRow, ShareSetting, UnlistenArgs, CLIENTS, CLIENT_JOINED, CLIENT_LEFT,
+    DEFAULT_ALLOW, DEFAULT_HOST, GRANT, KICK, LISTEN, LISTENERS, LISTEN_FAILED, REFUSED, SHARES,
+    SHARE_CLOSE, SHARE_OPEN, UNLISTEN,
+};
 pub use request::{RequestKind, REQUEST, REQUESTS};
 pub use session::{
     Input, SessionSetting, SessionState, AUDIO_IN_LOST, AUDIO_IN_RATE, AUDIO_IN_WANTED, AUDIO_LOST,
@@ -91,18 +105,28 @@ use streams::Streams;
 
 /// Splits a radio address into the driver key and the driver's own address: `rtl_tcp:10.0.0.5:1234` returns
 /// (`rtl_tcp`, `10.0.0.5:1234`). The URL form `rtl_tcp://10.0.0.5:1234` returns the same. A text with no colon returns
-/// (`address`, `""`).
+/// (`address`, `""`). The scheme `usb:` names a family of USB radios and a selector of one device:
+/// `usb:rtl:<selector>` returns the key of the driver of the dongles, `usb:hackrf:<selector>` that of the HackRF.
 ///
 /// ```
 /// use sdrkit_host_engine::split_address;
 /// assert_eq!(split_address("iiod:192.0.2.1"), ("iiod", "192.0.2.1"));
 /// assert_eq!(split_address("iiod://192.0.2.1:30431"), ("iiod", "192.0.2.1:30431"));
 /// assert_eq!(split_address("synth"), ("synth", ""));
+/// assert_eq!(split_address("usb:rtl:00000001"), ("rtlusb", "00000001"));
+/// assert_eq!(split_address("usb:hackrf:"), ("hackrf", ""));
+/// assert_eq!(split_address("usb:rtl:@1-2.3"), ("rtlusb", "@1-2.3"));
 /// ```
 pub fn split_address(address: &str) -> (&str, &str) {
     let address = address.trim();
     let (driver, rest) = address.split_once(':').unwrap_or((address, ""));
-    (driver, rest.strip_prefix("//").unwrap_or(rest))
+    let rest = rest.strip_prefix("//").unwrap_or(rest);
+    if driver == "usb" {
+        if let Some(family) = sdrkit_driver_registry::split_usb(rest) {
+            return family;
+        }
+    }
+    (driver, rest)
 }
 
 /// What a host passes to the engine when it makes it.
@@ -137,6 +161,13 @@ impl std::fmt::Debug for Setup {
 /// and only tries its control state, so it never waits for the host.
 pub(crate) struct Shared {
     facilities: Facilities,
+    /// The network of the host, for the listeners of a share.
+    net: Arc<dyn Transport>,
+    /// The USB bus of the host.
+    usb: Arc<dyn sdrkit_driver_usb::UsbBus>,
+    /// The attached USB devices, as of the last tick.
+    usb_state: Mutex<devices::UsbState>,
+    shares: Mutex<Slots<share::Share>>,
     /// The transport of the components of a graph: a connection returns at once.
     graph_net: Arc<dyn Transport>,
     /// The test signals of the stacks, for the test-signal driver and for `gen.stack` in a graph.
@@ -961,7 +992,24 @@ impl Engine {
     ///
     /// [`EngineError::Events`] if the event kinds do not make one catalog, the error of a service that does not open,
     /// [`EngineError::Thread`] if the control thread does not start.
+    ///
+    /// This engine reaches no USB device: the kinds of USB radios are listed, and an open says that USB is not
+    /// available. A host that has USB radios calls [`Engine::with_usb`].
     pub fn new(setup: Setup) -> Result<Engine, EngineError> {
+        Engine::with_usb(setup, Arc::new(sdrkit_driver_usb::NoUsb))
+    }
+
+    /// As [`Engine::new`], with the USB radios of `usb`: `sdrkit_driver_usb::platform_bus()` for the bus of the
+    /// system, in a build with the feature `nusb` of that crate. The engine lists the devices of the bus in its table
+    /// `devices` and raises `device.arrived` and `device.left`; listing opens no device.
+    ///
+    /// # Errors
+    ///
+    /// As [`Engine::new`].
+    pub fn with_usb(
+        setup: Setup,
+        usb: Arc<dyn sdrkit_driver_usb::UsbBus>,
+    ) -> Result<Engine, EngineError> {
         let f = &setup.facilities;
         let gen_stacks = setup.stacks.clone();
         let signal_station = Arc::new(Mutex::new(sdrkit_core::Station::default()));
@@ -986,6 +1034,7 @@ impl Engine {
             Arc::clone(&f.storage),
             Arc::clone(&setup.transport),
             f.clock.clone(),
+            Arc::clone(&usb),
         );
         let descriptors: Vec<_> = drivers.iter().map(|d| d.descriptor()).collect();
         let adapters: Arc<dyn AdapterCatalog> = setup.components.catalog().clone();
@@ -993,7 +1042,19 @@ impl Engine {
             .iter()
             .map(|d| d.decl())
             .collect();
-        add_events(&mut decls, &[REQUEST.decl(), TRANSMIT.decl()]);
+        add_events(
+            &mut decls,
+            &[
+                REQUEST.decl(),
+                TRANSMIT.decl(),
+                DEVICE_ARRIVED.decl(),
+                DEVICE_LEFT.decl(),
+                CLIENT_JOINED.decl(),
+                CLIENT_LEFT.decl(),
+                REFUSED.decl(),
+                LISTEN_FAILED.decl(),
+            ],
+        );
         // Each stack is made once with its defaults to read its declarations. That is most of the time of a start, so
         // the stacks are made on as many threads as the processor has, each thread a share of the list.
         let mut kinds: Vec<(StackKind, bool)> = setup
@@ -1059,6 +1120,7 @@ impl Engine {
                     families: &setup.families,
                     drivers: &descriptors,
                     components: &setup.components,
+                    usb: usb.as_ref(),
                 },
                 weak.clone(),
                 Arc::clone(&transmit_allowed),
@@ -1078,6 +1140,10 @@ impl Engine {
                 .map(|d| Mutex::new(ComponentKind::new(d)))
                 .collect(),
             facilities: setup.facilities,
+            net: Arc::clone(&setup.transport),
+            usb,
+            usb_state: Mutex::default(),
+            shares: Mutex::default(),
             graph_net: Arc::new(graph_net::GraphNet(setup.transport)),
             generators,
             signal_station,
@@ -1167,6 +1233,7 @@ impl Engine {
                 .get(row(i)?)
                 .map(|k| format!("component.{k}")),
             OwnerRef::Service(i) => ServiceKind::at(i).map(|s| s.key().to_owned()),
+            OwnerRef::Share(id) => Some(share::share_key(id)),
         }
     }
 
@@ -1256,6 +1323,7 @@ impl Engine {
             OwnerRef::Stack(id) | OwnerRef::Component(id, _) => {
                 sh.session(id).ok_or_else(gone)?;
             }
+            OwnerRef::Share(id) => sh.share(id).ok_or_else(gone)?.take_events(out),
         }
         Ok(())
     }
@@ -1303,6 +1371,8 @@ impl Engine {
     /// [`EngineError::NoSuchOwner`], or [`EngineError::RadioInUse`] while sessions read the radio.
     pub fn close_radio(&self, id: RadioId) -> Result<(), EngineError> {
         let sh = &self.shared;
+        // The share of the radio goes first: its session reads the radio.
+        sh.close_share_of(id);
         let (radio, last) = {
             let mut t = lock(&sh.radios);
             let r = t
@@ -1327,7 +1397,31 @@ impl Engine {
             sh.signals.release(signal_id(&radio.address));
         }
         sh.engine.lock().results.remove_row(&RADIOS, &radio_key(id));
+        sh.usb_closed(id);
         Ok(())
+    }
+
+    /// Opens the share of radio `radio`: an owner ([`OwnerRef::Share`], key `share.h<n>`) that serves the samples of the
+    /// radio to network clients. Its command `listen` starts a listener for rtl_tcp or SoapyRemote; its settings say who
+    /// steers the radio and which addresses may connect. The share runs a session of its own on the radio, which never
+    /// sets the rate or the centre of the radio and never stops a session of the host from doing so. A radio has one
+    /// share. The engine command `share.open` does the same.
+    ///
+    /// # Errors
+    ///
+    /// [`EngineError::NoSuchOwner`] for a radio that is not open, [`EngineError::ShareOpen`] if the radio has a share.
+    pub fn open_share(&self, radio: RadioId) -> Result<ShareId, EngineError> {
+        self.shared.open_share(None, radio)
+    }
+
+    /// Closes share `id`: its listeners stop and its clients are disconnected. [`Engine::close_radio`] closes the share
+    /// of its radio first.
+    ///
+    /// # Errors
+    ///
+    /// [`EngineError::NoSuchOwner`].
+    pub fn close_share(&self, id: ShareId) -> Result<(), EngineError> {
+        self.shared.close_share(None, id)
     }
 
     /// Starts a session of stack `stack` (in its variant `submode`, if given) with the settings `values` of the stack's
@@ -1963,6 +2057,13 @@ impl Drop for Engine {
         if let Some(t) = self.control.take() {
             let _ = t.join();
         }
+        let shares: Vec<_> = lock(&self.shared.shares)
+            .iter()
+            .map(|(_, s)| Arc::clone(s))
+            .collect();
+        for s in shares {
+            s.owner.lock().shut();
+        }
         let sessions: Vec<_> = lock(&self.shared.sessions)
             .iter()
             .map(|(_, s)| Arc::clone(s))
@@ -2022,6 +2123,11 @@ impl Shared {
                 let id = SessionId::from_u64(number('s')?);
                 self.session(id).ok_or_else(none)?;
                 Ok(OwnerRef::Session(id))
+            }
+            "share" => {
+                let id = ShareId::from_u64(number('h')?);
+                self.share(id).ok_or_else(none)?;
+                Ok(OwnerRef::Share(id))
             }
             _ => Err(none()),
         }
@@ -2146,6 +2252,7 @@ impl Shared {
                 Ok(f(&mut *k))
             }
             OwnerRef::Service(i) => Ok(self.services.with(ServiceKind::at(i).ok_or_else(gone)?, f)),
+            OwnerRef::Share(id) => Ok(self.share(id).ok_or_else(gone)?.owner.host(f)),
         }
     }
 
@@ -2300,7 +2407,68 @@ impl Shared {
 
     /// Opens the radio at `address` with the driver kind `driver` and the settings `values`, starts its stream, and writes
     /// its row into `held`, the engine owner that the caller holds, or into the engine owner after a lock.
+    ///
+    /// For a kind of USB radio the engine chooses the device that the selector `address` names from the list of the bus,
+    /// and opens the driver with the selector of that one device, so that the table `devices` shows which device the
+    /// radio is. With the empty selector it tries the free devices in turn and passes over one that another program
+    /// holds or that the user may not open. A failure that stays with a device shows in the state of its row.
     fn open_radio(
+        &self,
+        mut held: Option<&mut EngineOwner>,
+        driver: &str,
+        address: &str,
+        values: &Values,
+    ) -> Result<RadioId, EngineError> {
+        // A kind of USB radio on a bus that reaches no device: the open says why, whatever the driver.
+        if let Some(why) = devices::availability(driver, self.usb.as_ref()).unavailable_why {
+            return Err(EngineError::Driver(
+                sdrkit_driver_core::DriverError::Unavailable { why },
+            ));
+        }
+        let picked = self.usb_candidates(driver, address);
+        if picked.is_empty() {
+            return self.open_radio_at(held, driver, address, values);
+        }
+        let any = address.trim().is_empty();
+        // The error of the first device counts: it is the one that the selector names first.
+        let mut first = None;
+        for p in picked {
+            // The listing says that the system lets no program open the device: the driver is not asked.
+            let opened = match p.blocked {
+                Some(why) => Err(EngineError::Driver(
+                    sdrkit_driver_core::DriverError::Unavailable { why },
+                )),
+                None => self.open_radio_at(held.as_deref_mut(), driver, &p.selector, values),
+            };
+            match opened {
+                Ok(id) => {
+                    self.usb_opened(id, &p.path);
+                    return Ok(id);
+                }
+                Err(e) => {
+                    let of_device = match &e {
+                        EngineError::Driver(d) => {
+                            self.usb_failed(&p.path, d);
+                            matches!(
+                                d,
+                                sdrkit_driver_core::DriverError::Busy
+                                    | sdrkit_driver_core::DriverError::Unavailable { .. }
+                            )
+                        }
+                        _ => false,
+                    };
+                    first.get_or_insert(e);
+                    if !(any && of_device) {
+                        break;
+                    }
+                }
+            }
+        }
+        Err(first.unwrap_or(EngineError::Stopped))
+    }
+
+    /// Opens the radio at `address` with the driver kind `driver`: [`Shared::open_radio`] after the choice of a USB device.
+    fn open_radio_at(
         &self,
         held: Option<&mut EngineOwner>,
         driver: &str,
@@ -2500,6 +2668,7 @@ impl Shared {
             dropped: Arc::clone(&session.link.dropped),
             demand: Arc::clone(&session.link.demand),
             queue: Arc::clone(&session.link.queue),
+            steers: by != By::Share,
         });
         if !subscribed {
             lock(&self.sessions).remove(id.handle());
@@ -2694,6 +2863,8 @@ impl Shared {
         self.step_bank(now);
         self.step_identify();
         self.give_records();
+        self.step_devices(now);
+        self.step_shares(now);
         self.close_ended();
         self.expire_followers(now);
         if !work.tick.problems.is_empty() {

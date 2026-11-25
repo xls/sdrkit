@@ -25,6 +25,43 @@ sdrkit_core::choice_enum! {
     }
 }
 
+sdrkit_core::choice_enum! {
+    /// Why a radio cannot be used on this system at all. The reason stays until the user changes something: trying the
+    /// same call again does not help.
+    pub enum Unavailable {
+        /// The platform gives programs no USB access (iPhone, a web page), or the library was built without it.
+        NoUsbHere = ("no_usb_here", "No USB access on this platform"),
+        /// The user may not open the device (Linux: no udev rule; Android: no permission from the system).
+        NoPermission = ("no_permission", "No permission to open the device"),
+        /// A driver of the operating system holds the device and cannot be detached.
+        KernelDriver = ("kernel_driver", "A driver of the system holds the device"),
+        /// Windows: the device is not bound to the WinUSB driver.
+        NeedsWinUsb = ("needs_winusb", "The device needs the WinUSB driver"),
+        /// The device is not attached.
+        NotFound = ("not_found", "The device is not attached"),
+    }
+}
+
+impl Unavailable {
+    /// The error for the reason with the text key `key`, the key that the USB transport gives its reasons. `None` for a
+    /// key that is not a reason.
+    pub fn error_of_key(key: &str) -> Option<DriverError> {
+        <Unavailable as sdrkit_core::Choice>::from_key(key)
+            .map(|why| DriverError::Unavailable { why })
+    }
+
+    /// The reason as a sentence for a person.
+    pub fn text(self) -> &'static str {
+        match self {
+            Unavailable::NoUsbHere => "no USB access on this platform",
+            Unavailable::NoPermission => "no permission to open the USB device",
+            Unavailable::KernelDriver => "a driver of the system holds the USB device",
+            Unavailable::NeedsWinUsb => "the USB device needs the WinUSB driver",
+            Unavailable::NotFound => "the USB device is not attached",
+        }
+    }
+}
+
 /// Why a radio could not be opened, started, set or used.
 #[derive(Clone, Debug, PartialEq, thiserror::Error)]
 pub enum DriverError {
@@ -51,6 +88,12 @@ pub enum DriverError {
     /// Another program uses the radio.
     #[error("the radio is busy")]
     Busy,
+    /// The radio cannot be used on this system for a reason that stays.
+    #[error("{}", .why.text())]
+    Unavailable {
+        /// The reason.
+        why: Unavailable,
+    },
     /// The device answered with an error code.
     #[error("the device gave error code {code}")]
     Device {
@@ -168,6 +211,7 @@ impl DriverError {
                 matches!(source, StorageError::Io { .. })
             }
             DriverError::Address
+            | DriverError::Unavailable { .. }
             | DriverError::Protocol(_)
             | DriverError::Handshake(_)
             | DriverError::Version { .. }
@@ -203,5 +247,10 @@ mod tests {
         assert!(!DriverError::Device { code: 22 }.retryable());
         assert!(!DriverError::Protocol(Protocol::NotThisRadio).retryable());
         assert!(!DriverError::Net(NetError::TlsUnavailable).retryable());
+        let gone = DriverError::Unavailable {
+            why: Unavailable::NotFound,
+        };
+        assert!(!gone.retryable());
+        assert_eq!(gone.to_string(), "the USB device is not attached");
     }
 }

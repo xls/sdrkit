@@ -163,6 +163,8 @@ pub static DRIVERS: TableDef = TableDef {
         &MAX_RATE_HZ,
         &TRANSMIT,
         &TX_MAX_RATE_HZ,
+        &crate::devices::DriverAvailability::AVAILABLE,
+        &crate::devices::DriverAvailability::UNAVAILABLE_WHY,
     ],
     cap: ROWS,
     marks: sdrkit_core::RowMarks::NONE,
@@ -267,6 +269,8 @@ pub(crate) struct Sources<'a> {
     pub(crate) drivers: &'a [&'static DriverDescriptor],
     /// The component kinds.
     pub(crate) components: &'a Registry,
+    /// The USB bus: a kind of USB radio is as available as the bus.
+    pub(crate) usb: &'a dyn sdrkit_driver_usb::UsbBus,
 }
 
 /// Writes the rows of the catalogs of `sources` and of the services.
@@ -277,6 +281,7 @@ pub(crate) fn fill(p: &mut Published, sources: &Sources<'_>) {
         families,
         drivers,
         components,
+        usb,
     } = *sources;
     for (i, s) in stacks.iter().enumerate() {
         let t = &s.tuning;
@@ -352,6 +357,7 @@ pub(crate) fn fill(p: &mut Published, sources: &Sources<'_>) {
                 &TX_MAX_RATE_HZ,
                 tx_max.filter(|hz| *hz > 0.0 && *hz < f64::MAX),
             );
+            sdrkit_core::interface::Fields::write(&crate::devices::availability(d.key, usb), &mut r);
         }
     }
     for c in components.descriptors() {

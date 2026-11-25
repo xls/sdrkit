@@ -1127,7 +1127,15 @@ impl App {
         };
         match then {
             Then::Radios => {}
-            Then::Start(stack) => self.start_on(&stack, i, address),
+            Then::Start(stack) => {
+                // The engine names a USB radio by the one device that it opened: the next stack starts on that radio.
+                if same_address(&self.source, &address) {
+                    if let Some(a) = self.radio_address(i) {
+                        self.source = a;
+                    }
+                }
+                self.start_on(&stack, i, address);
+            }
             Then::Form => self.radio_from_form(i, address),
         }
     }
@@ -1856,7 +1864,50 @@ impl App {
         }
     }
 
-    /// Shows the list of sources of the stacks screen: the test signal, each open radio, a radio to open.
+    /// The USB radios that are attached and that the engine does not have open, from its table `devices`: for each
+    /// the address that opens it, `<driver>:<selector>`, and its line in the list of sources with its name, its USB
+    /// address and its state. A device that is open is in the list as its radio.
+    pub fn usb_sources(&self) -> Vec<(String, String)> {
+        let r = &self.engine.results;
+        let Some(t) = r.table_id("devices") else {
+            return Vec::new();
+        };
+        let column = |key| r.column_id(t, key);
+        let text = |row: &crate::results::Row, key| match row.cells.get(column(key)?)? {
+            Value::String(s) => Some(s.clone()),
+            _ => None,
+        };
+        let state = |row: &crate::results::Row| -> Option<String> {
+            let c = column("state")?;
+            let Value::Enum(i) = row.cells.get(c)? else {
+                return None;
+            };
+            let options = &r.decl.tables[t].columns[c].options;
+            options.get(*i as usize).map(|o| o.label.to_lowercase())
+        };
+        let mut out: Vec<(String, String)> = r.tables[t]
+            .rows
+            .iter()
+            .filter(|row| text(row, "radio").is_none())
+            .filter_map(|row| {
+                let usb = text(row, "address")?;
+                let driver = text(row, "driver")?;
+                // `usb:<family>:<selector>`: the selector is what the driver reads.
+                let selector = usb.splitn(3, ':').nth(2).unwrap_or("");
+                let name = text(row, "name").unwrap_or_default();
+                let state = state(row).unwrap_or_default();
+                Some((
+                    format!("{driver}:{selector}"),
+                    format!("{name}  {usb}  ({state})"),
+                ))
+            })
+            .collect();
+        out.sort();
+        out
+    }
+
+    /// Shows the list of sources of the stacks screen: the test signal, each open radio, each USB radio that is
+    /// attached, a radio to open.
     fn pick_source(&mut self) {
         let mut options = vec!["The test signal of the stack".to_owned()];
         let mut keys = vec![String::new()];
@@ -1868,6 +1919,10 @@ impl App {
                 options.push(format!("{}  {a}", self.radios[i].name));
                 keys.push(a);
             }
+        }
+        for (address, line) in self.usb_sources() {
+            options.push(line);
+            keys.push(address);
         }
         options.push("Open a radio…".to_owned());
         keys.push(NEW_RADIO.to_owned());

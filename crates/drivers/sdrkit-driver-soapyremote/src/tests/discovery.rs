@@ -72,7 +72,10 @@ fn an_answer_is_read_from_its_source_address() {
 fn a_search_against_a_responder_on_the_group() {
     let net = FakeTransport::new();
     let mut resp = net
-        .bind(&DatagramOptions::at(SocketAddr::new(local(), 1900)))
+        .bind(&DatagramOptions {
+            join: vec![SSDP_V4.ip()],
+            ..DatagramOptions::at(SocketAddr::new(local(), 1900))
+        })
         .unwrap();
     std::thread::spawn(move || {
         let mut b = [0u8; 2048];
@@ -146,10 +149,10 @@ fn dns_sd_answers() {
     // A responder on the group.
     let net = FakeTransport::new();
     let mut resp = net
-        .bind(&DatagramOptions::at(SocketAddr::new(
-            local(),
-            MDNS_V4.port(),
-        )))
+        .bind(&DatagramOptions {
+            join: vec![MDNS_V4.ip()],
+            ..DatagramOptions::at(SocketAddr::new(local(), MDNS_V4.port()))
+        })
         .unwrap();
     std::thread::spawn(move || {
         let mut b = [0u8; 512];

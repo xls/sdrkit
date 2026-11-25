@@ -71,12 +71,15 @@ impl RtlError {
 }
 
 impl From<RtlError> for DriverError {
-    /// A busy device is [`DriverError::Busy`], so an open is tried again; every other error keeps its type in
-    /// [`DriverError::Driver`].
+    /// A busy device is [`DriverError::Busy`], so an open is tried again; a device that cannot be used here is
+    /// [`DriverError::Unavailable`] with its reason; every other error keeps its type in [`DriverError::Driver`].
     fn from(e: RtlError) -> DriverError {
         match e {
             RtlError::Usb(UsbError::Busy) => DriverError::Busy,
-            e => DriverError::driver(e),
+            e => e
+                .unavailable()
+                .and_then(|u| sdrkit_driver_core::Unavailable::error_of_key(u.key()))
+                .unwrap_or_else(|| DriverError::driver(e)),
         }
     }
 }

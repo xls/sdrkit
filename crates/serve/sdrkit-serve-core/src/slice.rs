@@ -1,10 +1,10 @@
 //! A client's own part of the capture: an oscillator moves the client's centre to 0 Hz and a resampler brings the capture
 //! rate down to the client's rate. Both run on the client's writer thread.
 
-use crate::format::from_iq;
 use sdrkit_algo_dsp::nco::Nco;
 use sdrkit_algo_dsp::resample::Resampler;
 use sdrkit_core::Complex32;
+use sdrkit_driver_core::sample::from_iq;
 use sdrkit_driver_core::sample::{size, to_iq};
 use sdrkit_graph::stream::SampleType;
 

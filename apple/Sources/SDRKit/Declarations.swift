@@ -301,6 +301,7 @@ public enum ObjectKind: Int32, Sendable {
     case driverType = 6
     case componentType = 7
     case service = 8
+    case share = 11
 }
 
 /// The type of a stream.

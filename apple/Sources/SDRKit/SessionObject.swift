@@ -9,6 +9,17 @@ public final class Radio: Object {
     }
 }
 
+/// A share of a radio: the samples of the radio served to network clients over rtl_tcp and SoapyRemote.
+/// `Engine.openShare(radio:)` opens it. Its settings (`ShareSettings`), its state (`ShareFields`), its tables of
+/// listeners and clients and its commands (`listen`, `unlisten`, `kick`, `grant`) are those of the generated file
+/// `Share.swift`.
+public final class Share: Object {
+    /// Closes the share: its listeners stop and its clients are disconnected.
+    public func close() throws {
+        try ok(sdrkit_share_close(handle))
+    }
+}
+
 /// The audio that `Session.readAudio(into:)` copied.
 public struct AudioInfo: Equatable, Sendable {
     /// The meaning and the order of the channels.

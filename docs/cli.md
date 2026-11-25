@@ -23,6 +23,9 @@ If you type a name that no owner has, the tool prints the names that exist.
 | Command | What it does |
 |---|---|
 | `sdrkit stacks`, `drivers`, `services` | Lists the stacks (by group), the radio drivers and the services. |
+| `sdrkit devices [--follow]` | Lists the USB radios that are attached: address, driver, name, serial number, USB port, state and the radio that a device is open as. It opens no device. `--follow` also prints each device that arrives or leaves, until Ctrl-C. |
+| `sdrkit serve <source>` | Serves the samples of a source to network clients until Ctrl-C. `--rtl-tcp [host:]port` and `--soapy [host:]port` start a listener for rtl_tcp and for SoapyRemote; without both it listens for rtl_tcp on port 1234. Without a host, a listener takes every interface. `--control follow\|remote\|slice` says who steers the radio, `--format native\|cu8\|cs8\|cs16\|cf32` the sample format that the share carries, and `--stack <id>` runs a stack on the same source. `--freq`, `--rate`, `--gain`, `--set key=value` and `--seconds` are those of a live command. [Serving a radio](serving.md) describes the share. |
+| `sdrkit usb record <source> --out <file>` | Opens a USB radio, lets it stream for `--seconds` (2 by default) and writes every USB exchange as a script file, for a test or a problem report. `--freq`, `--rate`, `--gain` and `--set key=value` set the radio. |
 | `sdrkit settings <owner> [key=value...]` | Shows the settings of the owner: key, label, kind, range, the values that people normally use (for the present option of the setting they depend on), choices, value and help. Values on the command line are set first. The settings of the engine and the services are kept for the next run. |
 | `sdrkit settings export <file>`, `import <file>`, `schema <owner>` | Writes the saved settings of every object to a file, applies a file of saved settings (all or nothing) and keeps them, or prints the JSON Schema of the settings of an owner. Only the library reads a file of saved settings. |
 | `sdrkit show <owner> [table]` | Shows the status, fields, tables and log of the owner, or one table. `--since <counter>` shows only what changed after that change counter. `--follow` keeps printing the changes. |
@@ -43,6 +46,7 @@ If you type a name that no owner has, the tool prints the names that exist.
 ## Sources, numbers and settings
 
 A source is `<driver>:<address>`: `synth` (the test signal of the stack, the default), `file:<path>`, `rtl_tcp:<host>:<port>`, `iiod:<host>`, or any driver that `sdrkit drivers` lists.
+A radio on a USB port is `usb:rtl:<selector>` or `usb:hackrf:<selector>`. The selector is empty for the first free device, or a serial number, `#<n>` or `@<bus>-<port path>`. `sdrkit devices` prints the address of each attached device.
 
 `--freq` takes a number in MHz: `--freq 104.9`, `--freq 919.875`. A number of 100000 or more is in Hz. Without `--freq`, the stack runs on its own default.
 `--rate` takes a number with an optional unit: `2.4M`, `250k`, `2400000`. A number without a unit is in Hz. Without `--rate`, the stack runs at its own sample rate.

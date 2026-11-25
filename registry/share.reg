@@ -1,0 +1,89 @@
+# The interface of the stack family share. The registry test of the family writes this file.
+family share version=1.0
+shape.ShareFields since=1.0
+shape.ShareFields.radio type=text unit= optional=no since=1.0
+shape.ShareFields.session type=text unit= optional=no since=1.0
+shape.ShareFields.format type=text unit= optional=no since=1.0
+shape.ShareFields.rate_hz type=hz unit=Hz optional=no since=1.0
+shape.ShareFields.centre_hz type=hz unit=Hz optional=no since=1.0
+shape.ShareFields.listeners type=i64 unit= optional=no since=1.0
+shape.ShareFields.clients type=i64 unit= optional=no since=1.0
+shape.ShareFields.blocks type=i64 unit= optional=no since=1.0
+shape.ShareFields.samples type=i64 unit= optional=no since=1.0
+shape.ShareFields.pool_misses type=i64 unit= optional=no since=1.0
+shape.ShareFields.host_reads type=bool unit= optional=no since=1.0
+shape.ShareFields.requests_done type=i64 unit= optional=no since=1.0
+shape.ShareFields.requests_refused type=i64 unit= optional=no since=1.0
+shape.ShareFields.transmitting type=bool unit= optional=no since=1.0
+shape.ShareFields.tx_taken type=i64 unit= optional=no since=1.0
+shape.ShareFields.tx_refused type=i64 unit= optional=no since=1.0
+shape.ShareFields.tx_samples type=i64 unit= optional=no since=1.0
+shape.ShareFields.problem type=text unit= optional=yes since=1.0
+shape.ListenerRow since=1.0
+shape.ListenerRow.protocol type=choice(rtl_tcp,soapyremote) unit= optional=no since=1.0
+shape.ListenerRow.address type=text unit= optional=no since=1.0
+shape.ListenerRow.port type=i64 unit= optional=no since=1.0
+shape.ListenerRow.clients type=i64 unit= optional=no since=1.0
+shape.ListenerRow.accepted type=i64 unit= optional=no since=1.0
+shape.ListenerRow.refused_allow type=i64 unit= optional=no since=1.0
+shape.ListenerRow.refused_full type=i64 unit= optional=no since=1.0
+shape.ListenerRow.bytes type=i64 unit=B optional=no since=1.0
+shape.ClientRow since=1.0
+shape.ClientRow.listener type=text unit= optional=no refers_to=listeners since=1.0
+shape.ClientRow.protocol type=choice(rtl_tcp,soapyremote) unit= optional=no since=1.0
+shape.ClientRow.address type=text unit= optional=yes since=1.0
+shape.ClientRow.format type=text unit= optional=yes since=1.0
+shape.ClientRow.since type=time unit= optional=no since=1.0
+shape.ClientRow.bytes type=i64 unit=B optional=no since=1.0
+shape.ClientRow.samples type=i64 unit= optional=no since=1.0
+shape.ClientRow.dropped_samples type=i64 unit= optional=no since=1.0
+shape.ClientRow.drop_events type=i64 unit= optional=no since=1.0
+shape.ClientRow.gaps type=i64 unit= optional=no since=1.0
+shape.ClientRow.queue_fill type=i64 unit= optional=no since=1.0
+shape.ClientRow.queue_capacity type=i64 unit= optional=no since=1.0
+shape.ClientRow.requests type=i64 unit= optional=no since=1.0
+shape.ClientRow.refused_requests type=i64 unit= optional=no since=1.0
+shape.ClientRow.slice_centre_hz type=hz unit=Hz optional=yes since=1.0
+shape.ClientRow.slice_rate_hz type=hz unit=Hz optional=yes since=1.0
+shape.ClientRow.steers type=bool unit= optional=no since=1.0
+shape.ClientRow.may_transmit type=bool unit= optional=no since=1.0
+shape.ClientJoinedEvent since=1.0
+shape.ClientJoinedEvent.client type=i64 unit= optional=no since=1.0
+shape.ClientJoinedEvent.listener type=i64 unit= optional=no since=1.0
+shape.ClientJoinedEvent.address type=text unit= optional=yes since=1.0
+shape.ClientLeftEvent since=1.0
+shape.ClientLeftEvent.client type=i64 unit= optional=no since=1.0
+shape.ClientLeftEvent.listener type=i64 unit= optional=no since=1.0
+shape.ClientLeftEvent.address type=text unit= optional=yes since=1.0
+shape.ClientLeftEvent.reason type=choice(closed,too_slow,kicked,shutdown) unit= optional=no since=1.0
+shape.RefusedEvent since=1.0
+shape.RefusedEvent.listener type=i64 unit= optional=no since=1.0
+shape.RefusedEvent.address type=text unit= optional=yes since=1.0
+shape.RefusedEvent.reason type=choice(not_allowed,full) unit= optional=no since=1.0
+shape.ListenFailedEvent since=1.0
+shape.ListenFailedEvent.protocol type=choice(rtl_tcp,soapyremote) unit= optional=no since=1.0
+shape.ListenFailedEvent.address type=text unit= optional=no since=1.0
+shape.ListenFailedEvent.port type=i64 unit= optional=no since=1.0
+shape.ListenFailedEvent.reason type=text unit= optional=no since=1.0
+shape.ListenReply since=1.0
+shape.ListenReply.listener type=i64 unit= optional=no since=1.0
+shape.ListenReply.port type=i64 unit= optional=no since=1.0
+share since=1.0
+share.fields.ShareFields since=1.0
+share.table.listeners row=ListenerRow cap=64 since=1.0
+share.table.clients row=ClientRow cap=256 since=1.0
+share.event.share.client_joined fields=ClientJoinedEvent since=1.0
+share.event.share.client_left fields=ClientLeftEvent since=1.0
+share.event.share.refused fields=RefusedEvent since=1.0
+share.event.share.listen_failed fields=ListenFailedEvent since=1.0
+share.setting.control type=choice(follow,remote,slice) unit= since=1.0
+share.setting.max_clients type=i64 unit= since=1.0
+share.setting.client_queue_ms type=i64 unit=ms since=1.0
+share.setting.drop_after_s type=f64 unit=s since=1.0
+share.setting.allow type=text unit= since=1.0
+share.setting.remote_gain type=bool unit= since=1.0
+share.setting.format type=choice(native,cu8,cs8,cs16,cf32) unit= since=1.0
+share.command.listen args=protocol:choice(rtl_tcp,soapyremote);port:i64;host:text? reply=listener:i64;port:i64 since=1.0
+share.command.unlisten args=listener:i64 reply= since=1.0
+share.command.kick args=client:i64 reply= since=1.0
+share.command.grant args=client:i64;steer:bool?;transmit:bool? reply= since=1.0

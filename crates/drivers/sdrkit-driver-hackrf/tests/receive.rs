@@ -180,7 +180,9 @@ fn an_address_selects_its_device_and_a_dfu_device_is_not_opened() {
     assert_eq!(rows[0].name, "HackRF in DFU mode, not usable");
     assert!(matches!(
         driver.open("hackrf:#0", &example_values()),
-        Err(DriverError::Driver(_))
+        Err(DriverError::Unavailable {
+            why: sdrkit_driver_core::Unavailable::NotFound
+        })
     ));
     bus.check().unwrap();
 }

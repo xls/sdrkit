@@ -35,6 +35,8 @@ pub const SDRKIT_OBJECT_SERVICE: i32 = 8;
 pub const SDRKIT_OBJECT_GRAPH: i32 = 9;
 /// A host feed that `sdrkit_feed_open` opened. It is not an object.
 pub const SDRKIT_OBJECT_FEED: i32 = 10;
+/// A share of a radio: the samples of the radio served to network clients.
+pub const SDRKIT_OBJECT_SHARE: i32 = 11;
 
 /// The session reads the open radio `radio`.
 pub const SDRKIT_INPUT_RADIO: i32 = 0;
@@ -89,16 +91,28 @@ pub struct RadioOptions {
     pub count: usize,
 }
 
-/// Makes an engine with `facilities` and the codec plug-ins of the workspace, and returns its handle.
-pub(crate) fn make_engine(mut facilities: Facilities) -> Result<Handle, Error> {
+/// Makes an engine with `facilities`, the codec plug-ins of the workspace and the USB bus of the system, and returns its
+/// handle. On a platform without USB access the bus has no devices and says so.
+pub(crate) fn make_engine(facilities: Facilities) -> Result<Handle, Error> {
+    make_engine_on(facilities, sdrkit_driver_usb::platform_bus())
+}
+
+/// As [`make_engine`], with the USB radios of the bus `usb`.
+pub(crate) fn make_engine_on(
+    mut facilities: Facilities,
+    usb: Arc<dyn sdrkit_driver_usb::UsbBus>,
+) -> Result<Handle, Error> {
     facilities.codecs = Arc::new(sdrkit_host_catalog::codecs());
-    let engine = Engine::new(Setup {
-        components: sdrkit_host_catalog::registry(&facilities),
-        facilities,
-        transport: Arc::new(StdNet),
-        stacks: sdrkit_host_catalog::all(),
-        families: sdrkit_host_catalog::families(),
-    })?;
+    let engine = Engine::with_usb(
+        Setup {
+            components: sdrkit_host_catalog::registry(&facilities),
+            facilities,
+            transport: Arc::new(StdNet),
+            stacks: sdrkit_host_catalog::all(),
+            families: sdrkit_host_catalog::families(),
+        },
+        usb,
+    )?;
     let host = Arc::new(Host {
         engine,
         last: Mutex::default(),
@@ -137,6 +151,7 @@ fn object_type(r: OwnerRef) -> i32 {
         OwnerRef::DriverKind(_) => SDRKIT_OBJECT_DRIVER_TYPE,
         OwnerRef::ComponentKind(_) => SDRKIT_OBJECT_COMPONENT_TYPE,
         OwnerRef::Service(_) => SDRKIT_OBJECT_SERVICE,
+        OwnerRef::Share(_) => SDRKIT_OBJECT_SHARE,
     }
 }
 
@@ -333,10 +348,13 @@ pub unsafe extern "C" fn sdrkit_object_type(handle: Handle, object_type: *mut i3
 /// The keys of the live objects of the engine: the engine, the radios, the sessions, the services, then the stack, driver
 /// and component types.
 fn object_keys(e: &Entry) -> Result<Vec<String>, Error> {
-    use sdrkit_host_engine::{COMPONENT_KINDS, DRIVERS, RADIOS, SERVICES, SESSIONS, STACKS};
+    use sdrkit_host_engine::{
+        COMPONENT_KINDS, DRIVERS, RADIOS, SERVICES, SESSIONS, SHARES, STACKS,
+    };
     let lists = [
         (&RADIOS, ""),
         (&SESSIONS, ""),
+        (&*SHARES, ""),
         (&SERVICES, ""),
         (&STACKS, "stack."),
         (&DRIVERS, "driver."),
@@ -361,7 +379,7 @@ fn object_keys(e: &Entry) -> Result<Vec<String>, Error> {
 }
 
 /// Takes a list of the live objects of the engine of `handle` and writes their number to `count`: the engine, the radios,
-/// the sessions, the services, then the stack, driver and component types. `sdrkit_object` reads the entries.
+/// the sessions, the shares, the services, then the stack, driver and component types. `sdrkit_object` reads the entries.
 #[no_mangle]
 pub unsafe extern "C" fn sdrkit_objects(handle: Handle, count: *mut u32) -> i32 {
     // SAFETY: the caller's contract.
@@ -495,11 +513,43 @@ pub unsafe extern "C" fn sdrkit_radio_open(
     })
 }
 
-/// Stops and closes the radio of `radio`. Returns `SDRKIT_E_RADIO_IN_USE` while sessions read it.
+/// Stops and closes the radio of `radio`. The share of the radio is closed first. Returns `SDRKIT_E_RADIO_IN_USE` while
+/// sessions read it.
 #[no_mangle]
 pub extern "C" fn sdrkit_radio_close(radio: Handle) -> i32 {
     run(radio, |e| match e.owner_ref()? {
         OwnerRef::Radio(id) => Ok(e.host.engine.close_radio(id)?),
+        _ => Err(Error::WrongHandle),
+    })
+}
+
+/// Opens the share of the radio `radio` and writes its handle to `share`: an object with the key `share.h<n>` that serves
+/// the samples of the radio to network clients. Its command `listen` starts a listener for rtl_tcp or SoapyRemote, and its
+/// settings say who steers the radio and which addresses may connect; `include/sdrkit/share.h` has its typed calls. The
+/// share never sets the rate or the frequency of the radio by itself and never stops a session from doing so. No client
+/// transmits until the command `grant` of the share lets it and the engine setting `transmit_allowed` is on. Returns
+/// `SDRKIT_E_WRONG_HANDLE` if `radio` is not a radio, `SDRKIT_E_SHARE_OPEN` if the radio has a share.
+#[no_mangle]
+pub unsafe extern "C" fn sdrkit_share_open(radio: Handle, share: *mut Handle) -> i32 {
+    // SAFETY: the caller's contract.
+    let out = unsafe { Out::new(share) };
+    run(radio, |e| {
+        let out = out?;
+        let OwnerRef::Radio(id) = e.owner_ref()? else {
+            return Err(Error::WrongHandle);
+        };
+        let s = e.host.engine.open_share(id)?;
+        out.put(object_handle(e, OwnerRef::Share(s)));
+        Ok(())
+    })
+}
+
+/// Closes the share of `share`: its listeners stop and its clients are disconnected. Returns `SDRKIT_E_WRONG_HANDLE` if
+/// `share` is not a share.
+#[no_mangle]
+pub extern "C" fn sdrkit_share_close(share: Handle) -> i32 {
+    run(share, |e| match e.owner_ref()? {
+        OwnerRef::Share(id) => Ok(e.host.engine.close_share(id)?),
         _ => Err(Error::WrongHandle),
     })
 }

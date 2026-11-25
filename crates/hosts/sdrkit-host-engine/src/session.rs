@@ -360,6 +360,9 @@ pub(crate) enum By {
     Host,
     /// The engine, for a service or a request. A saved state leaves it out.
     Engine,
+    /// The engine, for a share. The session takes the samples as the radio gives them and never steers the radio. A
+    /// saved state leaves it out.
+    Share,
 }
 
 /// What the session reads.

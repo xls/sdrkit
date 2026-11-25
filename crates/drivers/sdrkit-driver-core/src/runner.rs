@@ -364,6 +364,17 @@ impl Sink {
         self.writer.mark_gap(samples);
     }
 
+    /// Marks a gap of `samples` that the driver made on purpose: a retune that flushes the device, or the time a
+    /// half-duplex radio transmits. The place is marked in the ring ([`RingWriter::mark_gap`]) so the reader can mark a
+    /// discontinuity, and the samples count as offered. They are not counted as lost by the radio.
+    pub fn deliberate_gap(&mut self, samples: u64) {
+        if samples == 0 {
+            return;
+        }
+        self.offered += samples;
+        self.writer.mark_gap(samples);
+    }
+
     /// The consumer was dropped or has requested a stop.
     pub fn closed(&self) -> bool {
         self.writer.closed()

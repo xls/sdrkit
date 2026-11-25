@@ -87,6 +87,7 @@ the package needs no setting of its own. A project that links `libsdrkit.a` with
 - `Accelerate.framework` (vDSP)
 - `AudioToolbox.framework` (the audio decoders of the system)
 - `CoreFoundation.framework`
+- `IOKit.framework` (USB radios; on the Mac only, because iOS gives an app no USB access)
 - `Security.framework`
 - `libiconv`
 

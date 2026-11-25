@@ -239,6 +239,36 @@ final class SDRKitTests: XCTestCase {
         XCTAssertEqual(after.table("stacks")?.rows.count, open.table("stacks")?.rows.count)
     }
 
+    func testAShareServesARadioAndClosesWithIt() throws {
+        let engine = try Engine()
+        // Listing the USB radios opens no device; the kinds of USB radios are in the table of drivers.
+        _ = try engine.devices()
+        let drivers = try engine.object.allRows { EngineTables.engineDrivers($0) }
+        XCTAssertNotNil(drivers.first { $0.key == "rtlusb" })
+        XCTAssertEqual(drivers.first { $0.key == "rtl_tcp" }?.available, true)
+
+        let radio = try engine.openRadio("synth:fm")
+        let share = try engine.openShare(radio: radio)
+        XCTAssertTrue(try share.key.hasPrefix("share.h"))
+        XCTAssertEqual(error(of: { _ = try engine.openShare(radio: radio) })?.name, "SDRKIT_E_SHARE_OPEN")
+        XCTAssertEqual(try share.typed(ShareSettings.shareControl), .follow)
+        try share.typed { ShareSettings.setShareControl($0, .slice) }
+        // An rtl_tcp listener on this machine only, at a port that the system chooses.
+        let rtlTcp = ShareListenerRow.ProtocolOption.rtlTcp.rawValue
+        let reply = try share.typed {
+            ShareCommands.shareListen($0, protocol: rtlTcp, port: 0, host: "127.0.0.1")
+        }
+        XCTAssertGreaterThan(reply.port, 0)
+        let listeners = try share.allRows { ShareTables.shareListeners($0) }
+        XCTAssertEqual(listeners.map(\.port), [reply.port])
+        XCTAssertEqual(try share.typed(ShareFields.read).listeners, 1)
+        XCTAssertEqual(try engine.object.allRows { EngineTables.engineShares($0) }.count, 1)
+        // The radio closes with its share on it.
+        try radio.close()
+        XCTAssertEqual(try engine.object.allRows { EngineTables.engineShares($0) }.count, 0)
+        XCTAssertThrowsError(try share.typed(ShareFields.read))
+    }
+
     func testATypedTableReadOfEveryRow() throws {
         let engine = try Engine()
         let all = try engine.object.snapshot().table("stacks")?.rows.count ?? 0

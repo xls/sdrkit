@@ -115,6 +115,7 @@ fn a_tuner_that_is_not_driven_is_refused_clearly() {
         Some(&RtlError::TunerNotSupported("FC0013"))
     );
     assert_eq!(e.to_string(), "tuner FC0013 not supported yet");
-    assert!(matches!(d.open("@9-9", &v), Err(DriverError::Driver(_))));
+    // A dongle that is not on the bus is unavailable, with the reason "not found".
+    assert!(matches!(d.open("@9-9", &v), Err(DriverError::Unavailable { .. })));
     assert!(matches!(d.open("#x", &v), Err(DriverError::Address)));
 }

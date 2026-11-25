@@ -100,6 +100,14 @@ pub enum EngineError {
         /// The key of the open radio.
         key: String,
     },
+    /// The radio has a share: a radio has one.
+    #[error("the radio is shared as {key}")]
+    ShareOpen {
+        /// The share.
+        share: crate::ShareId,
+        /// Its key.
+        key: String,
+    },
     /// The session runs. Stop it first.
     #[error("the session still runs")]
     StillRunning,

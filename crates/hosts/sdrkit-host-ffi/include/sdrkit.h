@@ -68,10 +68,11 @@
  * calls that read them read the copy in the handle. Use a handle from one thread at a time. A second thread opens its
  * own handle of the same object with sdrkit_object_find().
  *
- * Object keys, for sdrkit_object_find(): "engine", "radio.r<n>", "session.s<n>", "stack.<id>", "service.<key>",
- * "driver.<key>", "component.<type>". sdrkit_objects() and sdrkit_object() list the live objects. The stack of a session
- * and a component of a session have no key: sdrkit_object_stack() and sdrkit_object_component() return them. The row
- * keys of the engine's tables "radios" and "sessions" are the object keys of the radios and sessions.
+ * Object keys, for sdrkit_object_find(): "engine", "radio.r<n>", "session.s<n>", "share.h<n>", "stack.<id>",
+ * "service.<key>", "driver.<key>", "component.<type>". sdrkit_objects() and sdrkit_object() list the live objects. The
+ * stack of a session and a component of a session have no key: sdrkit_object_stack() and sdrkit_object_component()
+ * return them. The row keys of the engine's tables "radios", "sessions" and "shares" are the object keys of the radios,
+ * the sessions and the shares.
  *
  * Ids. Settings, arguments, fields, columns, tables, series, rasters, commands, event types and taps have an
  * sdrkit_id. The ids of a list go from 0 to its count - 1. The *_find() calls return the id of a key. The components
@@ -182,6 +183,9 @@
 
 // A host feed that `sdrkit_feed_open` opened. It is not an object.
 #define SDRKIT_OBJECT_FEED 10
+
+// A share of a radio: the samples of the radio served to network clients.
+#define SDRKIT_OBJECT_SHARE 11
 
 // The session reads the open radio `radio`.
 #define SDRKIT_INPUT_RADIO 0
@@ -361,6 +365,28 @@
 
 // A later version of the library wrote the saved settings or the saved state. This version does not read them.
 #define SDRKIT_E_VERSION 79
+
+// The radio cannot be used on this system for a reason that stays until the user changes something. The member
+// `index` of the error detail holds the reason, an `SDRKIT_UNAVAILABLE_*` constant.
+#define SDRKIT_E_UNAVAILABLE 80
+
+// The radio has a share: a radio has one. The engine table `shares` lists the shares.
+#define SDRKIT_E_SHARE_OPEN 81
+
+// The platform gives programs no USB access (iPhone, a web page), or the library was built without it.
+#define SDRKIT_UNAVAILABLE_NO_USB_HERE 0
+
+// The user may not open the device (Linux: no udev rule; Android: no permission from the system).
+#define SDRKIT_UNAVAILABLE_NO_PERMISSION 1
+
+// A driver of the operating system holds the device and cannot be detached.
+#define SDRKIT_UNAVAILABLE_KERNEL_DRIVER 2
+
+// Windows: the device is not bound to the WinUSB driver.
+#define SDRKIT_UNAVAILABLE_NEEDS_WINUSB 3
+
+// The device is not attached.
+#define SDRKIT_UNAVAILABLE_NOT_FOUND 4
 
 // No stream type, or the type is not known yet.
 #define SDRKIT_STREAM_NONE -1
@@ -556,7 +582,7 @@
 
 // The minor version of the C interface of this library. It rises when the base header gets a function, a constant or
 // a member at the end of a struct that starts with `size`.
-#define SDRKIT_INTERFACE_VERSION_MINOR 3
+#define SDRKIT_INTERFACE_VERSION_MINOR 4
 
 // No value.
 #define SDRKIT_TYPE_NONE 0
@@ -1715,7 +1741,7 @@ int32_t sdrkit_object_key(SDRKIT_HANDLE handle,
 int32_t sdrkit_object_type(SDRKIT_HANDLE handle, int32_t *object_type);
 
 // Takes a list of the live objects of the engine of `handle` and writes their number to `count`: the engine, the radios,
-// the sessions, the services, then the stack, driver and component types. `sdrkit_object` reads the entries.
+// the sessions, the shares, the services, then the stack, driver and component types. `sdrkit_object` reads the entries.
 int32_t sdrkit_objects(SDRKIT_HANDLE handle,
                        uint32_t *count);
 
@@ -1755,8 +1781,21 @@ int32_t sdrkit_radio_open(SDRKIT_HANDLE engine,
                           const struct sdrkit_radio_options *options,
                           SDRKIT_HANDLE *radio);
 
-// Stops and closes the radio of `radio`. Returns `SDRKIT_E_RADIO_IN_USE` while sessions read it.
+// Stops and closes the radio of `radio`. The share of the radio is closed first. Returns `SDRKIT_E_RADIO_IN_USE` while
+// sessions read it.
 int32_t sdrkit_radio_close(SDRKIT_HANDLE radio);
+
+// Opens the share of the radio `radio` and writes its handle to `share`: an object with the key `share.h<n>` that serves
+// the samples of the radio to network clients. Its command `listen` starts a listener for rtl_tcp or SoapyRemote, and its
+// settings say who steers the radio and which addresses may connect; `include/sdrkit/share.h` has its typed calls. The
+// share never sets the rate or the frequency of the radio by itself and never stops a session from doing so. No client
+// transmits until the command `grant` of the share lets it and the engine setting `transmit_allowed` is on. Returns
+// `SDRKIT_E_WRONG_HANDLE` if `radio` is not a radio, `SDRKIT_E_SHARE_OPEN` if the radio has a share.
+int32_t sdrkit_share_open(SDRKIT_HANDLE radio, SDRKIT_HANDLE *share);
+
+// Closes the share of `share`: its listeners stop and its clients are disconnected. Returns `SDRKIT_E_WRONG_HANDLE` if
+// `share` is not a share.
+int32_t sdrkit_share_close(SDRKIT_HANDLE share);
 
 // Starts a session of the stack `stack` on `input`, and writes its handle to `session`. `options` is NULL for the defaults.
 // On a radio, the session is tuned to `options->centre_hz` or to the default frequency of the stack. If no other session
@@ -2352,3 +2391,4 @@ int32_t sdrkit_typed_setting_set_position(SDRKIT_HANDLE handle,
 #include "sdrkit/record.h"
 #include "sdrkit/radio.h"
 #include "sdrkit/engine.h"
+#include "sdrkit/share.h"

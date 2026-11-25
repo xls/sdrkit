@@ -235,6 +235,10 @@ sdrkit_core::commands! {
         StateRestore = C_RESTORE,
         /// Runs the benchmarks.
         BenchmarkRun = C_BENCH,
+        /// Opens the share of a radio.
+        ShareOpen = crate::share::SHARE_OPEN.command,
+        /// Closes a share.
+        ShareClose = crate::share::SHARE_CLOSE.command,
     }
 }
 
@@ -273,8 +277,13 @@ impl EngineOwner {
             .with_table(&BENCH_COMPONENTS)
             .with_table(&BENCH_STAGES)
             .with_table(&BENCH_CONNECTIONS)
-            .with_table(&catalog::STACK_TRANSMITS);
-        let mut p = Published::from_decl(Arc::new(decl.event(&REQUEST)));
+            .with_table(&catalog::STACK_TRANSMITS)
+            .with_table(&crate::devices::DEVICES)
+            .with_table(&crate::share::SHARES)
+            .event(&REQUEST)
+            .event(&crate::devices::DEVICE_ARRIVED)
+            .event(&crate::devices::DEVICE_LEFT);
+        let mut p = Published::from_decl(Arc::new(decl));
         catalog::fill(&mut p, sources);
         let values = Values::defaults(&EngineSetting::schema());
         let mut e = EngineOwner {
@@ -372,6 +381,19 @@ impl EngineOwner {
             kept.pop_front();
         }
         kept.push_back(e);
+    }
+
+    /// Keeps `event` for the host, with the id of its kind in `catalog`. An event of a kind that the catalog does not
+    /// list is dropped.
+    pub(crate) fn note_event(&mut self, mut event: Event, catalog: &sdrkit_core::EventCatalog) {
+        if catalog.stamp(&mut event).is_none() {
+            return;
+        }
+        let mut kept = lock(&self.events);
+        if kept.len() == EVENT_CAP {
+            kept.pop_front();
+        }
+        kept.push_back(event);
     }
 
     /// Writes the calibration of the device, once it has finished, and the cores that the sessions may use.
@@ -612,6 +634,30 @@ impl Owner for EngineOwner {
                     .name("sdrkit-bench".into())
                     .spawn(move || run_benchmarks(&shared, seconds, &only))
                     .map_err(|e| failed(crate::EngineError::thread(&e)))?;
+                Ok(None)
+            }
+            EngineCommand::ShareOpen => {
+                use crate::share::{share_key, ShareOpenArgs, ShareOpenReply, SHARE_OPEN};
+                let a: ShareOpenArgs<'_> = SHARE_OPEN.args(args)?;
+                let radio = crate::parse_radio_key(a.radio)
+                    .ok_or(CommandError::NoSuchKey { arg: SettingId(0) })?;
+                let sh = self.shared()?;
+                let share = sh.open_share(Some(self), radio).map_err(failed)?;
+                Ok(SHARE_OPEN.reply(
+                    &self.commands,
+                    &ShareOpenReply {
+                        share: &share_key(share),
+                    },
+                ))
+            }
+            EngineCommand::ShareClose => {
+                use crate::share::{parse_share_key, ShareCloseArgs, SHARE_CLOSE};
+                let a: ShareCloseArgs<'_> = SHARE_CLOSE.args(args)?;
+                let share = parse_share_key(a.share)
+                    .ok_or(CommandError::NoSuchKey { arg: SettingId(0) })?;
+                self.shared()?
+                    .close_share(Some(self), share)
+                    .map_err(failed)?;
                 Ok(None)
             }
         }

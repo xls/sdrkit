@@ -50,7 +50,8 @@ A crate is `crates/<group>/sdrkit-<group>-<name>`. A group depends only on the g
 | `codec` | Audio, speech and picture decoders |
 | `svc` | Services that work on decoded data: recorder, scanner, message store |
 | `stacks` | One crate per family of stacks |
-| `drivers` | One crate per kind of radio or network server |
+| `drivers` | One crate per kind of radio or network server, and the USB transport |
+| `serve` | Serving the samples of a radio to network clients: the hub with its queues and one crate per protocol |
 | `hosts` | The engine, the catalog of stacks, the C interface, the command line tool, the terminal application |
 | `helpers` | Libraries for a host that are not part of the framework, such as the reader of data files |
 | `dev` | Tools for tests and the generator of the interface files |

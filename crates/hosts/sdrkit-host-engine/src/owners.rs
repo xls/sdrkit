@@ -17,6 +17,11 @@ pub struct SessionId(Handle);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct FeedId(Handle);
 
+/// A share: the samples of one radio served to network clients. A closed share's handle is invalid, also after its
+/// slot is used again.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct ShareId(Handle);
+
 /// The number of an owner in its table. A table numbers its owners from 1 and never uses a number twice.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub(crate) struct Handle(u64);
@@ -49,6 +54,7 @@ macro_rules! handle_number {
 handle_number!(RadioId);
 handle_number!(SessionId);
 handle_number!(FeedId);
+handle_number!(ShareId);
 
 /// One owner of the engine.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -71,6 +77,8 @@ pub enum OwnerRef {
     ComponentKind(u32),
     /// A service, by its row in the engine's `services` table.
     Service(u32),
+    /// A share of a radio.
+    Share(ShareId),
 }
 
 /// A table of one kind of owner. Each owner has a number that the table never uses again, so the handle of an owner
@@ -130,6 +138,15 @@ impl SessionId {
 impl FeedId {
     pub(crate) fn new(h: Handle) -> Self {
         FeedId(h)
+    }
+    pub(crate) fn handle(self) -> Handle {
+        self.0
+    }
+}
+
+impl ShareId {
+    pub(crate) fn new(h: Handle) -> Self {
+        ShareId(h)
     }
     pub(crate) fn handle(self) -> Handle {
         self.0

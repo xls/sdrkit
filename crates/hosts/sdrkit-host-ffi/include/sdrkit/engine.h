@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the settings that every engine has, version 1.7. MIT licence.
+ * sdrkit: the typed interface of the settings that every engine has, version 1.8. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_ENGINE_VERSION_MAJOR 1
-#define SDRKIT_ENGINE_VERSION_MINOR 7
+#define SDRKIT_ENGINE_VERSION_MINOR 8
 
 // The options of the setting "backend_fft" of the stack "engine".
 typedef enum sdrkit_engine_backend_fft {
@@ -555,6 +555,20 @@ typedef struct sdrkit_engine_stack_signal_row {
   int32_t signal;
 } sdrkit_engine_stack_signal_row;
 
+// The options of `unavailable_why` of `sdrkit_engine_driver_row`.
+typedef enum sdrkit_engine_driver_row_unavailable_why {
+  // No USB access on this platform
+  SDRKIT_ENGINE_DRIVER_ROW_UNAVAILABLE_WHY_NO_USB_HERE = 0,
+  // No permission to open the device
+  SDRKIT_ENGINE_DRIVER_ROW_UNAVAILABLE_WHY_NO_PERMISSION = 1,
+  // A driver of the system holds the device
+  SDRKIT_ENGINE_DRIVER_ROW_UNAVAILABLE_WHY_KERNEL_DRIVER = 2,
+  // The device needs the WinUSB driver
+  SDRKIT_ENGINE_DRIVER_ROW_UNAVAILABLE_WHY_NEEDS_WINUSB = 3,
+  // The device is not attached
+  SDRKIT_ENGINE_DRIVER_ROW_UNAVAILABLE_WHY_NOT_FOUND = 4,
+} sdrkit_engine_driver_row_unavailable_why;
+
 // A row of the table "drivers" (Drivers).
 typedef struct sdrkit_engine_driver_row {
   // The number of bytes of this struct that the library wrote.
@@ -579,6 +593,12 @@ typedef struct sdrkit_engine_driver_row {
   bool has_tx_max_rate_hz;
   // Highest transmit rate. A frequency in Hz.
   double tx_max_rate_hz;
+  // False if no radio of the kind can be opened on this system, such as a USB radio on a platform without USB access.
+  bool available;
+  // True if `unavailable_why` holds a value.
+  bool has_unavailable_why;
+  // Why no radio of the kind can be opened. No value for a kind that is available. A value of `sdrkit_engine_driver_row_unavailable_why`.
+  int32_t unavailable_why;
 } sdrkit_engine_driver_row;
 
 // A row of the table "component_kinds" (Component kinds).
@@ -867,6 +887,58 @@ typedef struct sdrkit_engine_stack_transmit_row {
   sdrkit_string stopped_by;
 } sdrkit_engine_stack_transmit_row;
 
+// The options of `state` of `sdrkit_engine_device_row`.
+typedef enum sdrkit_engine_device_row_state {
+  // Free
+  SDRKIT_ENGINE_DEVICE_ROW_STATE_FREE = 0,
+  // Open
+  SDRKIT_ENGINE_DEVICE_ROW_STATE_OPEN = 1,
+  // No permission
+  SDRKIT_ENGINE_DEVICE_ROW_STATE_NO_PERMISSION = 2,
+  // Needs a driver
+  SDRKIT_ENGINE_DEVICE_ROW_STATE_NEEDS_DRIVER = 3,
+  // Busy
+  SDRKIT_ENGINE_DEVICE_ROW_STATE_BUSY = 4,
+} sdrkit_engine_device_row_state;
+
+// A row of the table `devices`. The row key is the bus position, `<bus>-<port path>`, which stays while the device stays attached.
+typedef struct sdrkit_engine_device_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The address that opens the device, `usb:<family>:<selector>`. It finds the same device after a re-plug.
+  sdrkit_string address;
+  // The driver kind that takes the device.
+  sdrkit_string driver;
+  // The manufacturer and product strings of the device, or the name of its family.
+  sdrkit_string name;
+  // True if `serial` holds a value.
+  bool has_serial;
+  // The serial number string.
+  sdrkit_string serial;
+  // The bus position, `<bus>-<port path>`.
+  sdrkit_string path;
+  // What can be done with the device. A value of `sdrkit_engine_device_row_state`.
+  int32_t state;
+  // True if `radio` holds a value.
+  bool has_radio;
+  // The radio that the device is open as.
+  sdrkit_string radio;
+} sdrkit_engine_device_row;
+
+// A row of the engine table `shares`. The row key is the key of the share.
+typedef struct sdrkit_engine_share_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The radio that the share serves.
+  sdrkit_string radio;
+  // The session of the share on the radio.
+  sdrkit_string session;
+} sdrkit_engine_share_row;
+
 // The reply of `state.save`.
 typedef struct sdrkit_engine_state_save_reply {
   // The number of bytes of this struct that the library wrote.
@@ -874,6 +946,14 @@ typedef struct sdrkit_engine_state_save_reply {
   // State.
   sdrkit_bytes state;
 } sdrkit_engine_state_save_reply;
+
+// The reply of the engine command `share.open`.
+typedef struct sdrkit_engine_share_open_reply {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The key of the share (`share.h1`).
+  sdrkit_string share;
+} sdrkit_engine_share_open_reply;
 
 // The options of `kind` of `sdrkit_engine_request_event`.
 typedef enum sdrkit_engine_request_event_kind {
@@ -957,6 +1037,58 @@ typedef struct sdrkit_engine_request_event {
   int32_t family;
 } sdrkit_engine_request_event;
 
+// The options of `state` of `sdrkit_engine_device_arrived_event`.
+typedef enum sdrkit_engine_device_arrived_event_state {
+  // Free
+  SDRKIT_ENGINE_DEVICE_ARRIVED_EVENT_STATE_FREE = 0,
+  // Open
+  SDRKIT_ENGINE_DEVICE_ARRIVED_EVENT_STATE_OPEN = 1,
+  // No permission
+  SDRKIT_ENGINE_DEVICE_ARRIVED_EVENT_STATE_NO_PERMISSION = 2,
+  // Needs a driver
+  SDRKIT_ENGINE_DEVICE_ARRIVED_EVENT_STATE_NEEDS_DRIVER = 3,
+  // Busy
+  SDRKIT_ENGINE_DEVICE_ARRIVED_EVENT_STATE_BUSY = 4,
+} sdrkit_engine_device_arrived_event_state;
+
+// The fields of the event `device.arrived`.
+typedef struct sdrkit_engine_device_arrived_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The address that opens the device.
+  sdrkit_string address;
+  // The driver kind that takes the device.
+  sdrkit_string driver;
+  // The name of the device.
+  sdrkit_string name;
+  // The bus position: the row key of the device in the table `devices`.
+  sdrkit_string path;
+  // What can be done with the device. A value of `sdrkit_engine_device_arrived_event_state`.
+  int32_t state;
+} sdrkit_engine_device_arrived_event;
+
+// The fields of the event `device.left`.
+typedef struct sdrkit_engine_device_left_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The address that opened the device.
+  sdrkit_string address;
+  // The driver kind that took the device.
+  sdrkit_string driver;
+  // The name of the device.
+  sdrkit_string name;
+  // The bus position: the row key that the device had in the table `devices`.
+  sdrkit_string path;
+} sdrkit_engine_device_left_event;
+
 // The arguments of `state.restore`.
 typedef struct sdrkit_engine_state_restore_args {
   // The size of this struct: sizeof of the type. The caller sets it.
@@ -984,6 +1116,28 @@ typedef struct sdrkit_engine_benchmark_run_args {
 
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_ENGINE_BENCHMARK_RUN_ARGS_INIT {sizeof(sdrkit_engine_benchmark_run_args), 0, 0, 0, {0}}
+
+// The arguments of the engine command `share.open`.
+typedef struct sdrkit_engine_share_open_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // The radio.
+  sdrkit_string radio;
+} sdrkit_engine_share_open_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_ENGINE_SHARE_OPEN_ARGS_INIT {sizeof(sdrkit_engine_share_open_args), {0}}
+
+// The arguments of the engine command `share.close`.
+typedef struct sdrkit_engine_share_close_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // The share.
+  sdrkit_string share;
+} sdrkit_engine_share_close_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_ENGINE_SHARE_CLOSE_ARGS_INIT {sizeof(sdrkit_engine_share_close_args), {0}}
 
 // Fills `rows` with the changed rows of the table "stacks" of the stack "engine" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
@@ -1112,10 +1266,41 @@ static inline int32_t sdrkit_engine_stack_transmits_rows(SDRKIT_HANDLE handle,
   return sdrkit_typed_rows(handle, "engine.StackTransmitRow", "stack_transmits", rows, sizeof(sdrkit_engine_stack_transmit_row), capacity, info);
 }
 
+// Fills `rows` with the changed rows of the table "devices" of the stack "engine" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
+static inline int32_t sdrkit_engine_devices_rows(SDRKIT_HANDLE handle,
+                                                sdrkit_engine_device_row *rows,
+                                                uint32_t capacity,
+                                                sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "engine.DeviceRow", "devices", rows, sizeof(sdrkit_engine_device_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "shares" of the stack "engine" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+static inline int32_t sdrkit_engine_shares_rows(SDRKIT_HANDLE handle,
+                                               sdrkit_engine_share_row *rows,
+                                               uint32_t capacity,
+                                               sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "engine.ShareRow", "shares", rows, sizeof(sdrkit_engine_share_row), capacity, info);
+}
+
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "engine.request"
 // (Request). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
 static inline int32_t sdrkit_engine_request_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_engine_request_event *event) {
   return sdrkit_typed_event(handle, n, "engine.request", "engine.RequestEvent", event, sizeof(sdrkit_engine_request_event));
+}
+
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "device.arrived"
+// (USB device arrived). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_engine_device_arrived_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_engine_device_arrived_event *event) {
+  return sdrkit_typed_event(handle, n, "device.arrived", "engine.DeviceArrivedEvent", event, sizeof(sdrkit_engine_device_arrived_event));
+}
+
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "device.left"
+// (USB device left). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_engine_device_left_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_engine_device_left_event *event) {
+  return sdrkit_typed_event(handle, n, "device.left", "engine.DeviceLeftEvent", event, sizeof(sdrkit_engine_device_left_event));
 }
 
 // Runs the command "state.save" (Save state) of the stack "engine" on the session of `handle`. Returns the saved state of every radio, session and service that has one.
@@ -1131,6 +1316,16 @@ static inline int32_t sdrkit_engine_state_restore(SDRKIT_HANDLE handle, const sd
 // Runs the command "benchmark.run" (Run benchmarks) of the stack "engine" on the session of `handle`. Runs the benchmarks of every stack, or those that `only` selects, on a thread of its own, each for about `seconds`. The table `benchmarks` shows the results.
 static inline int32_t sdrkit_engine_benchmark_run(SDRKIT_HANDLE handle, const sdrkit_engine_benchmark_run_args *args) {
   return sdrkit_typed_command(handle, "benchmark.run", "engine.BenchmarkRunArgs", args, NULL, NULL, 0);
+}
+
+// Runs the command "share.open" (Share a radio) of the stack "engine" on the session of `handle`. Opens the share of a radio: an owner `share.h<n>` that serves the samples of the radio to network clients. A radio has one share. The share serves nobody until its command `listen` starts a listener.
+static inline int32_t sdrkit_engine_share_open(SDRKIT_HANDLE handle, const sdrkit_engine_share_open_args *args, sdrkit_engine_share_open_reply *reply) {
+  return sdrkit_typed_command(handle, "share.open", "engine.ShareOpenArgs", args, "engine.ShareOpenReply", reply, sizeof(sdrkit_engine_share_open_reply));
+}
+
+// Runs the command "share.close" (Stop sharing) of the stack "engine" on the session of `handle`. Closes a share: its listeners stop and its clients are disconnected.
+static inline int32_t sdrkit_engine_share_close(SDRKIT_HANDLE handle, const sdrkit_engine_share_close_args *args) {
+  return sdrkit_typed_command(handle, "share.close", "engine.ShareCloseArgs", args, NULL, NULL, 0);
 }
 
 // The setting "callsign" (Callsign) of every engine.

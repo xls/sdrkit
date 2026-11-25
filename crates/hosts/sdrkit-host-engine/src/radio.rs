@@ -284,6 +284,54 @@ impl RadioOwner {
         r.map_err(|e| EngineError::setting(self.radio.schema(), e))
     }
 
+    /// What the radio can do.
+    pub(crate) fn capabilities(&self) -> &sdrkit_driver_core::Capabilities {
+        self.radio.capabilities()
+    }
+
+    /// The sample type that the driver of the radio delivers.
+    pub(crate) fn sample_type(&self) -> sdrkit_graph::SampleType {
+        self.radio.sample_type()
+    }
+
+    /// The gain, the automatic gain and the bandwidth that the radio is set to.
+    pub(crate) fn gain_settings(&self) -> (f64, bool, f64) {
+        use sdrkit_driver_core as dc;
+        self.radio.values().map_or((0.0, false, 0.0), |v| {
+            (v.get(&dc::GAIN), v.get(&dc::AGC), v.get(&dc::BANDWIDTH))
+        })
+    }
+
+    /// Carries out the request `request` of the client of a share that steers the radio. A rate goes in as a rate that
+    /// the engine resolved, so the rate stays on Automatic for the host and for the next stack.
+    ///
+    /// # Errors
+    ///
+    /// [`EngineError::Setting`] if the radio refuses the value. A request that names no setting of every radio does
+    /// nothing.
+    pub(crate) fn remote(
+        &mut self,
+        request: &sdrkit_serve_core::Request,
+    ) -> Result<(), EngineError> {
+        use sdrkit_driver_core as dc;
+        use sdrkit_serve_core::Request;
+        let (key, value) = match *request {
+            Request::Frequency { hz } => (dc::CENTRE.field.key, Value::Hz(hz)),
+            Request::Rate { hz } => return self.set_resolved_rate(hz),
+            Request::Bandwidth { hz } => (dc::BANDWIDTH.field.key, Value::Hz(hz)),
+            Request::Gain { db } => (dc::GAIN.field.key, Value::F64(db)),
+            Request::Agc { on } => (dc::AGC.field.key, Value::Bool(on)),
+            Request::BiasTee { .. } | Request::Correction { .. } | Request::Other { .. } => {
+                return Ok(())
+            }
+        };
+        let id = EngineError::id_of(self.radio.schema(), key)?;
+        let checked = self.radio.schema().check(id, &value);
+        let r = checked.and_then(|()| self.radio.apply(id, &value));
+        self.sync();
+        r.map_err(|e| EngineError::setting(self.radio.schema(), e))
+    }
+
     fn sync(&self) {
         let f = self.radio.results().fields();
         if let (Some(rate), Some(centre)) = (f.get(&RATE_GIVEN), f.get(&CENTRE_GIVEN)) {
@@ -422,6 +470,7 @@ mod tests {
             dropped: Arc::default(),
             demand: Arc::default(),
             queue: Arc::default(),
+            steers: true,
         }));
         let tuning = Tuning::default();
         tuning.set(48e3, 100e6);

@@ -23,5 +23,9 @@ sdrkit-host-catalog = { path = "../../hosts/sdrkit-host-catalog" }
 # The settings that the engine adds to a test signal, for the page of the synth driver.
 sdrkit-host-engine = { path = "../../hosts/sdrkit-host-engine" }
 sdrkit-driver-registry = { path = "../../drivers/sdrkit-driver-registry" }
+# The bus without USB, for the list of drivers of the pages.
+sdrkit-driver-usb = { path = "../../drivers/sdrkit-driver-usb" }
 sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core" }
 sdrkit-driver-soapyremote = { path = "../../drivers/sdrkit-driver-soapyremote" }
+# The transmit settings of the HackRF, for its page.
+sdrkit-driver-hackrf = { path = "../../drivers/sdrkit-driver-hackrf" }

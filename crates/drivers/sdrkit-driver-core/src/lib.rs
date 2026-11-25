@@ -29,7 +29,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 pub use address::{AddressPart, PartValue, Syntax};
-pub use error::{Doing, DriverError, Protocol};
+pub use error::{Doing, DriverError, Protocol, Unavailable};
 pub use radio::{
     own_id, own_setting, DriverDescriptor, DriverKind, KindDecl, Link, OpenRadio, Opens,
     RadioCommand, RadioSetting, StreamFormat, AGC, BANDWIDTH, BIAS_TEE, CENTRE, CENTRE_GIVEN,

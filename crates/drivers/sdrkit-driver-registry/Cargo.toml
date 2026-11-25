@@ -18,3 +18,11 @@ sdrkit-driver-tci = { path = "../sdrkit-driver-tci" }
 sdrkit-driver-hpsdr = { path = "../sdrkit-driver-hpsdr" }
 sdrkit-driver-soapyremote = { path = "../sdrkit-driver-soapyremote" }
 sdrkit-driver-sdrconnect = { path = "../sdrkit-driver-sdrconnect" }
+# The USB transport and the drivers of the USB radios. A host turns on the feature `nusb` of the transport to reach
+# the bus of the system.
+sdrkit-driver-usb = { path = "../sdrkit-driver-usb" }
+sdrkit-driver-rtlusb = { path = "../sdrkit-driver-rtlusb" }
+sdrkit-driver-hackrf = { path = "../sdrkit-driver-hackrf" }
+
+[dev-dependencies]
+sdrkit-driver-usb = { path = "../sdrkit-driver-usb", features = ["fake"] }

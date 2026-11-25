@@ -116,6 +116,9 @@ pub(crate) struct Sub {
     pub(crate) demand: Arc<Demand>,
     /// The traffic of the queue of the session.
     pub(crate) queue: Arc<QueueMeter>,
+    /// The session can set the rate and the centre of the radio. The session of a share cannot: it takes what the
+    /// radio gives, and does not count where the engine asks whether a session holds the radio where it is.
+    pub(crate) steers: bool,
 }
 
 /// The traffic of the queue between a feed and one session. The feed writes the counts of what it sent, the session
@@ -287,9 +290,9 @@ impl Feed {
         lock(&self.run).graph_input
     }
 
-    /// Returns the number of sessions that read the feed.
+    /// Returns the number of sessions that read the feed and can steer its radio ([`Sub::steers`]).
     pub(crate) fn readers(&self) -> usize {
-        lock(&self.run).subs.len()
+        lock(&self.run).subs.iter().filter(|s| s.steers).count()
     }
 
     /// Marks the feed as closing if no session reads it, and returns the number of sessions that read it.
@@ -625,6 +628,7 @@ mod tests {
             dropped: Arc::clone(&dropped),
             demand: Arc::default(),
             queue: Arc::clone(&queue),
+            steers: true,
         }));
         (rx, dropped, queue)
     }

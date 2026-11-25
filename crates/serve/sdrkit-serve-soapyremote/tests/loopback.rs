@@ -402,3 +402,91 @@ fn a_search_finds_the_server() {
         ("uuid-7", DEFAULT_PORT)
     );
 }
+
+/// The network of the system with the loopback interface as its only interface, so that a search stays on this machine.
+struct LoopbackOnly(sdrkit_core::net::StdNet);
+
+fn loopback() -> sdrkit_core::net::Interface {
+    sdrkit_core::net::Interface {
+        name: "loopback".into(),
+        index: 0,
+        v4: Some(sdrkit_core::net::Ipv4Net {
+            addr: std::net::Ipv4Addr::LOCALHOST,
+            netmask: std::net::Ipv4Addr::new(255, 0, 0, 0),
+        }),
+        v6: false,
+    }
+}
+
+impl Transport for LoopbackOnly {
+    fn connect(
+        &self,
+        host: &str,
+        port: u16,
+        tls: bool,
+        timeout: Duration,
+    ) -> Result<Box<dyn sdrkit_core::net::Conn>, sdrkit_core::net::NetError> {
+        self.0.connect(host, port, tls, timeout)
+    }
+    fn datagram(
+        &self,
+        host: &str,
+        port: u16,
+    ) -> Result<Box<dyn sdrkit_core::net::Datagram>, sdrkit_core::net::NetError> {
+        self.0.datagram(host, port)
+    }
+    fn bind(
+        &self,
+        options: &sdrkit_core::net::DatagramOptions,
+    ) -> Result<Box<dyn sdrkit_core::net::Datagram>, sdrkit_core::net::NetError> {
+        self.0.bind(options)
+    }
+    fn listen(
+        &self,
+        host: &str,
+        port: u16,
+    ) -> Result<Box<dyn sdrkit_core::net::Listener>, sdrkit_core::net::NetError> {
+        self.0.listen(host, port)
+    }
+    fn resolve(
+        &self,
+        host: &str,
+        port: u16,
+    ) -> Result<std::net::SocketAddr, sdrkit_core::net::NetError> {
+        self.0.resolve(host, port)
+    }
+    fn interfaces(&self) -> Vec<sdrkit_core::net::Interface> {
+        vec![loopback()]
+    }
+}
+
+/// A search over real sockets on the loopback interface finds the server: the server's socket is a member of the group.
+/// The port is one that the system chose, so the test meets no other SSDP program.
+#[test]
+fn a_search_over_real_loopback_sockets_finds_the_server() {
+    let net: Arc<dyn Transport> = Arc::new(LoopbackOnly(sdrkit_core::net::StdNet));
+    let port = {
+        let probe = net
+            .bind(&sdrkit_core::net::DatagramOptions::at(
+                "127.0.0.1:0".parse().unwrap(),
+            ))
+            .unwrap();
+        probe.local_addr().port()
+    };
+    let group = std::net::SocketAddr::new(SSDP_V4.ip(), port);
+    let _ssdp = Ssdp::start_on(
+        &net,
+        "uuid-9",
+        "127.0.0.1",
+        DEFAULT_PORT,
+        group,
+        Some(loopback()),
+    )
+    .unwrap();
+    let found = ssdp_search(net.as_ref(), &[group], Duration::from_millis(600)).unwrap();
+    assert_eq!(found.len(), 1, "{found:?}");
+    assert_eq!(
+        (found[0].uuid.as_str(), found[0].port),
+        ("uuid-9", DEFAULT_PORT)
+    );
+}

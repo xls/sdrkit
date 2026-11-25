@@ -207,6 +207,11 @@ pub struct DatagramOptions {
     pub multicast_ttl: Option<u32>,
     /// The interface that sends multicast datagrams, if not the default one.
     pub multicast_interface: Option<Interface>,
+    /// Other sockets can be open at the same local address (a well-known port that several programs listen on).
+    pub reuse_address: bool,
+    /// The multicast groups that the socket joins, on `multicast_interface` or on the default interface. A datagram
+    /// sent to a group reaches only the sockets on its port that joined the group.
+    pub join: Vec<IpAddr>,
 }
 
 impl DatagramOptions {
@@ -222,6 +227,21 @@ impl DatagramOptions {
             recv_buffer: None,
             multicast_ttl: None,
             multicast_interface: None,
+            reuse_address: false,
+            join: Vec::new(),
+        }
+    }
+    /// A socket on every address of the family of `group` at the port of `group`, which other programs can open too,
+    /// and which joins the multicast group: the socket of a server that answers searches sent to the group.
+    pub fn member_of(group: SocketAddr) -> Self {
+        let any = match group.ip() {
+            IpAddr::V4(_) => IpAddr::V4(Ipv4Addr::UNSPECIFIED),
+            IpAddr::V6(_) => IpAddr::V6(std::net::Ipv6Addr::UNSPECIFIED),
+        };
+        DatagramOptions {
+            reuse_address: true,
+            join: vec![group.ip()],
+            ..DatagramOptions::at(SocketAddr::new(any, group.port()))
         }
     }
 }

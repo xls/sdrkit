@@ -21,6 +21,8 @@ let package = Package(
                 .linkedFramework("Accelerate"),
                 .linkedFramework("AudioToolbox"),
                 .linkedFramework("CoreFoundation"),
+                // USB radios, on the Mac only: iOS gives an app no USB access.
+                .linkedFramework("IOKit", .when(platforms: [.macOS])),
                 .linkedFramework("Security"),
                 .linkedLibrary("iconv"),
             ]

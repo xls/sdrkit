@@ -17,6 +17,8 @@ fn native_libs() -> &'static [&'static str] {
             "Accelerate",
             "-framework",
             "AudioToolbox",
+            "-framework",
+            "IOKit",
             "-liconv",
             "-lc",
             "-lm",

@@ -524,9 +524,24 @@ pub fn print_events(
 ) -> Result<usize, CliError> {
     let mut v = Vec::new();
     engine.take_events(r, &mut v)?;
+    write_events(engine, name, &v, out)?;
+    Ok(v.len())
+}
+
+/// Prints `events` of the owner named `name`.
+///
+/// # Errors
+///
+/// [`CliError::Io`] or [`CliError::Json`].
+pub fn write_events(
+    engine: &Engine,
+    name: &str,
+    events: &[sdrkit_core::Event],
+    out: &mut Out,
+) -> Result<(), CliError> {
     let catalog = engine.event_catalog();
     let now = now();
-    for e in &v {
+    for e in events {
         if out.json {
             out.json(&json!({ "owner": name, "event": e }))?;
             continue;
@@ -544,7 +559,7 @@ pub fn print_events(
         }
         out.line(&s)?;
     }
-    Ok(v.len())
+    Ok(())
 }
 
 /// `events <owner>`: the events that wait, and with `follow` the next ones until `stop` returns true.

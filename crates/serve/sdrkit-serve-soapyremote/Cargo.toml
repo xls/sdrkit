@@ -12,4 +12,6 @@ sdrkit-serve-core = { path = "../sdrkit-serve-core" }
 sdrkit-driver-soapyremote = { path = "../../drivers/sdrkit-driver-soapyremote" }
 
 [dev-dependencies]
+# Real sockets for the discovery test on the loopback interface.
+sdrkit-core = { path = "../../framework/sdrkit-core", features = ["std-net"] }
 sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core" }

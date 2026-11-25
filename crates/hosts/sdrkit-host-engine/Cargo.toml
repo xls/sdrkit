@@ -18,6 +18,12 @@ sdrkit-algo-fec = { path = "../../algo/sdrkit-algo-fec" }
 sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core" }
 # Every driver kind, made with the host's facilities.
 sdrkit-driver-registry = { path = "../../drivers/sdrkit-driver-registry" }
+# The USB bus: the list of attached devices and their arrival and removal.
+sdrkit-driver-usb = { path = "../../drivers/sdrkit-driver-usb" }
+# Serving the samples of a radio to network clients: the hub and the protocols of a share.
+sdrkit-serve-core = { path = "../../serve/sdrkit-serve-core" }
+sdrkit-serve-rtltcp = { path = "../../serve/sdrkit-serve-rtltcp" }
+sdrkit-serve-soapyremote = { path = "../../serve/sdrkit-serve-soapyremote" }
 sdrkit-svc-automation = { path = "../../svc/sdrkit-svc-automation" }
 sdrkit-svc-bank = { path = "../../svc/sdrkit-svc-bank" }
 sdrkit-svc-events = { path = "../../svc/sdrkit-svc-events" }
@@ -46,6 +52,12 @@ libc = "0.2"
 [dev-dependencies]
 # The plan files of the repository.
 sdrkit-dev-test = { path = "../../dev/sdrkit-dev-test" }
+# The scripted USB bus.
+sdrkit-driver-usb = { path = "../../drivers/sdrkit-driver-usb", features = ["fake"] }
+# The driver of the dongles, for a scripted dongle.
+sdrkit-driver-rtlusb = { path = "../../drivers/sdrkit-driver-rtlusb" }
+# The client side of SoapyRemote, for the loopback of a share.
+sdrkit-driver-soapyremote = { path = "../../drivers/sdrkit-driver-soapyremote" }
 # The fake rtl_tcp server.
 sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core", features = ["fake"] }
 # A stack with audio and a test signal.

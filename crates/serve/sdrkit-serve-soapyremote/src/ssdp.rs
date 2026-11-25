@@ -1,16 +1,14 @@
 //! The discovery answer: a thread on the SSDP port answers an M-SEARCH for the SoapyRemote service (or for all services)
 //! with the server's id, port and age, as `discovery::parse_ssdp` reads it.
 
-use sdrkit_core::net::{timed_out, DatagramOptions, NetError, Transport};
-use sdrkit_driver_soapyremote::discovery::SEARCH_TARGET;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use sdrkit_core::net::{timed_out, DatagramOptions, Interface, NetError, Transport};
+use sdrkit_driver_soapyremote::discovery::{SEARCH_TARGET, SSDP_V4};
+use std::net::SocketAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-/// The SSDP port.
-const SSDP_PORT: u16 = 1900;
 /// The age the answer states, s.
 const MAX_AGE: u32 = 120;
 
@@ -47,22 +45,39 @@ pub struct Ssdp {
 }
 
 impl Ssdp {
-    /// Answers searches on the SSDP port of `transport` for the server `uuid` at `host:port`. The socket listens on every
-    /// IPv4 address of the port; joining the multicast group is the transport's part.
+    /// Answers searches sent to the SSDP group and port for the server `uuid` at `host:port`. The socket joins the group
+    /// on the default interface.
     ///
     /// # Errors
     ///
-    /// [`NetError`] if the port cannot be opened or the thread cannot start.
+    /// [`NetError`] if the port cannot be opened, the group cannot be joined or the thread cannot start.
     pub fn start(
         transport: &Arc<dyn Transport>,
         uuid: &str,
         host: &str,
         port: u16,
     ) -> Result<Ssdp, NetError> {
-        let mut sock = transport.bind(&DatagramOptions::at(SocketAddr::new(
-            IpAddr::V4(Ipv4Addr::UNSPECIFIED),
-            SSDP_PORT,
-        )))?;
+        Ssdp::start_on(transport, uuid, host, port, SSDP_V4, None)
+    }
+
+    /// As [`Ssdp::start`], for searches sent to `group` (a multicast address and a port), joined on `interface` or, for
+    /// `None`, on the default interface. Other programs can listen on the same port.
+    ///
+    /// # Errors
+    ///
+    /// As [`Ssdp::start`].
+    pub fn start_on(
+        transport: &Arc<dyn Transport>,
+        uuid: &str,
+        host: &str,
+        port: u16,
+        group: SocketAddr,
+        interface: Option<Interface>,
+    ) -> Result<Ssdp, NetError> {
+        let mut sock = transport.bind(&DatagramOptions {
+            multicast_interface: interface,
+            ..DatagramOptions::member_of(group)
+        })?;
         sock.set_read_timeout(Some(Duration::from_millis(20)))?;
         let answer = ssdp_answer(uuid, host, port);
         let stop = Arc::new(AtomicBool::new(false));

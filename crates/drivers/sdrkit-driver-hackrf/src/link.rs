@@ -574,8 +574,8 @@ impl RadioStream for HackrfStream {
                 Dir::Rx(reads) => match reads.next(slice) {
                     Ok(block) => {
                         if let Some(since) = lock(&link.gap).take() {
-                            let lost = (since.elapsed().as_secs_f64() * self.rate).round() as u64;
-                            sink.lost(lost.max(1));
+                            let gap = (since.elapsed().as_secs_f64() * self.rate).round() as u64;
+                            sink.deliberate_gap(gap.max(1));
                         }
                         sink.write(block);
                         self.last_block = Instant::now();

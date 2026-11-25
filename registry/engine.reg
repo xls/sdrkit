@@ -1,5 +1,5 @@
 # The interface of the stack family engine. The registry test of the family writes this file.
-family engine version=1.7
+family engine version=1.8
 shape.EngineFields since=1.2
 shape.EngineFields.engine.core_units type=f64 unit= optional=yes since=1.2
 shape.EngineFields.engine.core_units_slow type=f64 unit= optional=yes since=1.2
@@ -43,6 +43,8 @@ shape.DriverRow.min_rate_hz type=hz unit=Hz optional=yes since=1.0
 shape.DriverRow.max_rate_hz type=hz unit=Hz optional=yes since=1.0
 shape.DriverRow.transmit type=bool unit= optional=no since=1.0
 shape.DriverRow.tx_max_rate_hz type=hz unit=Hz optional=yes since=1.3
+shape.DriverRow.available type=bool unit= optional=no since=1.8
+shape.DriverRow.unavailable_why type=choice(no_usb_here,no_permission,kernel_driver,needs_winusb,not_found) unit= optional=yes since=1.8
 shape.ComponentKindRow since=1.0
 shape.ComponentKindRow.inputs type=i64 unit= optional=no since=1.0
 shape.ComponentKindRow.outputs type=i64 unit= optional=no since=1.0
@@ -117,6 +119,17 @@ shape.StackTransmitRow.stack type=text unit= optional=no refers_to=stacks since=
 shape.StackTransmitRow.command type=text unit= optional=no since=1.3
 shape.StackTransmitRow.content type=choice(text,voice,beacon,file,frame,carrier) unit= optional=no since=1.3
 shape.StackTransmitRow.stopped_by type=text unit= optional=yes since=1.4
+shape.DeviceRow since=1.8
+shape.DeviceRow.address type=text unit= optional=no since=1.8
+shape.DeviceRow.driver type=text unit= optional=no refers_to=drivers since=1.8
+shape.DeviceRow.name type=text unit= optional=no since=1.8
+shape.DeviceRow.serial type=text unit= optional=yes since=1.8
+shape.DeviceRow.path type=text unit= optional=no since=1.8
+shape.DeviceRow.state type=choice(free,open,no_permission,needs_driver,busy) unit= optional=no since=1.8
+shape.DeviceRow.radio type=text unit= optional=yes refers_to=radios since=1.8
+shape.ShareRow since=1.8
+shape.ShareRow.radio type=text unit= optional=no refers_to=radios since=1.8
+shape.ShareRow.session type=text unit= optional=no refers_to=sessions since=1.8
 shape.RequestEvent since=1.0
 shape.RequestEvent.from type=text unit= optional=no since=1.0
 shape.RequestEvent.kind type=choice(retune,hop,follow,release,tune,store_memory,memory_hit,record,rewind,script,output) unit= optional=no since=1.0
@@ -124,8 +137,21 @@ shape.RequestEvent.done type=bool unit= optional=no since=1.0
 shape.RequestEvent.refused type=text unit= optional=yes since=1.0
 shape.RequestEvent.session type=text unit= optional=yes refers_to=sessions since=1.0
 shape.RequestEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.DeviceArrivedEvent since=1.8
+shape.DeviceArrivedEvent.address type=text unit= optional=no since=1.8
+shape.DeviceArrivedEvent.driver type=text unit= optional=no since=1.8
+shape.DeviceArrivedEvent.name type=text unit= optional=no since=1.8
+shape.DeviceArrivedEvent.path type=text unit= optional=no since=1.8
+shape.DeviceArrivedEvent.state type=choice(free,open,no_permission,needs_driver,busy) unit= optional=no since=1.8
+shape.DeviceLeftEvent since=1.8
+shape.DeviceLeftEvent.address type=text unit= optional=no since=1.8
+shape.DeviceLeftEvent.driver type=text unit= optional=no since=1.8
+shape.DeviceLeftEvent.name type=text unit= optional=no since=1.8
+shape.DeviceLeftEvent.path type=text unit= optional=no since=1.8
 shape.StateSaveReply since=1.0
 shape.StateSaveReply.state type=bytes unit= optional=no since=1.0
+shape.ShareOpenReply since=1.8
+shape.ShareOpenReply.share type=text unit= optional=no since=1.8
 engine since=1.0
 engine.fields.EngineFields since=1.2
 engine.table.stacks row=StackRow cap=4096 label=name since=1.0
@@ -142,7 +168,11 @@ engine.table.benchmark.components row=BenchmarkComponentRow cap=16384 since=1.2
 engine.table.benchmark.stages row=BenchmarkStageRow cap=4096 since=1.2
 engine.table.benchmark.connections row=BenchmarkConnectionRow cap=16384 since=1.2
 engine.table.stack_transmits row=StackTransmitRow cap=4096 since=1.3
+engine.table.devices row=DeviceRow cap=256 label=name since=1.8
+engine.table.shares row=ShareRow cap=256 since=1.8
 engine.event.engine.request fields=RequestEvent since=1.0
+engine.event.device.arrived fields=DeviceArrivedEvent since=1.8
+engine.event.device.left fields=DeviceLeftEvent since=1.8
 engine.setting.callsign type=text unit= since=1.0
 engine.setting.locator type=text unit= since=1.0
 engine.setting.position type=position unit= since=1.0
@@ -160,3 +190,5 @@ engine.setting.cores_max type=i64 unit= since=1.1
 engine.command.state.save args= reply=state:bytes since=1.0
 engine.command.state.restore args=state:bytes reply= since=1.0
 engine.command.benchmark.run args=seconds:f64?;only:text? reply= since=1.0
+engine.command.share.open args=radio:text reply=share:text since=1.8
+engine.command.share.close args=share:text reply= since=1.8
