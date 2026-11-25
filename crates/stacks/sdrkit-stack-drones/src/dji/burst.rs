@@ -5,7 +5,7 @@
 use sdrkit_algo_dsp::fft::Fft;
 use sdrkit_algo_dsp::meter::power_to_db as db;
 use sdrkit_algo_dsp::nco::Nco;
-use sdrkit_algo_dsp::resample::resample_span;
+use sdrkit_algo_dsp::resample::SpanResampler;
 use sdrkit_algo_dsp::window::Window;
 use sdrkit_core::Complex32;
 use std::sync::Arc;
@@ -87,6 +87,8 @@ pub struct BurstAnalyser {
     period_max: Option<f64>,
     scratch: Vec<Complex32>,
     mixed: Vec<Complex32>,
+    /// From `rate` to 15.36 and to 30.72 Msps; `None` where the resampler refuses the rates.
+    resamplers: [Option<SpanResampler>; 2],
     out: Vec<BurstSignal>,
 }
 
@@ -121,6 +123,7 @@ impl BurstAnalyser {
             period_max: None,
             scratch: Vec::new(),
             mixed: Vec::new(),
+            resamplers: [15.36e6, 30.72e6].map(|rs| SpanResampler::new(rate, rs).ok()),
             out: Vec::new(),
         }
     }
@@ -414,7 +417,7 @@ impl BurstAnalyser {
         clipped: bool,
         crowded: bool,
     ) -> Option<BurstSignal> {
-        let (rs, pass) = if width <= 12e6 {
+        let (rs, pass): (f64, f64) = if width <= 12e6 {
             (15.36e6, 7e6)
         } else {
             (30.72e6, (0.46 * self.rate).min(14e6))
@@ -425,7 +428,9 @@ impl BurstAnalyser {
         self.mixed.resize(span.len(), Complex32::default());
         Nco::new(self.rate, -offset).mix(span, &mut self.mixed);
         let mut y = Vec::new();
-        resample_span(&self.mixed, self.rate, rs, &mut y);
+        if let Some(r) = &mut self.resamplers[usize::from(width > 12e6)] {
+            r.run(&self.mixed, &mut y);
+        }
         // Envelope in 10 us steps.
         let step = (rs * 10e-6).round() as usize;
         let env: Vec<f64> = y
