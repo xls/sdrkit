@@ -345,10 +345,9 @@ pub(crate) fn data_rule(coding: &Coding) -> MinSum {
 /// The min-sum rule of the data codes:
 /// `cargo test --release -p sdrkit-stack-dvbt2 --lib bicm::scale -- --ignored --nocapture`.
 #[cfg(test)]
-pub(crate) mod scale {
+mod scale {
     use super::*;
-    pub(crate) use sdrkit_dev_test::fer::{compare, header, rules};
-    use sdrkit_dev_test::fer::{self, frames, noise, Trial};
+    use sdrkit_dev_test::fer::{self, compare, frames, header, noise, rules, Trial};
 
     struct Data {
         enc: Encoder,

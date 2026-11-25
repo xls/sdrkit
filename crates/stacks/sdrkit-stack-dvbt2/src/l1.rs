@@ -867,8 +867,7 @@ pub const L1_CODES: [(FecFrame, CodeRate); 2] = [
 #[cfg(test)]
 mod scale {
     use super::*;
-    use crate::bicm::scale::{compare, header, rules};
-    use sdrkit_dev_test::fer::{self, frames, noise, Trial};
+    use sdrkit_dev_test::fer::{self, compare, frames, header, noise, rules, Trial};
 
     struct Word {
         enc: L1Codec,

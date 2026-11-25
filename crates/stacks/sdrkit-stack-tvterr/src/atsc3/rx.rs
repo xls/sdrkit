@@ -2265,9 +2265,9 @@ mod tests {
     #[test]
     #[ignore = "a measurement of minutes"]
     fn l1_scale() {
-        use super::super::bicm::tests::{SCALES, TARGET};
+        use super::super::bicm::tests::TARGET;
         use sdrkit_algo_fec::ldpc::MinSum;
-        use sdrkit_dev_test::fer::{point, search, threshold};
+        use sdrkit_dev_test::fer::{point, search, threshold, SCALES};
         let env = |name: &str| std::env::var(name).ok();
         let frames: u64 = env("L1_SCALE_FRAMES")
             .and_then(|f| f.parse().ok())

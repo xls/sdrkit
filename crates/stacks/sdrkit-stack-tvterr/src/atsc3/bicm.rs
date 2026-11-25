@@ -648,7 +648,6 @@ pub(super) mod tests {
         assert_eq!(PlpCoding::signalled(&plp), Some(coding));
     }
 
-    pub(in crate::atsc3) use sdrkit_dev_test::fer::SCALES;
     /// The frame error rate at which the measurements read the Es/N0 of a scale.
     pub(in crate::atsc3) const TARGET: f64 = 0.1;
     const LDPC_ITER: u32 = super::super::components::LDPC_ITERATIONS;

@@ -649,10 +649,9 @@ impl L1Codec {
 /// `cargo test --release -p sdrkit-stack-dvbcs --lib dvbc2::l1::scale -- --ignored --nocapture`.
 #[cfg(test)]
 mod scale {
-    use super::super::bicm::scale::{compare, header, rules};
     use super::*;
     use sdrkit_algo_sim::rng::Rng;
-    use sdrkit_dev_test::fer::{self, frames, noise, Trial};
+    use sdrkit_dev_test::fer::{self, compare, frames, header, noise, rules, Trial};
 
     /// One L1 word of one size with a decoder per rule.
     struct Word {

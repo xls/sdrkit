@@ -227,12 +227,11 @@ impl PlpDecoder {
 /// The min-sum rule of the data codes:
 /// `cargo test --release -p sdrkit-stack-dvbcs --lib dvbc2::bicm::scale -- --ignored --nocapture`.
 #[cfg(test)]
-pub(crate) mod scale {
+mod scale {
     use super::*;
     use super::tables::Qam;
     use sdrkit_algo_sim::rng::Rng;
-    pub(crate) use sdrkit_dev_test::fer::{compare, header, rules};
-    use sdrkit_dev_test::fer::{self, frames, noise, Trial};
+    use sdrkit_dev_test::fer::{self, compare, frames, header, noise, rules, Trial};
 
     /// One coding with a decoder per rule.
     struct Data {
