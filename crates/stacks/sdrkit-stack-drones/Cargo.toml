@@ -18,6 +18,7 @@ sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
 sdrkit-algo-sim = { path = "../../algo/sdrkit-algo-sim" }
 sdrkit-util-text = { path = "../../util/sdrkit-util-text" }
 sdrkit-proto-wlan-phy = { path = "../../proto/sdrkit-proto-wlan-phy" }
+remoteid = "0.3.2"
 serde.workspace = true
 serde_json.workspace = true
 
