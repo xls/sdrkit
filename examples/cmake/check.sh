@@ -76,7 +76,7 @@ consumer() {
 
 # Checks that the program stack_count in the folder $1 records the shared library by its name.
 records_name() {
-    exe=$(find "$1" -name stack_count -type f 2> /dev/null | head -n 1)
+    exe=$(find "$1" \( -name stack_count -o -name stack_count.exe \) -type f 2> /dev/null | head -n 1)
     if [ -z "$exe" ]; then
         return 1
     fi
@@ -116,15 +116,19 @@ result "install" $?
 
 # Every system library that cargo printed must be in the list of CMakeLists.txt. The names are compared without their
 # folders and without the `-framework ` word.
-listed=$(tr ';' '\n' < "$work/sdrkit-build/sdrkit-system-libraries.txt" 2> /dev/null | sed 's|^.*/||; s|^-framework ||')
+# On Windows a name may carry `.lib` and differ in case; both are removed before the comparison.
+plain() { sed 's|^.*[/\\]||; s|^-framework ||; s|\.[Ll][Ii][Bb]$||' | tr 'A-Z' 'a-z'; }
+listed=$(tr ';' '\n' < "$work/sdrkit-build/sdrkit-system-libraries.txt" 2> /dev/null | plain)
 printed=$(sed -n 's/^set(_sdrkit_system_libraries "\(.*\)")$/\1/p' "$pkg/lib/cmake/sdrkit/sdrkitConfig.cmake" |
-    tr ';' '\n' | sed 's|^-framework ||')
+    tr ';' '\n' | plain)
 missing=""
 for item in $printed; do
     if ! echo "$listed" | grep -qx "$item"; then missing="$missing $item"; fi
 done
 if [ -n "$missing" ]; then
     echo "system libraries that cargo printed and CMakeLists.txt does not list:$missing" > "$work/system-libraries.log"
+    cat "$work/system-libraries.log"
+    echo "CMakeLists.txt lists: $(echo $listed)"
 fi
 result "system libraries" "$([ -z "$missing" ] && echo 0 || echo 1)"
 
