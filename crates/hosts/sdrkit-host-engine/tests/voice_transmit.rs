@@ -71,9 +71,14 @@ fn tone_power(x: &[f32], rate: f64, hz: f64) -> f64 {
     (re * re + im * im) / (x.len() as f64).powi(2)
 }
 
+/// The tests of this file run one after the other: no transmission of another test takes the cores of the one that
+/// runs.
+static ALONE: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 /// Runs `f` with an engine, a fake board that transmits, the transmit switch on, and a session of the general stack on
 /// the board that has asked for host audio at 48 kHz.
 fn with_general(f: impl FnOnce(&Engine, &FakeIiod, RadioId, SessionId)) {
+    let _alone = ALONE.lock().unwrap_or_else(|p| p.into_inner());
     let net = FakeTransport::new();
     let srv = FakeIiod::start_on(
         net.clone(),
@@ -207,6 +212,7 @@ fn host_audio_goes_out(e: &Engine, srv: &FakeIiod, r: RadioId, s: SessionId) {
 
     // The host writes a tone of 1 kHz in real time, 10 ms at a time, for 1.5 s with the key down.
     ptt(e, session, true);
+    let key_down = Instant::now();
     let start = Instant::now();
     let mut n = 0_u64;
     while start.elapsed() < Duration::from_millis(1500) {
@@ -221,6 +227,7 @@ fn host_audio_goes_out(e: &Engine, srv: &FakeIiod, r: RadioId, s: SessionId) {
         std::thread::sleep(Duration::from_millis(2));
     }
     ptt(e, session, false);
+    let key_down = key_down.elapsed().as_secs_f64();
 
     let mut events = Vec::new();
     let burst = wait_for(T, || {
@@ -251,8 +258,12 @@ fn host_audio_goes_out(e: &Engine, srv: &FakeIiod, r: RadioId, s: SessionId) {
     let samples = burst.fields.get(&BURST_SAMPLES).unwrap() as f64;
     let tx_rate = number(e, OwnerRef::Radio(r), "rate_hz");
     assert!(tx_rate > 0.0);
+    // The time on the air is the time that the key was down, less the start of the speech and plus its lead and end.
     let seconds = samples / tx_rate;
-    assert!((1.4..2.0).contains(&seconds), "{seconds} s on the air");
+    assert!(
+        (key_down - 0.1..key_down + 0.5).contains(&seconds),
+        "{seconds} s on the air for {key_down} s with the key down"
+    );
 
     // What the radio got: the frequency of the carrier follows the tone.
     let raw = srv.board.tx_bytes.lock().unwrap().clone();

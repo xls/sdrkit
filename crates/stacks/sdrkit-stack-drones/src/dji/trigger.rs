@@ -8,8 +8,8 @@ use super::droneid::{self, BurstDecode, BurstReceiver, FS, NFFT};
 use sdrkit_algo_dsp::decim::Decimator;
 use sdrkit_algo_dsp::meter::power_to_db;
 use sdrkit_algo_dsp::nco::Nco;
-use sdrkit_algo_dsp::resample::{resample_span, Resampler};
-use sdrkit_algo_modem::correlate::{SampleSync, SyncPeak};
+use sdrkit_algo_dsp::resample::{resample_span, SpanResampler};
+use sdrkit_algo_modem::correlate::{SampleSyncSet, SyncPeak};
 use sdrkit_core::Complex32;
 use std::ops::Range;
 
@@ -69,55 +69,15 @@ struct Channel {
     offset_hz: f64,
     nco: Option<Nco>,
     dec: Decimator<Complex32>,
-    sync: [SampleSync; 2],
+    /// The correlators of the two symbols, on one forward FFT.
+    sync: SampleSyncSet,
     waiting: [Vec<SyncPeak>; 2],
     on: Range<usize>,
     low: Vec<Complex32>,
-    peaks: Vec<SyncPeak>,
+    /// The peaks of each symbol in the samples searched last.
+    peaks: [Vec<SyncPeak>; 2],
     /// Decimated samples searched so far.
     fed: u64,
-}
-
-/// Resamples the samples of one burst from the capture rate to 15.36 Msps with buffers that it keeps.
-struct BurstResampler {
-    r: Resampler<Complex32>,
-    ratio: f64,
-    input: Vec<Complex32>,
-    y: Vec<Complex32>,
-}
-
-impl BurstResampler {
-    fn new(rate: f64) -> Option<BurstResampler> {
-        // Room for one burst with its margins at the capture rate, and for the filter delay.
-        let room = (rate * 1.5e-3) as usize + 4096;
-        Some(BurstResampler {
-            r: Resampler::new(rate, FS).ok()?,
-            ratio: FS / rate,
-            input: Vec::with_capacity(room),
-            y: Vec::with_capacity(room),
-        })
-    }
-
-    /// Output sample `j` of `out` is `x` at input time `j / ratio`. The first and last samples are held beyond the ends.
-    fn run(&mut self, x: &[Complex32], out: &mut Vec<Complex32>) {
-        out.clear();
-        let (Some(&first), Some(&last)) = (x.first(), x.last()) else {
-            return;
-        };
-        self.r.reset();
-        let d = self.r.delay();
-        let pad = d.ceil() as usize + 16;
-        self.input.clear();
-        self.input.resize(pad, first);
-        self.input.extend_from_slice(x);
-        self.input
-            .resize(self.input.len() + pad + 2 * d.ceil() as usize, last);
-        self.y.clear();
-        self.r.process(&self.input, &mut self.y);
-        let skip = ((pad as f64 + d) * self.ratio).round() as usize;
-        let n = (x.len() as f64 * self.ratio).floor() as usize;
-        out.extend(self.y.iter().skip(skip).take(n));
-    }
 }
 
 /// The pair trigger of a capture.
@@ -134,7 +94,8 @@ pub struct PairTrigger {
     pending: Vec<Pending>,
     pairs: u64,
     rx: BurstReceiver,
-    resampler: Option<BurstResampler>,
+    /// From the capture rate to 15.36 Msps, with room for one burst with its margins.
+    resampler: Option<SpanResampler>,
     mixed: Vec<Complex32>,
     span: Vec<Complex32>,
     burst: Vec<Complex32>,
@@ -202,17 +163,18 @@ impl PairTrigger {
                 let (t600, at) = template(rate, factor, 0, search_hz - offset_hz);
                 let (t147, _) = template(rate, factor, 1, search_hz - offset_hz);
                 phase = at;
-                let fft = SEARCH_FFT.max((2 * t600.len()).next_power_of_two());
-                let sync = |t: &[Complex32]| SampleSync::new(t, fft, &[0], PAIR_THRESHOLD).ok();
+                let longest = t600.len().max(t147.len());
+                let fft = SEARCH_FFT.max((2 * longest).next_power_of_two());
+                let sync = SampleSyncSet::new(&[&t600, &t147], fft, &[0], PAIR_THRESHOLD).ok()?;
                 Some(Channel {
                     offset_hz,
                     nco: (search_hz != 0.0).then(|| Nco::new(rate, -search_hz)),
                     dec: decimator(rate, factor),
-                    sync: [sync(&t600)?, sync(&t147)?],
+                    sync,
                     waiting: [Vec::with_capacity(WAITING), Vec::with_capacity(WAITING)],
                     on: droneid::visible_carriers(offset_hz, EDGE * rate),
                     low: Vec::with_capacity(1 << 14),
-                    peaks: Vec::with_capacity(64),
+                    peaks: [Vec::with_capacity(64), Vec::with_capacity(64)],
                     fed: 0,
                 })
             })
@@ -230,7 +192,10 @@ impl PairTrigger {
             pending: Vec::with_capacity(PENDING),
             pairs: 0,
             rx: BurstReceiver::default(),
-            resampler: BurstResampler::new(rate),
+            // Room for one burst with its margins at the capture rate.
+            resampler: SpanResampler::new(rate, FS)
+                .ok()
+                .map(|r| r.with_room((rate * 1.5e-3) as usize + 4096)),
             mixed: Vec::with_capacity((rate * 4e-3) as usize / 8 + 1),
             span: Vec::with_capacity((rate * 1.2e-3) as usize),
             burst: Vec::with_capacity(16_384),
@@ -281,11 +246,11 @@ impl PairTrigger {
                 }
                 None => ch.dec.process(x, &mut ch.low),
             }
+            ch.peaks.iter_mut().for_each(Vec::clear);
+            ch.sync.process(&ch.low, &mut ch.peaks);
             for r in 0..2 {
-                ch.peaks.clear();
-                ch.sync[r].process(&ch.low, &mut ch.peaks);
-                for i in 0..ch.peaks.len() {
-                    let p = ch.peaks[i];
+                for i in 0..ch.peaks[r].len() {
+                    let p = ch.peaks[r][i];
 
                     // The other symbol of this peak, if it waits.
                     let other = &ch.waiting[1 - r];
@@ -316,7 +281,7 @@ impl PairTrigger {
             // A correlator reports a peak up to one FFT frame and one template after its samples. A peak that waited
             // longer than that and the pair spacing can get no partner.
             ch.fed += ch.low.len() as u64;
-            let horizon = (spacing + window) as u64 + 2 * ch.sync[0].fft_size() as u64;
+            let horizon = (spacing + window) as u64 + 2 * ch.sync.fft_size() as u64;
             let fed = ch.fed;
             for w in &mut ch.waiting {
                 w.retain(|p| p.index + horizon >= fed);

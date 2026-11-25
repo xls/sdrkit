@@ -14,7 +14,7 @@ use sdrkit_algo_dsp::linalg::LeastSquares;
 use sdrkit_algo_dsp::loopfilter::{LoopFilter, PhaseAcc};
 use sdrkit_algo_dsp::peak::{candan, line_fit_uniform, log_parabolic};
 use sdrkit_algo_dsp::pulse::{taps_into, Norm, PulseTable, Shape};
-use sdrkit_algo_dsp::resample::FractionalResampler;
+use sdrkit_algo_dsp::resample::{FractionalResampler, SpanResampler};
 use sdrkit_algo_dsp::ring::{DelayLine, SampleRing};
 use sdrkit_algo_dsp::spectrum::{Scaling, Welch};
 use sdrkit_algo_dsp::stats::{quantile_f64, WindowSum};
@@ -273,4 +273,17 @@ fn steady_state_paths_do_not_allocate() {
         }
     });
     assert_eq!(n, 0, "fractional resampler");
+
+    // A span resampler with room for its longest span, from its first span on.
+    let x: Vec<Complex32> = (0..30_000)
+        .map(|i| Complex32::new((i as f32 * 0.01).sin(), 0.0))
+        .collect();
+    let mut sr = SpanResampler::new(20e6, 15.36e6).unwrap().with_room(30_000);
+    let mut out = Vec::with_capacity(30_000);
+    let n = count(|| {
+        for i in 0..100 {
+            sr.run(&x[i..i + 20_000 + 97 * i], &mut out);
+        }
+    });
+    assert_eq!(n, 0, "span resampler");
 }

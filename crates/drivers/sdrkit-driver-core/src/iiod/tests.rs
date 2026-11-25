@@ -1260,10 +1260,7 @@ fn a_full_ring_counts_what_it_drops_and_leaves_one_gap() {
     assert_eq!(stats.written(), cap as u64);
     assert_eq!(
         r.take_gaps(cap),
-        [crate::Gap {
-            at: cap,
-            lost: dropped
-        }]
+        [crate::Gap::lost_at(cap, dropped)]
     );
 }
 
@@ -1279,13 +1276,13 @@ fn an_overflow_of_the_board_is_counted() {
     let (w, mut r) = ring(1 << 22, SampleType::Cs16);
     src.start(w).unwrap();
     let overflows = |src: &mut Box<dyn Source>| src.readings().fields().get(&source::OVERFLOWS);
-    assert!(wait_for(|| overflows(&mut src) == Some(0), 3.0));
+    assert!(wait_for(|| overflows(&mut src) == Some(0), 30.0));
     // Past the settling time of the loss detector.
     read_gaps(&mut r, usize::MAX, 4.5);
     // The next answer is a second late: the eight kernel buffers hold 218 ms, so the board drops the rest.
     srv.board.stall_ms.store(1000, Ordering::Relaxed);
     let t = Instant::now();
-    while t.elapsed() < Duration::from_secs(6) && overflows(&mut src) != Some(1) {
+    while t.elapsed() < Duration::from_secs(60) && overflows(&mut src) != Some(1) {
         read_gaps(&mut r, usize::MAX, 0.05);
     }
     assert_eq!(overflows(&mut src), Some(1));

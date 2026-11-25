@@ -15,6 +15,7 @@ mod engine_owner;
 mod error;
 mod feed;
 mod graph_net;
+mod hop;
 mod host;
 mod mix;
 mod owners;
@@ -154,9 +155,9 @@ impl std::fmt::Debug for Setup {
 
 /// The owners of the engine and the order of their locks.
 ///
-/// Lock order, from first to last: the engine owner; a table of handles (radios, sessions or followers); one owner (a
-/// kind, a radio, the control state of a session, or a service); the run state of that same owner (the receiver of a
-/// session, the feed of a radio). A lock is only taken after the locks before it in this order. The control thread also
+/// Lock order, from first to last: the engine owner; `hop_moves`; a table of handles (radios, sessions, followers or
+/// hops); one owner (a kind, a radio, the control state of a session, or a service); the run state of that same owner
+/// (the receiver of a session, the feed of a radio). A lock is only taken after the locks before it in this order. The control thread also
 /// holds the control state of one session while it steps the scanner on that session. A session thread holds its run state
 /// and only tries its control state, so it never waits for the host.
 pub(crate) struct Shared {
@@ -196,6 +197,10 @@ pub(crate) struct Shared {
     sessions: Mutex<Slots<Session>>,
     services: Services,
     followers: Mutex<Vec<Follower>>,
+    /// The hops of the sessions: at most one on a radio.
+    hops: Mutex<Vec<hop::Hop>>,
+    /// Held while a hop moves its radio or ends, so that a hop that ends does not move its radio again.
+    hop_moves: Mutex<()>,
     /// The session that the scanner tunes, and what it ran when the scan started.
     scan_home: Mutex<Option<ScanHome>>,
     /// The count of the last spectrum frame that the scan got, and its bins.
@@ -217,7 +222,8 @@ pub(crate) struct Shared {
     /// The ticks that the control thread has completed, and the signal of each.
     ticks: Mutex<u64>,
     ticked: Condvar,
-    wake: Condvar,
+    /// Wakes the control thread before its tick is due. The threads of the radios hold it too.
+    wake: Arc<Condvar>,
 }
 
 /// A feed that the host writes.
@@ -1157,6 +1163,8 @@ impl Engine {
             sessions: Mutex::default(),
             services,
             followers: Mutex::default(),
+            hops: Mutex::default(),
+            hop_moves: Mutex::default(),
             scan_home: Mutex::default(),
             scan_spectrum: Mutex::default(),
             sweep_demand: Mutex::default(),
@@ -1170,7 +1178,7 @@ impl Engine {
             stop: Mutex::new(false),
             ticks: Mutex::new(0),
             ticked: Condvar::new(),
-            wake: Condvar::new(),
+            wake: Arc::new(Condvar::new()),
         });
         let station = shared.station();
         *lock(&shared.signal_station) = station;
@@ -2212,7 +2220,11 @@ impl Shared {
                 if after.to_bits() != before.to_bits() {
                     lock(&self.scan_home).take_if(|h| h.session == id);
                     lock(&s.control).operator.set_frequency(after);
-                    if let Err(e) = self.drop_stack_rate(&s).and_then(|()| self.move_radio(&s)) {
+                    // A frequency that the host set ends a hop of the session.
+                    let moved = self.end_hop_by(id, || {
+                        self.drop_stack_rate(&s).and_then(|()| self.move_radio(id, &s))
+                    });
+                    if let Err(e) = moved {
                         self.log(format!("{}: {e}", session_key(id)));
                     }
                 }
@@ -2517,7 +2529,7 @@ impl Shared {
             ..self.context()
         };
         let feed = Arc::new(Feed::new(live, Arc::clone(self.components.catalog()), ctx));
-        let radio = Radio::start(open, address, feed, auto_rate)?;
+        let radio = Radio::start(open, address, feed, auto_rate, Arc::clone(&self.wake))?;
         signal.keep();
         let (d, a) = (radio.driver, radio.address.clone());
         let id = RadioId::new(lock(&self.radios).insert(Arc::new(radio)));
@@ -2725,6 +2737,7 @@ impl Shared {
         let s = self
             .session(id)
             .ok_or(EngineError::NoSuchOwner(OwnerRef::Session(id)))?;
+        self.end_hop(id);
         s.stop();
         s.link.feed.unsubscribe(id.to_u64());
         set_state(&mut self.engine.lock(), id, SessionState::Stopped);
@@ -2865,6 +2878,7 @@ impl Shared {
         self.give_records();
         self.step_devices(now);
         self.step_shares(now);
+        self.step_hops();
         self.close_ended();
         self.expire_followers(now);
         if !work.tick.problems.is_empty() {

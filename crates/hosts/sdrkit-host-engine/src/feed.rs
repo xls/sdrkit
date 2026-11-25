@@ -2,6 +2,7 @@
 //! sessions by reference, and runs the derivations that its sessions ask for (a spectrum) once for all of them.
 
 use sdrkit_core::{Complex32, ConfigError, Output, Values};
+use sdrkit_driver_core::Gap;
 use sdrkit_graph::{
     no_values, Catalog, Component, ComponentInfo, Format, GraphBuilder, GraphError, Io, Port,
     RunContext, SpectrumSpec, ValidateReport,
@@ -31,9 +32,8 @@ pub(crate) struct Block {
     len: usize,
     pub(crate) rate_hz: f64,
     pub(crate) centre_hz: f64,
-    /// The places where samples are missing: the samples of the block before the place, and the count of missing
-    /// samples.
-    gaps: Vec<(usize, u64)>,
+    /// The places where samples are missing, in order. [`Gap::at`] is the count of samples of the block before the place.
+    gaps: Vec<Gap>,
     /// When the feed sent the block.
     pub(crate) sent: Option<std::time::Instant>,
 }
@@ -44,13 +44,13 @@ impl Block {
     }
 
     /// The places where samples are missing, in order.
-    pub(crate) fn gaps(&self) -> &[(usize, u64)] {
+    pub(crate) fn gaps(&self) -> &[Gap] {
         &self.gaps
     }
 
     /// A block of `iq` with the gaps `gaps`, for tests.
     #[cfg(test)]
-    pub(crate) fn of(iq: &[Complex32], gaps: &[(usize, u64)]) -> Block {
+    pub(crate) fn of(iq: &[Complex32], gaps: &[Gap]) -> Block {
         Block {
             iq: iq.to_vec(),
             len: iq.len(),
@@ -367,14 +367,14 @@ impl Feed {
         self.deliver_gaps(rate_hz, centre_hz, host, |iq, _| fill(iq))
     }
 
-    /// [`Feed::deliver`] for a source that knows where samples are missing: `fill` also writes each such place as the
-    /// samples of the block before it and the count of missing samples.
+    /// [`Feed::deliver`] for a source that knows where samples are missing: `fill` also writes each such place, in order,
+    /// with [`Gap::at`] the samples of the block before it.
     pub(crate) fn deliver_gaps(
         &self,
         rate_hz: f64,
         centre_hz: f64,
         host: bool,
-        fill: impl FnOnce(&mut Vec<Complex32>, &mut Vec<(usize, u64)>) -> usize,
+        fill: impl FnOnce(&mut Vec<Complex32>, &mut Vec<Gap>) -> usize,
     ) -> Result<usize, Undelivered> {
         let mut late = lock(&self.late);
         let mut guard = lock(&self.run);

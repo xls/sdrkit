@@ -1,6 +1,9 @@
 //! A session asks for host audio while its sender keeps it, whatever command started the transmission: the FM
 //! broadcast sender and the TV sender after `start`, until `stop`. A sender that takes no host audio never asks. The
 //! host of these tests writes audio only while the session asks for it, and the tone of the audio is on the air.
+//!
+//! The fake radio plays its transmit samples at the sample rate, as a radio does, so a sender must make its samples in
+//! real time. The tests run one after the other: no sender of another test takes the cores of the one that runs.
 
 mod common;
 
@@ -14,6 +17,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 const T: f64 = 20.0;
+
+/// The tests of this file run one after the other.
+static ALONE: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 /// The field `session.audio_in_wanted` of session `s`.
 fn wanted(e: &Engine, s: SessionId) -> bool {
@@ -62,6 +68,7 @@ fn invoke(e: &Engine, s: SessionId, key: &str) -> bool {
 /// Runs `f` with an engine of every stack, a fake radio that transmits, the transmit switch on, and a session of
 /// stack `stack` on the radio, with the settings a sender needs to start.
 fn with_stack(stack: &str, f: impl FnOnce(&Engine, &FakeIiod, RadioId, SessionId)) {
+    let _alone = ALONE.lock().unwrap_or_else(|p| p.into_inner());
     let net = FakeTransport::new();
     let srv = FakeIiod::start_on(
         net.clone(),

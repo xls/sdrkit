@@ -145,55 +145,32 @@ pub struct SyncPeak {
     pub value: Complex32,
 }
 
-/// FFT fast correlation of a complex template over a stream, with frequency hypotheses (module documentation).
-pub struct SampleSync {
+/// One template of a correlator: its conjugate spectrum, its energy, the frequency hypotheses, the threshold and the peak
+/// picker, with the best hypothesis at each position of a frame.
+struct Template {
     l: usize,
-    n: usize,
-    hop: usize,
     tspec: Vec<Complex32>,
     et: f64,
     shifts: Vec<i32>,
-    fwd: Fft,
-    inv: Fft,
-    buf: Vec<Complex32>,
-    fill: usize,
-    base: u64,
-    spec: Vec<Complex32>,
-    work: Vec<Complex32>,
-    prefix: Vec<f64>,
     best: Vec<(f32, u16, Complex32)>,
     threshold: f32,
     floor_ratio: f32,
     picker: Picker<(u16, Complex32)>,
 }
 
-impl std::fmt::Debug for SampleSync {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("SampleSync")
-            .field("template", &self.l)
-            .field("fft_size", &self.n)
-            .field("shifts", &self.shifts)
-            .field("threshold", &self.threshold)
-            .finish()
-    }
-}
-
-impl SampleSync {
-    /// A correlator for `template` (at least 2 samples, some energy), with FFTs of `fft_size` points (a power of two, at least twice
-    /// the template), the frequency hypotheses `shifts` in bins (each below `fft_size / 2` in size; at least one, at most 256), and a
-    /// metric threshold in `(0, 1]`. Peaks closer than the template length to a larger one are suppressed.
-    pub fn new(
+impl Template {
+    /// The template `template` for FFTs of `fft_size` points made by `fwd`, with the hypotheses `shifts` and the
+    /// threshold `threshold` ([`SampleSync::new`] gives the limits).
+    fn new(
         template: &[Complex32],
         fft_size: usize,
+        fwd: &mut Fft,
         shifts: &[i32],
         threshold: f32,
     ) -> Result<Self, ModemError> {
         let l = template.len();
         if l < 2 {
             return Param::Template.at_least(2.0, l as f64);
-        }
-        if !fft_size.is_power_of_two() || fft_size > 1 << 20 {
-            return Param::FftSize.not_allowed(fft_size as f64);
         }
         if fft_size < 2 * l {
             return Param::FftSize.conflict(Param::Template);
@@ -221,97 +198,91 @@ impl SampleSync {
         if et <= 0.0 {
             return Param::Template.degenerate();
         }
-        let mut fwd = Fft::forward(fft_size);
-        let inv = Fft::inverse(fft_size);
         let mut tspec = vec![Complex32::default(); fft_size];
         tspec[..l].copy_from_slice(template);
         fwd.process(&mut tspec);
         for v in tspec.iter_mut() {
             *v = v.conj();
         }
-        let hop = fft_size - l + 1;
-        Ok(SampleSync {
+        Ok(Template {
             l,
-            n: fft_size,
-            hop,
             tspec,
             et,
             shifts: shifts.to_vec(),
-            fwd,
-            inv,
-            buf: vec![Complex32::default(); fft_size],
-            fill: 0,
-            base: 0,
-            spec: vec![Complex32::default(); fft_size],
-            work: vec![Complex32::default(); fft_size],
-            prefix: vec![0.0; fft_size + 1],
-            best: vec![(0.0, 0, Complex32::default()); hop],
+            best: Vec::new(),
             threshold,
             floor_ratio: 0.0,
             picker: Picker::new(l as u64),
         })
     }
 
-    /// Also requires every peak to reach `ratio` times the mean metric of its FFT frame (0 turns this off). Errors unless finite and
-    /// at least 0.
-    pub fn with_floor_ratio(mut self, ratio: f32) -> Result<Self, ModemError> {
-        if !(ratio >= 0.0 && ratio.is_finite()) {
-            return Param::FloorRatio.at_least(0.0, ratio);
+    fn to_peak(&self, n: usize, (idx, v, off, (si, c)): Picked<(u16, Complex32)>) -> SyncPeak {
+        let shift = self.shifts[si as usize];
+        SyncPeak {
+            index: idx,
+            offset: off as f32,
+            shift,
+            freq: shift as f64 / n as f64,
+            metric: v,
+            value: c,
         }
-        self.floor_ratio = ratio;
-        Ok(self)
+    }
+}
+
+/// The stream side of a correlator: the FFT plans, the frame of samples, its spectrum and the prefix sums of its energy.
+/// Each frame of `n` samples moves on by `hop`.
+struct Frames {
+    n: usize,
+    hop: usize,
+    fwd: Fft,
+    inv: Fft,
+    buf: Vec<Complex32>,
+    fill: usize,
+    base: u64,
+    spec: Vec<Complex32>,
+    work: Vec<Complex32>,
+    prefix: Vec<f64>,
+}
+
+impl Frames {
+    /// The frames of `fft_size` points (a power of two up to 2^20) for `templates`, with the forward plan `fwd`. Each
+    /// template gets room for the best hypothesis at each position of a frame.
+    fn new(fft_size: usize, templates: &mut [Template], fwd: Fft) -> Self {
+        let longest = templates.iter().map(|t| t.l).max().unwrap_or(1);
+        let hop = fft_size - longest + 1;
+        for t in templates.iter_mut() {
+            t.best = vec![(0.0, 0, Complex32::default()); hop];
+        }
+        Frames {
+            n: fft_size,
+            hop,
+            fwd,
+            inv: Fft::inverse(fft_size),
+            buf: vec![Complex32::default(); fft_size],
+            fill: 0,
+            base: 0,
+            spec: vec![Complex32::default(); fft_size],
+            work: vec![Complex32::default(); fft_size],
+            prefix: vec![0.0; fft_size + 1],
+        }
     }
 
-    /// Sets the guard: a peak is suppressed by a larger one within this many samples (the template length by default).
-    pub fn with_guard(mut self, guard: usize) -> Self {
-        self.picker = Picker::new(guard as u64);
-        self
+    /// Checks `fft_size` and returns its forward plan.
+    fn plan(fft_size: usize) -> Result<Fft, ModemError> {
+        if !fft_size.is_power_of_two() || fft_size > 1 << 20 {
+            return Param::FftSize.not_allowed(fft_size as f64);
+        }
+        Ok(Fft::forward(fft_size))
     }
 
-    /// The template length.
-    pub fn template_len(&self) -> usize {
-        self.l
-    }
-
-    /// The FFT size.
-    pub fn fft_size(&self) -> usize {
-        self.n
-    }
-
-    /// New samples consumed per FFT frame (`fft_size - template_len + 1`).
-    pub fn hop(&self) -> usize {
-        self.hop
-    }
-
-    /// The spacing of the frequency hypotheses, in cycles per sample (`1 / fft_size`).
-    pub fn bin(&self) -> f64 {
-        1.0 / self.n as f64
-    }
-
-    /// Forgets the stream: the next sample is index 0.
-    pub fn reset(&mut self) {
+    /// The stream starts again: the next sample is index 0.
+    fn reset(&mut self) {
         self.fill = 0;
         self.base = 0;
-        self.picker.reset();
     }
 
-    /// Correlates the frame in `buf` for one shift into `work` (unnormalised correlation at each position, divided by `n`).
-    fn correlate(&mut self, shift: i32) {
-        let n = self.n;
-        // work[k] = spec[k] tspec[(k - shift) mod n], as two contiguous runs.
-        let s = shift.rem_euclid(n as i32) as usize;
-        let (w_lo, w_hi) = self.work.split_at_mut(s);
-        let (x_lo, x_hi) = self.spec.split_at(s);
-        for ((w, x), t) in w_hi.iter_mut().zip(x_hi).zip(&self.tspec[..n - s]) {
-            *w = x * t;
-        }
-        for ((w, x), t) in w_lo.iter_mut().zip(x_lo).zip(&self.tspec[n - s..]) {
-            *w = x * t;
-        }
-        self.inv.process(&mut self.work);
-    }
-
-    fn frame_prep(&mut self) {
+    /// The spectrum and the energy prefix sums of the frame in `buf`.
+    fn prep(&mut self) {
         self.spec.copy_from_slice(&self.buf);
         self.fwd.process(&mut self.spec);
         self.prefix[0] = 0.0;
@@ -320,10 +291,28 @@ impl SampleSync {
         }
     }
 
+    /// Correlates the frame with template `t` for one shift into `work` (unnormalised correlation at each position, times
+    /// `n`).
+    fn correlate(&mut self, t: &Template, shift: i32) {
+        let n = self.n;
+        // work[k] = spec[k] tspec[(k - shift) mod n], as two contiguous runs.
+        let s = shift.rem_euclid(n as i32) as usize;
+        let (w_lo, w_hi) = self.work.split_at_mut(s);
+        let (x_lo, x_hi) = self.spec.split_at(s);
+        for ((w, x), t) in w_hi.iter_mut().zip(x_hi).zip(&t.tspec[..n - s]) {
+            *w = x * t;
+        }
+        for ((w, x), t) in w_lo.iter_mut().zip(x_lo).zip(&t.tspec[n - s..]) {
+            *w = x * t;
+        }
+        self.inv.process(&mut self.work);
+    }
+
+    /// The normalised metric of template `t` at position `pos` of the frame for the correlation `c`.
     #[inline]
-    fn metric(&self, pos: usize, c: Complex32) -> f32 {
-        let ex = self.prefix[pos + self.l] - self.prefix[pos];
-        let d = ex * self.et;
+    fn metric(&self, t: &Template, pos: usize, c: Complex32) -> f32 {
+        let ex = self.prefix[pos + t.l] - self.prefix[pos];
+        let d = ex * t.et;
         if d > 0.0 {
             ((c.norm_sqr() as f64 / d) as f32).clamp(0.0, 1.0)
         } else {
@@ -331,50 +320,39 @@ impl SampleSync {
         }
     }
 
-    fn run_frame(&mut self, peaks: &mut Vec<SyncPeak>) {
-        self.frame_prep();
+    /// Searches the frame (after [`Frames::prep`]) for template `t` and appends the peaks that became final to `peaks`.
+    fn search(&mut self, t: &mut Template, peaks: &mut Vec<SyncPeak>) {
         let scale = 1.0 / self.n as f32;
-        for b in self.best.iter_mut() {
+        for b in t.best.iter_mut() {
             *b = (0.0, 0, Complex32::default());
         }
-        for si in 0..self.shifts.len() {
-            self.correlate(self.shifts[si]);
+        for si in 0..t.shifts.len() {
+            self.correlate(t, t.shifts[si]);
             for p in 0..self.hop {
                 let c = self.work[p] * scale;
-                let m = self.metric(p, c);
-                if m > self.best[p].0 {
-                    self.best[p] = (m, si as u16, c);
+                let m = self.metric(t, p, c);
+                if m > t.best[p].0 {
+                    t.best[p] = (m, si as u16, c);
                 }
             }
         }
-        let thr = if self.floor_ratio > 0.0 {
-            let mean = self.best.iter().map(|b| b.0).sum::<f32>() / self.hop as f32;
-            self.threshold.max(self.floor_ratio * mean)
+        let thr = if t.floor_ratio > 0.0 {
+            let mean = t.best.iter().map(|b| b.0).sum::<f32>() / self.hop as f32;
+            t.threshold.max(t.floor_ratio * mean)
         } else {
-            self.threshold
+            t.threshold
         };
         for p in 0..self.hop {
-            let (m, si, c) = self.best[p];
-            if let Some(pk) = self.picker.push(self.base + p as u64, m, thr, (si, c)) {
-                peaks.push(self.to_peak(pk));
+            let (m, si, c) = t.best[p];
+            if let Some(pk) = t.picker.push(self.base + p as u64, m, thr, (si, c)) {
+                peaks.push(t.to_peak(self.n, pk));
             }
         }
     }
 
-    fn to_peak(&self, (idx, v, off, (si, c)): Picked<(u16, Complex32)>) -> SyncPeak {
-        let shift = self.shifts[si as usize];
-        SyncPeak {
-            index: idx,
-            offset: off as f32,
-            shift,
-            freq: shift as f64 / self.n as f64,
-            metric: v,
-            value: c,
-        }
-    }
-
-    /// Streaming: takes any number of samples and appends the peaks that became final to `peaks`. Non-finite samples count as 0.
-    pub fn process(&mut self, x: &[Complex32], peaks: &mut Vec<SyncPeak>) {
+    /// Takes the samples of `x` into frames; `frame` runs on each full frame after [`Frames::prep`]. Non-finite samples
+    /// count as 0.
+    fn stream(&mut self, x: &[Complex32], mut frame: impl FnMut(&mut Frames)) {
         let mut i = 0;
         while i < x.len() {
             let take = (self.n - self.fill).min(x.len() - i);
@@ -391,19 +369,108 @@ impl SampleSync {
             self.fill += take;
             i += take;
             if self.fill == self.n {
-                self.run_frame(peaks);
+                self.prep();
+                frame(self);
                 self.buf.copy_within(self.hop.., 0);
-                self.fill = self.l - 1;
+                self.fill = self.n - self.hop;
                 self.base += self.hop as u64;
             }
         }
+    }
+}
+
+/// FFT fast correlation of a complex template over a stream, with frequency hypotheses (module documentation).
+pub struct SampleSync {
+    f: Frames,
+    t: Template,
+}
+
+impl std::fmt::Debug for SampleSync {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SampleSync")
+            .field("template", &self.t.l)
+            .field("fft_size", &self.f.n)
+            .field("shifts", &self.t.shifts)
+            .field("threshold", &self.t.threshold)
+            .finish()
+    }
+}
+
+impl SampleSync {
+    /// A correlator for `template` (at least 2 samples, some energy), with FFTs of `fft_size` points (a power of two, at least twice
+    /// the template), the frequency hypotheses `shifts` in bins (each below `fft_size / 2` in size; at least one, at most 256), and a
+    /// metric threshold in `(0, 1]`. Peaks closer than the template length to a larger one are suppressed.
+    pub fn new(
+        template: &[Complex32],
+        fft_size: usize,
+        shifts: &[i32],
+        threshold: f32,
+    ) -> Result<Self, ModemError> {
+        if template.len() < 2 {
+            return Param::Template.at_least(2.0, template.len() as f64);
+        }
+        let mut fwd = Frames::plan(fft_size)?;
+        let mut t = [Template::new(
+            template, fft_size, &mut fwd, shifts, threshold,
+        )?];
+        let f = Frames::new(fft_size, &mut t, fwd);
+        let [t] = t;
+        Ok(SampleSync { f, t })
+    }
+
+    /// Also requires every peak to reach `ratio` times the mean metric of its FFT frame (0 turns this off). Errors unless finite and
+    /// at least 0.
+    pub fn with_floor_ratio(mut self, ratio: f32) -> Result<Self, ModemError> {
+        if !(ratio >= 0.0 && ratio.is_finite()) {
+            return Param::FloorRatio.at_least(0.0, ratio);
+        }
+        self.t.floor_ratio = ratio;
+        Ok(self)
+    }
+
+    /// Sets the guard: a peak is suppressed by a larger one within this many samples (the template length by default).
+    pub fn with_guard(mut self, guard: usize) -> Self {
+        self.t.picker = Picker::new(guard as u64);
+        self
+    }
+
+    /// The template length.
+    pub fn template_len(&self) -> usize {
+        self.t.l
+    }
+
+    /// The FFT size.
+    pub fn fft_size(&self) -> usize {
+        self.f.n
+    }
+
+    /// New samples consumed per FFT frame (`fft_size - template_len + 1`).
+    pub fn hop(&self) -> usize {
+        self.f.hop
+    }
+
+    /// The spacing of the frequency hypotheses, in cycles per sample (`1 / fft_size`).
+    pub fn bin(&self) -> f64 {
+        1.0 / self.f.n as f64
+    }
+
+    /// Forgets the stream: the next sample is index 0.
+    pub fn reset(&mut self) {
+        self.f.reset();
+        self.t.picker.reset();
+    }
+
+    /// Streaming: takes any number of samples and appends the peaks that became final to `peaks`. Non-finite samples count as 0.
+    pub fn process(&mut self, x: &[Complex32], peaks: &mut Vec<SyncPeak>) {
+        let t = &mut self.t;
+        self.f.stream(x, |f| f.search(t, peaks));
     }
 
     /// Reports the peak still waiting for its guard to pass (at the end of a capture). Positions whose window has not yet filled an
     /// FFT frame are not searched; feed `fft_size` zeros first to flush them.
     pub fn finish(&mut self, peaks: &mut Vec<SyncPeak>) {
-        if let Some(pk) = self.picker.finish() {
-            peaks.push(self.to_peak(pk));
+        if let Some(pk) = self.t.picker.finish() {
+            peaks.push(self.t.to_peak(self.f.n, pk));
         }
     }
 
@@ -416,37 +483,176 @@ impl SampleSync {
         shift: i32,
         out: &mut [f32],
     ) -> Result<usize, ModemError> {
-        if x.len() < self.l {
-            return Err(ModemError::InputTooShort { need: self.l });
+        let (l, n) = (self.t.l, self.f.n);
+        if x.len() < l {
+            return Err(ModemError::InputTooShort { need: l });
         }
-        if shift.unsigned_abs() as usize >= self.n / 2 {
-            return Param::Shift.range(-((self.n / 2) as f64), (self.n / 2) as f64, shift as f64);
+        if shift.unsigned_abs() as usize >= n / 2 {
+            return Param::Shift.range(-((n / 2) as f64), (n / 2) as f64, shift as f64);
         }
-        let positions = x.len() - self.l + 1;
+        let positions = x.len() - l + 1;
         if out.len() < positions {
             return Err(ModemError::OutputTooShort { need: positions });
         }
         self.reset();
-        let scale = 1.0 / self.n as f32;
+        let scale = 1.0 / n as f32;
+        let hop = self.f.hop;
         let mut start = 0;
         while start < positions {
-            let end = (start + self.n).min(x.len());
-            self.buf.fill(Complex32::default());
-            for (d, &s) in self.buf.iter_mut().zip(&x[start..end]) {
+            let end = (start + n).min(x.len());
+            let f = &mut self.f;
+            f.buf.fill(Complex32::default());
+            for (d, &s) in f.buf.iter_mut().zip(&x[start..end]) {
                 *d = if s.re.is_finite() && s.im.is_finite() {
                     s
                 } else {
                     Complex32::default()
                 };
             }
-            self.frame_prep();
-            self.correlate(shift);
-            for p in 0..self.hop.min(positions - start) {
-                out[start + p] = self.metric(p, self.work[p] * scale);
+            f.prep();
+            f.correlate(&self.t, shift);
+            for p in 0..hop.min(positions - start) {
+                out[start + p] = f.metric(&self.t, p, f.work[p] * scale);
             }
-            start += self.hop;
+            start += hop;
         }
         Ok(positions)
+    }
+}
+
+/// FFT fast correlation of several complex templates over one stream: each frame of the stream has one forward FFT that
+/// every template shares, then one inverse FFT per template and hypothesis. Each template finds its peaks as a
+/// [`SampleSync`] of its own does; templates of one length find the same peaks, bit for bit. A frame moves on by
+/// `fft_size - L + 1` samples for the longest template of `L` samples.
+///
+/// ```
+/// use sdrkit_algo_modem::correlate::SampleSyncSet;
+/// use sdrkit_algo_modem::Complex32;
+/// let chip = |k: usize, a: usize| Complex32::new(if (k * k + a * k) % 7 < 3 { 1.0 } else { -1.0 }, 0.0);
+/// let a: Vec<Complex32> = (0..31).map(|k| chip(k, 3)).collect();
+/// let b: Vec<Complex32> = (0..31).map(|k| chip(k, 5)).collect();
+/// let mut x = vec![Complex32::default(); 1000];
+/// x[300..331].copy_from_slice(&a);
+/// x[600..631].copy_from_slice(&b);
+/// let mut s = SampleSyncSet::new(&[&a, &b], 128, &[0], 0.8).unwrap();
+/// let mut peaks = [Vec::new(), Vec::new()];
+/// s.process(&x, &mut peaks);
+/// s.finish(&mut peaks);
+/// assert_eq!(peaks[0].iter().map(|p| p.index).collect::<Vec<_>>(), [300]);
+/// assert_eq!(peaks[1].iter().map(|p| p.index).collect::<Vec<_>>(), [600]);
+/// ```
+pub struct SampleSyncSet {
+    f: Frames,
+    t: Vec<Template>,
+}
+
+impl std::fmt::Debug for SampleSyncSet {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SampleSyncSet")
+            .field("templates", &self.t.iter().map(|t| t.l).collect::<Vec<_>>())
+            .field("fft_size", &self.f.n)
+            .finish()
+    }
+}
+
+impl SampleSyncSet {
+    /// A correlator for `templates` (1 to 64), each as [`SampleSync::new`] takes it, with FFTs of `fft_size` points (at
+    /// least twice the longest template), the same frequency hypotheses `shifts` and the same threshold for each.
+    pub fn new(
+        templates: &[&[Complex32]],
+        fft_size: usize,
+        shifts: &[i32],
+        threshold: f32,
+    ) -> Result<Self, ModemError> {
+        Param::Template.check_count(templates.len(), 1, 64)?;
+        if let Some(short) = templates.iter().find(|t| t.len() < 2) {
+            return Param::Template.at_least(2.0, short.len() as f64);
+        }
+        let mut fwd = Frames::plan(fft_size)?;
+        let mut t = templates
+            .iter()
+            .map(|t| Template::new(t, fft_size, &mut fwd, shifts, threshold))
+            .collect::<Result<Vec<_>, _>>()?;
+        let f = Frames::new(fft_size, &mut t, fwd);
+        Ok(SampleSyncSet { f, t })
+    }
+
+    /// Also requires every peak to reach `ratio` times the mean metric of its template in its FFT frame (0 turns this off).
+    /// Errors unless finite and at least 0.
+    pub fn with_floor_ratio(mut self, ratio: f32) -> Result<Self, ModemError> {
+        if !(ratio >= 0.0 && ratio.is_finite()) {
+            return Param::FloorRatio.at_least(0.0, ratio);
+        }
+        for t in &mut self.t {
+            t.floor_ratio = ratio;
+        }
+        Ok(self)
+    }
+
+    /// Sets the guard of every template: a peak is suppressed by a larger one within this many samples (the length of its
+    /// template by default).
+    pub fn with_guard(mut self, guard: usize) -> Self {
+        for t in &mut self.t {
+            t.picker = Picker::new(guard as u64);
+        }
+        self
+    }
+
+    /// The number of templates.
+    pub fn templates(&self) -> usize {
+        self.t.len()
+    }
+
+    /// The length of template `i`. `None` past the last.
+    pub fn template_len(&self, i: usize) -> Option<usize> {
+        self.t.get(i).map(|t| t.l)
+    }
+
+    /// The FFT size.
+    pub fn fft_size(&self) -> usize {
+        self.f.n
+    }
+
+    /// New samples consumed per FFT frame (`fft_size` less the longest template, plus 1).
+    pub fn hop(&self) -> usize {
+        self.f.hop
+    }
+
+    /// Forgets the stream: the next sample is index 0.
+    pub fn reset(&mut self) {
+        self.f.reset();
+        for t in &mut self.t {
+            t.picker.reset();
+        }
+    }
+
+    /// Streaming: takes any number of samples and appends the peaks of template `i` that became final to `peaks[i]`. A
+    /// template without a list in `peaks` is searched and its peaks are dropped. Non-finite samples count as 0.
+    pub fn process(&mut self, x: &[Complex32], peaks: &mut [Vec<SyncPeak>]) {
+        let ts = &mut self.t;
+        self.f.stream(x, |f| {
+            for (i, t) in ts.iter_mut().enumerate() {
+                match peaks.get_mut(i) {
+                    Some(p) => f.search(t, p),
+                    None => {
+                        let mut none = Vec::new();
+                        f.search(t, &mut none);
+                    }
+                }
+            }
+        });
+    }
+
+    /// Reports the peaks still waiting for their guard to pass (at the end of a capture), each in its list as
+    /// [`SampleSyncSet::process`] does.
+    pub fn finish(&mut self, peaks: &mut [Vec<SyncPeak>]) {
+        for (i, t) in self.t.iter_mut().enumerate() {
+            if let Some(pk) = t.picker.finish() {
+                if let Some(p) = peaks.get_mut(i) {
+                    p.push(t.to_peak(self.f.n, pk));
+                }
+            }
+        }
     }
 }
 
@@ -815,6 +1021,82 @@ mod tests {
         let pos = p.index as f64 + p.offset as f64;
         assert!((pos - (at as f64 - 0.3)).abs() < 0.15, "position {pos}");
         assert!(p.metric > 0.5);
+    }
+
+    #[test]
+    fn a_set_finds_the_peaks_of_separate_correlators_bit_for_bit() {
+        // Two templates of one length and a third shorter one, each hidden twice in noise with a frequency offset.
+        let mut rng = Rng::new(21);
+        let template = |rng: &mut Rng, len: usize| -> Vec<Complex32> {
+            (0..len).map(|_| rng.complex_normal(1.0)).collect()
+        };
+        let ts = [
+            template(&mut rng, 100),
+            template(&mut rng, 100),
+            template(&mut rng, 61),
+        ];
+        let mut x: Vec<Complex32> = (0..20_000).map(|_| rng.complex_normal(0.5)).collect();
+        for (i, at) in [
+            (0, 1_000),
+            (1, 4_321),
+            (2, 9_000),
+            (0, 12_345),
+            (1, 15_000),
+            (2, 17_777),
+        ] {
+            for (k, z) in ts[i].iter().enumerate() {
+                let ph = std::f64::consts::TAU * 2.0 / 512.0 * (at + k) as f64;
+                x[at + k] += z * Complex32::new(ph.cos() as f32, ph.sin() as f32);
+            }
+        }
+        let shifts = [-2, 0, 2];
+        let one = |t: &[Complex32]| -> Vec<SyncPeak> {
+            let mut s = SampleSync::new(t, 512, &shifts, 0.3).unwrap();
+            let mut p = Vec::new();
+            for piece in x.chunks(777) {
+                s.process(piece, &mut p);
+            }
+            s.finish(&mut p);
+            p
+        };
+        let run = |ts: &[&[Complex32]]| -> Vec<Vec<SyncPeak>> {
+            let mut s = SampleSyncSet::new(ts, 512, &shifts, 0.3).unwrap();
+            let mut p = vec![Vec::new(); ts.len()];
+            for piece in x.chunks(777) {
+                s.process(piece, &mut p);
+            }
+            s.finish(&mut p);
+            p
+        };
+        // Templates of one length: the same peaks, to the bit.
+        let same = run(&[&ts[0], &ts[1]]);
+        assert_eq!(same[0], one(&ts[0]));
+        assert_eq!(same[1], one(&ts[1]));
+        assert_eq!(
+            same[0]
+                .iter()
+                .map(|p| (p.index, p.shift))
+                .collect::<Vec<_>>(),
+            [(1_000, 2), (12_345, 2)]
+        );
+        // With a shorter template the frames move on by the hop of the longest: the same places and hypotheses.
+        let mixed = run(&[&ts[0], &ts[1], &ts[2]]);
+        assert_eq!(mixed[..2], same[..]);
+        let alone = one(&ts[2]);
+        let places = |p: &[SyncPeak]| p.iter().map(|p| (p.index, p.shift)).collect::<Vec<_>>();
+        assert_eq!(places(&mixed[2]), places(&alone));
+        assert_eq!(places(&alone), [(9_000, 2), (17_777, 2)]);
+        for (a, b) in mixed[2].iter().zip(&alone) {
+            assert!((a.metric - b.metric).abs() < 1e-4, "{a:?} {b:?}");
+        }
+        // A list for one template only: the others are searched and dropped.
+        let mut s = SampleSyncSet::new(&[&ts[0], &ts[1]], 512, &shifts, 0.3).unwrap();
+        let mut first = [Vec::new()];
+        s.process(&x, &mut first);
+        s.finish(&mut first);
+        assert_eq!(first[0], same[0]);
+        assert!(SampleSyncSet::new(&[], 512, &shifts, 0.3).is_err());
+        assert!(SampleSyncSet::new(&[&ts[0]], 128, &shifts, 0.3).is_err());
     }
 
     #[test]

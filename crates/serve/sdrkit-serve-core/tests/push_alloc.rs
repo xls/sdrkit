@@ -1,6 +1,7 @@
 //! The feeder with 16 clients at 2.4 MS/s, two of which stop reading: a push allocates nothing after the hub is made, while
 //! the two lose chunks, are cut and their rings are retired. Its time per block is measured. Allocations are counted on the
-//! producer thread only, inside `push`; the writers and the fake network allocate on their own threads.
+//! producer thread only, inside `push`; the writers and the fake network allocate on their own threads. The producer goes
+//! no further ahead of the clients that read than half their rings, so they lose nothing at any speed of the machine.
 
 use sdrkit_core::net::{Conn, FakeTransport, Transport};
 use sdrkit_serve_core::{
@@ -113,9 +114,12 @@ fn sixteen_clients_push_without_allocating() {
         )
         .unwrap();
     let stop = Arc::new(AtomicBool::new(false));
+    // The bytes that each client read so far.
+    let read: Arc<Vec<AtomicUsize>> = Arc::new((0..CLIENTS).map(|_| AtomicUsize::new(0)).collect());
     let readers: Vec<_> = (0..CLIENTS)
         .map(|i| {
             let stalled = i < STALLED;
+            let read = read.clone();
             let mut c = net
                 .connect("127.0.0.1", l.addr.port(), false, Duration::from_secs(2))
                 .unwrap();
@@ -130,7 +134,10 @@ fn sixteen_clients_push_without_allocating() {
                 while !stop.load(Ordering::Relaxed) {
                     match c.read(&mut buf) {
                         Ok(0) => break,
-                        Ok(k) => n += k,
+                        Ok(k) => {
+                            n += k;
+                            read[i].store(n, Ordering::Release);
+                        }
                         Err(_) => {}
                     }
                 }
@@ -145,14 +152,33 @@ fn sixteen_clients_push_without_allocating() {
     assert_eq!(hub.snapshot().clients.len(), CLIENTS);
 
     let data: Vec<u8> = (0..2 * PER_BLOCK).map(|i| (i % 251) as u8).collect();
-    let blocks = (secs * rate / PER_BLOCK as f64) as usize;
     let block_time = PER_BLOCK as f64 / rate;
-    let mut times = Vec::with_capacity(blocks);
+    // The producer stays within half a ring of the slowest client that reads: the clients that read never lose a chunk.
+    let ring = hub.snapshot().clients[0].queue_capacity;
+    let ahead = (ring / 2).max(1);
+    let slowest = || {
+        read.iter()
+            .skip(STALLED)
+            .map(|n| n.load(Ordering::Acquire) / (2 * PER_BLOCK))
+            .min()
+            .unwrap_or(0)
+    };
+    let cut_both = || hub.snapshot().clients.len() == CLIENTS - STALLED;
+    // The blocks of 3 s of signal, and on until both stalled clients are cut, and 100 more: pushes run while the two
+    // are cut and their rings are retired.
+    let least = (secs * rate / PER_BLOCK as f64) as usize;
+    let mut times = Vec::with_capacity(least * 4);
+    let mut blocks = 0;
+    let mut after_cut = None;
     let start = Instant::now();
-    for k in 0..blocks {
-        let due = Duration::from_secs_f64(k as f64 * block_time);
-        if let Some(w) = due.checked_sub(start.elapsed()) {
-            std::thread::sleep(w);
+    while blocks < least || after_cut.is_none_or(|at| blocks < at + 100) {
+        assert!(
+            start.elapsed() < Duration::from_secs(120),
+            "the clients stopped reading"
+        );
+        if blocks >= slowest() + ahead {
+            std::thread::sleep(Duration::from_micros(200));
+            continue;
         }
         COUNT_HERE.with(|c| c.set(true));
         let t0 = Instant::now();
@@ -160,9 +186,20 @@ fn sixteen_clients_push_without_allocating() {
         let dt = t0.elapsed();
         COUNT_HERE.with(|c| c.set(false));
         times.push(dt);
+        blocks += 1;
+        if after_cut.is_none() && cut_both() {
+            after_cut = Some(blocks);
+        }
     }
     let allocs = ALLOCS.load(Ordering::Relaxed);
-    std::thread::sleep(Duration::from_millis(300));
+    // The clients that read take every block.
+    let all = blocks * 2 * PER_BLOCK;
+    let took = |n: &AtomicUsize| n.load(Ordering::Acquire) >= all;
+    let done = (0..12_000).any(|_| {
+        std::thread::sleep(Duration::from_millis(5));
+        read.iter().skip(STALLED).all(took)
+    });
+    assert!(done, "the clients that read did not take every block");
     let snap = hub.snapshot();
     let hub_events = hub.take_events();
     stop.store(true, Ordering::Relaxed);
@@ -201,5 +238,5 @@ fn sixteen_clients_push_without_allocating() {
     assert_eq!(snap.pool_misses, 0);
     assert_eq!(cut, STALLED);
     assert_eq!((snap.clients.len(), dropped), (CLIENTS - STALLED, 0));
-    assert!(got[STALLED..].iter().all(|n| *n == blocks * 2 * PER_BLOCK));
+    assert!(got[STALLED..].iter().all(|n| *n == all));
 }

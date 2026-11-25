@@ -79,6 +79,8 @@ which radios can transmit.
 
 | Radio | Address |
 |---|---|
+| RTL-SDR dongle on a USB port of this computer | `usb:rtl:<selector>` |
+| HackRF on a USB port of this computer | `usb:hackrf:<selector>` |
 | PlutoSDR, ANTSDR and other radios with an IIO network daemon | `iiod:<host>` |
 | RTL-SDR through `rtl_tcp` | `rtl_tcp:<host>:<port>` |
 | SDRplay RSP through `rsp_tcp` or SDRconnect | `rsp_tcp:<host>:<port>`, `sdrconnect:<host>:<port>` |
@@ -90,6 +92,22 @@ which radios can transmit.
 | Transceivers with TCI | `tci:<host>:<port>` |
 | A recording (SigMF, WAV or raw IQ) | `file:<path>` |
 | The test signal of a stack, with no radio | `synth:<stack>` |
+
+The selector of a USB radio is empty for the first free device, or a serial number, `#<n>` or `@<bus>-<port path>`.
+`sdrkit devices` lists the USB radios that are attached, without opening one. SDRplay devices are reached through the
+network drivers today: `rsp_tcp`, SDRconnect or SoapyRemote on the computer that has the device.
+
+| System | USB radios |
+|---|---|
+| macOS | Yes, with no setup. |
+| Linux | Yes. A user who is not root needs a udev rule; the kernel television driver of a dongle is detached while the dongle is open. |
+| Windows | Yes. An RTL-SDR dongle must be bound to the WinUSB driver once; a HackRF with recent firmware needs nothing. |
+| Android | Through usbfs. An app without root rights gets a device only as a file descriptor from the system, and the library has no call that takes one yet. |
+| iOS | No. Use a radio that another computer serves. |
+
+Any open radio can also be served to the network: the engine's share sends its samples to `rtl_tcp` and SoapyRemote
+clients beside the stacks that run here. [docs/serving.md](docs/serving.md) has the udev rule, the WinUSB step and the
+share.
 
 ## Quick start
 
@@ -108,6 +126,9 @@ sdrkit stacks                                                         # list the
 sdrkit drivers                                                        # the radio drivers, their addresses, which transmit
 sdrkit run fm --source synth --seconds 10                             # FM on its test signal, with no radio
 sdrkit run fm --source iiod:192.168.2.1 --freq 104.9                  # FM on a PlutoSDR, with sound
+sdrkit devices                                                        # the USB radios that are attached
+sdrkit run fm --source usb:rtl: --freq 104.9                          # FM on the first free RTL-SDR dongle
+sdrkit serve usb:rtl: --freq 104.9 --rate 2.4M --rtl-tcp 1234         # the dongle for rtl_tcp clients on port 1234
 sdrkit run meshtastic --source iiod:192.168.2.1 --freq 919.875 --region AU
 sdrkit play recording.sigmf-meta fm                                   # a recording through the FM stack
 sdrkit-tui --stack fm                                                 # the terminal application
@@ -186,11 +207,12 @@ int main(void) {
 ```sh
 cargo build --release -p sdrkit-host-ffi        # the library; add --target aarch64-apple-ios for iOS
 cc -I crates/hosts/sdrkit-host-ffi/include example.c target/release/libsdrkit.a \
-   -framework AudioToolbox -framework Accelerate -framework Security -framework CoreFoundation
+   -framework AudioToolbox -framework Accelerate -framework Security -framework CoreFoundation -framework IOKit
 ```
 
-The `-framework` options are for Apple platforms: an application there links AudioToolbox, Accelerate, Security and
-CoreFoundation. The C programs in `crates/hosts/sdrkit-host-ffi/tests/` call every part of the API.
+The `-framework` options are for Apple platforms: an application there links AudioToolbox, Accelerate, Security,
+CoreFoundation and, on macOS, IOKit for the USB radios. The C programs in `crates/hosts/sdrkit-host-ffi/tests/` call
+every part of the API.
 
 The folder [`examples/`](examples/README.md) holds small programs in C, C++ and Rust to copy from. `sh tools/package.sh`
 (`tools\package.ps1` on Windows) lays out an installed copy of the library with its headers, a pkg-config file and a
@@ -268,7 +290,8 @@ and needs no change when a stack is added. [docs/stack-interface.md](docs/stack-
 | `crates/svc` | The services: recorder, scanner, memories, message store, watch list, automation, outputs and others |
 | `crates/data` | Band plans by country and region |
 | `crates/stacks` | One crate per family of stacks |
-| `crates/drivers` | `sdrkit-driver-core` (the driver contract, test signal, file, `rtl_tcp`, `iiod`), one crate per other driver, and the driver list |
+| `crates/drivers` | `sdrkit-driver-core` (the driver contract, test signal, file, `rtl_tcp`, `iiod`), `sdrkit-driver-usb` (the USB transport), one crate per other driver (among them `rtlusb` and `hackrf` on USB), and the driver list |
+| `crates/serve` | The share's side of the network: the hub that feeds the clients, and the `rtl_tcp` and SoapyRemote servers |
 | `crates/hosts` | The engine, the list of stacks and components, the C API, the command-line tool, the terminal application |
 | `crates/dev` | Helpers for tests |
 
@@ -300,6 +323,8 @@ the repository: see [docs/testing.md](docs/testing.md).
 - [docs/index.md](docs/index.md): the settings, results, events and commands of each stack and each driver.
 - [docs/building.md](docs/building.md) and [docs/packaging.md](docs/packaging.md): builds and installed copies for
   each system.
+- [docs/serving.md](docs/serving.md): USB radios, their setup on each system, and the share that serves a radio to the
+  network.
 - [docs/benchmarks.md](docs/benchmarks.md): the benchmarks. [docs/schema/](docs/schema): the JSON Schema of the plan
   files.
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to add to the project. [THIRD_PARTY.md](THIRD_PARTY.md): the licences of

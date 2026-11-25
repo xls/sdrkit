@@ -51,9 +51,9 @@ pub struct FakeOpts {
     /// With [`FakeOpts::tx_plays`]: after 100 ms without a transmit transfer, each of the next `.0` transfers takes `.1`
     /// times the time that its buffer plays, as the first transfers to a radio after a pause do.
     pub tx_slow_start: Option<(usize, f64)>,
-    /// The capture device offers its registers (`direct_reg_access`), and a text stream that falls behind by more than its
-    /// kernel buffers overflows: the samples that do not fit are dropped ([`Board::rx_overflowed`]) and the overflow flag
-    /// (bit 2 of 0x80000088) is set until written.
+    /// The capture device offers its registers (`direct_reg_access`), and an answer that [`Board::stall_ms`] makes late
+    /// by more than the kernel buffers hold overflows: the samples that do not fit are dropped ([`Board::rx_overflowed`])
+    /// and the overflow flag (bit 2 of 0x80000088) is set until written.
     pub overflow_reg: bool,
 }
 
@@ -674,8 +674,9 @@ fn serve(c: Box<dyn Conn>, b: &Board, stop: Arc<AtomicBool>, xml: String, o: Fak
                 if stall > 0 {
                     std::thread::sleep(Duration::from_millis(stall));
                 }
-                if o.overflow_reg && !o.fast {
-                    // What the kernel buffers could not hold while the client was late is gone.
+                if o.overflow_reg && !o.fast && stall > 0 {
+                    // What the kernel buffers could not hold while the answer was late is gone. Only a stall that the
+                    // test asked for overflows: a client that a loaded machine slows down loses nothing here.
                     let due = (pace.started.elapsed().as_secs_f64() * rate_of(b)) as u64;
                     let room = u64::from(kbuffers) * samples as u64;
                     let behind = due.saturating_sub(pace.sent + samples as u64);

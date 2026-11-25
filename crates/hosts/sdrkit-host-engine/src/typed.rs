@@ -224,7 +224,7 @@ fn session_shape(tables: u8) -> StackShape {
         &[
             ("session.state", "Where the session is."),
             ("session.samples", "The samples that the receiver was fed."),
-            ("session.dropped", "The samples that the session lost: those that its queue or a stage could not take, and those missing in gaps that its driver marked. The column `lost` of the table of connections shows the places."),
+            ("session.dropped", "The samples that the session lost: those that its queue or a stage could not take, and those that its driver lost in the gaps it marked. A gap made on purpose (a retune that flushes the radio, a step of a hop) is told to the stack and is not counted. The column `lost` of the table of connections shows the places."),
             ("session.events_unlisted", "The events of a type that the catalog of the engine does not list. They are dropped."),
             ("session.problem", "Why the receiver refused its input, or the last setting that it refused."),
             ("session.request_problem", "Why the engine refused the last request of the receiver."),
@@ -244,7 +244,7 @@ fn session_shape(tables: u8) -> StackShape {
             ("session.cores_free", "The cores that were free for the session when it started."),
             ("session.threads", "The threads that run the stack."),
             ("session.stage_behind", "The times that a stage found the queue after it full and waited."),
-            ("session.gaps", "The places where samples are missing that the stack was told of."),
+            ("session.gaps", "The places where samples are missing that the stack was told of, lost or left out on purpose."),
             ("session.load_problem", "Why the session may lose samples: its stack needs more cores than are free."),
             ("session.core_units", "The calibration units per second that one fast core of this device runs."),
             ("session.media_lost", "The media packets and pictures lost because the host did not take them in time. Decoded video frames are kept for half a second."),

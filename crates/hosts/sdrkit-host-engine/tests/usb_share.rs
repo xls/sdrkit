@@ -16,7 +16,7 @@ use sdrkit_core::{
 use sdrkit_driver_core::rtl_tcp::{cmd, command};
 use sdrkit_driver_core::sample::{from_iq, to_iq};
 use sdrkit_driver_core::{DriverError, Unavailable};
-use sdrkit_driver_usb::{BulkItem, FakeUsb, Script, UsbBus, UsbDeviceInfo, UsbId};
+use sdrkit_driver_usb::{FakeUsb, UsbBus, UsbDeviceInfo, UsbId};
 use sdrkit_graph::SampleType;
 use sdrkit_host_engine::{
     split_address, ClientLeftEvent, ClientRow, DeviceArrivedEvent, DeviceLeftEvent, DeviceRow,
@@ -137,37 +137,6 @@ fn set(e: &Engine, r: OwnerRef, key: &str, v: Value) {
     })
     .unwrap()
     .unwrap();
-}
-
-/// The replies of a dongle with an R820T tuner to every read of the driver.
-fn dongle_replies(id: u64) -> String {
-    format!(
-        "out {id} 40 00 00c8 0610 02 -> !stall\n\
-         out {id} 40 00 00c6 0610 00 -> !stall\n\
-         in {id} c0 00 0120 000a 1 -> 09\n\
-         in {id} c0 00 0034 0600 1 -> 69\n\
-         in {id} c0 00 0034 0600 5 -> 69005a0014\n\
-         in {id} c0 00 0034 0600 3 -> 69005a\n\
-         in {id} c0 00 0034 0600 4 -> 69005a00\n"
-    )
-}
-
-const DONGLE: &str = "0bda:2838 bus=\"1\" ports=3 manufacturer=\"Realtek\" product=\"RTL2838UHIDIR\" serial=\"0001\"";
-
-/// A scripted bus with one dongle that streams for some seconds.
-fn dongle_bus() -> FakeUsb {
-    let text = format!(
-        "sdrkit-usb 1\nmode lenient\ndevice 1 {DONGLE}\n{}",
-        dongle_replies(1)
-    );
-    let mut s = Script::parse(&text).unwrap();
-    let data: Vec<u8> = (0..16_384u32).map(|i| (i * 37 % 251) as u8).collect();
-    s.bulk(BulkItem {
-        after: Duration::from_millis(4),
-        repeat: 5000,
-        ..BulkItem::data(UsbId(1), 0x81, data)
-    });
-    FakeUsb::new(s)
 }
 
 /// The rows of the table `devices`: bus position, address, driver, state and radio.

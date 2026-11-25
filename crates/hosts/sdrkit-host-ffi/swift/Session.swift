@@ -21,7 +21,7 @@ public struct SessionFields {
     public var state: State?
     /// The samples that the receiver was fed.
     public var samples: Int64
-    /// The samples that the session lost: those that its queue or a stage could not take, and those missing in gaps that its driver marked. The column `lost` of the table of connections shows the places.
+    /// The samples that the session lost: those that its queue or a stage could not take, and those that its driver lost in the gaps it marked. A gap made on purpose (a retune that flushes the radio, a step of a hop) is told to the stack and is not counted. The column `lost` of the table of connections shows the places.
     public var dropped: Int64
     /// The events of a type that the catalog of the engine does not list. They are dropped.
     public var eventsUnlisted: Int64
@@ -61,7 +61,7 @@ public struct SessionFields {
     public var threads: Int64?
     /// The times that a stage found the queue after it full and waited.
     public var stageBehind: Int64?
-    /// The places where samples are missing that the stack was told of.
+    /// The places where samples are missing that the stack was told of, lost or left out on purpose.
     public var gaps: Int64?
     /// Why the session may lose samples: its stack needs more cores than are free.
     public var loadProblem: String?

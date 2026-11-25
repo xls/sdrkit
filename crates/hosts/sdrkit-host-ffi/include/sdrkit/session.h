@@ -93,7 +93,7 @@ typedef struct sdrkit_session_fields {
   int32_t state;
   // The samples that the receiver was fed.
   int64_t samples;
-  // The samples that the session lost: those that its queue or a stage could not take, and those missing in gaps that its driver marked. The column `lost` of the table of connections shows the places.
+  // The samples that the session lost: those that its queue or a stage could not take, and those that its driver lost in the gaps it marked. A gap made on purpose (a retune that flushes the radio, a step of a hop) is told to the stack and is not counted. The column `lost` of the table of connections shows the places.
   int64_t dropped;
   // The events of a type that the catalog of the engine does not list. They are dropped.
   int64_t events_unlisted;
@@ -165,7 +165,7 @@ typedef struct sdrkit_session_fields {
   int64_t stage_behind;
   // True if `gaps` holds a value.
   bool has_gaps;
-  // The places where samples are missing that the stack was told of.
+  // The places where samples are missing that the stack was told of, lost or left out on purpose.
   int64_t gaps;
   // True if `load_problem` holds a value.
   bool has_load_problem;

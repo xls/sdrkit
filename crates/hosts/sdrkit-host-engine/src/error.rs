@@ -242,6 +242,10 @@ pub enum EngineError {
         /// The kind of request.
         kind: crate::RequestKind,
     },
+    /// Another session steers the radio: it hops the radio, or reads it too. Only the one session that steers a radio
+    /// hops it.
+    #[error("another session steers the radio; only the one session that reads a radio hops it")]
+    NotSteering,
     /// A saved state could not be written as JSON.
     #[error("the saved state could not be written")]
     Encode,

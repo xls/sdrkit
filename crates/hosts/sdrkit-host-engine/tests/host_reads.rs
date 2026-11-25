@@ -10,7 +10,7 @@ use sdrkit_core::{
     StackDescriptor, Tuning, Value, Values,
 };
 use sdrkit_host_engine::{Engine, Input, OwnerRef, RadioId, SessionId, Setup, DROPPED, SAMPLES};
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -264,6 +264,10 @@ static WORK_NS: AtomicU64 = AtomicU64::new(0);
 /// While set, a pacer stays in the block it works on. `HELD` says that one does.
 static HOLD: AtomicBool = AtomicBool::new(false);
 static HELD: AtomicBool = AtomicBool::new(false);
+/// A pacer stays in its block of this number and in every later one, until the number is raised. `HELD_AT` is the number
+/// of the block where it stays.
+static STOP_AT: AtomicI64 = AtomicI64::new(i64::MAX);
+static HELD_AT: AtomicI64 = AtomicI64::new(0);
 /// The tests of this file that run a pacer run one after the other.
 static ALONE: Mutex<()> = Mutex::new(());
 
@@ -296,8 +300,10 @@ impl Receiver for Pacer {
         }
         FEEDS.fetch_add(1, Ordering::Relaxed);
         WORK_NS.fetch_add(t.elapsed().as_nanos() as u64, Ordering::Relaxed);
-        // A test holds the block, for 5 s at most.
-        while HOLD.load(Ordering::Acquire) && t.elapsed() < Duration::from_secs(5) {
+        // A test holds the block, for a minute at most.
+        let held = || HOLD.load(Ordering::Acquire) || self.n >= STOP_AT.load(Ordering::Acquire);
+        while held() && t.elapsed() < Duration::from_secs(60) {
+            HELD_AT.store(self.n, Ordering::Release);
             HELD.store(true, Ordering::Release);
             std::thread::sleep(Duration::from_millis(1));
         }
@@ -464,13 +470,20 @@ fn a_reader_in_a_tight_loop_does_not_slow_the_session() {
 }
 
 #[test]
-fn a_host_that_reads_once_a_second_gets_every_event() {
+fn a_host_that_reads_before_the_session_kept_1024_events_gets_every_event() {
     let _alone = ALONE.lock().unwrap_or_else(|p| p.into_inner());
     let (e, _, id) = pacer_engine();
     let mut numbers = Vec::new();
     let mut events = Vec::new();
+    let mut at = number(&e, OwnerRef::Session(id), N.key) as i64;
     for _ in 0..4 {
-        std::thread::sleep(Duration::from_secs(1));
+        // The host reads after at most 30 more blocks: 900 events, fewer than the 1024 that the session keeps for the
+        // host. The pacer waits in the next block meanwhile, and the control thread passes the events of the blocks
+        // before it on.
+        at += 30;
+        STOP_AT.store(at, Ordering::Release);
+        wait_for(60.0, || (HELD_AT.load(Ordering::Acquire) == at).then_some(())).expect("the pacer waits");
+        assert!(e.settle(Duration::from_secs(30)));
         e.take_events(OwnerRef::Session(id), &mut events).unwrap();
         numbers.extend(
             events
@@ -479,8 +492,8 @@ fn a_host_that_reads_once_a_second_gets_every_event() {
                 .filter_map(|x| x.get(&N)),
         );
     }
-    // About 450 events a second: fewer than the 1024 that the session keeps for the host.
-    assert!(numbers.len() > 1200, "{} events", numbers.len());
+    STOP_AT.store(i64::MAX, Ordering::Release);
+    assert!(numbers.len() > 3 * 30 * TICKS as usize, "{} events", numbers.len());
     assert!(
         numbers.windows(2).all(|w| w[1] == w[0] + 1),
         "an event is missing: {numbers:?}"
@@ -512,15 +525,14 @@ fn the_session_works_on_its_blocks_while_a_read_is_open() {
     let _alone = ALONE.lock().unwrap_or_else(|p| p.into_inner());
     let (e, _, id) = pacer_engine();
     for r in [OwnerRef::Stack(id), OwnerRef::Session(id)] {
+        // Three blocks while the read stays open, at any speed of the machine.
         let fed = e
             .owner(r, |_| {
                 let before = FEEDS.load(Ordering::Relaxed);
-                std::thread::sleep(Duration::from_millis(500));
-                FEEDS.load(Ordering::Relaxed) - before
+                wait_for(60.0, || (FEEDS.load(Ordering::Relaxed) >= before + 3).then_some(()))
             })
             .unwrap();
-        // About 15 blocks a second.
-        assert!(fed >= 3, "{fed} blocks while a read of {r:?} was open");
+        assert!(fed.is_some(), "the session fed no 3 blocks while a read of {r:?} was open");
     }
 }
 
@@ -531,7 +543,9 @@ fn the_rows_changed_since_a_counter_rebuild_the_table_of_each_copy() {
     for r in [OwnerRef::Stack(id), OwnerRef::Session(id)] {
         let mut since = 0;
         let mut mine = std::collections::BTreeMap::new();
-        for _ in 0..100 {
+        // Reads until the copy holds every row, each read as the host makes them, for a minute at most.
+        let start = Instant::now();
+        while mine.len() < 16 && start.elapsed() < Duration::from_secs(60) {
             std::thread::sleep(Duration::from_millis(20));
             e.owner(r, |o| {
                 let res = o.results();

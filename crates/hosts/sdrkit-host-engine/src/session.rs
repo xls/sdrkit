@@ -771,7 +771,13 @@ impl Run {
         }
         let dropped = dropped.max(self.dropped_seen);
         let lost = dropped - std::mem::replace(&mut self.dropped_seen, dropped);
-        let gaps: u64 = b.gaps().iter().map(|&(_, n)| n).sum();
+        // A gap that the source made on purpose (a retune, a step of a hop) is told to the stack, and is no loss.
+        let gaps: u64 = b
+            .gaps()
+            .iter()
+            .filter(|g| !g.deliberate)
+            .map(|g| g.lost)
+            .sum();
         self.place.lose(self.rx.as_mut(), lost, gaps);
         self.place.gaps += feed_block(self.rx.as_mut(), b, lost, out);
         if !self.at_rate.is_empty() && b.rate_hz > 0.0 {
@@ -1618,7 +1624,7 @@ impl SessionControl {
         f.opt(&OFFSET, offset);
         f.set(&STATE, self.state);
         f.set(&SAMPLES, i64::try_from(samples).unwrap_or(i64::MAX));
-        // The samples lost at the queue and before a stage, and those missing in the gaps that the driver marked.
+        // The samples lost at the queue and before a stage, and those that the driver lost in the gaps it marked.
         let dropped = dropped + run.load.gap_samples;
         f.set(&DROPPED, i64::try_from(dropped).unwrap_or(i64::MAX));
         f.set(&UNLISTED, i64::try_from(run.unlisted).unwrap_or(i64::MAX));
@@ -1846,8 +1852,8 @@ pub(crate) fn feed_block(rx: &mut dyn Receiver, b: &Block, lost: u64, out: &mut 
         places += 1;
     }
     let mut at = 0;
-    for &(before, lost) in b.gaps() {
-        let before = before.min(iq.len());
+    for g in b.gaps() {
+        let (before, lost) = (g.at.min(iq.len()), g.lost);
         if before > at {
             rx.feed(&iq[at..before], out);
             at = before;
@@ -2178,7 +2184,11 @@ mod tests {
         let mut out = Output::default();
         let mut rx = Notes::default();
         // 7 samples were lost before the block, 5 after its fourth sample and 3 after its last.
-        let b = Block::of(&iq, &[(4, 5), (10, 3)]);
+        let deliberate = sdrkit_driver_core::Gap {
+            deliberate: true,
+            ..sdrkit_driver_core::Gap::lost_at(10, 3)
+        };
+        let b = Block::of(&iq, &[sdrkit_driver_core::Gap::lost_at(4, 5), deliberate]);
         assert_eq!(feed_block(&mut rx, &b, 7, &mut out), 3);
         assert_eq!(rx.0, ["gap 7", "feed 4", "gap 5", "feed 6", "gap 3"]);
         // A block without a gap is fed whole, and an empty block still runs a pass.

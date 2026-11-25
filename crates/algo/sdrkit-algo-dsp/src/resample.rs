@@ -1045,31 +1045,90 @@ impl Resampler<Stereo> {
 /// Resamples a whole span of samples from `in_rate` to `out_rate` with a [`Resampler`], into `out` (cleared first). Output
 /// sample `j` is the signal at input time `j * in_rate / out_rate`, and the span has `floor(len * out_rate / in_rate)` output
 /// samples. The first and last samples are held beyond the ends, so the filter does not fade the edges. Equal rates copy the
-/// span. If the resampler refuses the rates, `out` stays empty.
+/// span. If the resampler refuses the rates, `out` stays empty. [`SpanResampler`] does the same with the resampler and its
+/// buffers kept from one span to the next.
 pub fn resample_span(x: &[Complex32], in_rate: f64, out_rate: f64, out: &mut Vec<Complex32>) {
     out.clear();
-    let (Some(&first), Some(&last)) = (x.first(), x.last()) else {
-        return;
-    };
-    if (in_rate - out_rate).abs() < 1e-6 * in_rate {
-        out.extend_from_slice(x);
-        return;
+    if let Ok(mut r) = SpanResampler::new(in_rate, out_rate) {
+        r.run(x, out);
     }
-    let Ok(mut r) = Resampler::<Complex32>::new(in_rate, out_rate) else {
-        return;
-    };
-    let d = r.delay();
-    let pad = d.ceil() as usize + 16;
-    let mut input = Vec::with_capacity(x.len() + 2 * pad + 2 * d.ceil() as usize);
-    input.resize(pad, first);
-    input.extend_from_slice(x);
-    input.resize(input.len() + pad + 2 * d.ceil() as usize, last);
-    let mut y = Vec::with_capacity((input.len() as f64 * out_rate / in_rate) as usize + 8);
-    r.process(&input, &mut y);
-    let ratio = out_rate / in_rate;
-    let skip = ((pad as f64 + d) * ratio).round() as usize;
-    let n = (x.len() as f64 * ratio).floor() as usize;
-    out.extend(y.iter().skip(skip).take(n));
+}
+
+/// [`resample_span`] for many spans at one pair of rates: the resampler and the buffers stay from one call to the next, so
+/// a span allocates nothing once the buffers have the size of the longest span. Each span is resampled on its own: the
+/// filter starts again at each one, and the output is the output of [`resample_span`] to the bit.
+pub struct SpanResampler {
+    /// `None` for equal rates: a span is copied.
+    r: Option<Resampler<Complex32>>,
+    /// Output samples per input sample.
+    ratio: f64,
+    input: Vec<Complex32>,
+    y: Vec<Complex32>,
+}
+
+impl std::fmt::Debug for SpanResampler {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SpanResampler")
+            .field("ratio", &self.ratio)
+            .finish_non_exhaustive()
+    }
+}
+
+impl SpanResampler {
+    /// A resampler of spans from `in_rate` to `out_rate`.
+    ///
+    /// # Errors
+    ///
+    /// The errors of [`Resampler::new`] for rates that are not equal.
+    pub fn new(in_rate: f64, out_rate: f64) -> Result<Self, DspError> {
+        let r = if (in_rate - out_rate).abs() < 1e-6 * in_rate {
+            None
+        } else {
+            Some(Resampler::new(in_rate, out_rate)?)
+        };
+        Ok(SpanResampler {
+            r,
+            ratio: out_rate / in_rate,
+            input: Vec::new(),
+            y: Vec::new(),
+        })
+    }
+
+    /// The same resampler with room for spans of up to `samples` input samples: such a span allocates nothing, the first
+    /// one included. The room is made by resampling one span of that length.
+    #[must_use]
+    pub fn with_room(mut self, samples: usize) -> Self {
+        if self.r.is_some() {
+            let mut out = Vec::new();
+            self.run(&vec![Complex32::default(); samples.max(1)], &mut out);
+        }
+        self
+    }
+
+    /// Resamples the span `x` into `out` (cleared first), as [`resample_span`] does.
+    pub fn run(&mut self, x: &[Complex32], out: &mut Vec<Complex32>) {
+        out.clear();
+        let (Some(&first), Some(&last)) = (x.first(), x.last()) else {
+            return;
+        };
+        let Some(r) = self.r.as_mut() else {
+            out.extend_from_slice(x);
+            return;
+        };
+        r.reset();
+        let d = r.delay();
+        let pad = d.ceil() as usize + 16;
+        self.input.clear();
+        self.input.resize(pad, first);
+        self.input.extend_from_slice(x);
+        self.input
+            .resize(self.input.len() + pad + 2 * d.ceil() as usize, last);
+        self.y.clear();
+        r.process(&self.input, &mut self.y);
+        let skip = ((pad as f64 + d) * self.ratio).round() as usize;
+        let n = (x.len() as f64 * self.ratio).floor() as usize;
+        out.extend(self.y.iter().skip(skip).take(n));
+    }
 }
 
 #[cfg(test)]
@@ -1407,5 +1466,30 @@ mod tests {
         for (i, v) in y.iter().enumerate() {
             assert!((v.norm() - 1.0).abs() < 0.01, "sample {i}: {}", v.norm());
         }
+    }
+
+    #[test]
+    fn a_kept_span_resampler_gives_each_span_what_a_new_one_gives() {
+        let x: Vec<Complex32> = (0..30_000)
+            .map(|i| Complex32::new((i as f32 * 0.013).sin(), (i as f32 * 0.007).cos()))
+            .collect();
+        for (fi, fo) in [(20e6, 15.36e6), (30.72e6, 15.36e6), (15.36e6, 15.36e6)] {
+            let mut kept = SpanResampler::new(fi, fo).unwrap().with_room(30_000);
+            let (mut a, mut b) = (Vec::new(), Vec::new());
+            for (from, len) in [
+                (0, 30_000),
+                (17, 4_000),
+                (5_000, 1),
+                (9_999, 12_345),
+                (3, 0),
+            ] {
+                let span = &x[from..from + len];
+                kept.run(span, &mut a);
+                resample_span(span, fi, fo, &mut b);
+                assert_eq!(a, b, "{fi} -> {fo}, {len} samples at {from}");
+                assert_eq!(a.len(), (len as f64 * fo / fi).floor() as usize);
+            }
+        }
+        assert!(SpanResampler::new(20e6, 0.0).is_err());
     }
 }

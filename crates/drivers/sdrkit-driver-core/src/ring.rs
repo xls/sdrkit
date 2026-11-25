@@ -27,6 +27,20 @@ pub struct Gap {
     pub at: usize,
     /// The samples missing there.
     pub lost: u64,
+    /// The driver left the samples out on purpose (a retune that flushes the device, the time a half-duplex radio
+    /// transmits): the reader marks the place, and nothing counts them as lost.
+    pub deliberate: bool,
+}
+
+impl Gap {
+    /// A gap at `at` where `lost` samples were lost.
+    pub fn lost_at(at: usize, lost: u64) -> Gap {
+        Gap {
+            at,
+            lost,
+            deliberate: false,
+        }
+    }
 }
 
 /// The ring size the engine uses between a radio and the host: 2^24 samples.
@@ -46,8 +60,8 @@ pub struct RingStats {
     epoch: Instant,
     closed: AtomicBool,
     capacity: usize,
-    /// The gaps not yet taken: (samples written before the gap, samples missing).
-    gaps: Mutex<VecDeque<(u64, u64)>>,
+    /// The gaps not yet taken: (samples written before the gap, samples missing, made on purpose).
+    gaps: Mutex<VecDeque<(u64, u64, bool)>>,
     gap_count: AtomicU64,
 }
 
@@ -68,17 +82,18 @@ impl RingStats {
             gap_count: AtomicU64::new(0),
         }
     }
-    /// Notes `lost` samples missing after the samples written so far.
-    fn gap(&self, lost: u64) {
+    /// Notes `lost` samples missing after the samples written so far, left out on purpose if `deliberate`. A gap at the
+    /// place of the last one, of the same kind, adds to it.
+    fn gap(&self, lost: u64, deliberate: bool) {
         let at = self.written();
         let mut g = self.gaps.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
         match g.back_mut() {
-            Some(last) if last.0 == at => last.1 += lost,
+            Some(last) if last.0 == at && last.2 == deliberate => last.1 += lost,
             _ => {
                 if g.len() >= MAX_GAPS {
                     g.pop_front();
                 }
-                g.push_back((at, lost));
+                g.push_back((at, lost, deliberate));
             }
         }
         self.gap_count.store(g.len() as u64, Ordering::Release);
@@ -255,7 +270,7 @@ impl RingWriter {
             self.stats.dropped.fetch_add(lost, Ordering::Relaxed);
             self.stats.drop_events.fetch_add(1, Ordering::Relaxed);
             self.stats.mark_loss();
-            self.stats.gap(lost);
+            self.stats.gap(lost, false);
         }
         k
     }
@@ -264,7 +279,16 @@ impl RingWriter {
     /// ring. The reader finds the place with [`RingReader::take_gaps`].
     pub fn mark_gap(&mut self, lost: u64) {
         if lost > 0 {
-            self.stats.gap(lost);
+            self.stats.gap(lost, false);
+        }
+    }
+
+    /// Notes that the driver left out `samples` on purpose after the samples written so far (a retune that flushes the
+    /// device, the time a half-duplex radio transmits). The reader finds the place with [`RingReader::take_gaps`], marked
+    /// [`Gap::deliberate`].
+    pub fn mark_deliberate_gap(&mut self, samples: u64) {
+        if samples > 0 {
+            self.stats.gap(samples, true);
         }
     }
 
@@ -468,6 +492,17 @@ impl RingReader {
         self.read_with(usize::MAX, |_| {})
     }
 
+    /// Drops up to `n` waiting samples and returns how many were dropped.
+    pub fn skip(&mut self, n: usize) -> usize {
+        self.read_with(n, |_| {})
+    }
+
+    /// The place of the next read in the stream: the samples read or skipped so far. A place from
+    /// [`RingStats::written`] is behind every sample written after it.
+    pub fn position(&self) -> u64 {
+        self.stats.read.load(Ordering::Relaxed) + self.stats.skipped()
+    }
+
     /// Tells the writer to stop: a waiting blocking write returns false.
     pub fn close(&self) {
         self.stats.closed.store(true, Ordering::Release);
@@ -514,7 +549,7 @@ impl RingReader {
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         let mut out = Vec::new();
-        while let Some(&(at, lost)) = g.front() {
+        while let Some(&(at, lost, deliberate)) = g.front() {
             if at < pos {
                 g.pop_front();
                 continue;
@@ -523,7 +558,11 @@ impl RingReader {
             if rel > n {
                 break;
             }
-            out.push(Gap { at: rel, lost });
+            out.push(Gap {
+                at: rel,
+                lost,
+                deliberate,
+            });
             g.pop_front();
         }
         self.stats.gap_count.store(g.len() as u64, Ordering::Release);
@@ -547,7 +586,7 @@ mod tests {
         assert_eq!(r.read_with(3, |_| {}), 3);
         assert_eq!(
             r.take_gaps(8),
-            [Gap { at: 3, lost: 100 }, Gap { at: 5, lost: 2 }]
+            [Gap::lost_at(3, 100), Gap::lost_at(5, 2)]
         );
         assert_eq!(r.take_gaps(8), []);
         // A gap that a skip passes over is forgotten.
@@ -556,6 +595,27 @@ mod tests {
         w.write(&[3; 4]);
         r.skip_all();
         assert_eq!(r.take_gaps(8), []);
+    }
+
+    #[test]
+    fn a_gap_made_on_purpose_keeps_its_kind_beside_a_loss_at_the_same_place() {
+        let (mut w, mut r) = ring(64, SampleType::Cs8);
+        assert_eq!(w.write(&[1; 8]), 4);
+        w.mark_deliberate_gap(10);
+        w.mark_deliberate_gap(5);
+        w.mark_gap(3);
+        assert_eq!(w.write(&[1; 8]), 4);
+        let gaps = r.take_gaps(8);
+        assert_eq!(
+            gaps,
+            [
+                Gap {
+                    deliberate: true,
+                    ..Gap::lost_at(4, 15)
+                },
+                Gap::lost_at(4, 3)
+            ]
+        );
     }
 
     fn s(v: f32) -> Complex32 {

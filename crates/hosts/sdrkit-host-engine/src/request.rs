@@ -239,7 +239,17 @@ impl Shared {
         match req {
             HostRequest::Retune { tuned_hz, .. } => {
                 let id = own()?;
-                self.tune_to(id, tuned_hz)?;
+                // A fixed frequency ends a hop of the session.
+                self.end_hop_by(id, || self.tune_to(id, tuned_hz))?;
+                Ok(Some(id))
+            }
+            HostRequest::Hop {
+                channels,
+                dwell_s,
+                stop_on_lock,
+            } => {
+                let id = own()?;
+                self.start_hop(id, channels, dwell_s, stop_on_lock)?;
                 Ok(Some(id))
             }
             HostRequest::Follow {
@@ -288,6 +298,10 @@ impl Shared {
                     (Some(_), _) => return Err(EngineError::Unserved { kind }),
                     (None, _) => None,
                 };
+                // A tune with a frequency ends a hop of the session.
+                if freq_hz.is_some() {
+                    self.end_hop(id);
+                }
                 // A visit of a scan starts with no result of the channel before.
                 self.serve_tune(
                     id,
@@ -341,9 +355,7 @@ impl Shared {
                     .update_store(|s| s.record_hit(id, at_s, &tone))??;
                 Ok(None)
             }
-            HostRequest::Hop { .. } | HostRequest::Record { .. } => {
-                Err(EngineError::Unserved { kind })
-            }
+            HostRequest::Record { .. } => Err(EngineError::Unserved { kind }),
         }
     }
 
@@ -500,7 +512,7 @@ impl Shared {
             }
         }
         self.drop_stack_rate(&s)?;
-        self.move_radio(&s)
+        self.move_radio(id, &s)
     }
 
     /// Carries out what the operator of session `s` demands of the radio that the session reads, while the radio streams.
@@ -508,8 +520,9 @@ impl Shared {
     /// itself ([`Shared::centre_radio`]). The transmitter goes to the frequency that the
     /// operator sends on. The centre of the receiver moves to the frequency that the operator listens to, plus its offset,
     /// if that frequency is more than 40 % of the sample rate from the centre; else it stays. Does nothing for a session
-    /// that reads no radio and for an operator that demands no frequency.
-    pub(crate) fn move_radio(&self, s: &Session) -> Result<(), EngineError> {
+    /// that reads no radio and for an operator that demands no frequency. While another session hops the radio, the
+    /// centre stays where the hop put it ([`crate::hop`]).
+    pub(crate) fn move_radio(&self, id: SessionId, s: &Session) -> Result<(), EngineError> {
         let Input::Radio(r) = s.input else {
             return Ok(());
         };
@@ -524,7 +537,7 @@ impl Shared {
         let Some(rx) = demand.receive else {
             return Ok(());
         };
-        if rx.tuned_hz <= 0.0 {
+        if rx.tuned_hz <= 0.0 || self.hopped_by_other(r, id) {
             return Ok(());
         }
         let (rate_hz, centre_hz) = radio.feed.tuning();

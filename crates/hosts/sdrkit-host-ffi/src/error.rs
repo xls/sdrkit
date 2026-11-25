@@ -468,6 +468,7 @@ pub(crate) fn engine<'a>(e: &'a EngineError, d: &mut ErrorDetail, names: &mut Na
         | EngineError::NoRadio
         | EngineError::NotInSession { .. }
         | EngineError::Unserved { .. }
+        | EngineError::NotSteering
         | EngineError::NoSession
         | EngineError::Unlisted
         | EngineError::BankRadio { .. } => SDRKIT_E_REQUEST,

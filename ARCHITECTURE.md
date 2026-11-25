@@ -31,8 +31,12 @@ crates/
               voice, wlan, wsjt
                                                  one crate per family of stacks
   drivers/    core                               the driver contract, the runner, test signal, file, rtl_tcp, iiod
+              usb                                the USB transport: device list, arrivals, control and bulk transfers
+              rtlusb, hackrf                     the radios on a USB port
               hpsdr, kiwisdr, openwebrx, rsptcp, sdrconnect, sdrpp, soapyremote, spyserver, tci
               registry                           the list of drivers
+  serve/      core                               the hub that feeds network clients from one radio, with slices
+              rtltcp, soapyremote                the servers of the two protocols that the share speaks
   hosts/      engine                             radios, sessions, threads, services, storage
               catalog                            the list of stacks, components and codecs
               ffi                                the C API (libsdrkit.a, sdrkit.h, the family headers)
@@ -385,6 +389,17 @@ An application names a radio by an address, `<driver key>:<rest>`. The driver ke
 reads the rest (`iiod:192.168.2.1`, `rtl_tcp:<host>:<port>`, `file:<path>`). The descriptor lists every form with its
 default port, and the engine table `drivers` shows them. `sdrkit_driver_registry::all()` returns the drivers.
 
+### USB radios
+
+`sdrkit-driver-usb` is the transport of the USB drivers: the traits `UsbBus`, `UsbDevice`, `BulkIn` and `BulkOut`.
+`platform_bus()` returns the bus of the system through the `nusb` crate (usbfs on Linux and Android, IOKit on macOS,
+WinUSB on Windows); iOS has `NoUsb`, on which every open fails. `FakeUsb` replays a script of USB exchanges, so the
+tests of `rtlusb` and `hackrf` and the tests of the engine run without hardware. The address `usb:rtl:<selector>` or
+`usb:hackrf:<selector>` names a device: empty for the first free one, a serial number, `#<n>` or `@<bus>-<port path>`.
+The engine lists the attached devices in its table `devices` and raises `device.arrived` and `device.left`. A listing
+opens no device. A driver that flushes the device at a retune marks the samples that it leaves out as a gap made on
+purpose (`Sink::deliberate_gap`): the stacks are told of the gap, and neither the radio nor a session counts it as lost.
+
 ### The test-signal driver
 
 The driver `synth` plays the `Generator` of a stack, paced like a recording. Its address is `synth:<stack>` or
@@ -472,6 +487,10 @@ control thread: services, requests, timers (a tick every 100 ms)
   it loses blocks. Other sessions on the same feed are not affected. The section on threads below states where a loss
   is counted.
 - A session of a heavy stack also has stage threads. The next section states how the engine chooses them.
+- A share is an owner of the engine with a session of its own on a radio. That session never steers the radio: it
+  takes the samples as the radio gives them and passes them to the hub of `sdrkit-serve-core`, which feeds each network
+  client from a ring of its own and cuts a client that stays behind. The listeners speak rtl_tcp and SoapyRemote.
+  With the control `remote`, one client steers the radio while no session of the host reads it.
 - The control thread runs the services, the request handler and the timers.
 - One pool of helper threads, which the engine owns and sizes, runs slow work for components and loops over the items
   of one component. Network sinks connect on threads of their own.
@@ -575,6 +594,16 @@ A receive chain never tunes a radio. It puts a `HostRequest` in its output: retu
 tune a session to a stored channel, save a memory, record. The request handler of the engine grants or refuses each
 request with a typed error. A request is also an event and a row of the engine table `requests`. With the engine setting
 `requests_allowed` off, the engine refuses every request.
+
+A hop steps the radio of the session through a list of frequencies, a dwell on each. Only the session that steers the
+radio hops it: the one session of the host that reads the radio (a share does not count), or the one that hops it
+already. Each step tunes the session through its operator, as a retune does. The pump thread counts the dwell in
+samples, so a step lasts its dwell of signal time at any load; at the end of a step it passes no samples until the radio
+has moved. The samples written before the move are left out as one gap made on purpose, and the first block of the step
+carries the new centre, so a stack is told the centre before the samples of the step. A second session on the radio
+follows the centre and moves no radio while the hop runs. The same hop requested again goes on where it is; another one
+takes its place. The hop ends with its session, at a retune or a tune of the session, and with `stop_on_lock` when the
+stack reports lock at the end of a step.
 
 Transmit has one switch, the engine setting `transmit_allowed`. It is off by default and never saved. A stack
 declares with `Receiver::transmits` that it makes transmissions, and a radio declares a transmitter in its capabilities;

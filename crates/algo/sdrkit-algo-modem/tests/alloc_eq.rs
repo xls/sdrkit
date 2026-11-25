@@ -5,7 +5,7 @@
 use sdrkit_algo_dsp::constellation::{PointSet, QamMap};
 use sdrkit_algo_dsp::floor::{FloorTracker, MinFollower};
 use sdrkit_algo_modem::burst::{BurstConfig, BurstDetector};
-use sdrkit_algo_modem::correlate::{SampleSync, SoftCorrelator};
+use sdrkit_algo_modem::correlate::{SampleSync, SampleSyncSet, SoftCorrelator};
 use sdrkit_algo_modem::equalizer::{AdaptiveEq, EqConfig, LsChannel, Mode};
 use sdrkit_algo_modem::{Complex32, Constellation};
 use std::alloc::{GlobalAlloc, Layout, System};
@@ -110,6 +110,21 @@ fn steady_state_paths_do_not_allocate() {
         }),
         0,
         "sample sync"
+    );
+
+    let mut set = SampleSyncSet::new(&[&x[..64], &x[64..100]], 256, &[-1, 0, 1], 0.2).unwrap();
+    let mut lists = [Vec::with_capacity(4096), Vec::with_capacity(4096)];
+    set.process(&x, &mut lists);
+    assert_eq!(
+        count(|| {
+            for k in 0..1000 {
+                lists.iter_mut().for_each(Vec::clear);
+                set.process(&x[(k * 37) % 3000..(k * 37) % 3000 + 300], &mut lists);
+            }
+            set.finish(&mut lists);
+        }),
+        0,
+        "sample sync set"
     );
 
     let xr: Vec<f32> = x.iter().map(|z| z.re).collect();
