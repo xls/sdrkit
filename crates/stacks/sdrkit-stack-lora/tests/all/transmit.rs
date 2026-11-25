@@ -12,7 +12,7 @@ use sdrkit_graph::components::{HostData, HostPort, HostStreams};
 use sdrkit_graph::Graph;
 use sdrkit_proto_lora_phy::TxFrame;
 use sdrkit_stack_lora::gen::damaged_burst;
-use sdrkit_stack_lora::mesh::types::{DeliveryState, Protocol, TRANSMIT_OFF};
+use sdrkit_stack_lora::mesh::types::{DeliveryState, FailureReason, Protocol};
 use sdrkit_stack_lora::proto::hamlora;
 use sdrkit_stack_lora::settings::*;
 use sdrkit_stack_lora::typed::{
@@ -453,7 +453,7 @@ fn lora_aprs_sends_nothing_with_the_transmitter_off_or_without_a_callsign() {
     assert!(w.is_empty());
     let own = own_message(a.as_ref(), "not on the air");
     assert_eq!(own.at(&MeshMessageRow::STATE), Some(DeliveryState::Failed));
-    assert_eq!(own.at(&MeshMessageRow::FAILURE), Some(TRANSMIT_OFF));
+    assert_eq!(own.at(&MeshMessageRow::FAILURE), Some(FailureReason::TransmitOff));
     for (to, text) in [("N0CALL-9", "a{b"), ("NOT A CALL", "x"), ("N0CALL-9", "")] {
         let r = call(
             a.as_mut(),
@@ -821,7 +821,7 @@ fn afsk_aprs_sends_nothing_with_the_transmitter_off_or_without_a_valid_call() {
     assert!(w.is_empty());
     let own = own_afsk(a.as_ref(), "not on the air");
     assert_eq!(own.at(&MeshMessageRow::STATE), Some(DeliveryState::Failed));
-    assert_eq!(own.at(&MeshMessageRow::FAILURE), Some(TRANSMIT_OFF));
+    assert_eq!(own.at(&MeshMessageRow::FAILURE), Some(FailureReason::TransmitOff));
     for (to, text) in [("N0CALL-9", "a{b"), ("NOT A CALL", "x"), ("N0CALL-9", "")] {
         let r = call(
             a.as_mut(),

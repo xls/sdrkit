@@ -106,7 +106,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|
 | `packets` | Packets | `time_s` (number (s)), `net` (choice), `type` (text), `source` (text), `target` (text), `bytes` (whole number), `content` (text), `hops` (whole number), `snr_db` (number (dB)), `sf` (whole number), `bw` (frequency), `summary` (text) |
 | `nodes` | Nodes | `net` (choice), `name` (text), `short` (text), `id` (text), `hw` (text), `role` (text), `last_heard` (time), `heard` (whole number), `snr_db` (number (dB)), `hops` (whole number), `battery_pct` (number (%)), `voltage_v` (number (V)), `position` (position) |
-| `messages` | Messages | `time_s` (number (s)), `net` (choice), `channel` (text), `source` (text), `sender` (text), `target` (text), `text` (text), `hops` (whole number), `state` (choice), `failure` (text), `relays` (whole number), `packet_id` (whole number), `utc` (time), `snr_db` (number (dB)), `level_dbfs` (number (dBFS)), `crc_ok` (yes or no), `copies` (whole number) |
+| `messages` | Messages | `time_s` (number (s)), `net` (choice), `channel` (text), `source` (text), `sender` (text), `target` (text), `text` (text), `hops` (whole number), `state` (choice), `failure` (choice), `relays` (whole number), `packet_id` (whole number), `utc` (time), `snr_db` (number (dB)), `level_dbfs` (number (dBFS)), `crc_ok` (yes or no), `copies` (whole number) |
 | `readings` | Readings | `time_s` (number (s)), `node` (text), `battery_pct` (number (%)), `voltage_v` (number (V)), `ch_util_pct` (number (%)), `air_tx_pct` (number (%)), `temp_c` (number (°C)), `humidity_pct` (number (%)), `pressure_hpa` (number (hPa)), `position` (position), `alt_m` (number (m)) |
 | `stations` | Stations | `net` (choice), `call` (text), `symbol` (text), `position` (position), `type` (text), `last_heard` (time), `heard` (whole number), `snr_db` (number (dB)), `path` (text), `comment` (text), `battery_pct` (number (%)) |
 | `devices` | Devices | `id` (text), `network` (text), `vendor` (text), `last_heard` (time), `heard` (whole number), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `fcnt` (whole number), `missed` (whole number), `sf` (whole number), `freq` (frequency), `uplinks` (whole number), `downlinks` (whole number), `joins` (whole number), `type` (text), `fport` (whole number), `mac` (text) |
@@ -141,7 +141,7 @@ The stack puts points on a map: Nodes and stations.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 4.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 5.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Mesh messaging (`mesh`). Media: text.
 
@@ -279,7 +279,7 @@ Struct `MeshMessageRow`. A row of the messages. The row key is the place of the 
 | `text` | text | always | 1.0 | The text. |
 | `hops` | whole number | optional | 1.0 | The hops taken. |
 | `state` | choice | optional | 1.0 | The delivery state of an own message. |
-| `failure` | text | optional | 1.0 | Why the delivery failed. |
+| `failure` | choice | optional | 1.0 | Why the delivery failed. |
 | `relays` | whole number | optional | 1.0 | The distinct relays heard for an own broadcast. |
 | `packet_id` | whole number | optional | 1.0 | The packet id: the reply of `mt.send` for an own Meshtastic text, the message number of an APRS message (the reply of `aprs.send` for an own one). None for a protocol without packet ids. |
 | `utc` | time | optional | 1.0 | The UTC when the text was received or sent, if the clock of the session is known. |

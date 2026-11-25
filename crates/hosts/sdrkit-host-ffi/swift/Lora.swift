@@ -1,11 +1,11 @@
-// sdrkit: the typed interface of the stack family "lora", version 4.0. MIT licence.
+// sdrkit: the typed interface of the stack family "lora", version 5.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum LoraInterface {
-    public static let major = 4
+    public static let major = 5
     public static let minor = 0
 }
 
@@ -345,6 +345,29 @@ public struct MeshMessageRow {
         case rejected = 6
         case failed = 7
     }
+    public enum Failure: Int32 {
+        case transmitOff = 0
+        case notListening = 1
+        case noAck = 2
+        case noRoute = 3
+        case gotNak = 4
+        case timeout = 5
+        case noInterface = 6
+        case maxRetransmit = 7
+        case noChannel = 8
+        case tooLarge = 9
+        case noResponse = 10
+        case dutyCycleLimit = 11
+        case badRequest = 12
+        case notAuthorized = 13
+        case pkiFailed = 14
+        case pkiUnknownPubkey = 15
+        case adminBadSessionKey = 16
+        case adminPublicKeyUnauthorized = 17
+        case rateLimitExceeded = 18
+        case pkiSendFailPublicKey = 19
+        case routingError = 20
+    }
     /// The row key.
     public var key: String
     /// The signal time.
@@ -366,7 +389,7 @@ public struct MeshMessageRow {
     /// The delivery state of an own message.
     public var state: State?
     /// Why the delivery failed.
-    public var failure: String?
+    public var failure: Failure?
     /// The distinct relays heard for an own broadcast.
     public var relays: Int64?
     /// The packet id: the reply of `mt.send` for an own Meshtastic text, the message number of an APRS message (the reply of `aprs.send` for an own one). None for a protocol without packet ids.
@@ -393,7 +416,7 @@ public struct MeshMessageRow {
         text = sdrkitText(c.text)
         hops = c.has_hops ? c.hops : nil
         state = c.has_state ? State(rawValue: c.state) : nil
-        failure = c.has_failure ? sdrkitText(c.failure) : nil
+        failure = c.has_failure ? Failure(rawValue: c.failure) : nil
         relays = c.has_relays ? c.relays : nil
         packetId = c.has_packet_id ? c.packet_id : nil
         utc = c.has_utc ? c.utc : nil

@@ -8,7 +8,7 @@ use crate::commands::{
 use crate::components::elrs::FrameKind;
 use crate::components::fanet::{FrameKind as FanetFrameKind, StationKind};
 use crate::mesh::mt_client::MtRequest;
-use crate::mesh::types::{DeliveryState, Protocol, TxKind};
+use crate::mesh::types::{DeliveryState, FailureReason, Protocol, TxKind};
 use crate::proto::reticulum::PacketType;
 use crate::results::{CrcState, Modulation};
 use sdrkit_core::command::{Command, CommandSet};
@@ -29,7 +29,7 @@ use std::sync::{Arc, OnceLock};
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("lora", 4, 0)
+        Described::new("lora", 5, 0)
             .content(
                 sdrkit_core::ContentKind::Mesh,
                 &[
@@ -1458,7 +1458,7 @@ pub struct MeshMessageRow<'a> {
     pub state: Option<DeliveryState>,
     /// Why the delivery failed.
     #[field(label = "Failure", role = Failure)]
-    pub failure: Option<&'a str>,
+    pub failure: Option<FailureReason>,
     /// The distinct relays heard for an own broadcast.
     #[field(label = "Relays")]
     pub relays: Option<i64>,

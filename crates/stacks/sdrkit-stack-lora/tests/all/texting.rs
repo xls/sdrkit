@@ -431,7 +431,7 @@ fn a_client_sends_only_on_a_channel_the_session_listens_to() {
     assert_eq!(m.at(&MeshMessageRow::STATE), Some(DeliveryState::Failed));
     assert_eq!(
         m.at(&MeshMessageRow::FAILURE),
-        Some(sdrkit_stack_lora::mesh::types::NO_CHANNEL)
+        Some(sdrkit_stack_lora::mesh::types::FailureReason::NotListening)
     );
 }
 

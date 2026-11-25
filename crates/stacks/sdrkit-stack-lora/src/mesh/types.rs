@@ -218,6 +218,55 @@ sdrkit_core::choice_enum! {
     }
 }
 
+sdrkit_core::choice_enum! {
+    /// Why the delivery of an own message failed, as the messages table shows it. The keys of the Meshtastic routing
+    /// errors are the lower-case names of `Routing.Error`.
+    pub enum FailureReason {
+        /// The transmit switch of the host is off, or the session has no radio that can transmit.
+        TransmitOff = ("transmit_off", "Transmit is off"),
+        /// The session listens to no channel of the network of the message, so there is no channel to send it on.
+        NotListening = ("not_listening", "No channel of the network is received"),
+        /// No acknowledgement came after the last try.
+        NoAck = ("no_ack", "No acknowledgement"),
+        /// Meshtastic: no route to the destination.
+        NoRoute = ("no_route", "No route to the destination"),
+        /// Meshtastic: a node refused to forward it.
+        GotNak = ("got_nak", "Refused by a node on the way"),
+        /// Meshtastic: the wait for an answer ended.
+        Timeout = ("timeout", "Timed out"),
+        /// Meshtastic: no interface can send it.
+        NoInterface = ("no_interface", "No interface can send it"),
+        /// Meshtastic: the last retransmission went unanswered.
+        MaxRetransmit = ("max_retransmit", "No answer after the last retransmission"),
+        /// Meshtastic: the channel of the message is not available at the node.
+        NoChannel = ("no_channel", "The channel is not available"),
+        /// Meshtastic: the packet is too large for the interface.
+        TooLarge = ("too_large", "Too large"),
+        /// Meshtastic: the destination has no service that answers the request.
+        NoResponse = ("no_response", "No service answers"),
+        /// Meshtastic: the duty-cycle limit holds it.
+        DutyCycleLimit = ("duty_cycle_limit", "Duty-cycle limit"),
+        /// Meshtastic: the service at the destination found the request not valid.
+        BadRequest = ("bad_request", "Bad request"),
+        /// Meshtastic: the service at the destination refused the request.
+        NotAuthorized = ("not_authorized", "Not authorized"),
+        /// Meshtastic: the node could not send it with public-key encryption.
+        PkiFailed = ("pki_failed", "Public-key encryption failed"),
+        /// Meshtastic: the destination has no public key to decrypt it with.
+        PkiUnknownPubkey = ("pki_unknown_pubkey", "Public key unknown"),
+        /// Meshtastic: an admin message with a bad or expired session key.
+        AdminBadSessionKey = ("admin_bad_session_key", "Bad admin session key"),
+        /// Meshtastic: an admin message from a public key that is not an admin key.
+        AdminPublicKeyUnauthorized = ("admin_public_key_unauthorized", "Admin key not authorized"),
+        /// Meshtastic: the airtime rate limit is exceeded.
+        RateLimitExceeded = ("rate_limit_exceeded", "Rate limit exceeded"),
+        /// Meshtastic: the node has no public key of the destination to send with.
+        PkiSendFailPublicKey = ("pki_send_fail_public_key", "No public key of the destination"),
+        /// Meshtastic: a routing error number that this stack does not know.
+        RoutingError = ("routing_error", "Other routing error"),
+    }
+}
+
 /// What a station answers when it is asked to send while its transmitter is off.
 pub const TRANSMIT_OFF: &str =
     "transmit is off: the transmit switch of the host is off, or the session has no radio that can transmit";
@@ -257,6 +306,35 @@ impl Failure {
             Failure::NoChannel => NO_CHANNEL.into(),
             Failure::NoAck => "no acknowledgement".into(),
             Failure::Routing(n) => crate::proto::meshtastic::routing_error_name(n).into(),
+        }
+    }
+    /// The reason as the messages table shows it. A routing error number that is not known gives
+    /// [`FailureReason::RoutingError`].
+    pub fn reason(self) -> FailureReason {
+        match self {
+            Failure::TransmitOff => FailureReason::TransmitOff,
+            Failure::NoChannel => FailureReason::NotListening,
+            Failure::NoAck => FailureReason::NoAck,
+            Failure::Routing(n) => match n {
+                1 => FailureReason::NoRoute,
+                2 => FailureReason::GotNak,
+                3 => FailureReason::Timeout,
+                4 => FailureReason::NoInterface,
+                5 => FailureReason::MaxRetransmit,
+                6 => FailureReason::NoChannel,
+                7 => FailureReason::TooLarge,
+                8 => FailureReason::NoResponse,
+                9 => FailureReason::DutyCycleLimit,
+                32 => FailureReason::BadRequest,
+                33 => FailureReason::NotAuthorized,
+                34 => FailureReason::PkiFailed,
+                35 => FailureReason::PkiUnknownPubkey,
+                36 => FailureReason::AdminBadSessionKey,
+                37 => FailureReason::AdminPublicKeyUnauthorized,
+                38 => FailureReason::RateLimitExceeded,
+                39 => FailureReason::PkiSendFailPublicKey,
+                _ => FailureReason::RoutingError,
+            },
         }
     }
 }

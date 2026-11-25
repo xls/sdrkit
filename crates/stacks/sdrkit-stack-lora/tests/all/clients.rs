@@ -630,3 +630,21 @@ fn channels_and_types() {
     let d = mc_frame(&mut dec, &[0x05, 0xC1, 1, 2, 3], 7.0);
     assert!(!d.packet.parsed);
 }
+
+/// Each known Meshtastic routing error number has the failure reason whose key is the lower-case protocol name; an
+/// unknown number has the reason of an unknown routing error.
+#[test]
+fn routing_errors_have_their_failure_reasons() {
+    use sdrkit_core::Choice;
+    use sdrkit_stack_lora::mesh::types::FailureReason;
+    for n in 1..64 {
+        let name = mt::routing_error_name(n);
+        let reason = Failure::Routing(n).reason();
+        if name.starts_with("ERROR_") {
+            assert_eq!(reason, FailureReason::RoutingError, "{n}");
+        } else {
+            assert_eq!(reason.key(), name.to_ascii_lowercase(), "{n}");
+        }
+    }
+    assert_eq!(Failure::NoChannel.reason(), FailureReason::NotListening);
+}

@@ -1,5 +1,5 @@
 # The interface of the stack family lora. The registry test of the family writes this file.
-family lora version=4.0
+family lora version=5.0
 shape.MeshFields since=1.0
 shape.MeshFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.MeshFields.frames_bad type=i64 unit= optional=no since=1.0
@@ -81,7 +81,7 @@ shape.MeshMessageRow.target type=text unit= optional=yes since=1.0
 shape.MeshMessageRow.text type=text unit= optional=no since=1.0
 shape.MeshMessageRow.hops type=i64 unit= optional=yes since=1.0
 shape.MeshMessageRow.state type=choice(queued,waiting,sent,acked_by_mesh,delivered,relayed,rejected,failed) unit= optional=yes since=1.0
-shape.MeshMessageRow.failure type=text unit= optional=yes since=1.0
+shape.MeshMessageRow.failure type=choice(transmit_off,not_listening,no_ack,no_route,got_nak,timeout,no_interface,max_retransmit,no_channel,too_large,no_response,duty_cycle_limit,bad_request,not_authorized,pki_failed,pki_unknown_pubkey,admin_bad_session_key,admin_public_key_unauthorized,rate_limit_exceeded,pki_send_fail_public_key,routing_error) unit= optional=yes since=1.0
 shape.MeshMessageRow.relays type=i64 unit= optional=yes since=1.0
 shape.MeshMessageRow.packet_id type=i64 unit= optional=yes since=1.0
 shape.MeshMessageRow.utc type=time unit= optional=yes since=1.0

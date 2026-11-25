@@ -81,7 +81,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|
 | `frames` | Frames | `time_s` (number (s)), `source` (text), `target` (text), `path` (text), `type` (text), `text` (text), `bit_rate` (frequency) |
 | `stations` | Stations | `call` (text), `symbol` (text), `position` (position), `last_heard` (time), `heard` (whole number), `course_deg` (number (°)), `speed_kt` (number (kt)), `alt_m` (number (m)), `comment` (text), `via` (text) |
-| `messages` | Messages | `time_s` (number (s)), `net` (choice), `channel` (text), `source` (text), `sender` (text), `target` (text), `text` (text), `hops` (whole number), `state` (choice), `failure` (text), `relays` (whole number), `packet_id` (whole number), `utc` (time), `snr_db` (number (dB)), `level_dbfs` (number (dBFS)), `crc_ok` (yes or no), `copies` (whole number) |
+| `messages` | Messages | `time_s` (number (s)), `net` (choice), `channel` (text), `source` (text), `sender` (text), `target` (text), `text` (text), `hops` (whole number), `state` (choice), `failure` (choice), `relays` (whole number), `packet_id` (whole number), `utc` (time), `snr_db` (number (dB)), `level_dbfs` (number (dBFS)), `crc_ok` (yes or no), `copies` (whole number) |
 
 ## Map points
 
@@ -105,7 +105,7 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 4.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 5.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Mesh messaging (`mesh`). Media: sound (monitor), text.
 
@@ -194,7 +194,7 @@ Struct `MeshMessageRow`. A row of the messages. The row key is the place of the 
 | `text` | text | always | 1.0 | The text. |
 | `hops` | whole number | optional | 1.0 | The hops taken. |
 | `state` | choice | optional | 1.0 | The delivery state of an own message. |
-| `failure` | text | optional | 1.0 | Why the delivery failed. |
+| `failure` | choice | optional | 1.0 | Why the delivery failed. |
 | `relays` | whole number | optional | 1.0 | The distinct relays heard for an own broadcast. |
 | `packet_id` | whole number | optional | 1.0 | The packet id: the reply of `mt.send` for an own Meshtastic text, the message number of an APRS message (the reply of `aprs.send` for an own one). None for a protocol without packet ids. |
 | `utc` | time | optional | 1.0 | The UTC when the text was received or sent, if the clock of the session is known. |

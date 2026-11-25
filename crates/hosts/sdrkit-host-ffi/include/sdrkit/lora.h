@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "lora", version 4.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "lora", version 5.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,7 +34,7 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_LORA_VERSION_MAJOR 4
+#define SDRKIT_LORA_VERSION_MAJOR 5
 #define SDRKIT_LORA_VERSION_MINOR 0
 
 // The stack "mesh": its id, and the keys of its event types.
@@ -920,6 +920,52 @@ typedef enum sdrkit_mesh_message_row_state {
   SDRKIT_MESH_MESSAGE_ROW_STATE_FAILED = 7,
 } sdrkit_mesh_message_row_state;
 
+// The options of `failure` of `sdrkit_mesh_message_row`.
+typedef enum sdrkit_mesh_message_row_failure {
+  // Transmit is off
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_TRANSMIT_OFF = 0,
+  // No channel of the network is received
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_NOT_LISTENING = 1,
+  // No acknowledgement
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_NO_ACK = 2,
+  // No route to the destination
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_NO_ROUTE = 3,
+  // Refused by a node on the way
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_GOT_NAK = 4,
+  // Timed out
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_TIMEOUT = 5,
+  // No interface can send it
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_NO_INTERFACE = 6,
+  // No answer after the last retransmission
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_MAX_RETRANSMIT = 7,
+  // The channel is not available
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_NO_CHANNEL = 8,
+  // Too large
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_TOO_LARGE = 9,
+  // No service answers
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_NO_RESPONSE = 10,
+  // Duty-cycle limit
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_DUTY_CYCLE_LIMIT = 11,
+  // Bad request
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_BAD_REQUEST = 12,
+  // Not authorized
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_NOT_AUTHORIZED = 13,
+  // Public-key encryption failed
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_PKI_FAILED = 14,
+  // Public key unknown
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_PKI_UNKNOWN_PUBKEY = 15,
+  // Bad admin session key
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_ADMIN_BAD_SESSION_KEY = 16,
+  // Admin key not authorized
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_ADMIN_PUBLIC_KEY_UNAUTHORIZED = 17,
+  // Rate limit exceeded
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_RATE_LIMIT_EXCEEDED = 18,
+  // No public key of the destination
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_PKI_SEND_FAIL_PUBLIC_KEY = 19,
+  // Other routing error
+  SDRKIT_MESH_MESSAGE_ROW_FAILURE_ROUTING_ERROR = 20,
+} sdrkit_mesh_message_row_failure;
+
 // A row of the messages. The row key is the place of the message in the log.
 typedef struct sdrkit_mesh_message_row {
   // The number of bytes of this struct that the library wrote.
@@ -958,8 +1004,8 @@ typedef struct sdrkit_mesh_message_row {
   int32_t state;
   // True if `failure` holds a value.
   bool has_failure;
-  // Why the delivery failed.
-  sdrkit_string failure;
+  // Why the delivery failed. A value of `sdrkit_mesh_message_row_failure`.
+  int32_t failure;
   // True if `relays` holds a value.
   bool has_relays;
   // The distinct relays heard for an own broadcast.
