@@ -2,8 +2,8 @@
 //! bus: the same calls give the same control transfers in the same order, and every bulk byte arrives.
 
 use sdrkit_core::{SettingSet, Value, Values};
-use sdrkit_driver_core::{ring, RadioSetting, SourceDriver};
-use sdrkit_driver_rtlusb::RtlUsbDriver;
+use sdrkit_driver_core::{own_id, ring, RadioSetting, SourceDriver};
+use sdrkit_driver_rtlusb::{RtlSetting, RtlUsbDriver};
 use sdrkit_driver_usb::{BulkItem, BulkKind, Entry, FakeUsb, Payload, Script};
 use sdrkit_graph::stream::SampleType;
 use std::path::Path;
@@ -19,6 +19,14 @@ fn values(d: &RtlUsbDriver, centre: f64, rate: f64) -> Values {
         .unwrap();
     v.set(RadioSetting::Rate.id(), &Value::Hz(rate)).unwrap();
     v.set(RadioSetting::Agc.id(), &Value::Bool(true)).unwrap();
+    // The recordings were made with the detector loops of the tuner as the automatic gain.
+    v.set(own_id(RtlSetting::TunerAgc), &Value::Bool(true))
+        .unwrap();
+    // ... and with the 6 MHz filter that a rate above 2.43 MS/s then selected.
+    if rate > 2.43e6 {
+        v.set(RadioSetting::Bandwidth.id(), &Value::Hz(6e6))
+            .unwrap();
+    }
     v
 }
 

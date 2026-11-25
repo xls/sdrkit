@@ -56,6 +56,14 @@ pub const RTL_AGC: Setting<field::Bool> = Setting::new("rtl_agc", "RTL2832U digi
     .section("advanced")
     .help("The digital gain stage of the RTL2832U after the ADC. Off: the samples keep the level that the tuner gives.");
 
+/// The detector loops of the tuner as the automatic gain.
+pub const TUNER_AGC: Setting<field::Bool> = Setting::new("tuner_agc", "Tuner AGC loops", "", false)
+    .section("advanced")
+    .help(
+        "With automatic gain on, let the detectors of the tuner set its gain. Off: the driver holds a fixed tuner gain that it \
+         chooses from the level of the samples, which keeps strong stations nearby from overloading the dongle.",
+    );
+
 sdrkit_core::settings! {
     /// The own settings of the RTL2832U driver.
     pub enum RtlSetting {
@@ -67,6 +75,8 @@ sdrkit_core::settings! {
         OffsetTuning = OFFSET_TUNING,
         /// [`RTL_AGC`].
         RtlAgc = RTL_AGC,
+        /// [`TUNER_AGC`].
+        TunerAgc = TUNER_AGC,
     }
 }
 

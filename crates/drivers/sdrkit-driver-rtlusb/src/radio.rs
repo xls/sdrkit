@@ -5,6 +5,7 @@ use crate::device::{Direct, Gain, Rtl2832, TunerKind, ENDPOINT, PACKET};
 use crate::{e4000, RtlError};
 use sdrkit_core::publish::field;
 use sdrkit_core::{Field, Hz, Results, SettingSet, Values};
+use sdrkit_driver_core::gain::{HeldGain, Meter, RULES};
 use sdrkit_driver_core::net::Abort;
 use sdrkit_driver_core::runner::{Radio, RadioStream, Sink, StreamCtx};
 use sdrkit_driver_core::{
@@ -223,6 +224,20 @@ impl SettleGate {
     }
 }
 
+/// How the gain of the tuner is set.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum GainPlan {
+    /// The detector loops of the tuner set it ([`crate::TUNER_AGC`]).
+    Tuner,
+    /// A fixed gain in tenth dB.
+    Manual(i32),
+    /// The driver holds a manual gain chosen from the level of the samples ([`sdrkit_driver_core::gain`]).
+    Held,
+}
+
+/// The gain a held gain starts with, in tenth dB.
+pub const HELD_START: i32 = 297;
+
 /// The settings of the values, in the form the dongle takes.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Wanted {
@@ -233,7 +248,7 @@ pub struct Wanted {
     /// The tuner filter, 0 from the rate.
     pub bandwidth: u32,
     /// The tuner gain.
-    pub gain: Gain,
+    pub gain: GainPlan,
     /// The frequency correction.
     pub ppm: f64,
     /// Direct sampling at this frequency.
@@ -255,7 +270,7 @@ struct Applied {
     bandwidth: Option<u32>,
     offset: Option<bool>,
     centre: Option<u64>,
-    gain: Option<Gain>,
+    gain: Option<GainPlan>,
     mode: Option<(bool, bool)>,
     bias: Option<bool>,
 }
@@ -277,6 +292,8 @@ pub struct RtlRadio {
     product: String,
     /// Direct sampling is set, for the frequencies below [`DIRECT_BELOW_HZ`].
     ds_on: bool,
+    /// The held gain, shared with the stream that meters the samples.
+    hold: Arc<Mutex<HeldGain>>,
 }
 
 impl RtlRadio {
@@ -316,6 +333,7 @@ impl RtlRadio {
             bytes,
             product,
             ds_on: false,
+            hold: Arc::new(Mutex::new(HeldGain::new(RULES))),
         }
     }
 
@@ -347,10 +365,10 @@ impl RtlRadio {
                 id: RadioSetting::Centre.id(),
             });
         }
-        let gain = if values.get(&AGC) {
-            Gain::Auto
-        } else {
-            Gain::Manual((values.get(&GAIN) * 10.0).round() as i32)
+        let gain = match (values.get(&AGC), values.get(&crate::TUNER_AGC)) {
+            (true, true) => GainPlan::Tuner,
+            (true, false) => GainPlan::Held,
+            (false, _) => GainPlan::Manual((values.get(&GAIN) * 10.0).round() as i32),
         };
         Ok(Wanted {
             centre: centre as u64,
@@ -389,29 +407,63 @@ impl RtlRadio {
             }
             a.direct = Some(w.direct);
         }
-        if a.rate != Some(w.rate) {
-            d.set_sample_rate(w.rate)?;
-            a.rate = Some(w.rate);
-        }
+        // A bandwidth that is set goes first, so the rate does not set a filter that is replaced at once.
         if a.bandwidth != Some(w.bandwidth) {
             if w.bandwidth > 0 || a.bandwidth.is_some() {
                 d.set_bandwidth(w.bandwidth)?;
             }
             a.bandwidth = Some(w.bandwidth);
         }
+        if a.rate != Some(w.rate) {
+            d.set_sample_rate(w.rate)?;
+            a.rate = Some(w.rate);
+        }
         if a.offset != Some(w.offset) {
             d.set_offset_tuning(w.offset)?;
             a.offset = Some(w.offset);
         }
+        let retuned = a.centre != Some(w.centre) || a.rate != Some(w.rate);
         if a.centre != Some(w.centre) || d.frequency() != Some(w.centre) {
             a.centre = None;
             d.set_frequency(w.centre)?;
             a.centre = Some(w.centre);
         }
-        if a.gain != Some(w.gain) {
-            d.set_gain(w.gain)?;
-            a.gain = Some(w.gain);
+        let mut hold = self
+            .hold
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        match w.gain {
+            GainPlan::Tuner | GainPlan::Manual(_) if a.gain != Some(w.gain) => {
+                hold.stop();
+                d.set_gain(match w.gain {
+                    GainPlan::Manual(g) => Gain::Manual(g),
+                    _ => Gain::Auto,
+                })?;
+            }
+            // A held gain starts at open, after a retune and when it is switched on; it keeps the gain it held.
+            GainPlan::Held if a.gain != Some(w.gain) || retuned || !hold.active() => {
+                let from = hold
+                    .status()
+                    .map_or(HELD_START, |s| (s.gain_db * 10.0).round() as i32);
+                let set = d.set_gain(Gain::Manual(from))?.unwrap_or(from);
+                let gains = d.gains();
+                let range = (
+                    f64::from(gains[0]) / 10.0,
+                    f64::from(gains[gains.len() - 1]) / 10.0,
+                );
+                let rate = d.rate_hz();
+                let (size, queued) = transfer_plan(rate);
+                hold.start(
+                    f64::from(set) / 10.0,
+                    range,
+                    rate,
+                    (queued * size / 2) as u64,
+                );
+            }
+            _ => {}
         }
+        drop(hold);
+        a.gain = Some(w.gain);
         let mode = (w.rtl_agc, self.counter);
         if a.mode != Some(mode) {
             d.set_rtl_agc(w.rtl_agc)?;
@@ -502,6 +554,14 @@ impl Radio for RtlRadio {
             gate: SettleGate::new(Instant::now(), byte_rate, cap),
             queued,
             bytes: self.bytes.clone(),
+            meter: Meter::new(
+                self.hold
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .window_samples(rate),
+                128,
+            ),
+            hold: self.hold.clone(),
         })
     }
 
@@ -596,6 +656,14 @@ impl Radio for RtlRadio {
         }
     }
 
+    fn write_held_gain(&mut self, _rx: usize, gain_db: f64) -> Result<(), DriverError> {
+        let d = self.dev.as_mut().ok_or(DriverError::NotNow {
+            state: sdrkit_driver_core::Doing::Closed,
+        })?;
+        d.set_gain(Gain::Manual((gain_db * 10.0).round() as i32))?;
+        Ok(())
+    }
+
     fn readings(&mut self, results: &mut Results) {
         if let Some(d) = &self.dev {
             let mut f = results.fields_mut();
@@ -611,6 +679,37 @@ impl Drop for RtlRadio {
     }
 }
 
+/// Locks the held gain, also after a panic elsewhere.
+fn lock_hold(h: &Mutex<HeldGain>) -> std::sync::MutexGuard<'_, HeldGain> {
+    h.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
+}
+
+/// Meters the samples of `data` for the held gain `hold` and writes the gain it proposes through the runner. Nothing is
+/// allocated unless a write fails.
+fn meter_samples(meter: &mut Meter, hold: &Mutex<HeldGain>, data: &[u8], ctx: &StreamCtx) {
+    if !lock_hold(hold).active() {
+        return;
+    }
+    for iq in data.as_chunks::<2>().0 {
+        let Some(level) = meter.add(i32::from(iq[0]) - 128, i32::from(iq[1]) - 128) else {
+            continue;
+        };
+        let Some(want) = lock_hold(hold).feed(&level) else {
+            continue;
+        };
+        match ctx.write_gain(0, want) {
+            Some(Ok(())) => lock_hold(hold).stepped(want),
+            Some(Err(e)) => {
+                lock_hold(hold).not_stepped();
+                ctx.notices.log(format!(
+                    "RTL-SDR: the gain of {want} dB was not written: {e}"
+                ));
+            }
+            None => lock_hold(hold).not_stepped(),
+        }
+    }
+}
+
 /// The read loop of an open dongle: bulk transfers go to the sink unchanged, apart from the bytes of a retune gap.
 pub struct RtlStream {
     bulk: Option<Box<dyn BulkIn>>,
@@ -620,6 +719,8 @@ pub struct RtlStream {
     gate: SettleGate,
     queued: usize,
     bytes: Arc<AtomicU64>,
+    meter: Meter,
+    hold: Arc<Mutex<HeldGain>>,
 }
 
 impl RtlStream {
@@ -659,6 +760,7 @@ impl RtlStream {
                         }
                         sink.write(&data[k..]);
                     }
+                    meter_samples(&mut self.meter, &self.hold, &data[k..], ctx);
                 }
                 Err(UsbError::Timeout) => {
                     if last.elapsed() >= STALL {

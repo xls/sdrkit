@@ -3,7 +3,7 @@
 //!
 //! `cargo run -p sdrkit-driver-rtlusb --example rtl_probe -- <MHz> [--seconds <s>] [--gain <dB>] [--record <file>]`
 //!
-//! `--device <selector>` picks the dongle as an address does (`#1`, `@<bus>-<ports>`, a serial number); without
+//! `--rate <Hz>` sets the rate of the station measurement (2.4 MS/s without it). `--device <selector>` picks the dongle as an address does (`#1`, `@<bus>-<ports>`, a serial number); without
 //! it the first. Without `--gain` the tuner sets its gain itself. `--retunes <n> --retune-to <MHz>` retunes n times between the two
 //! frequencies while streaming and prints the gap of each retune and the PLL lock. `--counter-seconds <s>` sets the
 //! length of the counter runs.
@@ -24,7 +24,6 @@ use sdrkit_graph::stream::SampleType;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-const RATE: f64 = 2.4e6;
 /// Samples kept for the spectrum.
 const KEEP: usize = 1 << 20;
 
@@ -135,6 +134,8 @@ fn main() {
     let secs: f64 = opt("--seconds").and_then(|s| s.parse().ok()).unwrap_or(5.0);
     let record = opt("--record");
     let gain: Option<f64> = opt("--gain").and_then(|s| s.parse().ok());
+    #[allow(non_snake_case)]
+    let RATE: f64 = opt("--rate").and_then(|s| s.parse().ok()).unwrap_or(2.4e6);
     let retunes: u32 = opt("--retunes").and_then(|s| s.parse().ok()).unwrap_or(0);
     let other: Option<f64> = opt("--retune-to").and_then(|s| s.parse().ok());
     let counter_secs: f64 = opt("--counter-seconds")

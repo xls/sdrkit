@@ -514,6 +514,59 @@ fn record(bus: Arc<dyn UsbBus>, sel: &str, f: f64, path: &str) {
     );
 }
 
+/// Writes `secs` seconds of the unchanged bytes of the dongle at `f` and `rate` into the file `path`, with the gain in
+/// dB `opt[0]` (else automatic) and the bandwidth in Hz `opt[1]` (else from the rate).
+fn capture(
+    bus: Arc<dyn UsbBus>,
+    sel: &str,
+    f: f64,
+    rate: f64,
+    secs: f64,
+    path: &str,
+    opt: &[String],
+) {
+    let gain: Option<f64> = opt.first().and_then(|g| g.parse().ok());
+    let bandwidth: Option<f64> = opt.get(1).and_then(|b| b.parse().ok());
+    let d = RtlUsbDriver::new(bus);
+    let mut v = values(&d, f, gain);
+    if let Some(b) = bandwidth {
+        v.set(RadioSetting::Bandwidth.id(), &Value::Hz(b)).unwrap();
+    }
+    v.set(RadioSetting::Rate.id(), &Value::Hz(rate)).unwrap();
+    let mut src = d.open(sel, &v).unwrap();
+    let mut r = start(src.as_mut());
+    let mut out = Vec::new();
+    let t0 = Instant::now();
+    while t0.elapsed().as_secs_f64() < secs {
+        r.wait(1, Duration::from_millis(20));
+        r.read_with(1 << 20, |b| out.extend_from_slice(b));
+    }
+    src.stop();
+    std::fs::write(path, &out).unwrap();
+    println!("wrote {} bytes", out.len());
+}
+
+/// Writes 2.2 s of an R820T dongle at `f` and `rate` with the manual gain `g` (tenth dB) and the VGA code `vga` into
+/// `path`.
+fn vga(bus: Arc<dyn UsbBus>, sel: &str, f: f64, rate: u32, g: i32, vga: u8, path: &str) {
+    let mut d = open_low(&bus, sel);
+    d.set_sample_rate(rate).unwrap();
+    d.set_frequency(f as u64).unwrap();
+    d.set_gain(Gain::Manual(g)).unwrap();
+    let c = d.chip_mut();
+    c.repeater(true).unwrap();
+    c.i2c_write(0x34, &[0x0C, 0x60 | vga]).unwrap();
+    c.repeater(false).unwrap();
+    let x = raw(&mut d, (f64::from(rate) * 2.2) as usize);
+    let mut out = Vec::with_capacity(x.len() * 2);
+    for s in x {
+        out.push((s.re * 127.5 + 127.5).round() as u8);
+        out.push((s.im * 127.5 + 127.5).round() as u8);
+    }
+    std::fs::write(path, out).unwrap();
+    d.close();
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let bus = platform_bus();
@@ -525,6 +578,24 @@ fn main() {
         Some("drift") => drift(bus, &args[1], mhz(&args[2]), args[3].parse().unwrap()),
         Some("dual") => dual(bus, &args[1], &args[2], args[3].parse().unwrap()),
         Some("record") => record(bus, &args[1], mhz(&args[2]), &args[3]),
+        Some("capture") => capture(
+            bus,
+            &args[1],
+            mhz(&args[2]),
+            args[3].parse().unwrap(),
+            args[4].parse().unwrap(),
+            &args[5],
+            &args[6..],
+        ),
+        Some("vga") => vga(
+            bus,
+            &args[1],
+            mhz(&args[2]),
+            args[3].parse().unwrap(),
+            args[4].parse().unwrap(),
+            args[5].parse().unwrap(),
+            &args[6],
+        ),
         Some("dc") => dc(bus, &args[1], mhz(&args[2])),
         Some("e4k") => e4k(bus, &args[1], mhz(&args[2]), &args[3..]),
         _ => println!("usage: see the module documentation"),

@@ -20,6 +20,7 @@ in 1 c0 00 0034 0600 4 -> 69005a00
 in 1 c0 00 3004 0200 1 -> 0e
 in 1 c0 00 3003 0200 1 -> 19
 in 1 c0 00 3001 0200 1 -> 18
+in 1 c0 00 0034 0600 4 -> 69005a00
 "#;
 
 /// The control OUT transfers as `<wValue> <wIndex> <data>`, from step `from` on.
@@ -161,6 +162,7 @@ in 1 c0 00 0074 0600 4 -> 69005a00
 in 1 c0 00 3004 0200 1 -> 0e
 in 1 c0 00 3003 0200 1 -> 19
 in 1 c0 00 3001 0200 1 -> 18
+in 1 c0 00 0074 0600 4 -> 69005a00
 "#;
 
 #[test]
@@ -217,4 +219,75 @@ fn the_kind_opens_a_dongle_with_the_default_settings() {
     let mut events = Vec::new();
     radio.poll(0.0, &mut events);
     radio.stop();
+}
+
+#[test]
+fn automatic_gain_holds_a_manual_tuner_gain_and_steps_down_on_clipping() {
+    // Samples that sit at full scale.
+    let mut script = sdrkit_driver_usb::Script::parse(BUS).unwrap();
+    script.bulk(sdrkit_driver_usb::BulkItem {
+        repeat: 400,
+        after: std::time::Duration::from_millis(5),
+        ..sdrkit_driver_usb::BulkItem::data(
+            sdrkit_driver_usb::UsbId(1),
+            0x81,
+            [0xFFu8, 0x00].repeat(106_496),
+        )
+    });
+    let rec = RecordingUsb::new(Arc::new(FakeUsb::new(script)), RecordOptions::default());
+    let d = RtlUsbDriver::new(Arc::new(rec.clone()));
+    let schema = d.descriptor().decl().schema().clone();
+    let mut v = Values::defaults(&schema);
+    v.set(RadioSetting::Rate.id(), &Value::Hz(3.2e6)).unwrap();
+    v.set(RadioSetting::Centre.id(), &Value::Hz(104.9e6))
+        .unwrap();
+    assert!(
+        v.get(&sdrkit_driver_core::AGC),
+        "automatic gain is the default"
+    );
+    let mut src = d.open("", &v).unwrap();
+    let o = outs(&rec, 0);
+    // The tuner is in manual gain with VGA code 8, never in its own AGC mode (VGA code 11, LNA automatic).
+    assert!(o.contains(&"0034 0610 0c68".to_string()), "no manual VGA");
+    assert!(
+        !o.contains(&"0034 0610 0c6b".to_string()),
+        "the AGC loops of the tuner are on"
+    );
+    let last_r05 = o
+        .iter()
+        .rev()
+        .find(|x| x.starts_with("0034 0610 05"))
+        .unwrap();
+    assert!(
+        u8::from_str_radix(&last_r05[12..14], 16).unwrap() & 0x10 != 0,
+        "the LNA is left on automatic: {last_r05}"
+    );
+    // At 3.2 MS/s the filter is the 2.43 MHz one with its IF of 1.815 MHz, not the 6 MHz one.
+    let last_r0b = o
+        .iter()
+        .rev()
+        .find(|x| x.starts_with("0034 0610 0b"))
+        .unwrap();
+    assert_eq!(last_r0b, "0034 0610 0b8f", "not the 2.43 MHz filter");
+    assert!(o
+        .windows(3)
+        .any(|w| w == ["1920 0011 3b", "1a20 0011 f7", "1b20 0011 78"]));
+    // The held gain starts at LNA 8 and mixer 8 (29.7 dB) and steps down on the clipped samples.
+    let n = rec.script().steps().count();
+    let (w, _r) = sdrkit_driver_core::ring(1 << 22, sdrkit_graph::stream::SampleType::Cu8);
+    src.start(w).unwrap();
+    let end = std::time::Instant::now() + std::time::Duration::from_secs(5);
+    let lower = |o: &[String]| {
+        o.iter().any(|x| {
+            x.starts_with("0034 0610 05") && u8::from_str_radix(&x[12..14], 16).unwrap() & 0x0F < 8
+        })
+    };
+    while !lower(&outs(&rec, n)) {
+        assert!(
+            std::time::Instant::now() < end,
+            "the held gain did not step down"
+        );
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+    src.stop();
 }

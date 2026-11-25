@@ -11,6 +11,8 @@ use sdrkit_driver_usb::{UsbDevice, UsbDeviceInfo};
 
 /// The crystal of the RTL2832U.
 pub const XTAL_HZ: u32 = 28_800_000;
+/// The widest R820T-family filter that the rate selects when no bandwidth is set.
+pub const AUTO_FILTER_MAX: u32 = 2_430_000;
 /// The bulk IN endpoint of the samples.
 pub const ENDPOINT: u8 = 0x81;
 /// The packet size of the endpoint; a transfer is a whole number of packets.
@@ -460,13 +462,21 @@ impl Rtl2832 {
     }
 
     /// The bandwidth the tuner filter is set to: the one set, twice the offset in offset tuning, else the rate.
+    ///
+    /// From the rate, an R820T-family or R828D tuner takes at most its 2.43 MHz filter: the next one is 6 MHz wide, and
+    /// at 2.56 to 3.2 MS/s it lets strong stations outside the samples overload the ADC, while the decimation filter
+    /// of the RTL2832U already shapes the edges of the band.
     fn tuner_bandwidth(&self) -> u32 {
         if self.bandwidth > 0 {
             self.bandwidth
         } else if self.offset {
             2 * self.offset_hz()
         } else {
-            self.rate.unwrap_or(0)
+            let rate = self.rate.unwrap_or(0);
+            match self.tuner {
+                Tuner::R82xx(_) => rate.min(AUTO_FILTER_MAX),
+                Tuner::E4000(_) => rate,
+            }
         }
     }
 
