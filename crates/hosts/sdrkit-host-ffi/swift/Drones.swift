@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "drones", version 1.3. MIT licence.
+// sdrkit: the typed interface of the stack family "drones", version 1.4. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum DronesInterface {
     public static let major = 1
-    public static let minor = 3
+    public static let minor = 4
 }
 
 /// The result fields of Drone Remote ID.
@@ -2150,7 +2150,10 @@ public enum DronesTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DronesDroneTrackRow.init))
     }
     /// The changed rows of the table "aircraft" of the stack "dji_droneid", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `aircraft` names a row.
+    /// Default order: the column `aircraft`, lowest first.
+    /// Time: `last_heard`.
     public static func djiDroneidAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 50) -> Result<[DjiDroneidAircraftRow], SDRKitCode> {
         var rows = [sdrkit_dji_droneid_aircraft_row](repeating: sdrkit_dji_droneid_aircraft_row(), count: capacity)
         var info = sdrkit_rows_info.sized

@@ -131,15 +131,15 @@ setting SettingDecl { field: FieldDecl { key: "gen_two_aircraft", label: "Two ai
 setting SettingDecl { field: FieldDecl { key: "gen_centre_hz", label: "Test signal radio centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 6000000000.0, step: 1000.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "The radio centre for `gen_droneid_frequency`. 0 takes the tuned frequency.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 field FieldDecl { key: "bursts_measured", label: "Bursts measured", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "bursts_ofdm_like", label: "OFDM-like bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "droneid_decoded", label: "DroneID packets", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "droneid_decoded", label: "DroneID packets", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 2 }
 field FieldDecl { key: "droneid_crc_failed", label: "DroneID CRC failures", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "droneid_tried", label: "DroneID attempts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "centre_hz", label: "Capture centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "burst_cfo_hz", label: "DroneID carrier offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "drones", label: "Drones", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "aircraft", label: "Aircraft", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
-field FieldDecl { key: "droneid_encrypted", label: "DroneID encrypted frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "droneid_empty", label: "DroneID empty frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "droneid_encrypted", label: "DroneID encrypted frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 3 }
+field FieldDecl { key: "droneid_empty", label: "DroneID empty frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 4 }
 field FieldDecl { key: "droneid_other", label: "DroneID frames of an unknown layout", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "droneid_refused", label: "Empty frames refused", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "droneid_pairs", label: "DroneID symbol pairs", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -220,7 +220,7 @@ table "drone_tracks" "Tracks" cap 6000
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 table "aircraft" "Aircraft" cap 50
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(12), own: None, delivery: None, failure: None }
   column FieldDecl { key: "aircraft", label: "Aircraft", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "session_key", label: "Session key (not a serial number)", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "drone", label: "Drone", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "drones", column: "" }), content: None, reading: 0 }

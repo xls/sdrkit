@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "drones", version 1.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "drones", version 1.4. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DRONES_VERSION_MAJOR 1
-#define SDRKIT_DRONES_VERSION_MINOR 3
+#define SDRKIT_DRONES_VERSION_MINOR 4
 
 // The stack "remote_id": its id, and the keys of its event types.
 #define SDRKIT_STACK_REMOTE_ID "remote_id"
@@ -2422,7 +2422,10 @@ static inline int32_t sdrkit_dji_droneid_drone_tracks_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "dji_droneid" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `aircraft` names a row.
+// Default order: the column `aircraft`, lowest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_dji_droneid_aircraft_rows(SDRKIT_HANDLE handle,
                                                       sdrkit_dji_droneid_aircraft_row *rows,
                                                       uint32_t capacity,

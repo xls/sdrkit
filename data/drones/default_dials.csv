@@ -1,0 +1,5 @@
+# id: default_dials
+# name: Starting dial of DJI DroneID (one of the fixed DroneID frequencies of the 2.4 GHz band)
+# note: A host that wants a starting dial sets it as the tuned frequency. An empty label is the stack itself; another label is a submode id.
+stack,label,hz
+dji_droneid,,2444500000

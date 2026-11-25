@@ -14,6 +14,7 @@ pub const DEFAULT_DIALS: &str = "default_dials.csv";
 pub const FAMILIES: &[&str] = &[
     "avdata",
     "broadcast",
+    "drones",
     "dvbt2",
     "general",
     "hfkbd",
@@ -99,6 +100,7 @@ mod tests {
             [
                 ("avdata", 3),
                 ("broadcast", 1),
+                ("drones", 1),
                 ("dvbt2", 1),
                 ("general", 4),
                 ("hfkbd", 22),

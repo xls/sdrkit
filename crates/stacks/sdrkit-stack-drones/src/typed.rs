@@ -364,7 +364,7 @@ pub struct DjiDroneidFields<'a> {
     #[field(label = "OFDM-like bursts")]
     pub bursts_ofdm_like: i64,
     /// DroneID packets decoded.
-    #[field(label = "DroneID packets")]
+    #[field(label = "DroneID packets", reading = 2)]
     pub droneid_decoded: i64,
     /// DroneID bursts with the symbols whose CRC failed.
     #[field(label = "DroneID CRC failures")]
@@ -386,10 +386,10 @@ pub struct DjiDroneidFields<'a> {
     #[field(label = "Aircraft", reading = 1)]
     pub aircraft: i64,
     /// DroneID frames of the encrypted format: the aircraft is present, its position and serial number are not readable.
-    #[field(label = "DroneID encrypted frames")]
+    #[field(label = "DroneID encrypted frames", reading = 3)]
     pub droneid_encrypted: i64,
     /// Empty DroneID frames: the aircraft is present and sends no data in this state.
-    #[field(label = "DroneID empty frames")]
+    #[field(label = "DroneID empty frames", reading = 4)]
     pub droneid_empty: i64,
     /// DroneID frames whose CRC-24 passed and whose layout is not known.
     #[field(label = "DroneID frames of an unknown layout")]
@@ -616,13 +616,13 @@ pub struct DjiDroneidAircraftRow<'a> {
     #[field(shared = keys::SNR_DB)]
     pub snr_db: f64,
     /// The radio frequency.
-    #[field(label = "Frequency", unit = "Hz")]
+    #[field(shared = keys::FREQ_HZ)]
     pub freq_hz: Option<Hertz>,
     /// Wall-clock time when first heard.
     #[field(shared = columns::FIRST_HEARD)]
     pub first_heard: Option<Time>,
     /// Wall-clock time when last heard, in whole seconds. A host shows the age from it.
-    #[field(shared = columns::LAST_HEARD)]
+    #[field(shared = columns::LAST_HEARD, role = Time)]
     pub last_heard: Option<Time>,
 }
 
@@ -1443,10 +1443,15 @@ pub static DJI_TRACKS: Table<DroneTrackRow<'static>> = Table::new(
 /// A DroneID packet.
 pub static DJI_DRONEID: EventKind<DjiDroneidEvent<'static>> =
     EventKind::new("dji.droneid", "DroneID packet");
-/// The DJI aircraft heard on DroneID, in any format.
+/// The DJI aircraft heard on DroneID, in any format, by name.
 pub static DJI_AIRCRAFT: Table<DjiDroneidAircraftRow<'static>> =
     Table::new("aircraft", "Aircraft", crate::dji::AIRCRAFT_CAP)
-        .label(&DjiDroneidAircraftRow::AIRCRAFT);
+        .label(&DjiDroneidAircraftRow::AIRCRAFT)
+        .sorted(
+            &DjiDroneidAircraftRow::AIRCRAFT,
+            sdrkit_core::SortOrder::Ascending,
+        )
+        .role(sdrkit_core::TableRole::Nodes);
 /// A DJI aircraft that was not heard before.
 pub static DJI_AIRCRAFT_SEEN: EventKind<DjiDroneidAircraftEvent<'static>> =
     EventKind::new("dji.aircraft", "New DJI aircraft");
@@ -1644,7 +1649,7 @@ pub fn family() -> &'static Described {
     FAMILY.get_or_init(|| {
         // Each stack holds what it heard in one component: the objects heard and the logs are its history, and they
         // stay over a change of frequency, with the counters of the same component.
-        Described::new("drones", 1, 3)
+        Described::new("drones", 1, 4)
             .added(
                 1,
                 1,

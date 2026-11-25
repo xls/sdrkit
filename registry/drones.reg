@@ -1,5 +1,5 @@
 # The interface of the stack family drones. The registry test of the family writes this file.
-family drones version=1.3
+family drones version=1.4
 shape.RemoteIdFields since=1.0
 shape.RemoteIdFields.ble_channel type=i64 unit= optional=yes since=1.0
 shape.RemoteIdFields.ble_offset_hz type=hz unit=Hz optional=yes since=1.0
@@ -106,15 +106,15 @@ shape.RemoteIdVerdictEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,b
 shape.DjiDroneidFields since=1.0
 shape.DjiDroneidFields.bursts_measured type=i64 unit= optional=no since=1.0
 shape.DjiDroneidFields.bursts_ofdm_like type=i64 unit= optional=no since=1.0
-shape.DjiDroneidFields.droneid_decoded type=i64 unit= optional=no since=1.0
+shape.DjiDroneidFields.droneid_decoded type=i64 unit= optional=no reading=2 since=1.0
 shape.DjiDroneidFields.droneid_crc_failed type=i64 unit= optional=no since=1.0
 shape.DjiDroneidFields.droneid_tried type=i64 unit= optional=no since=1.0
 shape.DjiDroneidFields.centre_hz type=hz unit=Hz optional=yes since=1.0
 shape.DjiDroneidFields.burst_cfo_hz type=hz unit=Hz optional=yes since=1.0
 shape.DjiDroneidFields.drones type=i64 unit= optional=no since=1.0
 shape.DjiDroneidFields.aircraft type=i64 unit= optional=no reading=1 since=1.3
-shape.DjiDroneidFields.droneid_encrypted type=i64 unit= optional=no since=1.3
-shape.DjiDroneidFields.droneid_empty type=i64 unit= optional=no since=1.3
+shape.DjiDroneidFields.droneid_encrypted type=i64 unit= optional=no reading=3 since=1.3
+shape.DjiDroneidFields.droneid_empty type=i64 unit= optional=no reading=4 since=1.3
 shape.DjiDroneidFields.droneid_other type=i64 unit= optional=no since=1.3
 shape.DjiDroneidFields.droneid_refused type=i64 unit= optional=no since=1.3
 shape.DjiDroneidFields.droneid_pairs type=i64 unit= optional=no since=1.3
@@ -492,7 +492,7 @@ dji_droneid.table.signals row=DjiDroneidSignalRow cap=24 sort=snr_db:descending 
 dji_droneid.table.drones row=DjiDroneidDroneRow cap=50 label=source position=position altitude=alt_m course=course_deg speed=speed_kt since=1.0
 dji_droneid.table.bursts row=DjiDroneidBurstRow cap=300 since=1.0
 dji_droneid.table.drone_tracks row=DroneTrackRow cap=6000 position=position since=1.0
-dji_droneid.table.aircraft row=DjiDroneidAircraftRow cap=50 label=aircraft since=1.3
+dji_droneid.table.aircraft row=DjiDroneidAircraftRow cap=50 label=aircraft sort=aircraft:ascending role=nodes time=last_heard since=1.3
 dji_droneid.series.level x_unit=s y_unit=dBFS since=1.0
 dji_droneid.event.dji.droneid fields=DjiDroneidEvent since=1.0
 dji_droneid.event.dji.aircraft fields=DjiDroneidAircraftEvent since=1.3

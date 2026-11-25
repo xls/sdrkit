@@ -1,7 +1,7 @@
 //! DJI drones: the recorded vector, the acceptance cases, the DroneID coding chain and the generator round trips.
 
 use super::{count, row, rows, run};
-use sdrkit_algo_sim::chain::{NoiseKind, GEN_NOISE, GEN_OFFSET_HZ, GEN_SNR_DB};
+use sdrkit_algo_sim::chain::{NoiseKind, GEN_LEVEL_DBFS, GEN_NOISE, GEN_OFFSET_HZ, GEN_SNR_DB};
 use sdrkit_core::publish::keys;
 use sdrkit_core::{Complex32, Results};
 use sdrkit_dev_test::{sigmf, Harness};
@@ -568,4 +568,54 @@ fn the_stack_asks_for_the_droneid_frequencies_only_when_set_to_step() {
         out.requests,
         [sdrkit_core::HostRequest::retune(2429.5e6, "DroneID frequencies")]
     );
+}
+
+
+/// The level of the aircraft heard in the test signal of `h`, dBFS.
+fn aircraft_level(h: Harness) -> f64 {
+    let out = run(h);
+    let r = &out.results;
+    let id = rows(r, &typed::DJI_AIRCRAFT).into_iter().next().expect("an aircraft");
+    row(r, &typed::DJI_AIRCRAFT, &id)
+        .and_then(|a| a.at(&typed::DjiDroneidAircraftRow::LEVEL_DBFS))
+        .expect("a level")
+}
+
+#[test]
+fn the_level_of_an_aircraft_is_the_power_in_its_own_band() {
+    // The test signal sends each burst at its set level, 0 dBFS. The OcuSync-like bursts next to the DroneID
+    // bursts of the full test signal add nothing to the level.
+    let alone = aircraft_level(h().set(&GEN_SCENARIO, GenScenario::DroneIdOnly).seconds(3.0));
+    let full = aircraft_level(h().seconds(3.0));
+    assert!(alone < 0.05 && full < 0.05, "{alone} {full}");
+    assert!((full - alone).abs() < 0.1, "{alone} {full}");
+    // A test signal below full scale reads below 0 dBFS, also on a DroneID frequency.
+    for h in [h().seconds(3.0), on_droneid_frequency(GenFrame::Encrypted, 2440e6)] {
+        let level = aircraft_level(h.set(&GEN_LEVEL_DBFS, -20.0));
+        assert!((level + 20.0).abs() < 0.3, "{level}");
+    }
+}
+
+#[test]
+fn the_pair_trigger_measures_the_level_in_the_band_of_the_burst() {
+    let rate = 30.72e6;
+    let frame = droneid::encrypted_frame(0x10, [4, 3, 2, 1], [5; 8], &[0x69; 109], [3; 4]);
+    let mut x = capture_with_burst(rate, &frame, 0.0, 15.0);
+    let power = |v: &[Complex32]| v.iter().map(|s| s.norm_sqr() as f64).sum::<f64>() / v.len() as f64;
+    let at = (rate * 0.02) as usize;
+    let alone = power(&x[at..at + (rate * 0.6e-3) as usize]);
+    // An OFDM-like signal of the same power 9.5 MHz above it, all through the burst.
+    let mut rng = sdrkit_algo_sim::rng::Rng::new(5);
+    let other = sdrkit_stack_drones::dji::generator::ofdm_burst(1024, 600, 72, 14, false, &mut rng);
+    let mut beside = Vec::new();
+    sdrkit_algo_dsp::resample::resample_span(&other, droneid::FS, rate, &mut beside);
+    sdrkit_algo_dsp::nco::Nco::new(rate, 9.5e6).mix_in_place(&mut beside);
+    let g = (alone / power(&beside)).sqrt() as f32;
+    for (o, v) in x[at - 2000..].iter_mut().zip(&beside) {
+        *o += *v * g;
+    }
+    let found = hits(rate, &x, 0.0);
+    assert_eq!(found.len(), 1);
+    let want = sdrkit_algo_dsp::meter::power_to_db(alone);
+    assert!((found[0].level_dbfs - want).abs() < 0.3, "{} {want}", found[0].level_dbfs);
 }

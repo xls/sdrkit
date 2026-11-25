@@ -104,11 +104,11 @@ The stack puts points on a map: Drones.
 
 ## Typed interface
 
-The stack is in the family `drones`, version 1.3. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `drones`, version 1.4. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
-Key readings: `aircraft`.
+Key readings: `aircraft`, `droneid_decoded`, `droneid_encrypted`, `droneid_empty`.
 
 ### Result fields
 
@@ -254,7 +254,7 @@ Struct `DjiDroneidAircraftRow`. A DJI aircraft heard on DroneID, in any format.
 | `first_heard` | time | optional | 1.3 | Wall-clock time when first heard. |
 | `last_heard` | time | optional | 1.3 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
 
-The column `aircraft` names a row.
+The rows are the stations or nodes of the stack. The column `aircraft` names a row. Default order: the column `aircraft`, lowest first. Time: `last_heard`.
 
 ### Event `dji.droneid`
 

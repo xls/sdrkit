@@ -4,6 +4,7 @@
 //! 4 Msps, where two FFT correlators look for the two symbols. A pair starts the burst receiver on the samples of the
 //! burst.
 
+use super::burst::BandShare;
 use super::droneid::{self, BurstDecode, BurstReceiver, FS, NFFT};
 use sdrkit_algo_dsp::decim::Decimator;
 use sdrkit_algo_dsp::meter::power_to_db;
@@ -99,6 +100,7 @@ pub struct PairTrigger {
     mixed: Vec<Complex32>,
     span: Vec<Complex32>,
     burst: Vec<Complex32>,
+    share: BandShare,
 }
 
 /// The template of the symbol of root index `r` after the mixer and the decimator of a channel whose search centre is
@@ -199,6 +201,7 @@ impl PairTrigger {
             mixed: Vec::with_capacity((rate * 4e-3) as usize / 8 + 1),
             span: Vec::with_capacity((rate * 1.2e-3) as usize),
             burst: Vec::with_capacity(16_384),
+            share: BandShare::default(),
         }
     }
 
@@ -327,7 +330,8 @@ impl PairTrigger {
                 .iter()
                 .map(|v| v.norm_sqr() as f64)
                 .sum::<f64>()
-                / (last - first).max(1) as f64;
+                / (last - first).max(1) as f64
+                * self.share.of(&self.burst[first..last], FS, 0.5 * WIDTH_HZ);
             out.push(Hit {
                 start_s: (from as f64 + decode.t2 as f64 * ratio) / self.rate,
                 offset_hz: ch.offset_hz,

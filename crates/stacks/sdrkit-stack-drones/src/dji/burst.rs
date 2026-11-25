@@ -12,6 +12,59 @@ use std::sync::Arc;
 
 const NSPEC: usize = 1024;
 
+/// The share of the power of a burst inside its own band, so that the level of a burst leaves out a signal next to it.
+pub struct BandShare {
+    fft: Fft,
+    hann: Vec<f32>,
+    buf: Vec<Complex32>,
+}
+
+impl Default for BandShare {
+    fn default() -> Self {
+        BandShare {
+            fft: Fft::forward(NSPEC),
+            hann: (0..NSPEC)
+                .map(|i| Window::Hann.value(i, NSPEC) as f32)
+                .collect(),
+            buf: Vec::with_capacity(NSPEC),
+        }
+    }
+}
+
+impl BandShare {
+    /// The share of the power of `x` (at `rate`) within `half_hz` of 0 Hz: Hann frames of 1024 points with half
+    /// overlap, summed with equal weight. 1 when `x` is shorter than one frame or holds no power.
+    pub fn of(&mut self, x: &[Complex32], rate: f64, half_hz: f64) -> f64 {
+        let df = rate / NSPEC as f64;
+        let (mut inside, mut all) = (0.0f64, 0.0f64);
+        let mut p = 0;
+        while p + NSPEC <= x.len() {
+            self.buf.clear();
+            self.buf
+                .extend(x[p..p + NSPEC].iter().zip(&self.hann).map(|(v, w)| v * w));
+            self.fft.process(&mut self.buf);
+            for (k, v) in self.buf.iter().enumerate() {
+                let bin = if k < NSPEC / 2 {
+                    k as f64
+                } else {
+                    k as f64 - NSPEC as f64
+                };
+                let e = f64::from(v.norm_sqr());
+                all += e;
+                if (bin * df).abs() <= half_hz {
+                    inside += e;
+                }
+            }
+            p += NSPEC / 2;
+        }
+        if all > 0.0 {
+            inside / all
+        } else {
+            1.0
+        }
+    }
+}
+
 /// One signal inside a burst.
 #[derive(Clone, Debug)]
 pub struct BurstSignal {
@@ -89,6 +142,7 @@ pub struct BurstAnalyser {
     mixed: Vec<Complex32>,
     /// From `rate` to 15.36 and to 30.72 Msps; `None` where the resampler refuses the rates.
     resamplers: [Option<SpanResampler>; 2],
+    share: BandShare,
     out: Vec<BurstSignal>,
 }
 
@@ -124,6 +178,7 @@ impl BurstAnalyser {
             scratch: Vec::new(),
             mixed: Vec::new(),
             resamplers: [15.36e6, 30.72e6].map(|rs| SpanResampler::new(rate, rs).ok()),
+            share: BandShare::default(),
             out: Vec::new(),
         }
     }
@@ -483,7 +538,11 @@ impl BurstAnalyser {
             return None;
         }
         let run = &env[best.0..best.1];
-        let level = db(run.iter().sum::<f64>() / run.len() as f64);
+        // The resampled band is wider than the signal: a signal next to it would add to the level.
+        let inside = self
+            .share
+            .of(&y[best.0 * step..best.1 * step], rs, 0.5 * width);
+        let level = db(inside * run.iter().sum::<f64>() / run.len() as f64);
         let snr = db((loud - quiet).max(quiet * 1e-3) / quiet);
         // Refine the edges to the sample: where the 10 us envelope crosses into the run.
         let start_sample = best.0 * step;
