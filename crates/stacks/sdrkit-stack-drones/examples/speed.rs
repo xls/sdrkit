@@ -32,4 +32,13 @@ fn main() {
             0.5 / tr
         );
     }
+    for b in sdrkit_stack_drones::benchmarks() {
+        let r = (b.run)(1.0);
+        println!(
+            "{:26} {:5.1} % of one core at real time, {:.1} ms an item",
+            b.name,
+            100.0 * r.cpu_fraction_of_realtime,
+            1e3 / r.items_per_second
+        );
+    }
 }

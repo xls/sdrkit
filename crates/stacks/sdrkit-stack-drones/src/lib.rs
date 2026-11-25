@@ -235,6 +235,46 @@ pub(crate) fn bench_receiver(seconds: f64, desc: &'static StackDescriptor, signa
     })
 }
 
+/// The pair trigger of `dji_droneid` alone on 0.2 s of noise at 20 Msps, with one DroneID frequency 4.5 MHz above the centre
+/// (as at the default frequency), so the mixer runs too. Items are input samples.
+fn bench_trigger(seconds: f64) -> BenchResult {
+    let rate = DJI_DRONEID.tuning.rate_hz;
+    let mut rng = sdrkit_algo_sim::rng::Rng::new(1);
+    let x: Vec<Complex32> = (0..(rate * 0.2) as usize)
+        .map(|_| rng.complex_normal(0.01))
+        .collect();
+    let mut t = dji::trigger::PairTrigger::new(rate, [4.5e6].into_iter());
+    let mut hits = Vec::new();
+    sdrkit_core::bench::measure(seconds, x.len(), 0.2, || {
+        for c in x.chunks(65_536) {
+            t.feed(c, &mut hits);
+            hits.clear();
+        }
+    })
+}
+
+/// One burst of the pair trigger of `dji_droneid` that is too weak to decode (5 dB below the noise in its 9 MHz): every
+/// trial of the burst receiver runs to its last turbo iteration. Items are bursts, so the time of one is 1 / items per second.
+fn bench_weak_burst(seconds: f64) -> BenchResult {
+    use dji::droneid;
+    let burst = droneid::modulate(&dji::generator::packet(0, 0.0).frame(), 0, true);
+    let power = burst.iter().map(|v| v.norm_sqr() as f64).sum::<f64>() / burst.len() as f64;
+    let noise = power * 10f64.powf(0.5) * droneid::FS / 9e6;
+    let mut rng = sdrkit_algo_sim::rng::Rng::new(1);
+    let margin = 300;
+    let mut x: Vec<Complex32> = (0..burst.len() + 2 * margin)
+        .map(|_| rng.complex_normal(noise))
+        .collect();
+    for (o, v) in x[margin..].iter_mut().zip(&burst) {
+        *o += *v;
+    }
+    let zc_at = margin + 2 * (droneid::NFFT + 72);
+    let mut rx = droneid::BurstReceiver::default();
+    sdrkit_core::bench::measure(seconds, 1, 0.0, || {
+        std::hint::black_box(rx.decode_at(&x, zc_at, 0..droneid::NC));
+    })
+}
+
 /// Benchmarks of the three receivers on their own test signals (items are input samples).
 pub fn benchmarks() -> Vec<Benchmark> {
     vec![
@@ -245,6 +285,14 @@ pub fn benchmarks() -> Vec<Benchmark> {
         Benchmark {
             name: "dji_droneid.receiver_20m",
             run: |s| bench_receiver(s, &DJI_DRONEID, 0.2),
+        },
+        Benchmark {
+            name: "dji_droneid.trigger_20m",
+            run: bench_trigger,
+        },
+        Benchmark {
+            name: "dji_droneid.weak_burst",
+            run: bench_weak_burst,
         },
         Benchmark {
             name: "flarm.receiver_1m",

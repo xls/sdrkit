@@ -24,8 +24,10 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:dj
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `decode_droneid` | Decode DroneID | yes or no | true |  | Try every 0.5 to 1.5 ms burst that is 7 to 11 MHz wide as a DroneID burst: Zadoff-Chu synchronisation, turbo decoding, CRC-24. |
+| `decode_droneid` | Decode DroneID | yes or no | true |  | Try every 0.5 to 1.5 ms burst that is 7 to 11 MHz wide as a DroneID burst: Zadoff-Chu synchronisation, turbo decoding, CRC-24. Also search the DroneID frequencies inside the capture for the two Zadoff-Chu symbols all the time, so a burst near the noise floor or cut by the edge of the capture is found. |
 | `wall_clock` | Stamp with this computer's clock | yes or no | true |  | Stamp rows and bursts of live samples with the computer's clock as well as signal time. |
+| `droneid_tuning` | DroneID tuning | choice | `fixed` | `fixed` (stay on the tuned frequency), `step` (step through the DroneID frequencies) | The newest aircraft send DroneID on fixed frequencies (2414.5, 2429.5 and 2444.5 MHz were seen), about one burst each 3 s on a frequency. With `step` the stack asks the host for the DroneID frequencies of the band it is tuned in: each in turn for the dwell, or one centre when the capture covers them all. With `fixed` the tuned frequency stays. |
+| `droneid_dwell_s` | DroneID dwell | duration (s) | 10 s | 10 to 300 | The time on each frequency while stepping. A burst comes each 3 to 6 s, so the least is 10 s. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -35,6 +37,10 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `gen_period_s` | DroneID period | number (s) | 0.64 | 0.01 to 10 |  |
 | `gen_eight_symbols` | 8-symbol DroneID | yes or no | false |  |  |
 | `gen_wide` | 20 MHz OcuSync-like | yes or no | false |  |  |
+| `gen_frame` | DroneID frame | choice | `readable` | `readable` (readable packet), `encrypted` (encrypted format), `empty` (empty frame) |  |
+| `gen_droneid_frequency` | On a DroneID frequency | yes or no | false |  | Send the DroneID bursts on the DroneID frequency nearest to the radio centre, one each 5 periods (3.2 s with the period of 0.64 s), without the carriers outside the capture. |
+| `gen_two_aircraft` | Two aircraft | yes or no | false |  | Every second DroneID burst comes from a second aircraft. |
+| `gen_centre_hz` | Test signal radio centre | frequency | 0 Hz | 0 Hz to 6 GHz | The radio centre for `gen_droneid_frequency`. 0 takes the tuned frequency. |
 
 ## Result fields
 
@@ -48,6 +54,14 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `centre_hz` | Capture centre | frequency |
 | `burst_cfo_hz` | DroneID carrier offset | frequency |
 | `drones` | Drones | whole number |
+| `aircraft` | Aircraft | whole number |
+| `droneid_encrypted` | DroneID encrypted frames | whole number |
+| `droneid_empty` | DroneID empty frames | whole number |
+| `droneid_other` | DroneID frames of an unknown layout | whole number |
+| `droneid_refused` | Empty frames refused | whole number |
+| `droneid_pairs` | DroneID symbol pairs | whole number |
+| `droneid_bursts` | DroneID bursts | whole number |
+| `droneid_searched` | DroneID frequencies searched | whole number |
 | `signal` | Signal | text |
 | `noise_dbfs` | Noise floor | number (dBFS) |
 | `level_dbfs` | Level | number (dBFS) |
@@ -62,6 +76,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `drones` | Drones | `source` (text), `position` (position), `alt_m` (number (m)), `height_m` (number (m)), `alt_raw` (whole number), `height_raw` (whole number), `speed_kt` (number (kt)), `course_deg` (number (°)), `home` (position), `pilot` (position), `seq` (whole number), `state_info` (whole number), `version` (whole number), `inner_crc_ok` (yes or no), `v_north` (whole number (cm/s)), `v_east` (whole number (cm/s)), `v_up` (whole number (cm/s)), `yaw` (whole number), `gps_time` (time), `device_type` (whole number), `uuid` (text), `freq_hz` (frequency), `snr_db` (number (dB)), `track` (whole number), `trail_points` (whole number), `last_heard` (time), `heard` (whole number) |
 | `bursts` | Bursts | `time_s` (number (s)), `time` (time), `track` (whole number), `offset_hz` (frequency), `width_hz` (frequency), `burst` (duration (s)), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `ofdm_pct` (number (%)), `droneid` (choice) |
 | `drone_tracks` | Tracks | `drone` (text), `position` (position), `time_s` (number (s)) |
+| `aircraft` | Aircraft | `aircraft` (text), `session_key` (text), `drone` (text), `format` (choice), `frame_type` (whole number), `frames` (whole number), `first_s` (number (s)), `last_s` (number (s)), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `freq_hz` (frequency), `first_heard` (time), `last_heard` (time) |
 
 ## Result series
 
@@ -78,6 +93,7 @@ The stack puts points on a map: Drones.
 | Kind | Label | Fields |
 |---|---|---|
 | `dji.droneid` | DroneID packet | `source` (text), `position` (position), `alt_m` (number (m)), `height_m` (number (m)), `alt_raw` (whole number), `height_raw` (whole number), `speed_kt` (number (kt)), `course_deg` (number (°)), `home` (position), `pilot` (position), `family` (choice) |
+| `dji.aircraft` | New DJI aircraft | `source` (text), `session_key` (text), `format` (choice), `frame_type` (whole number), `position` (position), `snr_db` (number (dB)), `family` (choice) |
 
 ## Commands
 
@@ -88,9 +104,11 @@ The stack puts points on a map: Drones.
 
 ## Typed interface
 
-The stack is in the family `drones`, version 1.2. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `drones`, version 1.3. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
+
+Key readings: `aircraft`.
 
 ### Result fields
 
@@ -106,6 +124,14 @@ Struct `DjiDroneidFields`. The result fields of DJI drones.
 | `centre_hz` | frequency | optional | 1.0 | The capture centre. |
 | `burst_cfo_hz` | frequency | optional | 1.0 | The carrier offset of the last DroneID burst from the 0.5 MHz grid. |
 | `drones` | whole number | always | 1.0 | Drones in the table. |
+| `aircraft` | whole number | always | 1.3 | Aircraft in the aircraft table: the drones with a readable packet, the aircraft that send the encrypted format, and the sender of empty frames. |
+| `droneid_encrypted` | whole number | always | 1.3 | DroneID frames of the encrypted format: the aircraft is present, its position and serial number are not readable. |
+| `droneid_empty` | whole number | always | 1.3 | Empty DroneID frames: the aircraft is present and sends no data in this state. |
+| `droneid_other` | whole number | always | 1.3 | DroneID frames whose CRC-24 passed and whose layout is not known. |
+| `droneid_refused` | whole number | always | 1.3 | Frames of zeros that were refused: the received bits did not agree with an empty frame. |
+| `droneid_pairs` | whole number | always | 1.3 | Pairs of the two DroneID symbols that the continuous search found. |
+| `droneid_bursts` | whole number | always | 1.3 | Bursts of the continuous search whose two symbols passed the check at the full rate. |
+| `droneid_searched` | whole number | always | 1.3 | The DroneID frequencies inside the capture that the continuous search covers. |
 | `signal` | text | optional | 1.0 | The track with the most likely DJI shape: a row key of the `signals` table. |
 | `noise_dbfs` | number (dBFS) | optional | 1.0 | Noise floor, dBFS. |
 | `level_dbfs` | number (dBFS) | optional | 1.0 | Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). |
@@ -208,6 +234,28 @@ Struct `DroneTrackRow`. A track point of a drone. The row key is the drone key a
 
 Place of a row: the column `position`.
 
+### Table `aircraft`
+
+Struct `DjiDroneidAircraftRow`. A DJI aircraft heard on DroneID, in any format.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `aircraft` | text | always | 1.3 | The name of the row: the serial number of a drone with a readable packet, `session-` and the session key of an aircraft that sends the encrypted format, `empty frames` for the sender of empty frames. |
+| `session_key` | text | optional | 1.3 | The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart within a session. They are not a serial number and do not identify the aircraft. |
+| `drone` | text | optional | 1.3 | The drone of a readable packet: a row key of the `drones` table. |
+| `format` | choice | always | 1.3 | The format of the last frame. |
+| `frame_type` | whole number | optional | 1.3 | The type byte of the last frame of the encrypted format (0x10, 0x11 and 0x13 were seen). |
+| `frames` | whole number | always | 1.3 | The frames received. |
+| `first_s` | number (s) | always | 1.3 | The signal time of the first frame. |
+| `last_s` | number (s) | always | 1.3 | The signal time of the last frame. |
+| `level_dbfs` | number (dBFS) | always | 1.3 | Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). |
+| `snr_db` | number (dB) | always | 1.3 | Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so). |
+| `freq_hz` | frequency | optional | 1.3 | The radio frequency. |
+| `first_heard` | time | optional | 1.3 | Wall-clock time when first heard. |
+| `last_heard` | time | optional | 1.3 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
+
+The column `aircraft` names a row.
+
 ### Event `dji.droneid`
 
 Struct `DjiDroneidEvent`. A DroneID packet.
@@ -226,6 +274,20 @@ Struct `DjiDroneidEvent`. A DroneID packet.
 | `pilot` | position | optional | 1.0 | The pilot's position. |
 | `family` | choice | always | 1.0 | What an event is about (aircraft, vessel, pager). Outputs and the store filter on it. |
 
+### Event `dji.aircraft`
+
+Struct `DjiDroneidAircraftEvent`. A DJI aircraft that was not heard before.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `source` | text | always | 1.3 | The sender of a decoded message: a registration, an address, a call sign or a code. |
+| `session_key` | text | optional | 1.3 | The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart within a session. They are not a serial number and do not identify the aircraft. |
+| `format` | choice | always | 1.3 | The format of the frame. |
+| `frame_type` | whole number | optional | 1.3 | The type byte of a frame of the encrypted format. |
+| `position` | position | optional | 1.3 | The position of the object that the event is about. |
+| `snr_db` | number (dB) | always | 1.3 | Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so). |
+| `family` | choice | always | 1.3 | What an event is about (aircraft, vessel, pager). Outputs and the store filter on it. |
+
 ### Commands
 
 | Key | C function | Arguments struct | Reply struct |
@@ -239,6 +301,8 @@ Struct `DjiDroneidEvent`. A DroneID packet.
 |---|---|---|
 | `decode_droneid` | `sdrkit_dji_droneid_get_decode_droneid` | `sdrkit_dji_droneid_set_decode_droneid` |
 | `wall_clock` | `sdrkit_dji_droneid_get_wall_clock` | `sdrkit_dji_droneid_set_wall_clock` |
+| `droneid_tuning` | `sdrkit_dji_droneid_get_droneid_tuning` | `sdrkit_dji_droneid_set_droneid_tuning` |
+| `droneid_dwell_s` | `sdrkit_dji_droneid_get_droneid_dwell_s` | `sdrkit_dji_droneid_set_droneid_dwell_s` |
 
 ### Settings of the test signal generator
 
@@ -248,6 +312,10 @@ Struct `DjiDroneidEvent`. A DroneID packet.
 | `gen_period_s` | `sdrkit_dji_droneid_gen_get_period_s` | `sdrkit_dji_droneid_gen_set_period_s` |
 | `gen_eight_symbols` | `sdrkit_dji_droneid_gen_get_eight_symbols` | `sdrkit_dji_droneid_gen_set_eight_symbols` |
 | `gen_wide` | `sdrkit_dji_droneid_gen_get_wide` | `sdrkit_dji_droneid_gen_set_wide` |
+| `gen_frame` | `sdrkit_dji_droneid_gen_get_frame` | `sdrkit_dji_droneid_gen_set_frame` |
+| `gen_droneid_frequency` | `sdrkit_dji_droneid_gen_get_droneid_frequency` | `sdrkit_dji_droneid_gen_set_droneid_frequency` |
+| `gen_two_aircraft` | `sdrkit_dji_droneid_gen_get_two_aircraft` | `sdrkit_dji_droneid_gen_set_two_aircraft` |
+| `gen_centre_hz` | `sdrkit_dji_droneid_gen_get_centre_hz` | `sdrkit_dji_droneid_gen_set_centre_hz` |
 
 ## Try it
 
@@ -265,3 +333,54 @@ Advanced settings. The owner works without any of them set.
 
 The altitude and the height above home are read as 0.01 m. No public source confirms the unit: the NDSS 2023 receiver reads
 the same fields as feet. The columns `alt_raw` and `height_raw` hold the fields as received.
+
+## What can be read from an aircraft
+
+The stack reads the DroneID burst of an aircraft. What the burst holds depends on the aircraft.
+
+| The aircraft sends | The stack shows | Position and serial number |
+|---|---|---|
+| The readable packet (older aircraft, OcuSync 2) | A row in `drones` and a row in `aircraft` with the format `readable` | Readable: serial number, position, altitude, home and pilot |
+| The encrypted format (the newest link generation: a DJI Neo 2 and a DJI Mini 4 Pro were measured) | A row in `aircraft` with the format `encrypted` and the frame type. Status: "DJI DroneID, encrypted format (type 0x10): aircraft present, position and serial not readable" | Not readable |
+| An empty frame (seen from a Neo 2 indoors with no GPS fix and the motors off; the cause is not known) | The row `empty frames` in `aircraft`. Status: "DJI DroneID present, empty frame (no data sent in this state)" | Not sent |
+
+Each of the three identifies a DJI aircraft with high confidence: the burst has the two DroneID symbols and its CRC-24 is
+good.
+
+The encrypted format has a readable head and a body that is not readable. The stack does not decrypt the body and does not
+guess its content. From the head it reads the frame type and 4 bytes that are constant for one aircraft and differ between
+aircraft. The column `session_key` shows these 4 bytes as hex. Use the session key only to tell two aircraft apart within a
+session. It is not a serial number, and nothing shows that it stays the same for one aircraft over time.
+
+Empty frames hold nothing that tells aircraft apart, so all of them are one row. A frame of zeros passes the CRC-24 whatever
+was received. The stack accepts an empty frame only when the two DroneID symbols are found and at least 70 % of the received
+bits agree with the coded bits of the frame. The field `droneid_refused` counts the frames of zeros that did not pass.
+
+The counters keep the formats apart: `droneid_decoded` (readable packets), `droneid_encrypted`, `droneid_empty` and
+`droneid_other` (a good CRC-24 and a layout that is not known). `droneid_crc_failed` counts only bursts whose CRC-24 failed.
+
+## Where the newest aircraft send
+
+The newest aircraft do not send DroneID on the channel of the video link. They send it on fixed frequencies: 2414.5, 2429.5
+and 2444.5 MHz were seen. About one burst comes each 3 s on a frequency, with gaps of up to 6 s. Close to a Wi-Fi router
+the burst can be near the noise floor.
+
+The stack searches the DroneID frequencies inside the capture all the time for the two DroneID symbols. This search does
+not need the burst to stand out of the noise, and it finds a burst that the edge of the capture cuts when at least about a
+third of its carriers are inside. The field `droneid_searched` shows how many frequencies the capture covers. At the default
+frequency of 2440 MHz with 20 MHz, the capture covers 2444.5 MHz and a part of 2429.5 MHz.
+
+The setting `droneid_tuning` chooses how the stack tunes:
+
+- `fixed` (default): the tuned frequency stays. Tune to 2440 MHz or to one DroneID frequency and wait at least 10 s.
+- `step`: the stack asks the host for the DroneID frequencies of the band in turn, each for `droneid_dwell_s` (at least
+  10 s). When the capture is wide enough for all of them, it asks for one centre instead.
+
+Older aircraft send the burst each 0.64 s on the channel of the video link. The stack finds these bursts with the burst
+detector anywhere in the capture, as before.
+
+To replay your own recordings of the DroneID frequencies:
+
+```sh
+SDRKIT_DRONEID_RECORDINGS=<file or folder> cargo run --release -p sdrkit-stack-drones --example droneid_replay
+```

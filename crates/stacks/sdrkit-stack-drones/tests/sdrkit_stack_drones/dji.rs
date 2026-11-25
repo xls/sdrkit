@@ -3,7 +3,7 @@
 use super::{count, row, rows, run};
 use sdrkit_algo_sim::chain::{NoiseKind, GEN_NOISE, GEN_OFFSET_HZ, GEN_SNR_DB};
 use sdrkit_core::publish::keys;
-use sdrkit_core::Results;
+use sdrkit_core::{Complex32, Results};
 use sdrkit_dev_test::{sigmf, Harness};
 use sdrkit_stack_drones::typed;
 use sdrkit_stack_drones::dji::droneid::{self, Coder, DroneIdPacket, INNER_CRC};
@@ -292,4 +292,280 @@ fn the_recording_decodes_as_expected() {
             assert_eq!(g.at(&typed::DjiDroneidSignalRow::NEAR_DRONEID), Some(true), "{label}");
         }
     }
+}
+
+/// A harness whose test signal has DroneID bursts of `frame` on the DroneID frequency nearest to `centre`, one each 0.1 s.
+fn on_droneid_frequency(frame: GenFrame, centre: f64) -> Harness {
+    h().set(&GEN_SCENARIO, GenScenario::DroneIdOnly)
+        .set(&GEN_PERIOD_S, 0.02)
+        .set(&GEN_FRAME, frame)
+        .set(&GEN_DRONEID_FREQUENCY, true)
+        .set(&GEN_CENTRE_HZ, centre)
+        .freq(centre)
+        .seconds(0.6)
+}
+
+/// One burst of `frame` at `offset_hz` from the centre of a capture at `rate`, 0.02 s into 0.03 s of noise `snr_db` below
+/// it, without the carriers outside the capture.
+fn capture_with_burst(
+    rate: f64,
+    frame: &[u8; droneid::FRAME],
+    offset_hz: f64,
+    snr_db: f64,
+) -> Vec<Complex32> {
+    let carriers = droneid::visible_carriers(offset_hz, 0.5 * rate);
+    let burst = droneid::modulate_carriers(frame, 0, true, carriers);
+    let mut at_rate = Vec::new();
+    sdrkit_algo_dsp::resample::resample_span(&burst, droneid::FS, rate, &mut at_rate);
+    sdrkit_algo_dsp::nco::Nco::new(rate, offset_hz).mix_in_place(&mut at_rate);
+    let power = at_rate.iter().map(|v| v.norm_sqr() as f64).sum::<f64>() / at_rate.len() as f64;
+    // The noise power is over the 9 MHz of the burst.
+    let noise = power * 10f64.powf(-snr_db / 10.0) * rate / 9e6;
+    let mut rng = sdrkit_algo_sim::rng::Rng::new(4);
+    let mut x: Vec<Complex32> = (0..(rate * 0.03) as usize)
+        .map(|_| rng.complex_normal(noise))
+        .collect();
+    let at = (rate * 0.02) as usize;
+    for (o, v) in x[at..].iter_mut().zip(&at_rate) {
+        *o += *v;
+    }
+    x
+}
+
+fn hits(rate: f64, x: &[Complex32], offset_hz: f64) -> Vec<trigger::Hit> {
+    let mut t = trigger::PairTrigger::new(rate, [offset_hz].into_iter());
+    let mut out = Vec::new();
+    for c in x.chunks(16_384) {
+        t.feed(c, &mut out);
+    }
+    out
+}
+
+#[test]
+fn a_frame_is_classed_by_its_layout() {
+    use droneid::FrameKind;
+    let key = [1, 2, 3, 4];
+    let f = droneid::encrypted_frame(0x10, key, [9; 8], &[0x5a; 109], [7; 4]);
+    let FrameKind::Encrypted(head) = droneid::classify(&f) else {
+        panic!("not the encrypted format")
+    };
+    assert_eq!((head.frame_type, head.key, head.cryp, head.length), (0x10, key, false, 128));
+    // A body that does not match the inner CRC-16 is not the encrypted format, and its length byte is no readable packet.
+    let mut bad = f;
+    bad[40] ^= 1;
+    assert_eq!(droneid::classify(&bad), FrameKind::Other);
+    assert_eq!(droneid::classify(&droneid::empty_frame([7; 4])), FrameKind::Empty);
+    assert_eq!(droneid::classify(&droneid::empty_frame([0; 4])), FrameKind::Empty);
+    assert!(matches!(
+        droneid::classify(&packet(0, 0.0).frame()),
+        FrameKind::Readable(p) if p.serial == SERIAL
+    ));
+}
+
+#[test]
+fn the_encrypted_format_shows_an_aircraft_and_no_drone() {
+    let out = run(on_droneid_frequency(GenFrame::Encrypted, 2444.5e6));
+    let r = &out.results;
+    // Six bursts are sent. The burst detector and the pair trigger both find each: it counts once.
+    let frames = count(r, &typed::DjiDroneidFields::DRONEID_ENCRYPTED);
+    assert!((5..=6).contains(&frames), "{frames}");
+    assert_eq!(count(r, &typed::DjiDroneidFields::DRONEID_CRC_FAILED), 0);
+    assert_eq!(count(r, &typed::DjiDroneidFields::DRONEID_DECODED), 0);
+    assert_eq!(count(r, &typed::DjiDroneidFields::DRONEID_EMPTY), 0);
+    assert_eq!(count(r, &typed::DjiDroneidFields::DRONEID_OTHER), 0);
+    assert!(rows(r, &typed::DJI_DRONES).is_empty());
+    assert_eq!(rows(r, &typed::DJI_AIRCRAFT), ["session-5d4b01a7"]);
+    let a = row(r, &typed::DJI_AIRCRAFT, "session-5d4b01a7").unwrap();
+    assert_eq!(a.at(&typed::DjiDroneidAircraftRow::SESSION_KEY), Some("5d4b01a7"));
+    assert_eq!(a.at(&typed::DjiDroneidAircraftRow::FORMAT), Some(FrameFormat::Encrypted));
+    assert_eq!(a.at(&typed::DjiDroneidAircraftRow::FRAMES), Some(frames));
+    assert_eq!(a.at(&typed::DjiDroneidAircraftRow::DRONE), None);
+    assert!(matches!(a.at(&typed::DjiDroneidAircraftRow::FRAME_TYPE), Some(0x10 | 0x11)));
+    let f = a.at(&typed::DjiDroneidAircraftRow::FREQ_HZ).unwrap();
+    assert!((f - 2444.5e6).abs() < 1.0, "{f}");
+    assert!(
+        a.at(&typed::DjiDroneidAircraftRow::LAST_S).unwrap()
+            > a.at(&typed::DjiDroneidAircraftRow::FIRST_S).unwrap()
+    );
+    assert_eq!(r.status().lock_state, sdrkit_core::LockState::Locked);
+    assert!(
+        r.status().summary.starts_with("DJI DroneID, encrypted format (type 0x1")
+            && r.status().summary.ends_with("aircraft present, position and serial not readable"),
+        "{}",
+        r.status().summary
+    );
+    let seen: Vec<_> = out.events.iter().filter(|e| e.is(&typed::DJI_AIRCRAFT_SEEN)).collect();
+    assert_eq!(seen.len(), 1);
+    assert_eq!(seen[0].get(&keys::SOURCE), Some("session-5d4b01a7"));
+    assert_eq!(seen[0].at(&typed::DjiDroneidAircraftEvent::SESSION_KEY), Some("5d4b01a7"));
+    assert!(seen[0].get(&keys::POSITION).is_none());
+    assert!(!out.events.iter().any(|e| e.is(&typed::DJI_DRONEID)));
+}
+
+#[test]
+fn two_aircraft_of_the_encrypted_format_are_told_apart() {
+    let out = run(on_droneid_frequency(GenFrame::Encrypted, 2444.5e6).set(&GEN_TWO_AIRCRAFT, true));
+    let r = &out.results;
+    let mut names = rows(r, &typed::DJI_AIRCRAFT);
+    names.sort();
+    assert_eq!(names, ["session-5d4b01a7", "session-5d4b023c"]);
+    assert_eq!(count(r, &typed::DjiDroneidFields::AIRCRAFT), 2);
+    for n in &names {
+        let frames = row(r, &typed::DJI_AIRCRAFT, n).unwrap().at(&typed::DjiDroneidAircraftRow::FRAMES);
+        assert!(frames >= Some(2), "{n}: {frames:?}");
+    }
+    assert_eq!(out.events.iter().filter(|e| e.is(&typed::DJI_AIRCRAFT_SEEN)).count(), 2);
+}
+
+#[test]
+fn empty_frames_show_that_an_aircraft_is_present() {
+    let out = run(on_droneid_frequency(GenFrame::Empty, 2444.5e6)
+        .set(&GEN_NOISE, NoiseKind::Snr)
+        .set(&GEN_SNR_DB, 15.0)
+        .set(&GEN_OFFSET_HZ, 13e3));
+    let r = &out.results;
+    let frames = count(r, &typed::DjiDroneidFields::DRONEID_EMPTY);
+    assert!((5..=6).contains(&frames), "{frames}");
+    assert_eq!(count(r, &typed::DjiDroneidFields::DRONEID_REFUSED), 0);
+    assert_eq!(count(r, &typed::DjiDroneidFields::DRONEID_CRC_FAILED), 0);
+    assert!(rows(r, &typed::DJI_DRONES).is_empty());
+    assert_eq!(rows(r, &typed::DJI_AIRCRAFT), [EMPTY_ROW]);
+    let a = row(r, &typed::DJI_AIRCRAFT, EMPTY_ROW).unwrap();
+    assert_eq!(a.at(&typed::DjiDroneidAircraftRow::FORMAT), Some(FrameFormat::Empty));
+    assert_eq!(a.at(&typed::DjiDroneidAircraftRow::SESSION_KEY), None);
+    assert_eq!(
+        r.status().summary,
+        "DJI DroneID present, empty frame (no data sent in this state)"
+    );
+}
+
+#[test]
+fn the_readable_packet_on_a_droneid_frequency_keeps_its_drone_row() {
+    let out = run(on_droneid_frequency(GenFrame::Readable, 2444.5e6));
+    let r = &out.results;
+    check_drone(r, 5);
+    assert_eq!(rows(r, &typed::DJI_AIRCRAFT), [SERIAL]);
+    let a = row(r, &typed::DJI_AIRCRAFT, SERIAL).unwrap();
+    assert_eq!(a.at(&typed::DjiDroneidAircraftRow::FORMAT), Some(FrameFormat::Readable));
+    assert_eq!(a.at(&typed::DjiDroneidAircraftRow::DRONE), Some(SERIAL));
+    let frames = count(r, &typed::DjiDroneidFields::DRONEID_DECODED);
+    assert!((5..=6).contains(&frames), "{frames}");
+    assert_eq!(a.at(&typed::DjiDroneidAircraftRow::FRAMES), Some(frames));
+}
+
+#[test]
+fn a_burst_cut_by_the_edge_of_the_capture_decodes() {
+    // 2429.5 MHz in a capture centred on 2436 MHz: the lowest carriers are outside.
+    let out = run(on_droneid_frequency(GenFrame::Encrypted, 2436e6)
+        .set(&GEN_NOISE, NoiseKind::Snr)
+        .set(&GEN_SNR_DB, 15.0));
+    let r = &out.results;
+    let frames = count(r, &typed::DjiDroneidFields::DRONEID_ENCRYPTED);
+    assert!((5..=6).contains(&frames), "{frames}");
+    let a = row(r, &typed::DJI_AIRCRAFT, "session-5d4b01a7").unwrap();
+    let f = a.at(&typed::DjiDroneidAircraftRow::FREQ_HZ).unwrap();
+    assert!((f - 2429.5e6).abs() < 1.0, "{f}");
+    // With less than half of the carriers inside, only the pair trigger finds the burst.
+    let frame = droneid::encrypted_frame(0x11, [8, 7, 6, 5], [3; 8], &[0xc3; 109], [0; 4]);
+    let offset = -10.5e6;
+    let found = hits(20e6, &capture_with_burst(20e6, &frame, offset, 15.0), offset);
+    assert_eq!(found.len(), 1);
+    assert!(found[0].visible < 0.45, "{}", found[0].visible);
+    assert_eq!(found[0].decode.frame, Some(frame));
+    assert!((found[0].start_s - 0.02).abs() < 100e-6, "{}", found[0].start_s);
+}
+
+#[test]
+fn the_pair_trigger_finds_a_burst_below_the_noise() {
+    let frame = droneid::encrypted_frame(0x10, [8, 7, 6, 5], [3; 8], &[0x3c; 109], [1; 4]);
+    let found = hits(20e6, &capture_with_burst(20e6, &frame, 0.0, -1.0), 0.0);
+    assert_eq!(found.len(), 1);
+    assert!(found[0].decode.zc_found);
+    assert_eq!(found[0].decode.frame, Some(frame));
+    assert!((found[0].decode.snr_db + 1.0).abs() < 3.0, "{}", found[0].decode.snr_db);
+}
+
+#[test]
+fn a_weak_empty_frame_is_accepted() {
+    // At 0 dB about one hard decision in six is wrong. The frame is still an empty frame.
+    let frame = droneid::empty_frame([5, 6, 7, 8]);
+    let found = hits(20e6, &capture_with_burst(20e6, &frame, 0.0, 0.0), 0.0);
+    assert_eq!(found.len(), 1);
+    let d = &found[0].decode;
+    assert_eq!(d.frame, Some(frame));
+    assert!((0.75..0.93).contains(&d.agreement), "{}", d.agreement);
+    assert!(d.accepted());
+}
+
+#[test]
+fn the_pair_trigger_runs_at_other_rates() {
+    let frame = droneid::encrypted_frame(0x10, [1, 9, 8, 4], [6; 8], &[0x96; 109], [2; 4]);
+    for (rate, offset) in [(16e6, 0.0), (25e6, 4.5e6), (30.72e6, -7.5e6), (61.44e6, 15e6)] {
+        let found = hits(rate, &capture_with_burst(rate, &frame, offset, 15.0), offset);
+        assert_eq!(found.len(), 1, "{rate}");
+        assert_eq!(found[0].decode.frame, Some(frame), "{rate}");
+        assert!((found[0].start_s - 0.02).abs() < 100e-6, "{rate}: {}", found[0].start_s);
+        assert!((found[0].offset_hz - offset).abs() < 1.0 && found[0].visible > 0.99, "{rate}");
+    }
+}
+
+#[test]
+fn a_frame_of_zeros_from_noise_is_refused() {
+    // The decoder makes a frame of zeros from soft bits of no weight, and its CRC-24A holds.
+    let (zeros, _) = Coder::new().decode(&vec![0.0; droneid::E], 0, 8).expect("the CRC of zeros holds");
+    assert_eq!(zeros, [0u8; droneid::FRAME]);
+    let mut d = droneid::BurstDecode {
+        zc_found: true,
+        score: [0.5, 0.5],
+        agreement: 0.5,
+        frame: Some(zeros),
+        ..Default::default()
+    };
+    assert!(!d.accepted(), "the bits do not agree");
+    d.agreement = 0.99;
+    d.score = [0.5, 0.01];
+    assert!(!d.accepted(), "one symbol is missing");
+    d.score = [0.5, 0.5];
+    assert!(d.accepted());
+    // Noise alone, and silence: no frame, no aircraft.
+    let mut rng = sdrkit_algo_sim::rng::Rng::new(11);
+    let noise: Vec<Complex32> = (0..10_000_000).map(|_| rng.complex_normal(1e-4)).collect();
+    for x in [noise, vec![Complex32::new(0.0, 0.0); 4_000_000]] {
+        let out = super::feed(&h().freq(2444.5e6), x);
+        let r = &out.results;
+        assert_eq!(count(r, &typed::DjiDroneidFields::DRONEID_EMPTY), 0);
+        assert_eq!(count(r, &typed::DjiDroneidFields::AIRCRAFT), 0);
+        assert!(rows(r, &typed::DJI_AIRCRAFT).is_empty());
+    }
+}
+
+#[test]
+fn the_stack_asks_for_the_droneid_frequencies_only_when_set_to_step() {
+    let mhz = |v: &[f64]| v.iter().map(|f| f * 1e6).collect::<Vec<_>>();
+    assert_eq!(step_centres(20e6, 2440e6), mhz(&[2399.5, 2414.5, 2429.5, 2444.5, 2459.5]));
+    assert_eq!(step_centres(30.72e6, 2440e6), mhz(&[2407.0, 2437.0, 2459.5]));
+    assert_eq!(step_centres(61.44e6, 2440e6), mhz(&[2422.0, 2459.5]));
+    assert_eq!(step_centres(80e6, 2440e6), mhz(&[2429.5]));
+    assert_eq!(step_centres(20e6, 5800e6), mhz(&[5756.5, 5776.5, 5796.5]));
+    assert!(step_centres(20e6, 5200e6).is_empty() && step_centres(20e6, 915e6).is_empty());
+
+    let quiet = vec![Complex32::new(0.0, 0.0); 2_000_000];
+    let out = super::feed(&h(), quiet.clone());
+    assert!(out.requests.is_empty(), "{:?}", out.requests);
+    let out = super::feed(&h().set(&TUNING, Stepping::Step).set(&DWELL_S, 12.0), quiet.clone());
+    assert_eq!(
+        out.requests,
+        [sdrkit_core::HostRequest::Hop {
+            channels: mhz(&[2399.5, 2414.5, 2429.5, 2444.5, 2459.5]),
+            dwell_s: 12.0,
+            stop_on_lock: false,
+        }]
+    );
+    // A capture that holds every frequency of the band needs one centre.
+    let wide: Vec<Complex32> = vec![Complex32::new(0.0, 0.0); 8_000_000];
+    let out = super::feed(&h().set(&TUNING, Stepping::Step).rate(80e6), wide);
+    assert_eq!(
+        out.requests,
+        [sdrkit_core::HostRequest::retune(2429.5e6, "DroneID frequencies")]
+    );
 }

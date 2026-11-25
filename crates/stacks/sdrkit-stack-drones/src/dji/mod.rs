@@ -1,27 +1,30 @@
 //! DJI drones (`dji_droneid`): shape detection of wideband bursts (tracks and classes, a guess from the shape) and DroneID
-//! decoding (the clear broadcast of OcuSync 2 drones). Nothing is decrypted.
+//! decoding: the readable packet of OcuSync 2 drones, and the presence of aircraft that send the encrypted format or
+//! empty frames. Nothing is decrypted.
 
 pub mod burst;
 pub mod droneid;
 pub mod generator;
+pub mod trigger;
 
 use crate::family::{min_rate_message, publish_tracks, wall, SignalClock, StatusLine, REPORT_S};
 use crate::typed::{
-    DjiDroneidBurstRow, DjiDroneidDroneRow, DjiDroneidEvent, DjiDroneidFields, DjiDroneidSignalRow,
-    DroneTrackRow, DJI_BURSTS, DJI_DRONEID, DJI_DRONES, DJI_SIGNALS, DJI_TRACKS, DRONE_REMOVE,
+    DjiDroneidAircraftEvent, DjiDroneidAircraftRow, DjiDroneidBurstRow, DjiDroneidDroneRow,
+    DjiDroneidEvent, DjiDroneidFields, DjiDroneidSignalRow, DroneTrackRow, DJI_AIRCRAFT,
+    DJI_AIRCRAFT_SEEN, DJI_BURSTS, DJI_DRONEID, DJI_DRONES, DJI_SIGNALS, DJI_TRACKS, DRONE_REMOVE,
     DRONE_ROW, LEVEL_SERIES,
 };
 use burst::{BurstAnalyser, BurstSignal, DetectorStats};
-use droneid::{BurstReceiver, DroneIdPacket};
+use droneid::{BurstDecode, BurstReceiver, DroneIdPacket, FrameKind};
 use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
 use sdrkit_core::interface::{Hertz, Seconds, Time};
 use sdrkit_core::publish::keys::Family;
 use sdrkit_core::publish::{field, Published};
 use sdrkit_core::results::Series;
 use sdrkit_core::{
-    Clock, ConfigError, Event, LockState, Record, Results, ResultsDecl, SeriesId, Setting,
-    SettingError, SettingId, SettingSet, StackConfig, StateBlob, StateError, TableId, Value,
-    Values,
+    Clock, ConfigError, Event, HostRequest, LockState, Record, Results, ResultsDecl, SeriesId,
+    Setting, SettingError, SettingId, SettingSet, StackConfig, StateBlob, StateError, TableId,
+    Value, Values,
 };
 use sdrkit_graph::{
     values_of, Applied, Catalog, Component, ComponentInfo, Format, GraphBuilder, GraphError, Io,
@@ -39,6 +42,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::fmt::Write as _;
 use std::sync::Arc;
+use trigger::{Hit, PairTrigger};
 
 /// The lowest input rate.
 pub const MIN_RATE_HZ: f64 = 16e6;
@@ -48,10 +52,53 @@ pub const DRONEID_FREQS: [f64; 8] = [
 ];
 pub(crate) const TRACK_CAP: usize = 24;
 const OBS: usize = 64;
+const TRIED: usize = 16;
 const LEVELS: usize = 240;
 pub(crate) const BURST_LOG: usize = 300;
 pub(crate) const DRONE_CAP: usize = 50;
 pub(crate) const TRAIL_CAP: usize = 120;
+pub(crate) const AIRCRAFT_CAP: usize = 50;
+/// The width of a DroneID burst, Hz.
+const DRONEID_WIDTH_HZ: f64 = 9e6;
+/// The row of the aircraft table for empty frames. They carry nothing that tells aircraft apart.
+pub const EMPTY_ROW: &str = "empty frames";
+
+sdrkit_core::choice_enum! {
+    /// How the stack tunes for DroneID.
+    pub enum Stepping {
+        /// The tuned frequency stays.
+        Fixed = ("fixed", "stay on the tuned frequency"),
+        /// The stack asks for the DroneID frequencies of the band in turn.
+        Step = ("step", "step through the DroneID frequencies"),
+    }
+}
+
+sdrkit_core::choice_enum! {
+    /// The DroneID frame of the test signal.
+    pub enum GenFrame {
+        /// The readable packet.
+        Readable = ("readable", "readable packet"),
+        /// The encrypted format.
+        Encrypted = ("encrypted", "encrypted format"),
+        /// The empty frame.
+        Empty = ("empty", "empty frame"),
+    }
+}
+
+sdrkit_core::choice_enum! {
+    /// The format of a DroneID frame.
+    #[derive(Serialize, Deserialize)]
+    pub enum FrameFormat {
+        /// The readable packet: serial number and positions.
+        Readable = ("readable", "readable"),
+        /// The encrypted format with the magic "INFP".
+        Encrypted = ("encrypted", "encrypted (INFP)"),
+        /// The encrypted format with the magic "CRYP".
+        EncryptedCryp = ("encrypted_cryp", "encrypted (CRYP)"),
+        /// The empty frame.
+        Empty = ("empty", "empty frame"),
+    }
+}
 
 sdrkit_core::choice_enum! {
     /// The signals of the test signal.
@@ -75,8 +122,27 @@ sdrkit_core::choice_enum! {
 pub const DECODE_DRONEID: Setting<field::Bool> =
     Setting::new("decode_droneid", "Decode DroneID", "", true).help(
         "Try every 0.5 to 1.5 ms burst that is 7 to 11 MHz wide as a DroneID burst: Zadoff-Chu synchronisation, turbo \
-         decoding, CRC-24.",
+         decoding, CRC-24. Also search the DroneID frequencies inside the capture for the two Zadoff-Chu symbols all the \
+         time, so a burst near the noise floor or cut by the edge of the capture is found.",
     );
+/// How the stack tunes for DroneID.
+pub const TUNING: Setting<field::Choice<Stepping>> =
+    Setting::choice("droneid_tuning", "DroneID tuning", Stepping::Fixed).help(
+        "The newest aircraft send DroneID on fixed frequencies (2414.5, 2429.5 and 2444.5 MHz were seen), about one burst \
+         each 3 s on a frequency. With `step` the stack asks the host for the DroneID frequencies of the band it is tuned in: \
+         each in turn for the dwell, or one centre when the capture covers them all. With `fixed` the tuned frequency stays.",
+    );
+/// The time on each DroneID frequency while stepping.
+pub const DWELL_S: Setting<field::Duration> = Setting::new(
+    "droneid_dwell_s",
+    "DroneID dwell",
+    "s",
+    10.0,
+)
+.range(10.0, 300.0, 1.0)
+.help(
+    "The time on each frequency while stepping. A burst comes each 3 to 6 s, so the least is 10 s.",
+);
 /// Stamp rows with the wall clock.
 pub const WALL_CLOCK: Setting<field::Bool> =
     Setting::new("wall_clock", "Stamp with this computer's clock", "", true).help(
@@ -104,6 +170,34 @@ pub const GEN_WIDE: Setting<field::Bool> =
         .section("Test signal")
         .advanced();
 
+/// The DroneID frame of the test signal.
+pub const GEN_FRAME: Setting<field::Choice<GenFrame>> =
+    Setting::choice("gen_frame", "DroneID frame", GenFrame::Readable)
+        .section("Test signal")
+        .advanced();
+/// DroneID bursts of the test signal on a DroneID frequency, with the sparse timing.
+pub const GEN_DRONEID_FREQUENCY: Setting<field::Bool> =
+    Setting::new("gen_droneid_frequency", "On a DroneID frequency", "", false)
+        .help(
+            "Send the DroneID bursts on the DroneID frequency nearest to the radio centre, one each 5 periods (3.2 s with \
+             the period of 0.64 s), without the carriers outside the capture.",
+        )
+        .section("Test signal")
+        .advanced();
+/// A second aircraft in the test signal.
+pub const GEN_TWO_AIRCRAFT: Setting<field::Bool> =
+    Setting::new("gen_two_aircraft", "Two aircraft", "", false)
+        .help("Every second DroneID burst comes from a second aircraft.")
+        .section("Test signal")
+        .advanced();
+/// The radio centre that the DroneID frequency of the test signal is placed against.
+pub const GEN_CENTRE_HZ: Setting<field::Hz> =
+    Setting::new("gen_centre_hz", "Test signal radio centre", "Hz", 0.0)
+        .range(0.0, 6e9, 1e3)
+        .help("The radio centre for `gen_droneid_frequency`. 0 takes the tuned frequency.")
+        .section("Test signal")
+        .advanced();
+
 sdrkit_core::settings! {
     /// The settings of the `dji_droneid` stack.
     pub enum DjiSetting {
@@ -111,6 +205,10 @@ sdrkit_core::settings! {
         DecodeDroneId = DECODE_DRONEID,
         /// Stamp rows with the wall clock.
         WallClock = WALL_CLOCK,
+        /// How the stack tunes for DroneID.
+        Tuning = TUNING,
+        /// The time on each DroneID frequency while stepping.
+        DwellS = DWELL_S,
         /// The signals of the test signal.
         GenScenario = GEN_SCENARIO,
         /// The DroneID period of the test signal.
@@ -119,6 +217,14 @@ sdrkit_core::settings! {
         GenEightSymbols = GEN_EIGHT_SYMBOLS,
         /// 20 MHz OcuSync-like bursts.
         GenWide = GEN_WIDE,
+        /// The DroneID frame of the test signal.
+        GenFrame = GEN_FRAME,
+        /// DroneID bursts on a DroneID frequency.
+        GenDroneIdFrequency = GEN_DRONEID_FREQUENCY,
+        /// A second aircraft.
+        GenTwoAircraft = GEN_TWO_AIRCRAFT,
+        /// The radio centre of the test signal.
+        GenCentreHz = GEN_CENTRE_HZ,
     }
 }
 
@@ -129,6 +235,18 @@ sdrkit_core::settings! {
         DecodeDroneId = DECODE_DRONEID,
         /// Stamp rows with the wall clock.
         WallClock = WALL_CLOCK,
+        /// How the stack tunes for DroneID.
+        Tuning = TUNING,
+        /// The time on each DroneID frequency while stepping.
+        DwellS = DWELL_S,
+    }
+}
+
+sdrkit_core::settings! {
+    /// The settings of [`TriggerComponent`].
+    pub enum DjiTriggerSetting {
+        /// Try DroneID decoding.
+        DecodeDroneId = DECODE_DRONEID,
     }
 }
 
@@ -151,11 +269,15 @@ sdrkit_core::commands! {
 pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     let graph = GraphBuilder::new()
         .add("bursts", BurstComponent::default())
+        .add("trigger", TriggerComponent::default())
         .add("tracker", DjiTracker::default())
         .input("bursts")
         .input("tracker.clock")
+        .input("trigger")
         .connect("bursts", "tracker.signals")
+        .connect("trigger", "tracker.droneid")
         .output("tracker.events")
+        .output("tracker.requests")
         .clock(REPORT_S)
         .status_from("tracker")
         .reconfigure_on_retune()
@@ -163,8 +285,13 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .build()?;
     StackGraph::of(crate::typed::shape("dji_droneid"), graph)
         .min_rate(MIN_RATE_HZ, &min_rate_message("DJI drones", MIN_RATE_HZ))
-        .route(DECODE_DRONEID.key(), &["tracker.decode_droneid"])?
+        .route(
+            DECODE_DRONEID.key(),
+            &["tracker.decode_droneid", "trigger.decode_droneid"],
+        )?
         .route(WALL_CLOCK.key(), &["tracker.wall_clock"])?
+        .route(TUNING.key(), &["tracker.droneid_tuning"])?
+        .route(DWELL_S.key(), &["tracker.droneid_dwell_s"])?
         .command("clear", sdrkit_graph::CommandTarget::of("tracker", "clear"))
         .command(
             "remove",
@@ -229,6 +356,98 @@ impl Component for BurstComponent {
     }
     fn values(&self) -> Values {
         sdrkit_graph::no_values()
+    }
+}
+
+/// The output of the trigger component.
+#[derive(Clone, Debug)]
+pub enum TriggerItem {
+    /// A burst that the pair trigger found and whose two symbols passed the check at the full rate, with what the burst
+    /// receiver made of it.
+    Hit(Box<Hit>),
+    /// The pairs found so far and the frequencies searched, at each report and before each burst.
+    Stats {
+        /// Pairs of the two symbols since the component was made.
+        pairs: u64,
+        /// DroneID frequencies inside the capture.
+        searched: usize,
+    },
+}
+
+impl Item for TriggerItem {
+    const KIND: &'static str = "droneid.hit";
+}
+
+/// The trigger component (`drones.dji_trigger`): the continuous search for the two DroneID symbols on the DroneID
+/// frequencies inside the capture, and the burst receiver on each pair.
+pub struct TriggerComponent {
+    t: Option<PairTrigger>,
+    on: bool,
+    base: u64,
+    tmp: Vec<Hit>,
+}
+
+impl Default for TriggerComponent {
+    fn default() -> Self {
+        TriggerComponent {
+            t: None,
+            on: DECODE_DRONEID.default,
+            base: 0,
+            tmp: Vec::with_capacity(8),
+        }
+    }
+}
+
+impl Component for TriggerComponent {
+    fn info(&self) -> ComponentInfo {
+        ComponentInfo::processor(
+            "drones.dji_trigger",
+            vec![Port::iq("in")],
+            vec![Port::typed::<TriggerItem>("out").rate_from(RateFrom::Fixed(0.0))],
+        )
+        .with_settings(DjiTriggerSetting::schema())
+    }
+    fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
+        // A new rate or centre: other DroneID frequencies are inside the capture. The pair count goes on.
+        let f = &inputs[0];
+        let mid = if f.centre_hz != 0.0 { f.tuned_hz } else { 0.0 };
+        self.base += self.t.as_ref().map_or(0, PairTrigger::pairs);
+        self.t = Some(PairTrigger::new(f.rate, trigger::searched(f.rate, mid)));
+        Ok(vec![Format::new(Kind::typed::<TriggerItem>(), 0.0)])
+    }
+    fn process(&mut self, io: &mut Io) {
+        let x = io.iq(0);
+        let Some(t) = self.t.as_mut() else { return };
+        if self.on {
+            t.feed(x, &mut self.tmp);
+        }
+        // The pair count goes out before the bursts, so the count of pairs is never behind the count of bursts.
+        let stats = (io.tick() || !self.tmp.is_empty()).then(|| TriggerItem::Stats {
+            pairs: self.base + t.pairs(),
+            searched: t.channels(),
+        });
+        let o = io.items_out::<TriggerItem>(0);
+        if let Some(s) = stats {
+            o.push(Timed {
+                time: 0.0,
+                value: s,
+            });
+        }
+        for h in self.tmp.drain(..).filter(|h| h.decode.zc_found) {
+            o.push(Timed {
+                time: h.start_s,
+                value: TriggerItem::Hit(Box::new(h)),
+            });
+        }
+    }
+    fn apply(&mut self, id: SettingId, v: &Value) -> Result<Applied, SettingError> {
+        match DjiTriggerSetting::from_id(id).ok_or(SettingError::NoSuchId { id })? {
+            DjiTriggerSetting::DecodeDroneId => self.on = DECODE_DRONEID.read(id, v)?,
+        }
+        Ok(Applied::Live)
+    }
+    fn values(&self) -> Values {
+        values_of([(DjiTriggerSetting::DecodeDroneId, Value::Bool(self.on))])
     }
 }
 
@@ -637,6 +856,52 @@ impl Shaped for Drone {
     }
 }
 
+/// One DJI aircraft heard on DroneID, in any format.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct Aircraft {
+    /// The row key.
+    pub name: String,
+    /// The 4 bytes of the encrypted format that are constant for one aircraft, as hex. Not a serial number.
+    pub session_key: Option<String>,
+    /// The serial number of a readable packet: the key of the drone.
+    pub drone: Option<String>,
+    /// The format of the last frame.
+    pub format: FrameFormat,
+    /// The type byte of the last frame of the encrypted format.
+    pub frame_type: Option<u8>,
+    /// The level of the last burst, dBFS.
+    pub level_dbfs: f64,
+    /// The SNR of the last burst, dB.
+    pub snr_db: f64,
+    /// RF frequency, Hz (0 when the centre is unknown).
+    pub freq_hz: f64,
+}
+
+impl Shift for Aircraft {
+    fn shift_times(&mut self, _: f64) {}
+}
+
+impl Shaped for Aircraft {
+    type Row = DjiDroneidAircraftRow<'static>;
+    fn row(&self, seen: Option<&Seen>, _now_s: f64, out: RowOut<'_, '_, Self::Row>) {
+        out.put(&DjiDroneidAircraftRow {
+            aircraft: &self.name,
+            session_key: self.session_key.as_deref(),
+            drone: self.drone.as_deref(),
+            format: self.format,
+            frame_type: self.frame_type.map(i64::from),
+            frames: columns::heard(seen).unwrap_or(0),
+            first_s: seen.map_or(0.0, |s| s.first_s),
+            last_s: seen.map_or(0.0, |s| s.last_s),
+            level_dbfs: self.level_dbfs,
+            snr_db: self.snr_db,
+            freq_hz: (self.freq_hz != 0.0).then_some(Hertz(self.freq_hz)),
+            first_heard: columns::first_heard(seen).map(Time),
+            last_heard: columns::last_heard(seen).map(Time),
+        });
+    }
+}
+
 /// One line of the burst log.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct BurstLine {
@@ -693,12 +958,22 @@ pub struct Counters {
     pub bursts_measured: u64,
     /// Of them OFDM-like.
     pub bursts_ofdm_like: u64,
-    /// DroneID packets decoded.
+    /// Readable DroneID packets decoded.
     pub droneid_decoded: u64,
     /// DroneID bursts with ZC whose CRC failed.
     pub droneid_crc_failed: u64,
     /// DroneID attempts.
     pub droneid_tried: u64,
+    /// Frames of the encrypted format.
+    pub droneid_encrypted: u64,
+    /// Empty frames.
+    pub droneid_empty: u64,
+    /// Frames with a good CRC-24 and no known layout.
+    pub droneid_other: u64,
+    /// Frames of zeros that were refused.
+    pub droneid_refused: u64,
+    /// Bursts of the pair trigger whose two symbols passed the check at the full rate.
+    pub droneid_bursts: u64,
 }
 
 /// What the tracker keeps across sessions: the drones, the burst log and the counters.
@@ -706,6 +981,8 @@ pub struct Counters {
 pub struct Store {
     /// The drones by serial number.
     pub drones: ObjectTable<String, Drone>,
+    /// The aircraft of every format, by row name.
+    pub aircraft: ObjectTable<String, Aircraft>,
     /// The burst log.
     pub log: LogRing<BurstLine>,
     /// The counters.
@@ -716,6 +993,7 @@ impl Default for Store {
     fn default() -> Self {
         Store {
             drones: ObjectTable::new(DRONE_CAP),
+            aircraft: ObjectTable::new(AIRCRAFT_CAP),
             log: LogRing::new(BURST_LOG),
             counters: Counters::default(),
         }
@@ -725,19 +1003,22 @@ impl Default for Store {
 impl Shift for Store {
     fn shift_times(&mut self, by_s: f64) {
         self.drones.shift_times(by_s);
+        self.aircraft.shift_times(by_s);
         self.log.shift_times(by_s);
     }
 }
 
 impl Tables for Store {
-    const FORMAT: StateFormat = StateFormat::new("drones.dji_droneid", 2);
+    const FORMAT: StateFormat = StateFormat::new("drones.dji_droneid", 3);
     fn clear(&mut self) {
         self.drones.clear();
+        self.aircraft.clear();
         self.log.clear();
         self.counters = Counters::default();
     }
     fn adopt(&mut self, saved: Self) {
         self.drones.adopt(saved.drones);
+        self.aircraft.adopt(saved.aircraft);
         self.log.adopt(saved.log);
         self.counters = saved.counters;
     }
@@ -750,6 +1031,69 @@ enum Heard {
     Bursts,
     DjiShape,
     DroneId,
+}
+
+/// Why a burst gave no frame.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Failure {
+    /// The CRC-24 never held.
+    Crc,
+    /// A frame of zeros that the received bits did not agree with.
+    Refused,
+}
+
+/// A DroneID burst that was tried a short time ago. The burst detector and the pair trigger can both find one burst: it
+/// counts once.
+#[derive(Clone, Copy, Debug)]
+struct Tried {
+    t: f64,
+    offset_hz: f64,
+    failure: Option<Failure>,
+}
+
+/// The format and type of the last frame, for the status line.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum LastFrame {
+    Readable,
+    Encrypted(u8),
+    Empty,
+    Other,
+}
+
+/// What the stack asked the host for.
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct Asked {
+    rate: f64,
+    band: Option<RadioBand>,
+    dwell_s: f64,
+}
+
+/// The centres that cover the DroneID frequencies of the band of `tuned_hz` with a capture at `rate`: each frequency
+/// alone when the capture holds one, the middle of each group when it holds several. None outside the 2.4 and 5.8 GHz
+/// bands.
+pub fn step_centres(rate: f64, tuned_hz: f64) -> Vec<f64> {
+    let Some(band) = band_of(tuned_hz / 1e6).filter(|b| *b != RadioBand::B5g2) else {
+        return Vec::new();
+    };
+    let span = 2.0 * trigger::EDGE * rate;
+    let mut centres = Vec::new();
+    let mut group: Option<(f64, f64)> = None;
+    for f in DRONEID_FREQS
+        .iter()
+        .map(|mhz| mhz * 1e6)
+        .filter(|f| band_of(f / 1e6).or(Some(RadioBand::B2g4)) == Some(band))
+    {
+        group = match group {
+            Some((first, _)) if f - first + DRONEID_WIDTH_HZ <= span => Some((first, f)),
+            Some((first, last)) => {
+                centres.push((first + last) / 2.0);
+                Some((f, f))
+            }
+            None => Some((f, f)),
+        };
+    }
+    centres.extend(group.map(|(first, last)| (first + last) / 2.0));
+    centres
 }
 
 /// The tracker component (`drones.dji_tracker`): tracks and classes, the DroneID receiver, the drone table and the results.
@@ -770,6 +1114,15 @@ pub struct DjiTracker {
     tracks: Vec<Track>,
     det: DetectorStats,
     rx: BurstReceiver,
+    tuning: Stepping,
+    dwell_s: f64,
+    rate: f64,
+    asked: Option<Asked>,
+    requests: Vec<HostRequest>,
+    tried: VecDeque<Tried>,
+    pairs: u64,
+    searched: usize,
+    last_frame: Option<LastFrame>,
     last_droneid_t: Option<f64>,
     cfo_centre: Option<f64>,
     burst_cfo: Option<f64>,
@@ -810,6 +1163,15 @@ impl Default for DjiTracker {
             tracks: Vec::with_capacity(TRACK_CAP),
             det: DetectorStats::default(),
             rx: BurstReceiver::default(),
+            tuning: TUNING.default,
+            dwell_s: DWELL_S.default,
+            rate: 0.0,
+            asked: None,
+            requests: Vec::new(),
+            tried: VecDeque::with_capacity(TRIED + 1),
+            pairs: 0,
+            searched: 0,
+            last_frame: None,
             last_droneid_t: None,
             cfo_centre: None,
             burst_cfo: None,
@@ -880,7 +1242,6 @@ impl DjiTracker {
             }
         };
         let centre = self.centre;
-        let sig_off = self.signal_offset;
         {
             let tr = &mut self.tracks[i];
             if tr.bursts > 0 {
@@ -927,41 +1288,18 @@ impl DjiTracker {
         {
             self.store.counters.droneid_tried += 1;
             let d = self.rx.decode(&s.samples);
-            outcome = if !d.zc_found {
-                Attempt::NoDroneId
-            } else if d.packet.is_some() {
-                Attempt::Decoded
-            } else {
-                Attempt::CrcFailed
-            };
-            let tr = &mut self.tracks[i];
             if d.zc_found {
+                let tr = &mut self.tracks[i];
                 tr.zc_seen = true;
-                if outcome == Attempt::Decoded {
+                if d.accepted() {
                     tr.decoded += 1;
                 } else {
                     tr.failed += 1;
-                    self.store.counters.droneid_crc_failed += 1;
                 }
-            }
-            if let Some(p) = d.packet {
-                let tid = tr.id;
-                tr.update_class(centre);
-                // The burst's offset from the capture centre, and its own carrier offset from the nearest 0.5 MHz channel.
-                let from_centre = s.offset_hz + d.cfo_hz + sig_off;
-                let abs = if centre != 0.0 {
-                    centre + from_centre
-                } else {
-                    from_centre
-                };
-                let grid = (abs / 0.5e6).round() * 0.5e6;
-                self.cfo_centre = Some(from_centre);
-                self.burst_cfo = Some(abs - grid);
-                let freq = if centre != 0.0 { grid } else { 0.0 };
-                self.take_packet(t, p, d.snr_db, freq, tid);
-            } else if d.zc_found {
                 tr.update_class(centre);
             }
+            let tid = self.tracks[i].id;
+            outcome = self.take_decode(t, s.offset_hz, s.level_dbfs, &d, tid);
         }
         let wall = self.wall();
         self.store.log.push(BurstLine {
@@ -979,9 +1317,245 @@ impl DjiTracker {
         self.dirty = true;
     }
 
+    /// Takes a burst that the pair trigger found, at signal time `t` (its start).
+    pub fn take_hit(&mut self, t: f64, h: &Hit) {
+        if !self.decode || !h.decode.zc_found {
+            return;
+        }
+        self.store.counters.droneid_bursts += 1;
+        self.last_level = Some(h.level_dbfs);
+        self.last_snr = Some(h.decode.snr_db);
+        self.take_decode(t, h.offset_hz, h.level_dbfs, &h.decode, 0);
+        self.dirty = true;
+    }
+
+    /// Counts one decoding of a DroneID burst at `offset_hz` from the centre of the samples, and takes its frame. A burst
+    /// that was already tried counts once: a later good frame replaces an earlier failure.
+    fn take_decode(
+        &mut self,
+        t: f64,
+        offset_hz: f64,
+        level_dbfs: f64,
+        d: &BurstDecode,
+        track: u32,
+    ) -> Attempt {
+        if !d.zc_found {
+            return Attempt::NoDroneId;
+        }
+        let failure = match d.frame {
+            None => Some(Failure::Crc),
+            Some(_) if !d.accepted() => Some(Failure::Refused),
+            Some(_) => None,
+        };
+        let outcome = if failure.is_some() {
+            Attempt::CrcFailed
+        } else {
+            Attempt::Decoded
+        };
+        let before = self
+            .tried
+            .iter_mut()
+            .find(|b| (b.t - t).abs() < 2e-3 && (b.offset_hz - offset_hz).abs() < 1.5e6);
+        let c = &mut self.store.counters;
+        let count = |c: &mut Counters, f: Failure, by: i64| {
+            let n = match f {
+                Failure::Crc => &mut c.droneid_crc_failed,
+                Failure::Refused => &mut c.droneid_refused,
+            };
+            *n = n.saturating_add_signed(by);
+        };
+        match (before, failure) {
+            (Some(b), None) => match b.failure.take() {
+                Some(f) => count(c, f, -1),
+                None => return outcome,
+            },
+            (Some(_), Some(_)) => return outcome,
+            (None, f) => {
+                if let Some(f) = f {
+                    count(c, f, 1);
+                }
+                self.tried.push_back(Tried {
+                    t,
+                    offset_hz,
+                    failure: f,
+                });
+                while self.tried.len() > TRIED {
+                    self.tried.pop_front();
+                }
+            }
+        }
+        if let (None, Some(frame)) = (failure, d.frame.as_ref()) {
+            self.take_frame(t, offset_hz, level_dbfs, d, frame, track);
+        }
+        outcome
+    }
+
+    /// Takes an accepted frame: the frequency of its burst, the counter of its format, the aircraft and, for the
+    /// readable packet, the drone.
+    fn take_frame(
+        &mut self,
+        t: f64,
+        offset_hz: f64,
+        level_dbfs: f64,
+        d: &BurstDecode,
+        frame: &[u8; droneid::FRAME],
+        track: u32,
+    ) {
+        // The burst's offset from the capture centre, and its own carrier offset from the nearest 0.5 MHz channel.
+        let centre = self.centre;
+        let from_centre = offset_hz + d.cfo_hz + self.signal_offset;
+        let abs = if centre != 0.0 {
+            centre + from_centre
+        } else {
+            from_centre
+        };
+        let grid = (abs / 0.5e6).round() * 0.5e6;
+        self.cfo_centre = Some(from_centre);
+        self.burst_cfo = Some(abs - grid);
+        let freq = if centre != 0.0 { grid } else { 0.0 };
+        self.last_droneid_t = Some(t);
+        let mut seen = Aircraft {
+            name: String::new(),
+            session_key: None,
+            drone: None,
+            format: FrameFormat::Empty,
+            frame_type: None,
+            level_dbfs,
+            snr_db: d.snr_db,
+            freq_hz: freq,
+        };
+        let c = &mut self.store.counters;
+        let mut position = None;
+        match droneid::classify(frame) {
+            FrameKind::Empty => {
+                c.droneid_empty += 1;
+                self.last_frame = Some(LastFrame::Empty);
+                seen.name.push_str(EMPTY_ROW);
+            }
+            FrameKind::Encrypted(h) => {
+                c.droneid_encrypted += 1;
+                self.last_frame = Some(LastFrame::Encrypted(h.frame_type));
+                let mut key = String::with_capacity(8);
+                for b in h.key {
+                    let _ = write!(key, "{b:02x}");
+                }
+                let _ = write!(seen.name, "session-{key}");
+                seen.session_key = Some(key);
+                seen.format = if h.cryp {
+                    FrameFormat::EncryptedCryp
+                } else {
+                    FrameFormat::Encrypted
+                };
+                seen.frame_type = Some(h.frame_type);
+            }
+            FrameKind::Readable(p) => {
+                self.last_frame = Some(LastFrame::Readable);
+                seen.name.push_str(if p.serial.is_empty() {
+                    "no serial"
+                } else {
+                    &p.serial
+                });
+                seen.drone = Some(p.serial.clone());
+                seen.format = FrameFormat::Readable;
+                position = p.has_fix().then_some((p.lat, p.lon));
+                self.take_packet(t, p, d.snr_db, freq, track);
+            }
+            FrameKind::Other => {
+                c.droneid_other += 1;
+                self.last_frame = Some(LastFrame::Other);
+                return;
+            }
+        }
+        self.take_aircraft(t, seen, position);
+    }
+
+    /// Hears the aircraft `seen` at `t`. A new aircraft gets a log line and an event.
+    fn take_aircraft(&mut self, t: f64, seen: Aircraft, position: Option<(f64, f64)>) {
+        let stamp = match self.wall() {
+            Some(w) => Stamp::at(t).with_wall(w),
+            None => Stamp::at(t),
+        };
+        let Ok(up) = self
+            .store
+            .aircraft
+            .upsert(seen.name.as_str(), stamp, || seen.clone())
+        else {
+            return;
+        };
+        if !up.new {
+            *up.row = seen;
+            return;
+        }
+        let a = up.row;
+        self.lines.push(match a.format {
+            FrameFormat::Readable => format!("DJI DroneID: new aircraft, serial {}", a.name),
+            FrameFormat::Empty => {
+                "DJI DroneID present, empty frame (no data sent in this state)".into()
+            }
+            FrameFormat::Encrypted | FrameFormat::EncryptedCryp => format!(
+                "DJI DroneID: new aircraft, encrypted format (type 0x{:02x}), session key {} (not a serial number)",
+                a.frame_type.unwrap_or(0),
+                a.session_key.as_deref().unwrap_or("")
+            ),
+        });
+        self.events.push(DJI_AIRCRAFT_SEEN.event(
+            t,
+            a.freq_hz,
+            &DjiDroneidAircraftEvent {
+                source: &a.name,
+                session_key: a.session_key.as_deref(),
+                format: a.format,
+                frame_type: a.frame_type.map(i64::from),
+                position,
+                snr_db: a.snr_db,
+                family: Family::Aircraft,
+            },
+        ));
+    }
+
+    /// States the frequencies that the stack needs, once the receiver runs and the setting or the capture changed. While
+    /// stepping: the centres that cover the DroneID frequencies of the band, each for the dwell, or one centre when the
+    /// capture holds them all. A change to `fixed` ends the stepping on the frequency that is tuned.
+    fn ask(&mut self) {
+        if !self.configured || self.centre == 0.0 {
+            return;
+        }
+        let tuned = self.centre + self.signal_offset;
+        if self.tuning == Stepping::Fixed {
+            if self.asked.take().is_some() {
+                self.requests
+                    .push(HostRequest::retune(tuned, "DroneID: the frequency stays"));
+            }
+            return;
+        }
+        let want = Asked {
+            rate: self.rate,
+            band: band_of(tuned / 1e6),
+            dwell_s: self.dwell_s,
+        };
+        if self.asked == Some(want) {
+            return;
+        }
+        self.asked = Some(want);
+        let mut centres = step_centres(self.rate, tuned);
+        match centres.len() {
+            0 => {}
+            1 => {
+                if (centres[0] - tuned).abs() > 1.0 {
+                    self.requests
+                        .push(HostRequest::retune(centres[0], "DroneID frequencies"));
+                }
+            }
+            _ => self.requests.push(HostRequest::Hop {
+                channels: std::mem::take(&mut centres),
+                dwell_s: self.dwell_s,
+                stop_on_lock: false,
+            }),
+        }
+    }
+
     fn take_packet(&mut self, t: f64, p: DroneIdPacket, snr: f64, freq: f64, track: u32) {
         self.store.counters.droneid_decoded += 1;
-        self.last_droneid_t = Some(t);
         let serial = p.serial.clone();
         self.lines.push(format!(
             "DJI DroneID: serial {}",
@@ -1055,6 +1629,8 @@ impl DjiTracker {
         self.store.clear();
         self.tracks.clear();
         self.next_track = 1;
+        self.tried.clear();
+        self.last_frame = None;
         self.last_droneid_t = None;
         self.cfo_centre = None;
         self.burst_cfo = None;
@@ -1102,6 +1678,38 @@ impl DjiTracker {
         let (snr, floor, cfo) = (self.last_snr, self.det.floor_dbfs, self.cfo_centre);
         let st = &mut self.status;
         match (state, newest, best) {
+            (Heard::DroneId, _, _) if self.last_frame == Some(LastFrame::Empty) => st.write(
+                p,
+                lock_state,
+                snr,
+                floor,
+                cfo,
+                format_args!("DJI DroneID present, empty frame (no data sent in this state)"),
+            ),
+            (Heard::DroneId, _, _) if matches!(self.last_frame, Some(LastFrame::Encrypted(_))) => {
+                let Some(LastFrame::Encrypted(ty)) = self.last_frame else {
+                    unreachable!("the guard holds")
+                };
+                st.write(
+                    p,
+                    lock_state,
+                    snr,
+                    floor,
+                    cfo,
+                    format_args!(
+                        "DJI DroneID, encrypted format (type 0x{ty:02x}): aircraft present, position and serial not \
+                         readable"
+                    ),
+                );
+            }
+            (Heard::DroneId, _, _) if self.last_frame == Some(LastFrame::Other) => st.write(
+                p,
+                lock_state,
+                snr,
+                floor,
+                cfo,
+                format_args!("DJI DroneID present, a frame of an unknown layout"),
+            ),
             (Heard::DroneId, d, _) => {
                 let serial = d
                     .map(|d| d.serial.as_str())
@@ -1163,6 +1771,14 @@ impl DjiTracker {
             centre_hz: (self.centre != 0.0).then_some(Hertz(self.centre)),
             burst_cfo_hz: self.burst_cfo.map(Hertz),
             drones: s.drones.len() as i64,
+            aircraft: s.aircraft.len() as i64,
+            droneid_encrypted: c.droneid_encrypted as i64,
+            droneid_empty: c.droneid_empty as i64,
+            droneid_other: c.droneid_other as i64,
+            droneid_refused: c.droneid_refused as i64,
+            droneid_pairs: self.pairs as i64,
+            droneid_bursts: c.droneid_bursts as i64,
+            droneid_searched: self.searched as i64,
             signal: best.map(|_| self.key.as_str()),
             noise_dbfs: floor,
             level_dbfs: self.last_level,
@@ -1176,6 +1792,7 @@ impl DjiTracker {
         }
         keep_newest_rows(&DJI_SIGNALS, self.tracks.len(), p);
         shaped::rows(&s.drones, &DJI_DRONES, now, p);
+        shaped::rows(&s.aircraft, &DJI_AIRCRAFT, now, p);
         shaped::log_rows(&s.log, &DJI_BURSTS, now, p);
         publish_tracks(
             &s.drones,
@@ -1224,8 +1841,15 @@ impl Component for DjiTracker {
     fn info(&self) -> ComponentInfo {
         ComponentInfo::processor(
             "drones.dji_tracker",
-            vec![Port::typed::<BurstItem>("signals"), Port::iq("clock")],
-            vec![Port::new("events", Kind::Messages).rate_from(RateFrom::Fixed(0.0))],
+            vec![
+                Port::typed::<BurstItem>("signals"),
+                Port::iq("clock"),
+                Port::typed::<TriggerItem>("droneid"),
+            ],
+            vec![
+                Port::new("events", Kind::Messages).rate_from(RateFrom::Fixed(0.0)),
+                Port::typed::<HostRequest>("requests").rate_from(RateFrom::Fixed(0.0)),
+            ],
         )
         .with_settings(DjiTrackerSetting::schema())
     }
@@ -1238,9 +1862,14 @@ impl Component for DjiTracker {
         self.clock.restart(f.rate);
         self.centre = f.centre_hz;
         self.signal_offset = f.signal_offset_hz();
+        self.rate = f.rate;
         self.configured = true;
+        self.ask();
         self.publish();
-        Ok(vec![Format::new(Kind::Messages, 0.0)])
+        Ok(vec![
+            Format::new(Kind::Messages, 0.0),
+            Format::new(Kind::typed::<HostRequest>(), 0.0),
+        ])
     }
     fn process(&mut self, io: &mut Io) {
         let n = io.input_len(1);
@@ -1249,6 +1878,14 @@ impl Component for DjiTracker {
             match &it.value {
                 BurstItem::Signal(s) => self.take(epoch + s.start_s, s),
                 BurstItem::Stats(s) => self.det.clone_from(s),
+            }
+        }
+        for it in io.items::<TriggerItem>(2) {
+            match &it.value {
+                TriggerItem::Hit(h) => self.take_hit(epoch + h.start_s, h),
+                TriggerItem::Stats { pairs, searched } => {
+                    (self.pairs, self.searched) = (*pairs, *searched);
+                }
             }
         }
         self.clock.samples += n as u64;
@@ -1268,11 +1905,26 @@ impl Component for DjiTracker {
         if !self.events.is_empty() {
             io.messages_out(0).append(&mut self.events);
         }
+        let now = self.clock.now();
+        for r in self.requests.drain(..) {
+            io.items_out::<HostRequest>(1).push(Timed {
+                time: now,
+                value: r,
+            });
+        }
     }
     fn apply(&mut self, id: SettingId, v: &Value) -> Result<Applied, SettingError> {
         match DjiTrackerSetting::from_id(id).ok_or(SettingError::NoSuchId { id })? {
             DjiTrackerSetting::DecodeDroneId => self.decode = DECODE_DRONEID.read(id, v)?,
             DjiTrackerSetting::WallClock => self.wall_clock = WALL_CLOCK.read(id, v)?,
+            DjiTrackerSetting::Tuning => {
+                self.tuning = TUNING.read(id, v)?;
+                self.ask();
+            }
+            DjiTrackerSetting::DwellS => {
+                self.dwell_s = DWELL_S.read(id, v)?;
+                self.ask();
+            }
         }
         Ok(Applied::Live)
     }
@@ -1280,6 +1932,11 @@ impl Component for DjiTracker {
         values_of([
             (DjiTrackerSetting::DecodeDroneId, Value::Bool(self.decode)),
             (DjiTrackerSetting::WallClock, Value::Bool(self.wall_clock)),
+            (
+                DjiTrackerSetting::Tuning,
+                Value::Choice(sdrkit_core::Choice::index(self.tuning)),
+            ),
+            (DjiTrackerSetting::DwellS, Value::Duration(self.dwell_s)),
         ])
     }
     fn commands(&self) -> &Commands {
@@ -1289,6 +1946,11 @@ impl Component for DjiTracker {
         match DjiTrackerCommand::from_id(id).ok_or(CommandError::NoSuchId { id })? {
             DjiTrackerCommand::Clear => self.clear(),
             DjiTrackerCommand::Remove => {
+                // The aircraft row of a drone has the name of the drone, or `no serial`.
+                if let Ok(crate::typed::DroneArgs { row }) = DRONE_REMOVE.args(args) {
+                    let name = if row.is_empty() { "no serial" } else { row };
+                    self.store.aircraft.remove(name);
+                }
                 commands::remove(
                     &mut self.store.drones,
                     self.drones_table,

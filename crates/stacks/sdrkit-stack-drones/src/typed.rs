@@ -3,7 +3,7 @@
 
 use crate::adsl::AdslSetting;
 use crate::dji::DjiSetting;
-use crate::dji::{Attempt, Class, RadioBand, Reason};
+use crate::dji::{Attempt, Class, FrameFormat, RadioBand, Reason};
 use crate::flarm::FlarmSetting;
 use crate::flarm::KeyTime;
 use crate::mavlink_sik::SikSetting;
@@ -381,6 +381,31 @@ pub struct DjiDroneidFields<'a> {
     /// Drones in the table.
     #[field(label = "Drones")]
     pub drones: i64,
+    /// Aircraft in the aircraft table: the drones with a readable packet, the aircraft that send the encrypted format, and
+    /// the sender of empty frames.
+    #[field(label = "Aircraft", reading = 1)]
+    pub aircraft: i64,
+    /// DroneID frames of the encrypted format: the aircraft is present, its position and serial number are not readable.
+    #[field(label = "DroneID encrypted frames")]
+    pub droneid_encrypted: i64,
+    /// Empty DroneID frames: the aircraft is present and sends no data in this state.
+    #[field(label = "DroneID empty frames")]
+    pub droneid_empty: i64,
+    /// DroneID frames whose CRC-24 passed and whose layout is not known.
+    #[field(label = "DroneID frames of an unknown layout")]
+    pub droneid_other: i64,
+    /// Frames of zeros that were refused: the received bits did not agree with an empty frame.
+    #[field(label = "Empty frames refused")]
+    pub droneid_refused: i64,
+    /// Pairs of the two DroneID symbols that the continuous search found.
+    #[field(label = "DroneID symbol pairs")]
+    pub droneid_pairs: i64,
+    /// Bursts of the continuous search whose two symbols passed the check at the full rate.
+    #[field(label = "DroneID bursts")]
+    pub droneid_bursts: i64,
+    /// The DroneID frequencies inside the capture that the continuous search covers.
+    #[field(label = "DroneID frequencies searched")]
+    pub droneid_searched: i64,
     /// The track with the most likely DJI shape: a row key of the `signals` table.
     #[field(label = "Signal", refers_to = "signals")]
     pub signal: Option<&'a str>,
@@ -553,6 +578,79 @@ pub struct DjiDroneidDroneRow<'a> {
     /// Times heard.
     #[field(shared = columns::HEARD)]
     pub heard: Option<i64>,
+}
+
+/// A DJI aircraft heard on DroneID, in any format.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct DjiDroneidAircraftRow<'a> {
+    /// The name of the row: the serial number of a drone with a readable packet, `session-` and the session key of an
+    /// aircraft that sends the encrypted format, `empty frames` for the sender of empty frames.
+    #[field(label = "Aircraft")]
+    pub aircraft: &'a str,
+    /// The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart
+    /// within a session. They are not a serial number and do not identify the aircraft.
+    #[field(label = "Session key (not a serial number)")]
+    pub session_key: Option<&'a str>,
+    /// The drone of a readable packet: a row key of the `drones` table.
+    #[field(label = "Drone", refers_to = "drones")]
+    pub drone: Option<&'a str>,
+    /// The format of the last frame.
+    #[field(label = "Format")]
+    pub format: FrameFormat,
+    /// The type byte of the last frame of the encrypted format (0x10, 0x11 and 0x13 were seen).
+    #[field(label = "Frame type")]
+    pub frame_type: Option<i64>,
+    /// The frames received.
+    #[field(label = "Frames")]
+    pub frames: i64,
+    /// The signal time of the first frame.
+    #[field(label = "First frame", unit = "s")]
+    pub first_s: f64,
+    /// The signal time of the last frame.
+    #[field(label = "Last frame", unit = "s")]
+    pub last_s: f64,
+    /// Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS).
+    #[field(shared = keys::LEVEL_DBFS)]
+    pub level_dbfs: f64,
+    /// Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so).
+    #[field(shared = keys::SNR_DB)]
+    pub snr_db: f64,
+    /// The radio frequency.
+    #[field(label = "Frequency", unit = "Hz")]
+    pub freq_hz: Option<Hertz>,
+    /// Wall-clock time when first heard.
+    #[field(shared = columns::FIRST_HEARD)]
+    pub first_heard: Option<Time>,
+    /// Wall-clock time when last heard, in whole seconds. A host shows the age from it.
+    #[field(shared = columns::LAST_HEARD)]
+    pub last_heard: Option<Time>,
+}
+
+/// A DJI aircraft that was not heard before.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct DjiDroneidAircraftEvent<'a> {
+    /// The sender of a decoded message: a registration, an address, a call sign or a code.
+    #[field(shared = keys::SOURCE)]
+    pub source: &'a str,
+    /// The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart
+    /// within a session. They are not a serial number and do not identify the aircraft.
+    #[field(label = "Session key (not a serial number)")]
+    pub session_key: Option<&'a str>,
+    /// The format of the frame.
+    #[field(label = "Format")]
+    pub format: FrameFormat,
+    /// The type byte of a frame of the encrypted format.
+    #[field(label = "Frame type")]
+    pub frame_type: Option<i64>,
+    /// The position of the object that the event is about.
+    #[field(shared = keys::POSITION)]
+    pub position: Option<(f64, f64)>,
+    /// Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so).
+    #[field(shared = keys::SNR_DB)]
+    pub snr_db: f64,
+    /// What an event is about (aircraft, vessel, pager). Outputs and the store filter on it.
+    #[field(shared = keys::FAMILY)]
+    pub family: Family,
 }
 
 /// A burst in the burst log.
@@ -1345,6 +1443,13 @@ pub static DJI_TRACKS: Table<DroneTrackRow<'static>> = Table::new(
 /// A DroneID packet.
 pub static DJI_DRONEID: EventKind<DjiDroneidEvent<'static>> =
     EventKind::new("dji.droneid", "DroneID packet");
+/// The DJI aircraft heard on DroneID, in any format.
+pub static DJI_AIRCRAFT: Table<DjiDroneidAircraftRow<'static>> =
+    Table::new("aircraft", "Aircraft", crate::dji::AIRCRAFT_CAP)
+        .label(&DjiDroneidAircraftRow::AIRCRAFT);
+/// A DJI aircraft that was not heard before.
+pub static DJI_AIRCRAFT_SEEN: EventKind<DjiDroneidAircraftEvent<'static>> =
+    EventKind::new("dji.aircraft", "New DJI aircraft");
 
 /// The aircraft of FLARM.
 pub static FLARM_AIRCRAFT: Table<FlarmAircraftRow<'static>> =
@@ -1539,7 +1644,7 @@ pub fn family() -> &'static Described {
     FAMILY.get_or_init(|| {
         // Each stack holds what it heard in one component: the objects heard and the logs are its history, and they
         // stay over a change of frequency, with the counters of the same component.
-        Described::new("drones", 1, 2)
+        Described::new("drones", 1, 3)
             .added(
                 1,
                 1,
@@ -1581,6 +1686,51 @@ pub fn family() -> &'static Described {
                     "shape.DjiDroneidEvent.height_raw",
                 ],
             )
+            .added(
+                1,
+                3,
+                &[
+                    "shape.DjiDroneidFields.aircraft",
+                    "shape.DjiDroneidFields.droneid_encrypted",
+                    "shape.DjiDroneidFields.droneid_empty",
+                    "shape.DjiDroneidFields.droneid_other",
+                    "shape.DjiDroneidFields.droneid_refused",
+                    "shape.DjiDroneidFields.droneid_pairs",
+                    "shape.DjiDroneidFields.droneid_bursts",
+                    "shape.DjiDroneidFields.droneid_searched",
+                    "shape.DjiDroneidAircraftRow",
+                    "shape.DjiDroneidAircraftRow.aircraft",
+                    "shape.DjiDroneidAircraftRow.session_key",
+                    "shape.DjiDroneidAircraftRow.drone",
+                    "shape.DjiDroneidAircraftRow.format",
+                    "shape.DjiDroneidAircraftRow.frame_type",
+                    "shape.DjiDroneidAircraftRow.frames",
+                    "shape.DjiDroneidAircraftRow.first_s",
+                    "shape.DjiDroneidAircraftRow.last_s",
+                    "shape.DjiDroneidAircraftRow.level_dbfs",
+                    "shape.DjiDroneidAircraftRow.snr_db",
+                    "shape.DjiDroneidAircraftRow.freq_hz",
+                    "shape.DjiDroneidAircraftRow.first_heard",
+                    "shape.DjiDroneidAircraftRow.last_heard",
+                    "shape.DjiDroneidAircraftEvent",
+                    "shape.DjiDroneidAircraftEvent.source",
+                    "shape.DjiDroneidAircraftEvent.session_key",
+                    "shape.DjiDroneidAircraftEvent.format",
+                    "shape.DjiDroneidAircraftEvent.frame_type",
+                    "shape.DjiDroneidAircraftEvent.position",
+                    "shape.DjiDroneidAircraftEvent.snr_db",
+                    "shape.DjiDroneidAircraftEvent.family",
+                    "dji_droneid.table.aircraft",
+                    "dji_droneid.kept.aircraft",
+                    "dji_droneid.event.dji.aircraft",
+                    "dji_droneid.setting.droneid_tuning",
+                    "dji_droneid.setting.droneid_dwell_s",
+                    "dji_droneid.setting.gen_frame",
+                    "dji_droneid.setting.gen_droneid_frequency",
+                    "dji_droneid.setting.gen_two_aircraft",
+                    "dji_droneid.setting.gen_centre_hz",
+                ],
+            )
             .content(
                 sdrkit_core::ContentKind::Tracking,
                 &[
@@ -1614,6 +1764,7 @@ pub fn family() -> &'static Described {
                     .table(&DJI_DRONES)
                     .table(&DJI_BURSTS)
                     .table(&DJI_TRACKS)
+                    .table(&DJI_AIRCRAFT)
                     .series(SeriesDef {
                         key: LEVEL_SERIES,
                         label: "Level",
@@ -1622,6 +1773,7 @@ pub fn family() -> &'static Described {
                     })
                     .points("Drones")
                     .event(&DJI_DRONEID)
+                    .event(&DJI_AIRCRAFT_SEEN)
                     .settings(DjiSetting::SETTINGS)
                     .command(&objcmd::CLEAR)
                     .command(&DRONE_REMOVE)
@@ -1630,6 +1782,7 @@ pub fn family() -> &'static Described {
                         "drones",
                         "bursts",
                         "drone_tracks",
+                        "aircraft",
                         "DjiDroneidFields",
                     ]),
             )

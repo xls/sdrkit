@@ -1,8 +1,8 @@
-//! The DJI test signal: DroneID bursts, and stand-ins of the OcuSync-like and Lightbridge-like shapes and of
+//! The DJI test signal: DroneID bursts (the readable packet, the encrypted format or the empty frame), and stand-ins of the OcuSync-like and Lightbridge-like shapes and of
 //! Wi-Fi-like bursts. The stand-ins exercise the shape detector. They are not the real protocols. The generator makes the clean
 //! signal only: noise, offsets and the receiver's impairments come from the standard `gen_*` settings.
 
-use super::droneid::{self, DroneIdPacket, NFFT};
+use super::droneid::{self, DroneIdPacket, FRAME, NC, NFFT};
 use sdrkit_algo_dsp::fft::Fft;
 use sdrkit_algo_dsp::fir::{lowpass, Fir};
 use sdrkit_algo_dsp::nco::Nco;
@@ -40,9 +40,36 @@ pub struct DjiGenOptions {
     pub eight: bool,
     /// The OcuSync-like train 20 MHz wide (2048 FFT at 30.72 Msps, centred).
     pub wide: bool,
+    /// The frame of the DroneID bursts.
+    pub frame: DroneIdFrame,
+    /// The radio centre, Hz: the DroneID bursts are on the DroneID frequency nearest to it, one each 5 periods, without the
+    /// carriers outside the capture. `None` puts them 5 MHz below the centre, one each period.
+    pub droneid_centre_hz: Option<f64>,
+    /// Every second DroneID burst comes from a second aircraft.
+    pub two_aircraft: bool,
     /// Seed.
     pub seed: u64,
 }
+
+/// The frame of the DroneID bursts of the test signal.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DroneIdFrame {
+    /// The readable packet of [`packet`].
+    Readable,
+    /// The encrypted format: the magic, the session key of the aircraft, 8 changing bytes, a random body and the inner CRC-16.
+    Encrypted,
+    /// The empty frame.
+    Empty,
+}
+
+/// The session keys of the two aircraft of the test signal.
+pub const SESSION_KEYS: [[u8; 4]; 2] = [[0x5d, 0x4b, 0x01, 0xa7], [0x5d, 0x4b, 0x02, 0x3c]];
+/// The serial number of the second aircraft of the test signal.
+pub const SECOND_SERIAL: &str = "SDRKTESTDRONE002";
+/// The periods between two DroneID bursts on a DroneID frequency.
+pub const SPARSE: u64 = 5;
+/// The 4-byte tail of the frames of the test signal.
+const TAIL: [u8; 4] = [0x21, 0x43, 0x65, 0x87];
 
 impl Default for DjiGenOptions {
     fn default() -> Self {
@@ -52,6 +79,9 @@ impl Default for DjiGenOptions {
             period_s: 0.64,
             eight: false,
             wide: false,
+            frame: DroneIdFrame::Readable,
+            droneid_centre_hz: None,
+            two_aircraft: false,
             seed: 1,
         }
     }
@@ -193,6 +223,20 @@ impl DjiGenerator {
             period_s: s.get(&super::GEN_PERIOD_S),
             eight: s.get(&super::GEN_EIGHT_SYMBOLS),
             wide: s.get(&super::GEN_WIDE),
+            frame: match s.get(&super::GEN_FRAME) {
+                super::GenFrame::Readable => DroneIdFrame::Readable,
+                super::GenFrame::Encrypted => DroneIdFrame::Encrypted,
+                super::GenFrame::Empty => DroneIdFrame::Empty,
+            },
+            droneid_centre_hz: s.get(&super::GEN_DRONEID_FREQUENCY).then(|| {
+                let own = s.get(&super::GEN_CENTRE_HZ);
+                if own > 0.0 {
+                    own
+                } else {
+                    cfg.tuned_hz().unwrap_or(2440e6)
+                }
+            }),
+            two_aircraft: s.get(&super::GEN_TWO_AIRCRAFT),
             seed: cfg.seed,
         })
     }
@@ -226,6 +270,33 @@ impl DjiGenerator {
         self.push(t, y, 0.0);
     }
 
+    /// The frame of the `n`th DroneID period at signal time `t`, of the first or the second aircraft.
+    fn frame(&mut self, n: u64, t: f64, second: bool) -> [u8; FRAME] {
+        match self.o.frame {
+            DroneIdFrame::Readable => {
+                let mut p = packet(n, t);
+                if second {
+                    p.serial = SECOND_SERIAL.into();
+                    p.lat += 0.001;
+                }
+                p.frame()
+            }
+            DroneIdFrame::Encrypted => {
+                let mut body = [0u8; 109];
+                body.iter_mut().for_each(|b| *b = self.rng.next_u64() as u8);
+                let changing = (0x0102_0304_0506_0708u64 ^ self.rng.next_u64()).to_le_bytes();
+                droneid::encrypted_frame(
+                    if n.is_multiple_of(2) { 0x10 } else { 0x11 },
+                    SESSION_KEYS[usize::from(second)],
+                    changing,
+                    &body,
+                    TAIL,
+                )
+            }
+            DroneIdFrame::Empty => droneid::empty_frame(TAIL),
+        }
+    }
+
     fn schedule(&mut self, until_s: f64) {
         use Scenario::*;
         let sc = self.o.scenario;
@@ -235,9 +306,29 @@ impl DjiGenerator {
                 if t >= until_s {
                     break;
                 }
-                let p = packet(self.next_droneid, t);
-                let b = droneid::modulate(&p.frame(), 0, self.o.eight);
-                self.place(t, &b, droneid::FS, -5e6);
+                let n = self.next_droneid;
+                let sparse = self.o.droneid_centre_hz.is_some();
+                if sparse && !n.is_multiple_of(SPARSE) {
+                    self.next_droneid += 1;
+                    continue;
+                }
+                let sent = if sparse { n / SPARSE } else { n };
+                let second = self.o.two_aircraft && sent % 2 == 1;
+                let frame = self.frame(n, t, second);
+                let offset = self.o.droneid_centre_hz.map_or(-5e6, |c| {
+                    super::DRONEID_FREQS
+                        .iter()
+                        .map(|mhz| mhz * 1e6 - c)
+                        .min_by(|a, b| a.abs().total_cmp(&b.abs()))
+                        .unwrap_or(0.0)
+                });
+                let carriers = if sparse {
+                    droneid::visible_carriers(offset, 0.5 * self.o.rate)
+                } else {
+                    0..NC
+                };
+                let b = droneid::modulate_carriers(&frame, 0, self.o.eight, carriers);
+                self.place(t, &b, droneid::FS, offset);
                 if sc == Collisions {
                     let start = t + self.rng.range(-0.3e-3, 0.7e-3);
                     let dur = self.rng.range(100e-6, 1500e-6);

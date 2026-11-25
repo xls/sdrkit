@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "drones", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "drones", version 1.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DRONES_VERSION_MAJOR 1
-#define SDRKIT_DRONES_VERSION_MINOR 2
+#define SDRKIT_DRONES_VERSION_MINOR 3
 
 // The stack "remote_id": its id, and the keys of its event types.
 #define SDRKIT_STACK_REMOTE_ID "remote_id"
@@ -45,6 +45,7 @@
 // The stack "dji_droneid": its id, and the keys of its event types.
 #define SDRKIT_STACK_DJI_DRONEID "dji_droneid"
 #define SDRKIT_EVENT_DJI_DRONEID "dji.droneid"
+#define SDRKIT_EVENT_DJI_AIRCRAFT "dji.aircraft"
 
 // The stack "flarm": its id, and the keys of its event types.
 #define SDRKIT_STACK_FLARM "flarm"
@@ -105,6 +106,14 @@ typedef enum sdrkit_remote_id_gen_wifi_phy {
   SDRKIT_REMOTE_ID_GEN_WIFI_PHY_OFDM = 1,
 } sdrkit_remote_id_gen_wifi_phy;
 
+// The options of the setting "droneid_tuning" of the stack "dji_droneid".
+typedef enum sdrkit_dji_droneid_tuning {
+  // stay on the tuned frequency
+  SDRKIT_DJI_DRONEID_TUNING_FIXED = 0,
+  // step through the DroneID frequencies
+  SDRKIT_DJI_DRONEID_TUNING_STEP = 1,
+} sdrkit_dji_droneid_tuning;
+
 // The options of the setting "gen_scenario" of the stack "dji_droneid".
 typedef enum sdrkit_dji_droneid_gen_scenario {
   // everything
@@ -120,6 +129,16 @@ typedef enum sdrkit_dji_droneid_gen_scenario {
   // DroneID with collisions
   SDRKIT_DJI_DRONEID_GEN_SCENARIO_DRONEID_WITH_COLLISIONS = 5,
 } sdrkit_dji_droneid_gen_scenario;
+
+// The options of the setting "gen_frame" of the stack "dji_droneid".
+typedef enum sdrkit_dji_droneid_gen_frame {
+  // readable packet
+  SDRKIT_DJI_DRONEID_GEN_FRAME_READABLE = 0,
+  // encrypted format
+  SDRKIT_DJI_DRONEID_GEN_FRAME_ENCRYPTED = 1,
+  // empty frame
+  SDRKIT_DJI_DRONEID_GEN_FRAME_EMPTY = 2,
+} sdrkit_dji_droneid_gen_frame;
 
 // The options of the setting "submode" of the stack "rc_links".
 typedef enum sdrkit_rc_links_submode {
@@ -587,6 +606,22 @@ typedef struct sdrkit_dji_droneid_fields {
   bool has_offset_hz;
   // Carrier offset from where it was expected, Hz. A frequency in Hz.
   double offset_hz;
+  // Aircraft in the aircraft table: the drones with a readable packet, the aircraft that send the encrypted format, and the sender of empty frames.
+  int64_t aircraft;
+  // DroneID frames of the encrypted format: the aircraft is present, its position and serial number are not readable.
+  int64_t droneid_encrypted;
+  // Empty DroneID frames: the aircraft is present and sends no data in this state.
+  int64_t droneid_empty;
+  // DroneID frames whose CRC-24 passed and whose layout is not known.
+  int64_t droneid_other;
+  // Frames of zeros that were refused: the received bits did not agree with an empty frame.
+  int64_t droneid_refused;
+  // Pairs of the two DroneID symbols that the continuous search found.
+  int64_t droneid_pairs;
+  // Bursts of the continuous search whose two symbols passed the check at the full rate.
+  int64_t droneid_bursts;
+  // The DroneID frequencies inside the capture that the continuous search covers.
+  int64_t droneid_searched;
 } sdrkit_dji_droneid_fields;
 
 // The options of `class_` of `sdrkit_dji_droneid_signal_row`.
@@ -808,6 +843,64 @@ typedef struct sdrkit_dji_droneid_burst_row {
   // The DroneID outcome of a burst. A value of `sdrkit_dji_droneid_burst_row_droneid`.
   int32_t droneid;
 } sdrkit_dji_droneid_burst_row;
+
+// The options of `format` of `sdrkit_dji_droneid_aircraft_row`.
+typedef enum sdrkit_dji_droneid_aircraft_row_format {
+  // readable
+  SDRKIT_DJI_DRONEID_AIRCRAFT_ROW_FORMAT_READABLE = 0,
+  // encrypted (INFP)
+  SDRKIT_DJI_DRONEID_AIRCRAFT_ROW_FORMAT_ENCRYPTED = 1,
+  // encrypted (CRYP)
+  SDRKIT_DJI_DRONEID_AIRCRAFT_ROW_FORMAT_ENCRYPTED_CRYP = 2,
+  // empty frame
+  SDRKIT_DJI_DRONEID_AIRCRAFT_ROW_FORMAT_EMPTY = 3,
+} sdrkit_dji_droneid_aircraft_row_format;
+
+// A DJI aircraft heard on DroneID, in any format.
+typedef struct sdrkit_dji_droneid_aircraft_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The name of the row: the serial number of a drone with a readable packet, `session-` and the session key of an aircraft that sends the encrypted format, `empty frames` for the sender of empty frames.
+  sdrkit_string aircraft;
+  // True if `session_key` holds a value.
+  bool has_session_key;
+  // The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart within a session. They are not a serial number and do not identify the aircraft.
+  sdrkit_string session_key;
+  // True if `drone` holds a value.
+  bool has_drone;
+  // The drone of a readable packet: a row key of the `drones` table.
+  sdrkit_string drone;
+  // The format of the last frame. A value of `sdrkit_dji_droneid_aircraft_row_format`.
+  int32_t format;
+  // True if `frame_type` holds a value.
+  bool has_frame_type;
+  // The type byte of the last frame of the encrypted format (0x10, 0x11 and 0x13 were seen).
+  int64_t frame_type;
+  // The frames received.
+  int64_t frames;
+  // The signal time of the first frame. Unit: s.
+  double first_s;
+  // The signal time of the last frame. Unit: s.
+  double last_s;
+  // Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). Unit: dBFS.
+  double level_dbfs;
+  // Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so). Unit: dB.
+  double snr_db;
+  // True if `freq_hz` holds a value.
+  bool has_freq_hz;
+  // The radio frequency. A frequency in Hz.
+  double freq_hz;
+  // True if `first_heard` holds a value.
+  bool has_first_heard;
+  // Wall-clock time when first heard. Seconds since 1970 (UTC).
+  double first_heard;
+  // True if `last_heard` holds a value.
+  bool has_last_heard;
+  // Wall-clock time when last heard, in whole seconds. A host shows the age from it. Seconds since 1970 (UTC).
+  double last_heard;
+} sdrkit_dji_droneid_aircraft_row;
 
 // The options of `key_time` of `sdrkit_flarm_fields`.
 typedef enum sdrkit_flarm_fields_key_time {
@@ -1629,6 +1722,78 @@ typedef struct sdrkit_dji_droneid_event {
   int64_t height_raw;
 } sdrkit_dji_droneid_event;
 
+// The options of `format` of `sdrkit_dji_droneid_dji_aircraft_event`.
+typedef enum sdrkit_dji_droneid_dji_aircraft_event_format {
+  // readable
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FORMAT_READABLE = 0,
+  // encrypted (INFP)
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FORMAT_ENCRYPTED = 1,
+  // encrypted (CRYP)
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FORMAT_ENCRYPTED_CRYP = 2,
+  // empty frame
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FORMAT_EMPTY = 3,
+} sdrkit_dji_droneid_dji_aircraft_event_format;
+
+// The options of `family` of `sdrkit_dji_droneid_dji_aircraft_event`.
+typedef enum sdrkit_dji_droneid_dji_aircraft_event_family {
+  // Aircraft
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_AIRCRAFT = 0,
+  // Vessel
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_VESSEL = 1,
+  // APRS
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_APRS = 2,
+  // Pager
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_PAGER = 3,
+  // Radiosonde
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_SONDE = 4,
+  // Broadcast
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_BROADCAST = 5,
+  // Voice
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_VOICE = 6,
+  // Message
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_MESSAGE = 7,
+  // Sensor
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_SENSOR = 8,
+  // Satellite
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_SATELLITE = 9,
+  // Receiver
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_RECEIVER = 10,
+  // Alert
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_ALERT = 11,
+  // Other
+  SDRKIT_DJI_DRONEID_DJI_AIRCRAFT_EVENT_FAMILY_OTHER = 12,
+} sdrkit_dji_droneid_dji_aircraft_event_family;
+
+// A DJI aircraft that was not heard before.
+typedef struct sdrkit_dji_droneid_dji_aircraft_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The sender of a decoded message: a registration, an address, a call sign or a code.
+  sdrkit_string source;
+  // True if `session_key` holds a value.
+  bool has_session_key;
+  // The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart within a session. They are not a serial number and do not identify the aircraft.
+  sdrkit_string session_key;
+  // The format of the frame. A value of `sdrkit_dji_droneid_dji_aircraft_event_format`.
+  int32_t format;
+  // True if `frame_type` holds a value.
+  bool has_frame_type;
+  // The type byte of a frame of the encrypted format.
+  int64_t frame_type;
+  // True if `position` holds a value.
+  bool has_position;
+  // The position of the object that the event is about.
+  sdrkit_position position;
+  // Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so). Unit: dB.
+  double snr_db;
+  // What an event is about (aircraft, vessel, pager). Outputs and the store filter on it. A value of `sdrkit_dji_droneid_dji_aircraft_event_family`.
+  int32_t family;
+} sdrkit_dji_droneid_dji_aircraft_event;
+
 // The options of `urgency` of `sdrkit_flarm_aircraft_event`.
 typedef enum sdrkit_flarm_aircraft_event_urgency {
   // None
@@ -2255,10 +2420,26 @@ static inline int32_t sdrkit_dji_droneid_drone_tracks_rows(SDRKIT_HANDLE handle,
   return sdrkit_typed_rows(handle, "drones.DroneTrackRow", "drone_tracks", rows, sizeof(sdrkit_drones_drone_track_row), capacity, info);
 }
 
+// Fills `rows` with the changed rows of the table "aircraft" of the stack "dji_droneid" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `aircraft` names a row.
+static inline int32_t sdrkit_dji_droneid_aircraft_rows(SDRKIT_HANDLE handle,
+                                                      sdrkit_dji_droneid_aircraft_row *rows,
+                                                      uint32_t capacity,
+                                                      sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "drones.DjiDroneidAircraftRow", "aircraft", rows, sizeof(sdrkit_dji_droneid_aircraft_row), capacity, info);
+}
+
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "dji.droneid"
 // (DroneID packet). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
 static inline int32_t sdrkit_dji_droneid_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_dji_droneid_event *event) {
   return sdrkit_typed_event(handle, n, "dji.droneid", "drones.DjiDroneidEvent", event, sizeof(sdrkit_dji_droneid_event));
+}
+
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "dji.aircraft"
+// (New DJI aircraft). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_dji_droneid_dji_aircraft_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_dji_droneid_dji_aircraft_event *event) {
+  return sdrkit_typed_event(handle, n, "dji.aircraft", "drones.DjiDroneidAircraftEvent", event, sizeof(sdrkit_dji_droneid_dji_aircraft_event));
 }
 
 // Runs the command "clear" (Clear) of the stack "dji_droneid" on the session of `handle`. Forgets everything heard so far. Favourites stay.
@@ -2274,7 +2455,7 @@ static inline int32_t sdrkit_dji_droneid_remove(SDRKIT_HANDLE handle, const sdrk
 // The settings of the test signal generator of the stack "dji_droneid" are the sdrkit_dji_droneid_gen_*() functions
 // after the settings of its receiver.
 
-// The setting "decode_droneid" (Decode DroneID) of the stack "dji_droneid". Try every 0.5 to 1.5 ms burst that is 7 to 11 MHz wide as a DroneID burst: Zadoff-Chu synchronisation, turbo decoding, CRC-24.
+// The setting "decode_droneid" (Decode DroneID) of the stack "dji_droneid". Try every 0.5 to 1.5 ms burst that is 7 to 11 MHz wide as a DroneID burst: Zadoff-Chu synchronisation, turbo decoding, CRC-24. Also search the DroneID frequencies inside the capture for the two Zadoff-Chu symbols all the time, so a burst near the noise floor or cut by the edge of the capture is found.
 static inline int32_t sdrkit_dji_droneid_get_decode_droneid(SDRKIT_HANDLE handle, bool *value) {
   return sdrkit_typed_setting_get_bool(handle, "decode_droneid", value);
 }
@@ -2288,6 +2469,25 @@ static inline int32_t sdrkit_dji_droneid_get_wall_clock(SDRKIT_HANDLE handle, bo
 }
 static inline int32_t sdrkit_dji_droneid_set_wall_clock(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "wall_clock", value);
+}
+
+// The setting "droneid_tuning" (DroneID tuning) of the stack "dji_droneid". A value of `sdrkit_dji_droneid_tuning`. The newest aircraft send DroneID on fixed frequencies (2414.5, 2429.5 and 2444.5 MHz were seen), about one burst each 3 s on a frequency. With `step` the stack asks the host for the DroneID frequencies of the band it is tuned in: each in turn for the dwell, or one centre when the capture covers them all. With `fixed` the tuned frequency stays.
+static inline int32_t sdrkit_dji_droneid_get_droneid_tuning(SDRKIT_HANDLE handle, sdrkit_dji_droneid_tuning *value) {
+  int32_t index = 0;
+  int32_t code = sdrkit_typed_setting_get_enum(handle, "droneid_tuning", &index);
+  if (code == SDRKIT_OK && value) *value = (sdrkit_dji_droneid_tuning)index;
+  return code;
+}
+static inline int32_t sdrkit_dji_droneid_set_droneid_tuning(SDRKIT_HANDLE handle, sdrkit_dji_droneid_tuning value) {
+  return sdrkit_typed_setting_set_enum(handle, "droneid_tuning", (int32_t)value);
+}
+
+// The setting "droneid_dwell_s" (DroneID dwell) of the stack "dji_droneid". A length of time in seconds. The time on each frequency while stepping. A burst comes each 3 to 6 s, so the least is 10 s.
+static inline int32_t sdrkit_dji_droneid_get_droneid_dwell_s(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "droneid_dwell_s", value);
+}
+static inline int32_t sdrkit_dji_droneid_set_droneid_dwell_s(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "droneid_dwell_s", value);
 }
 
 // The setting "gen_scenario" (Test signal) of the test signal generator of the stack "dji_droneid". A value of `sdrkit_dji_droneid_gen_scenario`.
@@ -2323,6 +2523,41 @@ static inline int32_t sdrkit_dji_droneid_gen_get_wide(SDRKIT_HANDLE handle, bool
 }
 static inline int32_t sdrkit_dji_droneid_gen_set_wide(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "gen_wide", value);
+}
+
+// The setting "gen_frame" (DroneID frame) of the test signal generator of the stack "dji_droneid". A value of `sdrkit_dji_droneid_gen_frame`.
+static inline int32_t sdrkit_dji_droneid_gen_get_frame(SDRKIT_HANDLE handle, sdrkit_dji_droneid_gen_frame *value) {
+  int32_t index = 0;
+  int32_t code = sdrkit_typed_setting_get_enum(handle, "gen_frame", &index);
+  if (code == SDRKIT_OK && value) *value = (sdrkit_dji_droneid_gen_frame)index;
+  return code;
+}
+static inline int32_t sdrkit_dji_droneid_gen_set_frame(SDRKIT_HANDLE handle, sdrkit_dji_droneid_gen_frame value) {
+  return sdrkit_typed_setting_set_enum(handle, "gen_frame", (int32_t)value);
+}
+
+// The setting "gen_droneid_frequency" (On a DroneID frequency) of the test signal generator of the stack "dji_droneid". Send the DroneID bursts on the DroneID frequency nearest to the radio centre, one each 5 periods (3.2 s with the period of 0.64 s), without the carriers outside the capture.
+static inline int32_t sdrkit_dji_droneid_gen_get_droneid_frequency(SDRKIT_HANDLE handle, bool *value) {
+  return sdrkit_typed_setting_get_bool(handle, "gen_droneid_frequency", value);
+}
+static inline int32_t sdrkit_dji_droneid_gen_set_droneid_frequency(SDRKIT_HANDLE handle, bool value) {
+  return sdrkit_typed_setting_set_bool(handle, "gen_droneid_frequency", value);
+}
+
+// The setting "gen_two_aircraft" (Two aircraft) of the test signal generator of the stack "dji_droneid". Every second DroneID burst comes from a second aircraft.
+static inline int32_t sdrkit_dji_droneid_gen_get_two_aircraft(SDRKIT_HANDLE handle, bool *value) {
+  return sdrkit_typed_setting_get_bool(handle, "gen_two_aircraft", value);
+}
+static inline int32_t sdrkit_dji_droneid_gen_set_two_aircraft(SDRKIT_HANDLE handle, bool value) {
+  return sdrkit_typed_setting_set_bool(handle, "gen_two_aircraft", value);
+}
+
+// The setting "gen_centre_hz" (Test signal radio centre) of the test signal generator of the stack "dji_droneid". A frequency in Hz. The radio centre for `gen_droneid_frequency`. 0 takes the tuned frequency.
+static inline int32_t sdrkit_dji_droneid_gen_get_centre_hz(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "gen_centre_hz", value);
+}
+static inline int32_t sdrkit_dji_droneid_gen_set_centre_hz(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "gen_centre_hz", value);
 }
 
 // Fills `rows` with the changed rows of the table "aircraft" of the stack "flarm" in the snapshot of `handle`,

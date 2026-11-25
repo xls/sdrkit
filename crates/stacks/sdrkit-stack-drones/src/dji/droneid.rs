@@ -1,5 +1,5 @@
-//! The DroneID burst: numerology, Zadoff-Chu symbols, the packet layout, the coding chain, the burst
-//! modulator for the generator, and the burst receiver.
+//! The DroneID burst: numerology, Zadoff-Chu symbols, the frame layouts (the readable packet, the encrypted format and the
+//! empty frame), the coding chain, the burst modulator for the generator, and the burst receiver.
 //! Standard: 3GPP TS 36.212 clauses 5.1.1, 5.1.3.2 and 5.1.4.1 (the coding chain); TS 36.211 clause 7.2 (the scrambling sequence).
 
 use crate::family::ascii_text;
@@ -14,6 +14,7 @@ use sdrkit_util_bits::pack::{self, BitOrder, Pad};
 use sdrkit_util_bits::seq::ZadoffChu;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::PI;
+use std::ops::Range;
 
 /// The burst's sample rate.
 pub const FS: f64 = 15.36e6;
@@ -35,6 +36,22 @@ pub const BURST_LEN: usize = 9880;
 pub const ROOTS: [u32; 2] = [600, 147];
 /// The scrambler's initial value.
 pub const SCRAMBLER_INIT: u32 = 0x1234_5678;
+
+/// The lowest normalised Zadoff-Chu score of each of the two symbols of a burst that the pair trigger found.
+pub const MIN_SCORE: f32 = 0.04;
+/// The share of the hard decisions that must equal the coded bits of an empty frame. Bits that do not belong to the frame
+/// agree by chance: one half, within 0.01 for the 2500 bits of the smallest part of a burst that is tried. A frame that the
+/// turbo code can decode agrees in more than three quarters of its bits.
+pub const EMPTY_AGREEMENT: f32 = 0.70;
+/// The whole-carrier offsets that the receiver tries first on a burst of the pair trigger: 2 carriers and the fraction are
+/// 37 kHz, 15 parts in a million at 2.4 GHz.
+const NEAR_CARRIERS: i32 = 2;
+/// Carriers in a block whose soft bits get one weight for the noise and the other signals on it.
+const WEIGHT_BLOCK: usize = 50;
+/// Turbo iterations at most.
+const ITERATIONS: u32 = 8;
+/// The first byte after the zero part of an empty frame: the 4-byte tail starts here.
+pub const EMPTY_ZEROS: usize = 169;
 
 /// The inner CRC of a DroneID packet: CRC-16/MCRF4XX with the start value 0x3692 in the reflected register.
 pub static INNER_CRC: Crc<u16> = Crc::<u16>::new(CrcSpec::new(
@@ -69,6 +86,24 @@ pub fn carrier_bin(k: usize) -> usize {
     } else {
         k - 299
     }
+}
+
+/// The signed FFT bin of carrier `k` (0..600): -300..=-1 below the centre, 1..=300 above.
+pub fn carrier_index(k: usize) -> i32 {
+    if k < 300 {
+        k as i32 - 300
+    } else {
+        k as i32 - 299
+    }
+}
+
+/// The carriers of a burst centred `offset_hz` from the centre of a capture that lie within `edge_hz` of that centre. The
+/// receiver gives the other carriers zero weight.
+pub fn visible_carriers(offset_hz: f64, edge_hz: f64) -> Range<usize> {
+    let inside = |k: usize| (offset_hz + f64::from(carrier_index(k)) * 15e3).abs() <= edge_hz;
+    let lo = (0..NC).find(|&k| inside(k)).unwrap_or(NC);
+    let hi = (0..NC).rfind(|&k| inside(k)).map_or(lo, |k| k + 1);
+    lo..hi
 }
 
 /// The Zadoff-Chu sequence of `root`, 600 values in carrier order (n = 300 left out).
@@ -202,10 +237,7 @@ impl DroneIdPacket {
         }
         let c16 = INNER_CRC.checksum(&f[..0x59]);
         f[0x59..0x5B].copy_from_slice(&c16.to_le_bytes());
-        let c = CRC24_LTE_A.checksum(&f[..173]);
-        f[173] = (c >> 16) as u8;
-        f[174] = (c >> 8) as u8;
-        f[175] = c as u8;
+        close_frame(&mut f);
         f
     }
 
@@ -246,6 +278,100 @@ impl DroneIdPacket {
     }
 }
 
+/// The magic of the encrypted format with the type 0x10 or 0x11.
+pub const MAGIC_INFP: [u8; 4] = *b"INFP";
+/// The magic of the encrypted format with the type 0x13.
+pub const MAGIC_CRYP: [u8; 4] = *b"CRYP";
+
+/// The readable head of a frame of the encrypted format. The body after it is not readable.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct EncryptedHead {
+    /// The length byte: the inner CRC-16 covers the bytes 0 to this offset.
+    pub length: u8,
+    /// The frame type (0x10, 0x11 and 0x13 were seen).
+    pub frame_type: u8,
+    /// The magic is "CRYP" (else "INFP").
+    pub cryp: bool,
+    /// The 4 bytes after the magic. They are constant for one aircraft and differ between aircraft. They are not a serial
+    /// number.
+    pub key: [u8; 4],
+}
+
+/// What a frame holds whose CRC-24A passed.
+#[derive(Clone, Debug, PartialEq)]
+pub enum FrameKind {
+    /// The bytes before the 4-byte tail are all zero.
+    Empty,
+    /// The encrypted format: a magic and a good inner CRC-16.
+    Encrypted(EncryptedHead),
+    /// The readable packet.
+    Readable(DroneIdPacket),
+    /// None of the known layouts.
+    Other,
+}
+
+/// The kind of a frame whose CRC-24A passed.
+pub fn classify(f: &[u8; FRAME]) -> FrameKind {
+    if f[..EMPTY_ZEROS].iter().all(|&b| b == 0) {
+        return FrameKind::Empty;
+    }
+    let magic = [f[2], f[3], f[4], f[5]];
+    if magic == MAGIC_INFP || magic == MAGIC_CRYP {
+        let crc_at = usize::from(f[0]) + 1;
+        if crc_at >= 20
+            && crc_at + 2 <= FRAME - 3
+            && INNER_CRC.checksum(&f[..crc_at]) == u16::from_le_bytes([f[crc_at], f[crc_at + 1]])
+        {
+            return FrameKind::Encrypted(EncryptedHead {
+                length: f[0],
+                frame_type: f[1],
+                cryp: magic == MAGIC_CRYP,
+                key: [f[6], f[7], f[8], f[9]],
+            });
+        }
+    }
+    DroneIdPacket::parse(f).map_or(FrameKind::Other, FrameKind::Readable)
+}
+
+fn close_frame(f: &mut [u8; FRAME]) {
+    let c = CRC24_LTE_A.checksum(&f[..173]);
+    f[173] = (c >> 16) as u8;
+    f[174] = (c >> 8) as u8;
+    f[175] = c as u8;
+}
+
+/// A frame of the encrypted format with the magic "INFP": the length 128, `frame_type`, the 4 bytes `key` of the aircraft,
+/// the 8 bytes `changing`, the inner length, the 109 bytes `body`, the inner CRC-16, the 4-byte `tail` and the CRC-24A.
+pub fn encrypted_frame(
+    frame_type: u8,
+    key: [u8; 4],
+    changing: [u8; 8],
+    body: &[u8; 109],
+    tail: [u8; 4],
+) -> [u8; FRAME] {
+    let mut f = [0u8; FRAME];
+    f[0] = 128;
+    f[1] = frame_type;
+    f[2..6].copy_from_slice(&MAGIC_INFP);
+    f[6..10].copy_from_slice(&key);
+    f[10..18].copy_from_slice(&changing);
+    f[18..20].copy_from_slice(&109u16.to_le_bytes());
+    f[20..129].copy_from_slice(body);
+    let c16 = INNER_CRC.checksum(&f[..129]);
+    f[129..131].copy_from_slice(&c16.to_le_bytes());
+    f[EMPTY_ZEROS..EMPTY_ZEROS + 4].copy_from_slice(&tail);
+    close_frame(&mut f);
+    f
+}
+
+/// An empty frame: zeros, the 4-byte `tail` and the CRC-24A.
+pub fn empty_frame(tail: [u8; 4]) -> [u8; FRAME] {
+    let mut f = [0u8; FRAME];
+    f[EMPTY_ZEROS..EMPTY_ZEROS + 4].copy_from_slice(&tail);
+    close_frame(&mut f);
+    f
+}
+
 /// The coding chain of a DroneID frame: CRC-24A over the frame, the turbo code of K = 1408, rate matching to 7200 bits with
 /// redundancy version 0, and the scrambling sequence. It holds its buffers, so a frame codes and decodes without allocation.
 pub struct Coder {
@@ -258,6 +384,7 @@ pub struct Coder {
     llr: Vec<i8>,
     dematched: Vec<i8>,
     out: Vec<u8>,
+    coded: Vec<u8>,
     q: Quantizer,
 }
 
@@ -280,6 +407,7 @@ impl Coder {
             llr: vec![0; E],
             dematched: vec![0; 3 * (K + 4)],
             out: vec![0; K],
+            coded: vec![0; E],
             q: Quantizer::default(),
             rm,
         }
@@ -287,20 +415,24 @@ impl Coder {
 
     /// The 7200 coded and scrambled bits of `frame` with the scrambler `variant` (0 or 1).
     pub fn encode(&mut self, frame: &[u8; FRAME], variant: u8) -> Vec<u8> {
+        self.coded(frame, variant).to_vec()
+    }
+
+    /// As [`Coder::encode`], into a buffer of the coder.
+    pub fn coded(&mut self, frame: &[u8; FRAME], variant: u8) -> &[u8] {
         self.bits.clear();
         pack::unpack(frame, BitOrder::Msb, &mut self.bits);
         self.turbo
             .encode(&self.bits, &mut self.streams)
             .expect("K bits in");
-        let mut e = vec![0u8; E];
         let n_cb = self.rm.buffer_len();
         self.rm
-            .rate_match(&self.streams, 0, n_cb, &mut e)
+            .rate_match(&self.streams, 0, n_cb, &mut self.coded)
             .expect("the DroneID rate matching");
-        for (b, &s) in e.iter_mut().zip(&self.scr[variant as usize & 1]) {
+        for (b, &s) in self.coded.iter_mut().zip(&self.scr[variant as usize & 1]) {
             *b ^= s;
         }
-        e
+        &self.coded
     }
 
     /// Decodes 7200 soft values (positive means 0) scrambled with `variant`, with at most `iterations` turbo iterations, stopping
@@ -362,6 +494,16 @@ fn ifft_symbol(x: &[Complex32; NFFT], fft: &mut Fft) -> Vec<Complex32> {
 /// A DroneID burst at 15.36 Msps: 9 symbols (or 8 without the first), carrying `frame`, scrambled with `variant`. Symbol 1 carries
 /// a pseudo-random QPSK pattern (its real content is not published).
 pub fn modulate(frame: &[u8; FRAME], variant: u8, eight: bool) -> Vec<Complex32> {
+    modulate_carriers(frame, variant, eight, 0..NC)
+}
+
+/// As [`modulate`], with only the carriers of `carriers` sent: a burst that the edge of a capture cuts.
+pub fn modulate_carriers(
+    frame: &[u8; FRAME],
+    variant: u8,
+    eight: bool,
+    carriers: Range<usize>,
+) -> Vec<Complex32> {
     let bits = encode_frame(frame, variant);
     let mut fft = Fft::inverse(NFFT);
     let mut out = Vec::with_capacity(BURST_LEN);
@@ -392,11 +534,27 @@ pub fn modulate(frame: &[u8; FRAME], variant: u8, eight: bool) -> Vec<Complex32>
         if s == 1 && eight {
             continue;
         }
+        for k in (0..NC).filter(|k| !carriers.contains(k)) {
+            x[carrier_bin(k)] = Complex32::new(0.0, 0.0);
+        }
         let t = ifft_symbol(&x, &mut fft);
         let cp = cp_len(s);
         out.extend_from_slice(&t[NFFT - cp..]);
         out.extend_from_slice(&t);
     }
+    out
+}
+
+/// The Zadoff-Chu symbol of root index `r` (0 for root 600, 1 for root 147) at 15.36 Msps: the 72-sample prefix and the body.
+pub fn zc_symbol(r: usize) -> Vec<Complex32> {
+    let mut x = [Complex32::new(0.0, 0.0); NFFT];
+    for (k, v) in zc(ROOTS[r & 1]).iter().enumerate() {
+        x[carrier_bin(k)] = *v;
+    }
+    let t = ifft_symbol(&x, &mut Fft::inverse(NFFT));
+    let mut out = Vec::with_capacity(NFFT + 72);
+    out.extend_from_slice(&t[NFFT - 72..]);
+    out.extend_from_slice(&t);
     out
 }
 
@@ -410,7 +568,11 @@ fn qpsk(b0: u8, b1: u8) -> Complex32 {
 pub struct BurstDecode {
     /// ZC coherence of symbols 4 and 6.
     pub zc: [f32; 2],
-    /// Both above 0.3.
+    /// The normalised correlation of symbols 4 and 6 with their sequences: the share of the power of the symbol (signal and
+    /// noise over the whole 15.36 MHz) that is the sequence on the carriers used. 1 for a clean whole burst.
+    pub score: [f32; 2],
+    /// The two symbols were found: both coherences above 0.3 for a burst of the burst detector, both scores at least
+    /// [`MIN_SCORE`] for a burst of the pair trigger.
     pub zc_found: bool,
     /// Carrier offset of the burst, Hz (relative to its 0 Hz).
     pub cfo_hz: f64,
@@ -422,7 +584,9 @@ pub struct BurstDecode {
     pub rotation: Option<u8>,
     /// Turbo iterations used.
     pub iterations: u32,
-    /// The decoded packet, when the CRC-24A passed and the length is valid.
+    /// The share of the hard decisions on the carriers used that equal the coded bits of the decoded frame.
+    pub agreement: f32,
+    /// The decoded packet, when the CRC-24A passed and the frame is the readable packet.
     pub packet: Option<DroneIdPacket>,
     /// The frame, when decoded.
     #[serde(skip)]
@@ -431,14 +595,37 @@ pub struct BurstDecode {
     pub t2: usize,
 }
 
+impl BurstDecode {
+    /// Whether the decoded frame is accepted. A frame of zeros passes the CRC-24A whatever was received, so an empty frame
+    /// also needs both scores of at least [`MIN_SCORE`] and an agreement of at least [`EMPTY_AGREEMENT`].
+    pub fn accepted(&self) -> bool {
+        match &self.frame {
+            None => false,
+            Some(f) if f[..EMPTY_ZEROS].iter().all(|&b| b == 0) => {
+                self.score[0] >= MIN_SCORE
+                    && self.score[1] >= MIN_SCORE
+                    && self.agreement >= EMPTY_AGREEMENT
+            }
+            Some(_) => true,
+        }
+    }
+}
+
 /// The burst receiver: reusable state (FFT plans, sequences, buffers).
 pub struct BurstReceiver {
     fft: Fft,
     z: [Vec<Complex32>; 2],
+    turn: Vec<Complex32>,
     coder: Coder,
     pbuf: Vec<Complex32>,
     ebuf: Vec<f32>,
     x: Vec<Complex32>,
+    /// The symbols 2 to 9 in the frequency domain, and two more buffers of one symbol.
+    ys: Vec<Vec<Complex32>>,
+    h: [Vec<Complex32>; 3],
+    flat: Vec<Complex32>,
+    soft: Vec<Complex32>,
+    llr: Vec<f32>,
 }
 
 impl Default for BurstReceiver {
@@ -446,12 +633,36 @@ impl Default for BurstReceiver {
         BurstReceiver {
             fft: Fft::forward(NFFT),
             z: [zc(ROOTS[0]), zc(ROOTS[1])],
+            turn: (0..NFFT)
+                .map(|i| {
+                    let a = 2.0 * PI * i as f64 / NFFT as f64;
+                    Complex32::new(a.cos() as f32, a.sin() as f32)
+                })
+                .collect(),
             coder: Coder::new(),
             pbuf: Vec::new(),
             ebuf: Vec::new(),
-            x: Vec::new(),
+            x: Vec::with_capacity(2 * BURST_LEN),
+            ys: vec![vec![Complex32::new(0.0, 0.0); NFFT]; 10],
+            h: std::array::from_fn(|_| vec![Complex32::new(0.0, 0.0); NC]),
+            flat: Vec::with_capacity(2 * NC + 1),
+            soft: vec![Complex32::new(0.0, 0.0); E / 2],
+            llr: vec![0.0; E],
         }
     }
+}
+
+/// The FFT of the 1024 samples of `x` from `start` into `out`. Samples outside `x` count as 0.
+fn fft_at(fft: &mut Fft, x: &[Complex32], start: isize, out: &mut [Complex32]) {
+    for (i, o) in out.iter_mut().enumerate() {
+        let j = start + i as isize;
+        *o = if j >= 0 && (j as usize) < x.len() {
+            x[j as usize]
+        } else {
+            Complex32::new(0.0, 0.0)
+        };
+    }
+    fft.process(out);
 }
 
 fn wrap(a: f64) -> f64 {
@@ -464,22 +675,26 @@ fn wrap(a: f64) -> f64 {
     a
 }
 
-impl BurstReceiver {
-    fn fft_at(&mut self, x: &[Complex32], start: isize) -> Vec<Complex32> {
-        let mut b: Vec<Complex32> = (0..NFFT as isize)
-            .map(|i| {
-                let j = start + i;
-                if j >= 0 && (j as usize) < x.len() {
-                    x[j as usize]
-                } else {
-                    Complex32::new(0.0, 0.0)
-                }
-            })
-            .collect();
-        self.fft.process(&mut b);
-        b
+/// The prefix correlation and energy of the symbols 2 to 9 with symbol 2's prefix at `t2` of `x`. Parts outside `x` count as
+/// silence.
+fn prefix_metric(x: &[Complex32], t2: isize) -> (Complex32, f32) {
+    let mut c = Complex32::new(0.0, 0.0);
+    let mut e = 0.0;
+    for s in 0..8isize {
+        let st = t2 + s * (NFFT as isize + 72) + if s == 7 { 8 } else { 0 };
+        if st < 0 || st as usize + 72 + NFFT > x.len() {
+            continue;
+        }
+        let st = st as usize;
+        for i in st..st + 72 {
+            c += x[i] * x[i + NFFT].conj();
+            e += 0.5 * (x[i].norm_sqr() + x[i + NFFT].norm_sqr());
+        }
     }
+    (c, e)
+}
 
+impl BurstReceiver {
     /// The CP metric at symbol 2's prefix start `t2`: (correlation, energy).
     fn cp_metric(&self, t2: usize) -> (Complex32, f32) {
         let mut c = Complex32::new(0.0, 0.0);
@@ -500,12 +715,13 @@ impl BurstReceiver {
         (c, e)
     }
 
-    /// Coherence of symbol `y` with the ZC sequence of root index `r`, its carriers shifted by `s` bins: (coherence, phase slope).
-    fn coherence(&self, y: &[Complex32], r: usize, s: i32) -> (f32, f64) {
+    /// Coherence of symbol `y` with the ZC sequence of root index `r` over the carriers `on`, its carriers shifted by `s` bins:
+    /// (coherence, phase slope).
+    fn coherence(&self, y: &[Complex32], r: usize, s: i32, on: &Range<usize>) -> (f32, f64) {
         let mut num = Complex32::new(0.0, 0.0);
         let mut den = 0.0f32;
         let mut prev: Option<Complex32> = None;
-        for k in 0..NC {
+        for k in on.clone() {
             let b = (carrier_bin(k) as i32 + s).rem_euclid(NFFT as i32) as usize;
             let h = y[b] * self.z[r][k].conj();
             if k == 300 {
@@ -521,11 +737,30 @@ impl BurstReceiver {
         (c, num.im.atan2(num.re) as f64)
     }
 
+    /// The normalised correlation of symbol `y` (taken up to 72 samples early inside its prefix) with the ZC sequence of root
+    /// index `r` on the carriers `on`: the best over the timing of |sum Y Z*|^2 / (carriers x the power of all bins).
+    fn score(&self, y: &[Complex32], r: usize, on: &Range<usize>) -> f32 {
+        let total: f32 = y.iter().map(|v| v.norm_sqr()).sum();
+        if total <= 0.0 || on.is_empty() {
+            return 0.0;
+        }
+        let mut best = 0.0f32;
+        for lag in 0..=72i32 {
+            let mut acc = Complex32::new(0.0, 0.0);
+            for k in on.clone() {
+                let m = carrier_index(k);
+                let turn = self.turn[(m * lag).rem_euclid(NFFT as i32) as usize];
+                acc += y[carrier_bin(k)] * self.z[r][k].conj() * turn;
+            }
+            best = best.max(acc.norm_sqr());
+        }
+        best / (NC as f32 * total)
+    }
+
     /// Decodes one burst: `x` at 15.36 Msps centred on 0 Hz with some margin around it.
     pub fn decode(&mut self, x: &[Complex32]) -> BurstDecode {
-        let mut out = BurstDecode::default();
         if x.len() < BURST_LEN - (NFFT + 80) {
-            return out;
+            return BurstDecode::default();
         }
         // CP products and energies.
         self.pbuf.clear();
@@ -538,7 +773,7 @@ impl BurstReceiver {
         // Coarse timing: the best normalised CP metric over symbols 2..9.
         let span = 7 * (NFFT + 72) + 8 + 72;
         if self.pbuf.len() < span + 1 {
-            return out;
+            return BurstDecode::default();
         }
         // Sliding window sums of 72, then the 8-symbol sum at each t2.
         let n = self.pbuf.len();
@@ -572,6 +807,7 @@ impl BurstReceiver {
             }
         }
         let peak = best.1 as isize;
+        let all = 0..NC;
         // Candidates around the peak, each with its own fractional offset; the one whose symbol 4 best matches root 600.
         let mut cand = (-1.0f32, peak, 0.0f64);
         for d in [0isize, 8, -8, 1096, -1096, 1104, -1104, 2192, -2192] {
@@ -582,65 +818,151 @@ impl BurstReceiver {
             let (c, _) = self.cp_metric(t2 as usize);
             let f = -(c.im.atan2(c.re) as f64) / (2.0 * PI * NFFT as f64) * FS;
             self.derotate(x, f);
-            let xs = std::mem::take(&mut self.x);
-            let y = self.fft_at(&xs, t2 + 2 * (NFFT as isize + 72) + 72 - 36);
-            self.x = xs;
-            let (coh, _) = self.coherence(&y, 0, 0);
+            let mut y = std::mem::take(&mut self.ys[8]);
+            fft_at(
+                &mut self.fft,
+                &self.x,
+                t2 + 2 * (NFFT as isize + 72) + 72 - 36,
+                &mut y,
+            );
+            let (coh, _) = self.coherence(&y, 0, 0, &all);
             // A few whole-carrier shifts too, so a large offset is not missed here.
             let mut cbest = coh;
             for s in [-2i32, -1, 1, 2] {
-                cbest = cbest.max(self.coherence(&y, 0, s).0);
+                cbest = cbest.max(self.coherence(&y, 0, s, &all).0);
             }
+            self.ys[8] = y;
             if cbest > cand.0 {
                 cand = (cbest, t2, f);
             }
         }
-        let (t2, frac) = (cand.1, cand.2);
-        // Whole-carrier offset: the shift that makes the delays measured on symbols 4 and 6 agree.
-        self.derotate(x, frac);
-        let xs = std::mem::take(&mut self.x);
-        let y4 = self.fft_at(&xs, t2 + 2 * (NFFT as isize + 72) + 72 - 36);
-        let y6 = self.fft_at(&xs, t2 + 4 * (NFFT as isize + 72) + 72 - 36);
-        self.x = xs;
-        let expected = -2.0 * PI * 36.0 / NFFT as f64;
-        let mut sbest = (f64::MAX, 0i32);
-        for s in -12i32..=12 {
-            let (c4, a4) = self.coherence(&y4, 0, s);
-            let (c6, a6) = self.coherence(&y6, 1, s);
-            if c4 < 0.1 || c6 < 0.1 {
-                continue;
-            }
-            let score =
-                wrap(a4 - a6).abs() + 0.01 * wrap(a4 - expected).abs() - 0.1 * (c4 + c6) as f64;
-            if score < sbest.0 {
-                sbest = (score, s);
+        self.finish(x, cand.1, cand.2, all, false)
+    }
+
+    /// Decodes a burst that the pair trigger found: `x` at 15.36 Msps centred on 0 Hz, the prefix of symbol 4 (root 600) within a
+    /// few samples of `zc_at`, and only the carriers `on` inside the capture. The other carriers get zero weight. The channel
+    /// estimate is smoothed over neighbouring carriers, so a weak burst decodes.
+    pub fn decode_at(&mut self, x: &[Complex32], zc_at: usize, on: Range<usize>) -> BurstDecode {
+        let hint = zc_at as isize - 2 * (NFFT as isize + 72);
+        let mut best = (-1.0f32, hint, Complex32::new(0.0, 0.0));
+        for d in (-16..=16isize).step_by(2) {
+            let (c, e) = prefix_metric(x, hint + d);
+            let m = if e > 0.0 { c.norm() / e } else { 0.0 };
+            if m > best.0 {
+                best = (m, hint + d, c);
             }
         }
-        let s = sbest.1;
+        let c = best.2;
+        let f = -(c.im.atan2(c.re) as f64) / (2.0 * PI * NFFT as f64) * FS;
+        self.finish(x, best.1, f, on, true)
+    }
+
+    /// The steps after the timing `t2` (symbol 2's prefix) and the fractional offset `frac`: the whole-carrier offset, then
+    /// [`BurstReceiver::finish_at`]: the symbols, the scores, the channel, the soft bits and the turbo decoding.
+    fn finish(
+        &mut self,
+        x: &[Complex32],
+        t2: isize,
+        frac: f64,
+        on: Range<usize>,
+        triggered: bool,
+    ) -> BurstDecode {
+        // Whole-carrier offset: the shift that makes the delays measured on symbols 4 and 6 agree.
+        self.derotate(x, frac);
+        let mut y4 = std::mem::take(&mut self.ys[8]);
+        let mut y6 = std::mem::take(&mut self.ys[9]);
+        let sym = NFFT as isize + 72;
+        fft_at(&mut self.fft, &self.x, t2 + 2 * sym + 72 - 36, &mut y4);
+        fft_at(&mut self.fft, &self.x, t2 + 4 * sym + 72 - 36, &mut y6);
+        let expected = -2.0 * PI * 36.0 / NFFT as f64;
+        let best = |rx: &Self, within: i32| {
+            let mut sbest = (f64::MAX, 0i32);
+            for s in -within..=within {
+                let (c4, a4) = rx.coherence(&y4, 0, s, &on);
+                let (c6, a6) = rx.coherence(&y6, 1, s, &on);
+                if c4 < 0.1 || c6 < 0.1 {
+                    continue;
+                }
+                let score =
+                    wrap(a4 - a6).abs() + 0.01 * wrap(a4 - expected).abs() - 0.1 * (c4 + c6) as f64;
+                if score < sbest.0 {
+                    sbest = (score, s);
+                }
+            }
+            sbest.1
+        };
+        let wide = best(self, 12);
+        let near = best(self, NEAR_CARRIERS);
+        self.ys[8] = y4;
+        self.ys[9] = y6;
+        if !triggered {
+            return self.finish_at(x, t2, frac, wide, on, false);
+        }
+        // A shift of 4 carriers moves the delay of root 147 by nearly a whole symbol, so a weak burst cannot tell 0 from 4.
+        // The offsets of real transmitters are small: the best shift of up to 2 carriers is tried first.
+        let out = self.finish_at(x, t2, frac, near, on.clone(), true);
+        if out.frame.is_some() || wide == near {
+            return out;
+        }
+        let other = self.finish_at(x, t2, frac, wide, on, true);
+        if other.frame.is_some() {
+            other
+        } else {
+            out
+        }
+    }
+
+    /// The steps after the whole-carrier offset `s`.
+    fn finish_at(
+        &mut self,
+        x: &[Complex32],
+        t2: isize,
+        frac: f64,
+        s: i32,
+        on: Range<usize>,
+        triggered: bool,
+    ) -> BurstDecode {
+        let mut out = BurstDecode::default();
         let cfo = frac + s as f64 * 15e3;
         out.cfo_hz = cfo;
         out.t2 = t2.max(0) as usize;
         self.derotate(x, cfo);
-        let xs = std::mem::take(&mut self.x);
-        let mut ys: Vec<Vec<Complex32>> = Vec::with_capacity(8);
+        let mut ys = std::mem::take(&mut self.ys);
         // Symbols 2..9 (index 0 = symbol 2), each 36 samples early inside its prefix.
-        for k in 0..8isize {
-            let body = t2 + k * (NFFT as isize + 72) + if k == 7 { 80 } else { 72 };
-            ys.push(self.fft_at(&xs, body - 36));
+        for (k, y) in ys.iter_mut().take(8).enumerate() {
+            let body = t2 + k as isize * (NFFT as isize + 72) + if k == 7 { 80 } else { 72 };
+            fft_at(&mut self.fft, &self.x, body - 36, y);
         }
-        self.x = xs;
-        let z4 = self.coherence(&ys[2], 0, 0).0;
-        let z6 = self.coherence(&ys[4], 1, 0).0;
+        self.decide(&ys, &on, triggered, &mut out);
+        self.ys = ys;
+        out
+    }
+
+    /// The scores of the symbols `ys`, and with the two ZC symbols found, the channel, the soft bits and the turbo decoding.
+    fn decide(
+        &mut self,
+        ys: &[Vec<Complex32>],
+        on: &Range<usize>,
+        triggered: bool,
+        out: &mut BurstDecode,
+    ) {
+        let (z4, slope) = self.coherence(&ys[2], 0, 0, on);
+        let z6 = self.coherence(&ys[4], 1, 0, on).0;
         out.zc = [z4, z6];
-        out.zc_found = z4 > 0.3 && z6 > 0.3;
+        out.score = [self.score(&ys[2], 0, on), self.score(&ys[4], 1, on)];
+        out.zc_found = if triggered {
+            out.score[0] >= MIN_SCORE && out.score[1] >= MIN_SCORE
+        } else {
+            z4 > 0.3 && z6 > 0.3
+        };
         if !out.zc_found {
-            return out;
+            return;
         }
         // Channel from the two ZC symbols.
-        let mut h1 = vec![Complex32::new(0.0, 0.0); NC];
-        let mut h2 = vec![Complex32::new(0.0, 0.0); NC];
+        let used = on.len().max(1) as f64;
+        let [mut h1, mut h2, mut h] = std::mem::take(&mut self.h);
         let mut acc = Complex32::new(0.0, 0.0);
-        for k in 0..NC {
+        for k in on.clone() {
             let b = carrier_bin(k);
             h1[k] = ys[2][b] * self.z[0][k].conj();
             h2[k] = ys[4][b] * self.z[1][k].conj();
@@ -648,35 +970,59 @@ impl BurstReceiver {
         }
         let phi = acc.im.atan2(acc.re);
         let rot = Complex32::new((-phi).cos(), (-phi).sin());
-        let mut h = vec![Complex32::new(0.0, 0.0); NC];
-        let (mut ph, mut pn) = (0.0f64, 0.0f64);
-        for k in 0..NC {
+        let mut pn = 0.0f64;
+        for k in on.clone() {
             h[k] = (h1[k] + h2[k] * rot) * 0.5;
-            ph += h[k].norm_sqr() as f64;
             pn += (h1[k] - h2[k] * rot).norm_sqr() as f64;
         }
-        let mh = ph / NC as f64;
-        let sigma2 = (pn / (2.0 * NC as f64)).max(mh * 1e-4);
+        if triggered {
+            smooth_channel(&mut h, on, slope, &mut self.flat);
+        }
+        let mh = on.clone().map(|k| h[k].norm_sqr() as f64).sum::<f64>() / used;
+        let sigma2 = (pn / (2.0 * used)).max(mh * 1e-4);
         out.snr_db = 10.0 * (mh / sigma2).log10();
         // Soft symbols of the six data symbols (2, 3, 5, 7, 8, 9).
-        let mut soft = vec![Complex32::new(0.0, 0.0); E / 2];
+        let mut soft = std::mem::take(&mut self.soft);
         let mut j = 0;
-        for (k, sym) in [2usize, 3, 5, 7, 8, 9].iter().enumerate() {
-            let _ = k;
-            let ang = phi * (*sym as f32 - 4.0) / 2.0;
+        for sym in [2usize, 3, 5, 7, 8, 9] {
+            let ang = phi * (sym as f32 - 4.0) / 2.0;
             let r = Complex32::new(ang.cos(), ang.sin());
             let y = &ys[sym - 2];
             for c in 0..NC {
-                let hh = h[c] * r;
-                soft[j] = y[carrier_bin(c)]
-                    * hh.conj()
-                    * (2.0 * std::f32::consts::SQRT_2 / sigma2 as f32);
+                soft[j] = if on.contains(&c) {
+                    let hh = h[c] * r;
+                    y[carrier_bin(c)] * hh.conj() * (2.0 * std::f32::consts::SQRT_2 / sigma2 as f32)
+                } else {
+                    Complex32::new(0.0, 0.0)
+                };
                 j += 1;
             }
+            if triggered {
+                // Another signal on a part of the band during this symbol: the received power of a block of carriers
+                // is above the power of the burst and the noise. The soft bits of the block get less weight.
+                let soft = &mut soft[j - NC..j];
+                let mut from = on.start;
+                while from < on.end {
+                    let to = (from + WEIGHT_BLOCK).min(on.end);
+                    let n = (to - from) as f64;
+                    let got = (from..to)
+                        .map(|c| y[carrier_bin(c)].norm_sqr() as f64)
+                        .sum::<f64>()
+                        / n;
+                    let burst = (from..to).map(|c| h[c].norm_sqr() as f64).sum::<f64>() / n;
+                    let excess = (got - burst) / sigma2;
+                    if excess > 1.5 {
+                        let w = (1.0 / excess) as f32;
+                        soft[from..to].iter_mut().for_each(|v| *v *= w);
+                    }
+                    from = to;
+                }
+            }
         }
+        self.h = [h1, h2, h];
         // Turbo decoding over the variants and rotations.
-        let mut llr = vec![0f32; E];
-        for variant in 0..2u8 {
+        let mut llr = std::mem::take(&mut self.llr);
+        'trials: for variant in 0..2u8 {
             for rotation in 0..4u8 {
                 let q = match rotation {
                     0 => Complex32::new(1.0, 0.0),
@@ -690,17 +1036,35 @@ impl BurstReceiver {
                     llr[2 * i] = v.re;
                     llr[2 * i + 1] = v.im;
                 }
-                if let Some((frame, it)) = self.coder.decode(&llr, variant, 8) {
+                if let Some((frame, it)) = self.coder.decode(
+                    &llr,
+                    variant,
+                    if triggered {
+                        2 * ITERATIONS
+                    } else {
+                        ITERATIONS
+                    },
+                ) {
                     out.variant = Some(variant);
                     out.rotation = Some(rotation);
                     out.iterations = it;
+                    let coded = self.coder.coded(&frame, variant);
+                    let (mut same, mut all) = (0u32, 0u32);
+                    for (i, (&l, &b)) in llr.iter().zip(coded).enumerate() {
+                        if on.contains(&((i / 2) % NC)) {
+                            all += 1;
+                            same += u32::from((l < 0.0) == (b == 1));
+                        }
+                    }
+                    out.agreement = same as f32 / all.max(1) as f32;
                     out.packet = DroneIdPacket::parse(&frame);
                     out.frame = Some(frame);
-                    return out;
+                    break 'trials;
                 }
             }
         }
-        out
+        self.soft = soft;
+        self.llr = llr;
     }
 
     fn derotate(&mut self, x: &[Complex32], f: f64) {
@@ -716,5 +1080,49 @@ impl BurstReceiver {
             self.x.push(v * p);
             p *= step;
         }
+    }
+}
+
+/// Replaces the channel of each carrier of `on` by the mean over up to 8 carriers on each side, after the phase step per
+/// carrier (the timing inside the prefix) is taken out. `slope` is a first value of that step. `scratch` is a buffer.
+fn smooth_channel(
+    h: &mut [Complex32],
+    on: &Range<usize>,
+    slope: f64,
+    scratch: &mut Vec<Complex32>,
+) {
+    const SIDE: usize = 8;
+    const LAG: usize = 8;
+    // The step again from carriers 8 apart: eight times the phase for the same noise. `slope` tells which turn it is.
+    let mut acc = Complex32::new(0.0, 0.0);
+    for k in on.start + LAG..on.end {
+        if (k < 300) == (k - LAG < 300) {
+            acc += h[k] * h[k - LAG].conj();
+        }
+    }
+    let coarse = slope * LAG as f64;
+    let fine = f64::from(acc.im.atan2(acc.re));
+    let slope = if acc.norm_sqr() > 0.0 {
+        (coarse + wrap(fine - coarse)) / LAG as f64
+    } else {
+        slope
+    };
+    let turn = |k: usize, sign: f64| {
+        let a = sign * slope * f64::from(carrier_index(k));
+        Complex32::new(a.cos() as f32, a.sin() as f32)
+    };
+    // The running sums of the flattened channel.
+    scratch.clear();
+    let mut acc = Complex32::new(0.0, 0.0);
+    scratch.push(acc);
+    for k in on.clone() {
+        acc += h[k] * turn(k, -1.0);
+        scratch.push(acc);
+    }
+    let n = on.len();
+    for (i, k) in on.clone().enumerate() {
+        let lo = i.saturating_sub(SIDE);
+        let hi = (i + SIDE + 1).min(n);
+        h[k] = (scratch[hi] - scratch[lo]) / (hi - lo) as f32 * turn(k, 1.0);
     }
 }

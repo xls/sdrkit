@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "drones", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "drones", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum DronesInterface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The result fields of Drone Remote ID.
@@ -346,6 +346,22 @@ public struct DjiDroneidFields {
     public var burstCfoHz: Double?
     /// Drones in the table.
     public var drones: Int64
+    /// Aircraft in the aircraft table: the drones with a readable packet, the aircraft that send the encrypted format, and the sender of empty frames.
+    public var aircraft: Int64
+    /// DroneID frames of the encrypted format: the aircraft is present, its position and serial number are not readable.
+    public var droneidEncrypted: Int64
+    /// Empty DroneID frames: the aircraft is present and sends no data in this state.
+    public var droneidEmpty: Int64
+    /// DroneID frames whose CRC-24 passed and whose layout is not known.
+    public var droneidOther: Int64
+    /// Frames of zeros that were refused: the received bits did not agree with an empty frame.
+    public var droneidRefused: Int64
+    /// Pairs of the two DroneID symbols that the continuous search found.
+    public var droneidPairs: Int64
+    /// Bursts of the continuous search whose two symbols passed the check at the full rate.
+    public var droneidBursts: Int64
+    /// The DroneID frequencies inside the capture that the continuous search covers.
+    public var droneidSearched: Int64
     /// The track with the most likely DJI shape: a row key of the `signals` table.
     public var signal: String?
     /// Noise floor, dBFS.
@@ -366,6 +382,14 @@ public struct DjiDroneidFields {
         centreHz = c.has_centre_hz ? c.centre_hz : nil
         burstCfoHz = c.has_burst_cfo_hz ? c.burst_cfo_hz : nil
         drones = c.drones
+        aircraft = c.aircraft
+        droneidEncrypted = c.droneid_encrypted
+        droneidEmpty = c.droneid_empty
+        droneidOther = c.droneid_other
+        droneidRefused = c.droneid_refused
+        droneidPairs = c.droneid_pairs
+        droneidBursts = c.droneid_bursts
+        droneidSearched = c.droneid_searched
         signal = c.has_signal ? sdrkitText(c.signal) : nil
         noiseDbfs = c.has_noise_dbfs ? c.noise_dbfs : nil
         levelDbfs = c.has_level_dbfs ? c.level_dbfs : nil
@@ -613,6 +637,61 @@ public struct DjiDroneidBurstRow {
         snrDb = c.snr_db
         ofdmPct = c.ofdm_pct
         droneid = Droneid(rawValue: c.droneid)
+    }
+}
+
+/// A DJI aircraft heard on DroneID, in any format.
+public struct DjiDroneidAircraftRow {
+    public enum Format: Int32 {
+        case readable = 0
+        case encrypted = 1
+        case encryptedCryp = 2
+        case empty = 3
+    }
+    /// The row key.
+    public var key: String
+    /// The name of the row: the serial number of a drone with a readable packet, `session-` and the session key of an aircraft that sends the encrypted format, `empty frames` for the sender of empty frames.
+    public var aircraft: String
+    /// The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart within a session. They are not a serial number and do not identify the aircraft.
+    public var sessionKey: String?
+    /// The drone of a readable packet: a row key of the `drones` table.
+    public var drone: String?
+    /// The format of the last frame.
+    public var format: Format?
+    /// The type byte of the last frame of the encrypted format (0x10, 0x11 and 0x13 were seen).
+    public var frameType: Int64?
+    /// The frames received.
+    public var frames: Int64
+    /// The signal time of the first frame.
+    public var firstS: Double
+    /// The signal time of the last frame.
+    public var lastS: Double
+    /// Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS).
+    public var levelDbfs: Double
+    /// Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so).
+    public var snrDb: Double
+    /// The radio frequency.
+    public var freqHz: Double?
+    /// Wall-clock time when first heard.
+    public var firstHeard: Double?
+    /// Wall-clock time when last heard, in whole seconds. A host shows the age from it.
+    public var lastHeard: Double?
+
+    init(_ c: sdrkit_dji_droneid_aircraft_row) {
+        key = sdrkitText(c.key)
+        aircraft = sdrkitText(c.aircraft)
+        sessionKey = c.has_session_key ? sdrkitText(c.session_key) : nil
+        drone = c.has_drone ? sdrkitText(c.drone) : nil
+        format = Format(rawValue: c.format)
+        frameType = c.has_frame_type ? c.frame_type : nil
+        frames = c.frames
+        firstS = c.first_s
+        lastS = c.last_s
+        levelDbfs = c.level_dbfs
+        snrDb = c.snr_db
+        freqHz = c.has_freq_hz ? c.freq_hz : nil
+        firstHeard = c.has_first_heard ? c.first_heard : nil
+        lastHeard = c.has_last_heard ? c.last_heard : nil
     }
 }
 
@@ -1522,6 +1601,68 @@ public struct DjiDroneidEvent {
     }
 }
 
+/// A DJI aircraft that was not heard before.
+public struct DjiDroneidDjiAircraftEvent {
+    public enum Format: Int32 {
+        case readable = 0
+        case encrypted = 1
+        case encryptedCryp = 2
+        case empty = 3
+    }
+    public enum Family: Int32 {
+        case aircraft = 0
+        case vessel = 1
+        case aprs = 2
+        case pager = 3
+        case sonde = 4
+        case broadcast = 5
+        case voice = 6
+        case message = 7
+        case sensor = 8
+        case satellite = 9
+        case receiver = 10
+        case alert = 11
+        case other = 12
+    }
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The sender of a decoded message: a registration, an address, a call sign or a code.
+    public var source: String
+    /// The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart within a session. They are not a serial number and do not identify the aircraft.
+    public var sessionKey: String?
+    /// The format of the frame.
+    public var format: Format?
+    /// The type byte of a frame of the encrypted format.
+    public var frameType: Int64?
+    /// The position of the object that the event is about.
+    public var position: SDRKitPosition?
+    /// Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so).
+    public var snrDb: Double
+    /// What an event is about (aircraft, vessel, pager). Outputs and the store filter on it.
+    public var family: Family?
+
+    init(_ c: sdrkit_dji_droneid_dji_aircraft_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        source = sdrkitText(c.source)
+        sessionKey = c.has_session_key ? sdrkitText(c.session_key) : nil
+        format = Format(rawValue: c.format)
+        frameType = c.has_frame_type ? c.frame_type : nil
+        position = c.has_position ? SDRKitPosition(c.position) : nil
+        snrDb = c.snr_db
+        family = Family(rawValue: c.family)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<DjiDroneidDjiAircraftEvent, SDRKitCode> {
+        var c = sdrkit_dji_droneid_dji_aircraft_event()
+        let code = sdrkit_dji_droneid_dji_aircraft_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(DjiDroneidDjiAircraftEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
 /// An aircraft heard on FLARM.
 public struct FlarmAircraftEvent {
     public enum Urgency: Int32 {
@@ -2008,6 +2149,15 @@ public enum DronesTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DronesDroneTrackRow.init))
     }
+    /// The changed rows of the table "aircraft" of the stack "dji_droneid", newest first, at most `capacity` rows.
+    /// The column `aircraft` names a row.
+    public static func djiDroneidAircraft(_ handle: SDRKIT_HANDLE, capacity: Int = 50) -> Result<[DjiDroneidAircraftRow], SDRKitCode> {
+        var rows = [sdrkit_dji_droneid_aircraft_row](repeating: sdrkit_dji_droneid_aircraft_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_dji_droneid_aircraft_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(DjiDroneidAircraftRow.init))
+    }
     /// The changed rows of the table "aircraft" of the stack "flarm", newest first, at most `capacity` rows.
     /// The column `source` names a row.
     /// Place of a row: the column `position`.
@@ -2303,6 +2453,29 @@ public enum DronesSettings {
     }
     public static func setDjiDroneidWallClock(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "wall_clock", value))
+    }
+    /// The options of the setting "droneid_tuning" of the stack "dji_droneid".
+    public enum DjiDroneidTuning: Int32 {
+        case fixed = 0
+        case step = 1
+    }
+    /// DroneID tuning.
+    public static func djiDroneidTuning(_ handle: SDRKIT_HANDLE) -> Result<DjiDroneidTuning, SDRKitCode> {
+        var v: Int32 = 0
+        let code = sdrkit_typed_setting_get_enum(handle, "droneid_tuning", &v)
+        return code == SDRKIT_OK ? .success(DjiDroneidTuning(rawValue: v) ?? DjiDroneidTuning(rawValue: 0)!) : .failure(SDRKitCode(code: code))
+    }
+    public static func setDjiDroneidTuning(_ handle: SDRKIT_HANDLE, _ value: DjiDroneidTuning) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_enum(handle, "droneid_tuning", value.rawValue))
+    }
+    /// DroneID dwell.
+    public static func djiDroneidDwellS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "droneid_dwell_s", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setDjiDroneidDwellS(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "droneid_dwell_s", value))
     }
     /// Key time from this computer's clock.
     public static func flarmWallClock(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
@@ -2677,6 +2850,48 @@ public enum DronesGeneratorSettings {
     }
     public static func setDjiDroneidWide(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "gen_wide", value))
+    }
+    /// The options of the setting "gen_frame" of the stack "dji_droneid".
+    public enum DjiDroneidFrame: Int32 {
+        case readable = 0
+        case encrypted = 1
+        case empty = 2
+    }
+    /// DroneID frame.
+    public static func djiDroneidFrame(_ handle: SDRKIT_HANDLE) -> Result<DjiDroneidFrame, SDRKitCode> {
+        var v: Int32 = 0
+        let code = sdrkit_typed_setting_get_enum(handle, "gen_frame", &v)
+        return code == SDRKIT_OK ? .success(DjiDroneidFrame(rawValue: v) ?? DjiDroneidFrame(rawValue: 0)!) : .failure(SDRKitCode(code: code))
+    }
+    public static func setDjiDroneidFrame(_ handle: SDRKIT_HANDLE, _ value: DjiDroneidFrame) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_enum(handle, "gen_frame", value.rawValue))
+    }
+    /// On a DroneID frequency.
+    public static func djiDroneidFrequency(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
+        var v: Bool = false
+        let code = sdrkit_typed_setting_get_bool(handle, "gen_droneid_frequency", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setDjiDroneidFrequency(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_bool(handle, "gen_droneid_frequency", value))
+    }
+    /// Two aircraft.
+    public static func djiDroneidTwoAircraft(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
+        var v: Bool = false
+        let code = sdrkit_typed_setting_get_bool(handle, "gen_two_aircraft", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setDjiDroneidTwoAircraft(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_bool(handle, "gen_two_aircraft", value))
+    }
+    /// Test signal radio centre.
+    public static func djiDroneidCentreHz(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "gen_centre_hz", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setDjiDroneidCentreHz(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "gen_centre_hz", value))
     }
     /// Test signal centre.
     public static func flarmCentre(_ handle: SDRKIT_HANDLE) -> Result<SDRKitPosition, SDRKitCode> {
