@@ -1,12 +1,12 @@
-//! The stream: the 24-byte datagram header, the flow-control acknowledgements, the reader of the status socket, and the receive
-//! loop that writes the samples of each datagram into the ring.
+//! The stream: the 24-byte message header, the flow-control acknowledgements, the reader of the status path, and the receive
+//! loop that writes the samples of each message (a UDP datagram or a TCP message, [`crate::wire`]) into the ring.
 //!
 //! Standard: the SoapyRemote protocol, RPC version 0x0400 (`rpc::VERSION`).
 
 use crate::plan;
+use crate::wire::Wire;
 use crate::{SoapyError, Timing};
-use core::net::{IpAddr, SocketAddr};
-use sdrkit_core::net::{Datagram, NetError};
+use sdrkit_core::net::NetError;
 use sdrkit_core::Hz;
 use sdrkit_driver_core::net::Abort;
 use sdrkit_driver_core::runner::{Notices, RadioStream, Sink, StreamCtx};
@@ -204,18 +204,17 @@ impl Flow {
     }
 }
 
-/// Passes each header that `server` sent to `socket` and that waits there (status messages, or the acknowledgements a sender
-/// gets) to `on_header`. It never waits. A datagram from another address, or one that is not a header, is skipped.
+/// The buffer of [`read_headers`]; one per path, kept between calls (a TCP message can arrive in parts).
+pub(crate) type HeaderBuf = [u8; 64];
+
+/// Passes each header that waits on `path` (status messages, or the acknowledgements a sender gets) to `on_header`. It
+/// does not wait. A message that is not a header is skipped.
 pub(crate) fn read_headers(
-    socket: &mut dyn Datagram,
-    server: IpAddr,
+    path: &mut Wire,
+    b: &mut HeaderBuf,
     mut on_header: impl FnMut(&DgHeader),
 ) {
-    let mut b = [0u8; 64];
-    while let Ok(Some((n, from))) = socket.try_recv_from(&mut b) {
-        if from.ip() != server {
-            continue;
-        }
+    while let Ok(Some(n)) = path.try_recv(b) {
         if let Some(h) = DgHeader::parse(&b[..n]) {
             on_header(&h);
         }
@@ -249,12 +248,10 @@ impl Every10s {
 
 /// Where a receive stream sends and reads.
 pub(crate) struct RxSockets {
-    /// The data socket.
-    pub data: Box<dyn Datagram>,
-    /// The status socket.
-    pub status: Box<dyn Datagram>,
-    /// The data port of the server.
-    pub server: SocketAddr,
+    /// The data path (acknowledgements go back on it).
+    pub data: Wire,
+    /// The status path.
+    pub status: Wire,
 }
 
 /// What a receive stream shares with its radio.
@@ -271,10 +268,10 @@ pub(crate) struct RxShared {
 
 /// The receive side of a stream that is set up, owned by the radio's thread.
 pub(crate) struct RxStream {
-    data: Box<dyn Datagram>,
-    status: Box<dyn Datagram>,
+    data: Wire,
+    status: Wire,
+    status_buf: HeaderBuf,
     status_log: Every10s,
-    server: SocketAddr,
     bytes: usize,
     shift: u32,
     buf: Vec<u8>,
@@ -315,8 +312,8 @@ impl RxStream {
         Ok(RxStream {
             data: sockets.data,
             status: sockets.status,
+            status_buf: [0; 64],
             status_log: Every10s::default(),
-            server: sockets.server,
             bytes,
             shift,
             buf: vec![0u8; DATAGRAM_BUF],
@@ -340,7 +337,10 @@ impl RxStream {
 
     /// Sends an acknowledgement for the next expected sequence.
     pub fn send_ack(&mut self) {
-        let _ = self.data.send_to(&ack(self.next, self.window), self.server);
+        let abort = &self.abort;
+        let _ = self
+            .data
+            .send(&ack(self.next, self.window), &mut || abort.fired());
         self.acked = self.next;
         self.sh.stats.acks.fetch_add(1, Ordering::Relaxed);
     }
@@ -349,7 +349,7 @@ impl RxStream {
     fn read_status(&mut self) {
         let (stats, notices, label) = (&self.sh.stats, &self.sh.notices, &self.sh.label);
         let log = &mut self.status_log;
-        read_headers(self.status.as_mut(), self.server.ip(), |h| {
+        read_headers(&mut self.status, &mut self.status_buf, |h| {
             let code = h.elems;
             if code >= 0 {
                 return;
@@ -372,21 +372,12 @@ impl RxStream {
         self.abort.fired() || ctx.is_some_and(StreamCtx::stopping)
     }
 
-    /// Receives one datagram from the server into the buffer. `Ok(None)`: nothing within a slice.
+    /// Receives one message from the server into the buffer. `Ok(None)`: nothing within a slice.
     fn recv(&mut self) -> Result<Option<usize>, DriverError> {
-        match self.data.recv_from(&mut self.buf) {
-            Ok((n, from)) if from.ip() == self.server.ip() => Ok(Some(n)),
-            Ok(_) => Ok(None),
-            Err(e)
-                if matches!(
-                    e.kind(),
-                    ErrorKind::WouldBlock | ErrorKind::TimedOut | ErrorKind::Interrupted
-                ) =>
-            {
-                Ok(None)
-            }
+        match self.data.recv(&mut self.buf) {
+            Ok(n) => Ok(n),
             // An ICMP "port unreachable" from a server that is not ready yet: keep waiting.
-            Err(e) if e.kind() == ErrorKind::ConnectionRefused => {
+            Err(e) if e.kind() == ErrorKind::ConnectionRefused && !self.data.is_tcp() => {
                 std::thread::sleep(self.timing.slice);
                 Ok(None)
             }
@@ -394,8 +385,8 @@ impl RxStream {
         }
     }
 
-    /// Waits up to `timeout` for the first datagram and acknowledges again after each empty wait. The datagram is kept for the
-    /// read loop.
+    /// Waits up to `timeout` for the first message and, on UDP, acknowledges again after each empty wait. The message is kept
+    /// for the read loop.
     ///
     /// # Errors
     ///
@@ -413,7 +404,9 @@ impl RxStream {
             if Instant::now() >= end {
                 return Err(DriverError::driver(SoapyError::NoSamples));
             }
-            self.send_ack();
+            if !self.data.is_tcp() {
+                self.send_ack();
+            }
         }
     }
 
@@ -566,7 +559,10 @@ impl RadioStream for RxStream {
             since_status = 0;
             self.read_status();
             // No datagram for a slice: acknowledge again, so a sender whose acknowledgements were lost does not wait for ever.
-            self.send_ack();
+            // TCP loses none.
+            if !self.data.is_tcp() {
+                self.send_ack();
+            }
         }
     }
 }

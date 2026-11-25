@@ -1,6 +1,7 @@
 //! The SoapyRemote server protocol on the serving core: the RPC calls through which a SoapySDR client finds the radio,
-//! reads its ranges, gains, antennas, rates and formats, sets it up and streams; receive and transmit streams over UDP with
-//! the window flow control of the protocol; and the SSDP answer of discovery. Each RPC connection is one client of the hub.
+//! reads its ranges, gains, antennas, rates and formats, sets it up and streams; receive and transmit streams over UDP or
+//! TCP (the client's stream argument `remote:prot`) with the window flow control of the protocol; and the SSDP answer of
+//! discovery. Each RPC connection is one client of the hub.
 //! Settings go to the owner's `Control` as requests; a refusal returns to the client as an exception.
 //!
 //! Standard: the SoapyRemote protocol, RPC version 0x0400, with the wire codec of `sdrkit-driver-soapyremote` (`rpc`,
@@ -58,6 +59,7 @@ pub struct Device {
 /// The SoapyRemote protocol for one radio.
 pub struct SoapyRemote {
     transport: Arc<dyn Transport>,
+    stream_host: Option<String>,
     device: Arc<Device>,
     uuid: String,
 }
@@ -67,9 +69,17 @@ impl SoapyRemote {
     pub fn new(transport: Arc<dyn Transport>, device: Device, uuid: &str) -> SoapyRemote {
         SoapyRemote {
             transport,
+            stream_host: None,
             device: Arc::new(device),
             uuid: uuid.to_owned(),
         }
+    }
+
+    /// TCP streams listen on `host` only, not on every address of the client's family.
+    #[must_use]
+    pub fn with_stream_host(mut self, host: &str) -> SoapyRemote {
+        self.stream_host = Some(host.to_owned());
+        self
     }
 }
 
@@ -83,6 +93,7 @@ impl Protocol for SoapyRemote {
             outlet: None,
             parser: Box::new(session::Rpc::new(
                 self.transport.clone(),
+                self.stream_host.clone(),
                 self.device.clone(),
                 &self.uuid,
                 conn.peer_addr(),

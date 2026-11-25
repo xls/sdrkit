@@ -840,6 +840,11 @@ impl Conn {
                 before_reply: self.replies == 0,
             });
         }
+        self.reply(timeout, first)
+    }
+
+    /// Reads the next reply. `first`: it answers the first request on the connection.
+    fn reply(&mut self, timeout: Duration, first: bool) -> Result<Packet, RpcError> {
         match read_packet(self.sock.as_mut(), timeout) {
             Ok(p) => {
                 self.replies += 1;
@@ -874,6 +879,28 @@ impl Conn {
         f: impl FnOnce(&mut Unpacker) -> Result<T, Unexpected>,
     ) -> Result<T, RpcError> {
         let p = self.request(req, timeout)?;
+        let mut u = Unpacker::new(&p.payload, p.version);
+        f(&mut u).map_err(|_| {
+            self.broken = true;
+            self.sock.shutdown();
+            RpcError::Unexpected
+        })
+    }
+    /// Reads one more reply to the last request, which `f` reads: a call that the server answers twice (the set-up of a TCP
+    /// stream). A wrong value breaks the connection.
+    ///
+    /// # Errors
+    ///
+    /// [`RpcError`] if no reply comes, it is an exception, or it holds another value.
+    pub fn next<T>(
+        &mut self,
+        timeout: Duration,
+        f: impl FnOnce(&mut Unpacker) -> Result<T, Unexpected>,
+    ) -> Result<T, RpcError> {
+        if self.broken {
+            return Err(RpcError::Broken);
+        }
+        let p = self.reply(timeout, false)?;
         let mut u = Unpacker::new(&p.payload, p.version);
         f(&mut u).map_err(|_| {
             self.broken = true;

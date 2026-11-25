@@ -1,6 +1,6 @@
 //! The SoapyRemote client driver. A SoapyRemote server (`SoapySDRServer --bind`, port 55132) shares the SoapySDR radios of one
-//! computer. The driver receives channel 0 of the remote radio and can transmit; [`discovery`] finds servers on the local
-//! network.
+//! computer. The driver receives channel 0 of the remote radio and can transmit, with the stream over UDP or TCP
+//! ([`wire`]); [`discovery`] finds servers on the local network.
 //!
 //! Standard: the SoapyRemote protocol, RPC version 0x0400 (`rpc::VERSION`).
 
@@ -14,6 +14,7 @@ mod radio;
 pub mod rpc;
 pub mod stream;
 mod tx;
+pub mod wire;
 
 pub use format::WireChoice;
 pub use tx::{SoapyTxSetting, TX_OUTPUT, TX_PPM};
@@ -121,6 +122,26 @@ impl Mtu {
     }
 }
 
+sdrkit_core::choice_enum! {
+    /// How the stream travels ([`TRANSPORT`]).
+    pub enum StreamProt {
+        /// UDP datagrams.
+        Udp = ("udp", "UDP"),
+        /// Messages on TCP connections.
+        Tcp = ("tcp", "TCP"),
+    }
+}
+
+impl StreamProt {
+    /// The value of the stream argument `remote:prot`.
+    pub fn name(self) -> &'static str {
+        match self {
+            StreamProt::Udp => "udp",
+            StreamProt::Tcp => "tcp",
+        }
+    }
+}
+
 /// The clock error in ppm.
 pub const PPM: Setting<field::F64> = Setting::new("ppm", "Frequency correction", "ppm", 0.0)
     .range(-200.0, 200.0, 0.01)
@@ -157,6 +178,14 @@ pub const WINDOW: Setting<field::F64> = Setting::new("window", "Receive buffer",
     .range(0.25, 32.0, 0.25)
     .restart()
     .help("How much the network can have in flight. More helps on Wi-Fi at high rates.");
+/// The transport of the stream.
+pub const TRANSPORT: Setting<field::Choice<StreamProt>> =
+    Setting::choice("transport", "Stream transport", StreamProt::Udp)
+        .restart()
+        .help(
+            "UDP is the protocol's default. TCP passes networks that drop or block UDP (NAT, firewalls, poor Wi-Fi) and loses \
+             nothing, but a lost packet delays the stream. Received messages are then at least 4096 bytes.",
+        );
 /// Forward the log of the server.
 pub const SERVER_LOG: Setting<field::Bool> =
     Setting::new("serverlog", "Show the server's log", "", true)
@@ -212,6 +241,8 @@ sdrkit_core::settings! {
         ClockSource = CLOCK_SOURCE,
         /// [`TIME_SOURCE`].
         TimeSource = TIME_SOURCE,
+        /// [`TRANSPORT`].
+        Transport = TRANSPORT,
     }
 }
 

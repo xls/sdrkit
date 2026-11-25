@@ -4,7 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
-description = "SoapyRemote server protocol for sdrkit: the RPC calls, UDP receive and transmit streams, and the SSDP answer"
+description = "SoapyRemote server protocol for sdrkit: the RPC calls, UDP and TCP receive and transmit streams, and the SSDP answer"
 
 [dependencies]
 sdrkit-core = { path = "../../framework/sdrkit-core" }

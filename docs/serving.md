@@ -100,7 +100,7 @@ sdrkit usb record usb:rtl: --out dongle.usbscript --freq 104.9 --rate 2.4M
 A share serves the samples of one open radio to clients on the network. It speaks two protocols:
 
 - rtl_tcp: unsigned 8-bit samples over one TCP connection. Receive only.
-- SoapyRemote: calls over TCP and samples over UDP, in 8-bit, 16-bit or float format. Receive, and transmit on a radio that transmits.
+- SoapyRemote: calls over TCP and samples over UDP, or over TCP when the client asks for it, in 8-bit, 16-bit or float format. Receive, and transmit on a radio that transmits.
 
 A radio has at most one share. A share can have several listeners, for example one for each protocol.
 

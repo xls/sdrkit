@@ -1,12 +1,14 @@
-//! The sample path of a SoapyRemote radio (datagrams to the ring) allocates nothing once warm, on a fake network.
+//! The sample path of a SoapyRemote radio (UDP datagrams or TCP messages to the ring) allocates nothing once warm, on a fake
+//! network.
 
 use core::net::SocketAddr;
 use sdrkit_core::net::{Conn, DatagramOptions, FakeTransport, Transport};
+use sdrkit_core::Choice;
 use sdrkit_core::{Owner, Value, Values};
 use sdrkit_driver_core::{ring, DriverKind, RingReader, SourceDriver};
 use sdrkit_driver_soapyremote::rpc::{self, call, Packer, Range, Unpacker};
 use sdrkit_driver_soapyremote::stream::{DgHeader, HEADER_LEN};
-use sdrkit_driver_soapyremote::SoapyRemoteDriver;
+use sdrkit_driver_soapyremote::{SoapyRemoteDriver, StreamProt};
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
 use std::io::Write;
@@ -62,6 +64,28 @@ fn stream(net: FakeTransport, port: u16) {
         .bind(&DatagramOptions::at(SocketAddr::from(([127, 0, 0, 1], 0))))
         .unwrap();
     let to = SocketAddr::from(([127, 0, 0, 1], port));
+    send_paced(|d| {
+        let _ = s.send_to(d, to);
+    });
+}
+
+/// Sends the same CS16 messages on the TCP data connection `c`, and reads the driver's acknowledgements on a thread of its
+/// own so they cost the driver nothing.
+fn stream_tcp(mut c: Box<dyn Conn>) {
+    EXEMPT.with(|e| e.set(true));
+    let mut acks = c.try_clone().unwrap();
+    std::thread::spawn(move || {
+        EXEMPT.with(|e| e.set(true));
+        let mut b = [0u8; 4096];
+        while matches!(std::io::Read::read(&mut acks, &mut b), Ok(n) if n > 0) {}
+    });
+    send_paced(|d| {
+        let _ = c.write_all(d);
+    });
+}
+
+/// Calls `send` with 4000 CS16 messages of [`PER_DATAGRAM`] samples, one every 500 us.
+fn send_paced(mut send: impl FnMut(&[u8])) {
     let mut d = vec![0u8; HEADER_LEN + PER_DATAGRAM * 4];
     for (i, b) in d[HEADER_LEN..].iter_mut().enumerate() {
         *b = i as u8;
@@ -76,7 +100,7 @@ fn stream(net: FakeTransport, port: u16) {
             time: 0,
         };
         d[..HEADER_LEN].copy_from_slice(&h.to_bytes());
-        let _ = s.send_to(&d, to);
+        send(&d);
         let due = start + Duration::from_micros(500 * u64::from(seq + 1));
         if let Some(w) = due.checked_duration_since(Instant::now()) {
             std::thread::sleep(w);
@@ -137,6 +161,31 @@ fn reply(n: u32, args: &[u8], net: &FakeTransport) -> Vec<u8> {
     p.buf
 }
 
+/// The set-up of a TCP stream: it listens, sends the port as the early reply, takes the data and the status connection, and
+/// streams on the data connection. It returns the usual reply.
+fn setup_tcp(c: &mut dyn Conn, net: &FakeTransport) -> Vec<u8> {
+    let mut l = net.listen("127.0.0.1", 0).unwrap();
+    let mut early = Packer::default();
+    early.string(&l.local_addr().port().to_string());
+    c.write_all(&rpc::packet(&early.buf, rpc::VERSION)).unwrap();
+    let mut got = Vec::new();
+    while got.len() < 2 {
+        match l.accept().unwrap() {
+            Some(x) => got.push(x),
+            None => std::thread::sleep(Duration::from_millis(1)),
+        }
+    }
+    let status = got.pop().unwrap();
+    let data = got.pop().unwrap();
+    std::thread::spawn(move || {
+        let _keep = status;
+        stream_tcp(data);
+    });
+    let mut p = Packer::default();
+    p.i32(0).string("0");
+    p.buf
+}
+
 /// A SoapyRemote server with one CS16 radio.
 fn serve(mut c: Box<dyn Conn>, net: &FakeTransport) {
     EXEMPT.with(|e| e.set(true));
@@ -144,6 +193,19 @@ fn serve(mut c: Box<dyn Conn>, net: &FakeTransport) {
         let mut u = Unpacker::new(&pkt.payload, pkt.version);
         let Ok(n) = u.call() else { return };
         let args = &pkt.payload[pkt.payload.len() - u.remaining()..];
+        let tcp = n == call::SETUP_STREAM && {
+            let mut a = Unpacker::new(args, rpc::VERSION);
+            let _ = (a.char(), a.string(), a.size_list());
+            a.kwargs()
+                .is_ok_and(|kw| kw.get("remote:prot").is_some_and(|p| p == "tcp"))
+        };
+        if tcp {
+            let r = setup_tcp(c.as_mut(), net);
+            if c.write_all(&rpc::packet(&r, rpc::VERSION)).is_err() {
+                return;
+            }
+            continue;
+        }
         let r = reply(n, args, net);
         if c.write_all(&rpc::packet(&r, rpc::VERSION)).is_err() || n == call::HANGUP {
             return;
@@ -163,8 +225,14 @@ fn drain(r: &mut RingReader, d: Duration) -> (usize, usize) {
     (n, ALLOCS.load(Ordering::Relaxed) - before)
 }
 
+/// UDP, then TCP. One test, so that no other test allocates while one measures.
 #[test]
 fn the_sample_path_does_not_allocate() {
+    sample_path(StreamProt::Udp);
+    sample_path(StreamProt::Tcp);
+}
+
+fn sample_path(prot: StreamProt) {
     let net = FakeTransport::new();
     let n2 = net.clone();
     net.serve("127.0.0.1", 55132, move |c| serve(c, &n2));
@@ -176,6 +244,7 @@ fn the_sample_path_does_not_allocate() {
         ("rate", Value::Hz(2.4e6)),
         ("agc", Value::Bool(false)),
         ("serverlog", Value::Bool(false)),
+        ("transport", Value::Choice(prot.index())),
     ] {
         v.set(schema.id(key).unwrap(), &value).unwrap();
     }
@@ -185,7 +254,7 @@ fn the_sample_path_does_not_allocate() {
     drain(&mut r, Duration::from_millis(300));
     let (n, allocs) = drain(&mut r, Duration::from_millis(500));
     src.stop();
-    eprintln!("SoapyRemote on a fake network: {n} samples, {allocs} allocations");
+    eprintln!("SoapyRemote {prot:?} on a fake network: {n} samples, {allocs} allocations");
     assert!(n > 100_000, "{n}");
     assert_eq!(allocs, 0);
 }

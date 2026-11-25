@@ -1,35 +1,41 @@
 //! One RPC connection: it frames the packets, answers each call from the device description and the owner's answers, and
-//! sets up, activates and closes the client's streams. A call it does not know is answered with an exception, which a
-//! client takes as "not supported".
+//! sets up, activates and closes the client's streams over UDP or TCP (the stream argument `remote:prot`). A call it does
+//! not know is answered with an exception, which a client takes as "not supported".
 
-use crate::stream::{tx_loop, TxEnds, UdpOutlet};
+use crate::stream::{tx_loop, RxLink, StreamOutlet, TxEnds};
 use crate::{native, rx_formats, Device, Side};
-use sdrkit_core::net::{DatagramOptions, Transport};
+use sdrkit_core::net::{Conn, DatagramOptions, Transport};
 use sdrkit_driver_soapyremote::format::Format;
 use sdrkit_driver_soapyremote::rpc::{
     self, call, ArgInfo, ArgType, Kwargs, Packer, Unexpected, Unpacker, HEADER, MAX_PACKET,
     OVERHEAD, RX, TRAILER,
 };
+use sdrkit_driver_soapyremote::wire::{Wire, PROT_KEY};
 use sdrkit_serve_core::{Answer, Context, Parser, Request, TxRequest};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
+use std::time::{Duration, Instant};
 
 /// The key of the bias tee setting.
 const BIAS_KEY: &str = "biastee";
 /// The MTU when the client states none.
 const DEFAULT_MTU: usize = 1500;
+/// How long the set-up of a TCP stream waits for the client's two connections.
+const ACCEPT_WAIT: Duration = Duration::from_secs(5);
 
 type Reply = Result<Packer, String>;
 
 /// A stream that the client set up.
 enum Stream {
     Rx {
-        data: Box<dyn sdrkit_core::net::Datagram>,
-        to: SocketAddr,
+        link: Arc<Mutex<RxLink>>,
+        /// The status path of a TCP stream, held open until the close.
+        _status: Option<Wire>,
         format: Format,
-        mtu: usize,
+        /// Set when the present outlet must stop.
+        off: Arc<AtomicBool>,
     },
     Tx {
         ends: Option<TxEnds>,
@@ -57,6 +63,7 @@ struct Granted {
 /// The state of one RPC connection.
 pub(crate) struct Rpc {
     transport: Arc<dyn Transport>,
+    stream_host: Option<String>,
     device: Arc<Device>,
     uuid: String,
     peer: Option<SocketAddr>,
@@ -84,14 +91,18 @@ fn bad(_: Unexpected) -> String {
 }
 
 impl Rpc {
+    /// A connection of the client at `peer`; TCP streams listen on `stream_host` (`None`: every address of the peer's
+    /// family).
     pub(crate) fn new(
         transport: Arc<dyn Transport>,
+        stream_host: Option<String>,
         device: Arc<Device>,
         uuid: &str,
         peer: Option<SocketAddr>,
     ) -> Rpc {
         Rpc {
             transport,
+            stream_host,
             device,
             uuid: uuid.to_owned(),
             peer,
@@ -491,31 +502,37 @@ impl Rpc {
         kw
     }
 
-    /// Call 300: the sockets of a stream, its id and the server's port.
+    /// Call 300: the paths of a stream, its id and the server's port. Everything that can refuse the stream is checked
+    /// before a TCP stream sends its early reply.
     fn setup(&mut self, u: &mut Unpacker<'_>, cx: &mut Context<'_>) -> Reply {
         let dir = u.char().map_err(bad)?;
         let name = u.string().map_err(bad)?;
         let channels = u.size_list().map_err(bad)?;
         let kw = u.kwargs().map_err(bad)?;
-        let dport: u16 = u
-            .string()
-            .map_err(bad)?
-            .trim()
-            .parse()
-            .map_err(|_| "bad data port")?;
-        let sport: u16 = u
-            .string()
-            .map_err(bad)?
-            .trim()
-            .parse()
-            .map_err(|_| "bad status port")?;
+        let (dport, sport) = (u.string().map_err(bad)?, u.string().map_err(bad)?);
         if self.side(dir).is_none() || channels.iter().any(|c| *c != 0) {
             return Err("no such channel".into());
         }
-        let prot = kw.get("remote:prot").map_or("udp", String::as_str);
-        if !prot.eq_ignore_ascii_case("udp") {
-            return Err(format!("this server streams over udp, not {prot}"));
-        }
+        let prot = kw.get(PROT_KEY).map_or("udp", |p| p.trim());
+        let tcp = if prot.eq_ignore_ascii_case("tcp") {
+            true
+        } else if prot.eq_ignore_ascii_case("udp") {
+            false
+        } else {
+            return Err(format!(
+                "stream protocol {prot} is not supported: udp or tcp"
+            ));
+        };
+        let ports = if tcp {
+            None
+        } else {
+            let port = |s: &str, what: &str| {
+                s.trim()
+                    .parse::<u16>()
+                    .map_err(|_| format!("bad {what} port"))
+            };
+            Some((port(&dport, "data")?, port(&sport, "status")?))
+        };
         let format = Format::from_name(&name).ok_or_else(|| format!("no format {name}"))?;
         let source = cx.client().source_format();
         let ok = if dir == RX {
@@ -538,25 +555,8 @@ impl Rpc {
             .peer
             .map(|p| p.ip())
             .ok_or("the client has no address")?;
-        let any = match peer {
-            IpAddr::V4(_) => IpAddr::V4(Ipv4Addr::UNSPECIFIED),
-            IpAddr::V6(_) => IpAddr::V6(Ipv6Addr::UNSPECIFIED),
-        };
-        let open = || {
-            self.transport
-                .bind(&DatagramOptions::at(SocketAddr::new(any, 0)))
-                .map_err(|e| e.to_string())
-        };
-        let data = open()?;
-        let port = data.local_addr().port();
-        let data_to = SocketAddr::new(peer, dport);
-        let stream = if dir == RX {
-            Stream::Rx {
-                data,
-                to: data_to,
-                format,
-                mtu,
-            }
+        let writer = if dir == RX {
+            None
         } else {
             let g = self.tx.clone();
             let req = TxRequest {
@@ -570,29 +570,101 @@ impl Rpc {
                 }),
                 centre_hz: g.freq.unwrap_or(0.0),
             };
-            let writer = cx
-                .transmit(req)
-                .map_err(|_| "the server refused to transmit".to_string())?;
-            let window = (window_bytes / mtu.max(1)).max(8) as u32;
-            Stream::Tx {
+            Some(
+                cx.transmit(req)
+                    .map_err(|_| "the server refused to transmit".to_string())?,
+            )
+        };
+        let (data, status, port) = match ports {
+            None => self.tcp_paths(peer, cx)?,
+            Some((dport, sport)) => {
+                let any = match peer {
+                    IpAddr::V4(_) => IpAddr::V4(Ipv4Addr::UNSPECIFIED),
+                    IpAddr::V6(_) => IpAddr::V6(Ipv6Addr::UNSPECIFIED),
+                };
+                let open = || {
+                    self.transport
+                        .bind(&DatagramOptions::at(SocketAddr::new(any, 0)))
+                        .map_err(|e| e.to_string())
+                };
+                let data = open()?;
+                let port = data.local_addr().port();
+                let data = Wire::udp(data, SocketAddr::new(peer, dport));
+                // A receive stream sends nothing on the status path of UDP.
+                let status = match writer {
+                    Some(_) => Some(Wire::udp(open()?, SocketAddr::new(peer, sport))),
+                    None => None,
+                };
+                (data, status, port)
+            }
+        };
+        let stream = match writer {
+            None => Stream::Rx {
+                link: Arc::new(Mutex::new(RxLink::new(data, format.bytes(), mtu))),
+                _status: status,
+                format,
+                off: Arc::new(AtomicBool::new(false)),
+            },
+            Some(writer) => Stream::Tx {
                 ends: Some(TxEnds {
                     data,
-                    status: open()?,
-                    data_to,
-                    status_to: SocketAddr::new(peer, sport),
+                    status: status.ok_or("the stream has no status path")?,
                 }),
                 writer: Some(writer),
                 bpe: format.bytes(),
-                window,
+                window: (window_bytes / mtu.max(1)).max(8) as u32,
                 stop: Arc::new(AtomicBool::new(false)),
                 thread: None,
-            }
+            },
         };
         let id = self.streams.len() as i32;
         self.streams.push(Some(stream));
         one(|p| {
             p.i32(id).string(&port.to_string());
         })
+    }
+
+    /// The two connections of a TCP stream: it listens, sends the port as the early reply, and takes the data connection
+    /// first and the status connection second from the client's address. It returns them and the port.
+    fn tcp_paths(
+        &self,
+        peer: IpAddr,
+        cx: &mut Context<'_>,
+    ) -> Result<(Wire, Option<Wire>, u16), String> {
+        let host = self.stream_host.clone().unwrap_or_else(|| {
+            match peer {
+                IpAddr::V4(_) => "0.0.0.0",
+                IpAddr::V6(_) => "::",
+            }
+            .to_owned()
+        });
+        let mut listener = self
+            .transport
+            .listen(&host, 0)
+            .map_err(|e| format!("cannot listen for the stream: {e}"))?;
+        let port = listener.local_addr().port();
+        let mut early = Packer::default();
+        early.string(&port.to_string());
+        if !cx.reply(&rpc::packet(&early.buf, rpc::VERSION)) {
+            return Err("the client left".into());
+        }
+        let end = Instant::now() + ACCEPT_WAIT;
+        let mut got: Vec<Box<dyn Conn>> = Vec::with_capacity(2);
+        while got.len() < 2 {
+            match listener.accept() {
+                Ok(Some(c)) if c.peer_addr().is_some_and(|a| a.ip() == peer) => got.push(c),
+                // Another host: not this client's stream.
+                Ok(Some(_)) => {}
+                Ok(None) if Instant::now() < end && !cx.client().stopping() => {
+                    std::thread::sleep(Duration::from_millis(2));
+                }
+                Ok(None) => return Err("the client did not connect its stream".into()),
+                Err(e) => return Err(e.to_string()),
+            }
+        }
+        let status = got.pop().map(Wire::tcp);
+        let data = got.pop().map(Wire::tcp).ok_or("no data connection")?;
+        Ok((data, status, port))
     }
 
     /// Call 302: a receive stream gets its outlet, a transmit stream its receiving thread.
@@ -605,13 +677,11 @@ impl Rpc {
             .ok_or_else(|| format!("no stream {id}"))?;
         match s {
             Stream::Rx {
-                data,
-                to,
-                format,
-                mtu,
+                link, format, off, ..
             } => {
-                let d = data.try_clone().map_err(|e| e.to_string())?;
-                let o = UdpOutlet::new(d, *to, format.sample_type(), format.bytes(), *mtu);
+                off.store(true, Ordering::Release);
+                *off = Arc::new(AtomicBool::new(false));
+                let o = StreamOutlet::new(link.clone(), format.sample_type(), off.clone());
                 cx.client().set_outlet(Some(Box::new(o)));
             }
             Stream::Tx {
@@ -650,7 +720,10 @@ impl Rpc {
             return;
         };
         match s {
-            Stream::Rx { .. } => cx.client().set_outlet(None),
+            Stream::Rx { off, .. } => {
+                off.store(true, Ordering::Release);
+                cx.client().set_outlet(None);
+            }
             Stream::Tx { stop, thread, .. } => {
                 stop.store(true, Ordering::Release);
                 if let Some(t) = thread.take() {

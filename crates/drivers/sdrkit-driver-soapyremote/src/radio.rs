@@ -1,5 +1,5 @@
 //! One open radio behind a SoapyRemote server: the open sequence, the configuration (at open and live), the set-up of the
-//! receive stream and the close sequence. The runner of the driver core drives it.
+//! receive stream (UDP or TCP) and the close sequence. The runner of the driver core drives it.
 //!
 //! Standard: the SoapyRemote protocol, RPC version 0x0400 (`rpc::VERSION`).
 
@@ -10,9 +10,10 @@ use crate::rpc::{
     self, arg, call, optional, Conn, Kwargs, Packer, Range, RpcError, Unpacker, RX, SERIAL,
 };
 use crate::stream::{Flow, RxShared, RxSockets, RxStream, StreamStats};
+use crate::wire::{self, Wire, PROT_KEY};
 use crate::{
-    lock, Mtu, SoapyError, SoapyRemoteSetting, Timing, ANTENNA, CLOCK_SOURCE, FORMAT, MTU, PPM,
-    REMOTE, RF_STATE, SERVER_LOG, TIME_SOURCE, WINDOW,
+    lock, Mtu, SoapyError, SoapyRemoteSetting, StreamProt, Timing, ANTENNA, CLOCK_SOURCE, FORMAT,
+    MTU, PPM, REMOTE, RF_STATE, SERVER_LOG, TIME_SOURCE, TRANSPORT, WINDOW,
 };
 use crate::{
     write_items, ARRIVING, DATAGRAM, DRIVER, HARDWARE, HARDWARE_INFO, LATE, LOG_DROPPED,
@@ -34,6 +35,17 @@ use sdrkit_graph::stream::SampleType;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
+
+/// The smallest message size of a TCP stream: the size the protocol's own client uses.
+pub(crate) const TCP_MTU: usize = 4096;
+
+/// The message size of a stream with `mtu` over `prot`.
+pub(crate) fn stream_mtu(mtu: usize, prot: StreamProt) -> usize {
+    match prot {
+        StreamProt::Udp => mtu,
+        StreamProt::Tcp => mtu.max(TCP_MTU),
+    }
+}
 
 /// The rate requested when the setting specifies none.
 pub(crate) const DEFAULT_RATE: Hz = 2.048e6;
@@ -192,6 +204,8 @@ pub(crate) struct Options {
     pub mtu: Mtu,
     /// The requested receive buffer size, in bytes.
     pub window: usize,
+    /// The transport of the stream.
+    pub transport: StreamProt,
     /// Forward the server's log.
     pub serverlog: bool,
     /// The antenna ("": the radio's default).
@@ -203,6 +217,11 @@ pub(crate) struct Options {
 }
 
 impl Options {
+    /// The size of a stream message: the MTU, and at least [`TCP_MTU`] on TCP.
+    pub fn message_size(&self) -> usize {
+        stream_mtu(self.mtu.bytes(), self.transport)
+    }
+
     /// Reads the settings that take effect at open.
     pub fn from_values(values: &Values) -> Options {
         let remote = values.get(&REMOTE);
@@ -212,6 +231,7 @@ impl Options {
             format: values.get(&FORMAT),
             mtu: values.get(&MTU),
             window: (values.get(&WINDOW) * 1_048_576.0).round() as usize,
+            transport: values.get(&TRANSPORT),
             serverlog: values.get(&SERVER_LOG),
             antenna: values.get(&ANTENNA).to_owned(),
             clock: values.get(&CLOCK_SOURCE).to_owned(),
@@ -274,6 +294,8 @@ pub(crate) struct Ctx {
     pub remote: Mutex<Kwargs>,
     /// The format of the first open. A reconnect must give the same one.
     pub format: Mutex<Option<Format>>,
+    /// The stream transport of the last open (the transmitter streams the same way).
+    pub tcp: AtomicBool,
 }
 
 impl Ctx {
@@ -294,6 +316,7 @@ impl Ctx {
             streamed: AtomicBool::new(false),
             remote: Mutex::default(),
             format: Mutex::new(None),
+            tcp: AtomicBool::new(false),
         }
     }
 }
@@ -322,6 +345,24 @@ pub(crate) fn hang_up(conn: &mut Conn, wait: Duration) {
         let _ = conn.call_void(&Packer::call(call::HANGUP), wait);
     }
     conn.shutdown();
+}
+
+/// The start of call 300 for direction `dir`, format `format`, channel `ch`: everything before the two port strings.
+pub(crate) fn setup_call(
+    dir: i8,
+    format: &str,
+    ch: i32,
+    mtu: usize,
+    window_bytes: usize,
+    prot: StreamProt,
+) -> Packer {
+    let mut args = Kwargs::new();
+    args.insert("remote:mtu".into(), mtu.to_string());
+    args.insert(PROT_KEY.into(), prot.name().into());
+    args.insert("remote:window".into(), window_bytes.to_string());
+    let mut p = Packer::call(call::SETUP_STREAM);
+    p.char(dir).string(format).size_list(&[ch]).kwargs(&args);
+    p
 }
 
 /// Makes the radio `remote` on `conn` (call 1).
@@ -468,13 +509,15 @@ pub(crate) fn open(
         version,
         facts: radio.facts.clone(),
         format: Some(radio.format),
-        mtu: radio.opts.mtu.bytes(),
+        mtu: radio.opts.message_size(),
         window: radio.opts.window,
         ..ServerInfo::default()
     };
     *lock(&ctx.sensors) = (radio.facts.sensors.clone(), Some(Instant::now()));
     *lock(&ctx.ctl) = Some(radio.ctl.clone());
     lock(&ctx.remote).clone_from(&radio.opts.remote);
+    ctx.tcp
+        .store(radio.opts.transport == StreamProt::Tcp, Ordering::Relaxed);
     if ctx.opens.fetch_add(1, Ordering::Relaxed) > 0 {
         ctx.stats.reconnects.fetch_add(1, Ordering::Relaxed);
     }
@@ -1002,45 +1045,57 @@ impl SoapyRadio {
         Ok(())
     }
 
-    /// Sets up the receive stream once: sockets, call 300, the first acknowledgement, activate.
+    /// Sets up the receive stream once: sockets or connections, call 300, the first acknowledgement, activate.
     fn setup_stream(&mut self, abort: &Arc<Abort>) -> Result<RxStream, DriverError> {
-        let any = any_local(self.server_ip);
         let window_bytes = self.opts.window;
-        let data = self.ctx.transport.bind(&DatagramOptions {
-            recv_buffer: Some(window_bytes),
-            ..DatagramOptions::at(any)
-        })?;
-        let status = self.ctx.transport.bind(&DatagramOptions::at(any))?;
-        let (dport, sport) = (data.local_addr().port(), status.local_addr().port());
-        let mtu = self.opts.mtu.bytes();
+        let mtu = self.opts.message_size();
         let window = plan::window_packets(window_bytes, mtu);
         let fmt = self.format;
-        let mut args = Kwargs::new();
-        args.insert("remote:mtu".into(), mtu.to_string());
-        args.insert("remote:prot".into(), "udp".into());
-        args.insert("remote:window".into(), window_bytes.to_string());
-        let mut p = Packer::call(call::SETUP_STREAM);
-        p.char(RX)
-            .string(fmt.name())
-            .size_list(&[0])
-            .kwargs(&args)
-            .string(&dport.to_string())
-            .string(&sport.to_string());
-        let (id, sv_port) = self
-            .call(&p, self.timing().setup, |u| Ok((u.i32()?, u.string()?)))
-            .map_err(|e| e.driver_error(call::SETUP_STREAM))?;
-        self.stream_id = Some(id);
-        let sv_port: u16 = sv_port
-            .trim()
-            .parse()
-            .map_err(|_| DriverError::driver(SoapyError::StreamPort))?;
+        let p = setup_call(RX, fmt.name(), 0, mtu, window_bytes, self.opts.transport);
+        let sockets = match self.opts.transport {
+            StreamProt::Udp => {
+                let any = any_local(self.server_ip);
+                let data = self.ctx.transport.bind(&DatagramOptions {
+                    recv_buffer: Some(window_bytes),
+                    ..DatagramOptions::at(any)
+                })?;
+                let status = self.ctx.transport.bind(&DatagramOptions::at(any))?;
+                let mut p = p;
+                p.string(&data.local_addr().port().to_string())
+                    .string(&status.local_addr().port().to_string());
+                let (id, sv_port) = self
+                    .call(&p, self.timing().setup, |u| Ok((u.i32()?, u.string()?)))
+                    .map_err(|e| e.driver_error(call::SETUP_STREAM))?;
+                self.stream_id = Some(id);
+                let sv_port: u16 = sv_port
+                    .trim()
+                    .parse()
+                    .map_err(|_| DriverError::driver(SoapyError::StreamPort))?;
+                let server = SocketAddr::new(self.server_ip, sv_port);
+                RxSockets {
+                    data: Wire::udp(data, server),
+                    status: Wire::udp(status, server),
+                }
+            }
+            StreamProt::Tcp => {
+                let mut p = p;
+                p.string("").string("");
+                let (id, data, status) = wire::setup_tcp(
+                    &mut self.conn(),
+                    &p,
+                    &self.ctx.transport,
+                    self.server_ip,
+                    self.timing().setup,
+                    abort,
+                    Some(window_bytes),
+                )?;
+                self.stream_id = Some(id);
+                RxSockets { data, status }
+            }
+        };
         self.stream_abort = Some(abort.clone());
         let mut rx = RxStream::new(
-            RxSockets {
-                data,
-                status,
-                server: SocketAddr::new(self.server_ip, sv_port),
-            },
+            sockets,
             fmt.bytes(),
             self.shift,
             window,
@@ -1054,7 +1109,9 @@ impl SoapyRadio {
             },
         )?;
         rx.send_ack();
-        self.activate(id)?;
+        if let Some(id) = self.stream_id {
+            self.activate(id)?;
+        }
         let mut info = lock(&self.ctx.info);
         info.window_packets = window;
         info.elements_per_datagram = plan::elements_per_datagram(mtu, fmt.bytes());

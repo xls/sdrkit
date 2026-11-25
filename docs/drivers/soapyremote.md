@@ -42,6 +42,7 @@ Only this driver has these.
 | `antenna` | Antenna | text | empty |  | The antenna input of the radio. Empty keeps the radio's default. A name the radio does not list is refused. |
 | `clocksrc` | Clock source | text | empty |  | Where the radio takes its clock from (internal, external, gpsdo). Empty keeps it as it is. A source the radio does not list is refused. |
 | `timesrc` | Time source (PPS) | text | empty |  | Where the radio takes its one pulse per second from. Empty keeps it as it is. A source the radio does not list is refused. |
+| `transport` | Stream transport | choice | `udp` | `udp` (UDP), `tcp` (TCP) | UDP is the protocol's default. TCP passes networks that drop or block UDP (NAT, firewalls, poor Wi-Fi) and loses nothing, but a lost packet delays the stream. Received messages are then at least 4096 bytes. |
 
 The radio can add settings when it opens, such as the gain of each stage. `show radio` lists them on the console of `run`.
 

@@ -1,5 +1,6 @@
-//! Transmit: a control connection and make of its own, and a transmit stream that the driver sends within the window of the
-//! server's acknowledgements. A worker thread feeds the stream from a bounded sample queue.
+//! Transmit: a control connection and make of its own, and a transmit stream (UDP or TCP, as the receive stream) that the
+//! driver sends within the window of the server's acknowledgements. A worker thread feeds the stream from a bounded sample
+//! queue.
 //!
 //! Nothing reaches the transmit side of the radio before [`Transmitter::arm`]. Arm applies rate, filter, carrier and gain, then
 //! sets up and activates the stream. Disarm stops the worker, deactivates and closes the stream.
@@ -8,12 +9,13 @@
 
 use crate::format::{pack_cf32, pack_cs16};
 use crate::plan;
-use crate::radio::{self, any_local, Ctx};
+use crate::radio::{self, any_local, setup_call, Ctx};
 use crate::rpc::{call, optional, Conn, Kwargs, Packer, Range, RpcError, Unpacker, TX};
-use crate::stream::{read_headers, DgHeader, END_BURST, HEADER_LEN, UNDERFLOW};
-use crate::{lock, SoapyError};
+use crate::stream::{read_headers, DgHeader, HeaderBuf, END_BURST, HEADER_LEN, UNDERFLOW};
+use crate::wire::{self, Wire};
+use crate::{lock, SoapyError, StreamProt};
 use core::net::SocketAddr;
-use sdrkit_core::net::{Datagram, DatagramOptions, NetError};
+use sdrkit_core::net::{DatagramOptions, NetError};
 use sdrkit_core::publish::field;
 use sdrkit_core::{Complex32, Hz, Results, Setting, SettingId, SettingSet, Values};
 use sdrkit_driver_core::net::Abort;
@@ -33,6 +35,8 @@ const QUEUE_DATAGRAMS: usize = 64;
 const TX_MTU: usize = 1500;
 /// The receive buffer size requested from the server for its transmit stream.
 const TX_WINDOW: usize = 4 << 20;
+/// On TCP the status path is read after this many messages.
+const TCP_STATUS_EVERY: u32 = 64;
 
 /// The transmit output, from 1.
 pub const TX_OUTPUT: Setting<field::I64> = Setting::new("txoutput", "Output", "", 1)
@@ -505,34 +509,46 @@ impl Core {
         self.apply(&values, true)?;
         let ctx = self.ctx.clone();
         let server_ip = ctx.transport.resolve(&ctx.host, ctx.port)?.ip();
-        let any = any_local(server_ip);
-        let data = ctx.transport.bind(&DatagramOptions {
-            recv_buffer: Some(1 << 20),
-            ..DatagramOptions::at(any)
-        })?;
-        let status = ctx.transport.bind(&DatagramOptions::at(any))?;
         let fmt = if self.facts.cs16 { "CS16" } else { "CF32" };
-        let mut args = Kwargs::new();
-        args.insert("remote:mtu".into(), TX_MTU.to_string());
-        args.insert("remote:prot".into(), "udp".into());
-        args.insert("remote:window".into(), TX_WINDOW.to_string());
-        let mut p = Packer::call(call::SETUP_STREAM);
-        p.char(TX)
-            .string(fmt)
-            .size_list(&[self.channel])
-            .kwargs(&args)
-            .string(&data.local_addr().port().to_string())
-            .string(&status.local_addr().port().to_string());
+        let prot = if ctx.tcp.load(Ordering::Relaxed) {
+            StreamProt::Tcp
+        } else {
+            StreamProt::Udp
+        };
+        let mut p = setup_call(TX, fmt, self.channel, TX_MTU, TX_WINDOW, prot);
         let t = ctx.timing.setup;
-        let (id, port) = self
-            .conn()?
-            .call(&p, t, |u| Ok((u.i32()?, u.string()?)))
-            .map_err(|e| e.driver_error(call::SETUP_STREAM))?;
-        self.stream_id = Some(id);
-        let port: u16 = port
-            .trim()
-            .parse()
-            .map_err(|_| DriverError::driver(SoapyError::StreamPort))?;
+        let parts = if prot == StreamProt::Tcp {
+            p.string("").string("");
+            let abort = Abort::new();
+            let (id, data, status) =
+                wire::setup_tcp(self.conn()?, &p, &ctx.transport, server_ip, t, &abort, None)?;
+            self.stream_id = Some(id);
+            SenderParts { data, status }
+        } else {
+            let any = any_local(server_ip);
+            let data = ctx.transport.bind(&DatagramOptions {
+                recv_buffer: Some(1 << 20),
+                ..DatagramOptions::at(any)
+            })?;
+            let status = ctx.transport.bind(&DatagramOptions::at(any))?;
+            p.string(&data.local_addr().port().to_string())
+                .string(&status.local_addr().port().to_string());
+            let (id, port) = self
+                .conn()?
+                .call(&p, t, |u| Ok((u.i32()?, u.string()?)))
+                .map_err(|e| e.driver_error(call::SETUP_STREAM))?;
+            self.stream_id = Some(id);
+            let port: u16 = port
+                .trim()
+                .parse()
+                .map_err(|_| DriverError::driver(SoapyError::StreamPort))?;
+            let server = SocketAddr::new(server_ip, port);
+            SenderParts {
+                data: Wire::udp(data, server),
+                status: Wire::udp(status, server),
+            }
+        };
+        let id = self.stream_id.unwrap_or_default();
         let mut p = Packer::call(call::ACTIVATE_STREAM);
         p.i32(id).i32(0).i64(0).i32(0);
         let t = ctx.timing.call;
@@ -548,11 +564,7 @@ impl Core {
         let stop = Arc::new(AtomicBool::new(false));
         let flush = Arc::new(AtomicBool::new(false));
         let w = Sender::start(
-            SenderParts {
-                data,
-                status,
-                server: SocketAddr::new(server_ip, port),
-            },
+            parts,
             cons,
             stop.clone(),
             flush.clone(),
@@ -676,18 +688,19 @@ struct Acks {
     window: u32,
 }
 
-/// The sockets of a transmit stream.
+/// The paths of a transmit stream.
 struct SenderParts {
-    data: Box<dyn Datagram>,
-    status: Box<dyn Datagram>,
-    server: SocketAddr,
+    data: Wire,
+    status: Wire,
 }
 
 /// The worker that sends datagrams within the window of the server.
 struct Sender {
-    data: Box<dyn Datagram>,
-    server: SocketAddr,
-    status: Box<dyn Datagram>,
+    data: Wire,
+    status: Wire,
+    bufs: [HeaderBuf; 2],
+    /// Messages sent since the status path was last read (TCP reads it every [`TCP_STATUS_EVERY`]).
+    since_status: u32,
     acks: Acks,
     /// The first error code of the status socket (0: none).
     fault: i32,
@@ -717,8 +730,9 @@ impl Sender {
     ) -> Result<Sender, DriverError> {
         Ok(Sender {
             data: parts.data,
-            server: parts.server,
             status: parts.status,
+            bufs: [[0; 64]; 2],
+            since_status: 0,
             acks: Acks::default(),
             fault: 0,
             cons,
@@ -733,17 +747,26 @@ impl Sender {
         })
     }
 
-    /// Reads the acknowledgements on the data socket and the reports on the status socket that wait, without waiting.
-    fn read_headers(&mut self) {
-        let server = self.server.ip();
-        let acks = &mut self.acks;
-        read_headers(self.data.as_mut(), server, |h| {
-            acks.acked = h.seq;
-            acks.window = h.elems.max(1) as u32;
-            acks.count += 1;
-        });
+    /// Reads the acknowledgements on the data path and the reports on the status path that wait, without waiting. On TCP,
+    /// where each poll waits a little, the acknowledgements are read only when `closed` (the window is shut) and the status
+    /// every [`TCP_STATUS_EVERY`] messages.
+    fn read_headers(&mut self, closed: bool) {
+        let tcp = self.data.is_tcp();
+        let [dbuf, sbuf] = &mut self.bufs;
+        if !tcp || closed {
+            let acks = &mut self.acks;
+            read_headers(&mut self.data, dbuf, |h| {
+                acks.acked = h.seq;
+                acks.window = h.elems.max(1) as u32;
+                acks.count += 1;
+            });
+        }
+        if tcp && !closed && self.since_status < TCP_STATUS_EVERY {
+            return;
+        }
+        self.since_status = 0;
         let (fault, counters) = (&mut self.fault, &self.counters);
-        read_headers(self.status.as_mut(), server, |h| match h.elems {
+        read_headers(&mut self.status, sbuf, |h| match h.elems {
             code if code >= 0 => {}
             UNDERFLOW => {
                 counters.underflows.fetch_add(1, Ordering::Relaxed);
@@ -765,7 +788,7 @@ impl Sender {
         let before = self.acks.count;
         let end = Instant::now() + self.slice;
         while Instant::now() < end && !self.stop.load(Ordering::Acquire) {
-            self.read_headers();
+            self.read_headers(true);
             if self.acks.count != before {
                 return true;
             }
@@ -788,7 +811,7 @@ impl Sender {
             if self.stop.load(Ordering::Acquire) {
                 return Ok(());
             }
-            self.read_headers();
+            self.read_headers(!win.may_send());
             if self.fault != 0 {
                 return Err(DriverError::Device { code: self.fault });
             }
@@ -852,13 +875,21 @@ impl Sender {
             } else {
                 pack_cf32(&iq[..k], &mut out[HEADER_LEN..bytes]);
             }
-            match self.data.send_to(&out[..bytes], self.server) {
+            let stop = &self.stop;
+            match self
+                .data
+                .send(&out[..bytes], &mut || stop.load(Ordering::Acquire))
+            {
                 Ok(()) => {}
-                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => continue,
+                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock && !self.data.is_tcp() => {
+                    continue
+                }
+                Err(_) if self.data.is_tcp() && stop.load(Ordering::Acquire) => return Ok(()),
                 Err(e) if e.kind() == std::io::ErrorKind::ConnectionRefused => {}
                 Err(e) => return Err(DriverError::Net(NetError::from(e))),
             }
             win.next = win.next.wrapping_add(1);
+            self.since_status += 1;
             self.counters.sent.fetch_add(k as u64, Ordering::Relaxed);
             self.counters.buffers.fetch_add(1, Ordering::Relaxed);
             in_burst = !last;
