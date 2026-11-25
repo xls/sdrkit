@@ -3,7 +3,9 @@
 //! host of these tests writes audio only while the session asks for it, and the tone of the audio is on the air.
 //!
 //! The fake radio plays its transmit samples at the sample rate, as a radio does, so a sender must make its samples in
-//! real time. The tests run one after the other: no sender of another test takes the cores of the one that runs.
+//! real time. The tests run one after the other: no sender of another test takes the cores of the one that runs. On a
+//! machine too busy for a sender to make its samples in real time, the engine ends the burst as starved: the tests
+//! then check that report and the samples the radio got before the end, not the tone.
 
 mod common;
 
@@ -11,7 +13,11 @@ use common::{defaults, field, number, wait_for};
 use sdrkit_core::net::FakeTransport;
 use sdrkit_core::{Complex32, Value, ValueKind, Values};
 use sdrkit_driver_core::iiod::fake::{FakeIiod, FakeOpts as IiodOpts};
-use sdrkit_host_engine::{Engine, Input, OwnerRef, RadioId, SessionId, TRANSMIT_ALLOWED};
+use sdrkit_core::Event;
+use sdrkit_host_engine::{
+    Engine, Input, OwnerRef, RadioId, SessionId, BURST_REFUSED, BURST_SAMPLES, BURST_SENT,
+    TRANSMIT, TRANSMIT_ALLOWED,
+};
 use std::f64::consts::TAU;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -205,9 +211,21 @@ fn start_asks_and_the_tone_goes_out(
     assert!(!ever_wanted(e, s, 0.3), "wanted again after stop");
     assert_eq!(number(e, OwnerRef::Session(s), "session.audio_in_lost"), 0.0);
 
+    // The transmission is one burst, which ends at `stop`, or before if the sender wrote it too slowly.
+    let mut events = Vec::new();
+    let burst = wait_for(T, || {
+        e.take_events(OwnerRef::Session(s), &mut events).unwrap();
+        events.iter().find(|ev| ev.is(&TRANSMIT)).cloned()
+    })
+    .expect("the transmission ended");
+    let rate = number(e, OwnerRef::Radio(r), "rate_hz");
+    if burst.fields.get(&BURST_SENT) == Some(false) {
+        the_starved_burst_is_reported(e, srv, s, &burst, rate);
+        return delay;
+    }
+
     // The radio got samples of the transmission. A sender of a wide signal on a loaded machine makes fewer than the
     // time on the air asks for.
-    let rate = number(e, OwnerRef::Radio(r), "rate_hz");
     let iq = wait_for(T, || {
         let iq = sent(srv);
         (iq.len() as f64 > 0.35 * rate).then_some(iq)
@@ -227,6 +245,39 @@ fn start_asks_and_the_tone_goes_out(
     }
     assert!(best > 30.0, "1 kHz is {best:.1} times the other tones");
     delay
+}
+
+/// Checks the report of `burst`, which failed, of session `s` at `rate`: the only failure allowed is a sender too slow
+/// for real time. The burst counts as failed, its reason gives the time on the air that its samples fill, and the
+/// radio got no signal after those samples.
+fn the_starved_burst_is_reported(
+    e: &Engine,
+    srv: &FakeIiod,
+    s: SessionId,
+    burst: &Event,
+    rate: f64,
+) {
+    let why = burst.fields.get(&BURST_REFUSED).unwrap_or_default();
+    let after_s: f64 = why
+        .strip_prefix("the stack wrote the burst too slowly: the radio ran out of samples ")
+        .and_then(|rest| rest.strip_suffix(" s into the burst, which was ended"))
+        .and_then(|t| t.parse().ok())
+        .unwrap_or_else(|| panic!("the burst failed: {why}"));
+    println!("starved after {after_s} s: the sender was too slow for real time");
+    assert_eq!(number(e, OwnerRef::Session(s), "session.tx_failed"), 1.0);
+    assert_eq!(number(e, OwnerRef::Session(s), "session.tx_sent"), 0.0);
+    let samples = burst.fields.get(&BURST_SAMPLES).unwrap();
+    assert!(samples > 0, "a burst on the air without samples");
+    assert!(
+        (after_s - samples as f64 / rate).abs() <= 5e-4,
+        "{samples} samples at {rate} Hz, ran out after {after_s} s"
+    );
+    // The transmitter drops what it still holds when it goes off the air: the radio may get none of the samples.
+    let signal = sent(srv).iter().filter(|z| z.norm_sqr() > 0.0).count();
+    assert!(
+        signal as u64 <= samples.unsigned_abs(),
+        "the radio got {signal} samples of signal, the stack wrote {samples}"
+    );
 }
 
 #[test]
