@@ -1,15 +1,15 @@
 # The interface of the stack family science. The registry test of the family writes this file.
-family science version=1.3
+family science version=2.0
 shape.SondeFields since=1.0
-shape.SondeFields.sondes type=i64 unit= optional=no since=1.0
-shape.SondeFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.SondeFields.sondes type=i64 unit= optional=no reading=1 since=1.0
+shape.SondeFields.frames_ok type=i64 unit= optional=no reading=3 since=1.0
 shape.SondeFields.frames_bad type=i64 unit= optional=no since=1.0
 shape.SondeFields.searches type=i64 unit= optional=no since=1.0
 shape.SondeFields.channels_used type=i64 unit= optional=no since=1.0
 shape.SondeFields.channels_allowed type=i64 unit= optional=no since=1.0
 shape.SondeFields.band type=hz unit=Hz optional=no since=1.0
 shape.SondeFields.narrow type=bool unit= optional=no since=1.0
-shape.SondeFields.selected type=text unit= optional=yes refers_to=sondes since=1.0
+shape.SondeFields.selected type=text unit= optional=yes refers_to=sondes reading=2 since=1.0
 shape.SondeRow since=1.0
 shape.SondeRow.type type=choice(rs41,rs92,dfm,m10,m20,lms6) unit= optional=no since=1.0
 shape.SondeRow.subtype type=text unit= optional=yes since=1.0
@@ -63,26 +63,26 @@ shape.SondeFrameEvent.humidity_pct type=f64 unit=% optional=yes since=1.0
 shape.SondeFrameEvent.climb_m_s type=f64 unit=m/s optional=yes since=1.0
 shape.SondeFrameEvent.burst_killer type=bool unit= optional=yes since=1.0
 shape.TimeFields since=1.0
-shape.TimeFields.station type=choice(dcf77,msf,wwvb,jjy40,jjy60,bpc,wwv,chu,bpm,bpmc,hla,rwm) unit= optional=no since=1.0
+shape.TimeFields.station type=choice(dcf77,msf,wwvb,jjy40,jjy60,bpc,wwv,chu,bpm,bpmc,hla,rwm) unit= optional=no reading=2 since=1.0
 shape.TimeFields.wwvh type=bool unit= optional=yes since=1.0
 shape.TimeFields.carrier_dbfs type=f64 unit=dBFS optional=no since=1.0
-shape.TimeFields.snr_db type=f64 unit=dB optional=no since=1.0
+shape.TimeFields.snr_db type=f64 unit=dB optional=no reading=5 since=1.0
 shape.TimeFields.depth_pct type=f64 unit=% optional=no since=1.0
 shape.TimeFields.tick_ms type=f64 unit=ms optional=no since=1.0
 shape.TimeFields.jitter_ms type=f64 unit=ms optional=no since=1.0
 shape.TimeFields.minutes_ok type=i64 unit= optional=no since=1.0
 shape.TimeFields.minutes_bad type=i64 unit= optional=no since=1.0
-shape.TimeFields.confirmed type=bool unit= optional=no since=1.0
+shape.TimeFields.confirmed type=bool unit= optional=no reading=3 since=1.0
 shape.TimeFields.distance_m type=f64 unit=m optional=yes since=1.0
 shape.TimeFields.delay_ms type=f64 unit=ms optional=yes since=1.0
 shape.TimeFields.path type=choice(ground_wave,sky_wave) unit= optional=yes since=1.0
 shape.TimeFields.symbols type=text unit= optional=no since=1.0
-shape.TimeFields.utc type=time unit= optional=yes since=1.0
+shape.TimeFields.utc type=time unit= optional=yes reading=1 since=1.0
 shape.TimeFields.received type=text unit= optional=yes since=1.0
 shape.TimeFields.dut1_s type=f64 unit=s optional=yes since=1.0
 shape.TimeFields.summer type=bool unit= optional=yes since=1.0
 shape.TimeFields.weekday type=choice(monday,tuesday,wednesday,thursday,friday,saturday,sunday) unit= optional=yes since=1.0
-shape.TimeFields.clock_offset_s type=f64 unit=s optional=yes since=1.0
+shape.TimeFields.clock_offset_s type=f64 unit=s optional=yes reading=4 since=1.0
 shape.TimeFields.clock_offset_avg_s type=f64 unit=s optional=yes since=1.0
 shape.TimeMinuteRow since=1.0
 shape.TimeMinuteRow.time_s type=f64 unit=s optional=no since=1.0
@@ -98,16 +98,16 @@ shape.TimeMinuteEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadc
 shape.TimeMinuteEvent.utc type=time unit= optional=no since=1.0
 shape.TimeMinuteEvent.station type=choice(dcf77,msf,wwvb,jjy40,jjy60,bpc,wwv,chu,bpm,bpmc,hla,rwm) unit= optional=no since=1.0
 shape.EczasFields since=1.0
-shape.EczasFields.utc type=time unit= optional=yes since=1.0
+shape.EczasFields.utc type=time unit= optional=yes reading=1 since=1.0
 shape.EczasFields.tz_hours type=i64 unit=h optional=yes since=1.0
 shape.EczasFields.leap_announce type=bool unit= optional=yes since=1.0
 shape.EczasFields.leap_subtract type=bool unit= optional=yes since=1.0
 shape.EczasFields.dst_change_soon type=bool unit= optional=yes since=1.0
 shape.EczasFields.tx_state type=choice(normal,off_day,off_week,off_longer) unit= optional=yes since=1.0
 shape.EczasFields.last_packet type=time unit= optional=yes since=1.0
-shape.EczasFields.confirmed type=bool unit= optional=no since=1.0
+shape.EczasFields.confirmed type=bool unit= optional=no reading=2 since=1.0
 shape.EczasFields.offset_hz type=hz unit=Hz optional=no since=1.0
-shape.EczasFields.snr_db type=f64 unit=dB optional=no since=1.0
+shape.EczasFields.snr_db type=f64 unit=dB optional=no reading=3 since=1.0
 shape.EczasFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.EczasFields.sync_quality type=f64 unit= optional=no since=1.0
 shape.EczasFields.syncs type=i64 unit= optional=no since=1.0
@@ -118,7 +118,7 @@ shape.EczasFields.other_slots type=i64 unit= optional=no since=1.0
 shape.EczasFields.false_syncs type=i64 unit= optional=no since=1.0
 shape.EczasFields.distance_m type=f64 unit=m optional=yes since=1.0
 shape.EczasFields.delay_ms type=f64 unit=ms optional=yes since=1.0
-shape.EczasFields.clock_offset_s type=f64 unit=s optional=yes since=1.0
+shape.EczasFields.clock_offset_s type=f64 unit=s optional=yes reading=4 since=1.0
 shape.EczasFields.clock_offset_avg_s type=f64 unit=s optional=yes since=1.0
 shape.EczasFrameRow since=1.0
 shape.EczasFrameRow.signal_time_s type=f64 unit=s optional=no since=1.0
@@ -134,14 +134,14 @@ shape.EczasTimeEvent.utc type=time unit= optional=no since=1.0
 shape.EczasTimeEvent.tz_hours type=i64 unit=h optional=no since=1.0
 shape.EczasTimeEvent.tx_state type=choice(normal,off_day,off_week,off_longer) unit= optional=no since=1.0
 shape.SameFields since=1.0
-shape.SameFields.channel type=choice(wx1,wx2,wx3,wx4,wx5,wx6,wx7) unit= optional=no since=1.0
+shape.SameFields.channel type=choice(wx1,wx2,wx3,wx4,wx5,wx6,wx7) unit= optional=no reading=2 since=1.0
 shape.SameFields.frequency type=hz unit=Hz optional=no since=1.0
-shape.SameFields.messages_ok type=i64 unit= optional=no since=1.0
+shape.SameFields.messages_ok type=i64 unit= optional=no reading=1 since=1.0
 shape.SameFields.messages_bad type=i64 unit= optional=no since=1.0
-shape.SameFields.tone_now type=bool unit= optional=no since=1.0
+shape.SameFields.tone_now type=bool unit= optional=no reading=3 since=1.0
 shape.SameFields.country type=choice(us,canada) unit= optional=no since=1.0
 shape.SameFields.counties type=i64 unit= optional=no since=1.0
-shape.SameFields.snr_db type=f64 unit=dB optional=no since=1.0
+shape.SameFields.snr_db type=f64 unit=dB optional=no reading=4 since=1.0
 shape.SameFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.SameFields.carrier type=hz unit=Hz optional=no since=1.0
 shape.SameAlertRow since=1.0
@@ -193,14 +193,14 @@ shape.SameEndEvent.text type=text unit= optional=no since=1.0
 shape.SameEndEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.SameEndEvent.raw type=text unit= optional=no since=1.0
 shape.MscatterFields since=1.0
-shape.MscatterFields.pings type=i64 unit= optional=no since=1.0
-shape.MscatterFields.rate type=i64 unit= optional=no since=1.0
+shape.MscatterFields.pings type=i64 unit= optional=no reading=2 since=1.0
+shape.MscatterFields.rate type=i64 unit= optional=no reading=1 since=1.0
 shape.MscatterFields.rejected type=i64 unit= optional=no since=1.0
 shape.MscatterFields.beacon type=hz unit=Hz optional=yes since=1.0
-shape.MscatterFields.beacon_snr_db type=f64 unit=dB optional=no since=1.0
+shape.MscatterFields.beacon_snr_db type=f64 unit=dB optional=no reading=4 since=1.0
 shape.MscatterFields.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.MscatterFields.threshold_db type=f64 unit=dB optional=no since=1.0
-shape.MscatterFields.ping_now_db type=f64 unit=dB optional=yes since=1.0
+shape.MscatterFields.ping_now_db type=f64 unit=dB optional=yes reading=3 since=1.0
 shape.MscatterPingRow since=1.0
 shape.MscatterPingRow.id type=i64 unit= optional=no since=1.0
 shape.MscatterPingRow.utc type=time unit= optional=no since=1.0
@@ -223,10 +223,10 @@ shape.MscatterPingEvent.peak_snr_db type=f64 unit=dB optional=no since=1.0
 shape.MscatterPingEvent.doppler type=hz unit=Hz optional=no since=1.0
 shape.MscatterPingEvent.kind type=choice(underdense,overdense) unit= optional=no since=1.0
 shape.SsdvFields since=1.0
-shape.SsdvFields.packets_ok type=i64 unit= optional=no since=1.0
-shape.SsdvFields.packets_bad type=i64 unit= optional=no since=1.0
+shape.SsdvFields.packets_ok type=i64 unit= optional=no reading=2 since=1.0
+shape.SsdvFields.packets_bad type=i64 unit= optional=no reading=3 since=1.0
 shape.SsdvFields.corrected type=i64 unit= optional=no since=1.0
-shape.SsdvFields.pictures_done type=i64 unit= optional=no since=1.0
+shape.SsdvFields.pictures_done type=i64 unit= optional=no reading=1 since=1.0
 shape.SsdvFields.last_baud type=i64 unit=Bd optional=yes since=1.0
 shape.SsdvFields.last_n82 type=bool unit= optional=yes since=1.0
 shape.SsdvPacketRow since=1.0
@@ -253,7 +253,7 @@ shape.SsdvPictureRow.complete type=bool unit= optional=no since=1.0
 shape.SsdvPictureRow.bytes type=i64 unit= optional=no since=1.0
 shape.AstroFields since=1.0
 shape.AstroFields.finished type=i64 unit= optional=no since=1.0
-shape.AstroFields.progress_pct type=f64 unit=% optional=no since=1.0
+shape.AstroFields.progress_pct type=f64 unit=% optional=no reading=5 since=1.0
 shape.AstroFields.bin type=hz unit=Hz optional=no since=1.0
 shape.AstroFields.bin_km_s type=f64 unit=km/s optional=no since=1.0
 shape.AstroFields.span type=hz unit=Hz optional=no since=1.0
@@ -261,17 +261,17 @@ shape.AstroFields.span_km_s type=f64 unit=km/s optional=no since=1.0
 shape.AstroFields.bins_flagged type=i64 unit= optional=no since=1.0
 shape.AstroFields.peak type=hz unit=Hz optional=yes since=1.0
 shape.AstroFields.peak_km_s type=f64 unit=km/s optional=yes since=1.0
-shape.AstroFields.excess_pct type=f64 unit=% optional=yes since=1.0
+shape.AstroFields.excess_pct type=f64 unit=% optional=yes reading=3 since=1.0
 shape.AstroFields.line_snr type=f64 unit= optional=yes since=1.0
-shape.AstroFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.AstroFields.snr_db type=f64 unit=dB optional=yes reading=2 since=1.0
 shape.AstroFields.target_ra_deg type=f64 unit=° optional=no since=1.0
 shape.AstroFields.target_dec_deg type=f64 unit=° optional=no since=1.0
 shape.AstroFields.target_az_deg type=f64 unit=° optional=yes since=1.0
-shape.AstroFields.target_el_deg type=f64 unit=° optional=yes since=1.0
+shape.AstroFields.target_el_deg type=f64 unit=° optional=yes reading=4 since=1.0
 shape.AstroFields.lsr_rotation_kms type=f64 unit=km/s optional=yes since=1.0
 shape.AstroFields.lsr_orbit_kms type=f64 unit=km/s optional=yes since=1.0
 shape.AstroFields.lsr_sun_kms type=f64 unit=km/s optional=yes since=1.0
-shape.AstroFields.vel_lsr_kms type=f64 unit=km/s optional=yes since=1.0
+shape.AstroFields.vel_lsr_kms type=f64 unit=km/s optional=yes reading=1 since=1.0
 shape.AstroFields.trx_k type=f64 unit=K optional=yes since=1.0
 shape.AstroFields.gain_per_k type=f64 unit= optional=yes since=1.0
 shape.AstroFields.note type=choice(switching_needs_radio,y_factor,no_line) unit= optional=yes since=1.0
@@ -297,17 +297,17 @@ shape.IonoFields since=1.0
 shape.IonoFields.rate type=hz unit=Hz optional=no since=1.0
 shape.IonoFields.centre type=hz unit=Hz optional=no since=1.0
 shape.IonoFields.signal_time_s type=f64 unit=s optional=no since=1.0
-shape.IonoFields.timing_lock type=bool unit= optional=no since=1.0
+shape.IonoFields.timing_lock type=bool unit= optional=no reading=4 since=1.0
 shape.IonoFields.span type=hz unit=Hz optional=no since=1.0
-shape.IonoFields.sounders_heard type=i64 unit= optional=no since=1.0
-shape.IonoFields.active_sweeps type=i64 unit= optional=no since=1.0
+shape.IonoFields.sounders_heard type=i64 unit= optional=no reading=1 since=1.0
+shape.IonoFields.active_sweeps type=i64 unit= optional=no reading=2 since=1.0
 shape.IonoFields.detector_fft type=i64 unit= optional=yes since=1.0
 shape.IonoFields.detector_ms type=f64 unit=ms optional=yes since=1.0
 shape.IonoFields.detector_bin type=hz unit=Hz optional=yes since=1.0
 shape.IonoFields.ffts type=i64 unit= optional=yes since=1.0
 shape.IonoFields.loose_peaks type=i64 unit= optional=yes since=1.0
 shape.IonoFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
-shape.IonoFields.selected type=text unit= optional=yes refers_to=sounders since=1.0
+shape.IonoFields.selected type=text unit= optional=yes refers_to=sounders reading=3 since=1.0
 shape.IonoSounderRow since=1.0
 shape.IonoSounderRow.id type=i64 unit= optional=no since=1.0
 shape.IonoSounderRow.rate_khz_s type=f64 unit=kHz/s optional=no since=1.0
@@ -347,20 +347,20 @@ shape.IonoBandRow since=1.0
 shape.IonoBandRow.band type=text unit= optional=no since=1.0
 shape.IonoBandRow.state type=choice(open,closed,absorbed,unknown) unit= optional=no since=1.0
 shape.SfericsFields since=1.0
-shape.SfericsFields.strikes type=i64 unit= optional=no since=1.0
+shape.SfericsFields.strikes type=i64 unit= optional=no reading=2 since=1.0
 shape.SfericsFields.flashes type=i64 unit= optional=no since=1.0
 shape.SfericsFields.mains type=i64 unit= optional=no since=1.0
 shape.SfericsFields.too_long type=i64 unit= optional=no since=1.0
-shape.SfericsFields.per_min_1 type=f64 unit=/min optional=no since=1.0
-shape.SfericsFields.per_min_10 type=f64 unit=/min optional=no since=1.0
+shape.SfericsFields.per_min_1 type=f64 unit=1/min optional=no reading=1 since=1.0
+shape.SfericsFields.per_min_10 type=f64 unit=1/min optional=no since=1.0
 shape.SfericsFields.floor_db type=f64 unit=dBFS optional=yes since=1.0
 shape.SfericsFields.threshold_db type=f64 unit=dB optional=no since=1.0
-shape.SfericsFields.last_peak_db type=f64 unit=dB optional=yes since=1.0
+shape.SfericsFields.last_peak_db type=f64 unit=dB optional=yes reading=5 since=1.0
 shape.SfericsFields.last_ago_s type=f64 unit=s optional=yes since=1.0
 shape.SfericsFields.mains_active type=bool unit= optional=no since=1.0
-shape.SfericsFields.storm_phase type=text unit= optional=no since=1.0
+shape.SfericsFields.storm_phase type=text unit= optional=no reading=4 since=1.0
 shape.SfericsFields.storm_db_change type=f64 unit=dB optional=no since=1.0
-shape.SfericsFields.activity type=text unit= optional=no since=1.0
+shape.SfericsFields.activity type=text unit= optional=no reading=3 since=1.0
 shape.SfericsFields.note type=text unit= optional=no since=1.0
 shape.DecoderFields since=1.0
 shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
@@ -368,22 +368,22 @@ shape.SfericsStrikeRow since=1.0
 shape.SfericsStrikeRow.time_s type=f64 unit=s optional=no since=1.0
 shape.SfericsStrikeRow.utc type=time unit= optional=no since=1.0
 shape.SfericsStrikeRow.peak_db type=f64 unit=dB optional=no since=1.0
-shape.SfericsStrikeRow.width_us type=f64 unit=µs optional=no since=1.0
+shape.SfericsStrikeRow.width_us type=f64 unit=us optional=no since=1.0
 shape.SfericsStrikeRow.flash type=i64 unit= optional=no since=1.0
 shape.SfericsStormEvent since=1.0
 shape.SfericsStormEvent.storm_phase type=text unit= optional=no since=1.0
 shape.SfericsStormEvent.storm_db_change type=f64 unit=dB optional=no since=1.0
-shape.SfericsStormEvent.per_minute type=f64 unit=/min optional=no since=1.0
+shape.SfericsStormEvent.per_minute type=f64 unit=1/min optional=no since=1.0
 shape.SupersidFields since=1.0
 shape.SupersidFields.listed_n type=i64 unit= optional=no since=1.0
 shape.SupersidFields.in_span_n type=i64 unit= optional=no since=1.0
-shape.SupersidFields.present_n type=i64 unit= optional=no since=1.0
+shape.SupersidFields.present_n type=i64 unit= optional=no reading=1 since=1.0
 shape.SupersidFields.intervals type=i64 unit= optional=no since=1.0
 shape.SupersidFields.bin_hz type=hz unit=Hz optional=yes since=1.0
-shape.SupersidFields.events_total type=i64 unit= optional=no since=1.0
-shape.SupersidFields.last_event_tx type=text unit= optional=yes since=1.0
-shape.SupersidFields.last_event_rise_db type=f64 unit=dB optional=yes since=1.0
-shape.SupersidFields.last_event_age_s type=duration unit=s optional=yes since=1.0
+shape.SupersidFields.events_total type=i64 unit= optional=no reading=2 since=1.0
+shape.SupersidFields.last_event_tx type=text unit= optional=yes reading=3 since=1.0
+shape.SupersidFields.last_event_rise_db type=f64 unit=dB optional=yes reading=4 since=1.0
+shape.SupersidFields.last_event_age_s type=duration unit=s optional=yes reading=5 since=1.0
 shape.SupersidFields.log_file type=text unit= optional=yes since=1.0
 shape.SupersidFields.log_error type=text unit= optional=yes since=1.0
 shape.SupersidFields.text type=text unit= optional=no since=1.0
@@ -422,10 +422,10 @@ shape.SupersidSidEvent.peak_db type=f64 unit=dB optional=no since=1.0
 shape.SupersidSidEvent.text type=text unit= optional=no since=1.0
 shape.SchumannFields since=1.0
 shape.SchumannFields.text type=text unit= optional=no since=1.0
-shape.SchumannFields.fundamental_hz type=hz unit=Hz optional=yes since=1.0
-shape.SchumannFields.fundamental_db type=f64 unit=dB optional=yes since=1.0
-shape.SchumannFields.fundamental_q type=f64 unit= optional=yes since=1.0
-shape.SchumannFields.peaks_found type=i64 unit= optional=no since=1.0
+shape.SchumannFields.fundamental_hz type=hz unit=Hz optional=yes reading=1 since=1.0
+shape.SchumannFields.fundamental_db type=f64 unit=dB optional=yes reading=2 since=1.0
+shape.SchumannFields.fundamental_q type=f64 unit= optional=yes reading=3 since=1.0
+shape.SchumannFields.peaks_found type=i64 unit= optional=no reading=4 since=1.0
 shape.SchumannFields.averaged_s type=duration unit=s optional=no since=1.0
 shape.SchumannFields.level_db type=f64 unit=dB optional=yes since=1.0
 shape.SchumannFields.events_total type=i64 unit= optional=no since=1.0
@@ -460,11 +460,11 @@ shape.ScienceEvent.aux1 type=f64 unit= optional=no since=1.0
 shape.ScienceEvent.aux2 type=f64 unit= optional=no since=1.0
 shape.WhistlerFields since=1.0
 shape.WhistlerFields.text type=text unit= optional=no since=1.0
-shape.WhistlerFields.whistlers type=i64 unit= optional=no since=1.0
-shape.WhistlerFields.tweeks type=i64 unit= optional=no since=1.0
+shape.WhistlerFields.whistlers type=i64 unit= optional=no reading=1 since=1.0
+shape.WhistlerFields.tweeks type=i64 unit= optional=no reading=2 since=1.0
 shape.WhistlerFields.events_total type=i64 unit= optional=no since=1.0
-shape.WhistlerFields.sferics type=i64 unit= optional=no since=1.0
-shape.WhistlerFields.dispersion type=f64 unit=s√Hz optional=yes since=1.0
+shape.WhistlerFields.sferics type=i64 unit= optional=no reading=3 since=1.0
+shape.WhistlerFields.dispersion type=f64 unit=s√Hz optional=yes reading=4 since=1.0
 shape.WhistlerFields.broadband_db type=f64 unit=dB optional=yes since=1.0
 shape.WhistlerFields.note type=text unit= optional=no since=1.0
 shape.WhistlerTrendRow since=1.0
@@ -473,26 +473,26 @@ shape.WhistlerTrendRow.events_per_min type=f64 unit= optional=no since=1.0
 shape.WhistlerTrendRow.sferics_per_min type=f64 unit= optional=no since=1.0
 shape.LightningTdoaFields since=1.0
 shape.LightningTdoaFields.role type=text unit= optional=no since=1.0
-shape.LightningTdoaFields.pulses type=i64 unit= optional=no since=1.0
+shape.LightningTdoaFields.pulses type=i64 unit= optional=no reading=2 since=1.0
 shape.LightningTdoaFields.last_peak_db type=f64 unit=dB optional=yes since=1.0
 shape.LightningTdoaFields.floor_db type=f64 unit=dBFS optional=yes since=1.0
-shape.LightningTdoaFields.time_source type=text unit= optional=no since=1.0
-shape.LightningTdoaFields.clock_sigma_us type=f64 unit=µs optional=yes since=1.0
+shape.LightningTdoaFields.time_source type=text unit= optional=no reading=4 since=1.0
+shape.LightningTdoaFields.clock_sigma_us type=f64 unit=us optional=yes reading=3 since=1.0
 shape.LightningTdoaFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
 shape.LightningTdoaFields.clock_ppm_sigma type=f64 unit=ppm optional=yes since=1.0
 shape.LightningTdoaFields.fine type=bool unit= optional=no since=1.0
-shape.LightningTdoaFields.sigma_gps_us type=f64 unit=µs optional=yes since=1.0
-shape.LightningTdoaFields.sigma_gnss_us type=f64 unit=µs optional=yes since=1.0
-shape.LightningTdoaFields.sigma_cv_us type=f64 unit=µs optional=yes since=1.0
-shape.LightningTdoaFields.sigma_ptp_us type=f64 unit=µs optional=yes since=1.0
-shape.LightningTdoaFields.sigma_ntp_us type=f64 unit=µs optional=yes since=1.0
-shape.LightningTdoaFields.sigma_system_us type=f64 unit=µs optional=yes since=1.0
+shape.LightningTdoaFields.sigma_gps_us type=f64 unit=us optional=yes since=1.0
+shape.LightningTdoaFields.sigma_gnss_us type=f64 unit=us optional=yes since=1.0
+shape.LightningTdoaFields.sigma_cv_us type=f64 unit=us optional=yes since=1.0
+shape.LightningTdoaFields.sigma_ptp_us type=f64 unit=us optional=yes since=1.0
+shape.LightningTdoaFields.sigma_ntp_us type=f64 unit=us optional=yes since=1.0
+shape.LightningTdoaFields.sigma_system_us type=f64 unit=us optional=yes since=1.0
 shape.LightningTdoaFields.common_view type=bool unit= optional=no since=1.0
 shape.LightningTdoaFields.timing_locked type=bool unit= optional=yes since=1.0
 shape.LightningTdoaFields.timing_snr_db type=f64 unit=dB optional=yes since=1.0
-shape.LightningTdoaFields.timing_sigma_us type=f64 unit=µs optional=yes since=1.0
+shape.LightningTdoaFields.timing_sigma_us type=f64 unit=us optional=yes since=1.0
 shape.LightningTdoaFields.timing_carrier_hz type=f64 unit=Hz optional=yes since=1.0
-shape.LightningTdoaFields.network type=text unit= optional=no since=1.0
+shape.LightningTdoaFields.network type=text unit= optional=no reading=5 since=1.0
 shape.LightningTdoaFields.sent type=i64 unit= optional=no since=1.0
 shape.LightningTdoaFields.send_errors type=i64 unit= optional=no since=1.0
 shape.LightningTdoaFields.packets_ok type=i64 unit= optional=yes since=1.0
@@ -502,7 +502,7 @@ shape.LightningTdoaFields.stale type=i64 unit= optional=yes since=1.0
 shape.LightningTdoaFields.malformed type=i64 unit= optional=yes since=1.0
 shape.LightningTdoaFields.rate_limited type=i64 unit= optional=yes since=1.0
 shape.LightningTdoaFields.groups type=i64 unit= optional=yes since=1.0
-shape.LightningTdoaFields.fixes type=i64 unit= optional=yes since=1.0
+shape.LightningTdoaFields.fixes type=i64 unit= optional=yes reading=1 since=1.0
 shape.LightningTdoaFields.rejected type=i64 unit= optional=yes since=1.0
 shape.LightningTdoaFields.unmatched type=i64 unit= optional=yes since=1.0
 shape.LightningTdoaFields.coarse_only type=i64 unit= optional=yes since=1.0
@@ -517,25 +517,26 @@ shape.LightningTdoaStrikeRow.minor_km type=f64 unit=km optional=no since=1.0
 shape.LightningTdoaStrikeRow.az_deg type=f64 unit=° optional=no since=1.0
 shape.LightningTdoaStrikeRow.stations type=i64 unit= optional=no since=1.0
 shape.LightningTdoaStrikeRow.also_heard type=i64 unit= optional=no since=1.0
-shape.LightningTdoaStrikeRow.rms_us type=f64 unit=µs optional=no since=1.0
+shape.LightningTdoaStrikeRow.rms_us type=f64 unit=us optional=no since=1.0
 shape.LightningTdoaStrikeRow.chi2 type=f64 unit= optional=no since=1.0
 shape.LightningTdoaStrikeRow.dof type=i64 unit= optional=no since=1.0
 shape.LightningTdoaStrikeRow.unchecked type=bool unit= optional=no since=1.0
 shape.LightningTdoaStrikeRow.ambiguous type=bool unit= optional=no since=1.0
 shape.LightningTdoaStrikeRow.utc type=bool unit= optional=no since=1.0
+shape.LightningTdoaStrikeRow.time type=time unit= optional=yes since=1.0
 shape.LightningTdoaStationRow since=1.0
 shape.LightningTdoaStationRow.id type=text unit= optional=no since=1.0
 shape.LightningTdoaStationRow.name type=text unit= optional=no since=1.0
 shape.LightningTdoaStationRow.lat type=f64 unit=° optional=no since=1.0
 shape.LightningTdoaStationRow.lon type=f64 unit=° optional=no since=1.0
 shape.LightningTdoaStationRow.time_source type=text unit= optional=no since=1.0
-shape.LightningTdoaStationRow.sigma_us type=f64 unit=µs optional=no since=1.0
+shape.LightningTdoaStationRow.sigma_us type=f64 unit=us optional=no since=1.0
 shape.LightningTdoaStationRow.age_s type=f64 unit=s optional=no since=1.0
 shape.LightningTdoaStationRow.detections type=i64 unit= optional=no since=1.0
 shape.LightningTdoaStationRow.used type=i64 unit= optional=no since=1.0
 shape.LightningTdoaStationRow.fine type=bool unit= optional=no since=1.0
 shape.LightningTdoaStationRow.tied_to_utc type=bool unit= optional=no since=1.0
-shape.LightningTdoaStationRow.cv_correction_us type=f64 unit=µs optional=yes since=1.0
+shape.LightningTdoaStationRow.cv_correction_us type=f64 unit=us optional=yes since=1.0
 shape.LightningStrikeEvent since=1.0
 shape.LightningStrikeEvent.utc_ns type=i64 unit=ns optional=no since=1.0
 shape.LightningStrikeEvent.lat type=f64 unit=° optional=no since=1.0
@@ -545,7 +546,7 @@ shape.LightningStrikeEvent.minor_km type=f64 unit=km optional=no since=1.0
 shape.LightningStrikeEvent.az_deg type=f64 unit=° optional=no since=1.0
 shape.LightningStrikeEvent.stations type=i64 unit= optional=no since=1.0
 shape.LightningStrikeEvent.also_heard type=i64 unit= optional=no since=1.0
-shape.LightningStrikeEvent.rms_us type=f64 unit=µs optional=no since=1.0
+shape.LightningStrikeEvent.rms_us type=f64 unit=us optional=no since=1.0
 shape.LightningStrikeEvent.chi2 type=f64 unit= optional=no since=1.0
 shape.LightningStrikeEvent.dof type=i64 unit= optional=no since=1.0
 shape.LightningStrikeEvent.unchecked type=bool unit= optional=no since=1.0
@@ -553,12 +554,12 @@ shape.LightningStrikeEvent.ambiguous type=bool unit= optional=no since=1.0
 shape.LightningStrikeEvent.utc type=bool unit= optional=no since=1.0
 shape.BurstFields since=1.0
 shape.BurstFields.text type=text unit= optional=no since=1.0
-shape.BurstFields.bursts type=i64 unit= optional=no since=1.0
-shape.BurstFields.events_total type=i64 unit= optional=no since=1.0
-shape.BurstFields.level_db type=f64 unit=dB optional=yes since=1.0
+shape.BurstFields.bursts type=i64 unit= optional=no reading=1 since=1.0
+shape.BurstFields.events_total type=i64 unit= optional=no reading=4 since=1.0
+shape.BurstFields.level_db type=f64 unit=dB optional=yes reading=3 since=1.0
 shape.BurstFields.bin_hz type=hz unit=Hz optional=yes since=1.0
 shape.BurstFields.row_s type=duration unit=s optional=yes since=1.0
-shape.BurstFields.burst_open type=bool unit= optional=no since=1.0
+shape.BurstFields.burst_open type=bool unit= optional=no reading=2 since=1.0
 shape.BurstFields.files type=i64 unit= optional=no since=1.0
 shape.BurstFields.last_file type=text unit= optional=no since=1.0
 shape.BurstFields.note type=text unit= optional=no since=1.0
@@ -568,14 +569,14 @@ shape.BurstTrendRow.level_change_db type=f64 unit=dB optional=no since=1.0
 shape.BurstTrendRow.bursts_per_min type=f64 unit= optional=no since=1.0
 shape.RiometerFields since=1.0
 shape.RiometerFields.text type=text unit= optional=no since=1.0
-shape.RiometerFields.power_db type=f64 unit=dBFS optional=yes since=1.0
+shape.RiometerFields.power_db type=f64 unit=dBFS optional=yes reading=3 since=1.0
 shape.RiometerFields.lst_h type=f64 unit=h optional=yes since=1.0
-shape.RiometerFields.curve_db type=f64 unit=dBFS optional=yes since=1.0
-shape.RiometerFields.absorption_db type=f64 unit=dB optional=yes since=1.0
+shape.RiometerFields.curve_db type=f64 unit=dBFS optional=yes reading=4 since=1.0
+shape.RiometerFields.absorption_db type=f64 unit=dB optional=yes reading=1 since=1.0
 shape.RiometerFields.curve_bins type=i64 unit= optional=no since=1.0
 shape.RiometerFields.curve_ready type=bool unit= optional=no since=1.0
 shape.RiometerFields.interfered_share type=f64 unit= optional=no since=1.0
-shape.RiometerFields.event_on type=bool unit= optional=no since=1.0
+shape.RiometerFields.event_on type=bool unit= optional=no reading=2 since=1.0
 shape.RiometerFields.minutes type=i64 unit= optional=no since=1.0
 shape.RiometerFields.qdc type=text unit= optional=yes since=1.0
 shape.RiometerFields.note type=text unit= optional=no since=1.0
@@ -588,14 +589,14 @@ shape.RiometerQdcReply since=1.0
 shape.RiometerQdcReply.qdc type=text unit= optional=no since=1.0
 shape.EmeEchoFields since=1.0
 shape.EmeEchoFields.text type=text unit= optional=no since=1.0
-shape.EmeEchoFields.pulses type=i64 unit= optional=no since=1.0
-shape.EmeEchoFields.echoes type=i64 unit= optional=no since=1.0
+shape.EmeEchoFields.pulses type=i64 unit= optional=no reading=5 since=1.0
+shape.EmeEchoFields.echoes type=i64 unit= optional=no reading=1 since=1.0
 shape.EmeEchoFields.carrier_hz type=hz unit=Hz optional=yes since=1.0
 shape.EmeEchoFields.transmitting type=bool unit= optional=no since=1.0
 shape.EmeEchoFields.noise_db type=f64 unit=dBFS optional=yes since=1.0
-shape.EmeEchoFields.last_delay_s type=duration unit=s optional=yes since=1.0
-shape.EmeEchoFields.last_doppler_hz type=hz unit=Hz optional=yes since=1.0
-shape.EmeEchoFields.last_level_db type=f64 unit=dB optional=yes since=1.0
+shape.EmeEchoFields.last_delay_s type=duration unit=s optional=yes reading=2 since=1.0
+shape.EmeEchoFields.last_doppler_hz type=hz unit=Hz optional=yes reading=3 since=1.0
+shape.EmeEchoFields.last_level_db type=f64 unit=dB optional=yes reading=4 since=1.0
 shape.EmeEchoFields.note type=text unit= optional=no since=1.0
 shape.EmeEchoTrendRow since=1.0
 shape.EmeEchoTrendRow.utc type=time unit= optional=no since=1.0
@@ -603,13 +604,13 @@ shape.EmeEchoTrendRow.echo_level_db type=f64 unit=dB optional=no since=1.0
 shape.EmeEchoTrendRow.echo_delay_s type=f64 unit=s optional=no since=1.0
 shape.BeaconEventsFields since=1.0
 shape.BeaconEventsFields.text type=text unit= optional=no since=1.0
-shape.BeaconEventsFields.openings type=i64 unit= optional=no since=1.0
+shape.BeaconEventsFields.openings type=i64 unit= optional=no reading=4 since=1.0
 shape.BeaconEventsFields.noise_db type=f64 unit=dBFS optional=yes since=1.0
-shape.BeaconEventsFields.open type=bool unit= optional=no since=1.0
+shape.BeaconEventsFields.open type=bool unit= optional=no reading=1 since=1.0
 shape.BeaconEventsFields.width_hz type=hz unit=Hz optional=yes since=1.0
 shape.BeaconEventsFields.z type=f64 unit= optional=yes since=1.0
-shape.BeaconEventsFields.snr_db type=f64 unit=dB optional=yes since=1.0
-shape.BeaconEventsFields.shift_hz type=hz unit=Hz optional=yes since=1.0
+shape.BeaconEventsFields.snr_db type=f64 unit=dB optional=yes reading=2 since=1.0
+shape.BeaconEventsFields.shift_hz type=hz unit=Hz optional=yes reading=3 since=1.0
 shape.BeaconEventsFields.note type=text unit= optional=no since=1.0
 shape.BeaconEventsTrendRow since=1.0
 shape.BeaconEventsTrendRow.utc type=time unit= optional=no since=1.0
@@ -617,16 +618,16 @@ shape.BeaconEventsTrendRow.peak_snr_db type=f64 unit=dB optional=no since=1.0
 shape.BeaconEventsTrendRow.mean_width_hz type=f64 unit=Hz optional=no since=1.0
 shape.PulsarFields since=1.0
 shape.PulsarFields.text type=text unit= optional=no since=1.0
-shape.PulsarFields.ok type=bool unit= optional=no since=1.0
-shape.PulsarFields.snr type=f64 unit= optional=yes since=1.0
-shape.PulsarFields.period_found_s type=f64 unit=s optional=yes since=1.0
-shape.PulsarFields.dm_found type=f64 unit=pc%20cm⁻³ optional=yes since=1.0
+shape.PulsarFields.ok type=bool unit= optional=no reading=4 since=1.0
+shape.PulsarFields.snr type=f64 unit= optional=yes reading=3 since=1.0
+shape.PulsarFields.period_found_s type=f64 unit=s optional=yes reading=1 since=1.0
+shape.PulsarFields.dm_found type=f64 unit=pc%20cm⁻³ optional=yes reading=2 since=1.0
 shape.PulsarFields.peak_phase type=f64 unit= optional=yes since=1.0
 shape.PulsarFields.duty type=f64 unit= optional=yes since=1.0
 shape.PulsarFields.observed_s type=duration unit=s optional=no since=1.0
 shape.PulsarFields.searching type=bool unit= optional=no since=1.0
 shape.PulsarFields.searches type=i64 unit= optional=no since=1.0
-shape.PulsarFields.detections type=i64 unit= optional=no since=1.0
+shape.PulsarFields.detections type=i64 unit= optional=no reading=5 since=1.0
 shape.PulsarFields.rows_held type=i64 unit= optional=no since=1.0
 shape.PulsarFields.row_ms type=f64 unit=ms optional=yes since=1.0
 shape.PulsarFields.bank_channels type=i64 unit= optional=yes since=1.0
@@ -640,6 +641,7 @@ shape.PulsarSearchRow.period_found_s type=f64 unit=s optional=no since=1.0
 shape.PulsarSearchRow.dm_found type=f64 unit=pc%20cm⁻³ optional=no since=1.0
 shape.PulsarSearchRow.peak_phase type=f64 unit= optional=no since=1.0
 shape.PulsarSearchRow.duty type=f64 unit= optional=no since=1.0
+shape.PulsarSearchRow.time_s type=f64 unit=s optional=no since=1.0
 shape.PulsarDetectionEvent since=1.0
 shape.PulsarDetectionEvent.text type=text unit= optional=no since=1.0
 shape.PulsarDetectionEvent.ok type=bool unit= optional=no since=1.0
@@ -651,12 +653,12 @@ shape.PulsarDetectionEvent.duty type=f64 unit= optional=no since=1.0
 shape.PulsarDetectionEvent.observed_s type=duration unit=s optional=no since=1.0
 shape.RadarDetectFields since=1.0
 shape.RadarDetectFields.text type=text unit= optional=no since=1.0
-shape.RadarDetectFields.rotation_s type=f64 unit=s optional=yes since=1.0
-shape.RadarDetectFields.rpm type=f64 unit=rpm optional=yes since=1.0
-shape.RadarDetectFields.prf_hz type=hz unit=Hz optional=yes since=1.0
+shape.RadarDetectFields.rotation_s type=f64 unit=s optional=yes reading=5 since=1.0
+shape.RadarDetectFields.rpm type=f64 unit=rpm optional=yes reading=1 since=1.0
+shape.RadarDetectFields.prf_hz type=hz unit=Hz optional=yes reading=2 since=1.0
 shape.RadarDetectFields.prf type=text unit= optional=yes since=1.0
-shape.RadarDetectFields.pulse_width_us type=f64 unit=µs optional=yes since=1.0
-shape.RadarDetectFields.beamwidth_deg type=f64 unit=° optional=yes since=1.0
+shape.RadarDetectFields.pulse_width_us type=f64 unit=us optional=yes reading=3 since=1.0
+shape.RadarDetectFields.beamwidth_deg type=f64 unit=° optional=yes reading=4 since=1.0
 shape.RadarDetectFields.crossings type=i64 unit= optional=no since=1.0
 shape.RadarDetectFields.pulses type=i64 unit= optional=no since=1.0
 shape.RadarDetectFields.rows_total type=i64 unit= optional=no since=1.0
@@ -671,7 +673,7 @@ shape.RadarDetectRow.type type=text unit= optional=no since=1.0
 shape.RadarDetectRow.rotation_s type=f64 unit=s optional=yes since=1.0
 shape.RadarDetectRow.rpm type=f64 unit=rpm optional=yes since=1.0
 shape.RadarDetectRow.prf type=text unit= optional=no since=1.0
-shape.RadarDetectRow.pulse_width_us type=f64 unit=µs optional=yes since=1.0
+shape.RadarDetectRow.pulse_width_us type=f64 unit=us optional=yes since=1.0
 shape.RadarDetectRow.beamwidth_deg type=f64 unit=° optional=yes since=1.0
 shape.RadarDetectRow.peak_db type=f64 unit=dB optional=no since=1.0
 shape.RadarDetectRow.volume type=i64 unit= optional=yes since=1.0
@@ -682,20 +684,20 @@ shape.RadarDetectRowEvent.type type=text unit= optional=no since=1.0
 shape.RadarDetectRowEvent.rotation_s type=f64 unit=s optional=yes since=1.0
 shape.RadarDetectRowEvent.rpm type=f64 unit=rpm optional=yes since=1.0
 shape.RadarDetectRowEvent.prf type=text unit= optional=no since=1.0
-shape.RadarDetectRowEvent.pulse_width_us type=f64 unit=µs optional=yes since=1.0
+shape.RadarDetectRowEvent.pulse_width_us type=f64 unit=us optional=yes since=1.0
 shape.RadarDetectRowEvent.beamwidth_deg type=f64 unit=° optional=yes since=1.0
 shape.RadarDetectRowEvent.peak_db type=f64 unit=dB optional=no since=1.0
 shape.RadarDetectRowEvent.volume type=i64 unit= optional=yes since=1.0
 shape.RadarDetectRowEvent.sweep type=i64 unit= optional=yes since=1.0
 shape.HorusFields since=1.0
-shape.HorusFields.state type=choice(waiting,listening,decoding) unit= optional=no since=1.0
+shape.HorusFields.state type=choice(waiting,listening,decoding) unit= optional=no reading=1 since=1.0
 shape.HorusFields.channels type=i64 unit= optional=no since=1.0
 shape.HorusFields.syncs type=i64 unit= optional=no since=1.0
 shape.HorusFields.failed type=i64 unit= optional=no since=1.0
-shape.HorusFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.HorusFields.snr_db type=f64 unit=dB optional=yes reading=2 since=1.0
 shape.HorusLogFields since=1.0
-shape.HorusLogFields.packets type=i64 unit= optional=no since=1.0
-shape.HorusLogFields.payloads_active type=i64 unit= optional=no since=1.0
+shape.HorusLogFields.packets type=i64 unit= optional=no reading=3 since=1.0
+shape.HorusLogFields.payloads_active type=i64 unit= optional=no reading=4 since=1.0
 shape.HorusLogFields.unreadable_ids type=i64 unit= optional=no since=1.0
 shape.HorusPayloadRow since=1.0
 shape.HorusPayloadRow.payload type=text unit= optional=no since=1.0
@@ -776,7 +778,7 @@ shape.HorusChannelClosedEvent.text type=text unit= optional=no since=1.0
 shape.HorusChannelClosedEvent.channel type=i64 unit= optional=no since=1.0
 shape.HorusChannelClosedEvent.offset type=hz unit=Hz optional=no since=1.0
 sonde since=1.0
-sonde.content kind=tracking since=1.1
+sonde.content kind=tracking since=1.0
 sonde.fields.SondeFields since=1.0
 sonde.table.sondes row=SondeRow cap=16 label=serial position=position altitude=height_m course=course_deg speed=speed_kt since=1.0
 sonde.table.carriers row=SondeCarrierRow cap=32 sort=level_db:descending since=1.0
@@ -799,9 +801,9 @@ sonde.command.clear args= reply= since=1.0
 sonde.command.remove args=row:text reply= since=1.0
 sonde.command.select args=row:text reply= since=1.0
 time since=1.0
-time.content kind=science audio=monitor since=1.1
+time.content kind=science audio=monitor since=1.0
 time.fields.TimeFields since=1.0
-time.table.minutes row=TimeMinuteRow cap=200 since=1.0
+time.table.minutes row=TimeMinuteRow cap=200 role=log time=host_time since=1.0
 time.series.level x_unit=s y_unit=dBFS since=1.0
 time.series.snr x_unit=s y_unit=dB since=1.0
 time.series.tick x_unit=s y_unit=ms since=1.0
@@ -819,9 +821,9 @@ time.setting.year_hint type=i64 unit= since=1.0
 time.setting.gen_start_utc type=f64 unit=s since=1.0
 time.command.clear args= reply= since=1.0
 eczas since=1.0
-eczas.content kind=science audio=monitor since=1.1
+eczas.content kind=science audio=monitor since=1.0
 eczas.fields.EczasFields since=1.0
-eczas.table.frames row=EczasFrameRow cap=100 since=1.0
+eczas.table.frames row=EczasFrameRow cap=100 role=log time=host_time since=1.0
 eczas.series.level x_unit=s y_unit=dBFS since=1.0
 eczas.series.snr x_unit=s y_unit=dB since=1.0
 eczas.series.clock_offsets x_unit=s y_unit=s since=1.0
@@ -837,11 +839,11 @@ eczas.setting.gen_start_utc type=f64 unit=s since=1.0
 eczas.setting.gen_carrier_only type=bool unit= since=1.0
 eczas.command.clear args= reply= since=1.0
 same since=1.0
-same.content kind=datalink audio=programme text=yes since=1.1
+same.content kind=datalink audio=programme text=yes since=1.0
 same.fields.SameFields since=1.0
 same.table.alerts row=SameAlertRow cap=100 label=callsign role=messages sender=callsign message=event_name time=host_time since=1.0
 same.table.alert_locations row=SameAlertLocationRow cap=3100 label=place position=position since=1.0
-same.table.tones row=SameToneRow cap=40 since=1.0
+same.table.tones row=SameToneRow cap=40 role=log time=signal_time_s since=1.0
 same.event.same.alert fields=SameAlertEvent since=1.0
 same.event.same.end fields=SameEndEvent since=1.0
 same.setting.channel type=choice(wx1,wx2,wx3,wx4,wx5,wx6,wx7) unit= since=1.0
@@ -854,9 +856,9 @@ same.setting.gen_loop type=bool unit= since=1.0
 same.command.clear args= reply= since=1.0
 same.command.clear_counties args= reply= since=1.0
 mscatter since=1.0
-mscatter.content kind=science since=1.1
+mscatter.content kind=science since=1.0
 mscatter.fields.MscatterFields since=1.0
-mscatter.table.pings row=MscatterPingRow cap=500 since=1.0
+mscatter.table.pings row=MscatterPingRow cap=500 role=log time=utc since=1.0
 mscatter.table.showers row=MscatterShowerRow cap=64 label=name since=1.0
 mscatter.series.hourly x_unit=h y_unit= since=1.0
 mscatter.series.daily x_unit=d y_unit= since=1.0
@@ -868,18 +870,18 @@ mscatter.setting.gen_beacon_hz type=hz unit=Hz since=1.0
 mscatter.setting.gen_mean_gap_s type=duration unit=s since=1.0
 mscatter.command.clear args= reply= since=1.0
 ssdv since=1.0
-ssdv.content kind=pictures pictures=yes since=1.1
+ssdv.content kind=pictures pictures=yes since=1.0
 ssdv.fields.SsdvFields since=1.0
-ssdv.table.packets row=SsdvPacketRow cap=400 label=call since=1.0
+ssdv.table.packets row=SsdvPacketRow cap=400 label=call role=log time=host_time since=1.0
 ssdv.table.pictures row=SsdvPictureRow cap=8 label=call since=1.0
 ssdv.setting.baud type=choice(auto,300_8n2,600_8n2,1200_8n2,1200,2400,4800,9600,19200,115200) unit= since=1.0
 ssdv.setting.gen_mode type=choice(auto,300_8n2,600_8n2,1200_8n2,1200,2400,4800,9600,19200,115200) unit= since=1.0
 ssdv.command.clear args= reply= since=1.0
 astro since=1.0
-astro.content kind=science since=1.1
+astro.content kind=science since=1.0
 astro.fields.AstroFields since=1.0
 astro.table.calibrated row=AstroCalibratedRow cap=16384 sort=freq:ascending since=1.0
-astro.table.session row=AstroSessionRow cap=500 since=1.0
+astro.table.session row=AstroSessionRow cap=500 role=log time=signal_time_s since=1.0
 astro.table.fit row=AstroFitRow cap=8 since=1.0
 astro.table.lv_rows row=AstroMapRow cap=721 sort=longitude:ascending since=1.0
 astro.series.spectrum x_unit=km/s y_unit= since=1.0
@@ -916,10 +918,10 @@ astro.command.add_map args= reply= since=1.0
 astro.command.clear_map args= reply= since=1.0
 astro.command.restart args= reply= since=1.0
 iono since=1.0
-iono.content kind=science pictures=yes since=1.1
+iono.content kind=science pictures=yes since=1.0
 iono.fields.IonoFields since=1.0
 iono.table.sounders row=IonoSounderRow cap=64 label=id since=1.0
-iono.table.timeline row=IonoTimelineRow cap=200 label=id since=1.0
+iono.table.timeline row=IonoTimelineRow cap=200 label=id role=log time=start_s since=1.0
 iono.table.bands row=IonoBandRow cap=32 label=band since=1.0
 iono.series.coverage x_unit=MHz y_unit= since=1.0
 iono.series.history_foe x_unit=s y_unit=MHz since=1.0
@@ -940,27 +942,27 @@ iono.command.clear args= reply= since=1.0
 iono.command.select args=row:text reply= since=1.0
 iono.command.select_latest args= reply= since=1.0
 sferics since=1.0
-sferics.content kind=science since=1.1
+sferics.content kind=science since=1.0
 sferics.fields.SfericsFields since=1.0
 sferics.fields.DecoderFields since=1.0
-sferics.table.strikes row=SfericsStrikeRow cap=100 since=1.0
+sferics.table.strikes row=SfericsStrikeRow cap=100 role=log time=utc since=1.0
 sferics.series.per_minute x_unit=min y_unit=strikes since=1.0
 sferics.event.sferics.storm fields=SfericsStormEvent since=1.0
 sferics.setting.threshold_db type=f64 unit=dB since=1.0
 sferics.setting.mains_filter type=bool unit= since=1.0
 sferics.setting.merge_ms type=f64 unit=ms since=1.0
 sferics.setting.start_utc type=f64 unit=s since=1.0
-sferics.setting.gen_strike_rate type=f64 unit=/s since=1.0
+sferics.setting.gen_strike_rate type=f64 unit=1/s since=1.0
 sferics.setting.gen_scene type=choice(storm,mains,storm_mains,quiet) unit= since=1.0
 sferics.setting.gen_mains_hz type=hz unit=Hz since=1.0
 sferics.command.clear args= reply= since=1.0
 sferics.command.reset args= reply= since=1.0
 supersid since=1.0
-supersid.content kind=science since=1.1
+supersid.content kind=science since=1.0
 supersid.fields.SupersidFields since=1.0
 supersid.fields.DecoderFields since=1.0
 supersid.table.transmitters row=SupersidTransmitterRow cap=32 label=label since=1.0
-supersid.table.sid_events row=SupersidEventRow cap=200 label=label since=1.0
+supersid.table.sid_events row=SupersidEventRow cap=200 label=label role=log time=start_utc since=1.0
 supersid.table.marks row=SupersidMarkRow cap=384 label=label since=1.0
 supersid.series.minutes_01 x_unit=s y_unit=dB since=1.0
 supersid.series.minutes_02 x_unit=s y_unit=dB since=1.0
@@ -1007,11 +1009,11 @@ supersid.setting.gen_flare type=bool unit= since=1.0
 supersid.command.clear args= reply= since=1.0
 supersid.command.reset args= reply= since=1.0
 schumann since=1.0
-schumann.content kind=science since=1.1
+schumann.content kind=science since=1.0
 schumann.fields.SchumannFields since=1.0
 schumann.fields.DecoderFields since=1.0
 schumann.table.peaks row=SchumannPeakRow cap=5 label=resonance sort=resonance:ascending since=1.0
-schumann.table.events row=ScienceEventRow cap=500 label=type since=1.0
+schumann.table.events row=ScienceEventRow cap=500 label=type role=log time=utc since=1.0
 schumann.table.trend row=SchumannTrendRow cap=1440 since=1.0
 schumann.series.average_spectrum x_unit=Hz y_unit=dB since=1.0
 schumann.series.events_per_hour x_unit=h y_unit= since=1.0
@@ -1024,10 +1026,10 @@ schumann.setting.gen_transients type=f64 unit= since=1.0
 schumann.command.clear args= reply= since=1.0
 schumann.command.reset args= reply= since=1.0
 whistler since=1.0
-whistler.content kind=science since=1.1
+whistler.content kind=science since=1.0
 whistler.fields.WhistlerFields since=1.0
 whistler.fields.DecoderFields since=1.0
-whistler.table.events row=ScienceEventRow cap=500 label=type since=1.0
+whistler.table.events row=ScienceEventRow cap=500 label=type role=log time=utc since=1.0
 whistler.table.trend row=WhistlerTrendRow cap=1440 since=1.0
 whistler.series.events_per_hour x_unit=h y_unit= since=1.0
 whistler.raster.spectrogram x_unit=Hz y_unit=s unit=dB since=1.0
@@ -1040,10 +1042,10 @@ whistler.setting.gen_tone_snr_db type=f64 unit=dB since=1.0
 whistler.command.clear args= reply= since=1.0
 whistler.command.reset args= reply= since=1.0
 lightning_tdoa since=1.0
-lightning_tdoa.content kind=science since=1.1
+lightning_tdoa.content kind=science since=1.0
 lightning_tdoa.fields.LightningTdoaFields since=1.0
 lightning_tdoa.fields.DecoderFields since=1.0
-lightning_tdoa.table.strikes row=LightningTdoaStrikeRow cap=500 latitude=lat longitude=lon since=1.0
+lightning_tdoa.table.strikes row=LightningTdoaStrikeRow cap=500 latitude=lat longitude=lon role=log time=time since=1.0
 lightning_tdoa.table.stations row=LightningTdoaStationRow cap=64 label=name latitude=lat longitude=lon since=1.0
 lightning_tdoa.event.lightning.strike fields=LightningStrikeEvent since=1.0
 lightning_tdoa.setting.role type=choice(local,client,server) unit= since=1.0
@@ -1053,7 +1055,7 @@ lightning_tdoa.setting.network_key type=text unit= since=1.0
 lightning_tdoa.setting.station_name type=text unit= since=1.0
 lightning_tdoa.setting.server_is_station type=bool unit= since=1.0
 lightning_tdoa.setting.system_clock type=choice(system,ntp,ptp) unit= since=1.0
-lightning_tdoa.setting.system_sigma_us type=f64 unit=µs since=1.0
+lightning_tdoa.setting.system_sigma_us type=f64 unit=us since=1.0
 lightning_tdoa.setting.use_radio_time type=bool unit= since=1.0
 lightning_tdoa.setting.timing_id type=i64 unit= since=1.0
 lightning_tdoa.setting.timing_label type=text unit= since=1.0
@@ -1067,7 +1069,7 @@ lightning_tdoa.setting.hops type=bool unit= since=1.0
 lightning_tdoa.setting.hop_height_km type=f64 unit=km since=1.0
 lightning_tdoa.setting.min_stations type=i64 unit= since=1.0
 lightning_tdoa.setting.start_utc type=f64 unit=s since=1.0
-lightning_tdoa.setting.gen_strike_rate type=f64 unit=/s since=1.0
+lightning_tdoa.setting.gen_strike_rate type=f64 unit=1/s since=1.0
 lightning_tdoa.setting.gen_timing_tx type=bool unit= since=1.0
 lightning_tdoa.setting.gen_timing_offset_hz type=hz unit=Hz since=1.0
 lightning_tdoa.setting.gen_station_lat type=f64 unit=° since=1.0
@@ -1077,10 +1079,10 @@ lightning_tdoa.command.reset args= reply= since=1.0
 lightning_tdoa.command.datagram args=bytes:bytes reply= since=1.0
 lightning_tdoa.command.time_mark args=source:text;sample:i64;utc_ns:i64;sigma_ns:f64?;bias_ns:f64? reply= since=1.0
 jove since=1.0
-jove.content kind=science since=1.1
+jove.content kind=science since=1.0
 jove.fields.BurstFields since=1.0
 jove.fields.DecoderFields since=1.0
-jove.table.events row=ScienceEventRow cap=500 label=type since=1.0
+jove.table.events row=ScienceEventRow cap=500 label=type role=log time=utc since=1.0
 jove.table.trend row=BurstTrendRow cap=1440 since=1.0
 jove.series.events_per_hour x_unit=h y_unit= since=1.0
 jove.raster.spectrogram x_unit=Hz y_unit=s unit=dB since=1.0
@@ -1091,10 +1093,10 @@ jove.setting.gen_level_db type=f64 unit=dB since=1.0
 jove.command.clear args= reply= since=1.0
 jove.command.reset args= reply= since=1.0
 callisto since=1.0
-callisto.content kind=science since=1.1
+callisto.content kind=science since=1.0
 callisto.fields.BurstFields since=1.0
 callisto.fields.DecoderFields since=1.0
-callisto.table.events row=ScienceEventRow cap=500 label=type since=1.0
+callisto.table.events row=ScienceEventRow cap=500 label=type role=log time=utc since=1.0
 callisto.table.trend row=BurstTrendRow cap=1440 since=1.0
 callisto.series.events_per_hour x_unit=h y_unit= since=1.0
 callisto.raster.spectrogram x_unit=Hz y_unit=s unit=dB since=1.0
@@ -1114,7 +1116,7 @@ callisto.setting.gen_burst_drift_hz_s type=f64 unit=Hz/s since=1.0
 callisto.command.clear args= reply= since=1.0
 callisto.command.reset args= reply= since=1.0
 riometer since=1.0
-riometer.content kind=science since=1.1
+riometer.content kind=science since=1.0
 riometer.fields.RiometerFields since=1.0
 riometer.fields.DecoderFields since=1.0
 riometer.series.absorption x_unit=min y_unit=dB since=1.0
@@ -1129,10 +1131,10 @@ riometer.command.reset args= reply= since=1.0
 riometer.command.export_qdc args= reply=qdc:text since=1.0
 riometer.command.import_qdc args=text:text reply= since=1.0
 eme_echo since=1.0
-eme_echo.content kind=science since=1.1
+eme_echo.content kind=science since=1.0
 eme_echo.fields.EmeEchoFields since=1.0
 eme_echo.fields.DecoderFields since=1.0
-eme_echo.table.events row=ScienceEventRow cap=500 label=type since=1.0
+eme_echo.table.events row=ScienceEventRow cap=500 label=type role=log time=utc since=1.0
 eme_echo.table.trend row=EmeEchoTrendRow cap=1440 since=1.0
 eme_echo.series.events_per_hour x_unit=h y_unit= since=1.0
 eme_echo.raster.spectrogram x_unit=Hz y_unit=s unit=dB since=1.0
@@ -1146,10 +1148,10 @@ eme_echo.setting.gen_moon_level_db type=f64 unit=dB since=1.0
 eme_echo.command.clear args= reply= since=1.0
 eme_echo.command.reset args= reply= since=1.0
 beacon_events since=1.0
-beacon_events.content kind=science since=1.1
+beacon_events.content kind=science since=1.0
 beacon_events.fields.BeaconEventsFields since=1.0
 beacon_events.fields.DecoderFields since=1.0
-beacon_events.table.events row=ScienceEventRow cap=500 label=type since=1.0
+beacon_events.table.events row=ScienceEventRow cap=500 label=type role=log time=utc since=1.0
 beacon_events.table.trend row=BeaconEventsTrendRow cap=1440 since=1.0
 beacon_events.series.events_per_hour x_unit=h y_unit= since=1.0
 beacon_events.raster.spectrogram x_unit=Hz y_unit=s unit=dB since=1.0
@@ -1162,10 +1164,10 @@ beacon_events.setting.gen_flutter_db type=f64 unit=dB since=1.0
 beacon_events.command.clear args= reply= since=1.0
 beacon_events.command.reset args= reply= since=1.0
 pulsar since=1.0
-pulsar.content kind=science since=1.1
+pulsar.content kind=science since=1.0
 pulsar.fields.PulsarFields since=1.0
 pulsar.fields.DecoderFields since=1.0
-pulsar.table.searches row=PulsarSearchRow cap=500 since=1.0
+pulsar.table.searches row=PulsarSearchRow cap=500 role=log time=time_s since=1.0
 pulsar.series.profile x_unit=phase y_unit=σ since=1.0
 pulsar.series.dm_curve x_unit=pc%20cm⁻³ y_unit= since=1.0
 pulsar.series.period_curve x_unit=s y_unit= since=1.0
@@ -1188,17 +1190,17 @@ pulsar.setting.gen_dm type=f64 unit=pc%20cm⁻³ since=1.0
 pulsar.command.clear args= reply= since=1.0
 pulsar.command.search_now args= reply= since=1.0
 radar_detect since=1.0
-radar_detect.content kind=measurement since=1.1
+radar_detect.content kind=measurement since=1.0
 radar_detect.fields.RadarDetectFields since=1.0
 radar_detect.fields.DecoderFields since=1.0
-radar_detect.table.radar_rows row=RadarDetectRow cap=500 since=1.0
+radar_detect.table.radar_rows row=RadarDetectRow cap=500 role=log time=signal_time_s since=1.0
 radar_detect.event.radar.row fields=RadarDetectRowEvent since=1.0
 radar_detect.setting.gen_rpm type=f64 unit=rpm since=1.0
 radar_detect.setting.gen_prf_hz type=hz unit=Hz since=1.0
 radar_detect.setting.gen_dual_prf type=choice(auto,single,dual) unit= since=1.0
 radar_detect.command.clear args= reply= since=1.0
 horus since=1.0
-horus.content kind=tracking since=1.1
+horus.content kind=tracking since=1.0
 horus.fields.HorusFields since=1.0
 horus.fields.HorusLogFields since=1.0
 horus.kept.payloads since=1.0
@@ -1207,7 +1209,7 @@ horus.kept.packets since=1.0
 horus.kept.HorusLogFields since=1.0
 horus.table.payloads row=HorusPayloadRow cap=64 label=payload position=position altitude=height_m speed=speed_kmh since=1.0
 horus.table.custom_fields row=HorusCustomFieldRow cap=512 label=name since=1.0
-horus.table.packets row=HorusPacketRow cap=200 label=payload since=1.0
+horus.table.packets row=HorusPacketRow cap=200 label=payload role=log time=received since=1.0
 horus.table.channels row=HorusChannelRow cap=8 since=1.0
 horus.series.spectrum x_unit=Hz y_unit=dB since=1.0
 horus.event.horus.packet fields=HorusPacketEvent since=1.0

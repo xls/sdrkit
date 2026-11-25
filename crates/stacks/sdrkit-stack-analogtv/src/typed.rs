@@ -306,13 +306,13 @@ pub const ATV_SERIES: [SeriesDef; 3] = [
     SeriesDef {
         key: "line",
         label: "Line",
-        x_unit: "µs",
+        x_unit: "us",
         y_unit: "",
     },
     SeriesDef {
         key: "vbi",
         label: "Field blanking line",
-        x_unit: "µs",
+        x_unit: "us",
         y_unit: "",
     },
     SeriesDef {
@@ -684,8 +684,7 @@ pub fn family() -> &'static Described {
         // The MAC display holds the measurements and service names of the present signal: nothing is kept over a
         // change of frequency.
         // The key and the label of the aspect ratios are numbers, so the options get the names of their variants.
-        Described::new("analogtv", 1, 2)
-            .added(1, 2, &["atv.content", "mac.content", "fpv.content"])
+        Described::new("analogtv", 2, 0)
             .content(sdrkit_core::ContentKind::Television, &["atv", "mac", "fpv"])
             .audio(sdrkit_core::AudioKind::Programme, &["atv", "mac", "fpv"])
             .video(&["atv", "mac", "fpv"])
@@ -706,42 +705,8 @@ pub fn family() -> &'static Described {
                     .settings(MacSetting::SETTINGS),
             )
             .stack(fpv)
-            .added(1, 1, ADDED_1_1)
     })
 }
-
-/// What version 1.1 added: the senders of `atv` and `fpv`.
-const ADDED_1_1: &[&str] = &[
-    "shape.TvTxFields",
-    "shape.TvTxFields.tx_sending",
-    "shape.TvTxFields.tx_system",
-    "shape.TvTxFields.tx_frames",
-    "shape.TvTxFields.tx_fields",
-    "atv.fields.TvTxFields",
-    "atv.setting.tx_system",
-    "atv.setting.tx_colour",
-    "atv.setting.tx_picture",
-    "atv.setting.tx_sound",
-    "atv.setting.tx_compression",
-    "atv.setting.tx_group_delay",
-    "atv.setting.tx_nyquist",
-    "atv.setting.tx_setup",
-    "atv.setting.tx_secam_id",
-    "atv.command.start",
-    "atv.command.stop",
-    "atv.command.frame",
-    "fpv.fields.TvTxFields",
-    "fpv.setting.tx_system",
-    "fpv.setting.tx_picture",
-    "fpv.setting.tx_sound",
-    "fpv.setting.tx_subcarrier",
-    "fpv.setting.tx_deviation_mhz",
-    "fpv.setting.tx_sync_high",
-    "fpv.setting.tx_ac_ms",
-    "fpv.command.start",
-    "fpv.command.stop",
-    "fpv.command.frame",
-];
 
 /// The description of the stack `id`.
 ///

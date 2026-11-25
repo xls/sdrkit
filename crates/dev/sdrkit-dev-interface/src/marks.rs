@@ -7,7 +7,8 @@ use sdrkit_core::{Choice, SettingRole, SortOrder, TableDef, TableMarks, TableRol
 
 /// The marks of table `t` as attributes of its registry line, each with a space before it: `label=`, `sort=` (the
 /// column, `:`, the order), `position=`, `latitude=`, `longitude=`, `altitude=`, `course=`, `speed=`, `role=`,
-/// `sender=`, `addressee=`, `message=` (the column of the text) and `time=`. Empty for a table without marks.
+/// `sender=`, `addressee=`, `message=` (the column of the text), `time=`, `own=`, `delivery=` and `failure=`. Empty for
+/// a table without marks.
 pub fn table_attributes(t: &TableDef) -> String {
     let m = TableMarks::of(t.key, t.columns, &t.marks);
     let key = |c: Option<u16>| c.map(|c| t.columns[usize::from(c)].key());
@@ -44,6 +45,9 @@ pub fn table_attributes(t: &TableDef) -> String {
         ("addressee", m.addressee),
         ("message", m.text),
         ("time", m.time),
+        ("own", m.own),
+        ("delivery", m.delivery),
+        ("failure", m.failure),
     ] {
         put(name, key(c).map(str::to_owned));
     }
@@ -62,6 +66,7 @@ pub fn table_sentences(t: &TableDef) -> Vec<String> {
                 TableRole::Calls => "The rows are the calls of the stack.",
                 TableRole::Nodes => "The rows are the stations or nodes of the stack.",
                 TableRole::Groups => "The rows are the groups of the stack.",
+                TableRole::Log => "The rows are a log: they arrive over time.",
             }
             .to_owned(),
         );
@@ -111,7 +116,88 @@ pub fn table_sentences(t: &TableDef) -> Vec<String> {
     if !parts.is_empty() {
         out.push(parts.join(" "));
     }
+    let delivery: Vec<String> = [
+        ("Own message", m.own),
+        ("Delivery state", m.delivery),
+        ("Failure reason", m.failure),
+    ]
+    .into_iter()
+    .filter_map(|(name, c)| Some(format!("{name}: `{}`.", key(c?))))
+    .collect();
+    if !delivery.is_empty() {
+        out.push(delivery.join(" "));
+    }
     out
+}
+
+/// The key readings of `stack` in their order, each as the key that a consumer reads: the key of the field, with
+/// `<component>.` before it for a field of a component. Two fields with one order keep the order of the description.
+pub fn key_readings(stack: &StackShape) -> Vec<(u8, String)> {
+    let mut out = Vec::new();
+    for set in &stack.fields {
+        for f in set.fields {
+            let order = f.decl().reading;
+            if order > 0 {
+                out.push((order, f.key().to_owned()));
+            }
+        }
+    }
+    for c in &stack.components {
+        for f in c.fields {
+            let order = f.decl().reading;
+            if order > 0 {
+                out.push((order, f.key().to_owned()));
+            }
+        }
+    }
+    out.sort_by_key(|(order, _)| *order);
+    out
+}
+
+/// The key readings of `stack` for people, in one sentence. `None` for a stack without key readings.
+pub fn readings_sentence(stack: &StackShape) -> Option<String> {
+    let keys: Vec<String> = key_readings(stack)
+        .into_iter()
+        .map(|(_, key)| format!("`{key}`"))
+        .collect();
+    (!keys.is_empty()).then(|| format!("Key readings: {}.", keys.join(", ")))
+}
+
+/// The table and the column that give values for the field `d`, as `<table>.<column>`. `None` for a field that
+/// refers to no table, or whose values are row keys.
+pub fn value_column(d: &sdrkit_core::FieldDecl) -> Option<String> {
+    let r = d.refers_to.as_ref()?;
+    (!r.column.is_empty()).then(|| format!("{}.{}", r.table, r.column))
+}
+
+/// The arguments of a command that take their value from a column of a table, as the attribute `refers=` of the
+/// registry line of the command, with a space before it: `<argument>:<table>.<column>` with `;` between two. Empty
+/// for a command without such an argument.
+pub fn command_attributes(args: &[sdrkit_core::SettingDecl]) -> String {
+    let parts: Vec<String> = args
+        .iter()
+        .filter_map(|a| Some(format!("{}:{}", a.field.key, value_column(&a.field)?)))
+        .collect();
+    if parts.is_empty() {
+        String::new()
+    } else {
+        format!(" refers={}", parts.join(";"))
+    }
+}
+
+/// One sentence for each argument of command `key` that takes its value from a column of a table.
+pub fn command_sentences(key: &str, args: &[sdrkit_core::SettingDecl]) -> Vec<String> {
+    args.iter()
+        .filter_map(|a| {
+            let r = a.field.refers_to.as_ref()?;
+            (!r.column.is_empty()).then(|| {
+                format!(
+                    "The argument `{}` of `{key}` takes the column `{}` of a row of the table `{}`.",
+                    a.field.key, r.column, r.table
+                )
+            })
+        })
+        .collect()
 }
 
 /// The role of setting `d` for people, in one sentence. `None` for a setting without a role.
@@ -121,6 +207,18 @@ pub fn setting_sentence(d: &sdrkit_core::SettingDecl) -> Option<String> {
         SettingRole::PictureView => "chooses the view of the picture",
     };
     Some(format!("The setting `{}` {what}.", d.field.key))
+}
+
+/// The table that gives values for setting `d`, in one sentence. `None` for a setting that takes no value from a
+/// column of a table.
+pub fn setting_refers_sentence(d: &sdrkit_core::SettingDecl) -> Option<String> {
+    let r = d.field.refers_to.as_ref()?;
+    (!r.column.is_empty()).then(|| {
+        format!(
+            "The setting `{}` takes the column `{}` of a row of the table `{}`.",
+            d.field.key, r.column, r.table
+        )
+    })
 }
 
 /// The kind of content and the media of `stack` as attributes of its registry line `<stack>.content`, each with a
@@ -202,6 +300,98 @@ mod tests {
     static MARKED: Table<ShipRow<'static>> = Table::new("ships", "Ships", 10)
         .label(&ShipRow::NAME)
         .sorted(&ShipRow::LEVEL_DB, SortOrder::Descending);
+
+    /// A message of a log that also holds the messages that the station sent.
+    #[derive(Fields)]
+    struct NoteRow<'a> {
+        /// The text.
+        #[field(label = "Text", role = Text)]
+        text: &'a str,
+        /// How far the delivery is.
+        #[field(label = "State", role = Delivery)]
+        state: Option<&'a str>,
+        /// Why the delivery failed.
+        #[field(label = "Failure", role = Failure)]
+        failure: Option<&'a str>,
+        /// The signal time.
+        #[field(label = "Time", unit = "s", role = Time)]
+        time_s: f64,
+    }
+
+    /// The readings of a beacon.
+    #[derive(Fields)]
+    struct BeaconFields<'a> {
+        /// The level.
+        #[field(label = "Level", unit = "dB", reading = 2)]
+        level_db: f64,
+        /// The identification.
+        #[field(label = "Identification", reading = 1)]
+        ident: &'a str,
+    }
+
+    /// The arguments of `send`.
+    #[derive(sdrkit_core::interface::Arguments)]
+    struct SendArgs<'a> {
+        /// The text.
+        #[arg(label = "Text")]
+        text: &'a str,
+        /// The ship that the text goes to.
+        #[arg(label = "To", default = "", refers_to = "ships", column = "name")]
+        to: Option<&'a str>,
+    }
+
+    static NOTES: Table<NoteRow<'static>> =
+        Table::new("notes", "Notes", 10).role(TableRole::Messages);
+    static FRAMES: Table<NoteRow<'static>> = Table::new("frames", "Frames", 10).role(TableRole::Log);
+    const SEND: sdrkit_core::interface::CommandKind<SendArgs<'static>> =
+        sdrkit_core::interface::CommandKind::new("send", "Send");
+
+    #[test]
+    fn a_delivery_a_log_a_key_reading_and_a_value_column_are_attributes_and_sentences() {
+        let family = Family::new("demo", 1, 0).stack(
+            StackShape::new("ais")
+                .fields::<BeaconFields>()
+                .table(&PLAIN)
+                .table(&NOTES)
+                .table(&FRAMES)
+                .command(&SEND),
+        );
+        let text = render(&family);
+        for line in [
+            "\nais.table.notes row=NoteRow cap=10 role=messages message=text time=time_s delivery=state failure=failure since=1.0\n",
+            "\nais.table.frames row=NoteRow cap=10 role=log message=text time=time_s delivery=state failure=failure since=1.0\n",
+            "\nshape.BeaconFields.ident type=text unit= optional=no reading=1 since=1.0\n",
+            "\nais.command.send args=text:text;to:text? reply= refers=to:ships.name since=1.0\n",
+            // A table and a field without the marks have their lines as before.
+            "\nais.table.ships row=ShipRow cap=10 position=position speed=speed_kt since=1.0\n",
+            "\nshape.ShipRow.name type=text unit= optional=no since=1.0\n",
+        ] {
+            assert!(text.contains(line), "{line}\n{text}");
+        }
+        let stack = family.stack_shape("ais").unwrap();
+        assert_eq!(
+            readings_sentence(stack).unwrap(),
+            "Key readings: `ident`, `level_db`."
+        );
+        assert!(readings_sentence(&StackShape::new("none")).is_none());
+        assert_eq!(
+            table_sentences(NOTES.def()),
+            [
+                "The rows are the messages of the stack.",
+                "Text: `text`. Time: `time_s`.",
+                "Delivery state: `state`. Failure reason: `failure`.",
+            ]
+        );
+        assert_eq!(
+            table_sentences(FRAMES.def())[0],
+            "The rows are a log: they arrive over time."
+        );
+        let def = SEND.command.def();
+        assert_eq!(
+            command_sentences("send", def.args.settings()),
+            ["The argument `to` of `send` takes the column `name` of a row of the table `ships`."]
+        );
+    }
 
     #[test]
     fn the_marks_of_a_table_are_attributes_and_sentences() {

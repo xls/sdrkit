@@ -66,7 +66,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `frames_ok` | Frames good | whole number |
 | `bit_stream` | Bits | text |
 | `bits_first` | First bit | whole number |
-| `rotation_deg` | Rotation | number (deg) |
+| `rotation_deg` | Rotation | number (°) |
 | `conjugated` | Spectrum inverted | yes or no |
 | `rail_shift` | Rail shift | yes or no |
 | `resolved` | Resolved | yes or no |
@@ -123,9 +123,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.5. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 2.0. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Measurement and analysis (`measurement`). Media: none.
+
+Key readings: `symbol_rate_hz`, `order`, `carrier_hz`, `esn0_db`, `evm_pct`, `lock`.
 
 ### Result fields
 
@@ -146,7 +148,7 @@ Struct `PskDemodFields`. The result fields of the PSK demodulator.
 | `frames_ok` | whole number | always | 1.0 | Frames that passed their check. |
 | `bit_stream` | text | always | 1.0 | The newest bits, oldest first, as the characters 0 and 1. |
 | `bits_first` | whole number | always | 1.0 | The index of the first bit of `bit_stream`. |
-| `rotation_deg` | number (deg) | always | 1.0 | The phase rotation the sync words resolved. |
+| `rotation_deg` | number (°) | always | 1.0 | The phase rotation the sync words resolved. |
 | `conjugated` | yes or no | always | 1.0 | Whether the sync words resolved a spectral inversion. |
 | `rail_shift` | yes or no | always | 1.0 | Whether the sync words resolved an OQPSK rail shift. |
 | `resolved` | yes or no | always | 1.0 | Whether the phase ambiguity is resolved. |
@@ -210,6 +212,8 @@ Struct `PskDemodLogRow`. A line of the log of analyses. The row key is the seque
 |---|---|---|---|---|
 | `at` | duration (s) | always | 1.0 | The signal time of a line of the log. |
 | `text` | text | always | 1.0 | The line. |
+
+The rows are a log: they arrive over time. Time: `at`.
 
 ### Event `psk_demod.lock`
 

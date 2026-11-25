@@ -248,10 +248,11 @@ impl Decoder for FleetComponent {
             );
         });
         let log = r.frame_log();
-        shaped::indexed_rows(p, &FLEET_BROADCAST_FRAMES, &log, |w, out| {
+        shaped::indexed_rows(p, &FLEET_BROADCAST_FRAMES, &log, |&(w, t), out| {
             out.put(&FleetBroadcastFrameRow {
                     word: format!("{w:04x}").as_str(),
                     bits: format!("{w:016b}").as_str(),
+                    time_s: t,
                 },
             );
         });

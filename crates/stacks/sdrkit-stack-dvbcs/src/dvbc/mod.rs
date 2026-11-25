@@ -522,7 +522,7 @@ pub const SERIES: [SeriesDef; 4] = [
     SeriesDef {
         key: "equaliser",
         label: "Equaliser taps",
-        x_unit: "µs",
+        x_unit: "us",
         y_unit: "dB",
     },
     SeriesDef {

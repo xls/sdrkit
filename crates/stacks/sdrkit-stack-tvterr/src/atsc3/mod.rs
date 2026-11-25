@@ -1,13 +1,14 @@
 //! ATSC 3.0: the receiver graph and the stack. `atsc3.sync` finds the bootstraps, `atsc3.frame` demodulates each frame and
 //! reads its signalling, `atsc3.fec` de-interleaves and decodes the FEC blocks of one PLP to baseband packets, the shared `ipcast.alp`,
 //! `ipcast.ip` and `ipcast.route` carry the link and delivery layers, `atsc3.lls` reads the service list,
-//! `atsc3.media` turns ROUTE objects into media samples, and `atsc3.report` publishes the results.
+//! `atsc3.media` gives the media of one service as media packets, and `atsc3.report` publishes the results.
 //!
 //! Standard: ATSC A/321, A/322, A/330, A/331.
 
 pub mod bicm;
 pub mod bootstrap;
 pub mod components;
+pub mod delivery;
 pub mod frame;
 pub mod gen;
 pub mod l1;
@@ -17,6 +18,7 @@ pub mod nuc;
 pub mod results;
 pub mod rx;
 pub mod svc;
+pub mod testsvc;
 pub mod ti;
 #[rustfmt::skip]
 pub mod tables;
@@ -41,7 +43,8 @@ pub const OCCUPIED: f64 = 5.83e6;
 pub const ID: &str = "atsc3";
 
 /// Adds the delivery chain after `from`, an output of descrambled baseband packets (one per `Bytes` packet): ALP, IP and UDP,
-/// the service list, ROUTE and the media samples, all reported to `report`.
+/// the service list, ROUTE and the media packets of the service that is received, all reported to `report`. The output of
+/// the graph is the media packets.
 pub fn delivery(b: GraphBuilder, from: &str) -> GraphBuilder {
     b.add("alp", AlpComponent::default())
         .add("ip", IpComponent::default())
@@ -53,6 +56,7 @@ pub fn delivery(b: GraphBuilder, from: &str) -> GraphBuilder {
         .connect("ip.udp", "lls.in")
         .connect("ip.udp", "route.in")
         .connect("route.out", "media.in")
+        .connect("lls.state", "media.lls")
         .connect("lls.state", "report.lls")
         .connect("media.state", "report.media")
         .output("media.out")
@@ -114,8 +118,22 @@ pub const NOTE: &str = "Decodes frames at 6.144 Msps (sample-rate coefficient 0)
     enhanced PLPs on part of it only, a subframe that ends more than 1 s after the bootstrap and the \
     subframes after it, a later subframe with a waveform that the stack does not decode and those after it, more than \
     one PLP at a time, a first \
-    subframe that ends more than 1 s after the bootstrap. MMTP services are listed and not received. The media of a ROUTE service is given as \
-    samples and not played. The channel estimate is a straight line between pilots in frequency and in time: echoes longer \
+    subframe that ends more than 1 s after the bootstrap. One service is received: the one chosen with service.select, or the first visible linear TV \
+    service delivered by ROUTE. Its session description names its components. The access units of its first video \
+    component and of its first audio component are given as media packets with the codec, the decoder configuration and \
+    the presentation and decoding times in ticks of the media timescale: HEVC and H.264 video with a length before each \
+    NAL unit, AAC, AC-3, E-AC-3 and AC-4 audio as bare access units. The stack decodes no sound and no video. AC-4 \
+    packets are at the output of the graph and no host decoder takes them at present. Not given: a component with \
+    encrypted samples (the table of components says so, and a chosen service with nothing to give shows Encrypted), \
+    MPEG-H audio and subtitles (the shared media form has no name for them), a second video or audio component of the \
+    service (there is no choice of track), components of a ROUTE session on another PLP than the decoded one, media in \
+    package mode, parts of files in entity mode, and what a repair flow would restore (no ROUTE forward error \
+    correction). The media presentation description is not read: its presentation time offset is not taken off the \
+    times. Built from the standard and not exercised by a signal: H.264 video, AAC, AC-3 and E-AC-3 audio, an encrypted \
+    track with the box that names its codec, and objects in entity mode (a test gives them to the delivery chain as \
+    baseband packets). Signatures are not checked. MMTP services are listed and not received. The access units of the service of \
+    the test signal are synthetic bytes with the right form and times; its media time runs faster than the signal \
+    time. No delivery of a transmitter was decoded. The channel estimate is a straight line between pilots in frequency and in time: echoes longer \
     than about a quarter of the pilot spacing and fast fading are not followed. The carrier offset is taken once per frame \
     and the sample clock is not corrected. No signal of a transmitter was decoded.";
 
@@ -160,7 +178,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route(PLP.key(), &["frame.plp"])?
         .command(
             "service.select",
-            sdrkit_graph::CommandTarget::of("report", "service.select"),
+            sdrkit_graph::CommandTarget::every("service.select"),
         )
         .default_centre(DESCRIPTOR.tuning.default_hz)
         .with_settings(&cfg.settings)

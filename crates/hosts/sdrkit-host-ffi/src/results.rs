@@ -88,6 +88,14 @@ pub struct TableInfo {
     /// a number of seconds of signal with the unit `s`. Only a table with a role, or with a column that states it,
     /// has it.
     pub time_column: Id,
+    /// The id of the column of type `SDRKIT_TYPE_BOOL` that is true for a message that this station sent, or
+    /// `SDRKIT_NO_ID`. Without it, in a table with a `delivery_column`, a row with a delivery state is an own message.
+    pub own_column: Id,
+    /// The id of the column of the delivery state of an own message, or `SDRKIT_NO_ID`: a column of type
+    /// `SDRKIT_TYPE_ENUM` that has no value in the row of a received message.
+    pub delivery_column: Id,
+    /// The id of the column of the reason of a failed delivery, as text for people, or `SDRKIT_NO_ID`.
+    pub failure_column: Id,
 }
 
 /// The table states nothing about its rows.
@@ -100,6 +108,8 @@ pub const SDRKIT_TABLE_ROLE_CALLS: i32 = 2;
 pub const SDRKIT_TABLE_ROLE_NODES: i32 = 3;
 /// Each row is a group that stations talk in: a talkgroup, a channel, a net.
 pub const SDRKIT_TABLE_ROLE_GROUPS: i32 = 4;
+/// Each row is a frame, a packet or a report that arrived: a running log. An object can have several.
+pub const SDRKIT_TABLE_ROLE_LOG: i32 = 5;
 
 /// The `SDRKIT_TABLE_ROLE_*` code of `r`.
 fn table_role(r: Option<sdrkit_core::TableRole>) -> i32 {
@@ -110,6 +120,7 @@ fn table_role(r: Option<sdrkit_core::TableRole>) -> i32 {
         Some(R::Calls) => SDRKIT_TABLE_ROLE_CALLS,
         Some(R::Nodes) => SDRKIT_TABLE_ROLE_NODES,
         Some(R::Groups) => SDRKIT_TABLE_ROLE_GROUPS,
+        Some(R::Log) => SDRKIT_TABLE_ROLE_LOG,
     }
 }
 
@@ -426,6 +437,9 @@ pub unsafe extern "C" fn sdrkit_table_decl(handle: Handle, id: Id, info: *mut Ta
             addressee_column: column(m.addressee),
             text_column: column(m.text),
             time_column: column(m.time),
+            own_column: column(m.own),
+            delivery_column: column(m.delivery),
+            failure_column: column(m.failure),
         });
         Ok(())
     })

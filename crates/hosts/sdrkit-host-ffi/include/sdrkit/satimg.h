@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "satimg", version 1.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "satimg", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -37,8 +37,8 @@
 #include "ipcast.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_SATIMG_VERSION_MAJOR 1
-#define SDRKIT_SATIMG_VERSION_MINOR 3
+#define SDRKIT_SATIMG_VERSION_MAJOR 2
+#define SDRKIT_SATIMG_VERSION_MINOR 0
 
 // The stack "meteor_lrpt": its id, and the keys of its event types.
 #define SDRKIT_STACK_METEOR_LRPT "meteor_lrpt"
@@ -1729,6 +1729,8 @@ typedef struct sdrkit_goes_gvar_block_row {
   bool header_ok;
   // The data field of a block had a good CRC.
   bool data_ok;
+  // The signal time at which a block was read. Unit: s.
+  double time_s;
 } sdrkit_goes_gvar_block_row;
 
 // The fields of AWS beside the link layers.
@@ -2343,7 +2345,7 @@ typedef struct sdrkit_sat_filecast_recent_file_row {
   sdrkit_string key;
   // The name of the file.
   sdrkit_string name;
-  // The size of the file. Unit: bytes.
+  // The size of the file. Unit: B.
   int64_t size_;
   // The parts of the file.
   int64_t parts;
@@ -2351,6 +2353,8 @@ typedef struct sdrkit_sat_filecast_recent_file_row {
   int64_t received;
   // Every part arrived.
   bool complete;
+  // The signal time at which a file was given out. Unit: s.
+  double time_s;
 } sdrkit_sat_filecast_recent_file_row;
 
 // A picture of `sat_filecast`. The row key is the channel.
@@ -2798,6 +2802,14 @@ static inline int32_t sdrkit_meteor_lrpt_set_follow(SDRKIT_HANDLE handle, bool v
   return sdrkit_typed_setting_set_bool(handle, "follow", value);
 }
 
+// The setting "pass_gap" (Pass end) of the stack "meteor_lrpt". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_meteor_lrpt_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_meteor_lrpt_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
+}
+
 // The setting "gen_modulation" (Test modulation) of the test signal generator of the stack "meteor_lrpt". A value of `sdrkit_meteor_lrpt_gen_modulation`.
 static inline int32_t sdrkit_meteor_lrpt_gen_get_modulation(SDRKIT_HANDLE handle, sdrkit_meteor_lrpt_gen_modulation *value) {
   int32_t index = 0;
@@ -2817,7 +2829,7 @@ static inline int32_t sdrkit_meteor_lrpt_gen_set_night(SDRKIT_HANDLE handle, boo
   return sdrkit_typed_setting_set_bool(handle, "gen_night", value);
 }
 
-// The setting "gen_rows" (Test picture rows) of the test signal generator of the stack "meteor_lrpt".
+// The setting "gen_rows" (Test picture rows) of the test signal generator of the stack "meteor_lrpt". The test signal sends this many rows of the test picture and then ends. Without end: the picture repeats.
 static inline int32_t sdrkit_meteor_lrpt_gen_get_rows(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_rows", value);
 }
@@ -3241,6 +3253,14 @@ static inline int32_t sdrkit_fy2_svissr_set_follow(SDRKIT_HANDLE handle, bool va
   return sdrkit_typed_setting_set_bool(handle, "follow", value);
 }
 
+// The setting "pass_gap" (Pass end) of the stack "fy2_svissr". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_fy2_svissr_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_fy2_svissr_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
+}
+
 // The setting "gen_symbol_rate" (Test symbol rate) of the test signal generator of the stack "fy2_svissr". A frequency in Hz.
 static inline int32_t sdrkit_fy2_svissr_gen_get_symbol_rate(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_symbol_rate", value);
@@ -3257,7 +3277,7 @@ static inline int32_t sdrkit_fy2_svissr_gen_set_first_line(SDRKIT_HANDLE handle,
   return sdrkit_typed_setting_set_i64(handle, "gen_first_line", value);
 }
 
-// The setting "gen_lines" (Test lines) of the test signal generator of the stack "fy2_svissr".
+// The setting "gen_lines" (Test lines) of the test signal generator of the stack "fy2_svissr". The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.
 static inline int32_t sdrkit_fy2_svissr_gen_get_lines(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_lines", value);
 }
@@ -3346,6 +3366,14 @@ static inline int32_t sdrkit_fy3_ahrpt_get_follow(SDRKIT_HANDLE handle, bool *va
 }
 static inline int32_t sdrkit_fy3_ahrpt_set_follow(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "follow", value);
+}
+
+// The setting "pass_gap" (Pass end) of the stack "fy3_ahrpt". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_fy3_ahrpt_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_fy3_ahrpt_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
 }
 
 // The setting "gen_satellite" (Test spacecraft id) of the test signal generator of the stack "fy3_ahrpt".
@@ -3471,6 +3499,14 @@ static inline int32_t sdrkit_fy3_mpt_set_follow(SDRKIT_HANDLE handle, bool value
   return sdrkit_typed_setting_set_bool(handle, "follow", value);
 }
 
+// The setting "pass_gap" (Pass end) of the stack "fy3_mpt". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_fy3_mpt_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_fy3_mpt_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
+}
+
 // The setting "gen_satellite" (Test spacecraft id) of the test signal generator of the stack "fy3_mpt".
 static inline int32_t sdrkit_fy3_mpt_gen_get_satellite(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_satellite", value);
@@ -3555,6 +3591,14 @@ static inline int32_t sdrkit_noaa_apt_set_line_filter(SDRKIT_HANDLE handle, bool
   return sdrkit_typed_setting_set_bool(handle, "line_filter", value);
 }
 
+// The setting "pass_gap" (Pass end) of the stack "noaa_apt". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_noaa_apt_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_noaa_apt_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
+}
+
 // The setting "gen_lines" (Test picture lines) of the test signal generator of the stack "noaa_apt". The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.
 static inline int32_t sdrkit_noaa_apt_gen_get_lines(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_lines", value);
@@ -3599,6 +3643,14 @@ static inline int32_t sdrkit_noaa_dsb_set_follow(SDRKIT_HANDLE handle, bool valu
   return sdrkit_typed_setting_set_bool(handle, "follow", value);
 }
 
+// The setting "pass_gap" (Pass end) of the stack "noaa_dsb". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_noaa_dsb_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_noaa_dsb_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
+}
+
 // The setting "gen_scid" (Test spacecraft address) of the test signal generator of the stack "noaa_dsb".
 static inline int32_t sdrkit_noaa_dsb_gen_get_scid(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_scid", value);
@@ -3607,7 +3659,7 @@ static inline int32_t sdrkit_noaa_dsb_gen_set_scid(SDRKIT_HANDLE handle, int64_t
   return sdrkit_typed_setting_set_i64(handle, "gen_scid", value);
 }
 
-// The setting "gen_pm_index" (Test phase index) of the test signal generator of the stack "noaa_dsb". Unit: deg.
+// The setting "gen_pm_index" (Test phase index) of the test signal generator of the stack "noaa_dsb". Unit: °.
 static inline int32_t sdrkit_noaa_dsb_gen_get_pm_index(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_pm_index", value);
 }
@@ -3615,7 +3667,7 @@ static inline int32_t sdrkit_noaa_dsb_gen_set_pm_index(SDRKIT_HANDLE handle, dou
   return sdrkit_typed_setting_set_f64(handle, "gen_pm_index", value);
 }
 
-// The setting "gen_lines" (Test picture lines) of the test signal generator of the stack "noaa_dsb".
+// The setting "gen_lines" (Test picture lines) of the test signal generator of the stack "noaa_dsb". The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.
 static inline int32_t sdrkit_noaa_dsb_gen_get_lines(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_lines", value);
 }
@@ -3625,6 +3677,8 @@ static inline int32_t sdrkit_noaa_dsb_gen_set_lines(SDRKIT_HANDLE handle, int64_
 
 // Fills `rows` with the changed rows of the table "blocks" of the stack "goes_gvar" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_goes_gvar_blocks_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_goes_gvar_block_row *rows,
                                                   uint32_t capacity,
@@ -3679,7 +3733,15 @@ static inline int32_t sdrkit_goes_gvar_set_follow(SDRKIT_HANDLE handle, bool val
   return sdrkit_typed_setting_set_bool(handle, "follow", value);
 }
 
-// The setting "gen_lines" (Test scans) of the test signal generator of the stack "goes_gvar".
+// The setting "pass_gap" (Pass end) of the stack "goes_gvar". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_goes_gvar_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_goes_gvar_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
+}
+
+// The setting "gen_lines" (Test scans) of the test signal generator of the stack "goes_gvar". The test signal sends this many scans of the test picture and then ends. Without end: the picture repeats.
 static inline int32_t sdrkit_goes_gvar_gen_get_lines(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_lines", value);
 }
@@ -3741,7 +3803,15 @@ static inline int32_t sdrkit_aws_set_follow(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "follow", value);
 }
 
-// The setting "gen_lines" (Test picture scans) of the test signal generator of the stack "aws".
+// The setting "pass_gap" (Pass end) of the stack "aws". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_aws_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_aws_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
+}
+
+// The setting "gen_lines" (Test picture scans) of the test signal generator of the stack "aws". The test signal sends this many scans of the test picture and then ends. Without end: the picture repeats.
 static inline int32_t sdrkit_aws_gen_get_lines(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_lines", value);
 }
@@ -3796,6 +3866,14 @@ static inline int32_t sdrkit_noaa_gac_set_follow(SDRKIT_HANDLE handle, bool valu
   return sdrkit_typed_setting_set_bool(handle, "follow", value);
 }
 
+// The setting "pass_gap" (Pass end) of the stack "noaa_gac". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_noaa_gac_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_noaa_gac_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
+}
+
 // The setting "gen_scid" (Test spacecraft address) of the test signal generator of the stack "noaa_gac".
 static inline int32_t sdrkit_noaa_gac_gen_get_scid(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_scid", value);
@@ -3804,7 +3882,7 @@ static inline int32_t sdrkit_noaa_gac_gen_set_scid(SDRKIT_HANDLE handle, int64_t
   return sdrkit_typed_setting_set_i64(handle, "gen_scid", value);
 }
 
-// The setting "gen_lines" (Test picture lines) of the test signal generator of the stack "noaa_gac".
+// The setting "gen_lines" (Test picture lines) of the test signal generator of the stack "noaa_gac". The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.
 static inline int32_t sdrkit_noaa_gac_gen_get_lines(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_lines", value);
 }
@@ -3868,6 +3946,14 @@ static inline int32_t sdrkit_msg_raw_set_follow(SDRKIT_HANDLE handle, bool value
   return sdrkit_typed_setting_set_bool(handle, "follow", value);
 }
 
+// The setting "pass_gap" (Pass end) of the stack "msg_raw". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_msg_raw_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_msg_raw_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
+}
+
 // The setting "gen_scid" (Test satellite number) of the test signal generator of the stack "msg_raw".
 static inline int32_t sdrkit_msg_raw_gen_get_scid(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_scid", value);
@@ -3876,7 +3962,7 @@ static inline int32_t sdrkit_msg_raw_gen_set_scid(SDRKIT_HANDLE handle, int64_t 
   return sdrkit_typed_setting_set_i64(handle, "gen_scid", value);
 }
 
-// The setting "gen_lines" (Test picture lines) of the test signal generator of the stack "msg_raw".
+// The setting "gen_lines" (Test picture lines) of the test signal generator of the stack "msg_raw". The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.
 static inline int32_t sdrkit_msg_raw_gen_get_lines(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_lines", value);
 }
@@ -3894,7 +3980,9 @@ static inline int32_t sdrkit_msg_raw_gen_set_start(SDRKIT_HANDLE handle, int64_t
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "goes_cda" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `hex` names a row.
+// Time: `time`.
 static inline int32_t sdrkit_goes_cda_frames_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_satimg_frame_row *rows,
                                                  uint32_t capacity,
@@ -3919,7 +4007,7 @@ static inline int32_t sdrkit_goes_cda_clear(SDRKIT_HANDLE handle) {
 // The settings of the test signal generator of the stack "goes_cda" are the sdrkit_goes_cda_gen_*() functions
 // after the settings of its receiver.
 
-// The setting "gen_pm_index" (Test phase index (GOES-N)) of the test signal generator of the stack "goes_cda". Unit: deg.
+// The setting "gen_pm_index" (Test phase index (GOES-N)) of the test signal generator of the stack "goes_cda". Unit: °.
 static inline int32_t sdrkit_goes_cda_gen_get_pm_index(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_pm_index", value);
 }
@@ -3929,7 +4017,9 @@ static inline int32_t sdrkit_goes_cda_gen_set_pm_index(SDRKIT_HANDLE handle, dou
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "goes_mdl" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `hex` names a row.
+// Time: `time`.
 static inline int32_t sdrkit_goes_mdl_frames_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_satimg_frame_row *rows,
                                                  uint32_t capacity,
@@ -3953,7 +4043,9 @@ static inline int32_t sdrkit_goes_mdl_clear(SDRKIT_HANDLE handle) {
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "gk2a_cdas" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `hex` names a row.
+// Time: `time`.
 static inline int32_t sdrkit_gk2a_cdas_frames_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_satimg_frame_row *rows,
                                                   uint32_t capacity,
@@ -3977,7 +4069,9 @@ static inline int32_t sdrkit_gk2a_cdas_clear(SDRKIT_HANDLE handle) {
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "sband_ccsds" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `hex` names a row.
+// Time: `time`.
 static inline int32_t sdrkit_sband_ccsds_frames_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_satimg_frame_row *rows,
                                                     uint32_t capacity,
@@ -4109,7 +4203,9 @@ static inline int32_t sdrkit_sband_ccsds_set_rs_basis(SDRKIT_HANDLE handle, sdrk
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "rdas" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `hex` names a row.
+// Time: `time`.
 static inline int32_t sdrkit_rdas_frames_rows(SDRKIT_HANDLE handle,
                                              sdrkit_satimg_frame_row *rows,
                                              uint32_t capacity,
@@ -4145,6 +4241,14 @@ static inline int32_t sdrkit_rdas_get_roll_off(SDRKIT_HANDLE handle, double *val
 }
 static inline int32_t sdrkit_rdas_set_roll_off(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "roll_off", value);
+}
+
+// The setting "pass_gap" (Pass end) of the stack "rdas". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_rdas_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_rdas_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
 }
 
 // Fills `rows` with the changed rows of the table "carriers" of the stack "gk2a_uhrit" in the snapshot of `handle`,
@@ -4252,7 +4356,7 @@ static inline int32_t sdrkit_gk2a_uhrit_set_carrier_offset(SDRKIT_HANDLE handle,
   return sdrkit_typed_setting_set_string(handle, "carrier_offset", value);
 }
 
-// The setting "uncounted_secondary" (Secondary header outside the length) of the stack "gk2a_uhrit". Unit: bytes. A packet with its secondary header flag set is this much longer than its length field says.
+// The setting "uncounted_secondary" (Secondary header outside the length) of the stack "gk2a_uhrit". Unit: B. A packet with its secondary header flag set is this much longer than its length field says.
 static inline int32_t sdrkit_gk2a_uhrit_get_uncounted_secondary(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "uncounted_secondary", value);
 }
@@ -4737,7 +4841,9 @@ static inline int32_t sdrkit_goes_grb_frames_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "flashes" of the stack "goes_grb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // Place of a row: the column `position`.
+// Time: `time`.
 static inline int32_t sdrkit_goes_grb_flashes_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_goes_grb_glm_flash_row *rows,
                                                   uint32_t capacity,
@@ -4747,7 +4853,9 @@ static inline int32_t sdrkit_goes_grb_flashes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "groups" of the stack "goes_grb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // Place of a row: the column `position`.
+// Time: `time`.
 static inline int32_t sdrkit_goes_grb_groups_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_goes_grb_glm_group_row *rows,
                                                  uint32_t capacity,
@@ -4889,7 +4997,9 @@ static inline int32_t sdrkit_sat_filecast_stream_modcods_rows(SDRKIT_HANDLE hand
 
 // Fills `rows` with the changed rows of the table "recent_files" of the stack "sat_filecast" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `name` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_sat_filecast_recent_files_rows(SDRKIT_HANDLE handle,
                                                            sdrkit_sat_filecast_recent_file_row *rows,
                                                            uint32_t capacity,
@@ -4949,7 +5059,7 @@ static inline int32_t sdrkit_sat_filecast_set_pid(SDRKIT_HANDLE handle, int64_t 
   return sdrkit_typed_setting_set_i64(handle, "pid", value);
 }
 
-// The setting "part_bytes" (Part size) of the stack "sat_filecast". Unit: bytes. Bytes of each numbered part of a file (1408 in the test signal). Not confirmed by a public document.
+// The setting "part_bytes" (Part size) of the stack "sat_filecast". Unit: B. Bytes of each numbered part of a file (1408 in the test signal). Not confirmed by a public document.
 static inline int32_t sdrkit_sat_filecast_get_part_bytes(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "part_bytes", value);
 }
@@ -5273,6 +5383,14 @@ static inline int32_t sdrkit_hrpt_set_follow(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "follow", value);
 }
 
+// The setting "pass_gap" (Pass end) of the stack "hrpt". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_hrpt_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_hrpt_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
+}
+
 // The setting "gen_variant" (Test satellite) of the test signal generator of the stack "hrpt". A value of `sdrkit_hrpt_gen_variant`.
 static inline int32_t sdrkit_hrpt_gen_get_variant(SDRKIT_HANDLE handle, sdrkit_hrpt_gen_variant *value) {
   int32_t index = 0;
@@ -5292,7 +5410,7 @@ static inline int32_t sdrkit_hrpt_gen_set_3b(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "gen_3b", value);
 }
 
-// The setting "gen_lines" (Test picture lines) of the test signal generator of the stack "hrpt".
+// The setting "gen_lines" (Test picture lines) of the test signal generator of the stack "hrpt". The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.
 static inline int32_t sdrkit_hrpt_gen_get_lines(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "gen_lines", value);
 }
@@ -5308,7 +5426,7 @@ static inline int32_t sdrkit_hrpt_gen_set_polarity(SDRKIT_HANDLE handle, bool va
   return sdrkit_typed_setting_set_bool(handle, "gen_polarity", value);
 }
 
-// The setting "gen_pm_index" (Test phase index (Meteor)) of the test signal generator of the stack "hrpt". Unit: deg.
+// The setting "gen_pm_index" (Test phase index (Meteor)) of the test signal generator of the stack "hrpt". Unit: °.
 static inline int32_t sdrkit_hrpt_gen_get_pm_index(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_pm_index", value);
 }
@@ -5318,7 +5436,9 @@ static inline int32_t sdrkit_hrpt_gen_set_pm_index(SDRKIT_HANDLE handle, double 
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "eodb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `hex` names a row.
+// Time: `time`.
 static inline int32_t sdrkit_eodb_frames_rows(SDRKIT_HANDLE handle,
                                              sdrkit_satimg_frame_row *rows,
                                              uint32_t capacity,
@@ -5383,6 +5503,14 @@ static inline int32_t sdrkit_eodb_get_avhrr_calibration(SDRKIT_HANDLE handle, sd
 }
 static inline int32_t sdrkit_eodb_set_avhrr_calibration(SDRKIT_HANDLE handle, sdrkit_string value) {
   return sdrkit_typed_setting_set_string(handle, "avhrr_calibration", value);
+}
+
+// The setting "pass_gap" (Pass end) of the stack "eodb". Unit: s. After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture.
+static inline int32_t sdrkit_eodb_get_pass_gap(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "pass_gap", value);
+}
+static inline int32_t sdrkit_eodb_set_pass_gap(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "pass_gap", value);
 }
 
 // The setting "gen_ambiguity" (Test signal ambiguity) of the test signal generator of the stack "eodb". Turns the test signal by 90 degrees this many times (modulo 4), mirrored from 4 on.

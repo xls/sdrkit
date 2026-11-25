@@ -62,7 +62,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `channels` | Channels | `channel` (whole number), `class` (text), `activity_pct` (number (%)), `ones_pct` (number (%)), `sync_period` (whole number (frames)), `last_bits` (text) |
-| `frame_log` | Frame log | `word` (text), `bits` (text) |
+| `frame_log` | Frame log | `word` (text), `bits` (text), `time_s` (number (s)) |
 
 ## Events
 
@@ -78,9 +78,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.5. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 2.0. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite links (`satellite_links`). Media: none.
+
+Key readings: `state`, `snr_db`, `offset_hz`, `frames_ok`.
 
 ### Result fields
 
@@ -135,6 +137,9 @@ Struct `FleetBroadcastFrameRow`. A frame of the frame log. The row key is its pl
 |---|---|---|---|---|
 | `word` | text | always | 1.0 | A frame as 4 hex digits, channel 0 the most significant bit. |
 | `bits` | text | always | 1.0 | A frame as 16 bits, channel 0 first. |
+| `time_s` | number (s) | always | 1.0 | The signal time of the start of the frame. |
+
+The rows are a log: they arrive over time. Time: `time_s`.
 
 ### Event `fleet_broadcast.state`
 

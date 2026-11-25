@@ -1,5 +1,5 @@
 # The interface of the stack family gnss. The registry test of the family writes this file.
-family gnss version=1.1
+family gnss version=1.2
 shape.GnssFields since=1.0
 shape.GnssFields.centre_hz type=hz unit=Hz optional=no since=1.0
 shape.GnssFields.input_rate type=hz unit=Hz optional=no since=1.0
@@ -117,11 +117,11 @@ shape.NmeaEvent since=1.0
 shape.NmeaEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.NmeaEvent.text type=text unit= optional=no since=1.0
 shape.SbasFields since=1.0
-shape.SbasFields.data_valid type=bool unit= optional=no since=1.0
-shape.SbasFields.sbas_messages type=i64 unit= optional=no since=1.0
-shape.SbasFields.messages_missed type=i64 unit= optional=no since=1.0
+shape.SbasFields.data_valid type=bool unit= optional=no reading=2 since=1.0
+shape.SbasFields.sbas_messages type=i64 unit= optional=no reading=3 since=1.0
+shape.SbasFields.messages_missed type=i64 unit= optional=no reading=4 since=1.0
 shape.SbasFields.help type=text unit= optional=yes since=1.0
-shape.SbasFields.selected type=i64 unit= optional=yes since=1.0
+shape.SbasFields.selected type=i64 unit= optional=yes reading=1 since=1.0
 shape.SbasFields.geo_iodn type=i64 unit= optional=yes since=1.0
 shape.SbasFields.geo_t0_s type=f64 unit=s optional=yes since=1.0
 shape.SbasFields.geo_ura type=i64 unit= optional=yes since=1.0
@@ -178,12 +178,12 @@ shape.SbasIonosphereRow.mean_m type=f64 unit=m optional=no since=1.0
 shape.SbasIonosphereRow.max_m type=f64 unit=m optional=no since=1.0
 shape.SbasIonosphereRow.worst_givei type=i64 unit= optional=no since=1.0
 shape.NavicFields since=1.0
-shape.NavicFields.state type=i64 unit= optional=no since=1.0
-shape.NavicFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.NavicFields.state type=i64 unit= optional=no reading=2 since=1.0
+shape.NavicFields.snr_db type=f64 unit=dB optional=yes reading=5 since=1.0
 shape.NavicFields.offset_hz type=hz unit=Hz optional=yes since=1.0
-shape.NavicFields.frames_ok type=i64 unit= optional=no since=1.0
-shape.NavicFields.frames_bad type=i64 unit= optional=no since=1.0
-shape.NavicFields.searching_prn type=i64 unit= optional=no since=1.0
+shape.NavicFields.frames_ok type=i64 unit= optional=no reading=3 since=1.0
+shape.NavicFields.frames_bad type=i64 unit= optional=no reading=4 since=1.0
+shape.NavicFields.searching_prn type=i64 unit= optional=no reading=1 since=1.0
 shape.NavicFields.note type=text unit= optional=no since=1.0
 shape.DecoderFields since=1.0
 shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
@@ -216,7 +216,7 @@ gnss.table.systems row=GnssSystemRow cap=6 since=1.0
 gnss.table.fix_systems row=GnssFixSystemRow cap=6 since=1.0
 gnss.table.satellites row=GnssSatelliteRow cap=160 sort=cn0_dbhz:descending position=sub_point altitude=height_km since=1.0
 gnss.table.interference_lines row=InterferenceLineRow cap=16 since=1.0
-gnss.table.interference_events row=InterferenceEventRow cap=200 since=1.0
+gnss.table.interference_events row=InterferenceEventRow cap=200 role=log time=at since=1.0
 gnss.series.acquisition x_unit= y_unit= since=1.0
 gnss.series.scatter x_unit= y_unit= since=1.0
 gnss.series.level x_unit=s y_unit=dBFS since=1.0
@@ -264,11 +264,11 @@ sbas.kept.SbasFields.messages_missed since=1.0
 sbas.table.sbas_satellites row=SbasSatelliteRow cap=39 sort=cn0_dbhz:descending since=1.0
 sbas.table.sbas_satellite_types row=SbasSatelliteTypeRow cap=2496 since=1.0
 sbas.table.types row=SbasTypeRow cap=64 label=name since=1.0
-sbas.table.messages row=SbasMessageRow cap=100 since=1.0
+sbas.table.messages row=SbasMessageRow cap=100 role=log time=at since=1.0
 sbas.table.fast_corrections row=SbasFastCorrectionRow cap=51 since=1.0
 sbas.table.ionosphere row=SbasIonosphereRow cap=11 since=1.0
 sbas.table.interference_lines row=InterferenceLineRow cap=16 since=1.0
-sbas.table.interference_events row=InterferenceEventRow cap=200 since=1.0
+sbas.table.interference_events row=InterferenceEventRow cap=200 role=log time=at since=1.0
 sbas.table.rx.systems row=GnssSystemRow cap=6 since=1.0
 sbas.table.rx.fix_systems row=GnssFixSystemRow cap=6 since=1.0
 sbas.table.rx.satellites row=GnssSatelliteRow cap=160 sort=cn0_dbhz:descending position=sub_point altitude=height_km since=1.0

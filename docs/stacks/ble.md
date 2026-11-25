@@ -69,7 +69,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `devices` | Devices | `address` (text), `address_type` (choice), `name` (text), `level_dbfs` (number (dBFS)), `last_heard` (time), `heard` (whole number), `vendor` (text), `beacon` (text), `channels` (text), `connectable` (yes or no), `scanned` (yes or no), `manufacturer_data` (text), `first_heard` (time) |
-| `packets` | Packets | `signal_s` (number (s)), `channel` (whole number), `pdu` (text), `address` (text), `level_dbfs` (number (dBFS)), `length` (whole number (bytes)), `details` (text) |
+| `packets` | Packets | `signal_s` (number (s)), `channel` (whole number), `pdu` (text), `address` (text), `level_dbfs` (number (dBFS)), `length` (whole number (B)), `details` (text) |
 | `pdu_types` | PDU types | `pdu` (text), `packets` (whole number) |
 | `device_levels` | Device levels | `device` (text), `sample` (whole number), `level_dbfs` (number (dBFS)) |
 
@@ -91,7 +91,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 2.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 3.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -160,10 +160,10 @@ Struct `BlePacketRow`. A row of the packet log of `ble`.
 | `pdu` | text | always | 1.0 | The PDU type name. |
 | `address` | text | optional | 1.0 | The address of the sender, if the PDU has one. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the packet. |
-| `length` | whole number (bytes) | always | 1.0 | The payload length. |
+| `length` | whole number (B) | always | 1.0 | The payload length. |
 | `details` | text | always | 1.0 | The one-line summary. |
 
-The column `address` names a row.
+The rows are a log: they arrive over time. The column `address` names a row. Time: `signal_s`.
 
 ### Table `pdu_types`
 
@@ -217,6 +217,8 @@ Struct `BleTxEvent`. The fields of a change of an advertising send.
 | `remove` | `sdrkit_ble_remove` | `sdrkit_ble_device_args` | none |
 | `send` | `sdrkit_ble_send` | `sdrkit_ble_send_args` | none |
 | `halt` | `sdrkit_ble_halt` | none | none |
+
+The argument `address` of `send` takes the column `address` of a row of the table `devices`.
 
 ### Settings
 

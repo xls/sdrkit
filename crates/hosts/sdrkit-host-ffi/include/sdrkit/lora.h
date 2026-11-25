@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "lora", version 3.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "lora", version 4.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_LORA_VERSION_MAJOR 3
-#define SDRKIT_LORA_VERSION_MINOR 3
+#define SDRKIT_LORA_VERSION_MAJOR 4
+#define SDRKIT_LORA_VERSION_MINOR 0
 
 // The stack "mesh": its id, and the keys of its event types.
 #define SDRKIT_STACK_MESH "mesh"
@@ -3018,7 +3018,9 @@ typedef struct sdrkit_aprs_remove_args {
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "mesh" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `source` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_mesh_packets_rows(SDRKIT_HANDLE handle,
                                               sdrkit_mesh_packet_row *rows,
                                               uint32_t capacity,
@@ -3044,6 +3046,7 @@ static inline int32_t sdrkit_mesh_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+// Delivery state: `state`. Failure reason: `failure`.
 static inline int32_t sdrkit_mesh_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mesh_message_row *rows,
                                                uint32_t capacity,
@@ -3053,9 +3056,11 @@ static inline int32_t sdrkit_mesh_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "mesh" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
+// Time: `time_s`.
 static inline int32_t sdrkit_mesh_readings_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mesh_reading_row *rows,
                                                uint32_t capacity,
@@ -3632,7 +3637,9 @@ static inline int32_t sdrkit_mesh_gen_set_damaged_copy(SDRKIT_HANDLE handle, boo
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "meshtastic" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `source` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_meshtastic_packets_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_mesh_packet_row *rows,
                                                     uint32_t capacity,
@@ -3658,6 +3665,7 @@ static inline int32_t sdrkit_meshtastic_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+// Delivery state: `state`. Failure reason: `failure`.
 static inline int32_t sdrkit_meshtastic_messages_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_mesh_message_row *rows,
                                                      uint32_t capacity,
@@ -3667,9 +3675,11 @@ static inline int32_t sdrkit_meshtastic_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "meshtastic" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
+// Time: `time_s`.
 static inline int32_t sdrkit_meshtastic_readings_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_mesh_reading_row *rows,
                                                      uint32_t capacity,
@@ -4099,7 +4109,9 @@ static inline int32_t sdrkit_meshtastic_gen_set_damaged_copy(SDRKIT_HANDLE handl
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "meshcore" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `source` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_meshcore_packets_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_packet_row *rows,
                                                   uint32_t capacity,
@@ -4125,6 +4137,7 @@ static inline int32_t sdrkit_meshcore_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+// Delivery state: `state`. Failure reason: `failure`.
 static inline int32_t sdrkit_meshcore_messages_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_mesh_message_row *rows,
                                                    uint32_t capacity,
@@ -4134,9 +4147,11 @@ static inline int32_t sdrkit_meshcore_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "meshcore" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
+// Time: `time_s`.
 static inline int32_t sdrkit_meshcore_readings_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_mesh_reading_row *rows,
                                                    uint32_t capacity,
@@ -4445,7 +4460,9 @@ static inline int32_t sdrkit_meshcore_gen_set_scene(SDRKIT_HANDLE handle, sdrkit
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "lorawan" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `source` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_lorawan_packets_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_mesh_packet_row *rows,
                                                  uint32_t capacity,
@@ -4471,6 +4488,7 @@ static inline int32_t sdrkit_lorawan_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+// Delivery state: `state`. Failure reason: `failure`.
 static inline int32_t sdrkit_lorawan_messages_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_message_row *rows,
                                                   uint32_t capacity,
@@ -4480,9 +4498,11 @@ static inline int32_t sdrkit_lorawan_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "lorawan" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
+// Time: `time_s`.
 static inline int32_t sdrkit_lorawan_readings_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_reading_row *rows,
                                                   uint32_t capacity,
@@ -4705,7 +4725,9 @@ static inline int32_t sdrkit_lorawan_gen_set_scene(SDRKIT_HANDLE handle, sdrkit_
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "loraaprs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `source` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_loraaprs_packets_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_packet_row *rows,
                                                   uint32_t capacity,
@@ -4731,6 +4753,7 @@ static inline int32_t sdrkit_loraaprs_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+// Delivery state: `state`. Failure reason: `failure`.
 static inline int32_t sdrkit_loraaprs_messages_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_mesh_message_row *rows,
                                                    uint32_t capacity,
@@ -4740,9 +4763,11 @@ static inline int32_t sdrkit_loraaprs_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "loraaprs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
+// Time: `time_s`.
 static inline int32_t sdrkit_loraaprs_readings_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_mesh_reading_row *rows,
                                                    uint32_t capacity,
@@ -5031,7 +5056,9 @@ static inline int32_t sdrkit_loraaprs_gen_set_scene(SDRKIT_HANDLE handle, sdrkit
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "meshcom" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `source` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_meshcom_packets_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_mesh_packet_row *rows,
                                                  uint32_t capacity,
@@ -5057,6 +5084,7 @@ static inline int32_t sdrkit_meshcom_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+// Delivery state: `state`. Failure reason: `failure`.
 static inline int32_t sdrkit_meshcom_messages_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_message_row *rows,
                                                   uint32_t capacity,
@@ -5066,9 +5094,11 @@ static inline int32_t sdrkit_meshcom_messages_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "readings" of the stack "meshcom" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `node` names a row.
 // Place of a row: the column `position`.
 // Height: `alt_m`.
+// Time: `time_s`.
 static inline int32_t sdrkit_meshcom_readings_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_reading_row *rows,
                                                   uint32_t capacity,
@@ -5291,7 +5321,9 @@ static inline int32_t sdrkit_meshcom_gen_set_scene(SDRKIT_HANDLE handle, sdrkit_
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "lorawanwide" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `device` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_lorawanwide_frames_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_lorawanwide_wide_frame_row *rows,
                                                     uint32_t capacity,
@@ -5421,6 +5453,8 @@ static inline int32_t sdrkit_lorawanwide_set_clock0(SDRKIT_HANDLE handle, double
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "loraraw" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_loraraw_frames_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_loraraw_raw_frame_row *rows,
                                                 uint32_t capacity,
@@ -5514,7 +5548,7 @@ static inline int32_t sdrkit_loraraw_set_crc(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "crc", value);
 }
 
-// The setting "length" (Length) of the stack "loraraw". Unit: bytes.
+// The setting "length" (Length) of the stack "loraraw". Unit: B.
 static inline int32_t sdrkit_loraraw_get_length(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "length", value);
 }
@@ -5602,6 +5636,7 @@ static inline int32_t sdrkit_loraraw_gen_set_implicit(SDRKIT_HANDLE handle, bool
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "aprs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `source` names a row.
 // Sender: `source`. Addressee: `target`. Text: `text`. Time: `time_s`.
 static inline int32_t sdrkit_aprs_frames_rows(SDRKIT_HANDLE handle,
@@ -5630,6 +5665,7 @@ static inline int32_t sdrkit_aprs_stations_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+// Delivery state: `state`. Failure reason: `failure`.
 static inline int32_t sdrkit_aprs_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mesh_message_row *rows,
                                                uint32_t capacity,
@@ -5805,8 +5841,10 @@ static inline int32_t sdrkit_aprs_gen_set_option(SDRKIT_HANDLE handle, sdrkit_ap
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "fanet" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `source` names a row.
 // Place of a row: the column `position`.
+// Time: `time_s`.
 static inline int32_t sdrkit_fanet_frames_rows(SDRKIT_HANDLE handle,
                                               sdrkit_fanet_frame_row *rows,
                                               uint32_t capacity,
@@ -5995,7 +6033,9 @@ static inline int32_t sdrkit_reticulum_gen_set_tampered(SDRKIT_HANDLE handle, bo
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "elrs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `link` names a row.
+// Time: `utc`.
 static inline int32_t sdrkit_elrs_frames_rows(SDRKIT_HANDLE handle,
                                              sdrkit_elrs_frame_row *rows,
                                              uint32_t capacity,

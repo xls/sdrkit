@@ -84,6 +84,12 @@ fn the_isdbt_receive_path_allocates_nothing_once_warm() {
     assert_eq!(n, 0, "ISDB-T: {n} allocations");
 }
 
+/// Seconds of the ATSC 3.0 test signal, and of them the seconds before the count starts. A frame does not hold a whole
+/// number of rounds of the service of the test signal, so the most ROUTE objects that one pass completes, and with it
+/// the last buffer of the object pool, comes only after some frames.
+const ATSC3_S: f64 = 2.5;
+const ATSC3_WARM_S: f64 = 2.0;
+
 #[test]
 fn the_atsc_receive_path_allocates_nothing_once_warm() {
     let x = signal(
@@ -98,9 +104,9 @@ fn the_atsc_receive_path_allocates_nothing_once_warm() {
 fn the_atsc3_receive_path_allocates_nothing_once_warm() {
     let x = signal(
         atsc3::Atsc3Generator::new(Default::default()).expect("a generator"),
-        1.5,
+        ATSC3_S,
     );
-    let n = steady_state(&atsc3::DESCRIPTOR, &x, 8e6, 1.0);
+    let n = steady_state(&atsc3::DESCRIPTOR, &x, 8e6, ATSC3_WARM_S);
     assert_eq!(n, 0, "ATSC 3.0: {n} allocations");
 }
 
@@ -131,8 +137,8 @@ fn the_atsc3_time_de_interleavers_allocate_nothing_once_warm() {
             time_interleaver,
             ..Default::default()
         };
-        let x = signal(atsc3::Atsc3Generator::new(p).expect("a generator"), 1.5);
-        let n = steady_state(&atsc3::DESCRIPTOR, &x, 8e6, 1.0);
+        let x = signal(atsc3::Atsc3Generator::new(p).expect("a generator"), ATSC3_S);
+        let n = steady_state(&atsc3::DESCRIPTOR, &x, 8e6, ATSC3_WARM_S);
         assert_eq!(n, 0, "ATSC 3.0, {time_interleaver:?}: {n} allocations");
     }
 }
@@ -162,8 +168,8 @@ fn the_atsc3_receive_path_of_several_subframes_allocates_nothing_once_warm() {
         }],
         ..Default::default()
     };
-    let x = signal(atsc3::Atsc3Generator::new(p).expect("a generator"), 1.5);
-    let n = steady_state(&atsc3::DESCRIPTOR, &x, 8e6, 1.0);
+    let x = signal(atsc3::Atsc3Generator::new(p).expect("a generator"), ATSC3_S);
+    let n = steady_state(&atsc3::DESCRIPTOR, &x, 8e6, ATSC3_WARM_S);
     assert_eq!(n, 0, "ATSC 3.0, two subframes: {n} allocations");
 }
 

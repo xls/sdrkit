@@ -50,7 +50,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:fi
 | `offset_hz` | Offset | frequency |
 | `callsign` | Callsign | text |
 | `files` | Files | whole number |
-| `held_bytes` | Bytes held | whole number (bytes) |
+| `held_bytes` | Bytes held | whole number (B) |
 | `acks_heard` | Acknowledgements heard | whole number |
 | `locked` | Locked | yes or no |
 | `note` | Note | text |
@@ -60,14 +60,14 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:fi
 
 | Key | Label | Columns |
 |---|---|---|
-| `files` | Files | `name` (text), `size` (whole number (bytes)), `hash` (text), `state` (text), `callsign` (text), `time` (time) |
+| `files` | Files | `name` (text), `size` (whole number (B)), `hash` (text), `state` (text), `callsign` (text), `time` (time) |
 
 ## Events
 
 | Kind | Label | Fields |
 |---|---|---|
-| `file.received` | File received | `name` (text), `size` (whole number (bytes)), `hash` (text), `path` (text), `callsign` (text) |
-| `file.open` | Transfer announced | `session` (whole number), `name` (text), `size` (whole number (bytes)), `held_bytes` (whole number (bytes)), `callsign` (text) |
+| `file.received` | File received | `name` (text), `size` (whole number (B)), `hash` (text), `path` (text), `callsign` (text) |
+| `file.open` | Transfer announced | `session` (whole number), `name` (text), `size` (whole number (B)), `held_bytes` (whole number (B)), `callsign` (text) |
 | `file.tx` | File transmission | `state` (text), `reason` (text) |
 
 ## Commands
@@ -80,7 +80,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:fi
 
 ## Typed interface
 
-The stack is in the family `custom`, version 1.5. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `custom`, version 2.0. The C header `sdrkit/custom.h`, the registry record `registry/custom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: none.
 
@@ -102,7 +102,7 @@ Struct `FileTransferFields`. The result fields of `file_transfer`. A value of th
 | `offset_hz` | frequency | optional | 1.0 | The carrier offset of the last frame. |
 | `callsign` | text | optional | 1.0 | The callsign of the last frame. |
 | `files` | whole number | always | 1.0 | Files received. |
-| `held_bytes` | whole number (bytes) | always | 1.0 | Bytes held from an earlier session when the last transfer was announced. |
+| `held_bytes` | whole number (B) | always | 1.0 | Bytes held from an earlier session when the last transfer was announced. |
 | `acks_heard` | whole number | always | 1.0 | Acknowledgement frames heard. |
 | `locked` | yes or no | always | 1.0 | A frame header was read in the last 5 s. |
 | `note` | text | always | 1.0 | The note on the source of the stack. |
@@ -122,7 +122,7 @@ Struct `FileTransferFileRow`. A row of the files heard. The row key is the sessi
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `name` | text | always | 1.0 | The file name. |
-| `size` | whole number (bytes) | always | 1.0 | The size. |
+| `size` | whole number (B) | always | 1.0 | The size. |
 | `hash` | text | always | 1.0 | The hash, hex. |
 | `state` | text | always | 1.0 | The state: receiving, verified, or the hash failed. |
 | `callsign` | text | always | 1.0 | The sending station. |
@@ -137,7 +137,7 @@ Struct `FileTransferReceivedEvent`. The fields of a file that passed every check
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `name` | text | always | 1.0 | The file name. |
-| `size` | whole number (bytes) | always | 1.0 | The size. |
+| `size` | whole number (B) | always | 1.0 | The size. |
 | `hash` | text | always | 1.0 | The hash, hex. |
 | `path` | text | always | 1.0 | Where the file was saved; empty if it was not saved. |
 | `callsign` | text | always | 1.0 | The sending station. |
@@ -150,8 +150,8 @@ Struct `FileTransferOpenEvent`. The fields of an announced transfer.
 |---|---|---|---|---|
 | `session` | whole number | always | 1.0 | The session id. |
 | `name` | text | always | 1.0 | The file name. |
-| `size` | whole number (bytes) | always | 1.0 | The size. |
-| `held_bytes` | whole number (bytes) | always | 1.0 | Bytes held from an earlier session. |
+| `size` | whole number (B) | always | 1.0 | The size. |
+| `held_bytes` | whole number (B) | always | 1.0 | Bytes held from an earlier session. |
 | `callsign` | text | always | 1.0 | The sending station. |
 
 ### Event `file.tx`

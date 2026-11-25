@@ -85,9 +85,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: pictures.
+
+Key readings: `sounders_heard`, `active_sweeps`, `selected`, `timing_lock`.
 
 ### Result fields
 
@@ -159,7 +161,7 @@ Struct `IonoTimelineRow`. A sweep heard. The row key is the sequence number of t
 | `snr_db` | number (dB) | always | 1.0 | Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so). |
 | `predicted` | yes or no | always | 1.0 | The sweep was expected. |
 
-The column `id` names a row.
+The rows are a log: they arrive over time. The column `id` names a row. Time: `start_s`.
 
 ### Table `bands`
 

@@ -86,9 +86,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.5. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 2.0. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite links (`satellite_links`). Media: none.
+
+Key readings: `locked`, `frames_ok`, `frames_bad`, `carrier_line_db`.
 
 ### Result fields
 
@@ -130,7 +132,7 @@ Struct `ArgosBurstRow`. An uplink burst. The row key is the sequence number of t
 | `data_bits` | whole number | optional | 1.0 | The number of user data bits. |
 | `data` | bytes | optional | 1.0 | The user data, the first bit the high bit of the first byte. |
 
-The column `platform` names a row.
+The rows are a log: they arrive over time. The column `platform` names a row. Time: `heard_at`.
 
 ### Table `platforms`
 
@@ -156,6 +158,8 @@ Struct `ArgosFrameRow`. A downlink frame with a good FCS. The row key is the seq
 | `coding` | choice | always | 1.0 | The downlink coding in use. |
 | `bytes` | whole number | always | 1.0 | The length of a frame without its FCS. |
 | `frame` | bytes | always | 1.0 | A frame's bytes. |
+
+The rows are a log: they arrive over time. Time: `at`.
 
 ### Event `argos.ptt`
 

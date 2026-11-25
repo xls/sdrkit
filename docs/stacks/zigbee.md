@@ -94,7 +94,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 3.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
 
@@ -183,6 +183,8 @@ Struct `ZigbeeFrameRow`. A row of the Zigbee frame log. The row key is the numbe
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the frame. |
 | `details` | text | always | 1.0 | The description. |
 
+The rows are a log: they arrive over time. Time: `time_s`.
+
 ### Event `zigbee.pan`
 
 Struct `ZigbeePanEvent`. The fields of a new PAN event.
@@ -215,6 +217,8 @@ Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
 | `remove` | `sdrkit_zigbee_remove` | `sdrkit_ism_pan_device_args` | none |
 | `send` | `sdrkit_zigbee_send` | `sdrkit_zigbee_send_args` | none |
 | `halt` | `sdrkit_zigbee_halt` | none | none |
+
+The argument `pan_id` of `send` takes the column `pan` of a row of the table `networks`. The argument `destination` of `send` takes the column `short` of a row of the table `devices`. The argument `source` of `send` takes the column `short` of a row of the table `devices`.
 
 ### Settings
 

@@ -68,7 +68,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.2. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.3. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -110,7 +110,7 @@ Struct `LbjMessageRow`. A message of `lbj`. The row key is the place of the mess
 | `position` | position | optional | 1.0 | The position. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the burst. |
 
-Place of a row: the column `position`. Speed: `speed_kmh`.
+The rows are a log: they arrive over time. Place of a row: the column `position`. Speed: `speed_kmh`. Time: `received`.
 
 ### Event `lbj.message`
 

@@ -1,7 +1,9 @@
 //! What a front end needs to show a stack without knowing it: the kind of content of the stack, the media that it
 //! gives, the column that names a row, the default order of the rows, the columns that hold a place on the map, the
-//! tables that hold messages, calls, nodes or groups with the columns of a message, and the settings that choose what
-//! a picture shows. A stack states them in its interface description, or they follow from what it declares.
+//! tables that hold messages, calls, nodes, groups or a log with the columns of a message and of its delivery, and the
+//! settings that choose what a picture shows. A stack states them in its interface description, or they follow from
+//! what it declares. The key readings of a stack and the table that gives the values of a command argument are marks
+//! of a field ([`FieldDecl::reading`](crate::FieldDecl::reading), [`RefersTo`](crate::RefersTo)).
 
 use crate::publish::Declare;
 use crate::value::ValueKind;
@@ -103,6 +105,14 @@ pub enum Role {
     /// signal (unit `s`) in a table without a column of the time kind. Without it, the first column of the time kind
     /// of a table with a role is the time.
     Time,
+    /// Whether this station sent the message of the row: a column of the bool kind, true for an own message. Without
+    /// it, in a table with a column of the role [`Role::Delivery`], a row with a delivery state is an own message.
+    Own,
+    /// How far the delivery of an own message is: a column of the choice kind (queued, sent, acknowledged, failed).
+    /// A received message has no value.
+    Delivery,
+    /// Why the delivery of an own message failed, as text for people. A row has a value only after a failure.
+    Failure,
 }
 
 /// What the rows of a table are, for a front end that shows them in a view made for them.
@@ -117,15 +127,19 @@ pub enum TableRole {
     Nodes,
     /// Each row is a group that stations talk in: a talkgroup, a channel, a net.
     Groups,
+    /// Each row is a frame, a packet or a report that arrived: rows come over time, and the newest matter most. A
+    /// front end shows the table as a running log. A stack can have several logs.
+    Log,
 }
 
 impl TableRole {
     /// The roles, in the order of their numbers in the C interface (from 1).
-    pub const ALL: [TableRole; 4] = [
+    pub const ALL: [TableRole; 5] = [
         TableRole::Messages,
         TableRole::Calls,
         TableRole::Nodes,
         TableRole::Groups,
+        TableRole::Log,
     ];
     /// The name of the role in the registry record.
     pub const fn key(self) -> &'static str {
@@ -134,7 +148,12 @@ impl TableRole {
             TableRole::Calls => "calls",
             TableRole::Nodes => "nodes",
             TableRole::Groups => "groups",
+            TableRole::Log => "log",
         }
+    }
+    /// True for a role that at most one table of an owner has. A stack can have several logs.
+    pub const fn single(self) -> bool {
+        !matches!(self, TableRole::Log)
     }
 }
 
@@ -223,12 +242,18 @@ pub struct TableMarks {
     pub text: Option<u16>,
     /// The column of the time of a row. Only a table with a role or a column with [`Role::Time`] has it.
     pub time: Option<u16>,
+    /// The column that says whether this station sent the message of a row.
+    pub own: Option<u16>,
+    /// The column of the delivery state of an own message.
+    pub delivery: Option<u16>,
+    /// The column of the reason of a failed delivery.
+    pub failure: Option<u16>,
 }
 
 impl TableMarks {
     /// The marks of a table with the columns `columns` that states `rows`. The position column is the column with
     /// [`Role::Position`], else the first column of the position kind. Each other place column is the first column
-    /// with its role, and so are the sender, the addressee and the text. The time column is the column with
+    /// with its role, and so are the sender, the addressee, the text and the columns of a delivery. The time column is the column with
     /// [`Role::Time`], else, in a table with a role, the first column of the time kind.
     ///
     /// # Panics
@@ -275,6 +300,9 @@ impl TableMarks {
             addressee: with(Role::Addressee),
             text: with(Role::Text),
             time: with(Role::Time).or_else(first_time),
+            own: with(Role::Own),
+            delivery: with(Role::Delivery),
+            failure: with(Role::Failure),
         }
     }
     /// True if nothing is marked.

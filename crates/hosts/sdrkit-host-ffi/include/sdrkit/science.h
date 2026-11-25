@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "science", version 1.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "science", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_SCIENCE_VERSION_MAJOR 1
-#define SDRKIT_SCIENCE_VERSION_MINOR 3
+#define SDRKIT_SCIENCE_VERSION_MAJOR 2
+#define SDRKIT_SCIENCE_VERSION_MINOR 0
 
 // The stack "sonde": its id, and the keys of its event types.
 #define SDRKIT_STACK_SONDE "sonde"
@@ -1664,9 +1664,9 @@ typedef struct sdrkit_sferics_fields {
   int64_t mains;
   // Impulses too long to be lightning.
   int64_t too_long;
-  // Strikes in the last minute. Unit: /min.
+  // Strikes in the last minute. Unit: 1/min.
   double per_min_1;
-  // Strikes per minute over 10 minutes. Unit: /min.
+  // Strikes per minute over 10 minutes. Unit: 1/min.
   double per_min_10;
   // True if `floor_db` holds a value.
   bool has_floor_db;
@@ -1716,7 +1716,7 @@ typedef struct sdrkit_sferics_strike_row {
   double utc;
   // The peak of a strike over the floor. Unit: dB.
   double peak_db;
-  // The width of a strike. Unit: µs.
+  // The width of a strike. Unit: us.
   double width_us;
   // The flash of a strike.
   int64_t flash;
@@ -1998,7 +1998,7 @@ typedef struct sdrkit_lightning_tdoa_fields {
   sdrkit_string time_source;
   // True if `clock_sigma_us` holds a value.
   bool has_clock_sigma_us;
-  // Its 1-sigma now. Unit: µs.
+  // Its 1-sigma now. Unit: us.
   double clock_sigma_us;
   // True if `clock_ppm` holds a value.
   bool has_clock_ppm;
@@ -2012,27 +2012,27 @@ typedef struct sdrkit_lightning_tdoa_fields {
   bool fine;
   // True if `sigma_gps_us` holds a value.
   bool has_sigma_gps_us;
-  // The 1-sigma of the GPS clock. Unit: µs.
+  // The 1-sigma of the GPS clock. Unit: us.
   double sigma_gps_us;
   // True if `sigma_gnss_us` holds a value.
   bool has_sigma_gnss_us;
-  // The 1-sigma of the GNSS clock. Unit: µs.
+  // The 1-sigma of the GNSS clock. Unit: us.
   double sigma_gnss_us;
   // True if `sigma_cv_us` holds a value.
   bool has_sigma_cv_us;
-  // The 1-sigma of the common-view clock. Unit: µs.
+  // The 1-sigma of the common-view clock. Unit: us.
   double sigma_cv_us;
   // True if `sigma_ptp_us` holds a value.
   bool has_sigma_ptp_us;
-  // The 1-sigma of the PTP clock. Unit: µs.
+  // The 1-sigma of the PTP clock. Unit: us.
   double sigma_ptp_us;
   // True if `sigma_ntp_us` holds a value.
   bool has_sigma_ntp_us;
-  // The 1-sigma of the NTP clock. Unit: µs.
+  // The 1-sigma of the NTP clock. Unit: us.
   double sigma_ntp_us;
   // True if `sigma_system_us` holds a value.
   bool has_sigma_system_us;
-  // The 1-sigma of the unsynchronised computer clock. Unit: µs.
+  // The 1-sigma of the unsynchronised computer clock. Unit: us.
   double sigma_system_us;
   // The common-view clock stamps the detections.
   bool common_view;
@@ -2046,7 +2046,7 @@ typedef struct sdrkit_lightning_tdoa_fields {
   double timing_snr_db;
   // True if `timing_sigma_us` holds a value.
   bool has_timing_sigma_us;
-  // The 1-sigma of its boundary. Unit: µs.
+  // The 1-sigma of its boundary. Unit: us.
   double timing_sigma_us;
   // True if `timing_carrier_hz` holds a value.
   bool has_timing_carrier_hz;
@@ -2130,7 +2130,7 @@ typedef struct sdrkit_lightning_tdoa_strike_row {
   int64_t stations;
   // Coarse stations that heard it.
   int64_t also_heard;
-  // The rms of the residuals. Unit: µs.
+  // The rms of the residuals. Unit: us.
   double rms_us;
   // Chi-square.
   double chi2;
@@ -2142,6 +2142,10 @@ typedef struct sdrkit_lightning_tdoa_strike_row {
   bool ambiguous;
   // The time is UTC.
   bool utc;
+  // True if `time` holds a value.
+  bool has_time;
+  // The time of a strike, or `None` when the time is not UTC. Seconds since 1970 (UTC).
+  double time;
 } sdrkit_lightning_tdoa_strike_row;
 
 // A station of the network (server). The row key is the station id, eight hex digits.
@@ -2160,7 +2164,7 @@ typedef struct sdrkit_lightning_tdoa_station_row {
   double lon;
   // The best usable time source.
   sdrkit_string time_source;
-  // The 1-sigma of the station's clock. Unit: µs.
+  // The 1-sigma of the station's clock. Unit: us.
   double sigma_us;
   // The time since the station's last datagram. Unit: s.
   double age_s;
@@ -2174,7 +2178,7 @@ typedef struct sdrkit_lightning_tdoa_station_row {
   bool tied_to_utc;
   // True if `cv_correction_us` holds a value.
   bool has_cv_correction_us;
-  // The common-view correction. Unit: µs.
+  // The common-view correction. Unit: us.
   double cv_correction_us;
 } sdrkit_lightning_tdoa_station_row;
 
@@ -2446,6 +2450,8 @@ typedef struct sdrkit_pulsar_search_row {
   double peak_phase;
   // The duty cycle.
   double duty;
+  // The signal time at the end of the rows searched. Unit: s.
+  double time_s;
 } sdrkit_pulsar_search_row;
 
 // The result fields of `radar_detect`.
@@ -2472,7 +2478,7 @@ typedef struct sdrkit_radar_detect_fields {
   sdrkit_string prf;
   // True if `pulse_width_us` holds a value.
   bool has_pulse_width_us;
-  // The median pulse width. Unit: µs.
+  // The median pulse width. Unit: us.
   double pulse_width_us;
   // True if `beamwidth_deg` holds a value.
   bool has_beamwidth_deg;
@@ -2526,7 +2532,7 @@ typedef struct sdrkit_radar_detect_row {
   sdrkit_string prf;
   // True if `pulse_width_us` holds a value.
   bool has_pulse_width_us;
-  // The median pulse width. Unit: µs.
+  // The median pulse width. Unit: us.
   double pulse_width_us;
   // True if `beamwidth_deg` holds a value.
   bool has_beamwidth_deg;
@@ -3240,7 +3246,7 @@ typedef struct sdrkit_sferics_storm_event {
   sdrkit_string storm_phase;
   // The change of the median peak. Unit: dB.
   double storm_db_change;
-  // Strikes per minute in the last 5 minutes. Unit: /min.
+  // Strikes per minute in the last 5 minutes. Unit: 1/min.
   double per_minute;
 } sdrkit_sferics_storm_event;
 
@@ -3314,7 +3320,7 @@ typedef struct sdrkit_lightning_tdoa_lightning_strike_event {
   int64_t stations;
   // Coarse stations that heard it.
   int64_t also_heard;
-  // The rms of the residuals. Unit: µs.
+  // The rms of the residuals. Unit: us.
   double rms_us;
   // Chi-square.
   double chi2;
@@ -3396,7 +3402,7 @@ typedef struct sdrkit_radar_detect_radar_row_event {
   sdrkit_string prf;
   // True if `pulse_width_us` holds a value.
   bool has_pulse_width_us;
-  // The median pulse width. Unit: µs.
+  // The median pulse width. Unit: us.
   double pulse_width_us;
   // True if `beamwidth_deg` holds a value.
   bool has_beamwidth_deg;
@@ -3756,6 +3762,8 @@ static inline int32_t sdrkit_sonde_gen_set_lband(SDRKIT_HANDLE handle, bool valu
 
 // Fills `rows` with the changed rows of the table "minutes" of the stack "time" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `host_time`.
 static inline int32_t sdrkit_time_minutes_rows(SDRKIT_HANDLE handle,
                                               sdrkit_time_minute_row *rows,
                                               uint32_t capacity,
@@ -3868,6 +3876,8 @@ static inline int32_t sdrkit_time_gen_set_start_utc(SDRKIT_HANDLE handle, double
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "eczas" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `host_time`.
 static inline int32_t sdrkit_eczas_frames_rows(SDRKIT_HANDLE handle,
                                               sdrkit_eczas_frame_row *rows,
                                               uint32_t capacity,
@@ -3973,6 +3983,8 @@ static inline int32_t sdrkit_same_alert_locations_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "tones" of the stack "same" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `signal_time_s`.
 static inline int32_t sdrkit_same_tones_rows(SDRKIT_HANDLE handle,
                                             sdrkit_same_tone_row *rows,
                                             uint32_t capacity,
@@ -4072,6 +4084,8 @@ static inline int32_t sdrkit_same_gen_set_loop(SDRKIT_HANDLE handle, bool value)
 
 // Fills `rows` with the changed rows of the table "pings" of the stack "mscatter" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `utc`.
 static inline int32_t sdrkit_mscatter_pings_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_mscatter_ping_row *rows,
                                                 uint32_t capacity,
@@ -4137,7 +4151,9 @@ static inline int32_t sdrkit_mscatter_gen_set_mean_gap_s(SDRKIT_HANDLE handle, d
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "ssdv" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `call` names a row.
+// Time: `host_time`.
 static inline int32_t sdrkit_ssdv_packets_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ssdv_packet_row *rows,
                                               uint32_t capacity,
@@ -4197,6 +4213,8 @@ static inline int32_t sdrkit_astro_calibrated_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "session" of the stack "astro" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `signal_time_s`.
 static inline int32_t sdrkit_astro_session_rows(SDRKIT_HANDLE handle,
                                                sdrkit_astro_session_row *rows,
                                                uint32_t capacity,
@@ -4464,7 +4482,9 @@ static inline int32_t sdrkit_iono_sounders_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "timeline" of the stack "iono" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `id` names a row.
+// Time: `start_s`.
 static inline int32_t sdrkit_iono_timeline_rows(SDRKIT_HANDLE handle,
                                                sdrkit_iono_timeline_row *rows,
                                                uint32_t capacity,
@@ -4545,6 +4565,8 @@ static inline int32_t sdrkit_iono_gen_set_noise_only(SDRKIT_HANDLE handle, bool 
 
 // Fills `rows` with the changed rows of the table "strikes" of the stack "sferics" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `utc`.
 static inline int32_t sdrkit_sferics_strikes_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_sferics_strike_row *rows,
                                                  uint32_t capacity,
@@ -4603,7 +4625,7 @@ static inline int32_t sdrkit_sferics_set_start_utc(SDRKIT_HANDLE handle, double 
   return sdrkit_typed_setting_set_f64(handle, "start_utc", value);
 }
 
-// The setting "gen_strike_rate" (Test signal: strokes a second) of the test signal generator of the stack "sferics". Unit: /s. Flashes of 1 to 3 strokes come at random gaps of 1.7 / rate seconds on average.
+// The setting "gen_strike_rate" (Test signal: strokes a second) of the test signal generator of the stack "sferics". Unit: 1/s. Flashes of 1 to 3 strokes come at random gaps of 1.7 / rate seconds on average.
 static inline int32_t sdrkit_sferics_gen_get_strike_rate(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_strike_rate", value);
 }
@@ -4642,7 +4664,9 @@ static inline int32_t sdrkit_supersid_transmitters_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "sid_events" of the stack "supersid" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `label` names a row.
+// Time: `start_utc`.
 static inline int32_t sdrkit_supersid_sid_events_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_supersid_event_row *rows,
                                                      uint32_t capacity,
@@ -4767,7 +4791,9 @@ static inline int32_t sdrkit_schumann_peaks_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "events" of the stack "schumann" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `type` names a row.
+// Time: `utc`.
 static inline int32_t sdrkit_schumann_events_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_science_event_row *rows,
                                                  uint32_t capacity,
@@ -4837,7 +4863,9 @@ static inline int32_t sdrkit_schumann_gen_set_transients(SDRKIT_HANDLE handle, d
 
 // Fills `rows` with the changed rows of the table "events" of the stack "whistler" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `type` names a row.
+// Time: `utc`.
 static inline int32_t sdrkit_whistler_events_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_science_event_row *rows,
                                                  uint32_t capacity,
@@ -4909,7 +4937,9 @@ static inline int32_t sdrkit_whistler_gen_set_tone_snr_db(SDRKIT_HANDLE handle, 
 
 // Fills `rows` with the changed rows of the table "strikes" of the stack "lightning_tdoa" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // Place of a row: the columns `lat` and `lon`.
+// Time: `time`.
 static inline int32_t sdrkit_lightning_tdoa_strikes_rows(SDRKIT_HANDLE handle,
                                                         sdrkit_lightning_tdoa_strike_row *rows,
                                                         uint32_t capacity,
@@ -5019,7 +5049,7 @@ static inline int32_t sdrkit_lightning_tdoa_set_system_clock(SDRKIT_HANDLE handl
   return sdrkit_typed_setting_set_enum(handle, "system_clock", (int32_t)value);
 }
 
-// The setting "system_sigma_us" (Computer clock error) of the stack "lightning_tdoa". Unit: µs.
+// The setting "system_sigma_us" (Computer clock error) of the stack "lightning_tdoa". Unit: us.
 static inline int32_t sdrkit_lightning_tdoa_get_system_sigma_us(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "system_sigma_us", value);
 }
@@ -5131,7 +5161,7 @@ static inline int32_t sdrkit_lightning_tdoa_set_start_utc(SDRKIT_HANDLE handle, 
   return sdrkit_typed_setting_set_f64(handle, "start_utc", value);
 }
 
-// The setting "gen_strike_rate" (Test signal: strikes a second) of the test signal generator of the stack "lightning_tdoa". Unit: /s. Strikes come at random gaps, at least 2 ms apart, within 3° of latitude and 4° of longitude of 52.5 N 13.4 E.
+// The setting "gen_strike_rate" (Test signal: strikes a second) of the test signal generator of the stack "lightning_tdoa". Unit: 1/s. Strikes come at random gaps, at least 2 ms apart, within 3° of latitude and 4° of longitude of 52.5 N 13.4 E.
 static inline int32_t sdrkit_lightning_tdoa_gen_get_strike_rate(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_strike_rate", value);
 }
@@ -5173,7 +5203,9 @@ static inline int32_t sdrkit_lightning_tdoa_gen_set_station_lon(SDRKIT_HANDLE ha
 
 // Fills `rows` with the changed rows of the table "events" of the stack "jove" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `type` names a row.
+// Time: `utc`.
 static inline int32_t sdrkit_jove_events_rows(SDRKIT_HANDLE handle,
                                              sdrkit_science_event_row *rows,
                                              uint32_t capacity,
@@ -5229,7 +5261,9 @@ static inline int32_t sdrkit_jove_gen_set_level_db(SDRKIT_HANDLE handle, double 
 
 // Fills `rows` with the changed rows of the table "events" of the stack "callisto" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `type` names a row.
+// Time: `utc`.
 static inline int32_t sdrkit_callisto_events_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_science_event_row *rows,
                                                  uint32_t capacity,
@@ -5421,7 +5455,9 @@ static inline int32_t sdrkit_riometer_gen_set_burst_share(SDRKIT_HANDLE handle, 
 
 // Fills `rows` with the changed rows of the table "events" of the stack "eme_echo" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `type` names a row.
+// Time: `utc`.
 static inline int32_t sdrkit_eme_echo_events_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_science_event_row *rows,
                                                  uint32_t capacity,
@@ -5501,7 +5537,9 @@ static inline int32_t sdrkit_eme_echo_gen_set_moon_level_db(SDRKIT_HANDLE handle
 
 // Fills `rows` with the changed rows of the table "events" of the stack "beacon_events" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `type` names a row.
+// Time: `utc`.
 static inline int32_t sdrkit_beacon_events_rows(SDRKIT_HANDLE handle,
                                                sdrkit_science_event_row *rows,
                                                uint32_t capacity,
@@ -5573,6 +5611,8 @@ static inline int32_t sdrkit_beacon_events_gen_set_flutter_db(SDRKIT_HANDLE hand
 
 // Fills `rows` with the changed rows of the table "searches" of the stack "pulsar" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_pulsar_searches_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_pulsar_search_row *rows,
                                                  uint32_t capacity,
@@ -5721,6 +5761,8 @@ static inline int32_t sdrkit_pulsar_gen_set_dm(SDRKIT_HANDLE handle, double valu
 
 // Fills `rows` with the changed rows of the table "radar_rows" of the stack "radar_detect" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `signal_time_s`.
 static inline int32_t sdrkit_radar_detect_radar_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_radar_detect_row *rows,
                                                     uint32_t capacity,
@@ -5793,7 +5835,9 @@ static inline int32_t sdrkit_horus_custom_fields_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "horus" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `payload` names a row.
+// Time: `received`.
 static inline int32_t sdrkit_horus_packets_rows(SDRKIT_HANDLE handle,
                                                sdrkit_horus_packet_row *rows,
                                                uint32_t capacity,

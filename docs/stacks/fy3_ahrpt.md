@@ -31,6 +31,12 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:fy
 | `view` | View | choice | `true` | `true` (True colour (1, 9, 7)), `false` (False colour (2, 1, 4 inverted)), `ch1` (Channel 1 (0.63 um red)), `ch2` (Channel 2 (0.865 um)), `ch3` (Channel 3 (3.74 um)), `ch4` (Channel 4 (10.8 um)), `ch5` (Channel 5 (12 um)), `ch6` (Channel 6 (1.6 um)), `ch7` (Channel 7 (0.455 um blue)), `ch8` (Channel 8 (0.505 um)), `ch9` (Channel 9 (0.555 um green)), `ch10` (Channel 10 (1.36 um)), `ch11` (Channel 11 (1 km)), `ch12` (Channel 12 (1 km)), `ch13` (Channel 13 (1 km)), `ch14` (Channel 14 (1 km)), `ch15` (Channel 15 (1 km)), `ch16` (Channel 16 (1 km)), `ch17` (Channel 17 (1 km)), `ch18` (Channel 18 (1 km)), `ch19` (Channel 19 (1 km)), `ch20` (Channel 20 (1 km)), `ch21` (Channel 21 (1 km)), `ch22` (Channel 22 (1 km)), and others | The composite, else a channel. A view that the instrument shown lacks is refused. |
 | `follow` | Follow | yes or no | true |  |  |
 
+Advanced settings. The owner works without any of them set.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `pass_gap` | Pass end | number (s) | 60 | 1 to 3600 | After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture. |
+
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
 | Key | Label | Kind | Default | Range or options | Help |
@@ -107,9 +113,11 @@ The setting `instrument` chooses whose picture the stack shows. The setting `vie
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
+
+Key readings: `snr_db`, `frames_ok`, `frames_bad`.
 
 ### Result fields
 
@@ -205,6 +213,7 @@ Struct `ImageRow`. A finished image. The row key names the image. The picture it
 | `instrument` | `sdrkit_fy3_ahrpt_get_instrument` | `sdrkit_fy3_ahrpt_set_instrument` |
 | `view` | `sdrkit_fy3_ahrpt_get_view` | `sdrkit_fy3_ahrpt_set_view` |
 | `follow` | `sdrkit_fy3_ahrpt_get_follow` | `sdrkit_fy3_ahrpt_set_follow` |
+| `pass_gap` | `sdrkit_fy3_ahrpt_get_pass_gap` | `sdrkit_fy3_ahrpt_set_pass_gap` |
 
 ### Settings of the test signal generator
 

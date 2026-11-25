@@ -66,7 +66,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:lt
 
 ## Typed interface
 
-The stack is in the family `trunk`, version 1.5. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `trunk`, version 1.6. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -102,7 +102,7 @@ Struct `LtrWordRow`. A good LTR word. The row key is the sequence number of the 
 | `kind` | choice | always | 1.0 | What the ID says. |
 | `time_s` | number (s) | always | 1.0 | The signal time of a word, s. |
 
-The column `talkgroup` names a row.
+The rows are a log: they arrive over time. The column `talkgroup` names a row. Time: `time_s`.
 
 ### Table `repeaters`
 

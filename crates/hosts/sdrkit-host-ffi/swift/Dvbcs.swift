@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "dvbcs", version 1.5. MIT licence.
+// sdrkit: the typed interface of the stack family "dvbcs", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum DvbcsInterface {
-    public static let major = 1
-    public static let minor = 5
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of `satbeacon`: the carrier, the subcarrier, the bit clock and the frame learner. A measurement of the subcarrier has no value without a subcarrier.
@@ -168,6 +168,8 @@ public struct SatbeaconFrameRow {
     public var good: Bool
     /// The bytes of the frame.
     public var bytes: [UInt8]
+    /// The signal time when the frame was found.
+    public var timeS: Double
 
     init(_ c: sdrkit_satbeacon_frame_row) {
         key = sdrkitText(c.key)
@@ -176,6 +178,7 @@ public struct SatbeaconFrameRow {
         errors = c.errors
         good = c.good
         bytes = [UInt8](UnsafeBufferPointer(start: c.bytes.ptr, count: c.bytes.len))
+        timeS = c.time_s
     }
 }
 
@@ -1010,6 +1013,8 @@ public enum DvbcsTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatbeaconLineRow.init))
     }
     /// The changed rows of the table "frames" of the stack "satbeacon", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func satbeaconFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 48) -> Result<[SatbeaconFrameRow], SDRKitCode> {
         var rows = [sdrkit_satbeacon_frame_row](repeating: sdrkit_satbeacon_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized

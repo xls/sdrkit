@@ -1,9 +1,8 @@
 //! The settings of each stack of the family and of the test signal, and the sub-mode that a set of values selects.
 
 use crate::components::{
-    BAND_EDGES, DIALS,
-    BEACON_DBM, BEACON_EVERY, BEACON_HZ, BEACON_OFFSET, DEMOD, EARLY_DECODE, ENABLE,
-    HOP_BANDS, HOP_COORDINATED, HOP_CYCLE, HOP_ENABLED, HOP_HOURS, JS8_FAST, JS8_HZ,
+    BAND_EDGES, BEACON_DBM, BEACON_EVERY, BEACON_HZ, BEACON_OFFSET, DEMOD, DIALS, EARLY_DECODE,
+    ENABLE, HOP_BANDS, HOP_COORDINATED, HOP_CYCLE, HOP_ENABLED, HOP_HOURS, JS8_FAST, JS8_HZ,
     JS8_NORMAL, JS8_SPEED, JS8_TURBO, LISTEN, MULTIBAND, MULTIBAND_SELECT, QSO_AUTO, QSO_EVEN,
     QSO_HOLD, QSO_HZ, QSO_MODE, QSO_RETRIES, QSO_WATCHDOG, SPOTS, TIME_SOURCE, TIME_START, WIDE,
     WIDE_SPAN,
@@ -36,6 +35,16 @@ pub const GEN_HZ: Setting<field::Hz> =
     Setting::new("gen_hz", "Single station frequency", "Hz", 1500.0)
         .range(200.0, 3500.0, 1.0)
         .section("Test signal")
+        .advanced();
+
+/// The MSK144 test signal sends a short message as the 40-bit short frame.
+pub const MSK144_SHORT: Setting<field::Bool> =
+    Setting::new("gen_short", "Test signal short messages", "", false)
+        .section("Test signal")
+        .help(
+            "Sends a single station message `<CALL1 CALL2> RPT`, whose report is -03, +00, +03, +06, +10, +13, +16, \
+             R-03 to R+16, RRR or 73, as the 40-bit short frame.",
+        )
         .advanced();
 
 /// The labels of the sub-mode letters of JT65: the letter and its tone spacing.
@@ -173,8 +182,13 @@ fn decls_for(mode: Option<Mode>) -> Vec<SettingDecl> {
         ));
     }
     if hop_too(mode) {
-        let hop: [&dyn DeclareSetting; 5] =
-            [&HOP_ENABLED, &HOP_COORDINATED, &HOP_HOURS, &HOP_BANDS, &HOP_CYCLE];
+        let hop: [&dyn DeclareSetting; 5] = [
+            &HOP_ENABLED,
+            &HOP_COORDINATED,
+            &HOP_HOURS,
+            &HOP_BANDS,
+            &HOP_CYCLE,
+        ];
         for s in hop {
             v.push(renamed(s, format!("hop.{}", s.key()), "Band hopping"));
         }
@@ -198,12 +212,8 @@ fn decls_for(mode: Option<Mode>) -> Vec<SettingDecl> {
         }
     }
     if has(Mode::Wspr) {
-        let beacon: [&dyn DeclareSetting; 4] = [
-            &BEACON_DBM,
-            &BEACON_EVERY,
-            &BEACON_OFFSET,
-            &BEACON_HZ,
-        ];
+        let beacon: [&dyn DeclareSetting; 4] =
+            [&BEACON_DBM, &BEACON_EVERY, &BEACON_OFFSET, &BEACON_HZ];
         for s in beacon {
             v.push(renamed(s, format!("beacon_{}", s.key()), "Transmit"));
         }
@@ -216,6 +226,9 @@ fn decls_for(mode: Option<Mode>) -> Vec<SettingDecl> {
     }
     let test: [&dyn DeclareSetting; 4] = [&GEN_MIRRORED, &GEN_LIVE, &GEN_SINGLE, &GEN_HZ];
     v.extend(test.iter().map(|s| s.decl()));
+    if has(Mode::Msk144) {
+        v.push(MSK144_SHORT.decl());
+    }
     v
 }
 

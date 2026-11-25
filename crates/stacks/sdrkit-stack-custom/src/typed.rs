@@ -330,7 +330,7 @@ pub struct ArqPacketMessageRow<'a> {
     #[field(label = "Sequence")]
     pub sequence: i64,
     /// The message length.
-    #[field(label = "Length", unit = "bytes")]
+    #[field(label = "Length", unit = "B")]
     pub length: i64,
     /// The message as text.
     #[field(label = "Text", role = Text)]
@@ -350,7 +350,7 @@ pub struct ArqPacketMessageEvent<'a> {
     #[field(label = "Sequence")]
     pub sequence: i64,
     /// The message length.
-    #[field(label = "Length", unit = "bytes")]
+    #[field(label = "Length", unit = "B")]
     pub length: i64,
     /// The message as text.
     #[field(label = "Text")]
@@ -455,7 +455,7 @@ pub struct FileTransferFields<'a> {
     #[field(label = "Files")]
     pub files: i64,
     /// Bytes held from an earlier session when the last transfer was announced.
-    #[field(label = "Bytes held", unit = "bytes")]
+    #[field(label = "Bytes held", unit = "B")]
     pub held_bytes: i64,
     /// Acknowledgement frames heard.
     #[field(label = "Acknowledgements heard")]
@@ -475,7 +475,7 @@ pub struct FileTransferFileRow<'a> {
     #[field(label = "Name", role = Text)]
     pub name: &'a str,
     /// The size.
-    #[field(label = "Size", unit = "bytes")]
+    #[field(label = "Size", unit = "B")]
     pub size: i64,
     /// The hash, hex.
     #[field(label = "Hash")]
@@ -498,7 +498,7 @@ pub struct FileTransferReceivedEvent<'a> {
     #[field(label = "Name")]
     pub name: &'a str,
     /// The size.
-    #[field(label = "Size", unit = "bytes")]
+    #[field(label = "Size", unit = "B")]
     pub size: i64,
     /// The hash, hex.
     #[field(label = "Hash")]
@@ -521,10 +521,10 @@ pub struct FileTransferOpenEvent<'a> {
     #[field(label = "Name")]
     pub name: &'a str,
     /// The size.
-    #[field(label = "Size", unit = "bytes")]
+    #[field(label = "Size", unit = "B")]
     pub size: i64,
     /// Bytes held from an earlier session.
-    #[field(label = "Bytes held", unit = "bytes")]
+    #[field(label = "Bytes held", unit = "B")]
     pub held_bytes: i64,
     /// The sending station.
     #[field(shared = keys::CALLSIGN)]
@@ -762,19 +762,7 @@ pub fn family() -> &'static Family {
         // What a stack heard from stations stays over a change of frequency: the station list, the logs of messages,
         // pictures and files, and the counts of these logs. The streams of `qam_video` belong to the signal on air.
         // 1.2: each `send` names `stop` as the command that ends its transmission.
-        Family::new("custom", 1, 5)
-            .added(
-                1,
-                3,
-                &[
-                    "slotted_voice.content",
-                    "qam_video.content",
-                    "picture_burst.content",
-                    "arq_packet.content",
-                    "file_transfer.content",
-                    "hf_chat.content",
-                ],
-            )
+        Family::new("custom", 2, 0)
             .content(sdrkit_core::ContentKind::Television, &["qam_video"])
             .content(sdrkit_core::ContentKind::Voice, &["slotted_voice"])
             .content(sdrkit_core::ContentKind::TextChat, &["hf_chat"])

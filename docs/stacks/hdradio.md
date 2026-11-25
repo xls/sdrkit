@@ -69,7 +69,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `message` | Message | text |
 | `country` | Country | text |
 | `facility_id` | Facility id | whole number |
-| `location` | Location | position (deg) |
+| `location` | Location | position |
 | `altitude_m` | Altitude | number (m) |
 | `text` | Text | text |
 | `item_running` | Item running | yes or no |
@@ -113,7 +113,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `broadcast`, version 1.1. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `broadcast`, version 2.0. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Broadcast radio (`broadcast`). Media: pictures.
 
@@ -155,7 +155,7 @@ Struct `HdradioFields`. The results of the HD Radio stack. No band or mode befor
 | `message` | text | optional | 1.0 | The station message. |
 | `country` | text | optional | 1.0 | The country. |
 | `facility_id` | whole number | optional | 1.0 | The facility id. |
-| `location` | position (deg) | optional | 1.0 | The location of the station. |
+| `location` | position | optional | 1.0 | The location of the station. |
 | `altitude_m` | number (m) | optional | 1.0 | The altitude of the station. |
 
 ### Result fields

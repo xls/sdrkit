@@ -34,6 +34,12 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:rd
 | `symbol_rate` | Symbol rate | frequency | 30.72 MHz | 1 MHz to 60 MHz | Not confirmed by a public document. |
 | `roll_off` | Matched filter roll-off | number | 0.5 | 0.1 to 1 | Not confirmed by a public document. |
 
+Advanced settings. The owner works without any of them set.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `pass_gap` | Pass end | number (s) | 60 | 1 to 3600 | After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture. |
+
 ## Result fields
 
 | Key | Label | Kind |
@@ -92,9 +98,11 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:rd
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
+
+Key readings: `frame_lock`, `snr_db`, `frames_ok`, `frames_bad`.
 
 ### Result fields
 
@@ -159,7 +167,7 @@ Struct `FrameRow`. A frame of a stack that lists frames. The row key is the plac
 | `check` | text | always | 1.0 | The check of a frame: good, check failed, or none. |
 | `hex` | text | always | 1.0 | The first 24 bytes of a frame after decoding. |
 
-The column `hex` names a row.
+The rows are a log: they arrive over time. The column `hex` names a row. Time: `time`.
 
 ### Table `virtual_channels`
 
@@ -182,6 +190,7 @@ Struct `VirtualChannelRow`. The frames of one virtual channel. The row key is th
 |---|---|---|
 | `symbol_rate` | `sdrkit_rdas_get_symbol_rate` | `sdrkit_rdas_set_symbol_rate` |
 | `roll_off` | `sdrkit_rdas_get_roll_off` | `sdrkit_rdas_set_roll_off` |
+| `pass_gap` | `sdrkit_rdas_get_pass_gap` | `sdrkit_rdas_set_pass_gap` |
 
 ## Try it
 

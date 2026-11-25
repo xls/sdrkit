@@ -511,6 +511,7 @@ impl IlsReport {
                 marker: s.marker,
                 text: &self.keying,
                 level_dbfs: self.carrier.map(|c| f64::from(c.level_dbfs)),
+                time_s: s.end_s,
             },
         );
         self.published.results_mut().log(format!(

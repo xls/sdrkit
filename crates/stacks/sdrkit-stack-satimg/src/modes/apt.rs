@@ -10,6 +10,7 @@ use super::notes::set_status;
 use crate::components::instruments::InstrumentCommand;
 use crate::components::last;
 use crate::components::link::{item_format, item_port, stage, FrontEndComponent, FrontReport};
+use crate::components::pass::{pass_format, pass_port, PassPictures, PassTimer, PASS_GAP};
 use crate::gen::{test_value, GenError};
 use crate::instruments::apt::{
     amplitude, burst_amplitude, sync_a, test_word, AptDecoder, AptLine, LineFilter, DEVIATION_HZ,
@@ -24,7 +25,7 @@ use sdrkit_algo_dsp::fm::Discriminator;
 use sdrkit_algo_dsp::loopfilter::PhaseAcc;
 use sdrkit_algo_dsp::window::Window;
 use sdrkit_algo_sim::modulate::Fm;
-use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView};
 use sdrkit_codec_image::strip::{Strip, View};
 use sdrkit_core::command::{CommandError, CommandId, CommandSet as _, Commands};
 use crate::typed::{ImageRow, NoaaAptFields, IMAGES};
@@ -104,6 +105,8 @@ sdrkit_core::settings! {
     pub enum AptLineSetting {
         /// The line filter.
         LineFilter = LINE_FILTER,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
     }
 }
 
@@ -116,6 +119,8 @@ sdrkit_core::settings! {
         Follow = FOLLOW,
         /// The line filter.
         LineFilter = LINE_FILTER,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// Test: picture lines.
         GenLines = GEN_LINES,
     }
@@ -244,6 +249,8 @@ pub struct AptComponent {
     filter_on: bool,
     /// The words of the line being cut into strips.
     line_words: Vec<u8>,
+    /// The signal time since the last line with its sync.
+    pass: PassTimer,
 }
 
 impl Default for AptComponent {
@@ -274,6 +281,7 @@ impl Default for AptComponent {
             filter: LineFilter::new(),
             filter_on: true,
             line_words: Vec::new(),
+            pass: PassTimer::default(),
         }
     }
 }
@@ -311,7 +319,11 @@ impl Component for AptComponent {
         ComponentInfo::processor(
             "satimg.apt",
             vec![Port::iq("in")],
-            vec![item_port::<Strip>("out"), item_port::<AptReport>("report")],
+            vec![
+                item_port::<Strip>("out"),
+                item_port::<AptReport>("report"),
+                pass_port(),
+            ],
         )
         .with_settings(AptLineSetting::schema())
     }
@@ -342,7 +354,11 @@ impl Component for AptComponent {
         self.offset = 0.0;
         self.words.clear();
         self.filter.reset();
-        Ok(vec![item_format::<Strip>(), item_format::<AptReport>()])
+        Ok(vec![
+            item_format::<Strip>(),
+            item_format::<AptReport>(),
+            pass_format(),
+        ])
     }
     fn process(&mut self, io: &mut Io) {
         let Some(fm) = &mut self.fm else { return };
@@ -372,7 +388,14 @@ impl Component for AptComponent {
         for l in &found {
             self.line(l);
         }
+        // Lines taken at the expected place without their sync do not keep the pass.
+        let synced = found.iter().any(|l| !l.missed);
         self.found = found;
+        if self.pass.step(io.pass_seconds(), synced) {
+            self.dec.new_picture();
+            self.filter.reset();
+            PassTimer::send(io, 2);
+        }
         io.items_out::<Strip>(0)
             .extend(self.strips.drain(..).map(|s| Timed {
                 time: 0.0,
@@ -400,11 +423,15 @@ impl Component for AptComponent {
     fn apply(&mut self, id: SettingId, v: &Value) -> Result<Applied, SettingError> {
         match AptLineSetting::from_id(id).ok_or(SettingError::NoSuchId { id })? {
             AptLineSetting::LineFilter => self.filter_on = LINE_FILTER.read(id, v)?,
+            AptLineSetting::PassGap => return self.pass.apply(id, v),
         }
         Ok(Applied::Live)
     }
     fn values(&self) -> Values {
-        values_of([(AptLineSetting::LineFilter, Value::Bool(self.filter_on))])
+        values_of([
+            (AptLineSetting::LineFilter, Value::Bool(self.filter_on)),
+            (AptLineSetting::PassGap, Value::F64(self.pass.gap_s())),
+        ])
     }
     fn commands(&self) -> &Commands {
         InstrumentCommand::commands()
@@ -569,7 +596,7 @@ impl Component for AptDisplay {
 ///
 /// [`GraphError::Schema`] if the picture layouts produce no valid schema.
 pub fn builder() -> Result<GraphBuilder, GraphError> {
-    let pictures = Pictures::new(layouts()).map_err(GraphError::Schema)?;
+    let pictures = PassPictures::new(layouts(), "NOAA").map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add(
             "frontend",
@@ -581,6 +608,7 @@ pub fn builder() -> Result<GraphBuilder, GraphError> {
         .input("frontend.in")
         .connect("frontend.out", "apt.in")
         .connect("apt.out", "pictures.in")
+        .connect("apt.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("apt.report", "display.apt")
         .output("pictures.picture")
@@ -600,6 +628,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route("picture", &["pictures.instrument"])?
         .route("follow", &["pictures.follow"])?
         .route("line_filter", &["apt.line_filter"])?
+        .route("pass_gap", &["apt.pass_gap"])?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .with_settings(&cfg.settings)
         .build()

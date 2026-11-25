@@ -95,7 +95,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 2.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 3.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -105,31 +105,31 @@ Struct `EspnowFields`. The result fields of `espnow`.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `devices` | whole number | always | 1.1 | Devices in the table. |
-| `frames_ok` | whole number | always | 1.1 | Wi-Fi frames with a good FCS. |
-| `frames_bad` | whole number | always | 1.1 | Wi-Fi frames with a bad FCS. |
-| `action_frames` | whole number | always | 1.1 | Management action frames. |
-| `espnow_frames` | whole number | always | 1.1 | ESP-NOW frames. |
-| `encrypted` | whole number | always | 1.1 | ESP-NOW frames that were protected. |
-| `decrypted` | whole number | always | 1.1 | Protected frames that a key opened. |
-| `broadcast` | whole number | always | 1.1 | ESP-NOW frames to the broadcast address. |
-| `heard` | yes or no | always | 1.1 | An ESP-NOW frame came in the last 5 s. |
-| `channel` | whole number | optional | 1.1 | The channel nearest the radio centre. No value when the centre is not known. |
-| `channel_hz` | frequency | optional | 1.1 | The centre frequency of the channel. No value when the centre is not known. |
-| `channel_offset_hz` | frequency | optional | 1.1 | The offset of the channel's centre from the radio centre. No value when the centre is not known. |
-| `level_dbfs` | number (dBFS) | optional | 1.1 | The level of the last good frame. No value before it. |
-| `snr_db` | number (dB) | optional | 1.1 | The SNR of the last good frame. No value before it. |
-| `offset_hz` | frequency | optional | 1.1 | The carrier offset of the last good frame. No value before it. |
-| `input_rate_hz` | frequency | always | 1.1 | The input rate. |
-| `dsss_sfds` | whole number | always | 1.1 | DSSS SFDs found. |
-| `dsss_headers_ok` | whole number | always | 1.1 | DSSS PLCP headers with a good CRC. |
-| `dsss_headers_bad` | whole number | always | 1.1 | DSSS PLCP headers with a bad CRC. |
-| `dsss_cck_headers` | whole number | always | 1.1 | DSSS headers of a CCK rate, not decoded. |
-| `ofdm_preambles` | whole number | always | 1.1 | OFDM short preambles found. |
-| `ofdm_signal_ok` | whole number | always | 1.1 | OFDM SIGNAL fields with a good parity. |
-| `ofdm_signal_bad` | whole number | always | 1.1 | OFDM SIGNAL fields with a bad parity or rate. |
-| `hopping` | yes or no | always | 1.1 | The host steps through the hop list. |
-| `note` | text | always | 1.1 | What is decoded, what is only detected, and what no public document confirms. |
+| `devices` | whole number | always | 1.0 | Devices in the table. |
+| `frames_ok` | whole number | always | 1.0 | Wi-Fi frames with a good FCS. |
+| `frames_bad` | whole number | always | 1.0 | Wi-Fi frames with a bad FCS. |
+| `action_frames` | whole number | always | 1.0 | Management action frames. |
+| `espnow_frames` | whole number | always | 1.0 | ESP-NOW frames. |
+| `encrypted` | whole number | always | 1.0 | ESP-NOW frames that were protected. |
+| `decrypted` | whole number | always | 1.0 | Protected frames that a key opened. |
+| `broadcast` | whole number | always | 1.0 | ESP-NOW frames to the broadcast address. |
+| `heard` | yes or no | always | 1.0 | An ESP-NOW frame came in the last 5 s. |
+| `channel` | whole number | optional | 1.0 | The channel nearest the radio centre. No value when the centre is not known. |
+| `channel_hz` | frequency | optional | 1.0 | The centre frequency of the channel. No value when the centre is not known. |
+| `channel_offset_hz` | frequency | optional | 1.0 | The offset of the channel's centre from the radio centre. No value when the centre is not known. |
+| `level_dbfs` | number (dBFS) | optional | 1.0 | The level of the last good frame. No value before it. |
+| `snr_db` | number (dB) | optional | 1.0 | The SNR of the last good frame. No value before it. |
+| `offset_hz` | frequency | optional | 1.0 | The carrier offset of the last good frame. No value before it. |
+| `input_rate_hz` | frequency | always | 1.0 | The input rate. |
+| `dsss_sfds` | whole number | always | 1.0 | DSSS SFDs found. |
+| `dsss_headers_ok` | whole number | always | 1.0 | DSSS PLCP headers with a good CRC. |
+| `dsss_headers_bad` | whole number | always | 1.0 | DSSS PLCP headers with a bad CRC. |
+| `dsss_cck_headers` | whole number | always | 1.0 | DSSS headers of a CCK rate, not decoded. |
+| `ofdm_preambles` | whole number | always | 1.0 | OFDM short preambles found. |
+| `ofdm_signal_ok` | whole number | always | 1.0 | OFDM SIGNAL fields with a good parity. |
+| `ofdm_signal_bad` | whole number | always | 1.0 | OFDM SIGNAL fields with a bad parity or rate. |
+| `hopping` | yes or no | always | 1.0 | The host steps through the hop list. |
+| `note` | text | always | 1.0 | What is decoded, what is only detected, and what no public document confirms. |
 
 ### Table `devices`
 
@@ -137,23 +137,23 @@ Struct `EspnowDeviceRow`. A row of the devices of `espnow`. The row key is the s
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `address` | text | always | 1.1 | The sender address. |
-| `vendor` | text | always | 1.1 | The maker of the address, or "(local)" for a locally administered one. |
-| `espressif` | yes or no | always | 1.1 | The address is one of Espressif. |
-| `packets` | whole number | always | 1.1 | ESP-NOW frames heard. |
-| `encrypted` | whole number | always | 1.1 | Protected frames heard. |
-| `broadcasts` | whole number | always | 1.1 | Frames to the broadcast address. |
-| `rate` | number (1/s) | always | 1.1 | Packets per second over the present window of 1 to 10 s; 0 after 10 s unheard. |
-| `level_dbfs` | number (dBFS) | always | 1.1 | The level of the last frame. |
-| `channel` | whole number | always | 1.1 | The channel of the last frame (0: not known). |
-| `phy_rate_kbps` | whole number (kbit/s) | always | 1.1 | The PHY rate of the last frame. |
-| `last_to` | text | always | 1.1 | "broadcast" or the destination of the last frame. |
-| `last_payload` | text | always | 1.1 | The payload of the last frame as hex; empty when it was encrypted. |
-| `version` | whole number | optional | 1.1 | The ESP-NOW version of the last readable frame. No value before one. |
-| `first_heard` | time | optional | 1.1 | The UTC of the first frame. |
-| `last_heard` | time | optional | 1.1 | The UTC of the last frame. |
-| `first_s` | number (s) | always | 1.1 | The signal time of the first frame. |
-| `last_s` | number (s) | always | 1.1 | The signal time of the last frame. |
+| `address` | text | always | 1.0 | The sender address. |
+| `vendor` | text | always | 1.0 | The maker of the address, or "(local)" for a locally administered one. |
+| `espressif` | yes or no | always | 1.0 | The address is one of Espressif. |
+| `packets` | whole number | always | 1.0 | ESP-NOW frames heard. |
+| `encrypted` | whole number | always | 1.0 | Protected frames heard. |
+| `broadcasts` | whole number | always | 1.0 | Frames to the broadcast address. |
+| `rate` | number (1/s) | always | 1.0 | Packets per second over the present window of 1 to 10 s; 0 after 10 s unheard. |
+| `level_dbfs` | number (dBFS) | always | 1.0 | The level of the last frame. |
+| `channel` | whole number | always | 1.0 | The channel of the last frame (0: not known). |
+| `phy_rate_kbps` | whole number (kbit/s) | always | 1.0 | The PHY rate of the last frame. |
+| `last_to` | text | always | 1.0 | "broadcast" or the destination of the last frame. |
+| `last_payload` | text | always | 1.0 | The payload of the last frame as hex; empty when it was encrypted. |
+| `version` | whole number | optional | 1.0 | The ESP-NOW version of the last readable frame. No value before one. |
+| `first_heard` | time | optional | 1.0 | The UTC of the first frame. |
+| `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+| `first_s` | number (s) | always | 1.0 | The signal time of the first frame. |
+| `last_s` | number (s) | always | 1.0 | The signal time of the last frame. |
 
 The column `address` names a row.
 
@@ -163,22 +163,22 @@ Struct `EspnowFrameRow`. A row of the frame log of `espnow`.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `time` | time | optional | 1.1 | The UTC of the frame. No value for a recording. |
-| `signal_s` | number (s) | always | 1.1 | The signal time of the frame. |
-| `channel` | whole number | always | 1.1 | The channel (0: not known). |
-| `phy_rate_kbps` | whole number (kbit/s) | always | 1.1 | The PHY rate. |
-| `short_preamble` | yes or no | always | 1.1 | A DSSS frame with the short preamble. |
-| `from` | text | always | 1.1 | The sender address. |
-| `to` | text | always | 1.1 | "broadcast" or the destination address. |
-| `seq` | whole number | always | 1.1 | The sequence number. |
-| `version` | whole number | optional | 1.1 | The ESP-NOW version. No value for a frame that stayed encrypted. |
-| `encrypted` | yes or no | always | 1.1 | The frame was protected. |
-| `decrypted` | yes or no | always | 1.1 | A key opened the frame. |
-| `level_dbfs` | number (dBFS) | always | 1.1 | The level of the frame. |
-| `snr_db` | number (dB) | optional | 1.1 | The SNR of the frame. |
-| `offset_hz` | frequency | optional | 1.1 | The carrier offset of the frame. |
-| `payload` | text | always | 1.1 | The payload as hex; empty when it stayed encrypted. |
-| `details` | text | always | 1.1 | The summary. |
+| `time` | time | optional | 1.0 | The UTC of the frame. No value for a recording. |
+| `signal_s` | number (s) | always | 1.0 | The signal time of the frame. |
+| `channel` | whole number | always | 1.0 | The channel (0: not known). |
+| `phy_rate_kbps` | whole number (kbit/s) | always | 1.0 | The PHY rate. |
+| `short_preamble` | yes or no | always | 1.0 | A DSSS frame with the short preamble. |
+| `from` | text | always | 1.0 | The sender address. |
+| `to` | text | always | 1.0 | "broadcast" or the destination address. |
+| `seq` | whole number | always | 1.0 | The sequence number. |
+| `version` | whole number | optional | 1.0 | The ESP-NOW version. No value for a frame that stayed encrypted. |
+| `encrypted` | yes or no | always | 1.0 | The frame was protected. |
+| `decrypted` | yes or no | always | 1.0 | A key opened the frame. |
+| `level_dbfs` | number (dBFS) | always | 1.0 | The level of the frame. |
+| `snr_db` | number (dB) | optional | 1.0 | The SNR of the frame. |
+| `offset_hz` | frequency | optional | 1.0 | The carrier offset of the frame. |
+| `payload` | text | always | 1.0 | The payload as hex; empty when it stayed encrypted. |
+| `details` | text | always | 1.0 | The summary. |
 
 The column `from` names a row.
 
@@ -188,8 +188,8 @@ Struct `EspnowRateRow`. A row of the ESP-NOW frames at each PHY rate of `espnow`
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `rate` | text | always | 1.1 | The PHY rate group. |
-| `frames` | whole number | always | 1.1 | ESP-NOW frames at the rate. |
+| `rate` | text | always | 1.0 | The PHY rate group. |
+| `frames` | whole number | always | 1.0 | ESP-NOW frames at the rate. |
 
 ### Table `by_channel`
 
@@ -197,8 +197,8 @@ Struct `EspnowChannelRow`. A row of the ESP-NOW frames on each channel of `espno
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `channel` | whole number | always | 1.1 | The channel. |
-| `frames` | whole number | always | 1.1 | ESP-NOW frames on the channel. |
+| `channel` | whole number | always | 1.0 | The channel. |
+| `frames` | whole number | always | 1.0 | ESP-NOW frames on the channel. |
 
 ### Event `espnow.frame`
 
@@ -206,11 +206,11 @@ Struct `EspnowFrameEvent`. The fields of an ESP-NOW frame.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `source` | text | always | 1.1 | The sender address. |
-| `to` | text | always | 1.1 | "broadcast" or the destination address. |
-| `text` | text | always | 1.1 | The summary. |
-| `level_dbfs` | number (dBFS) | always | 1.1 | The level of the frame. |
-| `family` | choice | always | 1.1 | The family of the source. |
+| `source` | text | always | 1.0 | The sender address. |
+| `to` | text | always | 1.0 | "broadcast" or the destination address. |
+| `text` | text | always | 1.0 | The summary. |
+| `level_dbfs` | number (dBFS) | always | 1.0 | The level of the frame. |
+| `family` | choice | always | 1.0 | The family of the source. |
 
 ### Event `espnow.device`
 
@@ -218,9 +218,9 @@ Struct `EspnowDeviceEvent`. The fields of a device heard for the first time.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `source` | text | always | 1.1 | The sender address. |
-| `vendor` | text | always | 1.1 | The maker of the address. |
-| `family` | choice | always | 1.1 | The family of the source. |
+| `source` | text | always | 1.0 | The sender address. |
+| `vendor` | text | always | 1.0 | The maker of the address. |
+| `family` | choice | always | 1.0 | The family of the source. |
 
 ### Commands
 

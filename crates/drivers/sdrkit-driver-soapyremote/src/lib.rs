@@ -7,7 +7,7 @@
 #![warn(missing_docs)]
 
 pub mod discovery;
-mod format;
+pub mod format;
 mod log;
 mod plan;
 mod radio;

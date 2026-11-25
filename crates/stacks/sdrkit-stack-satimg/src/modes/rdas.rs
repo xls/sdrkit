@@ -14,6 +14,9 @@ use crate::typed::{FrameTableFields, RdasFields, FRAMES, VIRTUAL_CHANNELS};
 use crate::components::gated::{GateReport, GateRules, GatedDemodComponent};
 use crate::components::instruments::instrument_owner;
 use crate::components::link::{item_format, item_port, DemodReport, FrontEndComponent, FrontReport};
+use crate::components::pass::{
+    pass_format, pass_port, PassPictures, PassSetting, PassTimer, PASS_GAP,
+};
 use crate::components::table::{FrameBytes, FrameTableComponent, Line, TableLink, TableReport};
 use crate::components::{last, Control};
 use crate::gen::{BitSource, GenError, ModParams, Modulator};
@@ -21,7 +24,7 @@ use crate::instruments::msugs::{self, IrFrame};
 use crate::items::{Cadu, CADU_LEN};
 use crate::psk::{LinkClass, LinkParams, Modulation, Search, SnrEstimator};
 use sdrkit_algo_fec::rs::Basis;
-use sdrkit_codec_image::component::{Layout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout, NamedView};
 use sdrkit_codec_image::strip::Strip;
 use sdrkit_codec_image::strip::View;
 use sdrkit_core::interface::{Fields as _, Hertz};
@@ -90,6 +93,8 @@ sdrkit_core::settings! {
         SymbolRate = SYMBOL_RATE,
         /// The roll-off.
         RollOff = ROLL_OFF,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
     }
 }
 
@@ -328,6 +333,7 @@ impl Item for MsuGsReport {
 pub struct MsuGsComponent {
     dec: MsuGsDecoder,
     strips: Vec<Strip>,
+    pass: PassTimer,
 }
 
 impl Component for MsuGsComponent {
@@ -339,14 +345,17 @@ impl Component for MsuGsComponent {
                 item_port::<Strip>("out"),
                 item_port::<Cadu>("cadus"),
                 item_port::<MsuGsReport>("report"),
+                pass_port(),
             ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
         Ok(vec![
             item_format::<Strip>(),
             item_format::<Cadu>(),
             item_format::<MsuGsReport>(),
+            pass_format(),
         ])
     }
     fn process(&mut self, io: &mut Io) {
@@ -368,6 +377,9 @@ impl Component for MsuGsComponent {
                     value: c,
                 });
             }
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 3) {
+            self.dec.new_picture();
         }
         io.items_out::<Strip>(0)
             .extend(self.strips.drain(..).map(|s| Timed { time: 0.0, value: s }));
@@ -651,7 +663,7 @@ const COSTS: &str = include_str!("../../cost.txt");
 /// [`GraphError::Schema`] if the picture layouts are refused.
 pub fn builder(v: &Values, submode: Option<&str>) -> Result<GraphBuilder, GraphError> {
     let l = link(v);
-    let pictures = Pictures::new(layouts()).map_err(GraphError::Schema)?;
+    let pictures = PassPictures::new(layouts(), satellite(submode)).map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add("frontend", FrontEndComponent::new(l.clone(), MIN_RATE, false))
         .add("demod", GatedDemodComponent::new(l.clone(), GATE))
@@ -665,6 +677,7 @@ pub fn builder(v: &Values, submode: Option<&str>) -> Result<GraphBuilder, GraphE
         .connect("demod.soft", "frames.in")
         .connect("frames.frames", "msugs.in")
         .connect("msugs.out", "pictures.in")
+        .connect("msugs.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
         .connect("demod.gate", "display.gate")
@@ -697,6 +710,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .route("symbol_rate", &["display.symbol_rate"])?
         .route("roll_off", &["display.roll_off"])?
+        .route("pass_gap", &["msugs.pass_gap"])?
         .with_settings(&cfg.settings)
         .build()
 }

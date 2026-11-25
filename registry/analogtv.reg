@@ -1,5 +1,5 @@
 # The interface of the stack family analogtv. The registry test of the family writes this file.
-family analogtv version=1.2
+family analogtv version=2.0
 uses.mpegts major=1 since=1.0
 shape.AtvFields since=1.0
 shape.AtvFields.state type=choice(searching,sync,locked) unit= optional=no since=1.0
@@ -56,11 +56,11 @@ shape.TeletextFields.teletext_errors type=i64 unit= optional=yes since=1.0
 shape.TeletextFields.teletext_parity_errors type=i64 unit= optional=yes since=1.0
 shape.TeletextFields.teletext_page type=i64 unit= optional=no since=1.0
 shape.TeletextFields.page_text type=text unit= optional=yes since=1.0
-shape.TvTxFields since=1.1
-shape.TvTxFields.tx_sending type=bool unit= optional=no since=1.1
-shape.TvTxFields.tx_system type=text unit= optional=yes since=1.1
-shape.TvTxFields.tx_frames type=i64 unit= optional=no since=1.1
-shape.TvTxFields.tx_fields type=i64 unit= optional=no since=1.1
+shape.TvTxFields since=1.0
+shape.TvTxFields.tx_sending type=bool unit= optional=no since=1.0
+shape.TvTxFields.tx_system type=text unit= optional=yes since=1.0
+shape.TvTxFields.tx_frames type=i64 unit= optional=no since=1.0
+shape.TvTxFields.tx_fields type=i64 unit= optional=no since=1.0
 shape.AtvChannelRow since=1.0
 shape.AtvChannelRow.label type=text unit= optional=no since=1.0
 shape.AtvChannelRow.vision type=hz unit=Hz optional=no since=1.0
@@ -145,16 +145,16 @@ shape.FpvStateEvent.state type=choice(searching,sync,locked) unit= optional=no s
 shape.FpvStateEvent.text type=text unit= optional=no since=1.0
 shape.FpvStateEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 atv since=1.0
-atv.content kind=television audio=programme video=yes since=1.2
+atv.content kind=television audio=programme video=yes since=1.0
 atv.fields.AtvFields since=1.0
 atv.fields.TeletextFields since=1.0
-atv.fields.TvTxFields since=1.1
+atv.fields.TvTxFields since=1.0
 atv.kept.channels since=1.0
 atv.table.channels row=AtvChannelRow cap=256 label=label since=1.0
 atv.table.teletext_pages row=TeletextPageRow cap=800 since=1.0
 atv.table.teletext_subpages row=TeletextSubpageRow cap=8192 since=1.0
-atv.series.line x_unit=µs y_unit= since=1.0
-atv.series.vbi x_unit=µs y_unit= since=1.0
+atv.series.line x_unit=us y_unit= since=1.0
+atv.series.vbi x_unit=us y_unit= since=1.0
 atv.series.spectrum x_unit=Hz y_unit=dB since=1.0
 atv.event.atv.state fields=AtvStateEvent since=1.0
 atv.event.teletext.page fields=TeletextPageEvent since=1.0
@@ -194,22 +194,22 @@ atv.setting.gen_start type=f64 unit=s since=1.0
 atv.setting.gen_nbtv_lines type=i64 unit= since=1.0
 atv.setting.gen_nbtv_rate type=f64 unit= since=1.0
 atv.setting.gen_nbtv_pattern type=i64 unit= since=1.0
-atv.setting.tx_system type=choice(g,b,i,dk,m,n,a,c,e,h,kp,l,lp) unit= since=1.1
-atv.setting.tx_colour type=choice(system,pal,ntsc,secam,none) unit= since=1.1
-atv.setting.tx_picture type=choice(card,bars,ramp) unit= since=1.1
-atv.setting.tx_sound type=bool unit= since=1.1
-atv.setting.tx_compression type=f64 unit=% since=1.1
-atv.setting.tx_group_delay type=bool unit= since=1.1
-atv.setting.tx_nyquist type=bool unit= since=1.1
-atv.setting.tx_setup type=choice(75,none) unit= since=1.1
-atv.setting.tx_secam_id type=choice(both,porch,lines) unit= since=1.1
+atv.setting.tx_system type=choice(g,b,i,dk,m,n,a,c,e,h,kp,l,lp) unit= since=1.0
+atv.setting.tx_colour type=choice(system,pal,ntsc,secam,none) unit= since=1.0
+atv.setting.tx_picture type=choice(card,bars,ramp) unit= since=1.0
+atv.setting.tx_sound type=bool unit= since=1.0
+atv.setting.tx_compression type=f64 unit=% since=1.0
+atv.setting.tx_group_delay type=bool unit= since=1.0
+atv.setting.tx_nyquist type=bool unit= since=1.0
+atv.setting.tx_setup type=choice(75,none) unit= since=1.0
+atv.setting.tx_secam_id type=choice(both,porch,lines) unit= since=1.0
 atv.command.channel.tune args=row:text reply= since=1.0
-atv.command.start args= reply= transmits=file stop=stop since=1.1
-atv.command.stop args= reply= since=1.1
-atv.command.frame args=pixels:bytes;width:i64;height:i64;pixel_format:choice(rgb8,bgra,grey8) reply= since=1.1
+atv.command.start args= reply= transmits=file stop=stop since=1.0
+atv.command.stop args= reply= since=1.0
+atv.command.frame args=pixels:bytes;width:i64;height:i64;pixel_format:choice(rgb8,bgra,grey8) reply= since=1.0
 atv.command.teletext.select args=row:text reply= since=1.0
 mac since=1.0
-mac.content kind=television audio=programme video=yes since=1.2
+mac.content kind=television audio=programme video=yes since=1.0
 mac.fields.MacFields since=1.0
 mac.series.eye x_unit= y_unit= since=1.0
 mac.event.mac.state fields=MacStateEvent since=1.0
@@ -222,10 +222,10 @@ mac.setting.gen_channel type=text unit= since=1.0
 mac.setting.gen_network type=text unit= since=1.0
 mac.setting.gen_country type=text unit= since=1.0
 fpv since=1.0
-fpv.content kind=television audio=programme video=yes since=1.2
+fpv.content kind=television audio=programme video=yes since=1.0
 fpv.fields.FpvFields since=1.0
 fpv.fields.TeletextFields since=1.0
-fpv.fields.TvTxFields since=1.1
+fpv.fields.TvTxFields since=1.0
 fpv.kept.channels since=1.0
 fpv.table.channels row=FpvChannelRow cap=64 label=name since=1.0
 fpv.table.teletext_pages row=TeletextPageRow cap=800 since=1.0
@@ -249,17 +249,17 @@ fpv.setting.gen_centre_mhz type=f64 unit=MHz since=1.0
 fpv.setting.gen_deviation_mhz type=f64 unit=MHz since=1.0
 fpv.setting.gen_sync_high type=bool unit= since=1.0
 fpv.setting.gen_ac_ms type=f64 unit=ms since=1.0
-fpv.setting.tx_system type=choice(pal,ntsc) unit= since=1.1
-fpv.setting.tx_picture type=choice(card,bars) unit= since=1.1
-fpv.setting.tx_sound type=bool unit= since=1.1
-fpv.setting.tx_subcarrier type=choice(6.5,6.0) unit= since=1.1
-fpv.setting.tx_deviation_mhz type=f64 unit=MHz since=1.1
-fpv.setting.tx_sync_high type=bool unit= since=1.1
-fpv.setting.tx_ac_ms type=f64 unit=ms since=1.1
+fpv.setting.tx_system type=choice(pal,ntsc) unit= since=1.0
+fpv.setting.tx_picture type=choice(card,bars) unit= since=1.0
+fpv.setting.tx_sound type=bool unit= since=1.0
+fpv.setting.tx_subcarrier type=choice(6.5,6.0) unit= since=1.0
+fpv.setting.tx_deviation_mhz type=f64 unit=MHz since=1.0
+fpv.setting.tx_sync_high type=bool unit= since=1.0
+fpv.setting.tx_ac_ms type=f64 unit=ms since=1.0
 fpv.command.clear args= reply= since=1.0
 fpv.command.channel.tune args=row:text reply= since=1.0
 fpv.command.scan args=plan:choice(5.8,1.2) reply= since=1.0
 fpv.command.teletext.select args=row:text reply= since=1.0
-fpv.command.start args= reply= transmits=file stop=stop since=1.1
-fpv.command.stop args= reply= since=1.1
-fpv.command.frame args=pixels:bytes;width:i64;height:i64;pixel_format:choice(rgb8,bgra,grey8) reply= since=1.1
+fpv.command.start args= reply= transmits=file stop=stop since=1.0
+fpv.command.stop args= reply= since=1.0
+fpv.command.frame args=pixels:bytes;width:i64;height:i64;pixel_format:choice(rgb8,bgra,grey8) reply= since=1.0

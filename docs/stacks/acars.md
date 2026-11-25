@@ -57,7 +57,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `messages` | Messages | `time` (time), `signal_s` (number (s)), `frequency` (frequency), `level_db` (number (dB)), `mode` (text), `registration` (text), `aircraft` (text), `flight` (text), `label` (text), `label_meaning` (text), `block_id` (text), `msn` (text), `downlink` (yes or no), `ack` (text), `text` (text), `reading` (text), `reading_kind` (text), `reading_category` (text), `cpdlc_imi` (text), `cpdlc_ground` (text), `cpdlc_aircraft` (text), `cpdlc_crc_ok` (yes or no), `cpdlc_parsed` (yes or no), `cpdlc_text` (text), `blocks` (whole number), `bits_fixed` (whole number), `position` (position), `alt_ft` (number (ft)) |
-| `aircraft` | Aircraft | `address` (text), `registration` (text), `country` (text), `flight` (text), `label` (text), `messages` (whole number), `position` (position), `alt_ft` (number (ft)), `track_deg` (number (deg)), `gs_kt` (number (kt)), `vs_fpm` (number (ft/min)), `last_heard` (time), `frequency` (frequency), `level_db` (number (dB)) |
+| `aircraft` | Aircraft | `address` (text), `registration` (text), `country` (text), `flight` (text), `label` (text), `messages` (whole number), `position` (position), `alt_ft` (number (ft)), `track_deg` (number (°)), `gs_kt` (number (kt)), `vs_fpm` (number (ft/min)), `last_heard` (time), `frequency` (frequency), `level_db` (number (dB)) |
 | `channels` | Channels | `frequency` (frequency), `level_db` (number (dB)), `snr_db` (number (dB)), `offset_hz` (frequency), `active` (yes or no), `good` (whole number), `bad` (whole number), `last_heard` (time) |
 
 ## Map points
@@ -78,7 +78,7 @@ The stack puts points on a map: Aircraft.
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.4. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 2.0. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: text.
 
@@ -150,7 +150,7 @@ Struct `AcarsAircraftRow`. A row of the aircraft. The row key is the registratio
 | `messages` | whole number | always | 1.0 | Messages of the aircraft. |
 | `position` | position | optional | 1.0 | The last position. |
 | `alt_ft` | number (ft) | optional | 1.0 | The altitude of the last position. |
-| `track_deg` | number (deg) | optional | 1.0 | The track. |
+| `track_deg` | number (°) | optional | 1.0 | The track. |
 | `gs_kt` | number (kt) | optional | 1.0 | The ground speed. |
 | `vs_fpm` | number (ft/min) | optional | 1.0 | The vertical rate. |
 | `last_heard` | time | optional | 1.0 | When the aircraft was last heard. |

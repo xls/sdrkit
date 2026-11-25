@@ -100,9 +100,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfkbd`, version 2.10. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfkbd`, version 3.0. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Measurement and analysis (`measurement`). Media: sound (monitor).
+
+Key readings: `detected`, `name`, `sub_mode`, `score_pct`, `offset_hz`.
 
 ### Result fields
 
@@ -156,7 +158,7 @@ Struct `RosDetectionRow`. A row of the ROS identifications. The row key is the p
 | `symbol_rate_hz` | frequency | always | 1.0 | The symbol rate. |
 | `why` | text | always | 1.0 | Why. |
 
-The column `name` names a row.
+The rows are a log: they arrive over time. The column `name` names a row. Time: `time_s`.
 
 ### Event `ros.detection`
 

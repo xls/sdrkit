@@ -374,10 +374,10 @@ const FCS: CatalogueSetting = CatalogueSetting {
     advanced: false,
     role: None,
 };
-const MIN_LEN: Setting<field::I64> = Setting::new("min_len", "Shortest frame", "bytes", 1)
+const MIN_LEN: Setting<field::I64> = Setting::new("min_len", "Shortest frame", "B", 1)
     .range(0.0, 65_535.0, 1.0)
     .help("Frames shorter than this (without the check) are dropped.");
-const MAX_LEN: Setting<field::I64> = Setting::new("max_len", "Longest frame", "bytes", 400)
+const MAX_LEN: Setting<field::I64> = Setting::new("max_len", "Longest frame", "B", 400)
     .range(1.0, 65_535.0, 1.0)
     .help("Frames longer than this (without the check) are dropped.");
 

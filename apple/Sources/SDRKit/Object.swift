@@ -287,7 +287,9 @@ public class Object {
             table.role = TableRole(rawValue: raw.role)
             table.message = TableMessage(
                 sender: column(raw.sender_column), addressee: column(raw.addressee_column),
-                text: column(raw.text_column), time: column(raw.time_column))
+                text: column(raw.text_column), time: column(raw.time_column),
+                own: column(raw.own_column), delivery: column(raw.delivery_column),
+                failure: column(raw.failure_column))
             table.columns = try (0..<raw.columns).map { c in
                 try declaration(
                     id: c,

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "hfkbd", version 2.10. MIT licence.
+ * sdrkit: the typed interface of the stack family "hfkbd", version 3.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_HFKBD_VERSION_MAJOR 2
-#define SDRKIT_HFKBD_VERSION_MINOR 10
+#define SDRKIT_HFKBD_VERSION_MAJOR 3
+#define SDRKIT_HFKBD_VERSION_MINOR 0
 
 // The stack "rtty": its id, and the keys of its event types.
 #define SDRKIT_STACK_RTTY "rtty"
@@ -965,6 +965,8 @@ typedef enum sdrkit_cw_fields_playing {
 typedef struct sdrkit_cw_fields {
   // The number of bytes of this struct that the library wrote.
   uint32_t size;
+  // The width of the band watched, centred on the dial. A frequency in Hz.
+  double span_hz;
   // The noise floor of the window. Unit: dB.
   double floor_db;
   // True if `focus` holds a value.
@@ -997,10 +999,8 @@ typedef struct sdrkit_cw_fields {
   double steadiness_pct;
   // True if `wpm` holds a value.
   bool has_wpm;
-  // Its speed. Unit: WPM.
+  // Its speed. Unit: wpm.
   double wpm;
-  // The width of the band watched, centred on the dial. A frequency in Hz.
-  double span_hz;
   // The signals in the table that are heard now.
   int64_t signals;
   // The signal time now, for the age of a signal's last-heard time. Unit: s.
@@ -1027,7 +1027,7 @@ typedef struct sdrkit_cw_signal_row {
   int64_t id;
   // The audio frequency. A frequency in Hz.
   double offset_hz;
-  // The speed. Unit: WPM.
+  // The speed. Unit: wpm.
   double wpm;
   // The SNR. Unit: dB.
   double snr_db;
@@ -2945,7 +2945,7 @@ static inline int32_t sdrkit_cw_set_decoder(SDRKIT_HANDLE handle, sdrkit_cw_deco
   return sdrkit_typed_setting_set_enum(handle, "decoder", (int32_t)value);
 }
 
-// The setting "wpm" (Speed) of the stack "cw". Unit: WPM. 0 finds the speed by itself. 5 to 50 fixes it.
+// The setting "wpm" (Speed) of the stack "cw". Unit: wpm. 0 finds the speed by itself. 5 to 50 fixes it.
 static inline int32_t sdrkit_cw_get_wpm(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "wpm", value);
 }
@@ -3026,7 +3026,7 @@ static inline int32_t sdrkit_cw_gen_set_carrier_hz(SDRKIT_HANDLE handle, double 
   return sdrkit_typed_setting_set_f64(handle, "gen_carrier_hz", value);
 }
 
-// The setting "gen_wpm" (Speed) of the test signal generator of the stack "cw". Unit: WPM.
+// The setting "gen_wpm" (Speed) of the test signal generator of the stack "cw". Unit: wpm.
 static inline int32_t sdrkit_cw_gen_get_wpm(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_wpm", value);
 }
@@ -3034,7 +3034,7 @@ static inline int32_t sdrkit_cw_gen_set_wpm(SDRKIT_HANDLE handle, double value) 
   return sdrkit_typed_setting_set_f64(handle, "gen_wpm", value);
 }
 
-// The setting "gen_farnsworth_wpm" (Farnsworth speed) of the test signal generator of the stack "cw". Unit: WPM.
+// The setting "gen_farnsworth_wpm" (Farnsworth speed) of the test signal generator of the stack "cw". Unit: wpm.
 static inline int32_t sdrkit_cw_gen_get_farnsworth_wpm(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_farnsworth_wpm", value);
 }
@@ -3058,7 +3058,7 @@ static inline int32_t sdrkit_cw_gen_set_signals(SDRKIT_HANDLE handle, int64_t va
   return sdrkit_typed_setting_set_i64(handle, "gen_signals", value);
 }
 
-// The setting "gen_wpm_max" (Top speed) of the test signal generator of the stack "cw". Unit: WPM. With several carriers, the speeds step from the speed up to this (0: all at the speed).
+// The setting "gen_wpm_max" (Top speed) of the test signal generator of the stack "cw". Unit: wpm. With several carriers, the speeds step from the speed up to this (0: all at the speed).
 static inline int32_t sdrkit_cw_gen_get_wpm_max(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_wpm_max", value);
 }
@@ -4421,7 +4421,9 @@ static inline int32_t sdrkit_ardop_gen_set_data(SDRKIT_HANDLE handle, sdrkit_ard
 
 // Fills `rows` with the changed rows of the table "detections" of the stack "ros" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `name` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_ros_detections_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_ros_detection_row *rows,
                                                 uint32_t capacity,
@@ -4843,6 +4845,8 @@ static inline int32_t sdrkit_cp16_gen_set_text(SDRKIT_HANDLE handle, sdrkit_cp16
 
 // Fills `rows` with the changed rows of the table "pilots" of the stack "winmor" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time`.
 static inline int32_t sdrkit_winmor_pilots_rows(SDRKIT_HANDLE handle,
                                                sdrkit_winmor_pilot_row *rows,
                                                uint32_t capacity,

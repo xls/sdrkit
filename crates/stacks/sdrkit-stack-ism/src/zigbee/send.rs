@@ -48,7 +48,7 @@ pub const MAX_PSDU: usize = 127;
 
 /// An address of hex text: empty for none, 4 digits short, 16 digits extended.
 fn address(what: &str, text: &str) -> Result<Addr, CommandError> {
-    let t: String = text.chars().filter(|c| !c.is_whitespace()).collect();
+    let t = crate::tx::hex_digits(text);
     let bad = || refused(format!("the {what} is not empty, 4 or 16 hex digits"));
     match t.len() {
         0 => Ok(Addr::None),
@@ -70,9 +70,9 @@ impl FrameSource for ZigbeeFrames {
     }
     fn frame(&self, args: &Values, at: &Place) -> Result<Frame, CommandError> {
         let a: ZigbeeSendArgs = ZIGBEE_SEND.args(args)?;
-        let pan = a.pan_id.trim();
+        let pan = crate::tx::hex_digits(a.pan_id);
         let pan = (pan.len() == 4)
-            .then(|| u16::from_str_radix(pan, 16).ok())
+            .then(|| u16::from_str_radix(&pan, 16).ok())
             .flatten()
             .ok_or_else(|| refused("the PAN id is not 4 hex digits"))?;
         let ty = a.frame_type.unwrap_or_default();

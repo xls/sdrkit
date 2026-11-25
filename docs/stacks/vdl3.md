@@ -65,7 +65,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `bursts` | Bursts | `time_s` (number (s)), `kind` (choice), `training` (choice), `symbols` (whole number), `golay_ok` (yes or no), `golay_corrected` (whole number (bits)), `info` (text), `rs_ok` (yes or no), `rs_corrected` (whole number (octets)), `data_hex` (text), `data_text` (text), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `cfo_hz` (number (Hz)), `evm_pct` (number (%)), `summary` (text) |
+| `bursts` | Bursts | `time_s` (number (s)), `kind` (choice), `training` (choice), `symbols` (whole number), `golay_ok` (yes or no), `golay_corrected` (whole number (bits)), `info` (text), `rs_ok` (yes or no), `rs_corrected` (whole number (B)), `data_hex` (text), `data_text` (text), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `cfo_hz` (number (Hz)), `evm_pct` (number (%)), `summary` (text) |
 
 ## Commands
 
@@ -75,7 +75,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.4. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 2.0. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: none.
 
@@ -125,7 +125,7 @@ Struct `Vdl3BurstRow`. A row of the bursts. The row key is the place in the log.
 | `golay_corrected` | whole number (bits) | always | 1.0 | Bits corrected by Golay. |
 | `info` | text | always | 1.0 | The information words. |
 | `rs_ok` | yes or no | always | 1.0 | The Reed-Solomon word was good. |
-| `rs_corrected` | whole number (octets) | always | 1.0 | Octets corrected by Reed-Solomon. |
+| `rs_corrected` | whole number (B) | always | 1.0 | Octets corrected by Reed-Solomon. |
 | `data_hex` | text | always | 1.0 | The data octets, hex. |
 | `data_text` | text | always | 1.0 | The printable text of the data. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the burst. |

@@ -170,7 +170,11 @@ fn a_change_of_frequency_keeps_the_decodes_and_forgets_the_bursts() {
     for id in ["fsk441", "jt6m", "iscat", "pi4"] {
         assert_eq!(
             shape(id).kept_keys(),
-            Ok(vec!["table decodes".to_owned(), "decodes_total".to_owned()])
+            Ok(vec![
+                "table decodes".to_owned(),
+                "table stations".to_owned(),
+                "decodes_total".to_owned()
+            ])
         );
     }
     let x = fsk441::audio(&MSG.repeat(3), 8000.0, 0.0, 0.3);
@@ -194,4 +198,46 @@ fn a_change_of_frequency_keeps_the_decodes_and_forgets_the_bursts() {
     let f = rx.results().fields();
     assert_eq!(f.at(&ScatterFields::DECODES_TOTAL), Some(1));
     assert_eq!(f.at(&Fsk441Fields::BURSTS), Some(0));
+}
+
+#[test]
+fn the_stations_of_each_test_signal_name_their_rows() {
+    use sdrkit_core::SortOrder;
+    use sdrkit_stack_wsjt::typed::{shape, ScatterStationRow, SCATTER_STATIONS};
+    use sdrkit_stack_wsjt::{ISCAT, JT6M, PI4};
+    let m = &SCATTER_STATIONS.def().marks;
+    assert_eq!(m.label, ScatterStationRow::CALLSIGN.key);
+    assert_eq!(
+        (m.sort, m.order),
+        (ScatterStationRow::LAST_HEARD.key, SortOrder::Descending)
+    );
+    for (d, seconds) in [(&FSK441, 24.0), (&JT6M, 24.0), (&ISCAT, 24.0), (&PI4, 65.0)] {
+        assert!(
+            shape(d.id).results_decl().table_id("stations").is_some(),
+            "{}",
+            d.id
+        );
+        let (rx, ev) = on_test_signal(d, seconds);
+        let heard = decodes(&ev)
+            .iter()
+            .filter(|e| text(e).contains("K0TST"))
+            .count() as i64;
+        assert!(heard > 0, "{}: no decode", d.id);
+        // The test text `CQ K0TST FN20` holds one callsign: `CQ` and the locator are none.
+        let rows: Vec<(String, Option<i64>, Option<f64>)> = SCATTER_STATIONS
+            .rows::<ScatterStationRow>(rx.results())
+            .map(|(k, r)| (k.to_owned(), r.heard, r.last_heard.map(|t| t.0)))
+            .collect();
+        assert_eq!(rows.len(), 1, "{}: {rows:?}", d.id);
+        assert_eq!(rows[0].0, "K0TST", "{}", d.id);
+        assert_eq!(rows[0].1, Some(heard), "{}", d.id);
+        assert!(rows[0].2.is_some(), "{}", d.id);
+    }
+}
+
+#[test]
+fn a_locator_is_no_station() {
+    use sdrkit_stack_wsjt::scatter::callsigns;
+    assert_eq!(callsigns("CQ K0TST FN20"), ["K0TST"]);
+    assert_eq!(callsigns("W9XYZ K1JT FN42AX K1JT 26"), ["W9XYZ", "K1JT"]);
 }

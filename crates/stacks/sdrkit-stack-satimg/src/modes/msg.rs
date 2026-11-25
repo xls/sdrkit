@@ -12,10 +12,13 @@ use crate::components::link::{
     DemodReport, FrameReport, FrameStats, FrontEndComponent, FrontReport, PacketReport,
     PacketStats,
 };
+use crate::components::pass::{
+    pass_format, pass_port, PassPictures, PassSetting, PassTimer, PASS_GAP,
+};
 use crate::components::{last, Control};
 use crate::gen::{
-    space_packet, test_value, BitSource, CcsdsCoder, CodeOptions, GenError, ModParams, Modulator,
-    ZoneStream,
+    pass_lines, space_packet, test_value, BitSource, CcsdsCoder, CodeOptions, GenError, ModParams,
+    Modulator, ZoneStream,
 };
 use crate::instruments::seviri::{
     test_user, SeviriDecoder, SeviriStats, APID, CHANNELS, HRV, HRV_ROWS, LINES, PARTS, ROWS,
@@ -23,7 +26,7 @@ use crate::instruments::seviri::{
 };
 use crate::psk::{LinkClass, LinkParams, Modulation, Search, SnrEstimator};
 use crate::REPORT_S;
-use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView};
 use sdrkit_codec_image::strip::{Strip, View};
 use crate::typed::{ImageRow, LinkFields, MsgRawFields, VirtualChannelRow, IMAGES, VIRTUAL_CHANNELS};
 use sdrkit_core::interface::{Fields as _, Seconds};
@@ -121,11 +124,16 @@ pub const GEN_SCID: Setting<field::I64> =
         .range(0.0, 1023.0, 1.0)
         .section(TEST)
         .advanced();
-/// Lines of the test picture before it repeats.
-pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture lines", "", 400)
+/// The lines of the test signal: a pass of that many lines, then the signal ends. 0: the test picture of
+/// [`TEST_PICTURE_LINES`] lines repeats without end.
+pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture lines", "", 0)
     .range(1.0, 4000.0, 1.0)
+    .zero_means("Without end")
+    .help("The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.")
     .section(TEST)
     .advanced();
+/// The lines of the test picture before it repeats.
+pub const TEST_PICTURE_LINES: u32 = 400;
 /// The first standard line of the test signal.
 pub const GEN_START: Setting<field::I64> = Setting::new("gen_start", "Test first line", "", 0)
     .range(0.0, 4481.0, 1.0)
@@ -141,6 +149,8 @@ sdrkit_core::settings! {
         View = VIEW,
         /// Keep the newest lines in view.
         Follow = FOLLOW,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// Test: the satellite number.
         GenScid = GEN_SCID,
         /// Test: picture lines.
@@ -226,6 +236,7 @@ pub struct MsgComponent {
     satellite: Option<u16>,
     dec: SeviriDecoder,
     strips: Vec<Strip>,
+    pass: PassTimer,
     log: Vec<String>,
 }
 
@@ -246,6 +257,7 @@ impl Default for MsgComponent {
             satellite: None,
             dec: SeviriDecoder::default(),
             strips: Vec::new(),
+            pass: PassTimer::default(),
             log: Vec::new(),
         }
     }
@@ -308,8 +320,10 @@ impl Component for MsgComponent {
                 item_port::<FrameReport>("frames"),
                 item_port::<PacketReport>("packets"),
                 item_port::<SeviriReport>("report"),
+                pass_port(),
             ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
         self.sync = Some(FrameSync::new(SyncConfig::cadu(CODED_BYTES)).map_err(stage)?);
@@ -320,6 +334,7 @@ impl Component for MsgComponent {
             item_format::<FrameReport>(),
             item_format::<PacketReport>(),
             item_format::<SeviriReport>(),
+            pass_format(),
         ])
     }
     fn process(&mut self, io: &mut Io) {
@@ -335,6 +350,9 @@ impl Component for MsgComponent {
             self.frames.syncs = s.frames;
             self.frames.locked = sync.locked();
             self.sync = Some(sync);
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 4) {
+            self.dec.new_picture();
         }
         io.items_out::<Strip>(0)
             .extend(self.strips.drain(..).map(|s| Timed {
@@ -575,7 +593,7 @@ impl Component for MsgDisplay {
 ///
 /// [`GraphError::Schema`] if the picture layouts produce no valid schema.
 pub fn builder() -> Result<GraphBuilder, GraphError> {
-    let pictures = Pictures::new(layouts()).map_err(GraphError::Schema)?;
+    let pictures = PassPictures::new(layouts(), "Meteosat").map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add("frontend", FrontEndComponent::new(link(), MIN_RATE, false))
         .add("demod", DemodComponent::new(link()))
@@ -588,6 +606,7 @@ pub fn builder() -> Result<GraphBuilder, GraphError> {
         .connect("demod.soft", "decoder.in")
         .connect("decoder.out", "frames.in")
         .connect("frames.out", "pictures.in")
+        .connect("frames.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
         .connect("decoder.report", "display.code")
@@ -613,6 +632,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route("picture", &["pictures.instrument"])?
         .route("view", &["pictures.view"])?
         .route("follow", &["pictures.follow"])?
+        .route("pass_gap", &["frames.pass_gap"])?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .with_settings(&cfg.settings)
         .build()
@@ -687,6 +707,10 @@ pub struct MsgSource {
     satellite: u16,
     lines: u32,
     line: u32,
+    /// The lines sent.
+    sent: u64,
+    /// The lines of the pass, `None` for a signal without end.
+    pass: Option<u64>,
     seq: u16,
     count: u32,
     cadu: Vec<u8>,
@@ -703,6 +727,7 @@ impl BitSource for MsgSource {
             }
             self.seq = self.seq.wrapping_add(16) & 0x3FFF;
             self.line = (self.line + 3) % (LINES - LINES % 3);
+            self.sent += 3;
         }
         let (fhp, zone) = self.zones.take(zl);
         let frame = test_frame(self.satellite, self.count, fhp, &zone);
@@ -716,6 +741,9 @@ impl BitSource for MsgSource {
             self.cadu.resize(CADU_BYTES, 0);
         }
         self.coder.push(&self.cadu, out);
+    }
+    fn ended(&self) -> bool {
+        self.pass.is_some_and(|p| self.sent >= p)
     }
 }
 
@@ -745,7 +773,9 @@ impl MsgGenerator {
             channel: ChannelCoder::new(ChannelConfig::rs_223(5)).ok(),
             zones: ZoneStream::default(),
             satellite: v.get(&GEN_SCID).clamp(0, 1023) as u16,
-            lines: v.get(&GEN_LINES).clamp(1, 4000) as u32,
+            lines: TEST_PICTURE_LINES,
+            sent: 0,
+            pass: pass_lines(v.get(&GEN_LINES)),
             line: (v.get(&GEN_START).clamp(0, i64::from(LINES) - 1) as u32) / 3 * 3,
             seq: 0,
             count: 0,

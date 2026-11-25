@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "meter", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "meter", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_METER_VERSION_MAJOR 1
-#define SDRKIT_METER_VERSION_MINOR 1
+#define SDRKIT_METER_VERSION_MAJOR 2
+#define SDRKIT_METER_VERSION_MINOR 0
 
 // The stack "fm_monitor": its id, and the keys of its event types.
 #define SDRKIT_STACK_FM_MONITOR "fm_monitor"
@@ -190,8 +190,6 @@ typedef enum sdrkit_fm_monitor_fields_pilot {
 typedef struct sdrkit_fm_monitor_fields {
   // The number of bytes of this struct that the library wrote.
   uint32_t size;
-  // The headline: stereo or mono, the peak, the pilot and RDS levels.
-  sdrkit_string text;
   // True if `peak_deviation_khz` holds a value.
   bool has_peak_deviation_khz;
   // The peak deviation of the last second: the largest third-largest excursion of its 5 ms blocks. Unit: kHz.
@@ -286,8 +284,6 @@ typedef struct sdrkit_fm_monitor_log_row {
 typedef struct sdrkit_am_monitor_fields {
   // The number of bytes of this struct that the library wrote.
   uint32_t size;
-  // The headline: the offset, the modulation, the peaks and the audio bandwidth, or "no carrier".
-  sdrkit_string text;
   // True if `carrier_offset_hz` holds a value.
   bool has_carrier_offset_hz;
   // The carrier offset: a tuning or station error. Unit: Hz.
@@ -362,12 +358,10 @@ typedef enum sdrkit_meter_watch_fields_state {
   SDRKIT_METER_WATCH_FIELDS_STATE_MEASURING = 2,
 } sdrkit_meter_watch_fields_state;
 
-// The status of a spectrum watcher: the headline, the state, the counts of readings and the input level.
+// The status of a spectrum watcher: the state, the counts of readings and the input level. The headline is the summary of the status.
 typedef struct sdrkit_meter_watch_fields {
   // The number of bytes of this struct that the library wrote.
   uint32_t size;
-  // The headline.
-  sdrkit_string text;
   // The state. A value of `sdrkit_meter_watch_fields_state`.
   int32_t state;
   // The good readings: what the stack counts as a measurement.
@@ -2278,7 +2272,7 @@ typedef struct sdrkit_input_health_fields {
   double iq_gain_db;
   // True if `iq_phase_deg` holds a value.
   bool has_iq_phase_deg;
-  // `asin` of the correlation of I and Q. Unit: deg.
+  // `asin` of the correlation of I and Q. Unit: °.
   double iq_phase_deg;
   // True if `image_rejection_db` holds a value.
   bool has_image_rejection_db;
@@ -2786,7 +2780,7 @@ typedef struct sdrkit_spur_finding_row {
   double gain_mismatch_db;
   // True if `phase_mismatch_deg` holds a value.
   bool has_phase_mismatch_deg;
-  // The phase mismatch alone that gives this image. Unit: deg.
+  // The phase mismatch alone that gives this image. Unit: °.
   double phase_mismatch_deg;
 } sdrkit_spur_finding_row;
 
@@ -2860,7 +2854,7 @@ typedef struct sdrkit_spur_event_row {
   double gain_mismatch_db;
   // True if `phase_mismatch_deg` holds a value.
   bool has_phase_mismatch_deg;
-  // The phase mismatch alone. Unit: deg.
+  // The phase mismatch alone. Unit: °.
   double phase_mismatch_deg;
   // True if `dc_db` holds a value.
   bool has_dc_db;
@@ -3818,7 +3812,9 @@ typedef struct sdrkit_beacon_monitor_change_event {
 
 // Fills `rows` with the changed rows of the table "log" of the stack "fm_monitor" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `identity` names a row.
+// Time: `signal_time_s`.
 static inline int32_t sdrkit_fm_monitor_log_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_fm_monitor_log_row *rows,
                                                 uint32_t capacity,
@@ -3991,7 +3987,9 @@ static inline int32_t sdrkit_fm_monitor_gen_set_sca_from_s(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "log" of the stack "am_monitor" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `identity` names a row.
+// Time: `signal_time_s`.
 static inline int32_t sdrkit_am_monitor_log_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_am_monitor_log_row *rows,
                                                 uint32_t capacity,
@@ -4110,6 +4108,8 @@ static inline int32_t sdrkit_occupancy_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "activity" of the stack "occupancy" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_occupancy_activity_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_occupancy_activity_row *rows,
                                                     uint32_t capacity,
@@ -4195,6 +4195,8 @@ static inline int32_t sdrkit_noise_floor_sub_bands_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "noise_events" of the stack "noise_floor" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_noise_floor_noise_events_rows(SDRKIT_HANDLE handle,
                                                           sdrkit_noise_floor_event_row *rows,
                                                           uint32_t capacity,
@@ -4319,6 +4321,8 @@ static inline int32_t sdrkit_noise_floor_gen_set_tone_amp(SDRKIT_HANDLE handle, 
 
 // Fills `rows` with the changed rows of the table "bursts" of the stack "burst_finder" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_burst_finder_bursts_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_burst_finder_burst_row *rows,
                                                      uint32_t capacity,
@@ -4402,6 +4406,8 @@ static inline int32_t sdrkit_burst_finder_gen_set_bursts(SDRKIT_HANDLE handle, s
 
 // Fills `rows` with the changed rows of the table "hoppers" of the stack "hopper" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_hopper_hoppers_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_hopper_row *rows,
                                                 uint32_t capacity,
@@ -4520,6 +4526,8 @@ static inline int32_t sdrkit_birdie_carriers_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "carrier_events" of the stack "birdie" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_birdie_carrier_events_rows(SDRKIT_HANDLE handle,
                                                        sdrkit_birdie_event_row *rows,
                                                        uint32_t capacity,
@@ -4612,6 +4620,8 @@ static inline int32_t sdrkit_birdie_gen_set_fm_dev_hz(SDRKIT_HANDLE handle, doub
 
 // Fills `rows` with the changed rows of the table "bandwidths" of the stack "obw" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_obw_bandwidths_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_obw_bandwidth_row *rows,
                                                 uint32_t capacity,
@@ -4720,6 +4730,8 @@ static inline int32_t sdrkit_obw_gen_set_neighbour_offset(SDRKIT_HANDLE handle, 
 
 // Fills `rows` with the changed rows of the table "transmissions" of the stack "ptt_log" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `start_s`.
 static inline int32_t sdrkit_ptt_log_transmissions_rows(SDRKIT_HANDLE handle,
                                                        sdrkit_ptt_log_transmission_row *rows,
                                                        uint32_t capacity,
@@ -4820,6 +4832,8 @@ static inline int32_t sdrkit_ptt_log_gen_set_tone_hz(SDRKIT_HANDLE handle, doubl
 
 // Fills `rows` with the changed rows of the table "patterns" of the stack "noise_locator" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_noise_locator_patterns_rows(SDRKIT_HANDLE handle,
                                                         sdrkit_noise_locator_pattern_row *rows,
                                                         uint32_t capacity,
@@ -4969,6 +4983,8 @@ static inline int32_t sdrkit_freq_accuracy_allan_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "events" of the stack "freq_accuracy" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_freq_accuracy_events_rows(SDRKIT_HANDLE handle,
                                                       sdrkit_freq_accuracy_event_row *rows,
                                                       uint32_t capacity,
@@ -5069,6 +5085,8 @@ static inline int32_t sdrkit_freq_accuracy_gen_set_fm_hold_s(SDRKIT_HANDLE handl
 
 // Fills `rows` with the changed rows of the table "events" of the stack "sinad" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_sinad_events_rows(SDRKIT_HANDLE handle,
                                               sdrkit_sinad_event_row *rows,
                                               uint32_t capacity,
@@ -5169,6 +5187,8 @@ static inline int32_t sdrkit_sinad_gen_set_deviation_after(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "events" of the stack "nfm_meter" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_nfm_meter_events_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_nfm_meter_event_row *rows,
                                                   uint32_t capacity,
@@ -5255,6 +5275,8 @@ static inline int32_t sdrkit_nfm_meter_gen_set_ctcss_off_s(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "transmissions" of the stack "tx_stability" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_tx_stability_transmissions_rows(SDRKIT_HANDLE handle,
                                                             sdrkit_tx_stability_transmission_row *rows,
                                                             uint32_t capacity,
@@ -5379,6 +5401,8 @@ static inline int32_t sdrkit_tx_stability_gen_set_ramp_s(SDRKIT_HANDLE handle, d
 
 // Fills `rows` with the changed rows of the table "events" of the stack "ssb_test" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_ssb_test_events_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_ssb_test_event_row *rows,
                                                  uint32_t capacity,
@@ -5460,6 +5484,8 @@ static inline int32_t sdrkit_ssb_test_gen_set_carrier_dbc(SDRKIT_HANDLE handle, 
 
 // Fills `rows` with the changed rows of the table "bursts" of the stack "afsk_tuner" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_afsk_tuner_bursts_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_afsk_tuner_burst_row *rows,
                                                    uint32_t capacity,
@@ -5586,6 +5612,8 @@ static inline int32_t sdrkit_phase_noise_spurs_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "events" of the stack "phase_noise" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_phase_noise_events_rows(SDRKIT_HANDLE handle,
                                                     sdrkit_phase_noise_event_row *rows,
                                                     uint32_t capacity,
@@ -5672,6 +5700,8 @@ static inline int32_t sdrkit_phase_noise_gen_set_spur_dbc(SDRKIT_HANDLE handle, 
 
 // Fills `rows` with the changed rows of the table "events" of the stack "cw_keying" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_cw_keying_events_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_cw_keying_event_row *rows,
                                                   uint32_t capacity,
@@ -5831,6 +5861,8 @@ static inline int32_t sdrkit_fsk_analyser_level_freqs_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "events" of the stack "fsk_analyser" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_fsk_analyser_events_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_fsk_analyser_event_row *rows,
                                                      uint32_t capacity,
@@ -5909,6 +5941,8 @@ static inline int32_t sdrkit_fsk_analyser_gen_set_bt(SDRKIT_HANDLE handle, doubl
 
 // Fills `rows` with the changed rows of the table "events" of the stack "mer" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_mer_events_rows(SDRKIT_HANDLE handle,
                                             sdrkit_mer_event_row *rows,
                                             uint32_t capacity,
@@ -5995,6 +6029,8 @@ static inline int32_t sdrkit_mer_gen_set_rotated(SDRKIT_HANDLE handle, bool valu
 
 // Fills `rows` with the changed rows of the table "events" of the stack "papr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_papr_events_rows(SDRKIT_HANDLE handle,
                                              sdrkit_papr_event_row *rows,
                                              uint32_t capacity,
@@ -6092,6 +6128,8 @@ static inline int32_t sdrkit_papr_gen_set_rolloff(SDRKIT_HANDLE handle, double v
 
 // Fills `rows` with the changed rows of the table "events" of the stack "input_health" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_input_health_events_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_input_health_event_row *rows,
                                                      uint32_t capacity,
@@ -6195,6 +6233,8 @@ static inline int32_t sdrkit_noise_figure_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "events" of the stack "noise_figure" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_noise_figure_events_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_noise_figure_event_row *rows,
                                                      uint32_t capacity,
@@ -6290,6 +6330,8 @@ static inline int32_t sdrkit_kurtosis_regions_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "events" of the stack "kurtosis" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_kurtosis_events_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_kurtosis_event_row *rows,
                                                  uint32_t capacity,
@@ -6352,6 +6394,8 @@ static inline int32_t sdrkit_kurtosis_gen_set_tones(SDRKIT_HANDLE handle, sdrkit
 
 // Fills `rows` with the changed rows of the table "events" of the stack "glitch" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_glitch_events_rows(SDRKIT_HANDLE handle,
                                                sdrkit_glitch_event_row *rows,
                                                uint32_t capacity,
@@ -6478,6 +6522,8 @@ static inline int32_t sdrkit_intermod_products_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "events" of the stack "intermod" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_intermod_events_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_intermod_event_row *rows,
                                                  uint32_t capacity,
@@ -6619,6 +6665,8 @@ static inline int32_t sdrkit_spur_findings_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "events" of the stack "spur" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_spur_events_rows(SDRKIT_HANDLE handle,
                                              sdrkit_spur_event_row *rows,
                                              uint32_t capacity,
@@ -6769,6 +6817,8 @@ static inline int32_t sdrkit_spur_gen_set_shift_hz(SDRKIT_HANDLE handle, double 
 
 // Fills `rows` with the changed rows of the table "events" of the stack "fading" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_fading_events_rows(SDRKIT_HANDLE handle,
                                                sdrkit_fading_event_row *rows,
                                                uint32_t capacity,
@@ -6855,6 +6905,8 @@ static inline int32_t sdrkit_fading_gen_set_off(SDRKIT_HANDLE handle, sdrkit_str
 
 // Fills `rows` with the changed rows of the table "events" of the stack "beacon_monitor" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_beacon_monitor_events_rows(SDRKIT_HANDLE handle,
                                                        sdrkit_beacon_monitor_event_row *rows,
                                                        uint32_t capacity,

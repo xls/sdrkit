@@ -86,6 +86,16 @@ impl ModParams {
 pub trait BitSource: Send {
     /// Appends the next bits (at least one).
     fn next_bits(&mut self, out: &mut Vec<u8>);
+    /// The test pass has ended: the [`Modulator`] sends the bits given and then ends the signal. False for a signal
+    /// without end.
+    fn ended(&self) -> bool {
+        false
+    }
+}
+
+/// The pass of the test-signal setting `gen_lines`: `Some(lines)`, or `None` for 0, a signal without end.
+pub fn pass_lines(gen_lines: i64) -> Option<u64> {
+    u64::try_from(gen_lines).ok().filter(|&n| n > 0)
 }
 
 /// The PSK modulator: channel bits from a [`BitSource`] to the clean signal at unit mean power.
@@ -174,11 +184,15 @@ impl<S: BitSource> Modulator<S> {
         self.shaper.push(&self.symbols, &mut self.samples);
     }
 
-    /// Fills `out` with samples and returns its length.
+    /// Fills `out` with samples and returns the samples written: fewer than `out` holds once the pass of the source has
+    /// ended ([`BitSource::ended`]).
     pub fn generate(&mut self, out: &mut [Complex32]) -> usize {
         let mut filled = 0;
         while filled < out.len() {
             if self.next_sample >= self.samples.len() {
+                if self.next_bit >= self.bits.len() && self.source.ended() {
+                    return filled;
+                }
                 self.more();
                 continue;
             }
@@ -188,7 +202,7 @@ impl<S: BitSource> Modulator<S> {
             self.next_sample += n;
             filled += n;
         }
-        out.len()
+        filled
     }
 }
 

@@ -200,20 +200,26 @@ impl StationSource {
             .iter()
             .map(|s| (s.0.to_string(), s.1, s.2, s.3))
             .collect();
-        Self::from_list(sub, &list, peak, mirrored)
+        Self::from_list(sub, &list, peak, mirrored, false)
     }
 
-    /// A list of (text, Hz, level dB, DT). Refuses a text that cannot be packed.
+    /// A list of (text, Hz, level dB, DT). An MSK144 short message `<CALL1 CALL2> RPT` is sent as the 40-bit short
+    /// frame when `short` is set. Refuses a text that cannot be packed.
     pub fn from_list(
         sub: Sub,
         list: &[(String, f64, f64, f64)],
         peak: f32,
         mirrored: bool,
+        short: bool,
     ) -> Result<StationSource, EncodeError> {
         let rate = Self::RATE;
         let mut txs = Vec::new();
         for (text, hz, db, dt) in list {
-            let syms = encode::channel_symbols(&sub, text)?;
+            let syms = if sub.mode == Mode::Msk144 {
+                encode::msk144_symbols(text, short)?
+            } else {
+                encode::channel_symbols(&sub, text)?
+            };
             let amp = peak * 10f32.powf(*db as f32 / 20.0);
             let msk = if sub.mode == Mode::Msk144 {
                 sub.period - 0.1
@@ -231,7 +237,7 @@ impl StationSource {
                 *hz
             };
             let tones = if sub.mode == Mode::Msk144 {
-                let reps = ((msk / sub.tx_s()).ceil() as usize).max(1);
+                let reps = encode::msk_frames(&sub, tones.len(), msk);
                 tones
                     .iter()
                     .cycle()
@@ -532,9 +538,17 @@ impl WsjtGenerator {
         }
     }
 
-    /// A single station repeating one message every slot. Refuses a text that cannot be packed.
-    pub fn single(sub: Sub, rate: Hz, text: &str, hz: f64) -> Result<WsjtGenerator, EncodeError> {
-        let s = StationSource::from_list(sub, &[(text.to_string(), hz, 0.0, 0.0)], 1.0, false)?;
+    /// A single station repeating one message every slot; an MSK144 short message is sent as the short frame when
+    /// `short` is set. Refuses a text that cannot be packed.
+    pub fn single(
+        sub: Sub,
+        rate: Hz,
+        text: &str,
+        hz: f64,
+        short: bool,
+    ) -> Result<WsjtGenerator, EncodeError> {
+        let list = [(text.to_string(), hz, 0.0, 0.0)];
+        let s = StationSource::from_list(sub, &list, 1.0, false, short)?;
         Ok(Self::with(Src::Stations(s), sub, rate))
     }
 
@@ -577,7 +591,7 @@ impl WsjtGenerator {
 
     /// From a generator configuration: the mode's sub-mode and the `gen_*` settings of the mode.
     pub fn from_config(mode: Mode, cfg: &GenConfig) -> Box<dyn Generator> {
-        use crate::settings::{GEN_HZ, GEN_LIVE, GEN_MIRRORED, GEN_SINGLE};
+        use crate::settings::{GEN_HZ, GEN_LIVE, GEN_MIRRORED, GEN_SINGLE, MSK144_SHORT};
         let s = &cfg.settings;
         let sub = crate::settings::sub_of(mode, s, cfg.submode.as_deref());
         let made = if mode == Mode::Js8 {
@@ -587,7 +601,8 @@ impl WsjtGenerator {
             if single.is_empty() {
                 WsjtGenerator::new(sub, cfg.rate_hz, s.get(&GEN_MIRRORED))
             } else {
-                WsjtGenerator::single(sub, cfg.rate_hz, single, s.get(&GEN_HZ))
+                let short = mode == Mode::Msk144 && s.get(&MSK144_SHORT);
+                WsjtGenerator::single(sub, cfg.rate_hz, single, s.get(&GEN_HZ), short)
             }
         };
         match made {
@@ -661,6 +676,7 @@ mod tests {
             Sub::new(Mode::Ft8),
             &[("K1ABC/ABCD W9XYZ".into(), 1000.0, 0.0, 0.0)],
             1.0,
+            false,
             false,
         )
         .is_err());

@@ -38,15 +38,21 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:hr
 | `hirs_view` | HIRS view | choice | `rgb214` | `rgb214` (Colour (2, 1, 4)), `ch1` (HIRS channel 1), `ch2` (HIRS channel 2), `ch3` (HIRS channel 3), `ch4` (HIRS channel 4), `ch5` (HIRS channel 5), `ch6` (HIRS channel 6), `ch7` (HIRS channel 7), `ch8` (HIRS channel 8), `ch9` (HIRS channel 9), `ch10` (HIRS channel 10), `ch11` (HIRS channel 11), `ch12` (HIRS channel 12), `ch13` (HIRS channel 13), `ch14` (HIRS channel 14), `ch15` (HIRS channel 15), `ch16` (HIRS channel 16), `ch17` (HIRS channel 17), `ch18` (HIRS channel 18), `ch19` (HIRS channel 19), `ch20` (HIRS channel 20) | What the HIRS picture of NOAA HRPT shows. |
 | `follow` | Follow | yes or no | true |  |  |
 
+Advanced settings. The owner works without any of them set.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `pass_gap` | Pass end | number (s) | 60 | 1 to 3600 | After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture. |
+
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `gen_variant` | Test satellite | choice | `metop` | `metop` (MetOp AHRPT (QPSK 2.33 Msym/s)), `fy3` (FY-3 AHRPT (QPSK 2.8 Msym/s)), `noaa` (NOAA HRPT (retired)) |  |
 | `gen_3b` | Test channel 3B (APID 104) | yes or no | false |  |  |
-| `gen_lines` | Test picture lines | whole number | 60 | 1 to 4000 |  |
+| `gen_lines` | Test picture lines | whole number | 0 | 1 to 4000 | The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats. |
 | `gen_polarity` | Test inverted NOAA polarity | yes or no | false |  |  |
-| `gen_pm_index` | Test phase index (Meteor) | number (deg) | 67.5 | 10 to 85 |  |
+| `gen_pm_index` | Test phase index (Meteor) | number (°) | 67.5 | 10 to 85 |  |
 
 The setting `view` chooses the view of the picture.
 
@@ -118,9 +124,11 @@ The setting `view` chooses the view of the picture.
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
+
+Key readings: `snr_db`, `frames_ok`, `frames_bad`.
 
 ### Result fields
 
@@ -218,6 +226,7 @@ Struct `ImageRow`. A finished image. The row key names the image. The picture it
 | `view` | `sdrkit_hrpt_get_view` | `sdrkit_hrpt_set_view` |
 | `hirs_view` | `sdrkit_hrpt_get_hirs_view` | `sdrkit_hrpt_set_hirs_view` |
 | `follow` | `sdrkit_hrpt_get_follow` | `sdrkit_hrpt_set_follow` |
+| `pass_gap` | `sdrkit_hrpt_get_pass_gap` | `sdrkit_hrpt_set_pass_gap` |
 
 ### Settings of the test signal generator
 

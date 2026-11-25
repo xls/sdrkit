@@ -87,8 +87,8 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ge
 | `tx_ssb_band` | Audio band (SSB) | choice | `fixed` | `fixed` (300 to 2700 Hz), `filter` (As the filter) | 300 to 2700 Hz, or from 300 Hz over the width of the receive filter. |
 | `tx_compression` | Compression (SSB) | number (dB) | 0 | 0 to 20 | Raises the average level of SSB speech by up to this much. The peaks stay at full scale. |
 | `tx_timeout` | Time-out | duration (s) | 180 s | 1 to 3600 | Push-to-talk ends after this time on air. |
-| `tx_cw_wpm` | Speed (CW) | number (WPM) | 20 | 5 to 60 | The speed of the characters that send keys. |
-| `tx_cw_farnsworth` | Overall speed (CW) | number (WPM) | 0 | 0 to 60 | Farnsworth spacing: the characters at the speed, the gaps stretched to this lower overall speed. |
+| `tx_cw_wpm` | Speed (CW) | number (wpm) | 20 | 5 to 60 | The speed of the characters that send keys. |
+| `tx_cw_farnsworth` | Overall speed (CW) | number (wpm) | 0 | 0 to 60 | Farnsworth spacing: the characters at the speed, the gaps stretched to this lower overall speed. |
 | `tx_tune_limit` | Tune time | duration (s) | 10 s | 1 to 120 | The tune carrier ends after this time. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
@@ -199,7 +199,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `general`, version 1.3. The C header `sdrkit/general.h`, the registry record `registry/general.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `general`, version 2.0. The C header `sdrkit/general.h`, the registry record `registry/general.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: General receiver (`general`). Media: sound (monitor).
 
@@ -272,14 +272,14 @@ Struct `TransmitFields`. The result fields of the transmitter. The measurements 
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `transmitting` | yes or no | always | 1.1 | Whether the stack transmits now. The receive audio is muted meanwhile. |
-| `tx_freq_hz` | frequency | optional | 1.1 | The transmit frequency: the listening frequency plus the transmit offset. |
-| `tx_kind` | choice | optional | 1.1 | What the transmission sends. |
-| `tx_time_s` | duration (s) | optional | 1.1 | The time on air of the transmission. |
-| `tx_mic_dbfs` | number (dBFS) | optional | 1.1 | The peak of the microphone audio over the last report. No value without voice. |
-| `tx_peak_db` | number (dB) | optional | 1.1 | The peak of the modulation over the last report, against full modulation (deviation, depth or full scale). |
-| `tx_level_db` | number (dB) | optional | 1.1 | The gain of the level control of the speech processor. |
-| `tx_limit_db` | number (dB) | optional | 1.1 | The most gain reduction of the limiter and the compressor over the last report: 0 when they did not act. |
+| `transmitting` | yes or no | always | 1.0 | Whether the stack transmits now. The receive audio is muted meanwhile. |
+| `tx_freq_hz` | frequency | optional | 1.0 | The transmit frequency: the listening frequency plus the transmit offset. |
+| `tx_kind` | choice | optional | 1.0 | What the transmission sends. |
+| `tx_time_s` | duration (s) | optional | 1.0 | The time on air of the transmission. |
+| `tx_mic_dbfs` | number (dBFS) | optional | 1.0 | The peak of the microphone audio over the last report. No value without voice. |
+| `tx_peak_db` | number (dB) | optional | 1.0 | The peak of the modulation over the last report, against full modulation (deviation, depth or full scale). |
+| `tx_level_db` | number (dB) | optional | 1.0 | The gain of the level control of the speech processor. |
+| `tx_limit_db` | number (dB) | optional | 1.0 | The most gain reduction of the limiter and the compressor over the last report: 0 when they did not act. |
 
 ### Table `width_presets`
 

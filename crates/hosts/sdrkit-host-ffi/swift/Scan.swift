@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the settings that every scan has, version 2.1. MIT licence.
+// sdrkit: the typed interface of the settings that every scan has, version 3.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum ScanInterface {
-    public static let major = 2
-    public static let minor = 1
+    public static let major = 3
+    public static let minor = 0
 }
 
 /// The state and the progress of the scan service.

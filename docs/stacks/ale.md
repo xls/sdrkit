@@ -106,9 +106,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.7. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 2.0. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: sound (monitor).
+
+Key readings: `in_sync`, `snr_db`, `ber`.
 
 ### Result fields
 
@@ -134,15 +136,15 @@ Struct `AleTxFields`. The result fields of the ALE transmitter. The values of a 
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tx_sending` | yes or no | always | 1.2 | Whether a call or a sounding is being sent. |
-| `tx_kind` | choice | optional | 1.2 | What is being sent. |
-| `tx_to` | text | optional | 1.2 | The called address of a call. |
-| `tx_word` | whole number | optional | 1.2 | The word being sent, from 1. |
-| `tx_words` | whole number | optional | 1.2 | The words of the transmission. |
-| `tx_note` | text | always | 1.2 | What the transmitter does not do. |
-| `tx_link` | choice | always | 1.3 | The state of the three-way handshake. |
-| `tx_link_station` | text | optional | 1.3 | The other station of the handshake. Absent while idle. |
-| `tx_link_reason` | text | always | 1.3 | Why the link state is what it is; empty when it needs no reason. |
+| `tx_sending` | yes or no | always | 1.0 | Whether a call or a sounding is being sent. |
+| `tx_kind` | choice | optional | 1.0 | What is being sent. |
+| `tx_to` | text | optional | 1.0 | The called address of a call. |
+| `tx_word` | whole number | optional | 1.0 | The word being sent, from 1. |
+| `tx_words` | whole number | optional | 1.0 | The words of the transmission. |
+| `tx_note` | text | always | 1.0 | What the transmitter does not do. |
+| `tx_link` | choice | always | 1.0 | The state of the three-way handshake. |
+| `tx_link_station` | text | optional | 1.0 | The other station of the handshake. Absent while idle. |
+| `tx_link_reason` | text | always | 1.0 | Why the link state is what it is; empty when it needs no reason. |
 
 ### Table `events`
 
@@ -164,7 +166,7 @@ Struct `AleEventRow`. A call in the ALE event log. The row key is the sequence n
 | `offset_hz` | frequency | always | 1.0 | The frequency correction at the end of the call. |
 | `words` | whole number | always | 1.0 | Words in the transmission. |
 
-The column `from` names a row.
+The rows are the calls of the stack. The column `from` names a row. Sender: `from`. Addressee: `to`. Time: `time`.
 
 ### Table `stations`
 
@@ -195,6 +197,8 @@ Struct `AleWordRow`. A decoded ALE word. The row key is the sequence number of t
 | `votes` | whole number | always | 1.0 | Vote errors. |
 | `golay` | whole number | always | 1.0 | Golay corrections. |
 
+The rows are a log: they arrive over time. Time: `time`.
+
 ### Table `learned_nets`
 
 Struct `AleNetRow`. A net address learned from the answers. The row key is the address.
@@ -211,16 +215,16 @@ Struct `AleLqaRow`. The link quality of a station on a channel. The row key is t
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `address` | text | always | 1.3 | The address. |
-| `dial` | frequency | optional | 1.3 | The dial, when known. |
-| `lqa_ber` | whole number | always | 1.3 | The mean vote errors a word of its last call, 0 to 30. |
-| `sinad_db` | whole number (dB) | always | 1.3 | The SINAD of its last call, 0 to 30 dB. |
-| `multipath` | whole number | always | 1.3 | The multipath figure of its last call (not measured: 0). |
-| `reported_ber` | whole number | optional | 1.3 | The BER that the station reported of this station's signal, in its last call to the own address with an LQA report. |
-| `reported_sinad_db` | whole number (dB) | optional | 1.3 | The SINAD that the station reported of this station's signal, dB. |
-| `reported_multipath` | whole number | optional | 1.3 | The multipath that the station reported. |
-| `heard` | whole number | optional | 1.3 | Calls heard from it on this channel. |
-| `last_heard` | time | optional | 1.3 | When last heard on this channel. |
+| `address` | text | always | 1.0 | The address. |
+| `dial` | frequency | optional | 1.0 | The dial, when known. |
+| `lqa_ber` | whole number | always | 1.0 | The mean vote errors a word of its last call, 0 to 30. |
+| `sinad_db` | whole number (dB) | always | 1.0 | The SINAD of its last call, 0 to 30 dB. |
+| `multipath` | whole number | always | 1.0 | The multipath figure of its last call (not measured: 0). |
+| `reported_ber` | whole number | optional | 1.0 | The BER that the station reported of this station's signal, in its last call to the own address with an LQA report. |
+| `reported_sinad_db` | whole number (dB) | optional | 1.0 | The SINAD that the station reported of this station's signal, dB. |
+| `reported_multipath` | whole number | optional | 1.0 | The multipath that the station reported. |
+| `heard` | whole number | optional | 1.0 | Calls heard from it on this channel. |
+| `last_heard` | time | optional | 1.0 | When last heard on this channel. |
 
 The column `address` names a row.
 
@@ -230,14 +234,14 @@ Struct `AleMessageRow`. An AMD text heard. The row key is the sequence number of
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `start` | duration (s) | always | 1.3 | The signal time of the call's first word. |
-| `time` | time | optional | 1.3 | The UTC of the call's first word, when the clock is known. |
-| `dial` | frequency | optional | 1.3 | The dial it was heard on, when known. |
-| `from` | text | optional | 1.3 | The caller, when known. |
-| `to` | text | always | 1.3 | The called addresses. |
-| `text` | text | always | 1.3 | The text. |
+| `start` | duration (s) | always | 1.0 | The signal time of the call's first word. |
+| `time` | time | optional | 1.0 | The UTC of the call's first word, when the clock is known. |
+| `dial` | frequency | optional | 1.0 | The dial it was heard on, when known. |
+| `from` | text | optional | 1.0 | The caller, when known. |
+| `to` | text | always | 1.0 | The called addresses. |
+| `text` | text | always | 1.0 | The text. |
 
-The column `from` names a row.
+The rows are the messages of the stack. The column `from` names a row. Sender: `from`. Addressee: `to`. Text: `text`. Time: `time`.
 
 ### Event `ale.call`
 
@@ -264,11 +268,11 @@ Struct `AleTxEvent`. The fields of a change of the ALE transmission.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | text | always | 1.2 | The state: started, finished or refused. |
-| `reason` | text | always | 1.2 | Why it changed: empty, stopped, the transmitter is off, the format changed, or why it was refused. |
-| `kind` | choice | always | 1.2 | What is sent. |
-| `to` | text | always | 1.2 | The called address of a call; empty for a sounding. |
-| `family` | choice | always | 1.2 | The family of the source: a message. |
+| `state` | text | always | 1.0 | The state: started, finished or refused. |
+| `reason` | text | always | 1.0 | Why it changed: empty, stopped, the transmitter is off, the format changed, or why it was refused. |
+| `kind` | choice | always | 1.0 | What is sent. |
+| `to` | text | always | 1.0 | The called address of a call; empty for a sounding. |
+| `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Event `ale.link`
 
@@ -276,10 +280,10 @@ Struct `AleLinkEvent`. The fields of a step of the three-way handshake.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | choice | always | 1.3 | The link state after the step. |
-| `source` | text | always | 1.3 | The other station. |
-| `reason` | text | always | 1.3 | The step: the call sent, the call heard, the response heard, the acknowledgement sent or heard, or why there was no answer. |
-| `family` | choice | always | 1.3 | The family of the source: a message. |
+| `state` | choice | always | 1.0 | The link state after the step. |
+| `source` | text | always | 1.0 | The other station. |
+| `reason` | text | always | 1.0 | The step: the call sent, the call heard, the response heard, the acknowledgement sent or heard, or why there was no answer. |
+| `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Commands
 
@@ -291,6 +295,8 @@ Struct `AleLinkEvent`. The fields of a step of the three-way handshake.
 | `sound` | `sdrkit_ale_sound` | none | none |
 | `stop` | `sdrkit_ale_stop` | none | none |
 | `amd` | `sdrkit_ale_amd` | `sdrkit_ale_amd_args` | none |
+
+The argument `to` of `call` takes the column `address` of a row of the table `stations`. The argument `to` of `amd` takes the column `address` of a row of the table `stations`.
 
 ### Settings
 

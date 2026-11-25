@@ -60,6 +60,29 @@ pub fn feed_audio(rx: &mut dyn Receiver, a: &[f32], piece: usize) -> Vec<Event> 
     ev
 }
 
+/// The receiver of stack `d` fed with `seconds` of its own test signal at 48 kHz, and the events it wrote.
+pub fn on_test_signal(d: &StackDescriptor, seconds: f64) -> (Box<dyn Receiver>, Vec<Event>) {
+    let rate = 48_000.0;
+    let mut g = (d.make_generator.unwrap())(&sdrkit_core::GenConfig::new(
+        rate,
+        Values::defaults(&(d.settings)()),
+    ))
+    .unwrap();
+    let mut iq = vec![sdrkit_core::Complex32::default(); (seconds * rate) as usize];
+    g.generate(&mut iq);
+    let mut rx = receiver(d, &[]);
+    rx.configure(&InputInfo::new(rate, 50e6 + 20e3, 50e6).recording())
+        .unwrap();
+    let mut out = Output::default();
+    let mut ev = Vec::new();
+    for c in iq.chunks(9600) {
+        rx.feed(c, &mut out);
+        ev.append(&mut out.events);
+        out.clear();
+    }
+    (rx, ev)
+}
+
 /// The decode events among `ev`.
 pub fn decodes(ev: &[Event]) -> Vec<&Event> {
     ev.iter().filter(|e| e.kind() == "wsjt.decode").collect()

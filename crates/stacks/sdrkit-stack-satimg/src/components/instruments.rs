@@ -2,6 +2,7 @@
 //! frames) and the HIRS elements of TIP minor frames, each to picture strips.
 
 use super::link::{control_port, item_format, item_port};
+use super::pass::{pass_format, pass_port, PassSetting, PassTimer};
 use super::{controls, Control};
 use crate::instruments::avhrr::{decode_noaa, AvhrrDecoder, AvhrrStats, NoaaFramer};
 use crate::instruments::msumr::{MsuMr, MsuStats};
@@ -12,7 +13,7 @@ use crate::items::SpacePacket;
 use crate::psk::Modulation;
 use sdrkit_codec_image::strip::Strip;
 use sdrkit_core::command::Command;
-use sdrkit_core::ConfigError;
+use sdrkit_core::{ConfigError, SettingSet as _};
 use sdrkit_graph::{Component, ComponentInfo, Format, Io, Item, Port, Timed};
 
 /// The `clear` command of an instrument decoder: a new picture.
@@ -35,19 +36,28 @@ fn send_strips(io: &mut Io, o: usize, from: &mut Vec<Strip>) {
         }));
 }
 
-/// The parts of [`Component`] that every instrument decoder shares: no settings and the `clear` command. The decoder is the
-/// field `dec`, with a `new_picture` method.
+/// The parts of [`Component`] that every instrument decoder shares: the settings of
+/// [`PassSetting`](crate::components::pass::PassSetting) and the `clear` command. The decoder is the field `dec`, with a
+/// `new_picture` method, and its pass clock the field `pass`, a [`PassTimer`](crate::components::pass::PassTimer).
 macro_rules! instrument_owner {
     () => {
         fn apply(
             &mut self,
             id: sdrkit_core::SettingId,
-            _: &sdrkit_core::Value,
+            v: &sdrkit_core::Value,
         ) -> Result<sdrkit_graph::Applied, sdrkit_core::SettingError> {
-            Err(sdrkit_core::SettingError::NoSuchId { id })
+            use sdrkit_core::SettingSet as _;
+            match $crate::components::pass::PassSetting::from_id(id)
+                .ok_or(sdrkit_core::SettingError::NoSuchId { id })?
+            {
+                $crate::components::pass::PassSetting::PassGap => self.pass.apply(id, v),
+            }
         }
         fn values(&self) -> sdrkit_core::Values {
-            sdrkit_graph::no_values()
+            sdrkit_graph::values_of([(
+                $crate::components::pass::PassSetting::PassGap,
+                sdrkit_core::Value::F64(self.pass.gap_s()),
+            )])
         }
         fn commands(&self) -> &sdrkit_core::command::Commands {
             <$crate::components::instruments::InstrumentCommand as sdrkit_core::command::CommandSet>::commands()
@@ -86,6 +96,7 @@ impl Item for MsuReport {
 pub struct MsuMrComponent {
     dec: MsuMr,
     strips: Vec<Strip>,
+    pass: PassTimer,
 }
 
 impl Component for MsuMrComponent {
@@ -93,15 +104,27 @@ impl Component for MsuMrComponent {
         ComponentInfo::processor(
             "satimg.msumr",
             vec![Port::typed::<SpacePacket>("in")],
-            vec![item_port::<Strip>("out"), item_port::<MsuReport>("report")],
+            vec![
+                item_port::<Strip>("out"),
+                item_port::<MsuReport>("report"),
+                pass_port(),
+            ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
-        Ok(vec![item_format::<Strip>(), item_format::<MsuReport>()])
+        Ok(vec![
+            item_format::<Strip>(),
+            item_format::<MsuReport>(),
+            pass_format(),
+        ])
     }
     fn process(&mut self, io: &mut Io) {
         for p in io.items::<SpacePacket>(0) {
             self.dec.push(&p.value, &mut self.strips);
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 2) {
+            self.dec.new_picture();
         }
         send_strips(io, 0, &mut self.strips);
         if io.tick() {
@@ -137,6 +160,7 @@ impl Item for AvhrrReport {
 pub struct AvhrrComponent {
     dec: AvhrrDecoder,
     strips: Vec<Strip>,
+    pass: PassTimer,
 }
 
 impl Component for AvhrrComponent {
@@ -147,15 +171,24 @@ impl Component for AvhrrComponent {
             vec![
                 item_port::<Strip>("out"),
                 item_port::<AvhrrReport>("report"),
+                pass_port(),
             ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
-        Ok(vec![item_format::<Strip>(), item_format::<AvhrrReport>()])
+        Ok(vec![
+            item_format::<Strip>(),
+            item_format::<AvhrrReport>(),
+            pass_format(),
+        ])
     }
     fn process(&mut self, io: &mut Io) {
         for p in io.items::<SpacePacket>(0) {
             self.dec.push_packet(&p.value, &mut self.strips);
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 2) {
+            self.dec.new_picture();
         }
         send_strips(io, 0, &mut self.strips);
         if io.tick() {
@@ -194,6 +227,7 @@ impl Item for HirsReport {
 pub struct HirsComponent {
     dec: HirsDecoder,
     strips: Vec<Strip>,
+    pass: PassTimer,
 }
 
 impl Component for HirsComponent {
@@ -201,15 +235,27 @@ impl Component for HirsComponent {
         ComponentInfo::processor(
             "satimg.hirs",
             vec![Port::typed::<TipFrame>("in")],
-            vec![item_port::<Strip>("out"), item_port::<HirsReport>("report")],
+            vec![
+                item_port::<Strip>("out"),
+                item_port::<HirsReport>("report"),
+                pass_port(),
+            ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
-        Ok(vec![item_format::<Strip>(), item_format::<HirsReport>()])
+        Ok(vec![
+            item_format::<Strip>(),
+            item_format::<HirsReport>(),
+            pass_format(),
+        ])
     }
     fn process(&mut self, io: &mut Io) {
         for f in io.items::<TipFrame>(0) {
             self.dec.push_frame(&f.value.0, &mut self.strips);
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 2) {
+            self.dec.new_picture();
         }
         send_strips(io, 0, &mut self.strips);
         if io.tick() {
@@ -234,6 +280,7 @@ pub struct NoaaComponent {
     dec: AvhrrDecoder,
     frames: Vec<Vec<u16>>,
     strips: Vec<Strip>,
+    pass: PassTimer,
 }
 
 impl NoaaComponent {
@@ -255,8 +302,10 @@ impl Component for NoaaComponent {
                 item_port::<Strip>("out"),
                 item_port::<AvhrrReport>("report"),
                 item_port::<TipFrame>("tip"),
+                pass_port(),
             ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
         self.framer.reset();
@@ -264,6 +313,7 @@ impl Component for NoaaComponent {
             item_format::<Strip>(),
             item_format::<AvhrrReport>(),
             item_format::<TipFrame>(),
+            pass_format(),
         ])
     }
     fn process(&mut self, io: &mut Io) {
@@ -294,6 +344,9 @@ impl Component for NoaaComponent {
                         }));
                 }
             }
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 3) {
+            self.dec.new_picture();
         }
         send_strips(io, 0, &mut self.strips);
         if io.tick() {

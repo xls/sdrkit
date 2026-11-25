@@ -10,6 +10,7 @@ use crate::components::link::{
     FrameComponent, FrameLink, FrameReport, FrontEndComponent, FrontReport, PacketReport,
     VcduComponent,
 };
+use crate::components::pass::{PassPictures, PASS_GAP};
 use crate::components::{controls, last, Control};
 use crate::gen::{
     aos_frame, cadu_bytes, space_packet, test_pixel, BitSource, CcsdsCoder, CodeOptions, GenError,
@@ -18,7 +19,7 @@ use crate::gen::{
 use crate::psk::{LinkClass, LinkParams, Modulation, Search, SnrEstimator};
 use crate::REPORT_S;
 use sdrkit_algo_fec::rs::Basis;
-use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView};
 use sdrkit_codec_image::strip::{Enhance, View};
 use crate::typed::{
     ImageRow, LinkFields, MeteorLrptChannelRow, MeteorLrptFields, IMAGES, METEOR_LRPT_CHANNELS,
@@ -185,11 +186,16 @@ pub const GEN_NIGHT: Setting<field::Bool> =
     Setting::new("gen_night", "Test night channels", "", false)
         .section("Test signal")
         .advanced();
-/// Rows of the test picture before it repeats.
-pub const GEN_ROWS: Setting<field::I64> = Setting::new("gen_rows", "Test picture rows", "", 40)
+/// The rows of the test signal: a pass of that many rows, then the signal ends. 0: the test picture of
+/// [`TEST_PICTURE_ROWS`] rows repeats without end.
+pub const GEN_ROWS: Setting<field::I64> = Setting::new("gen_rows", "Test picture rows", "", 0)
     .range(1.0, 1500.0, 1.0)
+    .zero_means("Without end")
+    .help("The test signal sends this many rows of the test picture and then ends. Without end: the picture repeats.")
     .section("Test signal")
     .advanced();
+/// The rows of the test picture before it repeats.
+pub const TEST_PICTURE_ROWS: u32 = 40;
 
 sdrkit_core::settings! {
     /// The settings of `meteor_lrpt`, with the options of its test signal.
@@ -204,6 +210,8 @@ sdrkit_core::settings! {
         Enhance = ENHANCE,
         /// Keep the newest lines in view.
         Follow = FOLLOW,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// The modulation of the test signal.
         GenModulation = GEN_MODULATION,
         /// The night channels of the test signal.
@@ -932,7 +940,8 @@ impl MeteorDisplay {
 /// [`GraphError::Schema`] if the picture layout produces no valid schema.
 pub fn builder(start: MeteorModulation) -> Result<GraphBuilder, GraphError> {
     let link = start.link();
-    let pictures = Pictures::new(vec![picture_layout()]).map_err(GraphError::Schema)?;
+    let pictures =
+        PassPictures::new(vec![picture_layout()], "Meteor-M").map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add(
             "frontend",
@@ -957,6 +966,7 @@ pub fn builder(start: MeteorModulation) -> Result<GraphBuilder, GraphError> {
         .connect("frames.out", "vcdu.in")
         .connect("vcdu.packets", "msumr.in")
         .connect("msumr.out", "pictures.in")
+        .connect("msumr.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
         .connect("deinterleaver.report", "display.deinterleaver")
@@ -995,6 +1005,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route("view", &["pictures.view"])?
         .route("enhance", &["pictures.enhance"])?
         .route("follow", &["pictures.follow"])?
+        .route("pass_gap", &["msumr.pass_gap"])?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .with_settings(&cfg.settings)
         .build()
@@ -1058,6 +1069,8 @@ pub struct MeteorGenParams {
     pub night: bool,
     /// Rows before the picture repeats.
     pub rows: u32,
+    /// The rows of the pass, `None` for a signal without end.
+    pub pass: Option<u64>,
     /// The seed of the memory of the interleaver.
     pub seed: u64,
     /// The options of the modulator.
@@ -1071,7 +1084,8 @@ impl MeteorGenParams {
         MeteorGenParams {
             modulation,
             night: false,
-            rows: 40,
+            rows: TEST_PICTURE_ROWS,
+            pass: None,
             seed: 1,
             modem: ModParams::new(rate, l.symbol_rate, 0.6, l.modulation),
         }
@@ -1081,7 +1095,7 @@ impl MeteorGenParams {
     pub fn from_values(rate: f64, seed: u64, v: &Values) -> Self {
         let mut p = MeteorGenParams::new(rate, v.get(&GEN_MODULATION));
         p.night = v.get(&GEN_NIGHT);
-        p.rows = v.get(&GEN_ROWS).clamp(1, 1500) as u32;
+        p.pass = crate::gen::pass_lines(v.get(&GEN_ROWS));
         p.seed = seed;
         p
     }
@@ -1177,6 +1191,9 @@ impl BitSource for MeteorSource {
             Some(i) => i.push(&self.bits, out),
             None => out.extend_from_slice(&self.bits),
         }
+    }
+    fn ended(&self) -> bool {
+        self.p.pass.is_some_and(|p| u64::from(self.row) >= p)
     }
 }
 

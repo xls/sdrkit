@@ -22,7 +22,7 @@ use std::sync::{Arc, OnceLock};
 pub fn interface() -> &'static Family {
     static SHARED: OnceLock<Family> = OnceLock::new();
     SHARED.get_or_init(|| {
-        Family::shared("ookdev", 1, 0).stack(
+        Family::shared("ookdev", 2, 0).stack(
             StackShape::new("ookdev")
                 .component("pulses", |c| c.fields::<PulsesFields>())
                 .component("burst_pulses", |c| c.fields::<BurstPulsesFields>())
@@ -74,7 +74,7 @@ const CLOSE_DB: Setting<field::F64> = Setting::new("close_db", "Close level", "d
     .range(0.0, 40.0, 0.0)
     .help("At most the open level.");
 const RESET_US: Setting<field::F64> =
-    Setting::new("reset_us", "End of a train", "µs", 10_000.0).range(100.0, 1e6, 0.0);
+    Setting::new("reset_us", "End of a train", "us", 10_000.0).range(100.0, 1e6, 0.0);
 const MIN_DEVIATION_HZ: Setting<field::Hz> =
     Setting::new("min_deviation_hz", "Smallest FSK deviation", "Hz", 4000.0).range(0.0, 1e6, 0.0);
 sdrkit_core::settings! {

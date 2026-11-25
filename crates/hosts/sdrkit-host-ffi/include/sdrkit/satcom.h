@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "satcom", version 1.5. MIT licence.
+ * sdrkit: the typed interface of the stack family "satcom", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_SATCOM_VERSION_MAJOR 1
-#define SDRKIT_SATCOM_VERSION_MINOR 5
+#define SDRKIT_SATCOM_VERSION_MAJOR 2
+#define SDRKIT_SATCOM_VERSION_MINOR 0
 
 // The stack "inmarsatc": its id, and the keys of its event types.
 #define SDRKIT_STACK_INMARSATC "inmarsatc"
@@ -1174,7 +1174,7 @@ typedef struct sdrkit_aero_aircraft_row {
   double alt_ft;
   // True if `track_deg` holds a value.
   bool has_track_deg;
-  // The track, degrees true. Unit: deg.
+  // The track, degrees true. Unit: °.
   double track_deg;
   // True if `gs_kt` holds a value.
   bool has_gs_kt;
@@ -1328,11 +1328,11 @@ typedef struct sdrkit_inmarsat_candidate_row {
   double geometry;
   // True if `elevation_deg` holds a value.
   bool has_elevation_deg;
-  // The elevation from the station. Unit: deg.
+  // The elevation from the station. Unit: °.
   double elevation_deg;
   // True if `azimuth_deg` holds a value.
   bool has_azimuth_deg;
-  // The azimuth from the station. Unit: deg.
+  // The azimuth from the station. Unit: °.
   double azimuth_deg;
 } sdrkit_inmarsat_candidate_row;
 
@@ -2124,7 +2124,7 @@ typedef struct sdrkit_orbcomm_satellite_row {
   double height_m;
   // True if `inclination_deg` holds a value.
   bool has_inclination_deg;
-  // The inclination. Unit: deg.
+  // The inclination. Unit: °.
   double inclination_deg;
   // True if `period` holds a value.
   bool has_period;
@@ -2386,7 +2386,7 @@ typedef struct sdrkit_psk_demod_fields {
   sdrkit_string bit_stream;
   // The index of the first bit of `bit_stream`.
   int64_t bits_first;
-  // The phase rotation the sync words resolved. Unit: deg.
+  // The phase rotation the sync words resolved. Unit: °.
   double rotation_deg;
   // Whether the sync words resolved a spectral inversion.
   bool conjugated;
@@ -3080,6 +3080,8 @@ typedef struct sdrkit_fleet_broadcast_frame_row {
   sdrkit_string word;
   // A frame as 16 bits, channel 0 first.
   sdrkit_string bits;
+  // The signal time of the start of the frame. Unit: s.
+  double time_s;
 } sdrkit_fleet_broadcast_frame_row;
 
 // The result fields of BGAN.
@@ -5042,6 +5044,8 @@ static inline int32_t sdrkit_aero_su_types_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "logons" of the stack "aero" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time`.
 static inline int32_t sdrkit_aero_logons_rows(SDRKIT_HANDLE handle,
                                              sdrkit_aero_logon_row *rows,
                                              uint32_t capacity,
@@ -5220,6 +5224,8 @@ static inline int32_t sdrkit_inmarsat_aero_display_su_types_rows(SDRKIT_HANDLE h
 
 // Fills `rows` with the changed rows of the table "aero_display.logons" of the stack "inmarsat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time`.
 static inline int32_t sdrkit_inmarsat_aero_display_logons_rows(SDRKIT_HANDLE handle,
                                                               sdrkit_aero_logon_row *rows,
                                                               uint32_t capacity,
@@ -5425,6 +5431,8 @@ static inline int32_t sdrkit_globalstar_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "activity" of the stack "globalstar" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `wall_start`.
 static inline int32_t sdrkit_globalstar_activity_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_globalstar_activity_row *rows,
                                                      uint32_t capacity,
@@ -5499,7 +5507,9 @@ static inline int32_t sdrkit_globalstar_gen_set_centre_hz(SDRKIT_HANDLE handle, 
 
 // Fills `rows` with the changed rows of the table "reports" of the stack "goes_dcs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `address` names a row.
+// Time: `heard_at`.
 static inline int32_t sdrkit_goes_dcs_reports_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_goes_dcs_report_row *rows,
                                                   uint32_t capacity,
@@ -5567,7 +5577,9 @@ static inline int32_t sdrkit_goes_dcs_gen_set_scenario(SDRKIT_HANDLE handle, sdr
 
 // Fills `rows` with the changed rows of the table "bursts" of the stack "argos" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `platform` names a row.
+// Time: `heard_at`.
 static inline int32_t sdrkit_argos_bursts_rows(SDRKIT_HANDLE handle,
                                               sdrkit_argos_burst_row *rows,
                                               uint32_t capacity,
@@ -5587,6 +5599,8 @@ static inline int32_t sdrkit_argos_platforms_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "argos" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `at`.
 static inline int32_t sdrkit_argos_frames_rows(SDRKIT_HANDLE handle,
                                               sdrkit_argos_frame_row *rows,
                                               uint32_t capacity,
@@ -5704,7 +5718,9 @@ static inline int32_t sdrkit_argos_gen_set_nrzi(SDRKIT_HANDLE handle, bool value
 
 // Fills `rows` with the changed rows of the table "reports" of the stack "hrdcp" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `address` names a row.
+// Time: `heard_at`.
 static inline int32_t sdrkit_hrdcp_reports_rows(SDRKIT_HANDLE handle,
                                                sdrkit_hrdcp_report_row *rows,
                                                uint32_t capacity,
@@ -5775,8 +5791,10 @@ static inline int32_t sdrkit_hrdcp_gen_set_scene(SDRKIT_HANDLE handle, sdrkit_hr
 
 // Fills `rows` with the changed rows of the table "bursts" of the stack "sarsat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `hex_id` names a row.
 // Place of a row: the column `position`.
+// Time: `heard_at`.
 static inline int32_t sdrkit_sarsat_bursts_rows(SDRKIT_HANDLE handle,
                                                sdrkit_sarsat_burst_row *rows,
                                                uint32_t capacity,
@@ -5893,7 +5911,9 @@ static inline int32_t sdrkit_sarsat_gen_set_gap_s(SDRKIT_HANDLE handle, double v
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "lora_sat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `satellite` names a row.
+// Time: `heard_at`.
 static inline int32_t sdrkit_lora_sat_frames_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_lora_sat_frame_row *rows,
                                                  uint32_t capacity,
@@ -6136,6 +6156,8 @@ static inline int32_t sdrkit_orbcomm_decoders_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "orbcomm" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `wall`.
 static inline int32_t sdrkit_orbcomm_packets_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_orbcomm_packet_row *rows,
                                                  uint32_t capacity,
@@ -6272,6 +6294,8 @@ static inline int32_t sdrkit_psk_demod_syncs_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "log" of the stack "psk_demod" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `at`.
 static inline int32_t sdrkit_psk_demod_log_rows(SDRKIT_HANDLE handle,
                                                sdrkit_psk_demod_log_row *rows,
                                                uint32_t capacity,
@@ -6665,7 +6689,9 @@ static inline int32_t sdrkit_qo100_gen_set_lo(SDRKIT_HANDLE handle, sdrkit_qo100
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "cubesat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `satellite` names a row.
+// Time: `heard_at`.
 static inline int32_t sdrkit_cubesat_frames_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_cubesat_frame_row *rows,
                                                 uint32_t capacity,
@@ -6739,7 +6765,7 @@ static inline int32_t sdrkit_cubesat_set_search(SDRKIT_HANDLE handle, sdrkit_cub
   return sdrkit_typed_setting_set_enum(handle, "search", (int32_t)value);
 }
 
-// The setting "ccsds_length" (CCSDS code length) of the stack "cubesat". Unit: bytes.
+// The setting "ccsds_length" (CCSDS code length) of the stack "cubesat". Unit: B.
 static inline int32_t sdrkit_cubesat_get_ccsds_length(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "ccsds_length", value);
 }
@@ -6823,7 +6849,7 @@ static inline int32_t sdrkit_cubesat_set_ccsds_basis(SDRKIT_HANDLE handle, sdrki
   return sdrkit_typed_setting_set_enum(handle, "ccsds_basis", (int32_t)value);
 }
 
-// The setting "concat.frame_bytes" (CCSDS concatenated frame size) of the stack "cubesat". Unit: bytes. Data bytes, check bytes not included: a multiple of the interleave, at most 223 for each code word.
+// The setting "concat.frame_bytes" (CCSDS concatenated frame size) of the stack "cubesat". Unit: B. Data bytes, check bytes not included: a multiple of the interleave, at most 223 for each code word.
 static inline int32_t sdrkit_cubesat_get_concat_frame_bytes(SDRKIT_HANDLE handle, int64_t *value) {
   return sdrkit_typed_setting_get_i64(handle, "concat.frame_bytes", value);
 }
@@ -6972,6 +6998,8 @@ static inline int32_t sdrkit_fleet_broadcast_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frame_log" of the stack "fleet_broadcast" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_fleet_broadcast_frame_log_rows(SDRKIT_HANDLE handle,
                                                            sdrkit_fleet_broadcast_frame_row *rows,
                                                            uint32_t capacity,
@@ -7058,6 +7086,8 @@ static inline int32_t sdrkit_bgan_beam_table_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "log" of the stack "bgan" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `at`.
 static inline int32_t sdrkit_bgan_log_rows(SDRKIT_HANDLE handle,
                                           sdrkit_bgan_log_row *rows,
                                           uint32_t capacity,

@@ -74,7 +74,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `searches` | Searches | `observed_s` (duration (s)), `ok` (yes or no), `snr` (number), `period_found_s` (number (s)), `dm_found` (number (pc cm⁻³)), `peak_phase` (number), `duty` (number) |
+| `searches` | Searches | `observed_s` (duration (s)), `ok` (yes or no), `snr` (number), `period_found_s` (number (s)), `dm_found` (number (pc cm⁻³)), `peak_phase` (number), `duty` (number), `time_s` (number (s)) |
 
 ## Result series
 
@@ -99,9 +99,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: none.
+
+Key readings: `period_found_s`, `dm_found`, `snr`, `ok`, `detections`.
 
 ### Result fields
 
@@ -147,6 +149,9 @@ Struct `PulsarSearchRow`. A search of `pulsar`. The row key is the sequence numb
 | `dm_found` | number (pc cm⁻³) | always | 1.0 | The best DM. |
 | `peak_phase` | number | always | 1.0 | The pulse phase. |
 | `duty` | number | always | 1.0 | The duty cycle. |
+| `time_s` | number (s) | always | 1.0 | The signal time at the end of the rows searched. |
+
+The rows are a log: they arrive over time. Time: `time_s`.
 
 ### Event `pulsar.detection`
 

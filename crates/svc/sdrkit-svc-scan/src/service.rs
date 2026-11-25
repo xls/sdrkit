@@ -229,7 +229,7 @@ const WAITING: Field<field::I64> = Field::new("candidates", "Candidates waiting"
 const WATCHED: Field<field::F64> = Field::new("watched", "Watched value", "");
 const TEXT: Field<field::Text> = Field::new("text", "Text", "");
 const SCORE: Field<field::F64> = Field::new("score", "Score", "");
-const WPM: Field<field::F64> = Field::new("wpm", "Speed", "WPM");
+const WPM: Field<field::F64> = Field::new("wpm", "Speed", "wpm");
 const CAND_STATE: Field<field::Choice<CandidateState>> = Field::new("state", "State", "");
 const UNTIL: Field<field::Time> = Field::new("skip_until", "Skipped until", "s");
 

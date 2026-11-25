@@ -351,43 +351,12 @@ pub const PRESET_APPLY: CommandKind<PresetApplyArgs<'static>> =
         "Sets the demodulator, the filter width and the squelch of a preset, and tunes to its frequency.",
     );
 
-/// What version 1.1 added: the transmit branch.
-const ADDED: &[&str] = &[
-    "shape.TransmitFields",
-    "shape.TransmitFields.transmitting",
-    "shape.TransmitFields.tx_freq_hz",
-    "shape.TransmitFields.tx_kind",
-    "shape.TransmitFields.tx_time_s",
-    "shape.TransmitFields.tx_mic_dbfs",
-    "shape.TransmitFields.tx_peak_db",
-    "shape.TransmitFields.tx_level_db",
-    "shape.TransmitFields.tx_limit_db",
-    "general.fields.TransmitFields",
-    "general.setting.tx_split",
-    "general.setting.tx_deviation",
-    "general.setting.tx_preemphasis",
-    "general.setting.tx_ctcss",
-    "general.setting.tx_am_depth",
-    "general.setting.tx_ssb_method",
-    "general.setting.tx_ssb_band",
-    "general.setting.tx_compression",
-    "general.setting.tx_timeout",
-    "general.setting.tx_cw_wpm",
-    "general.setting.tx_cw_farnsworth",
-    "general.setting.tx_tune_limit",
-    "general.command.ptt",
-    "general.command.send",
-    "general.command.tune",
-    "general.command.halt",
-];
-
 /// The interface of the family.
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // The presets and the width presets hold no measurement: they stay over a change of frequency.
-        Family::new("general", 1, 3)
-            .added(1, 3, &["general.content"])
+        Family::new("general", 2, 0)
             .content(sdrkit_core::ContentKind::General, &["general"])
             .audio(sdrkit_core::AudioKind::Monitor, &["general"])
             .uses(tones::interface())
@@ -410,8 +379,6 @@ pub fn family() -> &'static Family {
                     .command(&HALT)
                     .kept(&["width_presets", "presets"]),
             )
-            .added(1, 1, ADDED)
-            .added(1, 2, &["general.setting.gen_audio"])
     })
 }
 

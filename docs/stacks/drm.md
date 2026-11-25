@@ -89,7 +89,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `services` | Services | `short_id` (whole number), `service_id` (text), `kind` (text), `label` (text), `language` (text), `country` (text), `programme` (text), `ca` (yes or no), `codec` (text), `core_rate` (frequency), `audio_mode` (whole number), `sbr` (yes or no), `text` (yes or no), `stream` (whole number), `bit_rate_bps` (number (bit/s)), `application` (text), `mode_text` (text), `decoded` (yes or no) |
-| `streams` | Streams | `part_a` (whole number (bytes)), `part_b` (whole number (bytes)) |
+| `streams` | Streams | `part_a` (whole number (B)), `part_b` (whole number (B)) |
 | `objects` | Objects | `short_id` (whole number), `transport_id` (whole number), `name` (text), `content_type` (text), `size` (whole number), `received` (whole number), `order` (whole number), `note` (text) |
 | `slides` | Slides | `short_id` (whole number), `order` (whole number), `name` (text), `category` (text), `category_id` (whole number), `slide_id` (whole number), `click_url` (text), `alt_url` (text), `trigger` (text), `content_type` (text), `size` (whole number), `width` (whole number), `height` (whole number) |
 | `journaline` | Journaline | `id` (whole number), `kind` (text), `title` (text), `content` (text) |
@@ -128,7 +128,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `broadcast`, version 1.1. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `broadcast`, version 2.0. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Broadcast radio (`broadcast`). Media: sound (programme), pictures.
 
@@ -226,8 +226,8 @@ Struct `DrmStreamRow`. The bytes per logical frame of a stream. The row key is t
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `part_a` | whole number (bytes) | always | 1.0 | The bytes of part A. |
-| `part_b` | whole number (bytes) | always | 1.0 | The bytes of part B. |
+| `part_a` | whole number (B) | always | 1.0 | The bytes of part A. |
+| `part_b` | whole number (B) | always | 1.0 | The bytes of part B. |
 
 ### Table `objects`
 

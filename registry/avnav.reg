@@ -1,9 +1,9 @@
 # The interface of the stack family avnav. The registry test of the family writes this file.
-family avnav version=1.4
+family avnav version=2.0
 shape.TunedFields since=1.0
 shape.TunedFields.tuned_hz type=hz unit=Hz optional=no since=1.0
 shape.IdentFields since=1.0
-shape.IdentFields.ident type=text unit= optional=yes since=1.0
+shape.IdentFields.ident type=text unit= optional=yes reading=1 since=1.0
 shape.IdentFields.last_ident type=text unit= optional=yes since=1.0
 shape.IdentFields.ident_wpm type=f64 unit=wpm optional=yes since=1.0
 shape.CarrierFields since=1.0
@@ -11,12 +11,12 @@ shape.CarrierFields.carrier type=bool unit= optional=no since=1.0
 shape.CarrierFields.carrier_hz type=hz unit=Hz optional=yes since=1.0
 shape.CarrierFields.cn0_dbhz type=f64 unit=dB-Hz optional=yes since=1.0
 shape.CarrierFields.offset_hz type=hz unit=Hz optional=yes since=1.0
-shape.CarrierFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.CarrierFields.level_dbfs type=f64 unit=dBFS optional=yes reading=4 since=1.0
 shape.NdbFields since=1.0
-shape.NdbFields.ident_period_s type=f64 unit=s optional=yes since=1.0
+shape.NdbFields.ident_period_s type=f64 unit=s optional=yes reading=3 since=1.0
 shape.NdbFields.ident_period_z type=f64 unit= optional=yes since=1.0
 shape.NdbFields.ident_fold_quality type=f64 unit= optional=yes since=1.0
-shape.NdbFields.ident_fold_text type=text unit= optional=yes since=1.0
+shape.NdbFields.ident_fold_text type=text unit= optional=yes reading=2 since=1.0
 shape.KeyerFields since=1.0
 shape.KeyerFields.id_tone_hz type=hz unit=Hz optional=yes since=1.0
 shape.KeyerFields.id_depth_pct type=f64 unit=% optional=yes since=1.0
@@ -38,8 +38,8 @@ shape.IdentWordEvent.freq_hz type=hz unit=Hz optional=yes since=1.0
 shape.IdentWordEvent.mode type=text unit= optional=no since=1.0
 shape.IdentWordEvent.wpm type=f64 unit=wpm optional=no since=1.0
 shape.VorFields since=1.0
-shape.VorFields.radial_deg type=f64 unit=° optional=yes since=1.0
-shape.VorFields.bearing_to_deg type=f64 unit=° optional=yes since=1.0
+shape.VorFields.radial_deg type=f64 unit=° optional=yes reading=2 since=1.0
+shape.VorFields.bearing_to_deg type=f64 unit=° optional=yes reading=3 since=1.0
 shape.VorFields.obs_deg type=f64 unit=° optional=no since=1.0
 shape.VorFields.to_from type=choice(to,from,off) unit= optional=no since=1.0
 shape.VorFields.cdi_deg type=f64 unit=° optional=yes since=1.0
@@ -47,83 +47,84 @@ shape.VorFields.cdi_dots type=f64 unit=dots optional=yes since=1.0
 shape.VorFields.am30_pct type=f64 unit=% optional=yes since=1.0
 shape.VorFields.subcarrier_pct type=f64 unit=% optional=yes since=1.0
 shape.VorFields.deviation_hz type=hz unit=Hz optional=yes since=1.0
-shape.VorFields.steadiness type=f64 unit= optional=yes since=1.0
+shape.VorFields.steadiness type=f64 unit= optional=yes reading=5 since=1.0
 shape.VorFields.fixes type=i64 unit= optional=no since=1.0
 shape.VorFields.tuned_hz type=hz unit=Hz optional=no since=1.0
 shape.VorFields.dme_channel type=text unit= optional=yes since=1.0
 shape.IlsFields since=1.0
 shape.IlsFields.part type=choice(localizer,glideslope,marker) unit= optional=no since=1.0
-shape.IlsFields.ddm type=f64 unit= optional=yes since=1.0
+shape.IlsFields.ddm type=f64 unit= optional=yes reading=2 since=1.0
 shape.IlsFields.sdm_pct type=f64 unit=% optional=yes since=1.0
 shape.IlsFields.m90_pct type=f64 unit=% optional=yes since=1.0
 shape.IlsFields.m150_pct type=f64 unit=% optional=yes since=1.0
 shape.IlsFields.needle_ua type=f64 unit=µA optional=yes since=1.0
 shape.IlsFields.needle_dots type=f64 unit=dots optional=yes since=1.0
-shape.IlsFields.command type=choice(on_course,on_path,fly_left,fly_right,fly_up,fly_down,flag) unit= optional=no since=1.0
+shape.IlsFields.command type=choice(on_course,on_path,fly_left,fly_right,fly_up,fly_down,flag) unit= optional=no reading=3 since=1.0
 shape.IlsFields.flag type=bool unit= optional=no since=1.0
 shape.IlsFields.paired_hz type=hz unit=Hz optional=yes since=1.0
 shape.IlsFields.tuned_hz type=hz unit=Hz optional=no since=1.0
 shape.IlsFields.dme_channel type=text unit= optional=yes since=1.0
-shape.MarkerFields since=1.1
-shape.MarkerFields.marker type=choice(none,outer,middle,inner) unit= optional=no since=1.1
-shape.MarkerFields.marker_tone_hz type=hz unit=Hz optional=yes since=1.1
-shape.MarkerFields.marker_depth_pct type=f64 unit=% optional=yes since=1.1
-shape.MarkerFields.keying type=text unit= optional=yes since=1.1
-shape.MarkerFields.keying_rate type=f64 unit=/s optional=yes since=1.1
-shape.MarkerFields.pairs_per_min type=f64 unit=/min optional=yes since=1.1
-shape.MarkerFields.dot_s type=f64 unit=s optional=yes since=1.1
-shape.MarkerFields.dash_s type=f64 unit=s optional=yes since=1.1
-shape.MarkerFields.keying_fits type=bool unit= optional=yes since=1.1
-shape.MarkerFields.passage_s type=f64 unit=s optional=yes since=1.1
-shape.MarkerFields.passages type=i64 unit= optional=no since=1.1
-shape.MarkerFields.keyed_now type=bool unit= optional=no since=1.1
-shape.MarkerFields.held_depth_pct type=f64 unit=% optional=yes since=1.1
-shape.MarkerFields.pattern type=choice(not_yet,dashes,dot_dash,dots,irregular) unit= optional=no since=1.1
-shape.MarkerPassageRow since=1.1
-shape.MarkerPassageRow.kind type=choice(marker,tone_only) unit= optional=no since=1.1
-shape.MarkerPassageRow.marker type=choice(none,outer,middle,inner) unit= optional=no since=1.1
-shape.MarkerPassageRow.text type=text unit= optional=no since=1.1
-shape.MarkerPassageRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.1
-shape.MarkerEvent since=1.1
-shape.MarkerEvent.source type=text unit= optional=no since=1.1
-shape.MarkerEvent.text type=text unit= optional=no since=1.1
-shape.MarkerEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.1
-shape.MarkerEvent.kind type=choice(marker,tone_only) unit= optional=no since=1.1
-shape.MarkerEvent.marker type=choice(none,outer,middle,inner) unit= optional=no since=1.1
-shape.MarkerEvent.tone_hz type=hz unit=Hz optional=no since=1.1
-shape.MarkerEvent.depth_pct type=f64 unit=% optional=no since=1.1
-shape.MarkerEvent.duration_s type=f64 unit=s optional=no since=1.1
+shape.MarkerFields since=1.0
+shape.MarkerFields.marker type=choice(none,outer,middle,inner) unit= optional=no reading=5 since=1.0
+shape.MarkerFields.marker_tone_hz type=hz unit=Hz optional=yes since=1.0
+shape.MarkerFields.marker_depth_pct type=f64 unit=% optional=yes since=1.0
+shape.MarkerFields.keying type=text unit= optional=yes since=1.0
+shape.MarkerFields.keying_rate type=f64 unit=1/s optional=yes since=1.0
+shape.MarkerFields.pairs_per_min type=f64 unit=1/min optional=yes since=1.0
+shape.MarkerFields.dot_s type=f64 unit=s optional=yes since=1.0
+shape.MarkerFields.dash_s type=f64 unit=s optional=yes since=1.0
+shape.MarkerFields.keying_fits type=bool unit= optional=yes since=1.0
+shape.MarkerFields.passage_s type=f64 unit=s optional=yes since=1.0
+shape.MarkerFields.passages type=i64 unit= optional=no since=1.0
+shape.MarkerFields.keyed_now type=bool unit= optional=no since=1.0
+shape.MarkerFields.held_depth_pct type=f64 unit=% optional=yes since=1.0
+shape.MarkerFields.pattern type=choice(not_yet,dashes,dot_dash,dots,irregular) unit= optional=no since=1.0
+shape.MarkerPassageRow since=1.0
+shape.MarkerPassageRow.kind type=choice(marker,tone_only) unit= optional=no since=1.0
+shape.MarkerPassageRow.marker type=choice(none,outer,middle,inner) unit= optional=no since=1.0
+shape.MarkerPassageRow.text type=text unit= optional=no since=1.0
+shape.MarkerPassageRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.MarkerPassageRow.time_s type=f64 unit=s optional=no since=1.0
+shape.MarkerEvent since=1.0
+shape.MarkerEvent.source type=text unit= optional=no since=1.0
+shape.MarkerEvent.text type=text unit= optional=no since=1.0
+shape.MarkerEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.MarkerEvent.kind type=choice(marker,tone_only) unit= optional=no since=1.0
+shape.MarkerEvent.marker type=choice(none,outer,middle,inner) unit= optional=no since=1.0
+shape.MarkerEvent.tone_hz type=hz unit=Hz optional=no since=1.0
+shape.MarkerEvent.depth_pct type=f64 unit=% optional=no since=1.0
+shape.MarkerEvent.duration_s type=f64 unit=s optional=no since=1.0
 shape.DmeFields since=1.0
 shape.DmeFields.heard type=choice(beacon,interrogations,none) unit= optional=no since=1.0
 shape.DmeFields.channel_mode type=choice(x,y) unit= optional=yes since=1.0
-shape.DmeFields.channel type=text unit= optional=yes since=1.0
+shape.DmeFields.channel type=text unit= optional=yes reading=3 since=1.0
 shape.DmeFields.paired_vhf_hz type=hz unit=Hz optional=yes since=1.0
-shape.DmeFields.pairs_per_s type=f64 unit=/s optional=no since=1.0
-shape.DmeFields.spacing_us type=f64 unit=µs optional=yes since=1.0
-shape.DmeFields.width_us type=f64 unit=µs optional=yes since=1.0
+shape.DmeFields.pairs_per_s type=f64 unit=1/s optional=no reading=2 since=1.0
+shape.DmeFields.spacing_us type=f64 unit=us optional=yes since=1.0
+shape.DmeFields.width_us type=f64 unit=us optional=yes since=1.0
 shape.DmeFields.pairs type=i64 unit= optional=no since=1.0
-shape.DmeFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.DmeFields.level_dbfs type=f64 unit=dBFS optional=yes reading=4 since=1.0
 shape.LoranFields since=1.0
-shape.LoranFields.gri type=i64 unit= optional=yes since=1.0
-shape.LoranFields.chain type=text unit= optional=yes since=1.0
-shape.LoranFields.master type=bool unit= optional=no since=1.0
-shape.LoranFields.master_snr_db type=f64 unit=dB optional=yes since=1.0
+shape.LoranFields.gri type=i64 unit= optional=yes reading=2 since=1.0
+shape.LoranFields.chain type=text unit= optional=yes reading=1 since=1.0
+shape.LoranFields.master type=bool unit= optional=no reading=3 since=1.0
+shape.LoranFields.master_snr_db type=f64 unit=dB optional=yes reading=4 since=1.0
 shape.LoranFields.fixes type=i64 unit= optional=no since=1.0
 shape.LoranStationRow since=1.0
 shape.LoranStationRow.station type=text unit= optional=no since=1.0
-shape.LoranStationRow.td_us type=f64 unit=µs optional=no since=1.0
-shape.LoranStationRow.ecd_us type=f64 unit=µs optional=no since=1.0
+shape.LoranStationRow.td_us type=f64 unit=us optional=no since=1.0
+shape.LoranStationRow.ecd_us type=f64 unit=us optional=no since=1.0
 shape.LoranStationRow.snr_db type=f64 unit=dB optional=no since=1.0
 shape.LoranStationRow.level_db type=f64 unit=dB optional=no since=1.0
 shape.DgpsFields since=1.0
-shape.DgpsFields.station_id type=i64 unit= optional=yes since=1.0
-shape.DgpsFields.health type=choice(scale_1,scale_0.75,scale_0.5,scale_0.3,scale_0.2,scale_0.1,not_monitored,not_working) unit= optional=yes since=1.0
+shape.DgpsFields.station_id type=i64 unit= optional=yes reading=1 since=1.0
+shape.DgpsFields.health type=choice(scale_1,scale_0.75,scale_0.5,scale_0.3,scale_0.2,scale_0.1,not_monitored,not_working) unit= optional=yes reading=2 since=1.0
 shape.DgpsFields.zcount type=duration unit=s optional=yes since=1.0
-shape.DgpsFields.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
-shape.DgpsFields.locked type=bool unit= optional=no since=1.0
+shape.DgpsFields.symbol_rate_hz type=hz unit=Hz optional=yes reading=4 since=1.0
+shape.DgpsFields.locked type=bool unit= optional=no reading=3 since=1.0
 shape.DgpsFields.good_words type=i64 unit= optional=no since=1.0
 shape.DgpsFields.bad_words type=i64 unit= optional=no since=1.0
-shape.DgpsFields.frames_ok type=i64 unit= optional=no since=1.0
+shape.DgpsFields.frames_ok type=i64 unit= optional=no reading=5 since=1.0
 shape.DgpsFields.base_station type=position unit= optional=yes since=1.0
 shape.DgpsFields.base_height_m type=f64 unit=m optional=yes since=1.0
 shape.DgpsFields.text type=text unit= optional=yes since=1.0
@@ -135,11 +136,11 @@ shape.DgpsMeterFields.peak_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.DgpsMskFields since=1.0
 shape.DgpsMskFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
 shape.DgpsMskFields.offset_hz type=hz unit=Hz optional=yes since=1.0
-shape.DgpsStationRow since=1.4
-shape.DgpsStationRow.station_id type=i64 unit= optional=no since=1.4
-shape.DgpsStationRow.health type=choice(scale_1,scale_0.75,scale_0.5,scale_0.3,scale_0.2,scale_0.1,not_monitored,not_working) unit= optional=yes since=1.4
-shape.DgpsStationRow.position type=position unit= optional=yes since=1.4
-shape.DgpsStationRow.height_m type=f64 unit=m optional=yes since=1.4
+shape.DgpsStationRow since=1.0
+shape.DgpsStationRow.station_id type=i64 unit= optional=no since=1.0
+shape.DgpsStationRow.health type=choice(scale_1,scale_0.75,scale_0.5,scale_0.3,scale_0.2,scale_0.1,not_monitored,not_working) unit= optional=yes since=1.0
+shape.DgpsStationRow.position type=position unit= optional=yes since=1.0
+shape.DgpsStationRow.height_m type=f64 unit=m optional=yes since=1.0
 shape.DgpsMessageRow since=1.0
 shape.DgpsMessageRow.msg_type type=i64 unit= optional=no since=1.0
 shape.DgpsMessageRow.count type=i64 unit= optional=no since=1.0
@@ -166,7 +167,7 @@ shape.RtcmFrameEvent.zcount_s type=f64 unit=s optional=no since=1.0
 shape.RtcmFrameEvent.sequence type=i64 unit= optional=no since=1.0
 shape.RtcmFrameEvent.health type=choice(scale_1,scale_0.75,scale_0.5,scale_0.3,scale_0.2,scale_0.1,not_monitored,not_working) unit= optional=no since=1.0
 ndb since=1.0
-ndb.content kind=navigation audio=monitor since=1.2
+ndb.content kind=navigation audio=monitor since=1.0
 ndb.fields.TunedFields since=1.0
 ndb.fields.IdentFields since=1.0
 ndb.fields.CarrierFields since=1.0
@@ -196,7 +197,7 @@ ndb.setting.gen_pause type=duration unit=s since=1.0
 ndb.setting.gen_others type=i64 unit= since=1.0
 ndb.command.clear args= reply= since=1.0
 vor since=1.0
-vor.content kind=navigation audio=monitor since=1.2
+vor.content kind=navigation audio=monitor since=1.0
 vor.fields.VorFields since=1.0
 vor.fields.IdentFields since=1.0
 vor.fields.CarrierFields since=1.0
@@ -216,17 +217,17 @@ vor.setting.gen_pause type=duration unit=s since=1.0
 vor.setting.gen_rotate type=f64 unit=°/s since=1.0
 vor.command.clear args= reply= since=1.0
 ils since=1.0
-ils.content kind=navigation audio=monitor since=1.2
+ils.content kind=navigation audio=monitor since=1.0
 ils.fields.IlsFields since=1.0
 ils.fields.IdentFields since=1.0
 ils.fields.CarrierFields since=1.0
-ils.fields.MarkerFields since=1.1
+ils.fields.MarkerFields since=1.0
 ils.fields.KeyerFields since=1.0
 ils.component.keyer.fields.KeyerFields shared=id_tone_hz;id_depth_pct since=1.0
 ils.table.idents row=IdentRow cap=16 label=ident since=1.0
-ils.table.passages row=MarkerPassageRow cap=64 label=marker since=1.1
+ils.table.passages row=MarkerPassageRow cap=64 label=marker role=log time=time_s since=1.0
 ils.event.morse.word fields=IdentWordEvent since=1.0
-ils.event.ils.marker fields=MarkerEvent since=1.1
+ils.event.ils.marker fields=MarkerEvent since=1.0
 ils.setting.part type=choice(auto,localizer,glideslope,marker) unit= since=1.0
 ils.setting.average type=duration unit=s since=1.0
 ils.setting.confirm type=i64 unit= since=1.0
@@ -235,15 +236,15 @@ ils.setting.gen_ddm type=f64 unit= since=1.0
 ils.setting.gen_ident type=text unit= since=1.0
 ils.setting.gen_wpm type=f64 unit=wpm since=1.0
 ils.setting.gen_pause type=duration unit=s since=1.0
-ils.setting.gen_marker type=choice(outer,middle,inner) unit= since=1.1
-ils.setting.gen_marker_keying type=choice(standard,steady) unit= since=1.1
-ils.setting.gen_marker_tone type=hz unit=Hz since=1.1
-ils.setting.gen_marker_depth type=f64 unit=% since=1.1
-ils.setting.gen_marker_start type=duration unit=s since=1.1
-ils.setting.gen_marker_stop type=duration unit=s since=1.1
+ils.setting.gen_marker type=choice(outer,middle,inner) unit= since=1.0
+ils.setting.gen_marker_keying type=choice(standard,steady) unit= since=1.0
+ils.setting.gen_marker_tone type=hz unit=Hz since=1.0
+ils.setting.gen_marker_depth type=f64 unit=% since=1.0
+ils.setting.gen_marker_start type=duration unit=s since=1.0
+ils.setting.gen_marker_stop type=duration unit=s since=1.0
 ils.command.clear args= reply= since=1.0
 dme since=1.0
-dme.content kind=navigation since=1.2
+dme.content kind=navigation since=1.0
 dme.fields.DmeFields since=1.0
 dme.fields.TunedFields since=1.0
 dme.fields.IdentFields since=1.0
@@ -260,7 +261,7 @@ dme.setting.gen_wpm type=f64 unit=wpm since=1.0
 dme.setting.gen_pause type=duration unit=s since=1.0
 dme.command.clear args= reply= since=1.0
 loran since=1.0
-loran.content kind=navigation since=1.2
+loran.content kind=navigation since=1.0
 loran.fields.LoranFields since=1.0
 loran.table.stations row=LoranStationRow cap=16 label=station since=1.0
 loran.setting.gri type=i64 unit= since=1.0
@@ -270,10 +271,10 @@ loran.setting.max_secondaries type=i64 unit= since=1.0
 loran.setting.chains type=text unit= since=1.0
 loran.setting.gen_gri type=i64 unit= since=1.0
 loran.setting.gen_tds type=text unit= since=1.0
-loran.setting.gen_ecd type=f64 unit=µs since=1.0
+loran.setting.gen_ecd type=f64 unit=us since=1.0
 loran.command.clear args= reply= since=1.0
 dgps since=1.0
-dgps.content kind=navigation since=1.2
+dgps.content kind=navigation since=1.0
 dgps.fields.DgpsFields since=1.0
 dgps.fields.DgpsMeterFields since=1.0
 dgps.component.level.fields.DgpsMeterFields shared=level_dbfs;peak_dbfs since=1.0
@@ -284,7 +285,7 @@ dgps.kept.almanac since=1.0
 dgps.kept.messages since=1.0
 dgps.kept.DgpsFields.frames_ok since=1.0
 dgps.kept.DgpsFields.text since=1.0
-dgps.table.station row=DgpsStationRow cap=1 label=station_id position=position altitude=height_m since=1.4
+dgps.table.station row=DgpsStationRow cap=1 label=station_id position=position altitude=height_m since=1.0
 dgps.table.messages row=DgpsMessageRow cap=64 label=msg_type since=1.0
 dgps.table.corrections row=DgpsCorrectionRow cap=32 label=prn sort=prn:ascending since=1.0
 dgps.table.almanac row=DgpsAlmanacRow cap=64 label=station_id position=position since=1.0

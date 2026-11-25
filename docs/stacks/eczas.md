@@ -95,9 +95,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: sound (monitor).
+
+Key readings: `utc`, `confirmed`, `snr_db`, `clock_offset_s`.
 
 ### Result fields
 
@@ -140,6 +142,8 @@ Struct `EczasFrameRow`. A frame of `eczas`. The row key is the sequence number o
 | `ok` | yes or no | always | 1.0 | The frame was accepted. |
 | `text` | text | always | 1.0 | The text of a frame. |
 | `bytes` | bytes | always | 1.0 | The bytes of a frame. |
+
+The rows are a log: they arrive over time. Time: `host_time`.
 
 ### Event `eczas.time`
 

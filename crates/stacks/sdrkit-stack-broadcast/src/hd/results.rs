@@ -121,7 +121,7 @@ pub struct HdradioFields<'a> {
     #[field(label = "Facility id")]
     pub facility_id: Option<i64>,
     /// The location of the station.
-    #[field(label = "Location", unit = "deg")]
+    #[field(label = "Location")]
     pub location: Option<(f64, f64)>,
     /// The altitude of the station.
     #[field(label = "Altitude", unit = "m")]

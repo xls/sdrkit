@@ -2,10 +2,18 @@
 //! and the delivery chain of the receiver graph fed with baseband packets.
 
 use super::common::{self, chain, impair};
-use sdrkit_core::{Complex32, ConfigError, InputInfo, Output, Owner, Results, Values};
+use sdrkit_core::{Complex32, ConfigError, InputInfo, Output, Owner, Results, StreamKind, Values};
+use sdrkit_graph::media::{AudioProps, Codec, MediaPacket, Packaging};
 use sdrkit_graph::{
-    no_values, Component, ComponentInfo, Format, GraphBuilder, Io, Kind, PacketPool, Port,
+    no_values, Buffer, CommandTarget, Component, ComponentInfo, Data, Format, Graph, GraphBuilder,
+    Io, Kind, PacketPool, Port, TapReader, Timed,
 };
+use sdrkit_stack_tvterr::atsc3::components::ComponentState;
+use sdrkit_stack_tvterr::atsc3::delivery::ComponentKind;
+use sdrkit_stack_tvterr::atsc3::gen::Payload;
+use sdrkit_stack_tvterr::atsc3::testsvc;
+use std::collections::VecDeque;
+use std::sync::{Arc, Mutex};
 use sdrkit_proto_ipcast::alp::{write_bbp_header, write_single, BbpExtension, PacketType};
 use sdrkit_proto_ipcast::ip::write_ipv4_udp;
 use sdrkit_proto_ipcast::lct::LctBuilder;
@@ -817,9 +825,9 @@ fn the_share_of_each_stage_with_a_time_interleaver() {
     }
 }
 
-/// A test source: passes its baseband packets to the graph, one call's worth at a time.
+/// A test source: passes the baseband packets of its queue to the graph, four in a pass.
 struct Bbps {
-    packets: Vec<Vec<u8>>,
+    packets: Arc<Mutex<VecDeque<Vec<u8>>>>,
     at: usize,
     pool: PacketPool,
 }
@@ -837,13 +845,13 @@ impl Component for Bbps {
     fn process(&mut self, io: &mut Io) {
         let n = io.iq(0).len();
         for _ in 0..n.min(4) {
-            let Some(p) = self.packets.get(self.at) else {
+            let Some(p) = self.packets.lock().expect("the queue").pop_front() else {
                 return;
             };
             self.at += 1;
             let t = self.at as f64 * 1e-3;
             io.bytes_out(0)
-                .push(self.pool.make(p.len(), t, |b| b.copy_from_slice(p)));
+                .push(self.pool.make(p.len(), t, |b| b.copy_from_slice(&p)));
         }
     }
 }
@@ -987,11 +995,21 @@ fn delivery_packets_with(
         b"--b\r\nContent-Type: application/route-usd+xml\r\n\r\n<BundleDescription/>\r\n--b--\r\n"
             .to_vec()
     };
-    let objects = [(2u32, 1u32, init()), (2, 2, media(0)), (2, 3, media(7200))]
-        .into_iter()
-        .chain((0..sls).map(|k| (0, 100 + k, sls_object.clone())));
+    // The session description of the service names the channel of its video. It goes to the session of the service only.
+    let stsid = b"--b\r\nContent-Type: application/route-s-tsid+xml\r\n\r\n\
+<S-TSID><RS><LS tsi=\"2\"><SrcFlow rt=\"true\"/></LS></RS></S-TSID>\r\n--b--\r\n"
+        .to_vec();
+    let objects = [
+        (0u32, 1u32 << 17, stsid),
+        (2, 1, init()),
+        (2, 2, media(0)),
+        (2, 3, media(7200)),
+    ]
+    .into_iter()
+    .chain((0..sls).map(|k| (0, 100 + k, sls_object.clone())));
     for (tsi, toi, obj) in objects {
-        for (dst, copy) in [(service, true), (other, tsi == 0)] {
+        // The signalling objects that the test counts go to another session too.
+        for (dst, copy) in [(service, true), (other, tsi == 0 && toi != 1 << 17)] {
             if !copy {
                 continue;
             }
@@ -1028,34 +1046,444 @@ fn delivery_packets_with(
         .collect()
 }
 
-/// The delivery chain of the receiver graph, fed by a test source instead of the frame decoder.
-fn run_delivery(packets: Vec<Vec<u8>>) -> Results {
-    let b = GraphBuilder::new()
-        .add(
-            "source",
-            Bbps {
-                packets,
-                at: 0,
-                pool: PacketPool::default(),
-            },
-        )
-        .add("report", results::Report::default())
-        .input("source.in")
-        .status_from("report");
-    let mut g = delivery(b, "source.out")
-        .build()
-        .unwrap_or_else(|e| panic!("{e}"));
-    g.declare(&results::declaration());
-    g.configure_input(Format::iq(8e6, 539e6, 539e6))
-        .unwrap_or_else(|e| panic!("{e}"));
-    let mut out = Output::default();
-    for _ in 0..100 {
-        g.process(&[Complex32::new(0.0, 0.0); 64], &mut out);
-        out.clear();
+/// The delivery chain of the receiver graph, fed by a test source instead of the frame decoder, with a tap on the media
+/// packets.
+struct Chain {
+    g: Graph,
+    queue: Arc<Mutex<VecDeque<Vec<u8>>>>,
+    tap: TapReader,
+    /// The media packets that the chain gave.
+    packets: Vec<MediaPacket>,
+    /// Those that went to the host, by their stream kind.
+    host: Vec<StreamKind>,
+}
+
+impl Chain {
+    fn new() -> Chain {
+        let queue = Arc::new(Mutex::new(VecDeque::new()));
+        let b = GraphBuilder::new()
+            .add(
+                "source",
+                Bbps {
+                    packets: Arc::clone(&queue),
+                    at: 0,
+                    pool: PacketPool::default(),
+                },
+            )
+            .add("report", results::Report::default())
+            .input("source.in")
+            .status_from("report")
+            .command_alias("service.select", CommandTarget::every("service.select"));
+        let mut g = delivery(b, "source.out")
+            .build()
+            .unwrap_or_else(|e| panic!("{e}"));
+        g.declare(&results::declaration());
+        g.configure_input(Format::iq(8e6, 539e6, 539e6))
+            .unwrap_or_else(|e| panic!("{e}"));
+        let tap = g.tap("media.out", 1 << 12).unwrap_or_else(|e| panic!("{e}"));
+        Chain {
+            g,
+            queue,
+            tap,
+            packets: Vec::new(),
+            host: Vec::new(),
+        }
     }
-    g.finish(&mut out);
-    g.refresh_results();
-    Owner::results(&g).clone()
+
+    /// Passes `packets` through the chain.
+    fn feed(&mut self, packets: Vec<Vec<u8>>) {
+        let passes = packets.len() / 4 + 8;
+        self.queue.lock().expect("the queue").extend(packets);
+        let mut out = Output::default();
+        let mut buf = Buffer::new(&Kind::typed::<MediaPacket>());
+        for _ in 0..passes {
+            self.g.process(&[Complex32::new(0.0, 0.0); 64], &mut out);
+            self.host.extend(out.media.iter().map(|m| m.kind));
+            out.clear();
+            while self.tap.pop(&mut buf) {
+                if let Data::Items(Some(v)) = &buf.data {
+                    let items = v
+                        .as_any()
+                        .downcast_ref::<Vec<Timed<MediaPacket>>>()
+                        .expect("media packets");
+                    self.packets.extend(items.iter().map(|p| p.value.clone()));
+                }
+            }
+        }
+    }
+
+    /// Runs `service.select` with the row `row`.
+    fn select(&mut self, row: &str) -> bool {
+        let id = self.g.commands().id("service.select").expect("the command");
+        let def = self.g.commands().def(id).expect("the command").clone();
+        let mut record = def.new_args();
+        let arg = def.args.id("row").expect("the argument");
+        record
+            .set_value(sdrkit_core::FieldId(arg.0), &sdrkit_core::Value::Text(row.into()))
+            .expect("a text");
+        sdrkit_core::owner::invoke(&mut self.g, id, &record).is_ok()
+    }
+
+    fn results(&mut self) -> Results {
+        self.g.refresh_results();
+        Owner::results(&self.g).clone()
+    }
+
+    /// The packets of `codec`.
+    fn of(&self, codec: Codec) -> Vec<&MediaPacket> {
+        self.packets
+            .iter()
+            .filter(|p| p.format.codec == codec)
+            .collect()
+    }
+}
+
+fn run_delivery(packets: Vec<Vec<u8>>) -> Results {
+    let mut c = Chain::new();
+    c.feed(packets);
+    let mut out = Output::default();
+    c.g.finish(&mut out);
+    c.results()
+}
+
+/// The row `key` of table `table` of `r`.
+fn row_of(r: &Results, table: &str, key: &str) -> sdrkit_core::Record {
+    r.decl()
+        .table_id(table)
+        .and_then(|id| r.table(id))
+        .and_then(|t| t.row(key))
+        .unwrap_or_else(|| panic!("no row {key} in {table}"))
+        .clone()
+}
+
+/// Checks the video packets from access unit `first` of the test signal on: the bytes, the times in ticks of 90 kHz
+/// (decoding every 3600, presentation 3600 later), a sync sample and clean start at the head of each segment, and the
+/// format.
+fn check_video(video: &[&MediaPacket], first: i64) {
+    for (i, p) in video.iter().enumerate() {
+        let n = first + i as i64;
+        let (segment, sample) = ((n / 2) as u64, (n % 2) as u32);
+        assert_eq!(p.packet.dts, Some(n * 3600), "video packet {i}");
+        assert_eq!(p.packet.pts, Some(n * 3600 + 3600), "video packet {i}");
+        assert_eq!((p.packet.keyframe, p.packet.clean_start), (sample == 0, sample == 0));
+        assert_eq!(p.packet.bytes(), &testsvc::video_sample(segment, sample)[..]);
+        let f = &p.format;
+        assert_eq!((f.codec, f.packaging), (Codec::Hevc, Packaging::LengthPrefixed(4)));
+        assert_eq!(f.timebase, (1, 90_000));
+        assert_eq!(&f.config[..], &testsvc::video_config()[..]);
+        let v = f.video.as_ref().expect("video properties");
+        assert_eq!((v.width, v.height), (1280, 720));
+        assert_eq!(p.stream_kind(), Some(StreamKind::Hevc));
+    }
+}
+
+/// Checks the audio packets from access unit `first` of the test signal on: the bytes, the times in ticks of 48 kHz
+/// (every 1920), and the format.
+fn check_audio(audio: &[&MediaPacket], first: i64) {
+    for (i, p) in audio.iter().enumerate() {
+        let n = first + i as i64;
+        let (segment, sample) = ((n / 2) as u64, (n % 2) as u32);
+        assert_eq!(p.packet.dts, Some(n * 1920), "audio packet {i}");
+        assert_eq!(p.packet.pts, Some(n * 1920), "audio packet {i}");
+        assert!(p.packet.keyframe && p.packet.clean_start);
+        assert_eq!(p.packet.bytes(), &testsvc::audio_sample(segment, sample)[..]);
+        let f = &p.format;
+        assert_eq!((f.codec, f.packaging), (Codec::Ac4, Packaging::Raw));
+        assert_eq!(f.timebase, (1, 48_000));
+        assert_eq!(&f.config[..], &testsvc::AUDIO_CONFIG[..]);
+        assert_eq!(f.audio, Some(AudioProps { sample_rate: 48_000, channels: 2 }));
+    }
+}
+
+/// The payload of the test signal through the delivery chain: the service list, and the video and the audio of the
+/// service as media packets with the bytes, times and formats of the access units that the generator made.
+#[test]
+fn the_service_of_the_test_signal_gives_media_packets() {
+    let mut payload = Payload::new(5);
+    let mut c = Chain::new();
+    c.feed((0..150).map(|_| payload.packet(1000)).collect());
+    let (video, audio) = (c.of(Codec::Hevc), c.of(Codec::Ac4));
+    // 150 baseband packets hold five rounds of the service, each with two access units of video and of audio.
+    assert_eq!((video.len(), audio.len()), (10, 10));
+    assert_eq!(c.packets.len(), 20);
+    check_video(&video, 0);
+    check_audio(&audio, 0);
+    // The host takes the video. The shared media form names AC-4, and no host decoder takes it.
+    assert_eq!(c.host, vec![StreamKind::Hevc; 10]);
+    let r = c.results();
+    let f = r.fields();
+    assert_eq!(f.at(&F::SERVICE_RECEIVED), Some(i64::from(testsvc::SERVICE_ID)));
+    assert_eq!((f.at(&F::VIDEO_PACKETS), f.at(&F::AUDIO_PACKETS)), (Some(10), Some(10)));
+    assert_eq!(f.at(&F::MEDIA_SAMPLES), Some(20));
+    let row = row_of(&r, ATSC3_SERVICES.key, "1001");
+    assert_eq!(row.at(&S::NAME), Some(testsvc::SERVICE_NAME));
+    assert_eq!((row.at(&S::MAJOR), row.at(&S::MINOR)), (Some(39), Some(1)));
+    assert_eq!(row.at(&S::CATEGORY), Some(results::ServiceCategory::Tv));
+    assert_eq!(row.at(&S::DELIVERY), Some(results::Delivery::Route));
+    assert_eq!(row.at(&S::ACTION), Some(results::ServiceAction::Receiving));
+    assert_eq!(row.at(&S::PROTECTED), Some(false));
+    // Each round has the file description and the package of four documents. The file description of a sixth round is in.
+    assert_eq!(row.at(&S::SLS_OBJECTS), Some(11));
+    assert_eq!(row.at(&S::SLS_DOCUMENTS), Some(26));
+    let v = row_of(&r, ATSC3_COMPONENTS.key, "239.255.10.2:5002/1");
+    assert_eq!((v.at(&C::FOURCC), v.at(&C::TSI)), (Some("hev1"), Some(1)));
+    assert_eq!(v.at(&C::DESTINATION), Some("239.255.10.2:5002"));
+    assert_eq!(v.at(&C::KIND), Some(ComponentKind::Video));
+    assert_eq!(v.at(&C::STATE), Some(ComponentState::Given));
+    assert_eq!(v.at(&C::SERVICE), Some(1001));
+    let a = row_of(&r, ATSC3_COMPONENTS.key, "239.255.10.2:5002/2");
+    assert_eq!(a.at(&C::FOURCC), Some("ac-4"));
+    assert_eq!(a.at(&C::KIND), Some(ComponentKind::Audio));
+    assert_eq!(a.at(&C::STATE), Some(ComponentState::Given));
+}
+
+/// The baseband packets of `datagrams`, in IPv4 and UDP and ALP.
+fn baseband(datagrams: impl IntoIterator<Item = testsvc::Datagram>) -> Vec<Vec<u8>> {
+    let mut alp = Vec::new();
+    let mut ip = Vec::new();
+    for (id, d) in datagrams.into_iter().enumerate() {
+        ip.clear();
+        let mut ranges = Vec::new();
+        write_ipv4_udp(&mut ip, testsvc::SOURCE, d.dst, id as u16, 1500, 1, d.port, &d.payload, |r| {
+            ranges.push(r)
+        })
+        .unwrap_or_else(|e| panic!("{e}"));
+        for r in ranges {
+            write_single(PacketType::Ipv4, None, &ip[r], &mut alp).unwrap_or_else(|e| panic!("{e}"));
+        }
+    }
+    alp.chunks(1000)
+        .enumerate()
+        .map(|(k, c)| {
+            let mut bb = Vec::new();
+            write_bbp_header(if k == 0 { 0 } else { 8191 }, BbpExtension::None, &mut bb)
+                .unwrap_or_else(|e| panic!("{e}"));
+            bb.extend_from_slice(c);
+            bb
+        })
+        .collect()
+}
+
+/// The datagrams of round `segment` of the service of the test signal without its service list.
+fn round_without_list(segment: u64) -> VecDeque<testsvc::Datagram> {
+    let mut d = VecDeque::new();
+    testsvc::round(segment, &mut d);
+    d.pop_front();
+    d
+}
+
+/// A second service, 1002, in its own ROUTE session: its session description names three channels, an encrypted video
+/// track, an MPEG-H audio track and a channel without an init segment. `service.select` moves the media from one service
+/// to the other, a service with nothing to give says why, and a row that is not in the list changes nothing.
+#[test]
+fn the_chosen_service_is_given_and_an_encrypted_one_is_not() {
+    let other = Ipv4Addr::new(239, 255, 10, 3);
+    let slt = testsvc::slt().replace(
+        "</SLT>",
+        "<Service serviceId=\"1002\" sltSvcSeqNum=\"0\" protected=\"true\" majorChannelNo=\"39\" minorChannelNo=\"2\" \
+serviceCategory=\"1\" shortServiceName=\"TEST 2\"><BroadcastSvcSignaling slsProtocol=\"1\" \
+slsDestinationIpAddress=\"239.255.10.3\" slsDestinationUdpPort=\"5003\" slsSourceIpAddress=\"10.0.0.1\"/></Service>\
+<Service serviceId=\"1003\" sltSvcSeqNum=\"0\" majorChannelNo=\"39\" minorChannelNo=\"3\" serviceCategory=\"1\" \
+shortServiceName=\"TEST 3\"><BroadcastSvcSignaling slsProtocol=\"2\" slsDestinationIpAddress=\"239.255.10.4\" \
+slsDestinationUdpPort=\"5004\"/></Service></SLT>",
+    );
+    let list = testsvc::Datagram {
+        dst: Ipv4Addr::from(LLS_ADDR),
+        port: LLS_PORT,
+        payload: build_lls(1, 0, 2, &slt),
+    };
+    // The objects of service 1002, sent to its own session.
+    let rename = |mut file: Vec<u8>, from: &[u8; 4], to: &[u8; 4]| {
+        let at = file.windows(4).position(|w| w == from).expect("the sample entry");
+        file[at..at + 4].copy_from_slice(to);
+        file
+    };
+    let stsid = b"--b\r\nContent-Type: application/route-s-tsid+xml\r\n\r\n<S-TSID><RS>\
+<LS tsi=\"1\"><SrcFlow rt=\"true\"/></LS><LS tsi=\"2\"><SrcFlow rt=\"true\"/></LS><LS tsi=\"3\"><SrcFlow rt=\"true\"/></LS>\
+</RS></S-TSID>\r\n--b--\r\n";
+    let second = |segment: u64| {
+        let mut d = VecDeque::new();
+        testsvc::route_packets(0, 1 << 17 | 1, 3, stsid, &mut d);
+        testsvc::route_packets(1, 1, 5, &rename(testsvc::video_init(), b"hev1", b"encv"), &mut d);
+        testsvc::route_packets(2, 1, 5, &rename(testsvc::audio_init(), b"ac-4", b"mhm1"), &mut d);
+        testsvc::route_packets(1, 2 + segment as u32, 8, &testsvc::video_segment(segment), &mut d);
+        testsvc::route_packets(2, 2 + segment as u32, 8, &testsvc::audio_segment(segment), &mut d);
+        for x in &mut d {
+            (x.dst, x.port) = (other, 5003);
+        }
+        d
+    };
+    let mut c = Chain::new();
+    // Before a service list is read no row can be chosen.
+    assert!(!c.select("1001"));
+    let first = std::iter::once(list)
+        .chain(round_without_list(0))
+        .chain(second(0));
+    c.feed(baseband(first));
+    // Without a choice the first visible TV service by ROUTE is given.
+    assert_eq!((c.of(Codec::Hevc).len(), c.of(Codec::Ac4).len()), (2, 2));
+    let r = c.results();
+    assert_eq!(r.fields().at(&F::SERVICE), None);
+    assert_eq!(r.fields().at(&F::SERVICE_RECEIVED), Some(1001));
+    let action = |r: &Results, key: &str| row_of(r, ATSC3_SERVICES.key, key).at(&S::ACTION);
+    assert_eq!(action(&r, "1001"), Some(results::ServiceAction::Receiving));
+    assert_eq!(action(&r, "1002"), Some(results::ServiceAction::Receive));
+    assert_eq!(action(&r, "1003"), Some(results::ServiceAction::Unsupported));
+    assert_eq!(row_of(&r, ATSC3_SERVICES.key, "1002").at(&S::PROTECTED), Some(true));
+    let state = |r: &Results, key: &str| {
+        let row = row_of(r, ATSC3_COMPONENTS.key, key);
+        (row.at(&C::STATE), row.at(&C::SERVICE), row.at(&C::FOURCC).map(String::from))
+    };
+    assert_eq!(
+        state(&r, "239.255.10.3:5003/1"),
+        (Some(ComponentState::Encrypted), Some(1002), Some("encv".into()))
+    );
+    assert_eq!(
+        state(&r, "239.255.10.3:5003/2"),
+        (Some(ComponentState::NoFormat), Some(1002), Some("mhm1".into()))
+    );
+    // A row that is not in the list is refused and the service stays.
+    assert!(!c.select("7"));
+    // Service 1002 is chosen: nothing of it can be given, and nothing of 1001 comes any more.
+    assert!(c.select("1002"));
+    c.feed(baseband(round_without_list(1).into_iter().chain(second(1))));
+    assert_eq!(c.packets.len(), 4);
+    let r = c.results();
+    assert_eq!(r.fields().at(&F::SERVICE), Some(1002));
+    assert_eq!(r.fields().at(&F::SERVICE_RECEIVED), Some(1002));
+    assert_eq!(action(&r, "1001"), Some(results::ServiceAction::Receive));
+    assert_eq!(action(&r, "1002"), Some(results::ServiceAction::Encrypted));
+    assert_eq!(
+        state(&r, "239.255.10.2:5002/1").0,
+        Some(ComponentState::OtherService)
+    );
+    // Back to service 1001: its next segment is given.
+    assert!(c.select("1001"));
+    c.feed(baseband(round_without_list(2)));
+    let video = c.of(Codec::Hevc);
+    assert_eq!(video.len(), 4);
+    check_video(&video[2..], 4);
+    check_audio(&c.of(Codec::Ac4)[2..], 4);
+    let r = c.results();
+    assert_eq!(action(&r, "1001"), Some(results::ServiceAction::Receiving));
+    assert_eq!(action(&r, "1002"), Some(results::ServiceAction::Receive));
+    // The automatic choice again.
+    assert!(c.select(""));
+    assert_eq!(c.results().fields().at(&F::SERVICE), None);
+}
+
+/// A service whose session description gives code point 128 the entity mode: the init segment and the media segment
+/// come behind header lines and are read after them.
+#[test]
+fn objects_in_entity_mode_are_read_after_their_header_lines() {
+    let stsid = b"--b\r\nContent-Type: application/route-s-tsid+xml\r\n\r\n<S-TSID><RS><LS tsi=\"1\"><SrcFlow rt=\"true\">\
+<Payload codePoint=\"128\" formatId=\"2\" frag=\"0\" order=\"true\"/></SrcFlow></LS></RS></S-TSID>\r\n--b--\r\n";
+    let entity = |file: Vec<u8>| {
+        let mut object =
+            format!("Content-Type: video/mp4\r\nContent-Length: {}\r\n\r\n", file.len()).into_bytes();
+        object.extend(file);
+        object
+    };
+    let mut d = VecDeque::new();
+    d.push_back(testsvc::Datagram {
+        dst: Ipv4Addr::from(LLS_ADDR),
+        port: LLS_PORT,
+        payload: testsvc::lls().to_vec(),
+    });
+    testsvc::route_packets(0, 1 << 17 | 1, 3, stsid, &mut d);
+    testsvc::route_packets(1, 1, 128, &entity(testsvc::video_init()), &mut d);
+    testsvc::route_packets(1, 2, 128, &entity(testsvc::video_segment(0)), &mut d);
+    // The same segment on a code point without the entity mode is no segment: its first bytes are header lines.
+    testsvc::route_packets(1, 3, 8, &entity(testsvc::video_segment(1)), &mut d);
+    let mut c = Chain::new();
+    c.feed(baseband(d));
+    let video = c.of(Codec::Hevc);
+    assert_eq!(video.len(), 2);
+    check_video(&video, 0);
+}
+
+/// One second of the test signal through the stack: the service list, and the video of the service at the host with
+/// the times of the access units in order, the audio at the output of the graph.
+#[test]
+fn the_test_signal_gives_the_service_list_and_media_packets() {
+    let rate = DESCRIPTOR.tuning.rate_hz;
+    let x = common::generate(
+        Atsc3Generator::new(Atsc3GenParams {
+            rate_hz: rate,
+            ..Default::default()
+        })
+        .unwrap(),
+        1.0,
+    );
+    let mut rx = common::receiver(&DESCRIPTOR, &[]);
+    rx.configure(&InputInfo::new(rate, 539e6, 539e6).recording())
+        .expect("rate accepted");
+    let mut tap = rx
+        .as_any_mut()
+        .and_then(|a| a.downcast_mut::<Graph>())
+        .expect("a graph")
+        .tap("media.out", 1 << 12)
+        .expect("the media output");
+    let mut out = Output::default();
+    let mut buf = Buffer::new(&Kind::typed::<MediaPacket>());
+    let mut packets = Vec::new();
+    let mut host = Vec::new();
+    for c in x.chunks(65536) {
+        rx.feed(c, &mut out);
+        host.append(&mut out.media);
+        out.clear();
+        while tap.pop(&mut buf) {
+            if let Data::Items(Some(v)) = &buf.data {
+                let items = v
+                    .as_any()
+                    .downcast_ref::<Vec<Timed<MediaPacket>>>()
+                    .expect("media packets");
+                packets.extend(items.iter().map(|p| p.value.clone()));
+            }
+        }
+    }
+    let of = |codec: Codec| -> Vec<&MediaPacket> {
+        packets.iter().filter(|p| p.format.codec == codec).collect()
+    };
+    let (video, audio) = (of(Codec::Hevc), of(Codec::Ac4));
+    assert!(video.len() >= 16 && audio.len() >= 16, "{} video, {} audio", video.len(), audio.len());
+    // The first packet is the head of a segment: the access units from there on come without a gap.
+    let first = video[0].packet.dts.expect("a decoding time") / 3600;
+    assert_eq!(first % 2, 0);
+    check_video(&video, first);
+    let first = audio[0].packet.dts.expect("a decoding time") / 1920;
+    assert_eq!(first % 2, 0);
+    check_audio(&audio, first);
+    // The host has the video packets, each with the format and the times.
+    assert_eq!(host.len(), video.len());
+    for (h, v) in host.iter().zip(&video) {
+        assert_eq!(h.kind, StreamKind::Hevc);
+        assert_eq!((h.packet.pts, h.packet.dts), (v.packet.pts, v.packet.dts));
+        assert_eq!(h.format.timebase, (1, 90_000));
+    }
+    let r = Owner::results(rx.as_ref()).clone();
+    let f = r.fields();
+    assert_eq!(f.at(&F::SERVICE_RECEIVED), Some(1001));
+    assert_eq!(f.at(&F::VIDEO_PACKETS), Some(video.len() as i64));
+    assert_eq!(f.at(&F::AUDIO_PACKETS), Some(audio.len() as i64));
+    let row = row_of(&r, ATSC3_SERVICES.key, "1001");
+    assert_eq!(row.at(&S::NAME), Some("TEST 1"));
+    assert_eq!(row.at(&S::ACTION), Some(results::ServiceAction::Receiving));
+    // The command of the stack reaches the report and the media component: a row of the list is taken, another refused.
+    let select = |rx: &mut dyn sdrkit_core::Receiver, row: &str| {
+        let id = rx.commands().id("service.select").expect("the command");
+        let def = rx.commands().def(id).expect("the command").clone();
+        let mut record = def.new_args();
+        let arg = def.args.id("row").expect("the argument");
+        record
+            .set_value(sdrkit_core::FieldId(arg.0), &sdrkit_core::Value::Text(row.into()))
+            .expect("a text");
+        sdrkit_core::owner::invoke(rx, id, &record).is_ok()
+    };
+    assert!(select(rx.as_mut(), "1001"));
+    assert!(!select(rx.as_mut(), "7"));
+    let r = Owner::results(rx.as_ref()).clone();
+    assert_eq!(r.fields().at(&F::SERVICE), Some(1001));
 }
 
 #[test]
@@ -1064,7 +1492,7 @@ fn the_delivery_chain_runs_in_the_receiver_graph() {
     let f = r.fields();
     assert_eq!(f.at(&F::LLS_TABLES), Some(1), "{f:?}");
     assert_eq!(f.at(&F::SERVICE_RECEIVED), Some(1001));
-    assert_eq!(f.at(&F::ROUTE_OBJECTS), Some(3));
+    assert_eq!(f.at(&F::ROUTE_OBJECTS), Some(4));
     assert_eq!(f.at(&F::MEDIA_SAMPLES), Some(4));
     let table = |key: &str| {
         r.decl()
@@ -1074,8 +1502,9 @@ fn the_delivery_chain_runs_in_the_receiver_graph() {
     };
     let comp = table(ATSC3_COMPONENTS.key);
     assert_eq!(comp.len(), 1);
-    let (_, c) = comp.rows_newest_first().next().expect("a component");
+    let c = comp.row("239.255.1.1:5000/2").expect("a component");
     assert_eq!(c.at(&C::FOURCC), Some("hvc1"));
+    assert_eq!(c.at(&C::STATE), Some(ComponentState::Given));
     let row = table(ATSC3_SERVICES.key).row("1001").expect("service 1001");
     assert_eq!(row.at(&S::MAJOR), Some(7));
     assert_eq!(row.at(&S::MINOR), Some(1));
@@ -1091,7 +1520,7 @@ fn a_bad_ip_header_checksum_is_refused() {
     assert_eq!(f.at(&F::LLS_TABLES), Some(0), "{f:?}");
     assert_eq!(
         f.at(&F::ROUTE_OBJECTS),
-        Some(3),
+        Some(4),
         "the other packets still pass"
     );
 }
@@ -1129,8 +1558,9 @@ fn signed_signalling_sls_objects_and_compressed_ip_are_reported() {
         .and_then(|t| t.row("1001"))
         .expect("service 1001")
         .clone();
-    assert_eq!(row.at(&S::SLS_OBJECTS), Some(3));
-    assert_eq!(row.at(&S::SLS_DOCUMENTS), Some(3));
+    // The three objects and the session description.
+    assert_eq!(row.at(&S::SLS_OBJECTS), Some(4));
+    assert_eq!(row.at(&S::SLS_DOCUMENTS), Some(4));
     assert_eq!(row.at(&S::SLS_SIGNED_PACKAGES), Some(0));
     // Plain low-level signalling, 2 signalling objects that are signed packages of two documents each: the station signs.
     let r = run_delivery(delivery_packets_with(false, false, 2, 0, true));
@@ -1142,7 +1572,7 @@ fn signed_signalling_sls_objects_and_compressed_ip_are_reported() {
         .and_then(|t| t.row("1001"))
         .expect("service 1001")
         .clone();
-    assert_eq!(row.at(&S::SLS_OBJECTS), Some(2));
-    assert_eq!(row.at(&S::SLS_DOCUMENTS), Some(4));
+    assert_eq!(row.at(&S::SLS_OBJECTS), Some(3));
+    assert_eq!(row.at(&S::SLS_DOCUMENTS), Some(5));
     assert_eq!(row.at(&S::SLS_SIGNED_PACKAGES), Some(2));
 }

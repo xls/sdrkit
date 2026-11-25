@@ -67,9 +67,11 @@ The stack has no settings.
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite links (`satellite_links`). Media: none.
+
+Key readings: `frame_lock`, `snr_db`, `frames_ok`, `frames_bad`.
 
 ### Result fields
 
@@ -109,7 +111,7 @@ Struct `FrameRow`. A frame of a stack that lists frames. The row key is the plac
 | `check` | text | always | 1.0 | The check of a frame: good, check failed, or none. |
 | `hex` | text | always | 1.0 | The first 24 bytes of a frame after decoding. |
 
-The column `hex` names a row.
+The rows are a log: they arrive over time. The column `hex` names a row. Time: `time`.
 
 ### Table `virtual_channels`
 

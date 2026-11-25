@@ -338,6 +338,10 @@ fact follows from what the stack declares. A stack that states nothing behaves a
 | The parts of a message or a call | `#[field(.., role = Sender)]`, `Addressee`, `Text`, `Time` | In a table with a role, the first column of the time kind is the time. |
 | The setting that chooses the picture | `Setting::new(..).role(SettingRole::PictureView)`, `role: Some(..)` of a `CatalogueSetting`, `SettingDecl::with_role` | A setting without a role. |
 | Which picture a picture item is | `Picture::id` and `Picture::state` | Nothing: every picture item states both. |
+| The delivery of an own message | `#[field(.., role = Own)]`, `Delivery`, `Failure` | With a `Delivery` column and no `Own` column, a row with a delivery state is an own message. |
+| The table that gives the target of a send command | `#[arg(.., refers_to = "nodes", column = "id")]`, `Setting::refers("stations", "call")` | An argument or a setting that names no table. |
+| The key readings of a stack | `#[field(.., reading = 1)]` | No key reading. The test `key_readings` fails for a stack of the kinds `measurement`, `science` and `navigation` without one. |
+| A table that is a running log | `Table::new(..).role(TableRole::Log)` | A table without a role. |
 
 The kinds of content are a closed set, the enum `ContentKind`. A kind names what the results are, not a page:
 
@@ -368,7 +372,7 @@ broadcast programme), `voice` (speech of calls; there is sound only while a call
 signal, to hear that it is there).
 
 The roles of a column are `Position`, `Latitude`, `Longitude`, `Altitude`, `Course`, `Speed`, `Sender`, `Addressee`,
-`Text` and `Time`. `Position` is for a table with several columns of the position kind. `Latitude` and `Longitude` are for a table that holds the two numbers
+`Text`, `Time`, `Own`, `Delivery` and `Failure`. `Position` is for a table with several columns of the position kind. `Latitude` and `Longitude` are for a table that holds the two numbers
 in two columns. The unit of a height or a speed is the unit of its column. The standard keys `height_m`, `speed_kt`
 and `course_deg` of `sdrkit_core::publish::keys` have their roles, so a row struct that names them with
 `#[field(shared = ..)]` states nothing. A `shared` field can take a role of its own: `#[field(shared = PATH, role =
@@ -405,15 +409,30 @@ A table can state what its rows are, with `Table::role`. The roles are a closed 
 | `Calls` | The calls or transmissions: who, to whom, when. |
 | `Nodes` | The stations, nodes or units that were heard. |
 | `Groups` | The groups that stations talk in: talkgroups, channels, nets. |
+| `Log` | The frames, packets or reports that arrived: rows come over time, and the newest matter most. |
 
 A stack has at most one table of each role among its own tables, and one for each component whose tables have the
-key `<component>.<table>`. The columns of a message or a call state their part with a column role:
+key `<component>.<table>`. `Log` is the exception: a stack can have several logs. A table that is the messages or
+the calls of its stack keeps that role and is no `Log`. A log marks its time column as a message table does: a
+column of the time kind, or a number of seconds of signal with `role = Time`. A log whose stack knows the time of a
+row has such a column. The columns of a message or a call state their part with a column role:
 `Sender` (who sent it), `Addressee` (to whom), `Text` (the text for people) and `Time`. The time column of a table
 with a role is the column with the role `Time`, else the first column of the time kind. A table whose only time is a
 number of seconds of signal marks that column with `Time`: the unit of the column (`s`) says that it is no UTC. Every
 stack of the kinds `mesh`, `paging`, `datalink`, `text_chat` and `voice` that has such a table states its role. The
 test `message_marks` of `sdrkit-host-catalog` fails for a stack of these kinds without a role, unless the test lists
 the stack with the reason (a stack that only detects a signal).
+
+A table of messages that also holds the messages that the station sent states the columns of their delivery:
+
+| Role | The column |
+|---|---|
+| `Own` | A bool: true for a message that this station sent. |
+| `Delivery` | A choice: how far the delivery of an own message is (queued, sent, acknowledged, failed). A received message has no value. |
+| `Failure` | A text for people: why the delivery failed. A row has a value only after a failure. |
+
+A table with a `Delivery` column and no `Own` column says by the column which rows are own messages: a row with a
+delivery state. The test `message_marks` fails for a column of another kind.
 
 ```rust
 /// The messages.
@@ -431,6 +450,36 @@ pub struct ChatRow<'a> {
     pub time: Option<Time>,
 }
 ```
+
+A command that sends to a station, a node, an address, a channel or a group names the table of the stack that
+lists them, and the column that holds the value to pass:
+
+```rust
+/// The arguments of `send`.
+#[derive(Arguments)]
+pub struct SendArgs<'a> {
+    /// The text.
+    #[arg(label = "Text")]
+    pub text: &'a str,
+    /// The node that the text goes to.
+    #[arg(label = "To", default = "^all", refers_to = "nodes", column = "id")]
+    pub to: Option<&'a str>,
+}
+```
+
+A front end offers the rows of the table and passes the cell of the column of the chosen row. Other values stay
+valid: a node that was not heard yet, or the default. `refers_to` without `column` keeps its meaning: the value is a
+row key of the table, and no other value is valid. A stack whose send command takes its addressee from a setting
+states the same on the setting: `DEST.refers("stations", "call")`. The kind of the column is the kind of the
+argument. The test `message_marks` fails for an argument of a send command with one of the names `to`, `dest`,
+`destination`, `target`, `address`, `channel`, `group`, `talkgroup` or `node` that names no table, unless the test
+lists the argument with the reason (a stack that has no table of its targets).
+
+A result field that a person looks at first is a key reading of the stack: for a VOR the identification, the radial
+and the bearing; for a SINAD meter the SINAD. `#[field(.., reading = 1)]` states it with its order from 1, and a
+`shared` field takes it as well. A stack has at most six key readings, over its own result sets and those of its
+components, and their orders count from 1 without a gap. A front end shows them large and in this order, and the
+other fields below.
 
 A setting that chooses what the picture of a stack shows states it with a role, the enum `SettingRole`:
 `PictureSource` (whose picture: an instrument, a product) and `PictureView` (the view of it: a channel, a
@@ -456,6 +505,11 @@ an `ObjectTable`. A component that writes its points with `Results::update_point
 `Results::link_point(id, Some((table, key)))` after it. The id of the point stays as it is, and a front end does not
 read it to find the row.
 
+A unit has one spelling in every interface, so that a front end formats a value by its unit text: `°` for degrees
+(not `deg`), `kt` for knots, `wpm`, `B` for bytes, `1/s` and `1/min` for a rate, `us` for microseconds. The test
+`unit_spellings` of `sdrkit-host-catalog` fails for another spelling of a unit and names the one to write. A new
+spelling to refuse is a line of the list `SPELLINGS` of `sdrkit-dev-interface`.
+
 Where a consumer reads the facts:
 
 | Fact | Rust | C | Swift |
@@ -465,12 +519,18 @@ Where a consumer reads the facts:
 | Row of a map point | `MapPoint::row` (`RowLink`) | `table` and `row` of `sdrkit_point` | `MapPoint.row` |
 | What the rows of a table are, and the columns of a message | `TableMarks::role`, `.sender`, `.addressee`, `.text`, `.time` | `sdrkit_table_decl()`: `role` (`SDRKIT_TABLE_ROLE_NONE`, `_MESSAGES`, `_CALLS`, `_NODES`, `_GROUPS`), `sender_column`, `addressee_column`, `text_column`, `time_column` of `sdrkit_table_info` | `TableDeclaration.role` (`TableRole`), `.message` (`TableMessage`) |
 | What a setting chooses | `SettingDecl::role` (`SettingRole`) | `sdrkit_setting_decl()`: `role` of `sdrkit_decl` (`SDRKIT_SETTING_ROLE_NONE`, `_PICTURE_SOURCE`, `_PICTURE_VIEW`) | `Declaration.role` (`Declaration.SettingRole`) |
+| The delivery of an own message | `TableMarks::own`, `.delivery`, `.failure` | `sdrkit_table_decl()`: `own_column`, `delivery_column`, `failure_column` of `sdrkit_table_info`; `SDRKIT_NO_ID` for none | `TableDeclaration.message.own`, `.delivery`, `.failure` |
+| A table that is a log | `TableMarks::role` (`TableRole::Log`) | `role` of `sdrkit_table_info`: `SDRKIT_TABLE_ROLE_LOG` | `TableDeclaration.role` (`.log`) |
+| The table and the column that give the value of an argument or a setting | `FieldDecl::refers_to` (`RefersTo`: `table`, `column`) | `sdrkit_argument_decl()`, `sdrkit_setting_decl()`: `refers_table` and `refers_column` of `sdrkit_decl`; an empty `refers_column` is the row key | `Declaration.refersTable`, `.refersColumn` |
+| The key readings | `FieldDecl::reading` (the order from 1; 0 for none) | `sdrkit_field_decl()`: `reading` of `sdrkit_decl` | `Declaration.reading` |
 | Which picture a picture packet holds | `MediaRead::picture` (`PictureTag`: `id`, `state`, `name`) of `Engine::picture` | `sdrkit_picture_read()`: `picture_id`, `picture_state` (`SDRKIT_PICTURE_STATE_GROWING`, `_FINISHED`) and `picture_name` of `sdrkit_media_info` | `MediaPacket.pictureID`, `.pictureState`, `.pictureName` |
 
 In the registry record, the kind and the media of a stack are the line `<stack>.content`, and the marks of a table are
 attributes of its line (`label=`, `sort=`, `position=`, `altitude=`, `role=`, `sender=`, `addressee=`, `message=` for
-the text column, `time=`, ...). The role of a setting is the attribute `role=` of its line. A change of a mark is
-compatible. The docs
+the text column, `time=`, `own=`, `delivery=`, `failure=`, ...). The role of a setting is the attribute `role=` of
+its line. A key reading is the attribute `reading=` of the line of its field. A value column is the attribute
+`refers=` of the line of a setting (`<table>.<column>`) or of a command (`<argument>:<table>.<column>`). A change of
+a mark is compatible. The docs
 page of a stack and the comments of the typed table functions say the same in words. `sdrkit show <owner>` prints
 the marks with each table, and the table `stacks` of `sdrkit show engine stacks` has the kind and the media.
 

@@ -145,7 +145,7 @@ pub struct DcrFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct DcrEventRow<'a> {
     /// Signal time, seconds.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// What the row reports.
     #[field(label = "Kind")]
@@ -1144,7 +1144,9 @@ pub static ADJACENT: Table<AdjacentRow<'static>> =
     Table::new("adjacent_sites", "Adjacent sites", 64);
 /// The rows of DCR: calls, call ends, call signs, data blocks and messages.
 pub static DCR_EVENTS: Table<DcrEventRow<'static>> =
-    Table::new("events", "Events", crate::dcr::ROW_CAP).label(&DcrEventRow::IDENTITY);
+    Table::new("events", "Events", crate::dcr::ROW_CAP)
+        .label(&DcrEventRow::IDENTITY)
+        .role(sdrkit_core::TableRole::Log);
 /// The calls the monitor heard, newest first.
 pub static HISTORY: Table<HistoryRow<'static>> =
     Table::new("history", "Heard calls", monitor::HISTORY_CAP).label(&HistoryRow::CALL);
@@ -1236,7 +1238,7 @@ pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         let plain = |id| common(id, &CALLS_300);
-        Described::new("dvoice", 2, 4)
+        Described::new("dvoice", 2, 5)
             .added(2, 4, &["dstar.setting.message"])
             .added(2, 2, &["dstar.command.ptt", "dstar.setting.tx_timeout"])
             .added(

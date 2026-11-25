@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "general", version 1.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "general", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,8 +35,8 @@
 #include "tones.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_GENERAL_VERSION_MAJOR 1
-#define SDRKIT_GENERAL_VERSION_MINOR 3
+#define SDRKIT_GENERAL_VERSION_MAJOR 2
+#define SDRKIT_GENERAL_VERSION_MINOR 0
 
 // The stack "general": its id, and the keys of its event types.
 #define SDRKIT_STACK_GENERAL "general"
@@ -1063,7 +1063,7 @@ static inline int32_t sdrkit_general_set_tx_timeout(SDRKIT_HANDLE handle, double
   return sdrkit_typed_setting_set_f64(handle, "tx_timeout", value);
 }
 
-// The setting "tx_cw_wpm" (Speed (CW)) of the stack "general". Unit: WPM. The speed of the characters that send keys.
+// The setting "tx_cw_wpm" (Speed (CW)) of the stack "general". Unit: wpm. The speed of the characters that send keys.
 static inline int32_t sdrkit_general_get_tx_cw_wpm(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "tx_cw_wpm", value);
 }
@@ -1071,7 +1071,7 @@ static inline int32_t sdrkit_general_set_tx_cw_wpm(SDRKIT_HANDLE handle, double 
   return sdrkit_typed_setting_set_f64(handle, "tx_cw_wpm", value);
 }
 
-// The setting "tx_cw_farnsworth" (Overall speed (CW)) of the stack "general". Unit: WPM. Farnsworth spacing: the characters at the speed, the gaps stretched to this lower overall speed.
+// The setting "tx_cw_farnsworth" (Overall speed (CW)) of the stack "general". Unit: wpm. Farnsworth spacing: the characters at the speed, the gaps stretched to this lower overall speed.
 static inline int32_t sdrkit_general_get_tx_cw_farnsworth(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "tx_cw_farnsworth", value);
 }

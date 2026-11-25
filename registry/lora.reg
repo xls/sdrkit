@@ -1,5 +1,5 @@
 # The interface of the stack family lora. The registry test of the family writes this file.
-family lora version=3.3
+family lora version=4.0
 shape.MeshFields since=1.0
 shape.MeshFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.MeshFields.frames_bad type=i64 unit= optional=no since=1.0
@@ -265,8 +265,8 @@ shape.WideChannelRow.crc_errors type=i64 unit= optional=no since=1.0
 shape.RawFields since=1.0
 shape.RawFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.RawFields.offset_hz type=hz unit=Hz optional=yes since=1.0
-shape.RawFields.frames_ok type=i64 unit= optional=no since=1.0
-shape.RawFields.frames_bad type=i64 unit= optional=no since=1.0
+shape.RawFields.frames_ok type=i64 unit= optional=no reading=1 since=1.0
+shape.RawFields.frames_bad type=i64 unit= optional=no reading=2 since=1.0
 shape.RawFields.preambles type=i64 unit= optional=no since=1.0
 shape.RawFields.header_failed type=i64 unit= optional=no since=1.0
 shape.RawFields.searching type=text unit= optional=no since=1.0
@@ -283,7 +283,7 @@ shape.RawFields.sf12 type=i64 unit= optional=no since=1.0
 shape.RawFields.bw125 type=i64 unit= optional=no since=1.0
 shape.RawFields.bw250 type=i64 unit= optional=no since=1.0
 shape.RawFields.bw500 type=i64 unit= optional=no since=1.0
-shape.RawFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.RawFields.snr_db type=f64 unit=dB optional=yes reading=3 since=1.0
 shape.RawFrameRow since=1.0
 shape.RawFrameRow.time_s type=f64 unit=s optional=no since=1.0
 shape.RawFrameRow.sf type=i64 unit= optional=no since=1.0
@@ -474,7 +474,7 @@ shape.ElrsLinkEvent since=1.0
 shape.ElrsLinkEvent.source type=text unit= optional=no since=1.0
 shape.ElrsLinkEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 mesh since=1.0
-mesh.content kind=mesh text=yes since=3.1
+mesh.content kind=mesh text=yes since=1.0
 mesh.fields.MeshFields since=1.0
 mesh.fields.MeshMtFields since=1.0
 mesh.fields.MeshMcFields since=1.0
@@ -510,10 +510,10 @@ mesh.kept.MeshMcFields.mc_public_key since=1.0
 mesh.kept.MeshMcFields.mc_name since=1.0
 mesh.kept.MeshMcFields.mc_contacts since=1.0
 mesh.kept.MeshTxFields since=1.0
-mesh.table.packets row=MeshPacketRow cap=100 label=source since=1.0
+mesh.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 mesh.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-mesh.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
-mesh.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
+mesh.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+mesh.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 mesh.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 mesh.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 mesh.table.types row=MeshTypeRow cap=200 label=type since=1.0
@@ -571,16 +571,16 @@ mesh.setting.duty_limit type=bool unit= since=1.0
 mesh.setting.duty_bands type=text unit= since=1.0
 mesh.setting.gen_scene type=choice(auto,texting,amateur,lorawan) unit= since=1.0
 mesh.setting.gen_damaged_copy type=bool unit= since=1.0
-mesh.command.mt.send args=text:text;channel:text?;to:text?;reply_id:i64?;emoji:i64?;want_ack:choice(setting,yes,no)?;hop_limit:i64? reply=packet_id:i64 transmits=text since=1.0
-mesh.command.mc.send args=text:text;channel:text?;to:text? reply= transmits=text since=1.0
-mesh.command.aprs.send args=to:text;text:text reply=packet_id:i64 transmits=text since=1.0
+mesh.command.mt.send args=text:text;channel:text?;to:text?;reply_id:i64?;emoji:i64?;want_ack:choice(setting,yes,no)?;hop_limit:i64? reply=packet_id:i64 transmits=text refers=channel:channels.channel;to:nodes.id since=1.0
+mesh.command.mc.send args=text:text;channel:text?;to:text? reply= transmits=text refers=channel:channels.channel;to:contacts.key since=1.0
+mesh.command.aprs.send args=to:text;text:text reply=packet_id:i64 transmits=text refers=to:stations.call since=1.0
 mesh.command.mt.channel.add args=name:text;key:text? reply= since=1.0
 mesh.command.mc.channel.add args=name:text;key:text? reply= since=1.0
 mesh.command.channel.remove args=row:text reply= since=1.0
 mesh.command.mc.advert args=scope:choice(flood,local)? reply= transmits=beacon since=1.0
 mesh.command.mc.contact.add args=key:text;name:text? reply= since=1.0
 mesh.command.aprs.beacon args= reply= transmits=beacon since=1.0
-mesh.command.mt.request args=node:text;what:choice(nodeinfo,position,traceroute,telemetry)? reply= transmits=frame since=1.0
+mesh.command.mt.request args=node:text;what:choice(nodeinfo,position,traceroute,telemetry)? reply= transmits=frame refers=node:nodes.id since=1.0
 mesh.command.clear args= reply= since=1.0
 mesh.command.remove args=row:text reply= since=1.0
 mesh.command.reset args= reply= since=1.0
@@ -588,7 +588,7 @@ mesh.command.mt.channel args=index:i64?;name:text;key:text?;precision:i64? reply
 mesh.command.mt.identity args=key:text reply= since=1.0
 mesh.command.mc.identity args=key:text reply= since=1.0
 meshtastic since=1.0
-meshtastic.content kind=mesh text=yes since=3.1
+meshtastic.content kind=mesh text=yes since=1.0
 meshtastic.fields.MeshFields since=1.0
 meshtastic.fields.MeshMtFields since=1.0
 meshtastic.fields.MeshMcFields since=1.0
@@ -624,10 +624,10 @@ meshtastic.kept.MeshMcFields.mc_public_key since=1.0
 meshtastic.kept.MeshMcFields.mc_name since=1.0
 meshtastic.kept.MeshMcFields.mc_contacts since=1.0
 meshtastic.kept.MeshTxFields since=1.0
-meshtastic.table.packets row=MeshPacketRow cap=100 label=source since=1.0
+meshtastic.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 meshtastic.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-meshtastic.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
-meshtastic.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
+meshtastic.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+meshtastic.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 meshtastic.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 meshtastic.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 meshtastic.table.types row=MeshTypeRow cap=200 label=type since=1.0
@@ -674,17 +674,17 @@ meshtastic.setting.duty_limit type=bool unit= since=1.0
 meshtastic.setting.duty_bands type=text unit= since=1.0
 meshtastic.setting.gen_scene type=choice(auto,texting,amateur,lorawan) unit= since=1.0
 meshtastic.setting.gen_damaged_copy type=bool unit= since=1.0
-meshtastic.command.mt.send args=text:text;channel:text?;to:text?;reply_id:i64?;emoji:i64?;want_ack:choice(setting,yes,no)?;hop_limit:i64? reply=packet_id:i64 transmits=text since=1.0
+meshtastic.command.mt.send args=text:text;channel:text?;to:text?;reply_id:i64?;emoji:i64?;want_ack:choice(setting,yes,no)?;hop_limit:i64? reply=packet_id:i64 transmits=text refers=channel:channels.channel;to:nodes.id since=1.0
 meshtastic.command.mt.channel.add args=name:text;key:text? reply= since=1.0
 meshtastic.command.channel.remove args=row:text reply= since=1.0
-meshtastic.command.mt.request args=node:text;what:choice(nodeinfo,position,traceroute,telemetry)? reply= transmits=frame since=1.0
+meshtastic.command.mt.request args=node:text;what:choice(nodeinfo,position,traceroute,telemetry)? reply= transmits=frame refers=node:nodes.id since=1.0
 meshtastic.command.clear args= reply= since=1.0
 meshtastic.command.remove args=row:text reply= since=1.0
 meshtastic.command.reset args= reply= since=1.0
 meshtastic.command.mt.channel args=index:i64?;name:text;key:text?;precision:i64? reply= since=1.0
 meshtastic.command.mt.identity args=key:text reply= since=1.0
 meshcore since=1.0
-meshcore.content kind=mesh text=yes since=3.1
+meshcore.content kind=mesh text=yes since=1.0
 meshcore.fields.MeshFields since=1.0
 meshcore.fields.MeshMtFields since=1.0
 meshcore.fields.MeshMcFields since=1.0
@@ -720,10 +720,10 @@ meshcore.kept.MeshMcFields.mc_public_key since=1.0
 meshcore.kept.MeshMcFields.mc_name since=1.0
 meshcore.kept.MeshMcFields.mc_contacts since=1.0
 meshcore.kept.MeshTxFields since=1.0
-meshcore.table.packets row=MeshPacketRow cap=100 label=source since=1.0
+meshcore.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 meshcore.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-meshcore.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
-meshcore.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
+meshcore.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+meshcore.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 meshcore.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 meshcore.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 meshcore.table.types row=MeshTypeRow cap=200 label=type since=1.0
@@ -756,7 +756,7 @@ meshcore.setting.mc_advert_interval type=f64 unit=s since=1.0
 meshcore.setting.duty_limit type=bool unit= since=1.0
 meshcore.setting.duty_bands type=text unit= since=1.0
 meshcore.setting.gen_scene type=choice(auto,texting,amateur,lorawan) unit= since=1.0
-meshcore.command.mc.send args=text:text;channel:text?;to:text? reply= transmits=text since=1.0
+meshcore.command.mc.send args=text:text;channel:text?;to:text? reply= transmits=text refers=channel:channels.channel;to:contacts.key since=1.0
 meshcore.command.mc.channel.add args=name:text;key:text? reply= since=1.0
 meshcore.command.channel.remove args=row:text reply= since=1.0
 meshcore.command.mc.advert args=scope:choice(flood,local)? reply= transmits=beacon since=1.0
@@ -766,7 +766,7 @@ meshcore.command.remove args=row:text reply= since=1.0
 meshcore.command.reset args= reply= since=1.0
 meshcore.command.mc.identity args=key:text reply= since=1.0
 lorawan since=1.0
-lorawan.content kind=devices since=3.1
+lorawan.content kind=devices since=1.0
 lorawan.fields.MeshFields since=1.0
 lorawan.fields.MeshMtFields since=1.0
 lorawan.fields.MeshMcFields since=1.0
@@ -802,10 +802,10 @@ lorawan.kept.MeshMcFields.mc_public_key since=1.0
 lorawan.kept.MeshMcFields.mc_name since=1.0
 lorawan.kept.MeshMcFields.mc_contacts since=1.0
 lorawan.kept.MeshTxFields since=1.0
-lorawan.table.packets row=MeshPacketRow cap=100 label=source since=1.0
+lorawan.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 lorawan.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-lorawan.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
-lorawan.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
+lorawan.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+lorawan.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 lorawan.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 lorawan.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 lorawan.table.types row=MeshTypeRow cap=200 label=type since=1.0
@@ -835,7 +835,7 @@ lorawan.command.clear args= reply= since=1.0
 lorawan.command.remove args=row:text reply= since=1.0
 lorawan.command.reset args= reply= since=1.0
 loraaprs since=1.0
-loraaprs.content kind=mesh text=yes since=3.1
+loraaprs.content kind=mesh text=yes since=1.0
 loraaprs.fields.MeshFields since=1.0
 loraaprs.fields.MeshMtFields since=1.0
 loraaprs.fields.MeshMcFields since=1.0
@@ -871,10 +871,10 @@ loraaprs.kept.MeshMcFields.mc_public_key since=1.0
 loraaprs.kept.MeshMcFields.mc_name since=1.0
 loraaprs.kept.MeshMcFields.mc_contacts since=1.0
 loraaprs.kept.MeshTxFields since=1.0
-loraaprs.table.packets row=MeshPacketRow cap=100 label=source since=1.0
+loraaprs.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 loraaprs.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-loraaprs.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
-loraaprs.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
+loraaprs.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+loraaprs.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 loraaprs.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 loraaprs.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 loraaprs.table.types row=MeshTypeRow cap=200 label=type since=1.0
@@ -907,13 +907,13 @@ loraaprs.setting.aprs_comment type=text unit= since=1.0
 loraaprs.setting.duty_limit type=bool unit= since=1.0
 loraaprs.setting.duty_bands type=text unit= since=1.0
 loraaprs.setting.gen_scene type=choice(auto,texting,amateur,lorawan) unit= since=1.0
-loraaprs.command.aprs.send args=to:text;text:text reply=packet_id:i64 transmits=text since=1.0
+loraaprs.command.aprs.send args=to:text;text:text reply=packet_id:i64 transmits=text refers=to:stations.call since=1.0
 loraaprs.command.aprs.beacon args= reply= transmits=beacon since=1.0
 loraaprs.command.clear args= reply= since=1.0
 loraaprs.command.remove args=row:text reply= since=1.0
 loraaprs.command.reset args= reply= since=1.0
 meshcom since=1.0
-meshcom.content kind=mesh text=yes since=3.1
+meshcom.content kind=mesh text=yes since=1.0
 meshcom.fields.MeshFields since=1.0
 meshcom.fields.MeshMtFields since=1.0
 meshcom.fields.MeshMcFields since=1.0
@@ -949,10 +949,10 @@ meshcom.kept.MeshMcFields.mc_public_key since=1.0
 meshcom.kept.MeshMcFields.mc_name since=1.0
 meshcom.kept.MeshMcFields.mc_contacts since=1.0
 meshcom.kept.MeshTxFields since=1.0
-meshcom.table.packets row=MeshPacketRow cap=100 label=source since=1.0
+meshcom.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 meshcom.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-meshcom.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
-meshcom.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m since=1.0
+meshcom.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+meshcom.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 meshcom.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 meshcom.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 meshcom.table.types row=MeshTypeRow cap=200 label=type since=1.0
@@ -982,7 +982,7 @@ meshcom.command.clear args= reply= since=1.0
 meshcom.command.remove args=row:text reply= since=1.0
 meshcom.command.reset args= reply= since=1.0
 lorawanwide since=1.0
-lorawanwide.content kind=devices since=3.1
+lorawanwide.content kind=devices since=1.0
 lorawanwide.fields.WideFields since=1.0
 lorawanwide.fields.GuardFields writer=receiver since=1.0
 lorawanwide.kept.frames since=1.0
@@ -993,7 +993,7 @@ lorawanwide.kept.WideFields.frames_bad since=1.0
 lorawanwide.kept.WideFields.preambles since=1.0
 lorawanwide.kept.WideFields.header_failed since=1.0
 lorawanwide.kept.WideFields.devices since=1.0
-lorawanwide.table.frames row=WideFrameRow cap=600 label=device since=1.0
+lorawanwide.table.frames row=WideFrameRow cap=600 label=device role=log time=time_s since=1.0
 lorawanwide.table.channels row=WideChannelRow cap=200 sort=freq:ascending since=1.0
 lorawanwide.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
 lorawanwide.table.types row=MeshTypeRow cap=200 label=type since=1.0
@@ -1011,7 +1011,7 @@ lorawanwide.setting.clock0 type=f64 unit=s since=1.0
 lorawanwide.command.clear args= reply= since=1.0
 lorawanwide.command.reset args= reply= since=1.0
 loraraw since=1.0
-loraraw.content kind=utility since=3.1
+loraraw.content kind=utility since=1.0
 loraraw.fields.RawFields since=1.0
 loraraw.fields.GuardFields writer=receiver since=1.0
 loraraw.component.modulate.fields.ModulateFields since=1.0
@@ -1032,7 +1032,7 @@ loraraw.kept.RawFields.sf12 since=1.0
 loraraw.kept.RawFields.bw125 since=1.0
 loraraw.kept.RawFields.bw250 since=1.0
 loraraw.kept.RawFields.bw500 since=1.0
-loraraw.table.frames row=RawFrameRow cap=500 since=1.0
+loraraw.table.frames row=RawFrameRow cap=500 role=log time=time_s since=1.0
 loraraw.table.decoders row=RawDecoderRow cap=100 since=1.0
 loraraw.event.lora.packet fields=LoraPacketEvent since=1.0
 loraraw.event.tx.request fields=TxRequestEvent since=1.0
@@ -1043,7 +1043,7 @@ loraraw.setting.bw type=choice(7812.5,10417,15625,20833,31250,41667,62500,125000
 loraraw.setting.implicit type=bool unit= since=1.0
 loraraw.setting.cr type=i64 unit= since=1.0
 loraraw.setting.crc type=bool unit= since=1.0
-loraraw.setting.length type=i64 unit=bytes since=1.0
+loraraw.setting.length type=i64 unit=B since=1.0
 loraraw.setting.sync type=choice(0x12,0x34,0x2B,any,custom) unit= since=1.0
 loraraw.setting.sync_custom type=i64 unit= since=1.0
 loraraw.setting.preamble type=i64 unit= since=1.0
@@ -1057,7 +1057,7 @@ loraraw.command.clear args= reply= since=1.0
 loraraw.command.reset args= reply= since=1.0
 loraraw.command.send args=payload:bytes reply= transmits=frame since=1.0
 aprs since=1.0
-aprs.content kind=mesh audio=monitor text=yes since=3.1
+aprs.content kind=mesh audio=monitor text=yes since=1.0
 aprs.fields.AprsFields since=1.0
 aprs.fields.HamFields since=1.0
 aprs.fields.GuardFields writer=receiver since=1.0
@@ -1073,9 +1073,9 @@ aprs.kept.AprsFields.aprs_frames since=1.0
 aprs.kept.AprsFields.copies since=1.0
 aprs.kept.AprsFields.not_ax25 since=1.0
 aprs.kept.AprsFields.stations since=1.0
-aprs.table.frames row=AprsFrameRow cap=200 label=source sender=source addressee=target message=text time=time_s since=1.0
+aprs.table.frames row=AprsFrameRow cap=200 label=source role=log sender=source addressee=target message=text time=time_s since=1.0
 aprs.table.stations row=AprsStationRow cap=300 label=call position=position altitude=alt_m course=course_deg speed=speed_kt role=nodes time=last_heard since=1.0
-aprs.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc since=1.0
+aprs.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
 aprs.event.aprs.packet fields=AprsPacketEvent since=1.0
 aprs.event.tx.request fields=TxRequestEvent since=1.0
 aprs.setting.narrow type=bool unit= since=1.0
@@ -1094,12 +1094,12 @@ aprs.setting.beacon_interval type=f64 unit=s since=1.0
 aprs.setting.match_ssid type=bool unit= since=1.0
 aprs.setting.wide_input type=bool unit= since=1.0
 aprs.setting.gen_option type=choice(both,1200,9600) unit= since=1.0
-aprs.command.aprs.send args=to:text;text:text reply=packet_id:i64 transmits=text since=1.0
+aprs.command.aprs.send args=to:text;text:text reply=packet_id:i64 transmits=text refers=to:stations.call since=1.0
 aprs.command.aprs.beacon args= reply= transmits=beacon since=1.0
 aprs.command.clear args= reply= since=1.0
 aprs.command.remove args=row:text reply= since=1.0
 fanet since=1.0
-fanet.content kind=tracking since=3.1
+fanet.content kind=tracking since=1.0
 fanet.fields.FanetFields since=1.0
 fanet.fields.GuardFields writer=receiver since=1.0
 fanet.kept.frames since=1.0
@@ -1108,7 +1108,7 @@ fanet.kept.station_tracks since=1.0
 fanet.kept.FanetFields.frames_ok since=1.0
 fanet.kept.FanetFields.frames_bad since=1.0
 fanet.kept.FanetFields.stations_heard since=1.0
-fanet.table.frames row=FanetFrameRow cap=500 label=source position=position since=1.0
+fanet.table.frames row=FanetFrameRow cap=500 label=source position=position role=log time=time_s since=1.0
 fanet.table.stations row=FanetStationRow cap=500 label=name position=position altitude=alt_m course=course_deg speed=speed_kt since=1.0
 fanet.table.station_tracks row=FanetTrackRow cap=4000 label=station position=position since=1.0
 fanet.event.fanet.station fields=FanetStationEvent since=1.0
@@ -1121,7 +1121,7 @@ fanet.setting.gen_stations type=i64 unit= since=1.0
 fanet.setting.gen_bad_crc type=i64 unit= since=1.0
 fanet.command.clear args= reply= since=1.0
 reticulum since=1.0
-reticulum.content kind=mesh text=yes since=3.1
+reticulum.content kind=mesh text=yes since=1.0
 reticulum.fields.RnsFields since=1.0
 reticulum.fields.GuardFields writer=receiver since=1.0
 reticulum.kept.packets since=1.0
@@ -1141,7 +1141,7 @@ reticulum.setting.gen_split type=bool unit= since=1.0
 reticulum.setting.gen_tampered type=bool unit= since=1.0
 reticulum.command.clear args= reply= since=1.0
 elrs since=1.0
-elrs.content kind=devices since=3.1
+elrs.content kind=devices since=1.0
 elrs.fields.ElrsFields since=1.0
 elrs.fields.GuardFields writer=receiver since=1.0
 elrs.kept.frames since=1.0
@@ -1150,7 +1150,7 @@ elrs.kept.ElrsFields.frames_ok since=1.0
 elrs.kept.ElrsFields.frames_bad since=1.0
 elrs.kept.ElrsFields.preambles since=1.0
 elrs.kept.ElrsFields.links_heard since=1.0
-elrs.table.frames row=ElrsFrameRow cap=300 label=link since=1.0
+elrs.table.frames row=ElrsFrameRow cap=300 label=link role=log time=utc since=1.0
 elrs.table.links row=ElrsLinkRow cap=100 label=source since=1.0
 elrs.event.elrs.link fields=ElrsLinkEvent since=1.0
 elrs.setting.hop_channels type=i64 unit= since=1.0

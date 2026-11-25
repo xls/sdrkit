@@ -32,7 +32,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `gen_strike_rate` | Test signal: strokes a second | number (/s) | 1.5 | 0 to 50 | Flashes of 1 to 3 strokes come at random gaps of 1.7 / rate seconds on average. |
+| `gen_strike_rate` | Test signal: strokes a second | number (1/s) | 1.5 | 0 to 50 | Flashes of 1 to 3 strokes come at random gaps of 1.7 / rate seconds on average. |
 | `gen_scene` | Test signal: scene | choice | `storm` | `storm` (Storm), `mains` (Mains train only), `storm_mains` (Storm and mains train), `quiet` (Quiet) |  |
 | `gen_mains_hz` | Test signal: mains frequency | frequency | 50 Hz | 45 Hz to 65 Hz | The train has two impulses a period: 100 a second at 50 Hz, 120 at 60 Hz. |
 
@@ -44,8 +44,8 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `flashes` | Flashes | whole number |
 | `mains` | Mains impulses | whole number |
 | `too_long` | Too long | whole number |
-| `per_min_1` | Strikes, last minute | number (/min) |
-| `per_min_10` | Strikes per minute, 10 minutes | number (/min) |
+| `per_min_1` | Strikes, last minute | number (1/min) |
+| `per_min_10` | Strikes per minute, 10 minutes | number (1/min) |
 | `floor_db` | Floor | number (dBFS) |
 | `threshold_db` | Threshold | number (dB) |
 | `last_peak_db` | Last peak | number (dB) |
@@ -61,7 +61,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `strikes` | Strikes | `time_s` (number (s)), `utc` (time), `peak_db` (number (dB)), `width_us` (number (µs)), `flash` (whole number) |
+| `strikes` | Strikes | `time_s` (number (s)), `utc` (time), `peak_db` (number (dB)), `width_us` (number (us)), `flash` (whole number) |
 
 ## Result series
 
@@ -73,7 +73,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Kind | Label | Fields |
 |---|---|---|
-| `sferics.storm` | Storm phase | `storm_phase` (text), `storm_db_change` (number (dB)), `per_minute` (number (/min)) |
+| `sferics.storm` | Storm phase | `storm_phase` (text), `storm_db_change` (number (dB)), `per_minute` (number (1/min)) |
 
 ## Commands
 
@@ -84,9 +84,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: none.
+
+Key readings: `per_min_1`, `strikes`, `activity`, `storm_phase`, `last_peak_db`.
 
 ### Result fields
 
@@ -98,8 +100,8 @@ Struct `SfericsFields`. The result fields of `sferics`.
 | `flashes` | whole number | always | 1.0 | Flashes counted. |
 | `mains` | whole number | always | 1.0 | Impulses of a mains train left out. |
 | `too_long` | whole number | always | 1.0 | Impulses too long to be lightning. |
-| `per_min_1` | number (/min) | always | 1.0 | Strikes in the last minute. |
-| `per_min_10` | number (/min) | always | 1.0 | Strikes per minute over 10 minutes. |
+| `per_min_1` | number (1/min) | always | 1.0 | Strikes in the last minute. |
+| `per_min_10` | number (1/min) | always | 1.0 | Strikes per minute over 10 minutes. |
 | `floor_db` | number (dBFS) | optional | 1.0 | The floor. |
 | `threshold_db` | number (dB) | always | 1.0 | The start level in use. |
 | `last_peak_db` | number (dB) | optional | 1.0 | The peak of the newest strike. |
@@ -127,8 +129,10 @@ Struct `SfericsStrikeRow`. A strike. The row key is its start, s of signal.
 | `time_s` | number (s) | always | 1.0 | The start of a strike. |
 | `utc` | time | always | 1.0 | The start of a strike in UTC. |
 | `peak_db` | number (dB) | always | 1.0 | The peak of a strike over the floor. |
-| `width_us` | number (µs) | always | 1.0 | The width of a strike. |
+| `width_us` | number (us) | always | 1.0 | The width of a strike. |
 | `flash` | whole number | always | 1.0 | The flash of a strike. |
+
+The rows are a log: they arrive over time. Time: `utc`.
 
 ### Event `sferics.storm`
 
@@ -138,7 +142,7 @@ Struct `SfericsStormEvent`. The storm phase changed to approaching, overhead or 
 |---|---|---|---|---|
 | `storm_phase` | text | always | 1.0 | The storm phase. |
 | `storm_db_change` | number (dB) | always | 1.0 | The change of the median peak. |
-| `per_minute` | number (/min) | always | 1.0 | Strikes per minute in the last 5 minutes. |
+| `per_minute` | number (1/min) | always | 1.0 | Strikes per minute in the last 5 minutes. |
 
 ### Commands
 

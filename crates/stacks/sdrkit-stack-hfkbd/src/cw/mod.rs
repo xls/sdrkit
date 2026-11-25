@@ -145,7 +145,7 @@ pub const THRESHOLD: Setting<field::F64> = Setting::new("threshold", "Threshold"
 pub const DECODER: Setting<field::Choice<TimingDecoder>> =
     Setting::choice("decoder", "Timing decoder", TimingDecoder::Adaptive);
 /// The `wpm` setting.
-pub const WPM_SETTING: Setting<field::F64> = Setting::new("wpm", "Speed", "WPM", 0.0)
+pub const WPM_SETTING: Setting<field::F64> = Setting::new("wpm", "Speed", "wpm", 0.0)
     .range(0.0, 50.0, 1.0)
     .help("0 finds the speed by itself. 5 to 50 fixes it.");
 /// The `filter` setting.
@@ -205,13 +205,13 @@ pub const GEN_CARRIER_HZ: Setting<field::Hz> =
         .section(GEN_SECTION)
         .advanced();
 /// The character speed of the test signal.
-pub const GEN_WPM: Setting<field::F64> = Setting::new("gen_wpm", "Speed", "WPM", 20.0)
+pub const GEN_WPM: Setting<field::F64> = Setting::new("gen_wpm", "Speed", "wpm", 20.0)
     .range(5.0, 60.0, 0.0)
     .section(GEN_SECTION)
     .advanced();
 /// The Farnsworth speed of the test signal, 0 for the character speed.
 pub const GEN_FARNSWORTH_WPM: Setting<field::F64> =
-    Setting::new("gen_farnsworth_wpm", "Farnsworth speed", "WPM", 0.0)
+    Setting::new("gen_farnsworth_wpm", "Farnsworth speed", "wpm", 0.0)
         .range(0.0, 60.0, 0.0)
         .section(GEN_SECTION)
         .advanced();
@@ -227,7 +227,7 @@ pub const GEN_SIGNALS: Setting<field::I64> = Setting::new("gen_signals", "Carrie
     .help("0: the default test signal. 1 to 100: carriers spread evenly over the span, each with its own call sign.")
     .advanced();
 /// The top speed of a test signal of several carriers.
-pub const GEN_WPM_MAX: Setting<field::F64> = Setting::new("gen_wpm_max", "Top speed", "WPM", 0.0)
+pub const GEN_WPM_MAX: Setting<field::F64> = Setting::new("gen_wpm_max", "Top speed", "wpm", 0.0)
     .range(0.0, 60.0, 0.0)
     .section(GEN_SECTION)
     .help("With several carriers, the speeds step from the speed up to this (0: all at the speed).")

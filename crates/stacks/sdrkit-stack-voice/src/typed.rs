@@ -136,19 +136,19 @@ pub struct HfpacketFrameEvent<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct Elt121Fields {
     /// The periods of the sweeps confirm the signal.
-    #[field(label = "Confirmed")]
+    #[field(label = "Confirmed", reading = 1)]
     pub confirmed: bool,
     /// Sweeps a second.
-    #[field(label = "Sweep rate", unit = "Hz")]
+    #[field(label = "Sweep rate", unit = "Hz", reading = 2)]
     pub sweep_rate_hz: Option<f64>,
     /// The first frequency of a sweep.
-    #[field(label = "Sweep from", unit = "Hz")]
+    #[field(label = "Sweep from", unit = "Hz", reading = 3)]
     pub sweep_top_hz: Option<Hertz>,
     /// The lowest frequency of a sweep.
-    #[field(label = "Sweep to", unit = "Hz")]
+    #[field(label = "Sweep to", unit = "Hz", reading = 4)]
     pub sweep_bottom_hz: Option<Hertz>,
     /// The modulation of the tone.
-    #[field(label = "Modulation", unit = "%")]
+    #[field(label = "Modulation", unit = "%", reading = 5)]
     pub depth_pct: Option<f64>,
 }
 
@@ -181,10 +181,10 @@ pub struct Elt121EndedEvent<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct VoiceInversionFields {
     /// Inverted speech is there.
-    #[field(label = "Inverted")]
+    #[field(label = "Inverted", reading = 1)]
     pub inverted: bool,
     /// The inversion carrier found.
-    #[field(label = "Carrier", unit = "Hz")]
+    #[field(label = "Carrier", unit = "Hz", reading = 2)]
     pub carrier_hz: Option<Hertz>,
     /// The fit of the spectrum as heard.
     #[field(label = "Fit as heard")]
@@ -629,10 +629,10 @@ pub struct FleetsyncUnitRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct WmicFields<'a> {
     /// Candidates now.
-    #[field(label = "Candidates")]
+    #[field(label = "Candidates", reading = 1)]
     pub candidates: i64,
     /// The name of the band plan.
-    #[field(label = "Band plan")]
+    #[field(label = "Band plan", reading = 2)]
     pub plan: Option<&'a str>,
     /// The input rate.
     #[field(label = "Input rate", unit = "Hz")]
@@ -751,7 +751,9 @@ pub static DETECTOR_EVENTS: Table<DetectorEventRow<'static>> =
     Table::new("events", "Events", crate::common::EVENT_CAP).role(sdrkit_core::TableRole::Messages);
 /// The frames of HF packet, newest first.
 pub static HFPACKET_FRAMES: Table<HfpacketFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::hfpacket::FRAME_CAP).label(&HfpacketFrameRow::SOURCE);
+    Table::new("frames", "Frames", crate::hfpacket::FRAME_CAP)
+        .label(&HfpacketFrameRow::SOURCE)
+        .role(sdrkit_core::TableRole::Log);
 /// A frame with a good FCS.
 pub static HFPACKET_FRAME: EventKind<HfpacketFrameEvent<'static>> =
     EventKind::new("hfpacket.frame", "Frame");
@@ -835,7 +837,7 @@ pub fn family() -> &'static Described {
         // stay over a change of frequency, with the counts of frames and stations and the last frame of HF packet. The
         // level, the quality, the state and the measures of a detector belong to the signal of one frequency and are
         // cleared. The candidates of the microphone finder are carriers of the present capture and are cleared.
-        Described::new("voice", 1, 4)
+        Described::new("voice", 1, 5)
             .added(
                 1,
                 2,

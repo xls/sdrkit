@@ -95,13 +95,13 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `carriers` | Carriers | `id` (whole number), `offset_hz` (frequency), `frequency` (frequency), `width` (frequency), `snr_db` (number (dB)), `class` (choice), `decodes` (choice), `rate` (whole number (bit/s)), `state` (whole number), `ebn0_db` (number (dB)), `frames` (whole number), `satellite` (text), `parked` (yes or no), `focused` (yes or no), `window` (whole number), `voice_candidate` (yes or no) |
-| `candidates` | Satellite candidates | `name` (text), `satellite_confidence` (number), `content` (number), `frequency_score` (number), `geometry` (number), `elevation_deg` (number (deg)), `azimuth_deg` (number (deg)) |
+| `candidates` | Satellite candidates | `name` (text), `satellite_confidence` (number), `content` (number), `frequency_score` (number), `geometry` (number), `elevation_deg` (number (°)), `azimuth_deg` (number (°)) |
 | `candidate_reasons` | Why | `candidate` (text), `why` (text) |
 | `aero_display.channels` | Channels | `id` (whole number), `offset_hz` (frequency), `frequency` (frequency), `rate` (whole number (bit/s)), `state` (choice), `ebn0_db` (number (dB)), `level_db` (number (dB)), `frames` (whole number), `uw_misses` (whole number), `sus_good` (whole number), `sus_bad` (whole number), `ber` (number) |
 | `aero_display.su_types` | SU types | `su_type` (whole number), `su_name` (text), `count` (whole number) |
 | `aero_display.logons` | Log-ons | `at` (duration (s)), `time` (time), `channel` (whole number), `aes` (text), `ges` (text), `logon` (yes or no) |
 | `aero_display.messages` | Messages | `at` (duration (s)), `time` (time), `channel` (whole number), `rate` (whole number (bit/s)), `frequency` (frequency), `aes` (text), `ges` (text), `registration` (text), `flight` (text), `label` (text), `label_name` (text), `message_number` (text), `text` (text), `check_ok` (yes or no), `complete` (yes or no), `adsc` (text), `position` (position), `alt_ft` (number (ft)), `reading` (text), `reading_kind` (text), `reading_category` (text), `cpdlc_imi` (text), `cpdlc_ground` (text), `cpdlc_aircraft` (text), `cpdlc_crc_ok` (yes or no), `cpdlc_parsed` (yes or no), `cpdlc_text` (text) |
-| `aero_display.aircraft` | Aircraft | `address` (text), `registration` (text), `country` (text), `flight` (text), `label` (text), `messages` (whole number), `position` (position), `alt_ft` (number (ft)), `track_deg` (number (deg)), `gs_kt` (number (kt)), `vs_fpm` (number (ft/min)), `last_heard` (time), `frequency` (frequency) |
+| `aero_display.aircraft` | Aircraft | `address` (text), `registration` (text), `country` (text), `flight` (text), `label` (text), `messages` (whole number), `position` (position), `alt_ft` (number (ft)), `track_deg` (number (°)), `gs_kt` (number (kt)), `vs_fpm` (number (ft/min)), `last_heard` (time), `frequency` (frequency) |
 | `aero_display.facts` | System | `kind` (text), `text` (text), `heard` (whole number), `last_heard` (time) |
 | `egc.messages` | EGC messages | `first_heard` (time), `last_heard` (time), `channel` (whole number), `message_number` (whole number), `service_code` (whole number), `service` (text), `kind` (text), `priority` (text), `presentation` (text), `packets` (whole number), `complete` (yes or no), `times_heard` (whole number), `area` (text), `subject` (text), `warning_number` (text), `text` (text), `truncated` (yes or no) |
 | `egc.channels` | Channels | `index` (whole number), `offset_hz` (frequency), `carrier` (yes or no), `state` (choice), `ebn0_db` (number (dB)), `uw_errors_avg` (number), `frame_number` (whole number), `frames_ok` (whole number), `frames_bad` (whole number), `messages` (whole number), `region` (text), `station_name` (text), `channel_type` (text) |
@@ -130,9 +130,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.5. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 2.0. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite links (`satellite_links`). Media: none.
+
+Key readings: `satellite`, `carriers`, `decoding`, `frames_ok`, `messages`.
 
 ### Result fields
 
@@ -196,8 +198,8 @@ Struct `InmarsatCandidateRow`. A satellite that the identification weighed. The 
 | `content` | number | optional | 1.0 | The score of the decoded content. |
 | `frequency_score` | number | optional | 1.0 | The score of the frequencies. |
 | `geometry` | number | optional | 1.0 | The score of the geometry. |
-| `elevation_deg` | number (deg) | optional | 1.0 | The elevation from the station. |
-| `azimuth_deg` | number (deg) | optional | 1.0 | The azimuth from the station. |
+| `elevation_deg` | number (°) | optional | 1.0 | The elevation from the station. |
+| `azimuth_deg` | number (°) | optional | 1.0 | The azimuth from the station. |
 
 The column `name` names a row.
 
@@ -252,6 +254,8 @@ Struct `AeroLogonRow`. A log-on or log-off. The row key is the number of the ent
 | `ges` | text | always | 1.0 | The GES id, two hexadecimal digits. |
 | `logon` | yes or no | always | 1.0 | A log-on (else a log-off). |
 
+The rows are a log: they arrive over time. Time: `time`.
+
 ### Table `aero_display.messages`
 
 Struct `AeroMessageRow`. An ACARS message. The row key is the place of the message in the log.
@@ -302,7 +306,7 @@ Struct `AeroAircraftRow`. An aircraft heard: the standard aircraft columns, then
 | `messages` | whole number | always | 1.0 | Messages heard. |
 | `position` | position | optional | 1.0 | The last position. |
 | `alt_ft` | number (ft) | optional | 1.0 | The altitude of the last position. |
-| `track_deg` | number (deg) | optional | 1.0 | The track, degrees true. |
+| `track_deg` | number (°) | optional | 1.0 | The track, degrees true. |
 | `gs_kt` | number (kt) | optional | 1.0 | The ground speed. |
 | `vs_fpm` | number (ft/min) | optional | 1.0 | The vertical rate. |
 | `last_heard` | time | optional | 1.0 | Wall-clock time when last heard. |

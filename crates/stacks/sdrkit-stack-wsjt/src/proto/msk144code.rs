@@ -5,7 +5,8 @@
 //!
 //! The (32,16) code of the short messages `<CALL1 CALL2> RPT` is here too, with its encoder: a 16-bit value 16 · h + r
 //! (h the 12-bit hash of the two calls, r the report index) becomes a 32-bit code word, sent after an 8-bit sync word as
-//! a 40-bit frame. The stack does not send or receive short messages.
+//! a 40-bit frame. The test signal sends it ([`crate::encode::msk144_symbols`]) and the decoder reads it
+//! ([`crate::rx::msk144`]).
 
 /// The 38 checks of the (128,90) code: entry i lists the code word bits of check i, in increasing order.
 #[rustfmt::skip]

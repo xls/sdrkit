@@ -86,7 +86,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfkbd`, version 2.10. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfkbd`, version 3.0. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Pictures and fax (`pictures`). Media: sound (monitor), pictures.
 
@@ -140,12 +140,12 @@ Struct `SstvTxFields`. The result fields of the SSTV transmitter.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tx_sending` | yes or no | always | 2.3 | Whether a picture is being sent. |
-| `tx_mode` | text | optional | 2.3 | The mode of the picture being sent. No value while nothing is sent. |
-| `tx_line` | whole number | optional | 2.3 | The line being sent, from 1; 0 during the VIS header. No value while nothing is sent. |
-| `tx_lines` | whole number | optional | 2.3 | The lines of the picture being sent. No value while nothing is sent. |
-| `tx_picture_s` | duration (s) | always | 2.3 | The time on air of one picture in the transmit mode: the VIS header and the lines. |
-| `tx_next_s` | duration (s) | optional | 2.6 | The time until the picture is sent again, while repeat waits in the pause. No value otherwise. |
+| `tx_sending` | yes or no | always | 1.0 | Whether a picture is being sent. |
+| `tx_mode` | text | optional | 1.0 | The mode of the picture being sent. No value while nothing is sent. |
+| `tx_line` | whole number | optional | 1.0 | The line being sent, from 1; 0 during the VIS header. No value while nothing is sent. |
+| `tx_lines` | whole number | optional | 1.0 | The lines of the picture being sent. No value while nothing is sent. |
+| `tx_picture_s` | duration (s) | always | 1.0 | The time on air of one picture in the transmit mode: the VIS header and the lines. |
+| `tx_next_s` | duration (s) | optional | 1.0 | The time until the picture is sent again, while repeat waits in the pause. No value otherwise. |
 
 ### Event `sstv.picture`
 
@@ -166,10 +166,10 @@ Struct `SstvTxEvent`. The fields of a change of the SSTV transmission.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | text | always | 2.3 | The state: started, finished or refused. |
-| `reason` | text | always | 2.3 | Why it changed: empty, stopped, the transmitter is off, or why a picture was refused. |
-| `mode` | text | always | 2.3 | The mode of the picture. |
-| `family` | choice | always | 2.3 | The family of the source: a message. |
+| `state` | text | always | 1.0 | The state: started, finished or refused. |
+| `reason` | text | always | 1.0 | Why it changed: empty, stopped, the transmitter is off, or why a picture was refused. |
+| `mode` | text | always | 1.0 | The mode of the picture. |
+| `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Commands
 

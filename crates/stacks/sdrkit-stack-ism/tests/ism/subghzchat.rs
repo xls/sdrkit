@@ -54,13 +54,13 @@ fn feed(r: &mut StackGraph, x: &[Complex32]) -> Vec<sdrkit_core::Event> {
     events
 }
 
-/// The chat rows, oldest first: (direction, kind, text, packets).
-fn chat(r: &StackGraph) -> Vec<(String, String, String, i64)> {
+/// The chat rows, oldest first: (own, kind, text, packets).
+fn chat(r: &StackGraph) -> Vec<(bool, String, String, i64)> {
     let mut rows: Vec<_> = SUBGHZCHAT_CHAT
         .rows::<SubghzchatLineRow>(r.results())
         .map(|(_, row)| {
             (
-                row.direction.to_owned(),
+                row.own,
                 subghzchat::LineKind::CHOICES[usize::from(row.kind.index())]
                     .key
                     .to_string(),

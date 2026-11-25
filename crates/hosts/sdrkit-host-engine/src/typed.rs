@@ -337,53 +337,12 @@ fn radio() -> Family {
 }
 
 fn scan() -> Family {
-    // The table of hits and the commands start and stop are new in version 1.1. Version 1.2 has the span-block scan
-    // and the survey: their settings, status fields and commands, the pass and the text of a hit, the table of
-    // candidates, and the plan in the reply of start with its argument `dry`. Version 2.0 replaces the argument `look_s`
-    // of survey with the setting look. Version 2.1 has the table of occupied channels.
-    Family::object("scan", 2, 1)
-        .stack(scan_shape(0))
-        // Listed first: the first listing of a path gives its version.
-        .added(2, 0, &["scan.setting.look"])
-        .added(1, 2, &SCAN_SPAN_PATHS)
-        .added_in(1, 1, |mut f| {
-            f.stacks = vec![scan_shape(1)];
-            f
-        })
-        .added_in(1, 2, |mut f| {
-            f.stacks = vec![scan_shape(2)];
-            f
-        })
-        .added_in(2, 1, |mut f| {
-            f.stacks = vec![scan_shape(3)];
-            f
-        })
+    // Version 3.0 writes the unit of the speed of a candidate as `wpm`.
+    Family::object("scan", 3, 0).stack(scan_shape())
 }
 
-/// The paths of the scan service that are new in version 1.2 inside items of an earlier version.
-static SCAN_SPAN_PATHS: [&str; 17] = [
-    "scan.setting.after_find",
-    "scan.setting.quiet",
-    "scan.setting.reject_hold",
-    "shape.ScanFields.time_left_s",
-    "shape.ScanFields.pass_s",
-    "shape.ScanFields.passes",
-    "shape.ScanFields.candidates",
-    "shape.ScanFields.watched",
-    "shape.HitRow.pass",
-    "shape.HitRow.text",
-    "shape.StartReply.kind",
-    "shape.StartReply.dwell_s",
-    "shape.StartReply.pass_s",
-    "shape.StartReply.total_s",
-    "shape.StartReply.passes",
-    "shape.StartReply.visit_s",
-    "shape.StartReply.span_pass_s",
-];
-
-/// The shape of the scan service at `level`: from 1 with the table of hits and the commands start and stop, from 2
-/// with the table of candidates and the commands span, survey and hit.text, from 3 with the table of occupied channels.
-fn scan_shape(level: u8) -> StackShape {
+/// The shape of the scan service.
+fn scan_shape() -> StackShape {
     use sdrkit_core::CommandSet;
     use sdrkit_svc_scan as scan;
     let mut s = StackShape::new("scan").settings(scan::ScanSetting::SETTINGS);
@@ -453,38 +412,32 @@ fn scan_shape(level: u8) -> StackShape {
             .find(|c| c.key == key)
             .expect("a command of the scan service")
     };
-    if level >= 1 {
-        s.tables.push(table(
-            &scan::HITS,
-            "HitRow",
-            &[
-                "snr_db",
-                "level_dbfs",
-                "priority",
-                "tone",
-                "memory",
-                "channel",
-                "empty",
-            ],
-        ));
-        for (key, args, reply) in [("start", "StartArgs", "StartReply"), ("stop", "", "")] {
-            s.commands.push(command(find(key), args, reply, &[]));
-        }
+    s.tables.push(table(
+        &scan::HITS,
+        "HitRow",
+        &[
+            "snr_db",
+            "level_dbfs",
+            "priority",
+            "tone",
+            "memory",
+            "channel",
+            "empty",
+        ],
+    ));
+    for (key, args, reply) in [("start", "StartArgs", "StartReply"), ("stop", "", "")] {
+        s.commands.push(command(find(key), args, reply, &[]));
     }
-    if level >= 2 {
-        s.tables
-            .push(table(&scan::CANDIDATES, "CandidateRow", &["skip_until"]));
-        for (key, args, reply) in [
-            ("span", "SpanArgs", "SpanReply"),
-            ("survey", "SurveyArgs", "SurveyReply"),
-            ("hit.text", "HitTextArgs", ""),
-        ] {
-            s.commands.push(command(find(key), args, reply, &[]));
-        }
+    s.tables
+        .push(table(&scan::CANDIDATES, "CandidateRow", &["skip_until"]));
+    for (key, args, reply) in [
+        ("span", "SpanArgs", "SpanReply"),
+        ("survey", "SurveyArgs", "SurveyReply"),
+        ("hit.text", "HitTextArgs", ""),
+    ] {
+        s.commands.push(command(find(key), args, reply, &[]));
     }
-    if level >= 3 {
-        s.tables.push(table(&scan::OCCUPIED, "OccupiedRow", &[]));
-    }
+    s.tables.push(table(&scan::OCCUPIED, "OccupiedRow", &[]));
     s
 }
 

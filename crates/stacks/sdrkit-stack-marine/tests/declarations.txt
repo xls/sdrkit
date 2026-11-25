@@ -1,478 +1,481 @@
 stack ais
-setting SettingDecl { field: FieldDecl { key: "channels", label: "Channels", unit: "", kind: Choice, choices: [ChoiceDecl { key: "all", label: "All four" }, ChoiceDecl { key: "ais12", label: "AIS 1 + 2 only" }, ChoiceDecl { key: "longrange", label: "75 + 76 only" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Which AIS channels are decoded.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "collision_cancel", label: "Collision handling", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Tries again on other frequencies and after cancelling a stronger burst.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "satellite", label: "Satellite mode", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Wider filters, Doppler candidates and successive cancellation for reception from orbit.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "hop", label: "Hopping", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Alternates between AIS 1 + 2 and 75 + 76 when the radio cannot hold all four.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time base", unit: "", kind: Time, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "Satellite", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "satellite_tle", label: "Satellite elements", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Satellite", advanced: false, help: "Two-line elements of the satellite (with checksums), for predicted Doppler and passes.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "min_elevation", label: "Minimum elevation", unit: "°", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 40.0, step: 0.0 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Satellite", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "arm_passes", label: "Arm the passes", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Satellite", advanced: false, help: "Predicts the next pass over the station. The station position is needed.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "cpa", label: "CPA alerts", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "Alerts for vessels that will pass close to the station. The station position is needed.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "cpa_nm", label: "CPA limit", unit: "nm", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.05, max: 5.0, step: 0.0 }), default: F64(0.5), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "tcpa_min", label: "TCPA limit", unit: "min", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 60.0, step: 0.0 }), default: F64(15.0), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "cpa_cooldown_min", label: "CPA cool-down", unit: "min", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 120.0, step: 0.0 }), default: F64(10.0), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "own_moving", label: "Own ship moving", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "own_sog_kn", label: "Own speed", unit: "kn", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 40.0, step: 0.0 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "own_cog_deg", label: "Own course", unit: "°", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 359.0, step: 0.0 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "geofences", label: "Geofences", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "One per line: name;lat,lon,radius_nm or name;poly;lat,lon lat,lon ...", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "filter", label: "Filter", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "classes=63;groups=1023;moving=0;sog=0.5", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "nmea_out", label: "Send AIS as NMEA", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "names", label: "Name table", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Ship and station names by MMSI to import, one record per line.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "gen_vessels", label: "Vessels", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 40.0, step: 1.0 }), default: I64(15), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "Vessels in the port demo, beside the base station, two aids and a SAR aircraft.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "gen_speed", label: "Speed of time", unit: "", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.1, max: 100.0, step: 0.1 }), default: F64(1.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "Vessels move this many times faster than real time.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-field FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "searching", label: "Searching" }, ChoiceDecl { key: "signal", label: "Signal" }, ChoiceDecl { key: "decoding", label: "Decoding" }], refers_to: None, content: None }
-field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "bursts", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "recovered", label: "Recovered", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "cancelled", label: "Cancelled", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "collision_recoveries", label: "Collision recoveries", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "stations", label: "Stations", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "with_position", label: "With a position", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "long_range_stations", label: "Long-range stations", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "signal_time", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "filtered", label: "Some stations hidden", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "names", label: "Names", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "next_pass", label: "Next pass", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "next_pass_elevation_deg", label: "Next pass elevation", unit: "°", kind: F64, choices: [], refers_to: None, content: None }
+setting SettingDecl { field: FieldDecl { key: "channels", label: "Channels", unit: "", kind: Choice, choices: [ChoiceDecl { key: "all", label: "All four" }, ChoiceDecl { key: "ais12", label: "AIS 1 + 2 only" }, ChoiceDecl { key: "longrange", label: "75 + 76 only" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Which AIS channels are decoded.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "collision_cancel", label: "Collision handling", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Tries again on other frequencies and after cancelling a stronger burst.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "satellite", label: "Satellite mode", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Wider filters, Doppler candidates and successive cancellation for reception from orbit.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "hop", label: "Hopping", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Alternates between AIS 1 + 2 and 75 + 76 when the radio cannot hold all four.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time base", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "Satellite", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "satellite_tle", label: "Satellite elements", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Satellite", advanced: false, help: "Two-line elements of the satellite (with checksums), for predicted Doppler and passes.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "min_elevation", label: "Minimum elevation", unit: "°", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 40.0, step: 0.0 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Satellite", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "arm_passes", label: "Arm the passes", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Satellite", advanced: false, help: "Predicts the next pass over the station. The station position is needed.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "cpa", label: "CPA alerts", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "Alerts for vessels that will pass close to the station. The station position is needed.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "cpa_nm", label: "CPA limit", unit: "nm", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.05, max: 5.0, step: 0.0 }), default: F64(0.5), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "tcpa_min", label: "TCPA limit", unit: "min", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 1.0, max: 60.0, step: 0.0 }), default: F64(15.0), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "cpa_cooldown_min", label: "CPA cool-down", unit: "min", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 1.0, max: 120.0, step: 0.0 }), default: F64(10.0), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "own_moving", label: "Own ship moving", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "own_sog_kn", label: "Own speed", unit: "kt", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 40.0, step: 0.0 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "own_cog_deg", label: "Own course", unit: "°", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 359.0, step: 0.0 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "geofences", label: "Geofences", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "Alerts", advanced: false, help: "One per line: name;lat,lon,radius_nm or name;poly;lat,lon lat,lon ...", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "filter", label: "Filter", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "classes=63;groups=1023;moving=0;sog=0.5", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "nmea_out", label: "Send AIS as NMEA", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "names", label: "Name table", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Ship and station names by MMSI to import, one record per line.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "gen_vessels", label: "Vessels", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 1.0, max: 40.0, step: 1.0 }), default: I64(15), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "Vessels in the port demo, beside the base station, two aids and a SAR aircraft.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "gen_speed", label: "Speed of time", unit: "", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.1, max: 100.0, step: 0.1 }), default: F64(1.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "Vessels move this many times faster than real time.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+field FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "searching", label: "Searching" }, ChoiceDecl { key: "signal", label: "Signal" }, ChoiceDecl { key: "decoding", label: "Decoding" }], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 3 }
+field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "bursts", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "recovered", label: "Recovered", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "cancelled", label: "Cancelled", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "collision_recoveries", label: "Collision recoveries", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "stations", label: "Stations", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
+field FieldDecl { key: "with_position", label: "With a position", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 2 }
+field FieldDecl { key: "long_range_stations", label: "Long-range stations", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 4 }
+field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "signal_time", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "filtered", label: "Some stations hidden", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "names", label: "Names", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "next_pass", label: "Next pass", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "next_pass_elevation_deg", label: "Next pass elevation", unit: "°", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 table "stations" "Stations" cap 300
-  marks TableMarks { label: Some(0), sort: None, position: Some(6), latitude: None, longitude: None, altitude: None, course: Some(5), speed: Some(4), role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "speed_kt", label: "Speed", unit: "kt", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "course_deg", label: "Course", unit: "°", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "long_range_position", label: "Long-range position", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "status", label: "Status", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(0), sort: None, position: Some(6), latitude: None, longitude: None, altitude: None, course: Some(5), speed: Some(4), role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "speed_kt", label: "Speed", unit: "kt", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "course_deg", label: "Course", unit: "°", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "long_range_position", label: "Long-range position", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "status", label: "Status", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "track_points" "Tracks" cap 2500
-  marks TableMarks { label: Some(0), sort: None, position: Some(1), latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "station", label: "Station", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "stations" }), content: None }
-  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(0), sort: None, position: Some(1), latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "station", label: "Station", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "stations", column: "" }), content: None, reading: 0 }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
 table "counters" "Messages by type" cap 32
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "count_a", label: "A", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "count_b", label: "B", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "count_c", label: "C", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "count_d", label: "D", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "total", label: "Total", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "count_a", label: "A", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "count_b", label: "B", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "count_c", label: "C", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "count_d", label: "D", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "total", label: "Total", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "channels" "Channels" cap 4
-  marks TableMarks { label: Some(0), sort: Some((1, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "name", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "messages_per_min", label: "Per minute", unit: "/min", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "noise_dbfs", label: "Noise floor", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "doppler_hz", label: "Doppler", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "doppler_rate_hz_s", label: "Doppler rate", unit: "Hz/s", kind: F64, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(0), sort: Some((1, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "name", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "messages_per_min", label: "Per minute", unit: "1/min", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "noise_dbfs", label: "Noise floor", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "doppler_hz", label: "Doppler", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "doppler_rate_hz_s", label: "Doppler rate", unit: "Hz/s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 table "sentences" "Sentences" cap 50
-  column FieldDecl { key: "sentence", label: "Sentence", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: None, sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(1), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "sentence", label: "Sentence", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 table "receptions" "Receptions" cap 500
-  marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "msg_type", label: "Type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "layer", label: "Found", unit: "", kind: Choice, choices: [ChoiceDecl { key: "direct", label: "Direct" }, ChoiceDecl { key: "recovered", label: "Recovered" }, ChoiceDecl { key: "cancelled", label: "Cancelled" }], refers_to: None, content: None }
+  marks TableMarks { label: Some(3), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "msg_type", label: "Type", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "layer", label: "Found", unit: "", kind: Choice, choices: [ChoiceDecl { key: "direct", label: "Direct" }, ChoiceDecl { key: "recovered", label: "Recovered" }, ChoiceDecl { key: "cancelled", label: "Cancelled" }], refers_to: None, content: None, reading: 0 }
 table "alerts" "Alerts" cap 50
-  marks TableMarks { label: Some(4), sort: None, position: Some(5), latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "cpa", label: "Close approach" }, ChoiceDecl { key: "enter", label: "Entered a fence" }, ChoiceDecl { key: "exit", label: "Left a fence" }], refers_to: None, content: None }
-  column FieldDecl { key: "fence", label: "Fence", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "distance_m", label: "Distance", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "cpa_m", label: "CPA", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "tcpa", label: "TCPA", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(4), sort: None, position: Some(5), latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "cpa", label: "Close approach" }, ChoiceDecl { key: "enter", label: "Entered a fence" }, ChoiceDecl { key: "exit", label: "Left a fence" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "fence", label: "Fence", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "distance_m", label: "Distance", unit: "m", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "cpa_m", label: "CPA", unit: "m", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "tcpa", label: "TCPA", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
 table "hop_plan" "Hopping plan" cap 4
-  marks TableMarks { label: None, sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "centre_hz", label: "Centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "dwell", label: "Dwell", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: None, sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "centre_hz", label: "Centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "dwell", label: "Dwell", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
 table "selected" "Selected station" cap 1
-  marks TableMarks { label: Some(0), sort: None, position: Some(11), latitude: None, longitude: None, altitude: Some(16), course: Some(13), speed: Some(12), role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "class", label: "Class", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "imo", label: "IMO", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "eta", label: "ETA", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "draught_m", label: "Draught", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "length_m", label: "Length", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "beam_m", label: "Beam", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "speed_kt", label: "Speed", unit: "kt", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "course_deg", label: "Course", unit: "°", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "heading_deg", label: "Heading", unit: "°", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "rate_of_turn_deg_min", label: "Rate of turn", unit: "°/min", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "altitude_m", label: "Altitude", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "status", label: "Status", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "last_type", label: "Last message type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "long_range", label: "Long range", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "latency", label: "Position latency", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "sentences", label: "Sentences", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(0), sort: None, position: Some(11), latitude: None, longitude: None, altitude: Some(16), course: Some(13), speed: Some(12), role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "class", label: "Class", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "imo", label: "IMO", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "eta", label: "ETA", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "draught_m", label: "Draught", unit: "m", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "length_m", label: "Length", unit: "m", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "beam_m", label: "Beam", unit: "m", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "speed_kt", label: "Speed", unit: "kt", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "course_deg", label: "Course", unit: "°", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "heading_deg", label: "Heading", unit: "°", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "rate_of_turn_deg_min", label: "Rate of turn", unit: "°/min", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "altitude_m", label: "Altitude", unit: "m", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "status", label: "Status", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "last_type", label: "Last message type", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "long_range", label: "Long range", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "latency", label: "Position latency", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "sentences", label: "Sentences", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 points "Stations"
 event "ais.vessel" "Vessel"
-  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
-  field FieldDecl { key: "urgency", label: "Urgency", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "notice", label: "Notice" }, ChoiceDecl { key: "urgent", label: "Urgent" }, ChoiceDecl { key: "emergency", label: "Emergency" }], refers_to: None, content: None }
-  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "ship_type", label: "Ship type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "speed_kt", label: "Speed", unit: "kt", kind: F64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "course_deg", label: "Course", unit: "°", kind: F64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "nav_status", label: "Navigational status", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "class", label: "Class", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "urgency", label: "Urgency", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "notice", label: "Notice" }, ChoiceDecl { key: "urgent", label: "Urgent" }, ChoiceDecl { key: "emergency", label: "Emergency" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "ship_type", label: "Ship type", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "speed_kt", label: "Speed", unit: "kt", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "course_deg", label: "Course", unit: "°", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "nav_status", label: "Navigational status", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "class", label: "Class", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 event "ais.nmea" "AIS sentence"
-  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
-  field FieldDecl { key: "sentence", label: "Sentence", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "sentence", label: "Sentence", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 event "ais.cpa" "CPA alert"
-  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
-  field FieldDecl { key: "urgency", label: "Urgency", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "notice", label: "Notice" }, ChoiceDecl { key: "urgent", label: "Urgent" }, ChoiceDecl { key: "emergency", label: "Emergency" }], refers_to: None, content: None }
-  field FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "distance_m", label: "Distance", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "cpa_m", label: "CPA", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "tcpa", label: "TCPA", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "urgency", label: "Urgency", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "notice", label: "Notice" }, ChoiceDecl { key: "urgent", label: "Urgent" }, ChoiceDecl { key: "emergency", label: "Emergency" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "distance_m", label: "Distance", unit: "m", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "cpa_m", label: "CPA", unit: "m", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "tcpa", label: "TCPA", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
 event "ais.geofence" "Geofence alert"
-  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
-  field FieldDecl { key: "urgency", label: "Urgency", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "notice", label: "Notice" }, ChoiceDecl { key: "urgent", label: "Urgent" }, ChoiceDecl { key: "emergency", label: "Emergency" }], refers_to: None, content: None }
-  field FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "distance_m", label: "Distance", unit: "m", kind: F64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "fence", label: "Fence", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "transition", label: "Transition", unit: "", kind: Choice, choices: [ChoiceDecl { key: "enter", label: "Entered" }, ChoiceDecl { key: "exit", label: "Left" }], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "urgency", label: "Urgency", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "notice", label: "Notice" }, ChoiceDecl { key: "urgent", label: "Urgent" }, ChoiceDecl { key: "emergency", label: "Emergency" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "distance_m", label: "Distance", unit: "m", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "fence", label: "Fence", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "transition", label: "Transition", unit: "", kind: Choice, choices: [ChoiceDecl { key: "enter", label: "Entered" }, ChoiceDecl { key: "exit", label: "Left" }], refers_to: None, content: None, reading: 0 }
 command "select" "Select" "Shows one station in full."
-  argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "stations" }), content: None }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key of the object, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+  argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "stations", column: "" }), content: None, reading: 0 }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key of the object, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 command "clear" "Clear" "Forgets everything heard so far. Favourites stay."
 command "remove" "Remove" "Forgets one object, a favourite too."
-  argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "stations" }), content: None }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key of the object, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+  argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "stations", column: "" }), content: None, reading: 0 }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key of the object, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 stack marine
-setting SettingDecl { field: FieldDecl { key: "service", label: "Service", unit: "", kind: Choice, choices: [ChoiceDecl { key: "auto", label: "Automatic" }, ChoiceDecl { key: "navtex", label: "NAVTEX" }, ChoiceDecl { key: "dsc", label: "DSC" }, ChoiceDecl { key: "wefax", label: "Weather fax" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Which decoders run. Automatic chooses from the dial.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "fax_lpm", label: "Lines per minute", unit: "", kind: Choice, choices: [ChoiceDecl { key: "detect", label: "Detect" }, ChoiceDecl { key: "60", label: "60" }, ChoiceDecl { key: "90", label: "90" }, ChoiceDecl { key: "120", label: "120" }, ChoiceDecl { key: "240", label: "240" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "fax_ioc", label: "Index of cooperation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "tone", label: "From the start tone" }, ChoiceDecl { key: "576", label: "576" }, ChoiceDecl { key: "288", label: "288" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "fax_auto_slant", label: "Automatic slant", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "fax_slant_ppm", label: "Slant", unit: "ppm", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: -300.0, max: 300.0, step: 0.1 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "fax_max_lines", label: "Most lines", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 20000.0, step: 1.0 }), default: I64(8000), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "fax_rotate", label: "Rotation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "0", label: "None" }, ChoiceDecl { key: "1", label: "1 turn" }, ChoiceDecl { key: "2", label: "2 turns" }, ChoiceDecl { key: "3", label: "3 turns" }, ChoiceDecl { key: "-1", label: "1 turn back" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "row_filter", label: "Row filter", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "Smooths the noise along each row of a weak fax picture, with the noise measured on the row.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "listen", label: "Listen", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "dsc_scan", label: "DSC scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "DSC", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "dsc_scan_sets", label: "DSC channel sets", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text("distress"), required: false, restart: false, fixed: false, section: "DSC", advanced: false, help: "distress, worldwide, series_a, series_b, vhf", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "dsc_scan_dwell_s", label: "DSC dwell", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 30.0, step: 0.0 }), default: Duration(4.0), required: false, restart: false, fixed: false, section: "DSC", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "dsc_parallel", label: "Parallel DSC", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "DSC", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "names", label: "Name table", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Ship and coast station names by MMSI to import, one record per line.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time base", unit: "", kind: Time, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "gen_service", label: "Test signal", unit: "", kind: Choice, choices: [ChoiceDecl { key: "navtex", label: "NAVTEX" }, ChoiceDecl { key: "dsc", label: "DSC" }, ChoiceDecl { key: "wefax", label: "Weather fax" }, ChoiceDecl { key: "dsc_vhf", label: "DSC on VHF" }], refers_to: None, content: None }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "What the test signal sends when no submode names it.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "gen_idle_s", label: "NAVTEX phasing", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 60.0, step: 0.0 }), default: Duration(6.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "gen_ioc", label: "Fax IOC", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 100.0, max: 1000.0, step: 1.0 }), default: I64(576), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "gen_lines", label: "Fax lines", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 20000.0, step: 1.0 }), default: I64(800), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "gen_lpm", label: "Fax lines per minute", unit: "", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 30.0, max: 480.0, step: 0.0 }), default: F64(120.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "gen_phasing_s", label: "Fax phasing", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 60.0, step: 0.0 }), default: Duration(10.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-field FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "searching", label: "Searching" }, ChoiceDecl { key: "signal", label: "Signal" }, ChoiceDecl { key: "decoding", label: "Decoding" }], refers_to: None, content: None }
-field FieldDecl { key: "active_service", label: "Service", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "navtex", label: "NAVTEX" }, ChoiceDecl { key: "dsc", label: "DSC" }, ChoiceDecl { key: "dsc_vhf", label: "DSC VHF" }, ChoiceDecl { key: "fax", label: "Weather fax" }], refers_to: None, content: None }
-field FieldDecl { key: "fsk_found", label: "FSK pair", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "fsk_low_hz", label: "Low tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "fsk_high_hz", label: "High tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "shift_hz", label: "Shift", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "symbol_rate_hz", label: "Symbol rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "tone_level_db", label: "Tones over the noise", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "navtex_good", label: "NAVTEX good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "navtex_bad", label: "NAVTEX bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "dsc_good", label: "DSC good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "dsc_bad", label: "DSC bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "distress", label: "Distress", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "fax_state", label: "Fax", unit: "", kind: Choice, choices: [ChoiceDecl { key: "waiting", label: "Waiting" }, ChoiceDecl { key: "phasing", label: "Phasing" }, ChoiceDecl { key: "receiving", label: "Receiving" }, ChoiceDecl { key: "stopped", label: "Stopped" }], refers_to: None, content: None }
-field FieldDecl { key: "ioc", label: "IOC", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "lpm", label: "Lines per minute", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "lines", label: "Lines", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "width", label: "Width", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "slant_ppm", label: "Slant", unit: "ppm", kind: F64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "black_level_hz", label: "Black level", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "last_tone_hz", label: "Last tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "phasing_lines", label: "Phasing lines", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "fax_snr_db", label: "Fax SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "pictures_started", label: "Pictures started", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "pictures_done", label: "Pictures done", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "end_reason", label: "Picture end", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "scan_channel_hz", label: "Scan channel", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "signal_time", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+setting SettingDecl { field: FieldDecl { key: "service", label: "Service", unit: "", kind: Choice, choices: [ChoiceDecl { key: "auto", label: "Automatic" }, ChoiceDecl { key: "navtex", label: "NAVTEX" }, ChoiceDecl { key: "dsc", label: "DSC" }, ChoiceDecl { key: "wefax", label: "Weather fax" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Which decoders run. Automatic chooses from the dial.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "fax_lpm", label: "Lines per minute", unit: "", kind: Choice, choices: [ChoiceDecl { key: "detect", label: "Detect" }, ChoiceDecl { key: "60", label: "60" }, ChoiceDecl { key: "90", label: "90" }, ChoiceDecl { key: "120", label: "120" }, ChoiceDecl { key: "240", label: "240" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "fax_ioc", label: "Index of cooperation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "tone", label: "From the start tone" }, ChoiceDecl { key: "576", label: "576" }, ChoiceDecl { key: "288", label: "288" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "fax_auto_slant", label: "Automatic slant", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "fax_slant_ppm", label: "Slant", unit: "ppm", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: -300.0, max: 300.0, step: 0.1 }), default: F64(0.0), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "fax_max_lines", label: "Most lines", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 1.0, max: 20000.0, step: 1.0 }), default: I64(8000), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "fax_rotate", label: "Rotation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "0", label: "None" }, ChoiceDecl { key: "1", label: "1 turn" }, ChoiceDecl { key: "2", label: "2 turns" }, ChoiceDecl { key: "3", label: "3 turns" }, ChoiceDecl { key: "-1", label: "1 turn back" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "row_filter", label: "Row filter", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "Weather fax", advanced: false, help: "Smooths the noise along each row of a weak fax picture, with the noise measured on the row.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "listen", label: "Listen", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "dsc_scan", label: "DSC scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "DSC", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "dsc_scan_sets", label: "DSC channel sets", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text("distress"), required: false, restart: false, fixed: false, section: "DSC", advanced: false, help: "distress, worldwide, series_a, series_b, vhf", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "dsc_scan_dwell_s", label: "DSC dwell", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 1.0, max: 30.0, step: 0.0 }), default: Duration(4.0), required: false, restart: false, fixed: false, section: "DSC", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "dsc_parallel", label: "Parallel DSC", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "DSC", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "names", label: "Name table", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Ship and coast station names by MMSI to import, one record per line.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time base", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "gen_service", label: "Test signal", unit: "", kind: Choice, choices: [ChoiceDecl { key: "navtex", label: "NAVTEX" }, ChoiceDecl { key: "dsc", label: "DSC" }, ChoiceDecl { key: "wefax", label: "Weather fax" }, ChoiceDecl { key: "dsc_vhf", label: "DSC on VHF" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "What the test signal sends when no submode names it.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "gen_idle_s", label: "NAVTEX phasing", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 60.0, step: 0.0 }), default: Duration(6.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "gen_ioc", label: "Fax IOC", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 100.0, max: 1000.0, step: 1.0 }), default: I64(576), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "gen_lines", label: "Fax lines", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 1.0, max: 20000.0, step: 1.0 }), default: I64(800), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "gen_lpm", label: "Fax lines per minute", unit: "", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 30.0, max: 480.0, step: 0.0 }), default: F64(120.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "gen_phasing_s", label: "Fax phasing", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 60.0, step: 0.0 }), default: Duration(10.0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+field FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "searching", label: "Searching" }, ChoiceDecl { key: "signal", label: "Signal" }, ChoiceDecl { key: "decoding", label: "Decoding" }], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "active_service", label: "Service", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "navtex", label: "NAVTEX" }, ChoiceDecl { key: "dsc", label: "DSC" }, ChoiceDecl { key: "dsc_vhf", label: "DSC VHF" }, ChoiceDecl { key: "fax", label: "Weather fax" }], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "fsk_found", label: "FSK pair", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "fsk_low_hz", label: "Low tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "fsk_high_hz", label: "High tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "shift_hz", label: "Shift", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "symbol_rate_hz", label: "Symbol rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "tone_level_db", label: "Tones over the noise", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "navtex_good", label: "NAVTEX good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "navtex_bad", label: "NAVTEX bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "dsc_good", label: "DSC good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "dsc_bad", label: "DSC bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "distress", label: "Distress", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "fax_state", label: "Fax", unit: "", kind: Choice, choices: [ChoiceDecl { key: "waiting", label: "Waiting" }, ChoiceDecl { key: "phasing", label: "Phasing" }, ChoiceDecl { key: "receiving", label: "Receiving" }, ChoiceDecl { key: "stopped", label: "Stopped" }], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "ioc", label: "IOC", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "lpm", label: "Lines per minute", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "lines", label: "Lines", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "width", label: "Width", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "slant_ppm", label: "Slant", unit: "ppm", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "black_level_hz", label: "Black level", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "last_tone_hz", label: "Last tone", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "phasing_lines", label: "Phasing lines", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "fax_snr_db", label: "Fax SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "pictures_started", label: "Pictures started", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "pictures_done", label: "Pictures done", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "end_reason", label: "Picture end", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "scan_channel_hz", label: "Scan channel", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "signal_time", label: "Signal time", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
 table "navtex" "NAVTEX" cap 100
-  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: None, addressee: None, text: Some(7), time: Some(0) }
-  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "header", label: "Header", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "subject_name", label: "Subject", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "chars", label: "Characters", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "errors", label: "Unreadable", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "repeats", label: "Repeats", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: None, addressee: None, text: Some(7), time: Some(0), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "header", label: "Header", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "subject_name", label: "Subject", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "chars", label: "Characters", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "errors", label: "Unreadable", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "repeats", label: "Repeats", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "dsc" "DSC" cap 100
-  marks TableMarks { label: Some(3), sort: None, position: Some(9), latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Calls), sender: Some(3), addressee: Some(6), text: Some(16), time: Some(0) }
-  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "from_mmsi", label: "From", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "from_name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "from_country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "to_mmsi", label: "To", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "category_name", label: "Category", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "nature_name", label: "Nature", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "telecommands", label: "Telecommands", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "freq_rx", label: "RX frequency", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "freq_tx", label: "TX frequency", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "ecc_ok", label: "Check", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "repaired", label: "Repaired", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "erasures", label: "Erasures", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(3), sort: None, position: Some(9), latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Calls), sender: Some(3), addressee: Some(6), text: Some(16), time: Some(0), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "from_mmsi", label: "From", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "from_name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "from_country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "to_mmsi", label: "To", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "category_name", label: "Category", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "nature_name", label: "Nature", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "telecommands", label: "Telecommands", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "freq_rx", label: "RX frequency", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "freq_tx", label: "TX frequency", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "ecc_ok", label: "Check", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "repaired", label: "Repaired", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "erasures", label: "Erasures", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 series SeriesDecl { key: "audio_spectrum", label: "Audio spectrum", x_unit: "Hz", y_unit: "dB" }
 points "DSC positions"
 event "navtex.message" "NAVTEX message"
-  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
-  field FieldDecl { key: "urgency", label: "Urgency", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "notice", label: "Notice" }, ChoiceDecl { key: "urgent", label: "Urgent" }, ChoiceDecl { key: "emergency", label: "Emergency" }], refers_to: None, content: None }
-  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "header", label: "Header", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "subject", label: "Subject", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "subject_name", label: "Subject", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "errors", label: "Unreadable", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "chars", label: "Characters", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "urgency", label: "Urgency", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "notice", label: "Notice" }, ChoiceDecl { key: "urgent", label: "Urgent" }, ChoiceDecl { key: "emergency", label: "Emergency" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "header", label: "Header", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "subject", label: "Subject", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "subject_name", label: "Subject", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "number", label: "Number", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "complete", label: "Complete", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "errors", label: "Unreadable", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "chars", label: "Characters", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 event "dsc.call" "DSC call"
-  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
-  field FieldDecl { key: "urgency", label: "Urgency", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "notice", label: "Notice" }, ChoiceDecl { key: "urgent", label: "Urgent" }, ChoiceDecl { key: "emergency", label: "Emergency" }], refers_to: None, content: None }
-  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "format", label: "Format", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "kind", label: "Kind", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "category", label: "Category code", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "category_name", label: "Category", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "from_name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "from_country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "to_type", label: "Called station", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "distress_mmsi", label: "In distress", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "nature", label: "Nature code", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "nature_name", label: "Nature", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "position_text", label: "Position text", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "utc", label: "UTC", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "telecommand1", label: "Telecommand 1", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "telecommand2", label: "Telecommand 2", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "telecommands", label: "Telecommands", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "freq_rx", label: "RX frequency", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "freq_tx", label: "TX frequency", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "eos", label: "End of sequence", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "ecc_ok", label: "Check", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "repaired", label: "Repaired", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "erasures", label: "Erasures", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "vhf", label: "VHF", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "urgency", label: "Urgency", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "None" }, ChoiceDecl { key: "notice", label: "Notice" }, ChoiceDecl { key: "urgent", label: "Urgent" }, ChoiceDecl { key: "emergency", label: "Emergency" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "format", label: "Format", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "kind", label: "Kind", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "category", label: "Category code", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "category_name", label: "Category", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "from_name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "from_country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "to_type", label: "Called station", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "distress_mmsi", label: "In distress", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "nature", label: "Nature code", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "nature_name", label: "Nature", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "position_text", label: "Position text", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "utc", label: "UTC", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "telecommand1", label: "Telecommand 1", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "telecommand2", label: "Telecommand 2", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "telecommands", label: "Telecommands", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "freq_rx", label: "RX frequency", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "freq_tx", label: "TX frequency", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "eos", label: "End of sequence", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "ecc_ok", label: "Check", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "repaired", label: "Repaired", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "erasures", label: "Erasures", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "vhf", label: "VHF", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 command "clear" "Clear" "Forgets everything heard so far. Favourites stay."
 command "clear_picture" "Clear the picture" "Starts the fax picture again."
 stack vdes
-setting SettingDecl { field: FieldDecl { key: "nmea_out", label: "Send ASM as NMEA", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "AIS-like ASM frames go out as !AIVDM sentences.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time base", unit: "", kind: Time, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "bursts", label: "VDE-TER bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+setting SettingDecl { field: FieldDecl { key: "nmea_out", label: "Send ASM as NMEA", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "AIS-like ASM frames go out as !AIVDM sentences.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time base", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "bursts", label: "VDE-TER bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "asm" "ASM frames" cap 200
-  marks TableMarks { label: Some(4), sort: None, position: Some(7), latitude: None, longitude: None, altitude: None, course: Some(9), speed: Some(8), role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "bits", label: "Bits", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "msg_type", label: "AIS type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "speed_kt", label: "Speed", unit: "kt", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "course_deg", label: "Course", unit: "°", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "hex", label: "Hex", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(4), sort: None, position: Some(7), latitude: None, longitude: None, altitude: None, course: Some(9), speed: Some(8), role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "bits", label: "Bits", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "msg_type", label: "AIS type", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "speed_kt", label: "Speed", unit: "kt", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "course_deg", label: "Course", unit: "°", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "hex", label: "Hex", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "bursts" "VDE-TER bursts" cap 300
-  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "centre_hz", label: "Centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "bandwidth_hz", label: "Bandwidth", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "modulation", label: "Modulation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "pi/4-QPSK", label: "pi/4-QPSK" }, ChoiceDecl { key: "8PSK", label: "8PSK" }, ChoiceDecl { key: "16QAM", label: "16QAM" }, ChoiceDecl { key: "unknown", label: "Unknown" }], refers_to: None, content: None }
-  column FieldDecl { key: "rssi_dbfs", label: "RSSI", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "duration", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "cv", label: "Amplitude spread", unit: "", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "psi", label: "Phase-step measure", unit: "", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "symbols", label: "Symbols", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "subchannels", label: "Sub-channels", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: None, sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "centre_hz", label: "Centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "bandwidth_hz", label: "Bandwidth", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "modulation", label: "Modulation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "pi/4-QPSK", label: "pi/4-QPSK" }, ChoiceDecl { key: "8PSK", label: "8PSK" }, ChoiceDecl { key: "16QAM", label: "16QAM" }, ChoiceDecl { key: "unknown", label: "Unknown" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "rssi_dbfs", label: "RSSI", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "duration", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "cv", label: "Amplitude spread", unit: "", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "psi", label: "Phase-step measure", unit: "", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "symbols", label: "Symbols", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "subchannels", label: "Sub-channels", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "channels" "Channels" cap 6
-  marks TableMarks { label: Some(0), sort: Some((1, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "name", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "in_view", label: "In view", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "bursts", label: "VDE-TER bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "noise_dbfs", label: "Noise floor", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(0), sort: Some((1, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "name", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "in_view", label: "In view", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "bursts", label: "VDE-TER bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "noise_dbfs", label: "Noise floor", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 table "by_modulation" "Bursts by modulation" cap 4
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "modulation", label: "Modulation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "pi/4-QPSK", label: "pi/4-QPSK" }, ChoiceDecl { key: "8PSK", label: "8PSK" }, ChoiceDecl { key: "16QAM", label: "16QAM" }, ChoiceDecl { key: "unknown", label: "Unknown" }], refers_to: None, content: None }
-  column FieldDecl { key: "count", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "modulation", label: "Modulation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "pi/4-QPSK", label: "pi/4-QPSK" }, ChoiceDecl { key: "8PSK", label: "8PSK" }, ChoiceDecl { key: "16QAM", label: "16QAM" }, ChoiceDecl { key: "unknown", label: "Unknown" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "count", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "by_bandwidth" "Bursts by bandwidth" cap 3
-  marks TableMarks { label: Some(0), sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None }
-  column FieldDecl { key: "bandwidth_hz", label: "Bandwidth", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "count", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(0), sort: Some((0, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "bandwidth_hz", label: "Bandwidth", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "count", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 points "ASM positions"
 event "vdes.asm" "ASM frame"
-  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
-  field FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "bits", label: "Bits", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "hex", label: "Hex", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "msg_type", label: "AIS type", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "bits", label: "Bits", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "hex", label: "Hex", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "msg_type", label: "AIS type", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 event "vdes.nmea" "ASM sentence"
-  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
-  field FieldDecl { key: "sentence", label: "Sentence", unit: "", kind: Text, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "sentence", label: "Sentence", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 event "vdes.burst" "VDE-TER burst"
-  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
-  field FieldDecl { key: "modulation", label: "Modulation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "pi/4-QPSK", label: "pi/4-QPSK" }, ChoiceDecl { key: "8PSK", label: "8PSK" }, ChoiceDecl { key: "16QAM", label: "16QAM" }, ChoiceDecl { key: "unknown", label: "Unknown" }], refers_to: None, content: None }
-  field FieldDecl { key: "bandwidth_hz", label: "Bandwidth", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "duration", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "modulation", label: "Modulation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "pi/4-QPSK", label: "pi/4-QPSK" }, ChoiceDecl { key: "8PSK", label: "8PSK" }, ChoiceDecl { key: "16QAM", label: "16QAM" }, ChoiceDecl { key: "unknown", label: "Unknown" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "bandwidth_hz", label: "Bandwidth", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "duration", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
 command "clear" "Clear" "Forgets everything heard so far. Favourites stay."
 stack marinevhf
-setting SettingDecl { field: FieldDecl { key: "plan", label: "Channel plan", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The channels: entries separated by \";\", each a label, \"=\" and the frequency in Hz, or the ship and the coast frequency of a duplex pair separated by \"/\", for example \"16=156800000\" or \"1=156050000/160650000\". An entry that ends in \":data\" is a channel of data, left out of an empty scan list. At most 200 entries. The host fills it from a channel plan file. Empty: no channel has a label.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "channel_hz", label: "Channel", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 1000000000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The frequency of the channel to play; either half of a duplex pair of the plan plays both. 0 plays the channel that is active.", zero_means: "Automatic", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "squelch", label: "Squelch", unit: "%", kind: F64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100.0, step: 1.0 }), default: F64(50.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "deemphasis", label: "De-emphasis", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "priority_hz", label: "Priority channel", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 1000000000.0, step: 0.0 }), default: Hz(156800000.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "A channel that takes over while it carries a call. The default is 156.8 MHz, the distress, safety and calling frequency of the ITU Radio Regulations (Appendix 15).", zero_means: "None", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "scan", label: "Scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "scan_hz", label: "Scan list", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Frequencies in Hz separated by spaces, commas or semicolons; a frequency of a duplex pair of the plan scans both halves. Empty scans every voice channel of the plan.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "scan_dwell_s", label: "Dwell", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.1, max: 3.0, step: 0.0 }), default: Duration(0.4), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "scan_hang_s", label: "Hang", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 6.0, step: 0.0 }), default: Duration(2.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "carriers", label: "Carriers", unit: "", kind: I64, choices: [], refers_to: None, content: None }, range: Some(Range { min: 1.0, max: 24.0, step: 1.0 }), default: I64(10), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "show_heard", label: "Only channels heard", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Lists only the channels that are active now or had a call.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time base", unit: "", kind: Time, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-field FieldDecl { key: "carriers", label: "Carriers", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "active_channels", label: "Active channels", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "playing", label: "Playing", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "playing_hz", label: "Playing frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "scan_state", label: "Scan", unit: "", kind: Choice, choices: [ChoiceDecl { key: "idle", label: "Idle" }, ChoiceDecl { key: "priority", label: "Priority channel" }, ChoiceDecl { key: "priority_probe", label: "Looking at the priority channel" }, ChoiceDecl { key: "scanning", label: "Scanning" }, ChoiceDecl { key: "holding", label: "Holding" }], refers_to: None, content: None }
-field FieldDecl { key: "tune_hz", label: "Radio on", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "calls", label: "Calls", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "multi_channel", label: "Whole span", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+setting SettingDecl { field: FieldDecl { key: "plan", label: "Channel plan", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The channels: entries separated by \";\", each a label, \"=\" and the frequency in Hz, or the ship and the coast frequency of a duplex pair separated by \"/\", for example \"16=156800000\" or \"1=156050000/160650000\". An entry that ends in \":data\" is a channel of data, left out of an empty scan list. At most 200 entries. The host fills it from a channel plan file. Empty: no channel has a label.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "channel_hz", label: "Channel", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 1000000000.0, step: 0.0 }), default: Hz(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The frequency of the channel to play; either half of a duplex pair of the plan plays both. 0 plays the channel that is active.", zero_means: "Automatic", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "squelch", label: "Squelch", unit: "%", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 100.0, step: 1.0 }), default: F64(50.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "deemphasis", label: "De-emphasis", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "priority_hz", label: "Priority channel", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 1000000000.0, step: 0.0 }), default: Hz(156800000.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "A channel that takes over while it carries a call. The default is 156.8 MHz, the distress, safety and calling frequency of the ITU Radio Regulations (Appendix 15).", zero_means: "None", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "scan", label: "Scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "scan_hz", label: "Scan list", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Frequencies in Hz separated by spaces, commas or semicolons; a frequency of a duplex pair of the plan scans both halves. Empty scans every voice channel of the plan.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "scan_dwell_s", label: "Dwell", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.1, max: 3.0, step: 0.0 }), default: Duration(0.4), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "scan_hang_s", label: "Hang", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 6.0, step: 0.0 }), default: Duration(2.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "carriers", label: "Carriers", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 1.0, max: 24.0, step: 1.0 }), default: I64(10), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "show_heard", label: "Only channels heard", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Lists only the channels that are active now or had a call.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time base", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+field FieldDecl { key: "carriers", label: "Carriers", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "active_channels", label: "Active channels", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "playing", label: "Playing", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "playing_hz", label: "Playing frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "scan_state", label: "Scan", unit: "", kind: Choice, choices: [ChoiceDecl { key: "idle", label: "Idle" }, ChoiceDecl { key: "priority", label: "Priority channel" }, ChoiceDecl { key: "priority_probe", label: "Looking at the priority channel" }, ChoiceDecl { key: "scanning", label: "Scanning" }, ChoiceDecl { key: "holding", label: "Holding" }], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "tune_hz", label: "Radio on", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "calls", label: "Calls", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "multi_channel", label: "Whole span", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "calls" "Calls" cap 600
-  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Calls), sender: None, addressee: None, text: None, time: Some(3) }
-  column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "start", label: "Start", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "duration", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "mean_dbfs", label: "Mean", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Calls), sender: None, addressee: None, text: None, time: Some(3), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "serial", label: "#", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "start", label: "Start", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "duration", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "mean_dbfs", label: "Mean", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 table "channels" "Channels" cap 400
-  marks TableMarks { label: Some(0), sort: Some((1, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Groups), sender: None, addressee: None, text: None, time: Some(10) }
-  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "active", label: "Active", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "now_playing", label: "Playing", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "in_scan", label: "In scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "calls", label: "Calls", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "total", label: "Time open", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(0), sort: Some((1, Ascending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Groups), sender: None, addressee: None, text: None, time: Some(10), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "freq_hz", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "active", label: "Active", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "open", label: "Open", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "now_playing", label: "Playing", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "in_scan", label: "In scan", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "calls", label: "Calls", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "total", label: "Time open", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "marinevhf.call" "Call"
-  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
-  field FieldDecl { key: "start", label: "Start", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "duration", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "start", label: "Start", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "duration", label: "Duration", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "peak_dbfs", label: "Peak", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 command "clear" "Clear" "Forgets everything heard so far. Favourites stay."
 command "close_all" "Close all" "Ends every open call."
 stack atis
-setting SettingDecl { field: FieldDecl { key: "listen", label: "Listen", unit: "", kind: Bool, choices: [], refers_to: None, content: None }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The voice of the channel on the audio output.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "names", label: "Name table", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Ship and station names by MMSI to import, one record per line.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "plan", label: "Channel plan", unit: "", kind: Text, choices: [], refers_to: None, content: None }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The channels: entries separated by \";\", each a label, \"=\" and the frequency in Hz, or the ship and the coast frequency of a duplex pair separated by \"/\", for example \"16=156800000\" or \"1=156050000/160650000\". An entry that ends in \":data\" is a channel of data, left out of an empty scan list. At most 200 entries. The host fills it from a channel plan file. Empty: no channel has a label.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time base", unit: "", kind: Time, choices: [], refers_to: None, content: None }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "other_calls", label: "Other calls", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "stations", label: "Stations", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None }
-field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None }
+setting SettingDecl { field: FieldDecl { key: "listen", label: "Listen", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The voice of the channel on the audio output.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "names", label: "Name table", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Ship and station names by MMSI to import, one record per line.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "plan", label: "Channel plan", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "The channels: entries separated by \";\", each a label, \"=\" and the frequency in Hz, or the ship and the coast frequency of a duplex pair separated by \"/\", for example \"16=156800000\" or \"1=156050000/160650000\". An entry that ends in \":data\" is a channel of data, left out of an empty scan list. At most 200 entries. The host fills it from a channel plan file. Empty: no channel has a label.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "time_base", label: "Time base", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 100000000000.0, step: 0.0 }), default: Time(0.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "UNIX time of the first sample of a recording. 0 when not known. Live samples use the computer clock.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "other_calls", label: "Other calls", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "stations", label: "Stations", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "reports", label: "Reports", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "messages" "Messages" cap 300
-  marks TableMarks { label: Some(5), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(2), addressee: None, text: None, time: Some(0) }
-  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "digits", label: "Digits", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "check_ok", label: "Check", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "standard_z", label: "Starts with 9", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "inverted", label: "Inverted", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "repaired", label: "Repaired", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "erasures", label: "Erasures", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "branch_hz", label: "Branch", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(5), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(2), addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "time", label: "Time", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "digits", label: "Digits", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "check_ok", label: "Check", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "standard_z", label: "Starts with 9", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "inverted", label: "Inverted", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "repaired", label: "Repaired", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "erasures", label: "Erasures", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "branch_hz", label: "Branch", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
 table "stations" "Stations" cap 200
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(7) }
-  column FieldDecl { key: "digits", label: "Digits", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "best_level_db", label: "Best level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None }
-  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None }
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(7), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "digits", label: "Digits", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "best_level_db", label: "Best level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "atis.message" "ATIS message"
-  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None }
-  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None }
-  field FieldDecl { key: "check_ok", label: "Check", unit: "", kind: Bool, choices: [], refers_to: None, content: None }
+  field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "target", label: "Target", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "callsign", label: "Callsign", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "mmsi", label: "MMSI", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "check_ok", label: "Check", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 command "clear" "Clear" "Forgets everything heard so far. Favourites stay."
 command "remove" "Remove" "Forgets one object, a favourite too."
-  argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "stations" }), content: None }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key of the object, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+  argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "stations", column: "" }), content: None, reading: 0 }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key of the object, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }

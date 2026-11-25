@@ -82,8 +82,8 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `marker_tone_hz` | Marker tone | frequency |
 | `marker_depth_pct` | Marker depth | number (%) |
 | `keying` | Keying | text |
-| `keying_rate` | Keying rate | number (/s) |
-| `pairs_per_min` | Dot-dash pairs | number (/min) |
+| `keying_rate` | Keying rate | number (1/s) |
+| `pairs_per_min` | Dot-dash pairs | number (1/min) |
 | `dot_s` | Dot | number (s) |
 | `dash_s` | Dash | number (s) |
 | `keying_fits` | Keying fits | yes or no |
@@ -100,7 +100,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `idents` | Identifications heard | `ident` (text), `heard` (whole number) |
-| `passages` | Marker passages | `kind` (choice), `marker` (choice), `text` (text), `level_dbfs` (number (dBFS)) |
+| `passages` | Marker passages | `kind` (choice), `marker` (choice), `text` (text), `level_dbfs` (number (dBFS)), `time_s` (number (s)) |
 
 ## Events
 
@@ -117,9 +117,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `avnav`, version 1.4. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avnav`, version 2.0. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Navigation aids (`navigation`). Media: sound (monitor).
+
+Key readings: `ident`, `ddm`, `command`, `level_dbfs`, `marker`.
 
 ### Result fields
 
@@ -168,20 +170,20 @@ Struct `MarkerFields`. The marker beacon (the part `marker`): the passage under 
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `marker` | choice | always | 1.1 | The marker of the passage, named by its tone. None before the first passage of three elements and outside the marker part. |
-| `marker_tone_hz` | frequency | optional | 1.1 | The tone of the passage, measured. No value without a passage. |
-| `marker_depth_pct` | number (%) | optional | 1.1 | The modulation depth of the tone. No value without a passage. |
-| `keying` | text | optional | 1.1 | The keying as text ("2.0 dashes per second (0.30 s long)"). No value without a passage. |
-| `keying_rate` | number (/s) | optional | 1.1 | Elements a second, from the first onset to the last. No value without a passage. |
-| `pairs_per_min` | number (/min) | optional | 1.1 | Dot-dash pairs a minute. No value without mixed keying. |
-| `dot_s` | number (s) | optional | 1.1 | The mean dot length. No value without dots. |
-| `dash_s` | number (s) | optional | 1.1 | The mean dash length. No value without dashes. |
-| `keying_fits` | yes or no | optional | 1.1 | The keying fits the standard (ICAO Annex 10 Volume I, 3.1.7.5). No value without a passage. |
-| `passage_s` | number (s) | optional | 1.1 | The length of the passage. No value without a passage. |
-| `passages` | whole number | always | 1.1 | Passages finished, those of fewer than three elements not counted. |
-| `keyed_now` | yes or no | always | 1.1 | The tone with the greatest held depth keys the last period. |
-| `held_depth_pct` | number (%) | optional | 1.1 | The held depth of that tone. No value outside the marker part. |
-| `pattern` | choice | always | 1.1 | The pattern of the last on-lengths of that tone. |
+| `marker` | choice | always | 1.0 | The marker of the passage, named by its tone. None before the first passage of three elements and outside the marker part. |
+| `marker_tone_hz` | frequency | optional | 1.0 | The tone of the passage, measured. No value without a passage. |
+| `marker_depth_pct` | number (%) | optional | 1.0 | The modulation depth of the tone. No value without a passage. |
+| `keying` | text | optional | 1.0 | The keying as text ("2.0 dashes per second (0.30 s long)"). No value without a passage. |
+| `keying_rate` | number (1/s) | optional | 1.0 | Elements a second, from the first onset to the last. No value without a passage. |
+| `pairs_per_min` | number (1/min) | optional | 1.0 | Dot-dash pairs a minute. No value without mixed keying. |
+| `dot_s` | number (s) | optional | 1.0 | The mean dot length. No value without dots. |
+| `dash_s` | number (s) | optional | 1.0 | The mean dash length. No value without dashes. |
+| `keying_fits` | yes or no | optional | 1.0 | The keying fits the standard (ICAO Annex 10 Volume I, 3.1.7.5). No value without a passage. |
+| `passage_s` | number (s) | optional | 1.0 | The length of the passage. No value without a passage. |
+| `passages` | whole number | always | 1.0 | Passages finished, those of fewer than three elements not counted. |
+| `keyed_now` | yes or no | always | 1.0 | The tone with the greatest held depth keys the last period. |
+| `held_depth_pct` | number (%) | optional | 1.0 | The held depth of that tone. No value outside the marker part. |
+| `pattern` | choice | always | 1.0 | The pattern of the last on-lengths of that tone. |
 
 ### Result fields
 
@@ -209,12 +211,13 @@ Struct `MarkerPassageRow`. A row of the marker passages. The row key is the numb
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `kind` | choice | always | 1.1 | A marker, or a marker tone whose keying does not fit the standard. |
-| `marker` | choice | always | 1.1 | The marker of the tone. |
-| `text` | text | always | 1.1 | The tone, the keying, the depth and the length ("400 Hz, 2.0 dashes per second (0.30 s long), depth 95 %, 7.8 s"). |
-| `level_dbfs` | number (dBFS) | optional | 1.1 | The carrier level at the end of the passage. No value before the first carrier measurement. |
+| `kind` | choice | always | 1.0 | A marker, or a marker tone whose keying does not fit the standard. |
+| `marker` | choice | always | 1.0 | The marker of the tone. |
+| `text` | text | always | 1.0 | The tone, the keying, the depth and the length ("400 Hz, 2.0 dashes per second (0.30 s long), depth 95 %, 7.8 s"). |
+| `level_dbfs` | number (dBFS) | optional | 1.0 | The carrier level at the end of the passage. No value before the first carrier measurement. |
+| `time_s` | number (s) | always | 1.0 | The signal time of the end of the passage. |
 
-The column `marker` names a row.
+The rows are a log: they arrive over time. The column `marker` names a row. Time: `time_s`.
 
 ### Event `morse.word`
 
@@ -238,14 +241,14 @@ Struct `MarkerEvent`. The fields of a finished marker passage.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `source` | text | always | 1.1 | The marker ("Outer marker"). |
-| `text` | text | always | 1.1 | The tone, the keying, the depth and the length. |
-| `family` | choice | always | 1.1 | The family of the source: other. |
-| `kind` | choice | always | 1.1 | A marker, or a marker tone whose keying does not fit the standard. |
-| `marker` | choice | always | 1.1 | The marker of the tone. |
-| `tone_hz` | frequency | always | 1.1 | The tone, measured. |
-| `depth_pct` | number (%) | always | 1.1 | The modulation depth of the tone. |
-| `duration_s` | number (s) | always | 1.1 | The length of the passage. |
+| `source` | text | always | 1.0 | The marker ("Outer marker"). |
+| `text` | text | always | 1.0 | The tone, the keying, the depth and the length. |
+| `family` | choice | always | 1.0 | The family of the source: other. |
+| `kind` | choice | always | 1.0 | A marker, or a marker tone whose keying does not fit the standard. |
+| `marker` | choice | always | 1.0 | The marker of the tone. |
+| `tone_hz` | frequency | always | 1.0 | The tone, measured. |
+| `depth_pct` | number (%) | always | 1.0 | The modulation depth of the tone. |
+| `duration_s` | number (s) | always | 1.0 | The length of the passage. |
 
 ### Commands
 

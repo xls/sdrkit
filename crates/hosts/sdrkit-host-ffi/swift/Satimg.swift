@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "satimg", version 1.3. MIT licence.
+// sdrkit: the typed interface of the stack family "satimg", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum SatimgInterface {
-    public static let major = 1
-    public static let minor = 3
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The fields of the link layers that every coded stack publishes: the front end, the demodulator, the code, the frames and the packets. A field whose report has not come has no value.
@@ -649,6 +649,8 @@ public struct GoesGvarBlockRow {
     public var headerOk: Bool
     /// The data field of a block had a good CRC.
     public var dataOk: Bool
+    /// The signal time at which a block was read.
+    public var timeS: Double
 
     init(_ c: sdrkit_goes_gvar_block_row) {
         key = sdrkitText(c.key)
@@ -658,6 +660,7 @@ public struct GoesGvarBlockRow {
         wordCount = c.word_count
         headerOk = c.header_ok
         dataOk = c.data_ok
+        timeS = c.time_s
     }
 }
 
@@ -1455,6 +1458,8 @@ public struct SatFilecastRecentFileRow {
     public var received: Int64
     /// Every part arrived.
     public var complete: Bool
+    /// The signal time at which a file was given out.
+    public var timeS: Double
 
     init(_ c: sdrkit_sat_filecast_recent_file_row) {
         key = sdrkitText(c.key)
@@ -1463,6 +1468,7 @@ public struct SatFilecastRecentFileRow {
         parts = c.parts
         received = c.received
         complete = c.complete
+        timeS = c.time_s
     }
 }
 
@@ -2026,6 +2032,8 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgImageRow.init))
     }
     /// The changed rows of the table "blocks" of the stack "goes_gvar", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func goesGvarBlocks(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[GoesGvarBlockRow], SDRKitCode> {
         var rows = [sdrkit_goes_gvar_block_row](repeating: sdrkit_goes_gvar_block_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2090,7 +2098,9 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgImageRow.init))
     }
     /// The changed rows of the table "frames" of the stack "goes_cda", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `hex` names a row.
+    /// Time: `time`.
     public static func goesCdaFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2107,7 +2117,9 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgVirtualChannelRow.init))
     }
     /// The changed rows of the table "frames" of the stack "goes_mdl", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `hex` names a row.
+    /// Time: `time`.
     public static func goesMdlFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2124,7 +2136,9 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgVirtualChannelRow.init))
     }
     /// The changed rows of the table "frames" of the stack "gk2a_cdas", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `hex` names a row.
+    /// Time: `time`.
     public static func gk2aCdasFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2141,7 +2155,9 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgVirtualChannelRow.init))
     }
     /// The changed rows of the table "frames" of the stack "sband_ccsds", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `hex` names a row.
+    /// Time: `time`.
     public static func sbandCcsdsFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2158,7 +2174,9 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgVirtualChannelRow.init))
     }
     /// The changed rows of the table "frames" of the stack "rdas", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `hex` names a row.
+    /// Time: `time`.
     public static func rdasFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2361,7 +2379,9 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgUhritFrameRow.init))
     }
     /// The changed rows of the table "flashes" of the stack "goes_grb", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// Place of a row: the column `position`.
+    /// Time: `time`.
     public static func goesGrbFlashes(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[GoesGrbGlmFlashRow], SDRKitCode> {
         var rows = [sdrkit_goes_grb_glm_flash_row](repeating: sdrkit_goes_grb_glm_flash_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2370,7 +2390,9 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GoesGrbGlmFlashRow.init))
     }
     /// The changed rows of the table "groups" of the stack "goes_grb", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// Place of a row: the column `position`.
+    /// Time: `time`.
     public static func goesGrbGroups(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[GoesGrbGlmGroupRow], SDRKitCode> {
         var rows = [sdrkit_goes_grb_glm_group_row](repeating: sdrkit_goes_grb_glm_group_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2403,7 +2425,9 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Dvbs2StreamModcodRow.init))
     }
     /// The changed rows of the table "recent_files" of the stack "sat_filecast", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `name` names a row.
+    /// Time: `time_s`.
     public static func satFilecastRecentFiles(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[SatFilecastRecentFileRow], SDRKitCode> {
         var rows = [sdrkit_sat_filecast_recent_file_row](repeating: sdrkit_sat_filecast_recent_file_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2460,7 +2484,9 @@ public enum SatimgTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SatimgImageRow.init))
     }
     /// The changed rows of the table "frames" of the stack "eodb", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `hex` names a row.
+    /// Time: `time`.
     public static func eodbFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[SatimgFrameRow], SDRKitCode> {
         var rows = [sdrkit_satimg_frame_row](repeating: sdrkit_satimg_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2844,6 +2870,15 @@ public enum SatimgSettings {
     public static func setMeteorLrptFollow(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "follow", value))
     }
+    /// Pass end.
+    public static func meteorLrptPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setMeteorLrptPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
+    }
     /// The options of the setting "filter" of the stack "goes_hrit".
     public enum GoesHritFilter: Int32 {
         case all = 0
@@ -2933,6 +2968,15 @@ public enum SatimgSettings {
     }
     public static func setFy2SvissrFollow(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "follow", value))
+    }
+    /// Pass end.
+    public static func fy2SvissrPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setFy2SvissrPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
     }
     /// The options of the setting "preset" of the stack "fy3_ahrpt".
     public enum Fy3AhrptPreset: Int32 {
@@ -3040,6 +3084,15 @@ public enum SatimgSettings {
     public static func setFy3AhrptFollow(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "follow", value))
     }
+    /// Pass end.
+    public static func fy3AhrptPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setFy3AhrptPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
+    }
     /// The options of the setting "preset" of the stack "fy3_mpt".
     public enum Fy3MptPreset: Int32 {
         case auto = 0
@@ -3142,6 +3195,15 @@ public enum SatimgSettings {
     public static func setFy3MptFollow(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "follow", value))
     }
+    /// Pass end.
+    public static func fy3MptPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setFy3MptPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
+    }
     /// The options of the setting "picture" of the stack "noaa_apt".
     public enum NoaaAptPicture: Int32 {
         case aPT = 0
@@ -3174,6 +3236,15 @@ public enum SatimgSettings {
     }
     public static func setNoaaAptLineFilter(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "line_filter", value))
+    }
+    /// Pass end.
+    public static func noaaAptPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setNoaaAptPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
     }
     /// The options of the setting "view" of the stack "noaa_dsb".
     public enum NoaaDsbView: Int32 {
@@ -3217,6 +3288,15 @@ public enum SatimgSettings {
     public static func setNoaaDsbFollow(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "follow", value))
     }
+    /// Pass end.
+    public static func noaaDsbPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setNoaaDsbPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
+    }
     /// The options of the setting "picture" of the stack "goes_gvar".
     public enum GoesGvarPicture: Int32 {
         case imagerVisible = 0
@@ -3257,6 +3337,15 @@ public enum SatimgSettings {
     public static func setGoesGvarFollow(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "follow", value))
     }
+    /// Pass end.
+    public static func goesGvarPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setGoesGvarPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
+    }
     /// The options of the setting "view" of the stack "aws".
     public enum AwsView: Int32 {
         case ch1 = 0
@@ -3296,6 +3385,15 @@ public enum SatimgSettings {
     }
     public static func setAwsFollow(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "follow", value))
+    }
+    /// Pass end.
+    public static func awsPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setAwsPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
     }
     /// The options of the setting "picture" of the stack "noaa_gac".
     public enum NoaaGacPicture: Int32 {
@@ -3353,6 +3451,15 @@ public enum SatimgSettings {
     public static func setNoaaGacFollow(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "follow", value))
     }
+    /// Pass end.
+    public static func noaaGacPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setNoaaGacPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
+    }
     /// The options of the setting "picture" of the stack "msg_raw".
     public enum MsgRawPicture: Int32 {
         case sEVIRI = 0
@@ -3400,6 +3507,15 @@ public enum SatimgSettings {
     }
     public static func setMsgRawFollow(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "follow", value))
+    }
+    /// Pass end.
+    public static func msgRawPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setMsgRawPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
     }
     /// Link name.
     public static func sbandCcsdsLinkName(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
@@ -3551,6 +3667,15 @@ public enum SatimgSettings {
     }
     public static func setRdasRollOff(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "roll_off", value))
+    }
+    /// Pass end.
+    public static func rdasPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setRdasPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
     }
     /// Symbol rate.
     public static func gk2aUhritSymbolRate(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
@@ -4422,6 +4547,15 @@ public enum SatimgSettings {
     public static func setHrptFollow(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "follow", value))
     }
+    /// Pass end.
+    public static func hrptPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setHrptPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
+    }
     /// Symbol rate.
     public static func eodbSymbolRate(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
         var v: Double = 0
@@ -4457,6 +4591,15 @@ public enum SatimgSettings {
     }
     public static func setEodbAvhrrCalibration(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "avhrr_calibration", $0) })
+    }
+    /// Pass end.
+    public static func eodbPassGap(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "pass_gap", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setEodbPassGap(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "pass_gap", value))
     }
 }
 

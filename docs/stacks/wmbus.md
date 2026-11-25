@@ -88,7 +88,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 3.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
 
@@ -170,6 +170,8 @@ Struct `WmbusFrameRow`. A row of the frame log. The row key is the number of the
 | `result` | text | always | 1.0 | The summary of the frame. |
 | `frame` | text | always | 1.0 | The frame bytes in hex. |
 
+The rows are a log: they arrive over time. Time: `time`.
+
 ### Table `channels`
 
 Struct `WmbusChannelRow`. A row of the channels. The row key is the frequency in MHz and the modes.
@@ -219,6 +221,8 @@ Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
 | `remove` | `sdrkit_wmbus_remove` | `sdrkit_wmbus_meter_args` | none |
 | `send` | `sdrkit_wmbus_send` | `sdrkit_wmbus_send_args` | none |
 | `halt` | `sdrkit_wmbus_halt` | none | none |
+
+The argument `address` of `send` takes the column `meter_id` of a row of the table `meters`.
 
 ### Settings
 

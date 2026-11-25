@@ -111,6 +111,7 @@ struct FieldAttr {
     content: Option<Path>,
     shared: Option<Path>,
     role: Option<Ident>,
+    reading: Option<syn::LitInt>,
 }
 
 fn field_attr(attrs: &[Attribute]) -> syn::Result<FieldAttr> {
@@ -129,8 +130,12 @@ fn field_attr(attrs: &[Attribute]) -> syn::Result<FieldAttr> {
                 out.shared = Some(m.value()?.parse()?);
             } else if m.path.is_ident("role") {
                 out.role = Some(m.value()?.parse()?);
+            } else if m.path.is_ident("reading") {
+                out.reading = Some(m.value()?.parse()?);
             } else {
-                return Err(m.error("expected label, unit, refers_to, content, shared or role"));
+                return Err(
+                    m.error("expected label, unit, refers_to, content, shared, role or reading")
+                );
             }
             Ok(())
         })?;
@@ -217,6 +222,7 @@ fn fields_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
                 || attr.shared.is_some()
                 || attr.unit.is_some()
                 || attr.refers_to.is_some()
+                || attr.reading.is_some()
             {
                 return Err(syn::Error::new_spanned(
                     ident,
@@ -252,6 +258,7 @@ fn fields_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
             continue;
         }
         let role = attr.role.iter();
+        let reading = attr.reading.iter();
         let value = match (&attr.shared, &attr.label) {
             (Some(path), None) => {
                 if attr.unit.is_some() || attr.refers_to.is_some() {
@@ -265,7 +272,7 @@ fn fields_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
                         #core::interface::same_text(#path.key, #key),
                         "the key of the shared field is not the name of the struct field"
                     );
-                    #path #(.role(#core::Role::#role))*
+                    #path #(.role(#core::Role::#role))* #(.reading(#reading))*
                 })
             }
             (None, Some(label)) => {
@@ -275,7 +282,7 @@ fn fields_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
                     .unwrap_or_else(|| LitStr::new("", Span::call_site()));
                 let refers = attr.refers_to.iter();
                 let content = attr.content.iter();
-                quote!(#core::Field::new(#key, #label, #unit) #(.refers_to_table(#refers))* #(.content(#content))* #(.role(#core::Role::#role))*)
+                quote!(#core::Field::new(#key, #label, #unit) #(.refers_to_table(#refers))* #(.content(#content))* #(.role(#core::Role::#role))* #(.reading(#reading))*)
             }
             _ => {
                 return Err(syn::Error::new_spanned(
@@ -347,6 +354,7 @@ struct ArgAttr {
     unit: Option<LitStr>,
     help: Option<LitStr>,
     refers_to: Option<LitStr>,
+    refers_column: Option<LitStr>,
     shared: Option<Path>,
     default: Option<Expr>,
     min: Option<Expr>,
@@ -366,6 +374,8 @@ fn arg_attr(attrs: &[Attribute]) -> syn::Result<ArgAttr> {
                 out.help = Some(m.value()?.parse()?);
             } else if m.path.is_ident("refers_to") {
                 out.refers_to = Some(m.value()?.parse()?);
+            } else if m.path.is_ident("column") {
+                out.refers_column = Some(m.value()?.parse()?);
             } else if m.path.is_ident("shared") {
                 out.shared = Some(m.value()?.parse()?);
             } else if m.path.is_ident("default") {
@@ -378,7 +388,7 @@ fn arg_attr(attrs: &[Attribute]) -> syn::Result<ArgAttr> {
                 out.step = Some(m.value()?.parse()?);
             } else {
                 return Err(m.error(
-                    "expected label, unit, help, refers_to, shared, default, min, max or step",
+                    "expected label, unit, help, refers_to, column, shared, default, min, max or step",
                 ));
             }
             Ok(())
@@ -482,7 +492,21 @@ fn arguments_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
                 let empty = LitStr::new("", Span::call_site());
                 let unit = attr.unit.clone().unwrap_or_else(|| empty.clone());
                 let help = attr.help.clone().unwrap_or(empty);
-                let refers = attr.refers_to.iter();
+                if attr.refers_column.is_some() && attr.refers_to.is_none() {
+                    return Err(syn::Error::new_spanned(
+                        ident,
+                        "column names a column of the table of refers_to: give refers_to too",
+                    ));
+                }
+                // The table of the argument: its row keys, or the values of one of its columns.
+                let refers: Vec<TokenStream> = attr
+                    .refers_to
+                    .iter()
+                    .map(|table| match &attr.refers_column {
+                        Some(column) => quote!(.refers_to_column(#table, #column)),
+                        None => quote!(.refers_to_table(#table)),
+                    })
+                    .collect();
                 if optional {
                     let Some(default) = &attr.default else {
                         return Err(syn::Error::new_spanned(
@@ -498,13 +522,13 @@ fn arguments_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
                     };
                     quote!({
                         let mut s = #core::Setting::new(#key, #label, #unit, #default).help(#help);
-                        #(s.field = s.field.refers_to_table(#refers);)*
+                        #(s.field = s.field #refers;)*
                         #range
                         s
                     })
                 } else {
                     quote!(#core::settings::Argument::new(
-                        #core::Field::new(#key, #label, #unit) #(.refers_to_table(#refers))*
+                        #core::Field::new(#key, #label, #unit) #(#refers)*
                     ).help(#help))
                 }
             }

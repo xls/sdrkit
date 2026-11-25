@@ -82,9 +82,11 @@ The stack puts points on a map: Alert areas.
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: sound (programme), text.
+
+Key readings: `messages_ok`, `channel`, `tone_now`, `snr_db`.
 
 ### Result fields
 
@@ -154,6 +156,8 @@ Struct `SameToneRow`. An attention tone. The row key is the sequence number of t
 | `signal_time_s` | number (s) | always | 1.0 | The signal time of a row. |
 | `duration` | duration (s) | always | 1.0 | The length of a tone. |
 | `level_db` | number (dB) | always | 1.0 | The level of a tone. |
+
+The rows are a log: they arrive over time. Time: `signal_time_s`.
 
 ### Event `same.alert`
 

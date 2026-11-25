@@ -106,7 +106,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfkbd`, version 2.10. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfkbd`, version 3.0. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Keyboard text (`text_chat`). Media: sound (monitor), text.
 
@@ -151,19 +151,19 @@ Struct `ArdopTxFields`. The result fields of the ARDOP sender and of its link.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tx_sending` | yes or no | always | 2.6 | Whether a burst is on air. |
-| `tx_frame` | text | optional | 2.6 | The type of the frame on air. No value while nothing is sent. |
-| `tx_waiting` | whole number | always | 2.6 | The bursts waiting to be sent. |
-| `link_state` | choice | always | 2.6 | The state of the link. |
-| `link_peer` | text | optional | 2.6 | The other station of the link. No value while no link was made. |
-| `link_session` | whole number | optional | 2.6 | The session id of the link. No value while no link was made. |
-| `link_sent` | whole number | always | 2.6 | The data bytes of the stack that the other station acknowledged. |
-| `link_received` | whole number | always | 2.6 | The data bytes that the other station sent and the stack received. |
-| `link_waiting` | whole number | always | 2.6 | The data bytes waiting to be sent on the link. |
-| `link_retries` | whole number | always | 2.6 | The repeats in a row of the frame that waits for its answer. |
-| `link_reason` | text | always | 2.6 | Why the link state is what it is; empty when it needs no reason. |
-| `link_text` | text | optional | 2.6 | The text received on the link, the newest 4000 bytes. No value before the first byte. |
-| `link_request` | text | optional | 2.6 | The station of the newest connect request to the station callsign that the stack did not answer. |
+| `tx_sending` | yes or no | always | 1.0 | Whether a burst is on air. |
+| `tx_frame` | text | optional | 1.0 | The type of the frame on air. No value while nothing is sent. |
+| `tx_waiting` | whole number | always | 1.0 | The bursts waiting to be sent. |
+| `link_state` | choice | always | 1.0 | The state of the link. |
+| `link_peer` | text | optional | 1.0 | The other station of the link. No value while no link was made. |
+| `link_session` | whole number | optional | 1.0 | The session id of the link. No value while no link was made. |
+| `link_sent` | whole number | always | 1.0 | The data bytes of the stack that the other station acknowledged. |
+| `link_received` | whole number | always | 1.0 | The data bytes that the other station sent and the stack received. |
+| `link_waiting` | whole number | always | 1.0 | The data bytes waiting to be sent on the link. |
+| `link_retries` | whole number | always | 1.0 | The repeats in a row of the frame that waits for its answer. |
+| `link_reason` | text | always | 1.0 | Why the link state is what it is; empty when it needs no reason. |
+| `link_text` | text | optional | 1.0 | The text received on the link, the newest 4000 bytes. No value before the first byte. |
+| `link_request` | text | optional | 1.0 | The station of the newest connect request to the station callsign that the stack did not answer. |
 
 ### Table `frames`
 
@@ -227,10 +227,10 @@ Struct `KeyboardTxEvent`. The fields of a change of a keyboard transmission.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | text | always | 2.4 | The state: started, queued, finished or refused. |
-| `reason` | text | always | 2.4 | Why it changed: empty, stopped, the transmitter is off, the format changed, tune carrier, or why a text was refused. |
-| `text` | text | always | 2.4 | The text: as given to `send` for started, queued and refused; as coded for finished. |
-| `family` | choice | always | 2.4 | The family of the source: a message. |
+| `state` | text | always | 1.0 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.0 | Why it changed: empty, stopped, the transmitter is off, the format changed, tune carrier, or why a text was refused. |
+| `text` | text | always | 1.0 | The text: as given to `send` for started, queued and refused; as coded for finished. |
+| `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Event `ardop.link`
 
@@ -238,11 +238,11 @@ Struct `ArdopLinkEvent`. The fields of a change of the ARDOP link.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | choice | always | 2.6 | The link state after the change. |
-| `source` | text | always | 2.6 | The other station. |
-| `reason` | text | always | 2.6 | What happened: connected, data received, the other station disconnected, a request not answered, or why the link failed. |
-| `text` | text | always | 2.6 | The data received, as text; empty when none came. |
-| `family` | choice | always | 2.6 | The family of the source: a message. |
+| `state` | choice | always | 1.0 | The link state after the change. |
+| `source` | text | always | 1.0 | The other station. |
+| `reason` | text | always | 1.0 | What happened: connected, data received, the other station disconnected, a request not answered, or why the link failed. |
+| `text` | text | always | 1.0 | The data received, as text; empty when none came. |
+| `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Commands
 
@@ -256,6 +256,8 @@ Struct `ArdopLinkEvent`. The fields of a change of the ARDOP link.
 | `connect` | `sdrkit_ardop_connect` | `sdrkit_ardop_call_args` | none |
 | `disconnect` | `sdrkit_ardop_disconnect` | none | none |
 | `stop` | `sdrkit_ardop_stop` | none | none |
+
+The argument `target` of `ping` takes the column `callsign` of a row of the table `stations`. The argument `target` of `connect` takes the column `callsign` of a row of the table `stations`.
 
 ### Settings
 

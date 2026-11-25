@@ -33,7 +33,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:lo
 | `implicit` | Implicit header | yes or no | false |  |  |
 | `cr` | Coding rate | whole number | 5 | 5 to 8 | 5 is 4/5, 8 is 4/8. |
 | `crc` | CRC | yes or no | true |  |  |
-| `length` | Length | whole number (bytes) | 16 | 1 to 255 |  |
+| `length` | Length | whole number (B) | 16 | 1 to 255 |  |
 | `sync` | Sync word | choice | `0x12` | `0x12` (0x12 private), `0x34` (0x34 LoRaWAN), `0x2B` (0x2B Meshtastic), `any` (Any of these), `custom` (Custom) |  |
 | `sync_custom` | Custom sync word | whole number | 18 | 0 to 255 | Used when the sync word is custom. |
 | `preamble` | Preamble | whole number | 8 | 6 to 65 |  |
@@ -108,9 +108,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `lora`, version 3.3. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 4.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: none.
+
+Key readings: `frames_ok`, `frames_bad`, `snr_db`.
 
 ### Result fields
 
@@ -165,6 +167,8 @@ Struct `RawFrameRow`. A row of the raw frame log. The row key is the place of th
 | `cfo` | frequency | always | 1.0 | The carrier offset. |
 | `payload` | bytes | always | 1.0 | The payload. |
 | `text` | text | always | 1.0 | The payload as text for people. |
+
+The rows are a log: they arrive over time. Time: `time_s`.
 
 ### Table `decoders`
 

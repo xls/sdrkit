@@ -26,12 +26,22 @@ pub struct FieldDecl {
     /// The choice list of a [`ValueKind::Choice`] field. Empty for other kinds.
     #[serde(default, skip_serializing_if = "<[ChoiceDecl]>::is_empty")]
     pub choices: Cow<'static, [ChoiceDecl]>,
-    /// The table whose row keys this column holds. `None` for most fields.
+    /// The table whose row keys this column holds, or whose rows give values for it. `None` for most fields.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub refers_to: Option<RefersTo>,
     /// The content type of a [`ValueKind::Bytes`] field. `None` for other kinds.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub content: Option<ContentType>,
+    /// The order of the field among the key readings of its owner, from 1: what a person looks at first. 0 for a
+    /// field that is no key reading.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub reading: u8,
+}
+
+/// True for 0, for the serialiser.
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn is_zero(n: &u8) -> bool {
+    *n == 0
 }
 
 /// What the bytes of a [`ValueKind::Bytes`] field hold.
@@ -52,7 +62,9 @@ pub enum ContentType {
     Binary,
 }
 
-/// The table that a column refers to: the owner that holds it and the table key. A cell of the column holds a row key of it.
+/// The table that a field refers to: the owner that holds it and the table key. Without a column, a value of the
+/// field is a row key of the table. With a column, a value can be taken from that column of a row, and other values
+/// stay valid: the addressee of a send command.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RefersTo {
     /// The owner of the table. `None` for a table of the owner that declares the column.
@@ -60,9 +72,14 @@ pub struct RefersTo {
     pub owner: Option<OwnerKey>,
     /// The key of the table in the owner's results.
     pub table: Cow<'static, str>,
+    /// The key of the column that holds the value to pass. Empty: the value is the row key.
+    #[serde(default, skip_serializing_if = "str::is_empty")]
+    pub column: Cow<'static, str>,
 }
 
 impl FieldDecl {
+    /// The most key readings of one owner.
+    pub const MAX_READINGS: u8 = 6;
     /// A field of `kind` with no choice list.
     pub fn new(
         key: impl Into<Cow<'static, str>>,
@@ -78,6 +95,7 @@ impl FieldDecl {
             choices: Cow::Borrowed(&[]),
             refers_to: None,
             content: None,
+            reading: 0,
         }
     }
     /// A choice field with this list, for a list built at run time.
@@ -94,6 +112,7 @@ impl FieldDecl {
             choices: choices.into(),
             refers_to: None,
             content: None,
+            reading: 0,
         }
     }
     /// The same field, holding row keys of table `table` of owner `owner`.
@@ -102,6 +121,7 @@ impl FieldDecl {
         self.refers_to = Some(RefersTo {
             owner: Some(owner),
             table: table.into(),
+            column: Cow::Borrowed(""),
         });
         self
     }
@@ -111,6 +131,7 @@ impl FieldDecl {
         self.refers_to = Some(RefersTo {
             owner: None,
             table: table.into(),
+            column: Cow::Borrowed(""),
         });
         self
     }

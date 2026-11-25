@@ -49,6 +49,8 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|---|
 | `gen_cc` | Colour code | whole number | 1 | 0 to 15 |  |
 
+The setting `talkgroup` takes the column `talkgroup` of a row of the table `talkgroups`.
+
 ## Result fields
 
 | Key | Label | Kind |
@@ -137,7 +139,7 @@ The stack puts points on a map: Positions.
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 2.4. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 2.5. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Voice calls (`voice`). Media: sound (voice).
 

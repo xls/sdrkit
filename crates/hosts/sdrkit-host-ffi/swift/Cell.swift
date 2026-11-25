@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "cell", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "cell", version 1.3. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum CellInterface {
     public static let major = 1
-    public static let minor = 2
+    public static let minor = 3
 }
 
 /// The result fields of `railway_cir`.
@@ -2073,6 +2073,8 @@ public struct EotDropped {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum CellTables {
     /// The changed rows of the table "messages" of the stack "railway_cir", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `received`.
     public static func railwayCirMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 2000) -> Result<[RailwayCirMessageRow], SDRKitCode> {
         var rows = [sdrkit_railway_cir_message_row](repeating: sdrkit_railway_cir_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2195,8 +2197,10 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GsmrCarrierRow.init))
     }
     /// The changed rows of the table "messages" of the stack "lbj", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// Place of a row: the column `position`.
     /// Speed: `speed_kmh`.
+    /// Time: `received`.
     public static func lbjMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[LbjMessageRow], SDRKitCode> {
         var rows = [sdrkit_lbj_message_row](repeating: sdrkit_lbj_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2205,6 +2209,8 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(LbjMessageRow.init))
     }
     /// The changed rows of the table "telegrams" of the stack "ebicab", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `received`.
     public static func ebicabTelegrams(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[EbicabTelegramRow], SDRKitCode> {
         var rows = [sdrkit_ebicab_telegram_row](repeating: sdrkit_ebicab_telegram_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2221,6 +2227,8 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(EbicabBaliseRow.init))
     }
     /// The changed rows of the table "other_bursts" of the stack "ebicab", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `received`.
     public static func ebicabOtherBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[EbicabOtherBurstRow], SDRKitCode> {
         var rows = [sdrkit_ebicab_other_burst_row](repeating: sdrkit_ebicab_other_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2253,6 +2261,8 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(TdscdmaCellRow.init))
     }
     /// The changed rows of the table "frames" of the stack "eot", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func eotFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[EotFrameRow], SDRKitCode> {
         var rows = [sdrkit_eot_frame_row](repeating: sdrkit_eot_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2261,6 +2271,8 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(EotFrameRow.init))
     }
     /// The changed rows of the table "detections" of the stack "cv2x", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func cv2xDetections(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[Cv2xDetectionRow], SDRKitCode> {
         var rows = [sdrkit_cv2x_detection_row](repeating: sdrkit_cv2x_detection_row(), count: capacity)
         var info = sdrkit_rows_info.sized

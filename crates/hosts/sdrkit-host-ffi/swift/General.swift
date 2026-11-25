@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "general", version 1.3. MIT licence.
+// sdrkit: the typed interface of the stack family "general", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum GeneralInterface {
-    public static let major = 1
-    public static let minor = 3
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of the AM processor. The measurements have no value while the processor does not run.

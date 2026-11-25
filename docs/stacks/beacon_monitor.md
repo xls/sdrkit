@@ -40,7 +40,6 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Kind |
 |---|---|---|
-| `text` | Text | text |
 | `state` | State | choice |
 | `good` | Good readings | whole number |
 | `bad` | Bad readings | whole number |
@@ -75,17 +74,18 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `meter`, version 1.1. The C header `sdrkit/meter.h`, the registry record `registry/meter.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `meter`, version 2.0. The C header `sdrkit/meter.h`, the registry record `registry/meter.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Measurement and analysis (`measurement`). Media: none.
 
+Key readings: `class`, `level_db`, `spread_hz`, `swing_db`.
+
 ### Result fields
 
-Struct `WatchFields`. The status of a spectrum watcher: the headline, the state, the counts of readings and the input level.
+Struct `WatchFields`. The status of a spectrum watcher: the state, the counts of readings and the input level. The headline is the summary of the status.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `text` | text | always | 1.0 | The headline. |
 | `state` | choice | always | 1.0 | The state. |
 | `good` | whole number | always | 1.0 | The good readings: what the stack counts as a measurement. |
 | `bad` | whole number | always | 1.0 | The bad readings: what the stack counts as a fault of the watched band. |
@@ -125,6 +125,8 @@ Struct `BeaconMonitorEventRow`. A change of class of `beacon_monitor`.
 | `level_db` | number (dB) | optional | 1.0 | The last level. |
 | `spread_hz` | number (Hz) | optional | 1.0 | The median spread of the decision. |
 | `swing_db` | number (dB) | optional | 1.0 | The swing of the decision. |
+
+The rows are a log: they arrive over time. Time: `time_s`.
 
 ### Event `beacon_monitor.change`
 

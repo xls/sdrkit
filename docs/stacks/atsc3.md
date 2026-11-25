@@ -52,6 +52,8 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:at
 | `step_bootstrap` | Bootstrap step | choice |
 | `step_l1` | L1 step | choice |
 | `step_service` | Service step | choice |
+| `video_packets` | Video packets | whole number |
+| `audio_packets` | Sound packets | whole number |
 | `frames_failed` | Frames not decoded | whole number |
 | `not_decoded` | Not decoded | choice |
 | `fft_size` | FFT size | whole number |
@@ -92,8 +94,8 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:at
 
 | Key | Label | Columns |
 |---|---|---|
-| `services` | Services | `major` (whole number), `minor` (whole number), `name` (text), `hidden` (yes or no), `id` (whole number), `category` (choice), `delivery` (choice), `action` (choice), `sls_objects` (whole number), `sls_documents` (whole number), `sls_signed_packages` (whole number) |
-| `components` | Media components | `tsi` (whole number), `fourcc` (text) |
+| `services` | Services | `major` (whole number), `minor` (whole number), `name` (text), `hidden` (yes or no), `id` (whole number), `category` (choice), `delivery` (choice), `action` (choice), `sls_objects` (whole number), `sls_documents` (whole number), `sls_signed_packages` (whole number), `protected` (yes or no) |
+| `components` | Media components | `tsi` (whole number), `fourcc` (text), `destination` (text), `service` (whole number), `kind` (choice), `state` (choice) |
 | `plps` | PLPs | `subframe` (whole number), `id` (whole number), `layer` (whole number), `points` (whole number), `code_rate` (whole number (/15)), `ldpc_bits` (whole number (bit)), `cells` (whole number), `time_interleaver` (whole number), `decoded` (yes or no), `bonding` (whole number), `bonded_bsid` (whole number) |
 
 ## Commands
@@ -104,9 +106,11 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:at
 
 ## Typed interface
 
-The stack is in the family `tvterr`, version 1.7. The C header `sdrkit/tvterr.h`, the registry record `registry/tvterr.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `tvterr`, version 1.8. The C header `sdrkit/tvterr.h`, the registry record `registry/tvterr.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
-Content kind: Television and video (`television`). Media: none.
+Content kind: Television and video (`television`). Media: sound (programme), video.
+
+Key readings: `service_received`, `mer_db`.
 
 ### Result fields
 
@@ -132,10 +136,12 @@ Struct `Atsc3Fields`. The result fields of `atsc3`: the bootstrap, the frames, t
 | `service` | whole number | optional | 1.0 | The service chosen with `service.select`. No value for the automatic choice. |
 | `service_received` | whole number | optional | 1.0 | The service received: the chosen one, or the first visible linear TV service delivered by ROUTE. |
 | `route_objects` | whole number | always | 1.0 | ROUTE objects taken. |
-| `media_samples` | whole number | always | 1.0 | Media samples given out. |
+| `media_samples` | whole number | always | 1.0 | Access units given out as media packets, video and audio. |
 | `step_bootstrap` | choice | always | 1.0 | The bootstrap step. |
 | `step_l1` | choice | always | 1.0 | The L1 step. |
-| `step_service` | choice | always | 1.0 | The service signalling step. |
+| `step_service` | choice | always | 1.0 | The service step: green while a component of the received service is given. |
+| `video_packets` | whole number | always | 1.8 | Video access units given out as media packets. |
+| `audio_packets` | whole number | always | 1.8 | Audio access units given out as media packets. |
 
 ### Result fields
 
@@ -186,17 +192,22 @@ Struct `Atsc3ServiceRow`. A row of the services of the service list. The row key
 | `sls_objects` | whole number | always | 1.0 | Service layer signalling objects received on TSI 0 of the ROUTE session of the service. |
 | `sls_documents` | whole number | always | 1.0 | Signalling documents (USBD, S-TSID, MPD and others) read from those objects. |
 | `sls_signed_packages` | whole number | always | 1.0 | Those objects that were signed packages. The signature is not verified. |
+| `protected` | yes or no | always | 1.8 | The service list says that a component needed to present the service is protected, for example encrypted. |
 
 The column `name` names a row.
 
 ### Table `components`
 
-Struct `Atsc3ComponentRow`. A row of the media components seen, in the order they appeared. The row key is the ROUTE session.
+Struct `Atsc3ComponentRow`. A row of the media components seen, in the order they appeared. The row key is the destination address and port of the ROUTE session and the transport session id of the component: `239.255.10.2:5002/1`.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tsi` | whole number | always | 1.0 | The ROUTE session of the component. |
-| `fourcc` | text | always | 1.0 | The four-character code of the codec of the component. |
+| `tsi` | whole number | always | 1.0 | The transport session id of the component in its ROUTE session. |
+| `fourcc` | text | always | 1.0 | The sample entry type of the component: the four-character code of its codec. |
+| `destination` | text | always | 1.8 | The destination address and port of the ROUTE session. |
+| `service` | whole number | optional | 1.8 | The service whose session description names the component. No value when none that was read names it. |
+| `kind` | choice | always | 1.8 | What the component carries. |
+| `state` | choice | always | 1.8 | What the stack does with the component. |
 
 ### Table `plps`
 

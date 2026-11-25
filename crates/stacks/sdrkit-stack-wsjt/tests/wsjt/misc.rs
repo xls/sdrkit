@@ -272,6 +272,7 @@ fn t_gen_2_refusals() {
             48000.0,
             t,
             1500.0,
+            false,
         )
         .is_err());
     }

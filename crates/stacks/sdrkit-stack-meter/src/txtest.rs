@@ -177,7 +177,6 @@ impl<T: TxTest> Decoder for Frame<T> {
         st.snr_db = None;
         st.summary = headline;
         p.put(&WatchFields {
-            text: &st.summary,
             state: self.ctx.tally.state(t),
             good: i64::try_from(self.ctx.tally.good).unwrap_or(i64::MAX),
             bad: i64::try_from(self.ctx.tally.bad).unwrap_or(i64::MAX),

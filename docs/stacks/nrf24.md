@@ -58,7 +58,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|
 | `frames` | Frames | `time_s` (number (s)), `bit_rate` (frequency), `address` (text), `address_len` (whole number), `length` (whole number), `pid` (whole number), `no_ack` (yes or no), `crc_bits` (whole number), `payload` (text), `text` (text), `snr_db` (number (dB)), `repeats` (whole number) |
 | `addresses` | Addresses | `address` (text), `address_len` (whole number), `bit_rate` (frequency), `crc_bits` (whole number), `length` (whole number), `frequency` (frequency), `heard` (whole number), `last_heard` (time) |
-| `bad_bursts` | Bursts without frame | `time_s` (number (s)), `duration_us` (number (µs)), `snr_db` (number (dB)) |
+| `bad_bursts` | Bursts without frame | `time_s` (number (s)), `duration_us` (number (us)), `snr_db` (number (dB)) |
 
 ## Events
 
@@ -75,7 +75,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 3.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
 
@@ -138,7 +138,7 @@ Struct `NrfBadBurstRow`. A row of the bursts without a frame. The row key is the
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `time_s` | number (s) | always | 1.0 | The signal time of the burst. |
-| `duration_us` | number (µs) | always | 1.0 | The duration of the burst. |
+| `duration_us` | number (us) | always | 1.0 | The duration of the burst. |
 | `snr_db` | number (dB) | always | 1.0 | The SNR. |
 
 ### Event `nrf24.address`

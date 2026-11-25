@@ -586,7 +586,7 @@ pub struct PulsarDecoder {
     last: Option<Outcome>,
     searches: u64,
     detections: u64,
-    table: VecDeque<(u64, Outcome)>,
+    table: VecDeque<(u64, f64, Outcome)>,
     serial: u64,
     fresh: usize,
     cleared: bool,
@@ -754,7 +754,7 @@ impl PulsarDecoder {
                 },
             ));
         }
-        self.table.push_back((self.serial, o.clone()));
+        self.table.push_back((self.serial, self.origin_s + o.observed_s, o.clone()));
         self.serial += 1;
         self.fresh = (self.fresh + 1).min(MAX_SEARCHES);
         while self.table.len() > MAX_SEARCHES {
@@ -959,7 +959,7 @@ impl Decoder for PulsarDecoder {
             p.clear_rows(&PULSAR_SEARCHES);
         }
         let start = self.table.len().saturating_sub(self.fresh);
-        for (serial, o) in self.table.iter().skip(start) {
+        for (serial, time_s, o) in self.table.iter().skip(start) {
             PULSAR_SEARCHES.put(
                 p,
                 &format!("{serial:05}"),
@@ -971,6 +971,7 @@ impl Decoder for PulsarDecoder {
                     dm_found: o.dm,
                     peak_phase: o.peak_phase,
                     duty: o.duty,
+                    time_s: *time_s,
                 },
             );
         }

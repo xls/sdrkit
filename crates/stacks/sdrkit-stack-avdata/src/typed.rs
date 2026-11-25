@@ -58,7 +58,7 @@ pub struct OfdmShapeFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct OfdmShapeDetectionRow<'a> {
     /// The signal time of the start.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The symbol duration with its prefix.
     #[field(label = "Symbol", unit = "us")]
@@ -77,9 +77,10 @@ pub struct OfdmShapeDetectionRow<'a> {
     pub frame: Option<&'a str>,
 }
 
-/// The detection starts, newest first.
+/// The detection starts, newest first: a log.
 pub static OFDM_DETECTIONS: Table<OfdmShapeDetectionRow<'static>> =
-    Table::new("detections", "Detections", crate::ofdm_shape::DETECTION_CAP);
+    Table::new("detections", "Detections", crate::ofdm_shape::DETECTION_CAP)
+        .role(sdrkit_core::TableRole::Log);
 
 // --- GBAS VDB ---
 
@@ -87,19 +88,19 @@ pub static OFDM_DETECTIONS: Table<OfdmShapeDetectionRow<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct GbasVdbFields<'a> {
     /// Slots of 8 that held a burst in the last frame.
-    #[field(label = "Slots busy (of 8)")]
+    #[field(label = "Slots busy (of 8)", reading = 2)]
     pub slots_busy: i64,
     /// The line of the symbol rate was seen.
-    #[field(label = "Symbol rate 10 500 /s seen")]
+    #[field(label = "Symbol rate 10 500 /s seen", reading = 1)]
     pub symbol_rate_seen: bool,
     /// Bursts counted.
-    #[field(label = "Bursts")]
+    #[field(label = "Bursts", reading = 4)]
     pub bursts: i64,
     /// The length of the last burst. No value before a burst.
     #[field(label = "Burst length", unit = "ms")]
     pub length_ms: Option<f64>,
     /// The signal to noise ratio of the last burst. No value before a burst.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 3)]
     pub snr_db: Option<f64>,
     /// The summary line.
     #[field(shared = keys::TEXT)]
@@ -116,7 +117,7 @@ pub struct GbasVdbFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct GbasVdbBurstRow {
     /// The signal time of the burst.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The length of the burst.
     #[field(label = "Burst length", unit = "ms")]
@@ -131,7 +132,7 @@ pub struct GbasVdbBurstRow {
 
 /// The burst log, newest first.
 pub static GBAS_VDB_BURSTS: Table<GbasVdbBurstRow> =
-    Table::new("bursts", "Burst log", crate::gbas_vdb::LOG_CAP);
+    Table::new("bursts", "Burst log", crate::gbas_vdb::LOG_CAP).role(sdrkit_core::TableRole::Log);
 
 // --- VDL Mode 3 ---
 
@@ -219,7 +220,7 @@ pub struct Vdl3BurstRow<'a> {
     #[field(label = "Reed-Solomon good")]
     pub rs_ok: bool,
     /// Octets corrected by Reed-Solomon.
-    #[field(label = "Reed-Solomon corrected", unit = "octets")]
+    #[field(label = "Reed-Solomon corrected", unit = "B")]
     pub rs_corrected: i64,
     /// The data octets, hex.
     #[field(label = "Data")]
@@ -1124,23 +1125,6 @@ pub const PTT: CommandKind<PttArgs> = ptt("With on true, sends the speech of the
 pub const HALT: Command = Command::new("halt", "Halt")
     .help("Ends the transmission at once, with the fall of the carrier.");
 
-/// What version 1.1 added: the transmit branch of Airband.
-const ADDED_1_1: &[&str] = &[
-    "shape.AirbandTxFields",
-    "shape.AirbandTxFields.transmitting",
-    "shape.AirbandTxFields.tx_freq_hz",
-    "shape.AirbandTxFields.tx_time_s",
-    "shape.AirbandTxFields.tx_mic_dbfs",
-    "shape.AirbandTxFields.tx_depth",
-    "airband.fields.AirbandTxFields",
-    "airband.setting.tx_spacing",
-    "airband.setting.tx_am_depth",
-    "airband.setting.tx_mic_gain",
-    "airband.setting.tx_timeout",
-    "airband.command.ptt",
-    "airband.command.halt",
-];
-
 // --- HFDL ---
 
 /// The result fields of HFDL.
@@ -1850,23 +1834,7 @@ pub fn family() -> &'static Described {
                 "Vdl4Fields.ground_stations",
             ]);
         // The keys of the training sequences differ by a star only, so the starred ones get a name of their own.
-        Described::new("avdata", 1, 4)
-            .added(
-                1,
-                2,
-                &[
-                    "acars.content",
-                    "vdl2.content",
-                    "vdl4.content",
-                    "selcal.content",
-                    "airband.content",
-                    "hfdl.content",
-                    "vdl3.content",
-                    "gbas_vdb.content",
-                    "ldacs.content",
-                    "aeromacs.content",
-                ],
-            )
+        Described::new("avdata", 2, 0)
             .content(sdrkit_core::ContentKind::Voice, &["airband"])
             .content(
                 sdrkit_core::ContentKind::Datalink,
@@ -1903,7 +1871,6 @@ pub fn family() -> &'static Described {
                 "aeromacs",
                 crate::aeromacs::AeromacsSetting::SETTINGS,
             ))
-            .added(1, 1, ADDED_1_1)
     })
 }
 

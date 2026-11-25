@@ -30,7 +30,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:li
 | `station_name` | Station name | text | empty |  | 1 to 24 printable characters. Its hash is the station id. |
 | `server_is_station` | The server's radio counts as a station | yes or no | true |  |  |
 | `system_clock` | Computer clock | choice | `ntp` | `system` (Not synchronised), `ntp` (NTP), `ptp` (PTP) |  |
-| `system_sigma_us` | Computer clock error | number (µs) | 0 | 1 to 1000000 |  |
+| `system_sigma_us` | Computer clock error | number (us) | 0 | 1 to 1000000 |  |
 | `use_radio_time` | Use the radio's GPS time | yes or no | true |  | GPS marks that the host gives (time_mark) are used. |
 | `timing_id` | Timing transmitter id | whole number | 1 | 1 to 255 | The same at every station of a network. |
 | `timing_label` | Timing transmitter | text | empty |  |  |
@@ -49,7 +49,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `gen_strike_rate` | Test signal: strikes a second | number (/s) | 2 | 0 to 50 | Strikes come at random gaps, at least 2 ms apart, within 3° of latitude and 4° of longitude of 52.5 N 13.4 E. |
+| `gen_strike_rate` | Test signal: strikes a second | number (1/s) | 2 | 0 to 50 | Strikes come at random gaps, at least 2 ms apart, within 3° of latitude and 4° of longitude of 52.5 N 13.4 E. |
 | `gen_timing_tx` | Test signal: timing transmitter | yes or no | false |  | A 200 Bd MSK transmitter at 52.0 N 10.0 E, amplitude 0.05. |
 | `gen_timing_offset_hz` | Test signal: timing transmitter offset | frequency | 50 kHz | -1 MHz to 1 MHz | From the tuned centre; at most the rate / 2.5. |
 | `gen_station_lat` | Test signal: station latitude | number (°) | 52.5 | -90 to 90 | Where the test signal is heard, when the host gives no station position. |
@@ -64,20 +64,20 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `last_peak_db` | Last peak | number (dB) |
 | `floor_db` | Floor | number (dBFS) |
 | `time_source` | Time source | text |
-| `clock_sigma_us` | Clock error | number (µs) |
+| `clock_sigma_us` | Clock error | number (us) |
 | `clock_ppm` | Sample clock drift | number (ppm) |
 | `clock_ppm_sigma` | Drift error | number (ppm) |
 | `fine` | Fine timing | yes or no |
-| `sigma_gps_us` | GPS clock | number (µs) |
-| `sigma_gnss_us` | GNSS clock | number (µs) |
-| `sigma_cv_us` | Common-view clock | number (µs) |
-| `sigma_ptp_us` | PTP clock | number (µs) |
-| `sigma_ntp_us` | NTP clock | number (µs) |
-| `sigma_system_us` | Computer clock | number (µs) |
+| `sigma_gps_us` | GPS clock | number (us) |
+| `sigma_gnss_us` | GNSS clock | number (us) |
+| `sigma_cv_us` | Common-view clock | number (us) |
+| `sigma_ptp_us` | PTP clock | number (us) |
+| `sigma_ntp_us` | NTP clock | number (us) |
+| `sigma_system_us` | Computer clock | number (us) |
 | `common_view` | Common view in use | yes or no |
 | `timing_locked` | Timing transmitter locked | yes or no |
 | `timing_snr_db` | Timing SNR | number (dB) |
-| `timing_sigma_us` | Timing boundary error | number (µs) |
+| `timing_sigma_us` | Timing boundary error | number (us) |
 | `timing_carrier_hz` | Timing carrier error | number (Hz) |
 | `network` | Network | text |
 | `sent` | Packets sent | whole number |
@@ -101,8 +101,8 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `strikes` | Strikes | `utc_ns` (whole number (ns)), `lat` (number (°)), `lon` (number (°)), `major_km` (number (km)), `minor_km` (number (km)), `az_deg` (number (°)), `stations` (whole number), `also_heard` (whole number), `rms_us` (number (µs)), `chi2` (number), `dof` (whole number), `unchecked` (yes or no), `ambiguous` (yes or no), `utc` (yes or no) |
-| `stations` | Stations | `id` (text), `name` (text), `lat` (number (°)), `lon` (number (°)), `time_source` (text), `sigma_us` (number (µs)), `age_s` (number (s)), `detections` (whole number), `used` (whole number), `fine` (yes or no), `tied_to_utc` (yes or no), `cv_correction_us` (number (µs)) |
+| `strikes` | Strikes | `utc_ns` (whole number (ns)), `lat` (number (°)), `lon` (number (°)), `major_km` (number (km)), `minor_km` (number (km)), `az_deg` (number (°)), `stations` (whole number), `also_heard` (whole number), `rms_us` (number (us)), `chi2` (number), `dof` (whole number), `unchecked` (yes or no), `ambiguous` (yes or no), `utc` (yes or no), `time` (time) |
+| `stations` | Stations | `id` (text), `name` (text), `lat` (number (°)), `lon` (number (°)), `time_source` (text), `sigma_us` (number (us)), `age_s` (number (s)), `detections` (whole number), `used` (whole number), `fine` (yes or no), `tied_to_utc` (yes or no), `cv_correction_us` (number (us)) |
 
 ## Map points
 
@@ -112,7 +112,7 @@ The stack puts points on a map: Lightning strikes.
 
 | Kind | Label | Fields |
 |---|---|---|
-| `lightning.strike` | Lightning strike | `utc_ns` (whole number (ns)), `lat` (number (°)), `lon` (number (°)), `major_km` (number (km)), `minor_km` (number (km)), `az_deg` (number (°)), `stations` (whole number), `also_heard` (whole number), `rms_us` (number (µs)), `chi2` (number), `dof` (whole number), `unchecked` (yes or no), `ambiguous` (yes or no), `utc` (yes or no) |
+| `lightning.strike` | Lightning strike | `utc_ns` (whole number (ns)), `lat` (number (°)), `lon` (number (°)), `major_km` (number (km)), `minor_km` (number (km)), `az_deg` (number (°)), `stations` (whole number), `also_heard` (whole number), `rms_us` (number (us)), `chi2` (number), `dof` (whole number), `unchecked` (yes or no), `ambiguous` (yes or no), `utc` (yes or no) |
 
 ## Commands
 
@@ -125,9 +125,11 @@ The stack puts points on a map: Lightning strikes.
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: none.
+
+Key readings: `fixes`, `pulses`, `clock_sigma_us`, `time_source`, `network`.
 
 ### Result fields
 
@@ -140,20 +142,20 @@ Struct `LightningTdoaFields`. The result fields of `lightning_tdoa`.
 | `last_peak_db` | number (dB) | optional | 1.0 | The peak of the newest sferic. |
 | `floor_db` | number (dBFS) | optional | 1.0 | The floor of the sferic timer. |
 | `time_source` | text | always | 1.0 | The best usable time source. |
-| `clock_sigma_us` | number (µs) | optional | 1.0 | Its 1-sigma now. |
+| `clock_sigma_us` | number (us) | optional | 1.0 | Its 1-sigma now. |
 | `clock_ppm` | number (ppm) | optional | 1.0 | The rate error of its sample clock. |
 | `clock_ppm_sigma` | number (ppm) | optional | 1.0 | The 1-sigma of the drift. |
 | `fine` | yes or no | always | 1.0 | A detection now would be fine. |
-| `sigma_gps_us` | number (µs) | optional | 1.0 | The 1-sigma of the GPS clock. |
-| `sigma_gnss_us` | number (µs) | optional | 1.0 | The 1-sigma of the GNSS clock. |
-| `sigma_cv_us` | number (µs) | optional | 1.0 | The 1-sigma of the common-view clock. |
-| `sigma_ptp_us` | number (µs) | optional | 1.0 | The 1-sigma of the PTP clock. |
-| `sigma_ntp_us` | number (µs) | optional | 1.0 | The 1-sigma of the NTP clock. |
-| `sigma_system_us` | number (µs) | optional | 1.0 | The 1-sigma of the unsynchronised computer clock. |
+| `sigma_gps_us` | number (us) | optional | 1.0 | The 1-sigma of the GPS clock. |
+| `sigma_gnss_us` | number (us) | optional | 1.0 | The 1-sigma of the GNSS clock. |
+| `sigma_cv_us` | number (us) | optional | 1.0 | The 1-sigma of the common-view clock. |
+| `sigma_ptp_us` | number (us) | optional | 1.0 | The 1-sigma of the PTP clock. |
+| `sigma_ntp_us` | number (us) | optional | 1.0 | The 1-sigma of the NTP clock. |
+| `sigma_system_us` | number (us) | optional | 1.0 | The 1-sigma of the unsynchronised computer clock. |
 | `common_view` | yes or no | always | 1.0 | The common-view clock stamps the detections. |
 | `timing_locked` | yes or no | optional | 1.0 | The timing transmitter is locked. |
 | `timing_snr_db` | number (dB) | optional | 1.0 | Its SNR. |
-| `timing_sigma_us` | number (µs) | optional | 1.0 | The 1-sigma of its boundary. |
+| `timing_sigma_us` | number (us) | optional | 1.0 | The 1-sigma of its boundary. |
 | `timing_carrier_hz` | number (Hz) | optional | 1.0 | Its carrier error. |
 | `network` | text | always | 1.0 | The state of the network. |
 | `sent` | whole number | always | 1.0 | Datagrams sent. |
@@ -194,14 +196,15 @@ Struct `LightningTdoaStrikeRow`. A located strike (server). The row key is the s
 | `az_deg` | number (°) | always | 1.0 | The azimuth of the major axis. |
 | `stations` | whole number | always | 1.0 | Stations used. |
 | `also_heard` | whole number | always | 1.0 | Coarse stations that heard it. |
-| `rms_us` | number (µs) | always | 1.0 | The rms of the residuals. |
+| `rms_us` | number (us) | always | 1.0 | The rms of the residuals. |
 | `chi2` | number | always | 1.0 | Chi-square. |
 | `dof` | whole number | always | 1.0 | Degrees of freedom. |
 | `unchecked` | yes or no | always | 1.0 | No degree of freedom checks it. |
 | `ambiguous` | yes or no | always | 1.0 | A second solution fits as well. |
 | `utc` | yes or no | always | 1.0 | The time is UTC. |
+| `time` | time | optional | 1.0 | The time of a strike, or `None` when the time is not UTC. |
 
-Place of a row: the columns `lat` and `lon`.
+The rows are a log: they arrive over time. Place of a row: the columns `lat` and `lon`. Time: `time`.
 
 ### Table `stations`
 
@@ -214,13 +217,13 @@ Struct `LightningTdoaStationRow`. A station of the network (server). The row key
 | `lat` | number (°) | always | 1.0 | Latitude. |
 | `lon` | number (°) | always | 1.0 | Longitude. |
 | `time_source` | text | always | 1.0 | The best usable time source. |
-| `sigma_us` | number (µs) | always | 1.0 | The 1-sigma of the station's clock. |
+| `sigma_us` | number (us) | always | 1.0 | The 1-sigma of the station's clock. |
 | `age_s` | number (s) | always | 1.0 | The time since the station's last datagram. |
 | `detections` | whole number | always | 1.0 | Detections received. |
 | `used` | whole number | always | 1.0 | Detections used in fixes. |
 | `fine` | yes or no | always | 1.0 | A detection now would be fine. |
 | `tied_to_utc` | yes or no | always | 1.0 | The station's clock is UTC. |
-| `cv_correction_us` | number (µs) | optional | 1.0 | The common-view correction. |
+| `cv_correction_us` | number (us) | optional | 1.0 | The common-view correction. |
 
 The column `name` names a row. Place of a row: the columns `lat` and `lon`.
 
@@ -238,7 +241,7 @@ Struct `LightningStrikeEvent`. A strike located (server).
 | `az_deg` | number (°) | always | 1.0 | The azimuth of the major axis. |
 | `stations` | whole number | always | 1.0 | Stations used. |
 | `also_heard` | whole number | always | 1.0 | Coarse stations that heard it. |
-| `rms_us` | number (µs) | always | 1.0 | The rms of the residuals. |
+| `rms_us` | number (us) | always | 1.0 | The rms of the residuals. |
 | `chi2` | number | always | 1.0 | Chi-square. |
 | `dof` | whole number | always | 1.0 | Degrees of freedom. |
 | `unchecked` | yes or no | always | 1.0 | No degree of freedom checks it. |

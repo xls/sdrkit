@@ -71,9 +71,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.7. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 2.0. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: none.
+
+Key readings: `snr_db`, `offset_hz`.
 
 ### Result fields
 
@@ -110,6 +112,8 @@ Struct `Ale3gPduRow`. A PDU of 3G-ALE. The row key is the number of the PDU.
 | `snr_db` | number (dB) | always | 1.0 | The signal-to-noise ratio of the burst. |
 | `offset_hz` | frequency | always | 1.0 | The frequency error of the burst. |
 | `data` | text | always | 1.0 | The data bytes of a packet or datagram. |
+
+The rows are a log: they arrive over time. Time: `utc`.
 
 ### Event `ale3g.pdu`
 

@@ -798,7 +798,7 @@ pub const GEN_TDS: Setting<field::Text> = Setting::new(
 pub const GEN_ECD: Setting<field::F64> = Setting::new(
     "gen_ecd",
     "Test signal: ECD of the first secondary",
-    "µs",
+    "us",
     0.0,
 )
 .range(-5.0, 5.0, 0.0)

@@ -189,10 +189,10 @@ pub struct DrmServiceRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct DrmStreamRow {
     /// The bytes of part A.
-    #[field(label = "Part A", unit = "bytes")]
+    #[field(label = "Part A", unit = "B")]
     pub part_a: i64,
     /// The bytes of part B.
-    #[field(label = "Part B", unit = "bytes")]
+    #[field(label = "Part B", unit = "B")]
     pub part_b: i64,
 }
 

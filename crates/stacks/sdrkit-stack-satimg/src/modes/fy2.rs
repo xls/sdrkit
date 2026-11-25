@@ -7,16 +7,19 @@ use super::display::{
 use crate::components::link::{
     item_format, item_port, DemodComponent, DemodReport, FrontEndComponent, FrontReport,
 };
+use crate::components::pass::{
+    pass_format, pass_port, PassPictures, PassSetting, PassTimer, PASS_GAP,
+};
 use crate::components::{last, Control};
 use crate::files;
-use crate::gen::{test_pixel, BitSource, GenError, ModParams, Modulator};
+use crate::gen::{pass_lines, test_pixel, BitSource, GenError, ModParams, Modulator};
 use crate::instruments::svissr::{
     build, parse, pn_bits, scramble, SvissrFramer, SvissrLine, FRAME_BYTES, IR_SAMPLES, MAX_LINES,
     PREAMBLE, VIS_SAMPLES,
 };
 use crate::psk::{LinkClass, LinkParams, Modulation, Search, SnrEstimator};
 use crate::REPORT_S;
-use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView};
 use sdrkit_codec_image::strip::{Strip, View};
 use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
 use crate::typed::{FileArgs, Fy2SvissrFields, ImageRow, LinkFields, IMAGES, OPEN_SVISSR};
@@ -29,8 +32,8 @@ use sdrkit_core::{
     StackDescriptor, Storage, Tuning, Value, Values,
 };
 use sdrkit_graph::{
-    no_values, values_of, Applied, Catalog, Component, ComponentInfo, Format, GraphBuilder,
-    GraphError, Io, Item, Port, StackGraph, Timed,
+    values_of, Applied, Catalog, Component, ComponentInfo, Format, GraphBuilder, GraphError, Io,
+    Item, Port, StackGraph, Timed,
 };
 use std::fmt::Write as _;
 use std::sync::Arc;
@@ -90,11 +93,16 @@ pub const GEN_FIRST_LINE: Setting<field::I64> =
         .range(0.0, 2499.0, 1.0)
         .section(TEST)
         .advanced();
-/// The lines of the test signal before they repeat.
-pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test lines", "", 8)
+/// The lines of the test signal: a pass of that many lines, then the signal ends. 0: the test picture of
+/// [`TEST_PICTURE_LINES`] lines repeats without end.
+pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test lines", "", 0)
     .range(1.0, 2500.0, 1.0)
+    .zero_means("Without end")
+    .help("The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.")
     .section(TEST)
     .advanced();
+/// The lines of the test signal before they repeat.
+pub const TEST_PICTURE_LINES: u32 = 8;
 
 sdrkit_core::settings! {
     /// The settings of `fy2_svissr`, with the options of its test signal.
@@ -103,6 +111,8 @@ sdrkit_core::settings! {
         SymbolRate = SYMBOL_RATE_SETTING,
         /// Keep the newest lines in view.
         Follow = FOLLOW,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// Test: the symbol rate.
         GenSymbolRate = GEN_SYMBOL_RATE,
         /// Test: the first line.
@@ -180,6 +190,7 @@ pub struct SvissrComponent {
     frames: Vec<crate::instruments::svissr::FoundFrame>,
     strips: Vec<Strip>,
     storage: Arc<dyn Storage>,
+    pass: PassTimer,
 }
 
 impl Default for SvissrComponent {
@@ -198,6 +209,7 @@ impl Default for SvissrComponent {
             frames: Vec::new(),
             strips: Vec::new(),
             storage: files::in_memory(),
+            pass: PassTimer::default(),
         }
     }
 }
@@ -316,14 +328,18 @@ impl Component for SvissrComponent {
             vec![
                 item_port::<Strip>("out"),
                 item_port::<SvissrReport>("report"),
+                pass_port(),
             ],
         )
+        .with_settings(PassSetting::schema())
     }
-    fn apply(&mut self, id: SettingId, _: &Value) -> Result<Applied, SettingError> {
-        Err(SettingError::NoSuchId { id })
+    fn apply(&mut self, id: SettingId, v: &Value) -> Result<Applied, SettingError> {
+        match PassSetting::from_id(id).ok_or(SettingError::NoSuchId { id })? {
+            PassSetting::PassGap => self.pass.apply(id, v),
+        }
     }
     fn values(&self) -> Values {
-        no_values()
+        values_of([(PassSetting::PassGap, Value::F64(self.pass.gap_s()))])
     }
     fn any_ref(&self) -> Option<&dyn std::any::Any> {
         Some(self)
@@ -347,7 +363,11 @@ impl Component for SvissrComponent {
     fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
         self.bit_rate = inputs[0].rate.max(1.0);
         self.framer = SvissrFramer::default();
-        Ok(vec![item_format::<Strip>(), item_format::<SvissrReport>()])
+        Ok(vec![
+            item_format::<Strip>(),
+            item_format::<SvissrReport>(),
+            pass_format(),
+        ])
     }
     fn process(&mut self, io: &mut Io) {
         // NRZ-M: a 1 is a change of level, so the polarity of the carrier does not matter.
@@ -372,6 +392,10 @@ impl Component for SvissrComponent {
                 self.report.imported += 1;
                 self.frame(f, 0.0, &mut strips);
             }
+        }
+        // At the end of a pass the next frame starts a new picture.
+        if self.pass.after(io, !strips.is_empty(), 2) {
+            self.last_counter = None;
         }
         io.items_out::<Strip>(0)
             .extend(strips.drain(..).map(|s| Timed {
@@ -603,7 +627,7 @@ pub fn picture_layouts() -> Vec<PictureLayout> {
 ///
 /// [`GraphError::Schema`] if the picture layouts give no valid schema.
 pub fn builder(rs: f64) -> Result<GraphBuilder, GraphError> {
-    let pictures = Pictures::new(picture_layouts()).map_err(GraphError::Schema)?;
+    let pictures = PassPictures::new(picture_layouts(), "FY-2").map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add(
             "frontend",
@@ -617,6 +641,7 @@ pub fn builder(rs: f64) -> Result<GraphBuilder, GraphError> {
         .connect("frontend.out", "demod.in")
         .connect("demod.soft", "svissr.in")
         .connect("svissr.out", "pictures.in")
+        .connect("svissr.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
         .connect("svissr.report", "display.svissr")
@@ -640,6 +665,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     StackGraph::of(crate::typed::shape(ID), g)
         .route("symbol_rate", &["display.symbol_rate"])?
         .route("follow", &["pictures.follow"])?
+        .route("pass_gap", &["svissr.pass_gap"])?
         .command(
             "open_svissr",
             sdrkit_graph::CommandTarget::of("svissr", "open_svissr"),
@@ -706,12 +732,17 @@ pub struct Fy2Source {
     lines: u16,
     k: u16,
     level: u8,
+    /// The lines sent.
+    sent: u64,
+    /// The lines of the pass, `None` for a signal without end.
+    pass: Option<u64>,
 }
 
 impl BitSource for Fy2Source {
     fn next_bits(&mut self, out: &mut Vec<u8>) {
         let c = self.first + self.k;
         self.k = (self.k + 1) % self.lines.max(1);
+        self.sent += 1;
         let mut f = build(&test_line(c));
         scramble(&mut f);
         let pn = pn_bits();
@@ -727,6 +758,9 @@ impl BitSource for Fy2Source {
                 push((byte >> i) & 1, &mut self.level, out);
             }
         }
+    }
+    fn ended(&self) -> bool {
+        self.pass.is_some_and(|p| self.sent >= p)
     }
 }
 
@@ -748,13 +782,17 @@ impl Fy2Generator {
         let v = &cfg.settings;
         let rs = v.get(&GEN_SYMBOL_RATE);
         let first = v.get(&GEN_FIRST_LINE).clamp(0, 2499) as u16;
-        let lines = v.get(&GEN_LINES).clamp(1, 2500) as u16;
+        // A pass of a stated number of lines sends each line once.
+        let pass = pass_lines(v.get(&GEN_LINES));
+        let lines = pass.map_or(TEST_PICTURE_LINES, |p| p.min(2500) as u32) as u16;
         let modem = ModParams::new(cfg.rate_hz, rs, 0.5, Modulation::Bpsk);
         let src = Fy2Source {
             first,
             lines,
             k: 0,
             level: 0,
+            sent: 0,
+            pass,
         };
         Ok(Fy2Generator {
             rate: cfg.rate_hz,

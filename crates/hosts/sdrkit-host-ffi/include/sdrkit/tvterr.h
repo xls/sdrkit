@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "tvterr", version 1.7. MIT licence.
+ * sdrkit: the typed interface of the stack family "tvterr", version 1.8. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -38,7 +38,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_TVTERR_VERSION_MAJOR 1
-#define SDRKIT_TVTERR_VERSION_MINOR 7
+#define SDRKIT_TVTERR_VERSION_MINOR 8
 
 // The stack "isdbt": its id, and the keys of its event types.
 #define SDRKIT_STACK_ISDBT "isdbt"
@@ -704,14 +704,18 @@ typedef struct sdrkit_atsc3_fields {
   int64_t service_received;
   // ROUTE objects taken.
   int64_t route_objects;
-  // Media samples given out.
+  // Access units given out as media packets, video and audio.
   int64_t media_samples;
   // The bootstrap step. A value of `sdrkit_atsc3_fields_step_bootstrap`.
   int32_t step_bootstrap;
   // The L1 step. A value of `sdrkit_atsc3_fields_step_l1`.
   int32_t step_l1;
-  // The service signalling step. A value of `sdrkit_atsc3_fields_step_service`.
+  // The service step: green while a component of the received service is given. A value of `sdrkit_atsc3_fields_step_service`.
   int32_t step_service;
+  // Video access units given out as media packets.
+  int64_t video_packets;
+  // Audio access units given out as media packets.
+  int64_t audio_packets;
 } sdrkit_atsc3_fields;
 
 // The options of `not_decoded` of `sdrkit_atsc3_frame_fields`.
@@ -888,6 +892,8 @@ typedef enum sdrkit_atsc3_service_row_action {
   SDRKIT_ATSC3_SERVICE_ROW_ACTION_RECEIVING = 2,
   // Not supported
   SDRKIT_ATSC3_SERVICE_ROW_ACTION_UNSUPPORTED = 3,
+  // Encrypted
+  SDRKIT_ATSC3_SERVICE_ROW_ACTION_ENCRYPTED = 4,
 } sdrkit_atsc3_service_row_action;
 
 // A row of the services of the service list. The row key is the service id; `service.select` takes it.
@@ -918,18 +924,58 @@ typedef struct sdrkit_atsc3_service_row {
   int64_t sls_documents;
   // Those objects that were signed packages. The signature is not verified.
   int64_t sls_signed_packages;
+  // The service list says that a component needed to present the service is protected, for example encrypted.
+  bool protected_;
 } sdrkit_atsc3_service_row;
 
-// A row of the media components seen, in the order they appeared. The row key is the ROUTE session.
+// The options of `kind` of `sdrkit_atsc3_component_row`.
+typedef enum sdrkit_atsc3_component_row_kind {
+  // Video
+  SDRKIT_ATSC3_COMPONENT_ROW_KIND_VIDEO = 0,
+  // Sound
+  SDRKIT_ATSC3_COMPONENT_ROW_KIND_AUDIO = 1,
+  // Subtitles
+  SDRKIT_ATSC3_COMPONENT_ROW_KIND_SUBTITLES = 2,
+  // Other
+  SDRKIT_ATSC3_COMPONENT_ROW_KIND_OTHER = 3,
+} sdrkit_atsc3_component_row_kind;
+
+// The options of `state` of `sdrkit_atsc3_component_row`.
+typedef enum sdrkit_atsc3_component_row_state {
+  // Given
+  SDRKIT_ATSC3_COMPONENT_ROW_STATE_GIVEN = 0,
+  // Of another service
+  SDRKIT_ATSC3_COMPONENT_ROW_STATE_OTHER_SERVICE = 1,
+  // Another track of the service
+  SDRKIT_ATSC3_COMPONENT_ROW_STATE_OTHER_TRACK = 2,
+  // Encrypted
+  SDRKIT_ATSC3_COMPONENT_ROW_STATE_ENCRYPTED = 3,
+  // No media form
+  SDRKIT_ATSC3_COMPONENT_ROW_STATE_NO_FORMAT = 4,
+  // In no session description
+  SDRKIT_ATSC3_COMPONENT_ROW_STATE_UNBOUND = 5,
+} sdrkit_atsc3_component_row_state;
+
+// A row of the media components seen, in the order they appeared. The row key is the destination address and port of the ROUTE session and the transport session id of the component: `239.255.10.2:5002/1`.
 typedef struct sdrkit_atsc3_component_row {
   // The number of bytes of this struct that the library wrote.
   uint32_t size;
   // The row key.
   sdrkit_string key;
-  // The ROUTE session of the component.
+  // The transport session id of the component in its ROUTE session.
   int64_t tsi;
-  // The four-character code of the codec of the component.
+  // The sample entry type of the component: the four-character code of its codec.
   sdrkit_string fourcc;
+  // The destination address and port of the ROUTE session.
+  sdrkit_string destination;
+  // True if `service` holds a value.
+  bool has_service;
+  // The service whose session description names the component. No value when none that was read names it.
+  int64_t service;
+  // What the component carries. A value of `sdrkit_atsc3_component_row_kind`.
+  int32_t kind;
+  // What the stack does with the component. A value of `sdrkit_atsc3_component_row_state`.
+  int32_t state;
 } sdrkit_atsc3_component_row;
 
 // A row of the PLPs of the last frame: one row for each PLP of each subframe. The row key is the subframe number, a point and the PLP id.

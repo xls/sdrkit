@@ -92,9 +92,11 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:pa
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.7. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 2.0. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: none.
+
+Key readings: `signal`, `variant`, `speed_level`, `symbol_rate_hz`.
 
 ### Result fields
 
@@ -158,6 +160,8 @@ Struct `PactorhfEventRow`. An event of the PACTOR-II, -III and -IV stacks. The r
 | `start` | duration (s) | always | 1.0 | The signal time. |
 | `time` | time | optional | 1.0 | The UTC, when the clock is known. |
 | `text` | text | always | 1.0 | What happened. |
+
+The rows are a log: they arrive over time. Time: `time`.
 
 ### Event `pactorhf.analysis`
 

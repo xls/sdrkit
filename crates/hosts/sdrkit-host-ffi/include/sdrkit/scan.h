@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the settings that every scan has, version 2.1. MIT licence.
+ * sdrkit: the typed interface of the settings that every scan has, version 3.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_SCAN_VERSION_MAJOR 2
-#define SDRKIT_SCAN_VERSION_MINOR 1
+#define SDRKIT_SCAN_VERSION_MAJOR 3
+#define SDRKIT_SCAN_VERSION_MINOR 0
 
 // The options of the setting "stop_on" of the stack "scan".
 typedef enum sdrkit_scan_stop_on {
@@ -273,7 +273,7 @@ typedef struct sdrkit_scan_candidate_row {
   double freq_hz;
   // Score.
   double score;
-  // Speed. Unit: WPM.
+  // Speed. Unit: wpm.
   double wpm;
   // SNR. Unit: dB.
   double snr_db;

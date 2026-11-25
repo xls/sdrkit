@@ -81,7 +81,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ai
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.4. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 2.0. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Voice calls (`voice`). Media: sound (voice).
 
@@ -105,11 +105,11 @@ Struct `AirbandTxFields`. The result fields of the Airband transmitter. The meas
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `transmitting` | yes or no | always | 1.1 | Whether the stack transmits now. |
-| `tx_freq_hz` | frequency | optional | 1.1 | The transmit frequency: the tuned frequency. |
-| `tx_time_s` | duration (s) | optional | 1.1 | The time on air of the transmission. |
-| `tx_mic_dbfs` | number (dBFS) | optional | 1.1 | The peak of the microphone audio over the last report. |
-| `tx_depth` | number (%) | optional | 1.1 | The peak modulation depth over the last report. |
+| `transmitting` | yes or no | always | 1.0 | Whether the stack transmits now. |
+| `tx_freq_hz` | frequency | optional | 1.0 | The transmit frequency: the tuned frequency. |
+| `tx_time_s` | duration (s) | optional | 1.0 | The time on air of the transmission. |
+| `tx_mic_dbfs` | number (dBFS) | optional | 1.0 | The peak of the microphone audio over the last report. |
+| `tx_depth` | number (%) | optional | 1.0 | The peak modulation depth over the last report. |
 
 ### Table `channels`
 

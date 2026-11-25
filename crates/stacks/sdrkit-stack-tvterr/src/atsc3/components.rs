@@ -1,5 +1,5 @@
 //! The ATSC 3.0 components of this crate: `atsc3.sync` (bootstraps), `atsc3.frame` (frames to the cells of a PLP), `atsc3.fec`
-//! (time de-interleaving and FEC blocks to baseband packets), `atsc3.lls` (the service list) and `atsc3.media` (ROUTE objects to media samples). The link and delivery layers between them are the
+//! (time de-interleaving and FEC blocks to baseband packets), `atsc3.lls` (the service list) and `atsc3.media` (the ROUTE objects of a service to media packets). The link and delivery layers between them are the
 //! `ipcast.*` components.
 
 use super::bicm::{BlockResult, PlpCoding, PlpDecoder, PlpPoints, PlpStream};
@@ -13,16 +13,27 @@ use super::svc::{
     parse_lls, parse_slt, parse_system_time, SltService, SystemTime, LLS_ADDR, LLS_PORT, TABLE_SLT,
     TABLE_SYSTEM_TIME,
 };
-use sdrkit_core::{Complex32, ConfigError, SettingError, SettingId, SettingSet, Value, Values};
+use super::delivery::{
+    clean_start, describe, entity_body, parse_stsid, Channel, ComponentKind, TrackInfo,
+};
+use super::results::service_to_receive;
+use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
+use sdrkit_core::{
+    Complex32, ConfigError, Record, SettingError, SettingId, SettingSet, Value, Values,
+};
+use sdrkit_graph::media::MediaPacket;
+use sdrkit_graph::stream::SlicePool;
+use sdrkit_proto_mpegts::publish::{SERVICE_ROW, SERVICE_SELECT_KIND};
 use sdrkit_graph::{
     no_values, values_of, Applied, Component, ComponentInfo, Format, Io, Item, Kept, Kind, Packet,
     PacketPool, Port, RateFrom, RateRule, TagKind, Timed,
 };
 use sdrkit_proto_ipcast::components::{RouteObjectItem, UdpDatagram};
 use sdrkit_proto_ipcast::mp4::{self, Segment, Track};
-use sdrkit_proto_ipcast::sls::read_sls;
+use sdrkit_proto_ipcast::sls::{read_sls, SlsKind, SlsRead};
 use std::collections::VecDeque;
 use std::net::{IpAddr, Ipv4Addr};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
 /// A bootstrap found by `atsc3.sync`.
@@ -656,7 +667,7 @@ impl Component for Fec {
     }
 }
 
-/// The service list as `atsc3.lls` last read it.
+/// The service list as `atsc3.lls` last read it. The lists are shared: a new list is made only when a table changes.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct LlsState {
     /// LLS tables read.
@@ -666,11 +677,11 @@ pub struct LlsState {
     /// Signed multi-tables (id 0xFE) arrived in the last [`SIGNED_HOLD_S`] seconds: the station signs its signalling.
     pub signed: bool,
     /// The BSIDs of the newest SLT.
-    pub bsids: Vec<u16>,
+    pub bsids: Arc<[u16]>,
     /// The services of the newest SLT.
-    pub services: Vec<SltService>,
+    pub services: Arc<[SltService]>,
     /// The newest system time table.
-    pub system_time: Option<SystemTime>,
+    pub system_time: Option<Arc<SystemTime>>,
 }
 
 /// Seconds of signal time the signed flag holds after the last signed multi-table.
@@ -680,12 +691,34 @@ impl Item for LlsState {
     const KIND: &'static str = "atsc3.lls_state";
 }
 
+/// An LLS datagram that was read, and what it held: tables, refused tables, signed.
+#[derive(Default)]
+struct LlsSeen {
+    bytes: Vec<u8>,
+    tables: u64,
+    refused: u64,
+    signed: bool,
+}
+
+/// LLS datagrams remembered: one per table id and group.
+const LLS_SEEN: usize = 16;
+
 /// `atsc3.lls`: the low-level signalling on 224.0.23.60, UDP port 4937, plain tables and signed multi-tables. Input `in`: UDP
-/// datagrams. Output `state`: [`LlsState`] after each datagram.
+/// datagrams. Output `state`: [`LlsState`] after each datagram. A datagram equal to the last one of its table id and group
+/// is counted and not read again.
 #[derive(Default)]
 pub struct Lls {
     state: LlsState,
     signed_at: Option<f64>,
+    seen: Vec<LlsSeen>,
+}
+
+impl Lls {
+    fn reset(&mut self) {
+        self.state = LlsState::default();
+        self.signed_at = None;
+        self.seen.clear();
+    }
 }
 
 impl Component for Lls {
@@ -700,14 +733,12 @@ impl Component for Lls {
         no_values()
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
-        self.state = LlsState::default();
-        self.signed_at = None;
+        self.reset();
         Ok(vec![Format::new(Kind::typed::<LlsState>(), 0.0)])
     }
     /// The service list is of the multiplex of the frequency before.
     fn forget(&mut self, _: &Kept) {
-        self.state = LlsState::default();
-        self.signed_at = None;
+        self.reset();
     }
     fn process(&mut self, io: &mut Io) {
         let lls = IpAddr::V4(Ipv4Addr::from(LLS_ADDR));
@@ -715,29 +746,57 @@ impl Component for Lls {
             if d.value.dst != lls || d.value.dst_port != LLS_PORT {
                 continue;
             }
-            let read = parse_lls(d.value.payload.bytes());
-            self.state.bad += read.refused as u64;
-            if read.signed {
+            let bytes = d.value.payload.bytes();
+            let known = self.seen.iter().position(|s| s.bytes == bytes);
+            let (tables, refused, signed) = match known {
+                Some(at) => {
+                    let s = &self.seen[at];
+                    (s.tables, s.refused, s.signed)
+                }
+                None => {
+                    let read = parse_lls(bytes);
+                    let seen = (read.tables.len() as u64, read.refused as u64, read.signed);
+                    for t in read.tables {
+                        match t.table_id {
+                            TABLE_SLT => {
+                                if let Some(slt) = parse_slt(&t.xml) {
+                                    self.state.bsids = slt.bsids.into();
+                                    self.state.services = slt.services.into();
+                                }
+                            }
+                            TABLE_SYSTEM_TIME => {
+                                if let Some(st) = parse_system_time(&t.xml) {
+                                    self.state.system_time = Some(Arc::new(st));
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                    // The datagram takes the place of the last one of its table id and group.
+                    let at = self
+                        .seen
+                        .iter()
+                        .position(|s| s.bytes.get(..2) == bytes.get(..2))
+                        .unwrap_or_else(|| {
+                            if self.seen.len() == LLS_SEEN {
+                                self.seen.remove(0);
+                            }
+                            self.seen.push(LlsSeen::default());
+                            self.seen.len() - 1
+                        });
+                    let s = &mut self.seen[at];
+                    s.bytes.clear();
+                    s.bytes.extend_from_slice(bytes);
+                    (s.tables, s.refused, s.signed) = seen;
+                    seen
+                }
+            };
+            self.state.tables += tables;
+            self.state.bad += refused;
+            if signed {
                 self.signed_at = Some(d.time);
             }
             self.state.signed = self.signed_at.is_some_and(|t| d.time - t <= SIGNED_HOLD_S);
-            for t in read.tables {
-                self.state.tables += 1;
-                match t.table_id {
-                    TABLE_SLT => {
-                        if let Some(slt) = parse_slt(&t.xml) {
-                            self.state.bsids = slt.bsids;
-                            self.state.services = slt.services;
-                        }
-                    }
-                    TABLE_SYSTEM_TIME => {
-                        if let Some(st) = parse_system_time(&t.xml) {
-                            self.state.system_time = Some(st);
-                        }
-                    }
-                    _ => {}
-                }
-            }
             io.items_out::<LlsState>(0).push(Timed {
                 time: d.time,
                 value: self.state.clone(),
@@ -746,25 +805,46 @@ impl Component for Lls {
     }
 }
 
-/// One media sample of a component.
-#[derive(Clone, Debug, PartialEq)]
-pub struct MediaSample {
-    /// The ROUTE session it came in.
-    pub tsi: u64,
-    /// The FourCC of its codec (`hvc1`, `avc1`, `aac `, `ac-4` ...).
-    pub fourcc: [u8; 4],
-    /// Decoding time, seconds on the component's timeline.
-    pub dts_s: f64,
-    /// Presentation time, seconds.
-    pub pts_s: f64,
-    /// A sync sample.
-    pub keyframe: bool,
-    /// The sample.
-    pub data: Packet,
+sdrkit_core::choice_enum! {
+    /// What `atsc3.media` does with a component.
+    pub enum ComponentState {
+        /// Its access units are given as media packets.
+        Given = ("given", "Given"),
+        /// It belongs to a service that is not received.
+        OtherService = ("other_service", "Of another service"),
+        /// The received service has an earlier component of its kind, and that one is given.
+        OtherTrack = ("other_track", "Another track of the service"),
+        /// Its samples are encrypted.
+        Encrypted = ("encrypted", "Encrypted"),
+        /// The shared media form has no name for its codec, or the init segment lacks its decoder configuration.
+        NoFormat = ("no_format", "No media form"),
+        /// No session description that was read names its channel.
+        Unbound = ("unbound", "In no session description"),
+    }
 }
 
-impl Item for MediaSample {
-    const KIND: &'static str = "atsc3.media";
+/// One component seen: an LCT channel with an init segment.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ComponentRow {
+    /// Its LCT channel.
+    pub channel: Channel,
+    /// The sample entry type of its clear track (`hev1`, `ac-4`, `mp4a`).
+    pub entry: [u8; 4],
+    /// What it carries.
+    pub kind: ComponentKind,
+    /// The service whose session description names its channel.
+    pub service: Option<u16>,
+    /// What is done with it.
+    pub state: ComponentState,
+}
+
+/// The lists of [`MediaState`].
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct MediaLists {
+    /// The components, in the order they appeared.
+    pub components: Vec<ComponentRow>,
+    /// The service layer signalling (TSI 0) per ROUTE session.
+    pub sls: Vec<SlsSession>,
 }
 
 /// What `atsc3.media` has seen.
@@ -774,174 +854,476 @@ pub struct MediaState {
     pub objects: u64,
     /// Init segments read (repeats not counted).
     pub inits: u64,
-    /// Media samples given out.
+    /// Media packets given out.
     pub samples: u64,
-    /// Media segments that came before their init segment, or that did not parse.
+    /// Those of the video component.
+    pub video_packets: u64,
+    /// Those of the audio component.
+    pub audio_packets: u64,
+    /// Media segments of a given component that did not parse, and media segments that came before their init segment.
     pub dropped: u64,
-    /// The FourCC of each component (by session), in the order they appeared.
-    pub components: Vec<(u64, [u8; 4])>,
-    /// The service layer signalling (TSI 0) per ROUTE session.
-    pub sls: Vec<SlsSession>,
     /// A signed signalling package arrived in the last [`SIGNED_HOLD_S`] seconds.
     pub signed: bool,
+    /// The service whose components are given: the chosen one, or the automatic choice.
+    pub receiving: Option<u16>,
+    /// The components and the signalling sessions.
+    pub lists: Arc<MediaLists>,
 }
 
-/// The service layer signalling received on TSI 0 of one ROUTE session.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+/// The service layer signalling received on TSI 0 of one ROUTE session. The counts are shared with every copy of the
+/// state, so a signalling object that repeats makes no new list.
+#[derive(Clone, Debug)]
 pub struct SlsSession {
     /// The destination address of the session's datagrams.
     pub dst: IpAddr,
     /// Their UDP port.
     pub port: u16,
+    counts: Arc<[AtomicU64; 4]>,
+}
+
+impl SlsSession {
+    fn count(&self, at: usize) -> u64 {
+        self.counts[at].load(Ordering::Relaxed)
+    }
+    fn add(&self, at: usize, n: u64) {
+        self.counts[at].fetch_add(n, Ordering::Relaxed);
+    }
     /// Objects received.
-    pub objects: u64,
+    pub fn objects(&self) -> u64 {
+        self.count(0)
+    }
     /// Documents read from them (USBD, S-TSID, MPD and others).
-    pub documents: u64,
+    pub fn documents(&self) -> u64 {
+        self.count(1)
+    }
     /// Objects that were signed packages. The signature is not verified.
-    pub signed_packages: u64,
+    pub fn signed_packages(&self) -> u64 {
+        self.count(2)
+    }
     /// Gzip members in them that did not inflate.
-    pub broken_gzip: u64,
+    pub fn broken_gzip(&self) -> u64 {
+        self.count(3)
+    }
+}
+
+impl PartialEq for SlsSession {
+    fn eq(&self, o: &SlsSession) -> bool {
+        self.dst == o.dst && self.port == o.port && (0..4).all(|k| self.count(k) == o.count(k))
+    }
 }
 
 impl Item for MediaState {
     const KIND: &'static str = "atsc3.media_state";
 }
 
-/// `atsc3.media`: fragmented MP4 in ROUTE objects to media samples. Input `in`: ROUTE objects. Output `out`: [`MediaSample`]s.
-/// Output `state`: [`MediaState`]. An init segment is known by its first box (not every sender sets the code point). A repeated
-/// one is ignored. Media before the first init segment of its session cannot be played and is dropped. Objects of TSI 0 are the
-/// service layer signalling of their session: each is read in any of its forms ([`read_sls`]) and its documents and signed
-/// packages are counted per destination; they are not read as media.
+/// A signalling object that was read, by its TOI.
+struct SlsSeen {
+    toi: u64,
+    bytes: Vec<u8>,
+    read: SlsRead,
+}
+
+/// Signalling objects remembered per session.
+const SLS_SEEN: usize = 8;
+
+/// What is kept of the signalling of one session, beside its [`SlsSession`] of the same index.
+#[derive(Default)]
+struct SlsKept {
+    seen: Vec<SlsSeen>,
+    /// The entry of `seen` that the next new TOI replaces once the list is full.
+    next: usize,
+    /// The channels of the newest session description, in its order.
+    channels: Vec<Channel>,
+}
+
+/// The least size of a buffer of a media packet, and the buffers made when the component is configured.
+const MEDIA_UNIT: usize = 4096;
+const MEDIA_READY: usize = 64;
+
+/// One component: a channel with its init segment.
+struct MediaComponent {
+    channel: Channel,
+    /// The init segment that `track` was read from.
+    init: Vec<u8>,
+    track: Track,
+    info: TrackInfo,
+    service: Option<u16>,
+    given: bool,
+}
+
+sdrkit_core::commands! {
+    /// The commands of `atsc3.media`.
+    pub enum MediaCommand {
+        /// Receive a service of the service list. An empty row receives the first visible linear TV service.
+        ServiceSelect = SERVICE_SELECT_KIND.command,
+    }
+}
+
+/// `atsc3.media`: the media of one service as media packets. Input `in`: ROUTE objects. Input `lls`: the service list.
+/// Output `out`: [`MediaPacket`]s. Output `state`: [`MediaState`]. Command `service.select` chooses the service; a row
+/// that is not in the service list changes nothing.
+///
+/// Objects of TSI 0 are the service layer signalling of their session: each is read in any of its forms ([`read_sls`]), its
+/// documents and signed packages are counted, and its session description names the LCT channels of the service. An
+/// object equal to the last one of its TOI is counted and not read again. The other objects are fragmented MP4: an init
+/// segment is known by its first box (not every sender sets the code point) and gives the format of its component; a
+/// repeated one is ignored. The access units of a media segment are given when its channel is the first video or the
+/// first audio channel, in the order of the session description, of the service that is received, the track is not
+/// encrypted and the shared media form names its codec. Each packet has the presentation and decoding time of its
+/// sample in ticks of the media timescale, which the format states. An object in entity mode is read after its header
+/// lines.
 #[derive(Default)]
 pub struct Media {
-    tracks: Vec<(u64, Track)>,
-    pool: PacketPool,
+    tracks: Vec<MediaComponent>,
+    sls: Vec<SlsKept>,
+    services: Arc<[SltService]>,
+    chosen: Option<u16>,
+    pool: SlicePool<u8>,
     state: MediaState,
     signed_at: Option<f64>,
+    time: f64,
+    /// The state changed outside `process`.
+    changed: bool,
+}
+
+impl Media {
+    fn reset(&mut self) {
+        self.tracks.clear();
+        self.sls.clear();
+        self.services = Arc::default();
+        self.chosen = None;
+        self.state = MediaState::default();
+        self.signed_at = None;
+        self.changed = false;
+    }
+
+    /// Binds every component to the service whose session description names its channel, chooses the components that
+    /// are given and writes the component rows.
+    fn rebind(&mut self) {
+        let receiving = service_to_receive(self.chosen, &self.services);
+        self.state.receiving = receiving;
+        let lists = Arc::make_mut(&mut self.state.lists);
+        // The signalling session of each service, by its index.
+        let session_of = |s: &SltService| {
+            let dst = s.sls_dst.parse::<IpAddr>().ok()?;
+            lists
+                .sls
+                .iter()
+                .position(|o| o.dst == dst && o.port == s.sls_port)
+        };
+        for t in &mut self.tracks {
+            t.given = false;
+            t.service = self.services.iter().find_map(|s| {
+                let channels = &self.sls[session_of(s)?].channels;
+                channels
+                    .iter()
+                    .any(|c| c.is(t.channel.dst, t.channel.port, t.channel.tsi))
+                    .then_some(s.id)
+            });
+        }
+        let channels = self
+            .services
+            .iter()
+            .find(|s| Some(s.id) == receiving)
+            .and_then(session_of)
+            .map_or(&[][..], |at| &self.sls[at].channels[..]);
+        let (mut video, mut audio) = (false, false);
+        for c in channels {
+            let Some(t) = self
+                .tracks
+                .iter_mut()
+                .find(|t| t.info.format.is_some() && c.is(t.channel.dst, t.channel.port, t.channel.tsi))
+            else {
+                continue;
+            };
+            let taken = match t.info.kind {
+                ComponentKind::Video => &mut video,
+                ComponentKind::Audio => &mut audio,
+                _ => continue,
+            };
+            t.given = !*taken;
+            *taken = true;
+        }
+        lists.components.clear();
+        lists.components.extend(self.tracks.iter().map(|t| ComponentRow {
+            channel: t.channel,
+            entry: t.info.entry,
+            kind: t.info.kind,
+            service: t.service,
+            state: if t.info.encrypted {
+                ComponentState::Encrypted
+            } else if t.info.format.is_none() {
+                ComponentState::NoFormat
+            } else if t.given {
+                ComponentState::Given
+            } else if t.service.is_none() {
+                ComponentState::Unbound
+            } else if t.service != receiving {
+                ComponentState::OtherService
+            } else {
+                ComponentState::OtherTrack
+            },
+        }));
+    }
+
+    /// Takes a signalling object of the session to `dst`, `port`. Returns whether the channels of the session changed.
+    fn signalling(&mut self, dst: IpAddr, port: u16, toi: u64, bytes: &[u8], time: f64) -> bool {
+        let found = self
+            .state
+            .lists
+            .sls
+            .iter()
+            .position(|s| s.dst == dst && s.port == port);
+        let at = found.unwrap_or_else(|| {
+            let lists = Arc::make_mut(&mut self.state.lists);
+            lists.sls.push(SlsSession {
+                dst,
+                port,
+                counts: Arc::default(),
+            });
+            self.sls.push(SlsKept::default());
+            lists.sls.len() - 1
+        });
+        let kept = &mut self.sls[at];
+        let known = kept
+            .seen
+            .iter()
+            .find(|o| o.toi == toi && o.bytes == bytes)
+            .map(|o| o.read);
+        let mut rebound = false;
+        let read = known.unwrap_or_else(|| {
+            let mut channels = None;
+            let read = read_sls(bytes, &mut |doc| {
+                if doc.kind == SlsKind::Stsid {
+                    if let Ok(xml) = std::str::from_utf8(doc.xml) {
+                        let mut list = Vec::new();
+                        parse_stsid(xml, dst, port, &mut list);
+                        channels = Some(list);
+                    }
+                }
+            });
+            if let Some(list) = channels.filter(|l| *l != kept.channels) {
+                kept.channels = list;
+                rebound = true;
+            }
+            let slot = match kept.seen.iter().position(|o| o.toi == toi) {
+                Some(slot) => slot,
+                None if kept.seen.len() < SLS_SEEN => {
+                    kept.seen.push(SlsSeen {
+                        toi,
+                        bytes: Vec::new(),
+                        read,
+                    });
+                    kept.seen.len() - 1
+                }
+                None => {
+                    kept.next = (kept.next + 1) % SLS_SEEN;
+                    kept.next
+                }
+            };
+            let o = &mut kept.seen[slot];
+            o.toi = toi;
+            o.read = read;
+            o.bytes.clear();
+            o.bytes.extend_from_slice(bytes);
+            read
+        });
+        let s = &self.state.lists.sls[at];
+        s.add(0, 1);
+        s.add(1, read.documents as u64);
+        s.add(3, read.broken_gzip as u64);
+        if read.signed {
+            s.add(2, 1);
+            self.signed_at = Some(time);
+        }
+        rebound
+    }
 }
 
 impl Component for Media {
     fn info(&self) -> ComponentInfo {
         ComponentInfo::processor(
             "atsc3.media",
-            vec![Port::typed::<RouteObjectItem>("in")],
-            vec![items::<MediaSample>("out"), items::<MediaState>("state")],
+            vec![
+                Port::typed::<RouteObjectItem>("in"),
+                Port::typed::<LlsState>("lls"),
+            ],
+            vec![items::<MediaPacket>("out"), items::<MediaState>("state")],
         )
     }
     fn values(&self) -> Values {
         no_values()
     }
-    /// The media and the signalling are of the multiplex of the frequency before.
+    /// The media, the signalling and the choice of the service are of the multiplex of the frequency before.
     fn forget(&mut self, _: &Kept) {
-        self.tracks.clear();
-        self.state = MediaState::default();
-        self.signed_at = None;
+        self.reset();
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
-        self.tracks.clear();
-        self.state = MediaState::default();
-        self.signed_at = None;
+        self.reset();
+        self.pool = SlicePool::with_ready(MEDIA_UNIT, MEDIA_READY);
         Ok(vec![
-            Format::new(Kind::typed::<MediaSample>(), 0.0),
+            Format::new(Kind::typed::<MediaPacket>(), 0.0),
             Format::new(Kind::typed::<MediaState>(), 0.0),
         ])
     }
     fn process(&mut self, io: &mut Io) {
-        let objects = io.items::<RouteObjectItem>(0);
-        if objects.is_empty() {
-            return;
+        let mut rebind = false;
+        let mut changed = std::mem::take(&mut self.changed);
+        if let Some(l) = io.items::<LlsState>(1).last() {
+            self.time = l.time;
+            if !Arc::ptr_eq(&l.value.services, &self.services) {
+                self.services = Arc::clone(&l.value.services);
+                rebind = true;
+            }
         }
-        let mut time = 0.0;
-        for o in objects {
-            time = o.time;
+        for o in io.items::<RouteObjectItem>(0) {
+            changed = true;
+            let time = o.time;
+            self.time = time;
             self.state.objects += 1;
-            let tsi = o.value.tsi;
+            let (dst, port, tsi) = (o.value.dst, o.value.dst_port, o.value.tsi);
+            let bytes = o.value.data.bytes();
             if tsi == 0 {
-                let (dst, port) = (o.value.dst, o.value.dst_port);
-                let read = read_sls(o.value.data.bytes(), &mut |_| {});
-                let at = match self
-                    .state
-                    .sls
-                    .iter()
-                    .position(|s| s.dst == dst && s.port == port)
-                {
-                    Some(at) => at,
-                    None => {
-                        self.state.sls.push(SlsSession {
-                            dst,
-                            port,
-                            objects: 0,
-                            documents: 0,
-                            signed_packages: 0,
-                            broken_gzip: 0,
-                        });
-                        self.state.sls.len() - 1
-                    }
-                };
-                let s = &mut self.state.sls[at];
-                s.objects += 1;
-                s.documents += read.documents as u64;
-                s.broken_gzip += read.broken_gzip as u64;
-                if read.signed {
-                    s.signed_packages += 1;
-                    self.signed_at = Some(o.time);
+                if self.signalling(dst, port, o.value.toi, bytes, time) {
+                    rebind = true;
                 }
                 continue;
             }
-            let data = o.value.data.bytes();
+            let at = self
+                .tracks
+                .iter()
+                .position(|t| t.channel.is(dst, port, tsi));
+            // The session description says which code points of the channel are in entity mode. A channel that none
+            // names has the code points of the standard only.
+            let entity = self
+                .sls
+                .iter()
+                .flat_map(|s| &s.channels)
+                .find(|c| c.is(dst, port, tsi))
+                .map_or(matches!(o.value.codepoint, 2 | 9), |c| {
+                    c.entity_mode(o.value.codepoint)
+                });
+            let data = if entity { entity_body(bytes) } else { bytes };
             match mp4::segment_kind(data) {
                 Segment::Init => {
+                    // A repeated init segment is not read again.
+                    if at.is_some_and(|at| self.tracks[at].init == data) {
+                        continue;
+                    }
                     let Ok(track) = Track::parse_init(data) else {
                         self.state.dropped += 1;
                         continue;
                     };
-                    match self.tracks.iter_mut().find(|t| t.0 == tsi) {
-                        Some(t) if t.1 == track => {}
-                        Some(t) => {
-                            t.1 = track;
-                            self.state.inits += 1;
+                    let info = describe(data, &track);
+                    match at {
+                        Some(at) => {
+                            let t = &mut self.tracks[at];
+                            (t.track, t.info) = (track, info);
+                            t.init.clear();
+                            t.init.extend_from_slice(data);
                         }
-                        None => {
-                            self.state.components.push((tsi, track.codec_fourcc()));
-                            self.tracks.push((tsi, track));
-                            self.state.inits += 1;
-                        }
+                        None => self.tracks.push(MediaComponent {
+                            channel: Channel {
+                                dst,
+                                port,
+                                tsi,
+                                entity: 0,
+                            },
+                            init: data.to_vec(),
+                            track,
+                            info,
+                            service: None,
+                            given: false,
+                        }),
                     }
+                    self.state.inits += 1;
+                    // The component is bound at once, so the media segments of this pass that follow it are given.
+                    self.rebind();
+                    rebind = false;
                 }
                 Segment::Media => {
-                    let Some((_, track)) = self.tracks.iter().find(|t| t.0 == tsi) else {
+                    if rebind {
+                        self.rebind();
+                        rebind = false;
+                    }
+                    let Some(t) = at.map(|at| &self.tracks[at]) else {
                         self.state.dropped += 1;
                         continue;
                     };
-                    let scale = track.timescale.max(1) as f64;
-                    let fourcc = track.codec_fourcc();
+                    let Some(format) = t.info.format.as_ref().filter(|_| t.given) else {
+                        continue;
+                    };
                     let pool = &mut self.pool;
-                    let out = io.items_out::<MediaSample>(0);
-                    let r = mp4::samples(data, track, |s| {
+                    let out = io.items_out::<MediaPacket>(0);
+                    if out.capacity() < MEDIA_READY {
+                        out.reserve(MEDIA_READY - out.len());
+                    }
+                    let r = mp4::samples(data, &t.track, |s| {
+                        // The buffers have sizes of powers of two, so a buffer serves access units of many sizes.
+                        let n = s.data.len();
+                        let size = n.next_power_of_two().max(MEDIA_UNIT);
+                        let buffer = pool.at_least(size, |b| b[..n].copy_from_slice(s.data));
+                        let packet = Packet::slice(&buffer, 0, n, time)
+                            .stamped(Some(s.pts), Some(s.dts), s.keyframe)
+                            .clean_if(s.keyframe && clean_start(format, s.data));
                         out.push(Timed {
                             time,
-                            value: MediaSample {
-                                tsi,
-                                fourcc,
-                                dts_s: s.dts as f64 / scale,
-                                pts_s: s.pts as f64 / scale,
-                                keyframe: s.keyframe,
-                                data: pool.make(s.data.len(), time, |b| b.copy_from_slice(s.data)),
-                            },
-                        })
+                            value: MediaPacket::new(packet, Arc::clone(format)),
+                        });
                     });
                     match r {
-                        Ok(n) => self.state.samples += n as u64,
+                        Ok(n) => {
+                            self.state.samples += n as u64;
+                            match t.info.kind {
+                                ComponentKind::Video => self.state.video_packets += n as u64,
+                                _ => self.state.audio_packets += n as u64,
+                            }
+                        }
                         Err(_) => self.state.dropped += 1,
                     }
                 }
                 Segment::Other => {}
             }
         }
+        if rebind {
+            self.rebind();
+            changed = true;
+        }
+        if !changed {
+            return;
+        }
+        let time = self.time;
         self.state.signed = self.signed_at.is_some_and(|t| time - t <= SIGNED_HOLD_S);
         io.items_out::<MediaState>(1).push(Timed {
             time,
             value: self.state.clone(),
         });
+    }
+    fn commands(&self) -> &Commands {
+        MediaCommand::commands()
+    }
+    fn invoke(&mut self, id: CommandId, args: &Values) -> Result<Option<Record>, CommandError> {
+        match MediaCommand::from_id(id).ok_or(CommandError::NoSuchId { id })? {
+            MediaCommand::ServiceSelect => {
+                let row = args.arg(&SERVICE_ROW)?;
+                let chosen = if row.is_empty() {
+                    None
+                } else {
+                    let id = row
+                        .parse::<u16>()
+                        .ok()
+                        .filter(|&id| self.services.iter().any(|s| s.id == id));
+                    // `atsc3.report` refuses a row that is not in the list. The choice stays.
+                    if id.is_none() {
+                        return Ok(None);
+                    }
+                    id
+                };
+                self.chosen = chosen;
+                self.rebind();
+                self.changed = true;
+            }
+        }
+        Ok(None)
     }
 }

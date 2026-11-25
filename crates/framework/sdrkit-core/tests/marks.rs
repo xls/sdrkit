@@ -204,3 +204,100 @@ fn a_setting_states_what_it_chooses() {
         .unwrap()
         .contains("role"));
 }
+
+/// A row of a message log that also holds the messages that the station sent.
+#[derive(Fields)]
+#[allow(dead_code)]
+struct SentRow<'a> {
+    /// The text.
+    #[field(shared = keys::TEXT, role = Text)]
+    text: &'a str,
+    /// The station sent the message.
+    #[field(label = "Own", role = Own)]
+    own: bool,
+    /// How far the delivery is.
+    #[field(label = "State", role = Delivery)]
+    state: Option<&'a str>,
+    /// Why the delivery failed.
+    #[field(label = "Failure", role = Failure)]
+    failure: Option<&'a str>,
+    /// The signal time.
+    #[field(label = "Time", unit = "s", role = Time)]
+    time_s: f64,
+}
+
+static SENT: Table<SentRow<'static>> =
+    Table::new("sent", "Sent", 10).role(sdrkit_core::TableRole::Messages);
+static FRAMES: Table<SentRow<'static>> =
+    Table::new("frames", "Frames", 10).role(sdrkit_core::TableRole::Log);
+
+#[test]
+fn a_message_table_states_the_columns_of_a_delivery_and_a_log_states_its_role() {
+    let m = SENT.def().decl().marks;
+    assert_eq!((m.own, m.delivery, m.failure), (Some(1), Some(2), Some(3)));
+    assert_eq!(m.time, Some(4));
+    let log = FRAMES.def().decl().marks;
+    assert_eq!(log.role, Some(sdrkit_core::TableRole::Log));
+    assert!(!sdrkit_core::TableRole::Log.single());
+    assert!(sdrkit_core::TableRole::Messages.single());
+    // A table of another kind has none of these marks.
+    let craft = CRAFT.def().decl().marks;
+    assert_eq!((craft.own, craft.delivery, craft.failure), (None, None, None));
+}
+
+/// A result set with two key readings.
+#[derive(Fields)]
+#[allow(dead_code)]
+struct BeaconFields<'a> {
+    /// The identification.
+    #[field(label = "Identification", reading = 1)]
+    ident: &'a str,
+    /// The level.
+    #[field(shared = keys::LEVEL_DBFS, reading = 2)]
+    level_dbfs: f64,
+    /// The frames.
+    #[field(label = "Frames")]
+    frames: i64,
+}
+
+/// The arguments of a send command.
+#[derive(sdrkit_core::interface::Arguments)]
+#[allow(dead_code)]
+struct SendArgs<'a> {
+    /// The node that the text goes to.
+    #[arg(label = "To", default = "^all", refers_to = "nodes", column = "id")]
+    to: Option<&'a str>,
+    /// The row to answer.
+    #[arg(label = "Row", refers_to = "sent")]
+    row: &'a str,
+}
+
+#[test]
+fn a_field_states_its_place_among_the_key_readings() {
+    let shape = <BeaconFields as Fields>::SHAPE;
+    let orders: Vec<u8> = shape.fields.iter().map(|f| f.decl().reading).collect();
+    assert_eq!(orders, [1, 2, 0]);
+    // The key and the unit of a shared field stay as they are.
+    assert_eq!(shape.fields[1].decl().unit, "dBFS");
+}
+
+#[test]
+fn an_argument_and_a_setting_name_the_column_that_gives_their_value() {
+    use sdrkit_core::interface::Arguments;
+    let args: Vec<sdrkit_core::SettingDecl> = <SendArgs as Arguments>::SHAPE
+        .args
+        .iter()
+        .map(|a| a.decl())
+        .collect();
+    let to = args[0].field.refers_to.as_ref().unwrap();
+    assert_eq!((to.table.as_ref(), to.column.as_ref()), ("nodes", "id"));
+    assert!(to.owner.is_none());
+    // Without a column, the value is a row key.
+    let row = args[1].field.refers_to.as_ref().unwrap();
+    assert_eq!((row.table.as_ref(), row.column.as_ref()), ("sent", ""));
+    const DEST: sdrkit_core::Setting<sdrkit_core::publish::field::Text> =
+        sdrkit_core::Setting::new("dest", "To", "", "").refers("stations", "call");
+    let d = sdrkit_core::settings::DeclareSetting::decl(&DEST);
+    let r = d.field.refers_to.unwrap();
+    assert_eq!((r.table.as_ref(), r.column.as_ref()), ("stations", "call"));
+}

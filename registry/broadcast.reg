@@ -1,5 +1,5 @@
 # The interface of the stack family broadcast. The registry test of the family writes this file.
-family broadcast version=1.1
+family broadcast version=2.0
 uses.mpegts major=1 since=1.0
 uses.bcdata major=1 since=1.0
 uses.broadcast_scan major=1 since=1.0
@@ -58,8 +58,8 @@ shape.DrmServiceRow.application type=text unit= optional=yes since=1.0
 shape.DrmServiceRow.mode_text type=text unit= optional=yes since=1.0
 shape.DrmServiceRow.decoded type=bool unit= optional=no since=1.0
 shape.DrmStreamRow since=1.0
-shape.DrmStreamRow.part_a type=i64 unit=bytes optional=no since=1.0
-shape.DrmStreamRow.part_b type=i64 unit=bytes optional=no since=1.0
+shape.DrmStreamRow.part_a type=i64 unit=B optional=no since=1.0
+shape.DrmStreamRow.part_b type=i64 unit=B optional=no since=1.0
 shape.DrmObjectRow since=1.0
 shape.DrmObjectRow.short_id type=i64 unit= optional=no since=1.0
 shape.DrmObjectRow.transport_id type=i64 unit= optional=no since=1.0
@@ -176,7 +176,7 @@ shape.HdradioFields.slogan type=text unit= optional=yes since=1.0
 shape.HdradioFields.message type=text unit= optional=yes since=1.0
 shape.HdradioFields.country type=text unit= optional=yes since=1.0
 shape.HdradioFields.facility_id type=i64 unit= optional=yes since=1.0
-shape.HdradioFields.location type=position unit=deg optional=yes since=1.0
+shape.HdradioFields.location type=position unit= optional=yes since=1.0
 shape.HdradioFields.altitude_m type=f64 unit=m optional=yes since=1.0
 shape.HdradioProgramRow since=1.0
 shape.HdradioProgramRow.number type=i64 unit= optional=no since=1.0
@@ -295,7 +295,7 @@ shape.CquamFields.signal_time type=duration unit=s optional=no since=1.0
 shape.CquamFrontFields since=1.0
 shape.CquamFrontFields.input_rate type=hz unit=Hz optional=no since=1.0
 drm since=1.0
-drm.content kind=broadcast audio=programme pictures=yes since=1.1
+drm.content kind=broadcast audio=programme pictures=yes since=1.0
 drm.fields.DrmFields since=1.0
 drm.fields.LabelFields since=1.0
 drm.fields.SlideFields since=1.0
@@ -334,7 +334,7 @@ drm.setting.gen_data type=choice(none,2,3,4,7,1098) unit= since=1.0
 drm.command.service.select args=row:text reply= since=1.0
 drm.command.clear args= reply= since=1.0
 hamdrm since=1.0
-hamdrm.content kind=pictures pictures=yes since=1.1
+hamdrm.content kind=pictures pictures=yes since=1.0
 hamdrm.fields.HamdrmFields since=1.0
 hamdrm.kept.history since=1.0
 hamdrm.kept.HamdrmFields.files_completed since=1.0
@@ -350,7 +350,7 @@ hamdrm.setting.gen_skip_every type=i64 unit= since=1.0
 hamdrm.setting.gen_transmissions type=i64 unit= since=1.0
 hamdrm.command.clear args= reply= since=1.0
 hdradio since=1.0
-hdradio.content kind=broadcast pictures=yes since=1.1
+hdradio.content kind=broadcast pictures=yes since=1.0
 hdradio.fields.HdradioFields since=1.0
 hdradio.fields.LabelFields since=1.0
 hdradio.fields.SlideFields since=1.0
@@ -374,7 +374,7 @@ hdradio.setting.gen_analog_db type=f64 unit=dB since=1.0
 hdradio.command.service.select args=row:text reply= since=1.0
 hdradio.command.clear args= reply= since=1.0
 cdr since=1.0
-cdr.content kind=broadcast audio=programme since=1.1
+cdr.content kind=broadcast audio=programme since=1.0
 cdr.fields.CdrFields since=1.0
 cdr.table.services row=CdrServiceRow cap=32 since=1.0
 cdr.table.service_data_types row=CdrDataTypeRow cap=256 since=1.0
@@ -395,7 +395,7 @@ cdr.command.service.select args=row:text reply= since=1.0
 cdr.command.clear args= reply= since=1.0
 cdr.command.resync args= reply= since=1.0
 cquam since=1.0
-cquam.content kind=broadcast audio=programme since=1.1
+cquam.content kind=broadcast audio=programme since=1.0
 cquam.fields.CquamFields since=1.0
 cquam.fields.CquamFrontFields since=1.0
 cquam.series.pilot_spectrum x_unit=Hz y_unit=dB since=1.0

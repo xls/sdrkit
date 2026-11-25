@@ -63,6 +63,8 @@ pub struct BeaconFrame {
     pub errors: u32,
     /// Few errors.
     pub good: bool,
+    /// The signal time when the frame was found, seconds.
+    pub time_s: f64,
 }
 
 /// A line of the decoded view.
@@ -123,8 +125,8 @@ pub struct Learner {
 }
 
 impl Learner {
-    /// Takes bits.
-    pub fn push(&mut self, bits: &[u8], new_frames: &mut Vec<BeaconFrame>) {
+    /// Takes bits. The frames found get the signal time `time_s`.
+    pub fn push(&mut self, bits: &[u8], time_s: f64, new_frames: &mut Vec<BeaconFrame>) {
         self.bits.extend(bits.iter().copied());
         self.total_bits += bits.len() as u64;
         while self.bits.len() > 65_536 {
@@ -212,6 +214,7 @@ impl Learner {
                 counter,
                 errors,
                 good,
+                time_s,
             };
             self.next_id += 1;
             self.frames.push_front(f.clone());

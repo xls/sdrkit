@@ -351,6 +351,8 @@ pub struct FileRow {
     pub received: u32,
     /// All parts came.
     pub complete: bool,
+    /// Signal time at which the file was given out, s.
+    pub time_s: f64,
 }
 
 /// Counters of [`FilecastComponent`].
@@ -408,7 +410,7 @@ pub const PID: Setting<field::I64> = Setting::new("pid", "PID of the MPE stream"
     .range(32.0, 8190.0, 1.0)
     .help("The transport stream PID that carries the datagram sections (256 in the test signal).");
 /// The part size of the file broadcast.
-pub const PART_BYTES: Setting<field::I64> = Setting::new("part_bytes", "Part size", "bytes", 1408)
+pub const PART_BYTES: Setting<field::I64> = Setting::new("part_bytes", "Part size", "B", 1408)
     .range(1.0, 8192.0, 1.0)
     .help("Bytes of each numbered part of a file (1408 in the test signal). Not confirmed by a public document.");
 /// Characters of the tag at the end of a GEONETCAST name that the stack removes (not confirmed by a public document).
@@ -632,6 +634,7 @@ impl FilecastComponent {
             parts: f.parts,
             received: f.received,
             complete: f.complete,
+            time_s: time,
         });
         while self.recent.len() > RECENT {
             self.recent.pop_front();
@@ -970,6 +973,7 @@ impl Component for FilecastDisplay {
                 parts: i64::from(f.parts),
                 received: i64::from(f.received),
                 complete: f.complete,
+                time_s: f.time_s,
             };
             RECENT_FILES.put(p, &self.key, &row);
         }

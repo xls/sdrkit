@@ -86,7 +86,8 @@ pub const CALLED_ID: Setting<field::I64> = Setting::new("called_id", "Radio ID c
 pub const TALKGROUP: Setting<field::I64> = Setting::new("talkgroup", "Talkgroup", "", 0)
     .range(0.0, ID_MAX as f64, 1.0)
     .help("The talkgroup a call or a text goes to when the setting called_id is 0.")
-    .section(TX);
+    .section(TX)
+    .refers("talkgroups", "talkgroup");
 /// The colour code.
 pub const COLOUR_CODE: Setting<field::I64> = Setting::new("colour_code", "Colour code", "", 1)
     .range(0.0, 15.0, 1.0)

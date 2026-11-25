@@ -60,7 +60,7 @@ The stack has no settings.
 
 ## Typed interface
 
-The stack is in the family `ism`, version 3.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
 
@@ -126,7 +126,7 @@ Struct `NfcFrameRow`. A row of the frame log. The row key is the number of the f
 | `parity_ok` | yes or no | always | 1.0 | The parity result. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the frame. |
 
-The column `name` names a row.
+The rows are a log: they arrive over time. The column `name` names a row. Time: `time_s`.
 
 ### Event `nfc.tag`
 

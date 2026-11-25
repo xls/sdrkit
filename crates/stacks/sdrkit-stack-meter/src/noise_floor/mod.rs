@@ -579,7 +579,6 @@ impl Decoder for NoiseFloorDecoder {
         st.snr_db = None;
         st.summary = headline;
         p.put(&WatchFields {
-            text: &st.summary,
             state: self.tally.state(now),
             good: i64::try_from(self.tally.good).unwrap_or(i64::MAX),
             bad: i64::try_from(self.tally.bad).unwrap_or(i64::MAX),

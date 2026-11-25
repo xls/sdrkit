@@ -3,9 +3,10 @@
 use crate::mode::FskSpec;
 use crate::mode::{Mode, Sub};
 use crate::proto::codes;
-use crate::proto::q65code;
 use crate::proto::js8msg;
 use crate::proto::msg77::{pack77, PackError, RVEC};
+use crate::proto::msk144code;
+use crate::proto::q65code;
 use crate::proto::{jt65, k32, msg50, msg72, wsprmsg};
 use num_complex::Complex32;
 use sdrkit_algo_fec::ldpc::LdpcCode;
@@ -268,6 +269,19 @@ pub fn msk144_bits(bits77: &[u8]) -> Vec<u8> {
     f
 }
 
+/// The MSK144 frame bits of `text`: the 40-bit short frame when `short` is set and the text is a short message
+/// `<CALL1 CALL2> RPT` ([`msk144code::short_value`]), else the 144 frame bits of [`msk144_bits`].
+///
+/// # Errors
+///
+/// [`EncodeError::Pack`] for a text that is no short message and does not pack as a 77-bit message.
+pub fn msk144_symbols(text: &str, short: bool) -> Result<Vec<u8>, EncodeError> {
+    match msk144code::short_value(text).filter(|_| short) {
+        Some(v) => Ok(msk144code::short_frame(v).to_vec()),
+        None => Ok(msk144_bits(&pack77(text)?)),
+    }
+}
+
 /// The 79 JS8 tones of a frame (72 bits) and its flags.
 pub fn js8_tones(sub: u8, frame72: &[u8], flags: u8) -> Vec<u8> {
     let info = js8msg::info87(frame72, flags);
@@ -288,7 +302,8 @@ pub fn js8_tones(sub: u8, frame72: &[u8], flags: u8) -> Vec<u8> {
 }
 
 /// The channel symbols of a message as the encoder vectors list them: FT8 79 tones, FT4 / FT2 103 tones (no ramp symbols), WSPR
-/// 162, JT65 126, JT9 85, JT4 206, Q65 85, FST4 / FST4W 160, MSK144 the 144 frame bits. (JS8 frames: [`js8_tones`].)
+/// 162, JT65 126, JT9 85, JT4 206, Q65 85, FST4 / FST4W 160, MSK144 the 144 frame bits (short messages:
+/// [`msk144_symbols`]). (JS8 frames: [`js8_tones`].)
 pub fn channel_symbols(sub: &Sub, text: &str) -> Result<Vec<u8>, EncodeError> {
     Ok(match sub.mode {
         Mode::Ft8 => ft8_tones(&ft_codeword(&pack77(text)?, false)),
@@ -298,19 +313,22 @@ pub fn channel_symbols(sub: &Sub, text: &str) -> Result<Vec<u8>, EncodeError> {
         Mode::Jt9 => jt9_symbols(&msg72::pack72(text)?),
         Mode::Jt4 => jt4_symbols(&msg72::pack72(text)?),
         Mode::Q65 => q65_tones(&q65_channel(&q65_info(&pack77(text)?))),
-        Mode::Fst4 => fst4_tones(&encode_with(codes::fst4(), &fst4_info(&pack77(text)?, false))),
+        Mode::Fst4 => fst4_tones(&encode_with(
+            codes::fst4(),
+            &fst4_info(&pack77(text)?, false),
+        )),
         Mode::Fst4w => {
             let info = fst4_info(&msg50::pack50(text)?, true);
             fst4_tones(&encode_with(codes::fst4w(), &info))
         }
-        Mode::Msk144 => msk144_bits(&pack77(text)?),
+        Mode::Msk144 => msk144_symbols(text, false)?,
         Mode::Js8 => {
             return Err(PackError::Js8Frames.into());
         }
     })
 }
 
-/// The tones actually sent (FT4 / FT2 with their ramp symbols; MSK144 the tones of one frame).
+/// The tones actually sent (FT4 / FT2 with their ramp symbols; MSK144 the tones of one frame of 144 or 40 bits).
 pub fn frame_tones(sub: &Sub, symbols: &[u8]) -> Vec<u8> {
     match sub.mode {
         Mode::Ft4 | Mode::Ft2 => {
@@ -353,8 +371,8 @@ pub struct Transmission {
     pub mirrored: bool,
 }
 
-/// The audio of a symbol sequence (from [`channel_symbols`] or [`js8_tones`]) at `rate`; MSK144 repeats its frame to fill
-/// `msk_s` seconds. The audio is the imaginary part of [`baseband_of`].
+/// The audio of a symbol sequence (from [`channel_symbols`], [`msk144_symbols`] or [`js8_tones`]) at `rate`; MSK144
+/// repeats its frame to fill `msk_s` seconds. The audio is the imaginary part of [`baseband_of`].
 pub fn audio_of(t: &Transmission, symbols: &[u8], rate: f64, msk_s: f64, out: &mut Vec<f32>) {
     let mut z = Vec::new();
     baseband_of(t, symbols, rate, msk_s, &mut z);
@@ -375,7 +393,7 @@ pub fn baseband_of(
     let start = out.len();
     if t.sub.mode == Mode::Msk144 {
         // Continuous phase over the repeated frames: the frame's tone sequence repeated.
-        let frames = ((msk_s / t.sub.tx_s()).ceil() as usize).max(1);
+        let frames = msk_frames(&t.sub, tones.len(), msk_s);
         let mut all = Vec::with_capacity(frames * tones.len());
         for _ in 0..frames {
             all.extend_from_slice(&tones);
@@ -409,6 +427,15 @@ pub fn waveform(spec: &FskSpec, tones: &[u8], f0_hz: f64, rate: f64, out: &mut V
         let (s, c) = (w * n as f64).sin_cos();
         *v *= Complex32::new(c as f32, s as f32);
     }
+}
+
+/// The frames of `tones` MSK144 tones that fill `seconds` (at least one): 144 tones last 72 ms, 40 tones 20 ms.
+pub fn msk_frames(sub: &Sub, tones: usize, seconds: f64) -> usize {
+    let frame_s = tones as f64 * sub.symbol_s();
+    if frame_s <= 0.0 {
+        return 1;
+    }
+    ((seconds / frame_s).ceil() as usize).max(1)
 }
 
 /// The MSK144 tone sequence of the frame bits b0 … b(n-1), b(n) meaning b0: tone 2i is 0 when b(2i) equals b(2i+1) and 1

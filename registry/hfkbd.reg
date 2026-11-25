@@ -1,5 +1,5 @@
 # The interface of the stack family hfkbd. The registry test of the family writes this file.
-family hfkbd version=2.10
+family hfkbd version=3.0
 shape.FrontFields since=1.0
 shape.FrontFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.FrontFields.audio_dbfs type=f64 unit=dBFS optional=yes since=1.0
@@ -19,10 +19,10 @@ shape.RttyFields.auto_locked type=bool unit= optional=no since=1.0
 shape.RttyFields.auto_state type=i64 unit= optional=no since=1.0
 shape.DecoderFields since=1.0
 shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
-shape.KeyboardTxFields since=2.4
-shape.KeyboardTxFields.tx_sending type=bool unit= optional=no since=2.4
-shape.KeyboardTxFields.tx_sent type=i64 unit= optional=no since=2.4
-shape.KeyboardTxFields.tx_waiting type=i64 unit= optional=no since=2.4
+shape.KeyboardTxFields since=1.0
+shape.KeyboardTxFields.tx_sending type=bool unit= optional=no since=1.0
+shape.KeyboardTxFields.tx_sent type=i64 unit= optional=no since=1.0
+shape.KeyboardTxFields.tx_waiting type=i64 unit= optional=no since=1.0
 shape.StationRow since=1.0
 shape.StationRow.callsign type=text unit= optional=no since=1.0
 shape.StationRow.freq_hz type=hz unit=Hz optional=no since=1.0
@@ -50,11 +50,11 @@ shape.LineEvent.text type=text unit= optional=no since=1.0
 shape.LineEvent.snr_db type=f64 unit=dB optional=no since=1.0
 shape.LineEvent.mode type=text unit= optional=no since=1.0
 shape.LineEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
-shape.KeyboardTxEvent since=2.4
-shape.KeyboardTxEvent.state type=text unit= optional=no since=2.4
-shape.KeyboardTxEvent.reason type=text unit= optional=no since=2.4
-shape.KeyboardTxEvent.text type=text unit= optional=no since=2.4
-shape.KeyboardTxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=2.4
+shape.KeyboardTxEvent since=1.0
+shape.KeyboardTxEvent.state type=text unit= optional=no since=1.0
+shape.KeyboardTxEvent.reason type=text unit= optional=no since=1.0
+shape.KeyboardTxEvent.text type=text unit= optional=no since=1.0
+shape.KeyboardTxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.PskFields since=1.0
 shape.PskFields.modulation type=choice(BPSK31,BPSK63,QPSK31,QPSK63,BPSK125,BPSK250,QPSK125) unit= optional=no since=1.0
 shape.PskFields.floor_db type=f64 unit=dB optional=no since=1.0
@@ -78,7 +78,7 @@ shape.PskSignalRow.characters type=i64 unit= optional=no since=1.0
 shape.PskSignalRow.text type=text unit= optional=no since=1.0
 shape.PskSignalRow.gone type=bool unit= optional=no since=1.0
 shape.CwFields since=1.0
-shape.CwFields.span_hz type=hz unit=Hz optional=no since=2.0
+shape.CwFields.span_hz type=hz unit=Hz optional=no since=1.0
 shape.CwFields.floor_db type=f64 unit=dB optional=no since=1.0
 shape.CwFields.focus type=i64 unit= optional=yes since=1.0
 shape.CwFields.characters type=i64 unit= optional=no since=1.0
@@ -88,16 +88,16 @@ shape.CwFields.dash_ratio type=f64 unit= optional=yes since=1.0
 shape.CwFields.char_gap type=f64 unit=dots optional=yes since=1.0
 shape.CwFields.word_gap type=f64 unit=dots optional=yes since=1.0
 shape.CwFields.steadiness_pct type=f64 unit=% optional=yes since=1.0
-shape.CwFields.wpm type=f64 unit=WPM optional=yes since=1.0
-shape.CwFields.signals type=i64 unit= optional=no since=2.0
-shape.CwFields.now_s type=f64 unit=s optional=no since=2.0
-shape.CwFields.listened type=i64 unit= optional=yes since=2.1
-shape.CwFields.playing type=choice(nothing,signal,dial) unit= optional=no since=2.2
-shape.CwFields.listened_hz type=hz unit=Hz optional=yes since=2.2
+shape.CwFields.wpm type=f64 unit=wpm optional=yes reading=1 since=1.0
+shape.CwFields.signals type=i64 unit= optional=no since=1.0
+shape.CwFields.now_s type=f64 unit=s optional=no since=1.0
+shape.CwFields.listened type=i64 unit= optional=yes since=1.0
+shape.CwFields.playing type=choice(nothing,signal,dial) unit= optional=no since=1.0
+shape.CwFields.listened_hz type=hz unit=Hz optional=yes since=1.0
 shape.CwSignalRow since=1.0
 shape.CwSignalRow.id type=i64 unit= optional=no since=1.0
 shape.CwSignalRow.offset_hz type=hz unit=Hz optional=no since=1.0
-shape.CwSignalRow.wpm type=f64 unit=WPM optional=no since=1.0
+shape.CwSignalRow.wpm type=f64 unit=wpm optional=no since=1.0
 shape.CwSignalRow.snr_db type=f64 unit=dB optional=no since=1.0
 shape.CwSignalRow.key_down type=bool unit= optional=no since=1.0
 shape.CwSignalRow.locked type=bool unit= optional=no since=1.0
@@ -111,8 +111,8 @@ shape.CwSignalRow.confidence type=text unit= optional=no since=1.0
 shape.CwSignalRow.alternatives type=text unit= optional=no since=1.0
 shape.CwSignalRow.gone type=bool unit= optional=no since=1.0
 shape.CwSignalRow.errors type=i64 unit= optional=no since=1.0
-shape.CwSignalRow.freq_hz type=hz unit=Hz optional=no since=2.0
-shape.CwSignalRow.level_dbfs type=f64 unit=dBFS optional=no since=2.0
+shape.CwSignalRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.CwSignalRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.KeyboardFields since=1.0
 shape.KeyboardFields.variant type=text unit= optional=no since=1.0
 shape.KeyboardFields.centre_hz type=hz unit=Hz optional=no since=1.0
@@ -190,18 +190,18 @@ shape.SstvFields.mode type=text unit= optional=yes since=1.0
 shape.SstvFields.vis type=i64 unit= optional=yes since=1.0
 shape.SstvFields.slant_ppm type=f64 unit=ppm optional=yes since=1.0
 shape.SstvFields.offset_hz type=hz unit=Hz optional=no since=1.0
-shape.SstvTxFields since=2.3
-shape.SstvTxFields.tx_sending type=bool unit= optional=no since=2.3
-shape.SstvTxFields.tx_mode type=text unit= optional=yes since=2.3
-shape.SstvTxFields.tx_line type=i64 unit= optional=yes since=2.3
-shape.SstvTxFields.tx_lines type=i64 unit= optional=yes since=2.3
-shape.SstvTxFields.tx_picture_s type=duration unit=s optional=no since=2.3
-shape.SstvTxFields.tx_next_s type=duration unit=s optional=yes since=2.6
-shape.SstvTxEvent since=2.3
-shape.SstvTxEvent.state type=text unit= optional=no since=2.3
-shape.SstvTxEvent.reason type=text unit= optional=no since=2.3
-shape.SstvTxEvent.mode type=text unit= optional=no since=2.3
-shape.SstvTxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=2.3
+shape.SstvTxFields since=1.0
+shape.SstvTxFields.tx_sending type=bool unit= optional=no since=1.0
+shape.SstvTxFields.tx_mode type=text unit= optional=yes since=1.0
+shape.SstvTxFields.tx_line type=i64 unit= optional=yes since=1.0
+shape.SstvTxFields.tx_lines type=i64 unit= optional=yes since=1.0
+shape.SstvTxFields.tx_picture_s type=duration unit=s optional=no since=1.0
+shape.SstvTxFields.tx_next_s type=duration unit=s optional=yes since=1.0
+shape.SstvTxEvent since=1.0
+shape.SstvTxEvent.state type=text unit= optional=no since=1.0
+shape.SstvTxEvent.reason type=text unit= optional=no since=1.0
+shape.SstvTxEvent.mode type=text unit= optional=no since=1.0
+shape.SstvTxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.SitorFields since=1.0
 shape.SitorFields.text type=text unit= optional=no since=1.0
 shape.SitorFields.callsign type=text unit= optional=yes since=1.0
@@ -238,20 +238,20 @@ shape.ArdopFields.other type=i64 unit= optional=no since=1.0
 shape.ArdopFields.stations_heard type=i64 unit= optional=no since=1.0
 shape.ArdopFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.ArdopFields.text type=text unit= optional=yes since=1.0
-shape.ArdopTxFields since=2.6
-shape.ArdopTxFields.tx_sending type=bool unit= optional=no since=2.6
-shape.ArdopTxFields.tx_frame type=text unit= optional=yes since=2.6
-shape.ArdopTxFields.tx_waiting type=i64 unit= optional=no since=2.6
-shape.ArdopTxFields.link_state type=choice(idle,connecting,sending,receiving,disconnecting,closed,failed) unit= optional=no since=2.6
-shape.ArdopTxFields.link_peer type=text unit= optional=yes since=2.6
-shape.ArdopTxFields.link_session type=i64 unit= optional=yes since=2.6
-shape.ArdopTxFields.link_sent type=i64 unit= optional=no since=2.6
-shape.ArdopTxFields.link_received type=i64 unit= optional=no since=2.6
-shape.ArdopTxFields.link_waiting type=i64 unit= optional=no since=2.6
-shape.ArdopTxFields.link_retries type=i64 unit= optional=no since=2.6
-shape.ArdopTxFields.link_reason type=text unit= optional=no since=2.6
-shape.ArdopTxFields.link_text type=text unit= optional=yes since=2.6
-shape.ArdopTxFields.link_request type=text unit= optional=yes since=2.6
+shape.ArdopTxFields since=1.0
+shape.ArdopTxFields.tx_sending type=bool unit= optional=no since=1.0
+shape.ArdopTxFields.tx_frame type=text unit= optional=yes since=1.0
+shape.ArdopTxFields.tx_waiting type=i64 unit= optional=no since=1.0
+shape.ArdopTxFields.link_state type=choice(idle,connecting,sending,receiving,disconnecting,closed,failed) unit= optional=no since=1.0
+shape.ArdopTxFields.link_peer type=text unit= optional=yes since=1.0
+shape.ArdopTxFields.link_session type=i64 unit= optional=yes since=1.0
+shape.ArdopTxFields.link_sent type=i64 unit= optional=no since=1.0
+shape.ArdopTxFields.link_received type=i64 unit= optional=no since=1.0
+shape.ArdopTxFields.link_waiting type=i64 unit= optional=no since=1.0
+shape.ArdopTxFields.link_retries type=i64 unit= optional=no since=1.0
+shape.ArdopTxFields.link_reason type=text unit= optional=no since=1.0
+shape.ArdopTxFields.link_text type=text unit= optional=yes since=1.0
+shape.ArdopTxFields.link_request type=text unit= optional=yes since=1.0
 shape.ArdopFrameRow since=1.0
 shape.ArdopFrameRow.time_s type=f64 unit=s optional=no since=1.0
 shape.ArdopFrameRow.type type=i64 unit= optional=no since=1.0
@@ -286,15 +286,15 @@ shape.ArdopFrameEvent.target type=text unit= optional=yes since=1.0
 shape.ArdopFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.ArdopFrameEvent.name type=text unit= optional=no since=1.0
 shape.ArdopFrameEvent.type type=i64 unit= optional=no since=1.0
-shape.ArdopLinkEvent since=2.6
-shape.ArdopLinkEvent.state type=choice(idle,connecting,sending,receiving,disconnecting,closed,failed) unit= optional=no since=2.6
-shape.ArdopLinkEvent.source type=text unit= optional=no since=2.6
-shape.ArdopLinkEvent.reason type=text unit= optional=no since=2.6
-shape.ArdopLinkEvent.text type=text unit= optional=no since=2.6
-shape.ArdopLinkEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=2.6
+shape.ArdopLinkEvent since=1.0
+shape.ArdopLinkEvent.state type=choice(idle,connecting,sending,receiving,disconnecting,closed,failed) unit= optional=no since=1.0
+shape.ArdopLinkEvent.source type=text unit= optional=no since=1.0
+shape.ArdopLinkEvent.reason type=text unit= optional=no since=1.0
+shape.ArdopLinkEvent.text type=text unit= optional=no since=1.0
+shape.ArdopLinkEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.RosFields since=1.0
-shape.RosFields.sub_mode type=text unit= optional=yes since=1.0
-shape.RosFields.name type=text unit= optional=yes since=1.0
+shape.RosFields.sub_mode type=text unit= optional=yes reading=3 since=1.0
+shape.RosFields.name type=text unit= optional=yes reading=2 since=1.0
 shape.RosFields.why type=text unit= optional=yes since=1.0
 shape.RosFields.symbol_rate_hz type=hz unit=Hz optional=yes since=1.0
 shape.RosFields.spacing_hz type=hz unit=Hz optional=yes since=1.0
@@ -303,10 +303,10 @@ shape.RosFields.lowest_hz type=hz unit=Hz optional=yes since=1.0
 shape.RosFields.highest_hz type=hz unit=Hz optional=yes since=1.0
 shape.RosFields.purity_pct type=f64 unit=% optional=yes since=1.0
 shape.RosFields.distinct type=i64 unit= optional=yes since=1.0
-shape.RosFields.score_pct type=f64 unit=% optional=yes since=1.0
-shape.RosFields.detected type=bool unit= optional=no since=1.0
+shape.RosFields.score_pct type=f64 unit=% optional=yes reading=4 since=1.0
+shape.RosFields.detected type=bool unit= optional=no reading=1 since=1.0
 shape.RosFields.weak type=bool unit= optional=no since=1.0
-shape.RosFields.offset_hz type=hz unit=Hz optional=no since=1.0
+shape.RosFields.offset_hz type=hz unit=Hz optional=no reading=5 since=1.0
 shape.RosFields.detections type=i64 unit= optional=no since=1.0
 shape.RosFields.misfits type=i64 unit= optional=no since=1.0
 shape.RosDetectionRow since=1.0
@@ -378,8 +378,8 @@ shape.Cp16TxEvent.text type=text unit= optional=no since=1.0
 shape.Cp16TxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.WinmorFields since=1.0
 shape.WinmorFields.note type=text unit= optional=no since=1.0
-shape.WinmorFields.pilots type=i64 unit= optional=no since=1.0
-shape.WinmorFields.error_hz type=f64 unit=Hz optional=yes since=1.0
+shape.WinmorFields.pilots type=i64 unit= optional=no reading=1 since=1.0
+shape.WinmorFields.error_hz type=f64 unit=Hz optional=yes reading=2 since=1.0
 shape.WinmorPilotRow since=1.0
 shape.WinmorPilotRow.time type=time unit= optional=no since=1.0
 shape.WinmorPilotRow.error_hz type=f64 unit=Hz optional=no since=1.0
@@ -391,11 +391,11 @@ shape.WinmorPilotEvent.error_hz type=f64 unit=Hz optional=no since=1.0
 shape.WinmorPilotEvent.pilot_symbols type=i64 unit= optional=no since=1.0
 shape.WinmorPilotEvent.tones type=text unit= optional=no since=1.0
 rtty since=1.0
-rtty.content kind=text_chat audio=monitor text=yes since=2.8
+rtty.content kind=text_chat audio=monitor text=yes since=1.0
 rtty.fields.FrontFields since=1.0
 rtty.fields.RttyFields since=1.0
 rtty.fields.DecoderFields since=1.0
-rtty.fields.KeyboardTxFields since=2.4
+rtty.fields.KeyboardTxFields since=1.0
 rtty.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 rtty.kept.RttyFields.text since=1.0
 rtty.kept.RttyFields.callsign since=1.0
@@ -406,7 +406,7 @@ rtty.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_h
 rtty.table.auto_guesses row=RttyGuessRow cap=3 since=1.0
 rtty.event.hfkbd.spot fields=SpotEvent since=1.0
 rtty.event.hfkbd.text fields=LineEvent since=1.0
-rtty.event.hfkbd.tx fields=KeyboardTxEvent since=2.4
+rtty.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
 rtty.setting.auto type=bool unit= since=1.0
 rtty.setting.baud type=choice(45.45,50,75,100) unit= since=1.0
 rtty.setting.shift type=choice(170,200,425,450,850) unit= since=1.0
@@ -416,21 +416,21 @@ rtty.setting.demod type=choice(usb,lsb,nfm,am) unit= since=1.0
 rtty.setting.listen type=bool unit= since=1.0
 rtty.setting.gen_message type=text unit= since=1.0
 rtty.setting.gen_lower_hz type=hz unit=Hz since=1.0
-rtty.setting.tx_centre_hz type=hz unit=Hz since=2.4
-rtty.setting.tx_level type=f64 unit=of%20full%20scale since=2.4
-rtty.setting.tx_tune_limit type=duration unit=s since=2.4
+rtty.setting.tx_centre_hz type=hz unit=Hz since=1.0
+rtty.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
+rtty.setting.tx_tune_limit type=duration unit=s since=1.0
 rtty.command.remove args=row:text reply= since=1.0
 rtty.command.auto_lock args= reply= since=1.0
 rtty.command.clear args= reply= since=1.0
-rtty.command.send args=text:text reply= transmits=text stop=stop since=2.4
-rtty.command.stop args= reply= since=2.4
-rtty.command.tune args= reply= transmits=carrier stop=stop since=2.4
+rtty.command.send args=text:text reply= transmits=text stop=stop since=1.0
+rtty.command.stop args= reply= since=1.0
+rtty.command.tune args= reply= transmits=carrier stop=stop since=1.0
 psk since=1.0
-psk.content kind=text_chat audio=monitor text=yes since=2.8
+psk.content kind=text_chat audio=monitor text=yes since=1.0
 psk.fields.FrontFields since=1.0
 psk.fields.PskFields since=1.0
 psk.fields.DecoderFields since=1.0
-psk.fields.KeyboardTxFields since=2.4
+psk.fields.KeyboardTxFields since=1.0
 psk.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 psk.kept.stations since=1.0
 psk.kept.signals since=1.0
@@ -441,7 +441,7 @@ psk.table.signals row=PskSignalRow cap=72 sort=snr_db:descending since=1.0
 psk.series.spectrum x_unit=Hz y_unit=dB since=1.0
 psk.event.hfkbd.spot fields=SpotEvent since=1.0
 psk.event.hfkbd.text fields=LineEvent since=1.0
-psk.event.hfkbd.tx fields=KeyboardTxEvent since=2.4
+psk.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
 psk.setting.auto type=bool unit= since=1.0
 psk.setting.modulation type=choice(BPSK31,BPSK63,QPSK31,QPSK63,BPSK125,BPSK250,QPSK125) unit= since=1.0
 psk.setting.threshold type=f64 unit=dB since=1.0
@@ -449,16 +449,16 @@ psk.setting.focus_hz type=hz unit=Hz since=1.0
 psk.setting.listen type=bool unit= since=1.0
 psk.setting.gen_message type=text unit= since=1.0
 psk.setting.gen_freq_hz type=hz unit=Hz since=1.0
-psk.setting.tx_centre_hz type=hz unit=Hz since=2.4
-psk.setting.tx_level type=f64 unit=of%20full%20scale since=2.4
-psk.setting.tx_tune_limit type=duration unit=s since=2.4
+psk.setting.tx_centre_hz type=hz unit=Hz since=1.0
+psk.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
+psk.setting.tx_tune_limit type=duration unit=s since=1.0
 psk.command.remove args=row:text reply= since=1.0
 psk.command.clear args= reply= since=1.0
-psk.command.send args=text:text reply= transmits=text stop=stop since=2.4
-psk.command.stop args= reply= since=2.4
-psk.command.tune args= reply= transmits=carrier stop=stop since=2.4
+psk.command.send args=text:text reply= transmits=text stop=stop since=1.0
+psk.command.stop args= reply= since=1.0
+psk.command.tune args= reply= transmits=carrier stop=stop since=1.0
 cw since=1.0
-cw.content kind=text_chat audio=monitor text=yes since=2.8
+cw.content kind=text_chat audio=monitor text=yes since=1.0
 cw.fields.FrontFields since=1.0
 cw.fields.CwFields since=1.0
 cw.fields.DecoderFields since=1.0
@@ -470,36 +470,36 @@ cw.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_hea
 cw.table.signals row=CwSignalRow cap=200 sort=snr_db:descending since=1.0
 cw.series.marks x_unit=ln(length/dot) y_unit=count since=1.0
 cw.series.gaps x_unit=ln(length/dot) y_unit=count since=1.0
-cw.series.spectrum x_unit=Hz y_unit=dBFS since=2.0
-cw.series.key x_unit=s y_unit=down since=2.0
+cw.series.spectrum x_unit=Hz y_unit=dBFS since=1.0
+cw.series.key x_unit=s y_unit=down since=1.0
 cw.event.hfkbd.spot fields=SpotEvent since=1.0
 cw.event.hfkbd.text fields=LineEvent since=1.0
 cw.setting.threshold type=f64 unit=dB since=1.0
 cw.setting.decoder type=choice(adaptive,classic) unit= since=1.0
-cw.setting.wpm type=f64 unit=WPM since=1.0
-cw.setting.filter type=choice(50hz,100hz,250hz,500hz) unit= since=2.0
-cw.setting.listen type=choice(off,tone,signal) unit= since=2.0
+cw.setting.wpm type=f64 unit=wpm since=1.0
+cw.setting.filter type=choice(50hz,100hz,250hz,500hz) unit= since=1.0
+cw.setting.listen type=choice(off,tone,signal) unit= since=1.0
 cw.setting.pitch type=hz unit=Hz since=1.0
 cw.setting.focus_hz type=hz unit=Hz since=1.0
-cw.setting.forget_s type=f64 unit=s since=2.0
-cw.setting.span type=choice(14k,48k,96k,192k) unit= since=2.0
+cw.setting.forget_s type=f64 unit=s since=1.0
+cw.setting.span type=choice(14k,48k,96k,192k) unit= since=1.0
 cw.setting.gen_message type=text unit= since=1.0
 cw.setting.gen_carrier_hz type=hz unit=Hz since=1.0
-cw.setting.gen_wpm type=f64 unit=WPM since=1.0
-cw.setting.gen_farnsworth_wpm type=f64 unit=WPM since=1.0
+cw.setting.gen_wpm type=f64 unit=wpm since=1.0
+cw.setting.gen_farnsworth_wpm type=f64 unit=wpm since=1.0
 cw.setting.gen_jitter type=f64 unit= since=1.0
-cw.setting.gen_signals type=i64 unit= since=2.0
-cw.setting.gen_wpm_max type=f64 unit=WPM since=2.0
-cw.setting.gen_level_spread_db type=f64 unit=dB since=2.0
-cw.setting.gen_noise_only type=bool unit= since=2.1
+cw.setting.gen_signals type=i64 unit= since=1.0
+cw.setting.gen_wpm_max type=f64 unit=wpm since=1.0
+cw.setting.gen_level_spread_db type=f64 unit=dB since=1.0
+cw.setting.gen_noise_only type=bool unit= since=1.0
 cw.command.remove args=row:text reply= since=1.0
 cw.command.clear args= reply= since=1.0
 olivia since=1.0
-olivia.content kind=text_chat audio=monitor text=yes since=2.8
+olivia.content kind=text_chat audio=monitor text=yes since=1.0
 olivia.fields.FrontFields since=1.0
 olivia.fields.KeyboardFields since=1.0
 olivia.fields.DecoderFields since=1.0
-olivia.fields.KeyboardTxFields since=2.5
+olivia.fields.KeyboardTxFields since=1.0
 olivia.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 olivia.kept.KeyboardFields.characters since=1.0
 olivia.kept.KeyboardFields.text since=1.0
@@ -508,7 +508,7 @@ olivia.kept.stations since=1.0
 olivia.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 olivia.event.hfkbd.spot fields=SpotEvent since=1.0
 olivia.event.hfkbd.text fields=LineEvent since=1.0
-olivia.event.hfkbd.tx fields=KeyboardTxEvent since=2.5
+olivia.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
 olivia.setting.tones type=choice(2,4,8,16,32,64,128,256) unit= since=1.0
 olivia.setting.bandwidth type=choice(125,250,500,1000,2000) unit= since=1.0
 olivia.setting.centre type=hz unit=Hz since=1.0
@@ -516,19 +516,19 @@ olivia.setting.find_signal type=bool unit= since=1.0
 olivia.setting.demod type=choice(usb,lsb,nfm,am) unit= since=1.0
 olivia.setting.listen type=bool unit= since=1.0
 olivia.setting.gen_message type=text unit= since=1.0
-olivia.setting.tx_level type=f64 unit=of%20full%20scale since=2.5
-olivia.setting.tx_tune_limit type=duration unit=s since=2.5
+olivia.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
+olivia.setting.tx_tune_limit type=duration unit=s since=1.0
 olivia.command.remove args=row:text reply= since=1.0
 olivia.command.clear args= reply= since=1.0
-olivia.command.send args=text:text reply= transmits=text stop=stop since=2.5
-olivia.command.stop args= reply= since=2.5
-olivia.command.tune args= reply= transmits=carrier stop=stop since=2.5
+olivia.command.send args=text:text reply= transmits=text stop=stop since=1.0
+olivia.command.stop args= reply= since=1.0
+olivia.command.tune args= reply= transmits=carrier stop=stop since=1.0
 contestia since=1.0
-contestia.content kind=text_chat audio=monitor text=yes since=2.8
+contestia.content kind=text_chat audio=monitor text=yes since=1.0
 contestia.fields.FrontFields since=1.0
 contestia.fields.KeyboardFields since=1.0
 contestia.fields.DecoderFields since=1.0
-contestia.fields.KeyboardTxFields since=2.5
+contestia.fields.KeyboardTxFields since=1.0
 contestia.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 contestia.kept.KeyboardFields.characters since=1.0
 contestia.kept.KeyboardFields.text since=1.0
@@ -537,7 +537,7 @@ contestia.kept.stations since=1.0
 contestia.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 contestia.event.hfkbd.spot fields=SpotEvent since=1.0
 contestia.event.hfkbd.text fields=LineEvent since=1.0
-contestia.event.hfkbd.tx fields=KeyboardTxEvent since=2.5
+contestia.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
 contestia.setting.tones type=choice(2,4,8,16,32,64,128,256) unit= since=1.0
 contestia.setting.bandwidth type=choice(125,250,500,1000,2000) unit= since=1.0
 contestia.setting.centre type=hz unit=Hz since=1.0
@@ -545,20 +545,20 @@ contestia.setting.find_signal type=bool unit= since=1.0
 contestia.setting.demod type=choice(usb,lsb,nfm,am) unit= since=1.0
 contestia.setting.listen type=bool unit= since=1.0
 contestia.setting.gen_message type=text unit= since=1.0
-contestia.setting.tx_level type=f64 unit=of%20full%20scale since=2.5
-contestia.setting.tx_tune_limit type=duration unit=s since=2.5
+contestia.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
+contestia.setting.tx_tune_limit type=duration unit=s since=1.0
 contestia.command.remove args=row:text reply= since=1.0
 contestia.command.clear args= reply= since=1.0
-contestia.command.send args=text:text reply= transmits=text stop=stop since=2.5
-contestia.command.stop args= reply= since=2.5
-contestia.command.tune args= reply= transmits=carrier stop=stop since=2.5
+contestia.command.send args=text:text reply= transmits=text stop=stop since=1.0
+contestia.command.stop args= reply= since=1.0
+contestia.command.tune args= reply= transmits=carrier stop=stop since=1.0
 mfsk since=1.0
-mfsk.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+mfsk.content kind=text_chat audio=monitor pictures=yes text=yes since=1.0
 mfsk.fields.FrontFields since=1.0
 mfsk.fields.KeyboardFields since=1.0
 mfsk.fields.PictureFields since=1.0
 mfsk.fields.DecoderFields since=1.0
-mfsk.fields.KeyboardTxFields since=2.5
+mfsk.fields.KeyboardTxFields since=1.0
 mfsk.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 mfsk.kept.KeyboardFields.characters since=1.0
 mfsk.kept.KeyboardFields.text since=1.0
@@ -569,7 +569,7 @@ mfsk.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_h
 mfsk.event.hfkbd.spot fields=SpotEvent since=1.0
 mfsk.event.hfkbd.text fields=LineEvent since=1.0
 mfsk.event.mfsk.picture fields=PictureEvent since=1.0
-mfsk.event.hfkbd.tx fields=KeyboardTxEvent since=2.5
+mfsk.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
 mfsk.setting.variant type=choice(MFSK4,MFSK8,MFSK11,MFSK16,MFSK22,MFSK31,MFSK32,MFSK64,MFSK128,MFSK64L,MFSK128L) unit= since=1.0
 mfsk.setting.centre type=hz unit=Hz since=1.0
 mfsk.setting.find_signal type=bool unit= since=1.0
@@ -578,19 +578,19 @@ mfsk.setting.listen type=bool unit= since=1.0
 mfsk.setting.gen_message type=text unit= since=1.0
 mfsk.setting.gen_picture_width type=i64 unit=px since=1.0
 mfsk.setting.gen_picture_height type=i64 unit=px since=1.0
-mfsk.setting.tx_level type=f64 unit=of%20full%20scale since=2.5
-mfsk.setting.tx_tune_limit type=duration unit=s since=2.5
+mfsk.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
+mfsk.setting.tx_tune_limit type=duration unit=s since=1.0
 mfsk.command.remove args=row:text reply= since=1.0
 mfsk.command.clear args= reply= since=1.0
-mfsk.command.send args=text:text reply= transmits=text stop=stop since=2.5
-mfsk.command.stop args= reply= since=2.5
-mfsk.command.tune args= reply= transmits=carrier stop=stop since=2.5
+mfsk.command.send args=text:text reply= transmits=text stop=stop since=1.0
+mfsk.command.stop args= reply= since=1.0
+mfsk.command.tune args= reply= transmits=carrier stop=stop since=1.0
 dominoex since=1.0
-dominoex.content kind=text_chat audio=monitor text=yes since=2.8
+dominoex.content kind=text_chat audio=monitor text=yes since=1.0
 dominoex.fields.FrontFields since=1.0
 dominoex.fields.KeyboardFields since=1.0
 dominoex.fields.DecoderFields since=1.0
-dominoex.fields.KeyboardTxFields since=2.4
+dominoex.fields.KeyboardTxFields since=1.0
 dominoex.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 dominoex.kept.KeyboardFields.characters since=1.0
 dominoex.kept.KeyboardFields.text since=1.0
@@ -599,26 +599,26 @@ dominoex.kept.stations since=1.0
 dominoex.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 dominoex.event.hfkbd.spot fields=SpotEvent since=1.0
 dominoex.event.hfkbd.text fields=LineEvent since=1.0
-dominoex.event.hfkbd.tx fields=KeyboardTxEvent since=2.4
+dominoex.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
 dominoex.setting.variant type=choice(DominoEX%204,DominoEX%205,DominoEX%208,DominoEX%2011,DominoEX%2016,DominoEX%2022) unit= since=1.0
 dominoex.setting.centre type=hz unit=Hz since=1.0
 dominoex.setting.find_signal type=bool unit= since=1.0
 dominoex.setting.demod type=choice(usb,lsb,nfm,am) unit= since=1.0
 dominoex.setting.listen type=bool unit= since=1.0
 dominoex.setting.gen_message type=text unit= since=1.0
-dominoex.setting.tx_level type=f64 unit=of%20full%20scale since=2.4
-dominoex.setting.tx_tune_limit type=duration unit=s since=2.4
+dominoex.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
+dominoex.setting.tx_tune_limit type=duration unit=s since=1.0
 dominoex.command.remove args=row:text reply= since=1.0
 dominoex.command.clear args= reply= since=1.0
-dominoex.command.send args=text:text reply= transmits=text stop=stop since=2.4
-dominoex.command.stop args= reply= since=2.4
-dominoex.command.tune args= reply= transmits=carrier stop=stop since=2.4
+dominoex.command.send args=text:text reply= transmits=text stop=stop since=1.0
+dominoex.command.stop args= reply= since=1.0
+dominoex.command.tune args= reply= transmits=carrier stop=stop since=1.0
 thor since=1.0
-thor.content kind=text_chat audio=monitor text=yes since=2.8
+thor.content kind=text_chat audio=monitor text=yes since=1.0
 thor.fields.FrontFields since=1.0
 thor.fields.KeyboardFields since=1.0
 thor.fields.DecoderFields since=1.0
-thor.fields.KeyboardTxFields since=2.4
+thor.fields.KeyboardTxFields since=1.0
 thor.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 thor.kept.KeyboardFields.characters since=1.0
 thor.kept.KeyboardFields.text since=1.0
@@ -627,47 +627,47 @@ thor.kept.stations since=1.0
 thor.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 thor.event.hfkbd.spot fields=SpotEvent since=1.0
 thor.event.hfkbd.text fields=LineEvent since=1.0
-thor.event.hfkbd.tx fields=KeyboardTxEvent since=2.4
+thor.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
 thor.setting.variant type=choice(THOR%204,THOR%205,THOR%208,THOR%2011,THOR%2016,THOR%2022,THOR%2025x4,THOR%2050x1,THOR%2050x2,THOR%20100) unit= since=1.0
 thor.setting.centre type=hz unit=Hz since=1.0
 thor.setting.find_signal type=bool unit= since=1.0
 thor.setting.demod type=choice(usb,lsb,nfm,am) unit= since=1.0
 thor.setting.listen type=bool unit= since=1.0
 thor.setting.gen_message type=text unit= since=1.0
-thor.setting.tx_level type=f64 unit=of%20full%20scale since=2.4
-thor.setting.tx_tune_limit type=duration unit=s since=2.4
+thor.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
+thor.setting.tx_tune_limit type=duration unit=s since=1.0
 thor.command.remove args=row:text reply= since=1.0
 thor.command.clear args= reply= since=1.0
-thor.command.send args=text:text reply= transmits=text stop=stop since=2.4
-thor.command.stop args= reply= since=2.4
-thor.command.tune args= reply= transmits=carrier stop=stop since=2.4
+thor.command.send args=text:text reply= transmits=text stop=stop since=1.0
+thor.command.stop args= reply= since=1.0
+thor.command.tune args= reply= transmits=carrier stop=stop since=1.0
 hell since=1.0
-hell.content kind=pictures audio=monitor pictures=yes since=2.8
+hell.content kind=pictures audio=monitor pictures=yes since=1.0
 hell.fields.FrontFields since=1.0
 hell.fields.HellFields since=1.0
 hell.fields.DecoderFields since=1.0
-hell.fields.KeyboardTxFields since=2.4
+hell.fields.KeyboardTxFields since=1.0
 hell.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
-hell.event.hfkbd.tx fields=KeyboardTxEvent since=2.4
+hell.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
 hell.setting.variant type=choice(Feld%20Hell,Slow%20Hell,Hell%2080,HellX5,HellX9,FSK%20Hell%20245,FSK%20Hell%20105) unit= since=1.0
 hell.setting.centre type=hz unit=Hz since=1.0
 hell.setting.find_signal type=bool unit= since=1.0
 hell.setting.demod type=choice(usb,lsb,nfm,am) unit= since=1.0
 hell.setting.listen type=bool unit= since=1.0
 hell.setting.gen_message type=text unit= since=1.0
-hell.setting.tx_level type=f64 unit=of%20full%20scale since=2.4
-hell.setting.tx_tune_limit type=duration unit=s since=2.4
-hell.setting.font type=text unit= since=2.6
+hell.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
+hell.setting.tx_tune_limit type=duration unit=s since=1.0
+hell.setting.font type=text unit= since=1.0
 hell.command.clear args= reply= since=1.0
-hell.command.send args=text:text reply= transmits=text stop=stop since=2.4
-hell.command.stop args= reply= since=2.4
-hell.command.tune args= reply= transmits=carrier stop=stop since=2.4
+hell.command.send args=text:text reply= transmits=text stop=stop since=1.0
+hell.command.stop args= reply= since=1.0
+hell.command.tune args= reply= transmits=carrier stop=stop since=1.0
 mt63 since=1.0
-mt63.content kind=text_chat audio=monitor text=yes since=2.8
+mt63.content kind=text_chat audio=monitor text=yes since=1.0
 mt63.fields.FrontFields since=1.0
 mt63.fields.Mt63Fields since=1.0
 mt63.fields.DecoderFields since=1.0
-mt63.fields.KeyboardTxFields since=2.5
+mt63.fields.KeyboardTxFields since=1.0
 mt63.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 mt63.kept.Mt63Fields.text since=1.0
 mt63.kept.Mt63Fields.callsign since=1.0
@@ -680,26 +680,26 @@ mt63.series.spectrum x_unit=Hz y_unit=dB since=1.0
 mt63.series.carriers x_unit=carrier y_unit=dB since=1.0
 mt63.event.hfkbd.spot fields=SpotEvent since=1.0
 mt63.event.hfkbd.text fields=LineEvent since=1.0
-mt63.event.hfkbd.tx fields=KeyboardTxEvent since=2.5
+mt63.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
 mt63.setting.bandwidth type=choice(auto,500,1000,2000) unit= since=1.0
 mt63.setting.interleave type=choice(auto,short,long) unit= since=1.0
 mt63.setting.listen type=bool unit= since=1.0
 mt63.setting.gen_message type=text unit= since=1.0
 mt63.setting.gen_centre_hz type=hz unit=Hz since=1.0
-mt63.setting.tx_low_hz type=hz unit=Hz since=2.5
-mt63.setting.tx_level type=f64 unit=of%20full%20scale since=2.5
-mt63.setting.tx_tune_limit type=duration unit=s since=2.5
+mt63.setting.tx_low_hz type=hz unit=Hz since=1.0
+mt63.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
+mt63.setting.tx_tune_limit type=duration unit=s since=1.0
 mt63.command.remove args=row:text reply= since=1.0
 mt63.command.clear args= reply= since=1.0
-mt63.command.send args=text:text reply= transmits=text stop=stop since=2.5
-mt63.command.stop args= reply= since=2.5
-mt63.command.tune args= reply= transmits=carrier stop=stop since=2.5
+mt63.command.send args=text:text reply= transmits=text stop=stop since=1.0
+mt63.command.stop args= reply= since=1.0
+mt63.command.tune args= reply= transmits=carrier stop=stop since=1.0
 fsq since=1.0
-fsq.content kind=text_chat audio=monitor text=yes since=2.8
+fsq.content kind=text_chat audio=monitor text=yes since=1.0
 fsq.fields.FrontFields since=1.0
 fsq.fields.FsqFields since=1.0
 fsq.fields.DecoderFields since=1.0
-fsq.fields.KeyboardTxFields since=2.4
+fsq.fields.KeyboardTxFields since=1.0
 fsq.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 fsq.kept.FsqFields.text since=1.0
 fsq.kept.FsqFields.callsign since=1.0
@@ -712,25 +712,25 @@ fsq.series.tone_use x_unit=position y_unit=share since=1.0
 fsq.event.hfkbd.spot fields=SpotEvent since=1.0
 fsq.event.hfkbd.text fields=LineEvent since=1.0
 fsq.event.fsq.message fields=FsqMessageEvent since=1.0
-fsq.event.hfkbd.tx fields=KeyboardTxEvent since=2.4
+fsq.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
 fsq.setting.speed type=choice(auto,1.5,2,3,4.5,6) unit= since=1.0
 fsq.setting.listen type=bool unit= since=1.0
 fsq.setting.gen_message type=text unit= since=1.0
 fsq.setting.gen_centre_hz type=hz unit=Hz since=1.0
-fsq.setting.tx_centre_hz type=hz unit=Hz since=2.4
-fsq.setting.tx_level type=f64 unit=of%20full%20scale since=2.4
-fsq.setting.tx_tune_limit type=duration unit=s since=2.4
+fsq.setting.tx_centre_hz type=hz unit=Hz since=1.0
+fsq.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
+fsq.setting.tx_tune_limit type=duration unit=s since=1.0
 fsq.command.remove args=row:text reply= since=1.0
 fsq.command.clear args= reply= since=1.0
-fsq.command.send args=text:text;to:text?;trigger:choice(text,report,ack,file,relay,repeat,repeat_later,store,heard,location,motd,version,picture,alert,faster,slower,relayed)? reply= transmits=text stop=stop since=2.4
-fsq.command.stop args= reply= since=2.4
-fsq.command.tune args= reply= transmits=carrier stop=stop since=2.4
+fsq.command.send args=text:text;to:text?;trigger:choice(text,report,ack,file,relay,repeat,repeat_later,store,heard,location,motd,version,picture,alert,faster,slower,relayed)? reply= transmits=text stop=stop refers=to:stations.callsign since=1.0
+fsq.command.stop args= reply= since=1.0
+fsq.command.tune args= reply= transmits=carrier stop=stop since=1.0
 ifkp since=1.0
-ifkp.content kind=text_chat audio=monitor text=yes since=2.8
+ifkp.content kind=text_chat audio=monitor text=yes since=1.0
 ifkp.fields.FrontFields since=1.0
 ifkp.fields.FsqFields since=1.0
 ifkp.fields.DecoderFields since=1.0
-ifkp.fields.KeyboardTxFields since=2.4
+ifkp.fields.KeyboardTxFields since=1.0
 ifkp.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 ifkp.kept.FsqFields.text since=1.0
 ifkp.kept.FsqFields.callsign since=1.0
@@ -740,45 +740,45 @@ ifkp.table.stations row=StationRow cap=100 label=callsign role=nodes time=last_h
 ifkp.series.tone_use x_unit=position y_unit=share since=1.0
 ifkp.event.hfkbd.spot fields=SpotEvent since=1.0
 ifkp.event.hfkbd.text fields=LineEvent since=1.0
-ifkp.event.hfkbd.tx fields=KeyboardTxEvent since=2.4
+ifkp.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
 ifkp.setting.speed type=choice(auto,0.5,1.0,2.0) unit= since=1.0
 ifkp.setting.listen type=bool unit= since=1.0
 ifkp.setting.gen_message type=text unit= since=1.0
 ifkp.setting.gen_centre_hz type=hz unit=Hz since=1.0
-ifkp.setting.tx_centre_hz type=hz unit=Hz since=2.4
-ifkp.setting.tx_level type=f64 unit=of%20full%20scale since=2.4
-ifkp.setting.tx_tune_limit type=duration unit=s since=2.4
+ifkp.setting.tx_centre_hz type=hz unit=Hz since=1.0
+ifkp.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
+ifkp.setting.tx_tune_limit type=duration unit=s since=1.0
 ifkp.command.remove args=row:text reply= since=1.0
 ifkp.command.clear args= reply= since=1.0
-ifkp.command.send args=text:text reply= transmits=text stop=stop since=2.4
-ifkp.command.stop args= reply= since=2.4
-ifkp.command.tune args= reply= transmits=carrier stop=stop since=2.4
+ifkp.command.send args=text:text reply= transmits=text stop=stop since=1.0
+ifkp.command.stop args= reply= since=1.0
+ifkp.command.tune args= reply= transmits=carrier stop=stop since=1.0
 sstv since=1.0
-sstv.content kind=pictures audio=monitor pictures=yes since=2.8
+sstv.content kind=pictures audio=monitor pictures=yes since=1.0
 sstv.fields.FrontFields since=1.0
 sstv.fields.SstvFields since=1.0
 sstv.fields.PictureFields since=1.0
 sstv.fields.DecoderFields since=1.0
-sstv.fields.SstvTxFields since=2.3
+sstv.fields.SstvTxFields since=1.0
 sstv.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 sstv.kept.PictureFields since=1.0
 sstv.event.sstv.picture fields=PictureEvent since=1.0
-sstv.event.sstv.tx fields=SstvTxEvent since=2.3
+sstv.event.sstv.tx fields=SstvTxEvent since=1.0
 sstv.setting.picture_filter type=bool unit= since=1.0
 sstv.setting.demod type=choice(usb,lsb,nfm,am) unit= since=1.0
 sstv.setting.listen type=bool unit= since=1.0
 sstv.setting.gen_mode type=choice(Robot%2036,Robot%2072,Martin%20M1,Martin%20M2,Scottie%20S1,Scottie%20S2,Scottie%20DX,PD50,PD90,PD120,PD180,Wraase%20SC2-180) unit= since=1.0
 sstv.setting.gen_vis type=bool unit= since=1.0
 sstv.setting.gen_picture type=choice(card,texture) unit= since=1.0
-sstv.setting.tx_mode type=choice(Robot%2036,Robot%2072,Martin%20M1,Martin%20M2,Scottie%20S1,Scottie%20S2,Scottie%20DX,PD50,PD90,PD120,PD180,Wraase%20SC2-180) unit= since=2.3
-sstv.setting.fit type=choice(bars,crop,stretch) unit= since=2.3
-sstv.setting.repeat type=bool unit= since=2.6
-sstv.setting.pause_s type=duration unit=s since=2.6
+sstv.setting.tx_mode type=choice(Robot%2036,Robot%2072,Martin%20M1,Martin%20M2,Scottie%20S1,Scottie%20S2,Scottie%20DX,PD50,PD90,PD120,PD180,Wraase%20SC2-180) unit= since=1.0
+sstv.setting.fit type=choice(bars,crop,stretch) unit= since=1.0
+sstv.setting.repeat type=bool unit= since=1.0
+sstv.setting.pause_s type=duration unit=s since=1.0
 sstv.command.clear args= reply= since=1.0
-sstv.command.send args=pixels:bytes;width:i64;height:i64;pixel_format:choice(rgb8,bgra,grey8) reply= transmits=file stop=stop since=2.3
-sstv.command.stop args= reply= since=2.3
+sstv.command.send args=pixels:bytes;width:i64;height:i64;pixel_format:choice(rgb8,bgra,grey8) reply= transmits=file stop=stop since=1.0
+sstv.command.stop args= reply= since=1.0
 sitor since=1.0
-sitor.content kind=text_chat audio=monitor text=yes since=2.8
+sitor.content kind=text_chat audio=monitor text=yes since=1.0
 sitor.fields.FrontFields since=1.0
 sitor.fields.SitorFields since=1.0
 sitor.fields.DecoderFields since=1.0
@@ -797,11 +797,11 @@ sitor.setting.gen_lower_hz type=hz unit=Hz since=1.0
 sitor.command.remove args=row:text reply= since=1.0
 sitor.command.clear args= reply= since=1.0
 ardop since=1.0
-ardop.content kind=text_chat audio=monitor text=yes since=2.8
+ardop.content kind=text_chat audio=monitor text=yes since=1.0
 ardop.fields.FrontFields since=1.0
 ardop.fields.ArdopFields since=1.0
 ardop.fields.DecoderFields since=1.0
-ardop.fields.ArdopTxFields since=2.6
+ardop.fields.ArdopTxFields since=1.0
 ardop.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 ardop.kept.frames since=1.0
 ardop.kept.stations since=1.0
@@ -810,24 +810,24 @@ ardop.table.frames row=ArdopFrameRow cap=300 label=name role=messages sender=fro
 ardop.table.stations row=ArdopStationRow cap=100 label=callsign role=nodes time=last_heard since=1.0
 ardop.series.levels x_unit=s y_unit=dB since=1.0
 ardop.event.ardop.frame fields=ArdopFrameEvent since=1.0
-ardop.event.hfkbd.tx fields=KeyboardTxEvent since=2.6
-ardop.event.ardop.link fields=ArdopLinkEvent since=2.6
+ardop.event.hfkbd.tx fields=KeyboardTxEvent since=1.0
+ardop.event.ardop.link fields=ArdopLinkEvent since=1.0
 ardop.setting.demod type=choice(usb,lsb,nfm,am) unit= since=1.0
 ardop.setting.listen type=bool unit= since=1.0
-ardop.setting.gen_data type=choice(header,4psk_200_100,4psk_200_100s,8psk_200_100,16qam_200_100,4psk_500_100,8psk_500_100,16qam_500_100,4psk_1000_100,8psk_1000_100,16qam_1000_100,4psk_2000_100,8psk_2000_100,16qam_2000_100) unit= since=2.7
-ardop.setting.leader_ms type=i64 unit=ms since=2.6
-ardop.setting.fec_type type=choice(4fsk_200_50s,4fsk_500_100s,4fsk_500_100,4psk_200_100,4psk_200_100s,8psk_200_100,16qam_200_100,4psk_500_100,8psk_500_100,16qam_500_100,4psk_1000_100,8psk_1000_100,16qam_1000_100,4psk_2000_100,8psk_2000_100,16qam_2000_100) unit= since=2.6
-ardop.setting.auto_answer type=bool unit= since=2.6
+ardop.setting.gen_data type=choice(header,4psk_200_100,4psk_200_100s,8psk_200_100,16qam_200_100,4psk_500_100,8psk_500_100,16qam_500_100,4psk_1000_100,8psk_1000_100,16qam_1000_100,4psk_2000_100,8psk_2000_100,16qam_2000_100) unit= since=1.0
+ardop.setting.leader_ms type=i64 unit=ms since=1.0
+ardop.setting.fec_type type=choice(4fsk_200_50s,4fsk_500_100s,4fsk_500_100,4psk_200_100,4psk_200_100s,8psk_200_100,16qam_200_100,4psk_500_100,8psk_500_100,16qam_500_100,4psk_1000_100,8psk_1000_100,16qam_1000_100,4psk_2000_100,8psk_2000_100,16qam_2000_100) unit= since=1.0
+ardop.setting.auto_answer type=bool unit= since=1.0
 ardop.command.remove args=row:text reply= since=1.0
 ardop.command.clear args= reply= since=1.0
-ardop.command.send args=text:text reply= transmits=text stop=stop since=2.6
-ardop.command.send_id args= reply= transmits=beacon stop=stop since=2.6
-ardop.command.ping args=target:text reply= transmits=frame stop=stop since=2.6
-ardop.command.connect args=target:text reply= transmits=frame stop=stop since=2.6
-ardop.command.disconnect args= reply= transmits=frame stop=stop since=2.6
-ardop.command.stop args= reply= since=2.6
+ardop.command.send args=text:text reply= transmits=text stop=stop since=1.0
+ardop.command.send_id args= reply= transmits=beacon stop=stop since=1.0
+ardop.command.ping args=target:text reply= transmits=frame stop=stop refers=target:stations.callsign since=1.0
+ardop.command.connect args=target:text reply= transmits=frame stop=stop refers=target:stations.callsign since=1.0
+ardop.command.disconnect args= reply= transmits=frame stop=stop since=1.0
+ardop.command.stop args= reply= since=1.0
 ros since=1.0
-ros.content kind=measurement audio=monitor since=2.8
+ros.content kind=measurement audio=monitor since=1.0
 ros.fields.FrontFields since=1.0
 ros.fields.RosFields since=1.0
 ros.fields.DecoderFields since=1.0
@@ -835,7 +835,7 @@ ros.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 ros.kept.detections since=1.0
 ros.kept.RosFields.detections since=1.0
 ros.kept.RosFields.misfits since=1.0
-ros.table.detections row=RosDetectionRow cap=100 label=name since=1.0
+ros.table.detections row=RosDetectionRow cap=100 label=name role=log time=time_s since=1.0
 ros.series.waterfall x_unit=Hz y_unit=dB since=1.0
 ros.event.ros.detection fields=RosDetectionEvent since=1.0
 ros.setting.demod type=choice(usb,lsb) unit= since=1.0
@@ -844,7 +844,7 @@ ros.setting.gen_signal type=choice(grid,noise,fsk,carrier,sweep) unit= since=1.0
 ros.setting.gen_baud type=f64 unit=Bd since=1.0
 ros.command.clear args= reply= since=1.0
 throb since=1.0
-throb.content kind=text_chat audio=monitor text=yes since=2.8
+throb.content kind=text_chat audio=monitor text=yes since=1.0
 throb.fields.FrontFields since=1.0
 throb.fields.ThrobFields since=1.0
 throb.fields.DecoderFields since=1.0
@@ -866,7 +866,7 @@ throb.setting.gen_centre_hz type=hz unit=Hz since=1.0
 throb.command.remove args=row:text reply= since=1.0
 throb.command.clear args= reply= since=1.0
 qrss since=1.0
-qrss.content kind=pictures audio=monitor pictures=yes since=2.8
+qrss.content kind=pictures audio=monitor pictures=yes since=1.0
 qrss.fields.FrontFields since=1.0
 qrss.fields.QrssFields since=1.0
 qrss.fields.DecoderFields since=1.0
@@ -891,7 +891,7 @@ qrss.setting.gen_element_s type=f64 unit=s since=1.0
 qrss.setting.gen_shift_hz type=hz unit=Hz since=1.0
 qrss.command.clear args= reply= since=1.0
 cp16 since=1.0
-cp16.content kind=text_chat audio=monitor pictures=yes text=yes since=2.8
+cp16.content kind=text_chat audio=monitor pictures=yes text=yes since=1.0
 cp16.fields.FrontFields since=1.0
 cp16.fields.Cp16Fields since=1.0
 cp16.fields.DecoderFields since=1.0
@@ -925,14 +925,14 @@ cp16.command.clear args= reply= since=1.0
 cp16.command.send args=text:text reply= transmits=text since=1.0
 cp16.command.stop args= reply= since=1.0
 winmor since=1.0
-winmor.content kind=measurement audio=monitor since=2.8
+winmor.content kind=measurement audio=monitor since=1.0
 winmor.fields.FrontFields since=1.0
 winmor.fields.WinmorFields since=1.0
 winmor.fields.DecoderFields since=1.0
 winmor.component.front.fields.FrontFields shared=level_dbfs;audio_dbfs since=1.0
 winmor.kept.pilots since=1.0
 winmor.kept.WinmorFields.pilots since=1.0
-winmor.table.pilots row=WinmorPilotRow cap=200 since=1.0
+winmor.table.pilots row=WinmorPilotRow cap=200 role=log time=time since=1.0
 winmor.event.winmor.pilot fields=WinmorPilotEvent since=1.0
 winmor.setting.listen type=bool unit= since=1.0
 winmor.setting.gen_tones type=text unit= since=1.0

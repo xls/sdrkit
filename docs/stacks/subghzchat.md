@@ -54,8 +54,8 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:su
 
 | Key | Label | Columns |
 |---|---|---|
-| `chat` | Chat | `time_s` (number (s)), `direction` (text), `kind` (choice), `text` (text), `packets` (whole number), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `offset_hz` (frequency), `run` (text) |
-| `packets` | Packets | `time_s` (number (s)), `length` (whole number (octets)), `crc_ok` (yes or no), `inverted` (yes or no), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `offset_hz` (frequency), `hex` (text) |
+| `chat` | Chat | `time_s` (number (s)), `own` (yes or no), `kind` (choice), `text` (text), `packets` (whole number), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `offset_hz` (frequency), `run` (text) |
+| `packets` | Packets | `time_s` (number (s)), `length` (whole number (B)), `crc_ok` (yes or no), `inverted` (yes or no), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `offset_hz` (frequency), `hex` (text) |
 
 ## Events
 
@@ -72,7 +72,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:su
 
 ## Typed interface
 
-The stack is in the family `ism`, version 3.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Keyboard text (`text_chat`). Media: text.
 
@@ -109,7 +109,7 @@ Struct `SubghzchatLineRow`. A row of the chat. The row key is the number of the 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `time_s` | number (s) | always | 1.0 | The signal time of the line. |
-| `direction` | text | always | 1.0 | "heard" or "sent". |
+| `own` | yes or no | always | 1.0 | True for a line that this station sent. |
 | `kind` | choice | always | 1.0 | How the line was read. |
 | `text` | text | always | 1.0 | The text. |
 | `packets` | whole number | always | 1.0 | The packets joined into the line. |
@@ -118,7 +118,7 @@ Struct `SubghzchatLineRow`. A row of the chat. The row key is the number of the 
 | `offset_hz` | frequency | optional | 1.0 | The carrier offset of the first packet of a line heard. |
 | `run` | text | optional | 1.0 | The run id and counter of an encrypted line. |
 
-The rows are the messages of the stack. Text: `text`. Time: `time_s`.
+The rows are the messages of the stack. Text: `text`. Time: `time_s`. Own message: `own`.
 
 ### Table `packets`
 
@@ -127,7 +127,7 @@ Struct `SubghzchatPacketRow`. A row of the packet log. The row key is the number
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `time_s` | number (s) | always | 1.0 | The signal time of the packet. |
-| `length` | whole number (octets) | always | 1.0 | The payload length. |
+| `length` | whole number (B) | always | 1.0 | The payload length. |
 | `crc_ok` | yes or no | always | 1.0 | The CRC is right. |
 | `inverted` | yes or no | always | 1.0 | The packet was found inverted. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the packet. |

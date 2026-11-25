@@ -181,7 +181,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `dvbcs`, version 1.5. The C header `sdrkit/dvbcs.h`, the registry record `registry/dvbcs.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvbcs`, version 2.0. The C header `sdrkit/dvbcs.h`, the registry record `registry/dvbcs.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Television and video (`television`). Media: sound (programme), video.
 
@@ -219,8 +219,8 @@ Struct `Dvbc2Fields`. The result fields of the receiver of `dvbc2`: the signal, 
 | `common_plp` | whole number | optional | 1.0 | The common PLP of the PLP decoded. |
 | `bundled_slices` | whole number | optional | 1.0 | The data slices that carry the PLP, when more than one. |
 | `retune_hz` | frequency | optional | 1.0 | The frequency to tune to for the chosen data slice, when it is outside the window. |
-| `outside_slice` | whole number | optional | 1.3 | The data slice that the decoding needs and that reaches out of the receive window. |
-| `outside_hz` | frequency | optional | 1.3 | How far that data slice reaches beyond the edge of the receive window. |
+| `outside_slice` | whole number | optional | 1.0 | The data slice that the decoding needs and that reaches out of the receive window. |
+| `outside_hz` | frequency | optional | 1.0 | How far that data slice reaches beyond the edge of the receive window. |
 | `generic_packets` | whole number | always | 1.0 | Packets of a generic stream. |
 | `generic_bytes` | whole number | always | 1.0 | Bytes of a generic stream. |
 | `note` | text | always | 1.0 | A note on what the receiver decodes. |
@@ -266,7 +266,7 @@ Struct `Dvbc2SliceRow`. A row of the data slices of the L1. The row key is DSLIC
 | `ti_depth` | whole number (symbols) | always | 1.0 | The depth of the time interleaver. |
 | `plp_count` | whole number | always | 1.0 | The PLPs of the slice. |
 | `in_window` | yes or no | always | 1.0 | The slice is inside the receive window. |
-| `width_hz` | frequency | optional | 1.3 | The width of the slice. |
+| `width_hz` | frequency | optional | 1.0 | The width of the slice. |
 
 ### Table `plps`
 
@@ -284,8 +284,8 @@ Struct `Dvbc2PlpRow`. A row of the PLPs of the L1. The row key is `<slice>/<PLP_
 | `ts_id` | whole number | optional | 1.0 | The transport stream id. No value for a PLP with PSI reprocessing. |
 | `on_id` | whole number | optional | 1.0 | The original network id. No value for a PLP with PSI reprocessing. |
 | `chosen` | yes or no | always | 1.0 | It is the PLP decoded. |
-| `group` | whole number | optional | 1.3 | PLP_GROUP_ID. No value for a normal data PLP. |
-| `bundled` | yes or no | always | 1.3 | PLP_BUNDLED: the PLP is spread over several data slices. |
+| `group` | whole number | optional | 1.0 | PLP_GROUP_ID. No value for a normal data PLP. |
+| `bundled` | yes or no | always | 1.0 | PLP_BUNDLED: the PLP is spread over several data slices. |
 
 ### Table `notches`
 

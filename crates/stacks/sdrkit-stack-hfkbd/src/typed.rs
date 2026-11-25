@@ -427,7 +427,7 @@ pub struct CwFields {
     #[field(label = "Steadiness", unit = "%")]
     pub steadiness_pct: Option<f64>,
     /// Its speed.
-    #[field(label = "Speed", unit = "WPM")]
+    #[field(label = "Speed", unit = "wpm", reading = 1)]
     pub wpm: Option<f64>,
     /// The signals in the table that are heard now.
     #[field(label = "Signals")]
@@ -457,7 +457,7 @@ pub struct CwSignalRow<'a> {
     #[field(shared = keys::OFFSET_HZ)]
     pub offset_hz: Hertz,
     /// The speed.
-    #[field(label = "Speed", unit = "WPM")]
+    #[field(label = "Speed", unit = "wpm")]
     pub wpm: f64,
     /// The SNR.
     #[field(shared = keys::SNR_DB)]
@@ -550,7 +550,7 @@ pub struct MorseFields<'a> {
     #[field(shared = keys::CALLSIGN)]
     pub callsign: Option<&'a str>,
     /// The speed.
-    #[field(label = "Speed", unit = "WPM")]
+    #[field(label = "Speed", unit = "wpm")]
     pub wpm: f64,
     /// The SNR.
     #[field(shared = keys::SNR_DB)]
@@ -1227,7 +1227,9 @@ pub struct ArdopCallArgs<'a> {
     /// The called station.
     #[arg(
         label = "Called station",
-        help = "1 to 8 characters: letters, digits, - and /. Lower case is sent as upper case."
+        help = "1 to 8 characters: letters, digits, - and /. Lower case is sent as upper case.",
+        refers_to = "stations",
+        column = "callsign"
     )]
     pub target: &'a str,
 }
@@ -1271,10 +1273,10 @@ pub const ARDOP_STOP: Command = Command::new("stop", "Stop sending").help(
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct RosFields<'a> {
     /// The sub-mode found, if the rate gives one.
-    #[field(label = "Sub-mode")]
+    #[field(label = "Sub-mode", reading = 3)]
     pub sub_mode: Option<&'a str>,
     /// What was found.
-    #[field(label = "Found")]
+    #[field(label = "Found", reading = 2)]
     pub name: Option<&'a str>,
     /// Why.
     #[field(label = "Why")]
@@ -1301,16 +1303,16 @@ pub struct RosFields<'a> {
     #[field(label = "Positions used")]
     pub distinct: Option<i64>,
     /// The score.
-    #[field(label = "Score", unit = "%")]
+    #[field(label = "Score", unit = "%", reading = 4)]
     pub score_pct: Option<f64>,
     /// The signal is identified.
-    #[field(label = "Identified")]
+    #[field(label = "Identified", reading = 1)]
     pub detected: bool,
     /// Few symbols were seen.
     #[field(label = "Few symbols")]
     pub weak: bool,
     /// The tuning error.
-    #[field(shared = keys::OFFSET_HZ)]
+    #[field(shared = keys::OFFSET_HZ, reading = 5)]
     pub offset_hz: Hertz,
     /// Identifications.
     #[field(label = "Identifications")]
@@ -1324,7 +1326,7 @@ pub struct RosFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct RosDetectionRow<'a> {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The sub-mode, if the rate gives one.
     #[field(label = "Sub-mode")]
@@ -1342,7 +1344,9 @@ pub struct RosDetectionRow<'a> {
 
 /// The ROS identifications, newest first.
 pub static ROS_DETECTIONS: Table<RosDetectionRow<'static>> =
-    Table::new("detections", "Identifications", 100).label(&RosDetectionRow::NAME);
+    Table::new("detections", "Identifications", 100)
+        .label(&RosDetectionRow::NAME)
+        .role(sdrkit_core::TableRole::Log);
 
 /// The newest spectrum of the ROS band.
 pub const ROS_WATERFALL: SeriesDef = SeriesDef {
@@ -1602,10 +1606,10 @@ pub struct WinmorFields<'a> {
     #[field(label = "Note")]
     pub note: &'a str,
     /// Pilots heard.
-    #[field(label = "Pilots")]
+    #[field(label = "Pilots", reading = 1)]
     pub pilots: i64,
     /// The tuning error of the newest pilot, if one was heard.
-    #[field(label = "Tuning error", unit = "Hz")]
+    #[field(label = "Tuning error", unit = "Hz", reading = 2)]
     pub error_hz: Option<f64>,
 }
 
@@ -1627,7 +1631,8 @@ pub struct WinmorPilotRow<'a> {
 }
 
 /// The WINMOR pilots, newest first.
-pub static WINMOR_PILOTS: Table<WinmorPilotRow<'static>> = Table::new("pilots", "Pilots", 200);
+pub static WINMOR_PILOTS: Table<WinmorPilotRow<'static>> =
+    Table::new("pilots", "Pilots", 200).role(sdrkit_core::TableRole::Log);
 
 /// The fields of a WINMOR pilot.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1717,7 +1722,8 @@ pub const KEYBOARD_TUNE: Command = Command::new("tune", "Tune")
 
 /// The addressee of an FSQ line.
 pub const FSQ_TO: sdrkit_core::Setting<field::Text> = sdrkit_core::Setting::new("to", "To", "", "")
-    .help("A callsign, allcall or cqcqcq; empty for a line to no one.");
+    .help("A callsign, allcall or cqcqcq; empty for a line to no one.")
+    .refers("stations", "callsign");
 /// The trigger of an FSQ line.
 pub const FSQ_TRIGGER: sdrkit_core::Setting<field::Choice<Trigger>> =
     sdrkit_core::Setting::choice("trigger", "Trigger", Trigger::Text)
@@ -2058,33 +2064,7 @@ pub fn family() -> &'static Described {
         let olivia = k::olivia::OliviaSetting::SETTINGS;
         let olivia_gen = k::olivia::OliviaGenSetting::SETTINGS;
         let ifk_gen = k::domino::IfkGenSetting::SETTINGS;
-        let mut f = Described::new("hfkbd", 2, 10)
-            .added(
-                2,
-                8,
-                &[
-                    "rtty.content",
-                    "psk.content",
-                    "cw.content",
-                    "olivia.content",
-                    "contestia.content",
-                    "mfsk.content",
-                    "dominoex.content",
-                    "thor.content",
-                    "hell.content",
-                    "mt63.content",
-                    "fsq.content",
-                    "ifkp.content",
-                    "sstv.content",
-                    "sitor.content",
-                    "ardop.content",
-                    "ros.content",
-                    "throb.content",
-                    "qrss.content",
-                    "cp16.content",
-                    "winmor.content",
-                ],
-            )
+        let mut f = Described::new("hfkbd", 3, 0)
             .content(
                 sdrkit_core::ContentKind::TextChat,
                 &[
@@ -2152,42 +2132,7 @@ pub fn family() -> &'static Described {
                 "ardop",
                 "throb",
                 "cp16",
-            ])
-            .added(2, 7, ADDED_2_7)
-            .added(2, 6, ADDED_2_6)
-            .added(2, 5, ADDED_2_5)
-            .added(2, 4, ADDED_2_4)
-            .added(2, 3, ADDED_2_3)
-            .added(
-                2,
-                2,
-                &["shape.CwFields.playing", "shape.CwFields.listened_hz"],
-            )
-            .added(
-                2,
-                1,
-                &["shape.CwFields.listened", "cw.setting.gen_noise_only"],
-            )
-            .added(
-                2,
-                0,
-                &[
-                    "shape.CwFields.span_hz",
-                    "shape.CwFields.signals",
-                    "shape.CwFields.now_s",
-                    "shape.CwSignalRow.freq_hz",
-                    "shape.CwSignalRow.level_dbfs",
-                    "cw.series.spectrum",
-                    "cw.series.key",
-                    "cw.setting.filter",
-                    "cw.setting.listen",
-                    "cw.setting.forget_s",
-                    "cw.setting.span",
-                    "cw.setting.gen_signals",
-                    "cw.setting.gen_wpm_max",
-                    "cw.setting.gen_level_spread_db",
-                ],
-            );
+            ]);
         for (name, users) in SHARED {
             f = f.shared_source(name, users);
         }
@@ -2258,170 +2203,6 @@ pub fn family() -> &'static Described {
             .stack(winmor)
     })
 }
-
-/// What version 2.7 added: the test-signal setting of the last ARDOP frame.
-const ADDED_2_7: &[&str] = &["ardop.setting.gen_data"];
-
-/// What version 2.6 added: the sender and the link of ARDOP, the sideband, FM and repeat of the SSTV sender, the font of the
-/// Hell sender.
-const ADDED_2_6: &[&str] = &[
-    "ardop.fields.ArdopTxFields",
-    "shape.ArdopTxFields",
-    "shape.ArdopTxFields.tx_sending",
-    "shape.ArdopTxFields.tx_frame",
-    "shape.ArdopTxFields.tx_waiting",
-    "shape.ArdopTxFields.link_state",
-    "shape.ArdopTxFields.link_peer",
-    "shape.ArdopTxFields.link_session",
-    "shape.ArdopTxFields.link_sent",
-    "shape.ArdopTxFields.link_received",
-    "shape.ArdopTxFields.link_waiting",
-    "shape.ArdopTxFields.link_retries",
-    "shape.ArdopTxFields.link_reason",
-    "shape.ArdopTxFields.link_text",
-    "shape.ArdopTxFields.link_request",
-    "ardop.event.hfkbd.tx",
-    "ardop.event.ardop.link",
-    "shape.ArdopLinkEvent",
-    "shape.ArdopLinkEvent.state",
-    "shape.ArdopLinkEvent.source",
-    "shape.ArdopLinkEvent.reason",
-    "shape.ArdopLinkEvent.text",
-    "shape.ArdopLinkEvent.family",
-    "ardop.setting.leader_ms",
-    "ardop.setting.fec_type",
-    "ardop.setting.auto_answer",
-    "ardop.command.send",
-    "ardop.command.send_id",
-    "ardop.command.ping",
-    "ardop.command.connect",
-    "ardop.command.disconnect",
-    "ardop.command.stop",
-    "shape.SstvTxFields.tx_next_s",
-    "sstv.setting.repeat",
-    "sstv.setting.pause_s",
-    "hell.setting.font",
-];
-
-/// What version 2.5 added: the senders of MFSK, Olivia, Contestia and MT63.
-const ADDED_2_5: &[&str] = &[
-    "mfsk.fields.KeyboardTxFields",
-    "mfsk.event.hfkbd.tx",
-    "mfsk.setting.tx_level",
-    "mfsk.setting.tx_tune_limit",
-    "mfsk.command.send",
-    "mfsk.command.stop",
-    "mfsk.command.tune",
-    "olivia.fields.KeyboardTxFields",
-    "olivia.event.hfkbd.tx",
-    "olivia.setting.tx_level",
-    "olivia.setting.tx_tune_limit",
-    "olivia.command.send",
-    "olivia.command.stop",
-    "olivia.command.tune",
-    "contestia.fields.KeyboardTxFields",
-    "contestia.event.hfkbd.tx",
-    "contestia.setting.tx_level",
-    "contestia.setting.tx_tune_limit",
-    "contestia.command.send",
-    "contestia.command.stop",
-    "contestia.command.tune",
-    "mt63.fields.KeyboardTxFields",
-    "mt63.event.hfkbd.tx",
-    "mt63.setting.tx_low_hz",
-    "mt63.setting.tx_level",
-    "mt63.setting.tx_tune_limit",
-    "mt63.command.send",
-    "mt63.command.stop",
-    "mt63.command.tune",
-];
-
-/// What version 2.4 added: the senders of RTTY, PSK, DominoEX, THOR, Hell, FSQ and IFKP.
-const ADDED_2_4: &[&str] = &[
-    "rtty.fields.KeyboardTxFields",
-    "rtty.event.hfkbd.tx",
-    "rtty.setting.tx_centre_hz",
-    "rtty.setting.tx_level",
-    "rtty.setting.tx_tune_limit",
-    "rtty.command.send",
-    "rtty.command.stop",
-    "rtty.command.tune",
-    "psk.fields.KeyboardTxFields",
-    "psk.event.hfkbd.tx",
-    "psk.setting.tx_centre_hz",
-    "psk.setting.tx_level",
-    "psk.setting.tx_tune_limit",
-    "psk.command.send",
-    "psk.command.stop",
-    "psk.command.tune",
-    "dominoex.fields.KeyboardTxFields",
-    "dominoex.event.hfkbd.tx",
-    "dominoex.setting.tx_level",
-    "dominoex.setting.tx_tune_limit",
-    "dominoex.command.send",
-    "dominoex.command.stop",
-    "dominoex.command.tune",
-    "thor.fields.KeyboardTxFields",
-    "thor.event.hfkbd.tx",
-    "thor.setting.tx_level",
-    "thor.setting.tx_tune_limit",
-    "thor.command.send",
-    "thor.command.stop",
-    "thor.command.tune",
-    "hell.fields.KeyboardTxFields",
-    "hell.event.hfkbd.tx",
-    "hell.setting.tx_level",
-    "hell.setting.tx_tune_limit",
-    "hell.command.send",
-    "hell.command.stop",
-    "hell.command.tune",
-    "fsq.fields.KeyboardTxFields",
-    "fsq.event.hfkbd.tx",
-    "fsq.setting.tx_centre_hz",
-    "fsq.setting.tx_level",
-    "fsq.setting.tx_tune_limit",
-    "fsq.command.send",
-    "fsq.command.stop",
-    "fsq.command.tune",
-    "ifkp.fields.KeyboardTxFields",
-    "ifkp.event.hfkbd.tx",
-    "ifkp.setting.tx_centre_hz",
-    "ifkp.setting.tx_level",
-    "ifkp.setting.tx_tune_limit",
-    "ifkp.command.send",
-    "ifkp.command.stop",
-    "ifkp.command.tune",
-    "shape.KeyboardTxFields",
-    "shape.KeyboardTxFields.tx_sending",
-    "shape.KeyboardTxFields.tx_sent",
-    "shape.KeyboardTxFields.tx_waiting",
-    "shape.KeyboardTxEvent",
-    "shape.KeyboardTxEvent.state",
-    "shape.KeyboardTxEvent.reason",
-    "shape.KeyboardTxEvent.text",
-    "shape.KeyboardTxEvent.family",
-];
-
-/// What version 2.3 added: the transmitter of SSTV.
-const ADDED_2_3: &[&str] = &[
-    "sstv.fields.SstvTxFields",
-    "shape.SstvTxFields",
-    "shape.SstvTxFields.tx_sending",
-    "shape.SstvTxFields.tx_mode",
-    "shape.SstvTxFields.tx_line",
-    "shape.SstvTxFields.tx_lines",
-    "shape.SstvTxFields.tx_picture_s",
-    "sstv.event.sstv.tx",
-    "shape.SstvTxEvent",
-    "shape.SstvTxEvent.state",
-    "shape.SstvTxEvent.reason",
-    "shape.SstvTxEvent.mode",
-    "shape.SstvTxEvent.family",
-    "sstv.setting.tx_mode",
-    "sstv.setting.fit",
-    "sstv.command.send",
-    "sstv.command.stop",
-];
 
 /// Every stack of the family.
 const ALL: &[&str] = &[

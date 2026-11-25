@@ -71,9 +71,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.5. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 2.0. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite links (`satellite_links`). Media: none.
+
+Key readings: `frames_ok`, `frames_bad`, `carriers`.
 
 ### Result fields
 
@@ -112,7 +114,7 @@ Struct `GoesDcsReportRow`. A platform report. The row key is the sequence number
 | `parity_errors` | whole number | always | 1.0 | Characters whose parity failed. |
 | `text` | text | always | 1.0 | The data of the report. |
 
-The column `address` names a row.
+The rows are a log: they arrive over time. The column `address` names a row. Time: `heard_at`.
 
 ### Table `platforms`
 

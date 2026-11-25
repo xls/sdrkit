@@ -1,5 +1,5 @@
 # The interface of the stack family voice. The registry test of the family writes this file.
-family voice version=1.4
+family voice version=1.5
 uses.tones major=1 since=1.0
 shape.DetectorFields since=1.0
 shape.DetectorFields.state type=choice(searching,signal,confirmed) unit= optional=no since=1.0
@@ -40,11 +40,11 @@ shape.HfpacketStationEvent since=1.0
 shape.HfpacketStationEvent.text type=text unit= optional=no since=1.0
 shape.HfpacketStationEvent.source type=text unit= optional=no since=1.0
 shape.Elt121Fields since=1.0
-shape.Elt121Fields.confirmed type=bool unit= optional=no since=1.0
-shape.Elt121Fields.sweep_rate_hz type=f64 unit=Hz optional=yes since=1.0
-shape.Elt121Fields.sweep_top_hz type=hz unit=Hz optional=yes since=1.0
-shape.Elt121Fields.sweep_bottom_hz type=hz unit=Hz optional=yes since=1.0
-shape.Elt121Fields.depth_pct type=f64 unit=% optional=yes since=1.0
+shape.Elt121Fields.confirmed type=bool unit= optional=no reading=1 since=1.0
+shape.Elt121Fields.sweep_rate_hz type=f64 unit=Hz optional=yes reading=2 since=1.0
+shape.Elt121Fields.sweep_top_hz type=hz unit=Hz optional=yes reading=3 since=1.0
+shape.Elt121Fields.sweep_bottom_hz type=hz unit=Hz optional=yes reading=4 since=1.0
+shape.Elt121Fields.depth_pct type=f64 unit=% optional=yes reading=5 since=1.0
 shape.Elt121FoundEvent since=1.0
 shape.Elt121FoundEvent.text type=text unit= optional=no since=1.0
 shape.Elt121FoundEvent.sweep_rate_hz type=f64 unit=Hz optional=no since=1.0
@@ -53,8 +53,8 @@ shape.Elt121FoundEvent.sweep_bottom_hz type=hz unit=Hz optional=no since=1.0
 shape.Elt121EndedEvent since=1.0
 shape.Elt121EndedEvent.text type=text unit= optional=no since=1.0
 shape.VoiceInversionFields since=1.0
-shape.VoiceInversionFields.inverted type=bool unit= optional=no since=1.0
-shape.VoiceInversionFields.carrier_hz type=hz unit=Hz optional=yes since=1.0
+shape.VoiceInversionFields.inverted type=bool unit= optional=no reading=1 since=1.0
+shape.VoiceInversionFields.carrier_hz type=hz unit=Hz optional=yes reading=2 since=1.0
 shape.VoiceInversionFields.fit_heard type=f64 unit= optional=yes since=1.0
 shape.VoiceInversionFields.fit_inverted type=f64 unit= optional=yes since=1.0
 shape.VoiceInversionFoundEvent since=1.0
@@ -166,8 +166,8 @@ shape.Mdc1200BurstEvent.double type=bool unit= optional=no since=1.0
 shape.Mdc1200BurstEvent.extra type=text unit= optional=no since=1.0
 shape.Mdc1200BurstEvent.text type=text unit= optional=no since=1.0
 shape.WmicFields since=1.0
-shape.WmicFields.candidates type=i64 unit= optional=no since=1.0
-shape.WmicFields.plan type=text unit= optional=yes since=1.0
+shape.WmicFields.candidates type=i64 unit= optional=no reading=1 since=1.0
+shape.WmicFields.plan type=text unit= optional=yes reading=2 since=1.0
 shape.WmicFields.input_rate_hz type=hz unit=Hz optional=no since=1.0
 shape.WmicFields.centre_hz type=hz unit=Hz optional=no since=1.0
 shape.WmicFields.signal_time_s type=duration unit=s optional=no since=1.0
@@ -232,7 +232,7 @@ hfpacket.kept.DetectorFields.bad since=1.0
 hfpacket.kept.HfpacketFields.stations since=1.0
 hfpacket.kept.HfpacketFields.last_frame since=1.0
 hfpacket.table.events row=DetectorEventRow cap=60 role=messages message=text time=time_utc since=1.0
-hfpacket.table.frames row=HfpacketFrameRow cap=200 label=source since=1.0
+hfpacket.table.frames row=HfpacketFrameRow cap=200 label=source role=log time=time_utc since=1.0
 hfpacket.event.hfpacket.frame fields=HfpacketFrameEvent since=1.0
 hfpacket.event.hfpacket.station fields=HfpacketStationEvent since=1.0
 hfpacket.setting.sideband type=choice(usb,lsb) unit= since=1.0

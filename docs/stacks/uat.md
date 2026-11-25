@@ -81,7 +81,7 @@ The stack puts points on a map: Aircraft.
 
 ## Typed interface
 
-The stack is in the family `adsb`, version 1.3. The C header `sdrkit/adsb.h`, the registry record `registry/adsb.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `adsb`, version 1.4. The C header `sdrkit/adsb.h`, the registry record `registry/adsb.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -223,7 +223,7 @@ Struct `UatLogRow`. A line of the UAT message log.
 | `level_dbfs` | number (dBFS) | always | 1.0 | Level. |
 | `summary` | text | always | 1.0 | What it said. |
 
-The column `address` names a row.
+The rows are a log: they arrive over time. The column `address` names a row. Time: `time_s`.
 
 ### Event `uat.message`
 

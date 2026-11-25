@@ -39,7 +39,7 @@ Advanced settings. The owner works without any of them set.
 | `frame_length` | Frame length | choice | `any` | `any` (Any), `normal` (Normal), `short` (Short) | Frames of the other length are counted and skipped. |
 | `pilots` | Pilots | choice | `any` | `any` (Any), `on` (On), `off` (Off) | A check only: a frame with other pilots is counted and decoded. |
 
-The setting `product` chooses whose picture the stack shows.
+The setting `product` chooses whose picture the stack shows. The setting `product` takes the column `apid` of a row of the table `grb_products`.
 
 ## Result fields
 
@@ -125,7 +125,7 @@ The setting `product` chooses whose picture the stack shows.
 | Key | Label | Columns |
 |---|---|---|
 | `carriers` | Carriers | `offset` (frequency), `symbol_rate` (frequency), `roll_off` (number), `snr_db` (number (dB)), `level_db` (number (dB)), `decoded` (yes or no) |
-| `streams` | Input streams | `isi` (whole number), `carries` (choice), `packet_bytes` (whole number (bytes)), `sync_byte` (whole number), `ccm` (yes or no), `frames` (whole number), `bits` (whole number) |
+| `streams` | Input streams | `isi` (whole number), `carries` (choice), `packet_bytes` (whole number (B)), `sync_byte` (whole number), `ccm` (yes or no), `frames` (whole number), `bits` (whole number) |
 | `stream_modcods` | MODCODs of the input streams | `stream` (text), `modcod` (whole number), `modulation` (choice), `code_rate` (choice), `frames` (whole number), `share_pct` (number (%)) |
 | `grb_products` | Products | `apid` (whole number), `name` (text), `updated` (duration (s)) |
 | `packets_by_apid` | Packets by APID | `apid` (whole number), `name` (text), `packets` (whole number) |
@@ -149,7 +149,7 @@ The setting `product` chooses whose picture the stack shows.
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
 
@@ -242,18 +242,18 @@ Struct `GlmFields`. The GLM lightning results of `goes_grb`.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `glm_payloads` | whole number | always | 1.1 | Complete GLM payloads (APIDs 300 to 303). |
-| `glm_dropped` | whole number | always | 1.1 | GLM payloads dropped because a packet of them was lost or damaged. |
-| `glm_packets_lost` | whole number | always | 1.1 | Packets missing from the sequence counts of the GLM APIDs. |
-| `glm_not_decoded` | whole number | always | 1.1 | Compressed GLM payloads, saved as files and not decoded. |
-| `glm_bad_length` | whole number | always | 1.1 | Flash and event units whose length does not match their count. |
-| `glm_group_bad_length` | whole number | always | 1.1 | Group units whose length does not match their count. |
-| `flash_count` | whole number | always | 1.1 | Flashes decoded. |
-| `group_count` | whole number | always | 1.1 | Groups decoded. |
-| `event_count` | whole number | always | 1.1 | Events counted. |
-| `glm_rejected` | whole number | always | 1.1 | Flash and group records with an impossible value. |
-| `newest_flash` | time | optional | 1.1 | The time of the first event of the newest flash (UTC). |
-| `flash_rate` | number (1/min) | always | 1.1 | Flashes in the 60 s of flash time up to the newest flash. |
+| `glm_payloads` | whole number | always | 1.0 | Complete GLM payloads (APIDs 300 to 303). |
+| `glm_dropped` | whole number | always | 1.0 | GLM payloads dropped because a packet of them was lost or damaged. |
+| `glm_packets_lost` | whole number | always | 1.0 | Packets missing from the sequence counts of the GLM APIDs. |
+| `glm_not_decoded` | whole number | always | 1.0 | Compressed GLM payloads, saved as files and not decoded. |
+| `glm_bad_length` | whole number | always | 1.0 | Flash and event units whose length does not match their count. |
+| `glm_group_bad_length` | whole number | always | 1.0 | Group units whose length does not match their count. |
+| `flash_count` | whole number | always | 1.0 | Flashes decoded. |
+| `group_count` | whole number | always | 1.0 | Groups decoded. |
+| `event_count` | whole number | always | 1.0 | Events counted. |
+| `glm_rejected` | whole number | always | 1.0 | Flash and group records with an impossible value. |
+| `newest_flash` | time | optional | 1.0 | The time of the first event of the newest flash (UTC). |
+| `flash_rate` | number (1/min) | always | 1.0 | Flashes in the 60 s of flash time up to the newest flash. |
 
 ### Table `carriers`
 
@@ -276,7 +276,7 @@ Struct `Dvbs2StreamRow`. A row of the input streams. The row key is the ISI.
 |---|---|---|---|---|
 | `isi` | whole number | always | 1.0 | The input stream identifier. |
 | `carries` | choice | always | 1.0 | What the stream carries. |
-| `packet_bytes` | whole number (bytes) | optional | 1.0 | The user packet length. No value for a stream without user packets. |
+| `packet_bytes` | whole number (B) | optional | 1.0 | The user packet length. No value for a stream without user packets. |
 | `sync_byte` | whole number | optional | 1.0 | The sync byte of the user packets. |
 | `ccm` | yes or no | always | 1.0 | Constant coding and modulation. |
 | `frames` | whole number | always | 1.0 | Frames of the stream. |
@@ -334,17 +334,17 @@ Struct `GlmFlashRow`. A lightning flash of `goes_grb`. The row key is the produc
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `flash` | whole number | always | 1.1 | The product-unique flash id. |
-| `time` | time | always | 1.1 | The time of the first event (UTC). |
-| `duration` | duration (s) | always | 1.1 | From the first to the last event. |
-| `position` | position (°) | always | 1.1 | The energy-weighted centroid, latitude first. |
-| `area_km2` | number (km²) | optional | 1.1 | The area covered. |
-| `energy_fj` | number (fJ) | optional | 1.1 | The radiant energy. |
-| `quality` | choice | optional | 1.1 | The data quality. |
-| `groups` | whole number | always | 1.1 | Groups received with this flash as parent. |
-| `events` | whole number | always | 1.1 | Events received in those groups. |
+| `flash` | whole number | always | 1.0 | The product-unique flash id. |
+| `time` | time | always | 1.0 | The time of the first event (UTC). |
+| `duration` | duration (s) | always | 1.0 | From the first to the last event. |
+| `position` | position (°) | always | 1.0 | The energy-weighted centroid, latitude first. |
+| `area_km2` | number (km²) | optional | 1.0 | The area covered. |
+| `energy_fj` | number (fJ) | optional | 1.0 | The radiant energy. |
+| `quality` | choice | optional | 1.0 | The data quality. |
+| `groups` | whole number | always | 1.0 | Groups received with this flash as parent. |
+| `events` | whole number | always | 1.0 | Events received in those groups. |
 
-Place of a row: the column `position`.
+The rows are a log: they arrive over time. Place of a row: the column `position`. Time: `time`.
 
 ### Table `groups`
 
@@ -352,16 +352,16 @@ Struct `GlmGroupRow`. A lightning group of `goes_grb`. The row key is the produc
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `group` | whole number | always | 1.1 | The product-unique group id. |
-| `time` | time | always | 1.1 | The mean time of the events (UTC). |
-| `position` | position (°) | always | 1.1 | The energy-weighted centroid, latitude first. |
-| `area_km2` | number (km²) | optional | 1.1 | The area covered. |
-| `energy_fj` | number (fJ) | optional | 1.1 | The radiant energy. |
-| `flash` | whole number | always | 1.1 | The parent flash id. |
-| `quality` | choice | optional | 1.1 | The data quality. |
-| `events` | whole number | always | 1.1 | Events received with this group as parent. |
+| `group` | whole number | always | 1.0 | The product-unique group id. |
+| `time` | time | always | 1.0 | The mean time of the events (UTC). |
+| `position` | position (°) | always | 1.0 | The energy-weighted centroid, latitude first. |
+| `area_km2` | number (km²) | optional | 1.0 | The area covered. |
+| `energy_fj` | number (fJ) | optional | 1.0 | The radiant energy. |
+| `flash` | whole number | always | 1.0 | The parent flash id. |
+| `quality` | choice | optional | 1.0 | The data quality. |
+| `events` | whole number | always | 1.0 | Events received with this group as parent. |
 
-Place of a row: the column `position`.
+The rows are a log: they arrive over time. Place of a row: the column `position`. Time: `time`.
 
 ### Commands
 

@@ -84,7 +84,7 @@ const HANG: Setting<field::Duration> =
 const SIZE: Setting<field::Choice<SpectrumSize>> =
     Setting::choice("size", "Spectrum size", SpectrumSize::S4096);
 const FPS: Setting<field::F64> =
-    Setting::new("fps", "Spectrum frames", "/s", 50.0).range(1.0, 1000.0, 0.0);
+    Setting::new("fps", "Spectrum frames", "1/s", 50.0).range(1.0, 1000.0, 0.0);
 
 sdrkit_core::settings! {
     /// The settings of [`CarrierScan`].

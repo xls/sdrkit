@@ -85,9 +85,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.5. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 2.0. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite links (`satellite_links`). Media: none.
+
+Key readings: `active_channels`, `activities`, `doppler`.
 
 ### Result fields
 
@@ -138,6 +140,8 @@ Struct `GlobalstarActivityRow`. A stretch of activity on a channel. The row key 
 | `doppler_start` | frequency | always | 1.0 | The Doppler shift at the start. |
 | `doppler_end` | frequency | always | 1.0 | The Doppler shift at the end. |
 | `wall_start` | time | optional | 1.0 | The wall-clock time of the start, when the samples are live. |
+
+The rows are a log: they arrive over time. Time: `wall_start`.
 
 ### Event `globalstar.activity`
 

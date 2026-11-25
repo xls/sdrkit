@@ -58,9 +58,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.4. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 2.0. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Navigation aids (`navigation`). Media: none.
+
+Key readings: `symbol_rate_seen`, `slots_busy`, `snr_db`, `bursts`.
 
 ### Result fields
 
@@ -95,6 +97,8 @@ Struct `GbasVdbBurstRow`. A row of the burst log: every 16th burst. The row key 
 | `length_ms` | number (ms) | always | 1.0 | The length of the burst. |
 | `slots_busy` | whole number | always | 1.0 | Slots busy then. |
 | `snr_db` | number (dB) | always | 1.0 | The signal to noise ratio of the burst. |
+
+The rows are a log: they arrive over time. Time: `time_s`.
 
 ### Commands
 

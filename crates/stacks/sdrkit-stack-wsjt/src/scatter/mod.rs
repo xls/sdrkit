@@ -1,6 +1,6 @@
 //! The burst, ping and beacon stacks: FSK441, JT6M, ISCAT and PI4. Each reads the 8 kHz audio of the family front end without
-//! its slow AGC and decodes from a sliding window of its own, with no slot clock. They share the decode rows, the decode and spot
-//! events, the kept audio and the receiver graph of this module.
+//! its slow AGC and decodes from a sliding window of its own, with no slot clock. They share the decode rows, the stations, the decode and
+//! spot events, the kept audio and the receiver graph of this module.
 
 pub mod fsk441;
 pub mod iscat;
@@ -9,12 +9,13 @@ pub mod pi4;
 
 use crate::components::FrontComponent;
 use crate::front::AUDIO_RATE;
-use crate::typed::ScatterFields;
+use crate::typed::{ScatterFields, ScatterStationRow, SCATTER_STATIONS};
+use sdrkit_core::interface::Time;
 use sdrkit_core::publish::{field, keys, Published, TableDef};
 use sdrkit_core::settings::DeclareSetting;
 use sdrkit_core::{Clock, ConfigError, Event, LockState, Receiver, StackConfig, Status};
 use sdrkit_graph::{Format, GraphBuilder, Kind, Outbox, Port, RateFrom, StackGraph};
-use std::collections::{BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 /// The section of the test-signal settings.
 pub const GEN_SECTION: &str = "Test signal";
@@ -31,6 +32,30 @@ pub const TEST_TEXT: &str = "CQ K0TST FN20";
 
 /// The decode rows kept.
 pub const ROWS_CAP: usize = 1000;
+
+/// The stations kept.
+pub const STATIONS_CAP: usize = 1000;
+
+/// A station of the station table: the newest decode that held its callsign and the count of such decodes.
+#[derive(Clone, Copy, Debug)]
+struct Heard {
+    utc: f64,
+    count: i64,
+    snr_db: f64,
+}
+
+/// The callsigns of a decoded text, each once, in order. A 6-character word that is a Maidenhead locator is no
+/// callsign.
+pub fn callsigns(text: &str) -> Vec<&str> {
+    let mut calls: Vec<&str> = Vec::new();
+    for w in text.split_whitespace() {
+        let locator = w.len() == 6 && sdrkit_util_geo::maidenhead::decode(w).is_ok();
+        if !locator && sdrkit_util_text::callsign::is_callsign(w) && !calls.contains(&w) {
+            calls.push(w);
+        }
+    }
+    calls
+}
 
 /// A decode of a stack of this module, with the values `extra` that only this stack has.
 #[derive(Clone, Debug)]
@@ -66,7 +91,11 @@ pub struct Board<X: Shown> {
     new_rows: usize,
     serial: u64,
     total: i64,
-    calls: BTreeSet<String>,
+    stations: BTreeMap<String, Heard>,
+    /// The stations whose rows are to be written at the next report.
+    changed: BTreeSet<String>,
+    /// The stations dropped for room, whose rows are to be removed at the next report.
+    dropped: Vec<String>,
     clock: Option<Clock>,
     utc0: Option<f64>,
     dial_hz: f64,
@@ -89,7 +118,9 @@ impl<X: Shown> Board<X> {
             new_rows: 0,
             serial: 0,
             total: 0,
-            calls: BTreeSet::new(),
+            stations: BTreeMap::new(),
+            changed: BTreeSet::new(),
+            dropped: Vec::new(),
             clock: None,
             utc0: None,
             dial_hz: 0.0,
@@ -126,19 +157,28 @@ impl<X: Shown> Board<X> {
         self.total
     }
 
-    /// Adds a decode: its row, its event and a spot event for each callsign heard for the first time.
+    /// Adds a decode: its row, its event, the stations of its callsigns ([`callsigns`]) and a spot event for each
+    /// callsign heard for the first time.
     pub fn decode(&mut self, out: &mut Outbox, d: ScatterDecode<X>) {
         let utc = self.utc(d.time_s);
         let rf = self.dial_hz + d.hz;
-        let calls: Vec<&str> = d
-            .text
-            .split_whitespace()
-            .filter(|w| sdrkit_util_text::callsign::is_callsign(w))
-            .collect();
+        let calls = callsigns(&d.text);
         out.messages(0)
             .push(X::event(&d, utc, rf, calls.first().copied()));
         for c in calls {
-            if self.calls.insert(c.to_owned()) {
+            let heard = self.stations.entry(c.to_owned()).or_insert(Heard {
+                utc,
+                count: 0,
+                snr_db: d.snr_db,
+            });
+            let first = heard.count == 0;
+            *heard = Heard {
+                utc,
+                count: heard.count + 1,
+                snr_db: d.snr_db,
+            };
+            self.changed.insert(c.to_owned());
+            if first {
                 out.messages(0).push(crate::table::spot_event(
                     &d.label,
                     utc,
@@ -149,11 +189,29 @@ impl<X: Shown> Board<X> {
                 ));
             }
         }
+        self.keep_room();
         self.total += 1;
         self.rows.push_back(d);
         self.new_rows += 1;
         while self.rows.len() > ROWS_CAP {
             self.rows.pop_front();
+        }
+    }
+
+    /// Drops the stations heard longest ago while there are more than [`STATIONS_CAP`].
+    fn keep_room(&mut self) {
+        while self.stations.len() > STATIONS_CAP {
+            let Some(oldest) = self
+                .stations
+                .iter()
+                .min_by(|a, b| a.1.utc.total_cmp(&b.1.utc))
+                .map(|(k, _)| k.clone())
+            else {
+                return;
+            };
+            self.stations.remove(&oldest);
+            self.changed.remove(&oldest);
+            self.dropped.push(oldest);
         }
     }
 
@@ -166,6 +224,24 @@ impl<X: Shown> Board<X> {
     pub fn report(&mut self, p: &mut Published, note: &str) {
         if std::mem::take(&mut self.cleared) {
             p.clear_rows(X::table());
+            p.clear_rows(SCATTER_STATIONS.def());
+        }
+        for c in self.dropped.drain(..) {
+            p.remove_row(SCATTER_STATIONS.def(), &c);
+        }
+        for c in std::mem::take(&mut self.changed) {
+            if let Some(h) = self.stations.get(&c) {
+                SCATTER_STATIONS.put(
+                    p,
+                    &c,
+                    &ScatterStationRow {
+                        callsign: &c,
+                        last_heard: Some(Time(h.utc)),
+                        heard: Some(h.count),
+                        snr_db: h.snr_db,
+                    },
+                );
+            }
         }
         let start = self.rows.len().saturating_sub(self.new_rows);
         let first_serial = self.serial;
@@ -184,12 +260,14 @@ impl<X: Shown> Board<X> {
         p.results_mut().set_status(&self.status);
     }
 
-    /// Forgets the rows, the counters and the callsigns heard; keeps the clock. The table is emptied at the next report.
+    /// Forgets the rows, the counters and the stations; keeps the clock. The tables are emptied at the next report.
     pub fn clear(&mut self) {
         self.rows.clear();
         self.new_rows = 0;
         self.total = 0;
-        self.calls.clear();
+        self.stations.clear();
+        self.changed.clear();
+        self.dropped.clear();
         self.cleared = true;
     }
 

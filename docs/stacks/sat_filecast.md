@@ -35,7 +35,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:sa
 | `roll_off` | Roll-off | choice | `auto` | `auto` (Auto), `0.35`, `0.25`, `0.20`, `0.15`, `0.10`, `0.05` |  |
 | `carrier_offset` | Carrier | text (Hz) | empty |  | Offset in Hz from the centre. Empty: the carrier nearest the centre. |
 | `pid` | PID of the MPE stream | whole number | 256 | 32 to 8190 | The transport stream PID that carries the datagram sections (256 in the test signal). |
-| `part_bytes` | Part size | whole number (bytes) | 1408 | 1 to 8192 | Bytes of each numbered part of a file (1408 in the test signal). Not confirmed by a public document. |
+| `part_bytes` | Part size | whole number (B) | 1408 | 1 to 8192 | Bytes of each numbered part of a file (1408 in the test signal). Not confirmed by a public document. |
 | `max_silence` | Give up on a file after | number (s) | 120 | 10 to 3600 |  |
 | `isi` | Input stream | whole number | -1 | -1 to 255 | -1: the first stream seen. |
 | `pl_scrambling` | PL scrambling code | whole number | 0 | 0 to 262141 |  |
@@ -135,9 +135,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `carriers` | Carriers | `offset` (frequency), `symbol_rate` (frequency), `roll_off` (number), `snr_db` (number (dB)), `level_db` (number (dB)), `decoded` (yes or no) |
-| `streams` | Input streams | `isi` (whole number), `carries` (choice), `packet_bytes` (whole number (bytes)), `sync_byte` (whole number), `ccm` (yes or no), `frames` (whole number), `bits` (whole number) |
+| `streams` | Input streams | `isi` (whole number), `carries` (choice), `packet_bytes` (whole number (B)), `sync_byte` (whole number), `ccm` (yes or no), `frames` (whole number), `bits` (whole number) |
 | `stream_modcods` | MODCODs of the input streams | `stream` (text), `modcod` (whole number), `modulation` (choice), `code_rate` (choice), `frames` (whole number), `share_pct` (number (%)) |
-| `recent_files` | Recent files | `name` (text), `size` (whole number (bytes)), `parts` (whole number), `received` (whole number), `complete` (yes or no) |
+| `recent_files` | Recent files | `name` (text), `size` (whole number (B)), `parts` (whole number), `received` (whole number), `complete` (yes or no), `time_s` (number (s)) |
 | `pictures` | Pictures | `channel` (text), `stamp` (text), `width` (whole number (px)), `height` (whole number (px)), `segments` (whole number), `total` (whole number) |
 
 ## Result series
@@ -156,7 +156,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
 
@@ -257,7 +257,7 @@ Struct `Dvbs2StreamRow`. A row of the input streams. The row key is the ISI.
 |---|---|---|---|---|
 | `isi` | whole number | always | 1.0 | The input stream identifier. |
 | `carries` | choice | always | 1.0 | What the stream carries. |
-| `packet_bytes` | whole number (bytes) | optional | 1.0 | The user packet length. No value for a stream without user packets. |
+| `packet_bytes` | whole number (B) | optional | 1.0 | The user packet length. No value for a stream without user packets. |
 | `sync_byte` | whole number | optional | 1.0 | The sync byte of the user packets. |
 | `ccm` | yes or no | always | 1.0 | Constant coding and modulation. |
 | `frames` | whole number | always | 1.0 | Frames of the stream. |
@@ -283,12 +283,13 @@ Struct `RecentFileRow`. A file of `sat_filecast`. The row key is the number of t
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `name` | text | always | 1.0 | The name of the file. |
-| `size` | whole number (bytes) | always | 1.0 | The size of the file. |
+| `size` | whole number (B) | always | 1.0 | The size of the file. |
 | `parts` | whole number | always | 1.0 | The parts of the file. |
 | `received` | whole number | always | 1.0 | The parts received. |
 | `complete` | yes or no | always | 1.0 | Every part arrived. |
+| `time_s` | number (s) | always | 1.0 | The signal time at which a file was given out. |
 
-The column `name` names a row.
+The rows are a log: they arrive over time. The column `name` names a row. Time: `time_s`.
 
 ### Table `pictures`
 

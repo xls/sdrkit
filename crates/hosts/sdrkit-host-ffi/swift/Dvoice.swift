@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "dvoice", version 2.4. MIT licence.
+// sdrkit: the typed interface of the stack family "dvoice", version 2.5. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum DvoiceInterface {
     public static let major = 2
-    public static let minor = 4
+    public static let minor = 5
 }
 
 /// The measurements that every digital voice stack publishes.
@@ -2806,7 +2806,9 @@ public enum DvoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DvoiceTalkgroupRow.init))
     }
     /// The changed rows of the table "events" of the stack "dcr", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `identity` names a row.
+    /// Time: `time_s`.
     public static func dcrEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[DcrEventRow], SDRKitCode> {
         var rows = [sdrkit_dcr_event_row](repeating: sdrkit_dcr_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized

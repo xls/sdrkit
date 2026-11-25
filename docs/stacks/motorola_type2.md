@@ -89,7 +89,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `trunk`, version 1.5. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `trunk`, version 1.6. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -139,7 +139,7 @@ Struct `MotorolaType2MessageRow`. A Type II message. The row key is the sequence
 | `command` | text | always | 1.0 | A command. |
 | `text` | text | always | 1.0 | The text of a decoded message. |
 
-The column `address` names a row.
+The rows are a log: they arrive over time. The column `address` names a row. Time: `time_s`.
 
 ### Table `talkgroups`
 

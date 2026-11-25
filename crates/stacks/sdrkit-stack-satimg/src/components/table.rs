@@ -602,8 +602,8 @@ const QUEUE_MAX: usize = 1 << 27;
 /// With [`FrameTableComponent::on_helper`] and live samples the work runs on a helper thread of the run context: the soft
 /// symbols of the passes wait in a queue, one batch at a time goes to the thread, and its frames leave in the first pass
 /// after it is done, in order. The `clear` command waits for the batch in work, and a report that is due meanwhile
-/// repeats the counts of the last one. Recordings and generators run the work in line, so their output does not depend on
-/// timing.
+/// repeats the counts of the last one (no counts before the first), so every tick of the clock gives one report.
+/// Recordings and generators run the work in line, so their output does not depend on timing.
 pub struct FrameTableComponent {
     link: TableLink,
     /// The table; `None` while a helper thread has it.
@@ -616,10 +616,18 @@ pub struct FrameTableComponent {
     frames: Vec<Timed<FrameBytes>>,
     report_due: bool,
     clear_due: bool,
-    /// The last report, without its rows and log lines.
-    last: Option<Timed<TableReport>>,
+    /// The last report, without its rows and log lines. Before the first report: a report without counts.
+    last: Timed<TableReport>,
     /// Soft symbols given up because the helper thread was too slow, since the last report.
     lost: u64,
+}
+
+/// The report before the first one: no counts.
+fn no_report() -> Timed<TableReport> {
+    Timed {
+        time: 0.0,
+        value: TableReport::default(),
+    }
 }
 
 impl FrameTableComponent {
@@ -636,7 +644,7 @@ impl FrameTableComponent {
             frames: Vec::new(),
             report_due: false,
             clear_due: false,
-            last: None,
+            last: no_report(),
             lost: 0,
         }
     }
@@ -749,7 +757,7 @@ impl FrameTableComponent {
                     self.lost = 0;
                 }
                 let r = t.report();
-                self.last = Some(Timed {
+                self.last = Timed {
                     time: r.time,
                     value: TableReport {
                         rows: Vec::new(),
@@ -757,14 +765,10 @@ impl FrameTableComponent {
                         log: Vec::new(),
                         ..r.value.clone()
                     },
-                });
+                };
                 io.items_out::<TableReport>(1).push(r);
             }
-            None => {
-                if let Some(r) = &self.last {
-                    io.items_out::<TableReport>(1).push(r.clone());
-                }
-            }
+            None => io.items_out::<TableReport>(1).push(self.last.clone()),
         }
     }
 }
@@ -786,7 +790,7 @@ impl Component for FrameTableComponent {
         self.frames.clear();
         self.queued.clear();
         self.lost = 0;
-        self.last = None;
+        self.last = no_report();
         if self.table.is_none() {
             self.table = Some(Box::new(Table::new(self.link)));
         }

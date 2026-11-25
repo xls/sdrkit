@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "lora", version 3.3. MIT licence.
+// sdrkit: the typed interface of the stack family "lora", version 4.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum LoraInterface {
-    public static let major = 3
-    public static let minor = 3
+    public static let major = 4
+    public static let minor = 0
 }
 
 /// The result fields of the mesh decoder.
@@ -2314,7 +2314,9 @@ public enum LoraComponents {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum LoraTables {
     /// The changed rows of the table "packets" of the stack "mesh", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
+    /// Time: `time_s`.
     public static func meshPackets(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshPacketRow], SDRKitCode> {
         var rows = [sdrkit_mesh_packet_row](repeating: sdrkit_mesh_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2338,6 +2340,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+    /// Delivery state: `state`. Failure reason: `failure`.
     public static func meshMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2346,9 +2349,11 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshMessageRow.init))
     }
     /// The changed rows of the table "readings" of the stack "mesh", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `node` names a row.
     /// Place of a row: the column `position`.
     /// Height: `alt_m`.
+    /// Time: `time_s`.
     public static func meshReadings(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MeshReadingRow], SDRKitCode> {
         var rows = [sdrkit_mesh_reading_row](repeating: sdrkit_mesh_reading_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2424,7 +2429,9 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshSlotRow.init))
     }
     /// The changed rows of the table "packets" of the stack "meshtastic", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
+    /// Time: `time_s`.
     public static func meshtasticPackets(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshPacketRow], SDRKitCode> {
         var rows = [sdrkit_mesh_packet_row](repeating: sdrkit_mesh_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2448,6 +2455,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+    /// Delivery state: `state`. Failure reason: `failure`.
     public static func meshtasticMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2456,9 +2464,11 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshMessageRow.init))
     }
     /// The changed rows of the table "readings" of the stack "meshtastic", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `node` names a row.
     /// Place of a row: the column `position`.
     /// Height: `alt_m`.
+    /// Time: `time_s`.
     public static func meshtasticReadings(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MeshReadingRow], SDRKitCode> {
         var rows = [sdrkit_mesh_reading_row](repeating: sdrkit_mesh_reading_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2534,7 +2544,9 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshSlotRow.init))
     }
     /// The changed rows of the table "packets" of the stack "meshcore", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
+    /// Time: `time_s`.
     public static func meshcorePackets(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshPacketRow], SDRKitCode> {
         var rows = [sdrkit_mesh_packet_row](repeating: sdrkit_mesh_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2558,6 +2570,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+    /// Delivery state: `state`. Failure reason: `failure`.
     public static func meshcoreMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2566,9 +2579,11 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshMessageRow.init))
     }
     /// The changed rows of the table "readings" of the stack "meshcore", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `node` names a row.
     /// Place of a row: the column `position`.
     /// Height: `alt_m`.
+    /// Time: `time_s`.
     public static func meshcoreReadings(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MeshReadingRow], SDRKitCode> {
         var rows = [sdrkit_mesh_reading_row](repeating: sdrkit_mesh_reading_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2644,7 +2659,9 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshSlotRow.init))
     }
     /// The changed rows of the table "packets" of the stack "lorawan", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
+    /// Time: `time_s`.
     public static func lorawanPackets(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshPacketRow], SDRKitCode> {
         var rows = [sdrkit_mesh_packet_row](repeating: sdrkit_mesh_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2668,6 +2685,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+    /// Delivery state: `state`. Failure reason: `failure`.
     public static func lorawanMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2676,9 +2694,11 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshMessageRow.init))
     }
     /// The changed rows of the table "readings" of the stack "lorawan", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `node` names a row.
     /// Place of a row: the column `position`.
     /// Height: `alt_m`.
+    /// Time: `time_s`.
     public static func lorawanReadings(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MeshReadingRow], SDRKitCode> {
         var rows = [sdrkit_mesh_reading_row](repeating: sdrkit_mesh_reading_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2754,7 +2774,9 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshSlotRow.init))
     }
     /// The changed rows of the table "packets" of the stack "loraaprs", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
+    /// Time: `time_s`.
     public static func loraaprsPackets(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshPacketRow], SDRKitCode> {
         var rows = [sdrkit_mesh_packet_row](repeating: sdrkit_mesh_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2778,6 +2800,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+    /// Delivery state: `state`. Failure reason: `failure`.
     public static func loraaprsMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2786,9 +2809,11 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshMessageRow.init))
     }
     /// The changed rows of the table "readings" of the stack "loraaprs", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `node` names a row.
     /// Place of a row: the column `position`.
     /// Height: `alt_m`.
+    /// Time: `time_s`.
     public static func loraaprsReadings(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MeshReadingRow], SDRKitCode> {
         var rows = [sdrkit_mesh_reading_row](repeating: sdrkit_mesh_reading_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2864,7 +2889,9 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshSlotRow.init))
     }
     /// The changed rows of the table "packets" of the stack "meshcom", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
+    /// Time: `time_s`.
     public static func meshcomPackets(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshPacketRow], SDRKitCode> {
         var rows = [sdrkit_mesh_packet_row](repeating: sdrkit_mesh_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2888,6 +2915,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+    /// Delivery state: `state`. Failure reason: `failure`.
     public static func meshcomMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2896,9 +2924,11 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshMessageRow.init))
     }
     /// The changed rows of the table "readings" of the stack "meshcom", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `node` names a row.
     /// Place of a row: the column `position`.
     /// Height: `alt_m`.
+    /// Time: `time_s`.
     public static func meshcomReadings(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MeshReadingRow], SDRKitCode> {
         var rows = [sdrkit_mesh_reading_row](repeating: sdrkit_mesh_reading_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2974,7 +3004,9 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshSlotRow.init))
     }
     /// The changed rows of the table "frames" of the stack "lorawanwide", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `device` names a row.
+    /// Time: `time_s`.
     public static func lorawanwideFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[LorawanwideWideFrameRow], SDRKitCode> {
         var rows = [sdrkit_lorawanwide_wide_frame_row](repeating: sdrkit_lorawanwide_wide_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3010,6 +3042,8 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshTypeRow.init))
     }
     /// The changed rows of the table "frames" of the stack "loraraw", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func lorarawFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[LorarawRawFrameRow], SDRKitCode> {
         var rows = [sdrkit_loraraw_raw_frame_row](repeating: sdrkit_loraraw_raw_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3026,6 +3060,7 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(LorarawRawDecoderRow.init))
     }
     /// The changed rows of the table "frames" of the stack "aprs", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
     /// Sender: `source`. Addressee: `target`. Text: `text`. Time: `time_s`.
     public static func aprsFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[AprsFrameRow], SDRKitCode> {
@@ -3052,6 +3087,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+    /// Delivery state: `state`. Failure reason: `failure`.
     public static func aprsMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3060,8 +3096,10 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MeshMessageRow.init))
     }
     /// The changed rows of the table "frames" of the stack "fanet", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
     /// Place of a row: the column `position`.
+    /// Time: `time_s`.
     public static func fanetFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[FanetFrameRow], SDRKitCode> {
         var rows = [sdrkit_fanet_frame_row](repeating: sdrkit_fanet_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3113,7 +3151,9 @@ public enum LoraTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ReticulumRnsDestinationRow.init))
     }
     /// The changed rows of the table "frames" of the stack "elrs", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `link` names a row.
+    /// Time: `utc`.
     public static func elrsFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[ElrsFrameRow], SDRKitCode> {
         var rows = [sdrkit_elrs_frame_row](repeating: sdrkit_elrs_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized

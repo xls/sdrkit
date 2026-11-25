@@ -217,7 +217,7 @@ pub struct PadFields {
     #[field(label = "Slide height", unit = "px")]
     pub slide_height: Option<i64>,
     /// The slide size.
-    #[field(label = "Slide size", unit = "bytes")]
+    #[field(label = "Slide size", unit = "B")]
     pub slide_bytes: Option<i64>,
 }
 
@@ -490,7 +490,7 @@ pub struct TiiEntryRow {
     #[field(label = "Position")]
     pub position: (f64, f64),
     /// The delay.
-    #[field(label = "Delay", unit = "µs")]
+    #[field(label = "Delay", unit = "us")]
     pub delay_us: i64,
 }
 
@@ -538,7 +538,7 @@ pub struct TransmitterRow {
     #[field(label = "Position")]
     pub position: Option<(f64, f64)>,
     /// The delay, from the transmitter database.
-    #[field(label = "Delay", unit = "µs")]
+    #[field(label = "Delay", unit = "us")]
     pub delay_us: Option<i64>,
 }
 
@@ -795,8 +795,7 @@ pub const KEPT: &[&str] = &[
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("dab", 1, 1)
-            .added(1, 1, &["dab.content"])
+        Described::new("dab", 2, 0)
             .content(sdrkit_core::ContentKind::Broadcast, &["dab"])
             .audio(sdrkit_core::AudioKind::Programme, &["dab"])
             .pictures(&["dab"])

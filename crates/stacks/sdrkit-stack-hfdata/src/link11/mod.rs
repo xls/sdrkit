@@ -43,7 +43,7 @@ pub const GEN_RATE: Setting<field::Choice<FrameRate>> =
         .advanced();
 /// The constellation offset of the test signal's phase steps.
 pub const GEN_OFFSET_DEG: Setting<field::F64> =
-    Setting::new("gen_offset_deg", "Phase step offset", "deg", 45.0)
+    Setting::new("gen_offset_deg", "Phase step offset", "°", 45.0)
         .range(0.0, 89.0, 1.0)
         .section(GEN_SECTION)
         .advanced();

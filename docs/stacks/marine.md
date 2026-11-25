@@ -132,7 +132,7 @@ The stack puts points on a map: DSC positions.
 
 ## Typed interface
 
-The stack is in the family `marine`, version 1.3. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `marine`, version 2.0. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: sound (monitor), text.
 

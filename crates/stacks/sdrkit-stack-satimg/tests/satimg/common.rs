@@ -271,3 +271,65 @@ pub fn cell_i64(
     let id = r.decl().table_id(table)?;
     r.table(id)?.row(row)?.at(column)
 }
+
+/// One picture item that a receiver sent: its number, its state and its name.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Sent {
+    /// The number of the picture.
+    pub id: u64,
+    /// Growing or finished.
+    pub state: sdrkit_core::PictureState,
+    /// The name.
+    pub name: String,
+}
+
+/// Feeds `x` in pieces of `piece` samples to `rx` and returns the picture items it sent, oldest first. With `last` the end of
+/// the input follows.
+pub fn pictures_of(rx: &mut dyn Receiver, x: &[Complex32], piece: usize, last: bool) -> Vec<Sent> {
+    let mut out = Output::default();
+    let mut sent = Vec::new();
+    let mut take = |out: &mut Output| {
+        for e in out.media.drain(..) {
+            if let Some(p) = e.picture {
+                sent.push(Sent {
+                    id: p.id,
+                    state: p.state,
+                    name: p.name.as_deref().unwrap_or_default().to_string(),
+                });
+            }
+        }
+    };
+    for p in x.chunks(piece.max(1)) {
+        out.clear();
+        rx.feed(p, &mut out);
+        take(&mut out);
+    }
+    if last {
+        out.clear();
+        rx.finish(&mut out);
+        take(&mut out);
+    }
+    sent
+}
+
+/// `n` samples of white noise, uniform in I and Q to `amplitude`, from seed `seed`.
+pub fn noise(n: usize, amplitude: f32, seed: u64) -> Vec<Complex32> {
+    let mut s = seed | 1;
+    let mut next = move || {
+        s ^= s << 13;
+        s ^= s >> 7;
+        s ^= s << 17;
+        (s >> 40) as f32 / (1u64 << 23) as f32 * 2.0 - 1.0
+    };
+    (0..n)
+        .map(|_| Complex32::new(amplitude * next(), amplitude * next()))
+        .collect()
+}
+
+/// The numbers of the pictures in `sent` that reach the finished state, in order.
+pub fn finished(sent: &[Sent]) -> Vec<u64> {
+    sent.iter()
+        .filter(|s| s.state == sdrkit_core::PictureState::Finished)
+        .map(|s| s.id)
+        .collect()
+}

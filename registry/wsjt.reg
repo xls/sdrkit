@@ -1,5 +1,5 @@
 # The interface of the stack family wsjt. The registry test of the family writes this file.
-family wsjt version=5.0
+family wsjt version=5.2
 shape.WsjtFields since=1.0
 shape.WsjtFields.time_source type=choice(system_clock,recording_start,searching,found_from_signals) unit= optional=yes since=1.0
 shape.WsjtFields.utc type=time unit= optional=no since=1.0
@@ -158,6 +158,11 @@ shape.Fsk441DecodeRow.mode type=text unit= optional=no since=1.0
 shape.Fsk441DecodeRow.message type=text unit= optional=no since=1.0
 shape.Fsk441DecodeRow.contrast_db type=f64 unit=dB optional=no since=1.0
 shape.Fsk441DecodeRow.duration_ms type=f64 unit=ms optional=no since=1.0
+shape.ScatterStationRow since=5.1
+shape.ScatterStationRow.callsign type=text unit= optional=no since=5.1
+shape.ScatterStationRow.last_heard type=time unit= optional=yes since=5.1
+shape.ScatterStationRow.heard type=i64 unit= optional=yes since=5.1
+shape.ScatterStationRow.snr_db type=f64 unit=dB optional=no since=5.1
 shape.Fsk441DecodeEvent since=1.0
 shape.Fsk441DecodeEvent.mode type=text unit= optional=no since=1.0
 shape.Fsk441DecodeEvent.text type=text unit= optional=no since=1.0
@@ -281,7 +286,7 @@ wsjt.kept.Js8Fields.js8_failed since=1.0
 wsjt.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 wsjt.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 wsjt.table.modes row=ModeRow cap=32 since=1.0
-wsjt.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+wsjt.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 wsjt.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
 wsjt.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
 wsjt.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
@@ -344,6 +349,7 @@ wsjt.setting.gen_mirrored type=bool unit= since=1.0
 wsjt.setting.gen_live type=bool unit= since=1.0
 wsjt.setting.gen_single type=text unit= since=1.0
 wsjt.setting.gen_hz type=hz unit=Hz since=1.0
+wsjt.setting.gen_short type=bool unit= since=5.1
 wsjt.command.clear args= reply= since=1.0
 wsjt.command.remove args=row:text reply= since=1.0
 wsjt.command.cq args= reply= transmits=text stop=halt since=1.0
@@ -363,7 +369,7 @@ ft8.kept.decodes since=1.0
 ft8.kept.WsjtDecodeFields.decodes_total since=1.0
 ft8.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 ft8.table.modes row=ModeRow cap=32 since=1.0
-ft8.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+ft8.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 ft8.table.wide.multiband row=MultibandRow cap=64 since=1.0
 ft8.event.wsjt.decode fields=DecodeEvent since=1.0
 ft8.event.wsjt.spot fields=SpotEvent since=1.0
@@ -414,7 +420,7 @@ ft4.kept.decodes since=1.0
 ft4.kept.WsjtDecodeFields.decodes_total since=1.0
 ft4.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 ft4.table.modes row=ModeRow cap=32 since=1.0
-ft4.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+ft4.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 ft4.table.wide.multiband row=MultibandRow cap=64 since=1.0
 ft4.event.wsjt.decode fields=DecodeEvent since=1.0
 ft4.event.wsjt.spot fields=SpotEvent since=1.0
@@ -465,7 +471,7 @@ ft2.kept.decodes since=1.0
 ft2.kept.WsjtDecodeFields.decodes_total since=1.0
 ft2.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 ft2.table.modes row=ModeRow cap=32 since=1.0
-ft2.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+ft2.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 ft2.table.wide.multiband row=MultibandRow cap=64 since=1.0
 ft2.event.wsjt.decode fields=DecodeEvent since=1.0
 ft2.event.wsjt.spot fields=SpotEvent since=1.0
@@ -517,7 +523,7 @@ wspr.kept.wspr_spots since=1.0
 wspr.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 wspr.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 wspr.table.modes row=ModeRow cap=32 since=1.0
-wspr.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+wspr.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 wspr.table.wide.multiband row=MultibandRow cap=64 since=1.0
 wspr.event.wsjt.decode fields=DecodeEvent since=1.0
 wspr.event.wsjt.spot fields=SpotEvent since=1.0
@@ -563,7 +569,7 @@ jt65.kept.decodes since=1.0
 jt65.kept.WsjtDecodeFields.decodes_total since=1.0
 jt65.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 jt65.table.modes row=ModeRow cap=32 since=1.0
-jt65.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+jt65.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 jt65.event.wsjt.decode fields=DecodeEvent since=1.0
 jt65.event.wsjt.spot fields=SpotEvent since=1.0
 jt65.event.wsjt.tx fields=TxEvent since=1.0
@@ -600,7 +606,7 @@ jt9.kept.decodes since=1.0
 jt9.kept.WsjtDecodeFields.decodes_total since=1.0
 jt9.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 jt9.table.modes row=ModeRow cap=32 since=1.0
-jt9.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+jt9.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 jt9.event.wsjt.decode fields=DecodeEvent since=1.0
 jt9.event.wsjt.spot fields=SpotEvent since=1.0
 jt9.event.wsjt.tx fields=TxEvent since=1.0
@@ -636,7 +642,7 @@ jt4.kept.decodes since=1.0
 jt4.kept.WsjtDecodeFields.decodes_total since=1.0
 jt4.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 jt4.table.modes row=ModeRow cap=32 since=1.0
-jt4.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+jt4.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 jt4.event.wsjt.decode fields=DecodeEvent since=1.0
 jt4.event.wsjt.spot fields=SpotEvent since=1.0
 jt4.event.wsjt.tx fields=TxEvent since=1.0
@@ -673,7 +679,7 @@ q65.kept.decodes since=1.0
 q65.kept.WsjtDecodeFields.decodes_total since=1.0
 q65.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 q65.table.modes row=ModeRow cap=32 since=1.0
-q65.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+q65.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 q65.event.wsjt.decode fields=DecodeEvent since=1.0
 q65.event.wsjt.spot fields=SpotEvent since=1.0
 q65.setting.q65_submode type=choice(A,B,C,D,E) unit= since=1.0
@@ -702,7 +708,7 @@ fst4.kept.decodes since=1.0
 fst4.kept.WsjtDecodeFields.decodes_total since=1.0
 fst4.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 fst4.table.modes row=ModeRow cap=32 since=1.0
-fst4.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+fst4.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 fst4.event.wsjt.decode fields=DecodeEvent since=1.0
 fst4.event.wsjt.spot fields=SpotEvent since=1.0
 fst4.setting.fst4_period type=duration unit=s since=1.0
@@ -732,7 +738,7 @@ fst4w.kept.wspr_spots since=1.0
 fst4w.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 fst4w.table.wspr_spots row=WsprSpotRow cap=1000 label=callsign sort=utc:descending position=position since=1.0
 fst4w.table.modes row=ModeRow cap=32 since=1.0
-fst4w.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+fst4w.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 fst4w.event.wsjt.decode fields=DecodeEvent since=1.0
 fst4w.event.wsjt.spot fields=SpotEvent since=1.0
 fst4w.setting.fst4w_period type=duration unit=s since=1.0
@@ -760,7 +766,7 @@ msk144.kept.decodes since=1.0
 msk144.kept.WsjtDecodeFields.decodes_total since=1.0
 msk144.table.decodes row=DecodeRow cap=1000 sort=utc:descending since=1.0
 msk144.table.modes row=ModeRow cap=32 since=1.0
-msk144.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+msk144.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 msk144.event.wsjt.decode fields=DecodeEvent since=1.0
 msk144.event.wsjt.spot fields=SpotEvent since=1.0
 msk144.setting.msk144_period type=duration unit=s since=1.0
@@ -775,6 +781,7 @@ msk144.setting.gen_mirrored type=bool unit= since=1.0
 msk144.setting.gen_live type=bool unit= since=1.0
 msk144.setting.gen_single type=text unit= since=1.0
 msk144.setting.gen_hz type=hz unit=Hz since=1.0
+msk144.setting.gen_short type=bool unit= since=5.1
 msk144.command.clear args= reply= since=1.0
 msk144.command.remove args=row:text reply= since=1.0
 js8 since=1.0
@@ -790,7 +797,7 @@ js8.kept.js8_stations since=1.0
 js8.kept.Js8Fields.js8_frames since=1.0
 js8.kept.Js8Fields.js8_failed since=1.0
 js8.table.modes row=ModeRow cap=32 since=1.0
-js8.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position since=1.0
+js8.table.stations row=StationRow cap=1000 label=callsign sort=last_heard:descending position=position role=nodes time=last_heard since=1.0
 js8.table.js8_frames row=Js8FrameRow cap=600 sort=utc:descending since=1.0
 js8.table.js8_messages row=Js8MessageRow cap=200 sort=utc:descending since=1.0
 js8.table.js8_stations row=Js8StationRow cap=600 label=callsign sort=last_heard:descending position=position since=1.0
@@ -825,8 +832,10 @@ fsk441.fields.ScatterFields since=1.0
 fsk441.fields.Fsk441Fields since=1.0
 fsk441.fields.DecoderFields since=1.0
 fsk441.kept.decodes since=1.0
+fsk441.kept.stations since=5.1
 fsk441.kept.ScatterFields.decodes_total since=1.0
 fsk441.table.decodes row=Fsk441DecodeRow cap=1000 sort=utc:descending since=1.0
+fsk441.table.stations row=ScatterStationRow cap=1000 label=callsign sort=last_heard:descending role=nodes time=last_heard since=5.1
 fsk441.event.wsjt.decode fields=Fsk441DecodeEvent since=1.0
 fsk441.event.wsjt.spot fields=SpotEvent since=1.0
 fsk441.setting.tol_hz type=hz unit=Hz since=1.0
@@ -841,8 +850,10 @@ jt6m.fields.ScatterFields since=1.0
 jt6m.fields.Jt6mFields since=1.0
 jt6m.fields.DecoderFields since=1.0
 jt6m.kept.decodes since=1.0
+jt6m.kept.stations since=5.1
 jt6m.kept.ScatterFields.decodes_total since=1.0
 jt6m.table.decodes row=Jt6mDecodeRow cap=1000 sort=utc:descending since=1.0
+jt6m.table.stations row=ScatterStationRow cap=1000 label=callsign sort=last_heard:descending role=nodes time=last_heard since=5.1
 jt6m.event.wsjt.decode fields=Jt6mDecodeEvent since=1.0
 jt6m.event.wsjt.spot fields=SpotEvent since=1.0
 jt6m.setting.tol_hz type=hz unit=Hz since=1.0
@@ -857,8 +868,10 @@ iscat.fields.ScatterFields since=1.0
 iscat.fields.IscatFields since=1.0
 iscat.fields.DecoderFields since=1.0
 iscat.kept.decodes since=1.0
+iscat.kept.stations since=5.1
 iscat.kept.ScatterFields.decodes_total since=1.0
 iscat.table.decodes row=IscatDecodeRow cap=1000 sort=utc:descending since=1.0
+iscat.table.stations row=ScatterStationRow cap=1000 label=callsign sort=last_heard:descending role=nodes time=last_heard since=5.1
 iscat.event.wsjt.decode fields=IscatDecodeEvent since=1.0
 iscat.event.wsjt.spot fields=SpotEvent since=1.0
 iscat.setting.submode type=choice(auto,a,b) unit= since=1.0
@@ -873,8 +886,10 @@ pi4.content kind=weak_signal audio=monitor text=yes since=1.0
 pi4.fields.ScatterFields since=1.0
 pi4.fields.DecoderFields since=1.0
 pi4.kept.decodes since=1.0
+pi4.kept.stations since=5.1
 pi4.kept.ScatterFields.decodes_total since=1.0
 pi4.table.decodes row=Pi4DecodeRow cap=1000 sort=utc:descending since=1.0
+pi4.table.stations row=ScatterStationRow cap=1000 label=callsign sort=last_heard:descending role=nodes time=last_heard since=5.1
 pi4.event.wsjt.decode fields=Pi4DecodeEvent since=1.0
 pi4.event.wsjt.spot fields=SpotEvent since=1.0
 pi4.setting.k type=choice(40,80,96,120) unit= since=1.0

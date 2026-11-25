@@ -115,9 +115,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: none.
+
+Key readings: `vel_lsr_kms`, `snr_db`, `excess_pct`, `target_el_deg`, `progress_pct`.
 
 ### Result fields
 
@@ -173,6 +175,8 @@ Struct `AstroSessionRow`. A finished integration of the session. The row key is 
 | `peak_kms` | number (km/s) | always | 1.0 | The peak velocity of an integration. |
 | `excess_pct` | number (%) | always | 1.0 | The excess at the peak. |
 | `line_snr` | number | always | 1.0 | The peak over the residual rms. |
+
+The rows are a log: they arrive over time. Time: `signal_time_s`.
 
 ### Table `fit`
 

@@ -76,7 +76,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.2. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.3. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: none.
 
@@ -121,6 +121,8 @@ Struct `EbicabTelegramRow`. A telegram of `ebicab`. The row key is the place of 
 | `copies` | whole number | always | 1.0 | The copies received. |
 | `user_bits` | bytes | always | 1.0 | The user bits. |
 
+The rows are a log: they arrive over time. Time: `received`.
+
 ### Table `balises`
 
 Struct `EbicabBaliseRow`. A balise of `ebicab` heard.
@@ -146,6 +148,8 @@ Struct `EbicabOtherBurstRow`. A burst of `ebicab` without a telegram. The row ke
 | `snr_db` | number (dB) | always | 1.0 | The SNR. |
 | `first_bits` | bytes | always | 1.0 | The first bits. |
 | `hint` | choice | optional | 1.0 | What the length of the burst suggests. |
+
+The rows are a log: they arrive over time. Time: `received`.
 
 ### Event `balise.telegram`
 

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "voice", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "voice", version 1.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,7 +36,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_VOICE_VERSION_MAJOR 1
-#define SDRKIT_VOICE_VERSION_MINOR 4
+#define SDRKIT_VOICE_VERSION_MINOR 5
 
 // The stack "hfpacket": its id, and the keys of its event types.
 #define SDRKIT_STACK_HFPACKET "hfpacket"
@@ -945,7 +945,9 @@ static inline int32_t sdrkit_hfpacket_events_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "hfpacket" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `source` names a row.
+// Time: `time_utc`.
 static inline int32_t sdrkit_hfpacket_frames_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_hfpacket_frame_row *rows,
                                                  uint32_t capacity,

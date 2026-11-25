@@ -42,10 +42,10 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `gen_carrier` | Strong continuous carrier | yes or no | false |  | A carrier 20 dB above the devices, 300 kHz above the centre. |
 | `gen_pattern` | Pulse analyser test pattern | choice | `pwm` | `pwm` (PWM (PT2262 style)), `ppm` (PPM), `manchester` (Manchester) |  |
 | `gen_bits` | Pulse analyser test bits | text | empty |  | 0 and 1; other characters are left out. Empty: 101100101001110010100110 (PWM), 1100101001101011 (PPM), 10110010111000101101 (Manchester). |
-| `gen_t_us` | Pulse analyser test unit | number (µs) | 0 | 0 to 5000 |  |
-| `gen_pulse_us` | Pulse analyser test PPM pulse | number (µs) | 300 | 20 to 5000 |  |
-| `gen_gap0_us` | Pulse analyser test PPM gap of a 0 | number (µs) | 500 | 20 to 5000 |  |
-| `gen_gap1_us` | Pulse analyser test PPM gap of a 1 | number (µs) | 1000 | 20 to 5000 |  |
+| `gen_t_us` | Pulse analyser test unit | number (us) | 0 | 0 to 5000 |  |
+| `gen_pulse_us` | Pulse analyser test PPM pulse | number (us) | 300 | 20 to 5000 |  |
+| `gen_gap0_us` | Pulse analyser test PPM gap of a 0 | number (us) | 500 | 20 to 5000 |  |
+| `gen_gap1_us` | Pulse analyser test PPM gap of a 1 | number (us) | 1000 | 20 to 5000 |  |
 | `gen_jitter` | Pulse analyser test jitter | number | 0 | 0 to 0.2 | Each mark and space is stretched by a uniform share up to this, either way. |
 | `gen_frames` | Pulse analyser test frames | whole number | 4 | 1 to 50 |  |
 | `gen_frame_gap_s` | Pulse analyser test gap after a frame | number (s) | 0 | 0 to 1 |  |
@@ -69,12 +69,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `bits` | Bits | whole number |
 | `bits_bin` | Bits (binary) | text |
 | `bits_hex` | Bits (hex) | text |
-| `short_us` | Short | number (µs) |
-| `long_us` | Long | number (µs) |
-| `pulse_us` | Pulse | number (µs) |
-| `period_us` | Bit period | number (µs) |
-| `half_bit_us` | Half-bit | number (µs) |
-| `unit_us` | Unit | number (µs) |
+| `short_us` | Short | number (us) |
+| `long_us` | Long | number (us) |
+| `pulse_us` | Pulse | number (us) |
+| `period_us` | Bit period | number (us) |
+| `half_bit_us` | Half-bit | number (us) |
+| `unit_us` | Unit | number (us) |
 | `bit_rate` | Bit rate | number (bit/s) |
 | `pulses` | Pulses | whole number |
 | `frame_ms` | Frame length | number (ms) |
@@ -92,9 +92,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `devices` | Devices | `model` (text), `kind` (text), `id` (text), `channel` (text), `battery_ok` (yes or no), `readings` (text), `history` (text), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `last_heard` (time), `count` (whole number), `frequency` (frequency), `check` (choice) |
 | `zwave` | Z-Wave | `home_id` (text), `node` (whole number), `rate` (text), `last_heard` (time), `level_dbfs` (number (dBFS)), `count` (whole number), `command` (text), `value` (text) |
 | `log` | Log | `time_s` (number (s)), `model` (text), `id` (text), `frequency` (frequency), `level_dbfs` (number (dBFS)), `text` (text) |
-| `unknown` | Unknown signals | `time_s` (number (s)), `frequency` (frequency), `modulation` (text), `line_code` (text), `pulses` (whole number), `short_us` (number (µs)), `long_us` (number (µs)), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `copy` (text) |
+| `unknown` | Unknown signals | `time_s` (number (s)), `frequency` (frequency), `modulation` (text), `line_code` (text), `pulses` (whole number), `short_us` (number (us)), `long_us` (number (us)), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `copy` (text) |
 | `sigfox` | Sigfox | `time_s` (number (s)), `device_id` (text), `seq` (whole number), `payload` (text), `frequency` (frequency), `level_dbfs` (number (dBFS)), `reps` (whole number), `mac_crc` (text) |
-| `pulse_frames` | Pulse frames | `time_s` (number (s)), `frequency` (frequency), `line_code` (choice), `bits` (whole number), `bits_bin` (text), `bits_hex` (text), `short_us` (number (µs)), `long_us` (number (µs)), `pulse_us` (number (µs)), `period_us` (number (µs)), `half_bit_us` (number (µs)), `unit_us` (number (µs)), `bit_rate` (number (bit/s)), `pulses` (whole number), `frame_ms` (number (ms)), `repeats` (whole number), `level_dbfs` (number (dBFS)) |
+| `pulse_frames` | Pulse frames | `time_s` (number (s)), `frequency` (frequency), `line_code` (choice), `bits` (whole number), `bits_bin` (text), `bits_hex` (text), `short_us` (number (us)), `long_us` (number (us)), `pulse_us` (number (us)), `period_us` (number (us)), `half_bit_us` (number (us)), `unit_us` (number (us)), `bit_rate` (number (bit/s)), `pulses` (whole number), `frame_ms` (number (ms)), `repeats` (whole number), `level_dbfs` (number (dBFS)) |
 
 ## Result series
 
@@ -108,7 +108,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|
 | `ism.device` | ISM device | `source` (text), `text` (text), `family` (choice), `model` (text), `id` (text) |
 | `sigfox.message` | Sigfox message | `source` (text), `text` (text), `family` (choice), `device_id` (text), `seq` (whole number), `payload` (text) |
-| `ookdev.reading` | Device reading | `source` (text), `text` (text), `channel` (text), `family` (choice), `model` (text), `device_kind` (text), `id` (text), `battery_ok` (yes or no), `check` (choice), `offset_hz` (frequency), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `temperature_c` (number (°C)), `temperature_1_c` (number (°C)), `temperature_2_c` (number (°C)), `globe_temperature_c` (number (°C)), `humidity_pct` (number (%)), `absolute_humidity_g_m3` (number (g/m³)), `moisture_pct` (number (%)), `pressure_kpa` (number (kPa)), `wind_speed_m_s` (number (m/s)), `wind_gust_m_s` (number (m/s)), `wind_dir_deg` (number (°)), `rain_mm` (number (mm)), `uv_index` (number), `light_lux` (number (lux)), `battery_level_pct` (number (%)), `level_pct` (number (%)), `power_0_w` (number (W)), `power_1_w` (number (W)), `power_2_w` (number (W)), `power_w` (number (W)), `current_a` (number (A)), `voltage_v` (number (V)), `energy_kwh` (number (kWh)), `gas_volume_m3` (number (m³)), `water_volume_m3` (number (m³)), `luminance_pct` (number (%)), `co2_ppm` (number (ppm)), `hcho_ppb` (number (ppb)), `pm2_5_ug_m3` (number (µg/m³)), `pm10_ug_m3` (number (µg/m³)), `value` (number), `interval` (duration (s)), `wake_up_interval` (duration (s)), `consumption` (whole number), `last_consumption` (whole number), `interval_count` (whole number), `counter` (whole number), `sequence` (whole number), `repeat` (whole number), `transmit_offset` (whole number), `level` (whole number), `voc_level` (whole number), `alarm` (whole number), `alarm_type` (whole number), `alarm_level` (whole number), `status` (whole number), `flags` (whole number), `event` (whole number), `heartbeat` (whole number), `sensor_type` (whole number), `packet_type` (whole number), `ert_type` (whole number), `version` (whole number), `app_version` (whole number), `battery_bits` (whole number), `source_node` (whole number), `length_bytes` (whole number (bytes)), `new_battery` (yes or no), `learning` (yes or no), `ack_requested` (yes or no), `moving` (yes or no), `tamper` (yes or no), `physical_tamper` (yes or no), `encoder_tamper` (yes or no), `door_open` (yes or no), `switch_on` (yes or no), `state` (text), `tri_state` (text), `mode` (text), `type` (text), `button` (text), `code` (text), `command` (text), `command_class` (text), `manufacturer` (text), `home_id` (text), `destination` (text), `frame` (text), `c_field` (text) |
+| `ookdev.reading` | Device reading | `source` (text), `text` (text), `channel` (text), `family` (choice), `model` (text), `device_kind` (text), `id` (text), `battery_ok` (yes or no), `check` (choice), `offset_hz` (frequency), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `temperature_c` (number (°C)), `temperature_1_c` (number (°C)), `temperature_2_c` (number (°C)), `globe_temperature_c` (number (°C)), `humidity_pct` (number (%)), `absolute_humidity_g_m3` (number (g/m³)), `moisture_pct` (number (%)), `pressure_kpa` (number (kPa)), `wind_speed_m_s` (number (m/s)), `wind_gust_m_s` (number (m/s)), `wind_dir_deg` (number (°)), `rain_mm` (number (mm)), `uv_index` (number), `light_lux` (number (lux)), `battery_level_pct` (number (%)), `level_pct` (number (%)), `power_0_w` (number (W)), `power_1_w` (number (W)), `power_2_w` (number (W)), `power_w` (number (W)), `current_a` (number (A)), `voltage_v` (number (V)), `energy_kwh` (number (kWh)), `gas_volume_m3` (number (m³)), `water_volume_m3` (number (m³)), `luminance_pct` (number (%)), `co2_ppm` (number (ppm)), `hcho_ppb` (number (ppb)), `pm2_5_ug_m3` (number (µg/m³)), `pm10_ug_m3` (number (µg/m³)), `value` (number), `interval` (duration (s)), `wake_up_interval` (duration (s)), `consumption` (whole number), `last_consumption` (whole number), `interval_count` (whole number), `counter` (whole number), `sequence` (whole number), `repeat` (whole number), `transmit_offset` (whole number), `level` (whole number), `voc_level` (whole number), `alarm` (whole number), `alarm_type` (whole number), `alarm_level` (whole number), `status` (whole number), `flags` (whole number), `event` (whole number), `heartbeat` (whole number), `sensor_type` (whole number), `packet_type` (whole number), `ert_type` (whole number), `version` (whole number), `app_version` (whole number), `battery_bits` (whole number), `source_node` (whole number), `length_bytes` (whole number (B)), `new_battery` (yes or no), `learning` (yes or no), `ack_requested` (yes or no), `moving` (yes or no), `tamper` (yes or no), `physical_tamper` (yes or no), `encoder_tamper` (yes or no), `door_open` (yes or no), `switch_on` (yes or no), `state` (text), `tri_state` (text), `mode` (text), `type` (text), `button` (text), `code` (text), `command` (text), `command_class` (text), `manufacturer` (text), `home_id` (text), `destination` (text), `frame` (text), `c_field` (text) |
 | `ism.pulse_frame` | Pulse frame | `text` (text), `family` (choice), `line_code` (choice), `bits` (whole number), `bits_hex` (text), `repeats` (whole number), `level_dbfs` (number (dBFS)) |
 | `ism.tx` | ISM transmission | `state` (text), `reason` (text), `target` (text), `text` (text), `family` (choice) |
 
@@ -123,7 +123,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 3.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
 
@@ -183,12 +183,12 @@ Struct `IsmPulseFields`. The result fields of the pulse analyser (submode `pulse
 | `bits` | whole number | optional | 1.0 | Bits read. |
 | `bits_bin` | text | optional | 1.0 | The first 96 bits as 0 and 1, with "..." when there are more. |
 | `bits_hex` | text | optional | 1.0 | The first 96 bits as hex; the last digit is padded with zero bits. |
-| `short_us` | number (µs) | optional | 1.0 | PWM: the short width. PPM: the short gap. |
-| `long_us` | number (µs) | optional | 1.0 | PWM: the long width. PPM: the long gap. |
-| `pulse_us` | number (µs) | optional | 1.0 | PPM: the pulse width. |
-| `period_us` | number (µs) | optional | 1.0 | PWM: the bit period. |
-| `half_bit_us` | number (µs) | optional | 1.0 | Manchester: the half-bit. |
-| `unit_us` | number (µs) | optional | 1.0 | PCM: the unit. |
+| `short_us` | number (us) | optional | 1.0 | PWM: the short width. PPM: the short gap. |
+| `long_us` | number (us) | optional | 1.0 | PWM: the long width. PPM: the long gap. |
+| `pulse_us` | number (us) | optional | 1.0 | PPM: the pulse width. |
+| `period_us` | number (us) | optional | 1.0 | PWM: the bit period. |
+| `half_bit_us` | number (us) | optional | 1.0 | Manchester: the half-bit. |
+| `unit_us` | number (us) | optional | 1.0 | PCM: the unit. |
 | `bit_rate` | number (bit/s) | optional | 1.0 | Manchester and PCM: the bit rate. |
 | `pulses` | whole number | optional | 1.0 | The pulses of the frame. |
 | `frame_ms` | number (ms) | optional | 1.0 | From the start of the first pulse to the end of the last. |
@@ -269,8 +269,8 @@ Struct `IsmUnknownRow`. A row of the unknown signals: a train no protocol decode
 | `modulation` | text | always | 1.0 | OOK or FSK. |
 | `line_code` | text | always | 1.0 | The guessed line code. |
 | `pulses` | whole number | always | 1.0 | Pulses of the train. |
-| `short_us` | number (µs) | always | 1.0 | The short width of the guess. |
-| `long_us` | number (µs) | always | 1.0 | The long width of the guess. |
+| `short_us` | number (us) | always | 1.0 | The short width of the guess. |
+| `long_us` | number (us) | always | 1.0 | The long width of the guess. |
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level. |
 | `snr_db` | number (dB) | always | 1.0 | The signal to noise ratio. |
 | `copy` | text | always | 1.0 | The pulses as text to copy ("OOK PWM 464 us/1404 us; 464/1404 ..."). |
@@ -304,12 +304,12 @@ Struct `IsmPulseFrameRow`. A row of the analysed frames with a line code. The ro
 | `bits` | whole number | always | 1.0 | Bits read. |
 | `bits_bin` | text | always | 1.0 | The first 96 bits as 0 and 1, with "..." when there are more. |
 | `bits_hex` | text | always | 1.0 | The first 96 bits as hex. |
-| `short_us` | number (µs) | optional | 1.0 | PWM: the short width. PPM: the short gap. |
-| `long_us` | number (µs) | optional | 1.0 | PWM: the long width. PPM: the long gap. |
-| `pulse_us` | number (µs) | optional | 1.0 | PPM: the pulse width. |
-| `period_us` | number (µs) | optional | 1.0 | PWM: the bit period. |
-| `half_bit_us` | number (µs) | optional | 1.0 | Manchester: the half-bit. |
-| `unit_us` | number (µs) | optional | 1.0 | PCM: the unit. |
+| `short_us` | number (us) | optional | 1.0 | PWM: the short width. PPM: the short gap. |
+| `long_us` | number (us) | optional | 1.0 | PWM: the long width. PPM: the long gap. |
+| `pulse_us` | number (us) | optional | 1.0 | PPM: the pulse width. |
+| `period_us` | number (us) | optional | 1.0 | PWM: the bit period. |
+| `half_bit_us` | number (us) | optional | 1.0 | Manchester: the half-bit. |
+| `unit_us` | number (us) | optional | 1.0 | PCM: the unit. |
 | `bit_rate` | number (bit/s) | optional | 1.0 | Manchester and PCM: the bit rate. |
 | `pulses` | whole number | always | 1.0 | The pulses of the frame. |
 | `frame_ms` | number (ms) | always | 1.0 | From the start of the first pulse to the end of the last. |
@@ -415,7 +415,7 @@ Struct `ReadingFields`. The fields of an `ookdev.reading` event. `source` is the
 | `app_version` | whole number | optional | 1.0 | The application version of the device. |
 | `battery_bits` | whole number | optional | 1.0 | Battery bits that a device sends without a known meaning. |
 | `source_node` | whole number | optional | 1.0 | The node that sent a frame of a network. |
-| `length_bytes` | whole number (bytes) | optional | 1.0 | The length of a frame. |
+| `length_bytes` | whole number (B) | optional | 1.0 | The length of a frame. |
 | `new_battery` | yes or no | optional | 1.0 | A battery was put in. |
 | `learning` | yes or no | optional | 1.0 | The device is learning a code. |
 | `ack_requested` | yes or no | optional | 1.0 | The sender requests an acknowledgement. |

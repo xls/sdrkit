@@ -83,6 +83,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `gen_live` | Test signal in step with the clock | yes or no | false |  |  |
 | `gen_single` | Single station message | text | empty |  |  |
 | `gen_hz` | Single station frequency | frequency | 1.5 kHz | 200 Hz to 3.5 kHz |  |
+| `gen_short` | Test signal short messages | yes or no | false |  | Sends a single station message `<CALL1 CALL2> RPT`, whose report is -03, +00, +03, +06, +10, +13, +16, R-03 to R+16, RRR or 73, as the 40-bit short frame. |
 
 ## Result fields
 
@@ -197,7 +198,7 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `wsjt`, version 5.0. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wsjt`, version 5.2. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Weak-signal messages (`weak_signal`). Media: sound (monitor), text.
 
@@ -301,7 +302,7 @@ Struct `StationRow`. A row of the station table: a station heard in any mode. Th
 | `last_heard` | time | optional | 1.0 | The UTC of the last decode. |
 | `position` | position | optional | 1.0 | The centre of the locator, if one was heard. |
 
-The column `callsign` names a row. Default order: the column `last_heard`, highest first. Place of a row: the column `position`.
+The rows are the stations or nodes of the stack. The column `callsign` names a row. Default order: the column `last_heard`, highest first. Place of a row: the column `position`. Time: `last_heard`.
 
 ### Table `js8_frames`
 
@@ -510,6 +511,7 @@ Struct `TxEvent`. The fields of a message to send.
 | `gen_live` | `sdrkit_wsjt_gen_get_live` | `sdrkit_wsjt_gen_set_live` |
 | `gen_single` | `sdrkit_wsjt_gen_get_single` | `sdrkit_wsjt_gen_set_single` |
 | `gen_hz` | `sdrkit_wsjt_gen_get_hz` | `sdrkit_wsjt_gen_set_hz` |
+| `gen_short` | `sdrkit_wsjt_gen_get_short` | `sdrkit_wsjt_gen_set_short` |
 
 ## Try it
 

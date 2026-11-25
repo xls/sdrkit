@@ -74,7 +74,7 @@ fn atsc_cases(o: &VerifyOptions) -> Vec<VerifyCase> {
     vec![c]
 }
 
-/// The test signal 3 kHz off: frames decoded and baseband packets given out.
+/// The test signal 3 kHz off: frames decoded, baseband packets given out and the media packets of its service.
 fn atsc3_cases(o: &VerifyOptions) -> Vec<VerifyCase> {
     let mut c = VerifyCase::new("test signal", o, 3e3);
     c.seconds = c.seconds.max(1.0);
@@ -83,6 +83,11 @@ fn atsc3_cases(o: &VerifyOptions) -> Vec<VerifyCase> {
         let packets = &crate::typed::Atsc3FrameFields::BASEBAND_PACKETS;
         let mut out = count_at_least(frames.key(), r.fields().at(frames), 3);
         out.extend(count_at_least(packets.key(), r.fields().at(packets), 10));
+        // The service of the test signal: its video and its audio as media packets.
+        let video = &crate::typed::Atsc3Fields::VIDEO_PACKETS;
+        let audio = &crate::typed::Atsc3Fields::AUDIO_PACKETS;
+        out.extend(count_at_least(video.key(), r.fields().at(video), 4));
+        out.extend(count_at_least(audio.key(), r.fields().at(audio), 4));
         out
     });
     vec![c]

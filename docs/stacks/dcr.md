@@ -134,7 +134,7 @@ The stack puts points on a map: Positions.
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 2.4. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 2.5. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Voice calls (`voice`). Media: sound (voice).
 
@@ -359,7 +359,7 @@ Struct `DcrEventRow`. A row of the DCR list: a call, a call end, a call sign, a 
 | `text` | text | always | 1.0 | The text. |
 | `channel` | text | optional | 1.0 | The plan label of a scanned channel. |
 
-The column `identity` names a row.
+The rows are a log: they arrive over time. The column `identity` names a row. Time: `time_s`.
 
 ### Table `history`
 

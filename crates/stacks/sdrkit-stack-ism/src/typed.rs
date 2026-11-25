@@ -206,10 +206,10 @@ pub struct IsmUnknownRow<'a> {
     #[field(label = "Pulses")]
     pub pulses: i64,
     /// The short width of the guess.
-    #[field(label = "Short", unit = "µs")]
+    #[field(label = "Short", unit = "us")]
     pub short_us: f64,
     /// The long width of the guess.
-    #[field(label = "Long", unit = "µs")]
+    #[field(label = "Long", unit = "us")]
     pub long_us: f64,
     /// The level.
     #[field(shared = keys::LEVEL_DBFS)]
@@ -320,22 +320,22 @@ pub struct IsmPulseFields<'a> {
     #[field(label = "Bits (hex)")]
     pub bits_hex: Option<&'a str>,
     /// PWM: the short width. PPM: the short gap.
-    #[field(label = "Short", unit = "µs")]
+    #[field(label = "Short", unit = "us")]
     pub short_us: Option<f64>,
     /// PWM: the long width. PPM: the long gap.
-    #[field(label = "Long", unit = "µs")]
+    #[field(label = "Long", unit = "us")]
     pub long_us: Option<f64>,
     /// PPM: the pulse width.
-    #[field(label = "Pulse", unit = "µs")]
+    #[field(label = "Pulse", unit = "us")]
     pub pulse_us: Option<f64>,
     /// PWM: the bit period.
-    #[field(label = "Bit period", unit = "µs")]
+    #[field(label = "Bit period", unit = "us")]
     pub period_us: Option<f64>,
     /// Manchester: the half-bit.
-    #[field(label = "Half-bit", unit = "µs")]
+    #[field(label = "Half-bit", unit = "us")]
     pub half_bit_us: Option<f64>,
     /// PCM: the unit.
-    #[field(label = "Unit", unit = "µs")]
+    #[field(label = "Unit", unit = "us")]
     pub unit_us: Option<f64>,
     /// Manchester and PCM: the bit rate.
     #[field(label = "Bit rate", unit = "bit/s")]
@@ -379,22 +379,22 @@ pub struct IsmPulseFrameRow<'a> {
     #[field(label = "Bits (hex)")]
     pub bits_hex: &'a str,
     /// PWM: the short width. PPM: the short gap.
-    #[field(label = "Short", unit = "µs")]
+    #[field(label = "Short", unit = "us")]
     pub short_us: Option<f64>,
     /// PWM: the long width. PPM: the long gap.
-    #[field(label = "Long", unit = "µs")]
+    #[field(label = "Long", unit = "us")]
     pub long_us: Option<f64>,
     /// PPM: the pulse width.
-    #[field(label = "Pulse", unit = "µs")]
+    #[field(label = "Pulse", unit = "us")]
     pub pulse_us: Option<f64>,
     /// PWM: the bit period.
-    #[field(label = "Bit period", unit = "µs")]
+    #[field(label = "Bit period", unit = "us")]
     pub period_us: Option<f64>,
     /// Manchester: the half-bit.
-    #[field(label = "Half-bit", unit = "µs")]
+    #[field(label = "Half-bit", unit = "us")]
     pub half_bit_us: Option<f64>,
     /// PCM: the unit.
-    #[field(label = "Unit", unit = "µs")]
+    #[field(label = "Unit", unit = "us")]
     pub unit_us: Option<f64>,
     /// Manchester and PCM: the bit rate.
     #[field(label = "Bit rate", unit = "bit/s")]
@@ -825,7 +825,7 @@ pub static DSRC_FRAME: EventKind<DsrcFrameEvent<'static>> =
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("ism", 3, 1)
+        Described::new("ism", 4, 0)
             .content(sdrkit_core::ContentKind::TextChat, &["subghzchat"])
             .content(sdrkit_core::ContentKind::Networks, &["npr70", "dect"])
             .content(
@@ -1431,7 +1431,8 @@ pub static WMBUS_METERS: Table<WmbusMeterRow<'static>> = Table::new("meters", "M
 pub static WMBUS_RECORDS: Table<WmbusRecordRow<'static>> =
     Table::new("meter_records", "Meter records", 3000);
 /// The frame log, newest first.
-pub static WMBUS_FRAMES: Table<WmbusFrameRow<'static>> = Table::new("frames", "Frames", 200);
+pub static WMBUS_FRAMES: Table<WmbusFrameRow<'static>> =
+    Table::new("frames", "Frames", 200).role(sdrkit_core::TableRole::Log);
 /// The channels of the plan in the capture.
 pub static WMBUS_CHANNELS: Table<WmbusChannelRow<'static>> = Table::new("channels", "Channels", 16);
 /// A frame decoded.
@@ -1481,7 +1482,9 @@ pub struct WmbusSendArgs<'a> {
     /// The address (identification number).
     #[arg(
         label = "Address",
-        help = "8 hex digits, as the meters table shows the id."
+        help = "8 hex digits, as the meters table shows the id.",
+        refers_to = "meters",
+        column = "meter_id"
     )]
     pub address: &'a str,
     /// The version.
@@ -1774,7 +1777,8 @@ pub struct ZwaveStateEvent<'a> {
 }
 
 /// The Z-Wave frame log, newest first.
-pub static ZWAVE_FRAMES: Table<ZwaveFrameRow<'static>> = Table::new("frames", "Frames", 600);
+pub static ZWAVE_FRAMES: Table<ZwaveFrameRow<'static>> =
+    Table::new("frames", "Frames", 600).role(sdrkit_core::TableRole::Log);
 /// The Z-Wave nodes, most recently heard first.
 pub static ZWAVE_NODES: Table<ZwaveNodeRow<'static>> = Table::new("nodes", "Nodes", 1000);
 /// The Z-Wave networks, most recently heard first.
@@ -1815,14 +1819,26 @@ pub struct ZwaveSendArgs<'a> {
     /// The home id.
     #[arg(
         label = "Home ID",
-        help = "8 hex digits, as the networks table shows it."
+        help = "8 hex digits, as the networks table shows it.",
+        refers_to = "networks",
+        column = "home_id"
     )]
     pub home_id: &'a str,
     /// The source node.
-    #[arg(label = "Source node", help = "1 to 232.")]
+    #[arg(
+        label = "Source node",
+        help = "1 to 232.",
+        refers_to = "nodes",
+        column = "node"
+    )]
     pub source: i64,
     /// The destination node.
-    #[arg(label = "Destination node", help = "1 to 232, or 255 for every node.")]
+    #[arg(
+        label = "Destination node",
+        help = "1 to 232, or 255 for every node.",
+        refers_to = "nodes",
+        column = "node"
+    )]
     pub destination: i64,
     /// The application command.
     #[arg(
@@ -1962,19 +1978,27 @@ pub struct ZigbeeSendArgs<'a> {
     /// The PAN id.
     #[arg(
         label = "PAN ID",
-        help = "4 hex digits, as the networks table shows it without 0x."
+        help = "4 hex digits, as the networks table shows it; 0x before it is allowed.",
+        refers_to = "networks",
+        column = "pan"
     )]
     pub pan_id: &'a str,
     /// The destination address.
     #[arg(
         label = "Destination",
-        help = "4 hex digits for a short address (FFFF is broadcast), 16 for an extended address, empty for none."
+        help = "4 hex digits for a short address (FFFF is broadcast), 16 for an extended address, empty for none; \
+                0x before it and colons are allowed.",
+        refers_to = "devices",
+        column = "short"
     )]
     pub destination: &'a str,
     /// The source address.
     #[arg(
         label = "Source",
-        help = "4 hex digits for a short address, 16 for an extended address, empty for none."
+        help = "4 hex digits for a short address, 16 for an extended address, empty for none; 0x before it and \
+                colons are allowed.",
+        refers_to = "devices",
+        column = "short"
     )]
     pub source: &'a str,
     /// The MAC payload.
@@ -2143,7 +2167,7 @@ pub struct ZigbeeNetworkRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct ZigbeeFrameRow<'a> {
     /// The signal time of the frame.
-    #[field(label = "Signal time", unit = "s")]
+    #[field(label = "Signal time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The channel.
     #[field(label = "Ch")]
@@ -2198,7 +2222,8 @@ pub static ZIGBEE_NETWORKS: Table<ZigbeeNetworkRow<'static>> =
         sdrkit_core::SortOrder::Descending,
     );
 /// The Zigbee frame log, newest first.
-pub static ZIGBEE_FRAMES: Table<ZigbeeFrameRow<'static>> = Table::new("frames", "Frames", 600);
+pub static ZIGBEE_FRAMES: Table<ZigbeeFrameRow<'static>> =
+    Table::new("frames", "Frames", 600).role(sdrkit_core::TableRole::Log);
 /// A new Zigbee PAN.
 pub static ZIGBEE_PAN: EventKind<ZigbeePanEvent<'static>> =
     EventKind::new("zigbee.pan", "New Zigbee PAN");
@@ -2584,6 +2609,9 @@ pub struct WisunNetworkRow<'a> {
     /// The unicast schedule, once heard.
     #[field(label = "Schedule")]
     pub schedule: Option<&'a str>,
+    /// The PAN id, as `send` takes it.
+    #[field(label = "PAN ID")]
+    pub pan_id: &'a str,
 }
 
 /// A row of the Wi-SUN nodes. The row key is the EUI-64.
@@ -2622,6 +2650,9 @@ pub struct WisunNodeRow<'a> {
     /// The summary of the last frame.
     #[field(label = "Last frame")]
     pub last: &'a str,
+    /// The EUI-64, as `send` takes it.
+    #[field(label = "Address")]
+    pub address: &'a str,
 }
 
 /// A row of the Wi-SUN links. The row key is the two ends.
@@ -2654,7 +2685,7 @@ pub struct WisunLinkRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct WisunFrameRow<'a> {
     /// The signal time of the frame.
-    #[field(label = "Signal time", unit = "s")]
+    #[field(label = "Signal time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The channel centre.
     #[field(label = "Channel", unit = "Hz")]
@@ -2712,7 +2743,8 @@ pub static WISUN_NODES: Table<WisunNodeRow<'static>> = Table::new("nodes", "Node
 pub static WISUN_LINKS: Table<WisunLinkRow<'static>> =
     Table::new("links", "Links", 4000).label(&WisunLinkRow::FROM);
 /// The Wi-SUN frame log, newest first.
-pub static WISUN_FRAMES: Table<WisunFrameRow<'static>> = Table::new("frames", "Frames", 800);
+pub static WISUN_FRAMES: Table<WisunFrameRow<'static>> =
+    Table::new("frames", "Frames", 800).role(sdrkit_core::TableRole::Log);
 /// A new Wi-SUN PAN.
 pub static WISUN_PAN: EventKind<WisunPanEvent<'static>> =
     EventKind::new("wisun.pan", "New Wi-SUN PAN");
@@ -2747,16 +2779,25 @@ pub struct WisunSendArgs<'a> {
     /// The PAN id.
     #[arg(
         label = "PAN ID",
-        help = "4 hex digits; sent as the source PAN id of a frame without a destination."
+        help = "4 hex digits, 0x before it allowed; sent as the source PAN id of a frame without a destination.",
+        refers_to = "networks",
+        column = "pan_id"
     )]
     pub pan_id: &'a str,
     /// The source.
-    #[arg(label = "Source", help = "The EUI-64 of the sender as 16 hex digits.")]
+    #[arg(
+        label = "Source",
+        help = "The EUI-64 of the sender as 16 hex digits; colons are allowed.",
+        refers_to = "nodes",
+        column = "address"
+    )]
     pub source: &'a str,
     /// The destination.
     #[arg(
         label = "Destination",
-        help = "16 hex digits for an EUI-64, FFFF for broadcast, empty for none."
+        help = "16 hex digits for an EUI-64 (colons are allowed), FFFF for broadcast, empty for none.",
+        refers_to = "nodes",
+        column = "address"
     )]
     pub destination: &'a str,
     /// The payload IEs.
@@ -2932,7 +2973,7 @@ pub struct SigfoxMessageRow<'a> {
     #[field(label = "LI")]
     pub li: i64,
     /// The container size.
-    #[field(label = "Container", unit = "bytes")]
+    #[field(label = "Container", unit = "B")]
     pub container_bytes: i64,
     /// The device requests a downlink.
     #[field(label = "Downlink request")]
@@ -3165,7 +3206,12 @@ pub const ANT_REMOVE: CommandKind<AntSensorArgs<'static>> = objcmd::remove_kind(
 #[derive(Arguments)]
 pub struct AntSendArgs<'a> {
     /// The device number.
-    #[arg(label = "Device number", help = "0 to 65535.")]
+    #[arg(
+        label = "Device number",
+        help = "0 to 65535.",
+        refers_to = "sensors",
+        column = "device"
+    )]
     pub device: i64,
     /// The device type.
     #[arg(
@@ -3302,7 +3348,7 @@ pub struct NfcTagRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NfcFrameRow<'a> {
     /// The signal time of the frame.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// "reader" or "tag".
     #[field(label = "Direction")]
@@ -3348,8 +3394,9 @@ pub struct NfcTagEvent<'a> {
 pub static NFC_TAGS: Table<NfcTagRow<'static>> =
     Table::new("tags", "Tags", 100).label(&NfcTagRow::UID);
 /// The frame log, newest first.
-pub static NFC_FRAMES: Table<NfcFrameRow<'static>> =
-    Table::new("frames", "Frames", 200).label(&NfcFrameRow::NAME);
+pub static NFC_FRAMES: Table<NfcFrameRow<'static>> = Table::new("frames", "Frames", 200)
+    .label(&NfcFrameRow::NAME)
+    .role(sdrkit_core::TableRole::Log);
 /// A tag identified.
 pub static NFC_TAG: EventKind<NfcTagEvent<'static>> = EventKind::new("nfc.tag", "NFC tag");
 
@@ -3490,7 +3537,7 @@ pub struct NrfBadBurstRow {
     #[field(label = "Signal time", unit = "s")]
     pub time_s: f64,
     /// The duration of the burst.
-    #[field(label = "Duration", unit = "µs")]
+    #[field(label = "Duration", unit = "us")]
     pub duration_us: f64,
     /// The SNR.
     #[field(shared = keys::SNR_DB)]
@@ -3615,9 +3662,9 @@ pub struct SubghzchatLineRow<'a> {
     /// The signal time of the line.
     #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
-    /// "heard" or "sent".
-    #[field(label = "Direction")]
-    pub direction: &'a str,
+    /// True for a line that this station sent.
+    #[field(label = "Sent", role = Own)]
+    pub own: bool,
     /// How the line was read.
     #[field(label = "Kind")]
     pub kind: LineKind,
@@ -3648,7 +3695,7 @@ pub struct SubghzchatPacketRow<'a> {
     #[field(label = "Time", unit = "s")]
     pub time_s: f64,
     /// The payload length.
-    #[field(label = "Length", unit = "octets")]
+    #[field(label = "Length", unit = "B")]
     pub length: i64,
     /// The CRC is right.
     #[field(label = "CRC good")]

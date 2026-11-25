@@ -38,7 +38,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ai
 | `tcpa_min` | TCPA limit | number (min) | 15 | 1 to 60 |  |
 | `cpa_cooldown_min` | CPA cool-down | number (min) | 10 | 1 to 120 |  |
 | `own_moving` | Own ship moving | yes or no | false |  |  |
-| `own_sog_kn` | Own speed | number (kn) | 0 | 0 to 40 |  |
+| `own_sog_kn` | Own speed | number (kt) | 0 | 0 to 40 |  |
 | `own_cog_deg` | Own course | number (°) | 0 | 0 to 359 |  |
 | `geofences` | Geofences | text | empty |  | One per line: name;lat,lon,radius_nm or name;poly;lat,lon lat,lon ... |
 | `filter` | Filter | text | empty |  | classes=63;groups=1023;moving=0;sog=0.5 |
@@ -82,8 +82,8 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `stations` | Stations | `name` (text), `mmsi` (text), `callsign` (text), `type` (text), `speed_kt` (number (kt)), `course_deg` (number (°)), `position` (position), `long_range_position` (yes or no), `channel` (text), `status` (text), `destination` (text), `last_heard` (time), `heard` (whole number) |
 | `track_points` | Tracks | `station` (text), `position` (position), `time` (time) |
 | `counters` | Messages by type | `type` (text), `count_a` (whole number), `count_b` (whole number), `count_c` (whole number), `count_d` (whole number), `total` (whole number) |
-| `channels` | Channels | `name` (text), `freq_hz` (frequency), `frames_ok` (whole number), `frames_bad` (whole number), `messages_per_min` (number (/min)), `level_dbfs` (number (dBFS)), `noise_dbfs` (number (dBFS)), `doppler_hz` (frequency), `doppler_rate_hz_s` (number (Hz/s)) |
-| `sentences` | Sentences | `sentence` (text) |
+| `channels` | Channels | `name` (text), `freq_hz` (frequency), `frames_ok` (whole number), `frames_bad` (whole number), `messages_per_min` (number (1/min)), `level_dbfs` (number (dBFS)), `noise_dbfs` (number (dBFS)), `doppler_hz` (frequency), `doppler_rate_hz_s` (number (Hz/s)) |
+| `sentences` | Sentences | `sentence` (text), `time_s` (number (s)) |
 | `receptions` | Receptions | `time` (time), `channel` (text), `msg_type` (whole number), `mmsi` (text), `snr_db` (number (dB)), `offset_hz` (frequency), `layer` (choice) |
 | `alerts` | Alerts | `time` (time), `kind` (choice), `fence` (text), `mmsi` (text), `name` (text), `position` (position), `distance_m` (number (m)), `cpa_m` (number (m)), `tcpa` (duration (s)) |
 | `hop_plan` | Hopping plan | `centre_hz` (frequency), `dwell` (duration (s)) |
@@ -112,9 +112,11 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `marine`, version 1.3. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `marine`, version 2.0. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
+
+Key readings: `stations`, `with_position`, `frames_ok`, `snr_db`.
 
 ### Result fields
 
@@ -200,7 +202,7 @@ Struct `AisChannelRow`. A row of the channel table of the AIS stack. The row key
 | `freq_hz` | frequency | always | 1.0 | The frequency a station was heard on. |
 | `frames_ok` | whole number | always | 1.0 | Frames (packets, blocks, bursts) that passed their check. |
 | `frames_bad` | whole number | always | 1.0 | Frames that failed their check. |
-| `messages_per_min` | number (/min) | always | 1.0 | Good messages in the last minute. |
+| `messages_per_min` | number (1/min) | always | 1.0 | Good messages in the last minute. |
 | `level_dbfs` | number (dBFS) | optional | 1.0 | Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). |
 | `noise_dbfs` | number (dBFS) | optional | 1.0 | Noise floor, dBFS. |
 | `doppler_hz` | frequency | optional | 1.0 | The Doppler of the channel's bursts now (satellite mode). |
@@ -215,6 +217,9 @@ Struct `AisSentenceRow`. A row of the NMEA sentence table. The row key is the pl
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `sentence` | text | always | 1.0 | An `!AIVDM` sentence. |
+| `time_s` | number (s) | always | 1.0 | The signal time of the reception of the sentence. |
+
+The rows are a log: they arrive over time. Time: `time_s`.
 
 ### Table `receptions`
 
@@ -230,7 +235,7 @@ Struct `AisReceptionRow`. A row of the reception table. The row key is the place
 | `offset_hz` | frequency | always | 1.0 | Carrier offset from where it was expected, Hz. |
 | `layer` | choice | always | 1.0 | How a message was found. |
 
-The column `mmsi` names a row.
+The rows are a log: they arrive over time. The column `mmsi` names a row. Time: `time`.
 
 ### Table `alerts`
 
@@ -248,7 +253,7 @@ Struct `AisAlertRow`. A row of the alert table. The row key is the place of the 
 | `cpa_m` | number (m) | optional | 1.0 | The distance at the closest point of approach. |
 | `tcpa` | duration (s) | optional | 1.0 | The time to the closest point of approach. |
 
-The column `name` names a row. Place of a row: the column `position`.
+The rows are a log: they arrive over time. The column `name` names a row. Place of a row: the column `position`. Time: `time`.
 
 ### Table `hop_plan`
 

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "marine", version 1.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "marine", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_MARINE_VERSION_MAJOR 1
-#define SDRKIT_MARINE_VERSION_MINOR 3
+#define SDRKIT_MARINE_VERSION_MAJOR 2
+#define SDRKIT_MARINE_VERSION_MINOR 0
 
 // The stack "ais": its id, and the keys of its event types.
 #define SDRKIT_STACK_AIS "ais"
@@ -295,7 +295,7 @@ typedef struct sdrkit_ais_channel_row {
   int64_t frames_ok;
   // Frames that failed their check.
   int64_t frames_bad;
-  // Good messages in the last minute. Unit: /min.
+  // Good messages in the last minute. Unit: 1/min.
   double messages_per_min;
   // True if `level_dbfs` holds a value.
   bool has_level_dbfs;
@@ -323,6 +323,8 @@ typedef struct sdrkit_ais_sentence_row {
   sdrkit_string key;
   // An `!AIVDM` sentence.
   sdrkit_string sentence;
+  // The signal time of the reception of the sentence. Unit: s.
+  double time_s;
 } sdrkit_ais_sentence_row;
 
 // The options of `layer` of `sdrkit_ais_reception_row`.
@@ -1971,6 +1973,8 @@ static inline int32_t sdrkit_ais_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "sentences" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_ais_sentences_rows(SDRKIT_HANDLE handle,
                                                sdrkit_ais_sentence_row *rows,
                                                uint32_t capacity,
@@ -1980,7 +1984,9 @@ static inline int32_t sdrkit_ais_sentences_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "receptions" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `mmsi` names a row.
+// Time: `time`.
 static inline int32_t sdrkit_ais_receptions_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_ais_reception_row *rows,
                                                 uint32_t capacity,
@@ -1990,8 +1996,10 @@ static inline int32_t sdrkit_ais_receptions_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "alerts" of the stack "ais" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `name` names a row.
 // Place of a row: the column `position`.
+// Time: `time`.
 static inline int32_t sdrkit_ais_alerts_rows(SDRKIT_HANDLE handle,
                                             sdrkit_ais_alert_row *rows,
                                             uint32_t capacity,
@@ -2170,7 +2178,7 @@ static inline int32_t sdrkit_ais_set_own_moving(SDRKIT_HANDLE handle, bool value
   return sdrkit_typed_setting_set_bool(handle, "own_moving", value);
 }
 
-// The setting "own_sog_kn" (Own speed) of the stack "ais". Unit: kn.
+// The setting "own_sog_kn" (Own speed) of the stack "ais". Unit: kt.
 static inline int32_t sdrkit_ais_get_own_sog_kn(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "own_sog_kn", value);
 }
@@ -2469,9 +2477,11 @@ static inline int32_t sdrkit_marine_gen_set_phasing_s(SDRKIT_HANDLE handle, doub
 
 // Fills `rows` with the changed rows of the table "asm" of the stack "vdes" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `mmsi` names a row.
 // Place of a row: the column `position`.
 // Course: `course_deg`. Speed: `speed_kt`.
+// Time: `time`.
 static inline int32_t sdrkit_vdes_asm_rows(SDRKIT_HANDLE handle,
                                           sdrkit_vdes_asm_row *rows,
                                           uint32_t capacity,
@@ -2481,6 +2491,8 @@ static inline int32_t sdrkit_vdes_asm_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "bursts" of the stack "vdes" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time`.
 static inline int32_t sdrkit_vdes_bursts_rows(SDRKIT_HANDLE handle,
                                              sdrkit_vdes_burst_row *rows,
                                              uint32_t capacity,

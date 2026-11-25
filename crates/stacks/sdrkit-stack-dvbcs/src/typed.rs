@@ -512,46 +512,6 @@ pub const TX_APPEND: CommandKind<TxAppendArgs> = CommandKind::new("append", "Add
      host feeds at the useful bit rate.",
 );
 
-/// The declarations of `dvbc2` added in 1.3: the width of a data slice, the group and bundling of a PLP, and the data slice
-/// out of the receive window.
-const ADDED_1_3: &[&str] = &[
-    "shape.Dvbc2Fields.outside_slice",
-    "shape.Dvbc2Fields.outside_hz",
-    "shape.Dvbc2SliceRow.width_hz",
-    "shape.Dvbc2PlpRow.group",
-    "shape.Dvbc2PlpRow.bundled",
-];
-
-/// The settings of the DVB-S2 form of the sender of `dvbs`, added in 1.4.
-const ADDED_1_4: &[&str] = &[
-    "dvbs.setting.tx_standard",
-    "dvbs.setting.tx_modcod",
-    "dvbs.setting.tx_frame",
-    "dvbs.setting.tx_pilots",
-    "dvbs.setting.tx_rolloff",
-    "dvbs.setting.tx_pl_scrambling",
-];
-
-/// The declarations of the sender of `dvbs`, added in 1.2.
-const ADDED_1_2: &[&str] = &[
-    "dvbs.fields.DvbsTxFields",
-    "shape.DvbsTxFields",
-    "shape.DvbsTxFields.transmitting",
-    "shape.DvbsTxFields.tx_freq_hz",
-    "shape.DvbsTxFields.tx_bitrate_bps",
-    "shape.DvbsTxFields.tx_packets",
-    "shape.DvbsTxFields.tx_nulls",
-    "shape.DvbsTxFields.tx_queue",
-    "shape.DvbsTxFields.tx_queue_s",
-    "shape.DvbsTxFields.tx_pcr_restamped",
-    "dvbs.setting.tx_symbol_rate",
-    "dvbs.setting.tx_rate",
-    "dvbs.setting.tx_inversion",
-    "dvbs.command.start",
-    "dvbs.command.stop",
-    "dvbs.command.append",
-];
-
 // The TV satellite beacon decoder.
 
 /// The result fields of `satbeacon`: the carrier, the subcarrier, the bit clock and the frame learner. A measurement of
@@ -559,7 +519,7 @@ const ADDED_1_2: &[&str] = &[
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SatbeaconFields {
     /// What the decoder does now.
-    #[field(label = "State")]
+    #[field(label = "State", reading = 1)]
     pub state: BeaconState,
     /// The signal time decoded.
     #[field(label = "Signal time", unit = "s")]
@@ -568,16 +528,16 @@ pub struct SatbeaconFields {
     #[field(label = "Work rate", unit = "Hz")]
     pub work_rate: Hertz,
     /// The offset of the carrier from the centre.
-    #[field(shared = keys::OFFSET_HZ)]
+    #[field(shared = keys::OFFSET_HZ, reading = 4)]
     pub offset_hz: Option<Hertz>,
     /// The RF frequency of the carrier.
     #[field(label = "Carrier frequency", unit = "Hz")]
     pub rf: Option<Hertz>,
     /// The level of the input.
-    #[field(shared = keys::LEVEL_DBFS)]
+    #[field(shared = keys::LEVEL_DBFS, reading = 3)]
     pub level_dbfs: f64,
     /// The carrier to noise density.
-    #[field(label = "C/N0", unit = "dB-Hz")]
+    #[field(label = "C/N0", unit = "dB-Hz", reading = 2)]
     pub cn0_dbhz: f64,
     /// The drift of the carrier.
     #[field(label = "Drift", unit = "Hz/min")]
@@ -589,7 +549,7 @@ pub struct SatbeaconFields {
     #[field(label = "Carrier locked")]
     pub carrier_locked: bool,
     /// The rms of the phase modulation.
-    #[field(label = "Phase modulation (rms)", unit = "degrees")]
+    #[field(label = "Phase modulation (rms)", unit = "°")]
     pub pm_rms_deg: f64,
     /// The subcarrier frequency.
     #[field(label = "Subcarrier", unit = "Hz")]
@@ -634,7 +594,7 @@ pub struct SatbeaconFields {
     #[field(label = "Bits")]
     pub bits: i64,
     /// Frames good.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 5)]
     pub frames_ok: i64,
     /// Frames bad.
     #[field(shared = keys::FRAMES_BAD)]
@@ -688,6 +648,9 @@ pub struct SatbeaconFrameRow {
     /// The bytes of the frame.
     #[field(label = "Bytes")]
     pub bytes: Arc<[u8]>,
+    /// The signal time when the frame was found.
+    #[field(label = "Time", unit = "s", role = Time)]
+    pub time_s: f64,
 }
 
 /// A row of the decoded view. The row key is the name and the bytes.
@@ -765,7 +728,8 @@ pub static SATBEACON_LINES: Table<SatbeaconLineRow> = Table::new("lines", "Lines
     sdrkit_core::SortOrder::Descending,
 );
 /// The frames received.
-pub static SATBEACON_FRAMES: Table<SatbeaconFrameRow> = Table::new("frames", "Frames", 48);
+pub static SATBEACON_FRAMES: Table<SatbeaconFrameRow> =
+    Table::new("frames", "Frames", 48).role(sdrkit_core::TableRole::Log);
 /// The decoded view.
 pub static SATBEACON_DECODED: Table<SatbeaconDecodedRow<'static>> =
     Table::new("decoded", "Decoded", 256).label(&SatbeaconDecodedRow::NAME);
@@ -794,7 +758,7 @@ const SATBEACON_SERIES: [SeriesDef; 3] = [
     SeriesDef {
         key: "column_stability",
         label: "Column stability",
-        x_unit: "byte",
+        x_unit: "B",
         y_unit: "",
     },
 ];
@@ -832,18 +796,7 @@ pub fn family() -> &'static Family {
             .table(&DVBC2_PLPS)
             .table(&DVBC2_NOTCHES);
         let dvbc2 = with_bbframes(with_monitor(dvbc2));
-        Family::new("dvbcs", 1, 5)
-            .added(
-                1,
-                5,
-                &[
-                    "satbeacon.content",
-                    "dvbc.content",
-                    "dvbc2.content",
-                    "dvbs.content",
-                    "isdbs.content",
-                ],
-            )
+        Family::new("dvbcs", 2, 0)
             .content(
                 sdrkit_core::ContentKind::Television,
                 &["dvbc", "dvbc2", "dvbs", "isdbs"],
@@ -869,19 +822,6 @@ pub fn family() -> &'static Family {
                     .command(&TX_APPEND),
             )
             .stack(tv(isdbs, &crate::isdbs::SERIES, IsdbsSetting::SETTINGS))
-            .added(
-                1,
-                1,
-                &[
-                    "dvbc.setting.decode_video",
-                    "dvbc2.setting.decode_video",
-                    "dvbs.setting.decode_video",
-                    "isdbs.setting.decode_video",
-                ],
-            )
-            .added(1, 2, ADDED_1_2)
-            .added(1, 3, ADDED_1_3)
-            .added(1, 4, ADDED_1_4)
     })
 }
 

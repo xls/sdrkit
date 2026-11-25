@@ -123,7 +123,7 @@ const NOISE_VAR: Setting<field::F64> =
 const PILOT_SPACING: Setting<field::I64> =
     Setting::new("pilot_spacing", "Pilot spacing", "symbols", 16).range(1.0, 1e6, 1.0);
 const PILOT_PHASE: Setting<field::F64> =
-    Setting::new("pilot_phase", "Pilot phase", "deg", 45.0).range(-360.0, 360.0, 0.0);
+    Setting::new("pilot_phase", "Pilot phase", "°", 45.0).range(-360.0, 360.0, 0.0);
 
 sdrkit_core::settings! {
     /// The settings of [`CarrierSyncComponent`].

@@ -71,7 +71,8 @@ pub const CALLSIGN: Setting<field::Text> = Setting::new("callsign", "Own call si
 pub const DESTINATION: Setting<field::Text> =
     Setting::new("destination", "Destination", "", "@ALL")
         .help("A call sign, or @ALL for every station (broadcast).")
-        .section(TX);
+        .section(TX)
+        .refers("heard", "src");
 /// The channel access number.
 pub const CAN: Setting<field::I64> = Setting::new("can", "Channel access number", "", 0)
     .range(0.0, 15.0, 1.0)

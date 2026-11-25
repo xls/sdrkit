@@ -55,9 +55,9 @@ pub const THRESHOLD: Setting<field::F64> = Setting::new("threshold", "Pulse thre
     .range(3.0, 40.0, 0.0)
     .help("How far above the noise a pulse must rise.");
 pub const MIN_WIDTH: Setting<field::F64> =
-    Setting::new("min_width", "Narrowest pulse", "µs", 1.5).range(0.5, 10.0, 0.0);
+    Setting::new("min_width", "Narrowest pulse", "us", 1.5).range(0.5, 10.0, 0.0);
 pub const MAX_WIDTH: Setting<field::F64> =
-    Setting::new("max_width", "Widest pulse", "µs", 7.0).range(1.0, 30.0, 0.0);
+    Setting::new("max_width", "Widest pulse", "us", 7.0).range(1.0, 30.0, 0.0);
 
 sdrkit_core::settings! {
     /// The settings of [`PulseDetect`].
@@ -299,7 +299,7 @@ sdrkit_core::choice_enum! {
 }
 
 pub const TOLERANCE: Setting<field::F64> =
-    Setting::new("tolerance", "Spacing tolerance", "µs", 1.0).range(0.1, 5.0, 0.0);
+    Setting::new("tolerance", "Spacing tolerance", "us", 1.0).range(0.1, 5.0, 0.0);
 pub const MODE: Setting<field::Choice<ChannelModeChoice>> =
     Setting::choice("mode", "Channel mode", ChannelModeChoice::Auto);
 
@@ -414,7 +414,7 @@ impl Component for PulsePairs {
 }
 
 pub const IDENT_TOLERANCE: Setting<field::F64> =
-    Setting::new("tolerance", "Ident spacing tolerance", "µs", 1.5).range(0.2, 10.0, 0.0);
+    Setting::new("tolerance", "Ident spacing tolerance", "us", 1.5).range(0.2, 10.0, 0.0);
 pub const MIN_REGULAR: Setting<field::I64> =
     Setting::new("min_regular", "Ident pairs per 10 ms", "", 5).range(1.0, 13.0, 1.0);
 

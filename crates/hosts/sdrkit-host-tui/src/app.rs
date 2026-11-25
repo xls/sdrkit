@@ -293,7 +293,8 @@ impl Live {
     pub fn entry_command(&self) -> Option<&CommandDecl> {
         let c = self.stack.commands.first().filter(|_| !self.closing)?;
         let a = c.args.first()?;
-        (a.ty == Type::String && a.required && a.refers_table.is_empty()).then_some(c)
+        let free = a.refers_table.is_empty() || !a.refers_column.is_empty();
+        (a.ty == Type::String && a.required && free).then_some(c)
     }
 
     /// Returns what stops the session from transmitting now, as the engine wrote it.
@@ -2396,7 +2397,10 @@ impl App {
                 let [a] = c.args.as_slice() else {
                     return false;
                 };
-                a.refers_object.is_empty() && a.refers_table == decl.key
+                // An argument with a value column takes free values, and its command is not run from a row.
+                a.refers_object.is_empty()
+                    && a.refers_table == decl.key
+                    && a.refers_column.is_empty()
             });
             let (n, _) = takes_row.next()?;
             takes_row.next().is_none().then_some(n)
@@ -2443,7 +2447,13 @@ impl App {
             return;
         };
         let value = current.unwrap_or_else(|| d.default.clone());
-        match self.rows_of(&d.refers_object, &d.refers_table) {
+        // An argument with a value column is typed: its value need not be in the table.
+        let table = if d.refers_column.is_empty() {
+            d.refers_table.as_str()
+        } else {
+            ""
+        };
+        match self.rows_of(&d.refers_object, table) {
             Some(rows) if rows.keys.is_empty() => {
                 self.fail(format!("{}: no rows yet", rows.table));
             }

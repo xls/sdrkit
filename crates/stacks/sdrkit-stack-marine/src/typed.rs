@@ -18,19 +18,7 @@ pub fn family() -> &'static Family {
 }
 
 fn describe() -> Family {
-    // Version 1.2 names rows and orders tables.
-    Family::new("marine", 1, 3)
-        .added(
-            1,
-            1,
-            &[
-                "ais.content",
-                "marine.content",
-                "vdes.content",
-                "marinevhf.content",
-                "atis.content",
-            ],
-        )
+    Family::new("marine", 2, 0)
         .content(sdrkit_core::ContentKind::Voice, &["marinevhf", "atis"])
         .content(sdrkit_core::ContentKind::Tracking, &["ais", "vdes"])
         .content(sdrkit_core::ContentKind::Datalink, &["marine"])

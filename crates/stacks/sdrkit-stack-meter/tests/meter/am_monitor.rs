@@ -64,7 +64,8 @@ fn depth_offset_peaks_and_bandwidth_at_three_rates_and_three_offsets() {
             let b = f.bandwidth_khz.unwrap();
             assert!((3.2..=4.5).contains(&b), "{at}: bandwidth {b}");
             assert!(f.carrier);
-            assert!(f.text.starts_with("carrier"), "{}", f.text);
+            let summary = &run.results.status().summary;
+            assert!(summary.starts_with("carrier"), "{summary}");
             assert!(run.events.iter().all(|e| !e.is(&AM_MONITOR_OVER_MODULATION)), "{at}");
         }
     }

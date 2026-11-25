@@ -214,7 +214,7 @@ pub const CHANNELS: Setting<field::Text> = Setting::new("channels", "Virtual cha
     .advanced();
 /// Bytes of a packet secondary header that the length field does not count.
 pub const UNCOUNTED_SECONDARY: Setting<field::I64> =
-    Setting::new("uncounted_secondary", "Secondary header outside the length", "bytes", 0)
+    Setting::new("uncounted_secondary", "Secondary header outside the length", "B", 0)
         .range(0.0, 64.0, 1.0)
         .help("A packet with its secondary header flag set is this much longer than its length field says. 0 follows CCSDS 133.0.")
         .advanced();

@@ -123,7 +123,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|
 | `constellation` | Constellation |  |  |
 | `spectrum` | Spectrum | bin | dB |
-| `equaliser` | Equaliser taps | µs | dB |
+| `equaliser` | Equaliser taps | us | dB |
 | `mer_history` | MER history | report | dB |
 
 ## Events
@@ -145,7 +145,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `dvbcs`, version 1.5. The C header `sdrkit/dvbcs.h`, the registry record `registry/dvbcs.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvbcs`, version 2.0. The C header `sdrkit/dvbcs.h`, the registry record `registry/dvbcs.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Television and video (`television`). Media: sound (programme), video.
 

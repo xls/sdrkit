@@ -313,7 +313,8 @@ pub static MODES: Table<ModeRow<'static>> = Table::new("modes", "Modes", 32);
 pub static STATIONS: Table<StationRow<'static>> =
     Table::new("stations", "Stations", crate::table::STATIONS_CAP)
         .label(&StationRow::CALLSIGN)
-        .sorted(&StationRow::LAST_HEARD, SortOrder::Descending);
+        .sorted(&StationRow::LAST_HEARD, SortOrder::Descending)
+        .role(sdrkit_core::TableRole::Nodes);
 /// The JS8 frames, newest first.
 pub static JS8_FRAMES: Table<Js8FrameRow<'static>> =
     Table::new("js8_frames", "JS8 frames", crate::table::JS8_FRAMES_CAP)
@@ -955,6 +956,31 @@ pub struct IscatFields<'a> {
     pub variant: Option<&'a str>,
 }
 
+/// A row of the station table of `fsk441`, `jt6m`, `iscat` and `pi4`: a station whose callsign a decoded text held.
+/// The row key is the callsign.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct ScatterStationRow<'a> {
+    /// The callsign.
+    #[field(label = "Call")]
+    pub callsign: &'a str,
+    /// The UTC of the newest decode that held the callsign.
+    #[field(shared = columns::LAST_HEARD)]
+    pub last_heard: Option<Time>,
+    /// The decodes that held the callsign.
+    #[field(shared = columns::HEARD)]
+    pub heard: Option<i64>,
+    /// The SNR of the newest decode that held the callsign.
+    #[field(shared = keys::SNR_DB)]
+    pub snr_db: f64,
+}
+
+/// The stations of `fsk441`, `jt6m`, `iscat` and `pi4`, by callsign, the newest first.
+pub static SCATTER_STATIONS: Table<ScatterStationRow<'static>> =
+    Table::new("stations", "Stations", crate::scatter::STATIONS_CAP)
+        .label(&ScatterStationRow::CALLSIGN)
+        .sorted(&ScatterStationRow::LAST_HEARD, SortOrder::Descending)
+        .role(sdrkit_core::TableRole::Nodes);
+
 /// The decodes of `fsk441`.
 pub static FSK441_DECODES: Table<Fsk441DecodeRow<'static>> =
     Table::new("decodes", "Decodes", crate::scatter::ROWS_CAP)
@@ -983,14 +1009,16 @@ pub static ISCAT_DECODE: EventKind<IscatDecodeEvent<'static>> =
 /// A decode of `pi4`.
 pub static PI4_DECODE: EventKind<Pi4DecodeEvent<'static>> = EventKind::new("wsjt.decode", "Decode");
 
-/// `shape`, which lists the result sets of one of these stacks, with the count of its decoder, the spot event, the
-/// clear command and what is kept. The decodes and their total stay over a change of frequency.
+/// `shape`, which lists the result sets of one of these stacks, with the station table, the count of its decoder, the
+/// spot event, the clear command and what is kept. The decodes, the stations and the total stay over a change of
+/// frequency.
 fn scatter_stack(shape: StackShape) -> StackShape {
     shape
+        .table(&SCATTER_STATIONS)
         .fields::<sdrkit_graph::DecoderFields>()
         .event(&SPOT)
         .command(&sdrkit_graph::decoder::CLEAR)
-        .kept(&["decodes", "ScatterFields.decodes_total"])
+        .kept(&["decodes", "stations", "ScatterFields.decodes_total"])
 }
 
 /// The descriptions of `fsk441`, `jt6m`, `iscat` and `pi4`.
@@ -1035,9 +1063,11 @@ pub fn family() -> &'static Described {
     // `beacon` and no setting, and `cq`, `beacon` and `send` transmit. 3.0: the Q65 stack has its code built in and no
     // setting `code_dir`. 4.0: no stack has the setting `code_dir`, and a mode row has no state `no_table`. 5.0: a slot
     // stack has only the tables, the events and the fields that its modes fill; the count of the decodes and the JS8
-    // fields are result sets of their own.
+    // fields are result sets of their own. 5.1: MSK144 has the short-message setting of its test signal, and FSK441,
+    // JT6M, ISCAT and PI4 have a station table.
     FAMILY.get_or_init(|| {
-        let mut f = Described::new("wsjt", 5, 0)
+        let mut f = Described::new("wsjt", 5, 2)
+            .added(5, 1, ADDED_5_1)
             .content(
                 sdrkit_core::ContentKind::WeakSignal,
                 &[
@@ -1068,6 +1098,26 @@ pub fn family() -> &'static Described {
         scatter_stacks().into_iter().fold(f, Described::stack)
     })
 }
+
+/// What version 5.1 added: the short-message setting of MSK144 and the station table of the stacks of single
+/// transmissions.
+const ADDED_5_1: &[&str] = &[
+    "shape.ScatterStationRow",
+    "shape.ScatterStationRow.callsign",
+    "shape.ScatterStationRow.last_heard",
+    "shape.ScatterStationRow.heard",
+    "shape.ScatterStationRow.snr_db",
+    "wsjt.setting.gen_short",
+    "msk144.setting.gen_short",
+    "fsk441.table.stations",
+    "fsk441.kept.stations",
+    "jt6m.table.stations",
+    "jt6m.kept.stations",
+    "iscat.table.stations",
+    "iscat.kept.stations",
+    "pi4.table.stations",
+    "pi4.kept.stations",
+];
 
 /// The ids of the slot stacks.
 const SLOT_STACKS: &[&str] = &[

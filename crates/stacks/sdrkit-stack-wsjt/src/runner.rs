@@ -5,8 +5,8 @@
 use crate::mode::Mode;
 use crate::proto::msg77::CallHashes;
 use crate::proto::wsprmsg::WsprHashes;
-use crate::rx::js8::Js8Frame;
 use crate::rx::ftmem::FtMemory;
+use crate::rx::js8::Js8Frame;
 use crate::rx::slot::{Decode, Slot};
 use crate::rx::{ft, js8, msk144, slowmodes};
 use crate::typed::SlotDecoderFields;
@@ -80,6 +80,8 @@ pub struct DecodeState {
     pub opt: DecodeOptions,
     /// What FT8, FT4 and FT2 keep across slots: the failed candidates and the calls heard.
     pub ft: FtMemory,
+    /// The calls that MSK144 short messages are decoded for.
+    pub short: msk144::ShortCalls,
 }
 
 impl DecodeState {
@@ -88,6 +90,7 @@ impl DecodeState {
         self.calls.clear();
         self.wspr.clear();
         self.ft.clear();
+        self.short.clear();
     }
 }
 
@@ -125,7 +128,12 @@ pub fn decode_slot(slot: &Slot, state: &mut DecodeState) -> SlotResult {
             }
         }
         Mode::Msk144 => {
-            r.decodes = msk144::decode(slot, &mut state.calls);
+            r.decodes = msk144::decode(slot, &mut state.calls, &state.short);
+            if !slot.search {
+                for d in &r.decodes {
+                    state.short.heard(&d.text);
+                }
+            }
         }
         Mode::Js8 => {
             let mut failed = 0;
@@ -338,6 +346,10 @@ impl Decoder for SlotDecoder {
         self.state.clear();
         self.slots = 0;
         self.decodes = 0;
+    }
+    /// Takes the station's callsign, the operator's call of MSK144 short messages.
+    fn attach(&mut self, ctx: &RunContext) {
+        self.state.short.set_own(&ctx.station.callsign);
     }
     fn helper(&self) -> Helper {
         Helper::WhenLive {

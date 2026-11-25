@@ -605,11 +605,13 @@ pub const ROLL_OFF: Setting<field::Choice<RollOffChoice>> = s2::roll_off(RollOff
 pub const CHANNELS: Setting<field::Text> = Setting::new("channels", "Virtual channels", "", "5,6")
     .help("Virtual channel numbers with commas between them. Empty: every channel but 63.")
     .advanced();
-/// The product shown: an APID, or -1 for the one updated last.
+/// The product shown: an APID, or -1 for the one updated last. A front end offers the APIDs of the rows of
+/// `grb_products`, the pictures received.
 pub const PRODUCT: Setting<field::I64> = Setting::new("product", "Product shown", "", -1)
     .range(-1.0, 2047.0, 1.0)
     .help("An APID, or -1 for the picture updated last.")
-    .role(sdrkit_core::SettingRole::PictureSource);
+    .role(sdrkit_core::SettingRole::PictureSource)
+    .refers("grb_products", "apid");
 
 sdrkit_core::settings! {
     /// The settings of `goes_grb`.

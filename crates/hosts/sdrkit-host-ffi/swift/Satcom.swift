@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "satcom", version 1.5. MIT licence.
+// sdrkit: the typed interface of the stack family "satcom", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum SatcomInterface {
-    public static let major = 1
-    public static let minor = 5
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of Inmarsat-C.
@@ -2639,11 +2639,14 @@ public struct FleetBroadcastFrameRow {
     public var word: String
     /// A frame as 16 bits, channel 0 first.
     public var bits: String
+    /// The signal time of the start of the frame.
+    public var timeS: Double
 
     init(_ c: sdrkit_fleet_broadcast_frame_row) {
         key = sdrkitText(c.key)
         word = sdrkitText(c.word)
         bits = sdrkitText(c.bits)
+        timeS = c.time_s
     }
 }
 
@@ -4485,6 +4488,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroSuTypeRow.init))
     }
     /// The changed rows of the table "logons" of the stack "aero", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func aeroLogons(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[AeroLogonRow], SDRKitCode> {
         var rows = [sdrkit_aero_logon_row](repeating: sdrkit_aero_logon_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4570,6 +4575,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AeroSuTypeRow.init))
     }
     /// The changed rows of the table "aero_display.logons" of the stack "inmarsat", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func inmarsatAeroDisplayLogons(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[AeroLogonRow], SDRKitCode> {
         var rows = [sdrkit_aero_logon_row](repeating: sdrkit_aero_logon_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4656,6 +4663,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GlobalstarChannelRow.init))
     }
     /// The changed rows of the table "activity" of the stack "globalstar", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `wall_start`.
     public static func globalstarActivity(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[GlobalstarActivityRow], SDRKitCode> {
         var rows = [sdrkit_globalstar_activity_row](repeating: sdrkit_globalstar_activity_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4664,7 +4673,9 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GlobalstarActivityRow.init))
     }
     /// The changed rows of the table "reports" of the stack "goes_dcs", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `address` names a row.
+    /// Time: `heard_at`.
     public static func goesDcsReports(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[GoesDcsReportRow], SDRKitCode> {
         var rows = [sdrkit_goes_dcs_report_row](repeating: sdrkit_goes_dcs_report_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4691,7 +4702,9 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GoesDcsCarrierRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "argos", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `platform` names a row.
+    /// Time: `heard_at`.
     public static func argosBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[ArgosBurstRow], SDRKitCode> {
         var rows = [sdrkit_argos_burst_row](repeating: sdrkit_argos_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4709,6 +4722,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ArgosPlatformRow.init))
     }
     /// The changed rows of the table "frames" of the stack "argos", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `at`.
     public static func argosFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[ArgosFrameRow], SDRKitCode> {
         var rows = [sdrkit_argos_frame_row](repeating: sdrkit_argos_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4717,7 +4732,9 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ArgosFrameRow.init))
     }
     /// The changed rows of the table "reports" of the stack "hrdcp", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `address` names a row.
+    /// Time: `heard_at`.
     public static func hrdcpReports(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[HrdcpReportRow], SDRKitCode> {
         var rows = [sdrkit_hrdcp_report_row](repeating: sdrkit_hrdcp_report_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4744,8 +4761,10 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HrdcpCarrierRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "sarsat", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `hex_id` names a row.
     /// Place of a row: the column `position`.
+    /// Time: `heard_at`.
     public static func sarsatBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[SarsatBurstRow], SDRKitCode> {
         var rows = [sdrkit_sarsat_burst_row](repeating: sdrkit_sarsat_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4764,7 +4783,9 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SarsatBeaconRow.init))
     }
     /// The changed rows of the table "frames" of the stack "lora_sat", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `satellite` names a row.
+    /// Time: `heard_at`.
     public static func loraSatFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[LoraSatFrameRow], SDRKitCode> {
         var rows = [sdrkit_lora_sat_frame_row](repeating: sdrkit_lora_sat_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4824,6 +4845,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(OrbcommDecoderRow.init))
     }
     /// The changed rows of the table "packets" of the stack "orbcomm", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `wall`.
     public static func orbcommPackets(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[OrbcommPacketRow], SDRKitCode> {
         var rows = [sdrkit_orbcomm_packet_row](repeating: sdrkit_orbcomm_packet_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4864,6 +4887,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(PskDemodSyncRow.init))
     }
     /// The changed rows of the table "log" of the stack "psk_demod", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `at`.
     public static func pskDemodLog(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[PskDemodLogRow], SDRKitCode> {
         var rows = [sdrkit_psk_demod_log_row](repeating: sdrkit_psk_demod_log_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4923,7 +4948,9 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Qo100DatvCarrierRow.init))
     }
     /// The changed rows of the table "frames" of the stack "cubesat", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `satellite` names a row.
+    /// Time: `heard_at`.
     public static func cubesatFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[CubesatFrameRow], SDRKitCode> {
         var rows = [sdrkit_cubesat_frame_row](repeating: sdrkit_cubesat_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4957,6 +4984,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FleetBroadcastChannelRow.init))
     }
     /// The changed rows of the table "frame_log" of the stack "fleet_broadcast", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func fleetBroadcastFrameLog(_ handle: SDRKIT_HANDLE, capacity: Int = 24) -> Result<[FleetBroadcastFrameRow], SDRKitCode> {
         var rows = [sdrkit_fleet_broadcast_frame_row](repeating: sdrkit_fleet_broadcast_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4983,6 +5012,8 @@ public enum SatcomTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BganBeamRow.init))
     }
     /// The changed rows of the table "log" of the stack "bgan", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `at`.
     public static func bganLog(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[BganLogRow], SDRKitCode> {
         var rows = [sdrkit_bgan_log_row](repeating: sdrkit_bgan_log_row(), count: capacity)
         var info = sdrkit_rows_info.sized

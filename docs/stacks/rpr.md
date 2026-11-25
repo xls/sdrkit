@@ -93,9 +93,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.7. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 2.0. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: none.
+
+Key readings: `state`, `speed_level`, `net_rate`, `snr_db`.
 
 ### Result fields
 
@@ -103,29 +105,29 @@ Struct `RprFields`. The result fields of the Robust Packet stack: the comb of th
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | choice | always | 1.1 | What the last analysis found: nothing, the comb, or bursts. |
-| `comb_centre` | frequency | optional | 1.1 | The centre of the comb in the audio. Absent without a comb. |
-| `offset_hz` | frequency | optional | 1.1 | The comb centre against the audio centre setting. |
-| `comb_db` | number (dB) | optional | 1.1 | The mean power inside the comb over the mean power beside it. |
-| `carrier_count` | whole number | always | 1.1 | The carriers seen: those of the last burst with a clear step pattern, else the comb cells that stand out. |
-| `spacing` | frequency | optional | 1.1 | The carrier spacing measured on the last burst. |
-| `symbol_rate_hz` | frequency | optional | 1.1 | The symbol rate of the last burst, at the peak of its clock line. |
-| `clock_ppm` | number (ppm) | optional | 1.1 | The clock error of the last burst of more than 150 symbols. |
-| `speed_level` | whole number | always | 1.1 | The speed level of the last burst: 1 (D-BPSK) or 2 (D-QPSK); 0 before a burst. |
-| `modulation` | choice | optional | 1.1 | The modulation of the last burst. |
-| `net_rate` | whole number (bit/s) | optional | 1.1 | The net rate of the speed level before the AX.25 overhead: 200 or 600 bit/s. |
-| `snr_db` | number (dB) | optional | 1.1 | The SNR of the last burst, from the phase error of its steps. |
-| `best_snr_db` | number (dB) | optional | 1.1 | The best SNR of a burst since the last Clear. |
-| `burst_length` | duration (s) | optional | 1.1 | The length of the last burst. |
-| `symbols_1` | text | always | 1.1 | The newest step indices of carrier 0, one digit per symbol. |
-| `symbols_2` | text | always | 1.1 | The newest step indices of carrier 1. |
-| `symbols_3` | text | always | 1.1 | The newest step indices of carrier 2. |
-| `note` | text | always | 1.1 | What the stack does not do. |
-| `analyses` | whole number | always | 1.1 | The analyses run. |
-| `detections` | whole number | always | 1.1 | The analyses that found the comb. |
-| `bursts` | whole number | always | 1.1 | The bursts demodulated since the last Clear. |
-| `level_dbfs` | number (dBFS) | optional | 1.1 | The audio level of the last second. |
-| `clock` | choice | always | 1.1 | Where the times come from. |
+| `state` | choice | always | 1.0 | What the last analysis found: nothing, the comb, or bursts. |
+| `comb_centre` | frequency | optional | 1.0 | The centre of the comb in the audio. Absent without a comb. |
+| `offset_hz` | frequency | optional | 1.0 | The comb centre against the audio centre setting. |
+| `comb_db` | number (dB) | optional | 1.0 | The mean power inside the comb over the mean power beside it. |
+| `carrier_count` | whole number | always | 1.0 | The carriers seen: those of the last burst with a clear step pattern, else the comb cells that stand out. |
+| `spacing` | frequency | optional | 1.0 | The carrier spacing measured on the last burst. |
+| `symbol_rate_hz` | frequency | optional | 1.0 | The symbol rate of the last burst, at the peak of its clock line. |
+| `clock_ppm` | number (ppm) | optional | 1.0 | The clock error of the last burst of more than 150 symbols. |
+| `speed_level` | whole number | always | 1.0 | The speed level of the last burst: 1 (D-BPSK) or 2 (D-QPSK); 0 before a burst. |
+| `modulation` | choice | optional | 1.0 | The modulation of the last burst. |
+| `net_rate` | whole number (bit/s) | optional | 1.0 | The net rate of the speed level before the AX.25 overhead: 200 or 600 bit/s. |
+| `snr_db` | number (dB) | optional | 1.0 | The SNR of the last burst, from the phase error of its steps. |
+| `best_snr_db` | number (dB) | optional | 1.0 | The best SNR of a burst since the last Clear. |
+| `burst_length` | duration (s) | optional | 1.0 | The length of the last burst. |
+| `symbols_1` | text | always | 1.0 | The newest step indices of carrier 0, one digit per symbol. |
+| `symbols_2` | text | always | 1.0 | The newest step indices of carrier 1. |
+| `symbols_3` | text | always | 1.0 | The newest step indices of carrier 2. |
+| `note` | text | always | 1.0 | What the stack does not do. |
+| `analyses` | whole number | always | 1.0 | The analyses run. |
+| `detections` | whole number | always | 1.0 | The analyses that found the comb. |
+| `bursts` | whole number | always | 1.0 | The bursts demodulated since the last Clear. |
+| `level_dbfs` | number (dBFS) | optional | 1.0 | The audio level of the last second. |
+| `clock` | choice | always | 1.0 | Where the times come from. |
 
 ### Table `carriers`
 
@@ -133,8 +135,8 @@ Struct `RprCarrierRow`. A carrier of the last burst. The row key is the carrier 
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `frequency` | frequency | always | 1.1 | The carrier frequency in the audio: its place in the comb and its measured turn per symbol. |
-| `concentration_pct` | number (%) | always | 1.1 | The concentration of its phase steps for the order of the burst, 0 to 100 %. |
+| `frequency` | frequency | always | 1.0 | The carrier frequency in the audio: its place in the comb and its measured turn per symbol. |
+| `concentration_pct` | number (%) | always | 1.0 | The concentration of its phase steps for the order of the burst, 0 to 100 %. |
 
 Default order: the column `frequency`, lowest first.
 
@@ -144,17 +146,19 @@ Struct `RprBurstRow`. A burst demodulated. The row key is the sequence number.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `start` | duration (s) | always | 1.1 | The signal time of its start. |
-| `time` | time | optional | 1.1 | The UTC of its start, when the clock is known. |
-| `length` | duration (s) | always | 1.1 | Its length. |
-| `speed_level` | whole number | always | 1.1 | The speed level: 1 or 2. |
-| `modulation` | choice | always | 1.1 | The modulation. |
-| `net_rate` | whole number (bit/s) | always | 1.1 | The net rate of the speed level: 200 or 600 bit/s. |
-| `carriers` | whole number | always | 1.1 | The carriers with a clear step pattern. |
-| `symbols` | whole number | always | 1.1 | The symbols demodulated on each carrier. |
-| `snr_db` | number (dB) | always | 1.1 | The SNR from the phase error of its steps. |
-| `offset` | frequency | always | 1.1 | The comb centre against the audio centre setting. |
-| `first_steps` | text | always | 1.1 | The step indices of the first 24 symbol times as hexadecimal: carrier 0 to 7 in turn, 1 bit (D-BPSK) or 2 bits (D-QPSK) each, most significant first. The bits are still coded and scrambled. |
+| `start` | duration (s) | always | 1.0 | The signal time of its start. |
+| `time` | time | optional | 1.0 | The UTC of its start, when the clock is known. |
+| `length` | duration (s) | always | 1.0 | Its length. |
+| `speed_level` | whole number | always | 1.0 | The speed level: 1 or 2. |
+| `modulation` | choice | always | 1.0 | The modulation. |
+| `net_rate` | whole number (bit/s) | always | 1.0 | The net rate of the speed level: 200 or 600 bit/s. |
+| `carriers` | whole number | always | 1.0 | The carriers with a clear step pattern. |
+| `symbols` | whole number | always | 1.0 | The symbols demodulated on each carrier. |
+| `snr_db` | number (dB) | always | 1.0 | The SNR from the phase error of its steps. |
+| `offset` | frequency | always | 1.0 | The comb centre against the audio centre setting. |
+| `first_steps` | text | always | 1.0 | The step indices of the first 24 symbol times as hexadecimal: carrier 0 to 7 in turn, 1 bit (D-BPSK) or 2 bits (D-QPSK) each, most significant first. The bits are still coded and scrambled. |
+
+The rows are a log: they arrive over time. Time: `time`.
 
 ### Table `events`
 
@@ -162,9 +166,11 @@ Struct `RprEventRow`. An event of the Robust Packet stack. The row key is the se
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `start` | duration (s) | always | 1.1 | The signal time. |
-| `time` | time | optional | 1.1 | The UTC, when the clock is known. |
-| `text` | text | always | 1.1 | What happened. |
+| `start` | duration (s) | always | 1.0 | The signal time. |
+| `time` | time | optional | 1.0 | The UTC, when the clock is known. |
+| `text` | text | always | 1.0 | What happened. |
+
+The rows are a log: they arrive over time. Time: `time`.
 
 ### Event `rpr.burst`
 
@@ -172,16 +178,16 @@ Struct `RprBurstEvent`. A burst demodulated, with its whole stream of phase step
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `speed_level` | whole number | always | 1.1 | The speed level: 1 or 2. |
-| `modulation` | choice | always | 1.1 | The modulation. |
-| `carriers` | whole number | always | 1.1 | The carriers with a clear step pattern. |
-| `symbols` | whole number | always | 1.1 | The symbols demodulated on each carrier. |
-| `length` | duration (s) | always | 1.1 | The length of the burst. |
-| `snr_db` | number (dB) | always | 1.1 | The SNR from the phase error of its steps. |
-| `offset_hz` | frequency | always | 1.1 | The comb centre against the audio centre setting. |
-| `steps` | bytes | always | 1.1 | The step indices, one byte each (0 or 1 for D-BPSK, 0 to 3 for D-QPSK; the step is index x 360 / order degrees after the constant turn of the carrier): for each symbol time after the first, carrier 0 to 7 in turn. |
-| `text` | text | always | 1.1 | The burst in words. |
-| `family` | choice | always | 1.1 | What the event is about. |
+| `speed_level` | whole number | always | 1.0 | The speed level: 1 or 2. |
+| `modulation` | choice | always | 1.0 | The modulation. |
+| `carriers` | whole number | always | 1.0 | The carriers with a clear step pattern. |
+| `symbols` | whole number | always | 1.0 | The symbols demodulated on each carrier. |
+| `length` | duration (s) | always | 1.0 | The length of the burst. |
+| `snr_db` | number (dB) | always | 1.0 | The SNR from the phase error of its steps. |
+| `offset_hz` | frequency | always | 1.0 | The comb centre against the audio centre setting. |
+| `steps` | bytes | always | 1.0 | The step indices, one byte each (0 or 1 for D-BPSK, 0 to 3 for D-QPSK; the step is index x 360 / order degrees after the constant turn of the carrier): for each symbol time after the first, carrier 0 to 7 in turn. |
+| `text` | text | always | 1.0 | The burst in words. |
+| `family` | choice | always | 1.0 | What the event is about. |
 
 ### Commands
 

@@ -959,6 +959,8 @@ mod tests {
             step_bootstrap: StepColour::Green,
             step_l1: StepColour::Amber,
             step_service: StepColour::Off,
+            video_packets: 0,
+            audio_packets: 0,
         });
         let (seen, notes) = not_locked(Standard::Atsc3, b.results());
         assert!(!seen);

@@ -160,3 +160,69 @@ fn the_summary_of_ft8_says_what_its_numbers_count() {
         r.decl().table_id("wspr_spots").is_none() && r.decl().table_id("js8_stations").is_none()
     );
 }
+
+/// The UTC of the rows of the FT8 stack and of FSK441 on their own test signal, with the host clock at `clock`.
+fn utc_on_test_signal(id: &str, present: bool, clock: f64, seconds: f64) -> Vec<f64> {
+    use sdrkit_core::{Complex32, GenConfig, InputInfo, Output, StackConfig, Values};
+    let d = sdrkit_stack_wsjt::descriptors()
+        .into_iter()
+        .find(|d| d.id == id)
+        .unwrap();
+    let v = Values::defaults(&(d.settings)());
+    let mut g = (d.make_generator.unwrap())(&GenConfig::new(48_000.0, v.clone())).unwrap();
+    let mut rx = (d.make_receiver)(&StackConfig::new(v)).unwrap();
+    let graph = rx
+        .as_any_mut()
+        .and_then(|a| a.downcast_mut::<sdrkit_graph::Graph>())
+        .expect("a graph");
+    let mut ctx = graph.context().clone();
+    ctx.present = present;
+    ctx.clock = sdrkit_core::Clock::fixed(clock);
+    graph.set_context(ctx);
+    // The test signal of FSK441 puts its dial 20 kHz below the centre of its samples.
+    let (centre, dial) = if id == "ft8" {
+        (14.074e6, 14.074e6)
+    } else {
+        (50e6 + 20e3, 50e6)
+    };
+    rx.configure(&InputInfo::new(48_000.0, centre, dial).recording())
+        .unwrap();
+    let mut iq = vec![Complex32::default(); 4800];
+    let mut out = Output::default();
+    for _ in 0..(seconds * 10.0) as usize {
+        g.generate(&mut iq);
+        rx.feed(&iq, &mut out);
+        out.clear();
+    }
+    let r = rx.results();
+    let key = if id == "ft8" { "stations" } else { "decodes" };
+    let t = table(r, key);
+    let at = t
+        .columns()
+        .fields()
+        .iter()
+        .position(|c| c.kind == sdrkit_core::ValueKind::Time)
+        .unwrap();
+    t.rows_newest_first()
+        .filter_map(
+            |(_, row)| match row.value(sdrkit_core::record::FieldId(at as u16)) {
+                Some(Value::Time(t)) => Some(*t),
+                _ => None,
+            },
+        )
+        .collect()
+}
+
+#[test]
+fn rows_of_a_test_signal_made_as_it_plays_have_the_time_of_the_host_clock() {
+    // Off every slot boundary, so that a slot found from the signals shows.
+    let clock = 1_800_000_007.3;
+    for (id, seconds) in [("ft8", 47.0), ("fsk441", 24.0)] {
+        let t = utc_on_test_signal(id, true, clock, seconds);
+        assert!(!t.is_empty(), "{id}: no row");
+        assert!(
+            t.iter().all(|&u| u > clock && u < clock + seconds + 1.0),
+            "{id}: {t:?}"
+        );
+    }
+}

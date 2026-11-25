@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "trunk", version 1.5. MIT licence.
+ * sdrkit: the typed interface of the stack family "trunk", version 1.6. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,7 +36,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_TRUNK_VERSION_MAJOR 1
-#define SDRKIT_TRUNK_VERSION_MINOR 5
+#define SDRKIT_TRUNK_VERSION_MINOR 6
 
 // The stack "mpt1327": its id, and the keys of its event types.
 #define SDRKIT_STACK_MPT1327 "mpt1327"
@@ -3186,6 +3186,8 @@ typedef struct sdrkit_pager_send_args {
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "mpt1327" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_mpt1327_messages_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mpt1327_message_row *rows,
                                                   uint32_t capacity,
@@ -3267,7 +3269,9 @@ static inline int32_t sdrkit_mpt1327_set_follow_max_s(SDRKIT_HANDLE handle, doub
 
 // Fills `rows` with the changed rows of the table "words" of the stack "ltr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `talkgroup` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_ltr_words_rows(SDRKIT_HANDLE handle,
                                            sdrkit_ltr_word_row *rows,
                                            uint32_t capacity,
@@ -3349,6 +3353,8 @@ static inline int32_t sdrkit_edacs_channels_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "edacs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_edacs_frames_rows(SDRKIT_HANDLE handle,
                                               sdrkit_edacs_frame_row *rows,
                                               uint32_t capacity,
@@ -3426,6 +3432,8 @@ static inline int32_t sdrkit_edacs_set_follow_groups(SDRKIT_HANDLE handle, sdrki
 
 // Fills `rows` with the changed rows of the table "events" of the stack "tones" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `start_s`.
 static inline int32_t sdrkit_tones_events_rows(SDRKIT_HANDLE handle,
                                               sdrkit_tones_heard_row *rows,
                                               uint32_t capacity,
@@ -3848,7 +3856,9 @@ static inline int32_t sdrkit_multitone_clear(SDRKIT_HANDLE handle) {
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "motorola_type2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `address` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_motorola_type2_messages_rows(SDRKIT_HANDLE handle,
                                                          sdrkit_motorola_type2_message_row *rows,
                                                          uint32_t capacity,
@@ -3989,6 +3999,8 @@ static inline int32_t sdrkit_motorola_type2_gen_set_idle_inside(SDRKIT_HANDLE ha
 
 // Fills `rows` with the changed rows of the table "blocks" of the stack "opensky" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_opensky_blocks_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_opensky_block_row *rows,
                                                 uint32_t capacity,
@@ -4084,7 +4096,9 @@ static inline int32_t sdrkit_gsc_gen_set_deviation_hz(SDRKIT_HANDLE handle, doub
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "scada" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `from` names a row.
+// Time: `wall_clock_utc`.
 static inline int32_t sdrkit_scada_messages_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_scada_message_row *rows,
                                                 uint32_t capacity,

@@ -35,7 +35,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `gen_rate` | Frame rate | choice | `fast` | `auto` (Automatic), `fast` (Fast (13.33 ms)), `slow` (Slow (22 ms)) | Automatic sends fast frames. |
-| `gen_offset_deg` | Phase step offset | number (deg) | 45 | 0 to 89 |  |
+| `gen_offset_deg` | Phase step offset | number (°) | 45 | 0 to 89 |  |
 | `gen_preamble_frames` | Preamble frames | whole number | 5 | 2 to 20 |  |
 
 ## Result fields
@@ -52,7 +52,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `messages` | Messages | `start_s` (number (s)), `rate` (text), `preamble_frames` (whole number), `data_frames` (whole number), `duration_s` (number (s)), `doppler_hz` (number (Hz)), `offset_deg` (number (deg)), `snr_db` (number (dB)) |
+| `messages` | Messages | `start_s` (number (s)), `rate` (text), `preamble_frames` (whole number), `data_frames` (whole number), `duration_s` (number (s)), `doppler_hz` (number (Hz)), `offset_deg` (number (°)), `snr_db` (number (dB)) |
 
 ## Events
 
@@ -69,7 +69,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.7. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 2.0. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: none.
 
@@ -104,8 +104,10 @@ Struct `Link11MessageRow`. A message of Link 11. The row key is the number of th
 | `data_frames` | whole number | always | 1.0 | Data frames. |
 | `duration_s` | number (s) | always | 1.0 | The duration, seconds. |
 | `doppler_hz` | number (Hz) | always | 1.0 | The Doppler offset. |
-| `offset_deg` | number (deg) | always | 1.0 | The constellation offset, degrees. |
+| `offset_deg` | number (°) | always | 1.0 | The constellation offset, degrees. |
 | `snr_db` | number (dB) | always | 1.0 | The signal-to-noise ratio of the message. |
+
+The rows are a log: they arrive over time. Time: `start_s`.
 
 ### Event `link11.event`
 

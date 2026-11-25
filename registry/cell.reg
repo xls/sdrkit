@@ -1,5 +1,5 @@
 # The interface of the stack family cell. The registry test of the family writes this file.
-family cell version=1.2
+family cell version=1.3
 shape.RailwayCirFields since=1.0
 shape.RailwayCirFields.text type=text unit= optional=no since=1.0
 shape.RailwayCirFields.messages type=i64 unit= optional=no since=1.0
@@ -410,7 +410,7 @@ railway_cir.fields.RailwayCirFields since=1.0
 railway_cir.fields.DecoderFields since=1.0
 railway_cir.kept.messages since=1.0
 railway_cir.kept.RailwayCirFields.messages since=1.0
-railway_cir.table.messages row=RailwayCirMessageRow cap=2000 since=1.0
+railway_cir.table.messages row=RailwayCirMessageRow cap=2000 role=log time=received since=1.0
 railway_cir.event.railway_cir.klw fields=RailwayCirKlwEvent since=1.0
 railway_cir.event.railway_cir.tdcs fields=RailwayCirTdcsEvent since=1.0
 railway_cir.setting.history type=i64 unit= since=1.0
@@ -544,7 +544,7 @@ lbj.kept.LbjFields.bursts since=1.0
 lbj.kept.LbjFields.messages since=1.0
 lbj.kept.LbjFields.failed_checks since=1.0
 lbj.kept.LbjFields.blank_frames since=1.0
-lbj.table.messages row=LbjMessageRow cap=400 position=position speed=speed_kmh since=1.0
+lbj.table.messages row=LbjMessageRow cap=400 position=position speed=speed_kmh role=log time=received since=1.0
 lbj.event.lbj.message fields=LbjMessageEvent since=1.0
 lbj.setting.locomotives type=text unit= since=1.0
 lbj.setting.gen_deviation_hz type=hz unit=Hz since=1.0
@@ -564,9 +564,9 @@ ebicab.kept.EbicabFields.short since=1.0
 ebicab.kept.EbicabFields.inverted since=1.0
 ebicab.kept.EbicabFields.bursts_without_telegram since=1.0
 ebicab.kept.EbicabFields.parity_hits since=1.0
-ebicab.table.telegrams row=EbicabTelegramRow cap=200 since=1.0
+ebicab.table.telegrams row=EbicabTelegramRow cap=200 role=log time=received since=1.0
 ebicab.table.balises row=EbicabBaliseRow cap=100 since=1.0
-ebicab.table.other_bursts row=EbicabOtherBurstRow cap=100 since=1.0
+ebicab.table.other_bursts row=EbicabOtherBurstRow cap=100 role=log time=received since=1.0
 ebicab.event.balise.telegram fields=EbicabTelegramEvent since=1.0
 ebicab.setting.gen_scene type=choice(0,1,2,3) unit= since=1.0
 ebicab.setting.gen_burst_ms type=f64 unit=ms since=1.0
@@ -643,7 +643,7 @@ eot.kept.EotFields.frames_bad since=1.0
 eot.kept.EotFields.frames_repaired since=1.0
 eot.kept.EotFields.syncs since=1.0
 eot.kept.EotFields.last_unit since=1.0
-eot.table.frames row=EotFrameRow cap=400 since=1.0
+eot.table.frames row=EotFrameRow cap=400 role=log time=time_s since=1.0
 eot.event.eot.frame fields=EotFrameEvent since=1.0
 eot.setting.direction type=choice(eot,hot) unit= since=1.0
 eot.setting.gen_unit type=i64 unit= since=1.0
@@ -655,7 +655,7 @@ cv2x since=1.0
 cv2x.content kind=networks since=1.1
 cv2x.fields.Cv2xFields since=1.0
 cv2x.fields.DecoderFields since=1.0
-cv2x.table.detections row=Cv2xDetectionRow cap=100 since=1.0
+cv2x.table.detections row=Cv2xDetectionRow cap=100 role=log time=time_s since=1.0
 cv2x.setting.channel_mhz type=choice(10,20) unit= since=1.0
 cv2x.setting.gen_busy type=f64 unit=% since=1.0
 cv2x.setting.gen_guard type=bool unit= since=1.0

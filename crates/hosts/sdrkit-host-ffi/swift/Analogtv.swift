@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "analogtv", version 1.2. MIT licence.
+// sdrkit: the typed interface of the stack family "analogtv", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum AnalogtvInterface {
-    public static let major = 1
-    public static let minor = 2
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of the `atv` receiver, which its status component writes.

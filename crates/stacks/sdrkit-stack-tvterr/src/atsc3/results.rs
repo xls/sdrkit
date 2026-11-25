@@ -1,7 +1,7 @@
 //! What the ATSC 3.0 receiver publishes, and `atsc3.report`, the component that writes it.
 
 use super::bootstrap::{min_time_ms, post_rate};
-use super::components::{BootstrapFound, FrameState, LlsState, MediaState};
+use super::components::{BootstrapFound, ComponentState, FrameState, LlsState, MediaState};
 use super::frame::NotDecoded;
 use super::layout::Pattern;
 use super::rx::FrameInfo;
@@ -117,6 +117,8 @@ sdrkit_core::choice_enum! {
         Receiving = ("receiving", "Receiving"),
         /// The receiver cannot receive this delivery.
         Unsupported = ("unsupported", "Not supported"),
+        /// The service is chosen, a component of it is encrypted and none is given.
+        Encrypted = ("encrypted", "Encrypted"),
     }
 }
 
@@ -154,11 +156,12 @@ pub fn sls_counts(media: &MediaState, s: &SltService) -> (u64, u64, u64) {
         return (0, 0, 0);
     };
     media
+        .lists
         .sls
         .iter()
         .filter(|o| o.dst == dst && o.port == s.sls_port)
         .fold((0, 0, 0), |a, o| {
-            (a.0 + o.objects, a.1 + o.documents, a.2 + o.signed_packages)
+            (a.0 + o.objects(), a.1 + o.documents(), a.2 + o.signed_packages())
         })
 }
 
@@ -180,7 +183,8 @@ pub const HOLD_S: f64 = 0.5;
 pub const HOLD_FRAMES: f64 = 2.5;
 
 /// `atsc3.report`: gathers the bootstraps, frames, service list and media into the results. Command `service.select`
-/// chooses the service to receive. The state is Locked while frames decode, Tracking while bootstraps are found, and
+/// records the service chosen and refuses a row that is not in the service list; `atsc3.media` takes the same command
+/// and gives the service. The state is Locked while frames decode, Tracking while bootstraps are found, and
 /// Searching again when none came for [`HOLD_S`].
 pub struct Report {
     p: Published,
@@ -193,6 +197,7 @@ pub struct Report {
     media: MediaState,
     signalled: Option<u16>,
     key: String,
+    text: String,
     /// Clock periods since the last bootstrap and since the last decoded frame.
     quiet: (u32, u32),
     /// The state published last.
@@ -221,7 +226,8 @@ impl Default for Report {
             lls: LlsState::default(),
             media: MediaState::default(),
             signalled: None,
-            key: String::with_capacity(8),
+            key: String::with_capacity(64),
+            text: String::with_capacity(64),
             quiet: (0, 0),
             seen: (false, false),
             logged: (None, false),
@@ -258,7 +264,17 @@ impl Report {
     fn publish(&mut self) {
         let (locked, decoding) = self.recent();
         self.seen = (locked, decoding);
-        let receiving = service_to_receive(self.service, &self.lls.services);
+        // The service that `atsc3.media` gives, and what it does with the components of that service.
+        let receiving = self.media.receiving;
+        let of_service = |state: ComponentState| {
+            self.media
+                .lists
+                .components
+                .iter()
+                .any(|c| c.service == receiving && receiving.is_some() && c.state == state)
+        };
+        let given = of_service(ComponentState::Given);
+        let encrypted = of_service(ComponentState::Encrypted);
         let p = &mut self.p;
         let bootstrap = self.last.map(|b| (b, b.fields));
         let info = self.frame.info.as_deref();
@@ -300,7 +316,9 @@ impl Report {
             media_samples: self.media.samples as i64,
             step_bootstrap: StepColour::of(locked, false),
             step_l1: StepColour::of(decoding, locked),
-            step_service: StepColour::of(self.media.inits > 0, !self.lls.services.is_empty()),
+            step_service: StepColour::of(given, !self.lls.services.is_empty()),
+            video_packets: self.media.video_packets as i64,
+            audio_packets: self.media.audio_packets as i64,
         });
         p.put(&Atsc3FrameFields {
             frames_failed: (self.frame.frames - self.frame.decoded) as i64,
@@ -370,23 +388,31 @@ impl Report {
             };
             ATSC3_PLPS.put(p, &self.key, &row);
         }
-        for (tsi, fourcc) in &self.media.components {
+        for c in &self.media.lists.components {
             self.key.clear();
-            let _ = write!(self.key, "{tsi}");
-            let fourcc = String::from_utf8_lossy(fourcc);
+            let _ = write!(self.key, "{}:{}/{}", c.channel.dst, c.channel.port, c.channel.tsi);
+            self.text.clear();
+            let _ = write!(self.text, "{}:{}", c.channel.dst, c.channel.port);
+            let fourcc = String::from_utf8_lossy(&c.entry);
             let row = Atsc3ComponentRow {
-                tsi: *tsi as i64,
+                tsi: c.channel.tsi as i64,
                 fourcc: &fourcc,
+                destination: &self.text,
+                service: c.service.map(i64::from),
+                kind: c.kind,
+                state: c.state,
             };
             ATSC3_COMPONENTS.put(p, &self.key, &row);
         }
-        for s in &self.lls.services {
+        for s in self.lls.services.iter() {
             let delivery = Delivery::of(s.sls_protocol);
             let action = if delivery == Delivery::Mmtp {
                 ServiceAction::Unsupported
             } else if Some(s.id) == receiving {
-                if self.media.inits > 0 {
+                if given {
                     ServiceAction::Receiving
+                } else if encrypted {
+                    ServiceAction::Encrypted
                 } else {
                     ServiceAction::Waiting
                 }
@@ -401,6 +427,7 @@ impl Report {
                 minor: i64::from(s.minor),
                 name: &s.short_name,
                 hidden: s.hidden,
+                protected: s.protected,
                 id: i64::from(s.id),
                 category: ServiceCategory::of(s.category),
                 delivery,
@@ -412,9 +439,9 @@ impl Report {
             ATSC3_SERVICES.put(p, &self.key, &row);
         }
         let r = p.results_mut();
-        if receiving.is_some() && self.media.inits > 0 && self.signalled != receiving {
+        if given && self.signalled != receiving {
             if let Some(id) = receiving {
-                r.log(format!("ATSC 3.0: signaling of service {id} received"));
+                r.log(format!("ATSC 3.0: media of service {id} given"));
             }
             self.signalled = receiving;
         }

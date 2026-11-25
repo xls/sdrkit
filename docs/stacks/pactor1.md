@@ -92,9 +92,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.7. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 2.0. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: sound (monitor).
+
+Key readings: `signal`, `snr_db`, `offset_hz`.
 
 ### Result fields
 
@@ -151,7 +153,7 @@ Struct `Pactor1FrameRow`. A frame of PACTOR-I. The row key is the frame's number
 | `snr_db` | number (dB) | always | 1.0 | The SNR of the frame. |
 | `pair_low` | frequency | always | 1.0 | The lower tone of the frame. |
 
-The column `call` names a row.
+The rows are a log: they arrive over time. The column `call` names a row. Time: `time`.
 
 ### Table `stations`
 

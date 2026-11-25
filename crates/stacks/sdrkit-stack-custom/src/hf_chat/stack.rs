@@ -147,7 +147,10 @@ pub const PROFILE: Setting<field::Choice<TxProfile>> = Setting::choice("profile"
 /// What `send` transmits.
 pub const KIND: Setting<field::Choice<MessageKind>> = Setting::choice("kind", "Message", MessageKind::Chat).section(TX);
 /// The recipient of a chat.
-pub const TO: Setting<field::Text> = Setting::new("to", "Recipient", "", "CQ").section(TX).help("A callsign; empty sends to CQ.");
+pub const TO: Setting<field::Text> = Setting::new("to", "Recipient", "", "CQ")
+    .section(TX)
+    .help("A callsign; empty sends to CQ.")
+    .refers("beacons", "callsign");
 /// The text of a chat or a full beacon.
 pub const TEXT: Setting<field::Text> = Setting::new("text", "Text", "", "")
     .section(TX)

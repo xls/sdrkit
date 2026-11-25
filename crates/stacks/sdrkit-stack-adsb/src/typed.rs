@@ -216,7 +216,7 @@ pub static AIRCRAFT: Table<AircraftRow<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct MessageRow<'a> {
     /// Signal time of the preamble.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The frame in hex.
     #[field(label = "Hex")]
@@ -238,9 +238,10 @@ pub struct MessageRow<'a> {
     pub message: &'a str,
 }
 
-/// The last 64 good messages of this receiver, newest first.
-pub static MESSAGES: Table<MessageRow<'static>> =
-    Table::new("messages", "Messages", 64).label(&MessageRow::ICAO);
+/// The last 64 good messages of this receiver, newest first: a log.
+pub static MESSAGES: Table<MessageRow<'static>> = Table::new("messages", "Messages", 64)
+    .label(&MessageRow::ICAO)
+    .role(sdrkit_core::TableRole::Log);
 
 /// A receiver that the table takes messages from. The row key is the number of the source: "0" for this receiver, then
 /// the number of each feed in.
@@ -798,7 +799,7 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct UatLogRow<'a> {
     /// Signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// What the message is.
     #[field(label = "Kind")]
@@ -814,9 +815,10 @@ pub struct UatLogRow<'a> {
     pub summary: &'a str,
 }
 
-/// The last 64 UAT messages, newest first.
-pub static UAT_LOG: Table<UatLogRow<'static>> =
-    Table::new("log", "Log", 64).label(&UatLogRow::ADDRESS);
+/// The last 64 UAT messages, newest first: a log.
+pub static UAT_LOG: Table<UatLogRow<'static>> = Table::new("log", "Log", 64)
+    .label(&UatLogRow::ADDRESS)
+    .role(sdrkit_core::TableRole::Log);
 
 /// The result fields of the UAT tracker.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1088,7 +1090,8 @@ pub fn family() -> &'static Family {
 
 fn describe() -> Family {
     let clear = &sdrkit_util_objects::commands::CLEAR;
-    Family::new("adsb", 1, 3)
+    // Version 1.4 marks the logs.
+    Family::new("adsb", 1, 4)
         .added(
             1,
             2,

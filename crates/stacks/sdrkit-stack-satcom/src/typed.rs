@@ -116,10 +116,10 @@ pub struct IridiumRawEvent<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FleetBroadcastFields<'a> {
     /// The state: 0 nothing, 1 carrier, 2 bits, 3 framed.
-    #[field(label = "State")]
+    #[field(label = "State", reading = 1)]
     pub state: i64,
     /// Carrier offset from where it was expected, Hz.
-    #[field(shared = keys::OFFSET_HZ)]
+    #[field(shared = keys::OFFSET_HZ, reading = 3)]
     pub offset_hz: Hertz,
     /// The frequency a station was heard on.
     #[field(shared = keys::FREQ_HZ)]
@@ -134,7 +134,7 @@ pub struct FleetBroadcastFields<'a> {
     #[field(label = "Eye")]
     pub eye: f64,
     /// Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so).
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 2)]
     pub snr_db: f64,
     /// Symbols so far.
     #[field(label = "Symbols")]
@@ -152,7 +152,7 @@ pub struct FleetBroadcastFields<'a> {
     #[field(label = "Sync agreement", unit = "%")]
     pub sync_agreement: Option<f64>,
     /// Frames (packets, blocks, bursts) that passed their check.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 4)]
     pub frames_ok: i64,
     /// Frames that failed their check.
     #[field(shared = keys::FRAMES_BAD)]
@@ -200,6 +200,9 @@ pub struct FleetBroadcastFrameRow<'a> {
     /// A frame as 16 bits, channel 0 first.
     #[field(label = "Bits")]
     pub bits: &'a str,
+    /// The signal time of the start of the frame.
+    #[field(label = "Time", unit = "s", role = Time)]
+    pub time_s: f64,
 }
 
 /// A change of the state of the receiver.
@@ -217,13 +220,13 @@ pub struct FleetBroadcastStateEvent<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BganFields<'a> {
     /// Carriers found.
-    #[field(label = "Carriers")]
+    #[field(label = "Carriers", reading = 1)]
     pub carriers: i64,
     /// Carriers in frame sync.
-    #[field(label = "In frame sync")]
+    #[field(label = "In frame sync", reading = 2)]
     pub in_sync: i64,
     /// Carriers whose signalling decoded.
-    #[field(label = "Signalling decoded")]
+    #[field(label = "Signalling decoded", reading = 3)]
     pub decoded: i64,
     /// GMR-2 class carriers.
     #[field(label = "GMR-2 class carriers")]
@@ -247,7 +250,7 @@ pub struct BganFields<'a> {
     #[field(label = "Addressed PDUs")]
     pub addressed_pdus: i64,
     /// Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS).
-    #[field(shared = keys::LEVEL_DBFS)]
+    #[field(shared = keys::LEVEL_DBFS, reading = 4)]
     pub level_dbfs: f64,
     /// What is not confirmed by a public document.
     #[field(label = "Note")]
@@ -352,7 +355,7 @@ pub struct BganBeamRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BganLogRow<'a> {
     /// Seconds into the capture.
-    #[field(label = "At", unit = "s")]
+    #[field(label = "At", unit = "s", role = Time)]
     pub at: Seconds,
     /// The text of a decoded message.
     #[field(shared = keys::TEXT)]
@@ -551,7 +554,7 @@ pub static FLEET_BROADCAST_CHANNELS: Table<FleetBroadcastChannelRow<'static>> =
     Table::new("channels", "Channels", fleet::rx::COLUMNS);
 /// The last frames of Fleet Broadcast, newest last: the frame log and the bit matrix.
 pub static FLEET_BROADCAST_FRAMES: Table<FleetBroadcastFrameRow<'static>> =
-    Table::new("frame_log", "Frame log", fleet::rx::FRAME_LOG);
+    Table::new("frame_log", "Frame log", fleet::rx::FRAME_LOG).role(sdrkit_core::TableRole::Log);
 /// A change of the state of the Fleet Broadcast receiver, with its text.
 pub static FLEET_BROADCAST_STATE: EventKind<FleetBroadcastStateEvent<'static>> =
     EventKind::new("fleet_broadcast.state", "Fleet Broadcast state");
@@ -564,7 +567,8 @@ pub static BGAN_CARRIERS: Table<BganCarrierRow<'static>> =
 /// The spot beams of BGAN.
 pub static BGAN_BEAMS: Table<BganBeamRow<'static>> = Table::new("beam_table", "Beams", 256);
 /// The signalling log of BGAN.
-pub static BGAN_LOG: Table<BganLogRow<'static>> = Table::new("log", "Log", bgan::rx::LOG_LINES);
+pub static BGAN_LOG: Table<BganLogRow<'static>> =
+    Table::new("log", "Log", bgan::rx::LOG_LINES).role(sdrkit_core::TableRole::Log);
 /// A line of BGAN signalling.
 pub static BGAN_SIGNALLING: EventKind<BganSignallingEvent<'static>> =
     EventKind::new("bgan.signalling", "BGAN signalling");
@@ -588,13 +592,13 @@ pub static SAT_SURVEY_CARRIER: EventKind<SatSurveyCarrierEvent<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct GlobalstarFields {
     /// Channels active now.
-    #[field(label = "Active channels")]
+    #[field(label = "Active channels", reading = 1)]
     pub active_channels: i64,
     /// Stretches of activity completed since the start (or the last Clear).
-    #[field(label = "Activities")]
+    #[field(label = "Activities", reading = 2)]
     pub activities: i64,
     /// The mean Doppler of the active channels.
-    #[field(label = "Doppler", unit = "Hz")]
+    #[field(label = "Doppler", unit = "Hz", reading = 3)]
     pub doppler: Option<Hertz>,
 }
 
@@ -690,7 +694,7 @@ pub static GLOBALSTAR_CHANNELS: Table<GlobalstarChannelRow> =
     Table::new("channels", "Channels", globalstar::CHANNELS);
 /// The stretches of activity, newest first.
 pub static GLOBALSTAR_ACTIVITY: Table<GlobalstarActivityRow> =
-    Table::new("activity", "Activity", globalstar::EVENTS_CAP);
+    Table::new("activity", "Activity", globalstar::EVENTS_CAP).role(sdrkit_core::TableRole::Log);
 /// A stretch of activity on a Globalstar channel.
 pub static GLOBALSTAR_ACTIVITY_EVENT: EventKind<GlobalstarActivityEvent<'static>> =
     EventKind::new("globalstar.activity", "Activity");
@@ -726,13 +730,13 @@ pub const GLOBALSTAR_DOPPLER: [SeriesDef; globalstar::CHANNELS] = [
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct GoesDcsFields {
     /// The reports read whole.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 1)]
     pub frames_ok: i64,
     /// The reports cut off or lost.
-    #[field(shared = keys::FRAMES_BAD)]
+    #[field(shared = keys::FRAMES_BAD, reading = 2)]
     pub frames_bad: i64,
     /// The carriers followed now.
-    #[field(label = "Carriers")]
+    #[field(label = "Carriers", reading = 3)]
     pub carriers: i64,
 }
 
@@ -869,7 +873,9 @@ pub struct GoesDcsReportEvent<'a> {
 
 /// The reports, newest last.
 pub static GOES_DCS_REPORTS: Table<GoesDcsReportRow<'static>> =
-    Table::new("reports", "Reports", goes::REPORT_CAP).label(&GoesDcsReportRow::ADDRESS);
+    Table::new("reports", "Reports", goes::REPORT_CAP)
+        .label(&GoesDcsReportRow::ADDRESS)
+        .role(sdrkit_core::TableRole::Log);
 /// The platforms heard.
 pub static GOES_DCS_PLATFORMS: Table<GoesDcsPlatformRow<'static>> =
     Table::new("platforms", "Platforms", goes::PLATFORM_CAP).label(&GoesDcsPlatformRow::ADDRESS);
@@ -907,19 +913,19 @@ pub const GOES_DCS_REMOVE: CommandKind<GoesDcsPlatformArgs<'static>> = objcmd::r
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct ArgosFields {
     /// Frames that passed their check.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 2)]
     pub frames_ok: i64,
     /// Frames that failed their check.
-    #[field(shared = keys::FRAMES_BAD)]
+    #[field(shared = keys::FRAMES_BAD, reading = 3)]
     pub frames_bad: i64,
     /// The link the display shows: uplink or downlink.
     #[field(label = "Link")]
     pub link: Link,
     /// The receiver holds lock.
-    #[field(shared = keys::LOCKED)]
+    #[field(shared = keys::LOCKED, reading = 1)]
     pub locked: bool,
     /// The downlink's carrier line over the noise.
-    #[field(label = "Carrier line", unit = "dB")]
+    #[field(label = "Carrier line", unit = "dB", reading = 4)]
     pub carrier_line_db: f64,
     /// Downlink bits received.
     #[field(label = "Downlink bits")]
@@ -991,7 +997,7 @@ pub struct ArgosPlatformRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct ArgosFrameRow {
     /// The signal time of the row's moment.
-    #[field(label = "At (signal time)", unit = "s")]
+    #[field(label = "At (signal time)", unit = "s", role = Time)]
     pub at: Seconds,
     /// The downlink coding in use.
     #[field(label = "Coding")]
@@ -1055,13 +1061,15 @@ pub struct ArgosDownlinkFrameEvent {
 
 /// The uplink burst log.
 pub static ARGOS_BURSTS: Table<ArgosBurstRow<'static>> =
-    Table::new("bursts", "Bursts", argos::BURST_CAP).label(&ArgosBurstRow::PLATFORM);
+    Table::new("bursts", "Bursts", argos::BURST_CAP)
+        .label(&ArgosBurstRow::PLATFORM)
+        .role(sdrkit_core::TableRole::Log);
 /// The platforms heard.
 pub static ARGOS_PLATFORMS: Table<ArgosPlatformRow<'static>> =
     Table::new("platforms", "Platforms", argos::PLATFORM_CAP).label(&ArgosPlatformRow::PLATFORM);
 /// The downlink frames with a good FCS.
 pub static ARGOS_FRAMES: Table<ArgosFrameRow> =
-    Table::new("frames", "Downlink frames", argos::FRAME_CAP);
+    Table::new("frames", "Downlink frames", argos::FRAME_CAP).role(sdrkit_core::TableRole::Log);
 /// A platform message of Argos.
 pub static ARGOS_PTT: EventKind<ArgosPttEvent<'static>> =
     EventKind::new("argos.ptt", "Platform message");
@@ -1093,13 +1101,13 @@ pub const ARGOS_REMOVE: CommandKind<ArgosPlatformArgs<'static>> = objcmd::remove
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct HrdcpFields<'a> {
     /// Frames that passed their check.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 1)]
     pub frames_ok: i64,
     /// Frames that failed their check.
-    #[field(shared = keys::FRAMES_BAD)]
+    #[field(shared = keys::FRAMES_BAD, reading = 2)]
     pub frames_bad: i64,
     /// The carriers followed now.
-    #[field(label = "Carriers")]
+    #[field(label = "Carriers", reading = 3)]
     pub carriers: i64,
     /// The channel plan in use.
     #[field(label = "Channel plan")]
@@ -1269,7 +1277,9 @@ pub struct HrdcpReportEvent<'a> {
 
 /// The message log of Meteosat HRDCP.
 pub static HRDCP_REPORTS: Table<HrdcpReportRow<'static>> =
-    Table::new("reports", "Reports", hrdcp::REPORT_CAP).label(&HrdcpReportRow::ADDRESS);
+    Table::new("reports", "Reports", hrdcp::REPORT_CAP)
+        .label(&HrdcpReportRow::ADDRESS)
+        .role(sdrkit_core::TableRole::Log);
 /// The platforms heard.
 pub static HRDCP_PLATFORMS: Table<HrdcpPlatformRow<'static>> =
     Table::new("platforms", "Platforms", hrdcp::PLATFORM_CAP).label(&HrdcpPlatformRow::ADDRESS);
@@ -1454,7 +1464,9 @@ pub struct SarsatBeaconEvent<'a> {
 
 /// The burst log of COSPAS-SARSAT.
 pub static SARSAT_BURSTS: Table<SarsatBurstRow<'static>> =
-    Table::new("bursts", "Bursts", sarsat::LOG_CAP).label(&SarsatBurstRow::HEX_ID);
+    Table::new("bursts", "Bursts", sarsat::LOG_CAP)
+        .label(&SarsatBurstRow::HEX_ID)
+        .role(sdrkit_core::TableRole::Log);
 /// The beacons heard.
 pub static SARSAT_BEACONS: Table<SarsatBeaconRow<'static>> =
     Table::new("beacons", "Beacons", sarsat::BEACON_CAP).label(&SarsatBeaconRow::HEX_ID);
@@ -1492,13 +1504,13 @@ pub const SARSAT_PRESET_APPLY: CommandKind<SarsatPresetArgs> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct LoraSatFields<'a> {
     /// Frames that passed their check.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 2)]
     pub frames_ok: i64,
     /// Frames that failed their check.
-    #[field(shared = keys::FRAMES_BAD)]
+    #[field(shared = keys::FRAMES_BAD, reading = 3)]
     pub frames_bad: i64,
     /// The pass planner's name of the satellite overhead.
-    #[field(label = "Satellite")]
+    #[field(label = "Satellite", reading = 1)]
     pub satellite: &'a str,
     /// The name of the preset that runs.
     #[field(label = "Preset")]
@@ -1640,7 +1652,9 @@ pub struct LoraSatFrameEvent<'a> {
 
 /// The frame log of the LoRa satellite stack.
 pub static LORA_SAT_FRAMES: Table<LoraSatFrameRow<'static>> =
-    Table::new("frames", "Frames", lorasat::display::FRAMES_CAP).label(&LoraSatFrameRow::SATELLITE);
+    Table::new("frames", "Frames", lorasat::display::FRAMES_CAP)
+        .label(&LoraSatFrameRow::SATELLITE)
+        .role(sdrkit_core::TableRole::Log);
 /// The demodulators running now.
 pub static LORA_SAT_DEMODULATORS: Table<LoraSatDemodulatorRow> =
     Table::new("demodulators", "Demodulators", 64);
@@ -1967,7 +1981,7 @@ pub struct OrbcommSatelliteRow {
     #[field(label = "Height", unit = "m", role = Altitude)]
     pub height_m: Option<f64>,
     /// The inclination.
-    #[field(label = "Inclination", unit = "deg")]
+    #[field(label = "Inclination", unit = "°")]
     pub inclination_deg: Option<f64>,
     /// The period.
     #[field(label = "Period", unit = "s")]
@@ -2108,7 +2122,7 @@ pub static ORBCOMM_SATELLITE_CHANNELS: Table<OrbcommSatelliteChannelRow> = Table
 pub static ORBCOMM_DECODERS: Table<OrbcommDecoderRow> = Table::new("decoders", "Decoders", 2);
 /// The packet log, newest first.
 pub static ORBCOMM_PACKETS: Table<OrbcommPacketRow<'static>> =
-    Table::new("packets", "Packets", orbcomm::LOG_CAP);
+    Table::new("packets", "Packets", orbcomm::LOG_CAP).role(sdrkit_core::TableRole::Log);
 /// The packets counted by type.
 pub static ORBCOMM_PACKET_TYPES: Table<OrbcommPacketTypeRow> =
     Table::new("packet_types", "Packet types", 9);
@@ -2153,25 +2167,25 @@ pub const ORBCOMM_PRESET_APPLY: CommandKind<OrbcommChannelArgs> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct PskDemodFields<'a> {
     /// The symbol rate.
-    #[field(shared = keys::SYMBOL_RATE_HZ)]
+    #[field(shared = keys::SYMBOL_RATE_HZ, reading = 1)]
     pub symbol_rate_hz: Option<Hertz>,
     /// The modulation order the demodulator runs.
-    #[field(label = "Order")]
+    #[field(label = "Order", reading = 2)]
     pub order: Option<OrderChoice>,
     /// The carrier loop's lock value (1 on the points).
-    #[field(label = "Lock")]
+    #[field(label = "Lock", reading = 6)]
     pub lock: Option<f64>,
     /// The carrier, from the dial.
-    #[field(label = "Carrier", unit = "Hz")]
+    #[field(label = "Carrier", unit = "Hz", reading = 3)]
     pub carrier_hz: Option<Hertz>,
     /// The drift.
     #[field(shared = keys::DRIFT_HZ_S)]
     pub drift_hz_s: Option<f64>,
     /// The EVM.
-    #[field(shared = keys::EVM_PCT)]
+    #[field(shared = keys::EVM_PCT, reading = 5)]
     pub evm_pct: Option<f64>,
     /// Es/N0 from the error vector.
-    #[field(label = "Es/N0", unit = "dB")]
+    #[field(label = "Es/N0", unit = "dB", reading = 4)]
     pub esn0_db: Option<f64>,
     /// Eb/N0 from the error vector.
     #[field(label = "Eb/N0", unit = "dB")]
@@ -2192,7 +2206,7 @@ pub struct PskDemodFields<'a> {
     #[field(label = "First bit")]
     pub bits_first: i64,
     /// The phase rotation the sync words resolved.
-    #[field(label = "Rotation", unit = "deg")]
+    #[field(label = "Rotation", unit = "°")]
     pub rotation_deg: f64,
     /// Whether the sync words resolved a spectral inversion.
     #[field(label = "Spectrum inverted")]
@@ -2290,7 +2304,7 @@ pub struct PskDemodSyncRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct PskDemodLogRow<'a> {
     /// The signal time of a line of the log.
-    #[field(label = "At (signal time)", unit = "s")]
+    #[field(label = "At (signal time)", unit = "s", role = Time)]
     pub at: Seconds,
     /// The line.
     #[field(shared = keys::TEXT)]
@@ -2340,7 +2354,7 @@ pub static PSK_DEMOD_SYNCS: Table<PskDemodSyncRow> =
     Table::new("syncs", "Sync words at", psk::display::SYNCS_CAP);
 /// The log of analyses.
 pub static PSK_DEMOD_LOG: Table<PskDemodLogRow<'static>> =
-    Table::new("log", "Log", psk::display::LOG_CAP);
+    Table::new("log", "Log", psk::display::LOG_CAP).role(sdrkit_core::TableRole::Log);
 /// A signal was locked.
 pub static PSK_DEMOD_LOCK: EventKind<PskDemodLockEvent<'static>> =
     EventKind::new("psk_demod.lock", "Signal locked");
@@ -2380,16 +2394,16 @@ pub const PSK_DEMOD_POWER: SeriesDef = SeriesDef {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct Qo100Fields {
     /// The LNB's LO error (actual minus nominal).
-    #[field(label = "LNB error", unit = "Hz")]
+    #[field(label = "LNB error", unit = "Hz", reading = 2)]
     pub lnb_error_hz: Hertz,
     /// The LNB error in parts per million of the nominal LO.
     #[field(label = "LNB error", unit = "ppm")]
     pub lnb_error_ppm: f64,
     /// The drift.
-    #[field(shared = keys::DRIFT_HZ_S)]
+    #[field(shared = keys::DRIFT_HZ_S, reading = 3)]
     pub drift_hz_s: f64,
     /// The phase of the beacon lock.
-    #[field(label = "Beacon lock")]
+    #[field(label = "Beacon lock", reading = 1)]
     pub beacon_lock: LockPhase,
     /// Whether the LNB error is applied to the frequencies shown.
     #[field(label = "Correction applied")]
@@ -2415,7 +2429,7 @@ pub struct Qo100Fields {
     /// The level of the strongest signal in the 2.7 kHz above the dial less the level of the PSK beacon, both as the peak
     /// of a spectrum bin. While the stack sends, that signal is the user's own downlink: it must stay below 0 dB. With
     /// nothing on the dial it is the level of the noise peaks there. No value while the beacon is not found.
-    #[field(label = "Own signal against the beacon", unit = "dB")]
+    #[field(label = "Own signal against the beacon", unit = "dB", reading = 4)]
     pub own_to_beacon_db: Option<f64>,
 }
 
@@ -2423,7 +2437,7 @@ pub struct Qo100Fields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct Qo100TxFields {
     /// Whether the stack transmits now.
-    #[field(label = "Transmitting")]
+    #[field(label = "Transmitting", reading = 5)]
     pub transmitting: bool,
     /// The uplink frequency of the dial: the dial less the translation of the transponder.
     #[field(label = "Uplink frequency", unit = "Hz")]
@@ -2735,10 +2749,10 @@ pub const QO100_PTT: CommandKind<sdrkit_components::voice::PttArgs> = sdrkit_com
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct CubesatFields<'a> {
     /// Frames that passed their check.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 1)]
     pub frames_ok: i64,
     /// Frames the Reed-Solomon code repaired.
-    #[field(label = "Repaired by RS")]
+    #[field(label = "Repaired by RS", reading = 2)]
     pub rs_repaired: i64,
     /// Frames sent to the KISS output.
     #[field(label = "Sent to KISS")]
@@ -2895,7 +2909,9 @@ pub struct CubesatKissEvent<'a> {
 
 /// The frame log of the CubeSat telemetry stack.
 pub static CUBESAT_FRAMES: Table<CubesatFrameRow<'static>> =
-    Table::new("frames", "Frames", cubesat::display::FRAMES_CAP).label(&CubesatFrameRow::SATELLITE);
+    Table::new("frames", "Frames", cubesat::display::FRAMES_CAP)
+        .label(&CubesatFrameRow::SATELLITE)
+        .role(sdrkit_core::TableRole::Log);
 /// The frames by framing.
 pub static CUBESAT_FRAMES_PER_FRAMING: Table<CubesatFramingRow> =
     Table::new("frames_per_framing", "Frames by framing", 32);
@@ -2916,7 +2932,7 @@ pub static CUBESAT_KISS: EventKind<CubesatKissEvent<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct CubesatTxFields {
     /// Whether a transmission is on air.
-    #[field(label = "Sending")]
+    #[field(label = "Sending", reading = 3)]
     pub tx_sending: bool,
     /// The frames of the transmission on air.
     #[field(label = "Frames sent")]
@@ -2957,14 +2973,18 @@ pub struct CubesatSendArgs<'a> {
     #[arg(
         label = "Destination",
         help = "An AX.25 address: 1 to 6 letters or digits and an optional SSID 0 to 15 (CALL-7). Empty sends to CQ.",
-        default = "CQ"
+        default = "CQ",
+        refers_to = "frames",
+        column = "from"
     )]
     pub destination: Option<&'a str>,
     /// The digipeaters.
     #[arg(
         label = "Digipeaters",
         help = "Up to 8 AX.25 addresses separated by commas, for example the alias of a satellite digipeater.",
-        default = ""
+        default = "",
+        refers_to = "frames",
+        column = "path"
     )]
     pub path: Option<&'a str>,
     /// The information as text.
@@ -3319,7 +3339,7 @@ pub static AERO_CHANNELS: Table<AeroChannelRow> =
 pub static AERO_SU_TYPES: Table<AeroSuTypeRow<'static>> = Table::new("su_types", "SU types", 64);
 /// Log-ons and log-offs.
 pub static AERO_LOGONS: Table<AeroLogonRow<'static>> =
-    Table::new("logons", "Log-ons", aero::LOGON_CAP);
+    Table::new("logons", "Log-ons", aero::LOGON_CAP).role(sdrkit_core::TableRole::Log);
 /// The ACARS messages.
 pub static AERO_MESSAGES: Table<AeroMessageRow<'static>> =
     Table::new("messages", "Messages", aero::MESSAGE_CAP)
@@ -3355,10 +3375,10 @@ pub const AERO_REMOVE: CommandKind<AeroAircraftArgs<'static>> = objcmd::remove_k
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct InmarsatFields<'a> {
     /// The ACARS messages and the Inmarsat-C bulletin frames.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 4)]
     pub frames_ok: i64,
     /// The satellite that the identification names. Absent while it names none.
-    #[field(label = "Satellite")]
+    #[field(label = "Satellite", reading = 1)]
     pub satellite: Option<&'a str>,
     /// How sure the identification is, 0 to 1.
     #[field(label = "Confidence")]
@@ -3373,7 +3393,7 @@ pub struct InmarsatFields<'a> {
     #[field(label = "Note")]
     pub identification_note: &'a str,
     /// The ACARS messages.
-    #[field(label = "Messages")]
+    #[field(label = "Messages", reading = 5)]
     pub messages: i64,
     /// The ACARS messages with a position.
     #[field(label = "Positions")]
@@ -3382,10 +3402,10 @@ pub struct InmarsatFields<'a> {
     #[field(label = "Inmarsat-C frames")]
     pub egc_frames: i64,
     /// The carriers found.
-    #[field(label = "Carriers")]
+    #[field(label = "Carriers", reading = 2)]
     pub carriers: i64,
     /// The carriers that decode.
-    #[field(label = "Carriers decoding")]
+    #[field(label = "Carriers decoding", reading = 3)]
     pub decoding: i64,
 }
 
@@ -3461,10 +3481,10 @@ pub struct InmarsatCandidateRow<'a> {
     #[field(label = "Geometry score")]
     pub geometry: Option<f64>,
     /// The elevation from the station.
-    #[field(label = "Elevation", unit = "deg")]
+    #[field(label = "Elevation", unit = "°")]
     pub elevation_deg: Option<f64>,
     /// The azimuth from the station.
-    #[field(label = "Azimuth", unit = "deg")]
+    #[field(label = "Azimuth", unit = "°")]
     pub azimuth_deg: Option<f64>,
 }
 
@@ -3514,30 +3534,7 @@ pub const INMARSAT_CARRIER_FOCUS: CommandKind<InmarsatCarrierArgs<'static>> =
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("satcom", 1, 5)
-            .added(
-                1,
-                3,
-                &[
-                    "inmarsatc.content",
-                    "aero.content",
-                    "inmarsat.content",
-                    "iridium.content",
-                    "globalstar.content",
-                    "goes_dcs.content",
-                    "argos.content",
-                    "hrdcp.content",
-                    "sarsat.content",
-                    "lora_sat.content",
-                    "orbcomm.content",
-                    "psk_demod.content",
-                    "qo100.content",
-                    "cubesat.content",
-                    "fleet_broadcast.content",
-                    "bgan.content",
-                    "sat_survey.content",
-                ],
-            )
+        Described::new("satcom", 2, 0)
             .content(sdrkit_core::ContentKind::Tracking, &["sarsat", "orbcomm"])
             .content(
                 sdrkit_core::ContentKind::Datalink,
@@ -3885,48 +3882,8 @@ pub fn family() -> &'static Described {
                     .settings(sat_survey::SurveySetting::SETTINGS)
                     .command(&sdrkit_graph::decoder::CLEAR),
             )
-            .added(1, 1, ADDED_1_1)
-            .added(1, 2, ADDED_1_2)
     })
 }
-
-/// What version 1.1 added: the AX.25 sender of the stack `cubesat`.
-const ADDED_1_1: &[&str] = &[
-    "cubesat.fields.CubesatTxFields",
-    "cubesat.event.cubesat.tx",
-    "cubesat.setting.tx_rate",
-    "cubesat.setting.tx_delay",
-    "cubesat.setting.tx_level",
-    "cubesat.command.send",
-    "cubesat.command.halt",
-    "shape.CubesatTxFields",
-    "shape.CubesatTxFields.tx_sending",
-    "shape.CubesatTxFields.tx_sent",
-    "shape.CubesatTxFields.tx_waiting",
-    "shape.CubesatTxEvent",
-    "shape.CubesatTxEvent.state",
-    "shape.CubesatTxEvent.reason",
-    "shape.CubesatTxEvent.target",
-    "shape.CubesatTxEvent.text",
-    "shape.CubesatTxEvent.family",
-];
-
-/// What version 1.2 added: the voice sender of the stack `qo100` and the level of the user's own downlink against the beacon.
-const ADDED_1_2: &[&str] = &[
-    "qo100.fields.Qo100TxFields",
-    "qo100.setting.tx_level",
-    "qo100.setting.tx_timeout",
-    "qo100.command.ptt",
-    "shape.Qo100Fields.own_to_beacon_db",
-    "shape.Qo100TxFields",
-    "shape.Qo100TxFields.transmitting",
-    "shape.Qo100TxFields.tx_freq_hz",
-    "shape.Qo100TxFields.tx_time_s",
-    "shape.Qo100TxFields.tx_mic_dbfs",
-    "shape.Qo100TxFields.tx_peak_db",
-    "shape.Qo100TxFields.tx_level_db",
-    "shape.Qo100TxFields.tx_limit_db",
-];
 
 /// The description of stack `id` of the family.
 ///

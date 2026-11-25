@@ -48,7 +48,6 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Kind |
 |---|---|---|
-| `text` | Text | text |
 | `peak_deviation_khz` | Peak deviation | number (kHz) |
 | `rms_deviation_khz` | RMS deviation | number (kHz) |
 | `mpx_power_dbr` | MPX power, 1 s | number (dBr) |
@@ -92,9 +91,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `meter`, version 1.1. The C header `sdrkit/meter.h`, the registry record `registry/meter.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `meter`, version 2.0. The C header `sdrkit/meter.h`, the registry record `registry/meter.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Measurement and analysis (`measurement`). Media: none.
+
+Key readings: `peak_deviation_khz`, `mpx_power_dbr`, `carrier_offset_khz`, `pilot_khz`, `stereo`, `rds`.
 
 ### Result fields
 
@@ -102,7 +103,6 @@ Struct `FmMonitorFields`. The result fields of `fm_monitor`, measured once a sec
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `text` | text | always | 1.0 | The headline: stereo or mono, the peak, the pilot and RDS levels. |
 | `peak_deviation_khz` | number (kHz) | optional | 1.0 | The peak deviation of the last second: the largest third-largest excursion of its 5 ms blocks. |
 | `rms_deviation_khz` | number (kHz) | optional | 1.0 | The RMS deviation. |
 | `mpx_power_dbr` | number (dBr) | optional | 1.0 | The MPX power of the last second (0 dBr is a sine of 19 kHz deviation). |
@@ -141,7 +141,7 @@ Struct `FmMonitorLogRow`. A row of the log of `fm_monitor`. The row key is the s
 | `identity` | text | always | 1.0 | What changed, or the peak of an over-deviation. |
 | `text` | text | always | 1.0 | The text of the row. |
 
-The column `identity` names a row.
+The rows are a log: they arrive over time. The column `identity` names a row. Time: `signal_time_s`.
 
 ### Event `fm_monitor.pilot`
 

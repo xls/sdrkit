@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the shared interface "ookdev", whose items the stacks of several families show, version 1.0. MIT licence.
+ * sdrkit: the typed interface of the shared interface "ookdev", whose items the stacks of several families show, version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,7 +34,7 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_OOKDEV_VERSION_MAJOR 1
+#define SDRKIT_OOKDEV_VERSION_MAJOR 2
 #define SDRKIT_OOKDEV_VERSION_MINOR 0
 
 // The keys of the event types.
@@ -374,7 +374,7 @@ typedef struct sdrkit_ookdev_reading_event {
   int64_t source_node;
   // True if `length_bytes` holds a value.
   bool has_length_bytes;
-  // The length of a frame. Unit: bytes.
+  // The length of a frame. Unit: B.
   int64_t length_bytes;
   // True if `new_battery` holds a value.
   bool has_new_battery;

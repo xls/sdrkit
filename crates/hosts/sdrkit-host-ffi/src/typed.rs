@@ -23,7 +23,7 @@ use std::sync::{Arc, OnceLock};
 pub const SDRKIT_INTERFACE_VERSION_MAJOR: u32 = 1;
 /// The minor version of the C interface of this library. It rises when the base header gets a function, a constant or
 /// a member at the end of a struct that starts with `size`.
-pub const SDRKIT_INTERFACE_VERSION_MINOR: u32 = 2;
+pub const SDRKIT_INTERFACE_VERSION_MINOR: u32 = 3;
 
 /// The families that the library holds a typed interface of: the stack families of the catalog it was built with,
 /// the shared interfaces that they use, then the session, the radio and the engine.

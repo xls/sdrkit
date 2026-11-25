@@ -36,7 +36,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|---|
 | `gen_gri` | Test signal: GRI | whole number | 9960 | 4000 to 9999 |  |
 | `gen_tds` | Test signal: TDs (µs) | text | `13797.2,26969.93,42221.65` |  | The time differences of the secondaries in µs, separated by commas. |
-| `gen_ecd` | Test signal: ECD of the first secondary | number (µs) | 0 | -5 to 5 |  |
+| `gen_ecd` | Test signal: ECD of the first secondary | number (us) | 0 | -5 to 5 |  |
 
 ## Result fields
 
@@ -52,7 +52,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `stations` | Stations | `station` (text), `td_us` (number (µs)), `ecd_us` (number (µs)), `snr_db` (number (dB)), `level_db` (number (dB)) |
+| `stations` | Stations | `station` (text), `td_us` (number (us)), `ecd_us` (number (us)), `snr_db` (number (dB)), `level_db` (number (dB)) |
 
 ## Commands
 
@@ -62,9 +62,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `avnav`, version 1.4. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avnav`, version 2.0. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Navigation aids (`navigation`). Media: none.
+
+Key readings: `chain`, `gri`, `master`, `master_snr_db`.
 
 ### Result fields
 
@@ -85,8 +87,8 @@ Struct `LoranStationRow`. A row of the stations of the chain. The row key is the
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `station` | text | always | 1.0 | `M` for the master, then the letters of the secondaries. |
-| `td_us` | number (µs) | always | 1.0 | The time difference from the master. |
-| `ecd_us` | number (µs) | always | 1.0 | The envelope-to-cycle difference relative to the master. |
+| `td_us` | number (us) | always | 1.0 | The time difference from the master. |
+| `ecd_us` | number (us) | always | 1.0 | The envelope-to-cycle difference relative to the master. |
 | `snr_db` | number (dB) | always | 1.0 | The signal to noise ratio of the correlation. |
 | `level_db` | number (dB) | always | 1.0 | The level relative to the master. |
 

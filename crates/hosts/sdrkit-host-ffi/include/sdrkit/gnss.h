@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "gnss", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "gnss", version 1.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_GNSS_VERSION_MAJOR 1
-#define SDRKIT_GNSS_VERSION_MINOR 1
+#define SDRKIT_GNSS_VERSION_MINOR 2
 
 // The stack "gnss": its id, and the keys of its event types.
 #define SDRKIT_STACK_GNSS "gnss"
@@ -1065,6 +1065,8 @@ static inline int32_t sdrkit_gnss_interference_lines_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "interference_events" of the stack "gnss" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `at`.
 static inline int32_t sdrkit_gnss_interference_events_rows(SDRKIT_HANDLE handle,
                                                           sdrkit_gnss_interference_event_row *rows,
                                                           uint32_t capacity,
@@ -1310,6 +1312,8 @@ static inline int32_t sdrkit_sbas_types_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "sbas" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `at`.
 static inline int32_t sdrkit_sbas_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_sbas_message_row *rows,
                                                uint32_t capacity,
@@ -1346,6 +1350,8 @@ static inline int32_t sdrkit_sbas_interference_lines_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "interference_events" of the stack "sbas" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `at`.
 static inline int32_t sdrkit_sbas_interference_events_rows(SDRKIT_HANDLE handle,
                                                           sdrkit_gnss_interference_event_row *rows,
                                                           uint32_t capacity,

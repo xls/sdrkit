@@ -1,20 +1,19 @@
 # The interface of the stack family meter. The registry test of the family writes this file.
-family meter version=1.1
+family meter version=2.0
 shape.FmMonitorFields since=1.0
-shape.FmMonitorFields.text type=text unit= optional=no since=1.0
-shape.FmMonitorFields.peak_deviation_khz type=f64 unit=kHz optional=yes since=1.0
+shape.FmMonitorFields.peak_deviation_khz type=f64 unit=kHz optional=yes reading=1 since=1.0
 shape.FmMonitorFields.rms_deviation_khz type=f64 unit=kHz optional=yes since=1.0
-shape.FmMonitorFields.mpx_power_dbr type=f64 unit=dBr optional=yes since=1.0
+shape.FmMonitorFields.mpx_power_dbr type=f64 unit=dBr optional=yes reading=2 since=1.0
 shape.FmMonitorFields.mpx_power_60s_dbr type=f64 unit=dBr optional=yes since=1.0
-shape.FmMonitorFields.carrier_offset_khz type=f64 unit=kHz optional=yes since=1.0
+shape.FmMonitorFields.carrier_offset_khz type=f64 unit=kHz optional=yes reading=3 since=1.0
 shape.FmMonitorFields.audio_khz type=f64 unit=kHz optional=yes since=1.0
-shape.FmMonitorFields.pilot_khz type=f64 unit=kHz optional=yes since=1.0
+shape.FmMonitorFields.pilot_khz type=f64 unit=kHz optional=yes reading=4 since=1.0
 shape.FmMonitorFields.pilot_pct type=f64 unit=% optional=yes since=1.0
 shape.FmMonitorFields.pilot type=choice(absent,in_range,outside) unit= optional=no since=1.0
 shape.FmMonitorFields.stereo_band_khz type=f64 unit=kHz optional=yes since=1.0
-shape.FmMonitorFields.stereo type=bool unit= optional=no since=1.0
+shape.FmMonitorFields.stereo type=bool unit= optional=no reading=5 since=1.0
 shape.FmMonitorFields.rds_khz type=f64 unit=kHz optional=yes since=1.0
-shape.FmMonitorFields.rds type=bool unit= optional=no since=1.0
+shape.FmMonitorFields.rds type=bool unit= optional=no reading=6 since=1.0
 shape.FmMonitorFields.sca67_db type=f64 unit=dB optional=yes since=1.0
 shape.FmMonitorFields.sca92_db type=f64 unit=dB optional=yes since=1.0
 shape.FmMonitorFields.over_deviation_s type=i64 unit= optional=no since=1.0
@@ -45,12 +44,11 @@ shape.FmMonitorOverDeviationEvent.text type=text unit= optional=no since=1.0
 shape.FmMonitorOverDeviationEvent.peak_deviation_khz type=f64 unit=kHz optional=no since=1.0
 shape.FmMonitorOverDeviationEvent.mpx_power_dbr type=f64 unit=dBr optional=no since=1.0
 shape.AmMonitorFields since=1.0
-shape.AmMonitorFields.text type=text unit= optional=no since=1.0
-shape.AmMonitorFields.carrier_offset_hz type=f64 unit=Hz optional=yes since=1.0
-shape.AmMonitorFields.carrier_db type=f64 unit=dB optional=yes since=1.0
-shape.AmMonitorFields.depth_pct type=f64 unit=% optional=yes since=1.0
-shape.AmMonitorFields.peak_pos_pct type=f64 unit=% optional=yes since=1.0
-shape.AmMonitorFields.peak_neg_pct type=f64 unit=% optional=yes since=1.0
+shape.AmMonitorFields.carrier_offset_hz type=f64 unit=Hz optional=yes reading=4 since=1.0
+shape.AmMonitorFields.carrier_db type=f64 unit=dB optional=yes reading=5 since=1.0
+shape.AmMonitorFields.depth_pct type=f64 unit=% optional=yes reading=1 since=1.0
+shape.AmMonitorFields.peak_pos_pct type=f64 unit=% optional=yes reading=2 since=1.0
+shape.AmMonitorFields.peak_neg_pct type=f64 unit=% optional=yes reading=3 since=1.0
 shape.AmMonitorFields.asymmetry_pct type=f64 unit=% optional=yes since=1.0
 shape.AmMonitorFields.hum_db type=f64 unit=dB optional=yes since=1.0
 shape.AmMonitorFields.hum_hz type=f64 unit=Hz optional=yes since=1.0
@@ -74,19 +72,18 @@ shape.AmMonitorOverModulationEvent.text type=text unit= optional=no since=1.0
 shape.AmMonitorOverModulationEvent.over_mod_pct type=f64 unit=% optional=no since=1.0
 shape.AmMonitorOverModulationEvent.peak_pos_pct type=f64 unit=% optional=no since=1.0
 shape.WatchFields since=1.0
-shape.WatchFields.text type=text unit= optional=no since=1.0
 shape.WatchFields.state type=choice(nothing,energy,measuring) unit= optional=no since=1.0
 shape.WatchFields.good type=i64 unit= optional=no since=1.0
 shape.WatchFields.bad type=i64 unit= optional=no since=1.0
 shape.WatchFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.WatchFields.note type=text unit= optional=no since=1.0
 shape.OccupancyFields since=1.0
-shape.OccupancyFields.channels type=i64 unit= optional=no since=1.0
+shape.OccupancyFields.channels type=i64 unit= optional=no reading=3 since=1.0
 shape.OccupancyFields.channel_khz type=f64 unit=kHz optional=no since=1.0
 shape.OccupancyFields.span_mhz type=f64 unit=MHz optional=no since=1.0
-shape.OccupancyFields.floor_db type=f64 unit=dB optional=yes since=1.0
-shape.OccupancyFields.busy_now type=i64 unit= optional=no since=1.0
-shape.OccupancyFields.band_occupancy_pct type=f64 unit=% optional=yes since=1.0
+shape.OccupancyFields.floor_db type=f64 unit=dB optional=yes reading=4 since=1.0
+shape.OccupancyFields.busy_now type=i64 unit= optional=no reading=2 since=1.0
+shape.OccupancyFields.band_occupancy_pct type=f64 unit=% optional=yes reading=1 since=1.0
 shape.OccupancyFields.elapsed_s type=duration unit=s optional=no since=1.0
 shape.OccupancyChannelRow since=1.0
 shape.OccupancyChannelRow.frequency type=hz unit=Hz optional=no since=1.0
@@ -107,9 +104,9 @@ shape.OccupancyActivityEvent.length_s type=duration unit=s optional=no since=1.0
 shape.OccupancyActivityEvent.peak_over_floor_db type=f64 unit=dB optional=no since=1.0
 shape.OccupancyActivityEvent.level_db type=f64 unit=dB optional=no since=1.0
 shape.NoiseFloorFields since=1.0
-shape.NoiseFloorFields.floor_db type=f64 unit=dB optional=yes since=1.0
-shape.NoiseFloorFields.floor_change_db type=f64 unit=dB optional=yes since=1.0
-shape.NoiseFloorFields.raised type=i64 unit= optional=no since=1.0
+shape.NoiseFloorFields.floor_db type=f64 unit=dB optional=yes reading=1 since=1.0
+shape.NoiseFloorFields.floor_change_db type=f64 unit=dB optional=yes reading=2 since=1.0
+shape.NoiseFloorFields.raised type=i64 unit= optional=no reading=3 since=1.0
 shape.NoiseFloorFields.elapsed_s type=duration unit=s optional=no since=1.0
 shape.NoiseFloorSubBandRow since=1.0
 shape.NoiseFloorSubBandRow.frequency type=hz unit=Hz optional=no since=1.0
@@ -139,10 +136,10 @@ shape.NoiseFloorEvent.baseline_db type=f64 unit=dB optional=yes since=1.0
 shape.NoiseFloorEvent.duration_s type=duration unit=s optional=yes since=1.0
 shape.NoiseFloorEvent.level_db type=f64 unit=dB optional=yes since=1.0
 shape.BurstFinderFields since=1.0
-shape.BurstFinderFields.bursts type=i64 unit= optional=no since=1.0
+shape.BurstFinderFields.bursts type=i64 unit= optional=no reading=1 since=1.0
 shape.BurstFinderFields.elapsed_s type=duration unit=s optional=no since=1.0
-shape.BurstFinderFields.bursts_per_s type=f64 unit=1/s optional=no since=1.0
-shape.BurstFinderFields.repeating type=i64 unit= optional=no since=1.0
+shape.BurstFinderFields.bursts_per_s type=f64 unit=1/s optional=no reading=2 since=1.0
+shape.BurstFinderFields.repeating type=i64 unit= optional=no reading=3 since=1.0
 shape.BurstFinderFields.bin_khz type=f64 unit=kHz optional=no since=1.0
 shape.BurstFinderFields.frame_us type=f64 unit=us optional=no since=1.0
 shape.BurstFinderBurstRow since=1.0
@@ -170,14 +167,14 @@ shape.BurstRepeatingEvent.period_s type=duration unit=s optional=no since=1.0
 shape.BurstRepeatingEvent.bursts type=i64 unit= optional=no since=1.0
 shape.BurstRepeatingEvent.spread_pct type=f64 unit=% optional=no since=1.0
 shape.HopperFields since=1.0
-shape.HopperFields.hop_rate type=f64 unit=1/s optional=yes since=1.0
+shape.HopperFields.hop_rate type=f64 unit=1/s optional=yes reading=1 since=1.0
 shape.HopperFields.hop_period_ms type=f64 unit=ms optional=yes since=1.0
-shape.HopperFields.dwell_ms type=f64 unit=ms optional=yes since=1.0
+shape.HopperFields.dwell_ms type=f64 unit=ms optional=yes reading=4 since=1.0
 shape.HopperFields.guard_ms type=f64 unit=ms optional=yes since=1.0
-shape.HopperFields.channels type=i64 unit= optional=yes since=1.0
-shape.HopperFields.spacing_khz type=f64 unit=kHz optional=yes since=1.0
+shape.HopperFields.channels type=i64 unit= optional=yes reading=2 since=1.0
+shape.HopperFields.spacing_khz type=f64 unit=kHz optional=yes reading=3 since=1.0
 shape.HopperFields.grid type=bool unit= optional=yes since=1.0
-shape.HopperFields.span_khz type=f64 unit=kHz optional=yes since=1.0
+shape.HopperFields.span_khz type=f64 unit=kHz optional=yes reading=5 since=1.0
 shape.HopperFields.lowest type=hz unit=Hz optional=yes since=1.0
 shape.HopperFields.highest type=hz unit=Hz optional=yes since=1.0
 shape.HopperFields.level_db type=f64 unit=dB optional=yes since=1.0
@@ -208,7 +205,7 @@ shape.HopperChangedEvent.dwell_ms type=f64 unit=ms optional=no since=1.0
 shape.HopperChangedEvent.guard_ms type=f64 unit=ms optional=no since=1.0
 shape.HopperChangedEvent.level_db type=f64 unit=dB optional=no since=1.0
 shape.BirdieFields since=1.0
-shape.BirdieFields.carriers type=i64 unit= optional=no since=1.0
+shape.BirdieFields.carriers type=i64 unit= optional=no reading=1 since=1.0
 shape.BirdieFields.snapshots type=i64 unit= optional=no since=1.0
 shape.BirdieFields.snapshot_s type=duration unit=s optional=no since=1.0
 shape.BirdieFields.bin_hz type=f64 unit=Hz optional=no since=1.0
@@ -238,18 +235,18 @@ shape.BirdieEvent.class type=choice(bare,modulated) unit= optional=no since=1.0
 shape.BirdieEvent.drift_hz_min type=f64 unit=Hz/min optional=no since=1.0
 shape.BirdieEvent.scatter_hz type=f64 unit=Hz optional=no since=1.0
 shape.ObwFields since=1.0
-shape.ObwFields.obw_khz type=f64 unit=kHz optional=yes since=1.0
+shape.ObwFields.obw_khz type=f64 unit=kHz optional=yes reading=1 since=1.0
 shape.ObwFields.obw_low type=hz unit=Hz optional=yes since=1.0
 shape.ObwFields.obw_high type=hz unit=Hz optional=yes since=1.0
 shape.ObwFields.bw3_khz type=f64 unit=kHz optional=yes since=1.0
 shape.ObwFields.bw6_khz type=f64 unit=kHz optional=yes since=1.0
 shape.ObwFields.bw20_khz type=f64 unit=kHz optional=yes since=1.0
-shape.ObwFields.bw26_khz type=f64 unit=kHz optional=yes since=1.0
-shape.ObwFields.centre_offset_hz type=f64 unit=Hz optional=yes since=1.0
+shape.ObwFields.bw26_khz type=f64 unit=kHz optional=yes reading=2 since=1.0
+shape.ObwFields.centre_offset_hz type=f64 unit=Hz optional=yes reading=3 since=1.0
 shape.ObwFields.power_db type=f64 unit=dB optional=yes since=1.0
 shape.ObwFields.snr_db type=f64 unit=dB optional=yes since=1.0
-shape.ObwFields.adjacent_low_db type=f64 unit=dB optional=yes since=1.0
-shape.ObwFields.adjacent_high_db type=f64 unit=dB optional=yes since=1.0
+shape.ObwFields.adjacent_low_db type=f64 unit=dB optional=yes reading=4 since=1.0
+shape.ObwFields.adjacent_high_db type=f64 unit=dB optional=yes reading=5 since=1.0
 shape.ObwFields.alternate_low_db type=f64 unit=dB optional=yes since=1.0
 shape.ObwFields.alternate_high_db type=f64 unit=dB optional=yes since=1.0
 shape.ObwFields.signal type=bool unit= optional=no since=1.0
@@ -286,16 +283,16 @@ shape.ObwReadingEvent.adjacent_high_db type=f64 unit=dB optional=yes since=1.0
 shape.ObwReadingEvent.alternate_low_db type=f64 unit=dB optional=yes since=1.0
 shape.ObwReadingEvent.alternate_high_db type=f64 unit=dB optional=yes since=1.0
 shape.PttLogFields since=1.0
-shape.PttLogFields.keyed type=bool unit= optional=no since=1.0
-shape.PttLogFields.keyed_s type=duration unit=s optional=yes since=1.0
+shape.PttLogFields.keyed type=bool unit= optional=no reading=1 since=1.0
+shape.PttLogFields.keyed_s type=duration unit=s optional=yes reading=2 since=1.0
 shape.PttLogFields.floor_db type=f64 unit=dB optional=yes since=1.0
-shape.PttLogFields.transmissions type=i64 unit= optional=no since=1.0
+shape.PttLogFields.transmissions type=i64 unit= optional=no reading=3 since=1.0
 shape.PttLogFields.kerchunks type=i64 unit= optional=no since=1.0
-shape.PttLogFields.duty_pct type=f64 unit=% optional=yes since=1.0
+shape.PttLogFields.duty_pct type=f64 unit=% optional=yes reading=4 since=1.0
 shape.PttLogFields.duty_10min_pct type=f64 unit=% optional=yes since=1.0
 shape.PttLogFields.mean_s type=duration unit=s optional=yes since=1.0
 shape.PttLogFields.median_s type=duration unit=s optional=yes since=1.0
-shape.PttLogFields.longest_s type=duration unit=s optional=yes since=1.0
+shape.PttLogFields.longest_s type=duration unit=s optional=yes reading=5 since=1.0
 shape.PttLogFields.per_hour type=f64 unit=1/h optional=yes since=1.0
 shape.PttLogFields.elapsed_s type=duration unit=s optional=no since=1.0
 shape.PttLogTransmissionRow since=1.0
@@ -315,13 +312,13 @@ shape.PttTransmissionEvent.over_floor_db type=f64 unit=dB optional=no since=1.0
 shape.PttTransmissionEvent.gap_s type=duration unit=s optional=yes since=1.0
 shape.PttTransmissionEvent.level_db type=f64 unit=dB optional=no since=1.0
 shape.NoiseLocatorFields since=1.0
-shape.NoiseLocatorFields.impulse_rate type=f64 unit=1/s optional=yes since=1.0
-shape.NoiseLocatorFields.impulse_level_db type=f64 unit=dB optional=yes since=1.0
+shape.NoiseLocatorFields.impulse_rate type=f64 unit=1/s optional=yes reading=3 since=1.0
+shape.NoiseLocatorFields.impulse_level_db type=f64 unit=dB optional=yes reading=4 since=1.0
 shape.NoiseLocatorFields.impulse_spread_db type=f64 unit=dB optional=yes since=1.0
-shape.NoiseLocatorFields.repetition_hz type=f64 unit=Hz optional=yes since=1.0
-shape.NoiseLocatorFields.class type=choice(twice_mains,mains,steady,none) unit= optional=no since=1.0
+shape.NoiseLocatorFields.repetition_hz type=f64 unit=Hz optional=yes reading=2 since=1.0
+shape.NoiseLocatorFields.class type=choice(twice_mains,mains,steady,none) unit= optional=no reading=1 since=1.0
 shape.NoiseLocatorFields.mains_found_hz type=f64 unit=Hz optional=yes since=1.0
-shape.NoiseLocatorFields.strength_pct type=f64 unit=% optional=yes since=1.0
+shape.NoiseLocatorFields.strength_pct type=f64 unit=% optional=yes reading=5 since=1.0
 shape.NoiseLocatorFields.impulses type=i64 unit= optional=no since=1.0
 shape.NoiseLocatorPatternRow since=1.0
 shape.NoiseLocatorPatternRow.time_s type=duration unit=s optional=no since=1.0
@@ -340,11 +337,11 @@ shape.NoiseLocatorPatternEvent.impulse_rate type=f64 unit=1/s optional=no since=
 shape.NoiseLocatorPatternEvent.level_db type=f64 unit=dB optional=no since=1.0
 shape.NoiseLocatorPatternEvent.strength_pct type=f64 unit=% optional=no since=1.0
 shape.FreqAccuracyFields since=1.0
-shape.FreqAccuracyFields.offset_hz type=hz unit=Hz optional=yes since=1.0
-shape.FreqAccuracyFields.scatter_hz type=hz unit=Hz optional=yes since=1.0
-shape.FreqAccuracyFields.error_ppm type=f64 unit=ppm optional=yes since=1.0
-shape.FreqAccuracyFields.cn0_dbhz type=f64 unit=dB-Hz optional=yes since=1.0
-shape.FreqAccuracyFields.drift_hz_s type=f64 unit=Hz/s optional=yes since=1.0
+shape.FreqAccuracyFields.offset_hz type=hz unit=Hz optional=yes reading=1 since=1.0
+shape.FreqAccuracyFields.scatter_hz type=hz unit=Hz optional=yes reading=4 since=1.0
+shape.FreqAccuracyFields.error_ppm type=f64 unit=ppm optional=yes reading=2 since=1.0
+shape.FreqAccuracyFields.cn0_dbhz type=f64 unit=dB-Hz optional=yes reading=5 since=1.0
+shape.FreqAccuracyFields.drift_hz_s type=f64 unit=Hz/s optional=yes reading=3 since=1.0
 shape.FreqAccuracyFields.drift_ppm_h type=f64 unit=ppm/h optional=yes since=1.0
 shape.FreqAccuracyFields.readings type=i64 unit= optional=no since=1.0
 shape.FreqAccuracyFields.window_s type=duration unit=s optional=yes since=1.0
@@ -367,13 +364,13 @@ shape.FreqAccuracyEvent.offset_hz type=hz unit=Hz optional=no since=1.0
 shape.FreqAccuracyEvent.step_hz type=hz unit=Hz optional=yes since=1.0
 shape.FreqAccuracyEvent.cn0_dbhz type=f64 unit=dB-Hz optional=yes since=1.0
 shape.SinadFields since=1.0
-shape.SinadFields.sinad_db type=f64 unit=dB optional=yes since=1.0
+shape.SinadFields.sinad_db type=f64 unit=dB optional=yes reading=1 since=1.0
 shape.SinadFields.below_12db type=bool unit= optional=yes since=1.0
-shape.SinadFields.tone_hz type=hz unit=Hz optional=yes since=1.0
-shape.SinadFields.deviation_khz type=f64 unit=kHz optional=yes since=1.0
-shape.SinadFields.thd_pct type=f64 unit=% optional=yes since=1.0
+shape.SinadFields.tone_hz type=hz unit=Hz optional=yes reading=4 since=1.0
+shape.SinadFields.deviation_khz type=f64 unit=kHz optional=yes reading=3 since=1.0
+shape.SinadFields.thd_pct type=f64 unit=% optional=yes reading=2 since=1.0
 shape.SinadFields.thdn_pct type=f64 unit=% optional=yes since=1.0
-shape.SinadFields.carrier_offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.SinadFields.carrier_offset_hz type=hz unit=Hz optional=yes reading=5 since=1.0
 shape.SinadFields.windows type=i64 unit= optional=no since=1.0
 shape.SinadEventRow since=1.0
 shape.SinadEventRow.time_s type=duration unit=s optional=no since=1.0
@@ -390,18 +387,18 @@ shape.SinadCrossingEvent.tone_hz type=hz unit=Hz optional=no since=1.0
 shape.SinadCrossingEvent.deviation_khz type=f64 unit=kHz optional=no since=1.0
 shape.SinadCrossingEvent.thd_pct type=f64 unit=% optional=no since=1.0
 shape.NfmMeterFields since=1.0
-shape.NfmMeterFields.voice_peak_khz type=f64 unit=kHz optional=yes since=1.0
-shape.NfmMeterFields.voice_peak_max_khz type=f64 unit=kHz optional=yes since=1.0
+shape.NfmMeterFields.voice_peak_khz type=f64 unit=kHz optional=yes reading=1 since=1.0
+shape.NfmMeterFields.voice_peak_max_khz type=f64 unit=kHz optional=yes reading=2 since=1.0
 shape.NfmMeterFields.over_narrow type=i64 unit= optional=no since=1.0
 shape.NfmMeterFields.over_wide type=i64 unit= optional=no since=1.0
 shape.NfmMeterFields.windows type=i64 unit= optional=no since=1.0
-shape.NfmMeterFields.ctcss_hz type=hz unit=Hz optional=yes since=1.0
+shape.NfmMeterFields.ctcss_hz type=hz unit=Hz optional=yes reading=3 since=1.0
 shape.NfmMeterFields.ctcss_standard_hz type=hz unit=Hz optional=yes since=1.0
 shape.NfmMeterFields.ctcss_error_hz type=hz unit=Hz optional=yes since=1.0
-shape.NfmMeterFields.ctcss_deviation_hz type=hz unit=Hz optional=yes since=1.0
+shape.NfmMeterFields.ctcss_deviation_hz type=hz unit=Hz optional=yes reading=4 since=1.0
 shape.NfmMeterFields.ctcss_share_narrow_pct type=f64 unit=% optional=yes since=1.0
 shape.NfmMeterFields.ctcss_share_wide_pct type=f64 unit=% optional=yes since=1.0
-shape.NfmMeterFields.carrier_offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.NfmMeterFields.carrier_offset_hz type=hz unit=Hz optional=yes reading=5 since=1.0
 shape.NfmMeterEventRow since=1.0
 shape.NfmMeterEventRow.time_s type=duration unit=s optional=no since=1.0
 shape.NfmMeterEventRow.kind type=choice(tone,tone_gone,over_narrow,over_wide) unit= optional=no since=1.0
@@ -415,12 +412,12 @@ shape.TxStabilityFields.length_s type=duration unit=s optional=yes since=1.0
 shape.TxStabilityFields.readings type=i64 unit= optional=yes since=1.0
 shape.TxStabilityFields.start_hz type=hz unit=Hz optional=yes since=1.0
 shape.TxStabilityFields.final_hz type=hz unit=Hz optional=yes since=1.0
-shape.TxStabilityFields.keyup_step_hz type=hz unit=Hz optional=yes since=1.0
-shape.TxStabilityFields.settle_s type=duration unit=s optional=yes since=1.0
+shape.TxStabilityFields.keyup_step_hz type=hz unit=Hz optional=yes reading=4 since=1.0
+shape.TxStabilityFields.settle_s type=duration unit=s optional=yes reading=5 since=1.0
 shape.TxStabilityFields.settle_band_hz type=hz unit=Hz optional=yes since=1.0
-shape.TxStabilityFields.drift_hz_s type=f64 unit=Hz/s optional=yes since=1.0
-shape.TxStabilityFields.mean_hz type=hz unit=Hz optional=yes since=1.0
-shape.TxStabilityFields.mean_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.TxStabilityFields.drift_hz_s type=f64 unit=Hz/s optional=yes reading=3 since=1.0
+shape.TxStabilityFields.mean_hz type=hz unit=Hz optional=yes reading=1 since=1.0
+shape.TxStabilityFields.mean_ppm type=f64 unit=ppm optional=yes reading=2 since=1.0
 shape.TxStabilityFields.scatter_hz type=hz unit=Hz optional=yes since=1.0
 shape.TxStabilityFields.transmissions type=i64 unit= optional=no since=1.0
 shape.TxStabilityTransmissionRow since=1.0
@@ -450,17 +447,17 @@ shape.TxStabilityTransmissionEvent.mean_hz type=hz unit=Hz optional=no since=1.0
 shape.TxStabilityTransmissionEvent.mean_ppm type=f64 unit=ppm optional=yes since=1.0
 shape.TxStabilityTransmissionEvent.scatter_hz type=hz unit=Hz optional=yes since=1.0
 shape.SsbTestFields since=1.0
-shape.SsbTestFields.kind type=choice(none,one_tone,two_tones) unit= optional=no since=1.0
+shape.SsbTestFields.kind type=choice(none,one_tone,two_tones) unit= optional=no reading=1 since=1.0
 shape.SsbTestFields.sideband type=choice(upper,lower) unit= optional=yes since=1.0
 shape.SsbTestFields.tone1_hz type=hz unit=Hz optional=yes since=1.0
 shape.SsbTestFields.tone2_hz type=hz unit=Hz optional=yes since=1.0
 shape.SsbTestFields.tone_level_diff_db type=f64 unit=dB optional=yes since=1.0
-shape.SsbTestFields.carrier_db type=f64 unit=dB optional=yes since=1.0
+shape.SsbTestFields.carrier_db type=f64 unit=dB optional=yes reading=4 since=1.0
 shape.SsbTestFields.carrier_under type=bool unit= optional=yes since=1.0
 shape.SsbTestFields.carrier_found type=bool unit= optional=yes since=1.0
-shape.SsbTestFields.opposite_db type=f64 unit=dB optional=yes since=1.0
+shape.SsbTestFields.opposite_db type=f64 unit=dB optional=yes reading=5 since=1.0
 shape.SsbTestFields.opposite_under type=bool unit= optional=yes since=1.0
-shape.SsbTestFields.h2_db type=f64 unit=dB optional=yes since=1.0
+shape.SsbTestFields.h2_db type=f64 unit=dB optional=yes reading=6 since=1.0
 shape.SsbTestFields.h3_db type=f64 unit=dB optional=yes since=1.0
 shape.SsbTestFields.h4_db type=f64 unit=dB optional=yes since=1.0
 shape.SsbTestFields.h5_db type=f64 unit=dB optional=yes since=1.0
@@ -468,8 +465,8 @@ shape.SsbTestFields.h2_under type=bool unit= optional=yes since=1.0
 shape.SsbTestFields.h3_under type=bool unit= optional=yes since=1.0
 shape.SsbTestFields.h4_under type=bool unit= optional=yes since=1.0
 shape.SsbTestFields.h5_under type=bool unit= optional=yes since=1.0
-shape.SsbTestFields.imd3_db type=f64 unit=dB optional=yes since=1.0
-shape.SsbTestFields.imd5_db type=f64 unit=dB optional=yes since=1.0
+shape.SsbTestFields.imd3_db type=f64 unit=dB optional=yes reading=2 since=1.0
+shape.SsbTestFields.imd5_db type=f64 unit=dB optional=yes reading=3 since=1.0
 shape.SsbTestFields.imd7_db type=f64 unit=dB optional=yes since=1.0
 shape.SsbTestFields.imd3_under type=bool unit= optional=yes since=1.0
 shape.SsbTestFields.imd5_under type=bool unit= optional=yes since=1.0
@@ -509,12 +506,12 @@ shape.SsbTestEventRow.imd5_pep_db type=f64 unit=dB optional=yes since=1.0
 shape.SsbTestEventRow.imd7_pep_db type=f64 unit=dB optional=yes since=1.0
 shape.SsbTestEventRow.floor_db type=f64 unit=dB optional=yes since=1.0
 shape.AfskTunerFields since=1.0
-shape.AfskTunerFields.mark_hz type=hz unit=Hz optional=yes since=1.0
-shape.AfskTunerFields.space_hz type=hz unit=Hz optional=yes since=1.0
+shape.AfskTunerFields.mark_hz type=hz unit=Hz optional=yes reading=1 since=1.0
+shape.AfskTunerFields.space_hz type=hz unit=Hz optional=yes reading=2 since=1.0
 shape.AfskTunerFields.mark_error_hz type=hz unit=Hz optional=yes since=1.0
 shape.AfskTunerFields.space_error_hz type=hz unit=Hz optional=yes since=1.0
-shape.AfskTunerFields.twist_db type=f64 unit=dB optional=yes since=1.0
-shape.AfskTunerFields.peak_deviation_khz type=f64 unit=kHz optional=yes since=1.0
+shape.AfskTunerFields.twist_db type=f64 unit=dB optional=yes reading=3 since=1.0
+shape.AfskTunerFields.peak_deviation_khz type=f64 unit=kHz optional=yes reading=4 since=1.0
 shape.AfskTunerFields.length_s type=duration unit=s optional=yes since=1.0
 shape.AfskTunerFields.gap_s type=duration unit=s optional=yes since=1.0
 shape.AfskTunerFields.bursts type=i64 unit= optional=no since=1.0
@@ -538,11 +535,11 @@ shape.AfskTunerBurstEvent.peak_deviation_khz type=f64 unit=kHz optional=no since
 shape.AfskTunerBurstEvent.gap_s type=duration unit=s optional=yes since=1.0
 shape.PhaseNoiseFields since=1.0
 shape.PhaseNoiseFields.l_10hz type=f64 unit=dBc/Hz optional=yes since=1.0
-shape.PhaseNoiseFields.l_100hz type=f64 unit=dBc/Hz optional=yes since=1.0
-shape.PhaseNoiseFields.l_1khz type=f64 unit=dBc/Hz optional=yes since=1.0
-shape.PhaseNoiseFields.l_10khz type=f64 unit=dBc/Hz optional=yes since=1.0
-shape.PhaseNoiseFields.l_100khz type=f64 unit=dBc/Hz optional=yes since=1.0
-shape.PhaseNoiseFields.jitter_mrad type=f64 unit=mrad optional=yes since=1.0
+shape.PhaseNoiseFields.l_100hz type=f64 unit=dBc/Hz optional=yes reading=1 since=1.0
+shape.PhaseNoiseFields.l_1khz type=f64 unit=dBc/Hz optional=yes reading=2 since=1.0
+shape.PhaseNoiseFields.l_10khz type=f64 unit=dBc/Hz optional=yes reading=3 since=1.0
+shape.PhaseNoiseFields.l_100khz type=f64 unit=dBc/Hz optional=yes reading=4 since=1.0
+shape.PhaseNoiseFields.jitter_mrad type=f64 unit=mrad optional=yes reading=5 since=1.0
 shape.PhaseNoiseFields.jitter_ps type=f64 unit=ps optional=yes since=1.0
 shape.PhaseNoiseFields.carrier_offset_hz type=hz unit=Hz optional=yes since=1.0
 shape.PhaseNoiseFields.cnr_db type=f64 unit=dB optional=yes since=1.0
@@ -564,20 +561,20 @@ shape.PhaseNoiseEventRow.l_100khz type=f64 unit=dBc/Hz optional=yes since=1.0
 shape.PhaseNoiseEventRow.jitter_mrad type=f64 unit=mrad optional=yes since=1.0
 shape.PhaseNoiseEventRow.spurs type=i64 unit= optional=no since=1.0
 shape.CwKeyingFields since=1.0
-shape.CwKeyingFields.wpm type=f64 unit=wpm optional=yes since=1.0
+shape.CwKeyingFields.wpm type=f64 unit=wpm optional=yes reading=1 since=1.0
 shape.CwKeyingFields.dit_ms type=f64 unit=ms optional=yes since=1.0
 shape.CwKeyingFields.dah_ms type=f64 unit=ms optional=yes since=1.0
-shape.CwKeyingFields.dah_ratio type=f64 unit= optional=yes since=1.0
+shape.CwKeyingFields.dah_ratio type=f64 unit= optional=yes reading=3 since=1.0
 shape.CwKeyingFields.element_gap type=f64 unit=dits optional=yes since=1.0
 shape.CwKeyingFields.char_gap type=f64 unit=dits optional=yes since=1.0
 shape.CwKeyingFields.word_gap type=f64 unit=dits optional=yes since=1.0
 shape.CwKeyingFields.char_gaps type=i64 unit= optional=yes since=1.0
 shape.CwKeyingFields.word_gaps type=i64 unit= optional=yes since=1.0
-shape.CwKeyingFields.weight type=f64 unit= optional=yes since=1.0
+shape.CwKeyingFields.weight type=f64 unit= optional=yes reading=2 since=1.0
 shape.CwKeyingFields.dit_scatter_pct type=f64 unit=% optional=yes since=1.0
-shape.CwKeyingFields.rise_ms type=f64 unit=ms optional=yes since=1.0
+shape.CwKeyingFields.rise_ms type=f64 unit=ms optional=yes reading=4 since=1.0
 shape.CwKeyingFields.fall_ms type=f64 unit=ms optional=yes since=1.0
-shape.CwKeyingFields.chirp_hz type=f64 unit=Hz optional=yes since=1.0
+shape.CwKeyingFields.chirp_hz type=f64 unit=Hz optional=yes reading=5 since=1.0
 shape.CwKeyingFields.chirp_marks type=i64 unit= optional=yes since=1.0
 shape.CwKeyingFields.marks type=i64 unit= optional=no since=1.0
 shape.CwKeyingFields.spaces type=i64 unit= optional=no since=1.0
@@ -596,16 +593,16 @@ shape.CwKeyingEventRow.rise_ms type=f64 unit=ms optional=yes since=1.0
 shape.CwKeyingEventRow.fall_ms type=f64 unit=ms optional=yes since=1.0
 shape.CwKeyingEventRow.chirp_hz type=f64 unit=Hz optional=yes since=1.0
 shape.FskAnalyserFields since=1.0
-shape.FskAnalyserFields.levels type=choice(2,4) unit= optional=yes since=1.0
+shape.FskAnalyserFields.levels type=choice(2,4) unit= optional=yes reading=1 since=1.0
 shape.FskAnalyserFields.msk_like type=bool unit= optional=yes since=1.0
-shape.FskAnalyserFields.symbol_rate_bd type=f64 unit=Bd optional=yes since=1.0
-shape.FskAnalyserFields.shift_hz type=hz unit=Hz optional=yes since=1.0
+shape.FskAnalyserFields.symbol_rate_bd type=f64 unit=Bd optional=yes reading=2 since=1.0
+shape.FskAnalyserFields.shift_hz type=hz unit=Hz optional=yes reading=3 since=1.0
 shape.FskAnalyserFields.outer_hz type=hz unit=Hz optional=yes since=1.0
-shape.FskAnalyserFields.mod_index type=f64 unit= optional=yes since=1.0
+shape.FskAnalyserFields.mod_index type=f64 unit= optional=yes reading=4 since=1.0
 shape.FskAnalyserFields.centre_hz type=hz unit=Hz optional=yes since=1.0
 shape.FskAnalyserFields.spacing_ratio type=f64 unit= optional=yes since=1.0
 shape.FskAnalyserFields.spacing_equal type=bool unit= optional=yes since=1.0
-shape.FskAnalyserFields.eye_snr_db type=f64 unit=dB optional=yes since=1.0
+shape.FskAnalyserFields.eye_snr_db type=f64 unit=dB optional=yes reading=5 since=1.0
 shape.FskAnalyserLevelRow since=1.0
 shape.FskAnalyserLevelRow.index type=i64 unit= optional=no since=1.0
 shape.FskAnalyserLevelRow.frequency_hz type=hz unit=Hz optional=no since=1.0
@@ -619,11 +616,11 @@ shape.FskAnalyserEventRow.centre_hz type=hz unit=Hz optional=no since=1.0
 shape.FskAnalyserEventRow.eye_snr_db type=f64 unit=dB optional=no since=1.0
 shape.MerFields since=1.0
 shape.MerFields.locked type=bool unit= optional=yes since=1.0
-shape.MerFields.modulation type=choice(bpsk,qpsk,psk8) unit= optional=yes since=1.0
-shape.MerFields.mer_db type=f64 unit=dB optional=yes since=1.0
-shape.MerFields.evm_pct type=f64 unit=% optional=yes since=1.0
-shape.MerFields.symbol_rate_bd type=f64 unit=Bd optional=yes since=1.0
-shape.MerFields.carrier_offset_hz type=hz unit=Hz optional=yes since=1.0
+shape.MerFields.modulation type=choice(bpsk,qpsk,psk8) unit= optional=yes reading=3 since=1.0
+shape.MerFields.mer_db type=f64 unit=dB optional=yes reading=1 since=1.0
+shape.MerFields.evm_pct type=f64 unit=% optional=yes reading=2 since=1.0
+shape.MerFields.symbol_rate_bd type=f64 unit=Bd optional=yes reading=4 since=1.0
+shape.MerFields.carrier_offset_hz type=hz unit=Hz optional=yes reading=5 since=1.0
 shape.MerFields.rolloff type=f64 unit= optional=yes since=1.0
 shape.MerFields.symbols type=i64 unit= optional=yes since=1.0
 shape.MerEventRow since=1.0
@@ -635,12 +632,12 @@ shape.MerEventRow.symbol_rate_bd type=f64 unit=Bd optional=no since=1.0
 shape.MerEventRow.carrier_offset_hz type=hz unit=Hz optional=no since=1.0
 shape.MerEventRow.level_db type=f64 unit=dB optional=no since=1.0
 shape.PaprFields since=1.0
-shape.PaprFields.mean_dbfs type=f64 unit=dBFS optional=yes since=1.0
-shape.PaprFields.peak_dbfs type=f64 unit=dBFS optional=yes since=1.0
-shape.PaprFields.crest_db type=f64 unit=dB optional=yes since=1.0
+shape.PaprFields.mean_dbfs type=f64 unit=dBFS optional=yes reading=3 since=1.0
+shape.PaprFields.peak_dbfs type=f64 unit=dBFS optional=yes reading=4 since=1.0
+shape.PaprFields.crest_db type=f64 unit=dB optional=yes reading=1 since=1.0
 shape.PaprFields.ccdf_10_db type=f64 unit=dB optional=yes since=1.0
 shape.PaprFields.ccdf_1_db type=f64 unit=dB optional=yes since=1.0
-shape.PaprFields.ccdf_01_db type=f64 unit=dB optional=yes since=1.0
+shape.PaprFields.ccdf_01_db type=f64 unit=dB optional=yes reading=2 since=1.0
 shape.PaprFields.ccdf_001_db type=f64 unit=dB optional=yes since=1.0
 shape.PaprFields.samples type=i64 unit= optional=yes since=1.0
 shape.PaprFields.reading type=choice(constant_envelope,gaussian_like,less_peaky,peakier) unit= optional=yes since=1.0
@@ -654,18 +651,18 @@ shape.PaprEventRow.crest_db type=f64 unit=dB optional=no since=1.0
 shape.PaprEventRow.mean_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.PaprEventRow.samples type=i64 unit= optional=no since=1.0
 shape.InputHealthFields since=1.0
-shape.InputHealthFields.rms_dbfs type=f64 unit=dBFS optional=yes since=1.0
-shape.InputHealthFields.peak_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.InputHealthFields.rms_dbfs type=f64 unit=dBFS optional=yes reading=2 since=1.0
+shape.InputHealthFields.peak_dbfs type=f64 unit=dBFS optional=yes reading=3 since=1.0
 shape.InputHealthFields.crest_db type=f64 unit=dB optional=yes since=1.0
-shape.InputHealthFields.clipping_ppm type=f64 unit=ppm optional=yes since=1.0
+shape.InputHealthFields.clipping_ppm type=f64 unit=ppm optional=yes reading=4 since=1.0
 shape.InputHealthFields.dc_i_pct type=f64 unit=% optional=yes since=1.0
 shape.InputHealthFields.dc_q_pct type=f64 unit=% optional=yes since=1.0
-shape.InputHealthFields.dc_pct type=f64 unit=% optional=yes since=1.0
+shape.InputHealthFields.dc_pct type=f64 unit=% optional=yes reading=5 since=1.0
 shape.InputHealthFields.dc_under_rms_db type=f64 unit=dB optional=yes since=1.0
 shape.InputHealthFields.iq_gain_db type=f64 unit=dB optional=yes since=1.0
-shape.InputHealthFields.iq_phase_deg type=f64 unit=deg optional=yes since=1.0
-shape.InputHealthFields.image_rejection_db type=f64 unit=dB optional=yes since=1.0
-shape.InputHealthFields.verdict type=choice(low,good,high,overload) unit= optional=yes since=1.0
+shape.InputHealthFields.iq_phase_deg type=f64 unit=° optional=yes since=1.0
+shape.InputHealthFields.image_rejection_db type=f64 unit=dB optional=yes reading=6 since=1.0
+shape.InputHealthFields.verdict type=choice(low,good,high,overload) unit= optional=yes reading=1 since=1.0
 shape.InputHealthEventRow since=1.0
 shape.InputHealthEventRow.time_s type=duration unit=s optional=no since=1.0
 shape.InputHealthEventRow.kind type=choice(verdict,clipping) unit= optional=no since=1.0
@@ -674,10 +671,10 @@ shape.InputHealthEventRow.rms_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.InputHealthEventRow.peak_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.InputHealthEventRow.clipping_ppm type=f64 unit=ppm optional=no since=1.0
 shape.NoiseFigureFields since=1.0
-shape.NoiseFigureFields.power_db type=f64 unit=dB optional=yes since=1.0
-shape.NoiseFigureFields.y_db type=f64 unit=dB optional=yes since=1.0
+shape.NoiseFigureFields.power_db type=f64 unit=dB optional=yes reading=2 since=1.0
+shape.NoiseFigureFields.y_db type=f64 unit=dB optional=yes reading=1 since=1.0
 shape.NoiseFigureFields.y_lin type=f64 unit= optional=yes since=1.0
-shape.NoiseFigureFields.y_spread_db type=f64 unit=dB optional=yes since=1.0
+shape.NoiseFigureFields.y_spread_db type=f64 unit=dB optional=yes reading=3 since=1.0
 shape.NoiseFigureFields.steps type=i64 unit= optional=no since=1.0
 shape.NoiseFigureRow since=1.0
 shape.NoiseFigureRow.enr_db type=f64 unit=dB optional=no since=1.0
@@ -691,9 +688,9 @@ shape.NoiseFigureEventRow.to_db type=f64 unit=dB optional=no since=1.0
 shape.NoiseFigureEventRow.y_db type=f64 unit=dB optional=no since=1.0
 shape.NoiseFigureEventRow.y_lin type=f64 unit= optional=no since=1.0
 shape.KurtosisFields since=1.0
-shape.KurtosisFields.clean_pct type=f64 unit=% optional=yes since=1.0
+shape.KurtosisFields.clean_pct type=f64 unit=% optional=yes reading=1 since=1.0
 shape.KurtosisFields.sigma type=f64 unit= optional=no since=1.0
-shape.KurtosisFields.regions type=i64 unit= optional=yes since=1.0
+shape.KurtosisFields.regions type=i64 unit= optional=yes reading=2 since=1.0
 shape.KurtosisFields.block_ms type=f64 unit=ms optional=no since=1.0
 shape.KurtosisRegionRow since=1.0
 shape.KurtosisRegionRow.low type=hz unit=Hz optional=no since=1.0
@@ -712,11 +709,11 @@ shape.KurtosisEventRow.sk type=f64 unit= optional=no since=1.0
 shape.KurtosisEventRow.over_noise_db type=f64 unit=dB optional=no since=1.0
 shape.GlitchFields since=1.0
 shape.GlitchFields.tone_hz type=hz unit=Hz optional=yes since=1.0
-shape.GlitchFields.sample_drops type=i64 unit= optional=no since=1.0
-shape.GlitchFields.sample_repeats type=i64 unit= optional=no since=1.0
-shape.GlitchFields.zero_runs type=i64 unit= optional=no since=1.0
-shape.GlitchFields.repeated_blocks type=i64 unit= optional=no since=1.0
-shape.GlitchFields.level_steps type=i64 unit= optional=no since=1.0
+shape.GlitchFields.sample_drops type=i64 unit= optional=no reading=1 since=1.0
+shape.GlitchFields.sample_repeats type=i64 unit= optional=no reading=2 since=1.0
+shape.GlitchFields.zero_runs type=i64 unit= optional=no reading=3 since=1.0
+shape.GlitchFields.repeated_blocks type=i64 unit= optional=no reading=4 since=1.0
+shape.GlitchFields.level_steps type=i64 unit= optional=no reading=5 since=1.0
 shape.GlitchFields.elapsed_s type=duration unit=s optional=no since=1.0
 shape.GlitchEventRow since=1.0
 shape.GlitchEventRow.time_s type=duration unit=s optional=no since=1.0
@@ -735,10 +732,10 @@ shape.GlitchEvent.step_db type=f64 unit=dB optional=yes since=1.0
 shape.GlitchEvent.from_db type=f64 unit=dB optional=yes since=1.0
 shape.GlitchEvent.to_db type=f64 unit=dB optional=yes since=1.0
 shape.IntermodFields since=1.0
-shape.IntermodFields.inputs type=i64 unit= optional=yes since=1.0
-shape.IntermodFields.products type=i64 unit= optional=yes since=1.0
-shape.IntermodFields.products_follow type=i64 unit= optional=yes since=1.0
-shape.IntermodFields.products_independent type=i64 unit= optional=yes since=1.0
+shape.IntermodFields.inputs type=i64 unit= optional=yes reading=4 since=1.0
+shape.IntermodFields.products type=i64 unit= optional=yes reading=1 since=1.0
+shape.IntermodFields.products_follow type=i64 unit= optional=yes reading=2 since=1.0
+shape.IntermodFields.products_independent type=i64 unit= optional=yes reading=3 since=1.0
 shape.IntermodFields.products_unknown type=i64 unit= optional=yes since=1.0
 shape.IntermodFields.snapshots type=i64 unit= optional=no since=1.0
 shape.IntermodInputRow since=1.0
@@ -777,12 +774,12 @@ shape.IntermodProductEvent.slope type=f64 unit= optional=yes since=1.0
 shape.IntermodProductEvent.correlation type=f64 unit= optional=yes since=1.0
 shape.IntermodProductEvent.points type=i64 unit= optional=no since=1.0
 shape.SpurFields since=1.0
-shape.SpurFields.dc_db type=f64 unit=dB optional=yes since=1.0
+shape.SpurFields.dc_db type=f64 unit=dB optional=yes reading=4 since=1.0
 shape.SpurFields.dc_spike type=bool unit= optional=yes since=1.0
-shape.SpurFields.signals type=i64 unit= optional=yes since=1.0
-shape.SpurFields.images type=i64 unit= optional=yes since=1.0
-shape.SpurFields.harmonics type=i64 unit= optional=yes since=1.0
-shape.SpurFields.fixed_spurs type=i64 unit= optional=yes since=1.0
+shape.SpurFields.signals type=i64 unit= optional=yes reading=5 since=1.0
+shape.SpurFields.images type=i64 unit= optional=yes reading=1 since=1.0
+shape.SpurFields.harmonics type=i64 unit= optional=yes reading=2 since=1.0
+shape.SpurFields.fixed_spurs type=i64 unit= optional=yes reading=3 since=1.0
 shape.SpurFields.snapshots type=i64 unit= optional=no since=1.0
 shape.SpurFindingRow since=1.0
 shape.SpurFindingRow.kind type=choice(image,second_harmonic,third_harmonic,fixed_spur) unit= optional=no since=1.0
@@ -794,7 +791,7 @@ shape.SpurFindingRow.slope type=f64 unit= optional=yes since=1.0
 shape.SpurFindingRow.correlation type=f64 unit= optional=yes since=1.0
 shape.SpurFindingRow.image_rejection_db type=f64 unit=dB optional=yes since=1.0
 shape.SpurFindingRow.gain_mismatch_db type=f64 unit=dB optional=yes since=1.0
-shape.SpurFindingRow.phase_mismatch_deg type=f64 unit=deg optional=yes since=1.0
+shape.SpurFindingRow.phase_mismatch_deg type=f64 unit=° optional=yes since=1.0
 shape.SpurEventRow since=1.0
 shape.SpurEventRow.time_s type=duration unit=s optional=no since=1.0
 shape.SpurEventRow.kind type=choice(image,second_harmonic,third_harmonic,fixed_spur,dc) unit= optional=no since=1.0
@@ -806,10 +803,10 @@ shape.SpurEventRow.slope type=f64 unit= optional=yes since=1.0
 shape.SpurEventRow.correlation type=f64 unit= optional=yes since=1.0
 shape.SpurEventRow.image_rejection_db type=f64 unit=dB optional=yes since=1.0
 shape.SpurEventRow.gain_mismatch_db type=f64 unit=dB optional=yes since=1.0
-shape.SpurEventRow.phase_mismatch_deg type=f64 unit=deg optional=yes since=1.0
+shape.SpurEventRow.phase_mismatch_deg type=f64 unit=° optional=yes since=1.0
 shape.SpurEventRow.dc_db type=f64 unit=dB optional=yes since=1.0
 shape.FadingFields since=1.0
-shape.FadingFields.k_db type=f64 unit=dB optional=yes since=1.0
+shape.FadingFields.k_db type=f64 unit=dB optional=yes reading=1 since=1.0
 shape.FadingFields.k type=f64 unit= optional=yes since=1.0
 shape.FadingFields.rayleigh type=bool unit= optional=yes since=1.0
 shape.FadingFields.p1_db type=f64 unit=dB optional=yes since=1.0
@@ -817,11 +814,11 @@ shape.FadingFields.p10_db type=f64 unit=dB optional=yes since=1.0
 shape.FadingFields.p50_db type=f64 unit=dB optional=yes since=1.0
 shape.FadingFields.p90_db type=f64 unit=dB optional=yes since=1.0
 shape.FadingFields.p99_db type=f64 unit=dB optional=yes since=1.0
-shape.FadingFields.fade_depth_db type=f64 unit=dB optional=yes since=1.0
-shape.FadingFields.s4 type=f64 unit= optional=yes since=1.0
-shape.FadingFields.fade_rate_hz type=f64 unit=1/s optional=yes since=1.0
+shape.FadingFields.fade_depth_db type=f64 unit=dB optional=yes reading=2 since=1.0
+shape.FadingFields.s4 type=f64 unit= optional=yes reading=3 since=1.0
+shape.FadingFields.fade_rate_hz type=f64 unit=1/s optional=yes reading=4 since=1.0
 shape.FadingFields.fade_length_ms type=f64 unit=ms optional=yes since=1.0
-shape.FadingFields.doppler_hz type=f64 unit=Hz optional=yes since=1.0
+shape.FadingFields.doppler_hz type=f64 unit=Hz optional=yes reading=5 since=1.0
 shape.FadingFields.cn0_dbhz type=f64 unit=dB-Hz optional=yes since=1.0
 shape.FadingFields.carrier_offset_hz type=hz unit=Hz optional=yes since=1.0
 shape.FadingFields.window_s type=duration unit=s optional=yes since=1.0
@@ -837,10 +834,10 @@ shape.FadingEventRow.fade_length_ms type=f64 unit=ms optional=yes since=1.0
 shape.FadingEventRow.doppler_hz type=f64 unit=Hz optional=yes since=1.0
 shape.FadingEventRow.cn0_dbhz type=f64 unit=dB-Hz optional=yes since=1.0
 shape.BeaconMonitorFields since=1.0
-shape.BeaconMonitorFields.class type=choice(none,steady,fading,aurora_like) unit= optional=no since=1.0
-shape.BeaconMonitorFields.level_db type=f64 unit=dB optional=yes since=1.0
-shape.BeaconMonitorFields.spread_hz type=f64 unit=Hz optional=yes since=1.0
-shape.BeaconMonitorFields.swing_db type=f64 unit=dB optional=yes since=1.0
+shape.BeaconMonitorFields.class type=choice(none,steady,fading,aurora_like) unit= optional=no reading=1 since=1.0
+shape.BeaconMonitorFields.level_db type=f64 unit=dB optional=yes reading=2 since=1.0
+shape.BeaconMonitorFields.spread_hz type=f64 unit=Hz optional=yes reading=3 since=1.0
+shape.BeaconMonitorFields.swing_db type=f64 unit=dB optional=yes reading=4 since=1.0
 shape.BeaconMonitorFields.line_offset_hz type=hz unit=Hz optional=yes since=1.0
 shape.BeaconMonitorFields.changes type=i64 unit= optional=no since=1.0
 shape.BeaconMonitorEventRow since=1.0
@@ -858,10 +855,10 @@ shape.BeaconMonitorChangeEvent.level_db type=f64 unit=dB optional=yes since=1.0
 shape.BeaconMonitorChangeEvent.spread_hz type=f64 unit=Hz optional=yes since=1.0
 shape.BeaconMonitorChangeEvent.swing_db type=f64 unit=dB optional=yes since=1.0
 fm_monitor since=1.0
-fm_monitor.content kind=measurement since=1.1
+fm_monitor.content kind=measurement since=1.0
 fm_monitor.fields.FmMonitorFields since=1.0
 fm_monitor.fields.DecoderFields since=1.0
-fm_monitor.table.log row=FmMonitorLogRow cap=500 label=identity since=1.0
+fm_monitor.table.log row=FmMonitorLogRow cap=500 label=identity role=log time=signal_time_s since=1.0
 fm_monitor.event.fm_monitor.pilot fields=FmMonitorPilotEvent since=1.0
 fm_monitor.event.fm_monitor.rds fields=FmMonitorRdsEvent since=1.0
 fm_monitor.event.fm_monitor.sca fields=FmMonitorScaEvent since=1.0
@@ -884,10 +881,10 @@ fm_monitor.setting.gen_rds_until_s type=f64 unit=s since=1.0
 fm_monitor.setting.gen_sca_from_s type=f64 unit=s since=1.0
 fm_monitor.command.clear args= reply= since=1.0
 am_monitor since=1.0
-am_monitor.content kind=measurement since=1.1
+am_monitor.content kind=measurement since=1.0
 am_monitor.fields.AmMonitorFields since=1.0
 am_monitor.fields.DecoderFields since=1.0
-am_monitor.table.log row=AmMonitorLogRow cap=500 label=identity since=1.0
+am_monitor.table.log row=AmMonitorLogRow cap=500 label=identity role=log time=signal_time_s since=1.0
 am_monitor.event.am_monitor.carrier fields=AmMonitorCarrierEvent since=1.0
 am_monitor.event.am_monitor.over_modulation fields=AmMonitorOverModulationEvent since=1.0
 am_monitor.setting.over_mod_share_pct type=f64 unit=% since=1.0
@@ -902,12 +899,12 @@ am_monitor.setting.gen_cut_until_s type=f64 unit=s since=1.0
 am_monitor.setting.gen_clip type=bool unit= since=1.0
 am_monitor.command.clear args= reply= since=1.0
 occupancy since=1.0
-occupancy.content kind=measurement since=1.1
+occupancy.content kind=measurement since=1.0
 occupancy.fields.WatchFields since=1.0
 occupancy.fields.OccupancyFields since=1.0
 occupancy.fields.DecoderFields since=1.0
 occupancy.table.channels row=OccupancyChannelRow cap=500 since=1.0
-occupancy.table.activity row=OccupancyActivityRow cap=500 since=1.0
+occupancy.table.activity row=OccupancyActivityRow cap=500 role=log time=time_s since=1.0
 occupancy.event.occupancy.activity fields=OccupancyActivityEvent since=1.0
 occupancy.setting.grid_khz type=f64 unit=kHz since=1.0
 occupancy.setting.on_db type=f64 unit=dB since=1.0
@@ -918,12 +915,12 @@ occupancy.setting.gen_tones type=text unit= since=1.0
 occupancy.command.clear args= reply= since=1.0
 occupancy.command.reset args= reply= since=1.0
 noise_floor since=1.0
-noise_floor.content kind=measurement since=1.1
+noise_floor.content kind=measurement since=1.0
 noise_floor.fields.WatchFields since=1.0
 noise_floor.fields.NoiseFloorFields since=1.0
 noise_floor.fields.DecoderFields since=1.0
 noise_floor.table.sub_bands row=NoiseFloorSubBandRow cap=64 since=1.0
-noise_floor.table.noise_events row=NoiseFloorEventRow cap=500 since=1.0
+noise_floor.table.noise_events row=NoiseFloorEventRow cap=500 role=log time=time_s since=1.0
 noise_floor.event.noise_floor.event fields=NoiseFloorEvent since=1.0
 noise_floor.setting.sub_bands type=i64 unit= since=1.0
 noise_floor.setting.rise_db type=f64 unit=dB since=1.0
@@ -940,11 +937,11 @@ noise_floor.setting.gen_tone_amp type=f64 unit= since=1.0
 noise_floor.command.clear args= reply= since=1.0
 noise_floor.command.reset args= reply= since=1.0
 burst_finder since=1.0
-burst_finder.content kind=measurement since=1.1
+burst_finder.content kind=measurement since=1.0
 burst_finder.fields.WatchFields since=1.0
 burst_finder.fields.BurstFinderFields since=1.0
 burst_finder.fields.DecoderFields since=1.0
-burst_finder.table.bursts row=BurstFinderBurstRow cap=500 since=1.0
+burst_finder.table.bursts row=BurstFinderBurstRow cap=500 role=log time=time_s since=1.0
 burst_finder.table.repeating row=BurstFinderRepeatingRow cap=64 since=1.0
 burst_finder.event.burst.found fields=BurstFoundEvent since=1.0
 burst_finder.event.burst.repeating fields=BurstRepeatingEvent since=1.0
@@ -956,11 +953,11 @@ burst_finder.setting.gen_bursts type=text unit= since=1.0
 burst_finder.command.clear args= reply= since=1.0
 burst_finder.command.reset args= reply= since=1.0
 hopper since=1.0
-hopper.content kind=measurement since=1.1
+hopper.content kind=measurement since=1.0
 hopper.fields.WatchFields since=1.0
 hopper.fields.HopperFields since=1.0
 hopper.fields.DecoderFields since=1.0
-hopper.table.hoppers row=HopperRow cap=500 since=1.0
+hopper.table.hoppers row=HopperRow cap=500 role=log time=time_s since=1.0
 hopper.event.hopper.changed fields=HopperChangedEvent since=1.0
 hopper.setting.present_db type=f64 unit=dB since=1.0
 hopper.setting.min_dwells type=i64 unit= since=1.0
@@ -975,12 +972,12 @@ hopper.setting.gen_fsk_bps type=f64 unit=bit/s since=1.0
 hopper.command.clear args= reply= since=1.0
 hopper.command.reset args= reply= since=1.0
 birdie since=1.0
-birdie.content kind=measurement since=1.1
+birdie.content kind=measurement since=1.0
 birdie.fields.WatchFields since=1.0
 birdie.fields.BirdieFields since=1.0
 birdie.fields.DecoderFields since=1.0
 birdie.table.carriers row=BirdieCarrierRow cap=200 sort=level_db:descending since=1.0
-birdie.table.carrier_events row=BirdieEventRow cap=500 since=1.0
+birdie.table.carrier_events row=BirdieEventRow cap=500 role=log time=time_s since=1.0
 birdie.event.birdie.event fields=BirdieEvent since=1.0
 birdie.setting.threshold_db type=f64 unit=dB since=1.0
 birdie.setting.presence_pct type=f64 unit=% since=1.0
@@ -993,11 +990,11 @@ birdie.setting.gen_fm_dev_hz type=f64 unit=Hz since=1.0
 birdie.command.clear args= reply= since=1.0
 birdie.command.reset args= reply= since=1.0
 obw since=1.0
-obw.content kind=measurement since=1.1
+obw.content kind=measurement since=1.0
 obw.fields.WatchFields since=1.0
 obw.fields.ObwFields since=1.0
 obw.fields.DecoderFields since=1.0
-obw.table.bandwidths row=ObwBandwidthRow cap=500 since=1.0
+obw.table.bandwidths row=ObwBandwidthRow cap=500 role=log time=time_s since=1.0
 obw.event.obw.reading fields=ObwReadingEvent since=1.0
 obw.setting.power_pct type=f64 unit=% since=1.0
 obw.setting.x_db type=f64 unit=dB since=1.0
@@ -1012,11 +1009,11 @@ obw.setting.gen_neighbour_offset type=f64 unit= since=1.0
 obw.command.clear args= reply= since=1.0
 obw.command.reset args= reply= since=1.0
 ptt_log since=1.0
-ptt_log.content kind=measurement since=1.1
+ptt_log.content kind=measurement since=1.0
 ptt_log.fields.WatchFields since=1.0
 ptt_log.fields.PttLogFields since=1.0
 ptt_log.fields.DecoderFields since=1.0
-ptt_log.table.transmissions row=PttLogTransmissionRow cap=500 since=1.0
+ptt_log.table.transmissions row=PttLogTransmissionRow cap=500 role=log time=start_s since=1.0
 ptt_log.event.ptt.transmission fields=PttTransmissionEvent since=1.0
 ptt_log.setting.channel_khz type=f64 unit=kHz since=1.0
 ptt_log.setting.on_db type=f64 unit=dB since=1.0
@@ -1030,12 +1027,12 @@ ptt_log.setting.gen_tone_hz type=f64 unit=Hz since=1.0
 ptt_log.command.clear args= reply= since=1.0
 ptt_log.command.reset args= reply= since=1.0
 noise_locator since=1.0
-noise_locator.content kind=measurement since=1.1
+noise_locator.content kind=measurement since=1.0
 noise_locator.fields.WatchFields since=1.0
 noise_locator.fields.NoiseLocatorFields since=1.0
 noise_locator.fields.DecoderFields since=1.0
 noise_locator.kept.patterns since=1.0
-noise_locator.table.patterns row=NoiseLocatorPatternRow cap=500 since=1.0
+noise_locator.table.patterns row=NoiseLocatorPatternRow cap=500 role=log time=time_s since=1.0
 noise_locator.event.noise_locator.pattern fields=NoiseLocatorPatternEvent since=1.0
 noise_locator.setting.mains_hz type=text unit=Hz since=1.0
 noise_locator.setting.sigmas type=f64 unit=sigma since=1.0
@@ -1054,12 +1051,12 @@ noise_locator.setting.gen_noise_sigma type=f64 unit= since=1.0
 noise_locator.command.clear args= reply= since=1.0
 noise_locator.command.reset args= reply= since=1.0
 freq_accuracy since=1.0
-freq_accuracy.content kind=measurement since=1.1
+freq_accuracy.content kind=measurement since=1.0
 freq_accuracy.fields.WatchFields since=1.0
 freq_accuracy.fields.FreqAccuracyFields since=1.0
 freq_accuracy.fields.DecoderFields since=1.0
 freq_accuracy.table.allan row=FreqAccuracyAllanRow cap=8 since=1.0
-freq_accuracy.table.events row=FreqAccuracyEventRow cap=500 since=1.0
+freq_accuracy.table.events row=FreqAccuracyEventRow cap=500 role=log time=time_s since=1.0
 freq_accuracy.event.freq_accuracy.event fields=FreqAccuracyEvent since=1.0
 freq_accuracy.setting.search_hz type=f64 unit=Hz since=1.0
 freq_accuracy.setting.present_db type=f64 unit=dB since=1.0
@@ -1073,11 +1070,11 @@ freq_accuracy.setting.gen_fm_hold_s type=f64 unit=s since=1.0
 freq_accuracy.command.clear args= reply= since=1.0
 freq_accuracy.command.reset args= reply= since=1.0
 sinad since=1.0
-sinad.content kind=measurement since=1.1
+sinad.content kind=measurement since=1.0
 sinad.fields.WatchFields since=1.0
 sinad.fields.SinadFields since=1.0
 sinad.fields.DecoderFields since=1.0
-sinad.table.events row=SinadEventRow cap=500 since=1.0
+sinad.table.events row=SinadEventRow cap=500 role=log time=time_s since=1.0
 sinad.event.sinad.crossing fields=SinadCrossingEvent since=1.0
 sinad.setting.band_lo_hz type=f64 unit=Hz since=1.0
 sinad.setting.band_hi_hz type=f64 unit=Hz since=1.0
@@ -1091,11 +1088,11 @@ sinad.setting.gen_deviation_after type=text unit= since=1.0
 sinad.command.clear args= reply= since=1.0
 sinad.command.reset args= reply= since=1.0
 nfm_meter since=1.0
-nfm_meter.content kind=measurement since=1.1
+nfm_meter.content kind=measurement since=1.0
 nfm_meter.fields.WatchFields since=1.0
 nfm_meter.fields.NfmMeterFields since=1.0
 nfm_meter.fields.DecoderFields since=1.0
-nfm_meter.table.events row=NfmMeterEventRow cap=500 since=1.0
+nfm_meter.table.events row=NfmMeterEventRow cap=500 role=log time=time_s since=1.0
 nfm_meter.setting.limit_narrow_hz type=f64 unit=Hz since=1.0
 nfm_meter.setting.limit_wide_hz type=f64 unit=Hz since=1.0
 nfm_meter.setting.peak_percentile type=f64 unit=% since=1.0
@@ -1107,11 +1104,11 @@ nfm_meter.setting.gen_ctcss_off_s type=f64 unit=s since=1.0
 nfm_meter.command.clear args= reply= since=1.0
 nfm_meter.command.reset args= reply= since=1.0
 tx_stability since=1.0
-tx_stability.content kind=measurement since=1.1
+tx_stability.content kind=measurement since=1.0
 tx_stability.fields.WatchFields since=1.0
 tx_stability.fields.TxStabilityFields since=1.0
 tx_stability.fields.DecoderFields since=1.0
-tx_stability.table.transmissions row=TxStabilityTransmissionRow cap=500 since=1.0
+tx_stability.table.transmissions row=TxStabilityTransmissionRow cap=500 role=log time=time_s since=1.0
 tx_stability.event.tx_stability.transmission fields=TxStabilityTransmissionEvent since=1.0
 tx_stability.setting.on_db type=f64 unit=dB since=1.0
 tx_stability.setting.off_db type=f64 unit=dB since=1.0
@@ -1128,11 +1125,11 @@ tx_stability.setting.gen_ramp_s type=f64 unit=s since=1.0
 tx_stability.command.clear args= reply= since=1.0
 tx_stability.command.reset args= reply= since=1.0
 ssb_test since=1.0
-ssb_test.content kind=measurement since=1.1
+ssb_test.content kind=measurement since=1.0
 ssb_test.fields.WatchFields since=1.0
 ssb_test.fields.SsbTestFields since=1.0
 ssb_test.fields.DecoderFields since=1.0
-ssb_test.table.events row=SsbTestEventRow cap=500 since=1.0
+ssb_test.table.events row=SsbTestEventRow cap=500 role=log time=time_s since=1.0
 ssb_test.setting.tone_min_hz type=f64 unit=Hz since=1.0
 ssb_test.setting.tone_max_hz type=f64 unit=Hz since=1.0
 ssb_test.setting.two_tone_db type=f64 unit=dB since=1.0
@@ -1143,11 +1140,11 @@ ssb_test.setting.gen_carrier_dbc type=f64 unit=dBc since=1.0
 ssb_test.command.clear args= reply= since=1.0
 ssb_test.command.reset args= reply= since=1.0
 afsk_tuner since=1.0
-afsk_tuner.content kind=measurement since=1.1
+afsk_tuner.content kind=measurement since=1.0
 afsk_tuner.fields.WatchFields since=1.0
 afsk_tuner.fields.AfskTunerFields since=1.0
 afsk_tuner.fields.DecoderFields since=1.0
-afsk_tuner.table.bursts row=AfskTunerBurstRow cap=500 since=1.0
+afsk_tuner.table.bursts row=AfskTunerBurstRow cap=500 role=log time=time_s since=1.0
 afsk_tuner.event.afsk_tuner.burst fields=AfskTunerBurstEvent since=1.0
 afsk_tuner.setting.mark_hz type=f64 unit=Hz since=1.0
 afsk_tuner.setting.space_hz type=f64 unit=Hz since=1.0
@@ -1163,12 +1160,12 @@ afsk_tuner.setting.gen_first_s type=f64 unit=s since=1.0
 afsk_tuner.command.clear args= reply= since=1.0
 afsk_tuner.command.reset args= reply= since=1.0
 phase_noise since=1.0
-phase_noise.content kind=measurement since=1.1
+phase_noise.content kind=measurement since=1.0
 phase_noise.fields.WatchFields since=1.0
 phase_noise.fields.PhaseNoiseFields since=1.0
 phase_noise.fields.DecoderFields since=1.0
 phase_noise.table.spurs row=PhaseNoiseSpurRow cap=6 sort=level_dbc:descending since=1.0
-phase_noise.table.events row=PhaseNoiseEventRow cap=500 since=1.0
+phase_noise.table.events row=PhaseNoiseEventRow cap=500 role=log time=time_s since=1.0
 phase_noise.setting.average_blocks type=i64 unit= since=1.0
 phase_noise.setting.spur_ratio_db type=f64 unit=dB since=1.0
 phase_noise.setting.jitter_lo_hz type=f64 unit=Hz since=1.0
@@ -1180,11 +1177,11 @@ phase_noise.setting.gen_spur_dbc type=f64 unit=dBc since=1.0
 phase_noise.command.clear args= reply= since=1.0
 phase_noise.command.reset args= reply= since=1.0
 cw_keying since=1.0
-cw_keying.content kind=measurement since=1.1
+cw_keying.content kind=measurement since=1.0
 cw_keying.fields.WatchFields since=1.0
 cw_keying.fields.CwKeyingFields since=1.0
 cw_keying.fields.DecoderFields since=1.0
-cw_keying.table.events row=CwKeyingEventRow cap=500 since=1.0
+cw_keying.table.events row=CwKeyingEventRow cap=500 role=log time=time_s since=1.0
 cw_keying.setting.search_hz type=f64 unit=Hz since=1.0
 cw_keying.setting.on_share type=f64 unit= since=1.0
 cw_keying.setting.off_share type=f64 unit= since=1.0
@@ -1204,12 +1201,12 @@ cw_keying.setting.gen_fade_db type=f64 unit=dB since=1.0
 cw_keying.command.clear args= reply= since=1.0
 cw_keying.command.reset args= reply= since=1.0
 fsk_analyser since=1.0
-fsk_analyser.content kind=measurement since=1.1
+fsk_analyser.content kind=measurement since=1.0
 fsk_analyser.fields.WatchFields since=1.0
 fsk_analyser.fields.FskAnalyserFields since=1.0
 fsk_analyser.fields.DecoderFields since=1.0
 fsk_analyser.table.level_freqs row=FskAnalyserLevelRow cap=4 since=1.0
-fsk_analyser.table.events row=FskAnalyserEventRow cap=500 since=1.0
+fsk_analyser.table.events row=FskAnalyserEventRow cap=500 role=log time=time_s since=1.0
 fsk_analyser.setting.block_s type=f64 unit=s since=1.0
 fsk_analyser.setting.min_baud type=f64 unit=Bd since=1.0
 fsk_analyser.setting.min_eye_db type=f64 unit=dB since=1.0
@@ -1220,11 +1217,11 @@ fsk_analyser.setting.gen_bt type=f64 unit= since=1.0
 fsk_analyser.command.clear args= reply= since=1.0
 fsk_analyser.command.reset args= reply= since=1.0
 mer since=1.0
-mer.content kind=measurement since=1.1
+mer.content kind=measurement since=1.0
 mer.fields.WatchFields since=1.0
 mer.fields.MerFields since=1.0
 mer.fields.DecoderFields since=1.0
-mer.table.events row=MerEventRow cap=500 since=1.0
+mer.table.events row=MerEventRow cap=500 role=log time=time_s since=1.0
 mer.setting.block_s type=f64 unit=s since=1.0
 mer.setting.min_baud type=f64 unit=Bd since=1.0
 mer.setting.min_mer_db type=f64 unit=dB since=1.0
@@ -1236,11 +1233,11 @@ mer.setting.gen_rotated type=bool unit= since=1.0
 mer.command.clear args= reply= since=1.0
 mer.command.reset args= reply= since=1.0
 papr since=1.0
-papr.content kind=measurement since=1.1
+papr.content kind=measurement since=1.0
 papr.fields.WatchFields since=1.0
 papr.fields.PaprFields since=1.0
 papr.fields.DecoderFields since=1.0
-papr.table.events row=PaprEventRow cap=500 since=1.0
+papr.table.events row=PaprEventRow cap=500 role=log time=time_s since=1.0
 papr.setting.keep_samples type=i64 unit= since=1.0
 papr.setting.every_blocks type=i64 unit= since=1.0
 papr.setting.gen_kind type=choice(noise,fm,qpsk,clipped_noise,noise_with_impulses) unit= since=1.0
@@ -1253,11 +1250,11 @@ papr.setting.gen_rolloff type=f64 unit= since=1.0
 papr.command.clear args= reply= since=1.0
 papr.command.reset args= reply= since=1.0
 input_health since=1.0
-input_health.content kind=measurement since=1.1
+input_health.content kind=measurement since=1.0
 input_health.fields.WatchFields since=1.0
 input_health.fields.InputHealthFields since=1.0
 input_health.fields.DecoderFields since=1.0
-input_health.table.events row=InputHealthEventRow cap=500 since=1.0
+input_health.table.events row=InputHealthEventRow cap=500 role=log time=time_s since=1.0
 input_health.setting.block_s type=f64 unit=s since=1.0
 input_health.setting.clip_level type=f64 unit= since=1.0
 input_health.setting.overload_ppm type=f64 unit=ppm since=1.0
@@ -1270,12 +1267,12 @@ input_health.setting.gen_scale type=f64 unit= since=1.0
 input_health.command.clear args= reply= since=1.0
 input_health.command.reset args= reply= since=1.0
 noise_figure since=1.0
-noise_figure.content kind=measurement since=1.1
+noise_figure.content kind=measurement since=1.0
 noise_figure.fields.WatchFields since=1.0
 noise_figure.fields.NoiseFigureFields since=1.0
 noise_figure.fields.DecoderFields since=1.0
 noise_figure.table.noise_figure row=NoiseFigureRow cap=32 since=1.0
-noise_figure.table.events row=NoiseFigureEventRow cap=500 since=1.0
+noise_figure.table.events row=NoiseFigureEventRow cap=500 role=log time=time_s since=1.0
 noise_figure.setting.enr_db type=text unit=dB since=1.0
 noise_figure.setting.agree_db type=f64 unit=dB since=1.0
 noise_figure.setting.step_db type=f64 unit=dB since=1.0
@@ -1287,12 +1284,12 @@ noise_figure.setting.gen_p0 type=f64 unit= since=1.0
 noise_figure.command.clear args= reply= since=1.0
 noise_figure.command.reset args= reply= since=1.0
 kurtosis since=1.0
-kurtosis.content kind=measurement since=1.1
+kurtosis.content kind=measurement since=1.0
 kurtosis.fields.WatchFields since=1.0
 kurtosis.fields.KurtosisFields since=1.0
 kurtosis.fields.DecoderFields since=1.0
 kurtosis.table.regions row=KurtosisRegionRow cap=8 since=1.0
-kurtosis.table.events row=KurtosisEventRow cap=500 since=1.0
+kurtosis.table.events row=KurtosisEventRow cap=500 role=log time=time_s since=1.0
 kurtosis.setting.fft type=i64 unit=points since=1.0
 kurtosis.setting.frames type=i64 unit= since=1.0
 kurtosis.setting.blocks type=i64 unit= since=1.0
@@ -1301,7 +1298,7 @@ kurtosis.setting.gen_tones type=text unit= since=1.0
 kurtosis.command.clear args= reply= since=1.0
 kurtosis.command.reset args= reply= since=1.0
 glitch since=1.0
-glitch.content kind=measurement since=1.1
+glitch.content kind=measurement since=1.0
 glitch.fields.WatchFields since=1.0
 glitch.fields.GlitchFields since=1.0
 glitch.fields.DecoderFields since=1.0
@@ -1311,7 +1308,7 @@ glitch.kept.GlitchFields.sample_repeats since=1.0
 glitch.kept.GlitchFields.zero_runs since=1.0
 glitch.kept.GlitchFields.repeated_blocks since=1.0
 glitch.kept.GlitchFields.level_steps since=1.0
-glitch.table.events row=GlitchEventRow cap=500 since=1.0
+glitch.table.events row=GlitchEventRow cap=500 role=log time=time_s since=1.0
 glitch.event.glitch.event fields=GlitchEvent since=1.0
 glitch.setting.zero_run type=i64 unit=samples since=1.0
 glitch.setting.block type=i64 unit=samples since=1.0
@@ -1326,13 +1323,13 @@ glitch.setting.gen_gain_steps type=text unit= since=1.0
 glitch.command.clear args= reply= since=1.0
 glitch.command.reset args= reply= since=1.0
 intermod since=1.0
-intermod.content kind=measurement since=1.1
+intermod.content kind=measurement since=1.0
 intermod.fields.WatchFields since=1.0
 intermod.fields.IntermodFields since=1.0
 intermod.fields.DecoderFields since=1.0
 intermod.table.inputs row=IntermodInputRow cap=16 since=1.0
 intermod.table.products row=IntermodProductRow cap=200 since=1.0
-intermod.table.events row=IntermodEventRow cap=500 since=1.0
+intermod.table.events row=IntermodEventRow cap=500 role=log time=time_s since=1.0
 intermod.event.intermod.product fields=IntermodProductEvent since=1.0
 intermod.setting.snapshot_s type=f64 unit=s since=1.0
 intermod.setting.peak_db type=f64 unit=dB since=1.0
@@ -1350,12 +1347,12 @@ intermod.setting.gen_extra_amp type=f64 unit= since=1.0
 intermod.command.clear args= reply= since=1.0
 intermod.command.reset args= reply= since=1.0
 spur since=1.0
-spur.content kind=measurement since=1.1
+spur.content kind=measurement since=1.0
 spur.fields.WatchFields since=1.0
 spur.fields.SpurFields since=1.0
 spur.fields.DecoderFields since=1.0
 spur.table.findings row=SpurFindingRow cap=200 since=1.0
-spur.table.events row=SpurEventRow cap=500 since=1.0
+spur.table.events row=SpurEventRow cap=500 role=log time=time_s since=1.0
 spur.setting.peak_db type=f64 unit=dB since=1.0
 spur.setting.dc_db type=f64 unit=dB since=1.0
 spur.setting.spur_grid type=i64 unit=1/n since=1.0
@@ -1375,11 +1372,11 @@ spur.setting.gen_shift_hz type=f64 unit=Hz since=1.0
 spur.command.clear args= reply= since=1.0
 spur.command.reset args= reply= since=1.0
 fading since=1.0
-fading.content kind=measurement since=1.1
+fading.content kind=measurement since=1.0
 fading.fields.WatchFields since=1.0
 fading.fields.FadingFields since=1.0
 fading.fields.DecoderFields since=1.0
-fading.table.events row=FadingEventRow cap=500 since=1.0
+fading.table.events row=FadingEventRow cap=500 role=log time=time_s since=1.0
 fading.setting.window_s type=f64 unit=s since=1.0
 fading.setting.first_s type=f64 unit=s since=1.0
 fading.setting.fade_db type=f64 unit=dB since=1.0
@@ -1391,11 +1388,11 @@ fading.setting.gen_off type=text unit= since=1.0
 fading.command.clear args= reply= since=1.0
 fading.command.reset args= reply= since=1.0
 beacon_monitor since=1.0
-beacon_monitor.content kind=measurement since=1.1
+beacon_monitor.content kind=measurement since=1.0
 beacon_monitor.fields.WatchFields since=1.0
 beacon_monitor.fields.BeaconMonitorFields since=1.0
 beacon_monitor.fields.DecoderFields since=1.0
-beacon_monitor.table.events row=BeaconMonitorEventRow cap=500 since=1.0
+beacon_monitor.table.events row=BeaconMonitorEventRow cap=500 role=log time=time_s since=1.0
 beacon_monitor.event.beacon_monitor.change fields=BeaconMonitorChangeEvent since=1.0
 beacon_monitor.setting.present_db type=f64 unit=dB since=1.0
 beacon_monitor.setting.aurora_hz type=f64 unit=Hz since=1.0

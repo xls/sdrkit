@@ -81,6 +81,14 @@ public struct Declaration: Equatable, Sendable {
     /// What the setting chooses, if it states it. A front end finds the setting that chooses the view of the picture
     /// by this member and not by the key. Settings only.
     public var role: SettingRole? = nil
+    /// With `refersTable`: the key of the column of that table that holds the value to pass, or empty. Empty: the
+    /// value is a row key of the table. With a column, a front end offers the rows of the table and passes the cell
+    /// of this column of the chosen row; other values stay valid (the addressee of a send command). Arguments and
+    /// settings.
+    public var refersColumn: String = ""
+    /// The place of the field among the key readings of its object, from 1: what a person looks at first. `nil` for
+    /// a field that is no key reading. Result fields only.
+    public var reading: Int? = nil
 
     /// What a setting chooses.
     public enum SettingRole: Int32, Sendable {
@@ -121,6 +129,8 @@ public struct Declaration: Equatable, Sendable {
         content = Content(rawValue: d.content) ?? .none
         fourCC = fourCCString(d.fourcc)
         role = SettingRole(rawValue: d.role)
+        refersColumn = copy(d.refers_column)
+        reading = d.reading == 0 ? nil : Int(d.reading)
     }
 }
 
@@ -184,6 +194,8 @@ public enum TableRole: Int32, Sendable {
     case nodes = 3
     /// Each row is a group that stations talk in: a talkgroup, a channel, a net.
     case groups = 4
+    /// Each row is a frame, a packet or a report that arrived: a running log. An object can have several.
+    case log = 5
 }
 
 /// The columns of a table that hold the parts of a message or a call, each by its id. A column that the table does
@@ -198,6 +210,14 @@ public struct TableMessage: Equatable, Sendable {
     /// The column that holds the time of the row: a column of the time kind, or a number of seconds of signal with
     /// the unit `s`.
     public var time: UInt32? = nil
+    /// The bool column that is true for a message that this station sent. Without it, in a table with a `delivery`
+    /// column, a row with a delivery state is an own message.
+    public var own: UInt32? = nil
+    /// The column of the delivery state of an own message: an enum that has no value in the row of a received
+    /// message.
+    public var delivery: UInt32? = nil
+    /// The column of the reason of a failed delivery, as text for people.
+    public var failure: UInt32? = nil
 }
 
 /// The default order of the rows of a table.

@@ -412,7 +412,7 @@ const BYTE_SEQUENCE: CatalogueSetting = CatalogueSetting {
 const PERIOD: Setting<field::I64> = Setting::new("period", "Period", "packets", 1)
     .range(1.0, 1e6, 1.0)
     .help("Packets per run of the sequence. It starts again with each run.");
-const SKIP: Setting<field::I64> = Setting::new("skip", "Skip", "bytes", 0)
+const SKIP: Setting<field::I64> = Setting::new("skip", "Skip", "B", 0)
     .range(0.0, 65536.0, 1.0)
     .help("Leading bytes of each packet left as they are (a sync byte).");
 

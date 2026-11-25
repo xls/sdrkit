@@ -11,7 +11,7 @@ use sdrkit_stack_meter::noise_locator::gen::{
 use sdrkit_stack_meter::noise_locator::DESCRIPTOR;
 use sdrkit_stack_meter::typed::{
     NoiseLocatorChange, NoiseLocatorClass, NoiseLocatorFields, NoiseLocatorPatternEvent,
-    WatchFields, NOISE_LOCATOR_PATTERN,
+    NOISE_LOCATOR_PATTERN,
 };
 
 const CENTRE: f64 = 7.1e6;
@@ -100,10 +100,7 @@ fn poisson_impulses_have_no_repetition() {
             .set(&GEN_RANDOM_DB, 14.0);
         let r = run(hh, 250e3, 25.0, seed);
         assert!(rows(&r).is_empty(), "seed {seed}: {:?}", rows(&r));
-        let text = WatchFields::read(r.results.fields())
-            .unwrap()
-            .text
-            .to_string();
+        let text = &r.results.status().summary;
         assert!(text.contains("without a repetition"), "seed {seed}: {text}");
     }
 }

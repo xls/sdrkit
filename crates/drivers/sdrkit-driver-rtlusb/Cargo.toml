@@ -1,0 +1,18 @@
+[package]
+name = "sdrkit-driver-rtlusb"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "USB driver for RTL2832U dongles with R820T, R820T2, R828D and E4000 tuners"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-driver-core = { path = "../sdrkit-driver-core" }
+sdrkit-driver-usb = { path = "../sdrkit-driver-usb" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+thiserror.workspace = true
+
+[dev-dependencies]
+sdrkit-driver-usb = { path = "../sdrkit-driver-usb", features = ["fake", "nusb"] }
+sdrkit-algo-dsp = { path = "../../algo/sdrkit-algo-dsp" }

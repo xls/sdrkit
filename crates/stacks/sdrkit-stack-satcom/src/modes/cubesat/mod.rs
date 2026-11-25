@@ -348,7 +348,7 @@ pub const SEARCH: Setting<field::Choice<Search>> =
     Setting::choice("search", "Search", Search::Table);
 /// The length of a CCSDS frame.
 pub const CCSDS_LENGTH: Setting<field::I64> =
-    Setting::new("ccsds_length", "CCSDS code length", "bytes", 255).range(33.0, 255.0, 1.0);
+    Setting::new("ccsds_length", "CCSDS code length", "B", 255).range(33.0, 255.0, 1.0);
 /// The most carriers the smart search follows.
 pub const MAX_CHANNELS: Setting<field::I64> =
     Setting::new("smart.max_channels", "Carriers followed", "", 4).range(1.0, 16.0, 1.0);
@@ -436,7 +436,7 @@ pub const CCSDS_BASIS: Setting<field::Choice<RsBasis>> =
     Setting::choice("ccsds_basis", "CCSDS RS basis", RsBasis::Dual);
 /// The data bytes of a CCSDS concatenated frame.
 pub const CONCAT_FRAME_BYTES: Setting<field::I64> =
-    Setting::new("concat.frame_bytes", "CCSDS concatenated frame size", "bytes", 223)
+    Setting::new("concat.frame_bytes", "CCSDS concatenated frame size", "B", 223)
         .range(1.0, 1784.0, 1.0)
         .help("Data bytes, check bytes not included: a multiple of the interleave, at most 223 for each code word.");
 /// The interleave of a CCSDS concatenated frame.

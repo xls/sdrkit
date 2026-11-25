@@ -52,7 +52,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `state` | State | whole number |
 | `carrier` | Carrier | yes or no |
 | `buzzes` | Buzzes | whole number |
-| `rate_per_min` | Buzz rate | number (/min) |
+| `rate_per_min` | Buzz rate | number (1/min) |
 | `buzz_s` | Buzz length | duration (s) |
 | `period_s` | Period | duration (s) |
 | `spread_ms` | Period spread | number (ms) |
@@ -82,9 +82,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.7. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 2.0. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Measurement and analysis (`measurement`). Media: none.
+
+Key readings: `carrier`, `rate_per_min`, `buzz_s`, `period_s`.
 
 ### Result fields
 
@@ -96,7 +98,7 @@ Struct `Uvb76Fields`. The result fields of the UVB-76 buzzer monitor. The measur
 | `state` | whole number | always | 1.0 | The state: 0 no carrier, 1 carrier, 2 buzz train locked. |
 | `carrier` | yes or no | always | 1.0 | A carrier is in the channel. |
 | `buzzes` | whole number | always | 1.0 | Buzzes heard. |
-| `rate_per_min` | number (/min) | optional | 1.0 | The buzz rate, 60 over the median period. |
+| `rate_per_min` | number (1/min) | optional | 1.0 | The buzz rate, 60 over the median period. |
 | `buzz_s` | duration (s) | optional | 1.0 | The median buzz length. |
 | `period_s` | duration (s) | optional | 1.0 | The median period. |
 | `spread_ms` | number (ms) | optional | 1.0 | The median distance of the periods from their median. |
@@ -124,7 +126,7 @@ Struct `SenderRow`. A row of a number-sender stack: one thing read. The row key 
 | `text` | text | always | 1.0 | What was read. |
 | `snr` | number (dB) | optional | 1.0 | The SNR in 3 kHz of the last fit of the tones. Absent without a fit. |
 
-The column `id` names a row.
+The rows are a log: they arrive over time. The column `id` names a row. Time: `time`.
 
 ### Event `uvb76.event`
 

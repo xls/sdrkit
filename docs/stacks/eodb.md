@@ -54,6 +54,12 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:eo
 | `satellites` | Satellite list | text | `links/xband_downlinks.csv` |  | A file in the host's storage with the satellites of each link and their spacecraft ids (data/links/xband_downlinks.csv). Empty: no satellite names. |
 | `avhrr_calibration` | AVHRR calibration | text | `satimg/avhrr_calibration.csv` |  | A file in the host's storage with the AVHRR calibration coefficients of each satellite (data/satimg/avhrr_calibration.csv). Empty: no temperature products. |
 
+Advanced settings. The owner works without any of them set.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `pass_gap` | Pass end | number (s) | 60 | 1 to 3600 | After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture. |
+
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
 | Key | Label | Kind | Default | Range or options | Help |
@@ -125,9 +131,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
+
+Key readings: `frame_lock`, `snr_db`, `frames_ok`, `frames_bad`.
 
 ### Result fields
 
@@ -197,7 +205,7 @@ Struct `FrameRow`. A frame of a stack that lists frames. The row key is the plac
 | `check` | text | always | 1.0 | The check of a frame: good, check failed, or none. |
 | `hex` | text | always | 1.0 | The first 24 bytes of a frame after decoding. |
 
-The column `hex` names a row.
+The rows are a log: they arrive over time. The column `hex` names a row. Time: `time`.
 
 ### Table `virtual_channels`
 
@@ -224,6 +232,7 @@ Struct `VirtualChannelRow`. The frames of one virtual channel. The row key is th
 | `roll_off` | `sdrkit_eodb_get_roll_off` | `sdrkit_eodb_set_roll_off` |
 | `satellites` | `sdrkit_eodb_get_satellites` | `sdrkit_eodb_set_satellites` |
 | `avhrr_calibration` | `sdrkit_eodb_get_avhrr_calibration` | `sdrkit_eodb_set_avhrr_calibration` |
+| `pass_gap` | `sdrkit_eodb_get_pass_gap` | `sdrkit_eodb_set_pass_gap` |
 
 ### Settings of the test signal generator
 

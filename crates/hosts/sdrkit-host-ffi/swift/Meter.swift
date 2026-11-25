@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "meter", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "meter", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum MeterInterface {
-    public static let major = 1
-    public static let minor = 1
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of `fm_monitor`, measured once a second from the FM-demodulated multiplex (MPX).
@@ -16,8 +16,6 @@ public struct FmMonitorFields {
         case inRange = 1
         case outside = 2
     }
-    /// The headline: stereo or mono, the peak, the pilot and RDS levels.
-    public var text: String
     /// The peak deviation of the last second: the largest third-largest excursion of its 5 ms blocks.
     public var peakDeviationKhz: Double?
     /// The RMS deviation.
@@ -56,7 +54,6 @@ public struct FmMonitorFields {
     public var note: String
 
     init(_ c: sdrkit_fm_monitor_fields) {
-        text = sdrkitText(c.text)
         peakDeviationKhz = c.has_peak_deviation_khz ? c.peak_deviation_khz : nil
         rmsDeviationKhz = c.has_rms_deviation_khz ? c.rms_deviation_khz : nil
         mpxPowerDbr = c.has_mpx_power_dbr ? c.mpx_power_dbr : nil
@@ -126,8 +123,6 @@ public struct FmMonitorLogRow {
 
 /// The result fields of `am_monitor`, measured once a second. The measurements have no value while the carrier test fails.
 public struct AmMonitorFields {
-    /// The headline: the offset, the modulation, the peaks and the audio bandwidth, or "no carrier".
-    public var text: String
     /// The carrier offset: a tuning or station error.
     public var carrierOffsetHz: Double?
     /// The carrier level, relative to full scale.
@@ -156,7 +151,6 @@ public struct AmMonitorFields {
     public var note: String
 
     init(_ c: sdrkit_am_monitor_fields) {
-        text = sdrkitText(c.text)
         carrierOffsetHz = c.has_carrier_offset_hz ? c.carrier_offset_hz : nil
         carrierDb = c.has_carrier_db ? c.carrier_db : nil
         depthPct = c.has_depth_pct ? c.depth_pct : nil
@@ -202,15 +196,13 @@ public struct AmMonitorLogRow {
     }
 }
 
-/// The status of a spectrum watcher: the headline, the state, the counts of readings and the input level.
+/// The status of a spectrum watcher: the state, the counts of readings and the input level. The headline is the summary of the status.
 public struct MeterWatchFields {
     public enum State: Int32 {
         case nothing = 0
         case energy = 1
         case measuring = 2
     }
-    /// The headline.
-    public var text: String
     /// The state.
     public var state: State?
     /// The good readings: what the stack counts as a measurement.
@@ -223,7 +215,6 @@ public struct MeterWatchFields {
     public var note: String
 
     init(_ c: sdrkit_meter_watch_fields) {
-        text = sdrkitText(c.text)
         state = State(rawValue: c.state)
         good = c.good
         bad = c.bad
@@ -3898,7 +3889,9 @@ public struct BeaconMonitorChangeEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum MeterTables {
     /// The changed rows of the table "log" of the stack "fm_monitor", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `identity` names a row.
+    /// Time: `signal_time_s`.
     public static func fmMonitorLog(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[FmMonitorLogRow], SDRKitCode> {
         var rows = [sdrkit_fm_monitor_log_row](repeating: sdrkit_fm_monitor_log_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3907,7 +3900,9 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FmMonitorLogRow.init))
     }
     /// The changed rows of the table "log" of the stack "am_monitor", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `identity` names a row.
+    /// Time: `signal_time_s`.
     public static func amMonitorLog(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[AmMonitorLogRow], SDRKitCode> {
         var rows = [sdrkit_am_monitor_log_row](repeating: sdrkit_am_monitor_log_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3924,6 +3919,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(OccupancyChannelRow.init))
     }
     /// The changed rows of the table "activity" of the stack "occupancy", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func occupancyActivity(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[OccupancyActivityRow], SDRKitCode> {
         var rows = [sdrkit_occupancy_activity_row](repeating: sdrkit_occupancy_activity_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3940,6 +3937,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NoiseFloorSubBandRow.init))
     }
     /// The changed rows of the table "noise_events" of the stack "noise_floor", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func noiseFloorNoiseEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[NoiseFloorEventRow], SDRKitCode> {
         var rows = [sdrkit_noise_floor_event_row](repeating: sdrkit_noise_floor_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3948,6 +3947,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NoiseFloorEventRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "burst_finder", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func burstFinderBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[BurstFinderBurstRow], SDRKitCode> {
         var rows = [sdrkit_burst_finder_burst_row](repeating: sdrkit_burst_finder_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3964,6 +3965,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BurstFinderRepeatingRow.init))
     }
     /// The changed rows of the table "hoppers" of the stack "hopper", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func hopperHoppers(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HopperRow], SDRKitCode> {
         var rows = [sdrkit_hopper_row](repeating: sdrkit_hopper_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3981,6 +3984,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BirdieCarrierRow.init))
     }
     /// The changed rows of the table "carrier_events" of the stack "birdie", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func birdieCarrierEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[BirdieEventRow], SDRKitCode> {
         var rows = [sdrkit_birdie_event_row](repeating: sdrkit_birdie_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3989,6 +3994,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BirdieEventRow.init))
     }
     /// The changed rows of the table "bandwidths" of the stack "obw", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func obwBandwidths(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[ObwBandwidthRow], SDRKitCode> {
         var rows = [sdrkit_obw_bandwidth_row](repeating: sdrkit_obw_bandwidth_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3997,6 +4004,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ObwBandwidthRow.init))
     }
     /// The changed rows of the table "transmissions" of the stack "ptt_log", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `start_s`.
     public static func pttLogTransmissions(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[PttLogTransmissionRow], SDRKitCode> {
         var rows = [sdrkit_ptt_log_transmission_row](repeating: sdrkit_ptt_log_transmission_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4005,6 +4014,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(PttLogTransmissionRow.init))
     }
     /// The changed rows of the table "patterns" of the stack "noise_locator", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func noiseLocatorPatterns(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[NoiseLocatorPatternRow], SDRKitCode> {
         var rows = [sdrkit_noise_locator_pattern_row](repeating: sdrkit_noise_locator_pattern_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4021,6 +4032,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FreqAccuracyAllanRow.init))
     }
     /// The changed rows of the table "events" of the stack "freq_accuracy", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func freqAccuracyEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[FreqAccuracyEventRow], SDRKitCode> {
         var rows = [sdrkit_freq_accuracy_event_row](repeating: sdrkit_freq_accuracy_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4029,6 +4042,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FreqAccuracyEventRow.init))
     }
     /// The changed rows of the table "events" of the stack "sinad", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func sinadEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[SinadEventRow], SDRKitCode> {
         var rows = [sdrkit_sinad_event_row](repeating: sdrkit_sinad_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4037,6 +4052,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SinadEventRow.init))
     }
     /// The changed rows of the table "events" of the stack "nfm_meter", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func nfmMeterEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[NfmMeterEventRow], SDRKitCode> {
         var rows = [sdrkit_nfm_meter_event_row](repeating: sdrkit_nfm_meter_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4045,6 +4062,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NfmMeterEventRow.init))
     }
     /// The changed rows of the table "transmissions" of the stack "tx_stability", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func txStabilityTransmissions(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[TxStabilityTransmissionRow], SDRKitCode> {
         var rows = [sdrkit_tx_stability_transmission_row](repeating: sdrkit_tx_stability_transmission_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4053,6 +4072,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(TxStabilityTransmissionRow.init))
     }
     /// The changed rows of the table "events" of the stack "ssb_test", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func ssbTestEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[SsbTestEventRow], SDRKitCode> {
         var rows = [sdrkit_ssb_test_event_row](repeating: sdrkit_ssb_test_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4061,6 +4082,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SsbTestEventRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "afsk_tuner", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func afskTunerBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[AfskTunerBurstRow], SDRKitCode> {
         var rows = [sdrkit_afsk_tuner_burst_row](repeating: sdrkit_afsk_tuner_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4078,6 +4101,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(PhaseNoiseSpurRow.init))
     }
     /// The changed rows of the table "events" of the stack "phase_noise", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func phaseNoiseEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[PhaseNoiseEventRow], SDRKitCode> {
         var rows = [sdrkit_phase_noise_event_row](repeating: sdrkit_phase_noise_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4086,6 +4111,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(PhaseNoiseEventRow.init))
     }
     /// The changed rows of the table "events" of the stack "cw_keying", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func cwKeyingEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[CwKeyingEventRow], SDRKitCode> {
         var rows = [sdrkit_cw_keying_event_row](repeating: sdrkit_cw_keying_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4102,6 +4129,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FskAnalyserLevelRow.init))
     }
     /// The changed rows of the table "events" of the stack "fsk_analyser", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func fskAnalyserEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[FskAnalyserEventRow], SDRKitCode> {
         var rows = [sdrkit_fsk_analyser_event_row](repeating: sdrkit_fsk_analyser_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4110,6 +4139,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FskAnalyserEventRow.init))
     }
     /// The changed rows of the table "events" of the stack "mer", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func merEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[MerEventRow], SDRKitCode> {
         var rows = [sdrkit_mer_event_row](repeating: sdrkit_mer_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4118,6 +4149,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MerEventRow.init))
     }
     /// The changed rows of the table "events" of the stack "papr", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func paprEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[PaprEventRow], SDRKitCode> {
         var rows = [sdrkit_papr_event_row](repeating: sdrkit_papr_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4126,6 +4159,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(PaprEventRow.init))
     }
     /// The changed rows of the table "events" of the stack "input_health", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func inputHealthEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[InputHealthEventRow], SDRKitCode> {
         var rows = [sdrkit_input_health_event_row](repeating: sdrkit_input_health_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4142,6 +4177,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NoiseFigureRow.init))
     }
     /// The changed rows of the table "events" of the stack "noise_figure", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func noiseFigureEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[NoiseFigureEventRow], SDRKitCode> {
         var rows = [sdrkit_noise_figure_event_row](repeating: sdrkit_noise_figure_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4158,6 +4195,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(KurtosisRegionRow.init))
     }
     /// The changed rows of the table "events" of the stack "kurtosis", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func kurtosisEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[KurtosisEventRow], SDRKitCode> {
         var rows = [sdrkit_kurtosis_event_row](repeating: sdrkit_kurtosis_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4166,6 +4205,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(KurtosisEventRow.init))
     }
     /// The changed rows of the table "events" of the stack "glitch", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func glitchEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[GlitchEventRow], SDRKitCode> {
         var rows = [sdrkit_glitch_event_row](repeating: sdrkit_glitch_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4190,6 +4231,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(IntermodProductRow.init))
     }
     /// The changed rows of the table "events" of the stack "intermod", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func intermodEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[IntermodEventRow], SDRKitCode> {
         var rows = [sdrkit_intermod_event_row](repeating: sdrkit_intermod_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4206,6 +4249,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SpurFindingRow.init))
     }
     /// The changed rows of the table "events" of the stack "spur", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func spurEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[SpurEventRow], SDRKitCode> {
         var rows = [sdrkit_spur_event_row](repeating: sdrkit_spur_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4214,6 +4259,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SpurEventRow.init))
     }
     /// The changed rows of the table "events" of the stack "fading", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func fadingEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[FadingEventRow], SDRKitCode> {
         var rows = [sdrkit_fading_event_row](repeating: sdrkit_fading_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4222,6 +4269,8 @@ public enum MeterTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(FadingEventRow.init))
     }
     /// The changed rows of the table "events" of the stack "beacon_monitor", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func beaconMonitorEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[BeaconMonitorEventRow], SDRKitCode> {
         var rows = [sdrkit_beacon_monitor_event_row](repeating: sdrkit_beacon_monitor_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized

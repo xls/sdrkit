@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "avdata", version 1.4. MIT licence.
+// sdrkit: the typed interface of the stack family "avdata", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum AvdataInterface {
-    public static let major = 1
-    public static let minor = 4
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of ACARS.
@@ -2052,6 +2052,8 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Vdl3BurstRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "gbas_vdb", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func gbasVdbBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[GbasVdbBurstRow], SDRKitCode> {
         var rows = [sdrkit_gbas_vdb_burst_row](repeating: sdrkit_gbas_vdb_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2060,6 +2062,8 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GbasVdbBurstRow.init))
     }
     /// The changed rows of the table "detections" of the stack "ldacs", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func ldacsDetections(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[AvdataOfdmShapeDetectionRow], SDRKitCode> {
         var rows = [sdrkit_avdata_ofdm_shape_detection_row](repeating: sdrkit_avdata_ofdm_shape_detection_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2068,6 +2072,8 @@ public enum AvdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AvdataOfdmShapeDetectionRow.init))
     }
     /// The changed rows of the table "detections" of the stack "aeromacs", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func aeromacsDetections(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[AvdataOfdmShapeDetectionRow], SDRKitCode> {
         var rows = [sdrkit_avdata_ofdm_shape_detection_row](repeating: sdrkit_avdata_ofdm_shape_detection_row(), count: capacity)
         var info = sdrkit_rows_info.sized

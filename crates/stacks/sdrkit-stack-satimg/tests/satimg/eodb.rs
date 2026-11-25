@@ -352,7 +352,7 @@ fn live_samples_keep_the_reports_and_the_carrier() {
     use sdrkit_stack_satimg::components::table::TableReport;
     let rate = 3e6;
     let h = impaired(
-        Harness::new(&DESCRIPTOR).submode("saral_l").rate(rate).seconds(1.6),
+        Harness::new(&DESCRIPTOR).submode("saral_l").rate(rate).seconds(1.65),
         Some(12.0),
         3000.0,
         0.0,
@@ -390,6 +390,20 @@ fn live_samples_keep_the_reports_and_the_carrier() {
         }
     }
     assert!(count >= 12, "{count} reports");
-    assert!(good as f64 >= 0.8 * recorded, "{good} good frames in the reports for {recorded}");
+    // The frame table works on a helper thread, which can lag behind the feed: its pool is shared with every test of the
+    // program. The end of the input waits for the helper. The input ends 0.05 s into a clock period, so the end gives one
+    // more report, and it counts every frame.
+    out.clear();
+    rx.finish(&mut out);
+    let mut last = 0;
+    while reports.pop(&mut buf) {
+        if let Data::Items(Some(v)) = &buf.data {
+            for r in v.as_any().downcast_ref::<Vec<Timed<TableReport>>>().into_iter().flatten() {
+                assert!(r.value.stats.good >= good, "the count fell from {good} to {}", r.value.stats.good);
+                last = r.value.stats.good;
+            }
+        }
+    }
+    assert!(last as f64 >= 0.8 * recorded, "{last} good frames in the last report for {recorded}");
     assert_eq!(opens, 1);
 }

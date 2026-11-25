@@ -28,7 +28,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:cw
 |---|---|---|---|---|---|
 | `threshold` | Threshold | number (dB) | 10 | 6 to 24 | How far above the noise floor a carrier must be to be decoded. |
 | `decoder` | Timing decoder | choice | `adaptive` | `adaptive` (Adaptive), `classic` (Clustering) |  |
-| `wpm` | Speed | number (WPM) | 0 | 0 to 50 | 0 finds the speed by itself. 5 to 50 fixes it. |
+| `wpm` | Speed | number (wpm) | 0 | 0 to 50 | 0 finds the speed by itself. 5 to 50 fixes it. |
 | `filter` | Filter width | choice | `100hz` | `50hz` (50 Hz), `100hz` (100 Hz), `250hz` (250 Hz), `500hz` (500 Hz) | The channel filter of each carrier. 50 Hz is the most sensitive and passes keying up to 20 WPM, 100 Hz up to 40 WPM, 250 and 500 Hz up to 60 WPM. |
 | `listen` | Listen | choice | `off` | `off` (Off), `tone` (Rebuilt tone), `signal` (Real signal) | Off is silence. Tone is a clean tone at the pitch keyed as the signal listened to, and silence while there is none, as there is no key to rebuild. Signal is the signal listened to through its filter at the pitch, and the dial through the filter while there is none. The signal listened to is the focus, else the strongest signal in the table. |
 | `pitch` | Pitch | frequency | 700 Hz | 400 Hz to 1 kHz | The audio frequency of the signal listened to, and of a carrier at the dial. |
@@ -42,11 +42,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|---|
 | `gen_message` | Test text | text | empty |  | The text that the test signal sends. Empty: the stack's own test text. |
 | `gen_carrier_hz` | Carrier | frequency | 400 Hz | -96 kHz to 96 kHz |  |
-| `gen_wpm` | Speed | number (WPM) | 20 | 5 to 60 |  |
-| `gen_farnsworth_wpm` | Farnsworth speed | number (WPM) | 0 | 0 to 60 |  |
+| `gen_wpm` | Speed | number (wpm) | 20 | 5 to 60 |  |
+| `gen_farnsworth_wpm` | Farnsworth speed | number (wpm) | 0 | 0 to 60 |  |
 | `gen_jitter` | Jitter | number | 0 | 0 to 0.5 |  |
 | `gen_signals` | Carriers | whole number | 0 | 0 to 100 | 0: the default test signal. 1 to 100: carriers spread evenly over the span, each with its own call sign. |
-| `gen_wpm_max` | Top speed | number (WPM) | 0 | 0 to 60 | With several carriers, the speeds step from the speed up to this (0: all at the speed). |
+| `gen_wpm_max` | Top speed | number (wpm) | 0 | 0 to 60 | With several carriers, the speeds step from the speed up to this (0: all at the speed). |
 | `gen_level_spread_db` | Level spread | number (dB) | 0 | 0 to 40 | With several carriers, the levels step down evenly over this many dB. |
 | `gen_noise_only` | Noise only | yes or no | false |  | No carrier: only the noise of the test signal settings, as loud as with the carriers. |
 
@@ -66,7 +66,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `char_gap` | Character gap | number (dots) |
 | `word_gap` | Word gap | number (dots) |
 | `steadiness_pct` | Steadiness | number (%) |
-| `wpm` | Speed | number (WPM) |
+| `wpm` | Speed | number (wpm) |
 | `signals` | Signals | whole number |
 | `now_s` | Now | number (s) |
 | `listened` | Listened to | whole number |
@@ -79,7 +79,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `stations` | Stations heard | `callsign` (text), `freq_hz` (frequency), `snr_db` (number (dB)), `heard` (whole number), `last_heard` (time) |
-| `signals` | Signals | `id` (whole number), `offset_hz` (frequency), `wpm` (number (WPM)), `snr_db` (number (dB)), `key_down` (yes or no), `locked` (yes or no), `farnsworth` (yes or no), `manual` (yes or no), `first_s` (number (s)), `last_s` (number (s)), `characters` (whole number), `text` (text), `confidence` (text), `alternatives` (text), `gone` (yes or no), `errors` (whole number), `freq_hz` (frequency), `level_dbfs` (number (dBFS)) |
+| `signals` | Signals | `id` (whole number), `offset_hz` (frequency), `wpm` (number (wpm)), `snr_db` (number (dB)), `key_down` (yes or no), `locked` (yes or no), `farnsworth` (yes or no), `manual` (yes or no), `first_s` (number (s)), `last_s` (number (s)), `characters` (whole number), `text` (text), `confidence` (text), `alternatives` (text), `gone` (yes or no), `errors` (whole number), `freq_hz` (frequency), `level_dbfs` (number (dBFS)) |
 
 ## Result series
 
@@ -106,9 +106,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfkbd`, version 2.10. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfkbd`, version 3.0. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Keyboard text (`text_chat`). Media: sound (monitor), text.
+
+Key readings: `wpm`.
 
 ### Result fields
 
@@ -125,7 +127,7 @@ Struct `CwFields`. The result fields of the CW skimmer. The fields of the sender
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `span_hz` | frequency | always | 2.0 | The width of the band watched, centred on the dial. |
+| `span_hz` | frequency | always | 1.0 | The width of the band watched, centred on the dial. |
 | `floor_db` | number (dB) | always | 1.0 | The noise floor of the window. |
 | `focus` | whole number | optional | 1.0 | The id of the signal in focus, if one is. |
 | `characters` | whole number | always | 1.0 | Characters decoded. |
@@ -135,12 +137,12 @@ Struct `CwFields`. The result fields of the CW skimmer. The fields of the sender
 | `char_gap` | number (dots) | optional | 1.0 | Its character gap. |
 | `word_gap` | number (dots) | optional | 1.0 | Its word gap. |
 | `steadiness_pct` | number (%) | optional | 1.0 | How steady its keying is. |
-| `wpm` | number (WPM) | optional | 1.0 | Its speed. |
-| `signals` | whole number | always | 2.0 | The signals in the table that are heard now. |
-| `now_s` | number (s) | always | 2.0 | The signal time now, for the age of a signal's last-heard time. |
-| `listened` | whole number | optional | 2.1 | The id of the signal listened to (the row key in the signals table): the focus, else the strongest signal in the table. Absent while there is none, also while the audio plays the dial. |
-| `playing` | choice | always | 2.2 | What the audio plays: nothing, the signal listened to, or the dial while there is none. |
-| `listened_hz` | frequency | optional | 2.2 | The radio frequency that the audio plays: that of the signal listened to, or the dial. Absent while it plays nothing. |
+| `wpm` | number (wpm) | optional | 1.0 | Its speed. |
+| `signals` | whole number | always | 1.0 | The signals in the table that are heard now. |
+| `now_s` | number (s) | always | 1.0 | The signal time now, for the age of a signal's last-heard time. |
+| `listened` | whole number | optional | 1.0 | The id of the signal listened to (the row key in the signals table): the focus, else the strongest signal in the table. Absent while there is none, also while the audio plays the dial. |
+| `playing` | choice | always | 1.0 | What the audio plays: nothing, the signal listened to, or the dial while there is none. |
+| `listened_hz` | frequency | optional | 1.0 | The radio frequency that the audio plays: that of the signal listened to, or the dial. Absent while it plays nothing. |
 
 ### Result fields
 
@@ -172,7 +174,7 @@ Struct `CwSignalRow`. A CW signal heard, or one gone whose text stays. The row k
 |---|---|---|---|---|
 | `id` | whole number | always | 1.0 | The signal id. |
 | `offset_hz` | frequency | always | 1.0 | The audio frequency. |
-| `wpm` | number (WPM) | always | 1.0 | The speed. |
+| `wpm` | number (wpm) | always | 1.0 | The speed. |
 | `snr_db` | number (dB) | always | 1.0 | The SNR. |
 | `key_down` | yes or no | always | 1.0 | The key is down. |
 | `locked` | yes or no | always | 1.0 | The speed is known. |
@@ -186,8 +188,8 @@ Struct `CwSignalRow`. A CW signal heard, or one gone whose text stays. The row k
 | `alternatives` | text | always | 1.0 | The other readings of unclear characters. |
 | `gone` | yes or no | always | 1.0 | It is no longer heard. |
 | `errors` | whole number | always | 1.0 | Characters that the code table does not have. |
-| `freq_hz` | frequency | always | 2.0 | The radio frequency of the carrier: the dial plus the offset. |
-| `level_dbfs` | number (dBFS) | always | 2.0 | The level of the carrier while the key is down, relative to full scale. |
+| `freq_hz` | frequency | always | 1.0 | The radio frequency of the carrier: the dial plus the offset. |
+| `level_dbfs` | number (dBFS) | always | 1.0 | The level of the carrier while the key is down, relative to full scale. |
 
 Default order: the column `snr_db`, highest first.
 

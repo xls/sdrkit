@@ -161,15 +161,11 @@ pub static N: TableStack = TableStack {
 const TEST: &str = "Test signal";
 
 /// The phase index of the GOES-N test signal.
-pub const GEN_PM_INDEX: Setting<field::F64> = Setting::new(
-    "gen_pm_index",
-    "Test phase index (GOES-N)",
-    "deg",
-    INDEX_DEG,
-)
-.range(10.0, 85.0, 0.5)
-.section(TEST)
-.advanced();
+pub const GEN_PM_INDEX: Setting<field::F64> =
+    Setting::new("gen_pm_index", "Test phase index (GOES-N)", "°", INDEX_DEG)
+        .range(10.0, 85.0, 0.5)
+        .section(TEST)
+        .advanced();
 
 sdrkit_core::settings! {
     /// The settings of `goes_cda`: the options of its test signal.

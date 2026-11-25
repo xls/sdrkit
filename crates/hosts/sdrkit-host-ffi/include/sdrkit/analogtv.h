@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "analogtv", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "analogtv", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,8 +35,8 @@
 #include "mpegts.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_ANALOGTV_VERSION_MAJOR 1
-#define SDRKIT_ANALOGTV_VERSION_MINOR 2
+#define SDRKIT_ANALOGTV_VERSION_MAJOR 2
+#define SDRKIT_ANALOGTV_VERSION_MINOR 0
 
 // The stack "atv": its id, and the keys of its event types.
 #define SDRKIT_STACK_ATV "atv"

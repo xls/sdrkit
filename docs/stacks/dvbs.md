@@ -178,7 +178,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `carriers` | Carriers | `offset` (frequency), `symbol_rate` (frequency), `roll_off` (number), `snr_db` (number (dB)), `level_db` (number (dB)), `decoded` (yes or no) |
-| `streams` | Input streams | `isi` (whole number), `carries` (choice), `packet_bytes` (whole number (bytes)), `sync_byte` (whole number), `ccm` (yes or no), `frames` (whole number), `bits` (whole number) |
+| `streams` | Input streams | `isi` (whole number), `carries` (choice), `packet_bytes` (whole number (B)), `sync_byte` (whole number), `ccm` (yes or no), `frames` (whole number), `bits` (whole number) |
 | `stream_modcods` | MODCODs of the input streams | `stream` (text), `modcod` (whole number), `modulation` (choice), `code_rate` (choice), `frames` (whole number), `share_pct` (number (%)) |
 | `services` | Services | `service_id` (whole number), `name` (text), `provider` (text), `service_type` (whole number), `kind` (choice), `lcn` (whole number), `visible` (yes or no), `scrambled` (yes or no), `ca_state` (choice), `pmt_pid` (whole number), `pcr_pid` (whole number), `running_status` (whole number), `in_pat` (yes or no), `eit_schedule` (yes or no), `eit_present_following` (yes or no), `onid` (whole number), `tsid` (whole number), `now_title` (text), `now_text` (text), `now_start` (time), `now_duration` (duration (s)), `next_title` (text), `next_text` (text), `next_start` (time), `next_duration` (duration (s)) |
 | `tracks` | Tracks | `service` (text), `pid` (whole number), `stream_type` (whole number), `kind` (choice), `codec` (choice), `packaging` (choice), `fourcc` (text), `lang` (text), `audio_type` (whole number), `audio_description` (yes or no), `hard_of_hearing` (yes or no), `component_tag` (whole number), `kbps` (number (kbit/s)), `scrambled` (yes or no), `profile` (text), `level` (text), `width` (whole number (px)), `height` (whole number (px)), `frame_rate` (number (Hz)), `aspect` (text), `interlaced` (yes or no), `sample_rate` (frequency), `channels` (whole number), `layout` (text), `bitrate_kbps` (whole number (kbit/s)), `object_type` (text), `entry_type` (whole number), `composition_page` (whole number), `ancillary_page` (whole number), `magazine` (whole number), `teletext_page` (whole number) |
@@ -219,7 +219,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `dvbcs`, version 1.5. The C header `sdrkit/dvbcs.h`, the registry record `registry/dvbcs.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvbcs`, version 2.0. The C header `sdrkit/dvbcs.h`, the registry record `registry/dvbcs.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Television and video (`television`). Media: sound (programme), video.
 
@@ -298,14 +298,14 @@ Struct `DvbsTxFields`. The result fields of the sender `transmit` of `dvbs`.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `transmitting` | yes or no | always | 1.2 | Whether a transmission is under way. |
-| `tx_freq_hz` | frequency | optional | 1.2 | The transmit frequency: the centre of the carrier sent. No value while the stack does not transmit. |
-| `tx_bitrate_bps` | number (bit/s) | always | 1.2 | The bit rate of the transport stream that the settings carry: the rate that the host feeds at most. |
-| `tx_packets` | whole number | always | 1.2 | The packets of the host sent in this transmission, or in the last one. |
-| `tx_nulls` | whole number | always | 1.2 | The null packets put in slots that found no packet of the host. |
-| `tx_queue` | whole number | always | 1.2 | The packets that wait to be sent. |
-| `tx_queue_s` | duration (s) | always | 1.2 | The time that the waiting packets take at the useful bit rate. |
-| `tx_pcr_restamped` | whole number | always | 1.2 | The PCRs rewritten to the time of their slot. |
+| `transmitting` | yes or no | always | 1.0 | Whether a transmission is under way. |
+| `tx_freq_hz` | frequency | optional | 1.0 | The transmit frequency: the centre of the carrier sent. No value while the stack does not transmit. |
+| `tx_bitrate_bps` | number (bit/s) | always | 1.0 | The bit rate of the transport stream that the settings carry: the rate that the host feeds at most. |
+| `tx_packets` | whole number | always | 1.0 | The packets of the host sent in this transmission, or in the last one. |
+| `tx_nulls` | whole number | always | 1.0 | The null packets put in slots that found no packet of the host. |
+| `tx_queue` | whole number | always | 1.0 | The packets that wait to be sent. |
+| `tx_queue_s` | duration (s) | always | 1.0 | The time that the waiting packets take at the useful bit rate. |
+| `tx_pcr_restamped` | whole number | always | 1.0 | The PCRs rewritten to the time of their slot. |
 
 ### Table `carriers`
 
@@ -328,7 +328,7 @@ Struct `Dvbs2StreamRow`. A row of the input streams. The row key is the ISI.
 |---|---|---|---|---|
 | `isi` | whole number | always | 1.0 | The input stream identifier. |
 | `carries` | choice | always | 1.0 | What the stream carries. |
-| `packet_bytes` | whole number (bytes) | optional | 1.0 | The user packet length. No value for a stream without user packets. |
+| `packet_bytes` | whole number (B) | optional | 1.0 | The user packet length. No value for a stream without user packets. |
 | `sync_byte` | whole number | optional | 1.0 | The sync byte of the user packets. |
 | `ccm` | yes or no | always | 1.0 | Constant coding and modulation. |
 | `frames` | whole number | always | 1.0 | Frames of the stream. |

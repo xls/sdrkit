@@ -49,6 +49,7 @@ use sdrkit_core::publish::keys::{self, Family};
 use sdrkit_core::publish::{field, SeriesDef};
 use sdrkit_core::settings::Argument;
 use sdrkit_core::SettingSet;
+use sdrkit_core::TableRole;
 use sdrkit_graph::DecoderFields;
 use sdrkit_util_objects::commands as objcmd;
 use sdrkit_util_objects::publish::columns;
@@ -69,13 +70,13 @@ pub struct TeleprinterFields<'a> {
     #[field(label = "State")]
     pub state: i64,
     /// The speed of the signal. Absent while the front has no lock.
-    #[field(label = "Speed", unit = "Bd")]
+    #[field(label = "Speed", unit = "Bd", reading = 1)]
     pub baud: Option<f64>,
     /// The centre of the signal above the dial. Absent while the front has no lock.
-    #[field(label = "Centre", unit = "Hz")]
+    #[field(label = "Centre", unit = "Hz", reading = 3)]
     pub centre_hz: Option<f64>,
     /// The shift between the tones. Absent while the front has no lock or the signal has no shift.
-    #[field(label = "Shift", unit = "Hz")]
+    #[field(label = "Shift", unit = "Hz", reading = 2)]
     pub shift_hz: Option<f64>,
     /// What was found beside the speed (cycle, depth, tone length). Empty while not decoding.
     #[field(label = "Detail")]
@@ -232,7 +233,7 @@ pub static FSK_LOST: EventKind<FskLostEvent<'static>> = EventKind::new("fsk.lost
 pub static TEXT: EventKind<TextEvent<'static>> = EventKind::new("text", "Text");
 /// The telegrams of EFR, newest first.
 pub static EFR_TELEGRAMS: Table<EfrTelegramRow<'static>> =
-    Table::new("telegrams", "Telegrams", 200);
+    Table::new("telegrams", "Telegrams", 200).role(TableRole::Log);
 /// A telegram of EFR.
 pub static EFR_TELEGRAM: EventKind<EfrTelegramEvent<'static>> =
     EventKind::new("efr.telegram", "Telegram");
@@ -257,7 +258,7 @@ pub struct SerialFields<'a> {
     #[field(shared = keys::TEXT)]
     pub text: &'a str,
     /// The rate and interleaver being received.
-    #[field(label = "Rate and interleaver")]
+    #[field(label = "Rate and interleaver", reading = 1)]
     pub waveform: &'a str,
     /// Messages ended by their end-of-message pattern.
     #[field(label = "Messages")]
@@ -269,10 +270,10 @@ pub struct SerialFields<'a> {
     #[field(label = "D_PDUs")]
     pub dpdus_good: i64,
     /// The signal-to-noise ratio. Absent without a measure.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 2)]
     pub snr_db: Option<f64>,
     /// The frequency error. Absent without a measure.
-    #[field(shared = keys::OFFSET_HZ)]
+    #[field(shared = keys::OFFSET_HZ, reading = 3)]
     pub offset_hz: Option<Hertz>,
 }
 
@@ -366,8 +367,9 @@ pub struct S4539MessageEvent<'a> {
 }
 
 /// The D_PDUs found in the bits of a modem, newest first.
-pub static DPDUS: Table<DpduRow<'static>> =
-    Table::new("dpdus", "D_PDUs", 500).label(&DpduRow::SOURCE);
+pub static DPDUS: Table<DpduRow<'static>> = Table::new("dpdus", "D_PDUs", 500)
+    .label(&DpduRow::SOURCE)
+    .role(TableRole::Log);
 /// A status event of MIL-STD-188-110.
 pub static MS110_EVENT: EventKind<Ms110Event<'static>> = EventKind::new("ms110.event", "Event");
 /// A message of MIL-STD-188-110.
@@ -402,10 +404,10 @@ pub struct Ale3gFields<'a> {
     #[field(label = "PDUs good")]
     pub pdus_good: i64,
     /// The signal-to-noise ratio of the last burst. Absent without a measure.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 1)]
     pub snr_db: Option<f64>,
     /// The frequency error of the last burst. Absent without a measure.
-    #[field(shared = keys::OFFSET_HZ)]
+    #[field(shared = keys::OFFSET_HZ, reading = 2)]
     pub offset_hz: Option<Hertz>,
 }
 
@@ -461,7 +463,8 @@ pub struct Ale3gDatagramEvent<'a> {
 }
 
 /// The PDUs of 3G-ALE, newest first.
-pub static ALE3G_PDUS: Table<Ale3gPduRow<'static>> = Table::new("pdus", "PDUs", 1000);
+pub static ALE3G_PDUS: Table<Ale3gPduRow<'static>> =
+    Table::new("pdus", "PDUs", 1000).role(TableRole::Log);
 /// A PDU of 3G-ALE.
 pub static ALE3G_PDU: EventKind<Ale3gPduEvent<'static>> = EventKind::new("ale3g.pdu", "PDU");
 /// A complete datagram of 3G-ALE.
@@ -480,7 +483,7 @@ pub struct S4481Fields<'a> {
     #[field(shared = keys::TEXT)]
     pub text: &'a str,
     /// What is received: one channel, sub-carriers, or nothing.
-    #[field(label = "Reception")]
+    #[field(label = "Reception", reading = 1)]
     pub reception: &'a str,
 }
 
@@ -560,7 +563,7 @@ pub struct Link11Fields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct Link11MessageRow<'a> {
     /// The start of the message, seconds.
-    #[field(label = "Start", unit = "s")]
+    #[field(label = "Start", unit = "s", role = Time)]
     pub start_s: f64,
     /// The frame rate: "fast" or "slow".
     #[field(label = "Rate")]
@@ -578,7 +581,7 @@ pub struct Link11MessageRow<'a> {
     #[field(label = "Doppler offset", unit = "Hz")]
     pub doppler_hz: f64,
     /// The constellation offset, degrees.
-    #[field(label = "Constellation offset", unit = "deg")]
+    #[field(label = "Constellation offset", unit = "°")]
     pub offset_deg: f64,
     /// The signal-to-noise ratio of the message.
     #[field(shared = keys::SNR_DB)]
@@ -609,7 +612,7 @@ pub struct Link11MessageEvent<'a> {
 
 /// The messages of Link 11, newest first.
 pub static LINK11_MESSAGES: Table<Link11MessageRow<'static>> =
-    Table::new("messages", "Messages", 500);
+    Table::new("messages", "Messages", 500).role(TableRole::Log);
 /// An event of Link 11.
 pub static LINK11_EVENT: EventKind<Link11Event<'static>> = EventKind::new("link11.event", "Event");
 /// A message of Link 11.
@@ -634,7 +637,7 @@ pub struct CisHfFields<'a> {
     #[field(label = "Found")]
     pub found: &'a str,
     /// The name of the signal identified, or empty.
-    #[field(label = "Identified")]
+    #[field(label = "Identified", reading = 1)]
     pub identified: &'a str,
     /// Characters, words or frames read.
     #[field(label = "Good")]
@@ -646,13 +649,13 @@ pub struct CisHfFields<'a> {
     #[field(shared = keys::OFFSET_HZ)]
     pub offset_hz: Option<Hertz>,
     /// The signal-to-noise ratio. Absent without a measure.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 4)]
     pub snr_db: Option<f64>,
     /// The centre of the signal above the dial (2-FSK and CIS-3000).
     #[field(label = "Centre", unit = "Hz")]
     pub centre_hz: Option<f64>,
     /// The shift between the tones (2-FSK).
-    #[field(label = "Shift", unit = "Hz")]
+    #[field(label = "Shift", unit = "Hz", reading = 3)]
     pub shift_hz: Option<f64>,
     /// The eye opening of the 2-FSK demodulators.
     #[field(label = "Eye")]
@@ -670,7 +673,7 @@ pub struct CisHfFields<'a> {
     #[field(label = "Carriers seen")]
     pub carriers: Option<i64>,
     /// The symbol rate.
-    #[field(label = "Symbol rate", unit = "Bd")]
+    #[field(label = "Symbol rate", unit = "Bd", reading = 2)]
     pub symbol_rate: Option<f64>,
     /// The modulation found.
     #[field(label = "Modulation")]
@@ -801,7 +804,7 @@ pub struct CisIdentEvent<'a> {
 
 /// The `bee` messages, newest first.
 pub static CIS_HF_MESSAGES: Table<CisHfMessageRow<'static>> =
-    Table::new("messages", "Messages", 200);
+    Table::new("messages", "Messages", 200).role(TableRole::Log);
 /// The carriers of CIS-12.
 pub static CIS_HF_CARRIERS: Table<CisHfCarrierRow> = Table::new("carriers", "Carriers", 12)
     .label(&CisHfCarrierRow::NUMBER)
@@ -821,10 +824,10 @@ pub struct HfidFields<'a> {
     #[field(label = "Signal")]
     pub signal: bool,
     /// The best candidate.
-    #[field(label = "Best estimate")]
+    #[field(label = "Best estimate", reading = 1)]
     pub best: Option<SignalClass>,
     /// The confidence of the best candidate, 0 to 95 %.
-    #[field(label = "Confidence (estimate)", unit = "%")]
+    #[field(label = "Confidence (estimate)", unit = "%", reading = 2)]
     pub best_confidence_pct: Option<f64>,
     /// The analyses run.
     #[field(label = "Analyses")]
@@ -836,7 +839,7 @@ pub struct HfidFields<'a> {
     #[field(label = "Band to", unit = "Hz")]
     pub band_high: Option<Hertz>,
     /// The signal-to-noise ratio in the band. Absent without a signal.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 3)]
     pub snr_db: Option<f64>,
     /// The noise floor.
     #[field(shared = keys::NOISE_DBFS)]
@@ -863,10 +866,10 @@ pub struct HfidFields<'a> {
     #[field(label = "Tones")]
     pub comb_tones: Option<i64>,
     /// The two-tone shift.
-    #[field(label = "Shift", unit = "Hz")]
+    #[field(label = "Shift", unit = "Hz", reading = 5)]
     pub shift: Option<Hertz>,
     /// The symbol rate at the clock line.
-    #[field(shared = keys::SYMBOL_RATE_HZ)]
+    #[field(shared = keys::SYMBOL_RATE_HZ, reading = 4)]
     pub symbol_rate_hz: Option<Hertz>,
     /// The clock line over its surroundings.
     #[field(label = "Clock line", unit = "dB")]
@@ -941,7 +944,7 @@ pub static HFID_CANDIDATES: Table<HfidCandidateRow<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct AleFields {
     /// In word sync (the lock state "Sync").
-    #[field(label = "Word sync")]
+    #[field(label = "Word sync", reading = 1)]
     pub in_sync: bool,
     /// A word was decoded in the last 60 s.
     #[field(label = "Words")]
@@ -962,10 +965,10 @@ pub struct AleFields {
     #[field(shared = keys::OFFSET_HZ)]
     pub offset_hz: Hertz,
     /// The signal-to-noise ratio of the last call. Absent before a call.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 2)]
     pub snr_db: Option<f64>,
     /// The bit error rate of the last call. Absent before a call.
-    #[field(shared = keys::BER)]
+    #[field(shared = keys::BER, reading = 3)]
     pub ber: Option<f64>,
     /// The level of the audio, dBFS.
     #[field(shared = keys::LEVEL_DBFS)]
@@ -988,10 +991,10 @@ pub struct AleEventRow<'a> {
     #[field(label = "Dial", unit = "Hz")]
     pub dial: Option<Hertz>,
     /// The caller, when known.
-    #[field(label = "From", refers_to = "stations")]
+    #[field(label = "From", refers_to = "stations", role = Sender)]
     pub from: Option<&'a str>,
     /// The TO addresses then the THRU members.
-    #[field(label = "To")]
+    #[field(label = "To", role = Addressee)]
     pub to: &'a str,
     /// The type of the call.
     #[field(label = "Type")]
@@ -1126,13 +1129,15 @@ pub struct AleStationArgs<'a> {
 }
 
 /// The calls of ALE, oldest first.
-pub static ALE_EVENTS: Table<AleEventRow<'static>> =
-    Table::new("events", "Events", 500).label(&AleEventRow::FROM);
+pub static ALE_EVENTS: Table<AleEventRow<'static>> = Table::new("events", "Events", 500)
+    .label(&AleEventRow::FROM)
+    .role(TableRole::Calls);
 /// The callers of ALE, the one heard last first.
 pub static ALE_STATIONS: Table<AleStationRow<'static>> =
     Table::new("stations", "Stations", 500).label(&AleStationRow::ADDRESS);
 /// The decoded ALE words.
-pub static ALE_WORDS: Table<AleWordRow<'static>> = Table::new("words", "Words", 400);
+pub static ALE_WORDS: Table<AleWordRow<'static>> =
+    Table::new("words", "Words", 400).role(TableRole::Log);
 /// The net addresses learned from the answers.
 pub static ALE_LEARNED_NETS: Table<AleNetRow<'static>> =
     Table::new("learned_nets", "Learned nets", 64).label(&AleNetRow::ADDRESS);
@@ -1302,13 +1307,13 @@ pub struct AleMessageRow<'a> {
     #[field(label = "Dial", unit = "Hz")]
     pub dial: Option<Hertz>,
     /// The caller, when known.
-    #[field(label = "From", refers_to = "stations")]
+    #[field(label = "From", refers_to = "stations", role = Sender)]
     pub from: Option<&'a str>,
     /// The called addresses.
-    #[field(label = "To")]
+    #[field(label = "To", role = Addressee)]
     pub to: &'a str,
     /// The text.
-    #[field(shared = keys::TEXT)]
+    #[field(shared = keys::TEXT, role = Text)]
     pub text: &'a str,
 }
 
@@ -1316,8 +1321,9 @@ pub struct AleMessageRow<'a> {
 pub static ALE_LQA: Table<AleLqaRow<'static>> =
     Table::new("lqa", "Link quality", 500).label(&AleLqaRow::ADDRESS);
 /// The AMD texts heard, oldest first.
-pub static ALE_MESSAGES: Table<AleMessageRow<'static>> =
-    Table::new("messages", "Messages", 200).label(&AleMessageRow::FROM);
+pub static ALE_MESSAGES: Table<AleMessageRow<'static>> = Table::new("messages", "Messages", 200)
+    .label(&AleMessageRow::FROM)
+    .role(TableRole::Messages);
 
 /// The arguments of the ALE `amd`.
 #[derive(Arguments)]
@@ -1325,6 +1331,8 @@ pub struct AleAmdArgs<'a> {
     /// The called address.
     #[arg(
         label = "Called address",
+        refers_to = "stations",
+        column = "address",
         help = "1 to 15 characters of A-Z and 0-9. Empty sends to the linked station."
     )]
     pub to: &'a str,
@@ -1350,6 +1358,8 @@ pub struct AleCallArgs<'a> {
     /// The called address.
     #[arg(
         label = "Called address",
+        refers_to = "stations",
+        column = "address",
         help = "1 to 15 characters of A-Z and 0-9, or @?@ for the allcall. Empty calls @?@."
     )]
     pub to: &'a str,
@@ -1381,10 +1391,10 @@ pub const ALE_STOP: Command =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct HfradarFields<'a> {
     /// The radar band the radio is in, if it is in one.
-    #[field(label = "Band now")]
+    #[field(label = "Band now", reading = 1)]
     pub band: Option<&'a str>,
     /// Radars shown.
-    #[field(label = "Radars")]
+    #[field(label = "Radars", reading = 2)]
     pub radar_count: i64,
     /// Sweeps counted.
     #[field(label = "Sweeps counted")]
@@ -1396,7 +1406,7 @@ pub struct HfradarFields<'a> {
     #[field(label = "Broadband bursts")]
     pub broadband_bursts: i64,
     /// The best SNR of the radars heard. Absent without a radar.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 3)]
     pub snr_db: Option<f64>,
     /// The stops of the scan, while it steps.
     #[field(label = "Scan stops")]
@@ -1524,7 +1534,8 @@ pub struct HfradarRadarHeardEvent<'a> {
 pub static HFRADAR_RADARS: Table<HfradarRadarRow<'static>> =
     Table::new("radars", "Radars", 64).label(&HfradarRadarRow::ID);
 /// The radars heard, oldest first.
-pub static HFRADAR_HEARD: Table<HfradarHeardRow<'static>> = Table::new("heard", "Heard", 300);
+pub static HFRADAR_HEARD: Table<HfradarHeardRow<'static>> =
+    Table::new("heard", "Heard", 300).role(TableRole::Log);
 /// A radar heard.
 pub static HFRADAR_RADAR_HEARD: EventKind<HfradarRadarHeardEvent<'static>> =
     EventKind::new("hfradar.radar_heard", "Radar heard");
@@ -1578,16 +1589,16 @@ pub const HFRADAR_BAND_TUNE: CommandKind<HfradarBandArgs<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct PactorhfFields<'a> {
     /// A signal was found by the last analysis.
-    #[field(label = "Signal")]
+    #[field(label = "Signal", reading = 1)]
     pub signal: bool,
     /// The variant found: 2, 3 or 4 (0 for nothing).
-    #[field(label = "Variant")]
+    #[field(label = "Variant", reading = 2)]
     pub variant: i64,
     /// The signal on the channel is not the variant that the stack receives.
     #[field(label = "Another variant")]
     pub other_variant: bool,
     /// The symbol rate. Absent without a signal.
-    #[field(shared = keys::SYMBOL_RATE_HZ)]
+    #[field(shared = keys::SYMBOL_RATE_HZ, reading = 4)]
     pub symbol_rate_hz: Option<Hertz>,
     /// The clock error. Absent without a signal.
     #[field(shared = keys::CLOCK_PPM)]
@@ -1611,7 +1622,7 @@ pub struct PactorhfFields<'a> {
     #[field(label = "Carriers")]
     pub carrier_count: i64,
     /// The PACTOR-III speed level (0 when unknown or another variant).
-    #[field(label = "Speed level")]
+    #[field(label = "Speed level", reading = 3)]
     pub speed_level: i64,
     /// The PACTOR-IV constellation estimate: 2, 4, 8, 16 (QAM), 0 unknown.
     #[field(label = "Constellation")]
@@ -1730,7 +1741,8 @@ pub static PACTORHF_CARRIERS: Table<PactorhfCarrierRow> = Table::new("carriers",
         sdrkit_core::SortOrder::Ascending,
     );
 /// The events, oldest first.
-pub static PACTORHF_EVENTS: Table<PactorhfEventRow<'static>> = Table::new("events", "Events", 60);
+pub static PACTORHF_EVENTS: Table<PactorhfEventRow<'static>> =
+    Table::new("events", "Events", 60).role(TableRole::Log);
 /// A new variant or carrier count.
 pub static PACTORHF_ANALYSIS: EventKind<PactorhfAnalysisEvent<'static>> =
     EventKind::new("pactorhf.analysis", "PACTOR signal");
@@ -1759,7 +1771,7 @@ fn pactorhf(id: &'static str) -> StackShape {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct RprFields<'a> {
     /// What the last analysis found: nothing, the comb, or bursts.
-    #[field(label = "State")]
+    #[field(label = "State", reading = 1)]
     pub state: RprState,
     /// The centre of the comb in the audio. Absent without a comb.
     #[field(label = "Comb centre", unit = "Hz")]
@@ -1783,16 +1795,16 @@ pub struct RprFields<'a> {
     #[field(shared = keys::CLOCK_PPM)]
     pub clock_ppm: Option<f64>,
     /// The speed level of the last burst: 1 (D-BPSK) or 2 (D-QPSK); 0 before a burst.
-    #[field(label = "Speed level")]
+    #[field(label = "Speed level", reading = 2)]
     pub speed_level: i64,
     /// The modulation of the last burst.
     #[field(label = "Modulation")]
     pub modulation: Option<RprModulation>,
     /// The net rate of the speed level before the AX.25 overhead: 200 or 600 bit/s.
-    #[field(label = "Net rate", unit = "bit/s")]
+    #[field(label = "Net rate", unit = "bit/s", reading = 3)]
     pub net_rate: Option<i64>,
     /// The SNR of the last burst, from the phase error of its steps.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 4)]
     pub snr_db: Option<f64>,
     /// The best SNR of a burst since the last Clear.
     #[field(label = "Best SNR", unit = "dB")]
@@ -1933,9 +1945,11 @@ pub struct RprBurstEvent<'a> {
 pub static RPR_CARRIERS: Table<RprCarrierRow> = Table::new("carriers", "Carriers", 8)
     .sorted(&RprCarrierRow::FREQUENCY, sdrkit_core::SortOrder::Ascending);
 /// The bursts demodulated, oldest first.
-pub static RPR_BURSTS: Table<RprBurstRow<'static>> = Table::new("bursts", "Bursts", 60);
+pub static RPR_BURSTS: Table<RprBurstRow<'static>> =
+    Table::new("bursts", "Bursts", 60).role(TableRole::Log);
 /// The events, oldest first.
-pub static RPR_EVENTS: Table<RprEventRow<'static>> = Table::new("events", "Events", 60);
+pub static RPR_EVENTS: Table<RprEventRow<'static>> =
+    Table::new("events", "Events", 60).role(TableRole::Log);
 /// A burst demodulated.
 pub static RPR_BURST: EventKind<RprBurstEvent<'static>> =
     EventKind::new("rpr.burst", "Robust Packet burst");
@@ -1966,7 +1980,7 @@ fn rpr() -> StackShape {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct Pactor1Fields<'a> {
     /// A tone pair is locked or a frame was read in the last 30 s (the lock state "Signal").
-    #[field(label = "Signal")]
+    #[field(label = "Signal", reading = 1)]
     pub signal: bool,
     /// A frame was read in the last 30 s (the lock state "Packets").
     #[field(label = "Packets")]
@@ -2014,10 +2028,10 @@ pub struct Pactor1Fields<'a> {
     #[field(label = "Upper tone", unit = "Hz")]
     pub pair_high: Option<Hertz>,
     /// The centre of the pair against 1500 Hz. Absent without a lock.
-    #[field(shared = keys::OFFSET_HZ)]
+    #[field(shared = keys::OFFSET_HZ, reading = 3)]
     pub offset_hz: Option<Hertz>,
     /// The SNR of the tone pair. Absent without a lock.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 2)]
     pub snr_db: Option<f64>,
     /// The audio level of the last second.
     #[field(shared = keys::LEVEL_DBFS)]
@@ -2162,8 +2176,9 @@ pub struct Pactor1StationArgs<'a> {
 }
 
 /// The frames of PACTOR-I, oldest first.
-pub static PACTOR1_FRAMES: Table<Pactor1FrameRow<'static>> =
-    Table::new("frames", "Frames", 300).label(&Pactor1FrameRow::CALL);
+pub static PACTOR1_FRAMES: Table<Pactor1FrameRow<'static>> = Table::new("frames", "Frames", 300)
+    .label(&Pactor1FrameRow::CALL)
+    .role(TableRole::Log);
 /// The stations of PACTOR-I.
 pub static PACTOR1_STATIONS: Table<Pactor1StationRow<'static>> =
     Table::new("stations", "Stations", 60).label(&Pactor1StationRow::CALL);
@@ -2190,7 +2205,7 @@ pub struct HfbeaconsFields<'a> {
     #[field(label = "Beacons in the span")]
     pub in_span: i64,
     /// Beacons heard now.
-    #[field(label = "Heard now")]
+    #[field(label = "Heard now", reading = 1)]
     pub heard_now: i64,
     /// Channels watched.
     #[field(label = "Channels watched")]
@@ -2214,10 +2229,10 @@ pub struct HfbeaconsFields<'a> {
     #[field(label = "Station position known")]
     pub station_known: bool,
     /// The band to try now, when the model names one.
-    #[field(label = "Band to try now")]
+    #[field(label = "Band to try now", reading = 2)]
     pub best_band: Option<&'a str>,
     /// The stations heard on that band.
-    #[field(label = "Stations on it")]
+    #[field(label = "Stations on it", reading = 3)]
     pub best_band_stations: Option<i64>,
     /// The level of the input, dBFS.
     #[field(shared = keys::LEVEL_DBFS)]
@@ -2273,7 +2288,7 @@ pub struct HfbeaconsBeaconRow<'a> {
     #[field(label = "Distance", unit = "km")]
     pub distance_km: Option<f64>,
     /// The bearing from the station.
-    #[field(label = "Bearing", unit = "deg")]
+    #[field(label = "Bearing", unit = "°")]
     pub bearing_deg: Option<f64>,
     /// The newest 48 history points in dB, "-" for listened and not heard.
     #[field(label = "Trend")]
@@ -2667,7 +2682,7 @@ pub struct WavebuoySystemWordRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct WavebuoyFrameRow<'a> {
     /// The signal time of the frame.
-    #[field(label = "Signal time", unit = "s")]
+    #[field(label = "Signal time", unit = "s", role = Time)]
     pub start: Seconds,
     /// The bits of the frame in hex.
     #[field(label = "Frame")]
@@ -2713,7 +2728,7 @@ pub static WAVEBUOY_SYSTEM_WORDS: Table<WavebuoySystemWordRow> =
         );
 /// The frames cut at the sync, oldest first.
 pub static WAVEBUOY_FRAMES: Table<WavebuoyFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::buoy::results::FRAMES_CAP);
+    Table::new("frames", "Frames", crate::buoy::results::FRAMES_CAP).role(TableRole::Log);
 /// An accepted HXV vector.
 pub static WAVEBUOY_VECTOR: EventKind<WavebuoyVectorEvent> =
     EventKind::new("wavebuoy.vector", "HXV vector");
@@ -2769,8 +2784,9 @@ pub struct TonesLostEvent<'a> {
 }
 
 /// The rows of a number-sender stack, newest first.
-pub static SENDER_ROWS: Table<SenderRow<'static>> =
-    Table::new("rows", "Rows", 500).label(&SenderRow::ID);
+pub static SENDER_ROWS: Table<SenderRow<'static>> = Table::new("rows", "Rows", 500)
+    .label(&SenderRow::ID)
+    .role(TableRole::Log);
 /// The tones were found.
 pub static TONES_FOUND: EventKind<TonesFoundEvent<'static>> =
     EventKind::new("tones.found", "Tones found");
@@ -2791,10 +2807,10 @@ pub struct Crowd36Fields<'a> {
     #[field(label = "State")]
     pub state: i64,
     /// The offset of the tones from their nominal place. Absent while the tones are not found.
-    #[field(shared = keys::OFFSET_HZ)]
+    #[field(shared = keys::OFFSET_HZ, reading = 2)]
     pub offset_hz: Option<Hertz>,
     /// The SNR in 3 kHz of the last fit. Absent while the tones are not found.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 1)]
     pub snr_db: Option<f64>,
     /// The sync tones of the last sync, after the correction. Absent before a sync.
     #[field(label = "Sync tones")]
@@ -2829,13 +2845,13 @@ pub struct XpaFields<'a> {
     #[field(label = "State")]
     pub state: i64,
     /// The offset of the tones from their nominal place. Absent while the tones are not found.
-    #[field(shared = keys::OFFSET_HZ)]
+    #[field(shared = keys::OFFSET_HZ, reading = 3)]
     pub offset_hz: Option<Hertz>,
     /// The SNR in 3 kHz of the last fit. Absent while the tones are not found.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 2)]
     pub snr_db: Option<f64>,
     /// The speed of the reading that won. Absent before a reading wins.
-    #[field(label = "Speed", unit = "Bd")]
+    #[field(label = "Speed", unit = "Bd", reading = 1)]
     pub speed: Option<f64>,
     /// The sideband of the reading that won: "upper" or "lower (tones reversed)".
     #[field(label = "Sideband")]
@@ -2870,16 +2886,16 @@ pub struct Fsk200Fields<'a> {
     #[field(label = "State")]
     pub state: i64,
     /// The centre of the tone pair above the dial. Absent while the tones are not found.
-    #[field(shared = keys::OFFSET_HZ)]
+    #[field(shared = keys::OFFSET_HZ, reading = 3)]
     pub offset_hz: Option<Hertz>,
     /// The SNR in 3 kHz of the last fit. Absent while the tones are not found.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 2)]
     pub snr_db: Option<f64>,
     /// The tones from the dial and their sense. Absent while the tones are not found.
     #[field(label = "Tones")]
     pub tones: Option<&'a str>,
     /// The traffic kind of f06: F06 figure groups, ASCII or F06a file.
-    #[field(label = "Traffic")]
+    #[field(label = "Traffic", reading = 1)]
     pub traffic: Option<&'a str>,
     /// Characters read (f01).
     #[field(label = "Characters")]
@@ -2931,10 +2947,10 @@ pub struct GwfskFields<'a> {
     #[field(label = "State")]
     pub state: i64,
     /// The tones of the last burst whose tones were found.
-    #[field(label = "Tones")]
+    #[field(label = "Tones", reading = 2)]
     pub tones: Option<&'a str>,
     /// The code of the last shore station heard.
-    #[field(label = "Last shore station")]
+    #[field(label = "Last shore station", reading = 1)]
     pub last_station: Option<&'a str>,
     /// Bursts analysed.
     #[field(label = "Bursts")]
@@ -2983,10 +2999,10 @@ pub struct FskModemsFields<'a> {
     #[field(label = "State")]
     pub state: i64,
     /// The standard of the last message.
-    #[field(label = "Standard")]
+    #[field(label = "Standard", reading = 1)]
     pub standard: Option<&'a str>,
     /// The tones, the sideband and the dial error of the last message.
-    #[field(label = "Tones")]
+    #[field(label = "Tones", reading = 2)]
     pub tones: Option<&'a str>,
     /// The bytes, framing errors and length of the last message.
     #[field(label = "Last message")]
@@ -3039,19 +3055,19 @@ pub struct Uvb76Fields<'a> {
     #[field(label = "State")]
     pub state: i64,
     /// A carrier is in the channel.
-    #[field(label = "Carrier")]
+    #[field(label = "Carrier", reading = 1)]
     pub carrier: bool,
     /// Buzzes heard.
     #[field(label = "Buzzes")]
     pub buzzes: i64,
     /// The buzz rate, 60 over the median period.
-    #[field(label = "Buzz rate", unit = "/min")]
+    #[field(label = "Buzz rate", unit = "1/min", reading = 2)]
     pub rate_per_min: Option<f64>,
     /// The median buzz length.
-    #[field(label = "Buzz length", unit = "s")]
+    #[field(label = "Buzz length", unit = "s", reading = 3)]
     pub buzz_s: Option<Seconds>,
     /// The median period.
-    #[field(label = "Period", unit = "s")]
+    #[field(label = "Period", unit = "s", reading = 4)]
     pub period_s: Option<Seconds>,
     /// The median distance of the periods from their median.
     #[field(label = "Period spread", unit = "ms")]
@@ -3094,22 +3110,22 @@ pub struct VlfMskFields<'a> {
     #[field(label = "State")]
     pub state: i64,
     /// The class: "MSK 200 bit/s", "MSK about N bit/s", "carrier only" or "off air or too weak".
-    #[field(label = "Class")]
+    #[field(label = "Class", reading = 1)]
     pub signal_class: &'a str,
     /// The carrier from the tuned frequency.
-    #[field(label = "Carrier", unit = "Hz")]
+    #[field(label = "Carrier", unit = "Hz", reading = 3)]
     pub carrier_hz: Option<Hertz>,
     /// The bit rate.
-    #[field(label = "Bit rate", unit = "bit/s")]
+    #[field(label = "Bit rate", unit = "bit/s", reading = 4)]
     pub bit_rate: Option<f64>,
     /// The spacing of the two lines of the squared signal.
     #[field(label = "Line spacing", unit = "Hz")]
     pub line_spacing_hz: Option<Hertz>,
     /// The level over the noise.
-    #[field(label = "Level over the noise", unit = "dB")]
+    #[field(label = "Level over the noise", unit = "dB", reading = 5)]
     pub level_db: Option<f64>,
     /// The listed station near the carrier: "likely NAME".
-    #[field(label = "Station hint")]
+    #[field(label = "Station hint", reading = 2)]
     pub hint: Option<&'a str>,
     /// Transmitters that came on.
     #[field(label = "Transmitters")]
@@ -3197,156 +3213,11 @@ fn sender(s: StackShape, kept: &'static [&'static str]) -> StackShape {
         .kept(kept)
 }
 
-/// What version 1.4 added: the radar bands of the ocean radar stack and `band.tune`.
-const ADDED_1_4: &[&str] = &[
-    "hfradar.table.bands",
-    "shape.HfradarBandRow",
-    "shape.HfradarBandRow.name",
-    "shape.HfradarBandRow.low",
-    "shape.HfradarBandRow.high",
-    "shape.HfradarBandRow.middle",
-    "shape.HfradarBandRow.range_class",
-    "hfradar.kept.bands",
-    "hfradar.command.band.tune",
-];
-
-/// What version 1.3 added: the scanning call, the three-way handshake, LQA and AMD of ALE; the power steps, the start
-/// in the interval, the count and `send` of the own beacon.
-const ADDED_1_3: &[&str] = &[
-    "shape.AleTxFields.tx_link",
-    "shape.AleTxFields.tx_link_station",
-    "shape.AleTxFields.tx_link_reason",
-    "ale.event.ale.link",
-    "shape.AleLinkEvent",
-    "shape.AleLinkEvent.state",
-    "shape.AleLinkEvent.source",
-    "shape.AleLinkEvent.reason",
-    "shape.AleLinkEvent.family",
-    "ale.table.lqa",
-    "shape.AleLqaRow",
-    "shape.AleLqaRow.address",
-    "shape.AleLqaRow.dial",
-    "shape.AleLqaRow.lqa_ber",
-    "shape.AleLqaRow.sinad_db",
-    "shape.AleLqaRow.multipath",
-    "shape.AleLqaRow.reported_ber",
-    "shape.AleLqaRow.reported_sinad_db",
-    "shape.AleLqaRow.reported_multipath",
-    "shape.AleLqaRow.heard",
-    "shape.AleLqaRow.last_heard",
-    "ale.table.messages",
-    "shape.AleMessageRow",
-    "shape.AleMessageRow.start",
-    "shape.AleMessageRow.time",
-    "shape.AleMessageRow.dial",
-    "shape.AleMessageRow.from",
-    "shape.AleMessageRow.to",
-    "shape.AleMessageRow.text",
-    "ale.kept.lqa",
-    "ale.kept.messages",
-    "ale.setting.scan_channels",
-    "ale.setting.scan_dwell_s",
-    "ale.setting.auto_answer",
-    "ale.setting.lqa",
-    "ale.setting.answer_wait_s",
-    "ale.command.amd",
-    "shape.HfbTxFields.tx_duty_pct",
-    "hfbeacons.setting.power_steps",
-    "hfbeacons.setting.offset_s",
-    "hfbeacons.setting.count",
-    "hfbeacons.command.send",
-];
-
-/// What version 1.2 added: the transmitters of ALE and of the own beacon.
-const ADDED_1_2: &[&str] = &[
-    "ale.fields.AleTxFields",
-    "shape.AleTxFields",
-    "shape.AleTxFields.tx_sending",
-    "shape.AleTxFields.tx_kind",
-    "shape.AleTxFields.tx_to",
-    "shape.AleTxFields.tx_word",
-    "shape.AleTxFields.tx_words",
-    "shape.AleTxFields.tx_note",
-    "ale.event.ale.tx",
-    "shape.AleTxEvent",
-    "shape.AleTxEvent.state",
-    "shape.AleTxEvent.reason",
-    "shape.AleTxEvent.kind",
-    "shape.AleTxEvent.to",
-    "shape.AleTxEvent.family",
-    "ale.setting.self_address",
-    "ale.setting.call_repeats",
-    "ale.setting.sounding",
-    "ale.command.call",
-    "ale.command.sound",
-    "ale.command.stop",
-    "hfbeacons.fields.HfbTxFields",
-    "shape.HfbTxFields",
-    "shape.HfbTxFields.tx_beacon_on",
-    "shape.HfbTxFields.tx_sending",
-    "shape.HfbTxFields.tx_progress_pct",
-    "shape.HfbTxFields.tx_next_s",
-    "shape.HfbTxFields.tx_sendings",
-    "shape.HfbTxFields.tx_sending_s",
-    "shape.HfbTxFields.tx_note",
-    "hfbeacons.event.hfb.tx",
-    "shape.HfbTxEvent",
-    "shape.HfbTxEvent.state",
-    "shape.HfbTxEvent.reason",
-    "shape.HfbTxEvent.text",
-    "shape.HfbTxEvent.family",
-    "hfbeacons.setting.call",
-    "hfbeacons.setting.message",
-    "hfbeacons.setting.wpm",
-    "hfbeacons.setting.pitch_hz",
-    "hfbeacons.setting.long_dash_s",
-    "hfbeacons.setting.interval_min",
-    "hfbeacons.command.start",
-    "hfbeacons.command.stop",
-];
-
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        // Version 1.6 names rows and orders tables.
-        Described::new("hfdata", 1, 7)
-            .added(
-                1,
-                5,
-                &[
-                    "crowd36.content",
-                    "xpa.content",
-                    "fsk200.content",
-                    "gwfsk.content",
-                    "fsk_modems.content",
-                    "uvb76.content",
-                    "vlf_msk.content",
-                    "efr.content",
-                    "gtor.content",
-                    "arqe.content",
-                    "autospec.content",
-                    "piccolo.content",
-                    "coquelet.content",
-                    "ale3g.content",
-                    "s4481.content",
-                    "link11.content",
-                    "cis_hf.content",
-                    "hfid.content",
-                    "ale.content",
-                    "hfradar.content",
-                    "pactor2.content",
-                    "pactor3.content",
-                    "pactor4.content",
-                    "pactor1.content",
-                    "hfbeacons.content",
-                    "wavebuoy.content",
-                    "ms110.content",
-                    "s4285.content",
-                    "s4539.content",
-                    "rpr.content",
-                ],
-            )
+        Described::new("hfdata", 2, 0)
             .content(sdrkit_core::ContentKind::Measurement, &["hfid", "uvb76"])
             .content(sdrkit_core::ContentKind::Devices, &["wavebuoy"])
             .content(sdrkit_core::ContentKind::Science, &["hfradar", "hfbeacons"])
@@ -3385,9 +3256,6 @@ pub fn family() -> &'static Described {
                 &["ale", "pactor1", "hfbeacons"],
             )
             .pictures(&["hfradar"])
-            .added(1, 4, ADDED_1_4)
-            .added(1, 3, ADDED_1_3)
-            .added(1, 2, ADDED_1_2)
             .shared_source("senders", SENDER_STACKS)
             .stack(sender(
                 StackShape::new("crowd36")
@@ -3698,7 +3566,7 @@ pub fn family() -> &'static Described {
                 serial("s4539", (&S4539_EVENT).into(), (&S4539_MESSAGE).into())
                     .settings(S4539Setting::SETTINGS),
             )
-            .added_in(1, 1, |f| f.stack(rpr()))
+            .stack(rpr())
     })
 }
 

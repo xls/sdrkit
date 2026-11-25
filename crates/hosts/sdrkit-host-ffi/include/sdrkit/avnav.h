@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "avnav", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "avnav", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_AVNAV_VERSION_MAJOR 1
-#define SDRKIT_AVNAV_VERSION_MINOR 4
+#define SDRKIT_AVNAV_VERSION_MAJOR 2
+#define SDRKIT_AVNAV_VERSION_MINOR 0
 
 // The stack "ndb": its id, and the keys of its event types.
 #define SDRKIT_STACK_NDB "ndb"
@@ -462,11 +462,11 @@ typedef struct sdrkit_ils_marker_fields {
   sdrkit_string keying;
   // True if `keying_rate` holds a value.
   bool has_keying_rate;
-  // Elements a second, from the first onset to the last. No value without a passage. Unit: /s.
+  // Elements a second, from the first onset to the last. No value without a passage. Unit: 1/s.
   double keying_rate;
   // True if `pairs_per_min` holds a value.
   bool has_pairs_per_min;
-  // Dot-dash pairs a minute. No value without mixed keying. Unit: /min.
+  // Dot-dash pairs a minute. No value without mixed keying. Unit: 1/min.
   double pairs_per_min;
   // True if `dot_s` holds a value.
   bool has_dot_s;
@@ -532,6 +532,8 @@ typedef struct sdrkit_ils_marker_passage_row {
   bool has_level_dbfs;
   // The carrier level at the end of the passage. No value before the first carrier measurement. Unit: dBFS.
   double level_dbfs;
+  // The signal time of the end of the passage. Unit: s.
+  double time_s;
 } sdrkit_ils_marker_passage_row;
 
 // The options of `heard` of `sdrkit_dme_fields`.
@@ -570,15 +572,15 @@ typedef struct sdrkit_dme_fields {
   bool has_paired_vhf_hz;
   // The paired VOR or localizer frequency. No value without a channel that has one. A frequency in Hz.
   double paired_vhf_hz;
-  // Pairs a second. Unit: /s.
+  // Pairs a second. Unit: 1/s.
   double pairs_per_s;
   // True if `spacing_us` holds a value.
   bool has_spacing_us;
-  // The mean pair spacing. No value with too few pairs. Unit: µs.
+  // The mean pair spacing. No value with too few pairs. Unit: us.
   double spacing_us;
   // True if `width_us` holds a value.
   bool has_width_us;
-  // The mean pulse width at half amplitude. No value with too few pairs. Unit: µs.
+  // The mean pulse width at half amplitude. No value with too few pairs. Unit: us.
   double width_us;
   // Pairs seen in all.
   int64_t pairs;
@@ -618,9 +620,9 @@ typedef struct sdrkit_loran_station_row {
   sdrkit_string key;
   // `M` for the master, then the letters of the secondaries.
   sdrkit_string station;
-  // The time difference from the master. Unit: µs.
+  // The time difference from the master. Unit: us.
   double td_us;
-  // The envelope-to-cycle difference relative to the master. Unit: µs.
+  // The envelope-to-cycle difference relative to the master. Unit: us.
   double ecd_us;
   // The signal to noise ratio of the correlation. Unit: dB.
   double snr_db;
@@ -1324,7 +1326,9 @@ static inline int32_t sdrkit_ils_idents_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "passages" of the stack "ils" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `marker` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_ils_passages_rows(SDRKIT_HANDLE handle,
                                               sdrkit_ils_marker_passage_row *rows,
                                               uint32_t capacity,
@@ -1640,7 +1644,7 @@ static inline int32_t sdrkit_loran_gen_set_tds(SDRKIT_HANDLE handle, sdrkit_stri
   return sdrkit_typed_setting_set_string(handle, "gen_tds", value);
 }
 
-// The setting "gen_ecd" (Test signal: ECD of the first secondary) of the test signal generator of the stack "loran". Unit: µs.
+// The setting "gen_ecd" (Test signal: ECD of the first secondary) of the test signal generator of the stack "loran". Unit: us.
 static inline int32_t sdrkit_loran_gen_get_ecd(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_ecd", value);
 }

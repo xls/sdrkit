@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 2.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 3.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_WLAN_VERSION_MAJOR 2
-#define SDRKIT_WLAN_VERSION_MINOR 1
+#define SDRKIT_WLAN_VERSION_MAJOR 3
+#define SDRKIT_WLAN_VERSION_MINOR 0
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -341,7 +341,7 @@ typedef struct sdrkit_ble_packet_row {
   sdrkit_string address;
   // The level of the packet. Unit: dBFS.
   double level_dbfs;
-  // The payload length. Unit: bytes.
+  // The payload length. Unit: B.
   int64_t length;
   // The one-line summary.
   sdrkit_string details;
@@ -2029,7 +2029,9 @@ static inline int32_t sdrkit_ble_devices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "packets" of the stack "ble" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `address` names a row.
+// Time: `signal_s`.
 static inline int32_t sdrkit_ble_packets_rows(SDRKIT_HANDLE handle,
                                              sdrkit_ble_packet_row *rows,
                                              uint32_t capacity,

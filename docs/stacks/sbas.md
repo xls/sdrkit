@@ -146,9 +146,11 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:sb
 
 ## Typed interface
 
-The stack is in the family `gnss`, version 1.1. The C header `sdrkit/gnss.h`, the registry record `registry/gnss.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `gnss`, version 1.2. The C header `sdrkit/gnss.h`, the registry record `registry/gnss.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Navigation aids (`navigation`). Media: none.
+
+Key readings: `selected`, `data_valid`, `sbas_messages`, `messages_missed`.
 
 ### Result fields
 
@@ -248,6 +250,8 @@ Struct `SbasMessageRow`. A row of the message log. The row key is the number of 
 | `message_type` | whole number | always | 1.0 | The message type. |
 | `text` | text | always | 1.0 | The content in words. |
 
+The rows are a log: they arrive over time. Time: `at`.
+
 ### Table `fast_corrections`
 
 Struct `SbasFastCorrectionRow`. A fast correction of the selected PRN. The row key is the slot.
@@ -302,6 +306,8 @@ Struct `InterferenceEventRow`. An interference event.
 | `at` | duration (s) | always | 1.0 | Signal time of an event. |
 | `level` | choice | always | 1.0 | The level of an event. |
 | `text` | text | always | 1.0 | The text of a decoded message. |
+
+The rows are a log: they arrive over time. Time: `at`.
 
 ### Table `rx.systems`
 

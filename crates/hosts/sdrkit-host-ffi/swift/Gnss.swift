@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "gnss", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "gnss", version 1.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum GnssInterface {
     public static let major = 1
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The result fields of the receiver.
@@ -998,6 +998,8 @@ public enum GnssTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GnssInterferenceLineRow.init))
     }
     /// The changed rows of the table "interference_events" of the stack "gnss", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `at`.
     public static func gnssInterferenceEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[GnssInterferenceEventRow], SDRKitCode> {
         var rows = [sdrkit_gnss_interference_event_row](repeating: sdrkit_gnss_interference_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1032,6 +1034,8 @@ public enum GnssTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SbasTypeRow.init))
     }
     /// The changed rows of the table "messages" of the stack "sbas", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `at`.
     public static func sbasMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[SbasMessageRow], SDRKitCode> {
         var rows = [sdrkit_sbas_message_row](repeating: sdrkit_sbas_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1064,6 +1068,8 @@ public enum GnssTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GnssInterferenceLineRow.init))
     }
     /// The changed rows of the table "interference_events" of the stack "sbas", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `at`.
     public static func sbasInterferenceEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[GnssInterferenceEventRow], SDRKitCode> {
         var rows = [sdrkit_gnss_interference_event_row](repeating: sdrkit_gnss_interference_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized

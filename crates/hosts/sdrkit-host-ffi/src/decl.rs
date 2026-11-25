@@ -95,6 +95,14 @@ pub struct Decl {
     /// An `SDRKIT_SETTING_ROLE_*` constant: what the setting chooses. A front end finds the setting that chooses the
     /// view of the picture by this member and not by the key. Settings only.
     pub role: i32,
+    /// With `refers_table`: the key of the column of that table that holds the value to pass, or empty. Empty: the
+    /// value is a row key of the table. With a column, a front end offers the rows of the table and passes the cell
+    /// of this column of the chosen row; other values stay valid (the addressee of a send command). Arguments and
+    /// settings.
+    pub refers_column: Str,
+    /// The place of the field among the key readings of its object, from 1: what a person looks at first. 0 for a
+    /// field that is no key reading. Result fields only.
+    pub reading: u32,
 }
 
 /// One option of a value of type `SDRKIT_TYPE_ENUM`.
@@ -246,6 +254,8 @@ fn decl_of(f: &FieldDecl, s: Option<&SettingDecl>) -> Decl {
             Some(sdrkit_core::SettingRole::PictureSource) => SDRKIT_SETTING_ROLE_PICTURE_SOURCE,
             Some(sdrkit_core::SettingRole::PictureView) => SDRKIT_SETTING_ROLE_PICTURE_VIEW,
         },
+        refers_column: Str::of(refers.map_or("", |r| &r.column)),
+        reading: u32::from(f.reading),
     }
 }
 
@@ -683,3 +693,37 @@ pub unsafe extern "C" fn sdrkit_event_field_option(
 }
 
 crate::handle::sized_structs!(Decl, EnumOption);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sdrkit_core::publish::{field, Field};
+    use sdrkit_core::settings::DeclareSetting;
+    use sdrkit_core::Setting;
+
+    /// The text of `s`.
+    fn text(s: Str) -> String {
+        // SAFETY: the view is of a string that lives in the declaration of the test.
+        let bytes = unsafe { std::slice::from_raw_parts(s.ptr.cast::<u8>(), s.len) };
+        String::from_utf8_lossy(bytes).into_owned()
+    }
+
+    #[test]
+    fn a_key_reading_and_a_value_column_reach_the_declaration() {
+        const LEVEL: Field<field::F64> = Field::new("level_db", "Level", "dB").reading(2);
+        let d = decl_of(&LEVEL.decl(), None);
+        assert_eq!(d.reading, 2);
+        assert_eq!(d.refers_column.len, 0);
+        const TO: Setting<field::Text> = Setting::new("to", "To", "", "").refers("nodes", "id");
+        let s = TO.decl();
+        let d = decl_of(&s.field, Some(&s));
+        assert_eq!(text(d.refers_table), "nodes");
+        assert_eq!(text(d.refers_column), "id");
+        assert_eq!(d.reading, 0);
+        // A plain reference holds a row key.
+        const ROW: Field<field::Text> = Field::new("row", "Row", "").refers_to_table("ships");
+        let d = decl_of(&ROW.decl(), None);
+        assert_eq!(text(d.refers_table), "ships");
+        assert_eq!(d.refers_column.len, 0);
+    }
+}

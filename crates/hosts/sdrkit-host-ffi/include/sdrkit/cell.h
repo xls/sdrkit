@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "cell", version 1.2. MIT licence.
+ * sdrkit: the typed interface of the stack family "cell", version 1.3. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_CELL_VERSION_MAJOR 1
-#define SDRKIT_CELL_VERSION_MINOR 2
+#define SDRKIT_CELL_VERSION_MINOR 3
 
 // The stack "railway_cir": its id, and the keys of its event types.
 #define SDRKIT_STACK_RAILWAY_CIR "railway_cir"
@@ -2090,6 +2090,8 @@ typedef struct sdrkit_ebicab_remove_args {
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "railway_cir" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `received`.
 static inline int32_t sdrkit_railway_cir_messages_rows(SDRKIT_HANDLE handle,
                                                       sdrkit_railway_cir_message_row *rows,
                                                       uint32_t capacity,
@@ -2690,8 +2692,10 @@ static inline int32_t sdrkit_gsmr_gen_set_centre_hz(SDRKIT_HANDLE handle, double
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "lbj" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // Place of a row: the column `position`.
 // Speed: `speed_kmh`.
+// Time: `received`.
 static inline int32_t sdrkit_lbj_messages_rows(SDRKIT_HANDLE handle,
                                               sdrkit_lbj_message_row *rows,
                                               uint32_t capacity,
@@ -2731,6 +2735,8 @@ static inline int32_t sdrkit_lbj_gen_set_deviation_hz(SDRKIT_HANDLE handle, doub
 
 // Fills `rows` with the changed rows of the table "telegrams" of the stack "ebicab" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `received`.
 static inline int32_t sdrkit_ebicab_telegrams_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_ebicab_telegram_row *rows,
                                                   uint32_t capacity,
@@ -2749,6 +2755,8 @@ static inline int32_t sdrkit_ebicab_balises_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "other_bursts" of the stack "ebicab" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `received`.
 static inline int32_t sdrkit_ebicab_other_bursts_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_ebicab_other_burst_row *rows,
                                                      uint32_t capacity,
@@ -3021,6 +3029,8 @@ static inline int32_t sdrkit_tdscdma_gen_set_multipliers(SDRKIT_HANDLE handle, b
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "eot" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_eot_frames_rows(SDRKIT_HANDLE handle,
                                             sdrkit_eot_frame_row *rows,
                                             uint32_t capacity,
@@ -3087,6 +3097,8 @@ static inline int32_t sdrkit_eot_gen_set_motion(SDRKIT_HANDLE handle, bool value
 
 // Fills `rows` with the changed rows of the table "detections" of the stack "cv2x" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_cv2x_detections_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_cv2x_detection_row *rows,
                                                  uint32_t capacity,

@@ -30,7 +30,7 @@ pub struct TunedFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct IdentFields<'a> {
     /// The confirmed identification. No value before one is confirmed.
-    #[field(label = "Identification")]
+    #[field(label = "Identification", reading = 1)]
     pub ident: Option<&'a str>,
     /// The last identification heard. No value before a word is heard.
     #[field(label = "Last heard")]
@@ -56,7 +56,7 @@ pub struct CarrierFields {
     #[field(shared = keys::OFFSET_HZ)]
     pub offset_hz: Option<Hertz>,
     /// The level of the carrier. No value before the first measurement.
-    #[field(shared = keys::LEVEL_DBFS)]
+    #[field(shared = keys::LEVEL_DBFS, reading = 4)]
     pub level_dbfs: Option<f64>,
 }
 
@@ -129,7 +129,7 @@ pub static IDENT_WORD: EventKind<IdentWordEvent<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NdbFields<'a> {
     /// The period of the identification.
-    #[field(label = "Identification period", unit = "s")]
+    #[field(label = "Identification period", unit = "s", reading = 3)]
     pub ident_period_s: Option<f64>,
     /// The robust z-score of the autocorrelation at that period.
     #[field(label = "Period z-score")]
@@ -138,7 +138,7 @@ pub struct NdbFields<'a> {
     #[field(label = "Average quality")]
     pub ident_fold_quality: Option<f64>,
     /// The word read from the average.
-    #[field(label = "Read from the average")]
+    #[field(label = "Read from the average", reading = 2)]
     pub ident_fold_text: Option<&'a str>,
 }
 
@@ -166,10 +166,10 @@ pub static NDB_SCAN: Table<NdbScanRow> = Table::new("scan", "Beacons in the inpu
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct VorFields<'a> {
     /// The radial. No value without a valid bearing.
-    #[field(label = "Radial", unit = "°")]
+    #[field(label = "Radial", unit = "°", reading = 2)]
     pub radial_deg: Option<f64>,
     /// The bearing to the station: the radial plus 180°. No value without a valid bearing.
-    #[field(label = "Bearing to", unit = "°")]
+    #[field(label = "Bearing to", unit = "°", reading = 3)]
     pub bearing_to_deg: Option<f64>,
     /// The selected course.
     #[field(label = "Course", unit = "°")]
@@ -193,7 +193,7 @@ pub struct VorFields<'a> {
     #[field(label = "Subcarrier deviation", unit = "Hz")]
     pub deviation_hz: Option<Hertz>,
     /// How steady the bearing is, 0 (random) to 1. No value before the first measurement.
-    #[field(label = "Steadiness")]
+    #[field(label = "Steadiness", reading = 5)]
     pub steadiness: Option<f64>,
     /// Measurements made.
     #[field(label = "Measurements")]
@@ -215,7 +215,7 @@ pub struct IlsFields<'a> {
     #[field(label = "Part")]
     pub part: IlsPart,
     /// The difference in depth of modulation (90 Hz less 150 Hz). No value while the flag is out.
-    #[field(label = "DDM")]
+    #[field(label = "DDM", reading = 2)]
     pub ddm: Option<f64>,
     /// The sum in depth of modulation. No value before the first measurement.
     #[field(label = "SDM", unit = "%")]
@@ -233,7 +233,7 @@ pub struct IlsFields<'a> {
     #[field(label = "Needle", unit = "dots")]
     pub needle_dots: Option<f64>,
     /// What the needle says.
-    #[field(label = "Command")]
+    #[field(label = "Command", reading = 3)]
     pub command: IlsCommand,
     /// The flag is out: no carrier, an SDM far from its nominal value, or the marker part, which has no needle.
     #[field(label = "Flag")]
@@ -254,7 +254,7 @@ pub struct IlsFields<'a> {
 pub struct MarkerFields<'a> {
     /// The marker of the passage, named by its tone. None before the first passage of three elements and outside the
     /// marker part.
-    #[field(label = "Marker")]
+    #[field(label = "Marker", reading = 5)]
     pub marker: MarkerKind,
     /// The tone of the passage, measured. No value without a passage.
     #[field(label = "Marker tone", unit = "Hz")]
@@ -266,10 +266,10 @@ pub struct MarkerFields<'a> {
     #[field(label = "Keying")]
     pub keying: Option<&'a str>,
     /// Elements a second, from the first onset to the last. No value without a passage.
-    #[field(label = "Keying rate", unit = "/s")]
+    #[field(label = "Keying rate", unit = "1/s")]
     pub keying_rate: Option<f64>,
     /// Dot-dash pairs a minute. No value without mixed keying.
-    #[field(label = "Dot-dash pairs", unit = "/min")]
+    #[field(label = "Dot-dash pairs", unit = "1/min")]
     pub pairs_per_min: Option<f64>,
     /// The mean dot length. No value without dots.
     #[field(label = "Dot", unit = "s")]
@@ -312,11 +312,16 @@ pub struct MarkerPassageRow<'a> {
     /// The carrier level at the end of the passage. No value before the first carrier measurement.
     #[field(shared = keys::LEVEL_DBFS)]
     pub level_dbfs: Option<f64>,
+    /// The signal time of the end of the passage.
+    #[field(label = "Time", unit = "s", role = Time)]
+    pub time_s: f64,
 }
 
-/// The finished marker passages.
+/// The finished marker passages, a log.
 pub static MARKER_PASSAGES: Table<MarkerPassageRow<'static>> =
-    Table::new("passages", "Marker passages", 64).label(&MarkerPassageRow::MARKER);
+    Table::new("passages", "Marker passages", 64)
+        .label(&MarkerPassageRow::MARKER)
+        .role(sdrkit_core::TableRole::Log);
 
 /// The fields of a finished marker passage.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -363,25 +368,25 @@ pub struct DmeFields<'a> {
     #[field(label = "Channel mode")]
     pub channel_mode: Option<DmeMode>,
     /// The channel from the tuned frequency and the mode ("17X"). No value with too few pairs.
-    #[field(shared = keys::CHANNEL)]
+    #[field(shared = keys::CHANNEL, reading = 3)]
     pub channel: Option<&'a str>,
     /// The paired VOR or localizer frequency. No value without a channel that has one.
     #[field(label = "Paired VHF", unit = "Hz")]
     pub paired_vhf_hz: Option<Hertz>,
     /// Pairs a second.
-    #[field(label = "Pairs a second", unit = "/s")]
+    #[field(label = "Pairs a second", unit = "1/s", reading = 2)]
     pub pairs_per_s: f64,
     /// The mean pair spacing. No value with too few pairs.
-    #[field(label = "Pair spacing", unit = "µs")]
+    #[field(label = "Pair spacing", unit = "us")]
     pub spacing_us: Option<f64>,
     /// The mean pulse width at half amplitude. No value with too few pairs.
-    #[field(label = "Pulse width", unit = "µs")]
+    #[field(label = "Pulse width", unit = "us")]
     pub width_us: Option<f64>,
     /// Pairs seen in all.
     #[field(label = "Pairs")]
     pub pairs: i64,
     /// The mean level of the pulses. No value with too few pairs.
-    #[field(shared = keys::LEVEL_DBFS)]
+    #[field(shared = keys::LEVEL_DBFS, reading = 4)]
     pub level_dbfs: Option<f64>,
 }
 
@@ -391,16 +396,16 @@ pub struct DmeFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct LoranFields<'a> {
     /// The GRI in use, in tens of microseconds.
-    #[field(label = "GRI")]
+    #[field(label = "GRI", reading = 2)]
     pub gri: Option<i64>,
     /// The chain of that GRI. No value for a GRI that the `chains` setting does not name.
-    #[field(label = "Chain")]
+    #[field(label = "Chain", reading = 1)]
     pub chain: Option<&'a str>,
     /// The master is found: its correlation SNR is at least 10 dB.
-    #[field(label = "Master")]
+    #[field(label = "Master", reading = 3)]
     pub master: bool,
     /// The correlation SNR of the master.
-    #[field(label = "Master SNR", unit = "dB")]
+    #[field(label = "Master SNR", unit = "dB", reading = 4)]
     pub master_snr_db: Option<f64>,
     /// Measurements made.
     #[field(label = "Measurements")]
@@ -414,10 +419,10 @@ pub struct LoranStationRow<'a> {
     #[field(label = "Station")]
     pub station: &'a str,
     /// The time difference from the master.
-    #[field(label = "TD", unit = "µs")]
+    #[field(label = "TD", unit = "us")]
     pub td_us: f64,
     /// The envelope-to-cycle difference relative to the master.
-    #[field(label = "ECD", unit = "µs")]
+    #[field(label = "ECD", unit = "us")]
     pub ecd_us: f64,
     /// The signal to noise ratio of the correlation.
     #[field(shared = keys::SNR_DB)]
@@ -437,19 +442,19 @@ pub static LORAN_STATIONS: Table<LoranStationRow<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct DgpsFields<'a> {
     /// The base station id.
-    #[field(label = "Station")]
+    #[field(label = "Station", reading = 1)]
     pub station_id: Option<i64>,
     /// The health of the station.
-    #[field(label = "Health")]
+    #[field(label = "Health", reading = 2)]
     pub health: Option<StationHealth>,
     /// The last modified Z-count: the time into the hour.
     #[field(label = "Z-count", unit = "s")]
     pub zcount: Option<Seconds>,
     /// The bit rate decoded. No value before the first report of the link.
-    #[field(shared = keys::SYMBOL_RATE_HZ)]
+    #[field(shared = keys::SYMBOL_RATE_HZ, reading = 4)]
     pub symbol_rate_hz: Option<Hertz>,
     /// The framer of that bit rate holds the frame sync.
-    #[field(shared = keys::LOCKED)]
+    #[field(shared = keys::LOCKED, reading = 3)]
     pub locked: bool,
     /// Words with good parity.
     #[field(label = "Good words")]
@@ -458,7 +463,7 @@ pub struct DgpsFields<'a> {
     #[field(label = "Bad words")]
     pub bad_words: i64,
     /// Frames decoded.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 5)]
     pub frames_ok: i64,
     /// The position of the base station. No value before a message of type 3.
     #[field(label = "Base station")]
@@ -720,32 +725,7 @@ pub fn family() -> &'static Described {
                 "DgpsFields.frames_ok",
                 "DgpsFields.text",
             ]);
-        // Version 1.3 names rows and orders tables. Version 1.4 has the station table of `dgps`.
-        Described::new("avnav", 1, 4)
-            .added(
-                1,
-                4,
-                &[
-                    "dgps.table.station",
-                    "shape.DgpsStationRow",
-                    "shape.DgpsStationRow.station_id",
-                    "shape.DgpsStationRow.health",
-                    "shape.DgpsStationRow.position",
-                    "shape.DgpsStationRow.height_m",
-                ],
-            )
-            .added(
-                1,
-                2,
-                &[
-                    "ndb.content",
-                    "vor.content",
-                    "ils.content",
-                    "dme.content",
-                    "loran.content",
-                    "dgps.content",
-                ],
-            )
+        Described::new("avnav", 2, 0)
             .content(
                 sdrkit_core::ContentKind::Navigation,
                 &["ndb", "vor", "ils", "dme", "loran", "dgps"],
@@ -765,51 +745,8 @@ pub fn family() -> &'static Described {
             .stack(dme)
             .stack(loran)
             .stack(dgps)
-            .added(1, 1, ADDED_1_1)
     })
 }
-
-/// What version 1.1 added: the marker part of ILS.
-const ADDED_1_1: &[&str] = &[
-    "ils.fields.MarkerFields",
-    "shape.MarkerFields",
-    "shape.MarkerFields.marker",
-    "shape.MarkerFields.marker_tone_hz",
-    "shape.MarkerFields.marker_depth_pct",
-    "shape.MarkerFields.keying",
-    "shape.MarkerFields.keying_rate",
-    "shape.MarkerFields.pairs_per_min",
-    "shape.MarkerFields.dot_s",
-    "shape.MarkerFields.dash_s",
-    "shape.MarkerFields.keying_fits",
-    "shape.MarkerFields.passage_s",
-    "shape.MarkerFields.passages",
-    "shape.MarkerFields.keyed_now",
-    "shape.MarkerFields.held_depth_pct",
-    "shape.MarkerFields.pattern",
-    "ils.table.passages",
-    "shape.MarkerPassageRow",
-    "shape.MarkerPassageRow.kind",
-    "shape.MarkerPassageRow.marker",
-    "shape.MarkerPassageRow.text",
-    "shape.MarkerPassageRow.level_dbfs",
-    "ils.event.ils.marker",
-    "shape.MarkerEvent",
-    "shape.MarkerEvent.source",
-    "shape.MarkerEvent.text",
-    "shape.MarkerEvent.family",
-    "shape.MarkerEvent.kind",
-    "shape.MarkerEvent.marker",
-    "shape.MarkerEvent.tone_hz",
-    "shape.MarkerEvent.depth_pct",
-    "shape.MarkerEvent.duration_s",
-    "ils.setting.gen_marker",
-    "ils.setting.gen_marker_keying",
-    "ils.setting.gen_marker_tone",
-    "ils.setting.gen_marker_depth",
-    "ils.setting.gen_marker_start",
-    "ils.setting.gen_marker_stop",
-];
 
 /// Every stack of the family.
 const ALL: &[&str] = &["ndb", "vor", "ils", "dme", "loran", "dgps"];

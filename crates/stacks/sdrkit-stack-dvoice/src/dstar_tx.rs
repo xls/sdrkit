@@ -56,7 +56,8 @@ pub const SUFFIX: Setting<field::Text> = Setting::new("suffix", "Suffix", "", ""
 /// The station called.
 pub const YOUR_CALL: Setting<field::Text> = Setting::new("your_call", "Your call sign", "", "CQCQCQ")
     .help("YOUR of the radio header: a call sign, CQCQCQ for everyone, or a command of a gateway; up to 8 characters.")
-    .section(TX);
+    .section(TX)
+    .refers("heard", "src");
 /// The first repeater.
 pub const RPT1: Setting<field::Text> = Setting::new("rpt1", "Repeater 1", "", "DIRECT")
     .help("RPT1 of the radio header: DIRECT for simplex, or the repeater with its module letter in position 8.")

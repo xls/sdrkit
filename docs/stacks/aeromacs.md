@@ -64,7 +64,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.4. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 2.0. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: none.
 
@@ -105,6 +105,8 @@ Struct `OfdmShapeDetectionRow`. A row of the detection starts. The row key is th
 | `offset_hz` | frequency | always | 1.0 | The carrier offset. |
 | `correlation` | number | always | 1.0 | The prefix correlation. |
 | `frame` | text | optional | 1.0 | The frame structure in words. No value while it was not known. |
+
+The rows are a log: they arrive over time. Time: `time_s`.
 
 ### Commands
 

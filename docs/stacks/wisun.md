@@ -61,8 +61,8 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `networks` | Networks | `name` (text), `border_router` (text), `size` (whole number), `nodes` (whole number), `level_dbfs` (number (dBFS)), `heard` (whole number), `last_heard` (time), `schedule` (text) |
-| `nodes` | Nodes | `vendor` (text), `role` (text), `pan` (text), `cost` (whole number), `level_dbfs` (number (dBFS)), `frames` (whole number), `last_heard` (time), `freq` (frequency), `authenticator` (text), `eap` (text), `last` (text) |
+| `networks` | Networks | `name` (text), `border_router` (text), `size` (whole number), `nodes` (whole number), `level_dbfs` (number (dBFS)), `heard` (whole number), `last_heard` (time), `schedule` (text), `pan_id` (text) |
+| `nodes` | Nodes | `vendor` (text), `role` (text), `pan` (text), `cost` (whole number), `level_dbfs` (number (dBFS)), `frames` (whole number), `last_heard` (time), `freq` (frequency), `authenticator` (text), `eap` (text), `last` (text), `address` (text) |
 | `links` | Links | `from` (text), `to` (text), `frames` (whole number), `acks` (whole number), `rsl_dbm` (number (dBm)), `level_dbfs` (number (dBFS)), `last_heard` (time) |
 | `frames` | Frames | `time_s` (number (s)), `freq` (frequency), `ch` (text), `kbps` (whole number), `type` (text), `route` (text), `level_dbfs` (number (dBFS)), `details` (text), `mpdu` (text) |
 
@@ -90,7 +90,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 3.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
 
@@ -142,6 +142,7 @@ Struct `WisunNetworkRow`. A row of the Wi-SUN networks. The row key is the PAN i
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
 | `schedule` | text | optional | 1.0 | The unicast schedule, once heard. |
+| `pan_id` | text | always | 1.0 | The PAN id, as `send` takes it. |
 
 The column `name` names a row. Default order: the column `level_dbfs`, highest first.
 
@@ -162,6 +163,7 @@ Struct `WisunNodeRow`. A row of the Wi-SUN nodes. The row key is the EUI-64.
 | `authenticator` | text | optional | 1.0 | The authenticator EUI-64, once heard. |
 | `eap` | text | optional | 1.0 | The EAP state, once heard. |
 | `last` | text | always | 1.0 | The summary of the last frame. |
+| `address` | text | always | 1.0 | The EUI-64, as `send` takes it. |
 
 ### Table `links`
 
@@ -195,6 +197,8 @@ Struct `WisunFrameRow`. A row of the Wi-SUN frame log. The row key is the number
 | `details` | text | always | 1.0 | The summary of the frame. |
 | `mpdu` | text | always | 1.0 | The MPDU without the FCS in hex. |
 
+The rows are a log: they arrive over time. Time: `time_s`.
+
 ### Event `wisun.pan`
 
 Struct `WisunPanEvent`. The fields of a new Wi-SUN PAN event.
@@ -226,6 +230,8 @@ Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
 | `remove` | `sdrkit_wisun_remove` | `sdrkit_wisun_node_args` | none |
 | `send` | `sdrkit_wisun_send` | `sdrkit_wisun_send_args` | none |
 | `halt` | `sdrkit_wisun_halt` | none | none |
+
+The argument `pan_id` of `send` takes the column `pan_id` of a row of the table `networks`. The argument `source` of `send` takes the column `address` of a row of the table `nodes`. The argument `destination` of `send` takes the column `address` of a row of the table `nodes`.
 
 ### Settings
 

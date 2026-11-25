@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dvoice", version 2.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "dvoice", version 2.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DVOICE_VERSION_MAJOR 2
-#define SDRKIT_DVOICE_VERSION_MINOR 4
+#define SDRKIT_DVOICE_VERSION_MINOR 5
 
 // The stack "dmr": its id, and the keys of its event types.
 #define SDRKIT_STACK_DMR "dmr"
@@ -4796,7 +4796,9 @@ static inline int32_t sdrkit_dcr_talkgroups_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "events" of the stack "dcr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `identity` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_dcr_events_rows(SDRKIT_HANDLE handle,
                                             sdrkit_dcr_event_row *rows,
                                             uint32_t capacity,

@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "hfkbd", version 2.10. MIT licence.
+// sdrkit: the typed interface of the stack family "hfkbd", version 3.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum HfkbdInterface {
-    public static let major = 2
-    public static let minor = 10
+    public static let major = 3
+    public static let minor = 0
 }
 
 /// The levels that the front end measures. A level has no value before the first input.
@@ -2325,7 +2325,9 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ArdopStationRow.init))
     }
     /// The changed rows of the table "detections" of the stack "ros", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `name` names a row.
+    /// Time: `time_s`.
     public static func rosDetections(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[RosDetectionRow], SDRKitCode> {
         var rows = [sdrkit_ros_detection_row](repeating: sdrkit_ros_detection_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2367,6 +2369,8 @@ public enum HfkbdTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfkbdStationRow.init))
     }
     /// The changed rows of the table "pilots" of the stack "winmor", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func winmorPilots(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[WinmorPilotRow], SDRKitCode> {
         var rows = [sdrkit_winmor_pilot_row](repeating: sdrkit_winmor_pilot_row(), count: capacity)
         var info = sdrkit_rows_info.sized

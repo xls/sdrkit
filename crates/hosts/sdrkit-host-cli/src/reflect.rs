@@ -118,8 +118,8 @@ pub fn print_table(
 }
 
 /// The marks of table `t` as text after its line, each with `; ` before it: the column that names a row, the default
-/// order, the columns of the place of a row, what the rows are, and the columns of a message. Empty for a table
-/// without marks.
+/// order, the columns of the place of a row, what the rows are, and the columns of a message and of its delivery.
+/// Empty for a table without marks.
 fn table_marks(t: &sdrkit_core::TableDecl) -> String {
     let m = &t.marks;
     let key = |c: u16| t.columns.fields()[usize::from(c)].key.as_ref();
@@ -154,6 +154,9 @@ fn table_marks(t: &sdrkit_core::TableDecl) -> String {
         ("addressee", m.addressee),
         ("text", m.text),
         ("time", m.time),
+        ("own", m.own),
+        ("delivery", m.delivery),
+        ("failure", m.failure),
     ] {
         if let Some(c) = c {
             let _ = write!(out, "; {name} {}", key(c));
@@ -405,6 +408,17 @@ fn commands_text(o: &dyn Owner) -> String {
         let _ = writeln!(s, "{} {}  {}", d.key, args.join(" "), d.label);
         if !d.help.is_empty() {
             let _ = writeln!(s, "    {}", d.help);
+        }
+        // The arguments that take their value from a column of a table of the owner.
+        for a in d.args.settings() {
+            let Some(r) = a.field.refers_to.as_ref().filter(|r| !r.column.is_empty()) else {
+                continue;
+            };
+            let _ = writeln!(
+                s,
+                "    {}: a value of the column {} of the table {}, or another value",
+                a.field.key, r.column, r.table
+            );
         }
     }
     s

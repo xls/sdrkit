@@ -157,7 +157,7 @@ The stack puts points on a map: Satellites.
 
 ## Typed interface
 
-The stack is in the family `gnss`, version 1.1. The C header `sdrkit/gnss.h`, the registry record `registry/gnss.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `gnss`, version 1.2. The C header `sdrkit/gnss.h`, the registry record `registry/gnss.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -316,6 +316,8 @@ Struct `InterferenceEventRow`. An interference event.
 | `at` | duration (s) | always | 1.0 | Signal time of an event. |
 | `level` | choice | always | 1.0 | The level of an event. |
 | `text` | text | always | 1.0 | The text of a decoded message. |
+
+The rows are a log: they arrive over time. Time: `at`.
 
 ### Event `gnss.fix`
 

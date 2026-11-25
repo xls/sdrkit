@@ -92,7 +92,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:pa
 
 ## Typed interface
 
-The stack is in the family `trunk`, version 1.5. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `trunk`, version 1.6. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Paging (`paging`). Media: text.
 
@@ -234,6 +234,8 @@ Struct `PagerTxEvent`. The fields of a change of a POCSAG transmission.
 | `clear` | `sdrkit_pager_clear` | none | none |
 | `send` | `sdrkit_pager_send` | `sdrkit_pager_send_args` | none |
 | `halt` | `sdrkit_pager_halt` | none | none |
+
+The argument `address` of `send` takes the column `address` of a row of the table `heard`.
 
 ### Settings
 

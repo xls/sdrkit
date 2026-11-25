@@ -85,7 +85,7 @@ pub struct Mpt1327Fields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct Mpt1327MessageRow<'a> {
     /// The signal time of a message, s.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The type of a message.
     #[field(label = "Type")]
@@ -210,7 +210,7 @@ pub struct LtrWordRow<'a> {
     #[field(label = "Kind")]
     pub kind: WordKind,
     /// The signal time of a word, s.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
 }
 
@@ -419,7 +419,7 @@ pub struct EdacsFrameRow<'a> {
     #[field(label = "Copy errors of B")]
     pub err_b: i64,
     /// Time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// Read as.
     #[field(label = "Read as")]
@@ -704,7 +704,7 @@ pub struct MotorolaType2Fields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct MotorolaType2MessageRow<'a> {
     /// Signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// An address.
     #[field(label = "Address")]
@@ -886,16 +886,16 @@ pub struct OpenskyFields<'a> {
     #[field(label = "Blocks analysed")]
     pub blocks: i64,
     /// Symbol rate found, Hz.
-    #[field(shared = keys::SYMBOL_RATE_HZ)]
+    #[field(shared = keys::SYMBOL_RATE_HZ, reading = 2)]
     pub symbol_rate_hz: Option<Hertz>,
     /// The strength of the symbol rate line.
     #[field(label = "Line strength", unit = "dB")]
     pub line_db: Option<f64>,
     /// The levels.
-    #[field(label = "Levels")]
+    #[field(label = "Levels", reading = 3)]
     pub levels: Option<i64>,
     /// The deviation.
-    #[field(label = "Deviation", unit = "Hz")]
+    #[field(label = "Deviation", unit = "Hz", reading = 4)]
     pub deviation_hz: Option<f64>,
     /// The burst period.
     #[field(label = "Burst period", unit = "ms")]
@@ -904,13 +904,13 @@ pub struct OpenskyFields<'a> {
     #[field(label = "Duty")]
     pub duty: Option<f64>,
     /// The occupied width.
-    #[field(label = "Occupied width", unit = "Hz")]
+    #[field(label = "Occupied width", unit = "Hz", reading = 5)]
     pub width_hz: Option<f64>,
     /// Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS).
     #[field(shared = keys::LEVEL_DBFS)]
     pub level_dbfs: Option<f64>,
     /// The verdict.
-    #[field(label = "Verdict")]
+    #[field(label = "Verdict", reading = 1)]
     pub verdict: Option<Verdict>,
     /// The text of a decoded message.
     #[field(shared = keys::TEXT)]
@@ -924,7 +924,7 @@ pub struct OpenskyFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct OpenskyBlockRow<'a> {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// Symbol rate found, Hz.
     #[field(shared = keys::SYMBOL_RATE_HZ)]
@@ -984,7 +984,7 @@ pub static TRUNK_GRANT: EventKind<GrantEvent<'static>> =
 
 /// The MPT 1327 messages, oldest first.
 pub static MPT1327_MESSAGES: Table<Mpt1327MessageRow<'static>> =
-    Table::new("messages", "Messages", 200);
+    Table::new("messages", "Messages", 200).role(sdrkit_core::TableRole::Log);
 /// The MPT 1327 channel table, by channel number.
 pub static MPT1327_CHANNELS: Table<Mpt1327ChannelRow<'static>> =
     Table::new("channels", "Channels", 2048);
@@ -993,8 +993,9 @@ pub static MPT1327_MESSAGE: EventKind<Mpt1327MessageEvent<'static>> =
     EventKind::new("mpt1327.message", "MPT 1327 message");
 
 /// The good LTR words, oldest first.
-pub static LTR_WORDS: Table<LtrWordRow<'static>> =
-    Table::new("words", "Words", 400).label(&LtrWordRow::TALKGROUP);
+pub static LTR_WORDS: Table<LtrWordRow<'static>> = Table::new("words", "Words", 400)
+    .label(&LtrWordRow::TALKGROUP)
+    .role(sdrkit_core::TableRole::Log);
 /// The LTR repeaters.
 pub static LTR_REPEATERS: Table<LtrRepeaterRow> = Table::new("repeaters", "Repeaters", 20);
 /// A good LTR word.
@@ -1008,7 +1009,8 @@ pub static EDACS_TALKGROUPS: Table<EdacsTalkgroupRow> = Table::new("talkgroups",
 /// The EDACS channels.
 pub static EDACS_CHANNELS: Table<EdacsChannelRow> = Table::new("channels", "Channels", 64);
 /// The EDACS frames, oldest first.
-pub static EDACS_FRAMES: Table<EdacsFrameRow<'static>> = Table::new("frames", "Frames", 400);
+pub static EDACS_FRAMES: Table<EdacsFrameRow<'static>> =
+    Table::new("frames", "Frames", 400).role(sdrkit_core::TableRole::Log);
 /// The EDACS message types heard.
 pub static EDACS_WORDS: Table<EdacsWordRow> = Table::new("words", "Words", 24);
 /// An EDACS call.
@@ -1039,7 +1041,8 @@ pub static MULTITONE_BURST: EventKind<MultitoneBurstEvent<'static>> =
 /// The Type II messages, oldest first.
 pub static MOTOROLA_TYPE2_MESSAGES: Table<MotorolaType2MessageRow<'static>> =
     Table::new("messages", "Messages", crate::type2::tables::MESSAGE_CAP)
-        .label(&MotorolaType2MessageRow::ADDRESS);
+        .label(&MotorolaType2MessageRow::ADDRESS)
+        .role(sdrkit_core::TableRole::Log);
 /// The Type II talkgroups.
 pub static MOTOROLA_TYPE2_TALKGROUPS: Table<MotorolaType2TalkgroupRow<'static>> = Table::new(
     "talkgroups",
@@ -1063,7 +1066,7 @@ pub static MOTOROLA_TYPE2_MESSAGE: EventKind<MotorolaType2MessageEvent<'static>>
 
 /// The OpenSky blocks, oldest first.
 pub static OPENSKY_BLOCKS: Table<OpenskyBlockRow<'static>> =
-    Table::new("blocks", "Blocks", crate::opensky::ROW_CAP);
+    Table::new("blocks", "Blocks", crate::opensky::ROW_CAP).role(sdrkit_core::TableRole::Log);
 /// The OpenSky verdict of a block.
 pub static OPENSKY_VERDICT: EventKind<OpenskyVerdictEvent<'static>> =
     EventKind::new("opensky.verdict", "OpenSky verdict");
@@ -1184,7 +1187,7 @@ pub struct TonesFields<'a> {
     #[field(label = "Audio level", unit = "dB")]
     pub audio_db: f64,
     /// The signal to noise ratio of the carrier. No value for audio input.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 5)]
     pub snr_db: Option<f64>,
     /// The offset of the carrier from the tuned frequency. No value for audio input.
     #[field(shared = keys::OFFSET_HZ)]
@@ -1193,19 +1196,19 @@ pub struct TonesFields<'a> {
     #[field(label = "Carrier seen in 5 s")]
     pub carrier_recent: Option<bool>,
     /// The CTCSS tone that is locked now.
-    #[field(label = "CTCSS tone", unit = "Hz")]
+    #[field(label = "CTCSS tone", unit = "Hz", reading = 1)]
     pub ctcss_hz: Option<Hertz>,
     /// The DCS code that is locked now.
-    #[field(label = "DCS code")]
+    #[field(label = "DCS code", reading = 2)]
     pub dcs: Option<&'a str>,
     /// The other reading of the waveform of the DCS code.
     #[field(label = "DCS alias")]
     pub dcs_alias: Option<&'a str>,
     /// The strongest tone of the audio spectrum.
-    #[field(label = "Strongest tone", unit = "Hz")]
+    #[field(label = "Strongest tone", unit = "Hz", reading = 4)]
     pub strongest_hz: Option<Hertz>,
     /// The DTMF keys of the string that goes on now.
-    #[field(label = "DTMF keys")]
+    #[field(label = "DTMF keys", reading = 3)]
     pub dtmf: &'a str,
     /// The listening gate is open.
     #[field(label = "Gate open")]
@@ -1246,7 +1249,7 @@ pub struct TonesFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct TonesHeardRow<'a> {
     /// The signal time of the start.
-    #[field(label = "Start", unit = "s")]
+    #[field(label = "Start", unit = "s", role = Time)]
     pub start_s: f64,
     /// What the row holds.
     #[field(label = "Type")]
@@ -1270,7 +1273,8 @@ pub struct TonesHeardRow<'a> {
 
 /// What the tone decoders heard, oldest first.
 pub static TONES_HEARD: Table<TonesHeardRow<'static>> =
-    Table::new("events", "Tones heard", crate::tones::events::ROWS);
+    Table::new("events", "Tones heard", crate::tones::events::ROWS)
+        .role(sdrkit_core::TableRole::Log);
 /// The audio spectrum of the tone stack.
 pub const TONES_SPECTRUM: SeriesDef = SeriesDef {
     key: "spectrum",
@@ -1512,7 +1516,9 @@ pub struct PagerSendArgs<'a> {
     /// The address (RIC).
     #[arg(
         label = "Address (RIC)",
-        help = "0 to 2097151: the low 3 bits select the frame, the other 18 go in the address word."
+        help = "0 to 2097151: the low 3 bits select the frame, the other 18 go in the address word.",
+        refers_to = "heard",
+        column = "address"
     )]
     pub address: i64,
     /// The function bits.
@@ -1895,7 +1901,9 @@ pub struct ScadaCsvReply<'a> {
 
 /// The SCADA messages, newest last.
 pub static SCADA_MESSAGES: Table<ScadaMessageRow<'static>> =
-    Table::new("messages", "Messages", crate::scada::MESSAGE_CAP).label(&ScadaMessageRow::FROM);
+    Table::new("messages", "Messages", crate::scada::MESSAGE_CAP)
+        .label(&ScadaMessageRow::FROM)
+        .role(sdrkit_core::TableRole::Log);
 /// The SCADA devices.
 pub static SCADA_DEVICES: Table<ScadaDeviceRow<'static>> =
     Table::new("devices", "Devices", crate::scada::DEVICE_CAP);
@@ -1917,7 +1925,7 @@ pub fn family() -> &'static Described {
         let objects_clear = &sdrkit_util_objects::commands::CLEAR;
         let decoder_clear = &sdrkit_graph::decoder::CLEAR;
         use sdrkit_proto_tones::components as tones;
-        Described::new("trunk", 1, 5)
+        Described::new("trunk", 1, 6)
             .added(
                 1,
                 3,

@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "adsb", version 1.3. MIT licence.
+// sdrkit: the typed interface of the stack family "adsb", version 1.4. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum AdsbInterface {
     public static let major = 1
-    public static let minor = 3
+    public static let minor = 4
 }
 
 /// The result fields of the tracker.
@@ -1174,7 +1174,9 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AdsbAircraftRow.init))
     }
     /// The changed rows of the table "messages" of the stack "adsb", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `icao` names a row.
+    /// Time: `time_s`.
     public static func adsbMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[AdsbMessageRow], SDRKitCode> {
         var rows = [sdrkit_adsb_message_row](repeating: sdrkit_adsb_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1276,7 +1278,9 @@ public enum AdsbTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(UatFisbVertexRow.init))
     }
     /// The changed rows of the table "log" of the stack "uat", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `address` names a row.
+    /// Time: `time_s`.
     public static func uatLog(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[UatLogRow], SDRKitCode> {
         var rows = [sdrkit_uat_log_row](repeating: sdrkit_uat_log_row(), count: capacity)
         var info = sdrkit_rows_info.sized

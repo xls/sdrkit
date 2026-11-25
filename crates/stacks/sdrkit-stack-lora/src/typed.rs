@@ -29,26 +29,7 @@ use std::sync::{Arc, OnceLock};
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        // Version 3.2 names rows and orders tables.
-        Described::new("lora", 3, 3)
-            .added(
-                3,
-                1,
-                &[
-                    "mesh.content",
-                    "meshtastic.content",
-                    "meshcore.content",
-                    "lorawan.content",
-                    "loraaprs.content",
-                    "meshcom.content",
-                    "lorawanwide.content",
-                    "loraraw.content",
-                    "aprs.content",
-                    "fanet.content",
-                    "reticulum.content",
-                    "elrs.content",
-                ],
-            )
+        Described::new("lora", 4, 0)
             .content(
                 sdrkit_core::ContentKind::Mesh,
                 &[
@@ -269,10 +250,10 @@ pub struct RawFields<'a> {
     #[field(shared = keys::OFFSET_HZ)]
     pub offset_hz: Option<Hertz>,
     /// Frames with a good CRC.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 1)]
     pub frames_ok: i64,
     /// Frames whose CRC failed.
-    #[field(shared = keys::FRAMES_BAD)]
+    #[field(shared = keys::FRAMES_BAD, reading = 2)]
     pub frames_bad: i64,
     /// Frame preambles seen.
     #[field(label = "Preambles")]
@@ -323,7 +304,7 @@ pub struct RawFields<'a> {
     #[field(label = "500 kHz frames")]
     pub bw500: i64,
     /// The signal to noise ratio of the last frame, while frames come.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 3)]
     pub snr_db: Option<f64>,
 }
 
@@ -331,7 +312,7 @@ pub struct RawFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct RawFrameRow<'a> {
     /// The signal time of the frame.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The spreading factor.
     #[field(label = "SF")]
@@ -399,7 +380,8 @@ pub struct RawDecoderRow<'a> {
 
 /// The raw frame log, newest last.
 pub static RAW_FRAMES: Table<RawFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::components::raw::LOG_CAP);
+    Table::new("frames", "Frames", crate::components::raw::LOG_CAP)
+        .role(sdrkit_core::TableRole::Log);
 /// The raw decoders.
 pub static RAW_DECODERS: Table<RawDecoderRow<'static>> = Table::new("decoders", "Decoders", 100);
 
@@ -596,7 +578,9 @@ pub struct ElrsLinkEvent<'a> {
 
 /// The frame log, newest last.
 pub static ELRS_FRAMES: Table<ElrsFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::components::elrs::FRAME_CAP).label(&ElrsFrameRow::LINK);
+    Table::new("frames", "Frames", crate::components::elrs::FRAME_CAP)
+        .label(&ElrsFrameRow::LINK)
+        .role(sdrkit_core::TableRole::Log);
 /// The links.
 pub static ELRS_LINKS: Table<ElrsLinkRow<'static>> =
     Table::new("links", "Links", crate::components::elrs::LINK_CAP).label(&ElrsLinkRow::SOURCE);
@@ -656,7 +640,7 @@ pub struct FanetFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FanetFrameRow<'a> {
     /// The signal time of the frame.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// What the frame is.
     #[field(label = "Kind")]
@@ -790,7 +774,8 @@ pub struct FanetDistressEvent<'a> {
 /// The FANET frame log, newest last.
 pub static FANET_FRAMES: Table<FanetFrameRow<'static>> =
     Table::new("frames", "Frames", crate::components::fanet::FRAME_CAP)
-        .label(&FanetFrameRow::SOURCE);
+        .label(&FanetFrameRow::SOURCE)
+        .role(sdrkit_core::TableRole::Log);
 /// The FANET stations.
 pub static FANET_STATIONS: Table<FanetStationRow<'static>> = Table::new(
     "stations",
@@ -1140,7 +1125,9 @@ pub struct AprsPacketEvent<'a> {
 
 /// The APRS frame log, newest last.
 pub static APRS_FRAMES: Table<AprsFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::aprs::station::FRAMES_CAP).label(&AprsFrameRow::SOURCE);
+    Table::new("frames", "Frames", crate::aprs::station::FRAMES_CAP)
+        .label(&AprsFrameRow::SOURCE)
+        .role(sdrkit_core::TableRole::Log);
 /// The APRS stations, objects and items.
 pub static APRS_STATIONS: Table<AprsStationRow<'static>> =
     Table::new("stations", "Stations", crate::aprs::station::STATIONS_CAP)
@@ -1168,7 +1155,12 @@ pub const APRS_REMOVE: CommandKind<AprsRemoveArgs<'static>> = objcmd::remove_kin
 #[derive(Arguments)]
 pub struct AprsSendArgs<'a> {
     /// The addressee.
-    #[arg(label = "To", help = "A callsign with its SSID.")]
+    #[arg(
+        label = "To",
+        help = "A callsign with its SSID.",
+        refers_to = "stations",
+        column = "call"
+    )]
     pub to: &'a str,
     /// The text of the message.
     #[arg(label = "Text")]
@@ -1353,7 +1345,7 @@ pub struct MeshTxFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct MeshPacketRow<'a> {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The protocol.
     #[field(label = "Net")]
@@ -1462,10 +1454,10 @@ pub struct MeshMessageRow<'a> {
     #[field(label = "Hops")]
     pub hops: Option<i64>,
     /// The delivery state of an own message.
-    #[field(label = "State")]
+    #[field(label = "State", role = Delivery)]
     pub state: Option<DeliveryState>,
     /// Why the delivery failed.
-    #[field(label = "Failure")]
+    #[field(label = "Failure", role = Failure)]
     pub failure: Option<&'a str>,
     /// The distinct relays heard for an own broadcast.
     #[field(label = "Relays")]
@@ -1497,7 +1489,7 @@ pub struct MeshMessageRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct MeshReadingRow<'a> {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The node of the reading.
     #[field(label = "Node")]
@@ -1821,7 +1813,9 @@ pub struct MeshNodeEvent<'a> {
 
 /// The packet list, newest last.
 pub static MESH_PACKETS: Table<MeshPacketRow<'static>> =
-    Table::new("packets", "Packets", crate::mesh::store::PACKETS_CAP).label(&MeshPacketRow::SOURCE);
+    Table::new("packets", "Packets", crate::mesh::store::PACKETS_CAP)
+        .label(&MeshPacketRow::SOURCE)
+        .role(sdrkit_core::TableRole::Log);
 /// The node list.
 pub static MESH_NODES: Table<MeshNodeRow<'static>> =
     Table::new("nodes", "Nodes", crate::mesh::store::NODES_CAP)
@@ -1835,7 +1829,8 @@ pub static MESH_MESSAGES: Table<MeshMessageRow<'static>> =
 /// The telemetry and position readings, newest last.
 pub static MESH_READINGS: Table<MeshReadingRow<'static>> =
     Table::new("readings", "Readings", crate::mesh::store::READINGS_SHOWN)
-        .label(&MeshReadingRow::NODE);
+        .label(&MeshReadingRow::NODE)
+        .role(sdrkit_core::TableRole::Log);
 /// The APRS stations of LoRa APRS and MeshCom.
 pub static MESH_STATIONS: Table<MeshStationRow<'static>> =
     Table::new("stations", "Stations", crate::mesh::store::STATIONS_CAP)
@@ -1990,7 +1985,12 @@ pub struct McContactAddArgs<'a> {
 #[derive(Arguments)]
 pub struct MtRequestArgs<'a> {
     /// The node that the request goes to.
-    #[arg(label = "Node", help = "A node id \"!xxxxxxxx\".")]
+    #[arg(
+        label = "Node",
+        help = "A node id \"!xxxxxxxx\".",
+        refers_to = "nodes",
+        column = "id"
+    )]
     pub node: &'a str,
     /// What the request is for.
     #[arg(shared = WHAT)]
@@ -2219,7 +2219,7 @@ pub struct WideFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct WideFrameRow<'a> {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The frame type.
     #[field(label = "Type")]
@@ -2297,7 +2297,8 @@ pub struct WideChannelRow {
 /// The LoRaWAN frame log, newest last.
 pub static WIDE_FRAMES: Table<WideFrameRow<'static>> =
     Table::new("frames", "Frames", crate::components::lorawan::WIDE_LOG_CAP)
-        .label(&WideFrameRow::DEVICE);
+        .label(&WideFrameRow::DEVICE)
+        .role(sdrkit_core::TableRole::Log);
 /// The LoRaWAN channels.
 pub static WIDE_CHANNELS: Table<WideChannelRow> = Table::new("channels", "Channels", 200)
     .sorted(&WideChannelRow::FREQ, sdrkit_core::SortOrder::Ascending);

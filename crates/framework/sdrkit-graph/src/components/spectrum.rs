@@ -97,7 +97,7 @@ const WINDOW: Setting<field::Choice<SpectrumWindow>> =
 const AVERAGE: Setting<field::I64> =
     Setting::new("average", "Averaging", "frames", 1).range(1.0, 1000.0, 1.0);
 const FPS: Setting<field::F64> =
-    Setting::new("fps", "Frame rate", "/s", 30.0).range(0.1, 1000.0, 0.0);
+    Setting::new("fps", "Frame rate", "1/s", 30.0).range(0.1, 1000.0, 0.0);
 /// The default of the `fps` setting.
 pub(crate) const FPS_DEFAULT: f64 = FPS.default;
 const TIMING: Setting<field::Choice<FrameTiming>> =

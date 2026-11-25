@@ -81,13 +81,13 @@ pub const TX_TIMEOUT: Setting<field::Duration> = Setting::new("tx_timeout", "Tim
     .help("Push-to-talk ends after this time on air.")
     .section(TX);
 /// The speed of CW.
-pub const TX_CW_WPM: Setting<field::F64> = Setting::new("tx_cw_wpm", "Speed (CW)", "WPM", 20.0)
+pub const TX_CW_WPM: Setting<field::F64> = Setting::new("tx_cw_wpm", "Speed (CW)", "wpm", 20.0)
     .range(5.0, 60.0, 1.0)
     .help("The speed of the characters that send keys.")
     .section(TX);
 /// The overall speed of CW (Farnsworth).
 pub const TX_CW_FARNSWORTH: Setting<field::F64> =
-    Setting::new("tx_cw_farnsworth", "Overall speed (CW)", "WPM", 0.0)
+    Setting::new("tx_cw_farnsworth", "Overall speed (CW)", "wpm", 0.0)
         .range(0.0, 60.0, 1.0)
         .zero_means("The speed of the characters")
         .help("Farnsworth spacing: the characters at the speed, the gaps stretched to this lower overall speed.")

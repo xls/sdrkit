@@ -1,11 +1,11 @@
-// sdrkit: the typed interface of the shared interface "dvbs2", whose items the stacks of several families show, version 1.0. MIT licence.
+// sdrkit: the typed interface of the shared interface "dvbs2", whose items the stacks of several families show, version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum Dvbs2Interface {
-    public static let major = 1
+    public static let major = 2
     public static let minor = 0
 }
 

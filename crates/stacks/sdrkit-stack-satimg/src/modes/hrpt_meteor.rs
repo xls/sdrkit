@@ -11,9 +11,10 @@ use crate::components::instruments::instrument_owner;
 use crate::components::link::{
     control_port, item_format, item_port, DemodReport, FrontEndComponent, FrontReport,
 };
+use crate::components::pass::{pass_format, pass_port, PassPictures, PassSetting, PassTimer};
 use crate::components::pm::PmDemodComponent;
 use crate::components::{last, Control};
-use crate::gen::{test_value, GenError};
+use crate::gen::{pass_lines, test_value, GenError};
 use crate::instruments::msumr_hrpt::{
     payload, test_line, transport_frame, MsuHrptDecoder, MsuHrptStats, CHANNELS, FRAME_BYTES,
     INSTRUMENT, MAX_ROWS, PAYLOAD_BYTES, TRANSPORT, WIDTH,
@@ -22,7 +23,7 @@ use crate::psk::{LinkClass, LinkParams, Modulation, Search, SnrEstimator};
 use crate::typed::{ImageRow, MeteorHrptFields, IMAGES};
 use crate::REPORT_S;
 use sdrkit_algo_sim::modulate::PhaseMod;
-use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView};
 use sdrkit_codec_image::strip::{Strip, View};
 use sdrkit_core::interface::{Fields as _, Hertz, Seconds};
 use sdrkit_core::publish::Published;
@@ -135,6 +136,7 @@ pub struct MsuHrptComponent {
     last_frame_chip: u64,
     dec: MsuHrptDecoder,
     strips: Vec<Strip>,
+    pass: PassTimer,
     log: Vec<String>,
 }
 
@@ -148,6 +150,7 @@ impl Default for MsuHrptComponent {
             last_frame_chip: 0,
             dec: MsuHrptDecoder::default(),
             strips: Vec::new(),
+            pass: PassTimer::default(),
             log: Vec::new(),
         }
     }
@@ -161,15 +164,21 @@ impl Component for MsuHrptComponent {
             vec![
                 item_port::<Strip>("out"),
                 item_port::<MsuHrptReport>("report"),
+                pass_port(),
             ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
         if let Some(s) = &mut self.sync {
             s.drop_lock();
         }
         self.dec.restart();
-        Ok(vec![item_format::<Strip>(), item_format::<MsuHrptReport>()])
+        Ok(vec![
+            item_format::<Strip>(),
+            item_format::<MsuHrptReport>(),
+            pass_format(),
+        ])
     }
     fn process(&mut self, io: &mut Io) {
         let chips = io.llrs(0);
@@ -198,6 +207,9 @@ impl Component for MsuHrptComponent {
             self.count += frames;
             self.last_frame_chip = self.chips;
             self.dec.push(&self.payload, &mut self.strips);
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 2) {
+            self.dec.new_picture();
         }
         io.items_out::<Strip>(0)
             .extend(self.strips.drain(..).map(|s| Timed {
@@ -452,7 +464,8 @@ impl Component for MsuHrptDisplay {
 ///
 /// [`GraphError::Schema`] if the picture layout produces no valid schema.
 pub fn builder() -> Result<GraphBuilder, GraphError> {
-    let pictures = Pictures::new(vec![picture_layout()]).map_err(GraphError::Schema)?;
+    let pictures =
+        PassPictures::new(vec![picture_layout()], "Meteor-M").map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add(
             "frontend",
@@ -466,6 +479,7 @@ pub fn builder() -> Result<GraphBuilder, GraphError> {
         .connect("frontend.out", "demod.in")
         .connect("demod.soft", "msumr.in")
         .connect("msumr.out", "pictures.in")
+        .connect("msumr.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
         .connect("msumr.report", "display.msu")
@@ -503,6 +517,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route("variant", &["display.variant"])?
         .route("view", &["pictures.view"])?
         .route("follow", &["pictures.follow"])?
+        .route("pass_gap", &["msumr.pass_gap"])?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .with_settings(&cfg.settings)
         .build()
@@ -516,6 +531,8 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
 pub struct MsuHrptGenerator {
     rate: f64,
     lines: u32,
+    /// The lines of the pass, `None` for a signal without end.
+    pass: Option<u64>,
     line: u32,
     counter: u32,
     stream: std::collections::VecDeque<u8>,
@@ -542,7 +559,8 @@ impl MsuHrptGenerator {
         let index = v.get(&GEN_PM_INDEX).to_radians();
         Ok(MsuHrptGenerator {
             rate: cfg.rate_hz,
-            lines: v.get(&GEN_LINES).clamp(1, 4000) as u32,
+            lines: super::hrpt::TEST_PICTURE_LINES,
+            pass: pass_lines(v.get(&GEN_LINES)),
             line: 0,
             counter: 0,
             stream: std::collections::VecDeque::with_capacity(2 * FRAME_BYTES),
@@ -586,6 +604,10 @@ impl Generator for MsuHrptGenerator {
         let mut filled = 0;
         while filled < out.len() {
             if self.next >= self.samples.len() {
+                // The signal ends after the frame of the last line of the pass.
+                if self.pass.is_some_and(|p| u64::from(self.line) >= p) {
+                    return filled;
+                }
                 self.more();
                 continue;
             }
@@ -594,7 +616,7 @@ impl Generator for MsuHrptGenerator {
             self.next += n;
             filled += n;
         }
-        out.len()
+        filled
     }
     fn signal_info(&self) -> Option<SignalInfo> {
         Some(

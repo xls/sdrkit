@@ -81,6 +81,14 @@ pub fn refused(why: impl Into<String>) -> CommandError {
     }
 }
 
+/// The hex digits of an address or a PAN id as a person or a table writes it: without spaces, without `0x` before
+/// it and without `:` or `-` between its octets.
+pub fn hex_digits(text: &str) -> String {
+    let t = text.trim();
+    let t = t.strip_prefix("0x").or_else(|| t.strip_prefix("0X")).unwrap_or(t);
+    t.chars().filter(|c| !c.is_whitespace() && *c != ':' && *c != '-').collect()
+}
+
 /// The bytes of hexadecimal text with spaces allowed, or a refusal that names the argument `what`.
 ///
 /// # Errors

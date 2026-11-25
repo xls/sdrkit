@@ -26,6 +26,12 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:no
 | `follow` | Follow | yes or no | true |  |  |
 | `line_filter` | Line filter | yes or no | true |  | Removes clicks and smooths noise along each line of both pictures, with the noise measured in space A. |
 
+Advanced settings. The owner works without any of them set.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `pass_gap` | Pass end | number (s) | 60 | 1 to 3600 | After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture. |
+
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
 | Key | Label | Kind | Default | Range or options | Help |
@@ -66,9 +72,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
+
+Key readings: `locked`, `lines`.
 
 ### Result fields
 
@@ -124,6 +132,7 @@ Struct `ImageRow`. A finished image. The row key names the image. The picture it
 | `picture` | `sdrkit_noaa_apt_get_picture` | `sdrkit_noaa_apt_set_picture` |
 | `follow` | `sdrkit_noaa_apt_get_follow` | `sdrkit_noaa_apt_set_follow` |
 | `line_filter` | `sdrkit_noaa_apt_get_line_filter` | `sdrkit_noaa_apt_set_line_filter` |
+| `pass_gap` | `sdrkit_noaa_apt_get_pass_gap` | `sdrkit_noaa_apt_set_pass_gap` |
 
 ### Settings of the test signal generator
 

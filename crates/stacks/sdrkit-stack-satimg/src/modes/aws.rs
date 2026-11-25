@@ -12,9 +12,13 @@ use crate::components::link::{
     DemodReport, FrameReport, FrameStats, FrontEndComponent, FrontReport, PacketReport,
     PacketStats,
 };
+use crate::components::pass::{
+    pass_format, pass_port, PassPictures, PassSetting, PassTimer, PASS_GAP,
+};
 use crate::components::{last, Control};
 use crate::gen::{
-    test_value, BitSource, CcsdsCoder, CodeOptions, GenError, ModParams, Modulator, ZoneStream,
+    pass_lines, test_value, BitSource, CcsdsCoder, CodeOptions, GenError, ModParams, Modulator,
+    ZoneStream,
 };
 use crate::instruments::mwr::{
     field_header, test_record, MwrDecoder, MwrStats, CHANNELS, IDLE_VC, MAX_ROWS, SCIENCE_APID,
@@ -22,7 +26,7 @@ use crate::instruments::mwr::{
 };
 use crate::psk::{LinkClass, LinkParams, Modulation, Search, SnrEstimator};
 use crate::REPORT_S;
-use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView};
 use sdrkit_codec_image::strip::{Strip, View};
 use crate::typed::{
     AwsApidRow, AwsFields, AwsVirtualChannelRow, ImageRow, LinkFields, AWS_APIDS,
@@ -117,11 +121,16 @@ pub const VIEW: CatalogueSetting = CatalogueSetting {
 };
 /// Keep the newest scans in view.
 pub const FOLLOW: Setting<field::Bool> = Setting::new("follow", "Follow", "", true);
-/// Scans of the test picture before it repeats.
-pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture scans", "", 400)
+/// The scans of the test signal: a pass of that many scans, then the signal ends. 0: the test picture of
+/// [`TEST_PICTURE_LINES`] scans repeats without end.
+pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture scans", "", 0)
     .range(1.0, 4000.0, 1.0)
+    .zero_means("Without end")
+    .help("The test signal sends this many scans of the test picture and then ends. Without end: the picture repeats.")
     .section(TEST)
     .advanced();
+/// The scans of the test picture before it repeats.
+pub const TEST_PICTURE_LINES: u32 = 400;
 
 sdrkit_core::settings! {
     /// The settings of `aws`, with the options of its test signal.
@@ -130,6 +139,8 @@ sdrkit_core::settings! {
         View = VIEW,
         /// Keep the newest scans in view.
         Follow = FOLLOW,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// Test: picture scans.
         GenLines = GEN_LINES,
     }
@@ -204,6 +215,7 @@ pub struct AwsComponent {
     idle_frames: u64,
     dec: MwrDecoder,
     strips: Vec<Strip>,
+    pass: PassTimer,
 }
 
 impl Default for AwsComponent {
@@ -227,6 +239,7 @@ impl Default for AwsComponent {
             idle_frames: 0,
             dec: MwrDecoder::default(),
             strips: Vec::new(),
+            pass: PassTimer::default(),
         }
     }
 }
@@ -306,8 +319,10 @@ impl Component for AwsComponent {
                 item_port::<FrameReport>("frames"),
                 item_port::<PacketReport>("packets"),
                 item_port::<MwrReport>("report"),
+                pass_port(),
             ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
         self.sync = Some(FrameSync::new(SyncConfig::cadu(CODED_BYTES)).map_err(stage)?);
@@ -319,6 +334,7 @@ impl Component for AwsComponent {
             item_format::<FrameReport>(),
             item_format::<PacketReport>(),
             item_format::<MwrReport>(),
+            pass_format(),
         ])
     }
     fn process(&mut self, io: &mut Io) {
@@ -334,6 +350,9 @@ impl Component for AwsComponent {
             self.frames.syncs = s.frames;
             self.frames.locked = sync.locked();
             self.sync = Some(sync);
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 4) {
+            self.dec.new_picture();
         }
         io.items_out::<Strip>(0)
             .extend(self.strips.drain(..).map(|s| Timed {
@@ -573,7 +592,7 @@ impl Component for AwsDisplay {
 ///
 /// [`GraphError::Schema`] if the picture layout produces no valid schema.
 pub fn builder() -> Result<GraphBuilder, GraphError> {
-    let pictures = Pictures::new(vec![picture_layout()]).map_err(GraphError::Schema)?;
+    let pictures = PassPictures::new(vec![picture_layout()], "AWS").map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add("frontend", FrontEndComponent::new(link(), MIN_RATE, false))
         .add("demod", DemodComponent::new(link()))
@@ -586,6 +605,7 @@ pub fn builder() -> Result<GraphBuilder, GraphError> {
         .connect("demod.soft", "decoder.in")
         .connect("decoder.out", "frames.in")
         .connect("frames.out", "pictures.in")
+        .connect("frames.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
         .connect("decoder.report", "display.code")
@@ -610,6 +630,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .min_rate(MIN_RATE, "AWS L-band needs at least 4 MHz of samples")
         .route("view", &["pictures.view"])?
         .route("follow", &["pictures.follow"])?
+        .route("pass_gap", &["frames.pass_gap"])?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .with_settings(&cfg.settings)
         .build()
@@ -718,6 +739,8 @@ pub struct AwsSource {
     seq: u16,
     line: u32,
     lines: u32,
+    /// The lines of the pass, `None` for a signal without end.
+    pass: Option<u64>,
     cadu: Vec<u8>,
 }
 
@@ -744,6 +767,9 @@ impl BitSource for AwsSource {
             self.cadu.resize(CADU_BYTES, 0);
         }
         self.coder.push(&self.cadu, out);
+    }
+    fn ended(&self) -> bool {
+        self.pass.is_some_and(|p| u64::from(self.line) >= p)
     }
 }
 
@@ -774,7 +800,8 @@ impl AwsGenerator {
             count: 0,
             seq: 0,
             line: 0,
-            lines: cfg.settings.get(&GEN_LINES).clamp(1, 4000) as u32,
+            lines: TEST_PICTURE_LINES,
+            pass: pass_lines(cfg.settings.get(&GEN_LINES)),
             cadu: Vec::with_capacity(CADU_BYTES),
         };
         Ok(AwsGenerator {

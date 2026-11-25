@@ -1,5 +1,5 @@
 # The interface of the stack family custom. The registry test of the family writes this file.
-family custom version=1.5
+family custom version=2.0
 shape.SlottedVoiceFields since=1.0
 shape.SlottedVoiceFields.locked type=bool unit= optional=no since=1.0
 shape.SlottedVoiceFields.offset_hz type=hz unit=Hz optional=yes since=1.0
@@ -89,13 +89,13 @@ shape.ArqPacketFields.sequence type=i64 unit= optional=yes since=1.0
 shape.ArqPacketMessageRow since=1.0
 shape.ArqPacketMessageRow.callsign type=text unit= optional=no since=1.0
 shape.ArqPacketMessageRow.sequence type=i64 unit= optional=no since=1.0
-shape.ArqPacketMessageRow.length type=i64 unit=bytes optional=no since=1.0
+shape.ArqPacketMessageRow.length type=i64 unit=B optional=no since=1.0
 shape.ArqPacketMessageRow.text type=text unit= optional=no since=1.0
 shape.ArqPacketMessageRow.time type=time unit= optional=no since=1.0
 shape.ArqPacketMessageEvent since=1.0
 shape.ArqPacketMessageEvent.callsign type=text unit= optional=no since=1.0
 shape.ArqPacketMessageEvent.sequence type=i64 unit= optional=no since=1.0
-shape.ArqPacketMessageEvent.length type=i64 unit=bytes optional=no since=1.0
+shape.ArqPacketMessageEvent.length type=i64 unit=B optional=no since=1.0
 shape.ArqPacketMessageEvent.text type=text unit= optional=no since=1.0
 shape.ArqPacketAckOutEvent since=1.0
 shape.ArqPacketAckOutEvent.callsign type=text unit= optional=no since=1.0
@@ -121,28 +121,28 @@ shape.FileTransferFields.snr_db type=f64 unit=dB optional=yes since=1.0
 shape.FileTransferFields.offset_hz type=hz unit=Hz optional=yes since=1.0
 shape.FileTransferFields.callsign type=text unit= optional=yes since=1.0
 shape.FileTransferFields.files type=i64 unit= optional=no since=1.0
-shape.FileTransferFields.held_bytes type=i64 unit=bytes optional=no since=1.0
+shape.FileTransferFields.held_bytes type=i64 unit=B optional=no since=1.0
 shape.FileTransferFields.acks_heard type=i64 unit= optional=no since=1.0
 shape.FileTransferFields.locked type=bool unit= optional=no since=1.0
 shape.FileTransferFields.note type=text unit= optional=no since=1.0
 shape.FileTransferFileRow since=1.0
 shape.FileTransferFileRow.name type=text unit= optional=no since=1.0
-shape.FileTransferFileRow.size type=i64 unit=bytes optional=no since=1.0
+shape.FileTransferFileRow.size type=i64 unit=B optional=no since=1.0
 shape.FileTransferFileRow.hash type=text unit= optional=no since=1.0
 shape.FileTransferFileRow.state type=text unit= optional=no since=1.0
 shape.FileTransferFileRow.callsign type=text unit= optional=no since=1.0
 shape.FileTransferFileRow.time type=time unit= optional=no since=1.0
 shape.FileTransferReceivedEvent since=1.0
 shape.FileTransferReceivedEvent.name type=text unit= optional=no since=1.0
-shape.FileTransferReceivedEvent.size type=i64 unit=bytes optional=no since=1.0
+shape.FileTransferReceivedEvent.size type=i64 unit=B optional=no since=1.0
 shape.FileTransferReceivedEvent.hash type=text unit= optional=no since=1.0
 shape.FileTransferReceivedEvent.path type=text unit= optional=no since=1.0
 shape.FileTransferReceivedEvent.callsign type=text unit= optional=no since=1.0
 shape.FileTransferOpenEvent since=1.0
 shape.FileTransferOpenEvent.session type=i64 unit= optional=no since=1.0
 shape.FileTransferOpenEvent.name type=text unit= optional=no since=1.0
-shape.FileTransferOpenEvent.size type=i64 unit=bytes optional=no since=1.0
-shape.FileTransferOpenEvent.held_bytes type=i64 unit=bytes optional=no since=1.0
+shape.FileTransferOpenEvent.size type=i64 unit=B optional=no since=1.0
+shape.FileTransferOpenEvent.held_bytes type=i64 unit=B optional=no since=1.0
 shape.FileTransferOpenEvent.callsign type=text unit= optional=no since=1.0
 shape.HfChatFields since=1.0
 shape.HfChatFields.profile type=i64 unit= optional=yes since=1.0
@@ -193,7 +193,7 @@ shape.HfChatVoiceEvent.callsign type=text unit= optional=no since=1.0
 shape.HfChatVoiceEvent.call type=i64 unit= optional=no since=1.0
 shape.HfChatVoiceEvent.profile type=i64 unit= optional=no since=1.0
 slotted_voice since=1.0
-slotted_voice.content kind=voice audio=voice since=1.3
+slotted_voice.content kind=voice audio=voice since=1.0
 slotted_voice.fields.SlottedVoiceFields since=1.0
 slotted_voice.fields.DecoderFields since=1.0
 slotted_voice.kept.stations since=1.0
@@ -221,7 +221,7 @@ slotted_voice.command.clear args= reply= since=1.0
 slotted_voice.command.send args= reply= transmits=voice stop=stop since=1.0
 slotted_voice.command.stop args= reply= since=1.0
 qam_video since=1.0
-qam_video.content kind=television audio=programme video=yes since=1.3
+qam_video.content kind=television audio=programme video=yes since=1.0
 qam_video.fields.QamVideoFields since=1.0
 qam_video.fields.DecoderFields since=1.0
 qam_video.table.streams row=QamVideoStreamRow cap=64 since=1.0
@@ -237,7 +237,7 @@ qam_video.command.clear args= reply= since=1.0
 qam_video.command.send args= reply= transmits=file stop=stop since=1.0
 qam_video.command.stop args= reply= since=1.0
 picture_burst since=1.0
-picture_burst.content kind=pictures pictures=yes since=1.3
+picture_burst.content kind=pictures pictures=yes since=1.0
 picture_burst.fields.PictureBurstFields since=1.0
 picture_burst.fields.DecoderFields since=1.0
 picture_burst.kept.pictures since=1.0
@@ -252,7 +252,7 @@ picture_burst.command.clear args= reply= since=1.0
 picture_burst.command.send args= reply= transmits=file stop=stop since=1.0
 picture_burst.command.stop args= reply= since=1.0
 arq_packet since=1.0
-arq_packet.content kind=datalink text=yes since=1.3
+arq_packet.content kind=datalink text=yes since=1.0
 arq_packet.fields.ArqPacketFields since=1.0
 arq_packet.fields.DecoderFields since=1.0
 arq_packet.kept.messages since=1.0
@@ -272,7 +272,7 @@ arq_packet.command.clear args= reply= since=1.0
 arq_packet.command.send args= reply= transmits=text stop=stop since=1.0
 arq_packet.command.stop args= reply= since=1.0
 file_transfer since=1.0
-file_transfer.content kind=datalink since=1.3
+file_transfer.content kind=datalink since=1.0
 file_transfer.fields.FileTransferFields since=1.0
 file_transfer.fields.DecoderFields since=1.0
 file_transfer.kept.files since=1.0
@@ -296,7 +296,7 @@ file_transfer.command.clear args= reply= since=1.0
 file_transfer.command.send args= reply= transmits=file stop=stop since=1.0
 file_transfer.command.stop args= reply= since=1.0
 hf_chat since=1.0
-hf_chat.content kind=text_chat text=yes since=1.3
+hf_chat.content kind=text_chat text=yes since=1.0
 hf_chat.fields.HfChatFields since=1.0
 hf_chat.fields.DecoderFields since=1.0
 hf_chat.kept.messages since=1.0
@@ -314,7 +314,7 @@ hf_chat.setting.listen type=choice(all,0,1,2,3,4,5,6,7) unit= since=1.0
 hf_chat.setting.callsign type=text unit= since=1.0
 hf_chat.setting.profile type=choice(0,1,2,3,4,5,6,7) unit= since=1.0
 hf_chat.setting.kind type=choice(chat,short_beacon,full_beacon,data) unit= since=1.0
-hf_chat.setting.to type=text unit= since=1.0
+hf_chat.setting.to type=text unit= refers=beacons.callsign since=1.0
 hf_chat.setting.text type=text unit= since=1.0
 hf_chat.setting.locator type=text unit= since=1.0
 hf_chat.setting.lat type=f64 unit=° since=1.0

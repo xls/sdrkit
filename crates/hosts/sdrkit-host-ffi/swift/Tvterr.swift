@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "tvterr", version 1.7. MIT licence.
+// sdrkit: the typed interface of the stack family "tvterr", version 1.8. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum TvterrInterface {
     public static let major = 1
-    public static let minor = 7
+    public static let minor = 8
 }
 
 /// The result fields of `isdbt` and `isdbtsb`: the detection, the transmission parameters, the signal and the TMCC. A parameter of the mode has no value before the mode is found. A value of the TMCC has no value while no TMCC is decoded.
@@ -458,14 +458,18 @@ public struct Atsc3Fields {
     public var serviceReceived: Int64?
     /// ROUTE objects taken.
     public var routeObjects: Int64
-    /// Media samples given out.
+    /// Access units given out as media packets, video and audio.
     public var mediaSamples: Int64
     /// The bootstrap step.
     public var stepBootstrap: StepBootstrap?
     /// The L1 step.
     public var stepL1: StepL1?
-    /// The service signalling step.
+    /// The service step: green while a component of the received service is given.
     public var stepService: StepService?
+    /// Video access units given out as media packets.
+    public var videoPackets: Int64
+    /// Audio access units given out as media packets.
+    public var audioPackets: Int64
 
     init(_ c: sdrkit_atsc3_fields) {
         bootstrapSeen = c.bootstrap_seen
@@ -490,6 +494,8 @@ public struct Atsc3Fields {
         stepBootstrap = StepBootstrap(rawValue: c.step_bootstrap)
         stepL1 = StepL1(rawValue: c.step_l1)
         stepService = StepService(rawValue: c.step_service)
+        videoPackets = c.video_packets
+        audioPackets = c.audio_packets
     }
 
     /// The result fields of the snapshot of `handle`, or the code of the error.
@@ -632,6 +638,7 @@ public struct Atsc3ServiceRow {
         case waiting = 1
         case receiving = 2
         case unsupported = 3
+        case encrypted = 4
     }
     /// The row key.
     public var key: String
@@ -657,6 +664,8 @@ public struct Atsc3ServiceRow {
     public var slsDocuments: Int64
     /// Those objects that were signed packages. The signature is not verified.
     public var slsSignedPackages: Int64
+    /// The service list says that a component needed to present the service is protected, for example encrypted.
+    public var protected: Bool
 
     init(_ c: sdrkit_atsc3_service_row) {
         key = sdrkitText(c.key)
@@ -671,22 +680,49 @@ public struct Atsc3ServiceRow {
         slsObjects = c.sls_objects
         slsDocuments = c.sls_documents
         slsSignedPackages = c.sls_signed_packages
+        protected = c.protected_
     }
 }
 
-/// A row of the media components seen, in the order they appeared. The row key is the ROUTE session.
+/// A row of the media components seen, in the order they appeared. The row key is the destination address and port of the ROUTE session and the transport session id of the component: `239.255.10.2:5002/1`.
 public struct Atsc3ComponentRow {
+    public enum Kind: Int32 {
+        case video = 0
+        case audio = 1
+        case subtitles = 2
+        case other = 3
+    }
+    public enum State: Int32 {
+        case given = 0
+        case otherService = 1
+        case otherTrack = 2
+        case encrypted = 3
+        case noFormat = 4
+        case unbound = 5
+    }
     /// The row key.
     public var key: String
-    /// The ROUTE session of the component.
+    /// The transport session id of the component in its ROUTE session.
     public var tsi: Int64
-    /// The four-character code of the codec of the component.
+    /// The sample entry type of the component: the four-character code of its codec.
     public var fourcc: String
+    /// The destination address and port of the ROUTE session.
+    public var destination: String
+    /// The service whose session description names the component. No value when none that was read names it.
+    public var service: Int64?
+    /// What the component carries.
+    public var kind: Kind?
+    /// What the stack does with the component.
+    public var state: State?
 
     init(_ c: sdrkit_atsc3_component_row) {
         key = sdrkitText(c.key)
         tsi = c.tsi
         fourcc = sdrkitText(c.fourcc)
+        destination = sdrkitText(c.destination)
+        service = c.has_service ? c.service : nil
+        kind = Kind(rawValue: c.kind)
+        state = State(rawValue: c.state)
     }
 }
 

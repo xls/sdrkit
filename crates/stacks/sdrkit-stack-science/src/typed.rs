@@ -16,16 +16,16 @@ use std::sync::{Arc, OnceLock};
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SsdvFields {
     /// Packets received.
-    #[field(label = "Packets")]
+    #[field(label = "Packets", reading = 2)]
     pub packets_ok: i64,
     /// Packets refused.
-    #[field(label = "Packets refused")]
+    #[field(label = "Packets refused", reading = 3)]
     pub packets_bad: i64,
     /// Packets the RS code corrected.
     #[field(label = "Packets corrected")]
     pub corrected: i64,
     /// Pictures complete.
-    #[field(label = "Pictures complete")]
+    #[field(label = "Pictures complete", reading = 1)]
     pub pictures_done: i64,
     /// The speed of the last good packet.
     #[field(label = "Speed", unit = "Bd")]
@@ -107,7 +107,9 @@ pub struct SsdvPictureRow<'a> {
 
 /// The SSDV packets, newest first.
 pub static SSDV_PACKETS: Table<SsdvPacketRow<'static>> =
-    Table::new("packets", "Packets", crate::ssdv::MAX_PACKETS).label(&SsdvPacketRow::CALL);
+    Table::new("packets", "Packets", crate::ssdv::MAX_PACKETS)
+        .label(&SsdvPacketRow::CALL)
+        .role(sdrkit_core::TableRole::Log);
 /// The SSDV pictures, newest first.
 pub static SSDV_PICTURES: Table<SsdvPictureRow<'static>> =
     Table::new("pictures", "Pictures", crate::ssdv::MAX_PICTURES).label(&SsdvPictureRow::CALL);
@@ -178,7 +180,9 @@ pub struct ScienceEvent<'a> {
 
 /// The event rows of a monitor, newest first.
 pub static SCIENCE_EVENTS: Table<ScienceEventRow<'static>> =
-    Table::new("events", "Events", crate::events::MAX_EVENTS).label(&ScienceEventRow::TYPE);
+    Table::new("events", "Events", crate::events::MAX_EVENTS)
+        .label(&ScienceEventRow::TYPE)
+        .role(sdrkit_core::TableRole::Log);
 /// One event of a monitor.
 pub static SCIENCE_EVENT: EventKind<ScienceEvent<'static>> =
     EventKind::new("science.event", "Science event");
@@ -278,19 +282,19 @@ pub struct WhistlerFields<'a> {
     #[field(shared = keys::TEXT)]
     pub text: &'a str,
     /// Whistlers found.
-    #[field(label = "Whistlers")]
+    #[field(label = "Whistlers", reading = 1)]
     pub whistlers: i64,
     /// Tweeks found.
-    #[field(label = "Tweeks")]
+    #[field(label = "Tweeks", reading = 2)]
     pub tweeks: i64,
     /// Events in total.
     #[field(label = "Events")]
     pub events_total: i64,
     /// Sferics counted.
-    #[field(label = "Sferics")]
+    #[field(label = "Sferics", reading = 3)]
     pub sferics: i64,
     /// The dispersion of the last whistler.
-    #[field(label = "Last dispersion", unit = "s√Hz")]
+    #[field(label = "Last dispersion", unit = "s√Hz", reading = 4)]
     pub dispersion: Option<f64>,
     /// The broadband value of the newest row.
     #[field(label = "Broadband level", unit = "dB")]
@@ -306,7 +310,7 @@ pub struct WhistlerFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SfericsFields<'a> {
     /// Strikes counted.
-    #[field(label = "Strikes")]
+    #[field(label = "Strikes", reading = 2)]
     pub strikes: i64,
     /// Flashes counted.
     #[field(label = "Flashes")]
@@ -318,10 +322,10 @@ pub struct SfericsFields<'a> {
     #[field(label = "Too long")]
     pub too_long: i64,
     /// Strikes in the last minute.
-    #[field(label = "Strikes, last minute", unit = "/min")]
+    #[field(label = "Strikes, last minute", unit = "1/min", reading = 1)]
     pub per_min_1: f64,
     /// Strikes per minute over 10 minutes.
-    #[field(label = "Strikes per minute, 10 minutes", unit = "/min")]
+    #[field(label = "Strikes per minute, 10 minutes", unit = "1/min")]
     pub per_min_10: f64,
     /// The floor.
     #[field(label = "Floor", unit = "dBFS")]
@@ -330,7 +334,7 @@ pub struct SfericsFields<'a> {
     #[field(label = "Threshold", unit = "dB")]
     pub threshold_db: f64,
     /// The peak of the newest strike.
-    #[field(label = "Last peak", unit = "dB")]
+    #[field(label = "Last peak", unit = "dB", reading = 5)]
     pub last_peak_db: Option<f64>,
     /// The time since the newest strike.
     #[field(label = "Last strike ago", unit = "s")]
@@ -339,13 +343,13 @@ pub struct SfericsFields<'a> {
     #[field(label = "Mains train")]
     pub mains_active: bool,
     /// The storm phase.
-    #[field(label = "Storm")]
+    #[field(label = "Storm", reading = 4)]
     pub storm_phase: &'a str,
     /// The change of the median peak.
     #[field(label = "Storm change", unit = "dB")]
     pub storm_db_change: f64,
     /// The activity word of the 10-minute rate.
-    #[field(label = "Activity")]
+    #[field(label = "Activity", reading = 3)]
     pub activity: &'a str,
     /// What no public document confirms.
     #[field(label = "Note")]
@@ -365,7 +369,7 @@ pub struct SfericsStrikeRow {
     #[field(label = "Peak", unit = "dB")]
     pub peak_db: f64,
     /// The width of a strike.
-    #[field(label = "Width", unit = "µs")]
+    #[field(label = "Width", unit = "us")]
     pub width_us: f64,
     /// The flash of a strike.
     #[field(label = "Flash")]
@@ -382,13 +386,14 @@ pub struct SfericsStormEvent<'a> {
     #[field(label = "Storm change", unit = "dB")]
     pub storm_db_change: f64,
     /// Strikes per minute in the last 5 minutes.
-    #[field(label = "Strikes per minute", unit = "/min")]
+    #[field(label = "Strikes per minute", unit = "1/min")]
     pub per_minute: f64,
 }
 
 /// The newest strikes, newest first.
 pub static SFERICS_STRIKES: Table<SfericsStrikeRow> =
-    Table::new("strikes", "Strikes", crate::sferics::count::TABLE_ROWS);
+    Table::new("strikes", "Strikes", crate::sferics::count::TABLE_ROWS)
+        .role(sdrkit_core::TableRole::Log);
 /// The storm phase changed.
 pub static SFERICS_STORM: EventKind<SfericsStormEvent<'static>> =
     EventKind::new("sferics.storm", "Storm phase");
@@ -409,16 +414,16 @@ pub struct SchumannFields<'a> {
     #[field(shared = keys::TEXT)]
     pub text: &'a str,
     /// The fundamental, Hz.
-    #[field(label = "Fundamental", unit = "Hz")]
+    #[field(label = "Fundamental", unit = "Hz", reading = 1)]
     pub fundamental_hz: Option<Hertz>,
     /// The height of the fundamental over the baseline.
-    #[field(label = "Fundamental height", unit = "dB")]
+    #[field(label = "Fundamental height", unit = "dB", reading = 2)]
     pub fundamental_db: Option<f64>,
     /// The Q of the fundamental.
-    #[field(label = "Fundamental Q")]
+    #[field(label = "Fundamental Q", reading = 3)]
     pub fundamental_q: Option<f64>,
     /// Resonances found.
-    #[field(label = "Resonances found")]
+    #[field(label = "Resonances found", reading = 4)]
     pub peaks_found: i64,
     /// Seconds of averaging.
     #[field(label = "Averaged", unit = "s")]
@@ -468,13 +473,13 @@ pub struct BurstFields<'a> {
     #[field(shared = keys::TEXT)]
     pub text: &'a str,
     /// Bursts found.
-    #[field(label = "Bursts")]
+    #[field(label = "Bursts", reading = 1)]
     pub bursts: i64,
     /// Events in total.
-    #[field(label = "Events")]
+    #[field(label = "Events", reading = 4)]
     pub events_total: i64,
     /// The level of the last row.
-    #[field(label = "Level", unit = "dB")]
+    #[field(label = "Level", unit = "dB", reading = 3)]
     pub level_db: Option<f64>,
     /// The width of a bin.
     #[field(label = "Bin", unit = "Hz")]
@@ -483,7 +488,7 @@ pub struct BurstFields<'a> {
     #[field(label = "Row time", unit = "s")]
     pub row_s: Option<Seconds>,
     /// A burst is open.
-    #[field(label = "Burst open")]
+    #[field(label = "Burst open", reading = 2)]
     pub burst_open: bool,
     /// Files written.
     #[field(label = "Files written")]
@@ -505,10 +510,10 @@ pub struct EmeEchoFields<'a> {
     #[field(shared = keys::TEXT)]
     pub text: &'a str,
     /// Own pulses seen.
-    #[field(label = "Own pulses")]
+    #[field(label = "Own pulses", reading = 5)]
     pub pulses: i64,
     /// Echoes found.
-    #[field(label = "Echoes")]
+    #[field(label = "Echoes", reading = 1)]
     pub echoes: i64,
     /// The own carrier.
     #[field(label = "Own carrier offset", unit = "Hz")]
@@ -520,13 +525,13 @@ pub struct EmeEchoFields<'a> {
     #[field(label = "Noise per bin", unit = "dBFS")]
     pub noise_db: Option<f64>,
     /// The delay of the last echo.
-    #[field(label = "Last echo delay", unit = "s")]
+    #[field(label = "Last echo delay", unit = "s", reading = 2)]
     pub last_delay_s: Option<Seconds>,
     /// The Doppler shift of the last echo.
-    #[field(label = "Last echo Doppler", unit = "Hz")]
+    #[field(label = "Last echo Doppler", unit = "Hz", reading = 3)]
     pub last_doppler_hz: Option<Hertz>,
     /// The level of the last echo.
-    #[field(label = "Last echo level", unit = "dB")]
+    #[field(label = "Last echo level", unit = "dB", reading = 4)]
     pub last_level_db: Option<f64>,
     /// What no public document confirms.
     #[field(label = "Note")]
@@ -542,13 +547,13 @@ pub struct BeaconEventsFields<'a> {
     #[field(shared = keys::TEXT)]
     pub text: &'a str,
     /// Openings found.
-    #[field(label = "Openings")]
+    #[field(label = "Openings", reading = 4)]
     pub openings: i64,
     /// The noise per bin.
     #[field(label = "Noise per bin", unit = "dBFS")]
     pub noise_db: Option<f64>,
     /// An opening is open.
-    #[field(label = "Open")]
+    #[field(label = "Open", reading = 1)]
     pub open: bool,
     /// The width of the last row.
     #[field(label = "Width", unit = "Hz")]
@@ -557,10 +562,10 @@ pub struct BeaconEventsFields<'a> {
     #[field(label = "Scan z")]
     pub z: Option<f64>,
     /// The S/N of the last row.
-    #[field(label = "S/N", unit = "dB")]
+    #[field(label = "S/N", unit = "dB", reading = 2)]
     pub snr_db: Option<f64>,
     /// The shift of the last row.
-    #[field(label = "Shift", unit = "Hz")]
+    #[field(label = "Shift", unit = "Hz", reading = 3)]
     pub shift_hz: Option<Hertz>,
     /// What no public document confirms.
     #[field(label = "Note")]
@@ -576,16 +581,16 @@ pub struct RiometerFields<'a> {
     #[field(shared = keys::TEXT)]
     pub text: &'a str,
     /// The power of the last minute, dB of full scale.
-    #[field(label = "Power", unit = "dBFS")]
+    #[field(label = "Power", unit = "dBFS", reading = 3)]
     pub power_db: Option<f64>,
     /// The local sidereal time.
     #[field(label = "Local sidereal time", unit = "h")]
     pub lst_h: Option<f64>,
     /// The curve at that time.
-    #[field(label = "Quiet-day curve here", unit = "dBFS")]
+    #[field(label = "Quiet-day curve here", unit = "dBFS", reading = 4)]
     pub curve_db: Option<f64>,
     /// The absorption.
-    #[field(label = "Absorption", unit = "dB")]
+    #[field(label = "Absorption", unit = "dB", reading = 1)]
     pub absorption_db: Option<f64>,
     /// Bins of the curve with a value.
     #[field(label = "Curve bins filled (of 288)")]
@@ -597,7 +602,7 @@ pub struct RiometerFields<'a> {
     #[field(label = "Interfered share")]
     pub interfered_share: f64,
     /// An event is open.
-    #[field(label = "Absorption event")]
+    #[field(label = "Absorption event", reading = 2)]
     pub event_on: bool,
     /// Minutes measured.
     #[field(label = "Minutes measured")]
@@ -665,22 +670,22 @@ pub struct RadarDetectFields<'a> {
     #[field(shared = keys::TEXT)]
     pub text: &'a str,
     /// The rotation period.
-    #[field(label = "Rotation", unit = "s")]
+    #[field(label = "Rotation", unit = "s", reading = 5)]
     pub rotation_s: Option<f64>,
     /// Rotations per minute.
-    #[field(label = "Rotations per minute", unit = "rpm")]
+    #[field(label = "Rotations per minute", unit = "rpm", reading = 1)]
     pub rpm: Option<f64>,
     /// The repetition frequency of the fullest bin.
-    #[field(label = "PRF", unit = "Hz")]
+    #[field(label = "PRF", unit = "Hz", reading = 2)]
     pub prf_hz: Option<Hertz>,
     /// The repetition text.
     #[field(label = "PRF text")]
     pub prf: Option<&'a str>,
     /// The median pulse width.
-    #[field(label = "Pulse width", unit = "µs")]
+    #[field(label = "Pulse width", unit = "us", reading = 3)]
     pub pulse_width_us: Option<f64>,
     /// The beamwidth.
-    #[field(label = "Beamwidth", unit = "°")]
+    #[field(label = "Beamwidth", unit = "°", reading = 4)]
     pub beamwidth_deg: Option<f64>,
     /// Crossings found.
     #[field(label = "Crossings")]
@@ -712,7 +717,7 @@ pub struct RadarDetectFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct RadarDetectRow<'a> {
     /// The signal time of a row.
-    #[field(label = "Signal time", unit = "s")]
+    #[field(label = "Signal time", unit = "s", role = Time)]
     pub signal_time_s: f64,
     /// The kind of a row: `rotation` or `sweep`.
     #[field(label = "Type")]
@@ -727,7 +732,7 @@ pub struct RadarDetectRow<'a> {
     #[field(label = "PRF text")]
     pub prf: &'a str,
     /// The median pulse width.
-    #[field(label = "Pulse width", unit = "µs")]
+    #[field(label = "Pulse width", unit = "us")]
     pub pulse_width_us: Option<f64>,
     /// The beamwidth.
     #[field(label = "Beamwidth", unit = "°")]
@@ -762,7 +767,7 @@ pub struct RadarDetectRowEvent<'a> {
     #[field(label = "PRF text")]
     pub prf: &'a str,
     /// The median pulse width.
-    #[field(label = "Pulse width", unit = "µs")]
+    #[field(label = "Pulse width", unit = "us")]
     pub pulse_width_us: Option<f64>,
     /// The beamwidth.
     #[field(label = "Beamwidth", unit = "°")]
@@ -780,7 +785,7 @@ pub struct RadarDetectRowEvent<'a> {
 
 /// The rows of `radar_detect`, newest first.
 pub static RADAR_DETECT_ROWS: Table<RadarDetectRow<'static>> =
-    Table::new("radar_rows", "Rows", crate::radar::ROWS_KEPT);
+    Table::new("radar_rows", "Rows", crate::radar::ROWS_KEPT).role(sdrkit_core::TableRole::Log);
 /// One row: a rotation (marine) or a sweep (weather).
 pub static RADAR_ROW: EventKind<RadarDetectRowEvent<'static>> =
     EventKind::new("radar.row", "Radar row");
@@ -794,16 +799,16 @@ pub struct PulsarFields<'a> {
     #[field(shared = keys::TEXT)]
     pub text: &'a str,
     /// Whether a detection was made.
-    #[field(label = "Detected")]
+    #[field(label = "Detected", reading = 4)]
     pub ok: bool,
     /// The best S/N.
-    #[field(label = "S/N")]
+    #[field(label = "S/N", reading = 3)]
     pub snr: Option<f64>,
     /// The best period.
-    #[field(label = "Period found", unit = "s")]
+    #[field(label = "Period found", unit = "s", reading = 1)]
     pub period_found_s: Option<f64>,
     /// The best DM.
-    #[field(label = "DM found", unit = "pc cm⁻³")]
+    #[field(label = "DM found", unit = "pc cm⁻³", reading = 2)]
     pub dm_found: Option<f64>,
     /// The pulse phase.
     #[field(label = "Peak phase")]
@@ -821,7 +826,7 @@ pub struct PulsarFields<'a> {
     #[field(label = "Searches")]
     pub searches: i64,
     /// Detections made.
-    #[field(label = "Detections")]
+    #[field(label = "Detections", reading = 5)]
     pub detections: i64,
     /// Rows held.
     #[field(label = "Rows held")]
@@ -864,6 +869,9 @@ pub struct PulsarSearchRow {
     /// The duty cycle.
     #[field(label = "Duty cycle")]
     pub duty: f64,
+    /// The signal time at the end of the rows searched.
+    #[field(label = "Time", unit = "s", role = Time)]
+    pub time_s: f64,
 }
 
 /// A search that detected the pulsar.
@@ -897,7 +905,8 @@ pub struct PulsarDetectionEvent<'a> {
 
 /// One row a search, newest first.
 pub static PULSAR_SEARCHES: Table<PulsarSearchRow> =
-    Table::new("searches", "Searches", crate::pulsar::MAX_SEARCHES);
+    Table::new("searches", "Searches", crate::pulsar::MAX_SEARCHES)
+        .role(sdrkit_core::TableRole::Log);
 /// A search that detected the pulsar.
 pub static PULSAR_DETECTION: EventKind<PulsarDetectionEvent<'static>> =
     EventKind::new("pulsar.detection", "Pulsar detection");
@@ -908,10 +917,10 @@ pub static PULSAR_DETECTION: EventKind<PulsarDetectionEvent<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct MscatterFields {
     /// Pings counted.
-    #[field(label = "Pings")]
+    #[field(label = "Pings", reading = 2)]
     pub pings: i64,
     /// Pings in the last 60 minutes.
-    #[field(label = "Pings in the last hour")]
+    #[field(label = "Pings in the last hour", reading = 1)]
     pub rate: i64,
     /// Broadband bursts refused.
     #[field(label = "Bursts refused")]
@@ -920,7 +929,7 @@ pub struct MscatterFields {
     #[field(label = "Beacon offset", unit = "Hz")]
     pub beacon: Option<Hertz>,
     /// The beacon level over the noise in one bin.
-    #[field(label = "Beacon SNR", unit = "dB")]
+    #[field(label = "Beacon SNR", unit = "dB", reading = 4)]
     pub beacon_snr_db: f64,
     /// Noise floor of the channel, dBFS.
     #[field(shared = keys::NOISE_DBFS)]
@@ -929,7 +938,7 @@ pub struct MscatterFields {
     #[field(label = "Detection level", unit = "dB")]
     pub threshold_db: f64,
     /// The level of the ping on the air now.
-    #[field(label = "Ping now", unit = "dB")]
+    #[field(label = "Ping now", unit = "dB", reading = 3)]
     pub ping_now_db: Option<f64>,
 }
 
@@ -1004,7 +1013,7 @@ pub struct MscatterPingEvent<'a> {
 
 /// The pings, newest first.
 pub static MSCATTER_PINGS: Table<MscatterPingRow> =
-    Table::new("pings", "Pings", crate::mscatter::MAX_PINGS);
+    Table::new("pings", "Pings", crate::mscatter::MAX_PINGS).role(sdrkit_core::TableRole::Log);
 /// The showers active or peaking within 45 days, by name.
 pub static MSCATTER_SHOWERS: Table<MscatterShowerRow<'static>> =
     Table::new("showers", "Showers", 64).label(&MscatterShowerRow::NAME);
@@ -1039,7 +1048,7 @@ pub const MSCATTER_AROUND: SeriesDef = SeriesDef {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct TimeFields<'a> {
     /// The station decoded.
-    #[field(label = "Station")]
+    #[field(label = "Station", reading = 2)]
     pub station: crate::time::codes::Station,
     /// WWVH (1200 Hz ticks) rather than WWV (1000 Hz ticks).
     #[field(label = "WWVH")]
@@ -1048,7 +1057,7 @@ pub struct TimeFields<'a> {
     #[field(label = "Carrier", unit = "dBFS")]
     pub carrier_dbfs: f64,
     /// Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so).
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 5)]
     pub snr_db: f64,
     /// The keying depth (LF) or the tick level over the background (HF).
     #[field(label = "Keying depth", unit = "%")]
@@ -1066,7 +1075,7 @@ pub struct TimeFields<'a> {
     #[field(label = "Minutes refused")]
     pub minutes_bad: i64,
     /// Two minutes in a row agree.
-    #[field(label = "Confirmed")]
+    #[field(label = "Confirmed", reading = 3)]
     pub confirmed: bool,
     /// The distance from the station.
     #[field(label = "Distance", unit = "m")]
@@ -1081,7 +1090,7 @@ pub struct TimeFields<'a> {
     #[field(label = "Symbols")]
     pub symbols: &'a str,
     /// The received UTC now.
-    #[field(label = "Received time")]
+    #[field(label = "Received time", reading = 1)]
     pub utc: Option<Time>,
     /// The last minute as the station sends it.
     #[field(label = "Received")]
@@ -1096,7 +1105,7 @@ pub struct TimeFields<'a> {
     #[field(label = "Weekday")]
     pub weekday: Option<crate::time::Day>,
     /// The computer clock minus the received time, now.
-    #[field(label = "Clock offset", unit = "s")]
+    #[field(label = "Clock offset", unit = "s", reading = 4)]
     pub clock_offset_s: Option<f64>,
     /// The same, averaged over the last minute.
     #[field(label = "Clock offset (1 min)", unit = "s")]
@@ -1148,7 +1157,7 @@ pub struct TimeMinuteEvent<'a> {
 
 /// The minutes, newest first.
 pub static TIME_MINUTES: Table<TimeMinuteRow<'static>> =
-    Table::new("minutes", "Minutes", crate::time::MAX_MINUTES);
+    Table::new("minutes", "Minutes", crate::time::MAX_MINUTES).role(sdrkit_core::TableRole::Log);
 /// A minute decoded.
 pub static TIME_MINUTE: EventKind<TimeMinuteEvent<'static>> =
     EventKind::new("time.minute", "Time signal minute");
@@ -1187,7 +1196,7 @@ pub const TIME_SERIES: [SeriesDef; 4] = [
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct EczasFields {
     /// The received UTC now.
-    #[field(label = "Received time")]
+    #[field(label = "Received time", reading = 1)]
     pub utc: Option<Time>,
     /// The hours that the packet adds to UTC for the local time in Poland.
     #[field(label = "Local offset", unit = "h")]
@@ -1208,13 +1217,13 @@ pub struct EczasFields {
     #[field(label = "Last packet")]
     pub last_packet: Option<Time>,
     /// Two packets in a row agree.
-    #[field(label = "Confirmed")]
+    #[field(label = "Confirmed", reading = 2)]
     pub confirmed: bool,
     /// Carrier offset from where it was expected, Hz.
     #[field(shared = keys::OFFSET_HZ)]
     pub offset_hz: Hertz,
     /// Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so).
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 3)]
     pub snr_db: f64,
     /// Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS).
     #[field(shared = keys::LEVEL_DBFS)]
@@ -1247,7 +1256,7 @@ pub struct EczasFields {
     #[field(label = "Path delay", unit = "ms")]
     pub delay_ms: Option<f64>,
     /// The computer clock minus the received time, now.
-    #[field(label = "Clock offset", unit = "s")]
+    #[field(label = "Clock offset", unit = "s", reading = 4)]
     pub clock_offset_s: Option<f64>,
     /// The same, averaged over the last 10 packets.
     #[field(label = "Clock offset (10 packets)", unit = "s")]
@@ -1299,7 +1308,7 @@ pub struct EczasTimeEvent<'a> {
 
 /// The frame log, newest first.
 pub static ECZAS_FRAMES: Table<EczasFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::eczas::MAX_FRAMES);
+    Table::new("frames", "Frames", crate::eczas::MAX_FRAMES).role(sdrkit_core::TableRole::Log);
 /// A time packet received.
 pub static ECZAS_TIME: EventKind<EczasTimeEvent<'static>> =
     EventKind::new("eczas.time", "e-Czas time");
@@ -1344,19 +1353,19 @@ pub const ECZAS_SERIES: [SeriesDef; 5] = [
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SameFields {
     /// The channel.
-    #[field(label = "Channel")]
+    #[field(label = "Channel", reading = 2)]
     pub channel: crate::same::WeatherChannel,
     /// The channel frequency.
     #[field(label = "Frequency", unit = "Hz")]
     pub frequency: Hertz,
     /// Messages decoded.
-    #[field(label = "Messages")]
+    #[field(label = "Messages", reading = 1)]
     pub messages_ok: i64,
     /// Messages damaged.
     #[field(label = "Damaged messages")]
     pub messages_bad: i64,
     /// An attention tone is on the air now.
-    #[field(label = "Alert tone now")]
+    #[field(label = "Alert tone now", reading = 3)]
     pub tone_now: bool,
     /// The country of the location names.
     #[field(label = "Location names")]
@@ -1365,7 +1374,7 @@ pub struct SameFields {
     #[field(label = "Counties loaded")]
     pub counties: i64,
     /// Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so).
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 4)]
     pub snr_db: f64,
     /// Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS).
     #[field(shared = keys::LEVEL_DBFS)]
@@ -1461,7 +1470,7 @@ pub struct SameAlertLocationRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SameToneRow {
     /// The signal time of a row.
-    #[field(label = "Signal time", unit = "s")]
+    #[field(label = "Signal time", unit = "s", role = Time)]
     pub signal_time_s: f64,
     /// The length of a tone.
     #[field(label = "Length", unit = "s")]
@@ -1543,7 +1552,7 @@ pub static SAME_ALERT_LOCATIONS: Table<SameAlertLocationRow<'static>> = Table::n
 .label(&SameAlertLocationRow::PLACE);
 /// Alert tones.
 pub static SAME_TONES: Table<SameToneRow> =
-    Table::new("tones", "Alert tones", crate::same::MAX_TONES);
+    Table::new("tones", "Alert tones", crate::same::MAX_TONES).role(sdrkit_core::TableRole::Log);
 /// SAME alert.
 pub static SAME_ALERT: EventKind<SameAlertEvent<'static>> =
     EventKind::new("same.alert", "SAME alert");
@@ -1557,10 +1566,10 @@ pub static SAME_END: EventKind<SameEndEvent<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SondeFields<'a> {
     /// The number of sondes in the table.
-    #[field(label = "Sondes")]
+    #[field(label = "Sondes", reading = 1)]
     pub sondes: i64,
     /// Frames (packets, blocks, bursts) that passed their check.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 3)]
     pub frames_ok: i64,
     /// Frames that failed their check.
     #[field(shared = keys::FRAMES_BAD)]
@@ -1581,7 +1590,7 @@ pub struct SondeFields<'a> {
     #[field(label = "Narrow capture")]
     pub narrow: bool,
     /// The row key of the sonde the plots show.
-    #[field(label = "Selected sonde", refers_to = "sondes")]
+    #[field(label = "Selected sonde", refers_to = "sondes", reading = 2)]
     pub selected: Option<&'a str>,
 }
 
@@ -1809,7 +1818,7 @@ pub struct AstroFields {
     #[field(label = "Integrations")]
     pub finished: i64,
     /// The progress of the current integration.
-    #[field(label = "Progress", unit = "%")]
+    #[field(label = "Progress", unit = "%", reading = 5)]
     pub progress_pct: f64,
     /// The width of a bin.
     #[field(label = "Bin width", unit = "Hz")]
@@ -1833,13 +1842,13 @@ pub struct AstroFields {
     #[field(label = "Peak velocity", unit = "km/s")]
     pub peak_km_s: Option<f64>,
     /// The excess at the peak.
-    #[field(label = "Excess", unit = "%")]
+    #[field(label = "Excess", unit = "%", reading = 3)]
     pub excess_pct: Option<f64>,
     /// The peak over the residual rms.
     #[field(label = "Peak over rms")]
     pub line_snr: Option<f64>,
     /// Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so).
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 2)]
     pub snr_db: Option<f64>,
     /// The right ascension of the target now.
     #[field(label = "Target RA", unit = "°")]
@@ -1851,7 +1860,7 @@ pub struct AstroFields {
     #[field(label = "Target azimuth", unit = "°")]
     pub target_az_deg: Option<f64>,
     /// The elevation of the target, with a station position.
-    #[field(label = "Target elevation", unit = "°")]
+    #[field(label = "Target elevation", unit = "°", reading = 4)]
     pub target_el_deg: Option<f64>,
     /// The observer's velocity towards the target from the Earth's rotation.
     #[field(label = "Earth rotation", unit = "km/s")]
@@ -1863,7 +1872,7 @@ pub struct AstroFields {
     #[field(label = "Sun", unit = "km/s")]
     pub lsr_sun_kms: Option<f64>,
     /// The velocity of the peak towards the target, corrected to the local standard of rest.
-    #[field(label = "Peak velocity (LSR)", unit = "km/s")]
+    #[field(label = "Peak velocity (LSR)", unit = "km/s", reading = 1)]
     pub vel_lsr_kms: Option<f64>,
     /// The receiver temperature from the Y factor.
     #[field(label = "Receiver temperature", unit = "K")]
@@ -1900,7 +1909,7 @@ pub struct AstroCalibratedRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct AstroSessionRow {
     /// The signal time at the end of an integration.
-    #[field(label = "Signal time", unit = "s")]
+    #[field(label = "Signal time", unit = "s", role = Time)]
     pub signal_time_s: f64,
     /// The peak velocity of an integration.
     #[field(label = "Peak velocity", unit = "km/s")]
@@ -1944,7 +1953,7 @@ pub static ASTRO_CALIBRATED: Table<AstroCalibratedRow> =
         .sorted(&AstroCalibratedRow::FREQ, sdrkit_core::SortOrder::Ascending);
 /// Session.
 pub static ASTRO_SESSION: Table<AstroSessionRow> =
-    Table::new("session", "Session", crate::astro::MAX_SESSION);
+    Table::new("session", "Session", crate::astro::MAX_SESSION).role(sdrkit_core::TableRole::Log);
 /// Line fit.
 pub static ASTRO_FIT: Table<AstroFitRow> = Table::new("fit", "Line fit", 8);
 /// Map rows.
@@ -2012,16 +2021,16 @@ pub struct IonoFields<'a> {
     #[field(label = "Signal time", unit = "s")]
     pub signal_time_s: f64,
     /// Sweeps start on whole seconds.
-    #[field(label = "Timing lock")]
+    #[field(label = "Timing lock", reading = 4)]
     pub timing_lock: bool,
     /// The span the radio sees.
     #[field(label = "Span", unit = "Hz")]
     pub span: Hertz,
     /// Sounders heard.
-    #[field(label = "Sounders heard")]
+    #[field(label = "Sounders heard", reading = 1)]
     pub sounders_heard: i64,
     /// Sweeps being received.
-    #[field(label = "Active sweeps")]
+    #[field(label = "Active sweeps", reading = 2)]
     pub active_sweeps: i64,
     /// The FFT size of the detector.
     #[field(label = "Detector FFT")]
@@ -2042,7 +2051,7 @@ pub struct IonoFields<'a> {
     #[field(shared = keys::LEVEL_DBFS)]
     pub level_dbfs: Option<f64>,
     /// The row key of the sounder whose ionogram and history are shown.
-    #[field(label = "Sounder shown", refers_to = "sounders")]
+    #[field(label = "Sounder shown", refers_to = "sounders", reading = 3)]
     pub selected: Option<&'a str>,
 }
 
@@ -2133,7 +2142,7 @@ pub struct IonoSounderRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct IonoTimelineRow {
     /// The start of a sweep.
-    #[field(label = "Start", unit = "s")]
+    #[field(label = "Start", unit = "s", role = Time)]
     pub start_s: f64,
     /// The id of a sounder.
     #[field(label = "Sounder")]
@@ -2171,7 +2180,9 @@ pub static IONO_SOUNDERS: Table<IonoSounderRow<'static>> =
     Table::new("sounders", "Sounders", 64).label(&IonoSounderRow::ID);
 /// The sweeps heard, newest first.
 pub static IONO_TIMELINE: Table<IonoTimelineRow> =
-    Table::new("timeline", "Timeline", crate::iono::MAX_TIMELINE).label(&IonoTimelineRow::ID);
+    Table::new("timeline", "Timeline", crate::iono::MAX_TIMELINE)
+        .label(&IonoTimelineRow::ID)
+        .role(sdrkit_core::TableRole::Log);
 /// The bands open now.
 pub static IONO_BANDS: Table<IonoBandRow<'static>> =
     Table::new("bands", "Bands open now", 32).label(&IonoBandRow::BAND);
@@ -2269,7 +2280,7 @@ pub struct SupersidFields<'a> {
     #[field(label = "Transmitters in span")]
     pub in_span_n: i64,
     /// Transmitters present.
-    #[field(label = "Transmitters present")]
+    #[field(label = "Transmitters present", reading = 1)]
     pub present_n: i64,
     /// Intervals measured.
     #[field(label = "Intervals measured")]
@@ -2278,16 +2289,16 @@ pub struct SupersidFields<'a> {
     #[field(label = "Bin width", unit = "Hz")]
     pub bin_hz: Option<Hertz>,
     /// Events in total.
-    #[field(label = "Events")]
+    #[field(label = "Events", reading = 2)]
     pub events_total: i64,
     /// The transmitter of the last event.
-    #[field(label = "Last event transmitter")]
+    #[field(label = "Last event transmitter", reading = 3)]
     pub last_event_tx: Option<&'a str>,
     /// The rise of the last event.
-    #[field(label = "Last event rise", unit = "dB")]
+    #[field(label = "Last event rise", unit = "dB", reading = 4)]
     pub last_event_rise_db: Option<f64>,
     /// The age of the last event.
-    #[field(label = "Last event age", unit = "s")]
+    #[field(label = "Last event age", unit = "s", reading = 5)]
     pub last_event_age_s: Option<Seconds>,
     /// The data file written last.
     #[field(label = "Data file")]
@@ -2420,7 +2431,8 @@ pub static SUPERSID_EVENTS: Table<SupersidEventRow<'static>> = Table::new(
     "Sudden changes",
     crate::supersid::EVENT_LOG_CAP,
 )
-.label(&SupersidEventRow::LABEL);
+.label(&SupersidEventRow::LABEL)
+.role(sdrkit_core::TableRole::Log);
 /// Terminator marks.
 pub static SUPERSID_MARKS: Table<SupersidMarkRow<'static>> = Table::new(
     "marks",
@@ -2637,7 +2649,7 @@ pub struct LightningTdoaFields<'a> {
     #[field(label = "Role")]
     pub role: &'a str,
     /// Sferics timed.
-    #[field(label = "Sferics timed")]
+    #[field(label = "Sferics timed", reading = 2)]
     pub pulses: i64,
     /// The peak of the newest sferic.
     #[field(label = "Last peak", unit = "dB")]
@@ -2646,10 +2658,10 @@ pub struct LightningTdoaFields<'a> {
     #[field(label = "Floor", unit = "dBFS")]
     pub floor_db: Option<f64>,
     /// The best usable time source.
-    #[field(label = "Time source")]
+    #[field(label = "Time source", reading = 4)]
     pub time_source: &'a str,
     /// Its 1-sigma now.
-    #[field(label = "Clock error", unit = "µs")]
+    #[field(label = "Clock error", unit = "us", reading = 3)]
     pub clock_sigma_us: Option<f64>,
     /// The rate error of its sample clock.
     #[field(label = "Sample clock drift", unit = "ppm")]
@@ -2661,22 +2673,22 @@ pub struct LightningTdoaFields<'a> {
     #[field(label = "Fine timing")]
     pub fine: bool,
     /// The 1-sigma of the GPS clock.
-    #[field(label = "GPS clock", unit = "µs")]
+    #[field(label = "GPS clock", unit = "us")]
     pub sigma_gps_us: Option<f64>,
     /// The 1-sigma of the GNSS clock.
-    #[field(label = "GNSS clock", unit = "µs")]
+    #[field(label = "GNSS clock", unit = "us")]
     pub sigma_gnss_us: Option<f64>,
     /// The 1-sigma of the common-view clock.
-    #[field(label = "Common-view clock", unit = "µs")]
+    #[field(label = "Common-view clock", unit = "us")]
     pub sigma_cv_us: Option<f64>,
     /// The 1-sigma of the PTP clock.
-    #[field(label = "PTP clock", unit = "µs")]
+    #[field(label = "PTP clock", unit = "us")]
     pub sigma_ptp_us: Option<f64>,
     /// The 1-sigma of the NTP clock.
-    #[field(label = "NTP clock", unit = "µs")]
+    #[field(label = "NTP clock", unit = "us")]
     pub sigma_ntp_us: Option<f64>,
     /// The 1-sigma of the unsynchronised computer clock.
-    #[field(label = "Computer clock", unit = "µs")]
+    #[field(label = "Computer clock", unit = "us")]
     pub sigma_system_us: Option<f64>,
     /// The common-view clock stamps the detections.
     #[field(label = "Common view in use")]
@@ -2688,13 +2700,13 @@ pub struct LightningTdoaFields<'a> {
     #[field(label = "Timing SNR", unit = "dB")]
     pub timing_snr_db: Option<f64>,
     /// The 1-sigma of its boundary.
-    #[field(label = "Timing boundary error", unit = "µs")]
+    #[field(label = "Timing boundary error", unit = "us")]
     pub timing_sigma_us: Option<f64>,
     /// Its carrier error.
     #[field(label = "Timing carrier error", unit = "Hz")]
     pub timing_carrier_hz: Option<f64>,
     /// The state of the network.
-    #[field(label = "Network")]
+    #[field(label = "Network", reading = 5)]
     pub network: &'a str,
     /// Datagrams sent.
     #[field(label = "Packets sent")]
@@ -2724,7 +2736,7 @@ pub struct LightningTdoaFields<'a> {
     #[field(label = "Groups")]
     pub groups: Option<i64>,
     /// Fixes made.
-    #[field(label = "Fixes")]
+    #[field(label = "Fixes", reading = 1)]
     pub fixes: Option<i64>,
     /// Fixes refused by the chi-square test.
     #[field(label = "Rejected")]
@@ -2771,7 +2783,7 @@ pub struct LightningTdoaStrikeRow {
     #[field(label = "Also heard")]
     pub also_heard: i64,
     /// The rms of the residuals.
-    #[field(label = "Residual rms", unit = "µs")]
+    #[field(label = "Residual rms", unit = "us")]
     pub rms_us: f64,
     /// Chi-square.
     #[field(label = "Chi-square")]
@@ -2788,6 +2800,9 @@ pub struct LightningTdoaStrikeRow {
     /// The time is UTC.
     #[field(label = "UTC")]
     pub utc: bool,
+    /// The time of a strike, or `None` when the time is not UTC.
+    #[field(label = "Time")]
+    pub time: Option<Time>,
 }
 
 /// A station of the network (server). The row key is the station id, eight hex digits.
@@ -2809,7 +2824,7 @@ pub struct LightningTdoaStationRow<'a> {
     #[field(label = "Time source")]
     pub time_source: &'a str,
     /// The 1-sigma of the station's clock.
-    #[field(label = "Clock error", unit = "µs")]
+    #[field(label = "Clock error", unit = "us")]
     pub sigma_us: f64,
     /// The time since the station's last datagram.
     #[field(label = "Age", unit = "s")]
@@ -2827,7 +2842,7 @@ pub struct LightningTdoaStationRow<'a> {
     #[field(label = "Tied to UTC")]
     pub tied_to_utc: bool,
     /// The common-view correction.
-    #[field(label = "Common-view correction", unit = "µs")]
+    #[field(label = "Common-view correction", unit = "us")]
     pub cv_correction_us: Option<f64>,
 }
 
@@ -2859,7 +2874,7 @@ pub struct LightningStrikeEvent {
     #[field(label = "Also heard")]
     pub also_heard: i64,
     /// The rms of the residuals.
-    #[field(label = "Residual rms", unit = "µs")]
+    #[field(label = "Residual rms", unit = "us")]
     pub rms_us: f64,
     /// Chi-square.
     #[field(label = "Chi-square")]
@@ -2880,7 +2895,8 @@ pub struct LightningStrikeEvent {
 
 /// The located strikes, newest first (server).
 pub static LIGHTNING_TDOA_STRIKES: Table<LightningTdoaStrikeRow> =
-    Table::new("strikes", "Strikes", crate::lightning::server::MAX_STRIKES);
+    Table::new("strikes", "Strikes", crate::lightning::server::MAX_STRIKES)
+        .role(sdrkit_core::TableRole::Log);
 /// The stations of the network (server).
 pub static LIGHTNING_TDOA_STATIONS: Table<LightningTdoaStationRow<'static>> = Table::new(
     "stations",
@@ -2956,7 +2972,7 @@ pub const LIGHTNING_TDOA_TIME_MARK: CommandKind<LightningTdoaTimeMarkArgs<'stati
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct HorusFields {
     /// Waiting for tones, listening to tones, or decoding (a packet within the last 30 s).
-    #[field(label = "State")]
+    #[field(label = "State", reading = 1)]
     pub state: crate::horus::State,
     /// Channels running, the dial channel included.
     #[field(label = "Channels")]
@@ -2968,7 +2984,7 @@ pub struct HorusFields {
     #[field(label = "Failed")]
     pub failed: i64,
     /// The best SNR in 3 kHz of a packet of the last 60 s.
-    #[field(label = "SNR", unit = "dB")]
+    #[field(label = "SNR", unit = "dB", reading = 2)]
     pub snr_db: Option<f64>,
 }
 
@@ -2976,10 +2992,10 @@ pub struct HorusFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct HorusLogFields {
     /// Packets decoded, duplicates left out.
-    #[field(label = "Packets")]
+    #[field(label = "Packets", reading = 3)]
     pub packets: i64,
     /// Payloads heard within the last 120 s.
-    #[field(label = "Active payloads")]
+    #[field(label = "Active payloads", reading = 4)]
     pub payloads_active: i64,
     /// Lines of the setting `payload_ids` that could not be read.
     #[field(label = "Unreadable ID lines")]
@@ -3249,7 +3265,8 @@ pub static HORUS_CUSTOM_FIELDS: Table<HorusCustomFieldRow<'static>> = Table::new
 /// The packet log, the newest first.
 pub static HORUS_PACKETS: Table<HorusPacketRow<'static>> =
     Table::new("packets", "Packets", crate::horus::payloads::MAX_LOG)
-        .label(&HorusPacketRow::PAYLOAD);
+        .label(&HorusPacketRow::PAYLOAD)
+        .role(sdrkit_core::TableRole::Log);
 /// The channels, the dial channel first.
 pub static HORUS_CHANNELS: Table<HorusChannelRow> =
     Table::new("channels", "Channels", crate::horus::bank::MAX_CHANNELS);
@@ -3276,35 +3293,7 @@ pub fn family() -> &'static Family {
     FAMILY.get_or_init(|| {
         let objects_clear = &sdrkit_util_objects::commands::CLEAR;
         let decoder_clear = &sdrkit_graph::decoder::CLEAR;
-        // Version 1.2 names rows and orders tables.
-        Family::new("science", 1, 3)
-            .added(
-                1,
-                1,
-                &[
-                    "sonde.content",
-                    "time.content",
-                    "eczas.content",
-                    "same.content",
-                    "mscatter.content",
-                    "ssdv.content",
-                    "astro.content",
-                    "iono.content",
-                    "sferics.content",
-                    "supersid.content",
-                    "schumann.content",
-                    "whistler.content",
-                    "lightning_tdoa.content",
-                    "jove.content",
-                    "callisto.content",
-                    "riometer.content",
-                    "eme_echo.content",
-                    "beacon_events.content",
-                    "pulsar.content",
-                    "radar_detect.content",
-                    "horus.content",
-                ],
-            )
+        Family::new("science", 2, 0)
             .content(sdrkit_core::ContentKind::Tracking, &["sonde", "horus"])
             .content(sdrkit_core::ContentKind::Datalink, &["same"])
             .content(sdrkit_core::ContentKind::Pictures, &["ssdv"])

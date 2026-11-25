@@ -129,9 +129,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.7. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 2.0. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: none.
+
+Key readings: `identified`, `symbol_rate`, `shift_hz`, `snr_db`.
 
 ### Result fields
 
@@ -196,6 +198,8 @@ Struct `CisHfMessageRow`. A `bee` message of CIS-36-50. The row key is the numbe
 | `characters` | whole number | always | 1.0 | Characters read. |
 | `failing` | whole number | always | 1.0 | Characters that failed the 3:4 check. |
 | `ended_by` | text | always | 1.0 | What ended the message. |
+
+The rows are a log: they arrive over time. Time: `time`.
 
 ### Table `carriers`
 

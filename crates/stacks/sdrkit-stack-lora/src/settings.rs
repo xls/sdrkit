@@ -1149,7 +1149,7 @@ pub const CR: Setting<field::I64> = Setting::new("cr", "Coding rate", "", 5)
 /// The frames have a CRC.
 pub const CRC: Setting<field::Bool> = Setting::new("crc", "CRC", "", true).section("LoRa");
 /// The length of an implicit frame.
-pub const LENGTH: Setting<field::I64> = Setting::new("length", "Length", "bytes", 16)
+pub const LENGTH: Setting<field::I64> = Setting::new("length", "Length", "B", 16)
     .section("LoRa")
     .range(1.0, 255.0, 1.0);
 /// The sync words searched.

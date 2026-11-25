@@ -80,7 +80,7 @@ The stack puts points on a map: Beacons.
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.5. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 2.0. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -124,7 +124,7 @@ Struct `SarsatBurstRow`. A burst of the log. The row key is the sequence number 
 | `level_dbfs` | number (dBFS) | optional | 1.0 | The level of the input. |
 | `offset_hz` | frequency | always | 1.0 | The offset of the carrier from the tuned frequency. |
 
-The column `hex_id` names a row. Place of a row: the column `position`.
+The rows are a log: they arrive over time. The column `hex_id` names a row. Place of a row: the column `position`. Time: `heard_at`.
 
 ### Table `beacons`
 

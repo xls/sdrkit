@@ -331,7 +331,6 @@ impl Decoder for AmMonitorDecoder {
             _ => &self.headline,
         });
         p.put(&AmMonitorFields {
-            text: &st.summary,
             carrier_offset_hz: s.map(|s| s.offset_hz),
             carrier_db: self.last.as_ref().map(|s| s.carrier_db),
             depth_pct: s.map(|s| s.depth_pct),

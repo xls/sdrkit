@@ -9,9 +9,12 @@ use crate::components::instruments::instrument_owner;
 use crate::components::link::{
     control_port, item_format, item_port, DemodReport, FrontEndComponent, FrontReport,
 };
+use crate::components::pass::{
+    pass_format, pass_port, PassPictures, PassSetting, PassTimer, PASS_GAP,
+};
 use crate::components::pm::PmDemodComponent;
 use crate::components::{last, Control};
-use crate::gen::{test_value, GenError};
+use crate::gen::{pass_lines, test_value, GenError};
 use crate::instruments::tip::{
     test_frame, tip_header, HirsDecoder, HirsStats, HIRS_ELEMENTS, HIRS_MAX_ROWS, HIRS_WIDTH,
     MAJOR_FRAME, TIP_BITS, TIP_BIT_RATE, TIP_BYTES, TIP_SYNC,
@@ -19,7 +22,7 @@ use crate::instruments::tip::{
 use crate::psk::{LinkClass, LinkParams, Modulation, Search, SnrEstimator};
 use crate::REPORT_S;
 use sdrkit_algo_sim::modulate::PhaseMod;
-use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView};
 use sdrkit_codec_image::strip::{Strip, View};
 use crate::typed::{ImageRow, NoaaDsbFields, IMAGES};
 use sdrkit_core::interface::{Fields as _, Hertz, Seconds};
@@ -102,15 +105,20 @@ pub const GEN_SCID: Setting<field::I64> =
         .advanced();
 /// The phase index of the test signal.
 pub const GEN_PM_INDEX: Setting<field::F64> =
-    Setting::new("gen_pm_index", "Test phase index", "deg", INDEX_DEG)
+    Setting::new("gen_pm_index", "Test phase index", "°", INDEX_DEG)
         .range(10.0, 85.0, 0.5)
         .section(TEST)
         .advanced();
-/// Lines of the test picture before it repeats.
-pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture lines", "", 400)
+/// The lines of the test signal: a pass of that many lines, then the signal ends. 0: the test picture of
+/// [`TEST_PICTURE_LINES`] lines repeats without end.
+pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture lines", "", 0)
     .range(1.0, 4000.0, 1.0)
+    .zero_means("Without end")
+    .help("The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.")
     .section(TEST)
     .advanced();
+/// The lines of the test picture before it repeats.
+pub const TEST_PICTURE_LINES: u32 = 400;
 
 sdrkit_core::settings! {
     /// The settings of `noaa_dsb`, with the options of its test signal.
@@ -119,6 +127,8 @@ sdrkit_core::settings! {
         View = VIEW,
         /// Keep the newest lines in view.
         Follow = FOLLOW,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// Test: the spacecraft address.
         GenScid = GEN_SCID,
         /// Test: the phase index.
@@ -196,6 +206,7 @@ pub struct TipComponent {
     minor_frame: Option<u16>,
     dec: HirsDecoder,
     strips: Vec<Strip>,
+    pass: PassTimer,
     log: Vec<String>,
 }
 
@@ -211,6 +222,7 @@ impl Default for TipComponent {
             minor_frame: None,
             dec: HirsDecoder::default(),
             strips: Vec::new(),
+            pass: PassTimer::default(),
             log: Vec::new(),
         }
     }
@@ -221,14 +233,23 @@ impl Component for TipComponent {
         ComponentInfo::processor(
             "satimg.tip_hirs",
             vec![Port::llr("in"), control_port()],
-            vec![item_port::<Strip>("out"), item_port::<TipReport>("report")],
+            vec![
+                item_port::<Strip>("out"),
+                item_port::<TipReport>("report"),
+                pass_port(),
+            ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
         if let Some(s) = &mut self.sync {
             s.drop_lock();
         }
-        Ok(vec![item_format::<Strip>(), item_format::<TipReport>()])
+        Ok(vec![
+            item_format::<Strip>(),
+            item_format::<TipReport>(),
+            pass_format(),
+        ])
     }
     fn process(&mut self, io: &mut Io) {
         let chips = io.llrs(0);
@@ -255,6 +276,9 @@ impl Component for TipComponent {
             self.spacecraft = Some(h.spacecraft);
             self.minor_frame = Some(h.minor_frame);
             self.dec.push_frame(f, &mut self.strips);
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 2) {
+            self.dec.new_picture();
         }
         io.items_out::<Strip>(0)
             .extend(self.strips.drain(..).map(|s| Timed {
@@ -471,7 +495,7 @@ impl Component for DsbDisplay {
 ///
 /// [`GraphError::Schema`] if the picture layout produces no valid schema.
 pub fn builder() -> Result<GraphBuilder, GraphError> {
-    let pictures = Pictures::new(vec![picture_layout()]).map_err(GraphError::Schema)?;
+    let pictures = PassPictures::new(vec![picture_layout()], "NOAA").map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add(
             "frontend",
@@ -485,6 +509,7 @@ pub fn builder() -> Result<GraphBuilder, GraphError> {
         .connect("frontend.out", "demod.in")
         .connect("demod.soft", "tip.in")
         .connect("tip.out", "pictures.in")
+        .connect("tip.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
         .connect("tip.report", "display.tip")
@@ -505,6 +530,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .min_rate(MIN_RATE, "NOAA DSB needs at least 40 kHz of samples")
         .route("view", &["pictures.view"])?
         .route("follow", &["pictures.follow"])?
+        .route("pass_gap", &["tip.pass_gap"])?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .with_settings(&cfg.settings)
         .build()
@@ -552,6 +578,8 @@ pub struct DsbGenerator {
     rate: f64,
     spacecraft: u8,
     lines: u32,
+    /// The lines of the pass, `None` for a signal without end.
+    pass: Option<u64>,
     counter: u64,
     modulator: PhaseMod,
     chips: Vec<u8>,
@@ -577,7 +605,8 @@ impl DsbGenerator {
         Ok(DsbGenerator {
             rate: cfg.rate_hz,
             spacecraft: v.get(&GEN_SCID).clamp(0, 15) as u8,
-            lines: v.get(&GEN_LINES).clamp(1, 4000) as u32,
+            lines: TEST_PICTURE_LINES,
+            pass: pass_lines(v.get(&GEN_LINES)),
             counter: 0,
             modulator: PhaseMod::new(1.0, 12.0, cfg.rate_hz / CHIP_RATE, index)?,
             chips: Vec::with_capacity(2 * TIP_BITS),
@@ -622,6 +651,11 @@ impl Generator for DsbGenerator {
         let mut filled = 0;
         while filled < out.len() {
             if self.next >= self.samples.len() {
+                // The signal ends after the minor frames of the last line of the pass.
+                let line = self.counter / u64::from(HIRS_ELEMENTS);
+                if self.pass.is_some_and(|p| line >= p) {
+                    return filled;
+                }
                 self.more();
                 continue;
             }
@@ -630,7 +664,7 @@ impl Generator for DsbGenerator {
             self.next += n;
             filled += n;
         }
-        out.len()
+        filled
     }
     fn signal_info(&self) -> Option<SignalInfo> {
         Some(

@@ -117,9 +117,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: none.
+
+Key readings: `present_n`, `events_total`, `last_event_tx`, `last_event_rise_db`, `last_event_age_s`.
 
 ### Result fields
 
@@ -184,7 +186,7 @@ Struct `SupersidEventRow`. A row of the table `sid_events`.
 | `peak_db` | number (dB) | always | 1.0 | The peak step of an event. |
 | `end_utc` | time | optional | 1.0 | The UTC of an event's end. |
 
-The column `label` names a row.
+The rows are a log: they arrive over time. The column `label` names a row. Time: `start_utc`.
 
 ### Table `marks`
 

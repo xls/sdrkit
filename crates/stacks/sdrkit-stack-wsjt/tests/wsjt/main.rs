@@ -12,6 +12,7 @@ mod js8;
 mod jt6m;
 mod known_answers;
 mod misc;
+mod msk_short;
 mod pi4;
 mod q65;
 mod recordings;

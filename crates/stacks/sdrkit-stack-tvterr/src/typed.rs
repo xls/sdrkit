@@ -4,6 +4,8 @@
 //! The stacks with a transport stream (`atsc`, `dtmb`) show the layer of `sdrkit-proto-mpegts` through its shared
 //! interface; `atsc3` shows the components of `sdrkit-proto-ipcast`.
 
+use crate::atsc3::components::ComponentState;
+use crate::atsc3::delivery::ComponentKind;
 use crate::atsc3::frame::NotDecoded;
 use crate::atsc3::results::{Delivery, ServiceAction, ServiceCategory, SystemBandwidth};
 use crate::auto::detect::{Standard, Verdict};
@@ -73,7 +75,7 @@ pub struct IsdbtFields {
     #[field(shared = keys::CLOCK_PPM)]
     pub clock_ppm: Option<f64>,
     /// The SNR of the equalised cells.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 2)]
     pub snr_db: Option<f64>,
     /// Reed-Solomon words clean or corrected.
     #[field(shared = keys::FRAMES_OK)]
@@ -112,7 +114,7 @@ pub struct IsdbtFields {
     #[field(label = "Net bit rate", unit = "bit/s")]
     pub net_rate_bit_s: f64,
     /// The signal quality score.
-    #[field(label = "Signal quality", unit = "%")]
+    #[field(label = "Signal quality", unit = "%", reading = 1)]
     pub quality_pct: f64,
     /// The signal quality class.
     #[field(label = "Signal quality")]
@@ -293,7 +295,7 @@ pub struct AtscFields {
     #[field(shared = keys::CLOCK_PPM)]
     pub clock_ppm: Option<f64>,
     /// The SNR on the known symbols. No value before the field sync.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 2)]
     pub snr_db: Option<f64>,
     /// Reed-Solomon words good.
     #[field(shared = keys::FRAMES_OK)]
@@ -335,7 +337,7 @@ pub struct AtscFields {
     #[field(label = "Lock losses")]
     pub lock_losses: i64,
     /// The signal quality score.
-    #[field(label = "Signal quality", unit = "%")]
+    #[field(label = "Signal quality", unit = "%", reading = 1)]
     pub quality_pct: f64,
     /// The signal quality class.
     #[field(label = "Signal quality")]
@@ -418,12 +420,12 @@ pub struct Atsc3Fields {
     #[field(label = "Service chosen")]
     pub service: Option<i64>,
     /// The service received: the chosen one, or the first visible linear TV service delivered by ROUTE.
-    #[field(label = "Service received")]
+    #[field(label = "Service received", reading = 1)]
     pub service_received: Option<i64>,
     /// ROUTE objects taken.
     #[field(label = "ROUTE objects")]
     pub route_objects: i64,
-    /// Media samples given out.
+    /// Access units given out as media packets, video and audio.
     #[field(label = "Media samples")]
     pub media_samples: i64,
     /// The bootstrap step.
@@ -432,9 +434,15 @@ pub struct Atsc3Fields {
     /// The L1 step.
     #[field(label = "L1 step")]
     pub step_l1: StepColour,
-    /// The service signalling step.
+    /// The service step: green while a component of the received service is given.
     #[field(label = "Service step")]
     pub step_service: StepColour,
+    /// Video access units given out as media packets.
+    #[field(label = "Video packets")]
+    pub video_packets: i64,
+    /// Audio access units given out as media packets.
+    #[field(label = "Sound packets")]
+    pub audio_packets: i64,
 }
 
 /// The result fields of `atsc3` about the frames: what the L1 signalling says, the PLP that is decoded and its FEC blocks.
@@ -508,7 +516,7 @@ pub struct Atsc3FrameFields {
     #[field(label = "LDPC iterations")]
     pub ldpc_iterations: Option<f64>,
     /// The MER of the cells of the decoded PLP against the nearest constellation points.
-    #[field(label = "MER (PLP cells)", unit = "dB")]
+    #[field(label = "MER (PLP cells)", unit = "dB", reading = 2)]
     pub mer_db: Option<f64>,
     /// The signal to noise ratio that the pilots of the first subframe give.
     #[field(label = "Pilot SNR", unit = "dB")]
@@ -594,17 +602,33 @@ pub struct Atsc3ServiceRow<'a> {
     /// Those objects that were signed packages. The signature is not verified.
     #[field(label = "Signed signalling packages")]
     pub sls_signed_packages: i64,
+    /// The service list says that a component needed to present the service is protected, for example encrypted.
+    #[field(label = "Protected")]
+    pub protected: bool,
 }
 
-/// A row of the media components seen, in the order they appeared. The row key is the ROUTE session.
+/// A row of the media components seen, in the order they appeared. The row key is the destination address and port of
+/// the ROUTE session and the transport session id of the component: `239.255.10.2:5002/1`.
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct Atsc3ComponentRow<'a> {
-    /// The ROUTE session of the component.
+    /// The transport session id of the component in its ROUTE session.
     #[field(label = "ROUTE session")]
     pub tsi: i64,
-    /// The four-character code of the codec of the component.
+    /// The sample entry type of the component: the four-character code of its codec.
     #[field(label = "FourCC")]
     pub fourcc: &'a str,
+    /// The destination address and port of the ROUTE session.
+    #[field(label = "Destination")]
+    pub destination: &'a str,
+    /// The service whose session description names the component. No value when none that was read names it.
+    #[field(label = "Service")]
+    pub service: Option<i64>,
+    /// What the component carries.
+    #[field(label = "Kind")]
+    pub kind: ComponentKind,
+    /// What the stack does with the component.
+    #[field(label = "State")]
+    pub state: ComponentState,
 }
 
 /// The services of the service list.
@@ -682,7 +706,7 @@ pub struct DtmbFields<'a> {
     #[field(label = "Carriers")]
     pub carriers: Option<Carriers>,
     /// The MER of the equalised data symbols.
-    #[field(label = "MER (data symbols)", unit = "dB")]
+    #[field(label = "MER (data symbols)", unit = "dB", reading = 1)]
     pub mer_db: Option<f64>,
     /// LDPC code words that decoded.
     #[field(label = "LDPC code words good")]
@@ -724,7 +748,7 @@ pub struct DtmbFields<'a> {
     #[field(shared = keys::LEVEL_DBFS)]
     pub level_dbfs: f64,
     /// The SNR: the MER once the profile is known and it lies between 8 dB and the C/N, else the C/N.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 2)]
     pub snr_db: Option<f64>,
 }
 
@@ -755,19 +779,19 @@ pub struct AutoFields<'a> {
     #[field(label = "Stack")]
     pub switch_to: Option<&'a str>,
     /// The standard of the last detection.
-    #[field(label = "Standard")]
+    #[field(label = "Standard", reading = 1)]
     pub standard: Option<Standard>,
     /// The headline of the last detection.
     #[field(label = "Found")]
     pub headline: Option<&'a str>,
     /// The verdict of the last detection.
-    #[field(label = "Verdict")]
+    #[field(label = "Verdict", reading = 2)]
     pub verdict: Option<Verdict>,
     /// The confidence of the last detection.
-    #[field(label = "Confidence", unit = "%")]
+    #[field(label = "Confidence", unit = "%", reading = 3)]
     pub confidence_pct: Option<f64>,
     /// The channel width found.
-    #[field(label = "Channel width", unit = "Hz")]
+    #[field(label = "Channel width", unit = "Hz", reading = 4)]
     pub width: Option<Hertz>,
     /// The centre of the channel from the centre of the capture.
     #[field(label = "Channel centre offset", unit = "Hz")]
@@ -862,6 +886,18 @@ const ADDED_1_2: &[&str] = &[
     "atsc3.table.plps",
 ];
 
+/// What version 1.8 added: the sound and the video of `atsc3` as media packets, the packet counts, the protected mark of
+/// a service and what the stack does with each component.
+const ADDED_1_8: &[&str] = &[
+    "shape.Atsc3Fields.video_packets",
+    "shape.Atsc3Fields.audio_packets",
+    "shape.Atsc3ServiceRow.protected",
+    "shape.Atsc3ComponentRow.destination",
+    "shape.Atsc3ComponentRow.service",
+    "shape.Atsc3ComponentRow.kind",
+    "shape.Atsc3ComponentRow.state",
+];
+
 /// The interface of the family.
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
@@ -900,7 +936,8 @@ pub fn family() -> &'static Family {
                 .fields::<IsdbtNarrowFields<'static>>(),
         )
         .settings(IsdbtsbSetting::SETTINGS);
-        Family::new("tvterr", 1, 7)
+        Family::new("tvterr", 1, 8)
+            .added(1, 8, ADDED_1_8)
             .added(
                 1,
                 6,
@@ -920,9 +957,9 @@ pub fn family() -> &'static Family {
             .content(sdrkit_core::ContentKind::Measurement, &["tv-auto"])
             .audio(
                 sdrkit_core::AudioKind::Programme,
-                &["isdbt", "isdbtsb", "atsc", "dtmb"],
+                &["isdbt", "isdbtsb", "atsc", "atsc3", "dtmb"],
             )
-            .video(&["isdbt", "isdbtsb", "atsc", "dtmb"])
+            .video(&["isdbt", "isdbtsb", "atsc", "atsc3", "dtmb"])
             .uses(sdrkit_proto_mpegts::publish::interface())
             .uses(ipcast::interface())
             .uses(sdrkit_graph::components::interface())

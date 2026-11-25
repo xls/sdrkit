@@ -74,8 +74,10 @@ pub struct Field<K> {
     /// The unit people see (`"dB"`, `"Hz"`). Empty for none.
     pub unit: &'static str,
     refers_to: Option<(Option<&'static str>, &'static str)>,
+    refers_column: &'static str,
     content: Option<ContentType>,
     role: Option<Role>,
+    reading: u8,
     kind: PhantomData<fn() -> K>,
 }
 
@@ -99,10 +101,27 @@ impl<K: Kind> Field<K> {
             label,
             unit,
             refers_to: None,
+            refers_column: "",
             content: None,
             role: None,
+            reading: 0,
             kind: PhantomData,
         }
+    }
+    /// The same field as key reading number `order` of its owner: what a person looks at first. The order counts
+    /// from 1, and an owner has at most [`FieldDecl::MAX_READINGS`] key readings.
+    ///
+    /// # Panics
+    ///
+    /// If `order` is 0 or above [`FieldDecl::MAX_READINGS`]. In a `const`, this stops the build.
+    #[must_use]
+    pub const fn reading(mut self, order: u8) -> Self {
+        assert!(
+            order >= 1 && order <= FieldDecl::MAX_READINGS,
+            "the order of a key reading is 1 to 6"
+        );
+        self.reading = order;
+        self
     }
     /// The same field with the role `role`: what it holds for a front end that places a row on a map.
     #[must_use]
@@ -131,6 +150,14 @@ impl<K: Kind> Field<K> {
         self.refers_to = Some((None, table));
         self
     }
+    /// The same field, whose value can be taken from column `column` of a row of table `table` of the same owner:
+    /// the addressee of a send command from the row of a node. Other values stay valid.
+    #[must_use]
+    pub const fn refers_to_column(mut self, table: &'static str, column: &'static str) -> Self {
+        self.refers_to = Some((None, table));
+        self.refers_column = column;
+        self
+    }
     /// Its declaration.
     pub fn decl(&self) -> FieldDecl {
         FieldDecl {
@@ -142,8 +169,10 @@ impl<K: Kind> Field<K> {
             refers_to: self.refers_to.map(|(owner, table)| RefersTo {
                 owner: owner.map(OwnerKey::of),
                 table: Cow::Borrowed(table),
+                column: Cow::Borrowed(self.refers_column),
             }),
             content: self.content,
+            reading: self.reading,
         }
     }
 }

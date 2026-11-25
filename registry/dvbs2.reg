@@ -1,5 +1,5 @@
 # The interface of the stack family dvbs2. The registry test of the family writes this file.
-family dvbs2 version=1.0
+family dvbs2 version=2.0
 shape.Dvbs2Fields since=1.0
 shape.Dvbs2Fields.standard type=choice(dvbs,dvbs2) unit= optional=yes since=1.0
 shape.Dvbs2Fields.signal_note type=choice(no_carrier,not_decoded) unit= optional=yes since=1.0
@@ -57,7 +57,7 @@ shape.Dvbs2CarrierRow.decoded type=bool unit= optional=no since=1.0
 shape.Dvbs2StreamRow since=1.0
 shape.Dvbs2StreamRow.isi type=i64 unit= optional=no since=1.0
 shape.Dvbs2StreamRow.carries type=choice(ts,gse,gse_hem,ts_generic,packets) unit= optional=no since=1.0
-shape.Dvbs2StreamRow.packet_bytes type=i64 unit=bytes optional=yes since=1.0
+shape.Dvbs2StreamRow.packet_bytes type=i64 unit=B optional=yes since=1.0
 shape.Dvbs2StreamRow.sync_byte type=i64 unit= optional=yes since=1.0
 shape.Dvbs2StreamRow.ccm type=bool unit= optional=no since=1.0
 shape.Dvbs2StreamRow.frames type=i64 unit= optional=no since=1.0

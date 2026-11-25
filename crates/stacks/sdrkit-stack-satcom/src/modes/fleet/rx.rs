@@ -287,13 +287,15 @@ impl FleetRx {
         out
     }
 
-    /// The last whole frames as 16-bit words, channel 0 the most significant bit, newest last.
-    pub fn frame_log(&self) -> Vec<u16> {
+    /// The last whole frames, newest last: each as a 16-bit word, channel 0 the most significant bit, and the signal
+    /// time of its first bit in seconds.
+    pub fn frame_log(&self) -> Vec<(u16, f64)> {
         let Some(s) = self.sync_column else {
             return Vec::new();
         };
         let n = self.bits.len() as u64;
         let first = self.bit_count - n;
+        let now = self.n as f64 / self.fs;
         let mut out = Vec::new();
         // The newest whole frame starts at a bit of column `s`.
         let mut start = self.bit_count.saturating_sub(COLUMNS as u64);
@@ -311,7 +313,8 @@ impl FleetRx {
             for j in 0..COLUMNS as u64 {
                 w = (w << 1) | u16::from(self.bits[(f0 + j - first) as usize]);
             }
-            out.push(w);
+            let age = (self.bit_count - 1 - f0) as f64 / BAUD;
+            out.push((w, now - age));
         }
         out
     }

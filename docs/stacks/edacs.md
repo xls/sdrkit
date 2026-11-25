@@ -77,7 +77,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ed
 
 ## Typed interface
 
-The stack is in the family `trunk`, version 1.5. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `trunk`, version 1.6. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -163,6 +163,8 @@ Struct `EdacsFrameRow`. An EDACS frame. The row key is the sequence number of th
 | `err_b` | whole number | always | 1.0 | Copy errors of B. |
 | `time_s` | number (s) | always | 1.0 | Time. |
 | `text` | text | always | 1.0 | Read as. |
+
+The rows are a log: they arrive over time. Time: `time_s`.
 
 ### Table `words`
 

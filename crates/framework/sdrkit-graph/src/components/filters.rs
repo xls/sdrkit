@@ -157,7 +157,7 @@ sdrkit_core::settings! {
     }
 }
 
-const DEEMPHASIS_US: Setting<field::F64> = Setting::new("deemphasis_us", "De-emphasis", "µs", 0.0)
+const DEEMPHASIS_US: Setting<field::F64> = Setting::new("deemphasis_us", "De-emphasis", "us", 0.0)
     .range(0.0, 750.0, 0.0)
     .help("The time constant. 0 is off. FM broadcasting uses 50 µs or 75 µs.");
 

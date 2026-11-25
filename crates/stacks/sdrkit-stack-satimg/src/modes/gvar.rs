@@ -11,14 +11,17 @@ use crate::components::link::{
     control_port, item_format, item_port, DemodComponent, DemodReport, FrontEndComponent,
     FrontReport,
 };
-use crate::gen::{test_value, BitSource, GenError, ModParams, Modulator};
+use crate::components::pass::{
+    pass_format, pass_port, PassPictures, PassSetting, PassTimer, PASS_GAP,
+};
+use crate::gen::{pass_lines, test_value, BitSource, GenError, ModParams, Modulator};
 use crate::instruments::gvar::{
     build_block, sync_code, test_scan, Block, Deframer, DeframerStats, Imager, ImagerStats,
     BIT_RATE, IDLE_BLOCK, INFRARED, INFRARED_WIDTH, MAX_SCAN, VISIBLE, VISIBLE_WIDTH,
 };
 use crate::psk::{LinkClass, LinkParams, Modulation, Search, SnrEstimator};
 use crate::REPORT_S;
-use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView};
 use sdrkit_codec_image::strip::{Strip, View};
 use crate::typed::{GoesGvarBlockRow, GoesGvarFields, ImageRow, GOES_GVAR_BLOCKS, IMAGES};
 use sdrkit_core::interface::{Fields as _, Hertz, Seconds};
@@ -83,11 +86,16 @@ pub const VIEW: CatalogueSetting = CatalogueSetting {
 };
 /// Keep the newest lines in view.
 pub const FOLLOW: Setting<field::Bool> = Setting::new("follow", "Follow", "", true);
-/// Scans of the test picture before the scan count starts again.
-pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test scans", "", 1300)
+/// The scans of the test signal: a pass of that many scans, then the signal ends. 0: the test picture of
+/// [`TEST_PICTURE_LINES`] scans repeats without end.
+pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test scans", "", 0)
     .range(1.0, 1974.0, 1.0)
+    .zero_means("Without end")
+    .help("The test signal sends this many scans of the test picture and then ends. Without end: the picture repeats.")
     .section(TEST)
     .advanced();
+/// The scans of the test picture before the scan count starts again.
+pub const TEST_PICTURE_LINES: u32 = 1300;
 
 sdrkit_core::settings! {
     /// The settings of `goes_gvar`, with the options of its test signal.
@@ -98,6 +106,8 @@ sdrkit_core::settings! {
         View = VIEW,
         /// Keep the newest lines in view.
         Follow = FOLLOW,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// Test: scans.
         GenLines = GEN_LINES,
     }
@@ -136,7 +146,7 @@ pub fn layouts() -> Vec<PictureLayout> {
 // The block and picture component.
 
 /// One row of the block table.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct BlockRow {
     /// The block count of the header.
     pub count: u16,
@@ -150,6 +160,8 @@ pub struct BlockRow {
     pub header_ok: bool,
     /// The data field had a good CRC.
     pub data_ok: bool,
+    /// Signal time at the end of the chunk of bits that held the block, s.
+    pub time_s: f64,
 }
 
 /// The report of [`GvarComponent`].
@@ -184,6 +196,7 @@ pub struct GvarComponent {
     found: Vec<Block>,
     dec: Imager,
     strips: Vec<Strip>,
+    pass: PassTimer,
     rows: Vec<BlockRow>,
     last: Option<BlockRow>,
     spacecraft: Option<u8>,
@@ -196,12 +209,21 @@ impl Component for GvarComponent {
         ComponentInfo::processor(
             "satimg.gvar",
             vec![Port::llr("in"), control_port()],
-            vec![item_port::<Strip>("out"), item_port::<GvarReport>("report")],
+            vec![
+                item_port::<Strip>("out"),
+                item_port::<GvarReport>("report"),
+                pass_port(),
+            ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
         self.deframer.reset();
-        Ok(vec![item_format::<Strip>(), item_format::<GvarReport>()])
+        Ok(vec![
+            item_format::<Strip>(),
+            item_format::<GvarReport>(),
+            pass_format(),
+        ])
     }
     fn process(&mut self, io: &mut Io) {
         let soft = io.llrs(0);
@@ -219,6 +241,7 @@ impl Component for GvarComponent {
                 word_count: b.header.word_count,
                 header_ok: b.header.crc_ok,
                 data_ok: b.data_ok,
+                time_s: self.symbols as f64 / BIT_RATE,
             };
             if self.rows.len() < 32 {
                 self.rows.push(row);
@@ -231,6 +254,9 @@ impl Component for GvarComponent {
                 }
                 self.dec.push(b, &mut self.strips);
             }
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 2) {
+            self.dec.new_picture();
         }
         io.items_out::<Strip>(0)
             .extend(self.strips.drain(..).map(|s| Timed {
@@ -403,6 +429,7 @@ impl Component for GvarDisplay {
                     word_count: i64::from(b.word_count),
                     header_ok: b.header_ok,
                     data_ok: b.data_ok,
+                    time_s: b.time_s,
                 },
             );
         }
@@ -447,7 +474,7 @@ impl Component for GvarDisplay {
 ///
 /// [`GraphError::Schema`] if the picture layouts produce no valid schema.
 pub fn builder() -> Result<GraphBuilder, GraphError> {
-    let pictures = Pictures::new(layouts()).map_err(GraphError::Schema)?;
+    let pictures = PassPictures::new(layouts(), "GOES").map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add("frontend", FrontEndComponent::new(link(), MIN_RATE, false))
         .add("demod", DemodComponent::new(link()))
@@ -458,6 +485,7 @@ pub fn builder() -> Result<GraphBuilder, GraphError> {
         .connect("frontend.out", "demod.in")
         .connect("demod.soft", "gvar.in")
         .connect("gvar.out", "pictures.in")
+        .connect("gvar.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
         .connect("gvar.report", "display.gvar")
@@ -479,6 +507,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route("picture", &["pictures.instrument"])?
         .route("view", &["pictures.view"])?
         .route("follow", &["pictures.follow"])?
+        .route("pass_gap", &["gvar.pass_gap"])?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .with_settings(&cfg.settings)
         .build()
@@ -524,6 +553,8 @@ pub static DESCRIPTOR: StackDescriptor = StackDescriptor {
 /// and NRZ-S encoded.
 pub struct GvarSource {
     scans: u32,
+    /// The scans of the pass, `None` for a signal without end.
+    pass: Option<u64>,
     scan: u32,
     count: u16,
     queue: std::collections::VecDeque<Vec<u8>>,
@@ -550,6 +581,9 @@ impl BitSource for GvarSource {
         }
         self.line.encode(&mut out[start..]);
     }
+    fn ended(&self) -> bool {
+        self.queue.is_empty() && self.pass.is_some_and(|p| u64::from(self.scan) >= p)
+    }
 }
 
 /// The GVAR test signal: the clean signal at unit mean power.
@@ -569,7 +603,8 @@ impl GvarGenerator {
         let l = link();
         let modem = ModParams::new(cfg.rate_hz, l.symbol_rate, l.roll_off, l.modulation);
         let src = GvarSource {
-            scans: cfg.settings.get(&GEN_LINES).clamp(1, i64::from(MAX_SCAN)) as u32,
+            scans: TEST_PICTURE_LINES,
+            pass: pass_lines(cfg.settings.get(&GEN_LINES)),
             scan: 0,
             count: 0,
             queue: Default::default(),

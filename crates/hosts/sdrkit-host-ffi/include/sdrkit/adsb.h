@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "adsb", version 1.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "adsb", version 1.4. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_ADSB_VERSION_MAJOR 1
-#define SDRKIT_ADSB_VERSION_MINOR 3
+#define SDRKIT_ADSB_VERSION_MINOR 4
 
 // The stack "adsb": its id, and the keys of its event types.
 #define SDRKIT_STACK_ADSB "adsb"
@@ -1259,7 +1259,9 @@ static inline int32_t sdrkit_adsb_aircraft_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "messages" of the stack "adsb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `icao` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_adsb_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_adsb_message_row *rows,
                                                uint32_t capacity,
@@ -1616,7 +1618,9 @@ static inline int32_t sdrkit_uat_fisb_vertices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "log" of the stack "uat" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `address` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_uat_log_rows(SDRKIT_HANDLE handle,
                                          sdrkit_uat_log_row *rows,
                                          uint32_t capacity,

@@ -1,5 +1,5 @@
 # The interface of the stack family adsb. The registry test of the family writes this file.
-family adsb version=1.3
+family adsb version=1.4
 shape.TrackerFields since=1.0
 shape.TrackerFields.aircraft_count type=i64 unit= optional=no since=1.0
 shape.TrackerFields.with_position type=i64 unit= optional=no since=1.0
@@ -272,7 +272,7 @@ adsb.fields.TrackerFields since=1.0
 adsb.fields.FeedFields since=1.0
 adsb.fields.ModeAcFields since=1.0
 adsb.table.aircraft row=AircraftRow cap=160 label=callsign position=position altitude=alt_ft course=heading_deg speed=speed_kt since=1.0
-adsb.table.messages row=MessageRow cap=64 label=icao since=1.0
+adsb.table.messages row=MessageRow cap=64 label=icao role=log time=time_s since=1.0
 adsb.table.sources row=SourceRow cap=32 label=name since=1.0
 adsb.table.by_df row=CountRow cap=32 since=1.0
 adsb.table.gps_cells row=GpsCellRow cap=4096 position=corner since=1.0
@@ -319,7 +319,7 @@ uat.table.fisb_products row=FisbProductRow cap=64 label=name since=1.0
 uat.table.fisb_records row=FisbRecordRow cap=512 label=name position=position since=1.0
 uat.table.fisb_blocks row=FisbBlockRow cap=2048 label=name position=corner since=1.0
 uat.table.fisb_vertices row=FisbVertexRow cap=8192 position=position altitude=alt_ft since=1.0
-uat.table.log row=UatLogRow cap=64 label=address since=1.0
+uat.table.log row=UatLogRow cap=64 label=address role=log time=time_s since=1.0
 uat.event.uat.message fields=UatMessage since=1.0
 uat.setting.expiry_s type=f64 unit=s since=1.0
 uat.setting.gen_aircraft type=i64 unit= since=1.0

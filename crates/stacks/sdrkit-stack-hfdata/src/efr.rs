@@ -37,7 +37,7 @@ pub const BAUD: Setting<field::F64> = Setting::new("baud", "Speed", "Bd", 200.0)
     .help("Not confirmed by a public document.")
     .advanced();
 /// The most user bytes a frame may have.
-pub const MAX_LEN: Setting<field::I64> = Setting::new("max_len", "Longest frame", "bytes", 40)
+pub const MAX_LEN: Setting<field::I64> = Setting::new("max_len", "Longest frame", "B", 40)
     .range(3.0, 255.0, 1.0)
     .help("Not confirmed by a public document.")
     .advanced();

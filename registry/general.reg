@@ -1,5 +1,5 @@
 # The interface of the stack family general. The registry test of the family writes this file.
-family general version=1.3
+family general version=2.0
 uses.tones major=1 since=1.0
 shape.AmFields since=1.0
 shape.AmFields.am_active type=bool unit= optional=no since=1.0
@@ -52,15 +52,15 @@ shape.GeneralFields.dcs type=text unit= optional=yes since=1.0
 shape.GeneralFields.dcs_alias type=text unit= optional=yes since=1.0
 shape.GeneralFields.tone type=text unit= optional=yes since=1.0
 shape.GeneralFields.tone_gate_open type=bool unit= optional=no since=1.0
-shape.TransmitFields since=1.1
-shape.TransmitFields.transmitting type=bool unit= optional=no since=1.1
-shape.TransmitFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.1
-shape.TransmitFields.tx_kind type=choice(voice,text,carrier) unit= optional=yes since=1.1
-shape.TransmitFields.tx_time_s type=duration unit=s optional=yes since=1.1
-shape.TransmitFields.tx_mic_dbfs type=f64 unit=dBFS optional=yes since=1.1
-shape.TransmitFields.tx_peak_db type=f64 unit=dB optional=yes since=1.1
-shape.TransmitFields.tx_level_db type=f64 unit=dB optional=yes since=1.1
-shape.TransmitFields.tx_limit_db type=f64 unit=dB optional=yes since=1.1
+shape.TransmitFields since=1.0
+shape.TransmitFields.transmitting type=bool unit= optional=no since=1.0
+shape.TransmitFields.tx_freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.TransmitFields.tx_kind type=choice(voice,text,carrier) unit= optional=yes since=1.0
+shape.TransmitFields.tx_time_s type=duration unit=s optional=yes since=1.0
+shape.TransmitFields.tx_mic_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.TransmitFields.tx_peak_db type=f64 unit=dB optional=yes since=1.0
+shape.TransmitFields.tx_level_db type=f64 unit=dB optional=yes since=1.0
+shape.TransmitFields.tx_limit_db type=f64 unit=dB optional=yes since=1.0
 shape.WidthPresetRow since=1.0
 shape.WidthPresetRow.width_hz type=hz unit=Hz optional=no since=1.0
 shape.PresetRow since=1.0
@@ -76,10 +76,10 @@ shape.ChannelRow.demod type=choice(nfm,wfm,am,usb,lsb,cw) unit= optional=yes sin
 shape.ChannelRow.squelch_open type=bool unit= optional=yes since=1.0
 shape.ChannelRow.summary type=text unit= optional=no since=1.0
 general since=1.0
-general.content kind=general audio=monitor since=1.3
+general.content kind=general audio=monitor since=1.0
 general.fields.AmFields since=1.0
 general.fields.GeneralFields since=1.0
-general.fields.TransmitFields since=1.1
+general.fields.TransmitFields since=1.0
 general.kept.width_presets since=1.0
 general.kept.presets since=1.0
 general.table.width_presets row=WidthPresetRow cap=32 since=1.0
@@ -128,18 +128,18 @@ general.setting.extra3 type=bool unit= since=1.0
 general.setting.extra3_offset type=hz unit=Hz since=1.0
 general.setting.extra3_demod type=choice(nfm,wfm,am,usb,lsb,cw) unit= since=1.0
 general.setting.extra3_width type=hz unit=Hz since=1.0
-general.setting.tx_split type=hz unit=Hz since=1.1
-general.setting.tx_deviation type=hz unit=Hz since=1.1
-general.setting.tx_preemphasis type=choice(off,50,75,750) unit= since=1.1
-general.setting.tx_ctcss type=hz unit=Hz since=1.1
-general.setting.tx_am_depth type=f64 unit=% since=1.1
-general.setting.tx_ssb_method type=choice(filter,phasing) unit= since=1.1
-general.setting.tx_ssb_band type=choice(fixed,filter) unit= since=1.1
-general.setting.tx_compression type=f64 unit=dB since=1.1
-general.setting.tx_timeout type=duration unit=s since=1.1
-general.setting.tx_cw_wpm type=f64 unit=WPM since=1.1
-general.setting.tx_cw_farnsworth type=f64 unit=WPM since=1.1
-general.setting.tx_tune_limit type=duration unit=s since=1.1
+general.setting.tx_split type=hz unit=Hz since=1.0
+general.setting.tx_deviation type=hz unit=Hz since=1.0
+general.setting.tx_preemphasis type=choice(off,50,75,750) unit= since=1.0
+general.setting.tx_ctcss type=hz unit=Hz since=1.0
+general.setting.tx_am_depth type=f64 unit=% since=1.0
+general.setting.tx_ssb_method type=choice(filter,phasing) unit= since=1.0
+general.setting.tx_ssb_band type=choice(fixed,filter) unit= since=1.0
+general.setting.tx_compression type=f64 unit=dB since=1.0
+general.setting.tx_timeout type=duration unit=s since=1.0
+general.setting.tx_cw_wpm type=f64 unit=wpm since=1.0
+general.setting.tx_cw_farnsworth type=f64 unit=wpm since=1.0
+general.setting.tx_tune_limit type=duration unit=s since=1.0
 general.setting.gen_noise_only type=bool unit= since=1.0
 general.setting.gen_tune_offset type=hz unit=Hz since=1.0
 general.setting.gen_tone type=hz unit=Hz since=1.0
@@ -147,9 +147,9 @@ general.setting.gen_mod type=f64 unit= since=1.0
 general.setting.gen_ctcss type=hz unit=Hz since=1.0
 general.setting.gen_ctcss_dev type=hz unit=Hz since=1.0
 general.setting.gen_dcs type=text unit= since=1.0
-general.setting.gen_audio type=choice(tone,voice) unit= since=1.2
+general.setting.gen_audio type=choice(tone,voice) unit= since=1.0
 general.command.preset.apply args=row:text reply= since=1.0
-general.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.1
-general.command.send args=text:text reply= transmits=text stop=halt since=1.1
-general.command.tune args= reply= transmits=carrier stop=halt since=1.1
-general.command.halt args= reply= since=1.1
+general.command.ptt args=on:bool reply= transmits=voice stop=ptt since=1.0
+general.command.send args=text:text reply= transmits=text stop=halt since=1.0
+general.command.tune args= reply= transmits=carrier stop=halt since=1.0
+general.command.halt args= reply= since=1.0

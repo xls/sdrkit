@@ -34,7 +34,7 @@ use std::sync::OnceLock;
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct LinkFields {
     /// The Es/N0 of the demodulator, dB.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 1)]
     pub snr_db: Option<f64>,
     /// The level of the input, dBFS.
     #[field(shared = keys::LEVEL_DBFS)]
@@ -49,10 +49,10 @@ pub struct LinkFields {
     #[field(shared = keys::SYMBOL_RATE_HZ)]
     pub symbol_rate_hz: Option<Hertz>,
     /// Frames decoded.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 2)]
     pub frames_ok: Option<i64>,
     /// Frames that failed their check.
-    #[field(shared = keys::FRAMES_BAD)]
+    #[field(shared = keys::FRAMES_BAD, reading = 3)]
     pub frames_bad: Option<i64>,
     /// The bit error rate before the code.
     #[field(shared = keys::BER)]
@@ -302,10 +302,10 @@ pub struct NoaaAptFields<'a> {
     #[field(label = "Input rate", unit = "Hz")]
     pub input_rate_hz: Option<Hertz>,
     /// The line lock holds.
-    #[field(label = "Line lock")]
+    #[field(label = "Line lock", reading = 1)]
     pub locked: bool,
     /// Lines decoded.
-    #[field(label = "Lines")]
+    #[field(label = "Lines", reading = 2)]
     pub lines: i64,
     /// Lines taken at the expected place because their sync was not found.
     #[field(label = "Lines without sync")]
@@ -328,7 +328,7 @@ pub struct NoaaAptFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NoaaDsbFields<'a> {
     /// The Es/N0 of the demodulator, dB.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 1)]
     pub snr_db: Option<f64>,
     /// The level of the input, dBFS.
     #[field(shared = keys::LEVEL_DBFS)]
@@ -343,10 +343,10 @@ pub struct NoaaDsbFields<'a> {
     #[field(shared = keys::SYMBOL_RATE_HZ)]
     pub symbol_rate_hz: Option<Hertz>,
     /// Frames decoded.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 2)]
     pub frames_ok: i64,
     /// Frames that failed their check.
-    #[field(shared = keys::FRAMES_BAD)]
+    #[field(shared = keys::FRAMES_BAD, reading = 3)]
     pub frames_bad: i64,
     /// The seconds of signal decoded.
     #[field(label = "Signal time", unit = "s")]
@@ -390,7 +390,7 @@ pub struct NoaaDsbFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct GoesGvarFields<'a> {
     /// The Es/N0 of the demodulator, dB.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 1)]
     pub snr_db: Option<f64>,
     /// The level of the input, dBFS.
     #[field(shared = keys::LEVEL_DBFS)]
@@ -405,10 +405,10 @@ pub struct GoesGvarFields<'a> {
     #[field(shared = keys::SYMBOL_RATE_HZ)]
     pub symbol_rate_hz: Option<Hertz>,
     /// Frames decoded.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 2)]
     pub frames_ok: i64,
     /// Frames that failed their check.
-    #[field(shared = keys::FRAMES_BAD)]
+    #[field(shared = keys::FRAMES_BAD, reading = 3)]
     pub frames_bad: i64,
     /// The seconds of signal decoded.
     #[field(label = "Signal time", unit = "s")]
@@ -484,7 +484,7 @@ pub struct AwsFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NoaaGacFields<'a> {
     /// The Es/N0 of the demodulator, dB.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 1)]
     pub snr_db: Option<f64>,
     /// The level of the input, dBFS.
     #[field(shared = keys::LEVEL_DBFS)]
@@ -499,10 +499,10 @@ pub struct NoaaGacFields<'a> {
     #[field(shared = keys::SYMBOL_RATE_HZ)]
     pub symbol_rate_hz: Option<Hertz>,
     /// Frames decoded.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 2)]
     pub frames_ok: i64,
     /// Frames that failed their check.
-    #[field(shared = keys::FRAMES_BAD)]
+    #[field(shared = keys::FRAMES_BAD, reading = 3)]
     pub frames_bad: i64,
     /// The seconds of signal decoded.
     #[field(label = "Signal time", unit = "s")]
@@ -575,7 +575,7 @@ pub struct MsgRawFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FrameTableFields<'a> {
     /// The Es/N0 of the demodulator, dB.
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 2)]
     pub snr_db: Option<f64>,
     /// The level of the input, dBFS.
     #[field(shared = keys::LEVEL_DBFS)]
@@ -590,10 +590,10 @@ pub struct FrameTableFields<'a> {
     #[field(shared = keys::SYMBOL_RATE_HZ)]
     pub symbol_rate_hz: Option<Hertz>,
     /// Frames decoded.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 3)]
     pub frames_ok: i64,
     /// Frames that failed their check.
-    #[field(shared = keys::FRAMES_BAD)]
+    #[field(shared = keys::FRAMES_BAD, reading = 4)]
     pub frames_bad: i64,
     /// The seconds of signal decoded.
     #[field(label = "Signal time", unit = "s")]
@@ -605,7 +605,7 @@ pub struct FrameTableFields<'a> {
     #[field(label = "Carrier lock")]
     pub lock_metric: Option<f64>,
     /// A confirmed frame lock is held.
-    #[field(label = "Frame lock")]
+    #[field(label = "Frame lock", reading = 1)]
     pub frame_lock: bool,
     /// Sync words found.
     #[field(label = "Sync words")]
@@ -783,7 +783,7 @@ pub struct ProductRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FrameRow<'a> {
     /// Signal time of a frame.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time: Seconds,
     /// The spacecraft of a frame header.
     #[field(label = "Spacecraft")]
@@ -837,6 +837,9 @@ pub struct GoesGvarBlockRow {
     /// The data field of a block had a good CRC.
     #[field(label = "Data CRC good")]
     pub data_ok: bool,
+    /// The signal time at which a block was read.
+    #[field(label = "Time", unit = "s", role = Time)]
+    pub time_s: f64,
 }
 
 /// The frames of one virtual channel of AWS. The row key is the virtual channel.
@@ -994,12 +997,15 @@ pub static VIRTUAL_CHANNELS: Table<VirtualChannelRow> =
 pub static PRODUCTS: Table<ProductRow<'static>> = Table::new("products", "Products", 80);
 /// The newest frames of a stack that lists frames.
 pub static FRAMES: Table<FrameRow<'static>> =
-    Table::new("frames", "Frames", crate::components::table::TABLE_ROWS).label(&FrameRow::HEX);
+    Table::new("frames", "Frames", crate::components::table::TABLE_ROWS)
+        .label(&FrameRow::HEX)
+        .role(sdrkit_core::TableRole::Log);
 /// The instruments of FY-3.
 pub static FY3_INSTRUMENTS: Table<Fy3InstrumentRow<'static>> =
     Table::new("instruments", "Instruments", 32);
 /// The newest blocks of GOES GVAR.
-pub static GOES_GVAR_BLOCKS: Table<GoesGvarBlockRow> = Table::new("blocks", "Blocks", 64);
+pub static GOES_GVAR_BLOCKS: Table<GoesGvarBlockRow> =
+    Table::new("blocks", "Blocks", 64).role(sdrkit_core::TableRole::Log);
 /// The frames of each virtual channel of AWS.
 pub static AWS_VIRTUAL_CHANNELS: Table<AwsVirtualChannelRow> =
     Table::new("virtual_channels", "Virtual channels", 8);
@@ -1479,9 +1485,11 @@ pub struct GlmGroupRow {
 }
 
 /// The newest lightning flashes of `goes_grb`.
-pub static GLM_FLASHES: Table<GlmFlashRow> = Table::new("flashes", "Lightning flashes", 64);
+pub static GLM_FLASHES: Table<GlmFlashRow> =
+    Table::new("flashes", "Lightning flashes", 64).role(sdrkit_core::TableRole::Log);
 /// The newest lightning groups of `goes_grb`.
-pub static GLM_GROUPS: Table<GlmGroupRow> = Table::new("groups", "Lightning groups", 64);
+pub static GLM_GROUPS: Table<GlmGroupRow> =
+    Table::new("groups", "Lightning groups", 64).role(sdrkit_core::TableRole::Log);
 
 /// The result fields of `sat_filecast` beside those of the DVB-S2 receiver.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -1543,7 +1551,7 @@ pub struct RecentFileRow<'a> {
     #[field(label = "Name")]
     pub name: &'a str,
     /// The size of the file.
-    #[field(label = "Size", unit = "bytes")]
+    #[field(label = "Size", unit = "B")]
     pub size: i64,
     /// The parts of the file.
     #[field(label = "Parts")]
@@ -1554,6 +1562,9 @@ pub struct RecentFileRow<'a> {
     /// Every part arrived.
     #[field(label = "Complete")]
     pub complete: bool,
+    /// The signal time at which a file was given out.
+    #[field(label = "Time", unit = "s", role = Time)]
+    pub time_s: f64,
 }
 
 /// A picture of `sat_filecast`. The row key is the channel.
@@ -1585,7 +1596,8 @@ pub static RECENT_FILES: Table<RecentFileRow<'static>> = Table::new(
     "Recent files",
     crate::modes::filecast::RECENT,
 )
-.label(&RecentFileRow::NAME);
+.label(&RecentFileRow::NAME)
+.role(sdrkit_core::TableRole::Log);
 /// The pictures of `sat_filecast`, one row per channel.
 pub static FILECAST_PICTURES: Table<FilecastPictureRow<'static>> =
     Table::new("pictures", "Pictures", 64);
@@ -1812,39 +1824,7 @@ pub fn family() -> &'static Described {
         .settings(crate::modes::filecast::FilecastSetting::SETTINGS)
         .command(&crate::modes::filecast::CLEAR)
         .kept(&["recent_files", "pictures"]);
-        Described::new("satimg", 1, 3)
-            .added(
-                1,
-                2,
-                &[
-                    "meteor_lrpt.content",
-                    "goes_hrit.content",
-                    "gk2a_lrit.content",
-                    "gk2a_hrit.content",
-                    "fy2_svissr.content",
-                    "fy3_ahrpt.content",
-                    "fy3_mpt.content",
-                    "noaa_apt.content",
-                    "noaa_dsb.content",
-                    "goes_gvar.content",
-                    "aws.content",
-                    "noaa_gac.content",
-                    "msg_raw.content",
-                    "goes_cda.content",
-                    "goes_mdl.content",
-                    "gk2a_cdas.content",
-                    "sband_ccsds.content",
-                    "rdas.content",
-                    "gk2a_uhrit.content",
-                    "fy4_lrit.content",
-                    "fy4a_hrit.content",
-                    "goes_grb.content",
-                    "sat_filecast.content",
-                    "elektro_l.content",
-                    "hrpt.content",
-                    "eodb.content",
-                ],
-            )
+        Described::new("satimg", 2, 0)
             .content(
                 sdrkit_core::ContentKind::SatelliteImagery,
                 &[
@@ -1900,7 +1880,6 @@ pub fn family() -> &'static Described {
                 "fy4a_hrit",
                 "gk2a_uhrit",
             ])
-            .added(1, 1, ADDED_1_1)
             .uses(sdrkit_codec_image::component::interface())
             // The labels of these options begin with a bracket, so they give no name.
             .option_name("rs", "255_223", "code_255_223")
@@ -2088,47 +2067,6 @@ pub fn family() -> &'static Described {
             )
     })
 }
-
-/// What version 1.1 added: the GLM lightning results of `goes_grb`.
-const ADDED_1_1: &[&str] = &[
-    "goes_grb.fields.GlmFields",
-    "goes_grb.table.flashes",
-    "goes_grb.table.groups",
-    "goes_grb.kept.flashes",
-    "goes_grb.kept.groups",
-    "shape.GlmFields",
-    "shape.GlmFields.glm_payloads",
-    "shape.GlmFields.glm_dropped",
-    "shape.GlmFields.glm_packets_lost",
-    "shape.GlmFields.glm_not_decoded",
-    "shape.GlmFields.glm_bad_length",
-    "shape.GlmFields.glm_group_bad_length",
-    "shape.GlmFields.flash_count",
-    "shape.GlmFields.group_count",
-    "shape.GlmFields.event_count",
-    "shape.GlmFields.glm_rejected",
-    "shape.GlmFields.newest_flash",
-    "shape.GlmFields.flash_rate",
-    "shape.GlmFlashRow",
-    "shape.GlmFlashRow.flash",
-    "shape.GlmFlashRow.time",
-    "shape.GlmFlashRow.duration",
-    "shape.GlmFlashRow.position",
-    "shape.GlmFlashRow.area_km2",
-    "shape.GlmFlashRow.energy_fj",
-    "shape.GlmFlashRow.quality",
-    "shape.GlmFlashRow.groups",
-    "shape.GlmFlashRow.events",
-    "shape.GlmGroupRow",
-    "shape.GlmGroupRow.group",
-    "shape.GlmGroupRow.time",
-    "shape.GlmGroupRow.position",
-    "shape.GlmGroupRow.area_km2",
-    "shape.GlmGroupRow.energy_fj",
-    "shape.GlmGroupRow.flash",
-    "shape.GlmGroupRow.quality",
-    "shape.GlmGroupRow.events",
-];
 
 /// The description of the stack `id`.
 ///

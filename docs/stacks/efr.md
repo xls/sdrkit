@@ -36,7 +36,7 @@ Advanced settings. The owner works without any of them set.
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `baud` | Speed | number (Bd) | 200 | 50 to 600 | Not confirmed by a public document. |
-| `max_len` | Longest frame | whole number (bytes) | 40 | 3 to 255 | Not confirmed by a public document. |
+| `max_len` | Longest frame | whole number (B) | 40 | 3 to 255 | Not confirmed by a public document. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
@@ -84,9 +84,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.7. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 2.0. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: none.
+
+Key readings: `baud`, `shift_hz`, `centre_hz`.
 
 ### Result fields
 
@@ -126,6 +128,8 @@ Struct `EfrTelegramRow`. A telegram of EFR. The row key is the number of the tel
 | `address2` | whole number | always | 1.0 | Address 2 (user byte 3). |
 | `payload_bytes` | whole number | always | 1.0 | The number of payload bytes. |
 | `payload` | text | always | 1.0 | The payload as hex. |
+
+The rows are a log: they arrive over time. Time: `time`.
 
 ### Event `fsk.lock`
 

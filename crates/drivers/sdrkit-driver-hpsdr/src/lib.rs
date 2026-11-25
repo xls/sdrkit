@@ -149,7 +149,7 @@ pub const UNDERRUNS: Field<field::I64> = Field::new("underruns", "Transmit under
 /// The speed of the sample packets over the last window.
 pub const THROUGHPUT: Field<field::F64> = Field::new("mbps", "Throughput", "Mbit/s");
 /// Sample packets per second over the last window.
-pub const PACKETS: Field<field::F64> = Field::new("pps", "Packets", "/s");
+pub const PACKETS: Field<field::F64> = Field::new("pps", "Packets", "1/s");
 /// The samples per second this receiver got or lost over the last window.
 pub const ACHIEVED: Field<field::F64> = Field::new("achieved", "Achieved rate", "sps");
 /// Sequence gaps over the last window.

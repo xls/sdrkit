@@ -25,11 +25,17 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:aw
 | `view` | View | choice | `ch1` | `ch1` (Channel 1 (54 GHz receiver)), `ch2` (Channel 2 (54 GHz receiver)), `ch3` (Channel 3 (54 GHz receiver)), `ch4` (Channel 4 (54 GHz receiver)), `ch5` (Channel 5 (54 GHz receiver)), `ch6` (Channel 6 (54 GHz receiver)), `ch7` (Channel 7 (54 GHz receiver)), `ch8` (Channel 8 (54 GHz receiver)), `ch9` (Channel 9 (89 GHz receiver)), `ch10` (Channel 10 (183 GHz receiver)), `ch11` (Channel 11 (183 GHz receiver)), `ch12` (Channel 12 (183 GHz receiver)), `ch13` (Channel 13 (183 GHz receiver)), `ch14` (Channel 14 (183 GHz receiver)), `ch15` (Channel 15 (183 GHz receiver)), `ch16` (Channel 16 (325 GHz receiver)), `ch17` (Channel 17 (325 GHz receiver)), `ch18` (Channel 18 (325 GHz receiver)), `ch19` (Channel 19 (325 GHz receiver)) | The radiometer channel shown. |
 | `follow` | Follow | yes or no | true |  |  |
 
+Advanced settings. The owner works without any of them set.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `pass_gap` | Pass end | number (s) | 60 | 1 to 3600 | After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture. |
+
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `gen_lines` | Test picture scans | whole number | 400 | 1 to 4000 |  |
+| `gen_lines` | Test picture scans | whole number | 0 | 1 to 4000 | The test signal sends this many scans of the test picture and then ends. Without end: the picture repeats. |
 
 The setting `view` chooses the view of the picture.
 
@@ -94,9 +100,11 @@ The setting `view` chooses the view of the picture.
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
+
+Key readings: `snr_db`, `frames_ok`, `frames_bad`.
 
 ### Result fields
 
@@ -192,6 +200,7 @@ Struct `ImageRow`. A finished image. The row key names the image. The picture it
 |---|---|---|
 | `view` | `sdrkit_aws_get_view` | `sdrkit_aws_set_view` |
 | `follow` | `sdrkit_aws_get_follow` | `sdrkit_aws_set_follow` |
+| `pass_gap` | `sdrkit_aws_get_pass_gap` | `sdrkit_aws_set_pass_gap` |
 
 ### Settings of the test signal generator
 

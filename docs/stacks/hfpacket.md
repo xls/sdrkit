@@ -74,7 +74,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `voice`, version 1.4. The C header `sdrkit/voice.h`, the registry record `registry/voice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `voice`, version 1.5. The C header `sdrkit/voice.h`, the registry record `registry/voice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Utility decoders (`utility`). Media: none.
 
@@ -129,7 +129,7 @@ Struct `HfpacketFrameRow`. A frame with a good FCS. The row key is the number of
 | `info` | text | always | 1.0 | The information field as text. |
 | `tone_offset_hz` | frequency | always | 1.0 | The tuning correction. |
 
-The column `source` names a row.
+The rows are a log: they arrive over time. The column `source` names a row. Time: `time_utc`.
 
 ### Event `hfpacket.frame`
 

@@ -71,7 +71,7 @@ pub const START_UTC: Setting<field::F64> = Setting::new(
 pub const GEN_STRIKE_RATE: Setting<field::F64> = Setting::new(
     "gen_strike_rate",
     "Test signal: strokes a second",
-    "/s",
+    "1/s",
     1.5,
 )
 .range(0.0, 50.0, 0.1)

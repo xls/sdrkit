@@ -333,7 +333,7 @@ pub struct InterferenceLineRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct InterferenceEventRow<'a> {
     /// Signal time of an event.
-    #[field(label = "Signal time", unit = "s")]
+    #[field(label = "Signal time", unit = "s", role = Time)]
     pub at: Seconds,
     /// The level of an event.
     #[field(label = "Level")]
@@ -370,22 +370,22 @@ pub struct GnssFixEvent {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NavicFields<'a> {
     /// 1 carrier lock, 2 bit sync, 3 subframes decoded (0 pulling in); for the stack 0 searching, 1 tracking, 2 subframes.
-    #[field(label = "State")]
+    #[field(label = "State", reading = 2)]
     pub state: i64,
     /// Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so).
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 5)]
     pub snr_db: Option<f64>,
     /// Carrier offset from where it was expected, Hz.
     #[field(shared = keys::OFFSET_HZ)]
     pub offset_hz: Option<Hertz>,
     /// Frames (packets, blocks, bursts) that passed their check.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 3)]
     pub frames_ok: i64,
     /// Frames that failed their check.
-    #[field(shared = keys::FRAMES_BAD)]
+    #[field(shared = keys::FRAMES_BAD, reading = 4)]
     pub frames_bad: i64,
     /// The PRN being searched.
-    #[field(label = "Searching PRN")]
+    #[field(label = "Searching PRN", reading = 1)]
     pub searching_prn: i64,
     /// What is not confirmed by a public document.
     #[field(label = "Note")]
@@ -460,19 +460,19 @@ pub struct NavicSubframeEvent {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SbasFields<'a> {
     /// A PRN mask and fast corrections are held.
-    #[field(label = "Corrections held")]
+    #[field(label = "Corrections held", reading = 2)]
     pub data_valid: bool,
     /// The SBAS messages with a good CRC.
-    #[field(label = "SBAS messages")]
+    #[field(label = "SBAS messages", reading = 3)]
     pub sbas_messages: i64,
     /// The messages missed.
-    #[field(label = "Messages missed")]
+    #[field(label = "Messages missed", reading = 4)]
     pub messages_missed: i64,
     /// Help for people while nothing is heard.
     #[field(label = "Help")]
     pub help: Option<&'a str>,
     /// The PRN whose corrections the tables show.
-    #[field(label = "Selected PRN")]
+    #[field(label = "Selected PRN", reading = 1)]
     pub selected: Option<i64>,
     /// GEO navigation of the selected PRN: the issue of data.
     #[field(label = "GEO IODN")]
@@ -567,7 +567,7 @@ pub struct SbasTypeRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SbasMessageRow<'a> {
     /// The signal time of the message.
-    #[field(label = "Signal time", unit = "s")]
+    #[field(label = "Signal time", unit = "s", role = Time)]
     pub at: Seconds,
     /// The SBAS satellite.
     #[field(label = "PRN", refers_to = "sbas_satellites")]
@@ -666,7 +666,8 @@ pub static SBAS_SATELLITE_TYPES: Table<SbasSatelliteTypeRow> =
 pub static SBAS_TYPES: Table<SbasTypeRow<'static>> =
     Table::new("types", "Types", 64).label(&SbasTypeRow::NAME);
 /// The newest SBAS messages.
-pub static SBAS_MESSAGES: Table<SbasMessageRow<'static>> = Table::new("messages", "Messages", 100);
+pub static SBAS_MESSAGES: Table<SbasMessageRow<'static>> =
+    Table::new("messages", "Messages", 100).role(sdrkit_core::TableRole::Log);
 /// The fast corrections of the selected PRN.
 pub static SBAS_FAST_CORRECTIONS: Table<SbasFastCorrectionRow> =
     Table::new("fast_corrections", "Fast corrections", 51);
@@ -714,9 +715,9 @@ pub static SATELLITES: Table<GnssSatelliteRow> = Table::new("satellites", "Satel
 /// The lines of the interference spectrum.
 pub static INTERFERENCE_LINES: Table<InterferenceLineRow> =
     Table::new("interference_lines", "Interference lines", 16);
-/// The interference events.
+/// The interference events, a log.
 pub static INTERFERENCE_EVENTS: Table<InterferenceEventRow<'static>> =
-    Table::new("interference_events", "Interference events", 200);
+    Table::new("interference_events", "Interference events", 200).role(sdrkit_core::TableRole::Log);
 /// A fix.
 pub static FIX: EventKind<GnssFixEvent> = EventKind::new("gnss.fix", "Fix");
 /// An NMEA 0183 sentence.
@@ -827,7 +828,8 @@ pub fn family() -> &'static Described {
                 "SbasFields.sbas_messages",
                 "SbasFields.messages_missed",
             ]);
-        Described::new("gnss", 1, 1)
+        // Version 1.2 states the key readings and the logs.
+        Described::new("gnss", 1, 2)
             .added(1, 1, &["gnss.content", "sbas.content", "navic.content"])
             .content(sdrkit_core::ContentKind::Tracking, &["gnss"])
             .content(sdrkit_core::ContentKind::Navigation, &["sbas", "navic"])

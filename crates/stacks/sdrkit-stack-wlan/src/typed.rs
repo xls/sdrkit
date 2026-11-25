@@ -232,7 +232,7 @@ pub struct BleDeviceRow<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BlePacketRow<'a> {
     /// The signal time of the packet.
-    #[field(label = "Signal time", unit = "s")]
+    #[field(label = "Signal time", unit = "s", role = Time)]
     pub signal_s: f64,
     /// The advertising channel of the packet.
     #[field(label = "Ch")]
@@ -247,7 +247,7 @@ pub struct BlePacketRow<'a> {
     #[field(shared = keys::LEVEL_DBFS)]
     pub level_dbfs: f64,
     /// The payload length.
-    #[field(label = "Length", unit = "bytes")]
+    #[field(label = "Length", unit = "B")]
     pub length: i64,
     /// The one-line summary.
     #[field(label = "Details")]
@@ -301,7 +301,9 @@ pub static BLE_DEVICES: Table<BleDeviceRow<'static>> =
     Table::new("devices", "Devices", crate::ble::table::DEVICE_CAP).label(&BleDeviceRow::NAME);
 /// The packet log of `ble`, newest first.
 pub static BLE_PACKETS: Table<BlePacketRow<'static>> =
-    Table::new("packets", "Packets", crate::ble::table::LOG_CAP).label(&BlePacketRow::ADDRESS);
+    Table::new("packets", "Packets", crate::ble::table::LOG_CAP)
+        .label(&BlePacketRow::ADDRESS)
+        .role(sdrkit_core::TableRole::Log);
 /// The good packets of each PDU type of `ble` since the last clear.
 pub static BLE_PDU_TYPES: Table<BlePduTypeRow<'static>> = Table::new("pdu_types", "PDU types", 16);
 /// The last levels of each device of `ble`, one row a level.
@@ -374,7 +376,9 @@ pub struct BleSendArgs<'a> {
     /// The advertiser address.
     #[arg(
         label = "Address",
-        help = "The advertiser address: 12 hex digits, most significant byte first, with or without colons (C0:FF:EE:12:34:56)."
+        help = "The advertiser address: 12 hex digits, most significant byte first, with or without colons (C0:FF:EE:12:34:56).",
+        refers_to = "devices",
+        column = "address"
     )]
     pub address: &'a str,
     /// Public or random.
@@ -1743,20 +1747,7 @@ pub fn family() -> &'static Described {
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 2, 1)
-            .added(
-                2,
-                1,
-                &[
-                    "ble.content",
-                    "bletracker.content",
-                    "wifi.content",
-                    "halow.content",
-                    "btclassic.content",
-                    "wfb.content",
-                    "espnow.content",
-                ],
-            )
+        Described::new("wlan", 3, 0)
             .content(
                 sdrkit_core::ContentKind::Networks,
                 &[
@@ -1867,22 +1858,20 @@ pub fn family() -> &'static Described {
                         "WfbFields.frames_lost",
                     ]),
             )
-            .added_in(1, 1, |f| {
-                f.stack(
-                    StackShape::new("espnow")
-                        .fields::<EspnowFields>()
-                        .decoder("rx")
-                        .table(&ESPNOW_DEVICES)
-                        .table(&ESPNOW_FRAMES)
-                        .table(&ESPNOW_BY_RATE)
-                        .table(&ESPNOW_BY_CHANNEL)
-                        .event(&ESPNOW_FRAME)
-                        .event(&ESPNOW_DEVICE)
-                        .settings(EspnowSetting::SETTINGS)
-                        .command(CLEAR)
-                        .kept(&["devices", "frames", "EspnowFields.devices"]),
-                )
-            })
+            .stack(
+                StackShape::new("espnow")
+                    .fields::<EspnowFields>()
+                    .decoder("rx")
+                    .table(&ESPNOW_DEVICES)
+                    .table(&ESPNOW_FRAMES)
+                    .table(&ESPNOW_BY_RATE)
+                    .table(&ESPNOW_BY_CHANNEL)
+                    .event(&ESPNOW_FRAME)
+                    .event(&ESPNOW_DEVICE)
+                    .settings(EspnowSetting::SETTINGS)
+                    .command(CLEAR)
+                    .kept(&["devices", "frames", "EspnowFields.devices"]),
+            )
     })
 }
 

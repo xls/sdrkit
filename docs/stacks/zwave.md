@@ -86,7 +86,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 3.1. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
 
@@ -145,6 +145,8 @@ Struct `ZwaveFrameRow`. A row of the Z-Wave frame log. The row key is the number
 | `snr_db` | number (dB) | always | 1.0 | The SNR of the frame. |
 | `command` | text | always | 1.0 | The one-line description. |
 | `mpdu` | text | always | 1.0 | The MPDU in hex. |
+
+The rows are a log: they arrive over time. Time: `time`.
 
 ### Table `nodes`
 
@@ -251,6 +253,8 @@ Struct `IsmTxEvent`. The fields of a change of a transmission of a frame stack.
 | `remove` | `sdrkit_zwave_remove` | `sdrkit_zwave_node_args` | none |
 | `send` | `sdrkit_zwave_send` | `sdrkit_zwave_send_args` | none |
 | `halt` | `sdrkit_zwave_halt` | none | none |
+
+The argument `home_id` of `send` takes the column `home_id` of a row of the table `networks`. The argument `source` of `send` takes the column `node` of a row of the table `nodes`. The argument `destination` of `send` takes the column `node` of a row of the table `nodes`.
 
 ### Settings
 

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dvbcs", version 1.5. MIT licence.
+ * sdrkit: the typed interface of the stack family "dvbcs", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -37,8 +37,8 @@
 #include "dvbs2.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_DVBCS_VERSION_MAJOR 1
-#define SDRKIT_DVBCS_VERSION_MINOR 5
+#define SDRKIT_DVBCS_VERSION_MAJOR 2
+#define SDRKIT_DVBCS_VERSION_MINOR 0
 
 // The stack "satbeacon": its id, and the keys of its event types.
 #define SDRKIT_STACK_SATBEACON "satbeacon"
@@ -519,7 +519,7 @@ typedef struct sdrkit_satbeacon_fields {
   double noise_density_dbfs;
   // The carrier loop is locked.
   bool carrier_locked;
-  // The rms of the phase modulation. Unit: degrees.
+  // The rms of the phase modulation. Unit: °.
   double pm_rms_deg;
   // True if `subcarrier` holds a value.
   bool has_subcarrier;
@@ -621,6 +621,8 @@ typedef struct sdrkit_satbeacon_frame_row {
   bool good;
   // The bytes of the frame.
   sdrkit_bytes bytes;
+  // The signal time when the frame was found. Unit: s.
+  double time_s;
 } sdrkit_satbeacon_frame_row;
 
 // The options of `kind` of `sdrkit_satbeacon_decoded_row`.
@@ -915,12 +917,6 @@ typedef struct sdrkit_dvbc2_fields {
   bool has_retune_hz;
   // The frequency to tune to for the chosen data slice, when it is outside the window. A frequency in Hz.
   double retune_hz;
-  // Packets of a generic stream.
-  int64_t generic_packets;
-  // Bytes of a generic stream.
-  int64_t generic_bytes;
-  // A note on what the receiver decodes.
-  sdrkit_string note;
   // True if `outside_slice` holds a value.
   bool has_outside_slice;
   // The data slice that the decoding needs and that reaches out of the receive window.
@@ -929,6 +925,12 @@ typedef struct sdrkit_dvbc2_fields {
   bool has_outside_hz;
   // How far that data slice reaches beyond the edge of the receive window. A frequency in Hz.
   double outside_hz;
+  // Packets of a generic stream.
+  int64_t generic_packets;
+  // Bytes of a generic stream.
+  int64_t generic_bytes;
+  // A note on what the receiver decodes.
+  sdrkit_string note;
 } sdrkit_dvbc2_fields;
 
 // The counts of the stream adaptation and the IP layer that `dvbc2` shows under its own keys.
@@ -1308,6 +1310,8 @@ static inline int32_t sdrkit_satbeacon_lines_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "satbeacon" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_satbeacon_frames_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_satbeacon_frame_row *rows,
                                                   uint32_t capacity,

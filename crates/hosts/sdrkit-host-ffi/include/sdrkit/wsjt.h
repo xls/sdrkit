@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wsjt", version 5.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "wsjt", version 5.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WSJT_VERSION_MAJOR 5
-#define SDRKIT_WSJT_VERSION_MINOR 0
+#define SDRKIT_WSJT_VERSION_MINOR 2
 
 // The stack "wsjt": its id, and the keys of its event types.
 #define SDRKIT_STACK_WSJT "wsjt"
@@ -1087,6 +1087,26 @@ typedef struct sdrkit_fsk441_decode_row {
   double duration_ms;
 } sdrkit_fsk441_decode_row;
 
+// A row of the station table of `fsk441`, `jt6m`, `iscat` and `pi4`: a station whose callsign a decoded text held. The row key is the callsign.
+typedef struct sdrkit_wsjt_scatter_station_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The callsign.
+  sdrkit_string callsign;
+  // True if `last_heard` holds a value.
+  bool has_last_heard;
+  // The UTC of the newest decode that held the callsign. Seconds since 1970 (UTC).
+  double last_heard;
+  // True if `heard` holds a value.
+  bool has_heard;
+  // The decodes that held the callsign.
+  int64_t heard;
+  // The SNR of the newest decode that held the callsign. Unit: dB.
+  double snr_db;
+} sdrkit_wsjt_scatter_station_row;
+
 // The result fields that `jt6m` adds. No field has a value before the first ping.
 typedef struct sdrkit_jt6m_fields {
   // The number of bytes of this struct that the library wrote.
@@ -2073,9 +2093,11 @@ static inline int32_t sdrkit_wsjt_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "wsjt" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_wsjt_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wsjt_station_row *rows,
                                                uint32_t capacity,
@@ -2624,6 +2646,14 @@ static inline int32_t sdrkit_wsjt_gen_set_hz(SDRKIT_HANDLE handle, double value)
   return sdrkit_typed_setting_set_f64(handle, "gen_hz", value);
 }
 
+// The setting "gen_short" (Test signal short messages) of the test signal generator of the stack "wsjt". Sends a single station message `<CALL1 CALL2> RPT`, whose report is -03, +00, +03, +06, +10, +13, +16, R-03 to R+16, RRR or 73, as the 40-bit short frame.
+static inline int32_t sdrkit_wsjt_gen_get_short(SDRKIT_HANDLE handle, bool *value) {
+  return sdrkit_typed_setting_get_bool(handle, "gen_short", value);
+}
+static inline int32_t sdrkit_wsjt_gen_set_short(SDRKIT_HANDLE handle, bool value) {
+  return sdrkit_typed_setting_set_bool(handle, "gen_short", value);
+}
+
 // Fills `rows` with the changed rows of the table "decodes" of the stack "ft8" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
 // Default order: the column `utc`, highest first.
@@ -2645,9 +2675,11 @@ static inline int32_t sdrkit_ft8_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "ft8" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_ft8_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -2946,9 +2978,11 @@ static inline int32_t sdrkit_ft4_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "ft4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_ft4_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -3247,9 +3281,11 @@ static inline int32_t sdrkit_ft2_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "ft2" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_ft2_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -3552,9 +3588,11 @@ static inline int32_t sdrkit_wspr_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "wspr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_wspr_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wsjt_station_row *rows,
                                                uint32_t capacity,
@@ -3829,9 +3867,11 @@ static inline int32_t sdrkit_jt65_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "jt65" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_jt65_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wsjt_station_row *rows,
                                                uint32_t capacity,
@@ -4036,9 +4076,11 @@ static inline int32_t sdrkit_jt9_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "jt9" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_jt9_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -4232,9 +4274,11 @@ static inline int32_t sdrkit_jt4_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "jt4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_jt4_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -4439,9 +4483,11 @@ static inline int32_t sdrkit_q65_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "q65" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_q65_stations_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wsjt_station_row *rows,
                                               uint32_t capacity,
@@ -4596,9 +4642,11 @@ static inline int32_t sdrkit_fst4_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "fst4" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_fst4_stations_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wsjt_station_row *rows,
                                                uint32_t capacity,
@@ -4754,9 +4802,11 @@ static inline int32_t sdrkit_fst4w_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "fst4w" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_fst4w_stations_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_wsjt_station_row *rows,
                                                 uint32_t capacity,
@@ -4900,9 +4950,11 @@ static inline int32_t sdrkit_msk144_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "msk144" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_msk144_stations_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_wsjt_station_row *rows,
                                                  uint32_t capacity,
@@ -5025,6 +5077,14 @@ static inline int32_t sdrkit_msk144_gen_set_hz(SDRKIT_HANDLE handle, double valu
   return sdrkit_typed_setting_set_f64(handle, "gen_hz", value);
 }
 
+// The setting "gen_short" (Test signal short messages) of the test signal generator of the stack "msk144". Sends a single station message `<CALL1 CALL2> RPT`, whose report is -03, +00, +03, +06, +10, +13, +16, R-03 to R+16, RRR or 73, as the 40-bit short frame.
+static inline int32_t sdrkit_msk144_gen_get_short(SDRKIT_HANDLE handle, bool *value) {
+  return sdrkit_typed_setting_get_bool(handle, "gen_short", value);
+}
+static inline int32_t sdrkit_msk144_gen_set_short(SDRKIT_HANDLE handle, bool value) {
+  return sdrkit_typed_setting_set_bool(handle, "gen_short", value);
+}
+
 // Fills `rows` with the changed rows of the table "modes" of the stack "js8" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
 static inline int32_t sdrkit_js8_modes_rows(SDRKIT_HANDLE handle,
@@ -5036,9 +5096,11 @@ static inline int32_t sdrkit_js8_modes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "stations" of the stack "js8" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `callsign` names a row.
 // Default order: the column `last_heard`, highest first.
 // Place of a row: the column `position`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_js8_wsjt_stations_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_wsjt_station_row *rows,
                                                    uint32_t capacity,
@@ -5248,6 +5310,19 @@ static inline int32_t sdrkit_fsk441_decodes_rows(SDRKIT_HANDLE handle,
   return sdrkit_typed_rows(handle, "wsjt.Fsk441DecodeRow", "decodes", rows, sizeof(sdrkit_fsk441_decode_row), capacity, info);
 }
 
+// Fills `rows` with the changed rows of the table "stations" of the stack "fsk441" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `callsign` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
+static inline int32_t sdrkit_fsk441_stations_rows(SDRKIT_HANDLE handle,
+                                                 sdrkit_wsjt_scatter_station_row *rows,
+                                                 uint32_t capacity,
+                                                 sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "wsjt.ScatterStationRow", "stations", rows, sizeof(sdrkit_wsjt_scatter_station_row), capacity, info);
+}
+
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "wsjt.decode"
 // (Decode). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
 static inline int32_t sdrkit_fsk441_decode_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_fsk441_decode_event *event) {
@@ -5315,6 +5390,19 @@ static inline int32_t sdrkit_jt6m_decodes_rows(SDRKIT_HANDLE handle,
   return sdrkit_typed_rows(handle, "wsjt.Jt6mDecodeRow", "decodes", rows, sizeof(sdrkit_jt6m_decode_row), capacity, info);
 }
 
+// Fills `rows` with the changed rows of the table "stations" of the stack "jt6m" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `callsign` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
+static inline int32_t sdrkit_jt6m_stations_rows(SDRKIT_HANDLE handle,
+                                               sdrkit_wsjt_scatter_station_row *rows,
+                                               uint32_t capacity,
+                                               sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "wsjt.ScatterStationRow", "stations", rows, sizeof(sdrkit_wsjt_scatter_station_row), capacity, info);
+}
+
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "wsjt.decode"
 // (Ping). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
 static inline int32_t sdrkit_jt6m_decode_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_jt6m_decode_event *event) {
@@ -5380,6 +5468,19 @@ static inline int32_t sdrkit_iscat_decodes_rows(SDRKIT_HANDLE handle,
                                                uint32_t capacity,
                                                sdrkit_rows_info *info) {
   return sdrkit_typed_rows(handle, "wsjt.IscatDecodeRow", "decodes", rows, sizeof(sdrkit_iscat_decode_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "stations" of the stack "iscat" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `callsign` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
+static inline int32_t sdrkit_iscat_stations_rows(SDRKIT_HANDLE handle,
+                                                sdrkit_wsjt_scatter_station_row *rows,
+                                                uint32_t capacity,
+                                                sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "wsjt.ScatterStationRow", "stations", rows, sizeof(sdrkit_wsjt_scatter_station_row), capacity, info);
 }
 
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "wsjt.decode"
@@ -5461,6 +5562,19 @@ static inline int32_t sdrkit_pi4_decodes_rows(SDRKIT_HANDLE handle,
                                              uint32_t capacity,
                                              sdrkit_rows_info *info) {
   return sdrkit_typed_rows(handle, "wsjt.Pi4DecodeRow", "decodes", rows, sizeof(sdrkit_pi4_decode_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "stations" of the stack "pi4" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `callsign` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
+static inline int32_t sdrkit_pi4_stations_rows(SDRKIT_HANDLE handle,
+                                              sdrkit_wsjt_scatter_station_row *rows,
+                                              uint32_t capacity,
+                                              sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "wsjt.ScatterStationRow", "stations", rows, sizeof(sdrkit_wsjt_scatter_station_row), capacity, info);
 }
 
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "wsjt.decode"

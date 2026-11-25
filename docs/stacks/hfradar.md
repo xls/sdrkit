@@ -80,9 +80,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.7. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 2.0. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: pictures.
+
+Key readings: `band`, `radar_count`, `snr_db`.
 
 ### Result fields
 
@@ -142,17 +144,19 @@ Struct `HfradarHeardRow`. A radar heard. The row key is the sequence number.
 | `band` | text | optional | 1.0 | The radar band, if the radar is in one. |
 | `snr_db` | number (dB) | always | 1.0 | The signal-to-noise ratio. |
 
+The rows are a log: they arrive over time. Time: `time`.
+
 ### Table `bands`
 
 Struct `HfradarBandRow`. An oceanographic radar band. The row key is the band name.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `name` | text | always | 1.4 | The band name ("12 - 14 MHz"). |
-| `low` | frequency | always | 1.4 | The lower edge of the working range. |
-| `high` | frequency | always | 1.4 | The upper edge of the working range. |
-| `middle` | frequency | always | 1.4 | The middle of the band: where `band.tune` tunes the radio. |
-| `range_class` | text | always | 1.4 | The range class of the radars of the band. |
+| `name` | text | always | 1.0 | The band name ("12 - 14 MHz"). |
+| `low` | frequency | always | 1.0 | The lower edge of the working range. |
+| `high` | frequency | always | 1.0 | The upper edge of the working range. |
+| `middle` | frequency | always | 1.0 | The middle of the band: where `band.tune` tunes the radio. |
+| `range_class` | text | always | 1.0 | The range class of the radars of the band. |
 
 The column `name` names a row. Default order: the column `low`, lowest first.
 

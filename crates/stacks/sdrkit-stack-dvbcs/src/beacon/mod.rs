@@ -647,6 +647,7 @@ impl BeaconFrames {
                     errors: i64::from(f.errors),
                     good: f.good,
                     bytes: Arc::from(f.bytes.as_slice()),
+                    time_s: f.time_s,
                 },
             );
         }
@@ -761,10 +762,10 @@ impl Component for BeaconFrames {
     }
     fn process(&mut self, io: &mut Io) {
         self.new.clear();
-        for b in io.items::<BeaconBits>(0) {
-            self.learner.push(&b.value.bits, &mut self.new);
-        }
         let t = self.carrier.time;
+        for b in io.items::<BeaconBits>(0) {
+            self.learner.push(&b.value.bits, t, &mut self.new);
+        }
         io.items_out::<BeaconFrame>(0)
             .extend(self.new.drain(..).map(|f| Timed { time: t, value: f }));
         let mut fresh = false;

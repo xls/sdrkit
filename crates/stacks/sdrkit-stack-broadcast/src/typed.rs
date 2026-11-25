@@ -110,18 +110,7 @@ pub const GUIDE: &[&str] = &[
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("broadcast", 1, 1)
-            .added(
-                1,
-                1,
-                &[
-                    "drm.content",
-                    "hamdrm.content",
-                    "hdradio.content",
-                    "cdr.content",
-                    "cquam.content",
-                ],
-            )
+        Described::new("broadcast", 2, 0)
             .content(
                 sdrkit_core::ContentKind::Broadcast,
                 &["drm", "hdradio", "cdr", "cquam"],

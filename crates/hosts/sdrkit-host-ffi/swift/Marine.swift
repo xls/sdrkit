@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "marine", version 1.3. MIT licence.
+// sdrkit: the typed interface of the stack family "marine", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum MarineInterface {
-    public static let major = 1
-    public static let minor = 3
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of the AIS stack.
@@ -221,10 +221,13 @@ public struct AisSentenceRow {
     public var key: String
     /// An `!AIVDM` sentence.
     public var sentence: String
+    /// The signal time of the reception of the sentence.
+    public var timeS: Double
 
     init(_ c: sdrkit_ais_sentence_row) {
         key = sdrkitText(c.key)
         sentence = sdrkitText(c.sentence)
+        timeS = c.time_s
     }
 }
 
@@ -1834,6 +1837,8 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AisChannelRow.init))
     }
     /// The changed rows of the table "sentences" of the stack "ais", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func aisSentences(_ handle: SDRKIT_HANDLE, capacity: Int = 50) -> Result<[AisSentenceRow], SDRKitCode> {
         var rows = [sdrkit_ais_sentence_row](repeating: sdrkit_ais_sentence_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1842,7 +1847,9 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AisSentenceRow.init))
     }
     /// The changed rows of the table "receptions" of the stack "ais", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `mmsi` names a row.
+    /// Time: `time`.
     public static func aisReceptions(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[AisReceptionRow], SDRKitCode> {
         var rows = [sdrkit_ais_reception_row](repeating: sdrkit_ais_reception_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1851,8 +1858,10 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AisReceptionRow.init))
     }
     /// The changed rows of the table "alerts" of the stack "ais", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `name` names a row.
     /// Place of a row: the column `position`.
+    /// Time: `time`.
     public static func aisAlerts(_ handle: SDRKIT_HANDLE, capacity: Int = 50) -> Result<[AisAlertRow], SDRKitCode> {
         var rows = [sdrkit_ais_alert_row](repeating: sdrkit_ais_alert_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1904,9 +1913,11 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MarineDscRow.init))
     }
     /// The changed rows of the table "asm" of the stack "vdes", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `mmsi` names a row.
     /// Place of a row: the column `position`.
     /// Course: `course_deg`. Speed: `speed_kt`.
+    /// Time: `time`.
     public static func vdesAsm(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[VdesAsmRow], SDRKitCode> {
         var rows = [sdrkit_vdes_asm_row](repeating: sdrkit_vdes_asm_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1915,6 +1926,8 @@ public enum MarineTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VdesAsmRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "vdes", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func vdesBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[VdesBurstRow], SDRKitCode> {
         var rows = [sdrkit_vdes_burst_row](repeating: sdrkit_vdes_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized

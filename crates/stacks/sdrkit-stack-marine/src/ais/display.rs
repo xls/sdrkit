@@ -65,7 +65,7 @@ pub struct AisFields {
     #[field(label = "State")]
     pub state: Hearing,
     /// Frames (packets, blocks, bursts) that passed their check.
-    #[field(shared = keys::FRAMES_OK)]
+    #[field(shared = keys::FRAMES_OK, reading = 3)]
     pub frames_ok: i64,
     /// Frames that failed their check.
     #[field(shared = keys::FRAMES_BAD)]
@@ -83,16 +83,16 @@ pub struct AisFields {
     #[field(label = "Collision recoveries")]
     pub collision_recoveries: i64,
     /// Stations in the table.
-    #[field(label = "Stations")]
+    #[field(label = "Stations", reading = 1)]
     pub stations: i64,
     /// Stations with a position.
-    #[field(label = "With a position")]
+    #[field(label = "With a position", reading = 2)]
     pub with_position: i64,
     /// Stations that sent message 27.
     #[field(label = "Long-range stations")]
     pub long_range_stations: i64,
     /// Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so).
-    #[field(shared = keys::SNR_DB)]
+    #[field(shared = keys::SNR_DB, reading = 4)]
     pub snr_db: Option<f64>,
     /// Carrier offset from where it was expected, Hz.
     #[field(shared = keys::OFFSET_HZ)]
@@ -226,7 +226,7 @@ pub struct AisChannelRow<'a> {
     #[field(shared = keys::FRAMES_BAD)]
     pub frames_bad: i64,
     /// Good messages in the last minute.
-    #[field(label = "Per minute", unit = "/min")]
+    #[field(label = "Per minute", unit = "1/min")]
     pub messages_per_min: f64,
     /// Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS).
     #[field(shared = keys::LEVEL_DBFS)]
@@ -253,11 +253,14 @@ pub struct AisSentenceRow<'a> {
     /// An `!AIVDM` sentence.
     #[field(label = "Sentence")]
     pub sentence: &'a str,
+    /// The signal time of the reception of the sentence.
+    #[field(label = "Time", unit = "s", role = Time)]
+    pub time_s: f64,
 }
 
-/// The NMEA sentences, newest first.
+/// The NMEA sentences, newest first: a log.
 pub static SENTENCES: Table<AisSentenceRow<'static>> =
-    Table::new("sentences", "Sentences", SENTENCE_CAP);
+    Table::new("sentences", "Sentences", SENTENCE_CAP).role(sdrkit_core::TableRole::Log);
 
 /// A row of the reception table. The row key is the place of the reception in the log.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -285,9 +288,11 @@ pub struct AisReceptionRow<'a> {
     pub layer: Layer,
 }
 
-/// The receptions, newest first.
+/// The receptions, newest first: a log.
 pub static RECEPTIONS: Table<AisReceptionRow<'static>> =
-    Table::new("receptions", "Receptions", RECEPTION_CAP).label(&AisReceptionRow::MMSI);
+    Table::new("receptions", "Receptions", RECEPTION_CAP)
+        .label(&AisReceptionRow::MMSI)
+        .role(sdrkit_core::TableRole::Log);
 
 /// A row of the alert table. The row key is the place of the alert in the log.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -321,9 +326,10 @@ pub struct AisAlertRow<'a> {
     pub tcpa: Option<Seconds>,
 }
 
-/// The alerts, newest first.
-pub static ALERTS: Table<AisAlertRow<'static>> =
-    Table::new("alerts", "Alerts", ALERT_CAP).label(&AisAlertRow::NAME);
+/// The alerts, newest first: a log.
+pub static ALERTS: Table<AisAlertRow<'static>> = Table::new("alerts", "Alerts", ALERT_CAP)
+    .label(&AisAlertRow::NAME)
+    .role(sdrkit_core::TableRole::Log);
 
 /// A row of the hop plan of a receiver that is narrower than the four channels. The row key is the number of the step.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -575,6 +581,7 @@ impl Shaped for SentenceRow {
     fn row(&self, _: Option<&Seen>, _: f64, out: RowOut<'_, '_, Self::Row>) {
         out.put(&AisSentenceRow {
             sentence: &self.text,
+            time_s: self.at.t,
         });
     }
 }
@@ -722,7 +729,7 @@ pub const CPA_COOLDOWN_MIN: Setting<field::F64> =
 pub const OWN_MOVING: Setting<field::Bool> =
     Setting::new("own_moving", "Own ship moving", "", false).section("Alerts");
 /// The own speed.
-pub const OWN_SOG_KN: Setting<field::F64> = Setting::new("own_sog_kn", "Own speed", "kn", 0.0)
+pub const OWN_SOG_KN: Setting<field::F64> = Setting::new("own_sog_kn", "Own speed", "kt", 0.0)
     .range(0.0, 40.0, 0.0)
     .section("Alerts");
 /// The own course.

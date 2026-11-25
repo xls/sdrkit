@@ -651,7 +651,7 @@ impl Shaped for ChatLine {
         let run = self.run.as_ref().map(|(r, c)| format!("{r} {c}"));
         out.put(&SubghzchatLineRow {
             time_s: self.time,
-            direction: if self.sent { "sent" } else { "heard" },
+            own: self.sent,
             kind: self.kind,
             text: &self.text,
             packets: self.packets as i64,

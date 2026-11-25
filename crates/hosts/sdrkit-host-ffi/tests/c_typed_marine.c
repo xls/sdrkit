@@ -44,6 +44,9 @@ int main(int argc, char **argv) {
     CHECK(decl.role == SDRKIT_TABLE_ROLE_NONE && decl.sender_column == SDRKIT_NO_ID);
     CHECK(decl.addressee_column == SDRKIT_NO_ID && decl.text_column == SDRKIT_NO_ID);
     CHECK(decl.time_column == SDRKIT_NO_ID);
+    // No column holds the delivery of an own message.
+    CHECK(decl.own_column == SDRKIT_NO_ID && decl.delivery_column == SDRKIT_NO_ID);
+    CHECK(decl.failure_column == SDRKIT_NO_ID);
     uint32_t linked = 0;
     for (uint32_t n = 0; n < snapshot.points; n++) {
         sdrkit_point point = SDRKIT_POINT_INIT;

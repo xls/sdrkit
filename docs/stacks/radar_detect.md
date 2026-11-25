@@ -49,7 +49,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `rpm` | Rotations per minute | number (rpm) |
 | `prf_hz` | PRF | frequency |
 | `prf` | PRF text | text |
-| `pulse_width_us` | Pulse width | number (µs) |
+| `pulse_width_us` | Pulse width | number (us) |
 | `beamwidth_deg` | Beamwidth | number (°) |
 | `crossings` | Crossings | whole number |
 | `pulses` | Pulses | whole number |
@@ -65,13 +65,13 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `radar_rows` | Rows | `signal_time_s` (number (s)), `type` (text), `rotation_s` (number (s)), `rpm` (number (rpm)), `prf` (text), `pulse_width_us` (number (µs)), `beamwidth_deg` (number (°)), `peak_db` (number (dB)), `volume` (whole number), `sweep` (whole number) |
+| `radar_rows` | Rows | `signal_time_s` (number (s)), `type` (text), `rotation_s` (number (s)), `rpm` (number (rpm)), `prf` (text), `pulse_width_us` (number (us)), `beamwidth_deg` (number (°)), `peak_db` (number (dB)), `volume` (whole number), `sweep` (whole number) |
 
 ## Events
 
 | Kind | Label | Fields |
 |---|---|---|
-| `radar.row` | Radar row | `text` (text), `type` (text), `rotation_s` (number (s)), `rpm` (number (rpm)), `prf` (text), `pulse_width_us` (number (µs)), `beamwidth_deg` (number (°)), `peak_db` (number (dB)), `volume` (whole number), `sweep` (whole number) |
+| `radar.row` | Radar row | `text` (text), `type` (text), `rotation_s` (number (s)), `rpm` (number (rpm)), `prf` (text), `pulse_width_us` (number (us)), `beamwidth_deg` (number (°)), `peak_db` (number (dB)), `volume` (whole number), `sweep` (whole number) |
 
 ## Commands
 
@@ -81,9 +81,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Measurement and analysis (`measurement`). Media: none.
+
+Key readings: `rpm`, `prf_hz`, `pulse_width_us`, `beamwidth_deg`, `rotation_s`.
 
 ### Result fields
 
@@ -96,7 +98,7 @@ Struct `RadarDetectFields`. The result fields of `radar_detect`.
 | `rpm` | number (rpm) | optional | 1.0 | Rotations per minute. |
 | `prf_hz` | frequency | optional | 1.0 | The repetition frequency of the fullest bin. |
 | `prf` | text | optional | 1.0 | The repetition text. |
-| `pulse_width_us` | number (µs) | optional | 1.0 | The median pulse width. |
+| `pulse_width_us` | number (us) | optional | 1.0 | The median pulse width. |
 | `beamwidth_deg` | number (°) | optional | 1.0 | The beamwidth. |
 | `crossings` | whole number | always | 1.0 | Crossings found. |
 | `pulses` | whole number | always | 1.0 | Pulses found. |
@@ -126,11 +128,13 @@ Struct `RadarDetectRow`. A row of `radar_detect`: a rotation (marine) or a sweep
 | `rotation_s` | number (s) | optional | 1.0 | The rotation period. |
 | `rpm` | number (rpm) | optional | 1.0 | Rotations per minute. |
 | `prf` | text | always | 1.0 | The repetition text. |
-| `pulse_width_us` | number (µs) | optional | 1.0 | The median pulse width. |
+| `pulse_width_us` | number (us) | optional | 1.0 | The median pulse width. |
 | `beamwidth_deg` | number (°) | optional | 1.0 | The beamwidth. |
 | `peak_db` | number (dB) | always | 1.0 | The peak of the crossing of a row. |
 | `volume` | whole number | optional | 1.0 | The volume of a weather row. |
 | `sweep` | whole number | optional | 1.0 | The sweep of a weather row in its volume. |
+
+The rows are a log: they arrive over time. Time: `signal_time_s`.
 
 ### Event `radar.row`
 
@@ -143,7 +147,7 @@ Struct `RadarDetectRowEvent`. One row of `radar_detect`. `text` holds a summary.
 | `rotation_s` | number (s) | optional | 1.0 | The rotation period. |
 | `rpm` | number (rpm) | optional | 1.0 | Rotations per minute. |
 | `prf` | text | always | 1.0 | The repetition text. |
-| `pulse_width_us` | number (µs) | optional | 1.0 | The median pulse width. |
+| `pulse_width_us` | number (us) | optional | 1.0 | The median pulse width. |
 | `beamwidth_deg` | number (°) | optional | 1.0 | The beamwidth. |
 | `peak_db` | number (dB) | always | 1.0 | The peak of the crossing of a row. |
 | `volume` | whole number | optional | 1.0 | The volume of a weather row. |

@@ -40,7 +40,14 @@ fn ais_tables_survive_a_save_and_load() {
     rx2.restore_state(&state).expect("its own state loads");
     let r = rx2.results().clone();
     assert_eq!(count(&r, "stations"), 12);
-    assert_eq!(text_rows(&r, "sentences"), text_rows(&r0, "sentences"));
+    // The sentences are kept. Their signal times move into the signal time of the new receiver.
+    let sentences = |r: &sdrkit_core::Results| -> Vec<String> {
+        text_rows(r, "sentences")
+            .into_iter()
+            .map(|row| row[0].clone())
+            .collect()
+    };
+    assert_eq!(sentences(&r), sentences(&r0));
     // The times heard are kept: a station was last heard when it was before the save.
     let last = |r: &sdrkit_core::Results| {
         let t = r.table(r.decl().table_id("stations").unwrap()).unwrap();

@@ -89,7 +89,8 @@ fn the_readings_at_three_rates_and_three_offsets() {
             assert!(f.rds && f.stereo, "{at}");
             assert!(f.sca67_db.is_some() && f.sca92_db.is_some(), "{at}: {:?} {:?}", f.sca67_db, f.sca92_db);
             assert_eq!(f.pilot, FmPilotRange::InRange, "{at}");
-            assert!(f.text.starts_with("stereo"), "{at}: {}", f.text);
+            let summary = &run.results.status().summary;
+            assert!(summary.starts_with("stereo"), "{at}: {summary}");
             assert_eq!(run.reports.last().unwrap().1.status().lock_state, LockState::Locked);
         }
     }
@@ -99,7 +100,8 @@ fn the_readings_at_three_rates_and_three_offsets() {
 fn no_pilot_no_rds_and_no_subcarrier_read_as_mono() {
     let run = h(250e3).seconds(6.0).set(&GEN_PILOT_KHZ, 0.0).set(&GEN_RDS_KHZ, 0.0).run().unwrap();
     let f = fields(&run.results);
-    assert!(f.text.starts_with("mono"), "{}", f.text);
+    let summary = &run.results.status().summary;
+    assert!(summary.starts_with("mono"), "{summary}");
     assert_eq!((f.sca67_db, f.sca92_db), (None, None));
     assert!(!f.rds && !f.stereo);
     assert_eq!(f.pilot, FmPilotRange::Absent);

@@ -86,7 +86,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `beacons` | Beacons | `name` (text), `frequency` (frequency), `kind` (choice), `uncertain` (yes or no), `in_capture` (yes or no), `heard` (yes or no), `confidence` (whole number), `last` (duration (s)), `last_heard` (time), `snr_db` (number (dB)), `best_1h_db` (number (dB)), `best_24h_db` (number (dB)), `steps` (whole number), `step_snrs` (text), `distance_km` (number (km)), `bearing_deg` (number (deg)), `trend` (text), `listens` (whole number), `heard_count` (whole number), `note` (text), `band` (text), `position` (position) |
+| `beacons` | Beacons | `name` (text), `frequency` (frequency), `kind` (choice), `uncertain` (yes or no), `in_capture` (yes or no), `heard` (yes or no), `confidence` (whole number), `last` (duration (s)), `last_heard` (time), `snr_db` (number (dB)), `best_1h_db` (number (dB)), `best_24h_db` (number (dB)), `steps` (whole number), `step_snrs` (text), `distance_km` (number (km)), `bearing_deg` (number (°)), `trend` (text), `listens` (whole number), `heard_count` (whole number), `note` (text), `band` (text), `position` (position) |
 | `bands` | Bands open | `band` (text), `in_list` (whole number), `in_capture` (whole number), `heard_now` (whole number), `farthest_km` (number (km)) |
 | `propagation` | Propagation | `band` (text), `state` (choice), `stations` (whole number), `best_snr_db` (number (dB)), `farthest_km` (number (km)), `score` (number) |
 
@@ -113,9 +113,11 @@ The stack puts points on a map: Beacons heard.
 
 ## Typed interface
 
-The stack is in the family `hfdata`, version 1.7. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfdata`, version 2.0. The C header `sdrkit/hfdata.h`, the registry record `registry/hfdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: sound (monitor).
+
+Key readings: `heard_now`, `best_band`, `best_band_stations`.
 
 ### Result fields
 
@@ -144,14 +146,14 @@ Struct `HfbTxFields`. The result fields of the own beacon. The values of a sendi
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tx_beacon_on` | yes or no | always | 1.2 | Whether the beacon runs: it sends now or waits for its next sending. |
-| `tx_sending` | yes or no | always | 1.2 | Whether a sending is on air. |
-| `tx_progress_pct` | number (%) | optional | 1.2 | The share of the sending on air that is sent. |
-| `tx_next_s` | duration (s) | optional | 1.2 | The time to the next sending, while the beacon waits. |
-| `tx_sendings` | whole number | always | 1.2 | The sendings since `start`. |
-| `tx_sending_s` | duration (s) | always | 1.2 | The time on air of one sending with the present settings. |
-| `tx_duty_pct` | number (%) | always | 1.3 | The share of the interval that one sending is on air. |
-| `tx_note` | text | always | 1.2 | What the beacon is: a proposal of the specification, not taken from a standard. |
+| `tx_beacon_on` | yes or no | always | 1.0 | Whether the beacon runs: it sends now or waits for its next sending. |
+| `tx_sending` | yes or no | always | 1.0 | Whether a sending is on air. |
+| `tx_progress_pct` | number (%) | optional | 1.0 | The share of the sending on air that is sent. |
+| `tx_next_s` | duration (s) | optional | 1.0 | The time to the next sending, while the beacon waits. |
+| `tx_sendings` | whole number | always | 1.0 | The sendings since `start`. |
+| `tx_sending_s` | duration (s) | always | 1.0 | The time on air of one sending with the present settings. |
+| `tx_duty_pct` | number (%) | always | 1.0 | The share of the interval that one sending is on air. |
+| `tx_note` | text | always | 1.0 | What the beacon is: a proposal of the specification, not taken from a standard. |
 
 ### Table `beacons`
 
@@ -174,7 +176,7 @@ Struct `HfbeaconsBeaconRow`. A beacon of the list. The row key is the place in t
 | `steps` | whole number | always | 1.0 | Power steps heard. |
 | `step_snrs` | text | always | 1.0 | The SNR of each power step. |
 | `distance_km` | number (km) | optional | 1.0 | The distance to the station. |
-| `bearing_deg` | number (deg) | optional | 1.0 | The bearing from the station. |
+| `bearing_deg` | number (°) | optional | 1.0 | The bearing from the station. |
 | `trend` | text | always | 1.0 | The newest 48 history points in dB, "-" for listened and not heard. |
 | `listens` | whole number | always | 1.0 | History points in 24 hours. |
 | `heard_count` | whole number | always | 1.0 | History points heard. |
@@ -232,10 +234,10 @@ Struct `HfbTxEvent`. The fields of a change of the own beacon.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | text | always | 1.2 | The state: started (the first sending), sending (a later one), sent (a sending ended), finished (the beacon ended) or refused. |
-| `reason` | text | always | 1.2 | Why it changed: empty, stopped, the transmitter is off, the format changed, or why it was refused. |
-| `text` | text | always | 1.2 | The text keyed. |
-| `family` | choice | always | 1.2 | The family of the source: a message. |
+| `state` | text | always | 1.0 | The state: started (the first sending), sending (a later one), sent (a sending ended), finished (the beacon ended) or refused. |
+| `reason` | text | always | 1.0 | Why it changed: empty, stopped, the transmitter is off, the format changed, or why it was refused. |
+| `text` | text | always | 1.0 | The text keyed. |
+| `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Commands
 

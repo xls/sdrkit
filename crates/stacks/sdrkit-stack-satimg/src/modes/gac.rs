@@ -11,7 +11,10 @@ use crate::components::link::{
     control_port, item_format, item_port, DemodComponent, DemodReport, FrontEndComponent,
     FrontReport,
 };
-use crate::gen::{test_value, BitSource, GenError, ModParams, Modulator};
+use crate::components::pass::{
+    pass_format, pass_port, PassPictures, PassSetting, PassTimer, PASS_GAP,
+};
+use crate::gen::{pass_lines, test_value, BitSource, GenError, ModParams, Modulator};
 use crate::instruments::gac::{
     frame_code, pack_words, scramble_mask, spacecraft, test_words, GacDecoder, GacStats, BIT_RATE,
     CHANNELS, FRAME_BITS, INSTRUMENT, MAX_ROWS, SYNC, WIDTH,
@@ -19,7 +22,7 @@ use crate::instruments::gac::{
 use crate::instruments::tip::{test_frame, HIRS_ELEMENTS, HIRS_WIDTH, MAJOR_FRAME, TIP_BYTES};
 use crate::psk::{LinkClass, LinkParams, Modulation, Search, SnrEstimator};
 use crate::REPORT_S;
-use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView};
 use sdrkit_codec_image::strip::{Strip, View};
 use crate::typed::{ImageRow, NoaaGacFields, IMAGES};
 use sdrkit_core::interface::{Fields as _, Hertz, Seconds};
@@ -106,11 +109,16 @@ pub const GEN_SCID: Setting<field::I64> =
         .range(0.0, 15.0, 1.0)
         .section(TEST)
         .advanced();
-/// Lines of the test picture before it repeats.
-pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture lines", "", 400)
+/// The lines of the test signal: a pass of that many lines, then the signal ends. 0: the test picture of
+/// [`TEST_PICTURE_LINES`] lines repeats without end.
+pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture lines", "", 0)
     .range(1.0, 4000.0, 1.0)
+    .zero_means("Without end")
+    .help("The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.")
     .section(TEST)
     .advanced();
+/// The lines of the test picture before it repeats.
+pub const TEST_PICTURE_LINES: u32 = 400;
 
 sdrkit_core::settings! {
     /// The settings of `noaa_gac`, with the options of its test signal.
@@ -121,6 +129,8 @@ sdrkit_core::settings! {
         View = VIEW,
         /// Keep the newest lines in view.
         Follow = FOLLOW,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// Test: the spacecraft address.
         GenScid = GEN_SCID,
         /// Test: picture lines.
@@ -193,6 +203,7 @@ pub struct GacComponent {
     was_locked: bool,
     dec: GacDecoder,
     strips: Vec<Strip>,
+    pass: PassTimer,
     log: Vec<String>,
 }
 
@@ -207,6 +218,7 @@ impl Default for GacComponent {
             was_locked: false,
             dec: GacDecoder::default(),
             strips: Vec::new(),
+            pass: PassTimer::default(),
             log: Vec::new(),
         }
     }
@@ -217,14 +229,23 @@ impl Component for GacComponent {
         ComponentInfo::processor(
             "satimg.gac",
             vec![Port::llr("in"), control_port()],
-            vec![item_port::<Strip>("out"), item_port::<GacReport>("report")],
+            vec![
+                item_port::<Strip>("out"),
+                item_port::<GacReport>("report"),
+                pass_port(),
+            ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
         if let Some(s) = &mut self.sync {
             s.drop_lock();
         }
-        Ok(vec![item_format::<Strip>(), item_format::<GacReport>()])
+        Ok(vec![
+            item_format::<Strip>(),
+            item_format::<GacReport>(),
+            pass_format(),
+        ])
     }
     fn process(&mut self, io: &mut Io) {
         let soft = io.llrs(0);
@@ -251,6 +272,9 @@ impl Component for GacComponent {
         for f in &self.frames {
             self.dec.push(f, &mut self.strips);
             self.last_frame = self.symbols;
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 2) {
+            self.dec.new_picture();
         }
         io.items_out::<Strip>(0)
             .extend(self.strips.drain(..).map(|s| Timed {
@@ -448,7 +472,7 @@ impl Component for GacDisplay {
 ///
 /// [`GraphError::Schema`] if the picture layouts produce no valid schema.
 pub fn builder() -> Result<GraphBuilder, GraphError> {
-    let pictures = Pictures::new(layouts()).map_err(GraphError::Schema)?;
+    let pictures = PassPictures::new(layouts(), "NOAA").map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add("frontend", FrontEndComponent::new(link(), MIN_RATE, false))
         .add("demod", DemodComponent::new(link()))
@@ -459,6 +483,7 @@ pub fn builder() -> Result<GraphBuilder, GraphError> {
         .connect("frontend.out", "demod.in")
         .connect("demod.soft", "gac.in")
         .connect("gac.out", "pictures.in")
+        .connect("gac.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
         .connect("gac.report", "display.gac")
@@ -480,6 +505,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route("picture", &["pictures.instrument"])?
         .route("view", &["pictures.view"])?
         .route("follow", &["pictures.follow"])?
+        .route("pass_gap", &["gac.pass_gap"])?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .with_settings(&cfg.settings)
         .build()
@@ -526,6 +552,8 @@ pub struct GacSource {
     scid: u8,
     lines: u32,
     line: u32,
+    /// The lines of the pass, `None` for a signal without end.
+    pass: Option<u64>,
     tip: u64,
     mask: Vec<u8>,
 }
@@ -559,6 +587,9 @@ impl BitSource for GacSource {
         let f = self.next_frame();
         out.extend((0..FRAME_BITS).map(|b| (f[b / 8] >> (7 - b % 8)) & 1));
     }
+    fn ended(&self) -> bool {
+        self.pass.is_some_and(|p| u64::from(self.line) >= p)
+    }
 }
 
 /// The GAC test signal: the clean signal at unit mean power.
@@ -580,7 +611,8 @@ impl GacGenerator {
         let v = &cfg.settings;
         let src = GacSource {
             scid: v.get(&GEN_SCID).clamp(0, 15) as u8,
-            lines: v.get(&GEN_LINES).clamp(1, 4000) as u32,
+            lines: TEST_PICTURE_LINES,
+            pass: pass_lines(v.get(&GEN_LINES)),
             line: 0,
             tip: 0,
             mask: scramble_mask(),

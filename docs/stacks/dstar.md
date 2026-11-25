@@ -46,6 +46,8 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ds
 | `tx_split` | Transmit offset | frequency | 0 Hz | -10 GHz to 10 GHz | The transmit frequency less the listening frequency: 0 for simplex, the shift of a repeater for duplex. |
 | `tx_timeout` | Time-out | duration (s) | 180 s | 1 to 3600 | A voice stream ends after this time on air. |
 
+The setting `your_call` takes the column `src` of a row of the table `heard`.
+
 ## Result fields
 
 | Key | Label | Kind |
@@ -128,7 +130,7 @@ The stack puts points on a map: Positions.
 
 ## Typed interface
 
-The stack is in the family `dvoice`, version 2.4. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvoice`, version 2.5. The C header `sdrkit/dvoice.h`, the registry record `registry/dvoice.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Voice calls (`voice`). Media: sound (voice).
 

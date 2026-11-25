@@ -185,7 +185,7 @@ pub struct Dvbs2StreamRow {
     #[field(label = "Carries")]
     pub carries: Carries,
     /// The user packet length. No value for a stream without user packets.
-    #[field(label = "Packet length", unit = "bytes")]
+    #[field(label = "Packet length", unit = "B")]
     pub packet_bytes: Option<i64>,
     /// The sync byte of the user packets.
     #[field(label = "Sync byte")]
@@ -274,7 +274,7 @@ pub fn with_dvbs2_receiver(shape: StackShape) -> StackShape {
 pub fn dvbs2_interface() -> &'static Family {
     static SHARED: OnceLock<Family> = OnceLock::new();
     SHARED.get_or_init(|| {
-        Family::shared("dvbs2", 1, 0).stack(
+        Family::shared("dvbs2", 2, 0).stack(
             StackShape::new("dvbs2")
                 .fields::<Dvbs2Fields>()
                 .table(&DVBS2_CARRIERS)

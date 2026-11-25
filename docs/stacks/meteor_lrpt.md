@@ -31,13 +31,19 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:me
 | `enhance` | Enhancement | choice | `none` | `none` (As received), `stretch` (Contrast stretch), `brighten` (Stretch and brighten), `thermal` (Thermal colours), `satellite` (Satellite preset) | Thermal colours apply to a single channel view. |
 | `follow` | Follow | yes or no | true |  | Keeps the newest lines in view. |
 
+Advanced settings. The owner works without any of them set.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `pass_gap` | Pass end | number (s) | 60 | 1 to 3600 | After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture. |
+
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `gen_modulation` | Test modulation | choice | `oqpsk72` | `oqpsk72` (OQPSK 72k (N2-3, N2-4)), `qpsk72` (QPSK 72k (N2)), `oqpsk80` (OQPSK 80k interleaved) |  |
 | `gen_night` | Test night channels | yes or no | false |  |  |
-| `gen_rows` | Test picture rows | whole number | 40 | 1 to 1500 |  |
+| `gen_rows` | Test picture rows | whole number | 0 | 1 to 1500 | The test signal sends this many rows of the test picture and then ends. Without end: the picture repeats. |
 
 The setting `view` chooses the view of the picture.
 
@@ -105,9 +111,11 @@ The setting `view` chooses the view of the picture.
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
+
+Key readings: `snr_db`, `frames_ok`, `frames_bad`.
 
 ### Result fields
 
@@ -201,6 +209,7 @@ Struct `ImageRow`. A finished image. The row key names the image. The picture it
 | `view` | `sdrkit_meteor_lrpt_get_view` | `sdrkit_meteor_lrpt_set_view` |
 | `enhance` | `sdrkit_meteor_lrpt_get_enhance` | `sdrkit_meteor_lrpt_set_enhance` |
 | `follow` | `sdrkit_meteor_lrpt_get_follow` | `sdrkit_meteor_lrpt_set_follow` |
+| `pass_gap` | `sdrkit_meteor_lrpt_get_pass_gap` | `sdrkit_meteor_lrpt_set_pass_gap` |
 
 ### Settings of the test signal generator
 

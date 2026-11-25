@@ -484,7 +484,6 @@ impl Decoder for ObwDecoder {
         st.snr_db = r.as_ref().map(|r| r.snr_db as f32);
         st.summary = headline;
         p.put(&WatchFields {
-            text: &st.summary,
             state: self.tally.state(now),
             good: i64::try_from(self.tally.good).unwrap_or(i64::MAX),
             bad: i64::try_from(self.tally.bad).unwrap_or(i64::MAX),

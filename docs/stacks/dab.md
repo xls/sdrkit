@@ -102,7 +102,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `slide_sequence` | Slide number | whole number |
 | `slide_width` | Slide width | whole number (px) |
 | `slide_height` | Slide height | whole number (px) |
-| `slide_bytes` | Slide size | whole number (bytes) |
+| `slide_bytes` | Slide size | whole number (B) |
 | `timing_lock` | Locked at | duration (s) |
 | `timing_first_fib` | First good FIB at | duration (s) |
 | `timing_ensemble_valid` | Ensemble complete at | duration (s) |
@@ -154,10 +154,10 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `service_components` | Service components | `service` (text), `tmid` (whole number), `component_type` (whole number), `subchannel` (whole number), `packet_address` (whole number), `scids` (whole number), `primary` (yes or no), `scrambled` (yes or no), `label` (text) |
 | `user_applications` | User applications | `service` (text), `scids` (whole number), `app_type` (whole number), `name` (text) |
 | `service_clusters` | Announcement clusters | `service` (text), `cluster` (whole number) |
-| `tii_database` | Transmitter database | `main` (whole number), `sub` (whole number), `position` (position), `delay_us` (whole number (µs)) |
+| `tii_database` | Transmitter database | `main` (whole number), `sub` (whole number), `position` (position), `delay_us` (whole number (us)) |
 | `following` | Service following | `freq` (frequency), `channel` (text), `eid` (whole number) |
 | `announcements` | Announcements | `cluster` (whole number), `asw` (whole number), `subchannel` (whole number) |
-| `transmitters` | Transmitters | `main` (whole number), `sub` (whole number), `level_db` (number (dB)), `position` (position), `delay_us` (whole number (µs)) |
+| `transmitters` | Transmitters | `main` (whole number), `sub` (whole number), `level_db` (number (dB)), `position` (position), `delay_us` (whole number (us)) |
 | `journaline` | Journaline | `id` (whole number), `kind` (choice), `title` (text), `body` (text) |
 | `journaline_links` | Journaline menu entries | `object` (text), `target` (whole number), `text` (text) |
 | `journaline_items` | Journaline list items | `object` (text), `text` (text) |
@@ -196,7 +196,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `dab`, version 1.1. The C header `sdrkit/dab.h`, the registry record `registry/dab.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dab`, version 2.0. The C header `sdrkit/dab.h`, the registry record `registry/dab.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Broadcast radio (`broadcast`). Media: sound (programme), pictures.
 
@@ -296,7 +296,7 @@ Struct `PadFields`. The dynamic label and the slide of the service playing. No v
 | `slide_sequence` | whole number | optional | 1.0 | The slide number: a new number is a new picture. |
 | `slide_width` | whole number (px) | optional | 1.0 | The slide width. |
 | `slide_height` | whole number (px) | optional | 1.0 | The slide height. |
-| `slide_bytes` | whole number (bytes) | optional | 1.0 | The slide size. |
+| `slide_bytes` | whole number (B) | optional | 1.0 | The slide size. |
 
 ### Result fields
 
@@ -482,7 +482,7 @@ Struct `TiiEntryRow`. A transmitter of the database of FIG 0/22. The row key is 
 | `main` | whole number | always | 1.0 | The transmitter main identifier. |
 | `sub` | whole number | always | 1.0 | The transmitter sub-identifier. |
 | `position` | position | always | 1.0 | The position. |
-| `delay_us` | whole number (µs) | always | 1.0 | The delay. |
+| `delay_us` | whole number (us) | always | 1.0 | The delay. |
 
 Place of a row: the column `position`.
 
@@ -516,7 +516,7 @@ Struct `TransmitterRow`. A transmitter identified. The row key is `<main>.<sub>`
 | `sub` | whole number | always | 1.0 | The transmitter sub-identifier. |
 | `level_db` | number (dB) | always | 1.0 | The level relative to the strongest transmitter. |
 | `position` | position | optional | 1.0 | The position, from the transmitter database. |
-| `delay_us` | whole number (µs) | optional | 1.0 | The delay, from the transmitter database. |
+| `delay_us` | whole number (us) | optional | 1.0 | The delay, from the transmitter database. |
 
 Place of a row: the column `position`.
 

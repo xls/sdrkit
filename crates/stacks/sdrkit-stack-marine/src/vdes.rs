@@ -800,9 +800,10 @@ pub struct VdesAsmRow<'a> {
     pub hex: &'a str,
 }
 
-/// The ASM frames, newest first.
-pub static ASM_TABLE: Table<VdesAsmRow<'static>> =
-    Table::new("asm", "ASM frames", ASM_CAP).label(&VdesAsmRow::MMSI);
+/// The ASM frames, newest first: a log.
+pub static ASM_TABLE: Table<VdesAsmRow<'static>> = Table::new("asm", "ASM frames", ASM_CAP)
+    .label(&VdesAsmRow::MMSI)
+    .role(sdrkit_core::TableRole::Log);
 
 /// A row of the VDE-TER burst table. The row key is the place of the burst in the log.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -845,9 +846,9 @@ pub struct VdesBurstRow<'a> {
     pub subchannels: &'a str,
 }
 
-/// The VDE-TER bursts, newest first.
+/// The VDE-TER bursts, newest first: a log.
 pub static BURST_TABLE: Table<VdesBurstRow<'static>> =
-    Table::new("bursts", "VDE-TER bursts", BURST_CAP);
+    Table::new("bursts", "VDE-TER bursts", BURST_CAP).role(sdrkit_core::TableRole::Log);
 
 /// A row of the channel table of the VDES stack. The row key is the letter of an ASM channel, or `TER` and the number of a VDE-TER band.
 #[derive(Clone, Debug, PartialEq, Fields)]

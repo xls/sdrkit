@@ -296,7 +296,7 @@ pub mod columns {
         Field::new("alt_ft", "Altitude", "ft").role(sdrkit_core::Role::Altitude);
     /// The track, degrees true.
     pub const TRACK_DEG: Field<field::F64> =
-        Field::new("track_deg", "Track", "deg").role(sdrkit_core::Role::Course);
+        Field::new("track_deg", "Track", "°").role(sdrkit_core::Role::Course);
     /// The ground speed, knots.
     pub const GS_KT: Field<field::F64> =
         Field::new("gs_kt", "Ground speed", "kt").role(sdrkit_core::Role::Speed);

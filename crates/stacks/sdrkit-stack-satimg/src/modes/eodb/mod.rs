@@ -24,6 +24,7 @@ use crate::typed::{
 };
 use crate::components::gated::{GateReport, GateRules, GatedDemodComponent};
 use crate::components::link::{item_format, item_port, DemodReport, FrontEndComponent, FrontReport};
+use crate::components::pass::{pass_format, pass_port, PassPictures, PassTimer, PASS_GAP};
 use crate::components::table::{header_ids, FrameBytes, FrameRow, FrameTableComponent, Line, TableLink, TableReport};
 use crate::components::{last, Control};
 use crate::instruments::avhrr_dump::{AvhrrDump, CalTable};
@@ -35,7 +36,7 @@ use crate::instruments::small::{Amsr2, Metimage, Tirs, Vegetation};
 use crate::instruments::symbols::{Kanopus, Ocm, Ols, SymbolInstrument, SymbolStats};
 use crate::instruments::viirs::Viirs;
 use crate::psk::{LinkClass, LinkParams, Modulation, Search, SnrEstimator};
-use sdrkit_codec_image::component::{Layout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout, NamedView};
 use sdrkit_codec_image::raster::Raster;
 use sdrkit_codec_image::strip::{Strip, View};
 use sdrkit_core::command::{Command, CommandError, CommandId, CommandSet, Commands};
@@ -109,6 +110,8 @@ sdrkit_core::settings! {
         Satellites = SATELLITES,
         /// The AVHRR calibration.
         AvhrrCalibration = AVHRR_CALIBRATION,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// The ambiguity of the test signal.
         GenAmbiguity = GEN_AMBIGUITY,
     }
@@ -401,6 +404,7 @@ pub struct EodbComponent {
     requests: Vec<(String, usize)>,
     strips: Vec<Strip>,
     out_frames: Vec<Timed<FrameBytes>>,
+    pass: PassTimer,
 }
 
 impl EodbComponent {
@@ -444,6 +448,7 @@ impl EodbComponent {
             requests: Vec::new(),
             strips: Vec::new(),
             out_frames: Vec::new(),
+            pass: PassTimer::default(),
         }
     }
 
@@ -616,6 +621,7 @@ impl Component for EodbComponent {
                 item_port::<FrameBytes>("cadus"),
                 item_port::<Picture>("products"),
                 item_port::<EodbReport>("report"),
+                pass_port(),
             ],
         )
         .with_settings(EodbFileSetting::schema())
@@ -626,6 +632,7 @@ impl Component for EodbComponent {
             item_format::<FrameBytes>(),
             item_format::<Picture>(),
             item_format::<EodbReport>(),
+            pass_format(),
         ])
     }
     fn attach(&mut self, ctx: &RunContext) {
@@ -655,6 +662,9 @@ impl Component for EodbComponent {
         if let Some(pl) = self.inst.planes_mut() {
             pl.take_strips(&mut self.strips);
         }
+        if self.pass.after(io, !self.strips.is_empty(), 4) {
+            self.inst.clear();
+        }
         io.items_out::<Strip>(0).extend(self.strips.drain(..).map(|s| Timed { time: 0.0, value: s }));
         io.items_out::<FrameBytes>(1).append(&mut self.out_frames);
         if io.tick() {
@@ -680,6 +690,7 @@ impl Component for EodbComponent {
             EodbFileSetting::AvhrrCalibration => {
                 self.cal.set_path(id, AVHRR_CALIBRATION.read(id, v)?)?;
             }
+            EodbFileSetting::PassGap => return self.pass.apply(id, v),
         }
         Ok(Applied::Live)
     }
@@ -687,6 +698,7 @@ impl Component for EodbComponent {
         sdrkit_graph::values_of([
             (EodbFileSetting::Satellites, Value::Text(self.sats.path().into())),
             (EodbFileSetting::AvhrrCalibration, Value::Text(self.cal.path().into())),
+            (EodbFileSetting::PassGap, Value::F64(self.pass.gap_s())),
         ])
     }
     fn commands(&self) -> &Commands {
@@ -719,12 +731,14 @@ impl Component for EodbComponent {
 }
 
 sdrkit_core::settings! {
-    /// The settings of [`EodbComponent`]: the data files.
+    /// The settings of [`EodbComponent`]: the data files and the end of a pass.
     pub enum EodbFileSetting {
         /// The satellite list.
         Satellites = SATELLITES,
         /// The AVHRR calibration.
         AvhrrCalibration = AVHRR_CALIBRATION,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
     }
 }
 
@@ -1003,7 +1017,7 @@ pub fn layouts(p: &Profile) -> Vec<Layout> {
 /// [`GraphError::Schema`] if the picture layouts are refused.
 pub fn builder(p: &'static Profile, v: &Values) -> Result<GraphBuilder, GraphError> {
     let l = link(p, v);
-    let pictures = Pictures::new(layouts(p)).map_err(GraphError::Schema)?;
+    let pictures = PassPictures::new(layouts(p), p.name).map_err(GraphError::Schema)?;
     let mut g = GraphBuilder::new()
         .add("frontend", FrontEndComponent::new(l.clone(), p.least, false))
         .add("demod", GatedDemodComponent::new(l.clone(), GATE))
@@ -1014,6 +1028,7 @@ pub fn builder(p: &'static Profile, v: &Values) -> Result<GraphBuilder, GraphErr
         .connect("frontend.out", "demod.in")
         .connect("demod.soft", "eodb.symbols")
         .connect("eodb.out", "pictures.in")
+        .connect("eodb.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
         .connect("demod.gate", "display.gate")
@@ -1053,6 +1068,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route("roll_off", &["display.roll_off"])?
         .route("gen_ambiguity", &["display.gen_ambiguity"])?
         .route("satellites", &["eodb.satellites"])?
+        .route("pass_gap", &["eodb.pass_gap"])?
         .route("avhrr_calibration", &["eodb.avhrr_calibration"])?
         .with_settings(&cfg.settings)
         .build()

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the shared interface "dvbs2", whose items the stacks of several families show, version 1.0. MIT licence.
+ * sdrkit: the typed interface of the shared interface "dvbs2", whose items the stacks of several families show, version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,7 +34,7 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_DVBS2_VERSION_MAJOR 1
+#define SDRKIT_DVBS2_VERSION_MAJOR 2
 #define SDRKIT_DVBS2_VERSION_MINOR 0
 
 // The keys of the event types.
@@ -291,7 +291,7 @@ typedef struct sdrkit_dvbs2_stream_row {
   int32_t carries;
   // True if `packet_bytes` holds a value.
   bool has_packet_bytes;
-  // The user packet length. No value for a stream without user packets. Unit: bytes.
+  // The user packet length. No value for a stream without user packets. Unit: B.
   int64_t packet_bytes;
   // True if `sync_byte` holds a value.
   bool has_sync_byte;

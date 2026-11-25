@@ -52,9 +52,9 @@ pub struct WisunFrames {
 
 /// A 16-digit EUI-64 of hex text.
 fn eui(what: &str, text: &str) -> Result<u64, CommandError> {
-    let t = text.trim();
+    let t = crate::tx::hex_digits(text);
     (t.len() == 16)
-        .then(|| u64::from_str_radix(t, 16).ok())
+        .then(|| u64::from_str_radix(&t, 16).ok())
         .flatten()
         .ok_or_else(|| refused(format!("the {what} is not 16 hex digits")))
 }
@@ -85,9 +85,9 @@ impl FrameSource for WisunFrames {
     }
     fn frame(&self, args: &Values, at: &Place) -> Result<Frame, CommandError> {
         let a: WisunSendArgs = WISUN_SEND.args(args)?;
-        let pan = a.pan_id.trim();
+        let pan = crate::tx::hex_digits(a.pan_id);
         let pan = (pan.len() == 4)
-            .then(|| u16::from_str_radix(pan, 16).ok())
+            .then(|| u16::from_str_radix(&pan, 16).ok())
             .flatten()
             .ok_or_else(|| refused("the PAN id is not 4 hex digits"))?;
         let src = eui("source", a.source)?;

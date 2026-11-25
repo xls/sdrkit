@@ -189,6 +189,11 @@ pub fn settings_table(settings: &[SettingDecl]) -> String {
     let roles: Vec<String> = settings
         .iter()
         .filter_map(sdrkit_dev_interface::marks::setting_sentence)
+        .chain(
+            settings
+                .iter()
+                .filter_map(sdrkit_dev_interface::marks::setting_refers_sentence),
+        )
         .collect();
     if !roles.is_empty() {
         if !out.is_empty() {

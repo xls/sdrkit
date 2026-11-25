@@ -54,7 +54,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `satellites` | Satellites | `satellite` (whole number), `frequency` (frequency), `doppler` (frequency), `snr_db` (number (dB)), `frames` (whole number), `heard` (whole number), `bad` (whole number), `position` (position), `height_m` (number (m)), `inclination_deg` (number (deg)), `period` (duration (s)), `last_heard` (time) |
+| `satellites` | Satellites | `satellite` (whole number), `frequency` (frequency), `doppler` (frequency), `snr_db` (number (dB)), `frames` (whole number), `heard` (whole number), `bad` (whole number), `position` (position), `height_m` (number (m)), `inclination_deg` (number (°)), `period` (duration (s)), `last_heard` (time) |
 | `satellite_channels` | Satellite channels | `satellite` (whole number), `uplink` (yes or no), `frequency` (frequency) |
 | `decoders` | Decoders | `decoder` (whole number), `state` (choice), `frequency` (frequency), `offset` (frequency), `doppler` (frequency), `snr_db` (number (dB)), `level_db` (number (dB)), `satellite` (whole number), `clock_ppm` (number (ppm)), `frames` (whole number), `frames_ok` (whole number), `frames_bad` (whole number), `sync_losses` (whole number) |
 | `packets` | Packets | `at` (duration (s)), `wall` (time), `satellite` (whole number), `decoder` (whole number), `type` (choice), `bytes` (bytes), `text` (text) |
@@ -86,7 +86,7 @@ The stack puts points on a map: Satellites.
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.5. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 2.0. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -124,7 +124,7 @@ Struct `OrbcommSatelliteRow`. A satellite heard. The row key is the satellite nu
 | `bad` | whole number | always | 1.0 | The bad packets. |
 | `position` | position | optional | 1.0 | The position. |
 | `height_m` | number (m) | optional | 1.0 | The height. |
-| `inclination_deg` | number (deg) | optional | 1.0 | The inclination. |
+| `inclination_deg` | number (°) | optional | 1.0 | The inclination. |
 | `period` | duration (s) | optional | 1.0 | The period. |
 | `last_heard` | time | optional | 1.0 | When it was last heard. |
 
@@ -173,6 +173,8 @@ Struct `OrbcommPacketRow`. A packet of the log. The row key is the sequence numb
 | `type` | choice | always | 1.0 | The type. |
 | `bytes` | bytes | optional | 1.0 | The bytes. |
 | `text` | text | always | 1.0 | What the packet says. |
+
+The rows are a log: they arrive over time. Time: `wall`.
 
 ### Table `packet_types`
 

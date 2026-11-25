@@ -257,6 +257,9 @@ fn interface_section(d: &StackDescriptor, family: &Family) -> String {
     if let Some(line) = sdrkit_dev_interface::marks::stack_sentence(stack) {
         out.push_str(&format!("{line}\n\n"));
     }
+    if let Some(line) = sdrkit_dev_interface::marks::readings_sentence(stack) {
+        out.push_str(&format!("{line}\n\n"));
+    }
     for f in &stack.fields {
         out.push_str(&shape_table(family, "Result fields", f));
     }
@@ -299,6 +302,20 @@ fn interface_section(d: &StackDescriptor, family: &Family) -> String {
             &rows,
         ));
         out.push('\n');
+        // The arguments that take their value from a column of a table.
+        let refers: Vec<String> = stack
+            .commands
+            .iter()
+            .flat_map(|c| {
+                sdrkit_dev_interface::marks::command_sentences(
+                    c.command.key,
+                    c.command.def().args.settings(),
+                )
+            })
+            .collect();
+        if !refers.is_empty() {
+            out.push_str(&format!("{}\n\n", refers.join(" ")));
+        }
     }
     // The settings of the receiver, then those of the test signal generator.
     for (title, generator) in [

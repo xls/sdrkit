@@ -76,7 +76,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `trunk`, version 1.5. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `trunk`, version 1.6. The C header `sdrkit/trunk.h`, the registry record `registry/trunk.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
 
@@ -132,7 +132,7 @@ Struct `ScadaMessageRow`. A row of the SCADA messages. The row key is the number
 | `raw_hex` | text | always | 1.1 | The bytes as hex, or the bits of a burst not recognised. |
 | `quality_db` | number (dB) | always | 1.1 | -20 log10 of the eye error of the symbols. |
 
-The column `from` names a row.
+The rows are a log: they arrive over time. The column `from` names a row. Time: `wall_clock_utc`.
 
 ### Table `devices`
 

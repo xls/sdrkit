@@ -3,7 +3,7 @@
 
 use sdrkit_core::interface::{EventKind, Family, Fields, Hertz, Seconds, StackShape, Table};
 use sdrkit_core::publish::keys;
-use sdrkit_core::SettingSet;
+use sdrkit_core::{SettingSet, TableRole};
 use sdrkit_graph::DecoderFields;
 use std::sync::OnceLock;
 
@@ -24,23 +24,20 @@ sdrkit_core::choice_enum! {
 /// The result fields of `am_monitor`, measured once a second. The measurements have no value while the carrier test fails.
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct AmMonitorFields<'a> {
-    /// The headline: the offset, the modulation, the peaks and the audio bandwidth, or "no carrier".
-    #[field(shared = keys::TEXT)]
-    pub text: &'a str,
     /// The carrier offset: a tuning or station error.
-    #[field(label = "Carrier offset", unit = "Hz")]
+    #[field(label = "Carrier offset", unit = "Hz", reading = 4)]
     pub carrier_offset_hz: Option<f64>,
     /// The carrier level, relative to full scale.
-    #[field(label = "Carrier level", unit = "dB")]
+    #[field(label = "Carrier level", unit = "dB", reading = 5)]
     pub carrier_db: Option<f64>,
     /// The modulation depth: the depth of a sine of the same RMS.
-    #[field(label = "Modulation (RMS, as a sine)", unit = "%")]
+    #[field(label = "Modulation (RMS, as a sine)", unit = "%", reading = 1)]
     pub depth_pct: Option<f64>,
     /// The positive peak against the mean carrier.
-    #[field(label = "Positive peak", unit = "%")]
+    #[field(label = "Positive peak", unit = "%", reading = 2)]
     pub peak_pos_pct: Option<f64>,
     /// The negative peak against the mean carrier (at most 100 %).
-    #[field(label = "Negative peak", unit = "%")]
+    #[field(label = "Negative peak", unit = "%", reading = 3)]
     pub peak_neg_pct: Option<f64>,
     /// The asymmetry: (positive - negative) / (positive + negative).
     #[field(label = "Asymmetry", unit = "%")]
@@ -72,7 +69,7 @@ pub struct AmMonitorFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct AmMonitorLogRow<'a> {
     /// The signal time of the row.
-    #[field(label = "Signal time", unit = "s")]
+    #[field(label = "Signal time", unit = "s", role = Time)]
     pub signal_time_s: f64,
     /// The kind: `Carrier` or `Over-modulation`.
     #[field(label = "Kind")]
@@ -118,7 +115,9 @@ pub struct AmMonitorOverModulationEvent<'a> {
 
 /// The log of `am_monitor`, newest first.
 pub static AM_MONITOR_LOG: Table<AmMonitorLogRow<'static>> =
-    Table::new("log", "Log", crate::am_monitor::ROWS_KEPT).label(&AmMonitorLogRow::IDENTITY);
+    Table::new("log", "Log", crate::am_monitor::ROWS_KEPT)
+        .label(&AmMonitorLogRow::IDENTITY)
+        .role(TableRole::Log);
 /// The carrier was seen, was lost or came back.
 pub static AM_MONITOR_CARRIER: EventKind<AmMonitorCarrierEvent<'static>> =
     EventKind::new("am_monitor.carrier", "Carrier");
@@ -165,29 +164,26 @@ sdrkit_core::choice_enum! {
 /// The result fields of `fm_monitor`, measured once a second from the FM-demodulated multiplex (MPX).
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FmMonitorFields<'a> {
-    /// The headline: stereo or mono, the peak, the pilot and RDS levels.
-    #[field(shared = keys::TEXT)]
-    pub text: &'a str,
     /// The peak deviation of the last second: the largest third-largest excursion of its 5 ms blocks.
-    #[field(label = "Peak deviation", unit = "kHz")]
+    #[field(label = "Peak deviation", unit = "kHz", reading = 1)]
     pub peak_deviation_khz: Option<f64>,
     /// The RMS deviation.
     #[field(label = "RMS deviation", unit = "kHz")]
     pub rms_deviation_khz: Option<f64>,
     /// The MPX power of the last second (0 dBr is a sine of 19 kHz deviation).
-    #[field(label = "MPX power, 1 s", unit = "dBr")]
+    #[field(label = "MPX power, 1 s", unit = "dBr", reading = 2)]
     pub mpx_power_dbr: Option<f64>,
     /// The MPX power over the last 60 s in steps of 1 s, as ITU-R BS.412 integrates it; no value before 60 s.
     #[field(label = "MPX power, 60 s", unit = "dBr")]
     pub mpx_power_60s_dbr: Option<f64>,
     /// The carrier offset.
-    #[field(label = "Carrier offset", unit = "kHz")]
+    #[field(label = "Carrier offset", unit = "kHz", reading = 3)]
     pub carrier_offset_khz: Option<f64>,
     /// The audio (L+R), peak equivalent.
     #[field(label = "Audio (L+R)", unit = "kHz")]
     pub audio_khz: Option<f64>,
     /// The 19 kHz pilot, peak equivalent.
-    #[field(label = "Pilot", unit = "kHz")]
+    #[field(label = "Pilot", unit = "kHz", reading = 4)]
     pub pilot_khz: Option<f64>,
     /// The pilot as a share of the deviation limit.
     #[field(label = "Pilot share of the limit", unit = "%")]
@@ -199,13 +195,13 @@ pub struct FmMonitorFields<'a> {
     #[field(label = "Stereo (L-R) band", unit = "kHz")]
     pub stereo_band_khz: Option<f64>,
     /// Stereo: a pilot and an L-R band over 0.5 kHz.
-    #[field(label = "Stereo")]
+    #[field(label = "Stereo", reading = 5)]
     pub stereo: bool,
     /// The RDS injection, peak equivalent.
     #[field(label = "RDS injection", unit = "kHz")]
     pub rds_khz: Option<f64>,
     /// RDS is present.
-    #[field(label = "RDS")]
+    #[field(label = "RDS", reading = 6)]
     pub rds: bool,
     /// The 67 kHz subcarrier over the floor; no value when absent.
     #[field(label = "67 kHz subcarrier", unit = "dB")]
@@ -228,7 +224,7 @@ pub struct FmMonitorFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FmMonitorLogRow<'a> {
     /// The signal time of the row.
-    #[field(label = "Signal time", unit = "s")]
+    #[field(label = "Signal time", unit = "s", role = Time)]
     pub signal_time_s: f64,
     /// The kind: `Pilot`, `RDS`, `SCA` or `Over-deviation`.
     #[field(label = "Kind")]
@@ -302,7 +298,9 @@ pub struct FmMonitorOverDeviationEvent<'a> {
 
 /// The log of `fm_monitor`, newest first.
 pub static FM_MONITOR_LOG: Table<FmMonitorLogRow<'static>> =
-    Table::new("log", "Log", crate::fm_monitor::ROWS_KEPT).label(&FmMonitorLogRow::IDENTITY);
+    Table::new("log", "Log", crate::fm_monitor::ROWS_KEPT)
+        .label(&FmMonitorLogRow::IDENTITY)
+        .role(TableRole::Log);
 /// The pilot was present or absent at first, came or went.
 pub static FM_MONITOR_PILOT: EventKind<FmMonitorPilotEvent<'static>> =
     EventKind::new("fm_monitor.pilot", "Pilot");
@@ -330,12 +328,10 @@ sdrkit_core::choice_enum! {
     }
 }
 
-/// The status of a spectrum watcher: the headline, the state, the counts of readings and the input level.
+/// The status of a spectrum watcher: the state, the counts of readings and the input level. The headline is the
+/// summary of the status.
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct WatchFields<'a> {
-    /// The headline.
-    #[field(shared = keys::TEXT)]
-    pub text: &'a str,
     /// The state.
     #[field(label = "State")]
     pub state: WatchState,
@@ -359,7 +355,7 @@ pub struct WatchFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct OccupancyFields {
     /// The channels of the grid.
-    #[field(label = "Channels in the grid")]
+    #[field(label = "Channels in the grid", reading = 3)]
     pub channels: i64,
     /// The width of a channel: whole bins.
     #[field(label = "Channel width", unit = "kHz")]
@@ -368,13 +364,17 @@ pub struct OccupancyFields {
     #[field(label = "Span covered", unit = "MHz")]
     pub span_mhz: f64,
     /// The noise floor of a channel, relative, per bin; no value before the first decision.
-    #[field(label = "Noise floor (relative, per bin)", unit = "dB")]
+    #[field(label = "Noise floor (relative, per bin)", unit = "dB", reading = 4)]
     pub floor_db: Option<f64>,
     /// The channels busy now.
-    #[field(label = "Channels busy now")]
+    #[field(label = "Channels busy now", reading = 2)]
     pub busy_now: i64,
     /// The busy share of the channel-time since the end of the warm-up; no value before it.
-    #[field(label = "Busy share of channel-time since the start", unit = "%")]
+    #[field(
+        label = "Busy share of channel-time since the start",
+        unit = "%",
+        reading = 1
+    )]
     pub band_occupancy_pct: Option<f64>,
     /// The time measured after the warm-up.
     #[field(label = "Time measured", unit = "s")]
@@ -405,7 +405,7 @@ pub struct OccupancyChannelRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct OccupancyActivityRow {
     /// The end of the transmission, signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The centre of the channel.
     #[field(label = "Frequency", unit = "Hz")]
@@ -446,7 +446,7 @@ pub static OCCUPANCY_CHANNELS: Table<OccupancyChannelRow> =
     Table::new("channels", "Busy channels", crate::occupancy::ROWS_KEPT);
 /// The transmissions, newest first.
 pub static OCCUPANCY_ACTIVITY: Table<OccupancyActivityRow> =
-    Table::new("activity", "Activity", crate::occupancy::ROWS_KEPT);
+    Table::new("activity", "Activity", crate::occupancy::ROWS_KEPT).role(TableRole::Log);
 /// A transmission ended.
 pub static OCCUPANCY_ACTIVITY_EVENT: EventKind<OccupancyActivityEvent> =
     EventKind::new("occupancy.activity", "Activity");
@@ -469,13 +469,13 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NoiseFloorFields {
     /// The floor of the band: the upper median of the sub-bands now, dB re full scale per bin.
-    #[field(label = "Noise floor", unit = "dB")]
+    #[field(label = "Noise floor", unit = "dB", reading = 1)]
     pub floor_db: Option<f64>,
     /// The floor now against the oldest kept value (the baseline window ago, or the start).
-    #[field(label = "Change over the baseline window", unit = "dB")]
+    #[field(label = "Change over the baseline window", unit = "dB", reading = 2)]
     pub floor_change_db: Option<f64>,
     /// The sub-bands raised now.
-    #[field(label = "Sub-bands raised")]
+    #[field(label = "Sub-bands raised", reading = 3)]
     pub raised: i64,
     /// The seconds measured.
     #[field(label = "Time measured", unit = "s")]
@@ -515,7 +515,7 @@ pub struct NoiseFloorSubBandRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NoiseFloorEventRow {
     /// The signal time of the row.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The kind.
     #[field(label = "Kind")]
@@ -577,7 +577,8 @@ pub static NOISE_FLOOR_EVENTS: Table<NoiseFloorEventRow> = Table::new(
     "noise_events",
     "Noise events",
     crate::noise_floor::ROWS_KEPT,
-);
+)
+.role(TableRole::Log);
 /// A row of the log was written.
 pub static NOISE_FLOOR_EVENT: EventKind<NoiseFloorEvent> =
     EventKind::new("noise_floor.event", "Noise event");
@@ -598,16 +599,16 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BurstFinderFields {
     /// The bursts found.
-    #[field(label = "Bursts")]
+    #[field(label = "Bursts", reading = 1)]
     pub bursts: i64,
     /// The time listened.
     #[field(label = "Time listened", unit = "s")]
     pub elapsed_s: Seconds,
     /// Bursts per second over the time listened.
-    #[field(label = "Bursts per second", unit = "1/s")]
+    #[field(label = "Bursts per second", unit = "1/s", reading = 2)]
     pub bursts_per_s: f64,
     /// The sources found repeating now.
-    #[field(label = "Repeating sources")]
+    #[field(label = "Repeating sources", reading = 3)]
     pub repeating: i64,
     /// The width of a bin: the frequency resolution.
     #[field(label = "Bin width", unit = "kHz")]
@@ -621,7 +622,7 @@ pub struct BurstFinderFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BurstFinderBurstRow {
     /// The start of the burst, signal time.
-    #[field(label = "Start", unit = "s")]
+    #[field(label = "Start", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The median centre of the burst.
     #[field(label = "Frequency", unit = "Hz")]
@@ -699,7 +700,7 @@ pub struct BurstRepeatingEvent {
 
 /// The bursts, newest first.
 pub static BURST_FINDER_BURSTS: Table<BurstFinderBurstRow> =
-    Table::new("bursts", "Bursts", crate::burst_finder::ROWS_KEPT);
+    Table::new("bursts", "Bursts", crate::burst_finder::ROWS_KEPT).role(TableRole::Log);
 /// The sources found repeating now.
 pub static BURST_FINDER_REPEATING: Table<BurstFinderRepeatingRow> =
     Table::new("repeating", "Repeating sources", 64);
@@ -715,28 +716,28 @@ pub static BURST_REPEATING: EventKind<BurstRepeatingEvent> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct HopperFields {
     /// The hop rate: one over the median start-to-start time.
-    #[field(label = "Hop rate", unit = "1/s")]
+    #[field(label = "Hop rate", unit = "1/s", reading = 1)]
     pub hop_rate: Option<f64>,
     /// The median start-to-start time.
     #[field(label = "Hop period", unit = "ms")]
     pub hop_period_ms: Option<f64>,
     /// The median dwell.
-    #[field(label = "Dwell", unit = "ms")]
+    #[field(label = "Dwell", unit = "ms", reading = 4)]
     pub dwell_ms: Option<f64>,
     /// The median silence between dwells.
     #[field(label = "Guard", unit = "ms")]
     pub guard_ms: Option<f64>,
     /// The channels found.
-    #[field(label = "Channels")]
+    #[field(label = "Channels", reading = 2)]
     pub channels: Option<i64>,
     /// The median distance of neighbouring channels.
-    #[field(label = "Channel spacing", unit = "kHz")]
+    #[field(label = "Channel spacing", unit = "kHz", reading = 3)]
     pub spacing_khz: Option<f64>,
     /// At least 90 % of the channels lie on a grid of the spacing.
     #[field(label = "Regular grid")]
     pub grid: Option<bool>,
     /// The highest minus the lowest channel plus one spacing.
-    #[field(label = "Span", unit = "kHz")]
+    #[field(label = "Span", unit = "kHz", reading = 5)]
     pub span_khz: Option<f64>,
     /// The lowest channel.
     #[field(label = "Lowest channel", unit = "Hz")]
@@ -765,7 +766,7 @@ pub struct HopperFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct HopperRow {
     /// The signal time of the evaluation.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The hop rate.
     #[field(label = "Hop rate", unit = "1/s")]
@@ -833,7 +834,7 @@ pub struct HopperChangedEvent {
 
 /// The hopper readings, newest first.
 pub static HOPPER_HOPPERS: Table<HopperRow> =
-    Table::new("hoppers", "Hoppers", crate::hopper::ROWS_KEPT);
+    Table::new("hoppers", "Hoppers", crate::hopper::ROWS_KEPT).role(TableRole::Log);
 /// A hopper was found or changed.
 pub static HOPPER_CHANGED: EventKind<HopperChangedEvent> =
     EventKind::new("hopper.changed", "Hopper");
@@ -866,7 +867,7 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BirdieFields {
     /// The persistent carriers listed now.
-    #[field(label = "Persistent carriers")]
+    #[field(label = "Persistent carriers", reading = 1)]
     pub carriers: i64,
     /// The snapshots taken.
     #[field(label = "Snapshots")]
@@ -912,7 +913,7 @@ pub struct BirdieCarrierRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BirdieEventRow {
     /// The signal time of the row.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The kind.
     #[field(label = "Kind")]
@@ -968,7 +969,7 @@ pub static BIRDIE_CARRIERS: Table<BirdieCarrierRow> =
     );
 /// The carrier log, newest first.
 pub static BIRDIE_CARRIER_EVENTS: Table<BirdieEventRow> =
-    Table::new("carrier_events", "Carrier events", crate::birdie::ROWS_KEPT);
+    Table::new("carrier_events", "Carrier events", crate::birdie::ROWS_KEPT).role(TableRole::Log);
 /// A carrier was listed, came back or went.
 pub static BIRDIE_EVENT: EventKind<BirdieEvent> = EventKind::new("birdie.event", "Carrier event");
 
@@ -978,7 +979,7 @@ pub static BIRDIE_EVENT: EventKind<BirdieEvent> = EventKind::new("birdie.event",
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct ObwFields {
     /// The band that holds the power share, half the rest below and half above it.
-    #[field(label = "Occupied bandwidth (99 %)", unit = "kHz")]
+    #[field(label = "Occupied bandwidth (99 %)", unit = "kHz", reading = 1)]
     pub obw_khz: Option<f64>,
     /// The lower edge of the occupied band.
     #[field(label = "Lower edge", unit = "Hz")]
@@ -996,10 +997,10 @@ pub struct ObwFields {
     #[field(label = "Bandwidth 20 dB under the peak", unit = "kHz")]
     pub bw20_khz: Option<f64>,
     /// The width at 26 dB under the peak.
-    #[field(label = "Bandwidth 26 dB under the peak", unit = "kHz")]
+    #[field(label = "Bandwidth 26 dB under the peak", unit = "kHz", reading = 2)]
     pub bw26_khz: Option<f64>,
     /// The middle of the occupied band from the tuned frequency.
-    #[field(label = "Centre against the tuned frequency", unit = "Hz")]
+    #[field(label = "Centre against the tuned frequency", unit = "Hz", reading = 3)]
     pub centre_offset_hz: Option<f64>,
     /// The power between the edges over the floor, dB re full scale.
     #[field(label = "Signal power", unit = "dB")]
@@ -1008,10 +1009,18 @@ pub struct ObwFields {
     #[field(label = "Over the noise in the same bandwidth", unit = "dB")]
     pub snr_db: Option<f64>,
     /// The power of the band one adjacent offset below, under the signal; no value outside the spectrum.
-    #[field(label = "Adjacent power under the signal, below", unit = "dB")]
+    #[field(
+        label = "Adjacent power under the signal, below",
+        unit = "dB",
+        reading = 4
+    )]
     pub adjacent_low_db: Option<f64>,
     /// The same above.
-    #[field(label = "Adjacent power under the signal, above", unit = "dB")]
+    #[field(
+        label = "Adjacent power under the signal, above",
+        unit = "dB",
+        reading = 5
+    )]
     pub adjacent_high_db: Option<f64>,
     /// The power of the band two adjacent offsets below, under the signal.
     #[field(label = "Alternate power under the signal, below", unit = "dB")]
@@ -1028,7 +1037,7 @@ pub struct ObwFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct ObwBandwidthRow {
     /// The signal time of the evaluation.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The band that holds the power share, half the rest below and half above it.
     #[field(label = "Occupied bandwidth (99 %)", unit = "kHz")]
@@ -1126,7 +1135,7 @@ pub struct ObwReadingEvent {
 
 /// The logged evaluations, newest first.
 pub static OBW_BANDWIDTHS: Table<ObwBandwidthRow> =
-    Table::new("bandwidths", "Bandwidths", crate::obw::ROWS_KEPT);
+    Table::new("bandwidths", "Bandwidths", crate::obw::ROWS_KEPT).role(TableRole::Log);
 /// An evaluation was logged.
 pub static OBW_READING: EventKind<ObwReadingEvent> =
     EventKind::new("obw.reading", "Bandwidth reading");
@@ -1149,22 +1158,22 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct PttLogFields {
     /// The channel is keyed now.
-    #[field(label = "Keyed")]
+    #[field(label = "Keyed", reading = 1)]
     pub keyed: bool,
     /// The length of the present transmission; no value while idle.
-    #[field(label = "Keyed for", unit = "s")]
+    #[field(label = "Keyed for", unit = "s", reading = 2)]
     pub keyed_s: Option<Seconds>,
     /// The floor of the channel, relative; no value before the first reading.
     #[field(label = "Floor", unit = "dB")]
     pub floor_db: Option<f64>,
     /// The transmissions that ended.
-    #[field(label = "Transmissions")]
+    #[field(label = "Transmissions", reading = 3)]
     pub transmissions: i64,
     /// Those shorter than the kerchunk length.
     #[field(label = "Kerchunks")]
     pub kerchunks: i64,
     /// The keyed share of the time since the end of the warm-up, the present transmission included.
-    #[field(label = "Duty cycle", unit = "%")]
+    #[field(label = "Duty cycle", unit = "%", reading = 4)]
     pub duty_pct: Option<f64>,
     /// The keyed share of the last 10 minutes (or of the time measured, when shorter).
     #[field(label = "Duty cycle, 10 min", unit = "%")]
@@ -1176,7 +1185,7 @@ pub struct PttLogFields {
     #[field(label = "Median length", unit = "s")]
     pub median_s: Option<Seconds>,
     /// The longest.
-    #[field(label = "Longest", unit = "s")]
+    #[field(label = "Longest", unit = "s", reading = 5)]
     pub longest_s: Option<Seconds>,
     /// Transmissions per hour of the time measured.
     #[field(label = "Transmissions per hour", unit = "1/h")]
@@ -1196,7 +1205,7 @@ pub struct PttLogTransmissionRow {
     #[field(label = "Kind")]
     pub kind: PttKind,
     /// The start, signal time.
-    #[field(label = "Start", unit = "s")]
+    #[field(label = "Start", unit = "s", role = Time)]
     pub start_s: Seconds,
     /// The length (so far, for a stuck key).
     #[field(label = "Length", unit = "s")]
@@ -1240,7 +1249,7 @@ pub struct PttTransmissionEvent {
 
 /// The transmissions, newest first.
 pub static PTT_LOG_TRANSMISSIONS: Table<PttLogTransmissionRow> =
-    Table::new("transmissions", "Transmissions", crate::ptt_log::ROWS_KEPT);
+    Table::new("transmissions", "Transmissions", crate::ptt_log::ROWS_KEPT).role(TableRole::Log);
 /// A transmission ended, or a stuck key was found.
 pub static PTT_TRANSMISSION: EventKind<PttTransmissionEvent> =
     EventKind::new("ptt.transmission", "Transmission");
@@ -1275,25 +1284,25 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NoiseLocatorFields {
     /// The impulses per second of the impulse window.
-    #[field(label = "Impulse rate", unit = "1/s")]
+    #[field(label = "Impulse rate", unit = "1/s", reading = 3)]
     pub impulse_rate: Option<f64>,
     /// The median impulse level over the noise of the analysis band.
-    #[field(label = "Impulse level over the noise", unit = "dB")]
+    #[field(label = "Impulse level over the noise", unit = "dB", reading = 4)]
     pub impulse_level_db: Option<f64>,
     /// The 75th minus the 25th percentile of the impulse levels.
     #[field(label = "Impulse level spread", unit = "dB")]
     pub impulse_spread_db: Option<f64>,
     /// The repetition rate of the present pattern; no value without one.
-    #[field(label = "Repetition rate", unit = "Hz")]
+    #[field(label = "Repetition rate", unit = "Hz", reading = 2)]
     pub repetition_hz: Option<f64>,
     /// The class of the present pattern.
-    #[field(label = "Class")]
+    #[field(label = "Class", reading = 1)]
     pub class: NoiseLocatorClass,
     /// The mains frequency of the class, when it names one.
     #[field(label = "Mains frequency found", unit = "Hz")]
     pub mains_found_hz: Option<f64>,
     /// The share of the impulses on the rate.
-    #[field(label = "Strength", unit = "%")]
+    #[field(label = "Strength", unit = "%", reading = 5)]
     pub strength_pct: Option<f64>,
     /// The impulses since the start.
     #[field(label = "Impulses")]
@@ -1304,7 +1313,7 @@ pub struct NoiseLocatorFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NoiseLocatorPatternRow {
     /// The signal time of the report.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// Found or gone.
     #[field(label = "Kind")]
@@ -1354,7 +1363,7 @@ pub struct NoiseLocatorPatternEvent {
 
 /// The patterns found and gone, newest first.
 pub static NOISE_LOCATOR_PATTERNS: Table<NoiseLocatorPatternRow> =
-    Table::new("patterns", "Patterns", crate::noise_locator::ROWS_KEPT);
+    Table::new("patterns", "Patterns", crate::noise_locator::ROWS_KEPT).role(TableRole::Log);
 /// A pattern was found or went.
 pub static NOISE_LOCATOR_PATTERN: EventKind<NoiseLocatorPatternEvent> =
     EventKind::new("noise_locator.pattern", "Pattern");
@@ -1379,19 +1388,23 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FreqAccuracyFields {
     /// The mean offset of the last 10 readings from the tuned frequency.
-    #[field(label = "Carrier offset (mean of the last 10)", unit = "Hz")]
+    #[field(
+        label = "Carrier offset (mean of the last 10)",
+        unit = "Hz",
+        reading = 1
+    )]
     pub offset_hz: Option<Hertz>,
     /// The sample standard deviation of the last 10 readings.
-    #[field(label = "Scatter of the last 10", unit = "Hz")]
+    #[field(label = "Scatter of the last 10", unit = "Hz", reading = 4)]
     pub scatter_hz: Option<Hertz>,
     /// The offset over the tuned frequency; no value without the tuned frequency.
-    #[field(label = "Error", unit = "ppm")]
+    #[field(label = "Error", unit = "ppm", reading = 2)]
     pub error_ppm: Option<f64>,
     /// The carrier to noise density of the last window.
-    #[field(label = "Carrier to noise density", unit = "dB-Hz")]
+    #[field(label = "Carrier to noise density", unit = "dB-Hz", reading = 5)]
     pub cn0_dbhz: Option<f64>,
     /// The least-squares slope of the last 120 readings; from 8 readings.
-    #[field(label = "Drift", unit = "Hz/s")]
+    #[field(label = "Drift", unit = "Hz/s", reading = 3)]
     pub drift_hz_s: Option<f64>,
     /// The drift over the tuned frequency.
     #[field(label = "Drift", unit = "ppm/h")]
@@ -1428,7 +1441,7 @@ pub struct FreqAccuracyAllanRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FreqAccuracyEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The kind.
     #[field(label = "Kind")]
@@ -1469,7 +1482,7 @@ pub static FREQ_ACCURACY_ALLAN: Table<FreqAccuracyAllanRow> =
     Table::new("allan", "Allan deviation", 8);
 /// The frequency, step and carrier rows, newest first.
 pub static FREQ_ACCURACY_EVENTS: Table<FreqAccuracyEventRow> =
-    Table::new("events", "Events", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Events", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 /// A row of the log was written.
 pub static FREQ_ACCURACY_EVENT: EventKind<FreqAccuracyEvent> =
     EventKind::new("freq_accuracy.event", "Event");
@@ -1492,25 +1505,25 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SinadFields {
     /// SINAD in the audio band, flat weighting.
-    #[field(label = "SINAD", unit = "dB")]
+    #[field(label = "SINAD", unit = "dB", reading = 1)]
     pub sinad_db: Option<f64>,
     /// The SINAD is under the sensitivity mark (12 dB by default).
     #[field(label = "Under the sensitivity mark")]
     pub below_12db: Option<bool>,
     /// The test tone.
-    #[field(label = "Test tone", unit = "Hz")]
+    #[field(label = "Test tone", unit = "Hz", reading = 4)]
     pub tone_hz: Option<Hertz>,
     /// The peak deviation of the tone.
-    #[field(label = "Peak deviation", unit = "kHz")]
+    #[field(label = "Peak deviation", unit = "kHz", reading = 3)]
     pub deviation_khz: Option<f64>,
     /// THD of harmonics 2 to 5.
-    #[field(label = "THD", unit = "%")]
+    #[field(label = "THD", unit = "%", reading = 2)]
     pub thd_pct: Option<f64>,
     /// THD and noise.
     #[field(label = "THD + noise", unit = "%")]
     pub thdn_pct: Option<f64>,
     /// The carrier offset: the mean of the discriminator audio.
-    #[field(label = "Carrier offset", unit = "Hz")]
+    #[field(label = "Carrier offset", unit = "Hz", reading = 5)]
     pub carrier_offset_hz: Option<Hertz>,
     /// The windows measured.
     #[field(label = "Windows")]
@@ -1521,7 +1534,7 @@ pub struct SinadFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SinadEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// SINAD.
     #[field(label = "SINAD", unit = "dB")]
@@ -1565,7 +1578,7 @@ pub struct SinadCrossingEvent {
 
 /// The readings, newest first.
 pub static SINAD_EVENTS: Table<SinadEventRow> =
-    Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Readings", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 /// The SINAD crossed the mark.
 pub static SINAD_CROSSING: EventKind<SinadCrossingEvent> =
     EventKind::new("sinad.crossing", "Crossing");
@@ -1591,10 +1604,10 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NfmMeterFields {
     /// The 99.9th percentile of the voice band deviation of the window.
-    #[field(label = "Voice peak deviation", unit = "kHz")]
+    #[field(label = "Voice peak deviation", unit = "kHz", reading = 1)]
     pub voice_peak_khz: Option<f64>,
     /// The largest voice peak so far.
-    #[field(label = "Largest voice peak", unit = "kHz")]
+    #[field(label = "Largest voice peak", unit = "kHz", reading = 2)]
     pub voice_peak_max_khz: Option<f64>,
     /// Windows over the narrow channel limit.
     #[field(label = "Windows over the narrow limit")]
@@ -1606,7 +1619,7 @@ pub struct NfmMeterFields {
     #[field(label = "Windows")]
     pub windows: i64,
     /// The CTCSS tone measured.
-    #[field(label = "CTCSS tone", unit = "Hz")]
+    #[field(label = "CTCSS tone", unit = "Hz", reading = 3)]
     pub ctcss_hz: Option<Hertz>,
     /// The nearest standard tone.
     #[field(label = "Nearest standard tone", unit = "Hz")]
@@ -1615,7 +1628,7 @@ pub struct NfmMeterFields {
     #[field(label = "CTCSS error", unit = "Hz")]
     pub ctcss_error_hz: Option<Hertz>,
     /// The peak deviation of the CTCSS tone.
-    #[field(label = "CTCSS deviation", unit = "Hz")]
+    #[field(label = "CTCSS deviation", unit = "Hz", reading = 4)]
     pub ctcss_deviation_hz: Option<Hertz>,
     /// The CTCSS deviation as a share of the narrow limit.
     #[field(label = "CTCSS of the narrow limit", unit = "%")]
@@ -1624,7 +1637,7 @@ pub struct NfmMeterFields {
     #[field(label = "CTCSS of the wide limit", unit = "%")]
     pub ctcss_share_wide_pct: Option<f64>,
     /// The carrier offset: the mean of the discriminator audio.
-    #[field(label = "Carrier offset", unit = "Hz")]
+    #[field(label = "Carrier offset", unit = "Hz", reading = 5)]
     pub carrier_offset_hz: Option<Hertz>,
 }
 
@@ -1632,7 +1645,7 @@ pub struct NfmMeterFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NfmMeterEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The kind.
     #[field(label = "Kind")]
@@ -1653,7 +1666,7 @@ pub struct NfmMeterEventRow {
 
 /// The tone and over-deviation rows, newest first.
 pub static NFM_METER_EVENTS: Table<NfmMeterEventRow> =
-    Table::new("events", "Events", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Events", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- tx_stability ----
 
@@ -1676,22 +1689,22 @@ pub struct TxStabilityFields {
     #[field(label = "Final frequency", unit = "Hz")]
     pub final_hz: Option<Hertz>,
     /// Start minus final.
-    #[field(label = "Key-up step (start minus final)", unit = "Hz")]
+    #[field(label = "Key-up step (start minus final)", unit = "Hz", reading = 4)]
     pub keyup_step_hz: Option<Hertz>,
     /// The time of the last reading outside the settling band, plus 0.05 s.
-    #[field(label = "Settling time", unit = "s")]
+    #[field(label = "Settling time", unit = "s", reading = 5)]
     pub settle_s: Option<Seconds>,
     /// The larger of 10 Hz and a tenth of the key-up step.
     #[field(label = "Settling band", unit = "Hz")]
     pub settle_band_hz: Option<Hertz>,
     /// The least-squares slope of the readings of the second half.
-    #[field(label = "Drift over the second half", unit = "Hz/s")]
+    #[field(label = "Drift over the second half", unit = "Hz/s", reading = 3)]
     pub drift_hz_s: Option<f64>,
     /// The mean of all readings.
-    #[field(label = "Mean offset", unit = "Hz")]
+    #[field(label = "Mean offset", unit = "Hz", reading = 1)]
     pub mean_hz: Option<Hertz>,
     /// The mean over the tuned frequency; no value without it.
-    #[field(label = "Mean offset", unit = "ppm")]
+    #[field(label = "Mean offset", unit = "ppm", reading = 2)]
     pub mean_ppm: Option<f64>,
     /// The RMS residual about the drift line.
     #[field(label = "RMS about the drift line", unit = "Hz")]
@@ -1705,7 +1718,7 @@ pub struct TxStabilityFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct TxStabilityTransmissionRow {
     /// The key-up, signal time.
-    #[field(label = "Key-up", unit = "s")]
+    #[field(label = "Key-up", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The length of the transmission.
     #[field(label = "Length", unit = "s")]
@@ -1785,7 +1798,7 @@ pub struct TxStabilityTransmissionEvent {
 
 /// The analysed transmissions, newest first.
 pub static TX_STABILITY_TRANSMISSIONS: Table<TxStabilityTransmissionRow> =
-    Table::new("transmissions", "Transmissions", crate::txtest::ROWS_KEPT);
+    Table::new("transmissions", "Transmissions", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 /// A transmission was analysed.
 pub static TX_STABILITY_TRANSMISSION: EventKind<TxStabilityTransmissionEvent> =
     EventKind::new("tx_stability.transmission", "Transmission");
@@ -1819,7 +1832,7 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SsbTestFields {
     /// The test seen.
-    #[field(label = "Test")]
+    #[field(label = "Test", reading = 1)]
     pub kind: SsbTestKind,
     /// The sideband of the tones.
     #[field(label = "Sideband")]
@@ -1835,7 +1848,7 @@ pub struct SsbTestFields {
     pub tone_level_diff_db: Option<f64>,
     /// The carrier leak under the tone (the weaker tone of two). When no carrier is seen, the floor of the carrier search:
     /// the leak is at least this far under the tone.
-    #[field(label = "Carrier leak under the tone", unit = "dB")]
+    #[field(label = "Carrier leak under the tone", unit = "dB", reading = 4)]
     pub carrier_db: Option<f64>,
     /// No carrier is seen and the value is the floor of the carrier search, a bound.
     #[field(label = "Carrier under the floor")]
@@ -1844,13 +1857,13 @@ pub struct SsbTestFields {
     #[field(label = "Carrier seen")]
     pub carrier_found: Option<bool>,
     /// The opposite sideband of the (lower) tone.
-    #[field(label = "Opposite sideband under the tone", unit = "dB")]
+    #[field(label = "Opposite sideband under the tone", unit = "dB", reading = 5)]
     pub opposite_db: Option<f64>,
     /// The opposite sideband is under the floor.
     #[field(label = "Opposite sideband under the floor")]
     pub opposite_under: Option<bool>,
     /// Harmonic 2 of the audio tone (one tone).
-    #[field(label = "Harmonic 2 under the tone", unit = "dB")]
+    #[field(label = "Harmonic 2 under the tone", unit = "dB", reading = 6)]
     pub h2_db: Option<f64>,
     /// Harmonic 3 of the audio tone (one tone).
     #[field(label = "Harmonic 3 under the tone", unit = "dB")]
@@ -1874,10 +1887,10 @@ pub struct SsbTestFields {
     #[field(label = "Harmonic 5 under the floor")]
     pub h5_under: Option<bool>,
     /// The stronger product of order 3 under the weaker tone (two tones).
-    #[field(label = "IMD3 under one tone", unit = "dB")]
+    #[field(label = "IMD3 under one tone", unit = "dB", reading = 2)]
     pub imd3_db: Option<f64>,
     /// The stronger product of order 5 under the weaker tone (two tones).
-    #[field(label = "IMD5 under one tone", unit = "dB")]
+    #[field(label = "IMD5 under one tone", unit = "dB", reading = 3)]
     pub imd5_db: Option<f64>,
     /// The stronger product of order 7 under the weaker tone (two tones).
     #[field(label = "IMD7 under one tone", unit = "dB")]
@@ -1909,7 +1922,7 @@ pub struct SsbTestFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SsbTestEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The test seen.
     #[field(label = "Test")]
@@ -2000,7 +2013,7 @@ pub struct SsbTestEventRow {
 
 /// The test rows, newest first.
 pub static SSB_TEST_EVENTS: Table<SsbTestEventRow> =
-    Table::new("events", "Tests", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Tests", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- afsk_tuner ----
 
@@ -2008,10 +2021,10 @@ pub static SSB_TEST_EVENTS: Table<SsbTestEventRow> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct AfskTunerFields {
     /// The mark tone of the last burst.
-    #[field(label = "Mark tone", unit = "Hz")]
+    #[field(label = "Mark tone", unit = "Hz", reading = 1)]
     pub mark_hz: Option<Hertz>,
     /// The space tone of the last burst.
-    #[field(label = "Space tone", unit = "Hz")]
+    #[field(label = "Space tone", unit = "Hz", reading = 2)]
     pub space_hz: Option<Hertz>,
     /// The mark tone minus the set mark tone.
     #[field(label = "Mark error", unit = "Hz")]
@@ -2020,10 +2033,10 @@ pub struct AfskTunerFields {
     #[field(label = "Space error", unit = "Hz")]
     pub space_error_hz: Option<Hertz>,
     /// The twist of the last burst.
-    #[field(label = "Twist, space over mark", unit = "dB")]
+    #[field(label = "Twist, space over mark", unit = "dB", reading = 3)]
     pub twist_db: Option<f64>,
     /// The peak deviation of the last burst.
-    #[field(label = "Peak deviation", unit = "kHz")]
+    #[field(label = "Peak deviation", unit = "kHz", reading = 4)]
     pub peak_deviation_khz: Option<f64>,
     /// The length of the last burst.
     #[field(label = "Burst length", unit = "s")]
@@ -2046,7 +2059,7 @@ pub struct AfskTunerFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct AfskTunerBurstRow {
     /// The start of the burst, signal time.
-    #[field(label = "Start", unit = "s")]
+    #[field(label = "Start", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The length of the burst.
     #[field(label = "Length", unit = "s")]
@@ -2096,7 +2109,7 @@ pub struct AfskTunerBurstEvent {
 
 /// The analysed bursts, newest first.
 pub static AFSK_TUNER_BURSTS: Table<AfskTunerBurstRow> =
-    Table::new("bursts", "Bursts", crate::txtest::ROWS_KEPT);
+    Table::new("bursts", "Bursts", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 /// A burst was analysed.
 pub static AFSK_TUNER_BURST: EventKind<AfskTunerBurstEvent> =
     EventKind::new("afsk_tuner.burst", "Burst");
@@ -2120,19 +2133,19 @@ pub struct PhaseNoiseFields {
     #[field(label = "L(10 Hz)", unit = "dBc/Hz")]
     pub l_10hz: Option<f64>,
     /// Single-sideband phase noise at 100 Hz from the carrier.
-    #[field(label = "L(100 Hz)", unit = "dBc/Hz")]
+    #[field(label = "L(100 Hz)", unit = "dBc/Hz", reading = 1)]
     pub l_100hz: Option<f64>,
     /// Single-sideband phase noise at 1 kHz from the carrier.
-    #[field(label = "L(1 kHz)", unit = "dBc/Hz")]
+    #[field(label = "L(1 kHz)", unit = "dBc/Hz", reading = 2)]
     pub l_1khz: Option<f64>,
     /// Single-sideband phase noise at 10 kHz from the carrier.
-    #[field(label = "L(10 kHz)", unit = "dBc/Hz")]
+    #[field(label = "L(10 kHz)", unit = "dBc/Hz", reading = 3)]
     pub l_10khz: Option<f64>,
     /// Single-sideband phase noise at 100 kHz from the carrier.
-    #[field(label = "L(100 kHz)", unit = "dBc/Hz")]
+    #[field(label = "L(100 kHz)", unit = "dBc/Hz", reading = 4)]
     pub l_100khz: Option<f64>,
     /// The RMS phase jitter of the integration band.
-    #[field(label = "Integrated phase jitter", unit = "mrad")]
+    #[field(label = "Integrated phase jitter", unit = "mrad", reading = 5)]
     pub jitter_mrad: Option<f64>,
     /// The jitter as time at the tuned frequency; no value without it.
     #[field(label = "Integrated jitter as time", unit = "ps")]
@@ -2172,7 +2185,7 @@ pub struct PhaseNoiseSpurRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct PhaseNoiseEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The kind.
     #[field(label = "Kind")]
@@ -2207,7 +2220,7 @@ pub static PHASE_NOISE_SPURS: Table<PhaseNoiseSpurRow> = Table::new("spurs", "Sp
 );
 /// The readings and losses, newest first.
 pub static PHASE_NOISE_EVENTS: Table<PhaseNoiseEventRow> =
-    Table::new("events", "Events", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Events", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- cw_keying ----
 
@@ -2216,7 +2229,7 @@ pub static PHASE_NOISE_EVENTS: Table<PhaseNoiseEventRow> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct CwKeyingFields {
     /// The speed in words a minute of 50 units.
-    #[field(label = "Speed (PARIS)", unit = "wpm")]
+    #[field(label = "Speed (PARIS)", unit = "wpm", reading = 1)]
     pub wpm: Option<f64>,
     /// The mean dit.
     #[field(label = "Dit", unit = "ms")]
@@ -2225,7 +2238,7 @@ pub struct CwKeyingFields {
     #[field(label = "Dah", unit = "ms")]
     pub dah_ms: Option<f64>,
     /// The mean dah over the mean dit.
-    #[field(label = "Dah over dit (ideal 3.00)")]
+    #[field(label = "Dah over dit (ideal 3.00)", reading = 3)]
     pub dah_ratio: Option<f64>,
     /// The mean gap inside a character, in dits.
     #[field(label = "Element gap (ideal 1)", unit = "dits")]
@@ -2243,19 +2256,19 @@ pub struct CwKeyingFields {
     #[field(label = "Word gaps")]
     pub word_gaps: Option<i64>,
     /// The dit length over the element gap length.
-    #[field(label = "Dit over element gap (ideal 1.00)")]
+    #[field(label = "Dit over element gap (ideal 1.00)", reading = 2)]
     pub weight: Option<f64>,
     /// The population standard deviation of the dits over their mean.
     #[field(label = "Coefficient of variation of the dit", unit = "%")]
     pub dit_scatter_pct: Option<f64>,
     /// The mean 10 to 90 % rise of the marks; 1.5 ms is the least the envelope filter shows.
-    #[field(label = "10 to 90 % rise", unit = "ms")]
+    #[field(label = "10 to 90 % rise", unit = "ms", reading = 4)]
     pub rise_ms: Option<f64>,
     /// The mean 90 to 10 % fall of the marks.
     #[field(label = "90 to 10 % fall", unit = "ms")]
     pub fall_ms: Option<f64>,
     /// The mean frequency of the start of a mark minus that of its second half.
-    #[field(label = "Chirp", unit = "Hz")]
+    #[field(label = "Chirp", unit = "Hz", reading = 5)]
     pub chirp_hz: Option<f64>,
     /// The marks the chirp is from.
     #[field(label = "Marks of the chirp")]
@@ -2275,7 +2288,7 @@ pub struct CwKeyingFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct CwKeyingEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The speed.
     #[field(label = "Speed (PARIS)", unit = "wpm")]
@@ -2314,7 +2327,7 @@ pub struct CwKeyingEventRow {
 
 /// The keying rows, newest first.
 pub static CW_KEYING_EVENTS: Table<CwKeyingEventRow> =
-    Table::new("events", "Keying", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Keying", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- fsk_analyser ----
 
@@ -2332,22 +2345,22 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FskAnalyserFields {
     /// The number of levels.
-    #[field(label = "Levels")]
+    #[field(label = "Levels", reading = 1)]
     pub levels: Option<FskLevels>,
     /// Two levels with a modulation index of 0.5.
     #[field(label = "Modulation index 0.5")]
     pub msk_like: Option<bool>,
     /// The symbol rate.
-    #[field(label = "Symbol rate", unit = "Bd")]
+    #[field(label = "Symbol rate", unit = "Bd", reading = 2)]
     pub symbol_rate_bd: Option<f64>,
     /// Two levels: the distance of the tones; four: the mean distance of neighbours.
-    #[field(label = "Shift", unit = "Hz")]
+    #[field(label = "Shift", unit = "Hz", reading = 3)]
     pub shift_hz: Option<Hertz>,
     /// The distance of the outer levels.
     #[field(label = "Outer distance", unit = "Hz")]
     pub outer_hz: Option<Hertz>,
     /// The outer distance over the symbol rate.
-    #[field(label = "Modulation index", unit = "")]
+    #[field(label = "Modulation index", unit = "", reading = 4)]
     pub mod_index: Option<f64>,
     /// The centre of the levels from the tuned frequency.
     #[field(label = "Centre", unit = "Hz")]
@@ -2359,7 +2372,7 @@ pub struct FskAnalyserFields {
     #[field(label = "Equal spacing")]
     pub spacing_equal: Option<bool>,
     /// The level spacing over the spread inside a level.
-    #[field(label = "Eye SNR", unit = "dB")]
+    #[field(label = "Eye SNR", unit = "dB", reading = 5)]
     pub eye_snr_db: Option<f64>,
 }
 
@@ -2378,7 +2391,7 @@ pub struct FskAnalyserLevelRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FskAnalyserEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The number of levels.
     #[field(label = "Levels")]
@@ -2405,7 +2418,7 @@ pub static FSK_ANALYSER_LEVEL_FREQS: Table<FskAnalyserLevelRow> =
     Table::new("level_freqs", "Levels", 4);
 /// The readings, newest first.
 pub static FSK_ANALYSER_EVENTS: Table<FskAnalyserEventRow> =
-    Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Readings", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- mer ----
 
@@ -2428,19 +2441,19 @@ pub struct MerFields {
     #[field(label = "PSK carrier found")]
     pub locked: Option<bool>,
     /// The order.
-    #[field(label = "Order")]
+    #[field(label = "Order", reading = 3)]
     pub modulation: Option<MerModulation>,
     /// The modulation error ratio after matched filtering, timing and phase recovery.
-    #[field(label = "MER", unit = "dB")]
+    #[field(label = "MER", unit = "dB", reading = 1)]
     pub mer_db: Option<f64>,
     /// The RMS error vector, of the RMS amplitude.
-    #[field(label = "EVM", unit = "%")]
+    #[field(label = "EVM", unit = "%", reading = 2)]
     pub evm_pct: Option<f64>,
     /// The symbol rate.
-    #[field(label = "Symbol rate", unit = "Bd")]
+    #[field(label = "Symbol rate", unit = "Bd", reading = 4)]
     pub symbol_rate_bd: Option<f64>,
     /// The carrier offset from the tuned frequency.
-    #[field(label = "Carrier offset", unit = "Hz")]
+    #[field(label = "Carrier offset", unit = "Hz", reading = 5)]
     pub carrier_offset_hz: Option<Hertz>,
     /// The roll-off of the best matched filter.
     #[field(label = "Best roll-off", unit = "")]
@@ -2454,7 +2467,7 @@ pub struct MerFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct MerEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The order.
     #[field(label = "Order")]
@@ -2478,7 +2491,7 @@ pub struct MerEventRow {
 
 /// The readings, newest first.
 pub static MER_EVENTS: Table<MerEventRow> =
-    Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Readings", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- papr ----
 
@@ -2516,13 +2529,13 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct PaprFields {
     /// The mean power, relative to full scale.
-    #[field(label = "Mean power", unit = "dBFS")]
+    #[field(label = "Mean power", unit = "dBFS", reading = 3)]
     pub mean_dbfs: Option<f64>,
     /// The largest instantaneous power.
-    #[field(label = "Peak", unit = "dBFS")]
+    #[field(label = "Peak", unit = "dBFS", reading = 4)]
     pub peak_dbfs: Option<f64>,
     /// The peak over the mean power.
-    #[field(label = "Crest factor", unit = "dB")]
+    #[field(label = "Crest factor", unit = "dB", reading = 1)]
     pub crest_db: Option<f64>,
     /// The level over the mean exceeded by 10 % of the samples.
     #[field(label = "Level at 10 %", unit = "dB")]
@@ -2531,7 +2544,7 @@ pub struct PaprFields {
     #[field(label = "Level at 1 %", unit = "dB")]
     pub ccdf_1_db: Option<f64>,
     /// The level exceeded by 0.1 %.
-    #[field(label = "Level at 0.1 %", unit = "dB")]
+    #[field(label = "Level at 0.1 %", unit = "dB", reading = 2)]
     pub ccdf_01_db: Option<f64>,
     /// The level exceeded by 0.01 %; only with a million samples or more.
     #[field(label = "Level at 0.01 %", unit = "dB")]
@@ -2548,7 +2561,7 @@ pub struct PaprFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct PaprEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The level at 10 %.
     #[field(label = "Level at 10 %", unit = "dB")]
@@ -2575,7 +2588,7 @@ pub struct PaprEventRow {
 
 /// The readings, newest first.
 pub static PAPR_EVENTS: Table<PaprEventRow> =
-    Table::new("events", "Readings", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Readings", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- input_health ----
 
@@ -2608,16 +2621,16 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct InputHealthFields {
     /// The RMS level, DC included.
-    #[field(label = "Level", unit = "dBFS")]
+    #[field(label = "Level", unit = "dBFS", reading = 2)]
     pub rms_dbfs: Option<f64>,
     /// The largest of `|I|` and `|Q|`.
-    #[field(label = "Peak", unit = "dBFS")]
+    #[field(label = "Peak", unit = "dBFS", reading = 3)]
     pub peak_dbfs: Option<f64>,
     /// The peak over the RMS level.
     #[field(label = "Crest factor", unit = "dB")]
     pub crest_db: Option<f64>,
     /// The samples with `|I|` or `|Q|` at the clip level or over it.
-    #[field(label = "Samples near full scale", unit = "ppm")]
+    #[field(label = "Samples near full scale", unit = "ppm", reading = 4)]
     pub clipping_ppm: Option<f64>,
     /// The mean of I.
     #[field(label = "DC of I", unit = "%")]
@@ -2626,7 +2639,7 @@ pub struct InputHealthFields {
     #[field(label = "DC of Q", unit = "%")]
     pub dc_q_pct: Option<f64>,
     /// The length of the mean vector.
-    #[field(label = "DC offset", unit = "%")]
+    #[field(label = "DC offset", unit = "%", reading = 5)]
     pub dc_pct: Option<f64>,
     /// The power of the mean vector under the RMS level.
     #[field(label = "DC under the level", unit = "dB")]
@@ -2635,13 +2648,13 @@ pub struct InputHealthFields {
     #[field(label = "IQ gain mismatch, Q against I", unit = "dB")]
     pub iq_gain_db: Option<f64>,
     /// `asin` of the correlation of I and Q.
-    #[field(label = "IQ phase error", unit = "deg")]
+    #[field(label = "IQ phase error", unit = "°")]
     pub iq_phase_deg: Option<f64>,
     /// The image rejection that the mismatch implies, at most 120 dB.
-    #[field(label = "Image rejection from the mismatch", unit = "dB")]
+    #[field(label = "Image rejection from the mismatch", unit = "dB", reading = 6)]
     pub image_rejection_db: Option<f64>,
     /// The level verdict.
-    #[field(label = "Level verdict")]
+    #[field(label = "Level verdict", reading = 1)]
     pub verdict: Option<InputVerdict>,
 }
 
@@ -2649,7 +2662,7 @@ pub struct InputHealthFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct InputHealthEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// What the row reports.
     #[field(label = "Kind")]
@@ -2670,7 +2683,7 @@ pub struct InputHealthEventRow {
 
 /// The changes of the verdict and the clipping, newest first.
 pub static INPUT_HEALTH_EVENTS: Table<InputHealthEventRow> =
-    Table::new("events", "Changes", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Changes", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- noise_figure ----
 
@@ -2688,16 +2701,16 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NoiseFigureFields {
     /// The level of the present plateau of the power.
-    #[field(label = "Power now", unit = "dB")]
+    #[field(label = "Power now", unit = "dB", reading = 2)]
     pub power_db: Option<f64>,
     /// The Y-factor: the mean of the kept steps.
-    #[field(label = "Y-factor", unit = "dB")]
+    #[field(label = "Y-factor", unit = "dB", reading = 1)]
     pub y_db: Option<f64>,
     /// The Y-factor as a ratio.
     #[field(label = "Y-factor ratio")]
     pub y_lin: Option<f64>,
     /// The sample standard deviation of the kept steps.
-    #[field(label = "Spread of the steps", unit = "dB")]
+    #[field(label = "Spread of the steps", unit = "dB", reading = 3)]
     pub y_spread_db: Option<f64>,
     /// The steps seen.
     #[field(label = "Steps seen")]
@@ -2722,7 +2735,7 @@ pub struct NoiseFigureRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NoiseFigureEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The state of the source after the step.
     #[field(label = "State")]
@@ -2746,7 +2759,7 @@ pub static NOISE_FIGURE_TABLE: Table<NoiseFigureRow> =
     Table::new("noise_figure", "Noise figure", 32);
 /// The steps, newest first.
 pub static NOISE_FIGURE_EVENTS: Table<NoiseFigureEventRow> =
-    Table::new("events", "Steps", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Steps", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- kurtosis ----
 
@@ -2776,13 +2789,13 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct KurtosisFields {
     /// The share of the used bins whose SK is within the limits.
-    #[field(label = "Clean bins", unit = "%")]
+    #[field(label = "Clean bins", unit = "%", reading = 1)]
     pub clean_pct: Option<f64>,
     /// The expected standard deviation of SK for Gaussian noise.
     #[field(label = "Expected spread of SK")]
     pub sigma: f64,
     /// The flagged regions.
-    #[field(label = "Flagged regions")]
+    #[field(label = "Flagged regions", reading = 2)]
     pub regions: Option<i64>,
     /// The time of one evaluation.
     #[field(label = "Evaluation time", unit = "ms")]
@@ -2816,7 +2829,7 @@ pub struct KurtosisRegionRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct KurtosisEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// What happened.
     #[field(label = "Kind")]
@@ -2842,7 +2855,7 @@ pub struct KurtosisEventRow {
 pub static KURTOSIS_REGIONS: Table<KurtosisRegionRow> = Table::new("regions", "Regions", 8);
 /// The changes, newest first.
 pub static KURTOSIS_EVENTS: Table<KurtosisEventRow> =
-    Table::new("events", "Changes", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Changes", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- glitch ----
 
@@ -2869,19 +2882,19 @@ pub struct GlitchFields {
     #[field(label = "Watched tone", unit = "Hz")]
     pub tone_hz: Option<Hertz>,
     /// Sample drop events.
-    #[field(label = "Sample drops")]
+    #[field(label = "Sample drops", reading = 1)]
     pub sample_drops: i64,
     /// Sample repeat events.
-    #[field(label = "Sample repeats")]
+    #[field(label = "Sample repeats", reading = 2)]
     pub sample_repeats: i64,
     /// Zero runs.
-    #[field(label = "Zero runs")]
+    #[field(label = "Zero runs", reading = 3)]
     pub zero_runs: i64,
     /// Repeated blocks.
-    #[field(label = "Repeated blocks")]
+    #[field(label = "Repeated blocks", reading = 4)]
     pub repeated_blocks: i64,
     /// Level steps.
-    #[field(label = "Level steps")]
+    #[field(label = "Level steps", reading = 5)]
     pub level_steps: i64,
     /// The time observed since the start or the last retune.
     #[field(label = "Time observed", unit = "s")]
@@ -2892,7 +2905,7 @@ pub struct GlitchFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct GlitchEventRow {
     /// The signal time of the fault.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The kind.
     #[field(label = "Kind")]
@@ -2942,7 +2955,7 @@ pub struct GlitchEvent {
 
 /// The stream faults, newest first.
 pub static GLITCH_EVENTS: Table<GlitchEventRow> =
-    Table::new("events", "Faults", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Faults", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 /// A stream fault.
 pub static GLITCH_EVENT: EventKind<GlitchEvent> = EventKind::new("glitch.event", "Stream fault");
 
@@ -2978,16 +2991,16 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct IntermodFields {
     /// The strong signals used as parents.
-    #[field(label = "Strong signals")]
+    #[field(label = "Strong signals", reading = 4)]
     pub inputs: Option<i64>,
     /// The peaks at product frequencies.
-    #[field(label = "Peaks at product frequencies")]
+    #[field(label = "Peaks at product frequencies", reading = 1)]
     pub products: Option<i64>,
     /// Those that follow the law.
-    #[field(label = "Following the law")]
+    #[field(label = "Following the law", reading = 2)]
     pub products_follow: Option<i64>,
     /// Those called independent.
-    #[field(label = "Independent")]
+    #[field(label = "Independent", reading = 3)]
     pub products_independent: Option<i64>,
     /// Those unclear or that cannot be told.
     #[field(label = "Unknown")]
@@ -3044,7 +3057,7 @@ pub struct IntermodProductRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct IntermodEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The frequency of the peak.
     #[field(label = "Frequency", unit = "Hz")]
@@ -3116,7 +3129,7 @@ pub static INTERMOD_INPUTS: Table<IntermodInputRow> = Table::new("inputs", "Stro
 pub static INTERMOD_PRODUCTS: Table<IntermodProductRow> = Table::new("products", "Products", 200);
 /// The verdicts that held, newest first.
 pub static INTERMOD_EVENTS: Table<IntermodEventRow> =
-    Table::new("events", "Verdicts", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Verdicts", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 /// A verdict of a product held for two evaluations.
 pub static INTERMOD_PRODUCT: EventKind<IntermodProductEvent> =
     EventKind::new("intermod.product", "Product");
@@ -3173,22 +3186,22 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SpurFields {
     /// The largest bin within 2 bins of 0 Hz over the noise.
-    #[field(label = "DC spike over the noise", unit = "dB")]
+    #[field(label = "DC spike over the noise", unit = "dB", reading = 4)]
     pub dc_db: Option<f64>,
     /// The DC spike is over its threshold.
     #[field(label = "DC spike present")]
     pub dc_spike: Option<bool>,
     /// The strong signals.
-    #[field(label = "Strong signals")]
+    #[field(label = "Strong signals", reading = 5)]
     pub signals: Option<i64>,
     /// Images not called independent.
-    #[field(label = "Images")]
+    #[field(label = "Images", reading = 1)]
     pub images: Option<i64>,
     /// Harmonics not called independent.
-    #[field(label = "Harmonics")]
+    #[field(label = "Harmonics", reading = 2)]
     pub harmonics: Option<i64>,
     /// Fixed spurs.
-    #[field(label = "Fixed spurs")]
+    #[field(label = "Fixed spurs", reading = 3)]
     pub fixed_spurs: Option<i64>,
     /// The snapshots taken.
     #[field(label = "Snapshots")]
@@ -3226,7 +3239,7 @@ pub struct SpurFindingRow {
     #[field(label = "Gain mismatch alone", unit = "dB")]
     pub gain_mismatch_db: Option<f64>,
     /// The phase mismatch alone that gives this image.
-    #[field(label = "Phase mismatch alone", unit = "deg")]
+    #[field(label = "Phase mismatch alone", unit = "°")]
     pub phase_mismatch_deg: Option<f64>,
 }
 
@@ -3234,7 +3247,7 @@ pub struct SpurFindingRow {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct SpurEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The kind.
     #[field(label = "Kind")]
@@ -3264,7 +3277,7 @@ pub struct SpurEventRow {
     #[field(label = "Gain mismatch alone", unit = "dB")]
     pub gain_mismatch_db: Option<f64>,
     /// The phase mismatch alone.
-    #[field(label = "Phase mismatch alone", unit = "deg")]
+    #[field(label = "Phase mismatch alone", unit = "°")]
     pub phase_mismatch_deg: Option<f64>,
     /// The DC spike over the noise (kind dc).
     #[field(label = "DC spike over the noise", unit = "dB")]
@@ -3275,7 +3288,7 @@ pub struct SpurEventRow {
 pub static SPUR_FINDINGS: Table<SpurFindingRow> = Table::new("findings", "Findings", 200);
 /// The verdicts that held and the DC spike, newest first.
 pub static SPUR_EVENTS: Table<SpurEventRow> =
-    Table::new("events", "Findings log", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Findings log", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- fading ----
 
@@ -3297,7 +3310,7 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FadingFields {
     /// The Rician K-factor; 40 dB for no fading, no value for K = 0 (Rayleigh).
-    #[field(label = "Rician K-factor", unit = "dB")]
+    #[field(label = "Rician K-factor", unit = "dB", reading = 1)]
     pub k_db: Option<f64>,
     /// The K-factor as a ratio.
     #[field(label = "Rician K-factor ratio")]
@@ -3321,19 +3334,19 @@ pub struct FadingFields {
     #[field(label = "Level at 99 %", unit = "dB")]
     pub p99_db: Option<f64>,
     /// The median over the 1 % level.
-    #[field(label = "Fade depth", unit = "dB")]
+    #[field(label = "Fade depth", unit = "dB", reading = 2)]
     pub fade_depth_db: Option<f64>,
     /// The scintillation index S4.
-    #[field(label = "Scintillation index")]
+    #[field(label = "Scintillation index", reading = 3)]
     pub s4: Option<f64>,
     /// Downward crossings of the fade threshold per second.
-    #[field(label = "Fade rate", unit = "1/s")]
+    #[field(label = "Fade rate", unit = "1/s", reading = 4)]
     pub fade_rate_hz: Option<f64>,
     /// The average time under the fade threshold.
     #[field(label = "Average fade length", unit = "ms")]
     pub fade_length_ms: Option<f64>,
     /// The RMS Doppler spread.
-    #[field(label = "Doppler spread", unit = "Hz")]
+    #[field(label = "Doppler spread", unit = "Hz", reading = 5)]
     pub doppler_hz: Option<f64>,
     /// The carrier to noise density of the last block.
     #[field(label = "C/N0", unit = "dB-Hz")]
@@ -3350,7 +3363,7 @@ pub struct FadingFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FadingEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// What happened.
     #[field(label = "Kind")]
@@ -3383,7 +3396,7 @@ pub struct FadingEventRow {
 
 /// The carrier changes, the deep and long fades and the readings, newest first.
 pub static FADING_EVENTS: Table<FadingEventRow> =
-    Table::new("events", "Log", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Log", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 
 // ---- beacon_monitor ----
 
@@ -3405,16 +3418,16 @@ sdrkit_core::choice_enum! {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BeaconMonitorFields {
     /// The class of the path.
-    #[field(label = "Path")]
+    #[field(label = "Path", reading = 1)]
     pub class: BeaconPath,
     /// The line over the noise in a bin, last spectrum.
-    #[field(label = "Beacon over the noise in a bin", unit = "dB")]
+    #[field(label = "Beacon over the noise in a bin", unit = "dB", reading = 2)]
     pub level_db: Option<f64>,
     /// The Doppler spread of the line (a Gaussian full width at half height), last spectrum.
-    #[field(label = "Doppler spread of the line", unit = "Hz")]
+    #[field(label = "Doppler spread of the line", unit = "Hz", reading = 3)]
     pub spread_hz: Option<f64>,
     /// The largest minus the smallest level of the last 12 s, at the last decision.
-    #[field(label = "Level swing over the last 12 s", unit = "dB")]
+    #[field(label = "Level swing over the last 12 s", unit = "dB", reading = 4)]
     pub swing_db: Option<f64>,
     /// The line from the tuned frequency, last spectrum.
     #[field(label = "Line from the tuned frequency", unit = "Hz")]
@@ -3428,7 +3441,7 @@ pub struct BeaconMonitorFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BeaconMonitorEventRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: Seconds,
     /// The class before.
     #[field(label = "From")]
@@ -3472,7 +3485,7 @@ pub struct BeaconMonitorChangeEvent {
 
 /// The class changes, newest first.
 pub static BEACON_MONITOR_EVENTS: Table<BeaconMonitorEventRow> =
-    Table::new("events", "Class changes", crate::txtest::ROWS_KEPT);
+    Table::new("events", "Class changes", crate::txtest::ROWS_KEPT).role(TableRole::Log);
 /// A change of class.
 pub static BEACON_MONITOR_CHANGE: EventKind<BeaconMonitorChangeEvent> =
     EventKind::new("beacon_monitor.change", "Path change");
@@ -3483,42 +3496,7 @@ pub fn family() -> &'static Family {
     FAMILY.get_or_init(|| {
         let decoder_clear = &sdrkit_graph::decoder::CLEAR;
         let watcher_clear = &sdrkit_graph::decoder::CLEAR;
-        Family::new("meter", 1, 1)
-            .added(
-                1,
-                1,
-                &[
-                    "fm_monitor.content",
-                    "am_monitor.content",
-                    "occupancy.content",
-                    "noise_floor.content",
-                    "burst_finder.content",
-                    "hopper.content",
-                    "birdie.content",
-                    "obw.content",
-                    "ptt_log.content",
-                    "noise_locator.content",
-                    "freq_accuracy.content",
-                    "sinad.content",
-                    "nfm_meter.content",
-                    "tx_stability.content",
-                    "ssb_test.content",
-                    "afsk_tuner.content",
-                    "phase_noise.content",
-                    "cw_keying.content",
-                    "fsk_analyser.content",
-                    "mer.content",
-                    "papr.content",
-                    "input_health.content",
-                    "noise_figure.content",
-                    "kurtosis.content",
-                    "glitch.content",
-                    "intermod.content",
-                    "spur.content",
-                    "fading.content",
-                    "beacon_monitor.content",
-                ],
-            )
+        Family::new("meter", 2, 0)
             .content(
                 sdrkit_core::ContentKind::Measurement,
                 &[

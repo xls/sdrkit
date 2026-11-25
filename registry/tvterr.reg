@@ -1,5 +1,5 @@
 # The interface of the stack family tvterr. The registry test of the family writes this file.
-family tvterr version=1.7
+family tvterr version=1.8
 uses.mpegts major=1 since=1.0
 uses.ipcast major=1 since=1.0
 uses.graph major=1 since=1.0
@@ -16,7 +16,7 @@ shape.IsdbtFields.carrier_spacing type=hz unit=Hz optional=yes since=1.0
 shape.IsdbtFields.frame_length type=duration unit=s optional=yes since=1.0
 shape.IsdbtFields.offset_hz type=hz unit=Hz optional=yes since=1.0
 shape.IsdbtFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
-shape.IsdbtFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.IsdbtFields.snr_db type=f64 unit=dB optional=yes reading=2 since=1.0
 shape.IsdbtFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.IsdbtFields.frames_bad type=i64 unit= optional=no since=1.0
 shape.IsdbtFields.carrier_shift type=i64 unit= optional=yes since=1.0
@@ -29,7 +29,7 @@ shape.IsdbtFields.emergency_alarm type=bool unit= optional=yes since=1.0
 shape.IsdbtFields.partial_reception type=bool unit= optional=yes since=1.0
 shape.IsdbtFields.packets_ok_pct type=f64 unit=% optional=no since=1.0
 shape.IsdbtFields.net_rate_bit_s type=f64 unit=bit/s optional=no since=1.0
-shape.IsdbtFields.quality_pct type=f64 unit=% optional=no since=1.0
+shape.IsdbtFields.quality_pct type=f64 unit=% optional=no reading=1 since=1.0
 shape.IsdbtFields.quality type=choice(excellent,good,marginal,poor,no_lock) unit= optional=no since=1.0
 shape.IsdbtFields.step_mode type=choice(off,amber,green,red) unit= optional=no since=1.0
 shape.IsdbtFields.step_tmcc type=choice(off,amber,green,red) unit= optional=no since=1.0
@@ -69,7 +69,7 @@ shape.AtscFields.equaliser_trained type=bool unit= optional=no since=1.0
 shape.AtscFields.ts_flowing type=bool unit= optional=no since=1.0
 shape.AtscFields.offset_hz type=hz unit=Hz optional=yes since=1.0
 shape.AtscFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
-shape.AtscFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.AtscFields.snr_db type=f64 unit=dB optional=yes reading=2 since=1.0
 shape.AtscFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.AtscFields.frames_bad type=i64 unit= optional=no since=1.0
 shape.AtscFields.segment_correlation type=f64 unit= optional=no since=1.0
@@ -83,7 +83,7 @@ shape.AtscFields.rs_failed type=i64 unit= optional=no since=1.0
 shape.AtscFields.packets type=i64 unit= optional=no since=1.0
 shape.AtscFields.field_sync_misses type=i64 unit= optional=no since=1.0
 shape.AtscFields.lock_losses type=i64 unit= optional=no since=1.0
-shape.AtscFields.quality_pct type=f64 unit=% optional=no since=1.0
+shape.AtscFields.quality_pct type=f64 unit=% optional=no reading=1 since=1.0
 shape.AtscFields.quality type=choice(excellent,good,marginal,poor,no_lock) unit= optional=no since=1.0
 shape.AtscFields.step_pilot type=choice(off,amber,green,red) unit= optional=no since=1.0
 shape.AtscFields.step_segment type=choice(off,amber,green,red) unit= optional=no since=1.0
@@ -109,12 +109,14 @@ shape.Atsc3Fields.lls_tables type=i64 unit= optional=no since=1.0
 shape.Atsc3Fields.signed_signalling type=bool unit= optional=no since=1.0
 shape.Atsc3Fields.leap_seconds type=i64 unit=s optional=yes since=1.0
 shape.Atsc3Fields.service type=i64 unit= optional=yes since=1.0
-shape.Atsc3Fields.service_received type=i64 unit= optional=yes since=1.0
+shape.Atsc3Fields.service_received type=i64 unit= optional=yes reading=1 since=1.0
 shape.Atsc3Fields.route_objects type=i64 unit= optional=no since=1.0
 shape.Atsc3Fields.media_samples type=i64 unit= optional=no since=1.0
 shape.Atsc3Fields.step_bootstrap type=choice(off,amber,green,red) unit= optional=no since=1.0
 shape.Atsc3Fields.step_l1 type=choice(off,amber,green,red) unit= optional=no since=1.0
 shape.Atsc3Fields.step_service type=choice(off,amber,green,red) unit= optional=no since=1.0
+shape.Atsc3Fields.video_packets type=i64 unit= optional=no since=1.8
+shape.Atsc3Fields.audio_packets type=i64 unit= optional=no since=1.8
 shape.Atsc3FrameFields since=1.2
 shape.Atsc3FrameFields.frames_failed type=i64 unit= optional=no since=1.2
 shape.Atsc3FrameFields.not_decoded type=choice(structure,sample_rate,l1_basic,l1_detail,additional_parity,signalling,mimo,miso,tone_reservation,plp,samples,ldm,length,fec) unit= optional=yes since=1.2
@@ -138,7 +140,7 @@ shape.Atsc3FrameFields.baseband_packets type=i64 unit= optional=no since=1.2
 shape.Atsc3FrameFields.baseband_packets_bad type=i64 unit= optional=no since=1.2
 shape.Atsc3FrameFields.outer_corrected type=i64 unit= optional=no since=1.2
 shape.Atsc3FrameFields.ldpc_iterations type=f64 unit= optional=yes since=1.2
-shape.Atsc3FrameFields.mer_db type=f64 unit=dB optional=yes since=1.2
+shape.Atsc3FrameFields.mer_db type=f64 unit=dB optional=yes reading=2 since=1.2
 shape.Atsc3FrameFields.pilot_snr_db type=f64 unit=dB optional=yes since=1.2
 shape.Atsc3FrameFields.step_plp type=choice(off,amber,green,red) unit= optional=no since=1.2
 shape.Atsc3ServiceRow since=1.0
@@ -149,13 +151,18 @@ shape.Atsc3ServiceRow.hidden type=bool unit= optional=no since=1.0
 shape.Atsc3ServiceRow.id type=i64 unit= optional=no since=1.0
 shape.Atsc3ServiceRow.category type=choice(tv,radio,app,guide,alerts,drm,other) unit= optional=no since=1.0
 shape.Atsc3ServiceRow.delivery type=choice(route,mmtp,other) unit= optional=no since=1.0
-shape.Atsc3ServiceRow.action type=choice(receive,waiting,receiving,unsupported) unit= optional=no since=1.0
+shape.Atsc3ServiceRow.action type=choice(receive,waiting,receiving,unsupported,encrypted) unit= optional=no since=1.0
 shape.Atsc3ServiceRow.sls_objects type=i64 unit= optional=no since=1.0
 shape.Atsc3ServiceRow.sls_documents type=i64 unit= optional=no since=1.0
 shape.Atsc3ServiceRow.sls_signed_packages type=i64 unit= optional=no since=1.0
+shape.Atsc3ServiceRow.protected type=bool unit= optional=no since=1.8
 shape.Atsc3ComponentRow since=1.0
 shape.Atsc3ComponentRow.tsi type=i64 unit= optional=no since=1.0
 shape.Atsc3ComponentRow.fourcc type=text unit= optional=no since=1.0
+shape.Atsc3ComponentRow.destination type=text unit= optional=no since=1.8
+shape.Atsc3ComponentRow.service type=i64 unit= optional=yes since=1.8
+shape.Atsc3ComponentRow.kind type=choice(video,audio,subtitles,other) unit= optional=no since=1.8
+shape.Atsc3ComponentRow.state type=choice(given,other_service,other_track,encrypted,no_format,unbound) unit= optional=no since=1.8
 shape.Atsc3PlpRow since=1.2
 shape.Atsc3PlpRow.subframe type=i64 unit= optional=no since=1.4
 shape.Atsc3PlpRow.id type=i64 unit= optional=no since=1.2
@@ -188,7 +195,7 @@ shape.DtmbFields.mapping type=choice(4qam-nr,4qam,16qam,32qam,64qam) unit= optio
 shape.DtmbFields.code_rate type=choice(0.4,0.6,0.8) unit= optional=yes since=1.0
 shape.DtmbFields.interleaver type=choice(1,2) unit= optional=yes since=1.0
 shape.DtmbFields.carriers type=choice(3780,1) unit= optional=yes since=1.0
-shape.DtmbFields.mer_db type=f64 unit=dB optional=yes since=1.0
+shape.DtmbFields.mer_db type=f64 unit=dB optional=yes reading=1 since=1.0
 shape.DtmbFields.ldpc_ok type=i64 unit= optional=no since=1.0
 shape.DtmbFields.ldpc_bad type=i64 unit= optional=no since=1.0
 shape.DtmbFields.ldpc_iterations type=f64 unit= optional=no since=1.0
@@ -202,17 +209,17 @@ shape.DtmbFields.note type=text unit= optional=no since=1.0
 shape.DtmbFields.offset_hz type=hz unit=Hz optional=yes since=1.0
 shape.DtmbFields.clock_ppm type=f64 unit=ppm optional=yes since=1.0
 shape.DtmbFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
-shape.DtmbFields.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.DtmbFields.snr_db type=f64 unit=dB optional=yes reading=2 since=1.0
 shape.AutoFields since=1.0
 shape.AutoFields.line type=text unit= optional=no since=1.0
 shape.AutoFields.progress_pct type=f64 unit=% optional=no since=1.0
 shape.AutoFields.tries type=i64 unit= optional=no since=1.0
 shape.AutoFields.switch_to type=text unit= optional=yes since=1.0
-shape.AutoFields.standard type=choice(none,unknown,dvbt,dvbt2,isdbt,atsc,atsc3,dtmb,dvbc,dvbs,analog) unit= optional=yes since=1.0
+shape.AutoFields.standard type=choice(none,unknown,dvbt,dvbt2,isdbt,atsc,atsc3,dtmb,dvbc,dvbs,analog) unit= optional=yes reading=1 since=1.0
 shape.AutoFields.headline type=text unit= optional=yes since=1.0
-shape.AutoFields.verdict type=choice(no_signal,unsure,likely,sure) unit= optional=yes since=1.0
-shape.AutoFields.confidence_pct type=f64 unit=% optional=yes since=1.0
-shape.AutoFields.width type=hz unit=Hz optional=yes since=1.0
+shape.AutoFields.verdict type=choice(no_signal,unsure,likely,sure) unit= optional=yes reading=2 since=1.0
+shape.AutoFields.confidence_pct type=f64 unit=% optional=yes reading=3 since=1.0
+shape.AutoFields.width type=hz unit=Hz optional=yes reading=4 since=1.0
 shape.AutoFields.centre_offset type=hz unit=Hz optional=yes since=1.0
 shape.AutoFields.try_again_offered type=bool unit= optional=no since=1.0
 shape.DecoderFields since=1.0
@@ -310,7 +317,7 @@ atsc.setting.decode_video type=bool unit= since=1.1
 atsc.command.service.select args=row:text reply= since=1.0
 atsc.command.track.select args=row:text reply= since=1.0
 atsc3 since=1.0
-atsc3.content kind=television since=1.6
+atsc3.content kind=television audio=programme video=yes since=1.6
 atsc3.fields.Atsc3Fields since=1.0
 atsc3.fields.Atsc3FrameFields since=1.2
 atsc3.component.alp.fields.AlpFields since=1.0

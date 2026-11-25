@@ -1,6 +1,6 @@
 # The interface of the stack family ism. The registry test of the family writes this file.
-family ism version=3.1
-uses.ookdev major=1 since=1.0
+family ism version=4.0
+uses.ookdev major=2 since=1.0
 shape.IsmDetectFields since=1.0
 shape.IsmDetectFields.bursts_detected type=i64 unit= optional=no since=1.0
 shape.IsmDetectFields.noise_floor_dbfs type=f64 unit=dBFS optional=yes since=1.0
@@ -19,12 +19,12 @@ shape.IsmPulseFields.line_code type=choice(pwm,ppm,manchester,pcm) unit= optiona
 shape.IsmPulseFields.bits type=i64 unit= optional=yes since=1.0
 shape.IsmPulseFields.bits_bin type=text unit= optional=yes since=1.0
 shape.IsmPulseFields.bits_hex type=text unit= optional=yes since=1.0
-shape.IsmPulseFields.short_us type=f64 unit=µs optional=yes since=1.0
-shape.IsmPulseFields.long_us type=f64 unit=µs optional=yes since=1.0
-shape.IsmPulseFields.pulse_us type=f64 unit=µs optional=yes since=1.0
-shape.IsmPulseFields.period_us type=f64 unit=µs optional=yes since=1.0
-shape.IsmPulseFields.half_bit_us type=f64 unit=µs optional=yes since=1.0
-shape.IsmPulseFields.unit_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFields.short_us type=f64 unit=us optional=yes since=1.0
+shape.IsmPulseFields.long_us type=f64 unit=us optional=yes since=1.0
+shape.IsmPulseFields.pulse_us type=f64 unit=us optional=yes since=1.0
+shape.IsmPulseFields.period_us type=f64 unit=us optional=yes since=1.0
+shape.IsmPulseFields.half_bit_us type=f64 unit=us optional=yes since=1.0
+shape.IsmPulseFields.unit_us type=f64 unit=us optional=yes since=1.0
 shape.IsmPulseFields.bit_rate type=f64 unit=bit/s optional=yes since=1.0
 shape.IsmPulseFields.pulses type=i64 unit= optional=yes since=1.0
 shape.IsmPulseFields.frame_ms type=f64 unit=ms optional=yes since=1.0
@@ -71,8 +71,8 @@ shape.IsmUnknownRow.frequency type=hz unit=Hz optional=no since=1.0
 shape.IsmUnknownRow.modulation type=text unit= optional=no since=1.0
 shape.IsmUnknownRow.line_code type=text unit= optional=no since=1.0
 shape.IsmUnknownRow.pulses type=i64 unit= optional=no since=1.0
-shape.IsmUnknownRow.short_us type=f64 unit=µs optional=no since=1.0
-shape.IsmUnknownRow.long_us type=f64 unit=µs optional=no since=1.0
+shape.IsmUnknownRow.short_us type=f64 unit=us optional=no since=1.0
+shape.IsmUnknownRow.long_us type=f64 unit=us optional=no since=1.0
 shape.IsmUnknownRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.IsmUnknownRow.snr_db type=f64 unit=dB optional=no since=1.0
 shape.IsmUnknownRow.copy type=text unit= optional=no since=1.0
@@ -92,12 +92,12 @@ shape.IsmPulseFrameRow.line_code type=choice(pwm,ppm,manchester,pcm) unit= optio
 shape.IsmPulseFrameRow.bits type=i64 unit= optional=no since=1.0
 shape.IsmPulseFrameRow.bits_bin type=text unit= optional=no since=1.0
 shape.IsmPulseFrameRow.bits_hex type=text unit= optional=no since=1.0
-shape.IsmPulseFrameRow.short_us type=f64 unit=µs optional=yes since=1.0
-shape.IsmPulseFrameRow.long_us type=f64 unit=µs optional=yes since=1.0
-shape.IsmPulseFrameRow.pulse_us type=f64 unit=µs optional=yes since=1.0
-shape.IsmPulseFrameRow.period_us type=f64 unit=µs optional=yes since=1.0
-shape.IsmPulseFrameRow.half_bit_us type=f64 unit=µs optional=yes since=1.0
-shape.IsmPulseFrameRow.unit_us type=f64 unit=µs optional=yes since=1.0
+shape.IsmPulseFrameRow.short_us type=f64 unit=us optional=yes since=1.0
+shape.IsmPulseFrameRow.long_us type=f64 unit=us optional=yes since=1.0
+shape.IsmPulseFrameRow.pulse_us type=f64 unit=us optional=yes since=1.0
+shape.IsmPulseFrameRow.period_us type=f64 unit=us optional=yes since=1.0
+shape.IsmPulseFrameRow.half_bit_us type=f64 unit=us optional=yes since=1.0
+shape.IsmPulseFrameRow.unit_us type=f64 unit=us optional=yes since=1.0
 shape.IsmPulseFrameRow.bit_rate type=f64 unit=bit/s optional=yes since=1.0
 shape.IsmPulseFrameRow.pulses type=i64 unit= optional=no since=1.0
 shape.IsmPulseFrameRow.frame_ms type=f64 unit=ms optional=no since=1.0
@@ -324,7 +324,7 @@ shape.SigfoxMessageRow.auth type=text unit= optional=no since=1.0
 shape.SigfoxMessageRow.crc type=text unit= optional=no since=1.0
 shape.SigfoxMessageRow.frame_type type=text unit= optional=no since=1.0
 shape.SigfoxMessageRow.li type=i64 unit= optional=no since=1.0
-shape.SigfoxMessageRow.container_bytes type=i64 unit=bytes optional=no since=1.0
+shape.SigfoxMessageRow.container_bytes type=i64 unit=B optional=no since=1.0
 shape.SigfoxMessageRow.downlink type=bool unit= optional=no since=1.0
 shape.SigfoxMessageRow.control type=bool unit= optional=no since=1.0
 shape.AntFields since=1.0
@@ -397,7 +397,7 @@ shape.NrfAddressRow.heard type=i64 unit= optional=yes since=1.0
 shape.NrfAddressRow.last_heard type=time unit= optional=yes since=1.0
 shape.NrfBadBurstRow since=1.0
 shape.NrfBadBurstRow.time_s type=f64 unit=s optional=no since=1.0
-shape.NrfBadBurstRow.duration_us type=f64 unit=µs optional=no since=1.0
+shape.NrfBadBurstRow.duration_us type=f64 unit=us optional=no since=1.0
 shape.NrfBadBurstRow.snr_db type=f64 unit=dB optional=no since=1.0
 shape.NrfAddressEvent since=1.0
 shape.NrfAddressEvent.source type=text unit= optional=no since=1.0
@@ -419,7 +419,7 @@ shape.SubghzchatFields.snr_db type=f64 unit=dB optional=yes since=1.0
 shape.SubghzchatFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.SubghzchatLineRow since=1.0
 shape.SubghzchatLineRow.time_s type=f64 unit=s optional=no since=1.0
-shape.SubghzchatLineRow.direction type=text unit= optional=no since=1.0
+shape.SubghzchatLineRow.own type=bool unit= optional=no since=1.0
 shape.SubghzchatLineRow.kind type=choice(plain,decrypted,encrypted,repeat,octets) unit= optional=no since=1.0
 shape.SubghzchatLineRow.text type=text unit= optional=no since=1.0
 shape.SubghzchatLineRow.packets type=i64 unit= optional=no since=1.0
@@ -429,7 +429,7 @@ shape.SubghzchatLineRow.offset_hz type=hz unit=Hz optional=yes since=1.0
 shape.SubghzchatLineRow.run type=text unit= optional=yes since=1.0
 shape.SubghzchatPacketRow since=1.0
 shape.SubghzchatPacketRow.time_s type=f64 unit=s optional=no since=1.0
-shape.SubghzchatPacketRow.length type=i64 unit=octets optional=no since=1.0
+shape.SubghzchatPacketRow.length type=i64 unit=B optional=no since=1.0
 shape.SubghzchatPacketRow.crc_ok type=bool unit= optional=no since=1.0
 shape.SubghzchatPacketRow.inverted type=bool unit= optional=no since=1.0
 shape.SubghzchatPacketRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
@@ -531,6 +531,7 @@ shape.WisunNetworkRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.WisunNetworkRow.heard type=i64 unit= optional=yes since=1.0
 shape.WisunNetworkRow.last_heard type=time unit= optional=yes since=1.0
 shape.WisunNetworkRow.schedule type=text unit= optional=yes since=1.0
+shape.WisunNetworkRow.pan_id type=text unit= optional=no since=1.0
 shape.WisunNodeRow since=1.0
 shape.WisunNodeRow.vendor type=text unit= optional=yes since=1.0
 shape.WisunNodeRow.role type=text unit= optional=no since=1.0
@@ -543,6 +544,7 @@ shape.WisunNodeRow.freq type=hz unit=Hz optional=no since=1.0
 shape.WisunNodeRow.authenticator type=text unit= optional=yes since=1.0
 shape.WisunNodeRow.eap type=text unit= optional=yes since=1.0
 shape.WisunNodeRow.last type=text unit= optional=no since=1.0
+shape.WisunNodeRow.address type=text unit= optional=no since=1.0
 shape.WisunLinkRow since=1.0
 shape.WisunLinkRow.from type=text unit= optional=no refers_to=nodes since=1.0
 shape.WisunLinkRow.to type=text unit= optional=no refers_to=nodes since=1.0
@@ -784,10 +786,10 @@ ism.setting.min_pulses type=i64 unit= since=1.0
 ism.setting.cluster_ratio type=f64 unit= since=1.0
 ism.setting.gen_pattern type=choice(pwm,ppm,manchester) unit= since=1.0
 ism.setting.gen_bits type=text unit= since=1.0
-ism.setting.gen_t_us type=f64 unit=µs since=1.0
-ism.setting.gen_pulse_us type=f64 unit=µs since=1.0
-ism.setting.gen_gap0_us type=f64 unit=µs since=1.0
-ism.setting.gen_gap1_us type=f64 unit=µs since=1.0
+ism.setting.gen_t_us type=f64 unit=us since=1.0
+ism.setting.gen_pulse_us type=f64 unit=us since=1.0
+ism.setting.gen_gap0_us type=f64 unit=us since=1.0
+ism.setting.gen_gap1_us type=f64 unit=us since=1.0
 ism.setting.gen_jitter type=f64 unit= since=1.0
 ism.setting.gen_frames type=i64 unit= since=1.0
 ism.setting.gen_frame_gap_s type=f64 unit=s since=1.0
@@ -807,7 +809,7 @@ wmbus.kept.frames since=1.0
 wmbus.kept.WmbusFields since=1.0
 wmbus.table.meters row=WmbusMeterRow cap=300 since=1.0
 wmbus.table.meter_records row=WmbusRecordRow cap=3000 since=1.0
-wmbus.table.frames row=WmbusFrameRow cap=200 since=1.0
+wmbus.table.frames row=WmbusFrameRow cap=200 role=log time=time since=1.0
 wmbus.table.channels row=WmbusChannelRow cap=16 since=1.0
 wmbus.series.level_history x_unit=s y_unit=dBFS since=1.0
 wmbus.series.trace x_unit=chip y_unit= since=1.0
@@ -820,7 +822,7 @@ wmbus.setting.gen_silence type=bool unit= since=1.0
 wmbus.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
 wmbus.command.clear args= reply= since=1.0
 wmbus.command.remove args=row:text reply= since=1.0
-wmbus.command.send args=mode:choice(S1,T1,C1A,C1B,R2,N1)?;manufacturer:text;address:text;version:i64;device_type:i64;payload:text reply= transmits=frame stop=halt since=1.0
+wmbus.command.send args=mode:choice(S1,T1,C1A,C1B,R2,N1)?;manufacturer:text;address:text;version:i64;device_type:i64;payload:text reply= transmits=frame stop=halt refers=address:meters.meter_id since=1.0
 wmbus.command.halt args= reply= since=1.0
 zwave since=1.0
 zwave.content kind=devices since=1.0
@@ -841,7 +843,7 @@ zwave.kept.ZwaveFields.frames_r3 since=1.0
 zwave.kept.ZwaveFields.s0_frames since=1.0
 zwave.kept.ZwaveFields.s2_frames since=1.0
 zwave.kept.ZwaveFields.acks since=1.0
-zwave.table.frames row=ZwaveFrameRow cap=600 since=1.0
+zwave.table.frames row=ZwaveFrameRow cap=600 role=log time=time since=1.0
 zwave.table.nodes row=ZwaveNodeRow cap=1000 since=1.0
 zwave.table.networks row=ZwaveNetworkRow cap=64 sort=level_dbfs:descending since=1.0
 zwave.table.channels row=ZwaveChannelRow cap=32 since=1.0
@@ -855,7 +857,7 @@ zwave.setting.gen_centre_hz type=hz unit=Hz since=1.0
 zwave.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
 zwave.command.clear args= reply= since=1.0
 zwave.command.remove args=row:text reply= since=1.0
-zwave.command.send args=home_id:text;source:i64;destination:i64;payload:text;rate:choice(r1,r2,r3)?;ack:bool?;sequence:i64? reply= transmits=frame stop=halt since=1.0
+zwave.command.send args=home_id:text;source:i64;destination:i64;payload:text;rate:choice(r1,r2,r3)?;ack:bool?;sequence:i64? reply= transmits=frame stop=halt refers=home_id:networks.home_id;source:nodes.node;destination:nodes.node since=1.0
 zwave.command.halt args= reply= since=1.0
 zigbee since=1.0
 zigbee.content kind=devices since=1.0
@@ -873,7 +875,7 @@ zigbee.kept.ZigbeeFields.networks since=1.0
 zigbee.kept.ZigbeeFields.devices since=1.0
 zigbee.table.networks row=ZigbeeNetworkRow cap=100 sort=level_dbfs:descending since=1.0
 zigbee.table.devices row=PanDeviceRow cap=600 since=1.0
-zigbee.table.frames row=ZigbeeFrameRow cap=600 since=1.0
+zigbee.table.frames row=ZigbeeFrameRow cap=600 role=log time=time_s since=1.0
 zigbee.series.frames_per_second x_unit=s y_unit=frames since=1.0
 zigbee.event.zigbee.pan fields=ZigbeePanEvent since=1.0
 zigbee.event.zigbee.tx fields=IsmTxEvent since=1.0
@@ -887,7 +889,7 @@ zigbee.setting.gen_interferer_hz type=hz unit=Hz since=1.0
 zigbee.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
 zigbee.command.clear args= reply= since=1.0
 zigbee.command.remove args=row:text reply= since=1.0
-zigbee.command.send args=pan_id:text;destination:text;source:text;payload:text;frame_type:choice(beacon,data,command)?;sequence:i64?;ack:bool?;security_level:i64?;key:text?;frame_counter:i64?;key_id_mode:i64?;key_index:i64?;key_source:text? reply= transmits=frame stop=halt since=1.0
+zigbee.command.send args=pan_id:text;destination:text;source:text;payload:text;frame_type:choice(beacon,data,command)?;sequence:i64?;ack:bool?;security_level:i64?;key:text?;frame_counter:i64?;key_id_mode:i64?;key_index:i64?;key_source:text? reply= transmits=frame stop=halt refers=pan_id:networks.pan;destination:devices.short;source:devices.short since=1.0
 zigbee.command.halt args= reply= since=1.0
 sigfox since=1.0
 sigfox.content kind=devices since=1.0
@@ -933,7 +935,7 @@ ant.setting.gen_sensors type=choice(all,strap,none) unit= since=1.0
 ant.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
 ant.command.clear args= reply= since=1.0
 ant.command.remove args=row:text reply= since=1.0
-ant.command.send args=device:i64;device_type:i64;tx_type:i64;payload:text;pairing:bool? reply= transmits=frame stop=halt since=1.0
+ant.command.send args=device:i64;device_type:i64;tx_type:i64;payload:text;pairing:bool? reply= transmits=frame stop=halt refers=device:sensors.device since=1.0
 ant.command.halt args= reply= since=1.0
 nrf24 since=1.0
 nrf24.content kind=devices since=1.0
@@ -973,7 +975,7 @@ subghzchat.kept.SubghzchatFields.unreadable since=1.0
 subghzchat.kept.SubghzchatFields.repeats since=1.0
 subghzchat.kept.SubghzchatFields.sent since=1.0
 subghzchat.kept.SubghzchatFields.key_set since=1.0
-subghzchat.table.chat row=SubghzchatLineRow cap=500 role=messages message=text time=time_s since=1.0
+subghzchat.table.chat row=SubghzchatLineRow cap=500 role=messages message=text time=time_s own=own since=1.0
 subghzchat.table.packets row=SubghzchatPacketRow cap=200 label=hex since=1.0
 subghzchat.event.subghzchat.line fields=SubghzchatLineEvent since=1.0
 subghzchat.event.subghzchat.state fields=SubghzchatStateEvent since=1.0
@@ -1014,7 +1016,7 @@ nfc.kept.tags since=1.0
 nfc.kept.frames since=1.0
 nfc.kept.NfcFields since=1.0
 nfc.table.tags row=NfcTagRow cap=100 label=uid since=1.0
-nfc.table.frames row=NfcFrameRow cap=200 label=name since=1.0
+nfc.table.frames row=NfcFrameRow cap=200 label=name role=log time=time_s since=1.0
 nfc.event.nfc.tag fields=NfcTagEvent since=1.0
 nfc.command.clear args= reply= since=1.0
 nfc.command.remove args=row:text reply= since=1.0
@@ -1039,7 +1041,7 @@ wisun.kept.WisunFields.links since=1.0
 wisun.table.networks row=WisunNetworkRow cap=64 label=name sort=level_dbfs:descending since=1.0
 wisun.table.nodes row=WisunNodeRow cap=2000 since=1.0
 wisun.table.links row=WisunLinkRow cap=4000 label=from since=1.0
-wisun.table.frames row=WisunFrameRow cap=800 since=1.0
+wisun.table.frames row=WisunFrameRow cap=800 role=log time=time_s since=1.0
 wisun.series.hops x_unit=s y_unit=MHz since=1.0
 wisun.event.wisun.pan fields=WisunPanEvent since=1.0
 wisun.event.wisun.tx fields=IsmTxEvent since=1.0
@@ -1050,7 +1052,7 @@ wisun.setting.gen_centre_hz type=hz unit=Hz since=1.0
 wisun.setting.tx_level type=f64 unit=of%20full%20scale since=1.0
 wisun.command.clear args= reply= since=1.0
 wisun.command.remove args=row:text reply= since=1.0
-wisun.command.send args=frame_type:choice(pa,pas,pc,pcs,data,ack,eapol)?;pan_id:text;source:text;destination:text;payload:text;header_ies:text?;sequence:i64?;kbps:i64?;ufsi:i64? reply= transmits=frame stop=halt since=1.0
+wisun.command.send args=frame_type:choice(pa,pas,pc,pcs,data,ack,eapol)?;pan_id:text;source:text;destination:text;payload:text;header_ies:text?;sequence:i64?;kbps:i64?;ufsi:i64? reply= transmits=frame stop=halt refers=pan_id:networks.pan_id;source:nodes.address;destination:nodes.address since=1.0
 wisun.command.halt args= reply= since=1.0
 thread since=1.0
 thread.content kind=devices since=1.0

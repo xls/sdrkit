@@ -93,7 +93,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `hfkbd`, version 2.10. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `hfkbd`, version 3.0. The C header `sdrkit/hfkbd.h`, the registry record `registry/hfkbd.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Keyboard text (`text_chat`). Media: sound (monitor), text.
 
@@ -138,9 +138,9 @@ Struct `KeyboardTxFields`. The result fields of a keyboard sender.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tx_sending` | yes or no | always | 2.4 | Whether a burst is on air: text or the tune carrier. |
-| `tx_sent` | whole number | always | 2.4 | The characters of the burst on air coded into the signal so far. |
-| `tx_waiting` | whole number | always | 2.4 | The characters waiting to be sent. |
+| `tx_sending` | yes or no | always | 1.0 | Whether a burst is on air: text or the tune carrier. |
+| `tx_sent` | whole number | always | 1.0 | The characters of the burst on air coded into the signal so far. |
+| `tx_waiting` | whole number | always | 1.0 | The characters waiting to be sent. |
 
 ### Table `stations`
 
@@ -187,10 +187,10 @@ Struct `KeyboardTxEvent`. The fields of a change of a keyboard transmission.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | text | always | 2.4 | The state: started, queued, finished or refused. |
-| `reason` | text | always | 2.4 | Why it changed: empty, stopped, the transmitter is off, the format changed, tune carrier, or why a text was refused. |
-| `text` | text | always | 2.4 | The text: as given to `send` for started, queued and refused; as coded for finished. |
-| `family` | choice | always | 2.4 | The family of the source: a message. |
+| `state` | text | always | 1.0 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.0 | Why it changed: empty, stopped, the transmitter is off, the format changed, tune carrier, or why a text was refused. |
+| `text` | text | always | 1.0 | The text: as given to `send` for started, queued and refused; as coded for finished. |
+| `family` | choice | always | 1.0 | The family of the source: a message. |
 
 ### Commands
 

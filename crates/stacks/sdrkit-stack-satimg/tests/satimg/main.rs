@@ -20,6 +20,7 @@ mod hrpt_meteor;
 mod link_cases;
 mod meteor;
 mod msg;
+mod passes;
 mod rdas;
 mod sband;
 mod settings;

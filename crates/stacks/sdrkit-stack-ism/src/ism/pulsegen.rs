@@ -46,14 +46,14 @@ pub const GEN_BITS: Setting<field::Text> = Setting::new("gen_bits", "Pulse analy
     .help("0 and 1; other characters are left out. Empty: 101100101001110010100110 (PWM), 1100101001101011 (PPM), 10110010111000101101 (Manchester).");
 /// The unit of PWM and the half-bit of Manchester.
 pub const GEN_T_US: Setting<field::F64> =
-    Setting::new("gen_t_us", "Pulse analyser test unit", "µs", 0.0)
+    Setting::new("gen_t_us", "Pulse analyser test unit", "us", 0.0)
         .range(0.0, 5000.0, 1.0)
         .zero_means("350 µs for PWM, 250 µs for Manchester")
         .section("Test signal")
         .advanced();
 /// The PPM pulse.
 pub const GEN_PULSE_US: Setting<field::F64> =
-    Setting::new("gen_pulse_us", "Pulse analyser test PPM pulse", "µs", 300.0)
+    Setting::new("gen_pulse_us", "Pulse analyser test PPM pulse", "us", 300.0)
         .range(20.0, 5000.0, 1.0)
         .section("Test signal")
         .advanced();
@@ -61,7 +61,7 @@ pub const GEN_PULSE_US: Setting<field::F64> =
 pub const GEN_GAP0_US: Setting<field::F64> = Setting::new(
     "gen_gap0_us",
     "Pulse analyser test PPM gap of a 0",
-    "µs",
+    "us",
     500.0,
 )
 .range(20.0, 5000.0, 1.0)
@@ -71,7 +71,7 @@ pub const GEN_GAP0_US: Setting<field::F64> = Setting::new(
 pub const GEN_GAP1_US: Setting<field::F64> = Setting::new(
     "gen_gap1_us",
     "Pulse analyser test PPM gap of a 1",
-    "µs",
+    "us",
     1000.0,
 )
 .range(20.0, 5000.0, 1.0)

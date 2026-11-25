@@ -9,6 +9,9 @@ use crate::components::link::{
     control_port, item_format, item_port, DemodComponent, DemodReport, FrameDecoder, FrameLink,
     FrameReport, FrameStats, FrontEndComponent, FrontReport, PacketReport, VcduComponent,
 };
+use crate::components::pass::{
+    pass_format, pass_port, PassPictures, PassSetting, PassTimer, PASS_GAP,
+};
 use crate::components::{controls, last, Control};
 use crate::gen::{aos_frame, cadu_bytes, test_pixel, BitSource, GenError, ModParams, Modulator};
 use crate::instruments::fy3::{
@@ -21,7 +24,7 @@ use crate::REPORT_S;
 use sdrkit_algo_dsp::fft::Fft;
 use sdrkit_algo_fec::conv::{codes, Encoder, Viterbi};
 use sdrkit_algo_fec::rs::Basis;
-use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView};
 use sdrkit_codec_image::strip::{Strip, View};
 use crate::typed::{
     Fy3Fields, Fy3InstrumentRow, ImageRow, LinkFields, FY3_INSTRUMENTS, IMAGES,
@@ -292,6 +295,8 @@ sdrkit_core::settings! {
         View = AHRPT_VIEW,
         /// Keep the newest lines in view.
         Follow = FOLLOW,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// Test: the spacecraft id.
         GenSatellite = GEN_SATELLITE,
         /// Test: the symbol rate.
@@ -320,6 +325,8 @@ sdrkit_core::settings! {
         View = MPT_VIEW,
         /// Keep the newest lines in view.
         Follow = FOLLOW,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// Test: the spacecraft id.
         GenSatellite = GEN_SATELLITE,
         /// Test: the symbol rate.
@@ -1009,6 +1016,7 @@ impl Item for Fy3InstrumentReport {
 pub struct Fy3InstrumentComponent {
     dec: Fy3Instruments,
     strips: Vec<Strip>,
+    pass: PassTimer,
 }
 
 impl Fy3InstrumentComponent {
@@ -1017,6 +1025,7 @@ impl Fy3InstrumentComponent {
         Fy3InstrumentComponent {
             dec: Fy3Instruments::new(mpt),
             strips: Vec::new(),
+            pass: PassTimer::default(),
         }
     }
 }
@@ -1029,18 +1038,24 @@ impl Component for Fy3InstrumentComponent {
             vec![
                 item_port::<Strip>("out"),
                 item_port::<Fy3InstrumentReport>("report"),
+                pass_port(),
             ],
         )
+        .with_settings(PassSetting::schema())
     }
     fn configure(&mut self, _: &[Format]) -> Result<Vec<Format>, ConfigError> {
         Ok(vec![
             item_format::<Strip>(),
             item_format::<Fy3InstrumentReport>(),
+            pass_format(),
         ])
     }
     fn process(&mut self, io: &mut Io) {
         for v in io.items::<Vcdu>(0) {
             self.dec.push(&v.value, &mut self.strips);
+        }
+        if self.pass.after(io, !self.strips.is_empty(), 2) {
+            self.dec.new_picture();
         }
         io.items_out::<Strip>(0)
             .extend(self.strips.drain(..).map(|s| Timed {
@@ -1578,7 +1593,7 @@ pub fn builder(
     measure: bool,
 ) -> Result<GraphBuilder, GraphError> {
     let link = start;
-    let pictures = Pictures::new(layouts(mpt)).map_err(GraphError::Schema)?;
+    let pictures = PassPictures::new(layouts(mpt), "FY-3").map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add(
             "frontend",
@@ -1602,6 +1617,7 @@ pub fn builder(
         .connect("rails.out", "vcdu.in")
         .connect("vcdu.vcdu", "instruments.in")
         .connect("instruments.out", "pictures.in")
+        .connect("instruments.pass", "pictures.pass")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
         .connect("rails.report", "display.rails")
@@ -1660,6 +1676,7 @@ pub fn receiver(mpt: bool, cfg: &StackConfig) -> Result<StackGraph, GraphError> 
         .route("instrument", &["pictures.instrument"])?
         .route("view", &["pictures.view"])?
         .route("follow", &["pictures.follow"])?
+        .route("pass_gap", &["instruments.pass_gap"])?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .with_settings(&cfg.settings)
         .build()

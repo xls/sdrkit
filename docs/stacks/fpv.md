@@ -130,7 +130,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `analogtv`, version 1.2. The C header `sdrkit/analogtv.h`, the registry record `registry/analogtv.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `analogtv`, version 2.0. The C header `sdrkit/analogtv.h`, the registry record `registry/analogtv.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Television and video (`television`). Media: sound (programme), video.
 
@@ -181,10 +181,10 @@ Struct `TvTxFields`. The result fields of the senders of `atv` and `fpv`.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tx_sending` | yes or no | always | 1.1 | Whether the sender sends. |
-| `tx_system` | text | optional | 1.1 | The system sent, "PAL B/G 625/50". No value while nothing is sent. |
-| `tx_frames` | whole number | always | 1.1 | The pictures of the host put on the air in the last transmission: one for each field that started with a new one. |
-| `tx_fields` | whole number | always | 1.1 | The fields sent in the last transmission. |
+| `tx_sending` | yes or no | always | 1.0 | Whether the sender sends. |
+| `tx_system` | text | optional | 1.0 | The system sent, "PAL B/G 625/50". No value while nothing is sent. |
+| `tx_frames` | whole number | always | 1.0 | The pictures of the host put on the air in the last transmission: one for each field that started with a new one. |
+| `tx_fields` | whole number | always | 1.0 | The fields sent in the last transmission. |
 
 ### Table `channels`
 

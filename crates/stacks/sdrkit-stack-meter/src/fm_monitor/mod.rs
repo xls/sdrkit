@@ -407,7 +407,6 @@ impl Decoder for FmMonitorDecoder {
         });
         let khz = |v: f64| v / 1e3;
         p.put(&FmMonitorFields {
-            text: &st.summary,
             peak_deviation_khz: s.map(|s| khz(s.peak_hz)),
             rms_deviation_khz: s.map(|s| khz(s.rms_hz)),
             mpx_power_dbr: s.map(Second::mpx_dbr),

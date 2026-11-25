@@ -301,6 +301,8 @@ impl std::fmt::Debug for Shape {
 /// - `content = PATH`: what the bytes of the field hold, a constant of the content type at `PATH`.
 /// - `shared = PATH`: the field is the [`Field`] constant at `PATH` (a standard key). Its kind must be the kind of the
 ///   struct field's type, and its key must be the name of the struct field.
+/// - `role = Name`: what a column holds for a front end, a variant of [`Role`].
+/// - `reading = N`: the field is key reading number `N` of its owner, from 1 to 6: what a person looks at first.
 ///
 /// A result set that several components write has one struct for the whole set, which the description names, and one
 /// struct for the part that each component writes: `#[fields(part_of = Whole)]` on the struct of the part. A field of
@@ -370,6 +372,8 @@ impl std::fmt::Debug for ArgShape {
 /// - `label = "..."`: what people see. Required unless `shared` is given.
 /// - `unit = "..."`, `help = "..."`: the unit and one or two sentences for people.
 /// - `refers_to = "table"`: the argument holds a row key of this table of the same owner.
+/// - `refers_to = "table", column = "key"`: the value of the argument can be taken from this column of a row of the
+///   table: the addressee of a send command from the row of a node. Other values stay valid.
 /// - `default = VALUE`: the value in force when an optional argument is left out. Required for an `Option` unless
 ///   `shared` is given.
 /// - `min = N, max = N, step = N`: the limits of an optional number argument, all three together.

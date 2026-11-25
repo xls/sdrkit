@@ -57,12 +57,14 @@ pub const INDEX: Setting<field::I64> = Setting::new("index", "Slot", "", 0).rang
 /// The position precision of an own Meshtastic channel.
 pub const PRECISION: Setting<field::I64> =
     Setting::new("precision", "Position precision", "bits", 13).range(0.0, 32.0, 1.0);
-/// The addressee of a Meshtastic text: "^all" or a node id "!xxxxxxxx".
-pub const MT_TO: Setting<field::Text> =
-    Setting::new("to", "To", "", "^all").help("\"^all\" or a node id \"!xxxxxxxx\".");
-/// The channel of a text: a name of the `channels` table.
+/// The addressee of a Meshtastic text: "^all" or a node id "!xxxxxxxx", as the column `id` of the `nodes` table holds it.
+pub const MT_TO: Setting<field::Text> = Setting::new("to", "To", "", "^all")
+    .help("\"^all\" or a node id \"!xxxxxxxx\".")
+    .refers("nodes", "id");
+/// The channel of a text: a name of the column `channel` of the `channels` table.
 pub const CHANNEL: Setting<field::Text> = Setting::new("channel", "Channel", "", "")
-    .help("A name of the Channels table. Leave it empty for the first channel.");
+    .help("A name of the Channels table. Leave it empty for the first channel.")
+    .refers("channels", "channel");
 /// The packet id a text replies to (0 none).
 pub const REPLY_ID: Setting<field::I64> =
     Setting::new("reply_id", "Reply to", "", 0).range(0.0, 4_294_967_295.0, 1.0);
@@ -81,9 +83,11 @@ pub const HOP_LIMIT: Setting<field::I64> = Setting::new("hop_limit", "Hop limit"
 /// What the request is for.
 pub const WHAT: Setting<field::Choice<MtRequest>> =
     Setting::choice("what", "Request", MtRequest::NodeInfo);
-/// The addressee of a MeshCore direct text: a contact's key in hex (a prefix will do) or its name. Empty sends to a channel.
+/// The addressee of a MeshCore direct text: a contact's key in hex (a prefix will do, as the column `key` of the
+/// `contacts` table holds it) or its name. Empty sends to a channel.
 pub const MC_TO: Setting<field::Text> = Setting::new("to", "To", "", "")
-    .help("A contact's key in hex (a prefix will do) or its name. Empty sends on the channel.");
+    .help("A contact's key in hex (a prefix will do) or its name. Empty sends on the channel.")
+    .refers("contacts", "key");
 /// Where an advert goes.
 pub const SCOPE: Setting<field::Choice<AdvertScope>> =
     Setting::choice("scope", "To", AdvertScope::Flood);

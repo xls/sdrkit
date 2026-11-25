@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "hfdata", version 1.7. MIT licence.
+// sdrkit: the typed interface of the stack family "hfdata", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum HfdataInterface {
-    public static let major = 1
-    public static let minor = 7
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of the CROWD36 stack.
@@ -3949,7 +3949,9 @@ public struct RprBurstEvent {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum HfdataTables {
     /// The changed rows of the table "rows" of the stack "crowd36", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `id` names a row.
+    /// Time: `time`.
     public static func crowd36Rows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3958,7 +3960,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "xpa", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `id` names a row.
+    /// Time: `time`.
     public static func xpaRows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3967,7 +3971,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "fsk200", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `id` names a row.
+    /// Time: `time`.
     public static func fsk200Rows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3976,7 +3982,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "gwfsk", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `id` names a row.
+    /// Time: `time`.
     public static func gwfskRows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3985,7 +3993,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "fsk_modems", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `id` names a row.
+    /// Time: `time`.
     public static func fskModemsRows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3994,7 +4004,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "uvb76", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `id` names a row.
+    /// Time: `time`.
     public static func uvb76Rows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4003,7 +4015,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "rows" of the stack "vlf_msk", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `id` names a row.
+    /// Time: `time`.
     public static func vlfMskRows(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataSenderRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_sender_row](repeating: sdrkit_hfdata_sender_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4012,6 +4026,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataSenderRow.init))
     }
     /// The changed rows of the table "telegrams" of the stack "efr", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func efrTelegrams(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[EfrTelegramRow], SDRKitCode> {
         var rows = [sdrkit_efr_telegram_row](repeating: sdrkit_efr_telegram_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4020,6 +4036,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(EfrTelegramRow.init))
     }
     /// The changed rows of the table "pdus" of the stack "ale3g", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `utc`.
     public static func ale3gPdus(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[Ale3gPduRow], SDRKitCode> {
         var rows = [sdrkit_ale3g_pdu_row](repeating: sdrkit_ale3g_pdu_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4038,6 +4056,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(S4481ChannelRow.init))
     }
     /// The changed rows of the table "messages" of the stack "link11", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `start_s`.
     public static func link11Messages(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[Link11MessageRow], SDRKitCode> {
         var rows = [sdrkit_link11_message_row](repeating: sdrkit_link11_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4046,6 +4066,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Link11MessageRow.init))
     }
     /// The changed rows of the table "messages" of the stack "cis_hf", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func cisHfMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[CisHfMessageRow], SDRKitCode> {
         var rows = [sdrkit_cis_hf_message_row](repeating: sdrkit_cis_hf_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4074,7 +4096,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfidCandidateRow.init))
     }
     /// The changed rows of the table "events" of the stack "ale", newest first, at most `capacity` rows.
+    /// The rows are the calls of the stack.
     /// The column `from` names a row.
+    /// Sender: `from`. Addressee: `to`. Time: `time`.
     public static func aleEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[AleEventRow], SDRKitCode> {
         var rows = [sdrkit_ale_event_row](repeating: sdrkit_ale_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4092,6 +4116,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AleStationRow.init))
     }
     /// The changed rows of the table "words" of the stack "ale", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func aleWords(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[AleWordRow], SDRKitCode> {
         var rows = [sdrkit_ale_word_row](repeating: sdrkit_ale_word_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4118,7 +4144,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AleLqaRow.init))
     }
     /// The changed rows of the table "messages" of the stack "ale", newest first, at most `capacity` rows.
+    /// The rows are the messages of the stack.
     /// The column `from` names a row.
+    /// Sender: `from`. Addressee: `to`. Text: `text`. Time: `time`.
     public static func aleMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[AleMessageRow], SDRKitCode> {
         var rows = [sdrkit_ale_message_row](repeating: sdrkit_ale_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4136,6 +4164,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfradarRadarRow.init))
     }
     /// The changed rows of the table "heard" of the stack "hfradar", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func hfradarHeard(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[HfradarHeardRow], SDRKitCode> {
         var rows = [sdrkit_hfradar_heard_row](repeating: sdrkit_hfradar_heard_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4163,6 +4193,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataPactorhfCarrierRow.init))
     }
     /// The changed rows of the table "events" of the stack "pactor2", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func pactor2Events(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[HfdataPactorhfEventRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_pactorhf_event_row](repeating: sdrkit_hfdata_pactorhf_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4180,6 +4212,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataPactorhfCarrierRow.init))
     }
     /// The changed rows of the table "events" of the stack "pactor3", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func pactor3Events(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[HfdataPactorhfEventRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_pactorhf_event_row](repeating: sdrkit_hfdata_pactorhf_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4197,6 +4231,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataPactorhfCarrierRow.init))
     }
     /// The changed rows of the table "events" of the stack "pactor4", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func pactor4Events(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[HfdataPactorhfEventRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_pactorhf_event_row](repeating: sdrkit_hfdata_pactorhf_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4205,7 +4241,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataPactorhfEventRow.init))
     }
     /// The changed rows of the table "frames" of the stack "pactor1", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `call` names a row.
+    /// Time: `time`.
     public static func pactor1Frames(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[Pactor1FrameRow], SDRKitCode> {
         var rows = [sdrkit_pactor1_frame_row](repeating: sdrkit_pactor1_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4270,6 +4308,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WavebuoySystemWordRow.init))
     }
     /// The changed rows of the table "frames" of the stack "wavebuoy", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `start`.
     public static func wavebuoyFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 40) -> Result<[WavebuoyFrameRow], SDRKitCode> {
         var rows = [sdrkit_wavebuoy_frame_row](repeating: sdrkit_wavebuoy_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4278,7 +4318,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WavebuoyFrameRow.init))
     }
     /// The changed rows of the table "dpdus" of the stack "ms110", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
+    /// Time: `utc`.
     public static func ms110Dpdus(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataDpduRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_dpdu_row](repeating: sdrkit_hfdata_dpdu_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4287,7 +4329,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataDpduRow.init))
     }
     /// The changed rows of the table "dpdus" of the stack "s4285", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
+    /// Time: `utc`.
     public static func s4285Dpdus(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataDpduRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_dpdu_row](repeating: sdrkit_hfdata_dpdu_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4296,7 +4340,9 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HfdataDpduRow.init))
     }
     /// The changed rows of the table "dpdus" of the stack "s4539", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
+    /// Time: `utc`.
     public static func s4539Dpdus(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[HfdataDpduRow], SDRKitCode> {
         var rows = [sdrkit_hfdata_dpdu_row](repeating: sdrkit_hfdata_dpdu_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4314,6 +4360,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(RprCarrierRow.init))
     }
     /// The changed rows of the table "bursts" of the stack "rpr", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func rprBursts(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[RprBurstRow], SDRKitCode> {
         var rows = [sdrkit_rpr_burst_row](repeating: sdrkit_rpr_burst_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4322,6 +4370,8 @@ public enum HfdataTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(RprBurstRow.init))
     }
     /// The changed rows of the table "events" of the stack "rpr", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func rprEvents(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[RprEventRow], SDRKitCode> {
         var rows = [sdrkit_rpr_event_row](repeating: sdrkit_rpr_event_row(), count: capacity)
         var info = sdrkit_rows_info.sized

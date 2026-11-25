@@ -26,11 +26,17 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:go
 | `view` | View | choice | `visible` | `visible` (Visible (channel 1)), `ir2` (Channel 2 (3.9 um)), `ir3` (Channel 3 (6.5 um)), `ir4` (Channel 4 (10.7 um)), `ir6` (Channel 6 (13.3 um) or 5 (12 um)) | The channel shown. The visible picture has one view. |
 | `follow` | Follow | yes or no | true |  |  |
 
+Advanced settings. The owner works without any of them set.
+
+| Key | Label | Kind | Default | Range or options | Help |
+|---|---|---|---|---|---|
+| `pass_gap` | Pass end | number (s) | 60 | 1 to 3600 | After this many seconds of signal without a picture line the pass ends: its picture is finished, and the next line starts a new picture. A shorter dropout stays in the picture. |
+
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `gen_lines` | Test scans | whole number | 1300 | 1 to 1974 |  |
+| `gen_lines` | Test scans | whole number | 0 | 1 to 1974 | The test signal sends this many scans of the test picture and then ends. Without end: the picture repeats. |
 
 The setting `view` chooses the view of the picture.
 
@@ -68,7 +74,7 @@ The setting `view` chooses the view of the picture.
 
 | Key | Label | Columns |
 |---|---|---|
-| `blocks` | Blocks | `block_count` (whole number), `block_id` (whole number), `word_size` (whole number (bit)), `word_count` (whole number), `header_ok` (yes or no), `data_ok` (yes or no) |
+| `blocks` | Blocks | `block_count` (whole number), `block_id` (whole number), `word_size` (whole number (bit)), `word_count` (whole number), `header_ok` (yes or no), `data_ok` (yes or no), `time_s` (number (s)) |
 | `images` | Images | `product` (text), `channel` (text), `time` (duration (s)), `width` (whole number (px)), `height` (whole number (px)) |
 
 ## Result series
@@ -88,9 +94,11 @@ The setting `view` chooses the view of the picture.
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
+
+Key readings: `snr_db`, `frames_ok`, `frames_bad`.
 
 ### Result fields
 
@@ -143,6 +151,9 @@ Struct `GoesGvarBlockRow`. A block of GOES GVAR. The row key is the place of the
 | `word_count` | whole number | always | 1.0 | The word count of a block. |
 | `header_ok` | yes or no | always | 1.0 | A header copy of a block had a good CRC. |
 | `data_ok` | yes or no | always | 1.0 | The data field of a block had a good CRC. |
+| `time_s` | number (s) | always | 1.0 | The signal time at which a block was read. |
+
+The rows are a log: they arrive over time. Time: `time_s`.
 
 ### Table `images`
 
@@ -169,6 +180,7 @@ Struct `ImageRow`. A finished image. The row key names the image. The picture it
 | `picture` | `sdrkit_goes_gvar_get_picture` | `sdrkit_goes_gvar_set_picture` |
 | `view` | `sdrkit_goes_gvar_get_view` | `sdrkit_goes_gvar_set_view` |
 | `follow` | `sdrkit_goes_gvar_get_follow` | `sdrkit_goes_gvar_set_follow` |
+| `pass_gap` | `sdrkit_goes_gvar_get_pass_gap` | `sdrkit_goes_gvar_set_pass_gap` |
 
 ### Settings of the test signal generator
 

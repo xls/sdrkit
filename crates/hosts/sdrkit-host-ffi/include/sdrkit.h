@@ -422,6 +422,9 @@
 // Each row is a group that stations talk in: a talkgroup, a channel, a net.
 #define SDRKIT_TABLE_ROLE_GROUPS 4
 
+// Each row is a frame, a packet or a report that arrived: a running log. An object can have several.
+#define SDRKIT_TABLE_ROLE_LOG 5
+
 // Opens the file for reading. The callback returns `SDRKIT_E_NOT_FOUND` if the file does not exist.
 #define SDRKIT_OPEN_READ 0
 
@@ -553,7 +556,7 @@
 
 // The minor version of the C interface of this library. It rises when the base header gets a function, a constant or
 // a member at the end of a struct that starts with `size`.
-#define SDRKIT_INTERFACE_VERSION_MINOR 2
+#define SDRKIT_INTERFACE_VERSION_MINOR 3
 
 // No value.
 #define SDRKIT_TYPE_NONE 0
@@ -717,6 +720,14 @@ typedef struct sdrkit_decl {
   // An `SDRKIT_SETTING_ROLE_*` constant: what the setting chooses. A front end finds the setting that chooses the
   // view of the picture by this member and not by the key. Settings only.
   int32_t role;
+  // With `refers_table`: the key of the column of that table that holds the value to pass, or empty. Empty: the
+  // value is a row key of the table. With a column, a front end offers the rows of the table and passes the cell
+  // of this column of the chosen row; other values stay valid (the addressee of a send command). Arguments and
+  // settings.
+  struct sdrkit_string refers_column;
+  // The place of the field among the key readings of its object, from 1: what a person looks at first. 0 for a
+  // field that is no key reading. Result fields only.
+  uint32_t reading;
 } sdrkit_decl;
 
 // One option of a value of type `SDRKIT_TYPE_ENUM`.
@@ -988,6 +999,14 @@ typedef struct sdrkit_table_info {
   // a number of seconds of signal with the unit `s`. Only a table with a role, or with a column that states it,
   // has it.
   sdrkit_id time_column;
+  // The id of the column of type `SDRKIT_TYPE_BOOL` that is true for a message that this station sent, or
+  // `SDRKIT_NO_ID`. Without it, in a table with a `delivery_column`, a row with a delivery state is an own message.
+  sdrkit_id own_column;
+  // The id of the column of the delivery state of an own message, or `SDRKIT_NO_ID`: a column of type
+  // `SDRKIT_TYPE_ENUM` that has no value in the row of a received message.
+  sdrkit_id delivery_column;
+  // The id of the column of the reason of a failed delivery, as text for people, or `SDRKIT_NO_ID`.
+  sdrkit_id failure_column;
 } sdrkit_table_info;
 
 // The declaration of one series (a small plot) or raster (an image of values, such as a waterfall).

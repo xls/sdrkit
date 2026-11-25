@@ -45,15 +45,20 @@ fn finding(d: &FieldDecl) -> Option<String> {
 }
 
 fn of_stack(stack: &StackShape, out: &mut Vec<String>) {
-    let id = stack.id;
-    let mut add = |path: String, d: &FieldDecl| {
+    each_decl(stack, &mut |path: String, d: &FieldDecl| {
         if let Some(what) = finding(d) {
             let line = format!("{path} ({what})");
             if !out.contains(&line) {
                 out.push(line);
             }
         }
-    };
+    });
+}
+
+/// Calls `add` with the path and the declaration of each field, column, event field, setting, argument and reply
+/// field of `stack`.
+fn each_decl(stack: &StackShape, add: &mut dyn FnMut(String, &FieldDecl)) {
+    let id = stack.id;
     for set in &stack.fields {
         for f in set.fields {
             add(format!("shape.{}.{}", set.name, f.key()), &f.decl());
@@ -90,6 +95,93 @@ fn of_stack(stack: &StackShape, out: &mut Vec<String>) {
             add(format!("shape.{}.{}", c.reply.name, f.key()), &f.decl());
         }
     }
+}
+
+/// The spellings of a unit that are not used, each with the one spelling of that unit.
+const SPELLINGS: [(&str, &str); 44] = [
+    ("deg", "°"),
+    ("degree", "°"),
+    ("degrees", "°"),
+    ("kn", "kt"),
+    ("knot", "kt"),
+    ("knots", "kt"),
+    ("WPM", "wpm"),
+    ("/s", "1/s"),
+    ("/min", "1/min"),
+    ("/h", "1/h"),
+    ("byte", "B"),
+    ("bytes", "B"),
+    ("octet", "B"),
+    ("octets", "B"),
+    ("db", "dB"),
+    ("DB", "dB"),
+    ("dbm", "dBm"),
+    ("dbfs", "dBFS"),
+    ("dBfs", "dBFS"),
+    ("hz", "Hz"),
+    ("HZ", "Hz"),
+    ("khz", "kHz"),
+    ("KHz", "kHz"),
+    ("mhz", "MHz"),
+    ("Mhz", "MHz"),
+    ("percent", "%"),
+    ("pct", "%"),
+    ("m/sec", "m/s"),
+    ("mps", "m/s"),
+    ("kmh", "km/h"),
+    ("kph", "km/h"),
+    ("sec", "s"),
+    ("secs", "s"),
+    ("second", "s"),
+    ("seconds", "s"),
+    ("msec", "ms"),
+    ("usec", "us"),
+    ("µs", "us"),
+    ("degC", "°C"),
+    ("C", "°C"),
+    ("baud", "Bd"),
+    ("bps", "bit/s"),
+    ("b/s", "bit/s"),
+    ("kbps", "kbit/s"),
+];
+
+/// The one spelling of the unit `unit`, if `unit` is another spelling of it.
+pub fn spelling(unit: &str) -> Option<&'static str> {
+    SPELLINGS
+        .iter()
+        .find(|(other, _)| *other == unit)
+        .map(|(_, one)| *one)
+}
+
+/// One line for each unit of `family` that has another spelling than the one in use: of a field, a column, an event
+/// field, a setting, an argument, a reply field, and of the axes of a series or a raster. A unit has one spelling in
+/// every family: `°` for degrees, `kt` for knots, `B` for bytes, `1/s` for a rate. A shape is listed once.
+pub fn spellings(family: &Family) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut add = |path: String, unit: &str| {
+        if let Some(one) = spelling(unit) {
+            let line = format!(
+                "{}: {path} has the unit \"{unit}\": write \"{one}\"",
+                family.key
+            );
+            if !out.contains(&line) {
+                out.push(line);
+            }
+        }
+    };
+    for stack in &family.stacks {
+        each_decl(stack, &mut |path, d| add(path, &d.unit));
+        for s in &stack.series {
+            add(format!("{}.series.{} (x)", stack.id, s.key), s.x_unit);
+            add(format!("{}.series.{} (y)", stack.id, s.key), s.y_unit);
+        }
+        for r in &stack.rasters {
+            add(format!("{}.raster.{} (x)", stack.id, r.key), r.x_unit);
+            add(format!("{}.raster.{} (y)", stack.id, r.key), r.y_unit);
+            add(format!("{}.raster.{}", stack.id, r.key), r.unit);
+        }
+    }
+    out
 }
 
 /// One line for each field, column, setting, argument and reply field of `family` whose key ends in `_hz`, `_khz`,
@@ -133,5 +225,27 @@ mod tests {
         assert_eq!(lines.len(), 2, "{lines:?}");
         assert!(lines[0].starts_with("shape.ToneFields.shift_hz (number, unit \"Hz\": frequency"));
         assert!(lines[1].contains("level_db") && lines[1].contains("no kind"));
+    }
+
+    /// A set with a bearing in a spelling that is not used.
+    #[derive(Fields)]
+    #[allow(dead_code)]
+    struct BearingFields {
+        /// A bearing.
+        #[field(label = "Bearing", unit = "deg")]
+        bearing_deg: f64,
+        /// A radial.
+        #[field(label = "Radial", unit = "°")]
+        radial_deg: f64,
+    }
+
+    #[test]
+    fn a_unit_has_one_spelling() {
+        let family = Family::new("x", 1, 0).stack(StackShape::new("x").fields::<BearingFields>());
+        let lines = spellings(&family);
+        assert_eq!(lines.len(), 1, "{lines:?}");
+        assert!(lines[0].contains("bearing_deg") && lines[0].ends_with("write \"°\""));
+        assert_eq!(spelling("knots"), Some("kt"));
+        assert_eq!(spelling("°C"), None);
     }
 }

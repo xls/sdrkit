@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "custom", version 1.5. MIT licence.
+// sdrkit: the typed interface of the stack family "custom", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum CustomInterface {
-    public static let major = 1
-    public static let minor = 5
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of `slotted_voice`. A value of the signal has no value while no receiver is locked.

@@ -57,6 +57,10 @@ pub fn render(family: &Family) -> String {
             if let Some(r) = &d.refers_to {
                 let _ = write!(out, " refers_to={}", value(&r.table));
             }
+            // The place of the field among the key readings of its owner.
+            if d.reading > 0 {
+                let _ = write!(out, " reading={}", d.reading);
+            }
             let _ = writeln!(out, " since={}", family.since(&path));
         }
     }
@@ -152,9 +156,12 @@ pub fn render(family: &Family) -> String {
             let role = d
                 .role
                 .map_or(String::new(), |r| format!(" role={}", r.key()));
+            // The table and the column that give values for the setting.
+            let refers = crate::marks::value_column(&d.field)
+                .map_or(String::new(), |r| format!(" refers={r}"));
             let _ = writeln!(
                 out,
-                "{path} type={} unit={}{role} since={}",
+                "{path} type={} unit={}{role}{refers} since={}",
                 value(&type_name(&d.field)),
                 value(&d.field.unit),
                 since(&path)
@@ -183,9 +190,11 @@ pub fn render(family: &Family) -> String {
                 .stopped_by
                 .map(|k| format!(" stop={k}"))
                 .unwrap_or_default();
+            // The arguments that take their value from a column of a table.
+            let refers = crate::marks::command_attributes(def.args.settings());
             let _ = writeln!(
                 out,
-                "{path} args={} reply={}{transmits}{stop} since={}",
+                "{path} args={} reply={}{transmits}{stop}{refers} since={}",
                 value(&args.join(";")),
                 field_list(RecordDecl::fields(&def.reply)),
                 since(&path)
@@ -311,9 +320,10 @@ fn appended(old: &str, new: &str, optional: bool) -> bool {
 }
 
 /// The attributes of a registry line that hold a mark: of a table (the column that names a row, the default order, the
-/// columns of a place, what the rows are, the columns of a message), of a setting (what it chooses) and of the content
-/// line of a stack (the kind of content and the media).
-const MARKS: [&str; 18] = [
+/// columns of a place, what the rows are, the columns of a message and of its delivery), of a setting (what it
+/// chooses), of a field (its place among the key readings), of a setting or a command (the table and the column that
+/// give values) and of the content line of a stack (the kind of content and the media).
+const MARKS: [&str; 23] = [
     "label",
     "sort",
     "position",
@@ -332,6 +342,11 @@ const MARKS: [&str; 18] = [
     "addressee",
     "message",
     "time",
+    "own",
+    "delivery",
+    "failure",
+    "reading",
+    "refers",
 ];
 
 /// The differences from record `old` to record `new`. An added item is compatible. A removed item is breaking, so a

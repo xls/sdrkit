@@ -101,7 +101,7 @@ const DEMOD: Setting<field::Choice<Demod>> = Setting::choice("demod", "Demodulat
 const AGC: Setting<field::Bool> = Setting::new("agc", "AGC", "", true);
 const GAIN: Setting<field::F64> = Setting::new("gain", "Gain", "dB", 20.0).range(-20.0, 80.0, 0.0);
 const DEEMPH: Setting<field::F64> =
-    Setting::new("deemph", "De-emphasis", "µs", 0.0).range(0.0, 750.0, 0.0);
+    Setting::new("deemph", "De-emphasis", "us", 0.0).range(0.0, 750.0, 0.0);
 const PITCH: Setting<field::Hz> =
     Setting::new("pitch", "Pitch", "Hz", 700.0).range(200.0, 1500.0, 0.0);
 const NFM_LOWPASS: Setting<field::Choice<NfmLowPass>> =

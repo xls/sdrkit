@@ -89,9 +89,11 @@ The stack puts points on a map: Base station.
 
 ## Typed interface
 
-The stack is in the family `avnav`, version 1.4. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avnav`, version 2.0. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Navigation aids (`navigation`). Media: none.
+
+Key readings: `station_id`, `health`, `locked`, `symbol_rate_hz`, `frames_ok`.
 
 ### Result fields
 
@@ -128,10 +130,10 @@ Struct `DgpsStationRow`. The row of the station table: the base station of the f
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `station_id` | whole number | always | 1.4 | The station id. |
-| `health` | choice | optional | 1.4 | The health of the station. |
-| `position` | position | optional | 1.4 | The position of the station. No value before a message of type 3. |
-| `height_m` | number (m) | optional | 1.4 | The height of the station above the ellipsoid. No value before a message of type 3. |
+| `station_id` | whole number | always | 1.0 | The station id. |
+| `health` | choice | optional | 1.0 | The health of the station. |
+| `position` | position | optional | 1.0 | The position of the station. No value before a message of type 3. |
+| `height_m` | number (m) | optional | 1.0 | The height of the station above the ellipsoid. No value before a message of type 3. |
 
 The column `station_id` names a row. Place of a row: the column `position`. Height: `height_m`.
 

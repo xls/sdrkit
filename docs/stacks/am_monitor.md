@@ -42,7 +42,6 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Kind |
 |---|---|---|
-| `text` | Text | text |
 | `carrier_offset_hz` | Carrier offset | number (Hz) |
 | `carrier_db` | Carrier level | number (dB) |
 | `depth_pct` | Modulation (RMS, as a sine) | number (%) |
@@ -79,9 +78,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `meter`, version 1.1. The C header `sdrkit/meter.h`, the registry record `registry/meter.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `meter`, version 2.0. The C header `sdrkit/meter.h`, the registry record `registry/meter.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Measurement and analysis (`measurement`). Media: none.
+
+Key readings: `depth_pct`, `peak_pos_pct`, `peak_neg_pct`, `carrier_offset_hz`, `carrier_db`.
 
 ### Result fields
 
@@ -89,7 +90,6 @@ Struct `AmMonitorFields`. The result fields of `am_monitor`, measured once a sec
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `text` | text | always | 1.0 | The headline: the offset, the modulation, the peaks and the audio bandwidth, or "no carrier". |
 | `carrier_offset_hz` | number (Hz) | optional | 1.0 | The carrier offset: a tuning or station error. |
 | `carrier_db` | number (dB) | optional | 1.0 | The carrier level, relative to full scale. |
 | `depth_pct` | number (%) | optional | 1.0 | The modulation depth: the depth of a sine of the same RMS. |
@@ -123,7 +123,7 @@ Struct `AmMonitorLogRow`. A row of the log of `am_monitor`. The row key is the s
 | `identity` | text | always | 1.0 | What changed: `present`, `lost`, `returned`, or the share of the second at zero carrier. |
 | `text` | text | always | 1.0 | The text of the row. |
 
-The column `identity` names a row.
+The rows are a log: they arrive over time. The column `identity` names a row. Time: `signal_time_s`.
 
 ### Event `am_monitor.carrier`
 

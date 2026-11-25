@@ -143,7 +143,7 @@ pub const SYSTEM_CLOCK: Setting<field::Choice<SystemClock>> =
     Setting::choice("system_clock", "Computer clock", SystemClock::Ntp);
 /// The error of the computer clock.
 pub const SYSTEM_SIGMA_US: Setting<field::F64> =
-    Setting::new("system_sigma_us", "Computer clock error", "µs", 0.0)
+    Setting::new("system_sigma_us", "Computer clock error", "us", 0.0)
         .range(1.0, 1e6, 1.0)
         .zero_means("the typical figure: PTP 100 µs, NTP 5 ms, not synchronised 200 ms");
 /// Use the radio's GPS time.
@@ -214,7 +214,7 @@ pub const START_UTC: Setting<field::F64> = Setting::new(
 pub const GEN_STRIKE_RATE: Setting<field::F64> = Setting::new(
     "gen_strike_rate",
     "Test signal: strikes a second",
-    "/s",
+    "1/s",
     2.0,
 )
 .range(0.0, 50.0, 0.1)
@@ -406,6 +406,7 @@ impl Shaped for StrikeRow {
             unchecked: r.unchecked,
             ambiguous: r.ambiguous,
             utc: r.utc,
+            time: r.utc.then_some(sdrkit_core::interface::Time(r.utc_ns as f64 * 1e-9)),
         });
     }
 }

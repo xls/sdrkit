@@ -105,7 +105,7 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 3.3. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 4.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Mesh messaging (`mesh`). Media: sound (monitor), text.
 
@@ -158,7 +158,7 @@ Struct `AprsFrameRow`. A row of the APRS frame log. The row key is the place of 
 | `text` | text | always | 1.0 | The frame in one line. |
 | `bit_rate` | frequency | always | 1.0 | The bit rate. |
 
-The column `source` names a row. Sender: `source`. Addressee: `target`. Text: `text`. Time: `time_s`.
+The rows are a log: they arrive over time. The column `source` names a row. Sender: `source`. Addressee: `target`. Text: `text`. Time: `time_s`.
 
 ### Table `stations`
 
@@ -203,7 +203,7 @@ Struct `MeshMessageRow`. A row of the messages. The row key is the place of the 
 | `crc_ok` | yes or no | optional | 1.0 | The text comes from a copy with a good CRC. False for a damaged copy that was shown after the wait without a good copy; a later good copy replaces the text and sets it. None for an own message. |
 | `copies` | whole number | optional | 1.0 | The copies of the packet heard while the message is remembered (10 minutes), damaged ones included. None for an own message. |
 
-The rows are the messages of the stack. The column `sender` names a row. Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
+The rows are the messages of the stack. The column `sender` names a row. Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`. Delivery state: `state`. Failure reason: `failure`.
 
 ### Event `aprs.packet`
 
@@ -245,6 +245,8 @@ Struct `TxRequestEvent`. The fields of a frame that the stack requests the host 
 | `aprs.beacon` | `sdrkit_aprs_beacon` | none | none |
 | `clear` | `sdrkit_aprs_clear` | none | none |
 | `remove` | `sdrkit_aprs_remove` | `sdrkit_aprs_remove_args` | none |
+
+The argument `to` of `aprs.send` takes the column `call` of a row of the table `stations`.
 
 ### Settings
 

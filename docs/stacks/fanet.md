@@ -76,7 +76,7 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 3.3. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 4.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -117,7 +117,7 @@ Struct `FanetFrameRow`. A row of the FANET frame log. The row key is the place o
 | `level_db` | number (dB) | always | 1.0 | The level of the frame. |
 | `snr_db` | number (dB) | always | 1.0 | The signal to noise ratio of the frame. |
 
-The column `source` names a row. Place of a row: the column `position`.
+The rows are a log: they arrive over time. The column `source` names a row. Place of a row: the column `position`. Time: `time_s`.
 
 ### Table `stations`
 

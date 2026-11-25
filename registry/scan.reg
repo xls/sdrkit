@@ -1,5 +1,5 @@
 # The interface of the stack family scan. The registry test of the family writes this file.
-family scan version=2.1
+family scan version=3.0
 shape.ScanFields since=1.0
 shape.ScanFields.state type=choice(idle,settle,listen,hold,hang,paused,test,done,locked,look) unit= optional=no since=1.0
 shape.ScanFields.kind type=choice(none,activity,channels,span,survey) unit= optional=no since=1.0
@@ -15,74 +15,74 @@ shape.ScanFields.found type=i64 unit= optional=yes since=1.0
 shape.ScanFields.end type=choice(none,passes_done,all_locked_out,nothing_to_scan,stopped,complete,time_over) unit= optional=no since=1.0
 shape.ScanFields.session type=text unit= optional=yes refers_to=sessions since=1.0
 shape.ScanFields.total type=i64 unit= optional=yes since=1.0
-shape.ScanFields.time_left_s type=duration unit=s optional=yes since=1.2
-shape.ScanFields.pass_s type=duration unit=s optional=yes since=1.2
-shape.ScanFields.passes type=f64 unit= optional=yes since=1.2
-shape.ScanFields.candidates type=i64 unit= optional=yes since=1.2
-shape.ScanFields.watched type=f64 unit= optional=yes since=1.2
-shape.HitRow since=1.1
-shape.HitRow.freq_hz type=hz unit=Hz optional=no since=1.1
-shape.HitRow.name type=text unit= optional=no since=1.1
-shape.HitRow.stack type=text unit= optional=no since=1.1
-shape.HitRow.locked type=bool unit= optional=no since=1.1
-shape.HitRow.snr_db type=f64 unit=dB optional=yes since=1.1
-shape.HitRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.1
-shape.HitRow.start type=time unit=s optional=no since=1.1
-shape.HitRow.end_time type=time unit=s optional=no since=1.1
-shape.HitRow.priority type=bool unit= optional=yes since=1.1
-shape.HitRow.tone type=text unit= optional=yes since=1.1
-shape.HitRow.memory type=text unit= optional=yes refers_to=memories since=1.1
-shape.HitRow.channel type=text unit= optional=yes since=1.1
-shape.HitRow.empty type=choice(no_signal,no_lock) unit= optional=yes since=1.1
-shape.HitRow.pass type=i64 unit= optional=no since=1.2
-shape.HitRow.text type=text unit= optional=no since=1.2
-shape.CandidateRow since=1.2
-shape.CandidateRow.freq_hz type=hz unit=Hz optional=no since=1.2
-shape.CandidateRow.score type=f64 unit= optional=no since=1.2
-shape.CandidateRow.wpm type=f64 unit=WPM optional=no since=1.2
-shape.CandidateRow.snr_db type=f64 unit=dB optional=no since=1.2
-shape.CandidateRow.state type=choice(waiting,visiting,found,rejected) unit= optional=no since=1.2
-shape.CandidateRow.pass type=i64 unit= optional=no since=1.2
-shape.CandidateRow.first_seen type=time unit=s optional=no since=1.2
-shape.CandidateRow.skip_until type=time unit=s optional=yes since=1.2
-shape.OccupiedRow since=2.1
-shape.OccupiedRow.freq_hz type=hz unit=Hz optional=no since=2.1
-shape.OccupiedRow.width_hz type=hz unit=Hz optional=no since=2.1
-shape.OccupiedRow.snr_db type=f64 unit=dB optional=no since=2.1
-shape.OccupiedRow.pass type=i64 unit= optional=no since=2.1
-shape.OccupiedRow.seen type=i64 unit= optional=no since=2.1
-shape.StartReply since=1.1
-shape.StartReply.channels type=i64 unit= optional=no since=1.1
-shape.StartReply.kind type=choice(none,activity,channels,span,survey) unit= optional=no since=1.2
-shape.StartReply.dwell_s type=duration unit=s optional=no since=1.2
-shape.StartReply.pass_s type=duration unit=s optional=no since=1.2
-shape.StartReply.total_s type=duration unit=s optional=no since=1.2
-shape.StartReply.passes type=f64 unit= optional=no since=1.2
-shape.StartReply.visit_s type=duration unit=s optional=no since=1.2
-shape.StartReply.span_pass_s type=duration unit=s optional=no since=1.2
-shape.SpanReply since=1.2
-shape.SpanReply.channels type=i64 unit= optional=no since=1.2
-shape.SpanReply.kind type=choice(none,activity,channels,span,survey) unit= optional=no since=1.2
-shape.SpanReply.dwell_s type=duration unit=s optional=no since=1.2
-shape.SpanReply.pass_s type=duration unit=s optional=no since=1.2
-shape.SpanReply.total_s type=duration unit=s optional=no since=1.2
-shape.SpanReply.passes type=f64 unit= optional=no since=1.2
-shape.SpanReply.visit_s type=duration unit=s optional=no since=1.2
-shape.SpanReply.span_pass_s type=duration unit=s optional=no since=1.2
-shape.SurveyReply since=1.2
-shape.SurveyReply.channels type=i64 unit= optional=no since=1.2
-shape.SurveyReply.kind type=choice(none,activity,channels,span,survey) unit= optional=no since=1.2
-shape.SurveyReply.dwell_s type=duration unit=s optional=no since=1.2
-shape.SurveyReply.pass_s type=duration unit=s optional=no since=1.2
-shape.SurveyReply.total_s type=duration unit=s optional=no since=1.2
-shape.SurveyReply.passes type=f64 unit= optional=no since=1.2
-shape.SurveyReply.visit_s type=duration unit=s optional=no since=1.2
-shape.SurveyReply.span_pass_s type=duration unit=s optional=no since=1.2
+shape.ScanFields.time_left_s type=duration unit=s optional=yes since=1.0
+shape.ScanFields.pass_s type=duration unit=s optional=yes since=1.0
+shape.ScanFields.passes type=f64 unit= optional=yes since=1.0
+shape.ScanFields.candidates type=i64 unit= optional=yes since=1.0
+shape.ScanFields.watched type=f64 unit= optional=yes since=1.0
+shape.HitRow since=1.0
+shape.HitRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.HitRow.name type=text unit= optional=no since=1.0
+shape.HitRow.stack type=text unit= optional=no since=1.0
+shape.HitRow.locked type=bool unit= optional=no since=1.0
+shape.HitRow.snr_db type=f64 unit=dB optional=yes since=1.0
+shape.HitRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
+shape.HitRow.start type=time unit=s optional=no since=1.0
+shape.HitRow.end_time type=time unit=s optional=no since=1.0
+shape.HitRow.priority type=bool unit= optional=yes since=1.0
+shape.HitRow.tone type=text unit= optional=yes since=1.0
+shape.HitRow.memory type=text unit= optional=yes refers_to=memories since=1.0
+shape.HitRow.channel type=text unit= optional=yes since=1.0
+shape.HitRow.empty type=choice(no_signal,no_lock) unit= optional=yes since=1.0
+shape.HitRow.pass type=i64 unit= optional=no since=1.0
+shape.HitRow.text type=text unit= optional=no since=1.0
+shape.CandidateRow since=1.0
+shape.CandidateRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.CandidateRow.score type=f64 unit= optional=no since=1.0
+shape.CandidateRow.wpm type=f64 unit=wpm optional=no since=1.0
+shape.CandidateRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.CandidateRow.state type=choice(waiting,visiting,found,rejected) unit= optional=no since=1.0
+shape.CandidateRow.pass type=i64 unit= optional=no since=1.0
+shape.CandidateRow.first_seen type=time unit=s optional=no since=1.0
+shape.CandidateRow.skip_until type=time unit=s optional=yes since=1.0
+shape.OccupiedRow since=1.0
+shape.OccupiedRow.freq_hz type=hz unit=Hz optional=no since=1.0
+shape.OccupiedRow.width_hz type=hz unit=Hz optional=no since=1.0
+shape.OccupiedRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.OccupiedRow.pass type=i64 unit= optional=no since=1.0
+shape.OccupiedRow.seen type=i64 unit= optional=no since=1.0
+shape.StartReply since=1.0
+shape.StartReply.channels type=i64 unit= optional=no since=1.0
+shape.StartReply.kind type=choice(none,activity,channels,span,survey) unit= optional=no since=1.0
+shape.StartReply.dwell_s type=duration unit=s optional=no since=1.0
+shape.StartReply.pass_s type=duration unit=s optional=no since=1.0
+shape.StartReply.total_s type=duration unit=s optional=no since=1.0
+shape.StartReply.passes type=f64 unit= optional=no since=1.0
+shape.StartReply.visit_s type=duration unit=s optional=no since=1.0
+shape.StartReply.span_pass_s type=duration unit=s optional=no since=1.0
+shape.SpanReply since=1.0
+shape.SpanReply.channels type=i64 unit= optional=no since=1.0
+shape.SpanReply.kind type=choice(none,activity,channels,span,survey) unit= optional=no since=1.0
+shape.SpanReply.dwell_s type=duration unit=s optional=no since=1.0
+shape.SpanReply.pass_s type=duration unit=s optional=no since=1.0
+shape.SpanReply.total_s type=duration unit=s optional=no since=1.0
+shape.SpanReply.passes type=f64 unit= optional=no since=1.0
+shape.SpanReply.visit_s type=duration unit=s optional=no since=1.0
+shape.SpanReply.span_pass_s type=duration unit=s optional=no since=1.0
+shape.SurveyReply since=1.0
+shape.SurveyReply.channels type=i64 unit= optional=no since=1.0
+shape.SurveyReply.kind type=choice(none,activity,channels,span,survey) unit= optional=no since=1.0
+shape.SurveyReply.dwell_s type=duration unit=s optional=no since=1.0
+shape.SurveyReply.pass_s type=duration unit=s optional=no since=1.0
+shape.SurveyReply.total_s type=duration unit=s optional=no since=1.0
+shape.SurveyReply.passes type=f64 unit= optional=no since=1.0
+shape.SurveyReply.visit_s type=duration unit=s optional=no since=1.0
+shape.SurveyReply.span_pass_s type=duration unit=s optional=no since=1.0
 scan since=1.0
 scan.fields.ScanFields since=1.0
-scan.table.hits row=HitRow cap=10000 since=1.1
-scan.table.candidates row=CandidateRow cap=1000 since=1.2
-scan.table.occupied row=OccupiedRow cap=1000 since=2.1
+scan.table.hits row=HitRow cap=10000 since=1.0
+scan.table.candidates row=CandidateRow cap=1000 since=1.0
+scan.table.occupied row=OccupiedRow cap=1000 since=1.0
 scan.setting.settle type=duration unit=s since=1.0
 scan.setting.dwell type=duration unit=s since=1.0
 scan.setting.hang type=duration unit=s since=1.0
@@ -94,12 +94,12 @@ scan.setting.priority_dwell type=duration unit=s since=1.0
 scan.setting.passes type=i64 unit= since=1.0
 scan.setting.hit_cap type=i64 unit= since=1.0
 scan.setting.keep_empty type=bool unit= since=1.0
-scan.setting.after_find type=choice(stay,resume) unit= since=1.2
-scan.setting.quiet type=duration unit=s since=1.2
-scan.setting.reject_hold type=duration unit=s since=1.2
-scan.setting.look type=duration unit=s since=2.0
-scan.command.start args=session:text;stack:text;dry:bool? reply=channels:i64;kind:choice(none,activity,channels,span,survey);dwell_s:duration;pass_s:duration;total_s:duration;passes:f64;visit_s:duration;span_pass_s:duration since=1.1
-scan.command.stop args= reply= since=1.1
-scan.command.span args=session:text;start_hz:hz;stop_hz:hz;span_hz:hz;watch:text;above:f64?;stack:text?;dwell_s:duration?;total_s:duration?;dry:bool? reply=channels:i64;kind:choice(none,activity,channels,span,survey);dwell_s:duration;pass_s:duration;total_s:duration;passes:f64;visit_s:duration;span_pass_s:duration since=1.2
-scan.command.survey args=session:text;start_hz:hz;stop_hz:hz;span_hz:hz;watch:text;above:f64?;stack:text?;dwell_s:duration?;total_s:duration?;rate_hz:hz?;dry:bool? reply=channels:i64;kind:choice(none,activity,channels,span,survey);dwell_s:duration;pass_s:duration;total_s:duration;passes:f64;visit_s:duration;span_pass_s:duration since=1.2
-scan.command.hit.text args=text:text;hit:text? reply= since=1.2
+scan.setting.after_find type=choice(stay,resume) unit= since=1.0
+scan.setting.quiet type=duration unit=s since=1.0
+scan.setting.reject_hold type=duration unit=s since=1.0
+scan.setting.look type=duration unit=s since=1.0
+scan.command.start args=session:text;stack:text;dry:bool? reply=channels:i64;kind:choice(none,activity,channels,span,survey);dwell_s:duration;pass_s:duration;total_s:duration;passes:f64;visit_s:duration;span_pass_s:duration since=1.0
+scan.command.stop args= reply= since=1.0
+scan.command.span args=session:text;start_hz:hz;stop_hz:hz;span_hz:hz;watch:text;above:f64?;stack:text?;dwell_s:duration?;total_s:duration?;dry:bool? reply=channels:i64;kind:choice(none,activity,channels,span,survey);dwell_s:duration;pass_s:duration;total_s:duration;passes:f64;visit_s:duration;span_pass_s:duration since=1.0
+scan.command.survey args=session:text;start_hz:hz;stop_hz:hz;span_hz:hz;watch:text;above:f64?;stack:text?;dwell_s:duration?;total_s:duration?;rate_hz:hz?;dry:bool? reply=channels:i64;kind:choice(none,activity,channels,span,survey);dwell_s:duration;pass_s:duration;total_s:duration;passes:f64;visit_s:duration;span_pass_s:duration since=1.0
+scan.command.hit.text args=text:text;hit:text? reply= since=1.0

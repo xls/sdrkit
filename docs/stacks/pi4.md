@@ -51,6 +51,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `decodes` | Decodes | `utc` (time), `time_s` (number (s)), `snr_db` (number (dB)), `audio_hz` (frequency), `mode` (text), `message` (text), `dt_s` (number (s)), `carrier_hz` (number (Hz)), `sync` (number), `k` (whole number) |
+| `stations` | Stations | `callsign` (text), `last_heard` (time), `heard` (whole number), `snr_db` (number (dB)) |
 
 ## Events
 
@@ -67,7 +68,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wsjt`, version 5.0. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wsjt`, version 5.2. The C header `sdrkit/wsjt.h`, the registry record `registry/wsjt.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Weak-signal messages (`weak_signal`). Media: sound (monitor), text.
 
@@ -107,6 +108,19 @@ Struct `Pi4DecodeRow`. A row of the decode table of `pi4`. The row key is the nu
 | `k` | whole number | always | 1.0 | The tone spacing factor of the decode. |
 
 Default order: the column `utc`, highest first.
+
+### Table `stations`
+
+Struct `ScatterStationRow`. A row of the station table of `fsk441`, `jt6m`, `iscat` and `pi4`: a station whose callsign a decoded text held. The row key is the callsign.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `callsign` | text | always | 5.1 | The callsign. |
+| `last_heard` | time | optional | 5.1 | The UTC of the newest decode that held the callsign. |
+| `heard` | whole number | optional | 5.1 | The decodes that held the callsign. |
+| `snr_db` | number (dB) | always | 5.1 | The SNR of the newest decode that held the callsign. |
+
+The rows are the stations or nodes of the stack. The column `callsign` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
 
 ### Event `wsjt.decode`
 

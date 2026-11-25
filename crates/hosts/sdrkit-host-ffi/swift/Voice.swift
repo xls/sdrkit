@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "voice", version 1.4. MIT licence.
+// sdrkit: the typed interface of the stack family "voice", version 1.5. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum VoiceInterface {
     public static let major = 1
-    public static let minor = 4
+    public static let minor = 5
 }
 
 /// The result fields that every single-channel stack shares.
@@ -1157,7 +1157,9 @@ public enum VoiceTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(VoiceDetectorEventRow.init))
     }
     /// The changed rows of the table "frames" of the stack "hfpacket", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `source` names a row.
+    /// Time: `time_utc`.
     public static func hfpacketFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[HfpacketFrameRow], SDRKitCode> {
         var rows = [sdrkit_hfpacket_frame_row](repeating: sdrkit_hfpacket_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized

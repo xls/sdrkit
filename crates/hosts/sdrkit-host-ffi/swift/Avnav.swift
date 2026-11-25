@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "avnav", version 1.4. MIT licence.
+// sdrkit: the typed interface of the stack family "avnav", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum AvnavInterface {
-    public static let major = 1
-    public static let minor = 4
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The tuned frequency.
@@ -372,6 +372,8 @@ public struct IlsMarkerPassageRow {
     public var text: String
     /// The carrier level at the end of the passage. No value before the first carrier measurement.
     public var levelDbfs: Double?
+    /// The signal time of the end of the passage.
+    public var timeS: Double
 
     init(_ c: sdrkit_ils_marker_passage_row) {
         key = sdrkitText(c.key)
@@ -379,6 +381,7 @@ public struct IlsMarkerPassageRow {
         marker = Marker(rawValue: c.marker)
         text = sdrkitText(c.text)
         levelDbfs = c.has_level_dbfs ? c.level_dbfs : nil
+        timeS = c.time_s
     }
 }
 
@@ -969,7 +972,9 @@ public enum AvnavTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(AvnavIdentRow.init))
     }
     /// The changed rows of the table "passages" of the stack "ils", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `marker` names a row.
+    /// Time: `time_s`.
     public static func ilsPassages(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[IlsMarkerPassageRow], SDRKitCode> {
         var rows = [sdrkit_ils_marker_passage_row](repeating: sdrkit_ils_marker_passage_row(), count: capacity)
         var info = sdrkit_rows_info.sized

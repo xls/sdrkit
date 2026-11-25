@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "broadcast", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "broadcast", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -37,8 +37,8 @@
 #include "broadcast_scan.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_BROADCAST_VERSION_MAJOR 1
-#define SDRKIT_BROADCAST_VERSION_MINOR 1
+#define SDRKIT_BROADCAST_VERSION_MAJOR 2
+#define SDRKIT_BROADCAST_VERSION_MINOR 0
 
 // The stack "drm": its id, and the keys of its event types.
 #define SDRKIT_STACK_DRM "drm"
@@ -488,9 +488,9 @@ typedef struct sdrkit_drm_stream_row {
   uint32_t size;
   // The row key.
   sdrkit_string key;
-  // The bytes of part A. Unit: bytes.
+  // The bytes of part A. Unit: B.
   int64_t part_a;
-  // The bytes of part B. Unit: bytes.
+  // The bytes of part B. Unit: B.
   int64_t part_b;
 } sdrkit_drm_stream_row;
 
@@ -884,7 +884,7 @@ typedef struct sdrkit_hdradio_fields {
   int64_t facility_id;
   // True if `location` holds a value.
   bool has_location;
-  // The location of the station. Unit: deg.
+  // The location of the station.
   sdrkit_position location;
   // True if `altitude_m` holds a value.
   bool has_altitude_m;

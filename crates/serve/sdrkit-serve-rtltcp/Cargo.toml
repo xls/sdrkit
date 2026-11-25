@@ -1,0 +1,15 @@
+[package]
+name = "sdrkit-serve-rtltcp"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "rtl_tcp server protocol for sdrkit: the greeting, the command set and the unsigned 8-bit stream"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-serve-core = { path = "../sdrkit-serve-core" }
+sdrkit-driver-core = { path = "../../drivers/sdrkit-driver-core" }
+
+[dev-dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core", features = ["std-net"] }

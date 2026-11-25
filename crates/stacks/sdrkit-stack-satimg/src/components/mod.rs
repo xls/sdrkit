@@ -4,6 +4,7 @@ pub mod fsk;
 pub mod gated;
 pub mod instruments;
 pub mod link;
+pub mod pass;
 pub mod pm;
 pub mod table;
 pub mod xrit;

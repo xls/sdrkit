@@ -19,6 +19,7 @@ sdrkit-components = { path = "../../framework/sdrkit-components" }
 sdrkit-proto-ccsds = { path = "../../proto/sdrkit-proto-ccsds" }
 # The data files that settings name (the satellite list and the AVHRR calibration of eodb).
 sdrkit-util-objects = { path = "../../util/sdrkit-util-objects" }
+sdrkit-util-geo = { path = "../../util/sdrkit-util-geo" }
 # The JPEG 2000 encoder makes the picture blocks of the GOES-R Rebroadcast test signal.
 sdrkit-codec-image = { path = "../../codec/sdrkit-codec-image", features = ["jpeg2000-encode"] }
 sdrkit-codec-bzip2 = { path = "../../codec/sdrkit-codec-bzip2" }

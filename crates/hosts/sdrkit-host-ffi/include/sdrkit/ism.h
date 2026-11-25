@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "ism", version 3.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "ism", version 4.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,8 +35,8 @@
 #include "ookdev.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_ISM_VERSION_MAJOR 3
-#define SDRKIT_ISM_VERSION_MINOR 1
+#define SDRKIT_ISM_VERSION_MAJOR 4
+#define SDRKIT_ISM_VERSION_MINOR 0
 
 // The stack "ism": its id, and the keys of its event types.
 #define SDRKIT_STACK_ISM "ism"
@@ -342,27 +342,27 @@ typedef struct sdrkit_ism_pulse_fields {
   sdrkit_string bits_hex;
   // True if `short_us` holds a value.
   bool has_short_us;
-  // PWM: the short width. PPM: the short gap. Unit: µs.
+  // PWM: the short width. PPM: the short gap. Unit: us.
   double short_us;
   // True if `long_us` holds a value.
   bool has_long_us;
-  // PWM: the long width. PPM: the long gap. Unit: µs.
+  // PWM: the long width. PPM: the long gap. Unit: us.
   double long_us;
   // True if `pulse_us` holds a value.
   bool has_pulse_us;
-  // PPM: the pulse width. Unit: µs.
+  // PPM: the pulse width. Unit: us.
   double pulse_us;
   // True if `period_us` holds a value.
   bool has_period_us;
-  // PWM: the bit period. Unit: µs.
+  // PWM: the bit period. Unit: us.
   double period_us;
   // True if `half_bit_us` holds a value.
   bool has_half_bit_us;
-  // Manchester: the half-bit. Unit: µs.
+  // Manchester: the half-bit. Unit: us.
   double half_bit_us;
   // True if `unit_us` holds a value.
   bool has_unit_us;
-  // PCM: the unit. Unit: µs.
+  // PCM: the unit. Unit: us.
   double unit_us;
   // True if `bit_rate` holds a value.
   bool has_bit_rate;
@@ -524,9 +524,9 @@ typedef struct sdrkit_ism_unknown_row {
   sdrkit_string line_code;
   // Pulses of the train.
   int64_t pulses;
-  // The short width of the guess. Unit: µs.
+  // The short width of the guess. Unit: us.
   double short_us;
-  // The long width of the guess. Unit: µs.
+  // The long width of the guess. Unit: us.
   double long_us;
   // The level. Unit: dBFS.
   double level_dbfs;
@@ -592,27 +592,27 @@ typedef struct sdrkit_ism_pulse_frame_row {
   sdrkit_string bits_hex;
   // True if `short_us` holds a value.
   bool has_short_us;
-  // PWM: the short width. PPM: the short gap. Unit: µs.
+  // PWM: the short width. PPM: the short gap. Unit: us.
   double short_us;
   // True if `long_us` holds a value.
   bool has_long_us;
-  // PWM: the long width. PPM: the long gap. Unit: µs.
+  // PWM: the long width. PPM: the long gap. Unit: us.
   double long_us;
   // True if `pulse_us` holds a value.
   bool has_pulse_us;
-  // PPM: the pulse width. Unit: µs.
+  // PPM: the pulse width. Unit: us.
   double pulse_us;
   // True if `period_us` holds a value.
   bool has_period_us;
-  // PWM: the bit period. Unit: µs.
+  // PWM: the bit period. Unit: us.
   double period_us;
   // True if `half_bit_us` holds a value.
   bool has_half_bit_us;
-  // Manchester: the half-bit. Unit: µs.
+  // Manchester: the half-bit. Unit: us.
   double half_bit_us;
   // True if `unit_us` holds a value.
   bool has_unit_us;
-  // PCM: the unit. Unit: µs.
+  // PCM: the unit. Unit: us.
   double unit_us;
   // True if `bit_rate` holds a value.
   bool has_bit_rate;
@@ -1096,7 +1096,7 @@ typedef struct sdrkit_sigfox_message_row {
   sdrkit_string frame_type;
   // The length indicator.
   int64_t li;
-  // The container size. Unit: bytes.
+  // The container size. Unit: B.
   int64_t container_bytes;
   // The device requests a downlink.
   bool downlink;
@@ -1290,7 +1290,7 @@ typedef struct sdrkit_nrf24_nrf_bad_burst_row {
   sdrkit_string key;
   // The signal time of the burst. Unit: s.
   double time_s;
-  // The duration of the burst. Unit: µs.
+  // The duration of the burst. Unit: us.
   double duration_us;
   // The SNR. Unit: dB.
   double snr_db;
@@ -1350,8 +1350,8 @@ typedef struct sdrkit_subghzchat_line_row {
   sdrkit_string key;
   // The signal time of the line. Unit: s.
   double time_s;
-  // "heard" or "sent".
-  sdrkit_string direction;
+  // True for a line that this station sent.
+  bool own;
   // How the line was read. A value of `sdrkit_subghzchat_line_row_kind`.
   int32_t kind;
   // The text.
@@ -1384,7 +1384,7 @@ typedef struct sdrkit_subghzchat_packet_row {
   sdrkit_string key;
   // The signal time of the packet. Unit: s.
   double time_s;
-  // The payload length. Unit: octets.
+  // The payload length. Unit: B.
   int64_t length;
   // The CRC is right.
   bool crc_ok;
@@ -1650,6 +1650,8 @@ typedef struct sdrkit_wisun_network_row {
   bool has_schedule;
   // The unicast schedule, once heard.
   sdrkit_string schedule;
+  // The PAN id, as `send` takes it.
+  sdrkit_string pan_id;
 } sdrkit_wisun_network_row;
 
 // A row of the Wi-SUN nodes. The row key is the EUI-64.
@@ -1692,6 +1694,8 @@ typedef struct sdrkit_wisun_node_row {
   sdrkit_string eap;
   // The summary of the last frame.
   sdrkit_string last;
+  // The EUI-64, as `send` takes it.
+  sdrkit_string address;
 } sdrkit_wisun_node_row;
 
 // A row of the Wi-SUN links. The row key is the two ends.
@@ -4084,7 +4088,7 @@ static inline int32_t sdrkit_ism_gen_set_bits(SDRKIT_HANDLE handle, sdrkit_strin
   return sdrkit_typed_setting_set_string(handle, "gen_bits", value);
 }
 
-// The setting "gen_t_us" (Pulse analyser test unit) of the test signal generator of the stack "ism". Unit: µs.
+// The setting "gen_t_us" (Pulse analyser test unit) of the test signal generator of the stack "ism". Unit: us.
 static inline int32_t sdrkit_ism_gen_get_t_us(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_t_us", value);
 }
@@ -4092,7 +4096,7 @@ static inline int32_t sdrkit_ism_gen_set_t_us(SDRKIT_HANDLE handle, double value
   return sdrkit_typed_setting_set_f64(handle, "gen_t_us", value);
 }
 
-// The setting "gen_pulse_us" (Pulse analyser test PPM pulse) of the test signal generator of the stack "ism". Unit: µs.
+// The setting "gen_pulse_us" (Pulse analyser test PPM pulse) of the test signal generator of the stack "ism". Unit: us.
 static inline int32_t sdrkit_ism_gen_get_pulse_us(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_pulse_us", value);
 }
@@ -4100,7 +4104,7 @@ static inline int32_t sdrkit_ism_gen_set_pulse_us(SDRKIT_HANDLE handle, double v
   return sdrkit_typed_setting_set_f64(handle, "gen_pulse_us", value);
 }
 
-// The setting "gen_gap0_us" (Pulse analyser test PPM gap of a 0) of the test signal generator of the stack "ism". Unit: µs.
+// The setting "gen_gap0_us" (Pulse analyser test PPM gap of a 0) of the test signal generator of the stack "ism". Unit: us.
 static inline int32_t sdrkit_ism_gen_get_gap0_us(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_gap0_us", value);
 }
@@ -4108,7 +4112,7 @@ static inline int32_t sdrkit_ism_gen_set_gap0_us(SDRKIT_HANDLE handle, double va
   return sdrkit_typed_setting_set_f64(handle, "gen_gap0_us", value);
 }
 
-// The setting "gen_gap1_us" (Pulse analyser test PPM gap of a 1) of the test signal generator of the stack "ism". Unit: µs.
+// The setting "gen_gap1_us" (Pulse analyser test PPM gap of a 1) of the test signal generator of the stack "ism". Unit: us.
 static inline int32_t sdrkit_ism_gen_get_gap1_us(SDRKIT_HANDLE handle, double *value) {
   return sdrkit_typed_setting_get_f64(handle, "gen_gap1_us", value);
 }
@@ -4160,6 +4164,8 @@ static inline int32_t sdrkit_wmbus_meter_records_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "wmbus" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time`.
 static inline int32_t sdrkit_wmbus_frames_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wmbus_frame_row *rows,
                                               uint32_t capacity,
@@ -4259,6 +4265,8 @@ static inline int32_t sdrkit_wmbus_gen_set_silence(SDRKIT_HANDLE handle, bool va
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "zwave" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time`.
 static inline int32_t sdrkit_zwave_frames_rows(SDRKIT_HANDLE handle,
                                               sdrkit_zwave_frame_row *rows,
                                               uint32_t capacity,
@@ -4397,6 +4405,8 @@ static inline int32_t sdrkit_zigbee_devices_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "zigbee" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_zigbee_frames_rows(SDRKIT_HANDLE handle,
                                                sdrkit_zigbee_frame_row *rows,
                                                uint32_t capacity,
@@ -4729,6 +4739,7 @@ static inline int32_t sdrkit_nrf24_gen_set_random(SDRKIT_HANDLE handle, bool val
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
 // The rows are the messages of the stack.
 // Text: `text`. Time: `time_s`.
+// Own message: `own`.
 static inline int32_t sdrkit_subghzchat_chat_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_subghzchat_line_row *rows,
                                                  uint32_t capacity,
@@ -4898,7 +4909,9 @@ static inline int32_t sdrkit_nfc_tags_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "nfc" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
 // The column `name` names a row.
+// Time: `time_s`.
 static inline int32_t sdrkit_nfc_frames_rows(SDRKIT_HANDLE handle,
                                             sdrkit_nfc_frame_row *rows,
                                             uint32_t capacity,
@@ -4954,6 +4967,8 @@ static inline int32_t sdrkit_wisun_links_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "frames" of the stack "wisun" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_wisun_frames_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wisun_frame_row *rows,
                                               uint32_t capacity,

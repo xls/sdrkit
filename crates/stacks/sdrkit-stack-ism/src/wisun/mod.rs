@@ -660,6 +660,9 @@ pub struct Network {
     pub nodes: usize,
     /// The last level, dBFS.
     pub level_db: f32,
+    /// The PAN id.
+    #[serde(default)]
+    pub pan_id: u16,
 }
 
 impl Shift for Network {
@@ -669,6 +672,7 @@ impl Shift for Network {
 impl Shaped for Network {
     type Row = WisunNetworkRow<'static>;
     fn row(&self, seen: Option<&Seen>, _now_s: f64, out: RowOut<'_, '_, Self::Row>) {
+        let pan_id = PanId(self.pan_id).to_string();
         out.put(&WisunNetworkRow {
             name: self.name.as_deref(),
             border_router: self.border_router.as_deref(),
@@ -678,6 +682,7 @@ impl Shaped for Network {
             heard: columns::heard(seen),
             last_heard: columns::last_heard(seen).map(Time),
             schedule: self.us.as_deref(),
+            pan_id: &pan_id,
         });
     }
 }
@@ -733,6 +738,9 @@ pub struct Node {
     pub eap: Option<String>,
     /// The last summary.
     pub last: String,
+    /// The EUI-64.
+    #[serde(default)]
+    pub eui: u64,
 }
 
 impl Shift for Node {
@@ -743,6 +751,7 @@ impl Shaped for Node {
     type Row = WisunNodeRow<'static>;
     fn row(&self, seen: Option<&Seen>, _now_s: f64, out: RowOut<'_, '_, Self::Row>) {
         let pan = self.pan.map(|p| PanId(p).to_string());
+        let address = Eui(self.eui).to_string();
         out.put(&WisunNodeRow {
             vendor: self.vendor.as_deref(),
             role: &self.role,
@@ -755,6 +764,7 @@ impl Shaped for Node {
             authenticator: self.authenticator.as_deref(),
             eap: self.eap.as_deref(),
             last: &self.last,
+            address: &address,
         });
     }
 }
@@ -1049,7 +1059,7 @@ impl Store {
         });
         let mut event = None;
         if let Some(p) = pan {
-            if let Ok(up) = self.networks.upsert(&PanId(p), at, Network::default) {
+            if let Ok(up) = self.networks.upsert(&PanId(p), at, || Network { pan_id: p, ..Network::default() }) {
                 if up.new && self.new_pans < PAN_EVENTS {
                     self.new_pans += 1;
                     let pan_id = PanId(p).to_string();
@@ -1094,6 +1104,7 @@ impl Store {
             if let Ok(up) = self.nodes.upsert(&Eui(e), at, || Node {
                 vendor: vendor_of_address(&e.to_be_bytes()).map(String::from),
                 role: "node".into(),
+                eui: e,
                 ..Default::default()
             }) {
                 let nd = up.row;
@@ -1133,6 +1144,7 @@ impl Store {
                     let _ = self.nodes.upsert(&Eui(d), at, || Node {
                         vendor: vendor_of_address(&d.to_be_bytes()).map(String::from),
                         role: "node".into(),
+                        eui: d,
                         ..Default::default()
                     });
                 }

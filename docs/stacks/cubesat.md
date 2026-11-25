@@ -43,7 +43,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:cu
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `search` | Search | choice | `table` | `table` (Table (the dial)), `smart` (Smart (blind search)) |  |
-| `ccsds_length` | CCSDS code length | whole number (bytes) | 255 | 33 to 255 |  |
+| `ccsds_length` | CCSDS code length | whole number (B) | 255 | 33 to 255 |  |
 | `smart.max_channels` | Carriers followed | whole number | 4 | 1 to 16 |  |
 | `smart.min_snr_db` | Carrier SNR | number (dB) | 8 | -10 to 60 |  |
 | `extra_bitrates` | Extra bit rates | text (bit/s) | empty |  | Up to four bit rates of 300 to 20000 bit/s, separated by commas: one more FSK slicer each, for every framing. |
@@ -52,7 +52,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:cu
 | `afsk_bitrate` | U482C audio bit rate | choice | `4800` | `1200` (1200 bit/s), `2400` (2400 bit/s), `4800` (4800 bit/s) |  |
 | `geoscan_length` | Geoscan frame bytes | choice | `66` | `66` (66 bytes), `74` (74 bytes) |  |
 | `ccsds_basis` | CCSDS RS basis | choice | `dual` | `dual` (Dual), `conventional` (Conventional) |  |
-| `concat.frame_bytes` | CCSDS concatenated frame size | whole number (bytes) | 223 | 1 to 1784 | Data bytes, check bytes not included: a multiple of the interleave, at most 223 for each code word. |
+| `concat.frame_bytes` | CCSDS concatenated frame size | whole number (B) | 223 | 1 to 1784 | Data bytes, check bytes not included: a multiple of the interleave, at most 223 for each code word. |
 | `concat.interleave` | Interleave | whole number | 1 | 1 to 8 |  |
 | `concat.basis` | Basis | choice | `dual` | `dual` (Dual), `conventional` (Conventional) |  |
 | `concat.code` | Code | choice | `ccsds` | `ccsds` (CCSDS), `nasa_dsn` (NASA-DSN), `ccsds_uninverted` (CCSDS uninverted), `nasa_dsn_uninverted` (NASA-DSN uninverted) |  |
@@ -114,9 +114,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `satcom`, version 1.5. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satcom`, version 2.0. The C header `sdrkit/satcom.h`, the registry record `registry/satcom.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite links (`satellite_links`). Media: none.
+
+Key readings: `frames_ok`, `rs_repaired`, `tx_sending`.
 
 ### Result fields
 
@@ -143,9 +145,9 @@ Struct `CubesatTxFields`. The result fields of the AX.25 sender of the CubeSat s
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `tx_sending` | yes or no | always | 1.1 | Whether a transmission is on air. |
-| `tx_sent` | whole number | always | 1.1 | The frames of the transmission on air. |
-| `tx_waiting` | whole number | always | 1.1 | The frames waiting for the next transmission. |
+| `tx_sending` | yes or no | always | 1.0 | Whether a transmission is on air. |
+| `tx_sent` | whole number | always | 1.0 | The frames of the transmission on air. |
+| `tx_waiting` | whole number | always | 1.0 | The frames waiting for the next transmission. |
 
 ### Table `frames`
 
@@ -178,7 +180,7 @@ Struct `CubesatFrameRow`. A frame of the log. The row key is the sequence number
 | `vc` | whole number | optional | 1.0 | The virtual channel of a CCSDS header. |
 | `flags` | whole number | optional | 1.0 | The NGHam flags. |
 
-The column `satellite` names a row.
+The rows are a log: they arrive over time. The column `satellite` names a row. Time: `heard_at`.
 
 ### Table `frames_per_framing`
 
@@ -232,11 +234,11 @@ Struct `CubesatTxEvent`. The fields of a change of an AX.25 transmission.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `state` | text | always | 1.1 | The state: started, queued, finished or refused. |
-| `reason` | text | always | 1.1 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
-| `target` | text | always | 1.1 | The destination and the digipeaters of the frames, separated by commas. |
-| `text` | text | always | 1.1 | The text or the hexadecimal bytes of the frame for started, queued and refused; empty for finished. |
-| `family` | choice | always | 1.1 | The family of the source: a satellite. |
+| `state` | text | always | 1.0 | The state: started, queued, finished or refused. |
+| `reason` | text | always | 1.0 | Why it changed: empty, halted, the transmitter is off, the format changed, or why a frame was refused. |
+| `target` | text | always | 1.0 | The destination and the digipeaters of the frames, separated by commas. |
+| `text` | text | always | 1.0 | The text or the hexadecimal bytes of the frame for started, queued and refused; empty for finished. |
+| `family` | choice | always | 1.0 | The family of the source: a satellite. |
 
 ### Commands
 
@@ -245,6 +247,8 @@ Struct `CubesatTxEvent`. The fields of a change of an AX.25 transmission.
 | `clear` | `sdrkit_cubesat_clear` | none | none |
 | `send` | `sdrkit_cubesat_send` | `sdrkit_cubesat_send_args` | none |
 | `halt` | `sdrkit_cubesat_halt` | none | none |
+
+The argument `destination` of `send` takes the column `from` of a row of the table `frames`. The argument `path` of `send` takes the column `path` of a row of the table `frames`.
 
 ### Settings
 

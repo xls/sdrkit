@@ -205,9 +205,10 @@ pub struct RailwayCirTdcsEvent<'a> {
     pub raw: &'a str,
 }
 
-/// The messages of `railway_cir`, newest first.
+/// The messages of `railway_cir`, newest first: a log.
 pub static RAILWAY_CIR_MESSAGES: Table<RailwayCirMessageRow<'static>> =
-    Table::new("messages", "Messages", crate::railway_cir::HISTORY_MAX);
+    Table::new("messages", "Messages", crate::railway_cir::HISTORY_MAX)
+        .role(sdrkit_core::TableRole::Log);
 /// A message of the end-of-train device.
 pub static RAILWAY_CIR_KLW: EventKind<RailwayCirKlwEvent<'static>> =
     EventKind::new("railway_cir.klw", "KLW message");
@@ -1140,7 +1141,7 @@ pub struct Cv2xFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct Cv2xDetectionRow {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The carrier offset.
     #[field(shared = keys::OFFSET_HZ)]
@@ -1153,9 +1154,10 @@ pub struct Cv2xDetectionRow {
     pub slot_timing: i64,
 }
 
-/// The detection starts of `cv2x`.
+/// The detection starts of `cv2x`: a log.
 pub static CV2X_DETECTIONS: Table<Cv2xDetectionRow> =
-    Table::new("detections", "Detections", crate::cv2x::DETECTION_CAP);
+    Table::new("detections", "Detections", crate::cv2x::DETECTION_CAP)
+        .role(sdrkit_core::TableRole::Log);
 
 // ---- eot ----
 
@@ -1189,7 +1191,7 @@ pub struct EotFields<'a> {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct EotFrameRow<'a> {
     /// The signal time.
-    #[field(label = "Time", unit = "s")]
+    #[field(label = "Time", unit = "s", role = Time)]
     pub time_s: f64,
     /// The link: end of train or head of train.
     #[field(label = "Link")]
@@ -1258,9 +1260,9 @@ pub struct EotFrameEvent<'a> {
     pub family: keys::Family,
 }
 
-/// The frames of `eot`.
+/// The frames of `eot`: a log.
 pub static EOT_FRAMES: Table<EotFrameRow<'static>> =
-    Table::new("frames", "Frames", crate::eot::FRAME_CAP);
+    Table::new("frames", "Frames", crate::eot::FRAME_CAP).role(sdrkit_core::TableRole::Log);
 /// One frame of `eot`.
 pub static EOT_FRAME: EventKind<EotFrameEvent<'static>> =
     EventKind::new("eot.frame", "End-of-train frame");
@@ -1360,9 +1362,9 @@ pub struct LbjMessageEvent<'a> {
     pub route: Option<&'a str>,
 }
 
-/// The messages of `lbj`, newest last.
+/// The messages of `lbj`, newest last: a log.
 pub static LBJ_MESSAGES: Table<LbjMessageRow<'static>> =
-    Table::new("messages", "Messages", crate::lbj::MESSAGE_CAP);
+    Table::new("messages", "Messages", crate::lbj::MESSAGE_CAP).role(sdrkit_core::TableRole::Log);
 /// A message of `lbj`.
 pub static LBJ_MESSAGE: EventKind<LbjMessageEvent<'static>> =
     EventKind::new("lbj.message", "LBJ message");
@@ -1508,15 +1510,17 @@ pub struct EbicabTelegramEvent<'a> {
     pub n_pig: i64,
 }
 
-/// The telegrams of `ebicab`, newest last.
+/// The telegrams of `ebicab`, newest last: a log.
 pub static EBICAB_TELEGRAMS: Table<EbicabTelegramRow> =
-    Table::new("telegrams", "Telegrams", crate::balise::TELEGRAM_CAP);
+    Table::new("telegrams", "Telegrams", crate::balise::TELEGRAM_CAP)
+        .role(sdrkit_core::TableRole::Log);
 /// The balises of `ebicab` heard, newest last.
 pub static EBICAB_BALISES: Table<EbicabBaliseRow> =
     Table::new("balises", "Balises", crate::balise::BALISE_CAP);
-/// The other bursts of `ebicab`, newest last.
+/// The other bursts of `ebicab`, newest last: a log.
 pub static EBICAB_OTHER_BURSTS: Table<EbicabOtherBurstRow> =
-    Table::new("other_bursts", "Other bursts", crate::balise::OTHER_CAP);
+    Table::new("other_bursts", "Other bursts", crate::balise::OTHER_CAP)
+        .role(sdrkit_core::TableRole::Log);
 /// A new telegram of `ebicab`.
 pub static EBICAB_TELEGRAM: EventKind<EbicabTelegramEvent<'static>> =
     EventKind::new("balise.telegram", "Balise telegram");
@@ -1539,7 +1543,8 @@ pub const EBICAB_REMOVE: CommandKind<EbicabRemoveArgs<'static>> = objcmd::remove
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Family::new("cell", 1, 2)
+        // Version 1.3 marks the logs.
+        Family::new("cell", 1, 3)
             .added(
                 1,
                 1,

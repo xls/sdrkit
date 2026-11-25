@@ -488,6 +488,9 @@ pub struct Decl {
     pub refers_object: String,
     /// For a value that holds a row key: the key of the table that the keys belong to, or empty.
     pub refers_table: String,
+    /// The column of `refers_table` that holds a value to pass, or empty. With a column, the value is free: a row of
+    /// the table only offers one.
+    pub refers_column: String,
 }
 
 impl Decl {
@@ -512,6 +515,7 @@ impl Decl {
             options: Vec::new(),
             refers_object: owned(d.refers_object),
             refers_table: owned(d.refers_table),
+            refers_column: owned(d.refers_column),
         }
     }
 }

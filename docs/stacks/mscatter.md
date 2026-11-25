@@ -74,9 +74,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: none.
+
+Key readings: `rate`, `pings`, `ping_now_db`, `beacon_snr_db`.
 
 ### Result fields
 
@@ -106,6 +108,8 @@ Struct `MscatterPingRow`. A meteor ping. The row key is the sequence number of t
 | `doppler` | frequency | always | 1.0 | The Doppler shift at the peak. |
 | `drift_hz_s` | number (Hz/s) | optional | 1.0 | The drift of the Doppler shift. |
 | `kind` | choice | always | 1.0 | Underdense or overdense. |
+
+The rows are a log: they arrive over time. Time: `utc`.
 
 ### Table `showers`
 

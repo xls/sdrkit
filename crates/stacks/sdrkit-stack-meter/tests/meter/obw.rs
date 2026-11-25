@@ -11,7 +11,7 @@ use sdrkit_stack_meter::obw::gen::{
     rc_share_width, rc_x_db_width, GEN_NEIGHBOUR, GEN_NEIGHBOUR_DB, GEN_ROLLOFF, GEN_SYMBOL_RATE,
 };
 use sdrkit_stack_meter::obw::DESCRIPTOR;
-use sdrkit_stack_meter::typed::{ObwFields, WatchFields};
+use sdrkit_stack_meter::typed::ObwFields;
 
 const CENTRE: f64 = 145e6;
 
@@ -105,10 +105,7 @@ fn noise_alone_is_no_signal() {
         let r = run(h, 8.0, seed);
         let f = fields(&r);
         assert!(!f.signal, "seed {seed}");
-        let text = WatchFields::read(r.results.fields())
-            .unwrap()
-            .text
-            .to_string();
+        let text = &r.results.status().summary;
         assert!(text.starts_with("no signal"), "seed {seed}: {text}");
     }
 }

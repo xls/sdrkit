@@ -231,3 +231,131 @@ fn gen_lines_makes_a_pass_of_that_many_lines_and_the_picture_ends_finished() {
         (16.0 * RATE) as usize
     );
 }
+
+/// The APT test signal of `lines` lines at 120 kHz.
+fn apt_pass(lines: i64) -> Vec<Complex32> {
+    use sdrkit_stack_satimg::modes::apt::GEN_LINES;
+    Harness::new(&DESCRIPTOR)
+        .rate(120e3)
+        .seconds(60.0)
+        .set(&GEN_LEVEL_DBFS, -13.0)
+        .set(&GEN_LINES, lines)
+        .generate()
+        .expect("a signal")
+}
+
+/// A receiver at 120 kHz whose pass ends after 5 s of signal without a line.
+fn apt_receiver() -> Box<dyn sdrkit_core::Receiver> {
+    use sdrkit_stack_satimg::components::pass::PASS_GAP;
+    let mut rx = Harness::new(&DESCRIPTOR)
+        .set(&PASS_GAP, 5.0)
+        .receiver()
+        .expect("a receiver");
+    rx.configure(&sdrkit_core::InputInfo::new(120e3, 137.1e6, 137.1e6).recording())
+        .expect("the rate");
+    rx
+}
+
+#[test]
+fn a_pass_ends_after_the_gap_and_the_next_pass_is_a_new_picture() {
+    use super::common::{finished, noise, pictures_of};
+    // Two passes of 20 lines (10 s each) with 8 s of noise between them: the gap of 5 s ends the first pass.
+    let pass = apt_pass(20);
+    assert_eq!(pass.len(), 1_200_000);
+    let mut x = pass.clone();
+    x.extend(noise(960_000, 0.02, 7));
+    let first_end = x.len();
+    x.extend(&pass);
+    let mut rx = apt_receiver();
+    let before = pictures_of(&mut *rx, &x[..first_end], 12_000, false);
+    // The first pass is finished in the noise, before the second pass and before the end of the input.
+    let done = finished(&before);
+    assert_eq!(done.len(), 1, "{before:#?}");
+    let first = before
+        .iter()
+        .find(|s| s.id == done[0])
+        .expect("the first pass");
+    assert!(first.name.contains("pass 1"), "{}", first.name);
+    let after = pictures_of(&mut *rx, &x[first_end..], 12_000, true);
+    let second: Vec<_> = after.iter().filter(|s| s.id != done[0]).collect();
+    assert!(!second.is_empty(), "{after:#?}");
+    assert!(
+        second.iter().all(|s| s.name.contains("pass 2")),
+        "{second:#?}"
+    );
+    assert!(
+        second.iter().all(|s| s.name.starts_with("NOAA APT-")),
+        "{second:#?}"
+    );
+    // The second pass ends at the end of the input.
+    assert_eq!(finished(&after), vec![second[0].id]);
+}
+
+#[test]
+fn a_short_dropout_stays_in_the_picture() {
+    use super::common::{finished, noise, pictures_of};
+    // 2 s of noise inside a pass is shorter than the gap of 5 s: one picture, finished only at the end of the input.
+    let pass = apt_pass(20);
+    let mut x = pass.clone();
+    x.extend(noise(240_000, 0.02, 9));
+    x.extend(&pass);
+    let mut rx = apt_receiver();
+    let sent = pictures_of(&mut *rx, &x, 12_000, true);
+    let ids: std::collections::BTreeSet<u64> = sent.iter().map(|s| s.id).collect();
+    assert_eq!(ids.len(), 1, "{sent:#?}");
+    assert_eq!(finished(&sent).len(), 1);
+    assert_eq!(
+        sent.last().map(|s| s.state),
+        Some(sdrkit_core::PictureState::Finished)
+    );
+}
+
+#[test]
+fn a_pass_of_the_test_signal_ends_finished_in_the_silence_after_it() {
+    use super::common::{finished, pictures_of};
+    // The test-signal driver plays silence after the signal.
+    let mut x = apt_pass(20);
+    x.extend(vec![Complex32::default(); 720_000]);
+    let mut rx = apt_receiver();
+    let sent = pictures_of(&mut *rx, &x, 12_000, false);
+    assert_eq!(finished(&sent).len(), 1, "{sent:#?}");
+    assert_eq!(
+        sent.last().map(|s| s.state),
+        Some(sdrkit_core::PictureState::Finished)
+    );
+}
+
+#[test]
+fn with_live_samples_a_picture_is_named_by_the_utc_start_of_its_pass() {
+    use super::common::pictures_of;
+    use sdrkit_stack_satimg::components::pass::PASS_GAP;
+    // Live samples: the host's clock gives the time of the signal.
+    let mut rx = Harness::new(&DESCRIPTOR)
+        .set(&PASS_GAP, 5.0)
+        .clock(sdrkit_core::Clock::fixed(1_780_272_000.0 + 3_725.0))
+        .receiver()
+        .expect("a receiver");
+    rx.configure(&sdrkit_core::InputInfo::new(120e3, 137.1e6, 137.1e6))
+        .expect("the rate");
+    let sent = pictures_of(&mut *rx, &apt_pass(20), 12_000, true);
+    assert!(!sent.is_empty());
+    assert!(
+        sent.iter()
+            .all(|s| s.name == "NOAA APT-ch1, pass 1, 2026-06-01 01:02 UTC"),
+        "{sent:#?}"
+    );
+}
+
+#[test]
+fn a_new_pass_starts_at_row_0() {
+    use super::common::{feed, noise, pictures_of};
+    let pass = apt_pass(20);
+    let mut first = pass.clone();
+    first.extend(noise(960_000, 0.02, 7));
+    let mut rx = apt_receiver();
+    pictures_of(&mut *rx, &first, 12_000, false);
+    let r = feed::<Strip>(rx, &pass, 12_000, Some("apt.out"));
+    let strips = r.of::<Strip>();
+    assert_eq!(strips.first().map(|s| s.first_row), Some(0), "{:?}", strips.len());
+    assert!(strips.iter().all(|s| s.first_row < 25));
+}

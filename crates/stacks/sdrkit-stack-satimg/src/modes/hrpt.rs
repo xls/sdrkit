@@ -13,10 +13,11 @@ use crate::components::link::{
     item_format, item_port, CodeComponent, CodeReport, DemodComponent, DemodReport, FrameComponent,
     FrameLink, FrameReport, FrontEndComponent, FrontReport, PacketReport, VcduComponent,
 };
+use crate::components::pass::{PassPictures, PASS_GAP};
 use crate::components::{last, Control};
 use crate::gen::{
-    aos_frame, cadu_bytes, space_packet, test_pixel, BitSource, CcsdsCoder, CodeOptions, GenError,
-    ModParams, Modulator, ZoneStream,
+    aos_frame, cadu_bytes, pass_lines, space_packet, test_pixel, BitSource, CcsdsCoder, CodeOptions,
+    GenError, ModParams, Modulator, ZoneStream,
 };
 use crate::instruments::avhrr::{build_noaa, AvhrrStats, WIDTH};
 use crate::instruments::tip::{test_frame, HIRS_WIDTH, HRPT_TIP_WORD, TIP_BYTES};
@@ -24,7 +25,7 @@ use crate::psk::{LinkClass, LinkParams, Modulation, Search, SnrEstimator};
 use crate::typed::{HrptFields, ImageRow, LinkFields, VirtualChannelRow, IMAGES, VIRTUAL_CHANNELS};
 use crate::REPORT_S;
 use sdrkit_algo_fec::rs::Basis;
-use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView, Pictures};
+use sdrkit_codec_image::component::{Layout as PictureLayout, NamedView};
 use sdrkit_codec_image::strip::View;
 use sdrkit_core::interface::{Fields as _, Seconds};
 use sdrkit_core::publish::{field, Published};
@@ -221,14 +222,19 @@ pub const GEN_3B: Setting<field::Bool> =
     Setting::new("gen_3b", "Test channel 3B (APID 104)", "", false)
         .section(TEST)
         .advanced();
-/// Lines of the test picture before it repeats.
-pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture lines", "", 60)
+/// The lines of the test signal: a pass of that many lines, then the signal ends. 0: the test picture of
+/// [`TEST_PICTURE_LINES`] lines repeats without end.
+pub const GEN_LINES: Setting<field::I64> = Setting::new("gen_lines", "Test picture lines", "", 0)
     .range(1.0, 4000.0, 1.0)
+    .zero_means("Without end")
+    .help("The test signal sends this many lines of the test picture and then ends. Without end: the picture repeats.")
     .section(TEST)
     .advanced();
+/// The lines of the test picture before it repeats.
+pub const TEST_PICTURE_LINES: u32 = 60;
 /// The phase index of the Meteor HRPT test signal (submode `meteor`).
 pub const GEN_PM_INDEX: Setting<field::F64> =
-    Setting::new("gen_pm_index", "Test phase index (Meteor)", "deg", 67.5)
+    Setting::new("gen_pm_index", "Test phase index (Meteor)", "°", 67.5)
         .range(10.0, 85.0, 0.5)
         .section(TEST)
         .advanced();
@@ -251,6 +257,8 @@ sdrkit_core::settings! {
         HirsView = HIRS_VIEW,
         /// Keep the newest lines in view.
         Follow = FOLLOW,
+        /// The end of a pass.
+        PassGap = PASS_GAP,
         /// Test: the variant.
         GenVariant = GEN_VARIANT,
         /// Test: channel 3B.
@@ -631,11 +639,11 @@ impl HrptDisplay {
 /// [`GraphError::Schema`] if the picture layout produces no valid schema.
 pub fn builder(variant: Variant) -> Result<GraphBuilder, GraphError> {
     let link = variant.link();
-    let pictures = Pictures::new(vec![picture_layout()])
+    let pictures = PassPictures::new(vec![picture_layout()], "HRPT")
         .map_err(GraphError::Schema)?
         .with_inputs(2);
-    let hirs_pictures =
-        Pictures::new(vec![super::dsb::picture_layout()]).map_err(GraphError::Schema)?;
+    let hirs_pictures = PassPictures::new(vec![super::dsb::picture_layout()], "HRPT")
+        .map_err(GraphError::Schema)?;
     Ok(GraphBuilder::new()
         .add(
             "frontend",
@@ -663,8 +671,11 @@ pub fn builder(variant: Variant) -> Result<GraphBuilder, GraphError> {
         .connect("vcdu.packets", "avhrr.in")
         .connect("avhrr.out", "pictures.in")
         .connect("noaa.out", "pictures.in2")
+        .connect("avhrr.pass", "pictures.pass")
+        .connect("noaa.pass", "pictures.pass2")
         .connect("noaa.tip", "hirs.in")
         .connect("hirs.out", "hirs_pictures.in")
+        .connect("hirs.pass", "hirs_pictures.pass")
         .connect("hirs.report", "display.hirs")
         .connect("frontend.report", "display.front")
         .connect("demod.report", "display.demod")
@@ -703,6 +714,10 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
         .route("view", &["pictures.view"])?
         .route("hirs_view", &["hirs_pictures.view"])?
         .route("follow", &["pictures.follow", "hirs_pictures.follow"])?
+        .route(
+            "pass_gap",
+            &["avhrr.pass_gap", "noaa.pass_gap", "hirs.pass_gap"],
+        )?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
         .with_settings(&cfg.settings)
         .build()
@@ -778,6 +793,8 @@ pub struct HrptSource {
     seq: u16,
     line: u32,
     lines: u32,
+    /// The lines of the pass, `None` for a signal without end.
+    pass: Option<u64>,
     tip_counter: u16,
     hirs_element: u8,
     hirs_line: u32,
@@ -857,6 +874,9 @@ impl BitSource for HrptSource {
         let cadu = cadu_bytes(&v, Basis::Dual, true);
         self.coder.push(&cadu, out);
     }
+    fn ended(&self) -> bool {
+        self.pass.is_some_and(|p| u64::from(self.line) >= p)
+    }
 }
 
 /// The HRPT test signal: the clean signal at unit mean power.
@@ -880,7 +900,7 @@ impl HrptGenerator {
         let mut modem = ModParams::new(cfg.rate_hz, l.symbol_rate, l.roll_off, l.modulation);
         modem.zero_is_plus = v.get(&GEN_POLARITY);
         let three_b = v.get(&GEN_3B);
-        let lines = v.get(&GEN_LINES).clamp(1, 4000) as u32;
+        let pass = pass_lines(v.get(&GEN_LINES));
         let src = HrptSource {
             variant,
             apid: if three_b { 104 } else { 103 },
@@ -893,7 +913,8 @@ impl HrptGenerator {
             counter: 0,
             seq: 0,
             line: 0,
-            lines,
+            lines: TEST_PICTURE_LINES,
+            pass,
             tip_counter: 0,
             hirs_element: 0,
             hirs_line: 0,

@@ -48,9 +48,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `channel_mode` | Channel mode | choice |
 | `channel` | Channel | text |
 | `paired_vhf_hz` | Paired VHF | frequency |
-| `pairs_per_s` | Pairs a second | number (/s) |
-| `spacing_us` | Pair spacing | number (µs) |
-| `width_us` | Pulse width | number (µs) |
+| `pairs_per_s` | Pairs a second | number (1/s) |
+| `spacing_us` | Pair spacing | number (us) |
+| `width_us` | Pulse width | number (us) |
 | `pairs` | Pairs | whole number |
 | `level_dbfs` | Level | number (dBFS) |
 | `tuned_hz` | Tuned | frequency |
@@ -78,9 +78,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `avnav`, version 1.4. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avnav`, version 2.0. The C header `sdrkit/avnav.h`, the registry record `registry/avnav.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Navigation aids (`navigation`). Media: none.
+
+Key readings: `ident`, `pairs_per_s`, `channel`, `level_dbfs`.
 
 ### Result fields
 
@@ -92,9 +94,9 @@ Struct `DmeFields`. The result fields of DME, over the last second of pairs.
 | `channel_mode` | choice | optional | 1.0 | X or Y, from the pulse spacing. No value with too few pairs. |
 | `channel` | text | optional | 1.0 | The channel from the tuned frequency and the mode ("17X"). No value with too few pairs. |
 | `paired_vhf_hz` | frequency | optional | 1.0 | The paired VOR or localizer frequency. No value without a channel that has one. |
-| `pairs_per_s` | number (/s) | always | 1.0 | Pairs a second. |
-| `spacing_us` | number (µs) | optional | 1.0 | The mean pair spacing. No value with too few pairs. |
-| `width_us` | number (µs) | optional | 1.0 | The mean pulse width at half amplitude. No value with too few pairs. |
+| `pairs_per_s` | number (1/s) | always | 1.0 | Pairs a second. |
+| `spacing_us` | number (us) | optional | 1.0 | The mean pair spacing. No value with too few pairs. |
+| `width_us` | number (us) | optional | 1.0 | The mean pulse width at half amplitude. No value with too few pairs. |
 | `pairs` | whole number | always | 1.0 | Pairs seen in all. |
 | `level_dbfs` | number (dBFS) | optional | 1.0 | The mean level of the pulses. No value with too few pairs. |
 

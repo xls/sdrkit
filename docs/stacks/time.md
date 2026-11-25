@@ -96,9 +96,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Science and propagation (`science`). Media: sound (monitor).
+
+Key readings: `utc`, `station`, `confirmed`, `clock_offset_s`, `snr_db`.
 
 ### Result fields
 
@@ -141,6 +143,8 @@ Struct `TimeMinuteRow`. A minute of `time`. The row key is the sequence number o
 | `refusal` | choice | optional | 1.0 | Why a minute was refused. |
 | `second` | whole number | optional | 1.0 | The second where the decoder stopped. |
 | `symbols` | text | always | 1.0 | The symbols of this minute so far. |
+
+The rows are a log: they arrive over time. Time: `host_time`.
 
 ### Event `time.minute`
 

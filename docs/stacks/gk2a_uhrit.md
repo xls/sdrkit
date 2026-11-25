@@ -33,7 +33,7 @@ Advanced settings. The owner works without any of them set.
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `uncounted_secondary` | Secondary header outside the length | whole number (bytes) | 8 | 0 to 64 | A packet with its secondary header flag set is this much longer than its length field says. |
+| `uncounted_secondary` | Secondary header outside the length | whole number (B) | 8 | 0 to 64 | A packet with its secondary header flag set is this much longer than its length field says. |
 | `modcod_rule` | MODCODs taken | choice | `any` | `any` (Any), `fixed` (Fixed), `set` (Set) | Fixed: only the MODCOD of `modcod`. Set: only the MODCODs of `modcods`. Other frames are counted, not decoded. |
 | `modcod` | MODCOD | whole number | 0 | 0 to 255 |  |
 | `modcods` | MODCOD set | text | empty |  | MODCOD numbers with commas between them, for the rule "set". |
@@ -110,7 +110,7 @@ Advanced settings. The owner works without any of them set.
 | Key | Label | Columns |
 |---|---|---|
 | `carriers` | Carriers | `offset` (frequency), `symbol_rate` (frequency), `roll_off` (number), `snr_db` (number (dB)), `level_db` (number (dB)), `decoded` (yes or no) |
-| `streams` | Input streams | `isi` (whole number), `carries` (choice), `packet_bytes` (whole number (bytes)), `sync_byte` (whole number), `ccm` (yes or no), `frames` (whole number), `bits` (whole number) |
+| `streams` | Input streams | `isi` (whole number), `carries` (choice), `packet_bytes` (whole number (B)), `sync_byte` (whole number), `ccm` (yes or no), `frames` (whole number), `bits` (whole number) |
 | `stream_modcods` | MODCODs of the input streams | `stream` (text), `modcod` (whole number), `modulation` (choice), `code_rate` (choice), `frames` (whole number), `share_pct` (number (%)) |
 | `packets_by_apid` | Packets by APID | `apid` (whole number), `packets` (whole number) |
 | `frames` | Frames | `vcid` (whole number), `frames` (whole number) |
@@ -142,7 +142,7 @@ Advanced settings. The owner works without any of them set.
 
 ## Typed interface
 
-The stack is in the family `satimg`, version 1.3. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `satimg`, version 2.0. The C header `sdrkit/satimg.h`, the registry record `registry/satimg.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite imagery (`satellite_imagery`). Media: pictures.
 
@@ -248,7 +248,7 @@ Struct `Dvbs2StreamRow`. A row of the input streams. The row key is the ISI.
 |---|---|---|---|---|
 | `isi` | whole number | always | 1.0 | The input stream identifier. |
 | `carries` | choice | always | 1.0 | What the stream carries. |
-| `packet_bytes` | whole number (bytes) | optional | 1.0 | The user packet length. No value for a stream without user packets. |
+| `packet_bytes` | whole number (B) | optional | 1.0 | The user packet length. No value for a stream without user packets. |
 | `sync_byte` | whole number | optional | 1.0 | The sync byte of the user packets. |
 | `ccm` | yes or no | always | 1.0 | Constant coding and modulation. |
 | `frames` | whole number | always | 1.0 | Frames of the stream. |

@@ -55,7 +55,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `messages` | Frames | `time` (time), `signal_s` (number (s)), `frequency` (frequency), `level_db` (number (dB)), `snr_db` (number (dB)), `from` (text), `from_type` (whole number), `to` (text), `to_type` (whole number), `frame_kind` (text), `frame` (text), `response` (yes or no), `protocol` (text), `summary` (text), `registration` (text), `flight` (text), `label` (text), `text` (text), `acars_ok` (yes or no), `blocks` (whole number), `reading_kind` (text), `reading_category` (text), `cpdlc_imi` (text), `cpdlc_ground` (text), `cpdlc_aircraft` (text), `cpdlc_crc_ok` (yes or no), `cpdlc_parsed` (yes or no), `cpdlc_text` (text), `position` (position), `alt_ft` (number (ft)), `detail` (text) |
-| `aircraft` | Aircraft | `address` (text), `registration` (text), `country` (text), `flight` (text), `label` (text), `messages` (whole number), `position` (position), `alt_ft` (number (ft)), `track_deg` (number (deg)), `gs_kt` (number (kt)), `vs_fpm` (number (ft/min)), `last_heard` (time), `count` (whole number), `frequency` (frequency), `ground_station` (text), `estimate` (position), `trail_points` (whole number) |
+| `aircraft` | Aircraft | `address` (text), `registration` (text), `country` (text), `flight` (text), `label` (text), `messages` (whole number), `position` (position), `alt_ft` (number (ft)), `track_deg` (number (°)), `gs_kt` (number (kt)), `vs_fpm` (number (ft/min)), `last_heard` (time), `count` (whole number), `frequency` (frequency), `ground_station` (text), `estimate` (position), `trail_points` (whole number) |
 | `ground_stations` | Ground stations | `address` (text), `kind` (text), `count` (whole number), `frequency` (frequency), `level_db` (number (dB)), `last_heard` (time), `airports` (text), `position` (position) |
 | `channels` | Channels | `frequency` (frequency), `in_band` (yes or no), `active` (yes or no), `level_db` (number (dB)), `snr_db` (number (dB)), `found` (whole number), `good` (whole number), `bad` (whole number), `frames` (whole number), `offset_hz` (frequency) |
 
@@ -78,7 +78,7 @@ The stack puts points on a map: Aircraft and ground stations.
 
 ## Typed interface
 
-The stack is in the family `avdata`, version 1.4. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `avdata`, version 2.0. The C header `sdrkit/avdata.h`, the registry record `registry/avdata.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Datalink messages (`datalink`). Media: text.
 
@@ -153,7 +153,7 @@ Struct `Vdl2AircraftRow`. A row of the aircraft. The row key is the address.
 | `messages` | whole number | always | 1.0 | Messages of the aircraft. |
 | `position` | position | optional | 1.0 | The last position. |
 | `alt_ft` | number (ft) | optional | 1.0 | The altitude of the last position. |
-| `track_deg` | number (deg) | optional | 1.0 | The track. |
+| `track_deg` | number (°) | optional | 1.0 | The track. |
 | `gs_kt` | number (kt) | optional | 1.0 | The ground speed. |
 | `vs_fpm` | number (ft/min) | optional | 1.0 | The vertical rate. |
 | `last_heard` | time | optional | 1.0 | When the aircraft was last heard. |

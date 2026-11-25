@@ -274,7 +274,7 @@ reading_fields! {
     /// The node that sent a frame of a network.
     source_node: I64 = i64, SOURCE_NODE, "Source node", "";
     /// The length of a frame.
-    length_bytes: I64 = i64, LENGTH_BYTES, "Length", "bytes";
+    length_bytes: I64 = i64, LENGTH_BYTES, "Length", "B";
     /// A battery was put in.
     new_battery: Bool = bool, NEW_BATTERY, "New battery", "";
     /// The device is learning a code.

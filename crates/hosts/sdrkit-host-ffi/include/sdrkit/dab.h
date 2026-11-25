@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "dab", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "dab", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,8 +36,8 @@
 #include "bcdata.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_DAB_VERSION_MAJOR 1
-#define SDRKIT_DAB_VERSION_MINOR 1
+#define SDRKIT_DAB_VERSION_MAJOR 2
+#define SDRKIT_DAB_VERSION_MINOR 0
 
 // The stack "dab": its id, and the keys of its event types.
 #define SDRKIT_STACK_DAB "dab"
@@ -315,7 +315,7 @@ typedef struct sdrkit_dab_pad_fields {
   int64_t slide_height;
   // True if `slide_bytes` holds a value.
   bool has_slide_bytes;
-  // The slide size. Unit: bytes.
+  // The slide size. Unit: B.
   int64_t slide_bytes;
 } sdrkit_dab_pad_fields;
 
@@ -709,7 +709,7 @@ typedef struct sdrkit_dab_tii_entry_row {
   int64_t sub;
   // The position.
   sdrkit_position position;
-  // The delay. Unit: µs.
+  // The delay. Unit: us.
   int64_t delay_us;
 } sdrkit_dab_tii_entry_row;
 
@@ -759,7 +759,7 @@ typedef struct sdrkit_dab_transmitter_row {
   sdrkit_position position;
   // True if `delay_us` holds a value.
   bool has_delay_us;
-  // The delay, from the transmitter database. Unit: µs.
+  // The delay, from the transmitter database. Unit: us.
   int64_t delay_us;
 } sdrkit_dab_transmitter_row;
 

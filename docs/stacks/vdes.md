@@ -66,7 +66,7 @@ The stack puts points on a map: ASM positions.
 
 ## Typed interface
 
-The stack is in the family `marine`, version 1.3. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `marine`, version 2.0. The C header `sdrkit/marine.h`, the registry record `registry/marine.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -99,7 +99,7 @@ Struct `VdesAsmRow`. A row of the ASM frame table. The row key is the place of t
 | `course_deg` | number (°) | optional | 1.0 | The course over the ground of the object that the event is about, degrees clockwise from true north. |
 | `hex` | text | always | 1.0 | The payload in hexadecimal. |
 
-The column `mmsi` names a row. Place of a row: the column `position`. Course: `course_deg`. Speed: `speed_kt`.
+The rows are a log: they arrive over time. The column `mmsi` names a row. Place of a row: the column `position`. Course: `course_deg`. Speed: `speed_kt`. Time: `time`.
 
 ### Table `bursts`
 
@@ -119,6 +119,8 @@ Struct `VdesBurstRow`. A row of the VDE-TER burst table. The row key is the plac
 | `psi` | number | always | 1.0 | The mean of cos(4 x phase step). |
 | `symbols` | whole number | always | 1.0 | The symbols used for the classification. |
 | `subchannels` | text | always | 1.0 | The occupied sub-channels. |
+
+The rows are a log: they arrive over time. Time: `time`.
 
 ### Table `channels`
 

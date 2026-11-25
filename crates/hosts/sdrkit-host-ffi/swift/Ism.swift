@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "ism", version 3.1. MIT licence.
+// sdrkit: the typed interface of the stack family "ism", version 4.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum IsmInterface {
-    public static let major = 3
-    public static let minor = 1
+    public static let major = 4
+    public static let minor = 0
 }
 
 /// The result fields of the burst finder of the ISM sensor stack.
@@ -1406,8 +1406,8 @@ public struct SubghzchatLineRow {
     public var key: String
     /// The signal time of the line.
     public var timeS: Double
-    /// "heard" or "sent".
-    public var direction: String
+    /// True for a line that this station sent.
+    public var own: Bool
     /// How the line was read.
     public var kind: Kind?
     /// The text.
@@ -1426,7 +1426,7 @@ public struct SubghzchatLineRow {
     init(_ c: sdrkit_subghzchat_line_row) {
         key = sdrkitText(c.key)
         timeS = c.time_s
-        direction = sdrkitText(c.direction)
+        own = c.own
         kind = Kind(rawValue: c.kind)
         text = sdrkitText(c.text)
         packets = c.packets
@@ -1775,6 +1775,8 @@ public struct WisunNetworkRow {
     public var lastHeard: Double?
     /// The unicast schedule, once heard.
     public var schedule: String?
+    /// The PAN id, as `send` takes it.
+    public var panId: String
 
     init(_ c: sdrkit_wisun_network_row) {
         key = sdrkitText(c.key)
@@ -1786,6 +1788,7 @@ public struct WisunNetworkRow {
         heard = c.has_heard ? c.heard : nil
         lastHeard = c.has_last_heard ? c.last_heard : nil
         schedule = c.has_schedule ? sdrkitText(c.schedule) : nil
+        panId = sdrkitText(c.pan_id)
     }
 }
 
@@ -1815,6 +1818,8 @@ public struct WisunNodeRow {
     public var eap: String?
     /// The summary of the last frame.
     public var last: String
+    /// The EUI-64, as `send` takes it.
+    public var address: String
 
     init(_ c: sdrkit_wisun_node_row) {
         key = sdrkitText(c.key)
@@ -1829,6 +1834,7 @@ public struct WisunNodeRow {
         authenticator = c.has_authenticator ? sdrkitText(c.authenticator) : nil
         eap = c.has_eap ? sdrkitText(c.eap) : nil
         last = sdrkitText(c.last)
+        address = sdrkitText(c.address)
     }
 }
 
@@ -3954,6 +3960,8 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WmbusRecordRow.init))
     }
     /// The changed rows of the table "frames" of the stack "wmbus", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func wmbusFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[WmbusFrameRow], SDRKitCode> {
         var rows = [sdrkit_wmbus_frame_row](repeating: sdrkit_wmbus_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3970,6 +3978,8 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WmbusChannelRow.init))
     }
     /// The changed rows of the table "frames" of the stack "zwave", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time`.
     public static func zwaveFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[ZwaveFrameRow], SDRKitCode> {
         var rows = [sdrkit_zwave_frame_row](repeating: sdrkit_zwave_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4028,6 +4038,8 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(IsmPanDeviceRow.init))
     }
     /// The changed rows of the table "frames" of the stack "zigbee", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func zigbeeFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[ZigbeeFrameRow], SDRKitCode> {
         var rows = [sdrkit_zigbee_frame_row](repeating: sdrkit_zigbee_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4089,6 +4101,7 @@ public enum IsmTables {
     /// The changed rows of the table "chat" of the stack "subghzchat", newest first, at most `capacity` rows.
     /// The rows are the messages of the stack.
     /// Text: `text`. Time: `time_s`.
+    /// Own message: `own`.
     public static func subghzchatChat(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[SubghzchatLineRow], SDRKitCode> {
         var rows = [sdrkit_subghzchat_line_row](repeating: sdrkit_subghzchat_line_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4133,7 +4146,9 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NfcTagRow.init))
     }
     /// The changed rows of the table "frames" of the stack "nfc", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
     /// The column `name` names a row.
+    /// Time: `time_s`.
     public static func nfcFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[NfcFrameRow], SDRKitCode> {
         var rows = [sdrkit_nfc_frame_row](repeating: sdrkit_nfc_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4169,6 +4184,8 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WisunLinkRow.init))
     }
     /// The changed rows of the table "frames" of the stack "wisun", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// Time: `time_s`.
     public static func wisunFrames(_ handle: SDRKIT_HANDLE, capacity: Int = 800) -> Result<[WisunFrameRow], SDRKitCode> {
         var rows = [sdrkit_wisun_frame_row](repeating: sdrkit_wisun_frame_row(), count: capacity)
         var info = sdrkit_rows_info.sized

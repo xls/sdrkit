@@ -1,0 +1,32 @@
+[package]
+name = "sdrkit-driver-usb"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "USB transport for sdrkit drivers: device lists, control and bulk transfers, a scripted fake bus and a recorder"
+
+[dependencies]
+thiserror.workspace = true
+# CRC-32 of payloads that a script stores cut short.
+sdrkit-util-bits = { path = "../../util/sdrkit-util-bits" }
+
+[target.'cfg(any(target_os = "linux", target_os = "macos", target_os = "windows", target_os = "android"))'.dependencies]
+# USB access in Rust, with no C library (MIT OR Apache-2.0). Only its blocking forms are used; no async runtime.
+nusb = { version = "0.2.9", optional = true }
+# The `Stream` trait, to poll the arrival watch of nusb from a blocking call (MIT OR Apache-2.0).
+futures-core = { version = "0.3", optional = true }
+
+[features]
+# The USB bus of the operating system (`NusbBus`, used by `platform_bus`). Hosts turn it on.
+nusb = ["dep:nusb", "dep:futures-core"]
+# The scripted bus (`FakeUsb`), for tests in other crates.
+fake = []
+
+[[test]]
+name = "fake"
+required-features = ["fake"]
+
+[[test]]
+name = "bulk_alloc"
+required-features = ["fake"]

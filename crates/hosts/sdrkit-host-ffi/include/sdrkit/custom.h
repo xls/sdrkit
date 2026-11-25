@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "custom", version 1.5. MIT licence.
+ * sdrkit: the typed interface of the stack family "custom", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_CUSTOM_VERSION_MAJOR 1
-#define SDRKIT_CUSTOM_VERSION_MINOR 5
+#define SDRKIT_CUSTOM_VERSION_MAJOR 2
+#define SDRKIT_CUSTOM_VERSION_MINOR 0
 
 // The stack "slotted_voice": its id, and the keys of its event types.
 #define SDRKIT_STACK_SLOTTED_VOICE "slotted_voice"
@@ -564,7 +564,7 @@ typedef struct sdrkit_arq_packet_message_row {
   sdrkit_string callsign;
   // The sequence number of the last burst of the message.
   int64_t sequence;
-  // The message length. Unit: bytes.
+  // The message length. Unit: B.
   int64_t length;
   // The message as text.
   sdrkit_string text;
@@ -616,7 +616,7 @@ typedef struct sdrkit_file_transfer_fields {
   sdrkit_string callsign;
   // Files received.
   int64_t files;
-  // Bytes held from an earlier session when the last transfer was announced. Unit: bytes.
+  // Bytes held from an earlier session when the last transfer was announced. Unit: B.
   int64_t held_bytes;
   // Acknowledgement frames heard.
   int64_t acks_heard;
@@ -634,7 +634,7 @@ typedef struct sdrkit_file_transfer_file_row {
   sdrkit_string key;
   // The file name.
   sdrkit_string name;
-  // The size. Unit: bytes.
+  // The size. Unit: B.
   int64_t size_;
   // The hash, hex.
   sdrkit_string hash;
@@ -820,7 +820,7 @@ typedef struct sdrkit_arq_packet_message_event {
   sdrkit_string callsign;
   // The sequence number of the last burst of the message.
   int64_t sequence;
-  // The message length. Unit: bytes.
+  // The message length. Unit: B.
   int64_t length;
   // The message as text.
   sdrkit_string text;
@@ -888,7 +888,7 @@ typedef struct sdrkit_file_transfer_file_received_event {
   double freq_hz;
   // The file name.
   sdrkit_string name;
-  // The size. Unit: bytes.
+  // The size. Unit: B.
   int64_t size_;
   // The hash, hex.
   sdrkit_string hash;
@@ -910,9 +910,9 @@ typedef struct sdrkit_file_transfer_file_open_event {
   int64_t session;
   // The file name.
   sdrkit_string name;
-  // The size. Unit: bytes.
+  // The size. Unit: B.
   int64_t size_;
-  // Bytes held from an earlier session. Unit: bytes.
+  // Bytes held from an earlier session. Unit: B.
   int64_t held_bytes;
   // The sending station.
   sdrkit_string callsign;

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "avdata", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "avdata", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,8 +35,8 @@
 #include "tones.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_AVDATA_VERSION_MAJOR 1
-#define SDRKIT_AVDATA_VERSION_MINOR 4
+#define SDRKIT_AVDATA_VERSION_MAJOR 2
+#define SDRKIT_AVDATA_VERSION_MINOR 0
 
 // The stack "acars": its id, and the keys of its event types.
 #define SDRKIT_STACK_ACARS "acars"
@@ -277,7 +277,7 @@ typedef struct sdrkit_acars_aircraft_row {
   double alt_ft;
   // True if `track_deg` holds a value.
   bool has_track_deg;
-  // The track. Unit: deg.
+  // The track. Unit: °.
   double track_deg;
   // True if `gs_kt` holds a value.
   bool has_gs_kt;
@@ -503,7 +503,7 @@ typedef struct sdrkit_vdl2_aircraft_row {
   double alt_ft;
   // True if `track_deg` holds a value.
   bool has_track_deg;
-  // The track. Unit: deg.
+  // The track. Unit: °.
   double track_deg;
   // True if `gs_kt` holds a value.
   bool has_gs_kt;
@@ -687,7 +687,7 @@ typedef struct sdrkit_vdl4_aircraft_row {
   double alt_ft;
   // True if `track_deg` holds a value.
   bool has_track_deg;
-  // The track. Unit: deg.
+  // The track. Unit: °.
   double track_deg;
   // True if `gs_kt` holds a value.
   bool has_gs_kt;
@@ -1323,7 +1323,7 @@ typedef struct sdrkit_vdl3_burst_row {
   sdrkit_string info;
   // The Reed-Solomon word was good.
   bool rs_ok;
-  // Octets corrected by Reed-Solomon. Unit: octets.
+  // Octets corrected by Reed-Solomon. Unit: B.
   int64_t rs_corrected;
   // The data octets, hex.
   sdrkit_string data_hex;
@@ -2465,6 +2465,8 @@ static inline int32_t sdrkit_vdl3_gen_set_adjacent(SDRKIT_HANDLE handle, bool va
 
 // Fills `rows` with the changed rows of the table "bursts" of the stack "gbas_vdb" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_gbas_vdb_bursts_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_gbas_vdb_burst_row *rows,
                                                  uint32_t capacity,
@@ -2498,6 +2500,8 @@ static inline int32_t sdrkit_gbas_vdb_gen_set_frames(SDRKIT_HANDLE handle, int64
 
 // Fills `rows` with the changed rows of the table "detections" of the stack "ldacs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_ldacs_detections_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_avdata_ofdm_shape_detection_row *rows,
                                                   uint32_t capacity,
@@ -2547,6 +2551,8 @@ static inline int32_t sdrkit_ldacs_gen_set_duty(SDRKIT_HANDLE handle, double val
 
 // Fills `rows` with the changed rows of the table "detections" of the stack "aeromacs" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// Time: `time_s`.
 static inline int32_t sdrkit_aeromacs_detections_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_avdata_ofdm_shape_detection_row *rows,
                                                      uint32_t capacity,

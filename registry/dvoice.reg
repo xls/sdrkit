@@ -1,5 +1,5 @@
 # The interface of the stack family dvoice. The registry test of the family writes this file.
-family dvoice version=2.4
+family dvoice version=2.5
 shape.SharedFields since=1.0
 shape.SharedFields.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.SharedFields.noise_dbfs type=f64 unit=dBFS optional=no since=1.0
@@ -329,7 +329,7 @@ dmr.setting.listen type=bool unit= since=1.0
 dmr.setting.gen_cc type=i64 unit= since=1.0
 dmr.setting.radio_id type=i64 unit= since=1.0
 dmr.setting.called_id type=i64 unit= since=1.0
-dmr.setting.talkgroup type=i64 unit= since=1.0
+dmr.setting.talkgroup type=i64 unit= refers=talkgroups.talkgroup since=1.0
 dmr.setting.colour_code type=i64 unit= since=1.0
 dmr.setting.slot type=choice(1,2) unit= since=1.0
 dmr.setting.tx_split type=hz unit=Hz since=1.0
@@ -416,7 +416,7 @@ m17.setting.hold_timeout_s type=f64 unit=s since=1.0
 m17.setting.hang_s type=f64 unit=s since=1.0
 m17.setting.listen type=bool unit= since=1.0
 m17.setting.callsign type=text unit= since=1.0
-m17.setting.destination type=text unit= since=1.0
+m17.setting.destination type=text unit= refers=heard.src since=1.0
 m17.setting.can type=i64 unit= since=1.0
 m17.setting.voice_mode type=choice(3200) unit= since=1.0
 m17.setting.meta_text type=text unit= since=1.0
@@ -466,7 +466,7 @@ dstar.setting.hang_s type=f64 unit=s since=1.0
 dstar.setting.listen type=bool unit= since=1.0
 dstar.setting.callsign type=text unit= since=1.0
 dstar.setting.suffix type=text unit= since=1.0
-dstar.setting.your_call type=text unit= since=1.0
+dstar.setting.your_call type=text unit= refers=heard.src since=1.0
 dstar.setting.rpt1 type=text unit= since=1.0
 dstar.setting.rpt2 type=text unit= since=1.0
 dstar.setting.via_repeater type=bool unit= since=1.0
@@ -850,7 +850,7 @@ dcr.table.positions row=PositionRow cap=512 label=src position=position altitude
 dcr.table.sites row=SiteRow cap=1 since=1.0
 dcr.table.grants row=GrantRow cap=300 since=1.0
 dcr.table.talkgroups row=TalkgroupRow cap=500 role=groups time=last_heard since=1.0
-dcr.table.events row=DcrEventRow cap=500 label=identity since=1.0
+dcr.table.events row=DcrEventRow cap=500 label=identity role=log time=time_s since=1.0
 dcr.table.history row=HistoryRow cap=500 label=call since=1.0
 dcr.table.heard row=HeardRow cap=200 label=src role=nodes since=1.0
 dcr.series.eye x_unit= y_unit= since=1.0

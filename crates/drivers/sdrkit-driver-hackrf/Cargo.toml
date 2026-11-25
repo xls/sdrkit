@@ -1,0 +1,19 @@
+[package]
+name = "sdrkit-driver-hackrf"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "USB driver for the HackRF family: receive and half-duplex transmit of signed 8-bit I/Q"
+
+[dependencies]
+sdrkit-core = { path = "../../framework/sdrkit-core" }
+sdrkit-driver-core = { path = "../sdrkit-driver-core" }
+sdrkit-driver-usb = { path = "../sdrkit-driver-usb" }
+sdrkit-graph = { path = "../../framework/sdrkit-graph" }
+# The transmit queue between the host and the writer thread (MIT OR Apache-2.0).
+rtrb = "0.3"
+thiserror.workspace = true
+
+[dev-dependencies]
+sdrkit-driver-usb = { path = "../sdrkit-driver-usb", features = ["fake", "nusb"] }

@@ -336,6 +336,14 @@ impl<K: SettingKind> Setting<K> {
         self.role = Some(role);
         self
     }
+    /// The same setting, whose value can be taken from column `column` of a row of table `table` of the same owner:
+    /// the addressee of the texts that the stack sends, from the row of a station. Other values stay valid. An empty
+    /// `column` is the row key.
+    #[must_use]
+    pub const fn refers(mut self, table: &'static str, column: &'static str) -> Self {
+        self.field = self.field.refers_to_column(table, column);
+        self
+    }
     /// The same setting with the values that people normally use: `RATE.common(&[1.024e6, 2.048e6])`. Each value must
     /// pass the checks of the setting.
     #[must_use]
@@ -622,7 +630,7 @@ pub trait SettingSet: Copy + Sized + 'static {
 /// use sdrkit_core::settings::{Setting, SettingError, SettingId, SettingSet, Values};
 /// use sdrkit_core::Value;
 ///
-/// const DEEMPH: Setting<field::F64> = Setting::new("deemph_us", "De-emphasis", "µs", 50.0).range(0.0, 75.0, 25.0);
+/// const DEEMPH: Setting<field::F64> = Setting::new("deemph_us", "De-emphasis", "us", 50.0).range(0.0, 75.0, 25.0);
 /// const RDS: Setting<field::Bool> = Setting::new("rds", "RDS", "", true);
 ///
 /// sdrkit_core::settings! {

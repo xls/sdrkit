@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "dab", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "dab", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum DabInterface {
-    public static let major = 1
-    public static let minor = 1
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The measurements of the signal. No SNR before the lock, and no offset and clock error while the receiver searches.

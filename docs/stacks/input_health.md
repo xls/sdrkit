@@ -41,7 +41,6 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Kind |
 |---|---|---|
-| `text` | Text | text |
 | `state` | State | choice |
 | `good` | Good readings | whole number |
 | `bad` | Bad readings | whole number |
@@ -56,7 +55,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `dc_pct` | DC offset | number (%) |
 | `dc_under_rms_db` | DC under the level | number (dB) |
 | `iq_gain_db` | IQ gain mismatch, Q against I | number (dB) |
-| `iq_phase_deg` | IQ phase error | number (deg) |
+| `iq_phase_deg` | IQ phase error | number (°) |
 | `image_rejection_db` | Image rejection from the mismatch | number (dB) |
 | `verdict` | Level verdict | choice |
 | `dropped` | Dropped | whole number |
@@ -76,17 +75,18 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `meter`, version 1.1. The C header `sdrkit/meter.h`, the registry record `registry/meter.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `meter`, version 2.0. The C header `sdrkit/meter.h`, the registry record `registry/meter.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Measurement and analysis (`measurement`). Media: none.
 
+Key readings: `verdict`, `rms_dbfs`, `peak_dbfs`, `clipping_ppm`, `dc_pct`, `image_rejection_db`.
+
 ### Result fields
 
-Struct `WatchFields`. The status of a spectrum watcher: the headline, the state, the counts of readings and the input level.
+Struct `WatchFields`. The status of a spectrum watcher: the state, the counts of readings and the input level. The headline is the summary of the status.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `text` | text | always | 1.0 | The headline. |
 | `state` | choice | always | 1.0 | The state. |
 | `good` | whole number | always | 1.0 | The good readings: what the stack counts as a measurement. |
 | `bad` | whole number | always | 1.0 | The bad readings: what the stack counts as a fault of the watched band. |
@@ -108,7 +108,7 @@ Struct `InputHealthFields`. The result fields of `input_health`, from the last b
 | `dc_pct` | number (%) | optional | 1.0 | The length of the mean vector. |
 | `dc_under_rms_db` | number (dB) | optional | 1.0 | The power of the mean vector under the RMS level. |
 | `iq_gain_db` | number (dB) | optional | 1.0 | `10 log10(V_Q / V_I)`. |
-| `iq_phase_deg` | number (deg) | optional | 1.0 | `asin` of the correlation of I and Q. |
+| `iq_phase_deg` | number (°) | optional | 1.0 | `asin` of the correlation of I and Q. |
 | `image_rejection_db` | number (dB) | optional | 1.0 | The image rejection that the mismatch implies, at most 120 dB. |
 | `verdict` | choice | optional | 1.0 | The level verdict. |
 
@@ -132,6 +132,8 @@ Struct `InputHealthEventRow`. A row of the `input_health` log.
 | `rms_dbfs` | number (dBFS) | always | 1.0 | The RMS level. |
 | `peak_dbfs` | number (dBFS) | always | 1.0 | The peak. |
 | `clipping_ppm` | number (ppm) | always | 1.0 | The samples near full scale. |
+
+The rows are a log: they arrive over time. Time: `time_s`.
 
 ### Commands
 

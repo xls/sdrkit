@@ -276,6 +276,9 @@ final class SDRKitTests: XCTestCase {
         XCTAssertEqual(stacks.message, TableMessage())
         // The call sign of the station chooses no picture.
         XCTAssertNil(try engine.object.setting("callsign").role)
+        // It takes no value from a table, and it is no key reading.
+        XCTAssertEqual(try engine.object.setting("callsign").refersColumn, "")
+        XCTAssertNil(try engine.object.setting("callsign").reading)
     }
 
     func testSettingErrors() throws {

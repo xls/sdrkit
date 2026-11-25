@@ -47,7 +47,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `drift_hz_min` | Drift | number (Hz/min) |
 | `noise_density_dbfs` | Noise density | number (dBFS/Hz) |
 | `carrier_locked` | Carrier locked | yes or no |
-| `pm_rms_deg` | Phase modulation (rms) | number (degrees) |
+| `pm_rms_deg` | Phase modulation (rms) | number (°) |
 | `subcarrier` | Subcarrier | frequency |
 | `tones` | Subcarrier humps | whole number |
 | `tone_spacing` | Hump spacing | frequency |
@@ -75,7 +75,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `lines` | Lines | `offset` (frequency), `level_dbfs` (number (dBFS)), `over_noise_db` (number (dB)) |
-| `frames` | Frames | `frame` (whole number), `counter` (whole number), `errors` (whole number), `good` (yes or no), `bytes` (bytes) |
+| `frames` | Frames | `frame` (whole number), `counter` (whole number), `errors` (whole number), `good` (yes or no), `bytes` (bytes), `time_s` (number (s)) |
 | `decoded` | Decoded | `name` (text), `kind` (choice), `value` (text), `bytes` (text), `confidence` (choice), `reason` (text) |
 
 ## Result series
@@ -84,7 +84,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|
 | `rf_spectrum` | RF spectrum | bin | dB |
 | `pm_spectrum` | Phase modulation spectrum | bin | dB |
-| `column_stability` | Column stability | byte |  |
+| `column_stability` | Column stability | B |  |
 
 ## Events
 
@@ -101,9 +101,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `dvbcs`, version 1.5. The C header `sdrkit/dvbcs.h`, the registry record `registry/dvbcs.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `dvbcs`, version 2.0. The C header `sdrkit/dvbcs.h`, the registry record `registry/dvbcs.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Satellite links (`satellite_links`). Media: none.
+
+Key readings: `state`, `cn0_dbhz`, `level_dbfs`, `offset_hz`, `frames_ok`.
 
 ### Result fields
 
@@ -121,7 +123,7 @@ Struct `SatbeaconFields`. The result fields of `satbeacon`: the carrier, the sub
 | `drift_hz_min` | number (Hz/min) | always | 1.0 | The drift of the carrier. |
 | `noise_density_dbfs` | number (dBFS/Hz) | always | 1.0 | The noise density. |
 | `carrier_locked` | yes or no | always | 1.0 | The carrier loop is locked. |
-| `pm_rms_deg` | number (degrees) | always | 1.0 | The rms of the phase modulation. |
+| `pm_rms_deg` | number (°) | always | 1.0 | The rms of the phase modulation. |
 | `subcarrier` | frequency | optional | 1.0 | The subcarrier frequency. |
 | `tones` | whole number | optional | 1.0 | The humps of the subcarrier spectrum. |
 | `tone_spacing` | frequency | optional | 1.0 | Their spacing. |
@@ -167,6 +169,9 @@ Struct `SatbeaconFrameRow`. A row of the frames received. The row key is the fra
 | `errors` | whole number | always | 1.0 | The errors against the template. |
 | `good` | yes or no | always | 1.0 | The frame is good. |
 | `bytes` | bytes | always | 1.0 | The bytes of the frame. |
+| `time_s` | number (s) | always | 1.0 | The signal time when the frame was found. |
+
+The rows are a log: they arrive over time. Time: `time_s`.
 
 ### Table `decoded`
 

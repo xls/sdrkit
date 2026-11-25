@@ -54,7 +54,7 @@ pub const ASKED_RATE: f64 = 30e6;
 pub const SECONDARY: u16 = 8;
 /// The secondary header bytes outside the packet length field, as a setting.
 pub const UNCOUNTED: Setting<field::I64> =
-    Setting::new("uncounted_secondary", "Secondary header outside the length", "bytes", SECONDARY as i64)
+    Setting::new("uncounted_secondary", "Secondary header outside the length", "B", SECONDARY as i64)
         .range(0.0, 64.0, 1.0)
         .help("A packet with its secondary header flag set is this much longer than its length field says.")
         .advanced();

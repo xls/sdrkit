@@ -1,5 +1,5 @@
 //! The ATSC 3.0 test signal: frames of a bootstrap, the Preamble symbols with L1-Basic and L1-Detail, and one or more
-//! subframes, each with its own waveform, with one or more PLPs that carry baseband packets of UDP datagrams with a known payload, each with or without a time
+//! subframes, each with its own waveform, with one or more PLPs that carry baseband packets of UDP datagrams (the service of [`testsvc`] and test datagrams with a known payload), each with or without a time
 //! interleaver, and enhanced PLPs layered on core PLPs.
 //!
 //! Standard: ATSC A/321, A/322:2023-03 clauses 5.2, 6, 7.1, 7.2, 7.3 and 8, A/322:2026-06 clauses 6.4 and 7.2.7.4, A/330
@@ -17,6 +17,7 @@ use super::l1::{
 use super::ti::{cell_sequence, cell_shifts};
 use super::layout::{guard_code, interleave, FftSize, Pattern, PreambleStructure};
 use super::tables::LDM_FACTORS;
+use super::testsvc;
 use super::OCCUPIED;
 use crate::band::resampler;
 use sdrkit_algo_dsp::fft::Fft;
@@ -245,12 +246,27 @@ pub const PAYLOAD_PORT: u16 = 5000;
 /// The bytes of one test datagram's payload: a counter of 8 bytes and 1192 bytes that follow from the seed and the counter.
 pub const PAYLOAD_BYTES: usize = 1200;
 
-/// The payload of the PLP: UDP datagrams in ALP packets, cut into baseband packets.
+/// Test datagrams after each round of the service of the test signal.
+pub const FILLER_PER_ROUND: usize = 4;
+
+/// The payload of the PLP: UDP datagrams in ALP packets, cut into baseband packets. The datagrams come in rounds: the
+/// service of the test signal ([`testsvc::round`]: service list, signalling, init segments and one media segment of the
+/// video and of the audio), then [`FILLER_PER_ROUND`] test datagrams. The media time of a round is 80 ms; the rounds follow
+/// each other as fast as the PLP carries them, so the media time is not the signal time.
 #[derive(Clone, Debug)]
 pub struct Payload {
     seed: u64,
+    /// Datagrams made: the IPv4 identification of the next.
     datagrams: u64,
+    /// Test datagrams made: the counter of the next.
+    filler: u64,
+    /// Rounds of the service made.
+    rounds: u64,
+    /// The datagrams of the round that are not yet sent.
+    queue: VecDeque<testsvc::Datagram>,
     alp: VecDeque<u8>,
+    /// The lengths of the ALP packets in `alp` from the one that starts at `to_start`.
+    lengths: VecDeque<usize>,
     /// Bytes of `alp` before the next ALP packet starts.
     to_start: usize,
     scratch: Vec<u8>,
@@ -262,13 +278,17 @@ impl Payload {
         Payload {
             seed,
             datagrams: 0,
+            filler: 0,
+            rounds: 0,
+            queue: VecDeque::new(),
             alp: VecDeque::new(),
+            lengths: VecDeque::new(),
             to_start: 0,
             scratch: Vec::new(),
         }
     }
 
-    /// The payload bytes of datagram `counter` of `seed`.
+    /// The payload bytes of test datagram `counter` of `seed`.
     pub fn datagram(seed: u64, counter: u64) -> Vec<u8> {
         let mut out = Vec::with_capacity(PAYLOAD_BYTES);
         out.extend_from_slice(&counter.to_be_bytes());
@@ -282,29 +302,45 @@ impl Payload {
         out
     }
 
+    /// Appends the ALP packets of the next datagram.
     fn more(&mut self) {
-        let payload = Payload::datagram(self.seed, self.datagrams);
+        if self.queue.is_empty() {
+            testsvc::round(self.rounds, &mut self.queue);
+            self.rounds += 1;
+            for _ in 0..FILLER_PER_ROUND {
+                self.queue.push_back(testsvc::Datagram {
+                    dst: Ipv4Addr::from(PAYLOAD_ADDR),
+                    port: PAYLOAD_PORT,
+                    payload: Payload::datagram(self.seed, self.filler),
+                });
+                self.filler += 1;
+            }
+        }
+        let Some(d) = self.queue.pop_front() else {
+            return;
+        };
         let mut ip = Vec::new();
         let mut ranges = Vec::new();
         write_ipv4_udp(
             &mut ip,
-            Ipv4Addr::new(10, 0, 0, 1),
-            Ipv4Addr::from(PAYLOAD_ADDR),
+            testsvc::SOURCE,
+            d.dst,
             self.datagrams as u16,
             1500,
-            PAYLOAD_PORT,
-            PAYLOAD_PORT,
-            &payload,
+            d.port,
+            d.port,
+            &d.payload,
             |r| ranges.push(r),
         )
         .expect("a datagram below the MTU");
         self.datagrams += 1;
-        self.scratch.clear();
         for r in ranges {
+            self.scratch.clear();
             write_single(PacketType::Ipv4, None, &ip[r], &mut self.scratch)
                 .expect("a packet below the ALP limit");
+            self.lengths.push_back(self.scratch.len());
+            self.alp.extend(self.scratch.iter());
         }
-        self.alp.extend(self.scratch.iter());
     }
 
     /// The next baseband packet of `len` bytes (A/322 clause 5.2.2): a base field of one or two bytes with the pointer to the
@@ -324,13 +360,27 @@ impl Payload {
             self.more();
         }
         bb.extend(self.alp.drain(..room));
-        // Every ALP packet of the payload has one length, so the next start follows from it.
-        let unit = self.scratch.len();
-        self.to_start = if self.to_start >= room {
-            self.to_start - room
+        // The next start follows from the lengths of the ALP packets that began in this baseband packet.
+        if self.to_start >= room {
+            self.to_start -= room;
         } else {
-            (unit - (room - self.to_start) % unit) % unit
-        };
+            let mut used = room - self.to_start;
+            while let Some(&l) = self.lengths.front() {
+                if used < l {
+                    break;
+                }
+                used -= l;
+                self.lengths.pop_front();
+            }
+            self.to_start = match self.lengths.pop_front() {
+                Some(l) if used > 0 => l - used,
+                Some(l) => {
+                    self.lengths.push_front(l);
+                    0
+                }
+                None => 0,
+            };
+        }
         bb
     }
 }
@@ -1518,11 +1568,11 @@ mod tests {
         assert_eq!(
             got,
             [
-                0x252f_5798_967d_7a83,
-                0x0927_15c5_302d_c899,
-                0x80c0_bd71_b605_cbb0,
-                0xab1b_a27b_940c_7a68,
-                0xfd95_eb48_52e6_969f,
+                0x9512_ea19_bb03_1aca,
+                0x01b6_f584_dcde_b18d,
+                0x7146_b2cd_c3b1_167f,
+                0x2405_90ce_8ad0_e889,
+                0x0bd4_3606_b525_7ff3,
             ]
         );
     }

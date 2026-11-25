@@ -83,9 +83,11 @@ The stack puts points on a map: Horus balloons.
 
 ## Typed interface
 
-The stack is in the family `science`, version 1.3. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `science`, version 2.0. The C header `sdrkit/science.h`, the registry record `registry/science.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
+
+Key readings: `state`, `snr_db`, `packets`, `payloads_active`.
 
 ### Result fields
 
@@ -169,7 +171,7 @@ Struct `HorusPacketRow`. A row of the packet log. The row key is the number of t
 | `channel` | whole number | always | 1.0 | The channel that received it (0 is the dial). |
 | `sentence` | text | always | 1.0 | The packet as a sentence. |
 
-The column `payload` names a row.
+The rows are a log: they arrive over time. The column `payload` names a row. Time: `received`.
 
 ### Table `channels`
 
