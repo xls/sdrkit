@@ -3,7 +3,7 @@
 
 use crate::error::HackrfError;
 use crate::proto::{self, request, Board, Mode, PartSerial, StreamState};
-use sdrkit_driver_usb::{BulkIn, Setup, UsbDevice, UsbDeviceInfo, UsbError};
+use sdrkit_driver_usb::{BulkIn, BulkOut, Setup, UsbDevice, UsbDeviceInfo, UsbError};
 use std::time::Duration;
 
 /// What a device is, read when it opens.
@@ -329,8 +329,9 @@ impl Ctl {
         Ok(self.dev()?.bulk_in(proto::EP_RX, size, queued)?)
     }
 
-    /// Writes `data` to the transmit endpoint.
-    pub fn write(&mut self, data: &[u8], timeout: Duration) -> Result<usize, HackrfError> {
-        Ok(self.dev()?.bulk_out(proto::EP_TX, data, timeout)?)
+    /// Starts a writer of `queued` transfers of `size` bytes on the transmit endpoint. The writer holds the endpoint
+    /// until it is dropped.
+    pub fn writes(&mut self, size: usize, queued: usize) -> Result<Box<dyn BulkOut>, HackrfError> {
+        Ok(self.dev()?.bulk_out_queue(proto::EP_TX, size, queued)?)
     }
 }

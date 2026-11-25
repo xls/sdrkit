@@ -1,6 +1,7 @@
 //! The transmitter of a HackRF: half duplex on the one antenna port. Arming stops receive and goes through mode off;
-//! the samples go to the device as signed 8-bit I/Q in whole blocks from a writer thread; ending a burst follows the
-//! flush rule of the firmware; disarming goes through mode off and starts receive again where it ran.
+//! the samples go to the device as signed 8-bit I/Q in whole blocks from a writer thread that keeps a few bulk
+//! transfers in flight; ending a burst follows the flush rule of the firmware; disarming cancels the transfers, goes
+//! through mode off and starts receive again where it ran.
 
 use crate::ctl::Ctl;
 use crate::error::HackrfError;
@@ -12,7 +13,7 @@ use sdrkit_driver_core::{
     tx_schema, Doing, DriverError, Transmitter, TxCapabilities, TxLimits, TxSetting, TxState,
     TxStats, TX_BANDWIDTH, TX_FREQUENCY, TX_POWER, TX_RATE,
 };
-use sdrkit_driver_usb::UsbError;
+use sdrkit_driver_usb::{BulkOut, UsbError};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
@@ -82,6 +83,8 @@ pub(crate) struct TxShared {
     flush: AtomicBool,
     busy: AtomicBool,
     started: AtomicBool,
+    /// Set by the drain to ask for the flush zeros; the writer clears it once they are sent.
+    zeros: AtomicBool,
     closed: AtomicBool,
     error: Mutex<Option<HackrfError>>,
     stats: Mutex<TxStats>,
@@ -136,21 +139,45 @@ impl Playout {
     }
 }
 
-/// What the writer thread needs.
+/// The longest single wait for a transfer result, so that a stop is seen quickly.
+const RESULT_WAIT: Duration = Duration::from_millis(5);
+
+/// What the writer thread needs. The writer owns the bulk OUT queue: only it submits, takes results and cancels.
 struct Writer {
     link: Arc<Link>,
     sh: Arc<TxShared>,
     cons: rtrb::Consumer<u8>,
+    out: Box<dyn BulkOut>,
     size: usize,
     rate: f64,
     armed_at: Instant,
+    /// The bytes of the flush zeros that end a burst.
+    zero_bytes: usize,
+    /// The last result taken, or the submit that found the queue empty: the start of the write timeout.
+    last_done: Instant,
 }
 
 impl Writer {
-    /// Writes whole transfers while the queue holds one, and the rest padded to whole blocks when a flush asks for it.
-    /// The first write is preceded by mode transmit.
+    /// Streams until stopped, then cancels the transfers in flight. After an error it also sends mode off, so no
+    /// carrier goes out until the transmitter is disarmed.
     fn run(mut self) {
-        let mut buf = vec![0u8; self.size];
+        let r = self.stream();
+        self.out.cancel();
+        self.sh.busy.store(false, Ordering::Release);
+        if let Err(e) = r {
+            let link = &self.link;
+            link.note(&e);
+            if !link.gone() {
+                let _ = link.lock_ctl().set_mode(Mode::Off);
+            }
+            self.sh.fail(e);
+        }
+    }
+
+    /// Submits whole transfers while the ring holds one, and the rest padded to whole blocks when a flush asks for it;
+    /// sends the flush zeros when the drain asks for them. Mode transmit goes before the first submit. Returns when
+    /// stopped.
+    fn stream(&mut self) -> Result<(), HackrfError> {
         let link = self.link.clone();
         let device_counts = link.facts.api >= 0x0106 && link.timing.state_poll.is_some();
         let mut play = Playout {
@@ -161,12 +188,11 @@ impl Writer {
         let mut next_poll = Instant::now();
         let mut shortfalls: Option<u32> = None;
         loop {
-            if self.sh.stop.load(Ordering::Acquire) {
-                break;
+            if self.stopped() {
+                return Ok(());
             }
             if link.gone() {
-                self.sh.fail(HackrfError::Usb(UsbError::Unplugged));
-                break;
+                return Err(HackrfError::Usb(UsbError::Unplugged));
             }
             if device_counts && Instant::now() >= next_poll {
                 if let Some(every) = link.timing.state_poll {
@@ -188,68 +214,101 @@ impl Writer {
                     self.sh.flush.store(false, Ordering::Release);
                     play.end_burst();
                 }
-                std::thread::park_timeout(Duration::from_millis(2));
+                self.reap(false)?;
+                if self.sh.zeros.load(Ordering::Acquire) {
+                    self.send_zeros()?;
+                    continue;
+                }
+                let idle = self.out.in_flight() == 0;
+                self.sh.busy.store(!idle, Ordering::Release);
+                std::thread::park_timeout(if idle {
+                    Duration::from_millis(2)
+                } else {
+                    Duration::from_micros(500)
+                });
                 continue;
             }
             self.sh.busy.store(true, Ordering::Release);
-            if let Ok(chunk) = self.cons.read_chunk(n) {
-                let (a, b) = chunk.as_slices();
-                buf[..a.len()].copy_from_slice(a);
-                buf[a.len()..a.len() + b.len()].copy_from_slice(b);
-                chunk.commit_all();
-            }
-            let padded = n.div_ceil(BLOCK) * BLOCK;
-            buf[n..padded].fill(0);
-            let r = self.write(&buf[..padded], &mut play, device_counts);
-            self.sh.busy.store(false, Ordering::Release);
-            match r {
-                Ok(false) => break,
-                Ok(true) => {
-                    let mut st = lock(&self.sh.stats);
-                    st.sent += (padded / 2) as u64;
-                    st.buffers += 1;
-                    st.padded += ((padded - n) / 2) as u64;
-                }
-                Err(e) => {
-                    // The device stays idle until the transmitter is disarmed: no carrier goes out after an error.
-                    link.note(&e);
-                    if !link.gone() {
-                        let _ = link.lock_ctl().set_mode(Mode::Off);
-                    }
-                    self.sh.fail(e);
-                    break;
-                }
+            if !self.wait_free()? || !self.submit(n, &mut play, device_counts)? {
+                return Ok(());
             }
         }
-        self.sh.busy.store(false, Ordering::Release);
     }
 
-    /// One write; mode transmit before the first. Returns false, and sends nothing, when the transmitter or the link
-    /// was stopped while the writer waited for the control side.
-    fn write(
+    /// True once the transmitter asked the writer to stop.
+    fn stopped(&self) -> bool {
+        self.sh.stop.load(Ordering::Acquire)
+    }
+
+    /// Waits until the queue has a free buffer. Returns false when stopped meanwhile.
+    fn wait_free(&mut self) -> Result<bool, HackrfError> {
+        while self.out.buffer().is_none() {
+            if self.stopped() {
+                return Ok(false);
+            }
+            self.reap(true)?;
+        }
+        Ok(true)
+    }
+
+    /// Takes the results of the transfers that are done; with `wait` true it waits for the oldest first. A transfer
+    /// that gives no result within the write timeout is a [`UsbError::Timeout`].
+    fn reap(&mut self, wait: bool) -> Result<(), HackrfError> {
+        let mut need = wait;
+        while self.out.in_flight() > 0 && !self.stopped() {
+            match self
+                .out
+                .completed(if need { RESULT_WAIT } else { Duration::ZERO })
+            {
+                None => break,
+                Some(Ok(_)) => {
+                    self.last_done = Instant::now();
+                    need = false;
+                }
+                Some(Err(UsbError::Timeout)) => {
+                    if self.last_done.elapsed() > self.link.timing.write_timeout {
+                        return Err(HackrfError::Usb(UsbError::Timeout));
+                    }
+                    if !need {
+                        break;
+                    }
+                }
+                Some(Err(e)) => return Err(e.into()),
+            }
+        }
+        Ok(())
+    }
+
+    /// Submits the free buffer with its first `len` bytes; the queue was empty if none are in flight.
+    fn submit_buffer(&mut self, len: usize) -> Result<(), HackrfError> {
+        if self.out.in_flight() == 0 {
+            self.last_done = Instant::now();
+        }
+        Ok(self.out.submit(len)?)
+    }
+
+    /// Fills the free buffer with `n` bytes of the ring, pads it to whole blocks and submits it; mode transmit before
+    /// the first. Returns false, and sends nothing, when stopped while it waited for the control side.
+    fn submit(
         &mut self,
-        data: &[u8],
+        n: usize,
         play: &mut Playout,
         device_counts: bool,
     ) -> Result<bool, HackrfError> {
-        let link = &self.link;
-        while link.ctl_waiters.load(Ordering::Acquire) > 0 && !self.sh.stop.load(Ordering::Acquire)
-        {
-            std::thread::sleep(Duration::from_micros(200));
+        let padded = n.div_ceil(BLOCK) * BLOCK;
+        let Some(buf) = self.out.buffer() else {
+            return Ok(true);
+        };
+        if let Ok(chunk) = self.cons.read_chunk(n) {
+            let (a, b) = chunk.as_slices();
+            buf[..a.len()].copy_from_slice(a);
+            buf[a.len()..a.len() + b.len()].copy_from_slice(b);
+            chunk.commit_all();
         }
-        let mut ctl = lock(&link.ctl);
-        if self.sh.stop.load(Ordering::Acquire) || link.gone() {
-            return Ok(false);
-        }
+        buf[n..padded].fill(0);
         let first = !self.sh.started.load(Ordering::Acquire);
-        if first {
-            match ctl.set_mode(Mode::Transmit) {
-                Err(HackrfError::Usb(UsbError::Stall)) => {
-                    return Err(HackrfError::TransmitDisabled)
-                }
-                r => r?,
-            }
-            self.sh.started.store(true, Ordering::Release);
+        if first && !self.start()? {
+            return Ok(false);
         }
         if !device_counts {
             if let Some(lost) = play.before_write(Instant::now()) {
@@ -258,14 +317,63 @@ impl Writer {
                 st.underrun_samples += lost;
             }
         }
-        ctl.write(data, link.timing.write_timeout)?;
-        drop(ctl);
+        self.submit_buffer(padded)?;
         let now = Instant::now();
-        play.after_write(data.len(), now);
+        play.after_write(padded, now);
         if first {
-            lock(&link.stats).rx_to_tx = Some(now.duration_since(self.armed_at));
+            lock(&self.link.stats).rx_to_tx = Some(now.duration_since(self.armed_at));
         }
+        let mut st = lock(&self.sh.stats);
+        st.sent += (padded / 2) as u64;
+        st.buffers += 1;
+        st.padded += ((padded - n) / 2) as u64;
         Ok(true)
+    }
+
+    /// Sends mode transmit, after the other callers of the control side. Returns false when the transmitter or the
+    /// link was stopped meanwhile.
+    fn start(&mut self) -> Result<bool, HackrfError> {
+        let link = &self.link;
+        while link.ctl_waiters.load(Ordering::Acquire) > 0 && !self.stopped() {
+            std::thread::sleep(Duration::from_micros(200));
+        }
+        let mut ctl = lock(&link.ctl);
+        if self.stopped() || link.gone() {
+            return Ok(false);
+        }
+        match ctl.set_mode(Mode::Transmit) {
+            Err(HackrfError::Usb(UsbError::Stall)) => return Err(HackrfError::TransmitDisabled),
+            r => r?,
+        }
+        self.sh.started.store(true, Ordering::Release);
+        Ok(true)
+    }
+
+    /// Sends the flush zeros behind the last burst, over as many buffers as they need, and waits until every transfer
+    /// is done. Clears the request of the drain when they all went out.
+    fn send_zeros(&mut self) -> Result<(), HackrfError> {
+        let mut left = self.zero_bytes;
+        while left > 0 {
+            if !self.wait_free()? {
+                return Ok(());
+            }
+            let Some(buf) = self.out.buffer() else {
+                continue;
+            };
+            let n = left.min(buf.len());
+            buf[..n].fill(0);
+            self.submit_buffer(n)?;
+            left -= n;
+        }
+        while self.out.in_flight() > 0 {
+            if self.stopped() {
+                return Ok(());
+            }
+            self.reap(true)?;
+        }
+        lock(&self.sh.stats).padded += (self.zero_bytes / 2) as u64;
+        self.sh.zeros.store(false, Ordering::Release);
+        Ok(())
     }
 
     /// Reads the streaming state and counts new underruns.
@@ -299,15 +407,18 @@ pub(crate) struct HackrfTransmitter {
     capacity: usize,
     writer: Option<JoinHandle<()>>,
     since: Option<Instant>,
-    zeros: Vec<u8>,
+    zero_bytes: usize,
     lines: Vec<String>,
 }
 
 /// The longest flush write: a buffer size reply above it is taken as this.
 const MAX_FLUSH: usize = 1 << 20;
 
-/// How many transfers the transmit queue holds.
-const QUEUE_TRANSFERS: usize = 4;
+/// How many transfers the sample ring holds.
+const RING_TRANSFERS: usize = 2;
+
+/// How many bulk OUT transfers can be in flight together.
+const IN_FLIGHT: usize = 3;
 
 impl HackrfTransmitter {
     /// The transmitter of `link`, disarmed, with `values`.
@@ -346,7 +457,7 @@ impl HackrfTransmitter {
                 capacity: 0,
                 writer: None,
                 since: None,
-                zeros: Vec::new(),
+                zero_bytes: 0,
                 lines: Vec::new(),
             },
             sh,
@@ -397,7 +508,7 @@ impl HackrfTransmitter {
         Ok(())
     }
 
-    /// Stops the writer and joins it.
+    /// Stops the writer and joins it; the writer cancels its transfers before it ends.
     fn stop_writer(&mut self) {
         self.sh.stop.store(true, Ordering::Release);
         if let Some(w) = self.writer.take() {
@@ -489,8 +600,8 @@ impl Transmitter for HackrfTransmitter {
         Ok(())
     }
 
-    /// Stops receive (reads first, then mode off), sends the transmit settings and starts the writer. Mode transmit
-    /// follows when the first transfer is queued.
+    /// Stops receive (reads first, then mode off), sends the transmit settings, opens the bulk OUT queue and starts the
+    /// writer. Mode transmit follows when the first transfer is filled.
     fn arm(&mut self) -> Result<(), DriverError> {
         if self.closed() {
             return Err(DriverError::NotNow {
@@ -513,31 +624,38 @@ impl Transmitter for HackrfTransmitter {
             }
         };
         *dir = Dir::Off;
+        let size = proto::tx_write_size(self.cfg.rate);
         let mut ctl = link.lock_ctl();
-        if let Err(e) = self.prepare(&mut ctl) {
-            link.note(&e);
-            if resume && !link.gone() {
-                let _ = ctl.set_mode(Mode::Off);
-                if link.start_rx(&mut dir, &mut ctl).is_ok() {
-                    *lock(&link.gap) = Some(t0);
+        let out = match self
+            .prepare(&mut ctl)
+            .and_then(|()| ctl.writes(size, IN_FLIGHT))
+        {
+            Ok(out) => out,
+            Err(e) => {
+                link.note(&e);
+                if resume && !link.gone() {
+                    let _ = ctl.set_mode(Mode::Off);
+                    if link.start_rx(&mut dir, &mut ctl).is_ok() {
+                        *lock(&link.gap) = Some(t0);
+                    }
                 }
+                return Err(e.into());
             }
-            return Err(e.into());
-        }
+        };
         *dir = Dir::Tx { since: t0, resume };
         drop(ctl);
         drop(dir);
         link.wake.notify_all();
 
-        let size = proto::tx_write_size(self.cfg.rate);
-        self.capacity = size * QUEUE_TRANSFERS;
+        self.capacity = size * RING_TRANSFERS;
         let (prod, cons) = rtrb::RingBuffer::<u8>::new(self.capacity);
-        self.zeros = vec![0u8; self.flush_bytes()];
+        self.zero_bytes = self.flush_bytes();
         for flag in [
             &self.sh.stop,
             &self.sh.flush,
             &self.sh.busy,
             &self.sh.started,
+            &self.sh.zeros,
         ] {
             flag.store(false, Ordering::Release);
         }
@@ -546,9 +664,12 @@ impl Transmitter for HackrfTransmitter {
             link: link.clone(),
             sh: self.sh.clone(),
             cons,
+            out,
             size,
             rate: self.cfg.rate,
             armed_at: t0,
+            zero_bytes: self.zero_bytes,
+            last_done: Instant::now(),
         };
         let handle = std::thread::Builder::new()
             .name("sdrkit-hackrf-tx".into())
@@ -648,8 +769,9 @@ impl Transmitter for HackrfTransmitter {
         Duration::from_secs_f64(proto::FIXED_BUFFER as f64 / (2.0 * self.cfg.rate))
     }
 
-    /// Waits until the writer has sent the burst that [`Transmitter::flush`] ended, then writes the flush zeros of the
-    /// firmware and waits for them. Where the device drains by itself, it waits for the time of its buffer instead.
+    /// Waits until the writer has sent the burst that [`Transmitter::flush`] ended and no transfer is in flight, then
+    /// has the writer send the flush zeros of the firmware and waits for them. Where the device drains by itself, it
+    /// waits for the time of its buffer instead.
     fn drain(&mut self, wait: Duration) -> bool {
         let end = Instant::now() + wait;
         loop {
@@ -671,24 +793,26 @@ impl Transmitter for HackrfTransmitter {
         if !self.sh.started.load(Ordering::Acquire) {
             return true;
         }
-        if self.zeros.is_empty() {
+        if self.zero_bytes == 0 {
             let t = Duration::from_secs_f64(proto::DRAIN_BUFFER as f64 / (2.0 * self.cfg.rate));
             std::thread::sleep(t.min(end.saturating_duration_since(Instant::now())));
             return true;
         }
-        let mut ctl = self.link.lock_ctl();
-        match ctl.write(&self.zeros, self.link.timing.write_timeout) {
-            Ok(_) => {
-                drop(ctl);
-                lock(&self.sh.stats).padded += (self.zeros.len() / 2) as u64;
-                true
-            }
-            Err(e) => {
-                drop(ctl);
-                self.link.note(&e);
-                false
-            }
+        self.sh.zeros.store(true, Ordering::Release);
+        if let Some(w) = &self.writer {
+            w.thread().unpark();
         }
+        while self.sh.zeros.load(Ordering::Acquire) {
+            if self.writer_error().is_some()
+                || self.writer.is_none()
+                || self.closed()
+                || Instant::now() >= end
+            {
+                return false;
+            }
+            std::thread::sleep(Duration::from_millis(1));
+        }
+        true
     }
 
     /// A HackRF has no buffer that it repeats by itself.

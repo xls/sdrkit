@@ -1,6 +1,6 @@
 //! Transmit on the scripted bus: worked example 6.2 byte for byte with the end of a transmission in each of the three
-//! firmware cases, the turnaround receive-transmit-receive with its gap mark, and underruns counted by the device and
-//! by the host.
+//! firmware cases, the order of the samples across the queue of transfers, a disarm in the middle of a burst, the
+//! turnaround receive-transmit-receive with its gap mark, and underruns counted by the device and by the host.
 
 mod common;
 
@@ -208,6 +208,194 @@ fn a_host_that_delivers_late_is_counted_as_an_underrun() {
     assert_eq!(s.underruns, 1);
     // About 70 ms at 8 MS/s.
     assert!((400_000..2_000_000).contains(&s.underrun_samples), "{s:?}");
+    t.disarm();
+    drop(t);
+    src.stop();
+    bus.check().unwrap();
+}
+
+/// `n` samples with their bytes, in which no two transfers are the same: I steps by one each sample, Q each 241
+/// samples.
+fn distinct_samples(n: usize) -> (Vec<sdrkit_core::Complex32>, Vec<u8>) {
+    let mut iq = Vec::with_capacity(n);
+    let mut bytes = Vec::with_capacity(2 * n);
+    for k in 0..n {
+        let i = (k % 256) as u8 as i8;
+        let q = ((k / 241) % 256) as u8 as i8;
+        iq.push(sdrkit_core::Complex32::new(
+            f32::from(i) / 128.0,
+            f32::from(q) / 128.0,
+        ));
+        bytes.push(i as u8);
+        bytes.push(q as u8);
+    }
+    (iq, bytes)
+}
+
+/// The script of an open device with USB API `api` that arms for transmit; the writes follow.
+fn armed_script(api: u16) -> String {
+    format!(
+        "sdrkit-usb 1\n{}\n{}{}out 1 40 01 0002 0000 -\n",
+        device_line(1),
+        open_lines(1, api, 4),
+        tx_prepare_lines(1, api, None)
+    )
+}
+
+/// The `bout` lines of `bytes` in transfers of `w`, the last padded to whole blocks.
+fn bouts(bytes: &[u8], w: usize) -> String {
+    bytes
+        .chunks(w)
+        .map(|t| {
+            if t.len() == w {
+                bout(t)
+            } else {
+                bout(&padded(t))
+            }
+        })
+        .collect()
+}
+
+#[test]
+fn samples_keep_their_order_across_the_queue() {
+    // More than the ring and the transfers in flight hold, pushed in pieces larger than the ring that do not line up
+    // with the transfers: each push fills the ring at once, so transfers go out back to back.
+    let w = tx_write_size(8e6);
+    let total = 7 * w + 5000;
+    let (iq, bytes) = distinct_samples(total / 2);
+    let mut text = armed_script(0x0110);
+    text.push_str(&bouts(&bytes, w));
+    text.push_str(&bout(&[0u8; 32_768]));
+    text.push_str("out 1 40 01 0000 0000 -\n");
+    let bus = FakeUsb::from_text(&text).unwrap();
+    let mut src = open(&bus, &example_values());
+    let mut t = src.transmitter(&tx_values(src.as_ref())).unwrap();
+    t.arm().unwrap();
+    for piece in iq.chunks(5 * w / 4 + 1) {
+        assert_eq!(t.push(piece, Duration::from_secs(2)).unwrap(), piece.len());
+    }
+    t.flush().unwrap();
+    assert!(t.drain(Duration::from_secs(2)));
+    t.disarm();
+    let s = t.stats();
+    assert_eq!(s.buffers, 8);
+    assert_eq!(s.sent, (7 * w + BLOCK) as u64 / 2);
+    assert_eq!(s.padded, (BLOCK - 5000 + 32_768) as u64 / 2);
+    assert_eq!(s.queued, 0);
+    drop(t);
+    src.stop();
+    bus.check().unwrap();
+}
+
+#[test]
+fn flush_zeros_larger_than_a_transfer_go_out_over_the_whole_pool() {
+    // A reported buffer of 1 MiB at 8 MS/s: six full transfers of zeros and one of 65 536 bytes, more than the
+    // transfers in flight hold.
+    let api = 0x0113;
+    let w = tx_write_size(8e6);
+    let (iq, bytes) = distinct_samples(w / 2);
+    let mut text = format!(
+        "sdrkit-usb 1\n{}\n{}{}out 1 40 01 0002 0000 -\n",
+        device_line(1),
+        open_lines(1, api, 4),
+        tx_prepare_lines(1, api, Some("00001000"))
+    );
+    text.push_str(&bout(&bytes));
+    let zeros = vec![0u8; w];
+    for _ in 0..6 {
+        text.push_str(&bout(&zeros));
+    }
+    text.push_str(&bout(&[0u8; 65_536]));
+    text.push_str("out 1 40 01 0000 0000 -\n");
+    let bus = FakeUsb::from_text(&text).unwrap();
+    let mut src = open(&bus, &example_values());
+    let mut t = src.transmitter(&tx_values(src.as_ref())).unwrap();
+    t.arm().unwrap();
+    assert_eq!(t.push(&iq, Duration::from_secs(1)).unwrap(), iq.len());
+    t.flush().unwrap();
+    assert!(t.drain(Duration::from_secs(2)));
+    t.disarm();
+    let s = t.stats();
+    assert_eq!(s.buffers, 1);
+    assert_eq!(s.padded, 524_288);
+    drop(t);
+    src.stop();
+    bus.check().unwrap();
+}
+
+#[test]
+fn a_disarm_in_the_middle_of_a_burst_stops_the_writes_before_mode_off() {
+    // Two whole transfers go out; the part of a third waits for more samples when the disarm comes. Mode off follows
+    // the second write at once, with no tail and no flush zeros. A second burst opens the queue again.
+    let w = tx_write_size(8e6);
+    let (iq, bytes) = distinct_samples((2 * w + 6000) / 2);
+    let mut text = armed_script(0x0110);
+    text.push_str(&bouts(&bytes[..2 * w], w));
+    text.push_str("out 1 40 01 0000 0000 -\n");
+    let (iq2, bytes2) = distinct_samples(1000);
+    let _ = write!(
+        text,
+        "{}out 1 40 01 0002 0000 -\n{}{}out 1 40 01 0000 0000 -\n",
+        tx_prepare_lines(1, 0x0110, None),
+        bout(&padded(&bytes2)),
+        bout(&[0u8; 32_768])
+    );
+    let bus = FakeUsb::from_text(&text).unwrap();
+    let mut src = open(&bus, &example_values());
+    let mut t = src.transmitter(&tx_values(src.as_ref())).unwrap();
+    t.arm().unwrap();
+    assert_eq!(t.push(&iq, Duration::from_secs(2)).unwrap(), iq.len());
+    wait_for("two writes", || t.stats().buffers == 2);
+    std::thread::sleep(Duration::from_millis(20));
+    assert_eq!(t.stats().buffers, 2);
+    assert_eq!(t.stats().queued, 3000);
+    t.disarm();
+    assert_eq!(t.state(), TxState::Disarmed);
+    assert_eq!(t.stats().queued, 0);
+
+    t.arm().unwrap();
+    assert_eq!(t.push(&iq2, Duration::from_secs(1)).unwrap(), 1000);
+    t.flush().unwrap();
+    assert!(t.drain(Duration::from_secs(2)));
+    t.disarm();
+    assert_eq!(t.stats().buffers, 3);
+    drop(t);
+    src.stop();
+    bus.check().unwrap();
+}
+
+#[test]
+fn a_late_host_after_a_full_queue_counts_each_underrun() {
+    // USB API 0x0104: the host counts. Three transfers (30 ms) go out at once; the fourth comes 80 ms later and the
+    // fifth 80 ms after that: two underruns.
+    let api = 0x0104;
+    let w = tx_write_size(8e6);
+    let (iq, bytes) = distinct_samples(5 * w / 2);
+    let mut text = armed_script(api);
+    text.push_str(&bouts(&bytes, w));
+    text.push_str(&bout(&[0u8; 32_768]));
+    text.push_str("out 1 40 01 0000 0000 -\n");
+    let bus = FakeUsb::from_text(&text).unwrap();
+    let mut src = open(&bus, &example_values());
+    let mut t = src.transmitter(&tx_values(src.as_ref())).unwrap();
+    t.arm().unwrap();
+    let half = w / 2;
+    t.push(&iq[..3 * half], Duration::from_secs(1)).unwrap();
+    wait_for("three writes", || t.stats().buffers == 3);
+    assert_eq!(t.stats().underruns, 0);
+    std::thread::sleep(Duration::from_millis(80));
+    t.push(&iq[3 * half..4 * half], Duration::from_secs(1))
+        .unwrap();
+    wait_for("four writes", || t.stats().buffers == 4);
+    assert_eq!(t.stats().underruns, 1);
+    std::thread::sleep(Duration::from_millis(80));
+    t.push(&iq[4 * half..], Duration::from_secs(1)).unwrap();
+    t.flush().unwrap();
+    assert!(t.drain(Duration::from_secs(2)));
+    let s = t.stats();
+    assert_eq!(s.underruns, 2);
+    // About 50 ms and 70 ms at 8 MS/s.
+    assert!((600_000..3_000_000).contains(&s.underrun_samples), "{s:?}");
     t.disarm();
     drop(t);
     src.stop();
