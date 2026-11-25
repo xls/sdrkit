@@ -11,6 +11,12 @@
   <img alt="No copyleft dependencies" src="https://img.shields.io/badge/dependencies-no%20copyleft-success.svg">
 </p>
 
+<div align="center">
+
+  [![BuyMeACoffee](https://raw.githubusercontent.com/pachadotdev/buymeacoffee-badges/main/bmc-donate-yellow.svg)](https://buymeacoffee.com/pacha)
+  
+</div>
+
 sdrkit is a software-defined radio engine written in Rust. Point it at a radio, a recording or your own samples, name a
 stack, and it gives you sound, pictures, video packets and decoded data: from FM with RDS and digital television to
 aircraft, ships, weather satellites, digital voice, mesh networks and weak-signal modes. The same engine also
