@@ -114,9 +114,9 @@ pub struct DroneIdPacket {
     pub lon: f64,
     /// Latitude, degrees.
     pub lat: f64,
-    /// Altitude raw (0.01 m).
+    /// Altitude raw, read as 0.01 m (the unit is not confirmed).
     pub alt_raw: i16,
-    /// Height above home raw (0.01 m).
+    /// Height above home raw, read as 0.01 m (the unit is not confirmed).
     pub height_raw: i16,
     /// Velocity north raw.
     pub v_north: i16,

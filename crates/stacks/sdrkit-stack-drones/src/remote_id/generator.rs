@@ -1,6 +1,6 @@
 //! The Remote ID test signal: drone 1 on Bluetooth LE channel 38, drone 2 in Wi-Fi beacons on channel 6,
-//! one advertiser and one access point without Remote ID. The generator makes the clean signal only: noise and the receiver's
-//! impairments come from the standard `gen_*` settings.
+//! one advertiser and one access point without Remote ID, and on request a spoofer on Bluetooth LE channel 38. The generator
+//! makes the clean signal only: noise and the receiver's impairments come from the standard `gen_*` settings.
 
 use super::messages::{
     beacon, ble_service_data, encode_message, encode_pack, wifi_element, Authentication, BasicId,
@@ -35,6 +35,8 @@ pub struct RidGenOptions {
     pub carriers: Carriers,
     /// The Wi-Fi beacons as OFDM 6 Mbit/s instead of DSSS 1 Mbit/s.
     pub wifi_ofdm: bool,
+    /// Add the spoofer (with the Bluetooth LE carrier only).
+    pub spoofer: bool,
 }
 
 impl Default for RidGenOptions {
@@ -44,6 +46,7 @@ impl Default for RidGenOptions {
             centre_hz: 2432e6,
             carriers: Carriers::Both,
             wifi_ofdm: false,
+            spoofer: false,
         }
     }
 }
@@ -59,7 +62,7 @@ pub fn drone1_messages() -> Vec<Message> {
         Message::BasicId(BasicId {
             id_type: 4,
             ua_type: 2,
-            id: "SESSION-7F3A".into(),
+            id: "83:455353494F4E2D37463341".into(),
         }),
         Message::Location(Location {
             status: 2,
@@ -181,6 +184,71 @@ pub fn ble_pdu(k: u64, counter: u8) -> Vec<u8> {
     pdu
 }
 
+/// The spoofer's address.
+pub const SPOOFER: [u8; 6] = [0xC6, 0x5F, 0x00, 0x0A, 0x0B, 0x0C];
+/// The spoofer's serial number (ANSI/CTA-2063-A form).
+pub const SPOOFER_SERIAL: &str = "4321F0123456789ABCDE";
+/// The spoofer sends one packet every this many seconds, a Basic ID and a Location in turn.
+pub const SPOOFER_EVERY_S: f64 = 0.03;
+
+/// The centre of the spoofer's places, latitude and longitude.
+const SPOOFER_CENTRE: (f64, f64) = (54.69, 25.28);
+/// The radius of the spoofer's places, metres.
+const SPOOFER_RADIUS_M: f64 = 2000.0;
+
+/// Place `n` of the five that the spoofer's Location messages cycle through: the corners of a pentagon of radius 2 km, at
+/// least 2.3 km apart, so each step is far faster than a drone flies while the messages state 5 m/s. A lost message never
+/// brings the next one back to the place before it.
+fn spoofer_place(n: u64) -> (f64, f64) {
+    let a = (90.0 + 72.0 * (n % 5) as f64).to_radians();
+    let (lat0, lon0) = SPOOFER_CENTRE;
+    let m_deg = 111_320.0;
+    (
+        lat0 + SPOOFER_RADIUS_M * a.sin() / m_deg,
+        lon0 + SPOOFER_RADIUS_M * a.cos() / (m_deg * lat0.to_radians().cos()),
+    )
+}
+
+/// The message of packet `j` of the spoofer: a Basic ID for even `j`, else a Location at the next place of the cycle.
+pub fn spoofer_message(j: u64) -> Message {
+    if j.is_multiple_of(2) {
+        return Message::BasicId(BasicId {
+            id_type: 1,
+            ua_type: 2,
+            id: SPOOFER_SERIAL.into(),
+        });
+    }
+    let (lat, lon) = spoofer_place(j / 2);
+    let t = 0.002 + SPOOFER_EVERY_S * j as f64;
+    Message::Location(Location {
+        status: 2,
+        height_type: 0,
+        direction: Some(90.0),
+        speed: Some(5.0),
+        vspeed: Some(0.0),
+        lat: Some(lat),
+        lon: Some(lon),
+        alt_baro: None,
+        alt_geo: Some(100.0),
+        height: Some(50.0),
+        h_acc: 10,
+        v_acc: 4,
+        baro_acc: 0,
+        speed_acc: 3,
+        timestamp: Some(((t * 10.0) as u64 % 36_000) as u16),
+        ts_acc: 2,
+    })
+}
+
+/// The BLE PDU of packet `j` of the spoofer, with the Remote ID counter.
+pub fn spoofer_pdu(j: u64, counter: u8) -> Vec<u8> {
+    let mut pdu = Vec::with_capacity(39);
+    let sd = ble_service_data(counter, &encode_message(&spoofer_message(j), 2));
+    let a = ble::Addr::random(air_order(SPOOFER));
+    ble::build_adv(&mut pdu, ble::PduType::AdvNonconnInd, &a, &sd).expect("a short PDU");
+    pdu
+}
+
 fn air_order(mut a: [u8; 6]) -> [u8; 6] {
     a.reverse();
     a
@@ -292,6 +360,22 @@ impl RemoteIdGenerator {
                 Some(b)
             }));
         }
+        if o.spoofer && o.carriers != Carriers::Wifi {
+            // The packets start at even milliseconds, between the packets of drone 1.
+            let (mut j, mut counter) = (0u64, 0u8);
+            scene.add_source(Box::new(move || {
+                let pdu = spoofer_pdu(j, counter);
+                counter = counter.wrapping_add(1);
+                let b = Burst {
+                    start_s: 0.002 + SPOOFER_EVERY_S * j as f64,
+                    offset_hz: ble_off,
+                    level_db: 0.0,
+                    samples: unit_power(ble_burst(&pdu, 38, rate)),
+                };
+                j += 1;
+                Some(b)
+            }));
+        }
         if o.carriers != Carriers::Ble {
             let (mut m, mut counter, ofdm) = (0u64, 0u8, o.wifi_ofdm);
             scene.add_source(Box::new(move || {
@@ -329,6 +413,7 @@ impl RemoteIdGenerator {
                 super::GenCarriers::Both => Carriers::Both,
             },
             wifi_ofdm: s.get(&super::GEN_WIFI_PHY) == super::GenWifiPhy::Ofdm,
+            spoofer: s.get(&super::GEN_SPOOFER),
         })
     }
 }

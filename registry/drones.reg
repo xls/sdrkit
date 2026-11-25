@@ -1,13 +1,16 @@
 # The interface of the stack family drones. The registry test of the family writes this file.
-family drones version=1.1
+family drones version=1.2
 shape.RemoteIdFields since=1.0
 shape.RemoteIdFields.ble_channel type=i64 unit= optional=yes since=1.0
 shape.RemoteIdFields.ble_offset_hz type=hz unit=Hz optional=yes since=1.0
 shape.RemoteIdFields.wifi_channel type=i64 unit= optional=yes since=1.0
 shape.RemoteIdFields.wifi_offset_hz type=hz unit=Hz optional=no since=1.0
 shape.RemoteIdFields.band type=choice(2432,2437,2412,2462,2403,2426,2478) unit= optional=yes since=1.0
-shape.RemoteIdFields.drones type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.drones type=i64 unit= optional=no reading=1 since=1.0
+shape.RemoteIdFields.flagged type=i64 unit= optional=no reading=2 since=1.2
 shape.RemoteIdFields.messages type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.messages_refused type=i64 unit= optional=no since=1.2
+shape.RemoteIdFields.fields_out_of_range type=i64 unit= optional=no since=1.2
 shape.RemoteIdFields.ble_good type=i64 unit= optional=no since=1.0
 shape.RemoteIdFields.ble_remote_id type=i64 unit= optional=no since=1.0
 shape.RemoteIdFields.wifi_good type=i64 unit= optional=no since=1.0
@@ -25,6 +28,8 @@ shape.RemoteIdFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.RemoteIdDroneRow since=1.0
 shape.RemoteIdDroneRow.source type=text unit= optional=no since=1.0
 shape.RemoteIdDroneRow.address type=text unit= optional=no since=1.0
+shape.RemoteIdDroneRow.verdict type=choice(authenticated,plausible,suspicious,spoofed) unit= optional=yes since=1.2
+shape.RemoteIdDroneRow.reasons type=text unit= optional=no since=1.2
 shape.RemoteIdDroneRow.serial type=text unit= optional=yes since=1.0
 shape.RemoteIdDroneRow.session_id type=text unit= optional=yes since=1.0
 shape.RemoteIdDroneRow.caa_registration type=text unit= optional=yes since=1.0
@@ -54,6 +59,8 @@ shape.RemoteIdDroneRow.operator_id type=text unit= optional=yes since=1.0
 shape.RemoteIdDroneRow.self_id type=text unit= optional=yes since=1.0
 shape.RemoteIdDroneRow.authentication type=i64 unit= optional=yes since=1.0
 shape.RemoteIdDroneRow.authentication_pages type=i64 unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.authentication_length type=i64 unit=B optional=yes since=1.2
+shape.RemoteIdDroneRow.authentication_complete type=bool unit= optional=yes since=1.2
 shape.RemoteIdDroneRow.basic_id_messages type=i64 unit= optional=no since=1.0
 shape.RemoteIdDroneRow.location_messages type=i64 unit= optional=no since=1.0
 shape.RemoteIdDroneRow.authentication_messages type=i64 unit= optional=no since=1.0
@@ -88,6 +95,14 @@ shape.RemoteIdDroneEvent.course_deg type=f64 unit=° optional=yes since=1.0
 shape.RemoteIdDroneEvent.operator_position type=position unit= optional=yes since=1.0
 shape.RemoteIdDroneEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
 shape.RemoteIdDroneEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.RemoteIdVerdictEvent since=1.2
+shape.RemoteIdVerdictEvent.source type=text unit= optional=no since=1.2
+shape.RemoteIdVerdictEvent.address type=text unit= optional=no since=1.2
+shape.RemoteIdVerdictEvent.verdict type=choice(authenticated,plausible,suspicious,spoofed) unit= optional=no since=1.2
+shape.RemoteIdVerdictEvent.reasons type=text unit= optional=no since=1.2
+shape.RemoteIdVerdictEvent.position type=position unit= optional=yes since=1.2
+shape.RemoteIdVerdictEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.2
+shape.RemoteIdVerdictEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.2
 shape.DjiDroneidFields since=1.0
 shape.DjiDroneidFields.bursts_measured type=i64 unit= optional=no since=1.0
 shape.DjiDroneidFields.bursts_ofdm_like type=i64 unit= optional=no since=1.0
@@ -130,6 +145,8 @@ shape.DjiDroneidDroneRow.source type=text unit= optional=no since=1.0
 shape.DjiDroneidDroneRow.position type=position unit= optional=yes since=1.0
 shape.DjiDroneidDroneRow.alt_m type=f64 unit=m optional=no since=1.0
 shape.DjiDroneidDroneRow.height_m type=f64 unit=m optional=no since=1.0
+shape.DjiDroneidDroneRow.alt_raw type=i64 unit= optional=no since=1.2
+shape.DjiDroneidDroneRow.height_raw type=i64 unit= optional=no since=1.2
 shape.DjiDroneidDroneRow.speed_kt type=f64 unit=kt optional=no since=1.0
 shape.DjiDroneidDroneRow.course_deg type=f64 unit=° optional=no since=1.0
 shape.DjiDroneidDroneRow.home type=position unit= optional=yes since=1.0
@@ -167,6 +184,8 @@ shape.DjiDroneidEvent.source type=text unit= optional=no since=1.0
 shape.DjiDroneidEvent.position type=position unit= optional=yes since=1.0
 shape.DjiDroneidEvent.alt_m type=f64 unit=m optional=no since=1.0
 shape.DjiDroneidEvent.height_m type=f64 unit=m optional=no since=1.0
+shape.DjiDroneidEvent.alt_raw type=i64 unit= optional=no since=1.2
+shape.DjiDroneidEvent.height_raw type=i64 unit= optional=no since=1.2
 shape.DjiDroneidEvent.speed_kt type=f64 unit=kt optional=no since=1.0
 shape.DjiDroneidEvent.course_deg type=f64 unit=° optional=no since=1.0
 shape.DjiDroneidEvent.home type=position unit= optional=yes since=1.0
@@ -419,12 +438,15 @@ remote_id.table.drones row=RemoteIdDroneRow cap=200 label=address position=posit
 remote_id.table.messages row=RemoteIdMessageRow cap=400 label=address since=1.0
 remote_id.table.drone_tracks row=DroneTrackRow cap=24000 position=position since=1.0
 remote_id.event.remote_id.drone fields=RemoteIdDroneEvent since=1.0
+remote_id.event.remote_id.verdict fields=RemoteIdVerdictEvent since=1.2
 remote_id.setting.band type=choice(2432,2437,2412,2462,2403,2426,2478) unit= since=1.0
 remote_id.setting.ble type=bool unit= since=1.0
 remote_id.setting.wifi_ofdm type=bool unit= since=1.0
+remote_id.setting.shared_radio type=bool unit= since=1.2
 remote_id.setting.gen_carriers type=choice(both,ble,wifi) unit= since=1.0
 remote_id.setting.gen_centre_mhz type=f64 unit=MHz since=1.0
 remote_id.setting.gen_wifi_phy type=choice(dsss,ofdm) unit= since=1.0
+remote_id.setting.gen_spoofer type=bool unit= since=1.2
 remote_id.command.clear args= reply= since=1.0
 remote_id.command.remove args=row:text reply= since=1.0
 dji_droneid since=1.0

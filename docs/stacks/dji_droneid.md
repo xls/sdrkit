@@ -59,7 +59,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `signals` | Signals | `track` (whole number), `class` (choice), `confidence_pct` (number (%)), `freq_hz` (frequency), `offset_hz` (frequency), `width_hz` (frequency), `clipped` (yes or no), `burst` (duration (s)), `period` (duration (s)), `duty_pct` (number (%)), `regularity_pct` (number (%)), `ofdm_pct` (number (%)), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `bursts` (whole number), `zc_seen` (yes or no), `decoded` (whole number), `failed` (whole number), `band` (choice), `reason` (choice), `near_droneid` (yes or no), `last_s` (number (s)) |
-| `drones` | Drones | `source` (text), `position` (position), `alt_m` (number (m)), `height_m` (number (m)), `speed_kt` (number (kt)), `course_deg` (number (°)), `home` (position), `pilot` (position), `seq` (whole number), `state_info` (whole number), `version` (whole number), `inner_crc_ok` (yes or no), `v_north` (whole number (cm/s)), `v_east` (whole number (cm/s)), `v_up` (whole number (cm/s)), `yaw` (whole number), `gps_time` (time), `device_type` (whole number), `uuid` (text), `freq_hz` (frequency), `snr_db` (number (dB)), `track` (whole number), `trail_points` (whole number), `last_heard` (time), `heard` (whole number) |
+| `drones` | Drones | `source` (text), `position` (position), `alt_m` (number (m)), `height_m` (number (m)), `alt_raw` (whole number), `height_raw` (whole number), `speed_kt` (number (kt)), `course_deg` (number (°)), `home` (position), `pilot` (position), `seq` (whole number), `state_info` (whole number), `version` (whole number), `inner_crc_ok` (yes or no), `v_north` (whole number (cm/s)), `v_east` (whole number (cm/s)), `v_up` (whole number (cm/s)), `yaw` (whole number), `gps_time` (time), `device_type` (whole number), `uuid` (text), `freq_hz` (frequency), `snr_db` (number (dB)), `track` (whole number), `trail_points` (whole number), `last_heard` (time), `heard` (whole number) |
 | `bursts` | Bursts | `time_s` (number (s)), `time` (time), `track` (whole number), `offset_hz` (frequency), `width_hz` (frequency), `burst` (duration (s)), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `ofdm_pct` (number (%)), `droneid` (choice) |
 | `drone_tracks` | Tracks | `drone` (text), `position` (position), `time_s` (number (s)) |
 
@@ -77,7 +77,7 @@ The stack puts points on a map: Drones.
 
 | Kind | Label | Fields |
 |---|---|---|
-| `dji.droneid` | DroneID packet | `source` (text), `position` (position), `alt_m` (number (m)), `height_m` (number (m)), `speed_kt` (number (kt)), `course_deg` (number (°)), `home` (position), `pilot` (position), `family` (choice) |
+| `dji.droneid` | DroneID packet | `source` (text), `position` (position), `alt_m` (number (m)), `height_m` (number (m)), `alt_raw` (whole number), `height_raw` (whole number), `speed_kt` (number (kt)), `course_deg` (number (°)), `home` (position), `pilot` (position), `family` (choice) |
 
 ## Commands
 
@@ -88,7 +88,7 @@ The stack puts points on a map: Drones.
 
 ## Typed interface
 
-The stack is in the family `drones`, version 1.1. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `drones`, version 1.2. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -151,8 +151,10 @@ Struct `DjiDroneidDroneRow`. A DJI drone heard on DroneID.
 |---|---|---|---|---|
 | `source` | text | always | 1.0 | The sender of a decoded message: a registration, an address, a call sign or a code. |
 | `position` | position | optional | 1.0 | The position of the object that the event is about. |
-| `alt_m` | number (m) | always | 1.0 | The drone's altitude. |
-| `height_m` | number (m) | always | 1.0 | The drone's height above home. |
+| `alt_m` | number (m) | always | 1.0 | The drone's altitude, read as 0.01 m. The unit is not confirmed by a public source: the NDSS 2023 receiver reads feet. |
+| `height_m` | number (m) | always | 1.0 | The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude. |
+| `alt_raw` | whole number | always | 1.2 | The altitude field as received (a signed 16-bit number), whose unit is not confirmed. |
+| `height_raw` | whole number | always | 1.2 | The height field as received (a signed 16-bit number), whose unit is not confirmed. |
 | `speed_kt` | number (kt) | always | 1.0 | The speed over the ground of the object that the event is about, knots. |
 | `course_deg` | number (°) | always | 1.0 | The course over the ground of the object that the event is about, degrees clockwise from true north. |
 | `home` | position | optional | 1.0 | The home position. |
@@ -214,8 +216,10 @@ Struct `DjiDroneidEvent`. A DroneID packet.
 |---|---|---|---|---|
 | `source` | text | always | 1.0 | The sender of a decoded message: a registration, an address, a call sign or a code. |
 | `position` | position | optional | 1.0 | The position of the object that the event is about. |
-| `alt_m` | number (m) | always | 1.0 | The drone's altitude. |
-| `height_m` | number (m) | always | 1.0 | The drone's height above home. |
+| `alt_m` | number (m) | always | 1.0 | The drone's altitude, read as 0.01 m. The unit is not confirmed by a public source: the NDSS 2023 receiver reads feet. |
+| `height_m` | number (m) | always | 1.0 | The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude. |
+| `alt_raw` | whole number | always | 1.2 | The altitude field as received (a signed 16-bit number), whose unit is not confirmed. |
+| `height_raw` | whole number | always | 1.2 | The height field as received (a signed 16-bit number), whose unit is not confirmed. |
 | `speed_kt` | number (kt) | always | 1.0 | The speed over the ground of the object that the event is about, knots. |
 | `course_deg` | number (°) | always | 1.0 | The course over the ground of the object that the event is about, degrees clockwise from true north. |
 | `home` | position | optional | 1.0 | The home position. |
@@ -256,3 +260,8 @@ sdrkit run dji_droneid --source iiod:192.168.2.1 --freq 2440
 ## Settings: notes
 
 Advanced settings. The owner works without any of them set.
+
+## Altitude and height
+
+The altitude and the height above home are read as 0.01 m. No public source confirms the unit: the NDSS 2023 receiver reads
+the same fields as feet. The columns `alt_raw` and `height_raw` hold the fields as received.

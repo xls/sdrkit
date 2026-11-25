@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "drones", version 1.1. MIT licence.
+// sdrkit: the typed interface of the stack family "drones", version 1.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum DronesInterface {
     public static let major = 1
-    public static let minor = 1
+    public static let minor = 2
 }
 
 /// The result fields of Drone Remote ID.
@@ -32,8 +32,14 @@ public struct RemoteIdFields {
     public var band: Band?
     /// Drones in the table.
     public var drones: Int64
+    /// Drones in the table whose trust verdict is suspicious or spoofed.
+    public var flagged: Int64
     /// Messages decoded.
     public var messages: Int64
+    /// Messages refused: members of a Message Pack that are packs or of a reserved type, authentication pages that fail their checks.
+    public var messagesRefused: Int64
+    /// Messages with a value outside its range (a Location timestamp above 36000, a latitude or longitude out of range), which the tables show as absent.
+    public var fieldsOutOfRange: Int64
     /// Good BLE packets.
     public var bleGood: Int64
     /// Good BLE packets with Remote ID.
@@ -70,7 +76,10 @@ public struct RemoteIdFields {
         wifiOffsetHz = c.wifi_offset_hz
         band = c.has_band ? Band(rawValue: c.band) : nil
         drones = c.drones
+        flagged = c.flagged
         messages = c.messages
+        messagesRefused = c.messages_refused
+        fieldsOutOfRange = c.fields_out_of_range
         bleGood = c.ble_good
         bleRemoteId = c.ble_remote_id
         wifiGood = c.wifi_good
@@ -97,6 +106,12 @@ public struct RemoteIdFields {
 
 /// A drone heard on Remote ID. The row key is the broadcast address. The source is the shown ID: the serial number, else the session ID, else the CAA registration, else the UTM UUID, else the address.
 public struct RemoteIdDroneRow {
+    public enum Verdict: Int32 {
+        case authenticated = 0
+        case plausible = 1
+        case suspicious = 2
+        case spoofed = 3
+    }
     public enum Via: Int32 {
         case ble = 0
         case wifi = 1
@@ -108,6 +123,10 @@ public struct RemoteIdDroneRow {
     public var source: String
     /// The broadcast address.
     public var address: String
+    /// The trust verdict of the broadcasts heard since the stack started: authenticated, plausible, suspicious or spoofed. No value before the first packet since the start (a drone of a restored state).
+    public var verdict: Verdict?
+    /// The active reasons of the trust verdict: their stable names (`teleport`, `counter_conflict`, ...) joined by ", ". Empty when there is none.
+    public var reasons: String
     /// Serial number.
     public var serial: String?
     /// Session ID.
@@ -166,6 +185,10 @@ public struct RemoteIdDroneRow {
     public var authentication: Int64?
     /// Authentication pages.
     public var authenticationPages: Int64?
+    /// Authentication data length in bytes, from page 0.
+    public var authenticationLength: Int64?
+    /// Every page of the present authentication was heard. No signature is verified.
+    public var authenticationComplete: Bool?
     /// Basic ID messages (a field: all drones; a column: one drone).
     public var basicIdMessages: Int64
     /// Location messages.
@@ -193,6 +216,8 @@ public struct RemoteIdDroneRow {
         key = sdrkitText(c.key)
         source = sdrkitText(c.source)
         address = sdrkitText(c.address)
+        verdict = c.has_verdict ? Verdict(rawValue: c.verdict) : nil
+        reasons = sdrkitText(c.reasons)
         serial = c.has_serial ? sdrkitText(c.serial) : nil
         sessionId = c.has_session_id ? sdrkitText(c.session_id) : nil
         caaRegistration = c.has_caa_registration ? sdrkitText(c.caa_registration) : nil
@@ -222,6 +247,8 @@ public struct RemoteIdDroneRow {
         selfId = c.has_self_id ? sdrkitText(c.self_id) : nil
         authentication = c.has_authentication ? c.authentication : nil
         authenticationPages = c.has_authentication_pages ? c.authentication_pages : nil
+        authenticationLength = c.has_authentication_length ? c.authentication_length : nil
+        authenticationComplete = c.has_authentication_complete ? c.authentication_complete : nil
         basicIdMessages = c.basic_id_messages
         locationMessages = c.location_messages
         authenticationMessages = c.authentication_messages
@@ -460,10 +487,14 @@ public struct DjiDroneidDroneRow {
     public var source: String
     /// The position of the object that the event is about.
     public var position: SDRKitPosition?
-    /// The drone's altitude.
+    /// The drone's altitude, read as 0.01 m. The unit is not confirmed by a public source: the NDSS 2023 receiver reads feet.
     public var altM: Double
-    /// The drone's height above home.
+    /// The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude.
     public var heightM: Double
+    /// The altitude field as received (a signed 16-bit number), whose unit is not confirmed.
+    public var altRaw: Int64
+    /// The height field as received (a signed 16-bit number), whose unit is not confirmed.
+    public var heightRaw: Int64
     /// The speed over the ground of the object that the event is about, knots.
     public var speedKt: Double
     /// The course over the ground of the object that the event is about, degrees clockwise from true north.
@@ -513,6 +544,8 @@ public struct DjiDroneidDroneRow {
         position = c.has_position ? SDRKitPosition(c.position) : nil
         altM = c.alt_m
         heightM = c.height_m
+        altRaw = c.alt_raw
+        heightRaw = c.height_raw
         speedKt = c.speed_kt
         courseDeg = c.course_deg
         home = c.has_home ? SDRKitPosition(c.home) : nil
@@ -1353,6 +1386,74 @@ public struct RemoteIdDroneEvent {
     }
 }
 
+/// A change of the trust verdict of a Remote ID drone. The urgency is notice when the verdict is suspicious or spoofed, else none.
+public struct RemoteIdVerdictEvent {
+    public enum Verdict: Int32 {
+        case authenticated = 0
+        case plausible = 1
+        case suspicious = 2
+        case spoofed = 3
+    }
+    public enum Urgency: Int32 {
+        case none = 0
+        case notice = 1
+        case urgent = 2
+        case emergency = 3
+    }
+    public enum Family: Int32 {
+        case aircraft = 0
+        case vessel = 1
+        case aprs = 2
+        case pager = 3
+        case sonde = 4
+        case broadcast = 5
+        case voice = 6
+        case message = 7
+        case sensor = 8
+        case satellite = 9
+        case receiver = 10
+        case alert = 11
+        case other = 12
+    }
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The sender of a decoded message: a registration, an address, a call sign or a code.
+    public var source: String
+    /// The broadcast address.
+    public var address: String
+    /// The new trust verdict.
+    public var verdict: Verdict?
+    /// The active reasons of the verdict: their stable names joined by ", ". Empty when there is none.
+    public var reasons: String
+    /// The position of the object that the event is about.
+    public var position: SDRKitPosition?
+    /// How urgent an event is. A stack sets it when the decoded message is urgent. Services alert on it.
+    public var urgency: Urgency?
+    /// What an event is about (aircraft, vessel, pager). Outputs and the store filter on it.
+    public var family: Family?
+
+    init(_ c: sdrkit_remote_id_verdict_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        source = sdrkitText(c.source)
+        address = sdrkitText(c.address)
+        verdict = Verdict(rawValue: c.verdict)
+        reasons = sdrkitText(c.reasons)
+        position = c.has_position ? SDRKitPosition(c.position) : nil
+        urgency = Urgency(rawValue: c.urgency)
+        family = Family(rawValue: c.family)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<RemoteIdVerdictEvent, SDRKitCode> {
+        var c = sdrkit_remote_id_verdict_event()
+        let code = sdrkit_remote_id_verdict_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(RemoteIdVerdictEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
 /// A DroneID packet.
 public struct DjiDroneidEvent {
     public enum Family: Int32 {
@@ -1378,10 +1479,14 @@ public struct DjiDroneidEvent {
     public var source: String
     /// The position of the object that the event is about.
     public var position: SDRKitPosition?
-    /// The drone's altitude.
+    /// The drone's altitude, read as 0.01 m. The unit is not confirmed by a public source: the NDSS 2023 receiver reads feet.
     public var altM: Double
-    /// The drone's height above home.
+    /// The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude.
     public var heightM: Double
+    /// The altitude field as received (a signed 16-bit number), whose unit is not confirmed.
+    public var altRaw: Int64
+    /// The height field as received (a signed 16-bit number), whose unit is not confirmed.
+    public var heightRaw: Int64
     /// The speed over the ground of the object that the event is about, knots.
     public var speedKt: Double
     /// The course over the ground of the object that the event is about, degrees clockwise from true north.
@@ -1400,6 +1505,8 @@ public struct DjiDroneidEvent {
         position = c.has_position ? SDRKitPosition(c.position) : nil
         altM = c.alt_m
         heightM = c.height_m
+        altRaw = c.alt_raw
+        heightRaw = c.height_raw
         speedKt = c.speed_kt
         courseDeg = c.course_deg
         home = c.has_home ? SDRKitPosition(c.home) : nil
@@ -2170,6 +2277,15 @@ public enum DronesSettings {
     public static func setRemoteIdWifiOfdm(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "wifi_ofdm", value))
     }
+    /// Shared-radio check.
+    public static func remoteIdSharedRadio(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
+        var v: Bool = false
+        let code = sdrkit_typed_setting_get_bool(handle, "shared_radio", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setRemoteIdSharedRadio(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_bool(handle, "shared_radio", value))
+    }
     /// Decode DroneID.
     public static func djiDroneidDecodeDroneid(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
         var v: Bool = false
@@ -2507,6 +2623,15 @@ public enum DronesGeneratorSettings {
     }
     public static func setRemoteIdWifiPhy(_ handle: SDRKIT_HANDLE, _ value: RemoteIdWifiPhy) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_enum(handle, "gen_wifi_phy", value.rawValue))
+    }
+    /// Test signal spoofer.
+    public static func remoteIdSpoofer(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
+        var v: Bool = false
+        let code = sdrkit_typed_setting_get_bool(handle, "gen_spoofer", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setRemoteIdSpoofer(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_bool(handle, "gen_spoofer", value))
     }
     /// The options of the setting "gen_scenario" of the stack "dji_droneid".
     public enum DjiDroneidScenario: Int32 {

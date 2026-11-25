@@ -1,7 +1,7 @@
 //! The receive paths of Remote ID: the Bluetooth LE channel and its advertising receiver, the Wi-Fi channel, and the DSSS and
 //! OFDM receivers of `sdrkit-proto-wlan-phy`. Each path reads the Remote ID of its good packets and sends it to the drone table.
 
-use super::messages::{from_ble_adv_data, from_wifi_frame, Transport};
+use super::messages::{from_ble_adv_data, from_wifi_frame, Link, Transport};
 use super::{plan, RidItem, RidPacket};
 use sdrkit_algo_dsp::channel::{ChannelConfig, Channelizer};
 use sdrkit_algo_dsp::meter::IntervalLevel;
@@ -12,7 +12,7 @@ use sdrkit_core::{
 use sdrkit_graph::{
     values_of, Applied, Component, ComponentInfo, Format, Io, Kind, Port, RateFrom, RateRule, Timed,
 };
-use sdrkit_proto_wlan_phy::ble::AdvReceiver;
+use sdrkit_proto_wlan_phy::ble::{AdvReceiver, PduType};
 use sdrkit_proto_wlan_phy::dsss::DsssReceiver;
 use sdrkit_proto_wlan_phy::ofdm::OfdmReceiver;
 use sdrkit_proto_wlan_phy::Complex32;
@@ -138,7 +138,11 @@ impl Component for BleRid {
                         address: a.text(),
                         counter: c.counter,
                         messages: c.messages,
+                        link: ble_link(pdu.header.pdu_type),
                         payload: c.payload,
+                        beacon: c.beacon,
+                        refused: c.refused,
+                        out_of_range: c.out_of_range,
                         level_dbfs: level,
                         cfo_hz: p.offset_hz,
                         snr_db: p.snr_db,
@@ -174,6 +178,15 @@ impl Component for BleRid {
     }
     fn values(&self) -> Values {
         values_of([(RunSetting::Enabled, Value::Bool(self.enabled))])
+    }
+}
+
+/// The air interface of a Bluetooth LE PDU type: the extended advertising format is Bluetooth 5, every other advertising PDU
+/// Bluetooth 4.
+pub fn ble_link(t: PduType) -> Link {
+    match t {
+        PduType::AdvExtInd | PduType::AuxConnectRsp => Link::Ble5,
+        _ => Link::Ble4,
     }
 }
 
@@ -266,7 +279,11 @@ fn wifi_item(mpdu: &[u8], level_dbfs: Option<f64>, cfo_hz: f64, snr_db: f64) -> 
             address,
             counter: c.counter,
             messages: c.messages,
+            link: Link::WifiBeacon,
             payload: c.payload,
+            beacon: c.beacon,
+            refused: c.refused,
+            out_of_range: c.out_of_range,
             level_dbfs,
             cfo_hz,
             snr_db,

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "drones", version 1.1. MIT licence.
+ * sdrkit: the typed interface of the stack family "drones", version 1.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,11 +35,12 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_DRONES_VERSION_MAJOR 1
-#define SDRKIT_DRONES_VERSION_MINOR 1
+#define SDRKIT_DRONES_VERSION_MINOR 2
 
 // The stack "remote_id": its id, and the keys of its event types.
 #define SDRKIT_STACK_REMOTE_ID "remote_id"
 #define SDRKIT_EVENT_REMOTE_ID_DRONE "remote_id.drone"
+#define SDRKIT_EVENT_REMOTE_ID_VERDICT "remote_id.verdict"
 
 // The stack "dji_droneid": its id, and the keys of its event types.
 #define SDRKIT_STACK_DJI_DRONEID "dji_droneid"
@@ -274,7 +275,25 @@ typedef struct sdrkit_remote_id_fields {
   bool has_level_dbfs;
   // Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). Unit: dBFS.
   double level_dbfs;
+  // Drones in the table whose trust verdict is suspicious or spoofed.
+  int64_t flagged;
+  // Messages refused: members of a Message Pack that are packs or of a reserved type, authentication pages that fail their checks.
+  int64_t messages_refused;
+  // Messages with a value outside its range (a Location timestamp above 36000, a latitude or longitude out of range), which the tables show as absent.
+  int64_t fields_out_of_range;
 } sdrkit_remote_id_fields;
+
+// The options of `verdict` of `sdrkit_remote_id_drone_row`.
+typedef enum sdrkit_remote_id_drone_row_verdict {
+  // Authenticated
+  SDRKIT_REMOTE_ID_DRONE_ROW_VERDICT_AUTHENTICATED = 0,
+  // Plausible
+  SDRKIT_REMOTE_ID_DRONE_ROW_VERDICT_PLAUSIBLE = 1,
+  // Suspicious
+  SDRKIT_REMOTE_ID_DRONE_ROW_VERDICT_SUSPICIOUS = 2,
+  // Spoofed
+  SDRKIT_REMOTE_ID_DRONE_ROW_VERDICT_SPOOFED = 3,
+} sdrkit_remote_id_drone_row_verdict;
 
 // The options of `via` of `sdrkit_remote_id_drone_row`.
 typedef enum sdrkit_remote_id_drone_row_via {
@@ -440,6 +459,20 @@ typedef struct sdrkit_remote_id_drone_row {
   bool has_heard;
   // Times heard.
   int64_t heard;
+  // True if `verdict` holds a value.
+  bool has_verdict;
+  // The trust verdict of the broadcasts heard since the stack started: authenticated, plausible, suspicious or spoofed. No value before the first packet since the start (a drone of a restored state). A value of `sdrkit_remote_id_drone_row_verdict`.
+  int32_t verdict;
+  // The active reasons of the trust verdict: their stable names (`teleport`, `counter_conflict`, ...) joined by ", ". Empty when there is none.
+  sdrkit_string reasons;
+  // True if `authentication_length` holds a value.
+  bool has_authentication_length;
+  // Authentication data length in bytes, from page 0. Unit: B.
+  int64_t authentication_length;
+  // True if `authentication_complete` holds a value.
+  bool has_authentication_complete;
+  // Every page of the present authentication was heard. No signature is verified.
+  bool authentication_complete;
 } sdrkit_remote_id_drone_row;
 
 // The options of `via` of `sdrkit_remote_id_message_row`.
@@ -670,9 +703,9 @@ typedef struct sdrkit_dji_droneid_drone_row {
   bool has_position;
   // The position of the object that the event is about.
   sdrkit_position position;
-  // The drone's altitude. Unit: m.
+  // The drone's altitude, read as 0.01 m. The unit is not confirmed by a public source: the NDSS 2023 receiver reads feet. Unit: m.
   double alt_m;
-  // The drone's height above home. Unit: m.
+  // The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude. Unit: m.
   double height_m;
   // The speed over the ground of the object that the event is about, knots. Unit: kt.
   double speed_kt;
@@ -728,6 +761,10 @@ typedef struct sdrkit_dji_droneid_drone_row {
   bool has_heard;
   // Times heard.
   int64_t heard;
+  // The altitude field as received (a signed 16-bit number), whose unit is not confirmed.
+  int64_t alt_raw;
+  // The height field as received (a signed 16-bit number), whose unit is not confirmed.
+  int64_t height_raw;
 } sdrkit_dji_droneid_drone_row;
 
 // The options of `droneid` of `sdrkit_dji_droneid_burst_row`.
@@ -1444,6 +1481,86 @@ typedef struct sdrkit_remote_id_drone_event {
   int32_t family;
 } sdrkit_remote_id_drone_event;
 
+// The options of `verdict` of `sdrkit_remote_id_verdict_event`.
+typedef enum sdrkit_remote_id_verdict_event_verdict {
+  // Authenticated
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_VERDICT_AUTHENTICATED = 0,
+  // Plausible
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_VERDICT_PLAUSIBLE = 1,
+  // Suspicious
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_VERDICT_SUSPICIOUS = 2,
+  // Spoofed
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_VERDICT_SPOOFED = 3,
+} sdrkit_remote_id_verdict_event_verdict;
+
+// The options of `urgency` of `sdrkit_remote_id_verdict_event`.
+typedef enum sdrkit_remote_id_verdict_event_urgency {
+  // None
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_URGENCY_NONE = 0,
+  // Notice
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_URGENCY_NOTICE = 1,
+  // Urgent
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_URGENCY_URGENT = 2,
+  // Emergency
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_URGENCY_EMERGENCY = 3,
+} sdrkit_remote_id_verdict_event_urgency;
+
+// The options of `family` of `sdrkit_remote_id_verdict_event`.
+typedef enum sdrkit_remote_id_verdict_event_family {
+  // Aircraft
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_AIRCRAFT = 0,
+  // Vessel
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_VESSEL = 1,
+  // APRS
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_APRS = 2,
+  // Pager
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_PAGER = 3,
+  // Radiosonde
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_SONDE = 4,
+  // Broadcast
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_BROADCAST = 5,
+  // Voice
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_VOICE = 6,
+  // Message
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_MESSAGE = 7,
+  // Sensor
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_SENSOR = 8,
+  // Satellite
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_SATELLITE = 9,
+  // Receiver
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_RECEIVER = 10,
+  // Alert
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_ALERT = 11,
+  // Other
+  SDRKIT_REMOTE_ID_VERDICT_EVENT_FAMILY_OTHER = 12,
+} sdrkit_remote_id_verdict_event_family;
+
+// A change of the trust verdict of a Remote ID drone. The urgency is notice when the verdict is suspicious or spoofed, else none.
+typedef struct sdrkit_remote_id_verdict_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The sender of a decoded message: a registration, an address, a call sign or a code.
+  sdrkit_string source;
+  // The broadcast address.
+  sdrkit_string address;
+  // The new trust verdict. A value of `sdrkit_remote_id_verdict_event_verdict`.
+  int32_t verdict;
+  // The active reasons of the verdict: their stable names joined by ", ". Empty when there is none.
+  sdrkit_string reasons;
+  // True if `position` holds a value.
+  bool has_position;
+  // The position of the object that the event is about.
+  sdrkit_position position;
+  // How urgent an event is. A stack sets it when the decoded message is urgent. Services alert on it. A value of `sdrkit_remote_id_verdict_event_urgency`.
+  int32_t urgency;
+  // What an event is about (aircraft, vessel, pager). Outputs and the store filter on it. A value of `sdrkit_remote_id_verdict_event_family`.
+  int32_t family;
+} sdrkit_remote_id_verdict_event;
+
 // The options of `family` of `sdrkit_dji_droneid_event`.
 typedef enum sdrkit_dji_droneid_event_family {
   // Aircraft
@@ -1488,9 +1605,9 @@ typedef struct sdrkit_dji_droneid_event {
   bool has_position;
   // The position of the object that the event is about.
   sdrkit_position position;
-  // The drone's altitude. Unit: m.
+  // The drone's altitude, read as 0.01 m. The unit is not confirmed by a public source: the NDSS 2023 receiver reads feet. Unit: m.
   double alt_m;
-  // The drone's height above home. Unit: m.
+  // The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude. Unit: m.
   double height_m;
   // The speed over the ground of the object that the event is about, knots. Unit: kt.
   double speed_kt;
@@ -1506,6 +1623,10 @@ typedef struct sdrkit_dji_droneid_event {
   sdrkit_position pilot;
   // What an event is about (aircraft, vessel, pager). Outputs and the store filter on it. A value of `sdrkit_dji_droneid_event_family`.
   int32_t family;
+  // The altitude field as received (a signed 16-bit number), whose unit is not confirmed.
+  int64_t alt_raw;
+  // The height field as received (a signed 16-bit number), whose unit is not confirmed.
+  int64_t height_raw;
 } sdrkit_dji_droneid_event;
 
 // The options of `urgency` of `sdrkit_flarm_aircraft_event`.
@@ -2001,6 +2122,12 @@ static inline int32_t sdrkit_remote_id_drone_event_read(SDRKIT_HANDLE handle, ui
   return sdrkit_typed_event(handle, n, "remote_id.drone", "drones.RemoteIdDroneEvent", event, sizeof(sdrkit_remote_id_drone_event));
 }
 
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "remote_id.verdict"
+// (Trust verdict). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_remote_id_verdict_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_remote_id_verdict_event *event) {
+  return sdrkit_typed_event(handle, n, "remote_id.verdict", "drones.RemoteIdVerdictEvent", event, sizeof(sdrkit_remote_id_verdict_event));
+}
+
 // Runs the command "clear" (Clear) of the stack "remote_id" on the session of `handle`. Forgets everything heard so far. Favourites stay.
 static inline int32_t sdrkit_remote_id_clear(SDRKIT_HANDLE handle) {
   return sdrkit_typed_command(handle, "clear", NULL, NULL, NULL, NULL, 0);
@@ -2041,6 +2168,14 @@ static inline int32_t sdrkit_remote_id_set_wifi_ofdm(SDRKIT_HANDLE handle, bool 
   return sdrkit_typed_setting_set_bool(handle, "wifi_ofdm", value);
 }
 
+// The setting "shared_radio" (Shared-radio check) of the stack "remote_id". Flags drones as suspicious when several broadcast addresses keep one carrier offset (within 1 kHz, on the same carrier) while they are heard: one radio behind several drones. Two real drones can share an offset by chance, so the check is off by default.
+static inline int32_t sdrkit_remote_id_get_shared_radio(SDRKIT_HANDLE handle, bool *value) {
+  return sdrkit_typed_setting_get_bool(handle, "shared_radio", value);
+}
+static inline int32_t sdrkit_remote_id_set_shared_radio(SDRKIT_HANDLE handle, bool value) {
+  return sdrkit_typed_setting_set_bool(handle, "shared_radio", value);
+}
+
 // The setting "gen_carriers" (Test signal carriers) of the test signal generator of the stack "remote_id". A value of `sdrkit_remote_id_gen_carriers`.
 static inline int32_t sdrkit_remote_id_gen_get_carriers(SDRKIT_HANDLE handle, sdrkit_remote_id_gen_carriers *value) {
   int32_t index = 0;
@@ -2069,6 +2204,14 @@ static inline int32_t sdrkit_remote_id_gen_get_wifi_phy(SDRKIT_HANDLE handle, sd
 }
 static inline int32_t sdrkit_remote_id_gen_set_wifi_phy(SDRKIT_HANDLE handle, sdrkit_remote_id_gen_wifi_phy value) {
   return sdrkit_typed_setting_set_enum(handle, "gen_wifi_phy", (int32_t)value);
+}
+
+// The setting "gen_spoofer" (Test signal spoofer) of the test signal generator of the stack "remote_id". Adds a drone on Bluetooth LE channel 38 whose position jumps 2 km at each Location message, so that the trust check flags it as spoofed.
+static inline int32_t sdrkit_remote_id_gen_get_spoofer(SDRKIT_HANDLE handle, bool *value) {
+  return sdrkit_typed_setting_get_bool(handle, "gen_spoofer", value);
+}
+static inline int32_t sdrkit_remote_id_gen_set_spoofer(SDRKIT_HANDLE handle, bool value) {
+  return sdrkit_typed_setting_set_bool(handle, "gen_spoofer", value);
 }
 
 // Fills `rows` with the changed rows of the table "signals" of the stack "dji_droneid" in the snapshot of `handle`,

@@ -135,3 +135,108 @@ fn every_stack_allocates_nothing_between_reports_once_warm() {
         quiet_on_noise(d);
     }
 }
+
+/// The Remote ID packets of a known drone: drone 1 on Bluetooth LE (its Location message) and drone 2 in a Wi-Fi beacon (its
+/// Message Pack), as the receive paths make them.
+fn rid_packets() -> [sdrkit_stack_drones::remote_id::RidPacket; 2] {
+    use sdrkit_stack_drones::remote_id::generator::{drone1_messages, drone2_messages, DRONE2};
+    use sdrkit_stack_drones::remote_id::messages::*;
+    use sdrkit_stack_drones::remote_id::RidPacket;
+    let sd = ble_service_data(7, &encode_message(&drone1_messages()[2], 2));
+    let b = from_ble_adv_data(&sd).unwrap();
+    let el = wifi_element(3, &encode_pack(&drone2_messages(), 2));
+    let (address, w) = from_wifi_frame(&beacon(DRONE2, "RID-DJI-2", 1, &el)).unwrap();
+    let packet = |transport, link, address: String, c: Carried| RidPacket {
+        transport,
+        channel: 38,
+        address,
+        counter: c.counter,
+        messages: c.messages,
+        link,
+        payload: c.payload,
+        beacon: c.beacon,
+        refused: c.refused,
+        out_of_range: c.out_of_range,
+        level_dbfs: None,
+        cfo_hz: 0.0,
+        snr_db: 20.0,
+    };
+    [
+        packet(Transport::Ble, Link::Ble4, "C6:12:34:56:78:9A".into(), b),
+        packet(Transport::WiFi, Link::WifiBeacon, address, w),
+    ]
+}
+
+/// Once a drone is known, its packet allocates in the drone table only what its message log lines need (the address and the
+/// summary of each message): the trust check, the verdict and the reasons allocate nothing. The carrier's payload allocates
+/// nothing beyond the decoded messages.
+#[test]
+fn a_known_drones_packet_allocates_only_its_log_lines() {
+    use sdrkit_stack_drones::remote_id::messages::{decode_payload, from_ble_adv_data, summary};
+    use sdrkit_stack_drones::remote_id::table::DroneTable;
+    use sdrkit_stack_drones::remote_id::trust::{Heard, Trust};
+    let packets = rid_packets();
+    let mut table = DroneTable::default();
+    let mut t = 0.0;
+    for _ in 0..300 {
+        for p in &packets {
+            t += 0.01;
+            table.take(t, p);
+        }
+    }
+    // 2 s with no event: a drone with a position sends one every 5 s.
+    let (mut take, mut log) = (0, 0);
+    for _ in 0..200 {
+        for p in &packets {
+            t += 0.005;
+            take += allocations(|| table.take(t, p));
+            // Each log line holds the address and the summary of its message.
+            log += allocations(|| {
+                for v in &p.messages {
+                    std::hint::black_box(p.address.clone());
+                    std::hint::black_box(summary(&v.msg));
+                }
+            });
+        }
+    }
+    let cfg = remoteid::TrustConfig::default();
+    let mut trust = Trust::new();
+    let mut judged = 0;
+    for k in 0..400u64 {
+        let p = &packets[(k % 2) as usize];
+        let h = Heard {
+            link: p.link,
+            counter: p.counter.wrapping_add(k as u8),
+            payload: &p.payload,
+            now_ms: 10 * k,
+            unix_ms: Some(1_795_000_000_000 + 10 * k),
+            beacon: p.beacon,
+        };
+        // The first packets may grow the text of the reasons once.
+        let n = allocations(|| {
+            trust.observe(&cfg, &h);
+        });
+        if k >= 100 {
+            judged += n;
+        }
+    }
+    let sd = sdrkit_stack_drones::remote_id::messages::ble_service_data(
+        7,
+        packets[0].payload.as_slice(),
+    );
+    let carried = allocations(|| {
+        std::hint::black_box(from_ble_adv_data(&sd));
+    });
+    let decoded = allocations(|| {
+        std::hint::black_box(decode_payload(packets[0].payload.as_slice()).unwrap());
+    });
+    eprintln!(
+        "remote_id: {:.2} allocations per packet in the table, {:.2} for the log lines; trust check {judged} in 300 \
+         packets; BLE carrier {carried}, its messages {decoded}",
+        take as f64 / 400.0,
+        log as f64 / 400.0
+    );
+    assert_eq!(take, log);
+    assert_eq!(judged, 0);
+    assert_eq!(carried, decoded);
+}

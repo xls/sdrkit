@@ -1,7 +1,7 @@
 # Third-party notices
 
-Some data tables in sdrkit come from permissively licensed projects, and the engine and the USB driver each use one crate
-whose licence asks for a notice. Their licences require this notice.
+Some data tables in sdrkit come from permissively licensed projects, and the engine, the USB driver and the drones stacks
+each use one crate whose licence asks for a notice. Their licences require this notice.
 
 ## ft8_lib (crates/algo/sdrkit-algo-fec/src/ldpc/tables/wsjt.rs: JS8 (174,87) and FT8/FT4 (174,91) LDPC tables)
 
@@ -117,4 +117,36 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+```
+
+## remoteid 0.3.2 (crates/stacks/sdrkit-stack-drones: the trust verdicts of the `remote_id` stack)
+
+The crate is under the MIT licence. Its author is Matthew Busel. sdrkit uses its trust engine (`TrustState`, `Observation`,
+the verdicts and their reasons) without its default features: no other crate comes with it. The version is pinned: an
+upgrade is a reviewed change that checks the signatures of `Observation`, `TrustState::observe`, `TrustState::note`,
+`ReasonSet` and `BeaconInfo`, the list of reasons and their names (a front end reads the names), the rules of the verdicts
+in the change log (a patch release can change a verdict), the size limit of a Message Pack, and the tests of the stack.
+
+```
+MIT License
+
+Copyright (c) 2026 Matthew Busel
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```

@@ -12,6 +12,7 @@ use crate::ogn::PacketKind;
 use crate::rc_links::RcStackSetting;
 use crate::remote_id::messages::{MsgType, Transport};
 use crate::remote_id::table::Via;
+use crate::remote_id::trust::TrustVerdict;
 use crate::remote_id::Band;
 use crate::remote_id::RidSetting;
 use sdrkit_core::interface::{
@@ -46,11 +47,22 @@ pub struct RemoteIdFields {
     #[field(label = "Band")]
     pub band: Option<Band>,
     /// Drones in the table.
-    #[field(label = "Drones")]
+    #[field(label = "Drones", reading = 1)]
     pub drones: i64,
+    /// Drones in the table whose trust verdict is suspicious or spoofed.
+    #[field(label = "Flagged drones", reading = 2)]
+    pub flagged: i64,
     /// Messages decoded.
     #[field(label = "Messages")]
     pub messages: i64,
+    /// Messages refused: members of a Message Pack that are packs or of a reserved type, authentication pages that fail their
+    /// checks.
+    #[field(label = "Messages refused")]
+    pub messages_refused: i64,
+    /// Messages with a value outside its range (a Location timestamp above 36000, a latitude or longitude out of range), which
+    /// the tables show as absent.
+    #[field(label = "Values out of range")]
+    pub fields_out_of_range: i64,
     /// Good BLE packets.
     #[field(label = "BLE packets")]
     pub ble_good: i64,
@@ -104,6 +116,14 @@ pub struct RemoteIdDroneRow<'a> {
     /// The broadcast address.
     #[field(label = "Address")]
     pub address: &'a str,
+    /// The trust verdict of the broadcasts heard since the stack started: authenticated, plausible, suspicious or spoofed. No
+    /// value before the first packet since the start (a drone of a restored state).
+    #[field(label = "Trust verdict")]
+    pub verdict: Option<TrustVerdict>,
+    /// The active reasons of the trust verdict: their stable names (`teleport`, `counter_conflict`, ...) joined by ", ".
+    /// Empty when there is none.
+    #[field(label = "Trust reasons")]
+    pub reasons: &'a str,
     /// Serial number.
     #[field(label = "Serial number")]
     pub serial: Option<&'a str>,
@@ -191,6 +211,12 @@ pub struct RemoteIdDroneRow<'a> {
     /// Authentication pages.
     #[field(label = "Pages")]
     pub authentication_pages: Option<i64>,
+    /// Authentication data length in bytes, from page 0.
+    #[field(label = "Authentication length", unit = "B")]
+    pub authentication_length: Option<i64>,
+    /// Every page of the present authentication was heard. No signature is verified.
+    #[field(label = "Authentication complete")]
+    pub authentication_complete: Option<bool>,
     /// Basic ID messages (a field: all drones; a column: one drone).
     #[field(label = "Basic ID")]
     pub basic_id_messages: i64,
@@ -293,6 +319,33 @@ pub struct RemoteIdDroneEvent<'a> {
     /// The operator's position.
     #[field(label = "Operator position")]
     pub operator_position: Option<(f64, f64)>,
+    /// How urgent an event is. A stack sets it when the decoded message is urgent. Services alert on it.
+    #[field(shared = keys::URGENCY)]
+    pub urgency: Urgency,
+    /// What an event is about (aircraft, vessel, pager). Outputs and the store filter on it.
+    #[field(shared = keys::FAMILY)]
+    pub family: Family,
+}
+
+/// A change of the trust verdict of a Remote ID drone. The urgency is notice when the verdict is suspicious or spoofed, else
+/// none.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct RemoteIdVerdictEvent<'a> {
+    /// The sender of a decoded message: a registration, an address, a call sign or a code.
+    #[field(shared = keys::SOURCE)]
+    pub source: &'a str,
+    /// The broadcast address.
+    #[field(label = "Address")]
+    pub address: &'a str,
+    /// The new trust verdict.
+    #[field(label = "Trust verdict")]
+    pub verdict: TrustVerdict,
+    /// The active reasons of the verdict: their stable names joined by ", ". Empty when there is none.
+    #[field(label = "Trust reasons")]
+    pub reasons: &'a str,
+    /// The position of the object that the event is about.
+    #[field(shared = keys::POSITION)]
+    pub position: Option<(f64, f64)>,
     /// How urgent an event is. A stack sets it when the decoded message is urgent. Services alert on it.
     #[field(shared = keys::URGENCY)]
     pub urgency: Urgency,
@@ -425,12 +478,18 @@ pub struct DjiDroneidDroneRow<'a> {
     /// The position of the object that the event is about.
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
-    /// The drone's altitude.
+    /// The drone's altitude, read as 0.01 m. The unit is not confirmed by a public source: the NDSS 2023 receiver reads feet.
     #[field(label = "Altitude", unit = "m", role = Altitude)]
     pub alt_m: f64,
-    /// The drone's height above home.
+    /// The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude.
     #[field(label = "Height", unit = "m")]
     pub height_m: f64,
+    /// The altitude field as received (a signed 16-bit number), whose unit is not confirmed.
+    #[field(label = "Altitude raw")]
+    pub alt_raw: i64,
+    /// The height field as received (a signed 16-bit number), whose unit is not confirmed.
+    #[field(label = "Height raw")]
+    pub height_raw: i64,
     /// The speed over the ground of the object that the event is about, knots.
     #[field(shared = keys::SPEED_KT)]
     pub speed_kt: f64,
@@ -540,12 +599,18 @@ pub struct DjiDroneidEvent<'a> {
     /// The position of the object that the event is about.
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
-    /// The drone's altitude.
+    /// The drone's altitude, read as 0.01 m. The unit is not confirmed by a public source: the NDSS 2023 receiver reads feet.
     #[field(label = "Altitude", unit = "m")]
     pub alt_m: f64,
-    /// The drone's height above home.
+    /// The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude.
     #[field(label = "Height", unit = "m")]
     pub height_m: f64,
+    /// The altitude field as received (a signed 16-bit number), whose unit is not confirmed.
+    #[field(label = "Altitude raw")]
+    pub alt_raw: i64,
+    /// The height field as received (a signed 16-bit number), whose unit is not confirmed.
+    #[field(label = "Height raw")]
+    pub height_raw: i64,
     /// The speed over the ground of the object that the event is about, knots.
     #[field(shared = keys::SPEED_KT)]
     pub speed_kt: f64,
@@ -1255,6 +1320,9 @@ pub static REMOTE_ID_TRACKS: Table<DroneTrackRow<'static>> = Table::new(
 /// A Remote ID drone with a position.
 pub static REMOTE_ID_DRONE: EventKind<RemoteIdDroneEvent<'static>> =
     EventKind::new("remote_id.drone", "Drone");
+/// A change of the trust verdict of a Remote ID drone.
+pub static REMOTE_ID_VERDICT: EventKind<RemoteIdVerdictEvent<'static>> =
+    EventKind::new("remote_id.verdict", "Trust verdict");
 
 /// The drone links recognised by their shape.
 pub static DJI_SIGNALS: Table<DjiDroneidSignalRow> =
@@ -1471,7 +1539,7 @@ pub fn family() -> &'static Described {
     FAMILY.get_or_init(|| {
         // Each stack holds what it heard in one component: the objects heard and the logs are its history, and they
         // stay over a change of frequency, with the counters of the same component.
-        Described::new("drones", 1, 1)
+        Described::new("drones", 1, 2)
             .added(
                 1,
                 1,
@@ -1483,6 +1551,34 @@ pub fn family() -> &'static Described {
                     "ogn.content",
                     "rc_links.content",
                     "mavlink_sik.content",
+                ],
+            )
+            .added(
+                1,
+                2,
+                &[
+                    "shape.RemoteIdDroneRow.verdict",
+                    "shape.RemoteIdDroneRow.reasons",
+                    "shape.RemoteIdFields.flagged",
+                    "shape.RemoteIdFields.messages_refused",
+                    "shape.RemoteIdFields.fields_out_of_range",
+                    "shape.RemoteIdDroneRow.authentication_length",
+                    "shape.RemoteIdDroneRow.authentication_complete",
+                    "shape.RemoteIdVerdictEvent",
+                    "shape.RemoteIdVerdictEvent.source",
+                    "shape.RemoteIdVerdictEvent.address",
+                    "shape.RemoteIdVerdictEvent.verdict",
+                    "shape.RemoteIdVerdictEvent.reasons",
+                    "shape.RemoteIdVerdictEvent.position",
+                    "shape.RemoteIdVerdictEvent.urgency",
+                    "shape.RemoteIdVerdictEvent.family",
+                    "remote_id.event.remote_id.verdict",
+                    "remote_id.setting.gen_spoofer",
+                    "remote_id.setting.shared_radio",
+                    "shape.DjiDroneidDroneRow.alt_raw",
+                    "shape.DjiDroneidDroneRow.height_raw",
+                    "shape.DjiDroneidEvent.alt_raw",
+                    "shape.DjiDroneidEvent.height_raw",
                 ],
             )
             .content(
@@ -1505,6 +1601,7 @@ pub fn family() -> &'static Described {
                     .table(&REMOTE_ID_TRACKS)
                     .points("Drones")
                     .event(&REMOTE_ID_DRONE)
+                    .event(&REMOTE_ID_VERDICT)
                     .settings(RidSetting::SETTINGS)
                     .command(&objcmd::CLEAR)
                     .command(&DRONE_REMOVE)

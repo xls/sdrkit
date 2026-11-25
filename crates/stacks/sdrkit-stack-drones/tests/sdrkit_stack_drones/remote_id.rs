@@ -9,14 +9,17 @@ use sdrkit_dev_test::{sigmf, Harness};
 use sdrkit_stack_drones::typed;
 use sdrkit_stack_drones::remote_id::table::*;
 use sdrkit_stack_drones::remote_id::{plan, receiver, Band};
+use sdrkit_stack_drones::remote_id::trust::TrustVerdict;
 use sdrkit_stack_drones::remote_id::{
-    GenCarriers, GenWifiPhy, GEN_CARRIERS, GEN_CENTRE_MHZ, GEN_WIFI_PHY,
+    GenCarriers, GenWifiPhy, GEN_CARRIERS, GEN_CENTRE_MHZ, GEN_SPOOFER, GEN_WIFI_PHY,
+    SHARED_RADIO,
 };
 use sdrkit_stack_drones::REMOTE_ID;
 use sdrkit_util_geo::KNOT_M_S;
 
 const DRONE1: &str = "C6:12:34:56:78:9A";
 const DRONE2: &str = "60:60:1F:AA:BB:CC";
+const SPOOFER: &str = "C6:5F:00:0A:0B:0C";
 
 fn drone<'r>(r: &'r Results, id: &str) -> &'r Record {
     row(r, &typed::REMOTE_ID_DRONES, id).unwrap_or_else(|| panic!("no drone {id}: {:?}", rows(r, &typed::REMOTE_ID_DRONES)))
@@ -25,7 +28,7 @@ fn drone<'r>(r: &'r Results, id: &str) -> &'r Record {
 fn check_drone1(r: &Results) {
     let d = drone(r, DRONE1);
     assert_eq!(d.at(&typed::RemoteIdDroneRow::SERIAL), Some("1581F5FKD229400B"));
-    assert_eq!(d.at(&typed::RemoteIdDroneRow::SESSION_ID), Some("SESSION-7F3A"));
+    assert_eq!(d.at(&typed::RemoteIdDroneRow::SESSION_ID), Some("83:455353494F4E2D37463341"));
     assert_eq!(d.get(&keys::SOURCE), Some("1581F5FKD229400B"));
     assert_eq!(d.at(&typed::RemoteIdDroneRow::UA_TYPE), Some(2), "multirotor / helicopter");
     assert_eq!(d.at(&typed::RemoteIdDroneRow::STATUS), Some(2), "airborne");
@@ -77,6 +80,11 @@ fn both_carriers_decode_from_the_test_signal() {
     assert!(count(r, &typed::RemoteIdFields::BLE_GOOD) > count(r, &typed::RemoteIdFields::BLE_REMOTE_ID));
     assert!(count(r, &typed::RemoteIdFields::WIFI_GOOD) > count(r, &typed::RemoteIdFields::WIFI_REMOTE_ID));
     assert_eq!(count(r, &typed::RemoteIdFields::DRONES), 2);
+    assert_eq!(count(r, &typed::RemoteIdFields::FLAGGED), 0);
+    for id in [DRONE1, DRONE2] {
+        assert_eq!(drone(r, id).at(&typed::RemoteIdDroneRow::VERDICT), Some(TrustVerdict::Plausible));
+    }
+    assert!(!out.events.iter().any(|e| e.is(&typed::REMOTE_ID_VERDICT)));
     assert_eq!(r.status().lock_state, sdrkit_core::LockState::Locked);
     assert!(!rows(r, &typed::REMOTE_ID_TRACKS).is_empty());
     assert!(r.points().contains_key(&format!("drone/{DRONE1}")));
@@ -245,4 +253,45 @@ fn the_recording_decodes_as_expected() {
     );
     check_drone1(r);
     check_drone2(r);
+}
+
+#[test]
+fn the_spoofer_of_the_test_signal_is_flagged() {
+    let out = run(Harness::new(&REMOTE_ID).set(&GEN_SPOOFER, true).seconds(0.4));
+    let r = &out.results;
+    check_drone1(r);
+    check_drone2(r);
+    let d = drone(r, SPOOFER);
+    assert_eq!(
+        d.at(&typed::RemoteIdDroneRow::VERDICT),
+        Some(TrustVerdict::Spoofed),
+        "{:?} after {:?} Location messages",
+        d.at(&typed::RemoteIdDroneRow::REASONS),
+        d.at(&typed::RemoteIdDroneRow::LOCATION_MESSAGES)
+    );
+    assert!(d.at(&typed::RemoteIdDroneRow::REASONS).unwrap().contains("teleport"));
+    assert_eq!(drone(r, DRONE1).at(&typed::RemoteIdDroneRow::VERDICT), Some(TrustVerdict::Plausible));
+    assert_eq!(count(r, &typed::RemoteIdFields::FLAGGED), 1);
+    let e: Vec<_> = out.events.iter().filter(|e| e.is(&typed::REMOTE_ID_VERDICT)).collect();
+    assert_eq!(e.len(), 1, "{e:?}");
+    assert_eq!(e[0].at(&typed::RemoteIdVerdictEvent::ADDRESS), Some(SPOOFER));
+    assert_eq!(e[0].at(&typed::RemoteIdVerdictEvent::VERDICT), Some(TrustVerdict::Spoofed));
+    assert_eq!(e[0].get(&keys::URGENCY), Some(keys::Urgency::Notice));
+    assert!(r.status().summary.contains("1 flagged"), "{}", r.status().summary);
+}
+
+#[test]
+fn one_emitter_behind_two_addresses_shares_a_radio() {
+    // Drone 1 and the spoofer come from one transmitter at one carrier offset.
+    let h = Harness::new(&REMOTE_ID)
+        .set(&GEN_CARRIERS, GenCarriers::Ble)
+        .set(&GEN_SPOOFER, true)
+        .seconds(0.4);
+    let on = run(h.clone().set(&SHARED_RADIO, true));
+    let d = drone(&on.results, DRONE1);
+    assert_eq!(d.at(&typed::RemoteIdDroneRow::VERDICT), Some(TrustVerdict::Suspicious));
+    assert!(d.at(&typed::RemoteIdDroneRow::REASONS).unwrap().contains("shared_radio"));
+    let off = run(h);
+    let d = drone(&off.results, DRONE1);
+    assert_eq!(d.at(&typed::RemoteIdDroneRow::VERDICT), Some(TrustVerdict::Plausible));
 }

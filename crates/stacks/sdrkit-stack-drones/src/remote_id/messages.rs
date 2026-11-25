@@ -4,6 +4,7 @@
 //! Standard: ASTM F3411-22a, ASD-STAN prEN 4709-002.
 
 use crate::family::{ascii_text, mac_text};
+use remoteid::wifi::BeaconInfo;
 use serde::{Deserialize, Serialize};
 
 /// Bytes in every message.
@@ -408,6 +409,61 @@ fn uuid_text(b: &[u8]) -> String {
     )
 }
 
+/// The text of a specific session ID (Basic ID type 4): the session ID type (byte 0) as a number, a colon, then the
+/// identifier as upper-case hex. Type 1 (IETF DRIP, RFC 9575) holds a 16-byte DRIP Entity Tag; for another type the bytes up
+/// to the last non-zero byte are shown.
+fn session_text(b: &[u8]) -> String {
+    use std::fmt::Write as _;
+    let id = &b[1..];
+    let n = if b[0] == 1 {
+        16
+    } else {
+        id.iter().rposition(|&x| x != 0).map_or(0, |i| i + 1)
+    };
+    let mut s = String::with_capacity(4 + 2 * n);
+    // Writing to a `String` cannot fail.
+    let _ = write!(s, "{}:", b[0]);
+    for x in &id[..n] {
+        let _ = write!(s, "{x:02X}");
+    }
+    s
+}
+
+/// The 20 bytes of a specific session ID from its text (`<type>:<hex>`, as [`session_text`] writes it). Text in another
+/// form gives zeros.
+fn session_bytes(text: &str, out: &mut [u8]) {
+    let Some((t, hex)) = text.split_once(':') else {
+        return;
+    };
+    let Ok(t) = t.parse::<u8>() else {
+        return;
+    };
+    out[0] = t;
+    for (o, i) in out[1..].iter_mut().zip((0..hex.len() / 2).map(|i| 2 * i)) {
+        *o = u8::from_str_radix(&hex[i..i + 2], 16).unwrap_or(0);
+    }
+}
+
+/// True when a message holds a value outside its range that the decoder shows as absent: a Location timestamp above 36000
+/// (and not 0xFFFF), or a latitude above 90 or a longitude above 180 degrees in a Location or System message.
+pub fn out_of_range(m: &[u8]) -> bool {
+    let bad_pos = |i: usize| {
+        let (a, o) = (i32le(m, i).unsigned_abs(), i32le(m, i + 4).unsigned_abs());
+        a > 900_000_000 || o > 1_800_000_000
+    };
+    if m.len() < MSG_LEN {
+        return false;
+    }
+    match m[0] >> 4 {
+        1 => {
+            let ts = u16le(m, 21);
+            (ts != 0xFFFF && ts > 36000) || bad_pos(5)
+        }
+        4 => bad_pos(2),
+        _ => false,
+    }
+}
+
 /// Decodes one 25-byte message (a pack is refused here).
 pub fn decode_message(b: &[u8]) -> Result<Versioned, Malformed> {
     if b.len() < MSG_LEN {
@@ -421,8 +477,9 @@ pub fn decode_message(b: &[u8]) -> Result<Versioned, Malformed> {
             let ua_type = b[1] & 15;
             let id = match id_type {
                 0 => String::new(),
-                1 | 2 | 4 => ascii_text(&b[2..22]),
+                1 | 2 => ascii_text(&b[2..22]),
                 3 => uuid_text(&b[2..22]),
+                4 => session_text(&b[2..22]),
                 _ => "reserved".into(),
             };
             Message::BasicId(BasicId {
@@ -523,35 +580,62 @@ pub fn decode_message(b: &[u8]) -> Result<Versioned, Malformed> {
     Ok(Versioned { version, msg })
 }
 
-/// Decodes a message or a Message Pack: every message that decodes (reserved types inside a pack are skipped, a pack inside a pack
-/// is skipped). A malformed single message or pack returns an error and no messages.
-pub fn decode_payload(b: &[u8]) -> Result<Vec<Versioned>, Malformed> {
+/// The most messages in a Message Pack: 9. A pack of 10 (253 bytes) fits no carrier: a Wi-Fi vendor element holds 250 bytes
+/// after its header and the counter, and Bluetooth LE extended advertising data less.
+pub const PACK_MAX: usize = 9;
+
+/// What a payload holds.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Decoded {
+    /// The messages that decode, in order.
+    pub messages: Vec<Versioned>,
+    /// Members of a pack that were refused: a pack inside the pack, a reserved type.
+    pub refused: u32,
+    /// Messages with a value outside its range ([`out_of_range`]).
+    pub out_of_range: u32,
+}
+
+/// Decodes a message or a Message Pack: every message that decodes. A pack inside a pack and a reserved type inside a pack are
+/// refused and counted. A malformed single message or pack returns an error and no messages.
+pub fn decode_payload(b: &[u8]) -> Result<Decoded, Malformed> {
     if b.is_empty() {
         return Err(Malformed::Short);
     }
-    if b[0] >> 4 == 0xF {
-        if b.len() < 3 {
-            return Err(Malformed::BadPack);
-        }
-        let size = b[1] as usize;
-        let n = b[2] as usize;
-        if size != MSG_LEN || !(1..=10).contains(&n) || b.len() < 3 + n * MSG_LEN {
-            return Err(Malformed::BadPack);
-        }
-        let mut out = Vec::with_capacity(n);
-        for i in 0..n {
-            let m = &b[3 + i * MSG_LEN..3 + (i + 1) * MSG_LEN];
-            if m[0] >> 4 == 0xF {
-                continue;
-            }
-            if let Ok(v) = decode_message(m) {
-                out.push(v);
-            }
-        }
-        Ok(out)
-    } else {
-        decode_message(b).map(|m| vec![m])
+    if b[0] >> 4 != 0xF {
+        let v = decode_message(b)?;
+        return Ok(Decoded {
+            messages: vec![v],
+            refused: 0,
+            out_of_range: u32::from(out_of_range(b)),
+        });
     }
+    if b.len() < 3 {
+        return Err(Malformed::BadPack);
+    }
+    let size = b[1] as usize;
+    let n = b[2] as usize;
+    if size != MSG_LEN || !(1..=PACK_MAX).contains(&n) || b.len() < 3 + n * MSG_LEN {
+        return Err(Malformed::BadPack);
+    }
+    let mut d = Decoded {
+        messages: Vec::with_capacity(n),
+        refused: 0,
+        out_of_range: 0,
+    };
+    for m in b[3..3 + n * MSG_LEN].as_chunks::<MSG_LEN>().0 {
+        if m[0] >> 4 == 0xF {
+            d.refused += 1;
+            continue;
+        }
+        match decode_message(m) {
+            Ok(v) => {
+                d.out_of_range += u32::from(out_of_range(m));
+                d.messages.push(v);
+            }
+            Err(_) => d.refused += 1,
+        }
+    }
+    Ok(d)
 }
 
 fn put_text(b: &mut [u8], s: &str) {
@@ -572,6 +656,8 @@ pub fn encode_message(m: &Message, version: u8) -> [u8; MSG_LEN] {
                 for i in 0..16.min(hex.len() / 2) {
                     b[2 + i] = u8::from_str_radix(&hex[2 * i..2 * i + 2], 16).unwrap_or(0);
                 }
+            } else if x.id_type == 4 {
+                session_bytes(&x.id, &mut b[2..22]);
             } else {
                 put_text(&mut b[2..22], &x.id);
             }
@@ -727,32 +813,99 @@ impl Transport {
     }
 }
 
+/// The air interface that a payload came on, as the receive path knows it from the packet.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Link {
+    /// A Bluetooth LE advertising PDU of the first format (ADV_IND, ADV_NONCONN_IND, ADV_SCAN_IND, SCAN_RSP): at most 31
+    /// bytes of advertising data, one message (Bluetooth 4).
+    Ble4,
+    /// A Bluetooth LE PDU of the extended advertising format (Bluetooth 5).
+    Ble5,
+    /// A Wi-Fi beacon or probe response.
+    WifiBeacon,
+}
+
+/// The longest payload kept: a Message Pack of 9 messages, 3 + 9 x 25 = 228 bytes. A Wi-Fi vendor element holds at most 250
+/// bytes after the OUI, its type and the counter, and Bluetooth LE extended advertising data at most 248 bytes after the
+/// service data header, so a pack of 10 messages fits neither; Bluetooth LE advertising of the first format holds one
+/// 25-byte message.
+pub const PAYLOAD_MAX: usize = 3 + 9 * MSG_LEN;
+
+/// A message or a Message Pack as received, header byte first, counter removed, cut to the length that its header states.
+/// The bytes are held inline, so a payload needs no allocation.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct Payload {
+    len: u8,
+    bytes: [u8; PAYLOAD_MAX],
+}
+
+impl Payload {
+    /// The payload at the start of `b`: one message, or a pack of as many messages as its header states. Bytes after it are
+    /// not kept. A payload longer than [`PAYLOAD_MAX`] is cut to it.
+    pub fn new(b: &[u8]) -> Payload {
+        let stated = match b {
+            [h, _, n, ..] if h >> 4 == 0xF => 3 + *n as usize * MSG_LEN,
+            _ => MSG_LEN,
+        };
+        let n = stated.min(b.len()).min(PAYLOAD_MAX);
+        let mut bytes = [0u8; PAYLOAD_MAX];
+        bytes[..n].copy_from_slice(&b[..n]);
+        Payload {
+            len: n as u8,
+            bytes,
+        }
+    }
+    /// The bytes.
+    pub fn as_slice(&self) -> &[u8] {
+        &self.bytes[..self.len as usize]
+    }
+}
+
+impl std::fmt::Debug for Payload {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Payload({:02X?})", self.as_slice())
+    }
+}
+
 /// The Remote ID in a carrier: the counter and the messages.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Carried {
-    /// The message counter.
+    /// The message counter of the first message or pack.
     pub counter: u8,
-    /// The messages, in order.
+    /// The messages of every message or pack of the carrier, in order.
     pub messages: Vec<Versioned>,
-    /// The first message or pack as received, header byte first, counter removed.
-    pub payload: Vec<u8>,
+    /// The first message or pack.
+    pub payload: Payload,
+    /// Members of the packs that were refused.
+    pub refused: u32,
+    /// Messages with a value outside its range.
+    pub out_of_range: u32,
+    /// The header fields of the Wi-Fi beacon that carried it (`None` on Bluetooth LE).
+    pub beacon: Option<BeaconInfo>,
 }
 
 fn carried(found: &mut Option<Carried>, s: &[u8]) {
     if s.len() < 2 + MSG_LEN || s[0] != APP_CODE {
         return;
     }
-    if let Ok(msgs) = decode_payload(&s[2..]) {
-        if msgs.is_empty() {
+    if let Ok(d) = decode_payload(&s[2..]) {
+        if d.messages.is_empty() {
             return;
         }
         match found {
-            Some(f) => f.messages.extend(msgs),
+            Some(f) => {
+                f.messages.extend(d.messages);
+                f.refused += d.refused;
+                f.out_of_range += d.out_of_range;
+            }
             None => {
                 *found = Some(Carried {
                     counter: s[1],
-                    messages: msgs,
-                    payload: s[2..].to_vec(),
+                    messages: d.messages,
+                    refused: d.refused,
+                    out_of_range: d.out_of_range,
+                    payload: Payload::new(&s[2..]),
+                    beacon: None,
                 })
             }
         }
@@ -774,7 +927,8 @@ pub fn from_ble_adv_data(ad: &[u8]) -> Option<Carried> {
 pub fn from_wifi_frame(f: &[u8]) -> Option<(String, Carried)> {
     let frame = sdrkit_proto_wlan_phy::mac::Frame::parse(f).ok()?;
     let beacon = frame.beacon()?;
-    let ta = mac_text(&frame.addr2?);
+    let addr = frame.addr2?;
+    let ta = mac_text(&addr);
     let mut found = None;
     // The vendor element data after the OUI and type start with the counter, so add the type back in front.
     for d in sdrkit_proto_wlan_phy::mac::vendor_elements(beacon.elements, WIFI_OUI, APP_CODE) {
@@ -783,7 +937,23 @@ pub fn from_wifi_frame(f: &[u8]) -> Option<(String, Carried)> {
         s[1..1 + d.len()].copy_from_slice(d);
         carried(&mut found, &s[..1 + d.len()]);
     }
-    found.map(|c| (ta, c))
+    let mut c = found?;
+    let mut info = BeaconInfo {
+        source: addr,
+        sequence: frame.seq.map_or(0, |q| q.0),
+        tsf: beacon.timestamp,
+        interval_tu: beacon.interval_tu,
+        capability: beacon.capability,
+        ssid: [0; 32],
+        ssid_len: 0,
+    };
+    if let Some(e) = sdrkit_proto_wlan_phy::mac::find(beacon.elements, 0) {
+        let n = e.data.len().min(32);
+        info.ssid[..n].copy_from_slice(&e.data[..n]);
+        info.ssid_len = n as u8;
+    }
+    c.beacon = Some(info);
+    Some((ta, c))
 }
 
 /// The BLE service data AD structure that carries a message or a pack: `len 16 FA FF 0D counter payload`.
@@ -977,7 +1147,8 @@ mod tests {
             }),
             2,
         ));
-        assert_eq!(decode_payload(&pack).unwrap().len(), 1);
+        let d = decode_payload(&pack).unwrap();
+        assert_eq!((d.messages.len(), d.refused), (1, 1));
         assert_eq!(decode_payload(&pack[..40]), Err(Malformed::BadPack));
     }
 
@@ -986,7 +1157,7 @@ mod tests {
             Message::BasicId(BasicId {
                 id_type: 4,
                 ua_type: 6,
-                id: "abc-123".into(),
+                id: "1:2001003FFE0123456789ABCDEF012345".into(),
             }),
             Message::Location(Location {
                 status: 3,
@@ -1024,7 +1195,7 @@ mod tests {
         let p = encode_pack(&msgs, 2);
         assert_eq!(&p[..3], &[0xF2, 0x19, 0x04]);
         assert_eq!(p.len(), 103);
-        let back = decode_payload(&p).unwrap();
+        let back = decode_payload(&p).unwrap().messages;
         assert_eq!(back.len(), 4);
         for (a, b) in msgs.iter().zip(&back) {
             match (a, &b.msg) {
@@ -1049,6 +1220,101 @@ mod tests {
                 (a, b) => assert_eq!(a, b),
             }
         }
+    }
+
+    #[test]
+    fn a_session_id_is_its_type_and_hex() {
+        let mut b = vec![0x02, 0x46, 1];
+        b.extend(0x20u8..0x30);
+        b.extend([0xEE, 0, 0]);
+        let Message::BasicId(x) = decode_message(&pad(b)).unwrap().msg else {
+            panic!()
+        };
+        assert_eq!(x.id, "1:202122232425262728292A2B2C2D2E2F");
+        let Message::BasicId(y) = decode_message(&encode_message(&Message::BasicId(x.clone()), 2))
+            .unwrap()
+            .msg
+        else {
+            panic!()
+        };
+        assert_eq!(y, x);
+        let mut c = vec![0x02, 0x46, 0x53];
+        c.extend_from_slice(b"ESSION-7F3A");
+        let Message::BasicId(z) = decode_message(&pad(c)).unwrap().msg else {
+            panic!()
+        };
+        assert_eq!(z.id, "83:455353494F4E2D37463341");
+    }
+
+    #[test]
+    fn a_pack_holds_at_most_nine_and_counts_refused_members() {
+        let m = encode_message(&r8_messages()[3], 2);
+        let pack = |n: u8, members: &[[u8; MSG_LEN]]| {
+            let mut p = vec![0xF2, 25, n];
+            for x in members {
+                p.extend_from_slice(x);
+            }
+            p
+        };
+        assert_eq!(decode_payload(&pack(9, &[m; 9])).unwrap().messages.len(), 9);
+        assert_eq!(decode_payload(&pack(10, &[m; 10])), Err(Malformed::BadPack));
+        let mut inner = [0u8; MSG_LEN];
+        inner[..3].copy_from_slice(&[0xF2, 25, 1]);
+        let mut reserved = [0u8; MSG_LEN];
+        reserved[0] = 0x72;
+        let d = decode_payload(&pack(3, &[m, inner, reserved])).unwrap();
+        assert_eq!((d.messages.len(), d.refused), (1, 2));
+    }
+
+    #[test]
+    fn values_out_of_range_are_absent_and_counted() {
+        let mut l = encode_message(&r8_messages()[1], 2);
+        l[21..23].copy_from_slice(&36_001u16.to_le_bytes());
+        let d = decode_payload(&l).unwrap();
+        let Message::Location(x) = &d.messages[0].msg else {
+            panic!()
+        };
+        assert_eq!((x.timestamp, d.out_of_range), (None, 1));
+        l[21..23].copy_from_slice(&0xFFFFu16.to_le_bytes());
+        assert_eq!(decode_payload(&l).unwrap().out_of_range, 0);
+        l[5..9].copy_from_slice(&950_000_000i32.to_le_bytes());
+        let d = decode_payload(&l).unwrap();
+        let Message::Location(x) = &d.messages[0].msg else {
+            panic!()
+        };
+        assert_eq!((x.lat, d.out_of_range), (None, 1));
+        // The payload that the trust check reads holds the raw value.
+        assert_eq!(Payload::new(&l).as_slice(), &l[..]);
+    }
+
+    #[test]
+    fn a_payload_keeps_only_its_stated_length() {
+        let l = encode_message(&r8_messages()[1], 2);
+        let mut sd = l.to_vec();
+        sd.extend([0xAA; 5]);
+        assert_eq!(Payload::new(&sd).as_slice(), &l[..]);
+        let p = encode_pack(&r8_messages(), 2);
+        let mut q = p.clone();
+        q.extend([0x55; 7]);
+        assert_eq!(Payload::new(&q).as_slice(), &p[..]);
+        assert_eq!(
+            PAYLOAD_MAX,
+            3 + remoteid::PACK_MAX_MESSAGES * remoteid::MESSAGE_SIZE
+        );
+    }
+
+    #[test]
+    fn the_first_of_several_elements_is_the_judged_payload() {
+        let a = encode_pack(&r8_messages()[..2], 2);
+        let b = encode_pack(&r8_messages()[2..], 2);
+        let mut el = wifi_element(7, &a);
+        el.extend(wifi_element(9, &b));
+        let f = beacon([0x60, 0x60, 0x1F, 0xAA, 0xBB, 0xCC], "RID", 1, &el);
+        let (_, c) = from_wifi_frame(&f).unwrap();
+        assert_eq!((c.counter, c.messages.len()), (7, 4));
+        assert_eq!(c.payload.as_slice(), &a[..]);
+        let info = c.beacon.unwrap();
+        assert_eq!((info.interval_tu, info.ssid()), (100, &b"RID"[..]));
     }
 
     #[test]
