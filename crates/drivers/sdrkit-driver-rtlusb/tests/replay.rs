@@ -128,7 +128,9 @@ fn the_recording_of_the_dongle_replays() {
 /// Replays a recording of `examples/rtl_check.rs record`: the open of the dongle at `selector` at 104.9 MHz, a short
 /// stream and the stop. Returns the tuner in the name of the radio.
 fn replay_open(file: &str, selector: &str) -> String {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/vectors/usb/rtl").join(file);
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/vectors/usb/rtl")
+        .join(file);
     let script = Script::load(&path).unwrap();
     let recorded: u64 = script
         .entries

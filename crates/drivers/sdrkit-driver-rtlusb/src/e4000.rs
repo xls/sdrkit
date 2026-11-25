@@ -9,15 +9,17 @@ use crate::RtlError;
 /// The 8-bit I2C address.
 pub const ADDR: u8 = 0xC8;
 
-/// The lowest and the highest LO that the driver tunes.
-pub const MIN_HZ: f64 = 50e6;
-/// The highest LO that the driver tunes.
-pub const MAX_HZ: f64 = 2200e6;
+/// The lowest LO that the driver tunes: an E4000 dongle measured locks from 52 MHz, not at 50 MHz.
+pub const MIN_HZ: f64 = 52e6;
+/// The highest LO that the driver tunes: the dongle measured locks up to 2190 MHz, not at 2195 MHz.
+pub const MAX_HZ: f64 = 2190e6;
 
-/// The gains that the tuner offers, in tenth dB.
-pub const GAINS: [i32; 14] = [
-    -10, 15, 40, 65, 90, 115, 140, 165, 190, 215, 240, 290, 340, 420,
-];
+/// The gains that the tuner offers, in tenth dB: the LNA up to 25 dB with the 4 dB mixer, then the 12 dB mixer. LNA
+/// code 14 (30 dB) gives no more gain than code 13 on the dongle measured, so it is not used.
+pub const GAINS: [i32; 13] = [-10, 15, 40, 65, 90, 115, 140, 165, 190, 215, 240, 290, 370];
+
+/// The highest LNA gain used, in tenth dB.
+const LNA_MAX: i32 = 250;
 
 /// The LNA gains in tenth dB and their codes in R14.
 const LNA: [(i32, u8); 13] = [
@@ -128,10 +130,11 @@ fn nearest(table: &[u32], khz: u32) -> usize {
     best
 }
 
-/// The mixer gain in dB and the LNA code for the gain `g` in tenth dB, which must be one of [`GAINS`].
+/// The mixer gain (12 dB if true, else 4 dB) and the LNA code for the gain `g` in tenth dB, which must be one of
+/// [`GAINS`].
 pub fn gain_codes(g: i32) -> Option<(bool, u8)> {
-    let high = g > 340;
-    let lna = (g - if high { 120 } else { 40 }).min(300);
+    let high = g > LNA_MAX + 40;
+    let lna = (g - if high { 120 } else { 40 }).min(LNA_MAX);
     LNA.iter().find(|e| e.0 == lna).map(|e| (high, e.1))
 }
 
@@ -356,8 +359,8 @@ mod tests {
             assert!(gain_codes(g).is_some(), "gain {g}");
         }
         assert_eq!(gain_codes(-10), Some((false, 0)));
-        assert_eq!(gain_codes(340), Some((false, 14)));
-        assert_eq!(gain_codes(420), Some((true, 14)));
+        assert_eq!(gain_codes(290), Some((false, 13)));
+        assert_eq!(gain_codes(370), Some((true, 13)));
         assert_eq!(gain_codes(100), None);
     }
 

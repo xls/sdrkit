@@ -150,9 +150,12 @@ fn an_e4000_is_initialised_tuned_and_set() {
         assert_eq!((r[0x1A] & 0x0F, r[0x20] & 0x01), (0, 0));
         assert_eq!((r[0x14] & 0x0F, r[0x15] & 0x01), (13, 0));
     }
-    // 42 dB: mixer 12 dB, LNA 30 dB.
-    assert_eq!(d.set_gain(Gain::Manual(430)).unwrap(), Some(420));
-    assert_eq!(s.lock().unwrap().regs[0x15] & 0x01, 1);
+    // 43 dB asks for the top: mixer 12 dB, LNA 25 dB (code 13).
+    assert_eq!(d.set_gain(Gain::Manual(430)).unwrap(), Some(370));
+    {
+        let r = &s.lock().unwrap().regs;
+        assert_eq!((r[0x14] & 0x0F, r[0x15] & 0x01), (13, 1));
+    }
 
     // Offset tuning at 2.4 MS/s: the tuner 2.04 MHz below, the demodulator shifts it back.
     d.set_frequency(100_000_000).unwrap();
