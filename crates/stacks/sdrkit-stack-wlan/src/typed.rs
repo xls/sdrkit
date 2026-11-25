@@ -1,6 +1,7 @@
 //! The interface of the wlan family: the shapes of the result sets, the table rows and the events, the tables, the
 //! event types, the commands and what each stack declares.
 
+use crate::ble::adv::DeviceKind;
 use crate::ble::table::AddressType;
 use crate::ble::BleSetting;
 use crate::btclassic::BtSetting;
@@ -138,7 +139,7 @@ pub static WFB_FRAMES: Table<WfbFrameRow<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct BleFields<'a> {
     /// Devices in the table.
-    #[field(label = "Devices")]
+    #[field(label = "Devices", reading = 1)]
     pub devices: i64,
     /// Good packets.
     #[field(shared = keys::FRAMES_OK)]
@@ -182,6 +183,28 @@ pub struct BleFields<'a> {
     /// The privacy note.
     #[field(label = "Privacy")]
     pub privacy: &'a str,
+    /// Good packets on the secondary advertising channels and the periodic trains (channels 0 to 36).
+    #[field(label = "Packets on secondary channels")]
+    pub packets_secondary: i64,
+    /// Good packets on the LE 2M PHY.
+    #[field(label = "Packets on LE 2M")]
+    pub packets_2m: i64,
+    /// Good packets on the LE Coded PHY.
+    #[field(label = "Packets on LE Coded")]
+    pub packets_coded: i64,
+    /// The BLE channels inside the capture: the primary ones are received all the time, a secondary one while a packet points
+    /// to it. 0 when the centre of the input is not known.
+    #[field(label = "Channels in the capture")]
+    pub channels_in_capture: i64,
+    /// Auxiliary packets reached through the AuxPtr that pointed to them.
+    #[field(label = "Auxiliary packets followed")]
+    pub aux_followed: i64,
+    /// AuxPtr fields that point to a channel outside the capture: their data cannot be received here.
+    #[field(label = "Pointers outside the capture")]
+    pub aux_outside: i64,
+    /// Periodic advertising trains whose packets the receivers take.
+    #[field(label = "Periodic trains")]
+    pub periodic_trains: i64,
 }
 
 /// A row of the devices of `ble`. The row key is the address and "r" (random) or "p" (public).
@@ -226,6 +249,24 @@ pub struct BleDeviceRow<'a> {
     /// The UTC of the first packet.
     #[field(shared = columns::FIRST_HEARD)]
     pub first_heard: Option<Time>,
+    /// The PHYs the device was heard on, as "LE 1M, LE Coded".
+    #[field(label = "PHYs")]
+    pub phys: &'a str,
+    /// The device uses extended advertising.
+    #[field(label = "Extended")]
+    pub extended: bool,
+    /// An AuxPtr of the device points to a channel outside the capture: the row holds what the primary packets gave.
+    #[field(label = "Data on a channel outside the capture")]
+    pub data_outside: bool,
+    /// The advertising set id (SID) of the last extended packet, if one had it.
+    #[field(label = "Set")]
+    pub set_id: Option<i64>,
+    /// The interval of the device's periodic advertising train, if a SyncInfo gave one.
+    #[field(label = "Periodic interval", unit = "ms")]
+    pub periodic_interval_ms: Option<f64>,
+    /// The kind of device its Appearance or beacon format declares.
+    #[field(label = "Device kind")]
+    pub device_kind: DeviceKind,
 }
 
 /// A row of the packet log of `ble`.
@@ -252,6 +293,9 @@ pub struct BlePacketRow<'a> {
     /// The one-line summary.
     #[field(label = "Details")]
     pub details: &'a str,
+    /// The PHY of the packet ("LE 1M", "LE 2M", "LE Coded S=8" ...).
+    #[field(label = "PHY")]
+    pub phy: &'a str,
 }
 
 /// A row of the good packets of each PDU type of `ble`. The row key is the PDU type name.
@@ -298,7 +342,10 @@ pub struct BleDeviceEvent<'a> {
 
 /// The devices of `ble`.
 pub static BLE_DEVICES: Table<BleDeviceRow<'static>> =
-    Table::new("devices", "Devices", crate::ble::table::DEVICE_CAP).label(&BleDeviceRow::NAME);
+    Table::new("devices", "Devices", crate::ble::table::DEVICE_CAP)
+        .label(&BleDeviceRow::NAME)
+        .sorted(&BleDeviceRow::LEVEL_DBFS, sdrkit_core::SortOrder::Descending)
+        .role(sdrkit_core::TableRole::Nodes);
 /// The packet log of `ble`, newest first.
 pub static BLE_PACKETS: Table<BlePacketRow<'static>> =
     Table::new("packets", "Packets", crate::ble::table::LOG_CAP)
@@ -473,10 +520,10 @@ pub struct BletrackerFields<'a> {
     #[field(label = "Tracker packets")]
     pub tracker_packets: i64,
     /// Trackers heard in the last minute.
-    #[field(label = "Trackers now")]
+    #[field(label = "Trackers now", reading = 1)]
     pub trackers_now: i64,
     /// Trackers in the table.
-    #[field(label = "Trackers")]
+    #[field(label = "Trackers", reading = 2)]
     pub trackers: i64,
     /// How long a tracker must stay before the alert.
     #[field(label = "Alert after", unit = "s")]
@@ -546,6 +593,9 @@ pub struct BletrackerTrackerRow<'a> {
     /// The signal time it was last heard.
     #[field(label = "Last heard", unit = "s")]
     pub last_s: f64,
+    /// The UTC of the last sighting, for a live source.
+    #[field(shared = columns::LAST_HEARD)]
+    pub last_heard: Option<Time>,
     /// Packets heard.
     #[field(label = "Packets")]
     pub packets: i64,
@@ -657,7 +707,9 @@ pub struct BletrackerAlertEvent<'a> {
 /// The trackers of `bletracker`, the ones that follow first.
 pub static BLETRACKER_TRACKERS: Table<BletrackerTrackerRow<'static>> =
     Table::new("trackers", "Trackers", crate::tracker::book::RECORD_CAP)
-        .label(&BletrackerTrackerRow::IDENTIFIER);
+        .label(&BletrackerTrackerRow::IDENTIFIER)
+        .sorted(&BletrackerTrackerRow::LEVEL_DBFS, sdrkit_core::SortOrder::Descending)
+        .role(sdrkit_core::TableRole::Nodes);
 /// The alerts of `bletracker`, newest first.
 pub static BLETRACKER_ALERTS: Table<BletrackerAlertRow<'static>> =
     Table::new("alerts", "Alerts", crate::tracker::book::ALERT_CAP);
@@ -849,7 +901,7 @@ pub const BLETRACKER_SEND: CommandKind<BletrackerSendArgs<'static>> = CommandKin
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct WifiFields<'a> {
     /// Networks in the table.
-    #[field(label = "Networks")]
+    #[field(label = "Networks", reading = 1)]
     pub networks: i64,
     /// Frames with a good FCS.
     #[field(shared = keys::FRAMES_OK)]
@@ -926,6 +978,108 @@ pub struct WifiFields<'a> {
     /// The passive note.
     #[field(label = "Passive")]
     pub passive: &'a str,
+    /// Client stations in the table.
+    #[field(label = "Stations", reading = 2)]
+    pub stations: i64,
+    /// HT PPDUs whose signal field was read since the last clear.
+    #[field(label = "HT PPDUs")]
+    pub ppdu_ht: i64,
+    /// VHT PPDUs whose signal field was read since the last clear.
+    #[field(label = "VHT PPDUs")]
+    pub ppdu_vht: i64,
+    /// HE SU PPDUs whose signal field was read since the last clear.
+    #[field(label = "HE SU PPDUs")]
+    pub ppdu_he_su: i64,
+    /// HE ER SU PPDUs whose signal field was read since the last clear.
+    #[field(label = "HE ER SU PPDUs")]
+    pub ppdu_he_er_su: i64,
+    /// HE MU PPDUs whose signal field was read since the last clear.
+    #[field(label = "HE MU PPDUs")]
+    pub ppdu_he_mu: i64,
+    /// HE TB PPDUs whose signal field was read since the last clear.
+    #[field(label = "HE TB PPDUs")]
+    pub ppdu_he_tb: i64,
+    /// HE with a bad HE-SIG-A PPDUs whose signal field was read since the last clear.
+    #[field(label = "HE with a bad HE-SIG-A PPDUs")]
+    pub ppdu_he_bad_sig: i64,
+    /// EHT PPDUs whose signal field was read since the last clear.
+    #[field(label = "EHT PPDUs")]
+    pub ppdu_eht: i64,
+    /// HT, VHT, HE and EHT PPDUs whose data was decoded.
+    #[field(label = "PPDUs decoded")]
+    pub ppdu_decoded: i64,
+    /// PPDUs not decoded because of two or more spatial streams.
+    #[field(label = "PPDUs not decoded: two or more spatial streams")]
+    pub ppdu_not_decoded_streams: i64,
+    /// PPDUs not decoded because of wider than 20 MHz.
+    #[field(label = "PPDUs not decoded: wider than 20 MHz")]
+    pub ppdu_not_decoded_width: i64,
+    /// PPDUs not decoded because of LDPC coding.
+    #[field(label = "PPDUs not decoded: LDPC coding")]
+    pub ppdu_not_decoded_ldpc: i64,
+    /// PPDUs not decoded because of STBC.
+    #[field(label = "PPDUs not decoded: STBC")]
+    pub ppdu_not_decoded_stbc: i64,
+    /// PPDUs not decoded because of multi-user.
+    #[field(label = "PPDUs not decoded: multi-user")]
+    pub ppdu_not_decoded_multi_user: i64,
+    /// PPDUs not decoded because of trigger-based.
+    #[field(label = "PPDUs not decoded: trigger-based")]
+    pub ppdu_not_decoded_trigger_based: i64,
+    /// PPDUs not decoded because of HE data.
+    #[field(label = "PPDUs not decoded: HE data")]
+    pub ppdu_not_decoded_he_data: i64,
+    /// PPDUs not decoded because of EHT data.
+    #[field(label = "PPDUs not decoded: EHT data")]
+    pub ppdu_not_decoded_eht_data: i64,
+    /// PPDUs not decoded because of a bad signal field.
+    #[field(label = "PPDUs not decoded: a bad signal field")]
+    pub ppdu_not_decoded_signal_field: i64,
+    /// PPDUs not decoded because of an MCS that is not decoded.
+    #[field(label = "PPDUs not decoded: an MCS that is not decoded")]
+    pub ppdu_not_decoded_mcs: i64,
+    /// PPDUs not decoded because of a length that does not fit.
+    #[field(label = "PPDUs not decoded: a length that does not fit")]
+    pub ppdu_not_decoded_length: i64,
+    /// PPDUs not decoded because of data that did not decode.
+    #[field(label = "PPDUs not decoded: data that did not decode")]
+    pub ppdu_not_decoded_data: i64,
+    /// PPDUs not decoded because of another reason.
+    #[field(label = "PPDUs not decoded: another reason")]
+    pub ppdu_not_decoded_other: i64,
+    /// PPDUs not decoded because of the decoder was busy.
+    #[field(label = "PPDUs not decoded: the decoder was busy")]
+    pub ppdu_not_decoded_busy: i64,
+    /// A-MPDU delimiters with a bad CRC or signature since the last clear.
+    #[field(label = "A-MPDU bad delimiters")]
+    pub ampdu_bad_delimiters: i64,
+    /// Probe requests since the last clear.
+    #[field(label = "Probe requests")]
+    pub probe_requests: i64,
+    /// Authentication frames since the last clear.
+    #[field(label = "Authentications")]
+    pub authentications: i64,
+    /// Association and reassociation frames since the last clear.
+    #[field(label = "Associations")]
+    pub associations: i64,
+    /// Deauthentication and disassociation frames since the last clear.
+    #[field(label = "Departures")]
+    pub departures: i64,
+    /// Action frames since the last clear.
+    #[field(label = "Actions")]
+    pub actions: i64,
+    /// RTS frames since the last clear.
+    #[field(label = "RTS")]
+    pub rts: i64,
+    /// CTS frames since the last clear.
+    #[field(label = "CTS")]
+    pub cts: i64,
+    /// ACK frames since the last clear.
+    #[field(label = "ACKs")]
+    pub acks: i64,
+    /// Block Ack frames and requests since the last clear.
+    #[field(label = "Block Acks")]
+    pub block_acks: i64,
 }
 
 /// A row of the networks of `wifi`. The row key is the BSSID.
@@ -991,6 +1145,9 @@ pub struct WifiNetworkRow<'a> {
     /// The other elements as text.
     #[field(label = "Details")]
     pub details: &'a str,
+    /// Client stations heard with this BSSID.
+    #[field(label = "Stations")]
+    pub stations: i64,
 }
 
 /// A row of the frame log of `wifi`.
@@ -1014,6 +1171,100 @@ pub struct WifiBeaconRow<'a> {
     /// The summary.
     #[field(label = "Details")]
     pub details: &'a str,
+    /// The PPDU format of the frame ("HT", "VHT"); no value for DSSS and non-HT OFDM.
+    #[field(label = "Format")]
+    pub format: Option<&'a str>,
+    /// The MCS of an HT or VHT frame.
+    #[field(label = "MCS")]
+    pub mcs: Option<i64>,
+    /// The frame came in an A-MPDU.
+    #[field(label = "A-MPDU")]
+    pub aggregated: bool,
+}
+
+sdrkit_core::choice_enum! {
+    /// How far a client station got with its access point. Standard: IEEE Std 802.11-2020 clause 11.3.
+    pub enum StationLink {
+        /// No frame ties it to an access point.
+        Unknown = ("unknown", "Unknown"),
+        /// Probe requests only.
+        Probing = ("probing", "Probing"),
+        /// Authentication or an association request was seen.
+        Joining = ("joining", "Joining"),
+        /// Associated: a successful association response, or data to or from the access point.
+        Associated = ("associated", "Associated"),
+        /// A deauthentication or disassociation was seen last.
+        Left = ("left", "Left"),
+    }
+}
+
+impl From<crate::wifi::stations::Link> for StationLink {
+    fn from(l: crate::wifi::stations::Link) -> Self {
+        use crate::wifi::stations::Link;
+        match l {
+            Link::Unknown => StationLink::Unknown,
+            Link::Probing => StationLink::Probing,
+            Link::Joining => StationLink::Joining,
+            Link::Associated => StationLink::Associated,
+            Link::Left => StationLink::Left,
+        }
+    }
+}
+
+/// A row of the client stations of `wifi`. The row key is the address.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct WifiStationRow<'a> {
+    /// The address.
+    #[field(label = "Address")]
+    pub address: &'a str,
+    /// The vendor of the address.
+    #[field(label = "Vendor")]
+    pub vendor: &'a str,
+    /// The address is locally administered (randomised).
+    #[field(label = "Randomised")]
+    pub randomised: bool,
+    /// The BSSID of its access point, if a frame tied it to one.
+    #[field(label = "BSSID", refers_to = "networks")]
+    pub bssid: Option<&'a str>,
+    /// How far it got with its access point.
+    #[field(label = "Link")]
+    pub link: StationLink,
+    /// The UTC of the last frame, for a live source.
+    #[field(shared = columns::LAST_HEARD)]
+    pub last_heard: Option<Time>,
+    /// The level of the last frame it sent.
+    #[field(label = "Level", unit = "dBFS")]
+    pub level_dbfs: Option<f64>,
+    /// Frames it sent.
+    #[field(label = "Sent")]
+    pub sent: i64,
+    /// Frames sent to it.
+    #[field(label = "Received")]
+    pub received: i64,
+    /// Probe requests it sent.
+    #[field(label = "Probes")]
+    pub probes: i64,
+    /// Data frames to or from it.
+    #[field(label = "Data")]
+    pub data: i64,
+    /// Null data frames it sent.
+    #[field(label = "Null data")]
+    pub null_data: i64,
+    /// Protected frames to or from it.
+    #[field(label = "Protected")]
+    pub protected: i64,
+    /// The SSIDs it probed for, joined with ", ".
+    #[field(label = "SSIDs")]
+    pub ssids: &'a str,
+    /// The newest Wi-Fi generation its frames declare (0 when none).
+    #[field(label = "Generation")]
+    pub generation: i64,
+    /// The highest data rate its frames declare.
+    #[field(label = "Max rate", unit = "Mbit/s")]
+    pub max_rate_mbps: Option<f64>,
+    /// The channel of its last frame (no value when not known).
+    #[field(label = "Ch")]
+    pub channel: Option<i64>,
 }
 
 /// A row of the good OFDM frames at each rate of `wifi`. The row key is the rate in Mbit/s.
@@ -1060,7 +1311,14 @@ pub static WIFI_NETWORKS: Table<WifiNetworkRow<'static>> =
         .sorted(
             &WifiNetworkRow::LEVEL_DBFS,
             sdrkit_core::SortOrder::Descending,
-        );
+        )
+        .role(sdrkit_core::TableRole::Nodes);
+/// The client stations of `wifi`, most recently heard first.
+pub static WIFI_STATIONS: Table<WifiStationRow<'static>> =
+    Table::new("stations", "Stations", crate::wifi::stations::STATION_CAP)
+        .label(&WifiStationRow::ADDRESS)
+        .sorted(&WifiStationRow::LAST_HEARD, sdrkit_core::SortOrder::Descending)
+        .role(sdrkit_core::TableRole::Nodes);
 /// The frame log of `wifi`, newest first.
 pub static WIFI_BEACONS: Table<WifiBeaconRow<'static>> =
     Table::new("beacons", "Beacons", crate::wifi::table::LOG_CAP).label(&WifiBeaconRow::BSSID);
@@ -1089,7 +1347,7 @@ pub const NETWORK_REMOVE: CommandKind<NetworkArgs<'static>> = objcmd::remove_kin
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct EspnowFields<'a> {
     /// Devices in the table.
-    #[field(label = "Devices")]
+    #[field(label = "Devices", reading = 1)]
     pub devices: i64,
     /// Wi-Fi frames with a good FCS.
     #[field(shared = keys::FRAMES_OK)]
@@ -1333,7 +1591,9 @@ pub struct EspnowDeviceEvent<'a> {
 /// The devices of `espnow`, most recently heard first.
 pub static ESPNOW_DEVICES: Table<EspnowDeviceRow<'static>> =
     Table::new("devices", "Devices", crate::espnow::table::DEVICE_CAP)
-        .label(&EspnowDeviceRow::ADDRESS);
+        .label(&EspnowDeviceRow::ADDRESS)
+        .sorted(&EspnowDeviceRow::LEVEL_DBFS, sdrkit_core::SortOrder::Descending)
+        .role(sdrkit_core::TableRole::Nodes);
 /// The frame log of `espnow`, newest first.
 pub static ESPNOW_FRAMES: Table<EspnowFrameRow<'static>> =
     Table::new("frames", "Frames", crate::espnow::table::LOG_CAP).label(&EspnowFrameRow::FROM);
@@ -1356,7 +1616,7 @@ pub static ESPNOW_DEVICE: EventKind<EspnowDeviceEvent<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct HalowFields<'a> {
     /// Networks in the table.
-    #[field(label = "Networks")]
+    #[field(label = "Networks", reading = 1)]
     pub networks: i64,
     /// Frames with a good FCS.
     #[field(shared = keys::FRAMES_OK)]
@@ -1563,7 +1823,8 @@ pub struct HalowPreambleRow {
 pub static HALOW_NETWORKS: Table<HalowNetworkRow<'static>> =
     Table::new("networks", "Networks", crate::halow::table::NETWORK_CAP)
         .label(&HalowNetworkRow::SSID)
-        .sorted(&HalowNetworkRow::SNR_DB, sdrkit_core::SortOrder::Descending);
+        .sorted(&HalowNetworkRow::SNR_DB, sdrkit_core::SortOrder::Descending)
+        .role(sdrkit_core::TableRole::Nodes);
 /// The frame log of `halow`, newest first.
 pub static HALOW_FRAMES: Table<HalowFrameRow<'static>> =
     Table::new("frames", "Frames", crate::halow::table::LOG_CAP).label(&HalowFrameRow::BSSID);
@@ -1616,7 +1877,7 @@ pub struct BtclassicFields<'a> {
     #[field(label = "State")]
     pub state: i64,
     /// Devices in the table.
-    #[field(label = "Devices")]
+    #[field(label = "Devices", reading = 1)]
     pub devices: i64,
     /// What no public document confirms.
     #[field(label = "Note")]
@@ -1668,6 +1929,9 @@ pub struct BtclassicDeviceRow<'a> {
     /// The channels heard, as hex: bit k is channel k.
     #[field(label = "Channels heard")]
     pub channels_heard: &'a str,
+    /// The kind of device its Class of Device declares (unknown before an FHS packet).
+    #[field(label = "Device kind")]
+    pub device_kind: DeviceKind,
 }
 
 /// A row of the packet log of `btclassic`.
@@ -1727,7 +1991,9 @@ pub struct BtclassicInquiryEvent<'a> {
 /// The devices of `btclassic`, most recently heard first.
 pub static BTCLASSIC_DEVICES: Table<BtclassicDeviceRow<'static>> =
     Table::new("devices", "Devices", crate::btclassic::DEVICE_CAP)
-        .label(&BtclassicDeviceRow::ADDRESS);
+        .label(&BtclassicDeviceRow::ADDRESS)
+        .sorted(&BtclassicDeviceRow::LEVEL_DBFS, sdrkit_core::SortOrder::Descending)
+        .role(sdrkit_core::TableRole::Nodes);
 /// The packet log of `btclassic`, newest first.
 pub static BTCLASSIC_PACKETS: Table<BtclassicPacketRow<'static>> =
     Table::new("packets", "Packets", crate::btclassic::PACKET_CAP);
@@ -1741,13 +2007,92 @@ pub static BTCLASSIC_INQUIRY: EventKind<BtclassicInquiryEvent<'static>> =
 pub const BTCLASSIC_CLEAR: Command =
     Command::new("clear_devices", "Clear").help(sdrkit_graph::decoder::CLEAR.help);
 
+/// What version 3.1 added: the LE 2M and LE Coded PHYs, the channels of a wide capture and extended advertising followed
+/// through its pointers in `ble`; the kind of device in `ble` and `btclassic`; the client stations, the HT, VHT, HE and EHT
+/// PPDU counts and the frame counts of `wifi`.
+const ADDED_3_1: &[&str] = &[
+    "shape.BleFields.packets_secondary",
+    "shape.BleFields.packets_2m",
+    "shape.BleFields.packets_coded",
+    "shape.BleFields.channels_in_capture",
+    "shape.BleFields.aux_followed",
+    "shape.BleFields.aux_outside",
+    "shape.BleFields.periodic_trains",
+    "shape.BleDeviceRow.phys",
+    "shape.BleDeviceRow.extended",
+    "shape.BleDeviceRow.data_outside",
+    "shape.BleDeviceRow.set_id",
+    "shape.BleDeviceRow.periodic_interval_ms",
+    "shape.BlePacketRow.phy",
+    "shape.BleDeviceRow.device_kind",
+    "shape.BtclassicDeviceRow.device_kind",
+    "shape.BletrackerTrackerRow.last_heard",
+    "shape.WifiNetworkRow.stations",
+    "shape.WifiBeaconRow.format",
+    "shape.WifiBeaconRow.mcs",
+    "shape.WifiBeaconRow.aggregated",
+    "wifi.table.stations",
+    "shape.WifiStationRow",
+    "shape.WifiStationRow.address",
+    "shape.WifiStationRow.vendor",
+    "shape.WifiStationRow.randomised",
+    "shape.WifiStationRow.bssid",
+    "shape.WifiStationRow.link",
+    "shape.WifiStationRow.last_heard",
+    "shape.WifiStationRow.level_dbfs",
+    "shape.WifiStationRow.sent",
+    "shape.WifiStationRow.received",
+    "shape.WifiStationRow.probes",
+    "shape.WifiStationRow.data",
+    "shape.WifiStationRow.null_data",
+    "shape.WifiStationRow.protected",
+    "shape.WifiStationRow.ssids",
+    "shape.WifiStationRow.generation",
+    "shape.WifiStationRow.max_rate_mbps",
+    "shape.WifiStationRow.channel",
+    "shape.WifiFields.stations",
+    "shape.WifiFields.ppdu_ht",
+    "shape.WifiFields.ppdu_vht",
+    "shape.WifiFields.ppdu_he_su",
+    "shape.WifiFields.ppdu_he_er_su",
+    "shape.WifiFields.ppdu_he_mu",
+    "shape.WifiFields.ppdu_he_tb",
+    "shape.WifiFields.ppdu_he_bad_sig",
+    "shape.WifiFields.ppdu_eht",
+    "shape.WifiFields.ppdu_decoded",
+    "shape.WifiFields.ppdu_not_decoded_streams",
+    "shape.WifiFields.ppdu_not_decoded_width",
+    "shape.WifiFields.ppdu_not_decoded_ldpc",
+    "shape.WifiFields.ppdu_not_decoded_stbc",
+    "shape.WifiFields.ppdu_not_decoded_multi_user",
+    "shape.WifiFields.ppdu_not_decoded_trigger_based",
+    "shape.WifiFields.ppdu_not_decoded_he_data",
+    "shape.WifiFields.ppdu_not_decoded_eht_data",
+    "shape.WifiFields.ppdu_not_decoded_signal_field",
+    "shape.WifiFields.ppdu_not_decoded_mcs",
+    "shape.WifiFields.ppdu_not_decoded_length",
+    "shape.WifiFields.ppdu_not_decoded_data",
+    "shape.WifiFields.ppdu_not_decoded_other",
+    "shape.WifiFields.ppdu_not_decoded_busy",
+    "shape.WifiFields.ampdu_bad_delimiters",
+    "shape.WifiFields.probe_requests",
+    "shape.WifiFields.authentications",
+    "shape.WifiFields.associations",
+    "shape.WifiFields.departures",
+    "shape.WifiFields.actions",
+    "shape.WifiFields.rts",
+    "shape.WifiFields.cts",
+    "shape.WifiFields.acks",
+    "shape.WifiFields.block_acks",
+];
+
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 3, 0)
+        Described::new("wlan", 3, 1)
             .content(
                 sdrkit_core::ContentKind::Networks,
                 &[
@@ -1779,6 +2124,7 @@ pub fn family() -> &'static Described {
                     .command(&BLE_HALT)
                     .kept(&["devices", "packets", "device_levels", "BleFields.devices"]),
             )
+            .added(3, 1, ADDED_3_1)
             .stack(
                 StackShape::new("bletracker")
                     .fields::<BletrackerFields>()
@@ -1809,6 +2155,7 @@ pub fn family() -> &'static Described {
                     .fields::<WifiFields>()
                     .decoder("rx")
                     .table(&WIFI_NETWORKS)
+                    .table(&WIFI_STATIONS)
                     .table(&WIFI_BEACONS)
                     .table(&WIFI_OFDM_RATES)
                     .table(&WIFI_BANDS)

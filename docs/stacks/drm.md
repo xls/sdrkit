@@ -77,6 +77,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `first_audio` | First audio | duration (s) |
 | `holding` | Holding through a fade | yes or no |
 | `mirrored` | Mirrored | yes or no |
+| `playing_service` | Service playing | text |
 | `text` | Text | text |
 | `item_running` | Item running | yes or no |
 | `slide_name` | Slide | text |
@@ -128,7 +129,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `broadcast`, version 2.0. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `broadcast`, version 2.1. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Broadcast radio (`broadcast`). Media: sound (programme), pictures.
 
@@ -172,6 +173,7 @@ Struct `DrmFields`. The results of the DRM stack. No FAC values before the first
 | `first_audio` | duration (s) | optional | 1.0 | When the first audio frame came. |
 | `holding` | yes or no | always | 1.0 | Holding through a fade. |
 | `mirrored` | yes or no | always | 1.0 | The input is mirrored (I and Q swapped). |
+| `playing_service` | text | optional | 2.1 | The row key of the service playing in the services table. No value before its first audio frame. |
 
 ### Result fields
 

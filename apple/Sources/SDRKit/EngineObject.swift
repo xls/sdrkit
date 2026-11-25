@@ -123,7 +123,7 @@ public final class Engine {
             for n in 0..<raw.options {
                 var o = sdrkit_option.sized
                 try check(sdrkit_radio_open_setting_option(h, at, id, n, &o), handle: h)
-                d.options.append(Option(key: copy(o.key), label: copy(o.label)))
+                d.options.append(Option(key: copy(o.key), label: copy(o.label), help: copy(o.help)))
             }
             return d
         }

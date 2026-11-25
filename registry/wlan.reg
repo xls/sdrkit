@@ -1,7 +1,7 @@
 # The interface of the stack family wlan. The registry test of the family writes this file.
-family wlan version=3.0
+family wlan version=3.1
 shape.BleFields since=1.0
-shape.BleFields.devices type=i64 unit= optional=no since=1.0
+shape.BleFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.BleFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.BleFields.frames_bad type=i64 unit= optional=no since=1.0
 shape.BleFields.aa_hits type=i64 unit= optional=no since=1.0
@@ -16,6 +16,13 @@ shape.BleFields.packets_38 type=i64 unit= optional=no since=1.0
 shape.BleFields.packets_39 type=i64 unit= optional=no since=1.0
 shape.BleFields.hopping type=bool unit= optional=no since=1.0
 shape.BleFields.privacy type=text unit= optional=no since=1.0
+shape.BleFields.packets_secondary type=i64 unit= optional=no since=3.1
+shape.BleFields.packets_2m type=i64 unit= optional=no since=3.1
+shape.BleFields.packets_coded type=i64 unit= optional=no since=3.1
+shape.BleFields.channels_in_capture type=i64 unit= optional=no since=3.1
+shape.BleFields.aux_followed type=i64 unit= optional=no since=3.1
+shape.BleFields.aux_outside type=i64 unit= optional=no since=3.1
+shape.BleFields.periodic_trains type=i64 unit= optional=no since=3.1
 shape.BleTxFields since=1.0
 shape.BleTxFields.tx_sending type=bool unit= optional=no since=1.0
 shape.BleTxFields.tx_sent type=i64 unit= optional=no since=1.0
@@ -34,6 +41,12 @@ shape.BleDeviceRow.connectable type=bool unit= optional=no since=1.0
 shape.BleDeviceRow.scanned type=bool unit= optional=no since=1.0
 shape.BleDeviceRow.manufacturer_data type=text unit= optional=yes since=1.0
 shape.BleDeviceRow.first_heard type=time unit= optional=yes since=1.0
+shape.BleDeviceRow.phys type=text unit= optional=no since=3.1
+shape.BleDeviceRow.extended type=bool unit= optional=no since=3.1
+shape.BleDeviceRow.data_outside type=bool unit= optional=no since=3.1
+shape.BleDeviceRow.set_id type=i64 unit= optional=yes since=3.1
+shape.BleDeviceRow.periodic_interval_ms type=f64 unit=ms optional=yes since=3.1
+shape.BleDeviceRow.device_kind type=choice(phone,headset,watch,tracker,beacon,computer,audio,sensor,unknown) unit= optional=no since=3.1
 shape.BlePacketRow since=1.0
 shape.BlePacketRow.signal_s type=f64 unit=s optional=no since=1.0
 shape.BlePacketRow.channel type=i64 unit= optional=no since=1.0
@@ -42,6 +55,7 @@ shape.BlePacketRow.address type=text unit= optional=yes since=1.0
 shape.BlePacketRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.BlePacketRow.length type=i64 unit=B optional=no since=1.0
 shape.BlePacketRow.details type=text unit= optional=no since=1.0
+shape.BlePacketRow.phy type=text unit= optional=no since=3.1
 shape.BlePduTypeRow since=1.0
 shape.BlePduTypeRow.pdu type=text unit= optional=no since=1.0
 shape.BlePduTypeRow.packets type=i64 unit= optional=no since=1.0
@@ -63,8 +77,8 @@ shape.BleTxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,v
 shape.BletrackerFields since=1.0
 shape.BletrackerFields.following_now type=i64 unit= optional=no since=1.0
 shape.BletrackerFields.tracker_packets type=i64 unit= optional=no since=1.0
-shape.BletrackerFields.trackers_now type=i64 unit= optional=no since=1.0
-shape.BletrackerFields.trackers type=i64 unit= optional=no since=1.0
+shape.BletrackerFields.trackers_now type=i64 unit= optional=no reading=1 since=1.0
+shape.BletrackerFields.trackers type=i64 unit= optional=no reading=2 since=1.0
 shape.BletrackerFields.alert_after type=duration unit=s optional=no since=1.0
 shape.BletrackerFields.near_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.BletrackerFields.now_s type=f64 unit=s optional=no since=1.0
@@ -87,6 +101,7 @@ shape.BletrackerTrackerRow.peak_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.BletrackerTrackerRow.trend type=choice(closer,farther,steady) unit= optional=no since=1.0
 shape.BletrackerTrackerRow.addresses type=i64 unit= optional=no since=1.0
 shape.BletrackerTrackerRow.last_s type=f64 unit=s optional=no since=1.0
+shape.BletrackerTrackerRow.last_heard type=time unit= optional=yes since=3.1
 shape.BletrackerTrackerRow.packets type=i64 unit= optional=no since=1.0
 shape.BletrackerTrackerRow.separated type=bool unit= optional=no since=1.0
 shape.BletrackerTrackerRow.status type=i64 unit= optional=yes since=1.0
@@ -121,7 +136,7 @@ shape.BletrackerAlertEvent.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.BletrackerAlertEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
 shape.BletrackerAlertEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.WifiFields since=1.0
-shape.WifiFields.networks type=i64 unit= optional=no since=1.0
+shape.WifiFields.networks type=i64 unit= optional=no reading=1 since=1.0
 shape.WifiFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.WifiFields.frames_bad type=i64 unit= optional=no since=1.0
 shape.WifiFields.dsss_sfds type=i64 unit= optional=no since=1.0
@@ -141,12 +156,46 @@ shape.WifiFields.duplicate_frames type=i64 unit= optional=no since=1.0
 shape.WifiFields.band type=choice(2.4,5,6) unit= optional=yes since=1.0
 shape.WifiFields.channel type=i64 unit= optional=yes since=1.0
 shape.WifiFields.sub_channels type=i64 unit= optional=no since=1.0
-shape.WifiFields.phy type=choice(dsss,ofdm) unit= optional=yes since=1.0
+shape.WifiFields.phy type=choice(dsss,ofdm,ht,vht) unit= optional=yes since=1.0
 shape.WifiFields.snr_db type=f64 unit=dB optional=yes since=1.0
 shape.WifiFields.offset_hz type=hz unit=Hz optional=yes since=1.0
 shape.WifiFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.WifiFields.hopping type=bool unit= optional=no since=1.0
 shape.WifiFields.passive type=text unit= optional=no since=1.0
+shape.WifiFields.stations type=i64 unit= optional=no reading=2 since=3.1
+shape.WifiFields.ppdu_ht type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_vht type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_he_su type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_he_er_su type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_he_mu type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_he_tb type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_he_bad_sig type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_eht type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_decoded type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_streams type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_width type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_ldpc type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_stbc type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_multi_user type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_trigger_based type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_he_data type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_eht_data type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_signal_field type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_mcs type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_length type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_data type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_other type=i64 unit= optional=no since=3.1
+shape.WifiFields.ppdu_not_decoded_busy type=i64 unit= optional=no since=3.1
+shape.WifiFields.ampdu_bad_delimiters type=i64 unit= optional=no since=3.1
+shape.WifiFields.probe_requests type=i64 unit= optional=no since=3.1
+shape.WifiFields.authentications type=i64 unit= optional=no since=3.1
+shape.WifiFields.associations type=i64 unit= optional=no since=3.1
+shape.WifiFields.departures type=i64 unit= optional=no since=3.1
+shape.WifiFields.actions type=i64 unit= optional=no since=3.1
+shape.WifiFields.rts type=i64 unit= optional=no since=3.1
+shape.WifiFields.cts type=i64 unit= optional=no since=3.1
+shape.WifiFields.acks type=i64 unit= optional=no since=3.1
+shape.WifiFields.block_acks type=i64 unit= optional=no since=3.1
 shape.WifiNetworkRow since=1.0
 shape.WifiNetworkRow.ssid type=text unit= optional=no since=1.0
 shape.WifiNetworkRow.bssid type=text unit= optional=no since=1.0
@@ -168,6 +217,25 @@ shape.WifiNetworkRow.akm type=text unit= optional=no since=1.0
 shape.WifiNetworkRow.pmf type=text unit= optional=no since=1.0
 shape.WifiNetworkRow.capability type=text unit= optional=no since=1.0
 shape.WifiNetworkRow.details type=text unit= optional=no since=1.0
+shape.WifiNetworkRow.stations type=i64 unit= optional=no since=3.1
+shape.WifiStationRow since=3.1
+shape.WifiStationRow.address type=text unit= optional=no since=3.1
+shape.WifiStationRow.vendor type=text unit= optional=no since=3.1
+shape.WifiStationRow.randomised type=bool unit= optional=no since=3.1
+shape.WifiStationRow.bssid type=text unit= optional=yes refers_to=networks since=3.1
+shape.WifiStationRow.link type=choice(unknown,probing,joining,associated,left) unit= optional=no since=3.1
+shape.WifiStationRow.last_heard type=time unit= optional=yes since=3.1
+shape.WifiStationRow.level_dbfs type=f64 unit=dBFS optional=yes since=3.1
+shape.WifiStationRow.sent type=i64 unit= optional=no since=3.1
+shape.WifiStationRow.received type=i64 unit= optional=no since=3.1
+shape.WifiStationRow.probes type=i64 unit= optional=no since=3.1
+shape.WifiStationRow.data type=i64 unit= optional=no since=3.1
+shape.WifiStationRow.null_data type=i64 unit= optional=no since=3.1
+shape.WifiStationRow.protected type=i64 unit= optional=no since=3.1
+shape.WifiStationRow.ssids type=text unit= optional=no since=3.1
+shape.WifiStationRow.generation type=i64 unit= optional=no since=3.1
+shape.WifiStationRow.max_rate_mbps type=f64 unit=Mbit/s optional=yes since=3.1
+shape.WifiStationRow.channel type=i64 unit= optional=yes since=3.1
 shape.WifiBeaconRow since=1.0
 shape.WifiBeaconRow.signal_s type=f64 unit=s optional=no since=1.0
 shape.WifiBeaconRow.channel type=i64 unit= optional=no since=1.0
@@ -175,6 +243,9 @@ shape.WifiBeaconRow.bssid type=text unit= optional=no since=1.0
 shape.WifiBeaconRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.WifiBeaconRow.bytes type=i64 unit= optional=no since=1.0
 shape.WifiBeaconRow.details type=text unit= optional=no since=1.0
+shape.WifiBeaconRow.format type=text unit= optional=yes since=3.1
+shape.WifiBeaconRow.mcs type=i64 unit= optional=yes since=3.1
+shape.WifiBeaconRow.aggregated type=bool unit= optional=no since=3.1
 shape.WifiRateRow since=1.0
 shape.WifiRateRow.rate_mbps type=f64 unit=Mbit/s optional=no since=1.0
 shape.WifiRateRow.frames type=i64 unit= optional=no since=1.0
@@ -187,7 +258,7 @@ shape.WifiBandRow.wpa3_owe type=i64 unit= optional=no since=1.0
 shape.WifiBandRow.open type=i64 unit= optional=no since=1.0
 shape.WifiBandRow.strongest_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.HalowFields since=1.0
-shape.HalowFields.networks type=i64 unit= optional=no since=1.0
+shape.HalowFields.networks type=i64 unit= optional=no reading=1 since=1.0
 shape.HalowFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.HalowFields.frames_bad type=i64 unit= optional=no since=1.0
 shape.HalowFields.undecoded type=i64 unit= optional=no since=1.0
@@ -264,7 +335,7 @@ shape.BtclassicFields.cfo_hz type=f64 unit=Hz optional=yes since=1.0
 shape.BtclassicFields.snr_db type=f64 unit=dB optional=yes since=1.0
 shape.BtclassicFields.input_level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.BtclassicFields.state type=i64 unit= optional=no since=1.0
-shape.BtclassicFields.devices type=i64 unit= optional=no since=1.0
+shape.BtclassicFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.BtclassicFields.note type=text unit= optional=no since=1.0
 shape.DecoderFields since=1.0
 shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
@@ -283,6 +354,7 @@ shape.BtclassicDeviceRow.last_heard type=time unit= optional=yes since=1.0
 shape.BtclassicDeviceRow.packets type=i64 unit= optional=no since=1.0
 shape.BtclassicDeviceRow.last_channel_mhz type=f64 unit=MHz optional=no since=1.0
 shape.BtclassicDeviceRow.channels_heard type=text unit= optional=no since=1.0
+shape.BtclassicDeviceRow.device_kind type=choice(phone,headset,watch,tracker,beacon,computer,audio,sensor,unknown) unit= optional=no since=3.1
 shape.BtclassicPacketRow since=1.0
 shape.BtclassicPacketRow.utc type=time unit= optional=yes since=1.0
 shape.BtclassicPacketRow.time_s type=f64 unit=s optional=no since=1.0
@@ -328,7 +400,7 @@ shape.WfbFrameRow.detail type=text unit= optional=no since=1.0
 shape.WfbFrameRow.hex type=text unit= optional=no since=1.0
 shape.WfbFrameRow.snr_db type=f64 unit=dB optional=no since=1.0
 shape.EspnowFields since=1.0
-shape.EspnowFields.devices type=i64 unit= optional=no since=1.0
+shape.EspnowFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.EspnowFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.EspnowFields.frames_bad type=i64 unit= optional=no since=1.0
 shape.EspnowFields.action_frames type=i64 unit= optional=no since=1.0
@@ -413,7 +485,7 @@ ble.kept.devices since=1.0
 ble.kept.packets since=1.0
 ble.kept.device_levels since=1.0
 ble.kept.BleFields.devices since=1.0
-ble.table.devices row=BleDeviceRow cap=400 label=name since=1.0
+ble.table.devices row=BleDeviceRow cap=400 label=name sort=level_dbfs:descending role=nodes time=last_heard since=1.0
 ble.table.packets row=BlePacketRow cap=400 label=address role=log time=signal_s since=1.0
 ble.table.pdu_types row=BlePduTypeRow cap=16 since=1.0
 ble.table.device_levels row=BleDeviceLevelRow cap=9600 label=device since=1.0
@@ -443,7 +515,7 @@ bletracker.kept.BletrackerFields.following_now since=1.0
 bletracker.kept.BletrackerFields.trackers_now since=1.0
 bletracker.kept.BletrackerFields.trackers since=1.0
 bletracker.kept.BletrackerFields.now_s since=1.0
-bletracker.table.trackers row=BletrackerTrackerRow cap=200 label=identifier since=1.0
+bletracker.table.trackers row=BletrackerTrackerRow cap=200 label=identifier sort=level_dbfs:descending role=nodes time=last_heard since=1.0
 bletracker.table.alerts row=BletrackerAlertRow cap=50 since=1.0
 bletracker.table.tracker_kinds row=BletrackerKindRow cap=5 since=1.0
 bletracker.event.ble.tracker fields=BletrackerAlertEvent since=1.0
@@ -466,7 +538,8 @@ wifi.kept.networks since=1.0
 wifi.kept.beacons since=1.0
 wifi.kept.bands since=1.0
 wifi.kept.WifiFields.networks since=1.0
-wifi.table.networks row=WifiNetworkRow cap=300 label=ssid sort=level_dbfs:descending since=1.0
+wifi.table.networks row=WifiNetworkRow cap=300 label=ssid sort=level_dbfs:descending role=nodes time=first_heard since=1.0
+wifi.table.stations row=WifiStationRow cap=1000 label=address sort=last_heard:descending role=nodes time=last_heard since=3.1
 wifi.table.beacons row=WifiBeaconRow cap=400 label=bssid since=1.0
 wifi.table.ofdm_rates row=WifiRateRow cap=8 since=1.0
 wifi.table.bands row=WifiBandRow cap=3 since=1.0
@@ -493,7 +566,7 @@ halow.component.rx.dropped since=1.0
 halow.kept.networks since=1.0
 halow.kept.frames since=1.0
 halow.kept.HalowFields.networks since=1.0
-halow.table.networks row=HalowNetworkRow cap=200 label=ssid sort=snr_db:descending since=1.0
+halow.table.networks row=HalowNetworkRow cap=200 label=ssid sort=snr_db:descending role=nodes time=last_heard since=1.0
 halow.table.frames row=HalowFrameRow cap=600 label=bssid since=1.0
 halow.table.widths row=HalowWidthRow cap=5 since=1.0
 halow.table.by_mcs row=HalowMcsRow cap=11 since=1.0
@@ -521,7 +594,7 @@ btclassic.fields.DecoderFields since=1.0
 btclassic.kept.devices since=1.0
 btclassic.kept.packets since=1.0
 btclassic.kept.BtclassicFields.devices since=1.0
-btclassic.table.devices row=BtclassicDeviceRow cap=400 label=address since=1.0
+btclassic.table.devices row=BtclassicDeviceRow cap=400 label=address sort=level_dbfs:descending role=nodes time=first_heard since=1.0
 btclassic.table.packets row=BtclassicPacketRow cap=300 since=1.0
 btclassic.event.btclassic.device_new fields=BtclassicDeviceEvent since=1.0
 btclassic.event.btclassic.inquiry_response fields=BtclassicInquiryEvent since=1.0
@@ -549,7 +622,7 @@ espnow.component.rx.dropped since=1.0
 espnow.kept.devices since=1.0
 espnow.kept.frames since=1.0
 espnow.kept.EspnowFields.devices since=1.0
-espnow.table.devices row=EspnowDeviceRow cap=300 label=address since=1.0
+espnow.table.devices row=EspnowDeviceRow cap=300 label=address sort=level_dbfs:descending role=nodes time=first_heard since=1.0
 espnow.table.frames row=EspnowFrameRow cap=500 label=from since=1.0
 espnow.table.by_rate row=EspnowRateRow cap=5 since=1.0
 espnow.table.by_channel row=EspnowChannelRow cap=14 since=1.0

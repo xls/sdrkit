@@ -16,6 +16,8 @@ public enum ValueType: Int32, Sendable {
     case bytes = 10
     /// Each value carries its own type. Only a column or an argument has this type.
     case any = 11
+    /// A set of the flags of the declaration.
+    case flags = 12
 
     init(raw: Int32) {
         self = ValueType(rawValue: raw) ?? .none
@@ -44,6 +46,8 @@ public enum Value: Equatable, Sendable {
     case position(latitude: Double, longitude: Double)
     /// One of the options of the declaration, by its index.
     case option(UInt32)
+    /// A set of the flags of the declaration, as a mask: bit n is flag n.
+    case flags(UInt64)
     /// Raw bytes.
     case bytes(Data)
 
@@ -60,6 +64,7 @@ public enum Value: Equatable, Sendable {
         case .duration: return .duration
         case .position: return .position
         case .option: return .option
+        case .flags: return .flags
         case .bytes: return .bytes
         }
     }
@@ -91,6 +96,7 @@ public enum Value: Equatable, Sendable {
         case SDRKIT_TYPE_DURATION: self = .duration(v.number)
         case SDRKIT_TYPE_POSITION: self = .position(latitude: v.lat, longitude: v.lon)
         case SDRKIT_TYPE_ENUM: self = .option(v.enum_index)
+        case SDRKIT_TYPE_FLAGS: self = .flags(v.flags)
         case SDRKIT_TYPE_BYTES: self = .bytes(copy(v.bytes))
         default: self = .none
         }
@@ -129,6 +135,7 @@ final class Variants {
             v.lat = lat
             v.lon = lon
         case .option(let i): v.enum_index = i
+        case .flags(let m): v.flags = m
         case .text(let s):
             let utf8 = Array(s.utf8)
             let p = utf8.withUnsafeBytes { keep($0) }

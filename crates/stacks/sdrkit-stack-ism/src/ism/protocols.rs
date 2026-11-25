@@ -1,4 +1,4 @@
-//! The 46 device protocols of the ISM sensors stack as `sdrkit_proto_ookdev` table entries: each with its line code, its timing, its
+//! The 48 device protocols of the ISM sensors stack as `sdrkit_proto_ookdev` table entries: each with its line code, its timing, its
 //! frame test and its fields.
 //!
 //! No public standard defines these devices.
@@ -25,13 +25,13 @@ pub fn kind_of(protocol: usize) -> &'static str {
     KINDS.get(protocol).copied().unwrap_or("sensor")
 }
 
-const KINDS: [&str; 46] = [
+const KINDS: [&str; 48] = [
     "weather", "weather", "weather", "weather", "weather", "weather", "weather", "weather",
     "weather", "weather", "weather", "weather", "weather", "weather", "weather", "weather",
     "weather", "weather", "meter", "meter", "weather", "sensor", "sensor", "weather", "tpms",
     "tpms", "remote", "weather", "weather", "weather", "weather", "weather", "weather", "tpms",
     "tpms", "tpms", "tpms", "tpms", "tpms", "tpms", "energy", "energy", "zwave", "zwave", "zwave",
-    "meter",
+    "meter", "remote", "remote",
 ];
 
 const fn pd(
@@ -74,7 +74,7 @@ macro_rules! dec {
 pub const ERT_HALF_US: f32 = (1e6 / 65536.0) as f32;
 
 /// Every protocol, in the order of their numbers.
-pub static PROTOCOLS: [ProtocolDef; 46] = [
+pub static PROTOCOLS: [ProtocolDef; 48] = [
     pd(
         "Nexus, FreeTec NC-7345, NX-3980, Solight TE82S, TFA 30.3209",
         OOK,
@@ -352,6 +352,18 @@ pub static PROTOCOLS: [ProtocolDef; 46] = [
         FSK,
         t(Nrz, 10., 10., 500., 0., 0., 0.),
         dec!(wmbus_header),
+    ),
+    pd(
+        "Somfy RTS blind and awning remotes (rolling code)",
+        OOK,
+        t(Nrz, 604., 604., 20_000., 0., 0., 0.),
+        dec!(somfy_rts),
+    ),
+    pd(
+        "KeeLoq-style rolling-code remotes (HCS301 code word)",
+        OOK,
+        t(Pwm, 400., 800., 12_000., 3000., 0., 0.),
+        dec!(keeloq),
     ),
 ];
 
@@ -2155,4 +2167,108 @@ fn wmbus_header(rows: &BitRows, _: &mut Ctx) -> Option<Reading> {
             .with(&measure::C_FIELD, &format!("{:02X}", bytes[1]))
             .with(&measure::LENGTH_BYTES, i64::from(bytes[0])),
     )
+}
+
+// 47. Somfy RTS, from a public prose description of the protocol: 433.42 MHz OOK; hardware sync 2416 µs on and off, a software
+// sync of 4550 µs on and 604 µs off, then 56 bits Manchester with 604 µs half-bits (a rising edge is 1); each byte after the
+// first is sent XOR the byte sent before it; the XOR of the 14 nibbles is 0. Byte 1 high nibble is the button, bytes 2 and 3
+// the rolling code, bytes 4 to 6 the address (low byte first). Only the address and the button are shown: the rolling code is
+// read for the check and dropped, so nothing here can make or predict a frame.
+fn somfy_rts(rows: &BitRows, _: &mut Ctx) -> Option<Reading> {
+    let n = rows.len(0);
+    // The software sync: at least 7 one-chips after at least 3 zero-chips, then one zero-chip.
+    let mut i = 0;
+    let start = loop {
+        while i < n && rows.bit(0, i) == 1 {
+            i += 1;
+        }
+        let z = i;
+        while i < n && rows.bit(0, i) == 0 {
+            i += 1;
+        }
+        let o = i;
+        while i < n && rows.bit(0, i) == 1 {
+            i += 1;
+        }
+        if i >= n {
+            return None;
+        }
+        if o - z >= 3 && i - o >= 7 {
+            break i + 1;
+        }
+    };
+    let mut f = [0u8; 7];
+    let got = manchester(rows, 0, start, 56, ManchesterConv::Ieee, |d| {
+        let k = d.len(0);
+        if k >= 55 {
+            d.row(0).copy_padded(&mut f);
+        }
+        k
+    });
+    // The last bit 0 ends on a high half-chip that the silence after the frame takes in.
+    if got == 55 && n == start + 111 && rows.bit(0, n - 1) == 1 {
+    } else if got != 56 {
+        return None;
+    }
+    let mut d = f;
+    for k in 1..7 {
+        d[k] = f[k] ^ f[k - 1];
+    }
+    if d.iter().fold(0u8, |a, &b| a ^ (b >> 4) ^ (b & 15)) != 0 {
+        return None;
+    }
+    let button = match d[1] >> 4 {
+        0x1 => "My",
+        0x2 => "Up",
+        0x3 => "My + Up",
+        0x4 => "Down",
+        0x5 => "My + Down",
+        0x6 => "Up + Down",
+        0x8 => "Prog",
+        0x9 => "Sun + Flag",
+        0xA => "Flag",
+        _ => return None,
+    };
+    let address = u32::from(d[6]) << 16 | u32::from(d[5]) << 8 | u32::from(d[4]);
+    let rd = Reading::new("Somfy-RTS", "remote", format!("{address:06X}"), Check::Checksum)
+        .with(&measure::BUTTON, button);
+    Some(rd.with(&measure::TYPE, "rolling code"))
+}
+
+// 48. A KeeLoq-style code word, from the Microchip HCS301 data sheet (DS21143): a preamble of 12 pulses of TE (400 µs) with TE
+// gaps, a header of 10 TE, then 66 bits in PWM (a 1 is TE on and 2 TE off, a 0 is 2 TE on and TE off), least significant bit
+// first: 32 bits of encrypted hopping code, the 28-bit serial number, the buttons S3 S0 S1 S2, VLOW and RPT. Only the serial
+// number, the buttons and the battery are shown; the hopping code is not read. A word counts from its second copy.
+fn keeloq(rows: &BitRows, ctx: &mut Ctx) -> Option<Reading> {
+    let r = (1..rows.num_rows()).find(|&r| {
+        rows.len(r) == 66
+            && (10..=12).contains(&rows.len(r - 1))
+            && (0..rows.len(r - 1)).all(|i| rows.bit(r - 1, i) == 1)
+    })?;
+    let lsb = |pos: usize, n: usize| (0..n).fold(0u32, |v, i| v | u32::from(rows.bit(r, pos + i)) << i);
+    let serial = lsb(32, 28);
+    let (s3, s0, s1, s2) = (lsb(60, 1), lsb(61, 1), lsb(62, 1), lsb(63, 1));
+    let (vlow, rpt) = (lsb(64, 1), lsb(65, 1));
+    if serial == 0 || serial == 0x0FFF_FFFF || s0 + s1 + s2 + s3 == 0 {
+        return None;
+    }
+    // No check covers the word: it counts from its second copy in one train (a held button repeats it), once per train.
+    let fixed = u64::from(serial) << 4 | u64::from(s3 << 3 | s2 << 2 | s1 << 1 | s0);
+    if ctx.first_copy(fixed) || !ctx.first_copy((1 << 40) | fixed) {
+        return None;
+    }
+    let mut buttons = String::new();
+    for (on, name) in [(s0, "S0"), (s1, "S1"), (s2, "S2"), (s3, "S3")] {
+        if on == 1 {
+            if !buttons.is_empty() {
+                buttons.push_str(" + ");
+            }
+            buttons.push_str(name);
+        }
+    }
+    let rd = Reading::new("KeeLoq-HCS", "remote", format!("{serial:07X}"), Check::Repeat)
+        .with_battery(vlow == 0)
+        .with(&measure::BUTTON, &buttons)
+        .with(&measure::TYPE, "rolling code");
+    Some(rd.with(&measure::REPEAT, i64::from(rpt)))
 }

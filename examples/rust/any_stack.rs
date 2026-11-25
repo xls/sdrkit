@@ -32,6 +32,7 @@ fn show(decl: &FieldDecl, value: &Value) -> String {
             .choices
             .get(usize::from(*i))
             .map_or_else(|| i.to_string(), |c| c.label.to_string()),
+        Value::Flags(_) => value.display(&[]).with_flags(&decl.flags).to_string(),
         Value::Bytes(b) => format!("{} bytes", b.len()),
     }
 }

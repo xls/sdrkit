@@ -365,7 +365,8 @@ pub fn plain(v: f64) -> String {
 /// The expected value `exp` of `expected.json` read as a value of field `decl`: a number, or text that starts with a number
 /// (`"9.0 %"`) for a number field, and hexadecimal text for a whole number (`"4A21"`). `true`, `false`, "yes", "on", "1"
 /// and their opposites for a yes/no field. Text for a text field (a number as its short text). The key or the label of a
-/// choice. `{"lat", "lon"}` for a position. `None` if `exp` does not read as that kind.
+/// choice. A list of flag keys or labels for a flag set. `{"lat", "lon"}` for a position. `None` if `exp` does not read
+/// as that kind.
 pub fn expected_value(exp: &Json, decl: &FieldDecl) -> Option<Value> {
     let number = || json_number(exp);
     Some(match decl.kind {
@@ -400,6 +401,14 @@ pub fn expected_value(exp: &Json, decl: &FieldDecl) -> Option<Value> {
                 .iter()
                 .position(|c| c.key == s || c.label == s)?;
             Value::Choice(u16::try_from(i).ok()?)
+        }
+        ValueKind::Flags => {
+            let mut mask = 0;
+            for e in exp.as_array()? {
+                let s = e.as_str()?.trim();
+                mask |= 1 << decl.flags.iter().position(|f| f.key == s || f.label == s)?;
+            }
+            Value::Flags(mask)
         }
         ValueKind::Position => Value::Position {
             lat: exp.get("lat")?.as_f64()?,

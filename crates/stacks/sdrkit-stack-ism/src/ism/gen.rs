@@ -59,11 +59,15 @@ pub enum TestDevice {
     ZwaveR2,
     /// Z-Wave R3.
     ZwaveR3,
+    /// Somfy RTS remote.
+    SomfyRts,
+    /// KeeLoq-style (HCS301) remote.
+    Keeloq,
 }
 
 impl TestDevice {
     /// Every test device.
-    pub const ALL: [TestDevice; 22] = [
+    pub const ALL: [TestDevice; 24] = [
         TestDevice::Nexus,
         TestDevice::Tx141th,
         TestDevice::AcuriteTower,
@@ -86,6 +90,8 @@ impl TestDevice {
         TestDevice::ZwaveR1,
         TestDevice::ZwaveR2,
         TestDevice::ZwaveR3,
+        TestDevice::SomfyRts,
+        TestDevice::Keeloq,
     ];
 
     /// The model name it is reported as.
@@ -113,6 +119,8 @@ impl TestDevice {
             TestDevice::ZwaveR1 => "Z-Wave-R1",
             TestDevice::ZwaveR2 => "Z-Wave-R2",
             TestDevice::ZwaveR3 => "Z-Wave-R3",
+            TestDevice::SomfyRts => "Somfy-RTS",
+            TestDevice::Keeloq => "KeeLoq-HCS",
         }
     }
 
@@ -141,6 +149,8 @@ impl TestDevice {
             TestDevice::ZwaveR1 => "C0FFEE01:2",
             TestDevice::ZwaveR2 => "DEADBEEF:7",
             TestDevice::ZwaveR3 => "12345678:9",
+            TestDevice::SomfyRts => "5A3C81",
+            TestDevice::Keeloq => "1A2B3C4",
         }
     }
 
@@ -148,7 +158,7 @@ impl TestDevice {
     pub fn checked(self) -> bool {
         !matches!(
             self,
-            TestDevice::Nexus | TestDevice::Ev1527 | TestDevice::CurrentCost
+            TestDevice::Nexus | TestDevice::Ev1527 | TestDevice::CurrentCost | TestDevice::Keeloq
         )
     }
 }
@@ -209,6 +219,65 @@ pub fn wmbus_frame(k: u64) -> Vec<u8> {
         0x00,
         0x2F,
     ]
+}
+
+/// An OOK train of (on, µs) levels: runs of one level are joined; the last space is `tail_us`.
+fn levels_train(levels: &[(bool, f32)], tail_us: f32) -> Train {
+    let mut pairs: Vec<(f32, f32)> = Vec::new();
+    for &(on, us) in levels {
+        match (on, pairs.last_mut()) {
+            (true, Some(p)) if p.1 == 0.0 => p.0 += us,
+            (true, _) => pairs.push((us, 0.0)),
+            (false, Some(p)) => p.1 += us,
+            (false, None) => {}
+        }
+    }
+    if let Some(p) = pairs.last_mut() {
+        p.1 += tail_us;
+    }
+    Train::from_us(Modulation::Ook, TRAIN_RATE_HZ, &pairs)
+}
+
+/// A Somfy RTS frame written from the public description (see the decoder): key 0xA7, button `button`, a rolling code, the
+/// address 5A3C81; two hardware syncs of 2416 µs, the software sync of 4550 and 604 µs, 56 Manchester bits of 604 µs
+/// half-bits (a 1 is low then high), then 30.4 ms of silence.
+pub fn somfy_train(button: u8, rolling: u16) -> Train {
+    let mut d = [0xA7, button << 4, (rolling >> 8) as u8, rolling as u8, 0x81, 0x3C, 0x5A];
+    let x = d.iter().fold(0u8, |a, &b| a ^ (b >> 4) ^ (b & 15));
+    d[1] |= x;
+    let mut f = d;
+    for k in 1..7 {
+        f[k] = d[k] ^ f[k - 1];
+    }
+    let mut lv = Vec::new();
+    for _ in 0..2 {
+        lv.extend([(true, 2416.0), (false, 2416.0)]);
+    }
+    lv.extend([(true, 4550.0), (false, 604.0)]);
+    for b in bits_of(&f) {
+        lv.extend([(b == 0, 604.0), (b == 1, 604.0)]);
+    }
+    levels_train(&lv, 30_415.0)
+}
+
+/// Two HCS301 code words written from the data sheet: 12 preamble pulses of TE = 400 µs, a 10 TE header, 66 PWM bits least
+/// significant first (a stand-in hopping code, serial 1A2B3C4, button S1, VLOW 0, RPT 0 then 1), a 39 TE guard.
+pub fn keeloq_train() -> Train {
+    let te = 400.0;
+    let mut lv = Vec::new();
+    for rpt in 0..2u64 {
+        for i in 0..12 {
+            lv.extend([(true, te), (false, if i == 11 { 10.0 * te } else { te })]);
+        }
+        let word: u128 = 0x3C5A_9E17 | (0x1A2_B3C4u128 << 32) | (1u128 << 62) | (u128::from(rpt) << 65);
+        for i in 0..66 {
+            let one = (word >> i) & 1 == 1;
+            let (on, off) = if one { (te, 2.0 * te) } else { (2.0 * te, te) };
+            lv.extend([(true, on), (false, off)]);
+        }
+        lv.push((false, 39.0 * te));
+    }
+    levels_train(&lv, 0.0)
 }
 
 /// The train of test device `d` for transmission `k`, as a receiver passes it to the protocols (lengths at 1 MHz).
@@ -295,6 +364,8 @@ pub fn device_train(d: TestDevice, k: u64) -> Train {
             bits.extend_from_slice(&[0, 1, 0, 1]);
             fsk(&bits, 10.0, 50e3)
         }
+        TestDevice::SomfyRts => somfy_train(0x2, 0x1234 + k as u16),
+        TestDevice::Keeloq => keeloq_train(),
         TestDevice::ZwaveR1 | TestDevice::ZwaveR2 | TestDevice::ZwaveR3 => {
             let m = zwave_mpdu(d, k);
             let (pre, chip, dev) = match d {
@@ -408,6 +479,8 @@ pub fn scene_slots(scene: u32) -> Vec<Slot> {
             s(Ford, 45e3, 4.60, 10.0),
             s(Efergy, -370e3, 4.80, 10.0),
             s(CurrentCost, 5e3, 5.00, 10.0),
+            s(SomfyRts, -40e3, 5.30, 10.0),
+            s(Keeloq, 35e3, 5.70, 10.0),
         ],
     }
 }

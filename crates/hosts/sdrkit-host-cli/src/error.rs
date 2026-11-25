@@ -14,6 +14,14 @@ pub enum CliError {
     /// The engine refused a call.
     #[error(transparent)]
     Engine(#[from] EngineError),
+    /// The radio refused a setting when it opened. The text names the setting by its label and key.
+    #[error("{text}")]
+    Radio {
+        /// The sentence.
+        text: String,
+        /// What the engine returned.
+        error: Box<EngineError>,
+    },
     /// A graph description did not build.
     #[error(transparent)]
     Graph(#[from] GraphError),
@@ -138,6 +146,31 @@ pub enum SoundError {
 }
 
 impl CliError {
+    /// The error `e` of the open of a radio of the driver kind `driver`. A refused setting is named by its label and key
+    /// in the schema of the kind; a setting that only the open radio has stays a number.
+    pub fn of_open(engine: &sdrkit_host_engine::Engine, driver: &str, e: EngineError) -> CliError {
+        let EngineError::Driver(d) = &e else {
+            return CliError::Engine(e);
+        };
+        if !matches!(
+            d,
+            sdrkit_driver_core::DriverError::Refused { .. }
+                | sdrkit_driver_core::DriverError::Setting(_)
+        ) {
+            return CliError::Engine(e);
+        }
+        let text = engine
+            .find(&format!("driver.{driver}"))
+            .and_then(|kind| engine.owner(kind, |o| d.text(o.schema())));
+        match text {
+            Ok(text) => CliError::Radio {
+                text,
+                error: Box::new(e),
+            },
+            Err(_) => CliError::Engine(e),
+        }
+    }
+
     /// The exit code: 1 if a check failed or a call failed, 2 for bad usage.
     pub fn exit_code(&self) -> u8 {
         match self {

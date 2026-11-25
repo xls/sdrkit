@@ -78,7 +78,7 @@ pub struct IsmDetectFields {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct IsmFields {
     /// Devices in the table.
-    #[field(label = "Devices")]
+    #[field(label = "Devices", reading = 1)]
     pub devices: i64,
     /// Distinct transmissions decoded.
     #[field(label = "Packets decoded")]
@@ -133,6 +133,9 @@ pub struct IsmDeviceRow<'a> {
     /// The frame test of the last reading.
     #[field(label = "Check")]
     pub check: Check,
+    /// The name of the device for people: the model and the id ("Acurite-Tower 1234").
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// A row of the Z-Wave view of the devices. The row key is the key of the device.
@@ -273,7 +276,10 @@ pub struct IsmDeviceEvent<'a> {
 
 /// The devices.
 pub static ISM_DEVICES: Table<IsmDeviceRow<'static>> =
-    Table::new("devices", "Devices", 300).label(&IsmDeviceRow::ID);
+    Table::new("devices", "Devices", 300)
+        .label(&IsmDeviceRow::NAME)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&IsmDeviceRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 /// The Z-Wave devices.
 pub static ISM_ZWAVE: Table<IsmZwaveRow<'static>> = Table::new("zwave", "Z-Wave", 300);
 /// The reading log, newest last.
@@ -821,11 +827,173 @@ pub static DSRC_FRAMES: Table<DsrcFrameRow<'static>> =
 pub static DSRC_FRAME: EventKind<DsrcFrameEvent<'static>> =
     EventKind::new("dsrc_toll.frame", "DSRC frame");
 
+// EnOcean.
+
+/// The result fields of the EnOcean stack.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct EnoceanFields<'a> {
+    /// Telegrams; the subtelegrams of one telegram count once.
+    #[field(label = "Telegrams")]
+    pub telegrams: i64,
+    /// Subtelegrams with a good check.
+    #[field(label = "Subtelegrams")]
+    pub subtelegrams: i64,
+    /// Frames that the line coding accepted and the check refused.
+    #[field(shared = keys::FRAMES_BAD)]
+    pub frames_bad: i64,
+    /// Senders heard.
+    #[field(label = "Devices", reading = 1)]
+    pub devices: i64,
+    /// Bursts over the noise floor.
+    #[field(label = "Bursts")]
+    pub bursts: i64,
+    /// The power of the input. It has no value before the first input.
+    #[field(shared = keys::LEVEL_DBFS)]
+    pub level_dbfs: Option<f64>,
+    /// What no real signal has confirmed and what is not read.
+    #[field(label = "Note")]
+    pub note: &'a str,
+}
+
+/// A row of the telegram log. The row key is the number of the telegram in the log.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct EnoceanTelegramRow<'a> {
+    /// The UTC of the first subtelegram, when the samples are live.
+    #[field(label = "UTC")]
+    pub utc: Option<Time>,
+    /// The signal time of the first subtelegram.
+    #[field(label = "Time", unit = "s")]
+    pub time_s: f64,
+    /// The sender id, hex.
+    #[field(label = "Sender")]
+    pub sender: &'a str,
+    /// The radio protocol: ERP1 or ERP2.
+    #[field(label = "Radio protocol")]
+    pub radio: &'a str,
+    /// The telegram type (RORG).
+    #[field(label = "Telegram type")]
+    pub telegram_type: &'a str,
+    /// What the telegram says.
+    #[field(label = "Reading")]
+    pub reading: &'a str,
+    /// The payload as hex; empty for a secure telegram.
+    #[field(label = "Data")]
+    pub data: &'a str,
+    /// The destination id of an addressed telegram, hex.
+    #[field(label = "Destination")]
+    pub destination: Option<&'a str>,
+    /// The repeater level of the first subtelegram.
+    #[field(label = "Repeater")]
+    pub repeater: &'a str,
+    /// Subtelegrams heard of this telegram.
+    #[field(label = "Subtelegrams")]
+    pub subtelegrams: i64,
+    /// The check that passed.
+    #[field(label = "Check")]
+    pub check: &'a str,
+    /// The level of the first subtelegram.
+    #[field(shared = keys::LEVEL_DBFS)]
+    pub level_dbfs: f64,
+}
+
+/// A row of the devices. The row key is the sender id, hex.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct EnoceanDeviceRow<'a> {
+    /// The name of the device for people: "EnOcean", the profile when known, and the id.
+    #[field(label = "Name")]
+    pub name: &'a str,
+    /// The radio protocol last heard.
+    #[field(label = "Radio protocol")]
+    pub radio: &'a str,
+    /// The last telegram type.
+    #[field(label = "Telegram type")]
+    pub telegram_type: &'a str,
+    /// The profile (EEP), from a teach-in or certain from the telegram type.
+    #[field(label = "Profile")]
+    pub profile: Option<&'a str>,
+    /// The last reading.
+    #[field(label = "Reading")]
+    pub reading: &'a str,
+    /// Telegrams heard.
+    #[field(label = "Telegrams")]
+    pub telegrams: i64,
+    /// Secure telegrams heard.
+    #[field(label = "Secure telegrams")]
+    pub secure: i64,
+    /// The level of the last telegram.
+    #[field(shared = keys::LEVEL_DBFS)]
+    pub level_dbfs: f64,
+    /// The UTC of the first telegram.
+    #[field(shared = columns::FIRST_HEARD)]
+    pub first_heard: Option<Time>,
+    /// The UTC of the last telegram.
+    #[field(shared = columns::LAST_HEARD)]
+    pub last_heard: Option<Time>,
+}
+
+/// The fields of a telegram event.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct EnoceanTelegramEvent<'a> {
+    /// The sender id, hex.
+    #[field(label = "Sender")]
+    pub sender: &'a str,
+    /// The telegram type (RORG).
+    #[field(label = "Telegram type")]
+    pub telegram_type: &'a str,
+    /// What the telegram says.
+    #[field(label = "Reading")]
+    pub reading: &'a str,
+    /// The family of the event.
+    #[field(shared = keys::FAMILY)]
+    pub family: Family,
+}
+
+/// The telegram log, newest first.
+pub static ENOCEAN_TELEGRAMS: Table<EnoceanTelegramRow<'static>> =
+    Table::new("telegrams", "Telegrams", 500)
+        .label(&EnoceanTelegramRow::SENDER)
+        .role(sdrkit_core::TableRole::Log);
+/// The devices, most recently heard first.
+pub static ENOCEAN_DEVICES: Table<EnoceanDeviceRow<'static>> =
+    Table::new("devices", "Devices", 500)
+        .label(&EnoceanDeviceRow::NAME)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&EnoceanDeviceRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
+/// A telegram (its first subtelegram).
+pub static ENOCEAN_TELEGRAM: EventKind<EnoceanTelegramEvent<'static>> =
+    EventKind::new("enocean.telegram", "EnOcean telegram");
+
+/// The EnOcean stack.
+fn enocean() -> StackShape {
+    StackShape::new(crate::enocean::ID)
+        .content(sdrkit_core::ContentKind::Devices)
+        .fields::<EnoceanFields>()
+        .fields::<DecoderFields>()
+        .table(&ENOCEAN_DEVICES)
+        .table(&ENOCEAN_TELEGRAMS)
+        .event(&ENOCEAN_TELEGRAM)
+        .settings(crate::enocean::EnoceanStackSetting::SETTINGS)
+        .command(&sdrkit_graph::decoder::CLEAR)
+        .kept(&[
+            "devices",
+            "telegrams",
+            "EnoceanFields.telegrams",
+            "EnoceanFields.subtelegrams",
+            "EnoceanFields.frames_bad",
+            "EnoceanFields.bursts",
+        ])
+}
+
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("ism", 4, 0)
+        Described::new("ism", 4, 2)
+            .added(
+                4,
+                1,
+                &["shape.IsmDeviceRow.name", "shape.PanDeviceRow.name"],
+            )
             .content(sdrkit_core::ContentKind::TextChat, &["subghzchat"])
             .content(sdrkit_core::ContentKind::Networks, &["npr70", "dect"])
             .content(
@@ -864,6 +1032,16 @@ pub fn family() -> &'static Described {
             .stack(dect_nrplus())
             .stack(npr70())
             .stack(dsrc_toll())
+            .added(
+                4,
+                2,
+                &[
+                    "shape.ZwaveNodeRow.name",
+                    "shape.ZigbeeNetworkRow.name",
+                    "shape.AntSensorRow.name",
+                ],
+            )
+            .added_in(4, 2, |f| f.stack(enocean()))
     })
 }
 
@@ -967,7 +1145,10 @@ pub struct NprFrameEvent<'a> {
 /// The frames, newest first.
 pub static NPR_FRAMES: Table<NprFrameRow<'static>> = Table::new("frames", "Frames", 300);
 /// The networks heard.
-pub static NPR_NETWORKS: Table<NprNetworkRow<'static>> = Table::new("networks", "Networks", 16);
+pub static NPR_NETWORKS: Table<NprNetworkRow<'static>> = Table::new("networks", "Networks", 16)
+        .label(&NprNetworkRow::NETWORK)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&NprNetworkRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 /// A sync word.
 pub static NPR_FRAME: EventKind<NprFrameEvent<'static>> =
     EventKind::new("npr70.frame", "New Packet Radio frame");
@@ -997,7 +1178,7 @@ pub struct NrPlusFields<'a> {
     #[field(label = "STF detections")]
     pub stf_detections: i64,
     /// The devices in the table.
-    #[field(label = "Devices")]
+    #[field(label = "Devices", reading = 1)]
     pub devices: i64,
     /// The SNR of the last packet. It has no value before the first packet.
     #[field(shared = keys::SNR_DB)]
@@ -1087,7 +1268,10 @@ pub static NRPLUS_PACKETS: Table<NrPlusPacketRow<'static>> =
     Table::new("packets", "Packets", 300).label(&NrPlusPacketRow::ID);
 /// The devices, most recently heard first.
 pub static NRPLUS_DEVICES: Table<NrPlusDeviceRow<'static>> =
-    Table::new("devices", "Devices", 200).label(&NrPlusDeviceRow::ID);
+    Table::new("devices", "Devices", 200)
+        .label(&NrPlusDeviceRow::ID)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&NrPlusDeviceRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 /// A packet.
 pub static NRPLUS_PACKET: EventKind<NrPlusPacketEvent<'static>> =
     EventKind::new("dect_nrplus.packet", "DECT NR+ packet");
@@ -1125,7 +1309,7 @@ pub struct MiotyFields<'a> {
     #[field(label = "Failed hypotheses")]
     pub failed_hypotheses: i64,
     /// The devices in the table.
-    #[field(label = "Devices")]
+    #[field(label = "Devices", reading = 1)]
     pub devices: i64,
     /// The SNR of the last frame. It has no value before the first frame.
     #[field(shared = keys::SNR_DB)]
@@ -1227,7 +1411,10 @@ pub static MIOTY_FRAMES: Table<MiotyFrameRow<'static>> =
     Table::new("frames", "Frames", 200).label(&MiotyFrameRow::ID);
 /// The devices, most recently heard first.
 pub static MIOTY_DEVICES: Table<MiotyDeviceRow<'static>> =
-    Table::new("devices", "Devices", 200).label(&MiotyDeviceRow::ID);
+    Table::new("devices", "Devices", 200)
+        .label(&MiotyDeviceRow::ID)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&MiotyDeviceRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 /// A frame.
 pub static MIOTY_FRAME: EventKind<MiotyFrameEvent<'static>> =
     EventKind::new("mioty.frame", "mioty frame");
@@ -1264,7 +1451,7 @@ pub struct WmbusFields {
     #[field(shared = keys::FRAMES_BAD)]
     pub frames_bad: i64,
     /// The meters in the table.
-    #[field(label = "Meters")]
+    #[field(label = "Meters", reading = 1)]
     pub meters: i64,
     /// Syncs found.
     #[field(label = "Syncs")]
@@ -1426,7 +1613,10 @@ pub struct WmbusFrameEvent<'a> {
 }
 
 /// The meters, most recently heard first.
-pub static WMBUS_METERS: Table<WmbusMeterRow<'static>> = Table::new("meters", "Meters", 300);
+pub static WMBUS_METERS: Table<WmbusMeterRow<'static>> = Table::new("meters", "Meters", 300)
+        .label(&WmbusMeterRow::METER_ID)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&WmbusMeterRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 /// The data records of the last frame of each meter.
 pub static WMBUS_RECORDS: Table<WmbusRecordRow<'static>> =
     Table::new("meter_records", "Meter records", 3000);
@@ -1554,7 +1744,7 @@ pub struct ZwaveFields {
     #[field(label = "Networks")]
     pub networks: i64,
     /// The nodes in the table.
-    #[field(label = "Nodes")]
+    #[field(label = "Nodes", reading = 1)]
     pub nodes: i64,
     /// Frames at R1.
     #[field(label = "R1 frames")]
@@ -1662,6 +1852,9 @@ pub struct ZwaveNodeRow<'a> {
     /// The node sent at low power.
     #[field(label = "Low power")]
     pub low_power: bool,
+    /// The name of the node for people: the home id and the node id ("C0FFEE01 node 2").
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// A row of the Z-Wave networks. The row key is the home id.
@@ -1780,9 +1973,13 @@ pub struct ZwaveStateEvent<'a> {
 pub static ZWAVE_FRAMES: Table<ZwaveFrameRow<'static>> =
     Table::new("frames", "Frames", 600).role(sdrkit_core::TableRole::Log);
 /// The Z-Wave nodes, most recently heard first.
-pub static ZWAVE_NODES: Table<ZwaveNodeRow<'static>> = Table::new("nodes", "Nodes", 1000);
+pub static ZWAVE_NODES: Table<ZwaveNodeRow<'static>> = Table::new("nodes", "Nodes", 1000)
+        .label(&ZwaveNodeRow::NAME)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&ZwaveNodeRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 /// The Z-Wave networks, most recently heard first.
 pub static ZWAVE_NETWORKS: Table<ZwaveNetworkRow<'static>> = Table::new("networks", "Networks", 64)
+    .label(&ZwaveNetworkRow::HOME_ID)
     .sorted(
         &ZwaveNetworkRow::LEVEL_DBFS,
         sdrkit_core::SortOrder::Descending,
@@ -1953,10 +2150,17 @@ pub struct PanDeviceRow<'a> {
     /// The description of the last frame.
     #[field(label = "Last frame")]
     pub last_frame: &'a str,
+    /// The name of the device for people: the vendor and the short address, else the extended address.
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// The devices of an IEEE 802.15.4 stack, most recently heard first.
-pub static PAN_DEVICES: Table<PanDeviceRow<'static>> = Table::new("devices", "Devices", 600);
+pub static PAN_DEVICES: Table<PanDeviceRow<'static>> =
+    Table::new("devices", "Devices", 600)
+        .label(&PanDeviceRow::NAME)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&PanDeviceRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 
 /// The row key of a device of an IEEE 802.15.4 stack.
 pub const PAN_DEVICE_ROW: Argument<field::Text> = objcmd::row_of("devices");
@@ -2118,7 +2322,7 @@ pub struct ZigbeeFields {
     #[field(label = "Networks")]
     pub networks: i64,
     /// The devices in the table.
-    #[field(label = "Devices")]
+    #[field(label = "Devices", reading = 1)]
     pub devices: i64,
     /// The channel listened to (0 when not known).
     #[field(label = "Channel")]
@@ -2161,6 +2365,9 @@ pub struct ZigbeeNetworkRow<'a> {
     /// The UTC of the last frame.
     #[field(shared = columns::LAST_HEARD)]
     pub last_heard: Option<Time>,
+    /// The name of the network for people: the extended PAN id when known, else the PAN id.
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// A row of the Zigbee frame log. The row key is the number of the frame in the log.
@@ -2217,7 +2424,7 @@ pub struct ZigbeePanEvent<'a> {
 
 /// The Zigbee networks, most recently heard first.
 pub static ZIGBEE_NETWORKS: Table<ZigbeeNetworkRow<'static>> =
-    Table::new("networks", "Networks", 100).sorted(
+    Table::new("networks", "Networks", 100).label(&ZigbeeNetworkRow::NAME).sorted(
         &ZigbeeNetworkRow::LEVEL_DBFS,
         sdrkit_core::SortOrder::Descending,
     );
@@ -2350,7 +2557,7 @@ pub struct ThreadFields {
     #[field(label = "Networks")]
     pub networks: i64,
     /// The devices in the table.
-    #[field(label = "Devices")]
+    #[field(label = "Devices", reading = 1)]
     pub devices: i64,
     /// The level of the last frame since the last change of frequency.
     #[field(shared = keys::LEVEL_DBFS)]
@@ -2575,7 +2782,7 @@ pub struct WisunFields {
     #[field(label = "Networks")]
     pub networks: i64,
     /// The nodes in the table.
-    #[field(label = "Nodes")]
+    #[field(label = "Nodes", reading = 1)]
     pub nodes: i64,
     /// The links in the table.
     #[field(label = "Links")]
@@ -2738,7 +2945,10 @@ pub static WISUN_NETWORKS: Table<WisunNetworkRow<'static>> = Table::new("network
         sdrkit_core::SortOrder::Descending,
     );
 /// The Wi-SUN nodes, most recently heard first.
-pub static WISUN_NODES: Table<WisunNodeRow<'static>> = Table::new("nodes", "Nodes", 2000);
+pub static WISUN_NODES: Table<WisunNodeRow<'static>> = Table::new("nodes", "Nodes", 2000)
+        .label(&WisunNodeRow::ADDRESS)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&WisunNodeRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 /// The Wi-SUN links, most recently heard first.
 pub static WISUN_LINKS: Table<WisunLinkRow<'static>> =
     Table::new("links", "Links", 4000).label(&WisunLinkRow::FROM);
@@ -3056,7 +3266,7 @@ pub struct AntFields {
     #[field(shared = keys::FRAMES_OK)]
     pub frames_ok: i64,
     /// The sensors in the table.
-    #[field(label = "Sensors")]
+    #[field(label = "Sensors", reading = 1)]
     pub sensors: i64,
     /// The newest heart rate of any strap, if a strap sent one.
     #[field(label = "Heart rate", unit = "bpm")]
@@ -3119,6 +3329,9 @@ pub struct AntSensorRow<'a> {
     /// The UTC of the last frame.
     #[field(shared = columns::LAST_HEARD)]
     pub last_heard: Option<Time>,
+    /// The name of the sensor for people: its type and device number.
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// A row of the frame log. The row key is the number of the frame in the log.
@@ -3174,7 +3387,10 @@ pub struct AntSensorEvent<'a> {
 }
 
 /// The sensors, most recently heard first.
-pub static ANT_SENSORS: Table<AntSensorRow<'static>> = Table::new("sensors", "Sensors", 100);
+pub static ANT_SENSORS: Table<AntSensorRow<'static>> = Table::new("sensors", "Sensors", 100)
+        .label(&AntSensorRow::NAME)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&AntSensorRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 /// The frame log, newest first.
 pub static ANT_FRAMES: Table<AntFrameRow<'static>> = Table::new("frames", "Frames", 400);
 /// A new sensor.
@@ -3288,7 +3504,7 @@ pub struct NfcFields {
     #[field(label = "Frames")]
     pub frames: i64,
     /// Tags identified.
-    #[field(label = "Tags")]
+    #[field(label = "Tags", reading = 1)]
     pub tags: i64,
     /// CRC or parity failures outside encrypted sessions.
     #[field(label = "Failures")]
@@ -3392,7 +3608,10 @@ pub struct NfcTagEvent<'a> {
 
 /// The tags, most recently heard first.
 pub static NFC_TAGS: Table<NfcTagRow<'static>> =
-    Table::new("tags", "Tags", 100).label(&NfcTagRow::UID);
+    Table::new("tags", "Tags", 100)
+        .label(&NfcTagRow::UID)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&NfcTagRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 /// The frame log, newest first.
 pub static NFC_FRAMES: Table<NfcFrameRow<'static>> = Table::new("frames", "Frames", 200)
     .label(&NfcFrameRow::NAME)
@@ -3453,7 +3672,7 @@ pub struct NrfFields {
     #[field(label = "CRC-8 frames")]
     pub crc8_frames: i64,
     /// The addresses in the table.
-    #[field(label = "Addresses")]
+    #[field(label = "Addresses", reading = 1)]
     pub addresses: i64,
     /// The channel number N (2400 + N MHz).
     #[field(label = "Channel")]
@@ -3569,7 +3788,10 @@ pub static NRF_FRAMES: Table<NrfFrameRow<'static>> =
     Table::new("frames", "Frames", 300).label(&NrfFrameRow::ADDRESS);
 /// The addresses, most recently heard first.
 pub static NRF_ADDRESSES: Table<NrfAddressRow<'static>> =
-    Table::new("addresses", "Addresses", 100).label(&NrfAddressRow::ADDRESS);
+    Table::new("addresses", "Addresses", 100)
+        .label(&NrfAddressRow::ADDRESS)
+        .role(sdrkit_core::TableRole::Nodes)
+        .sorted(&NrfAddressRow::LAST_HEARD, sdrkit_core::SortOrder::Descending);
 /// The bursts without a frame, newest first.
 pub static NRF_BAD_BURSTS: Table<NrfBadBurstRow> =
     Table::new("bad_bursts", "Bursts without frame", 60);
@@ -3790,7 +4012,7 @@ fn subghzchat() -> StackShape {
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct DectFields<'a> {
     /// The base stations in the table.
-    #[field(label = "Base stations")]
+    #[field(label = "Base stations", reading = 1)]
     pub bases: i64,
     /// Bursts from base stations.
     #[field(label = "Base bursts")]
@@ -3903,6 +4125,8 @@ pub struct DectBaseEvent<'a> {
 
 /// The base stations, most recently heard first.
 pub static DECT_BASES: Table<DectBaseRow<'static>> = Table::new("bases", "Base stations", 60)
+    .label(&DectBaseRow::RFPI)
+    .role(sdrkit_core::TableRole::Nodes)
     .sorted(&DectBaseRow::LEVEL_DBFS, sdrkit_core::SortOrder::Descending);
 /// The burst log, newest first.
 pub static DECT_BURSTS: Table<DectBurstRow<'static>> =

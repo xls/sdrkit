@@ -104,7 +104,8 @@ fn r1_round_trip_mode_b_30_db() {
     assert!(r.service("0", "language").contains("eng"));
     assert_eq!(r.service("0", "country"), "ae");
     assert_eq!(r.service("0", "programme"), "10 Pop Music");
-    assert_eq!(r.service("0", "codec"), "AAC, 24 kHz, mono");
+    assert_eq!(r.service("0", "codec"), "AAC, 24 kHz, stereo");
+    assert_eq!(r.t(res::DrmFields::PLAYING_SERVICE.key), "0");
     assert!(r.t("time").contains("2026-10-06 12:0"), "{}", r.t("time"));
     assert_eq!(r.t("text"), "DRM test signal");
     assert_eq!(int(&r.r, "fac_bad"), 0);
@@ -451,6 +452,7 @@ fn a_change_of_frequency_forgets_the_multiplex() {
         "quality",
         "time",
         "text",
+        "playing_service",
     ] {
         assert!(is_none(r, key), "{key}");
     }
@@ -464,4 +466,40 @@ fn a_change_of_frequency_forgets_the_multiplex() {
     let again = int(r, "fac_ok");
     assert!(again > 0 && again <= fac_ok + 2, "{again} after {fac_ok}");
     assert!(!row_ids(r, res::SERVICES.key).is_empty());
+}
+
+#[test]
+fn the_test_signal_plays_its_melody_through_the_aac_decoder() {
+    let rate = 48e3;
+    let x = generate(usual(Robustness::B), rate, 10.0, &[]);
+    let mut rx = drm::make_receiver(&stack_config(drm::DrmSetting::schema(), &[])).unwrap();
+    let mut codecs = sdrkit_core::codec::CodecSet::default();
+    sdrkit_codec_aac::register(&mut codecs);
+    rx.as_any_mut()
+        .and_then(|a| a.downcast_mut::<sdrkit_graph::Graph>())
+        .expect("a graph")
+        .set_codecs(codecs);
+    rx.configure(&InputInfo::new(rate, DIAL, DIAL).recording())
+        .unwrap();
+    let mut out = Output::default();
+    let (mut sound, mut fs, mut ch) = (Vec::new(), 0.0, 0);
+    for c in x.chunks(48_000) {
+        rx.feed(c, &mut out);
+        for p in out.audio_runs() {
+            sound.extend_from_slice(p.samples);
+            fs = p.rate_hz;
+            ch = p.channels;
+        }
+        out.clear();
+    }
+    assert_eq!((fs, ch), (24e3, 2));
+    // At least 3 s of sound, and its last second is loud: the notes of the melody at 0.4 of full scale.
+    assert!(sound.len() as f64 > 3.0 * fs * 2.0, "{} samples", sound.len());
+    let tail = &sound[sound.len() - 48_000..];
+    let rms = (tail.iter().map(|v| v * v).sum::<f32>() / tail.len() as f32).sqrt();
+    assert!(rms > 0.1, "rms {rms}");
+    // The left channel crosses zero at the pitch of the notes, 523 to 1047 Hz.
+    let left: Vec<f32> = tail.iter().step_by(2).copied().collect();
+    let crossings = left.windows(2).filter(|w| w[0] < 0.0 && w[1] >= 0.0).count();
+    assert!((500..=1100).contains(&crossings), "{crossings} Hz");
 }

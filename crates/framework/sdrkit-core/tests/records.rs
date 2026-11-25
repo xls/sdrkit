@@ -268,3 +268,60 @@ fn clone_from_keeps_the_text_buffers() {
     assert_eq!(ptr(&b), before);
     assert_eq!(&b, a.results());
 }
+
+sdrkit_core::flag_set! {
+    /// A test flag set.
+    pub struct Faults {
+        CRC = ("crc", "CRC", "The checksum does not match."),
+        SHORT = ("short", "Short", "The frame ends before its length."),
+        LATE = ("late", "Late", "The frame is after its slot."),
+    }
+}
+
+#[test]
+fn a_flag_field_holds_a_mask_and_declares_its_flags() {
+    use sdrkit_core::record::{DeclError, RecordError};
+    use sdrkit_core::{FieldDecl, FieldId, FlagDecl, FlagSet, ValueKind};
+    const FAULTS: Field<field::Flags<Faults>> = Field::new("faults", "Faults", "");
+    let decl = FAULTS.decl();
+    assert_eq!(decl.kind, ValueKind::Flags);
+    assert_eq!(decl.flags.as_ref(), Faults::FLAGS);
+    assert_eq!(decl.flags[1].help, "The frame ends before its length.");
+    assert_eq!(Faults::from_key("late"), Some(Faults::LATE));
+
+    let mut r = Record::new(Arc::new(RecordDecl::of(&[&FAULTS, &STATION])));
+    assert!(r.set(&FAULTS, Faults::CRC | Faults::LATE));
+    assert!(!r.set(&FAULTS, Faults::CRC | Faults::LATE));
+    assert_eq!(r.get(&FAULTS), Some(Faults::CRC | Faults::LATE));
+    assert_eq!(r.value(FieldId(0)), Some(&Value::Flags(0b101)));
+    assert_eq!(r.text(FieldId(0)).unwrap().to_string(), "CRC, Late");
+    // A mask with a bit outside the list is refused, and the value stays.
+    assert_eq!(
+        r.set_value(FieldId(0), &Value::Flags(0b1000)),
+        Err(RecordError::NotAFlag {
+            id: FieldId(0),
+            mask: 0b1000
+        })
+    );
+    assert_eq!(r.get(&FAULTS), Some(Faults::CRC | Faults::LATE));
+
+    // A list of more than 64 flags, and a list on a field of another kind, are refused.
+    let many: Vec<FlagDecl> = (0..65)
+        .map(|i| FlagDecl {
+            key: format!("f{i}").into(),
+            label: "F".into(),
+            help: "".into(),
+        })
+        .collect();
+    let mut wide = FieldDecl::new("wide", "Wide", "", ValueKind::Flags);
+    wide.flags = many.into();
+    let mut text = FieldDecl::new("text", "Text", "", ValueKind::Text);
+    text.flags = Faults::FLAGS.into();
+    for bad in [wide, text] {
+        let key = bad.key.to_string();
+        assert_eq!(
+            RecordDecl::new(vec![bad]),
+            Err(DeclError::BadFlags { key })
+        );
+    }
+}

@@ -1316,7 +1316,7 @@ fn the_display_filters_of_all_three_tables_limit_their_rows() {
     };
     let none = |h: Harness| h;
     let ble = &sdrkit_stack_wlan::ble::BLE;
-    assert_eq!(count(ble, "devices", &none, 0.6, 2402e6), 5);
+    assert_eq!(count(ble, "devices", &none, 0.6, 2402e6), 8);
     assert_eq!(
         count(
             ble,

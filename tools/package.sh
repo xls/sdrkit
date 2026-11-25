@@ -4,46 +4,85 @@
 #
 #   <out>/sdrkit-<version>-<target>/
 #     include/                 sdrkit.h, sdrkit/<family>.h, sdrkit/init.h, sdrkit_presets.h
-#     lib/                     the static library and the dynamic library (and the import library on Windows)
-#     lib/pkgconfig/           sdrkit.pc (dynamic), sdrkit-static.pc (static, with the system libraries)
-#     lib/cmake/sdrkit/        sdrkitConfig.cmake, sdrkitConfigVersion.cmake
+#     lib/                     the static library and the shared library (and the import library on Windows)
+#     lib/pkgconfig/           sdrkit.pc (shared), sdrkit-static.pc (static, with the system libraries)
+#     lib/cmake/sdrkit/        sdrkitConfig.cmake, sdrkitConfigVersion.cmake, sdrkitTargets.cmake
 #     share/sdrkit/data/       a copy of the folder data/ of the repository
 #     share/doc/sdrkit/        the licence files
 #
-# Usage: sh tools/package.sh [target] [out]
-#   target  a target triple. The default is the host. Another triple builds with `cargo --target`; its rustup target
-#           and a linker for it must be installed.
+# With --release the script also builds the command-line tool into bin/, puts LICENSE and THIRD_PARTY.md at the top
+# of the folder, names the folder sdrkit-<version>-<os>-<arch> (such as sdrkit-0.5.0-macos-arm64), and packs it into
+# <out>/sdrkit-<version>-<os>-<arch>.tar.gz.
+#
+# Usage: sh tools/package.sh [--release] [target] [out]
+#   target  a target triple. The default (also an empty argument) is the host. Another triple builds with
+#           `cargo --target`; its rustup target and a linker for it must be installed.
 #   out     the folder for the result. The default is dist/ at the root of the workspace.
 #
-# The library holds every stack family and the presets part of the C interface (the cargo feature `presets`). The
-# build uses the target/ folder of the workspace. On Windows, use tools/package.ps1.
+# The script prints the folder of the copy on its last line. The library holds every stack family and the presets
+# part of the C interface (the cargo feature `presets`). The build uses the target folder of cargo: CARGO_TARGET_DIR
+# if it is set, else target/ of the workspace. The cargo arguments are those of CMakeLists.txt with the profile
+# `shipped`, so the two builds share their results. On Windows, use tools/package.ps1.
 
 set -eu
 
+release=0
+if [ "${1:-}" = "--release" ]; then
+    release=1
+    shift
+fi
+
 root=$(cd "$(dirname "$0")/.." && pwd)
 ffi="$root/crates/hosts/sdrkit-host-ffi"
+templates="$root/cmake"
 host=$(rustc -vV | sed -n 's/^host: //p')
 target=${1:-$host}
 out=${2:-$root/dist}
-version=$(sed -n 's/^version = "\(.*\)"$/\1/p' "$ffi/Cargo.toml" | head -n 1)
-name="sdrkit-$version-$target"
+tdir=${CARGO_TARGET_DIR:-$root/target}
+version=$(sed -n 's/^version *= *"\(.*\)"$/\1/p' "$ffi/Cargo.toml" | head -n 1)
+if [ -z "$version" ]; then
+    version=$(sed -n 's/^version *= *"\(.*\)"$/\1/p' "$root/Cargo.toml" | head -n 1)
+fi
+
+# The name of the platform in a release archive: <os>-<arch>.
+case "$target" in
+    aarch64-apple-darwin) platform=macos-arm64 ;;
+    x86_64-apple-darwin) platform=macos-x86_64 ;;
+    x86_64-unknown-linux-gnu) platform=linux-x86_64 ;;
+    aarch64-unknown-linux-gnu) platform=linux-aarch64 ;;
+    x86_64-pc-windows-msvc) platform=windows-x86_64 ;;
+    x86_64-pc-windows-gnu) platform=windows-x86_64-gnu ;;
+    *) platform=$target ;;
+esac
+if [ $release = 1 ]; then
+    name="sdrkit-$version-$platform"
+else
+    name="sdrkit-$version-$target"
+fi
 dist="$out/$name"
 
-# The file names that cargo gives the libraries on the target.
+# The file names that cargo gives the libraries on the target, and the name that a program records for the shared
+# library.
+soname=
 case "$target" in
-    *-windows-msvc) static=sdrkit.lib; dynamic=sdrkit.dll; implib=sdrkit.dll.lib ;;
-    *-windows-gnu*) static=libsdrkit.a; dynamic=sdrkit.dll; implib=libsdrkit.dll.a ;;
-    *-apple-*) static=libsdrkit.a; dynamic=libsdrkit.dylib; implib= ;;
-    *) static=libsdrkit.a; dynamic=libsdrkit.so; implib= ;;
+    *-windows-msvc) static=sdrkit.lib; dynamic=sdrkit.dll; implib=sdrkit.dll.lib; exe=sdrkit.exe ;;
+    *-windows-gnu*) static=libsdrkit.a; dynamic=sdrkit.dll; implib=libsdrkit.dll.a; exe=sdrkit.exe ;;
+    *-apple-*) static=libsdrkit.a; dynamic=libsdrkit.dylib; implib=; exe=sdrkit; soname=@rpath/libsdrkit.dylib ;;
+    *) static=libsdrkit.a; dynamic=libsdrkit.so; implib=; exe=sdrkit; soname=libsdrkit.so ;;
+esac
+case "$target" in
+    *-apple-*) set -- -C "link-arg=-Wl,-install_name,$soname" ;;
+    *-linux-*) set -- -C "link-arg=-Wl,-soname,$soname" ;;
+    *) set -- ;;
 esac
 
 cd "$root"
 if [ "$target" = "$host" ]; then
-    set --
-    built="$root/target/shipped"
+    built="$tdir/shipped"
+    cross=
 else
-    set -- --target "$target"
-    built="$root/target/$target/shipped"
+    built="$tdir/$target/shipped"
+    cross="--target $target"
 fi
 
 # One build makes both libraries. `--print native-static-libs` names the system libraries that the static library
@@ -51,13 +90,19 @@ fi
 log="$out/.build-$target.log"
 mkdir -p "$out"
 echo "building sdrkit $version for $target"
-cargo rustc --profile shipped -p sdrkit-host-ffi --features presets --lib --crate-type staticlib --crate-type cdylib "$@" \
-    -- --print native-static-libs 2> "$log" || { cat "$log" >&2; rm -f "$log"; exit 1; }
+# shellcheck disable=SC2086
+cargo rustc --profile shipped -p sdrkit-host-ffi --lib --features presets $cross \
+    -- --print native-static-libs "$@" 2> "$log" || { cat "$log" >&2; rm -f "$log"; exit 1; }
 native=$(sed -n 's/^.*native-static-libs: //p' "$log" | tail -n 1)
 rm -f "$log"
 if [ -z "$native" ]; then
     echo "cargo printed no native-static-libs line" >&2
     exit 1
+fi
+if [ $release = 1 ]; then
+    echo "building the command-line tool for $target"
+    # shellcheck disable=SC2086
+    cargo build --profile shipped -p sdrkit-host-cli $cross
 fi
 
 rm -rf "$dist"
@@ -68,14 +113,27 @@ cp "$ffi/include/sdrkit.h" "$ffi/include/sdrkit_presets.h" "$dist/include/"
 cp "$ffi/include/sdrkit/"*.h "$dist/include/sdrkit/"
 cp -R "$root/data" "$dist/share/sdrkit/data"
 cp "$root/LICENSE" "$root/THIRD_PARTY.md" "$dist/share/doc/sdrkit/"
-
 for f in $static $dynamic $implib; do
     cp "$built/$f" "$dist/lib/$f"
 done
+if [ $release = 1 ]; then
+    mkdir -p "$dist/bin"
+    cp "$built/$exe" "$dist/bin/$exe"
+    cp "$root/LICENSE" "$root/THIRD_PARTY.md" "$dist/"
+fi
 
-# A program that links the dynamic library finds it through its run path.
-case "$target" in
-    *-apple-*) install_name_tool -id "@rpath/$dynamic" "$dist/lib/$dynamic" ;;
+# A static library for a Windows target names the import library of the crate windows_<arch>_gnu (such as
+# -lwindows.0.52.0); the linker must find it, so it goes into lib/ beside the library.
+case "$native" in
+    *-lwindows.*)
+        cargo metadata --format-version 1 --filter-platform "$target" --manifest-path "$root/Cargo.toml" |
+            tr ',' '\n' | sed -n 's/^"manifest_path":"\(.*windows_[a-z0-9_]*_gnu[a-z]*-[^"]*\)\/Cargo.toml"$/\1/p' |
+            while read -r dir; do
+                for f in "$dir"/lib/libwindows*.a; do
+                    if [ -f "$f" ]; then cp "$f" "$dist/lib/"; fi
+                done
+            done
+        ;;
 esac
 
 # The system libraries as CMake list items: `-lm` becomes `m`, `-framework X` stays one item, a `.lib` name stays as
@@ -97,90 +155,46 @@ for word in $native; do
 done
 cmake_libs=${cmake_libs#;}
 
-cat > "$dist/lib/pkgconfig/sdrkit.pc" <<EOF
-prefix=\${pcfiledir}/../..
-includedir=\${prefix}/include
-libdir=\${prefix}/lib
-datadir=\${prefix}/share/sdrkit/data
-
-Name: sdrkit
-Description: A software-defined radio engine (dynamic library)
-Version: $version
-Cflags: -I\${includedir}
-Libs: -L\${libdir} -lsdrkit
-EOF
-
-cat > "$dist/lib/pkgconfig/sdrkit-static.pc" <<EOF
-prefix=\${pcfiledir}/../..
-includedir=\${prefix}/include
-libdir=\${prefix}/lib
-datadir=\${prefix}/share/sdrkit/data
-
-Name: sdrkit-static
-Description: A software-defined radio engine (static library)
-Version: $version
-Cflags: -I\${includedir}
-Libs: \${libdir}/$static $native
-EOF
-
-if [ -n "$implib" ]; then
-    shared_location="\${_sdrkit_prefix}/lib/$dynamic\"
-        IMPORTED_IMPLIB \"\${_sdrkit_prefix}/lib/$implib"
-else
-    shared_location="\${_sdrkit_prefix}/lib/$dynamic"
-fi
-
-cat > "$dist/lib/cmake/sdrkit/sdrkitConfig.cmake" <<EOF
-# The CMake package of sdrkit $version for $target.
-#
-#   find_package(sdrkit CONFIG REQUIRED)
-#   target_link_libraries(app PRIVATE sdrkit::sdrkit)   # the static library and the system libraries it needs
-#   target_link_libraries(app PRIVATE sdrkit::shared)   # the dynamic library
-#
-# SDRKIT_DATA_DIR is the data folder of the package, for the presets calls.
-
-get_filename_component(_sdrkit_prefix "\${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
-set(SDRKIT_INCLUDE_DIR "\${_sdrkit_prefix}/include")
-set(SDRKIT_DATA_DIR "\${_sdrkit_prefix}/share/sdrkit/data")
-
-if(NOT TARGET sdrkit::sdrkit)
-    add_library(sdrkit::sdrkit STATIC IMPORTED)
-    set_target_properties(sdrkit::sdrkit PROPERTIES
-        IMPORTED_LOCATION "\${_sdrkit_prefix}/lib/$static"
-        INTERFACE_INCLUDE_DIRECTORIES "\${SDRKIT_INCLUDE_DIR}"
-        INTERFACE_LINK_LIBRARIES "$cmake_libs")
-endif()
-
-if(NOT TARGET sdrkit::shared)
-    add_library(sdrkit::shared SHARED IMPORTED)
-    set_target_properties(sdrkit::shared PROPERTIES
-        IMPORTED_LOCATION "$shared_location"
-        INTERFACE_INCLUDE_DIRECTORIES "\${SDRKIT_INCLUDE_DIR}")
-endif()
-
-set(sdrkit_FOUND TRUE)
-EOF
-
+case "$target" in
+    *-windows-*) pc_shared="\${libdir}/$implib" ;;
+    *) pc_shared="-L\${libdir} -lsdrkit" ;;
+esac
 major=${version%%.*}
 minor=${version#*.}
 minor=${minor%%.*}
-cat > "$dist/lib/cmake/sdrkit/sdrkitConfigVersion.cmake" <<EOF
-# sdrkit $version. A request is met at this version or below it with the same major version; before 1.0, with the
-# same minor version too. The package is for 64-bit programs.
-set(PACKAGE_VERSION "$version")
-set(PACKAGE_VERSION_COMPATIBLE FALSE)
-set(PACKAGE_VERSION_EXACT FALSE)
-if(NOT PACKAGE_FIND_VERSION VERSION_GREATER PACKAGE_VERSION
-   AND "\${PACKAGE_FIND_VERSION_MAJOR}" STREQUAL "$major"
-   AND ("$major" STREQUAL "0" AND "\${PACKAGE_FIND_VERSION_MINOR}" STREQUAL "$minor" OR NOT "$major" STREQUAL "0"))
-    set(PACKAGE_VERSION_COMPATIBLE TRUE)
-endif()
-if(PACKAGE_FIND_VERSION VERSION_EQUAL PACKAGE_VERSION)
-    set(PACKAGE_VERSION_EXACT TRUE)
-endif()
-if(CMAKE_SIZEOF_VOID_P AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(PACKAGE_VERSION_UNSUITABLE TRUE)
-endif()
-EOF
 
+# Fills the template $1 of cmake/ into the file $2: each @SDRKIT_<KEY>@ becomes its value. CMakeLists.txt fills the
+# same templates for `cmake --install`.
+fill() {
+    sed -e "s|@SDRKIT_VERSION@|$version|g" \
+        -e "s|@SDRKIT_VERSION_MAJOR@|$major|g" \
+        -e "s|@SDRKIT_VERSION_MINOR@|$minor|g" \
+        -e "s|@SDRKIT_RUST_TARGET@|$target|g" \
+        -e "s|@SDRKIT_CONFIG_TO_PREFIX@|../../..|g" \
+        -e "s|@SDRKIT_PC_TO_PREFIX@|../..|g" \
+        -e "s|@SDRKIT_INSTALL_INCLUDEDIR@|include|g" \
+        -e "s|@SDRKIT_INSTALL_LIBDIR@|lib|g" \
+        -e "s|@SDRKIT_INSTALL_SHAREDDIR@|lib|g" \
+        -e "s|@SDRKIT_INSTALL_DATADIR@|share/sdrkit/data|g" \
+        -e "s|@SDRKIT_STATIC_NAME@|$static|g" \
+        -e "s|@SDRKIT_SHARED_NAME@|$dynamic|g" \
+        -e "s|@SDRKIT_IMPLIB_NAME@|$implib|g" \
+        -e "s|@SDRKIT_SONAME@|$soname|g" \
+        -e "s|@SDRKIT_SIZEOF_VOID_P@|8|g" \
+        -e "s|@SDRKIT_SYSTEM_LIBRARIES@|$cmake_libs|g" \
+        -e "s|@SDRKIT_PC_SHARED_LIBS@|$pc_shared|g" \
+        -e "s|@SDRKIT_PC_SYSTEM_LIBS@|$native|g" \
+        "$templates/$1" > "$2"
+}
+fill sdrkitConfig.cmake.in "$dist/lib/cmake/sdrkit/sdrkitConfig.cmake"
+fill sdrkitConfigVersion.cmake.in "$dist/lib/cmake/sdrkit/sdrkitConfigVersion.cmake"
+cp "$templates/sdrkitTargets.cmake" "$dist/lib/cmake/sdrkit/"
+fill sdrkit.pc.in "$dist/lib/pkgconfig/sdrkit.pc"
+fill sdrkit-static.pc.in "$dist/lib/pkgconfig/sdrkit-static.pc"
+
+if [ $release = 1 ]; then
+    archive="$out/$name.tar.gz"
+    (cd "$out" && COPYFILE_DISABLE=1 tar -czf "$name.tar.gz" "$name")
+    echo "wrote $archive"
+fi
 echo "$dist"

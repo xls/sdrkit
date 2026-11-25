@@ -1,5 +1,5 @@
 //! The C header of a family: a struct for each row shape, result set, event, arguments struct and reply; an enum for
-//! each field and setting with options; and a function for each table, result set, event type, command and setting.
+//! each field and setting with options; a mask type with one bit constant for each flag of a flag set; and a function for each table, result set, event type, command and setting.
 //! Each function is a wrapper over one entry point of the base header, so the library holds no function of a family.
 
 use crate::{
@@ -8,13 +8,14 @@ use crate::{
 };
 use sdrkit_core::interface::layout::{self, CType, Head, Layout};
 use sdrkit_core::interface::{EventShape, Family, Shape, StackShape};
-use sdrkit_core::{ChoiceDecl, FieldDecl, ValueKind};
+use sdrkit_core::{ChoiceDecl, FieldDecl, FlagDecl, ValueKind};
 use std::fmt::Write;
 
 fn c_type(t: CType) -> &'static str {
     match t {
         CType::Bool => "bool",
         CType::Enum => "int32_t",
+        CType::Flags => "uint64_t",
         CType::I64 => "int64_t",
         CType::F64 => "double",
         CType::Str => "sdrkit_string",
@@ -32,6 +33,10 @@ fn what(d: &FieldDecl, enum_name: Option<&str>) -> String {
         ValueKind::Choice => match enum_name {
             Some(n) => format!(" A value of `{n}`."),
             None => " The index of an option.".into(),
+        },
+        ValueKind::Flags => match enum_name {
+            Some(n) => format!(" A mask of the `{}_*` bits.", n.to_uppercase()),
+            None => " A mask of flags.".into(),
         },
         _ if d.unit.is_empty() => String::new(),
         _ => format!(" Unit: {}.", d.unit),
@@ -81,6 +86,33 @@ fn c_enum(
         names.push(constant);
     }
     let _ = writeln!(out, "}} {name};\n");
+    names.push(name.to_owned());
+}
+
+/// Writes the mask type `name` of a flag set and one bit constant for each flag, if there is a flag, and adds the
+/// names to `names`. The name of each constant is `upper` and the word of the flag. Bit n is entry n of the
+/// declaration, which `sdrkit_*_option` reads at run time.
+fn c_flags(
+    out: &mut String,
+    name: &str,
+    upper: &str,
+    doc: &str,
+    flags: &[FlagDecl],
+    words: &[String],
+    names: &mut Vec<String>,
+) {
+    if flags.is_empty() {
+        return;
+    }
+    let _ = writeln!(out, "// {doc}");
+    let _ = writeln!(out, "typedef uint64_t {name};");
+    for (i, (f, word)) in flags.iter().zip(words).enumerate() {
+        let constant = format!("{upper}_{}", word.to_uppercase());
+        let _ = writeln!(out, "// {}: {}", f.label, f.help);
+        let _ = writeln!(out, "#define {constant} (UINT64_C(1) << {i})");
+        names.push(constant);
+    }
+    out.push('\n');
     names.push(name.to_owned());
 }
 
@@ -214,7 +246,12 @@ fn members(
         }
         let e = enums(&m.key);
         let _ = writeln!(out, "  // {doc}{}", what(&d, e.as_deref()));
-        let _ = writeln!(out, "  {} {name};", c_type(m.ctype));
+        // A flag set has its mask type.
+        let ty = match &e {
+            Some(mask) if m.ctype == CType::Flags => mask.as_str(),
+            _ => c_type(m.ctype),
+        };
+        let _ = writeln!(out, "  {ty} {name};");
     }
 }
 
@@ -236,6 +273,11 @@ fn shape_struct(
         let (enum_name, upper) = member_enum(enum_base, &member);
         let words = crate::option_words(family, &d.key, &d.choices)?;
         c_enum(out, &enum_name, &upper, &doc, &d.choices, &words, names);
+        let doc = format!(
+            "The flags of `{member}` of `{name}`: a mask with one bit for each flag that is set."
+        );
+        let words = crate::flag_words(family, &d.key, &d.flags)?;
+        c_flags(out, &enum_name, &upper, &doc, &d.flags, &words, names);
     }
     let mut seen: Vec<String> = Vec::new();
     for m in &l.members {
@@ -265,7 +307,7 @@ fn shape_struct(
         |i| (shape.fields[i].decl(), shape.notes[i].doc.to_owned()),
         |key| {
             let d = shape.fields.iter().find(|f| f.key() == key)?.decl();
-            (!d.choices.is_empty())
+            (!d.choices.is_empty() || !d.flags.is_empty())
                 .then(|| member_enum(enum_base, &crate::member_name_in(family, key, head)).0)
         },
     );
@@ -283,7 +325,7 @@ fn setting_type(kind: ValueKind) -> Option<(&'static str, &'static str)> {
         ValueKind::Text => ("sdrkit_string", "string"),
         ValueKind::Choice => ("int32_t", "enum"),
         ValueKind::Position => ("sdrkit_position", "position"),
-        ValueKind::Bytes | ValueKind::Any => return None,
+        ValueKind::Bytes | ValueKind::Any | ValueKind::Flags => return None,
     })
 }
 

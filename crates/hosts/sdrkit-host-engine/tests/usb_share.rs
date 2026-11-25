@@ -1133,3 +1133,111 @@ fn a_client_transmits_only_with_a_grant_and_the_transmit_switch() {
     assert_eq!(number(&e, own, "session.tx_failed"), 0.0);
     src.stop();
 }
+
+/// A scripted HackRF One on USB API 0x0104: three gain stages, no automatic gain. It answers every LNA and VGA step and
+/// streams for some seconds.
+fn hackrf_bus() -> FakeUsb {
+    use sdrkit_driver_usb::{BulkItem, Script};
+    let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
+    let desc = [
+        0x12, 0x01, 0x00, 0x02, 0x00, 0x00, 0x00, 0x40, 0x50, 0x1d, 0x89, 0x60, 0x04, 0x01, 0x01,
+        0x02, 0x04, 0x01,
+    ];
+    let mut text = format!(
+        "sdrkit-usb 1\nmode lenient\n\
+         device 1 1d50:6089 bus=\"1\" ports=2 manufacturer=\"Great Scott Gadgets\" product=\"HackRF One\" serial=\"0002\"\n\
+         in 1 80 06 0100 0000 18 -> {}\n\
+         in 1 c0 0e 0000 0000 1 -> 02\n\
+         in 1 c0 0f 0000 0000 255 -> {}\n",
+        hex(&desc),
+        hex(b"2026.01.3")
+    );
+    for db in (0..=40).step_by(8) {
+        text.push_str(&format!("in 1 c0 13 0000 {db:04x} 1 -> 01\n"));
+    }
+    for db in (0..=62).step_by(2) {
+        text.push_str(&format!("in 1 c0 14 0000 {db:04x} 1 -> 01\n"));
+    }
+    let mut s = Script::parse(&text).unwrap();
+    let data: Vec<u8> = (0..16_384u32).map(|i| (i * 37 % 251) as u8).collect();
+    s.bulk(BulkItem {
+        after: Duration::from_millis(2),
+        repeat: 5000,
+        ..BulkItem::data(UsbId(1), 0x81, data)
+    });
+    FakeUsb::new(s)
+}
+
+/// The gain setting of radio `r`.
+fn gain(e: &Engine, r: RadioId) -> f64 {
+    e.owner(OwnerRef::Radio(r), |o| {
+        o.values().map_or(f64::NAN, |v| v.get(&sdrkit_driver_core::GAIN))
+    })
+    .unwrap()
+}
+
+/// Our own SoapyRemote client opens the share of a HackRF, which has gain stages and no automatic gain, over UDP and
+/// TCP, with the control Follow and Remote. The server says the radio has no gain mode, so the client asks for none;
+/// in Follow the client's settings are answered with the values in force and the radio keeps the host's gain, in Remote
+/// the client's gain goes to the radio. Samples arrive in each case.
+#[test]
+fn our_soapyremote_client_opens_the_share_of_a_radio_without_automatic_gain() {
+    use sdrkit_driver_core::{ring, DriverKind, SourceDriver};
+    use sdrkit_driver_soapyremote::{SoapyRemoteDriver, StreamProt};
+
+    for control in [ShareControl::Follow, ShareControl::Remote] {
+        for prot in [StreamProt::Udp, StreamProt::Tcp] {
+            let net = FakeTransport::new();
+            let e = engine_with(Arc::new(net.clone()), Arc::new(hackrf_bus()));
+            assert!(e.settle(Duration::from_secs(5)));
+            let kind = e.find("driver.hackrf").unwrap();
+            let mut hv = defaults(&e, kind);
+            hv.set(hv.schema().id("gain").unwrap(), &Value::F64(10.0))
+                .unwrap();
+            let radio = e.open_radio("hackrf", "", &hv).unwrap();
+            let (_, sh) = share(&e, radio);
+            set(&e, sh, "control", Value::Choice(control.index()));
+            let (_, port) = listen(&e, sh, ShareProtocol::SoapyRemote);
+
+            let driver = SoapyRemoteDriver::new(Arc::new(net.clone()));
+            let schema = DriverKind::new(Box::new(driver.clone())).schema().clone();
+            let mut v = Values::defaults(&schema);
+            for (key, value) in [
+                ("serverlog", Value::Bool(false)),
+                ("transport", Value::Choice(prot.index())),
+                ("gain", Value::F64(20.0)),
+                ("agc", Value::Bool(false)),
+            ] {
+                v.set(schema.id(key).unwrap(), &value).unwrap();
+            }
+            let mut src = driver
+                .open(&format!("127.0.0.1:{port}"), &v)
+                .unwrap_or_else(|e| panic!("{control:?} over {prot:?}: {e}"));
+            assert!(!src.capabilities().has_agc);
+            let (w, mut r) = ring(1 << 22, src.sample_type());
+            src.start(w)
+                .unwrap_or_else(|e| panic!("{control:?} over {prot:?}: {e:?}"));
+            let mut got = 0usize;
+            let flowed = wait_for(10.0, || {
+                r.wait(1, Duration::from_millis(20));
+                got += r.read_with(1 << 20, |_| {});
+                (got > 100_000).then_some(())
+            });
+            assert!(flowed.is_some(), "{control:?} over {prot:?}: {got} samples");
+            assert!(e.settle(Duration::from_secs(5)));
+            match control {
+                ShareControl::Follow => {
+                    assert_eq!(count(&e, sh, "requests_done"), 0);
+                    assert!(count(&e, sh, "requests_refused") >= 1);
+                    assert_eq!(gain(&e, radio), 10.0);
+                }
+                _ => {
+                    assert!(count(&e, sh, "requests_done") >= 1);
+                    assert_eq!(gain(&e, radio), 20.0);
+                }
+            }
+            src.stop();
+            e.close_radio(radio).unwrap();
+        }
+    }
+}

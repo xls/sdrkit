@@ -40,9 +40,13 @@
 mod bench;
 pub mod ble;
 pub mod dsss;
+pub mod ht;
 pub mod mac;
 pub mod ofdm;
+pub mod ppdu;
 pub mod s1g;
+pub mod sig;
+pub mod vht;
 
 pub use bench::benchmarks;
 pub use sdrkit_core::Complex32;

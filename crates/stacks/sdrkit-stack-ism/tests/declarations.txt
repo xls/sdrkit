@@ -23,7 +23,7 @@ field FieldDecl { key: "readings", label: "Readings", unit: "", kind: I64, choic
 field FieldDecl { key: "unknown_trains", label: "Unknown trains", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "carriers", label: "Sigfox carriers", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "bad_samples", label: "Bad samples", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "packets_decoded", label: "Packets decoded", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "unknown_bursts", label: "Unknown bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "sigfox_messages", label: "Sigfox messages", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -47,7 +47,7 @@ field FieldDecl { key: "tx_sending", label: "Sending", unit: "", kind: Bool, cho
 field FieldDecl { key: "tx_sent", label: "Frames sent", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_waiting", label: "Frames waiting", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "devices" "Devices" cap 300
-  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(13), sort: Some((9, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(9), own: None, delivery: None, failure: None }
   column FieldDecl { key: "model", label: "Model", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "id", label: "ID", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -61,6 +61,7 @@ table "devices" "Devices" cap 300
   column FieldDecl { key: "count", label: "Count", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "frequency", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "check", label: "Check", unit: "", kind: Choice, choices: [ChoiceDecl { key: "crc", label: "CRC" }, ChoiceDecl { key: "checksum", label: "Checksum" }, ChoiceDecl { key: "parity", label: "Parity" }, ChoiceDecl { key: "repeat", label: "Repeat" }, ChoiceDecl { key: "manchester", label: "Manchester" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "zwave" "Z-Wave" cap 300
   column FieldDecl { key: "home_id", label: "Home ID", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "node", label: "Node", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -267,14 +268,14 @@ command "send" "Send a frame" "Sends one transmission of the device family (its 
   argument SettingDecl { field: FieldDecl { key: "moisture", label: "Moisture", unit: "%", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.0, max: 100.0, step: 10.0 }), default: I64(0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Springfield: 0 to 100 in steps of 10.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 command "halt" "Halt" "Drops the frames waiting and ends the frame on air with the fall of the carrier."
 stack wmbus
-setting SettingDecl { field: FieldDecl { key: "gen_plan", label: "Test signal plan", unit: "", kind: Choice, choices: [ChoiceDecl { key: "868", label: "868 MHz" }, ChoiceDecl { key: "169", label: "169 MHz" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "gen_plan", label: "Test signal plan", unit: "", kind: Choice, choices: [ChoiceDecl { key: "868", label: "868 MHz" }, ChoiceDecl { key: "169", label: "169 MHz" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "The plan of a signal made for no session. In a session the meters are those on the channels around the frequency where it listens.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "gen_phy", label: "Test signal mode", unit: "", kind: Choice, choices: [ChoiceDecl { key: "all", label: "All" }, ChoiceDecl { key: "S1", label: "S1" }, ChoiceDecl { key: "T1", label: "T1" }, ChoiceDecl { key: "C1A", label: "C1 format A" }, ChoiceDecl { key: "C1B", label: "C1 format B" }, ChoiceDecl { key: "R2", label: "R2" }, ChoiceDecl { key: "N1", label: "N1" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "gen_encrypted", label: "Encrypted meter", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "gen_silence", label: "No meters (noise only)", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "tx_level", label: "Level", unit: "of full scale", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.05, max: 0.9, step: 0.0 }), default: F64(0.5), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "The magnitude of the signal sent, of full scale.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "meters", label: "Meters", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "meters", label: "Meters", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "syncs", label: "Syncs", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "false_syncs", label: "False syncs", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "encrypted_frames", label: "Encrypted frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -283,6 +284,7 @@ field FieldDecl { key: "tx_sending", label: "Sending", unit: "", kind: Bool, cho
 field FieldDecl { key: "tx_sent", label: "Frames sent", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_waiting", label: "Frames waiting", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "meters" "Meters" cap 300
+  marks TableMarks { label: Some(1), sort: Some((6, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(6), own: None, delivery: None, failure: None }
   column FieldDecl { key: "maker", label: "Maker", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "meter_id", label: "ID", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "device_type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -357,7 +359,7 @@ setting SettingDecl { field: FieldDecl { key: "tx_level", label: "Level", unit: 
 field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "networks", label: "Networks", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "nodes", label: "Nodes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "nodes", label: "Nodes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "frames_r1", label: "R1 frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "frames_r2", label: "R2 frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "frames_r3", label: "R3 frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -385,6 +387,7 @@ table "frames" "Frames" cap 600
   column FieldDecl { key: "command", label: "Command", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "mpdu", label: "MPDU", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "nodes" "Nodes" cap 1000
+  marks TableMarks { label: Some(12), sort: Some((8, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(8), own: None, delivery: None, failure: None }
   column FieldDecl { key: "home_id", label: "Home ID", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "networks", column: "" }), content: None, reading: 0 }
   column FieldDecl { key: "node", label: "Node", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "role", label: "Role", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -397,8 +400,9 @@ table "nodes" "Nodes" cap 1000
   column FieldDecl { key: "last_class", label: "Last command class", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "beaming", label: "Beaming", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "low_power", label: "Low power", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "networks" "Networks" cap 64
-  marks TableMarks { label: None, sort: Some((5, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: Some((5, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
   column FieldDecl { key: "home_id", label: "Home ID", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "nodes", label: "Nodes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "controller", label: "Controller heard", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
@@ -465,7 +469,7 @@ field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, c
 field FieldDecl { key: "candidates", label: "Preamble candidates", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "encrypted_frames", label: "Encrypted frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "networks", label: "Networks", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "frames_per_s", label: "Frames in the last second", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -475,7 +479,7 @@ field FieldDecl { key: "tx_sending", label: "Sending", unit: "", kind: Bool, cho
 field FieldDecl { key: "tx_sent", label: "Frames sent", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_waiting", label: "Frames waiting", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "networks" "Networks" cap 100
-  marks TableMarks { label: None, sort: Some((5, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(8), sort: Some((5, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
   column FieldDecl { key: "pan", label: "PAN ID", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "ext_pan", label: "Extended PAN ID", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "ch", label: "Ch", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -484,7 +488,9 @@ table "networks" "Networks" cap 100
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "devices" "Devices" cap 600
+  marks TableMarks { label: Some(10), sort: Some((8, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(8), own: None, delivery: None, failure: None }
   column FieldDecl { key: "short", label: "Short", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "extended", label: "Extended", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "vendor", label: "Vendor", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -495,6 +501,7 @@ table "devices" "Devices" cap 600
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_frame", label: "Last frame", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "frames" "Frames" cap 600
   marks TableMarks { label: None, sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
   column FieldDecl { key: "time_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -583,7 +590,7 @@ setting SettingDecl { field: FieldDecl { key: "wheel_mm", label: "Wheel circumfe
 setting SettingDecl { field: FieldDecl { key: "gen_sensors", label: "Test signal sensors", unit: "", kind: Choice, choices: [ChoiceDecl { key: "all", label: "All three" }, ChoiceDecl { key: "strap", label: "Heart rate strap alone" }, ChoiceDecl { key: "none", label: "No sensor" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "tx_level", label: "Level", unit: "of full scale", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.05, max: 0.9, step: 0.0 }), default: F64(0.5), required: false, restart: false, fixed: false, section: "Transmit", advanced: false, help: "The magnitude of the signal sent, of full scale.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "sensors", label: "Sensors", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "sensors", label: "Sensors", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "heart_rate_bpm", label: "Heart rate", unit: "bpm", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "deviation", label: "Deviation", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "channel", label: "Channel", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
@@ -594,6 +601,7 @@ field FieldDecl { key: "tx_sent", label: "Frames sent", unit: "", kind: I64, cho
 field FieldDecl { key: "tx_waiting", label: "Frames waiting", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "demod.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "sensors" "Sensors" cap 100
+  marks TableMarks { label: Some(12), sort: Some((11, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(11), own: None, delivery: None, failure: None }
   column FieldDecl { key: "device", label: "Device", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "marker", label: "Network", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -606,6 +614,7 @@ table "sensors" "Sensors" cap 100
   column FieldDecl { key: "frequency", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "frames" "Frames" cap 400
   column FieldDecl { key: "time_s", label: "Signal time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "device", label: "Device", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -650,7 +659,7 @@ field FieldDecl { key: "bad_bursts", label: "Bursts without frame", unit: "", ki
 field FieldDecl { key: "bursts", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "crc16_frames", label: "CRC-16 frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "crc8_frames", label: "CRC-8 frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "addresses", label: "Addresses", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "addresses", label: "Addresses", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "demod.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "frames" "Frames" cap 300
@@ -668,7 +677,7 @@ table "frames" "Frames" cap 300
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "repeats", label: "Repeats", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "addresses" "Addresses" cap 100
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: Some((7, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(7), own: None, delivery: None, failure: None }
   column FieldDecl { key: "address", label: "Address", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "address_len", label: "Address length", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "bit_rate", label: "Bit rate", unit: "bit/s", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
@@ -745,7 +754,7 @@ setting SettingDecl { field: FieldDecl { key: "band", label: "Band", unit: "", k
 setting SettingDecl { field: FieldDecl { key: "scan", label: "Scan the band's carriers", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Asks the host to visit each carrier of the band in turn.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "dwell", label: "Scan dwell", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 1.0, max: 60.0, step: 1.0 }), default: Duration(5.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "gen_option", label: "Test signal bases", unit: "", kind: Choice, choices: [ChoiceDecl { key: "0", label: "Two bases with handsets" }, ChoiceDecl { key: "1", label: "One base" }, ChoiceDecl { key: "2", label: "No base" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-field FieldDecl { key: "bases", label: "Base stations", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "bases", label: "Base stations", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "base_bursts", label: "Base bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "handset_bursts", label: "Handset bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "carrier", label: "Carrier", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
@@ -755,7 +764,7 @@ field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, c
 field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "demod.dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "bases" "Base stations" cap 60
-  marks TableMarks { label: None, sort: Some((6, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(11), own: None, delivery: None, failure: None }
   column FieldDecl { key: "rfpi", label: "RFPI", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "arc", label: "Class", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "emc", label: "EMC", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -787,14 +796,14 @@ command "remove" "Remove" "Forgets one object, a favourite too."
   argument SettingDecl { field: FieldDecl { key: "row", label: "Row", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "bases", column: "" }), content: None, reading: 0 }, range: None, default: None, required: true, restart: false, fixed: false, section: "", advanced: false, help: "The row key of the object, as the table shows it.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 stack nfc
 field FieldDecl { key: "frames", label: "Frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "tags", label: "Tags", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "tags", label: "Tags", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "failures", label: "Failures", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tag_frames", label: "Tag frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "field_dbfs", label: "Field level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "subcarrier_dbfs", label: "Subcarrier level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "bad_samples", label: "Bad samples", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "tags" "Tags" cap 100
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: Some((9, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(9), own: None, delivery: None, failure: None }
   column FieldDecl { key: "uid", label: "UID", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "hint", label: "Hint", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -837,7 +846,7 @@ field FieldDecl { key: "fec_frames", label: "FEC frames", unit: "", kind: I64, c
 field FieldDecl { key: "mode_switches", label: "Mode switches", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "encrypted_frames", label: "Encrypted frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "networks", label: "Networks", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "nodes", label: "Nodes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "nodes", label: "Nodes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "links", label: "Links", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "bad_samples", label: "Bad samples", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_sending", label: "Sending", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
@@ -855,6 +864,7 @@ table "networks" "Networks" cap 64
   column FieldDecl { key: "schedule", label: "Schedule", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "pan_id", label: "PAN ID", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "nodes" "Nodes" cap 2000
+  marks TableMarks { label: Some(11), sort: Some((6, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(6), own: None, delivery: None, failure: None }
   column FieldDecl { key: "vendor", label: "Vendor", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "role", label: "Role", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "pan", label: "PAN", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "networks", column: "" }), content: None, reading: 0 }
@@ -949,7 +959,7 @@ field FieldDecl { key: "frames_per_s", label: "Frames in the last second", unit:
 field FieldDecl { key: "channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "scanning", label: "Scanning", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "networks", label: "Networks", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "offset_hz", label: "Offset", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
@@ -968,6 +978,7 @@ table "networks" "Networks" cap 100
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
 table "devices" "Devices" cap 600
+  marks TableMarks { label: Some(10), sort: Some((8, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(8), own: None, delivery: None, failure: None }
   column FieldDecl { key: "short", label: "Short", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "extended", label: "Extended", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "vendor", label: "Vendor", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -978,6 +989,7 @@ table "devices" "Devices" cap 600
   column FieldDecl { key: "heard", label: "Heard", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_frame", label: "Last frame", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "frames" "Frames" cap 600
   marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1014,7 +1026,7 @@ setting SettingDecl { field: FieldDecl { key: "min_bursts", label: "Bursts neede
 field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "bursts_detected", label: "Bursts detected", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "failed_hypotheses", label: "Failed hypotheses", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1033,7 +1045,7 @@ table "frames" "Frames" cap 200
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "bursts_matched", label: "Bursts matched", unit: "of 24", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "devices" "Devices" cap 200
-  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(0), sort: Some((6, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(5), own: None, delivery: None, failure: None }
   column FieldDecl { key: "id", label: "Device", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "frames", label: "Frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "counter", label: "Packet counter", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1052,7 +1064,7 @@ command "clear" "Clear" "Forgets everything decoded so far."
 stack dect_nrplus
 field FieldDecl { key: "frames_ok", label: "Frames good", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "stf_detections", label: "STF detections", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "cfo_hz", label: "Carrier offset", unit: "Hz", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1068,7 +1080,7 @@ table "packets" "Packets" cap 300
   column FieldDecl { key: "cfo_hz", label: "Carrier offset", unit: "Hz", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 table "devices" "Devices" cap 200
-  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  marks TableMarks { label: Some(1), sort: Some((6, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(5), own: None, delivery: None, failure: None }
   column FieldDecl { key: "transmitter", label: "Transmitter", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "id", label: "Id", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "packets", label: "Packets", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1099,6 +1111,7 @@ table "frames" "Frames" cap 300
   column FieldDecl { key: "tuning_hz", label: "Tuning offset", unit: "Hz", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "payload", label: "Payload", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "networks" "Networks" cap 16
+  marks TableMarks { label: Some(0), sort: Some((4, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(3), own: None, delivery: None, failure: None }
   column FieldDecl { key: "network", label: "Network", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "frames", label: "Frames", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "symbol_rate_hz", label: "Symbol rate", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1131,5 +1144,49 @@ points ""
 event "dsrc_toll.frame" "DSRC frame"
   field FieldDecl { key: "kind", label: "Kind", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   field FieldDecl { key: "bytes", label: "Bytes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
+command "clear" "Clear" "Forgets everything decoded so far."
+stack enocean
+setting SettingDecl { field: FieldDecl { key: "threshold", label: "Detection threshold", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 6.0, max: 25.0, step: 1.0 }), default: F64(10.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "How far above the noise floor a burst must rise.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "gen_radio", label: "Test signal protocol", unit: "", kind: Choice, choices: [ChoiceDecl { key: "erp1", label: "ERP1 (amplitude keying)" }, ChoiceDecl { key: "erp2", label: "ERP2 (frequency keying)" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+field FieldDecl { key: "telegrams", label: "Telegrams", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "subtelegrams", label: "Subtelegrams", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "frames_bad", label: "Frames bad", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
+field FieldDecl { key: "bursts", label: "Bursts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+table "devices" "Devices" cap 500
+  marks TableMarks { label: Some(0), sort: Some((9, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(8), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "radio", label: "Radio protocol", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "telegram_type", label: "Telegram type", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "profile", label: "Profile", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "reading", label: "Reading", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "telegrams", label: "Telegrams", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "secure", label: "Secure telegrams", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "first_heard", label: "First heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+table "telegrams" "Telegrams" cap 500
+  marks TableMarks { label: Some(2), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
+  column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "sender", label: "Sender", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "radio", label: "Radio protocol", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "telegram_type", label: "Telegram type", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "reading", label: "Reading", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "data", label: "Data", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "repeater", label: "Repeater", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "subtelegrams", label: "Subtelegrams", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "check", label: "Check", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+points ""
+event "enocean.telegram" "EnOcean telegram"
+  field FieldDecl { key: "sender", label: "Sender", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "telegram_type", label: "Telegram type", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  field FieldDecl { key: "reading", label: "Reading", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   field FieldDecl { key: "family", label: "Family", unit: "", kind: Choice, choices: [ChoiceDecl { key: "aircraft", label: "Aircraft" }, ChoiceDecl { key: "vessel", label: "Vessel" }, ChoiceDecl { key: "aprs", label: "APRS" }, ChoiceDecl { key: "pager", label: "Pager" }, ChoiceDecl { key: "sonde", label: "Radiosonde" }, ChoiceDecl { key: "broadcast", label: "Broadcast" }, ChoiceDecl { key: "voice", label: "Voice" }, ChoiceDecl { key: "message", label: "Message" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "satellite", label: "Satellite" }, ChoiceDecl { key: "receiver", label: "Receiver" }, ChoiceDecl { key: "alert", label: "Alert" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
 command "clear" "Clear" "Forgets everything decoded so far."

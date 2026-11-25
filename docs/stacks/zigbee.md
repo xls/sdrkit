@@ -66,8 +66,8 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `networks` | Networks | `pan` (text), `ext_pan` (text), `ch` (whole number), `coordinator` (text), `devices` (whole number), `level_dbfs` (number (dBFS)), `heard` (whole number), `last_heard` (time) |
-| `devices` | Devices | `short` (text), `extended` (text), `vendor` (text), `pan` (text), `ch` (whole number), `role` (text), `level_dbfs` (number (dBFS)), `heard` (whole number), `last_heard` (time), `last_frame` (text) |
+| `networks` | Networks | `pan` (text), `ext_pan` (text), `ch` (whole number), `coordinator` (text), `devices` (whole number), `level_dbfs` (number (dBFS)), `heard` (whole number), `last_heard` (time), `name` (text) |
+| `devices` | Devices | `short` (text), `extended` (text), `vendor` (text), `pan` (text), `ch` (whole number), `role` (text), `level_dbfs` (number (dBFS)), `heard` (whole number), `last_heard` (time), `last_frame` (text), `name` (text) |
 | `frames` | Frames | `time_s` (number (s)), `ch` (whole number), `type` (text), `route` (text), `pan` (text), `len` (whole number), `encrypted` (yes or no), `level_dbfs` (number (dBFS)), `details` (text) |
 
 ## Result series
@@ -94,9 +94,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.2. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
+
+Key readings: `devices`.
 
 ### Result fields
 
@@ -147,8 +149,9 @@ Struct `ZigbeeNetworkRow`. A row of the Zigbee networks. The row key is the PAN 
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the last frame. |
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+| `name` | text | always | 4.2 | The name of the network for people: the extended PAN id when known, else the PAN id. |
 
-Default order: the column `level_dbfs`, highest first.
+The column `name` names a row. Default order: the column `level_dbfs`, highest first.
 
 ### Table `devices`
 
@@ -166,6 +169,9 @@ Struct `PanDeviceRow`. A row of the devices of an IEEE 802.15.4 stack. The row k
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
 | `last_frame` | text | always | 1.0 | The description of the last frame. |
+| `name` | text | always | 4.1 | The name of the device for people: the vendor and the short address, else the extended address. |
+
+The rows are the stations or nodes of the stack. The column `name` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
 
 ### Table `frames`
 

@@ -445,6 +445,10 @@ pub mod element {
     pub const S1G_OPERATION: u8 = 232;
     /// Element ID Extension: the first body byte is the extension ID.
     pub const EXTENSION: u8 = 255;
+    /// HE Capabilities (an extension ID).
+    pub const EXT_HE_CAPABILITIES: u8 = 35;
+    /// EHT Capabilities (an extension ID).
+    pub const EXT_EHT_CAPABILITIES: u8 = 108;
 }
 
 /// One element: its ID, the extension ID for ID 255, and the body (after the extension ID).
@@ -733,4 +737,437 @@ pub fn rate_kbps(b: u8) -> Option<(u32, bool)> {
         return None;
     }
     Some((500 * v as u32, b & 0x80 != 0))
+}
+
+/// The control subtypes (table 9-1).
+pub mod control {
+    /// Trigger.
+    pub const TRIGGER: u8 = 2;
+    /// Beamforming Report Poll.
+    pub const BF_REPORT_POLL: u8 = 4;
+    /// VHT/HE NDP Announcement.
+    pub const NDP_ANNOUNCEMENT: u8 = 5;
+    /// Control Wrapper.
+    pub const WRAPPER: u8 = 7;
+    /// BlockAckReq.
+    pub const BLOCK_ACK_REQ: u8 = 8;
+    /// BlockAck.
+    pub const BLOCK_ACK: u8 = 9;
+    /// PS-Poll.
+    pub const PS_POLL: u8 = 10;
+    /// RTS.
+    pub const RTS: u8 = 11;
+    /// CTS.
+    pub const CTS: u8 = 12;
+    /// Ack.
+    pub const ACK: u8 = 13;
+    /// CF-End.
+    pub const CF_END: u8 = 14;
+
+    /// The name of a control subtype.
+    pub fn name(subtype: u8) -> &'static str {
+        match subtype & 15 {
+            TRIGGER => "Trigger",
+            3 => "TACK",
+            BF_REPORT_POLL => "Beamforming Report Poll",
+            NDP_ANNOUNCEMENT => "NDP Announcement",
+            6 => "Control Frame Extension",
+            WRAPPER => "Control Wrapper",
+            BLOCK_ACK_REQ => "BlockAckReq",
+            BLOCK_ACK => "BlockAck",
+            PS_POLL => "PS-Poll",
+            RTS => "RTS",
+            CTS => "CTS",
+            ACK => "Ack",
+            CF_END => "CF-End",
+            15 => "CF-End + CF-Ack",
+            _ => "Reserved",
+        }
+    }
+}
+
+/// The name of a data subtype (table 9-1): bit 0 +CF-Ack, bit 1 +CF-Poll, bit 2 no data, bit 3 QoS.
+pub fn data_subtype_name(subtype: u8) -> &'static str {
+    match subtype & 15 {
+        0 => "Data",
+        4 => "Null",
+        8 => "QoS Data",
+        12 => "QoS Null",
+        1..=3 => "Data + CF",
+        5..=7 => "Null + CF",
+        9..=11 => "QoS Data + CF",
+        _ => "QoS Null + CF",
+    }
+}
+
+/// Whether the first octet of an address has the group bit: a broadcast or multicast address.
+pub fn is_group(a: &[u8; 6]) -> bool {
+    a[0] & 1 != 0
+}
+
+/// Whether an address is locally administered (bit 1 of the first octet). A client that randomises its address sets this bit.
+pub fn is_local(a: &[u8; 6]) -> bool {
+    a[0] & 2 != 0
+}
+
+/// The stations of a frame as its header gives them (table 9-30 for data frames).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Parties {
+    /// The address that sent the frame, when the frame carries one (CTS and Ack do not).
+    pub transmitter: Option<[u8; 6]>,
+    /// The address the frame is for.
+    pub receiver: [u8; 6],
+    /// The BSSID, when the header gives one.
+    pub bssid: Option<[u8; 6]>,
+    /// The transmitter is the access point of `bssid` (a data frame from the DS, or a management frame whose address 2 is its
+    /// address 3).
+    pub from_ap: bool,
+    /// The receiver is the access point of `bssid`.
+    pub to_ap: bool,
+}
+
+impl<'a> Frame<'a> {
+    /// Who sent the frame, who it is for, and the BSS. For RTS, PS-Poll, BlockAck and the other control frames the header does
+    /// not say which side is the access point, except PS-Poll (address 1 is the BSSID).
+    pub fn parties(&self) -> Parties {
+        let mut p = Parties {
+            transmitter: self.addr2,
+            receiver: self.addr1,
+            bssid: self.bssid(),
+            ..Parties::default()
+        };
+        match self.fc.ftype {
+            FrameType::Data => {
+                p.from_ap = self.fc.from_ds && !self.fc.to_ds;
+                p.to_ap = self.fc.to_ds && !self.fc.from_ds;
+            }
+            FrameType::Management => {
+                p.from_ap = self.addr3.is_some() && self.addr3 == self.addr2;
+                p.to_ap = self.addr3 == Some(self.addr1);
+            }
+            FrameType::Control if self.fc.subtype == control::PS_POLL => {
+                p.bssid = Some(self.addr1);
+                p.to_ap = true;
+            }
+            _ => {}
+        }
+        p
+    }
+
+    /// A data frame that carries no frame body (Null and QoS Null, with or without the CF bits).
+    pub fn is_null_data(&self) -> bool {
+        self.fc.ftype == FrameType::Data && self.fc.subtype & 4 != 0
+    }
+
+    /// The TID of a QoS data frame (QoS Control bits 0 to 3).
+    pub fn tid(&self) -> Option<u8> {
+        self.qos.map(|q| (q & 15) as u8)
+    }
+
+    /// The body of a management frame read by its subtype. `None` for another type, for a protected frame (the body is
+    /// encrypted) and for a body shorter than its fixed fields.
+    pub fn mgmt(&self) -> Option<MgmtBody<'a>> {
+        let st = self.fc.mgmt_subtype()?;
+        if self.fc.protected {
+            return None;
+        }
+        let b = self.body;
+        let u = |at: usize| -> Option<u16> {
+            b.get(at..at + 2).map(|s| u16::from_le_bytes([s[0], s[1]]))
+        };
+        Some(match st {
+            MgmtSubtype::ProbeRequest => MgmtBody::ProbeRequest(ProbeRequest { elements: b }),
+            MgmtSubtype::Beacon | MgmtSubtype::ProbeResponse => MgmtBody::Beacon(Beacon::parse(b).ok()?),
+            MgmtSubtype::Authentication => MgmtBody::Authentication {
+                algorithm: u(0)?,
+                transaction: u(2)?,
+                status: u(4)?,
+            },
+            MgmtSubtype::AssocRequest => MgmtBody::AssocRequest {
+                capability: u(0)?,
+                listen_interval: u(2)?,
+                current_ap: None,
+                elements: b.get(4..)?,
+            },
+            MgmtSubtype::ReassocRequest => MgmtBody::AssocRequest {
+                capability: u(0)?,
+                listen_interval: u(2)?,
+                current_ap: Some(addr(b, 4).ok()?),
+                elements: b.get(10..)?,
+            },
+            MgmtSubtype::AssocResponse | MgmtSubtype::ReassocResponse => MgmtBody::AssocResponse {
+                capability: u(0)?,
+                status: u(2)?,
+                aid: u(4)? & 0x3FFF,
+                elements: b.get(6..)?,
+            },
+            MgmtSubtype::Deauthentication => MgmtBody::Deauthentication { reason: u(0)? },
+            MgmtSubtype::Disassociation => MgmtBody::Disassociation { reason: u(0)? },
+            MgmtSubtype::Action | MgmtSubtype::ActionNoAck => MgmtBody::Action {
+                category: *b.first()?,
+                action: b.get(1).copied(),
+            },
+            _ => return None,
+        })
+    }
+
+    /// The fields of a BlockAckReq or BlockAck frame after the addresses (clause 9.3.1.7, 9.3.1.8): the TID and the starting
+    /// sequence number of the basic and compressed variants.
+    pub fn block_ack(&self) -> Option<BlockAck> {
+        if self.fc.ftype != FrameType::Control
+            || !matches!(self.fc.subtype, control::BLOCK_ACK_REQ | control::BLOCK_ACK)
+        {
+            return None;
+        }
+        let b = self.body.get(..4)?;
+        let ctl = u16::from_le_bytes([b[0], b[1]]);
+        let ssc = u16::from_le_bytes([b[2], b[3]]);
+        Some(BlockAck {
+            request: self.fc.subtype == control::BLOCK_ACK_REQ,
+            policy_immediate: ctl & 1 == 0,
+            variant: ((ctl >> 1) & 15) as u8,
+            tid: (ctl >> 12) as u8,
+            start_seq: ssc >> 4,
+        })
+    }
+}
+
+/// The body of a management frame ([`Frame::mgmt`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MgmtBody<'a> {
+    /// A probe request (clause 9.3.3.9).
+    ProbeRequest(ProbeRequest<'a>),
+    /// A beacon or probe response.
+    Beacon(Beacon<'a>),
+    /// Authentication (clause 9.3.3.11).
+    Authentication {
+        /// The algorithm number: 0 open system, 1 shared key, 2 fast BSS transition, 3 SAE.
+        algorithm: u16,
+        /// The transaction sequence number.
+        transaction: u16,
+        /// The status code (0: success).
+        status: u16,
+    },
+    /// An association or reassociation request (clause 9.3.3.5, 9.3.3.7).
+    AssocRequest {
+        /// Capability information.
+        capability: u16,
+        /// Listen interval, beacon intervals.
+        listen_interval: u16,
+        /// The current access point (reassociation only).
+        current_ap: Option<[u8; 6]>,
+        /// The elements.
+        elements: &'a [u8],
+    },
+    /// An association or reassociation response (clause 9.3.3.6, 9.3.3.8).
+    AssocResponse {
+        /// Capability information.
+        capability: u16,
+        /// The status code (0: success).
+        status: u16,
+        /// The association ID (the two top bits removed).
+        aid: u16,
+        /// The elements.
+        elements: &'a [u8],
+    },
+    /// Deauthentication with its reason code (clause 9.3.3.12).
+    Deauthentication {
+        /// The reason code (table 9-49).
+        reason: u16,
+    },
+    /// Disassociation with its reason code (clause 9.3.3.4).
+    Disassociation {
+        /// The reason code.
+        reason: u16,
+    },
+    /// An action frame (clause 9.3.3.13).
+    Action {
+        /// The category (table 9-51).
+        category: u8,
+        /// The action code, when the body has one.
+        action: Option<u8>,
+    },
+}
+
+/// The elements of a probe request.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ProbeRequest<'a> {
+    /// The elements.
+    pub elements: &'a [u8],
+}
+
+impl<'a> ProbeRequest<'a> {
+    /// The SSID asked for; `None` for the wildcard SSID (length 0) and when the element is missing.
+    pub fn ssid(&self) -> Option<&'a [u8]> {
+        find(self.elements, element::SSID)
+            .map(|e| e.data)
+            .filter(|d| !d.is_empty())
+    }
+
+    /// The newest PHY generation the request declares by its capability elements: 4 HT, 5 VHT, 6 HE, 7 EHT; 0 for none.
+    pub fn generation(&self) -> u8 {
+        elements(self.elements).fold(0, |g, e| {
+            g.max(match (e.id, e.ext) {
+                (element::HT_CAPABILITIES, _) => 4,
+                (element::VHT_CAPABILITIES, _) => 5,
+                (element::EXTENSION, Some(element::EXT_HE_CAPABILITIES)) => 6,
+                (element::EXTENSION, Some(element::EXT_EHT_CAPABILITIES)) => 7,
+                _ => 0,
+            })
+        })
+    }
+
+    /// The highest rate of the Supported Rates and Extended Supported Rates elements, kbit/s.
+    pub fn max_rate_kbps(&self) -> Option<u32> {
+        elements(self.elements)
+            .filter(|e| matches!(e.id, element::SUPPORTED_RATES | element::EXTENDED_RATES))
+            .flat_map(|e| e.data.iter().filter_map(|&b| rate_kbps(b)))
+            .map(|(r, _)| r)
+            .max()
+    }
+
+    /// The DS Parameter Set channel, when the request names one.
+    pub fn channel(&self) -> Option<u8> {
+        find(self.elements, element::DS_PARAMETER_SET).and_then(|e| e.data.first().copied())
+    }
+}
+
+/// The fields of a BlockAckReq or BlockAck ([`Frame::block_ack`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BlockAck {
+    /// A BlockAckReq (else a BlockAck).
+    pub request: bool,
+    /// The ack policy bit is 0.
+    pub policy_immediate: bool,
+    /// The BA type bits (BA Control bits 1 to 4).
+    pub variant: u8,
+    /// The TID (BA Control bits 12 to 15).
+    pub tid: u8,
+    /// The starting sequence number.
+    pub start_seq: u16,
+}
+
+/// The name of an action category (table 9-51), "" for a value without a name here.
+pub fn action_category_name(c: u8) -> &'static str {
+    match c {
+        0 => "Spectrum Management",
+        1 => "QoS",
+        2 => "DLS",
+        3 => "Block Ack",
+        4 => "Public",
+        5 => "Radio Measurement",
+        6 => "Fast BSS Transition",
+        7 => "HT",
+        8 => "SA Query",
+        9 => "Protected Dual of Public Action",
+        10 => "WNM",
+        11 => "Unprotected WNM",
+        12 => "TDLS",
+        13 => "Mesh",
+        14 => "Multihop",
+        15 => "Self-protected",
+        21 => "VHT",
+        126 => "Vendor-specific Protected",
+        127 => "Vendor-specific",
+        _ => "",
+    }
+}
+
+/// The meaning of a deauthentication or disassociation reason code (table 9-49), "" for a value without a text here.
+pub fn reason_text(r: u16) -> &'static str {
+    match r {
+        1 => "unspecified",
+        2 => "previous authentication no longer valid",
+        3 => "station is leaving",
+        4 => "inactivity",
+        5 => "access point cannot handle all stations",
+        6 => "class 2 frame from a station that is not authenticated",
+        7 => "class 3 frame from a station that is not associated",
+        8 => "station is leaving the BSS",
+        9 => "not authenticated",
+        _ => "",
+    }
+}
+
+/// The signature octet of an MPDU delimiter (the ASCII letter N).
+pub const DELIMITER_SIGNATURE: u8 = 0x4E;
+
+/// The CRC octet of an MPDU delimiter (clause 9.7.1) over its first 16 bits, sent with the highest-order bit first: the CRC of
+/// HT-SIG.
+fn delimiter_crc(first16: u16) -> u8 {
+    let bits: [u8; 16] = std::array::from_fn(|i| ((first16 >> i) & 1) as u8);
+    let c = sdrkit_util_bits::crc::catalog::CRC8_CDR.bits(&bits);
+    c.reverse_bits()
+}
+
+/// Appends one A-MPDU subframe (clause 9.7.1): the MPDU delimiter, the MPDU (FCS included) and the padding to a multiple of four
+/// octets. `mpdu` has at most 16383 octets; the two high length bits are the VHT extension.
+pub fn push_ampdu_subframe(out: &mut Vec<u8>, mpdu: &[u8], eof: bool) {
+    let len = mpdu.len().min(0x3FFF) as u16;
+    let first = u16::from(eof) | ((len >> 12) & 3) << 2 | (len & 0xFFF) << 4;
+    out.extend_from_slice(&first.to_le_bytes());
+    out.push(delimiter_crc(first));
+    out.push(DELIMITER_SIGNATURE);
+    out.extend_from_slice(&mpdu[..usize::from(len)]);
+    while !out.len().is_multiple_of(4) {
+        out.push(0);
+    }
+}
+
+/// One subframe of an A-MPDU.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Subframe<'a> {
+    /// The MPDU with its FCS (the FCS is not checked).
+    pub mpdu: &'a [u8],
+    /// The EOF bit of the delimiter.
+    pub eof: bool,
+}
+
+/// The walk over the subframes of an A-MPDU (clause 9.7). A delimiter with a wrong CRC or signature is passed over four octets at
+/// a time until the next good one, as the receive rule of clause 10.12.3 says. Delimiters of length 0 (padding) are not returned.
+#[derive(Clone, Debug)]
+pub struct Ampdu<'a> {
+    rest: &'a [u8],
+    bad: u32,
+}
+
+impl<'a> Ampdu<'a> {
+    /// A walk over `psdu`.
+    pub fn new(psdu: &'a [u8]) -> Ampdu<'a> {
+        Ampdu { rest: psdu, bad: 0 }
+    }
+
+    /// Four-octet positions passed over because no good delimiter was there.
+    pub fn bad_delimiters(&self) -> u32 {
+        self.bad
+    }
+}
+
+impl<'a> Iterator for Ampdu<'a> {
+    type Item = Subframe<'a>;
+
+    fn next(&mut self) -> Option<Subframe<'a>> {
+        while self.rest.len() >= 4 {
+            let d = self.rest;
+            let first = u16::from_le_bytes([d[0], d[1]]);
+            let len = usize::from(first >> 4 | ((first >> 2) & 3) << 12);
+            let good = d[3] == DELIMITER_SIGNATURE && d[2] == delimiter_crc(first) && 4 + len <= d.len();
+            if !good {
+                self.bad += 1;
+                self.rest = &d[4..];
+                continue;
+            }
+            let end = (4 + len).next_multiple_of(4).min(d.len());
+            self.rest = &d[end..];
+            if len == 0 {
+                continue;
+            }
+            return Some(Subframe {
+                mpdu: &d[4..4 + len],
+                eof: first & 1 != 0,
+            });
+        }
+        self.rest = &[];
+        None
+    }
 }

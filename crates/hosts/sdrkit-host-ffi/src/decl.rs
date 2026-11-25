@@ -78,7 +78,8 @@ pub struct Decl {
     /// What the number 0 means when it is not a quantity ("Automatic"), or empty. With a meaning, 0 is valid outside the
     /// range, and a front end shows the meaning in place of the number. Settings and arguments only.
     pub zero_means: Str,
-    /// For `SDRKIT_TYPE_ENUM`: the number of options.
+    /// For `SDRKIT_TYPE_ENUM`: the number of options. For `SDRKIT_TYPE_FLAGS`: the number of flags; option n is the
+    /// flag of bit n.
     pub options: u32,
     /// For a column that holds row keys of another table: the key of the object of that table, or empty for the same
     /// object.
@@ -105,7 +106,7 @@ pub struct Decl {
     pub reading: u32,
 }
 
-/// One option of a value of type `SDRKIT_TYPE_ENUM`.
+/// One option of a value of type `SDRKIT_TYPE_ENUM`, or one flag of a value of type `SDRKIT_TYPE_FLAGS`.
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct EnumOption {
@@ -116,6 +117,8 @@ pub struct EnumOption {
     pub key: Str,
     /// The name for people.
     pub label: Str,
+    /// What a flag says, in one line. Empty for an option.
+    pub help: Str,
 }
 
 /// A declared list of values of an object, or the settings that an open of a radio address takes.
@@ -239,7 +242,7 @@ fn decl_of(f: &FieldDecl, s: Option<&SettingDecl>) -> Decl {
         step: range.map_or(0.0, |r| r.step),
         default_value: Variant::of(s.map_or(&Value::None, |s| &s.default)),
         zero_means: Str::of(s.map_or("", |s| &s.zero_means)),
-        options: count(f.choices.len()),
+        options: count(f.choices.len().max(f.flags.len())),
         refers_object: Str::of(
             refers
                 .and_then(|r| r.owner.as_ref())
@@ -303,7 +306,7 @@ unsafe fn decl(h: Handle, family: Family, id: Id, decl: *mut Decl) -> i32 {
     })
 }
 
-/// Fills `option` with option `n` of value `id` of `family`.
+/// Fills `option` with option `n`, or flag `n`, of value `id` of `family`.
 unsafe fn option(h: Handle, family: Family, id: Id, n: u32, option: *mut EnumOption) -> i32 {
     // SAFETY: the caller's contract.
     let out = unsafe { Out::new(option) };
@@ -313,14 +316,17 @@ unsafe fn option(h: Handle, family: Family, id: Id, n: u32, option: *mut EnumOpt
         let mut st = e.state();
         st.decl = held;
         let f = st.decl.field(id).ok_or(Error::NoSuchId)?;
-        let c = usize::try_from(n)
-            .ok()
-            .and_then(|n| f.choices.get(n))
-            .ok_or(Error::NoSuchId)?;
+        let n = usize::try_from(n).map_err(|_| Error::NoSuchId)?;
+        let (key, label, help) = match (f.choices.get(n), f.flags.get(n)) {
+            (Some(c), _) => (&c.key, &c.label, ""),
+            (None, Some(g)) => (&g.key, &g.label, g.help.as_ref()),
+            (None, None) => return Err(Error::NoSuchId),
+        };
         out.put(EnumOption {
             size: 0,
-            key: Str::of(&c.key),
-            label: Str::of(&c.label),
+            key: Str::of(key),
+            label: Str::of(label),
+            help: Str::of(help),
         });
         Ok(())
     })

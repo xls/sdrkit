@@ -191,10 +191,10 @@ pub fn fit_frame(
     };
     let bpp = bytes_per_pixel(layout);
     let mut out = Planes::new(w, h, 0.0);
+    let columns: Vec<usize> = (0..dw).map(|x| x * sw / dw).collect();
     for y in 0..dh {
         let sy = y * sh / dh;
-        for x in 0..dw {
-            let sx = x * sw / dw;
+        for (x, &sx) in columns.iter().enumerate() {
             let p = &data[(sy * sw + sx) * bpp..][..bpp];
             let [r, g, b] = match layout {
                 TvPixels::Rgb8 => [p[0], p[1], p[2]],

@@ -90,9 +90,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.2. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
+
+Key readings: `nodes`.
 
 ### Result fields
 
@@ -164,6 +166,8 @@ Struct `WisunNodeRow`. A row of the Wi-SUN nodes. The row key is the EUI-64.
 | `eap` | text | optional | 1.0 | The EAP state, once heard. |
 | `last` | text | always | 1.0 | The summary of the last frame. |
 | `address` | text | always | 1.0 | The EUI-64, as `send` takes it. |
+
+The rows are the stations or nodes of the stack. The column `address` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
 
 ### Table `links`
 

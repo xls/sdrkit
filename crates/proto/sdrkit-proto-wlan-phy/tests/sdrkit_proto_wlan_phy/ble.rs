@@ -184,11 +184,13 @@ fn pdus_parse_and_build() {
     };
     ble::build_pdu(&mut pdu, h, &e).unwrap();
     match AdvPdu::parse(&pdu).unwrap().body {
-        Body::Extended { ext, data } => {
+        Body::Extended { ext, acad, data } => {
             assert_eq!(ext.adv_mode, 1);
             assert_eq!(ext.adv_a.unwrap().bytes, [1, 2, 3, 4, 5, 6]);
             assert_eq!(ext.adi, Some((0x234, 5)));
-            assert_eq!(ext.aux_ptr, Some((5, 2)));
+            let aux = ext.aux_ptr.unwrap();
+            assert_eq!((aux.channel, aux.phy_code), (5, 2));
+            assert!(acad.is_empty());
             assert_eq!(ext.tx_power, Some(-10));
             assert_eq!(data, &[2, 1, 6]);
         }

@@ -150,12 +150,13 @@ fn the_whole_schedule_without_a_hint() {
         "Eddystone TLM 3000 mV, 21.5 C",
         "Eddystone UID EDD1EBEAC04E5DEFA017",
         "connection request from 66:55:44:33:22:11 (not followed)",
-        "extended, data on channel 12 (2M PHY, not followed)",
+        "extended, data on channel 12 (LE 2M), set 2; channel 12 is outside the capture",
     ] {
         assert!(log.iter().any(|l| l.contains(want)), "{want}");
     }
     let a = row_with(r, "devices", &D::ADDRESS, "C0:FF:EE:12:34:56").unwrap();
-    assert_eq!(text(a, &D::NAME), "Test phone");
+    // The advertising and the scan response give two complete names; the last one heard stays.
+    assert!(["Test phone", "TestDev"].contains(&text(a, &D::NAME).as_str()));
     assert_eq!(a.at(&D::SCANNED), Some(true));
     assert!(text(a, &D::BEACON).contains("tx 4 dBm"));
     let types = pdu_types(r);
@@ -353,8 +354,9 @@ fn clear_save_and_restore() {
     r.configure(&InputInfo::new(RATE, 0.0, 0.0).recording())
         .unwrap();
     feed(&mut r, &x, 65536);
+    // The five devices of the legacy schedule and the extended advertiser whose data is on channel 20.
     let n = rows(Owner::results(&r), "devices").len();
-    assert_eq!(n, 5);
+    assert_eq!(n, 6);
     let log = rows(Owner::results(&r), "packets").len();
     let state = r.save_state().unwrap();
     let mut other = rx(&[]);
@@ -362,12 +364,12 @@ fn clear_save_and_restore() {
         .configure(&InputInfo::new(RATE, 0.0, 0.0).recording())
         .unwrap();
     other.restore_state(&state).unwrap();
-    assert_eq!(rows(Owner::results(&other), "devices").len(), 5);
+    assert_eq!(rows(Owner::results(&other), "devices").len(), 6);
     assert_eq!(rows(Owner::results(&other), "packets").len(), log);
     assert!(other
         .restore_state(&StateBlob::new("wlan.wifi_networks", 2, b"{}".to_vec()))
         .is_err());
-    assert_eq!(rows(Owner::results(&other), "devices").len(), 5);
+    assert_eq!(rows(Owner::results(&other), "devices").len(), 6);
     command(&mut r, "clear", &[]).unwrap();
     assert!(rows(Owner::results(&r), "devices").is_empty());
     assert!(rows(Owner::results(&r), "packets").is_empty());
@@ -385,10 +387,12 @@ fn display_filters_limit_the_device_rows() {
         feed(&mut r, &x, 65536);
         rows(Owner::results(&r), "devices").len()
     };
-    assert_eq!(count(&[]), 5);
-    assert_eq!(count(&[("filter_text", Value::Text("TESTdev".into()))]), 1);
+    assert_eq!(count(&[]), 6);
+    assert_eq!(count(&[("filter_text", Value::Text("c0:ff:EE".into()))]), 1);
     assert_eq!(count(&[("named_only", Value::Bool(true))]), 1);
-    assert_eq!(count(&[("min_level_dbfs", Value::F64(0.0))]), 0);
+    // The test signal is at full scale: at most a device or two reach 0 dBFS, none above.
+    assert!(count(&[("min_level_dbfs", Value::F64(0.0))]) <= 2);
+    assert_eq!(count(&[("min_level_dbfs", Value::F64(-1.0))]), 6);
 }
 
 #[test]
@@ -533,4 +537,76 @@ fn the_recording_decodes_as_expected() {
             "line {i}"
         );
     }
+}
+
+/// `x` moved by `hz` at `rate`.
+fn shifted(x: &[Complex32], hz: f64, rate: f64) -> Vec<Complex32> {
+    x.iter()
+        .enumerate()
+        .map(|(n, &s)| {
+            let ph = std::f64::consts::TAU * hz * n as f64 / rate;
+            s * Complex32::new(ph.cos() as f32, ph.sin() as f32)
+        })
+        .collect()
+}
+
+#[test]
+fn extended_advertising_is_followed_on_the_secondary_channel_and_the_phys() {
+    let rate = ble::PREFERRED_RATE_HZ;
+    let p = BleGenParams {
+        rate_hz: rate,
+        ..Default::default()
+    };
+    // The radio 1 MHz above channel 37, as the stack asks: the test signal's channel 37 lands at -1 MHz.
+    let x = shifted(&signal(p, &snr(30.0), 4, 0.6), -1e6, rate);
+    let mut r = rx(&[]);
+    r.configure(&InputInfo::new(rate, 2403e6, 2402e6).recording())
+        .unwrap();
+    feed(&mut r, &x, 65536);
+    let res = Owner::results(&r);
+    assert_eq!(num(res, "channels_in_capture"), Some(2.0));
+    let types = pdu_types(res);
+    for t in ["ADV_EXT_IND", "AUX_ADV_IND", "AUX_CHAIN_IND", "AUX_SYNC_IND"] {
+        assert!(types.get(t).copied().unwrap_or(0) > 0, "{t}: {types:?}");
+    }
+    let s = row_with(res, "devices", &D::ADDRESS, "E5:01:02:03:04:05").unwrap();
+    assert_eq!(text(s, &D::NAME), "Ext sensor");
+    assert_eq!(text(s, &D::PHYS), "LE 2M");
+    assert_eq!(s.at(&D::EXTENDED), Some(true));
+    assert_eq!(s.at(&D::SET_ID), Some(2));
+    // The manufacturer data came in the AUX_CHAIN_IND.
+    assert_eq!(text(s, &D::MANUFACTURER_DATA), "E77E010203040506");
+    assert!(text(s, &D::BEACON).contains("tx -4 dBm"), "{}", text(s, &D::BEACON));
+    let c = row_with(res, "devices", &D::ADDRESS, "C3:11:22:33:44:55").unwrap();
+    assert_eq!(text(c, &D::NAME), "Coded beacon");
+    assert_eq!(text(c, &D::PHYS), "LE Coded");
+    assert_eq!(c.at(&D::PERIODIC_INTERVAL_MS), Some(80.0));
+    let o = row_with(res, "devices", &D::ADDRESS, "D7:66:55:44:33:22").unwrap();
+    assert_eq!(o.at(&D::DATA_OUTSIDE), Some(true));
+    assert_eq!(s.at(&D::DATA_OUTSIDE), Some(false));
+    assert!(num(res, "aux_followed").unwrap() >= 4.0);
+    assert!(num(res, "aux_outside").unwrap() >= 1.0);
+    assert!(num(res, "packets_2m").unwrap() >= 2.0);
+    assert!(num(res, "packets_coded").unwrap() >= 2.0);
+    assert!(num(res, "packets_secondary").unwrap() >= 4.0);
+    assert_eq!(num(res, "periodic_trains"), Some(1.0));
+    assert_eq!(num(res, "frames_bad"), Some(0.0));
+    let log = rows(res, "packets");
+    assert!(log.iter().any(|l| text(l, &P::PHY) == "LE Coded S=2"));
+    // The train hops over channels 0 and 1 by channel selection algorithm #2 with the round as its event counter; only
+    // channel 0 is in the capture, and only the train's predicted events open it.
+    let sync: Vec<_> = log.iter().filter(|l| text(l, &P::PDU) == "AUX_SYNC_IND").collect();
+    assert!(sync.iter().all(|l| cnum(l, &P::CHANNEL) == 0.0));
+    let id = sdrkit_proto_wlan_phy::ble::csa::channel_identifier(ble::gen::TRAIN_AA);
+    let map = sdrkit_proto_wlan_phy::ble::csa::ChannelMap::from_bytes([3, 0, 0, 0, 0]).unwrap();
+    // Seven whole rounds in 0.6 s; the first event follows the SyncInfo of round 0.
+    let on_0 = (0..7u16)
+        .filter(|&k| sdrkit_proto_wlan_phy::ble::csa::csa2_channel(k, id, &map) == 0)
+        .count();
+    assert!(on_0 > 0);
+    assert!(
+        (sync.len() as i64 - on_0 as i64).abs() <= 1,
+        "{} AUX_SYNC_IND, {on_0} events on channel 0",
+        sync.len()
+    );
 }

@@ -49,7 +49,7 @@ pub struct Encoder {
 }
 
 impl Encoder {
-    /// An encoder at 48 000 or 32 000 Hz.
+    /// An encoder at 48 000, 32 000 or 24 000 Hz.
     ///
     /// # Errors
     /// [`Error::SampleRate`] for another rate.
@@ -57,6 +57,7 @@ impl Encoder {
         let bands = match rate {
             48_000 => Bands::new(3, FRAME)?,
             32_000 => Bands::new(5, FRAME)?,
+            24_000 => Bands::new(6, FRAME)?,
             _ => return Err(Error::SampleRate),
         };
         let n = bands.offsets(false).len() - 1;

@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "broadcast", version 2.0. MIT licence.
+// sdrkit: the typed interface of the stack family "broadcast", version 2.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum BroadcastInterface {
     public static let major = 2
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The results of the DRM stack. No FAC values before the first FAC, no protection before the multiplex description, no time before SDC type 8, no measurement before the first frame and no first audio before it came.
@@ -91,6 +91,8 @@ public struct DrmFields {
     public var holding: Bool
     /// The input is mirrored (I and Q swapped).
     public var mirrored: Bool
+    /// The row key of the service playing in the services table. No value before its first audio frame.
+    public var playingService: String?
 
     init(_ c: sdrkit_drm_fields) {
         robustnessMode = c.has_robustness_mode ? RobustnessMode(rawValue: c.robustness_mode) : nil
@@ -127,6 +129,7 @@ public struct DrmFields {
         firstAudio = c.has_first_audio ? c.first_audio : nil
         holding = c.holding
         mirrored = c.mirrored
+        playingService = c.has_playing_service ? sdrkitText(c.playing_service) : nil
     }
 
     /// The result fields of the snapshot of `handle`, or the code of the error.
@@ -564,7 +567,7 @@ public struct HdradioFields {
     public var levelDbfs: Double?
     /// Signal time.
     public var signalTime: Double
-    /// What the audio codec needs, or why it cannot play.
+    /// Why the digital sound (HDC) does not play.
     public var codecNote: String?
     /// P1 frames arrive.
     public var p1On: Bool
@@ -637,6 +640,27 @@ public struct HdradioFields {
         var c = sdrkit_hdradio_fields()
         let code = sdrkit_hdradio_fields_read(handle, &c)
         return code == SDRKIT_OK ? .success(HdradioFields(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// What the HD Radio stack plays, which its sound stage writes.
+public struct HdradioHdSoundFields {
+    public enum Sound: Int32 {
+        case none = 0
+        case analogueFm = 1
+    }
+    /// The sound that plays.
+    public var sound: Sound?
+
+    init(_ c: sdrkit_hdradio_hd_sound_fields) {
+        sound = Sound(rawValue: c.sound)
+    }
+
+    /// The result fields of the snapshot of `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE) -> Result<HdradioHdSoundFields, SDRKitCode> {
+        var c = sdrkit_hdradio_hd_sound_fields()
+        let code = sdrkit_hdradio_hd_sound_fields_read(handle, &c)
+        return code == SDRKIT_OK ? .success(HdradioHdSoundFields(c)) : .failure(SDRKitCode(code: code))
     }
 }
 

@@ -110,13 +110,16 @@ pub const GUIDE: &[&str] = &[
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("broadcast", 2, 0)
+        Described::new("broadcast", 2, 1)
             .content(
                 sdrkit_core::ContentKind::Broadcast,
                 &["drm", "hdradio", "cdr", "cquam"],
             )
             .content(sdrkit_core::ContentKind::Pictures, &["hamdrm"])
-            .audio(sdrkit_core::AudioKind::Programme, &["drm", "cdr", "cquam"])
+            .audio(
+                sdrkit_core::AudioKind::Programme,
+                &["drm", "hdradio", "cdr", "cquam"],
+            )
             .pictures(&["hamdrm", "hdradio"])
             .uses(sdrkit_proto_mpegts::publish::interface())
             .uses(bc::interface())
@@ -167,6 +170,7 @@ pub fn family() -> &'static Described {
             .stack(
                 StackShape::new(crate::hd::ID)
                     .fields::<hd::HdradioFields>()
+                    .fields::<hd::HdSoundFields>()
                     .fields::<bc::LabelFields>()
                     .fields::<bc::SlideFields>()
                     .table(&hd::PROGRAMS)
@@ -207,8 +211,17 @@ pub fn family() -> &'static Described {
                     .settings(CquamSetting::SETTINGS)
                     .command(&crate::component::CLEAR),
             )
+            .added(2, 1, ADDED_2_1)
     })
 }
+
+/// What version 2.1 added: the sound field of HD Radio and the service that plays in DRM.
+const ADDED_2_1: &[&str] = &[
+    "hdradio.fields.HdSoundFields",
+    "shape.HdSoundFields",
+    "shape.HdSoundFields.sound",
+    "shape.DrmFields.playing_service",
+];
 
 /// The key of the interface of the band scan.
 pub const SCAN_KEY: &str = "broadcast_scan";

@@ -1576,3 +1576,33 @@ fn signed_signalling_sls_objects_and_compressed_ip_are_reported() {
     assert_eq!(row.at(&S::SLS_DOCUMENTS), Some(5));
     assert_eq!(row.at(&S::SLS_SIGNED_PACKAGES), Some(2));
 }
+
+/// The chosen service, the received service and the service of a component name a row of the stack's `services` table.
+#[test]
+fn the_service_fields_refer_to_the_services_table() {
+    let decl = sdrkit_stack_tvterr::typed::shape("atsc3").results_decl();
+    let table = |key: &str| {
+        decl.tables()
+            .iter()
+            .find(|t| t.key == key)
+            .unwrap_or_else(|| panic!("no table {key}"))
+            .columns
+            .clone()
+    };
+    let components = table("components");
+    let fields = [
+        (decl.fields().clone(), "service"),
+        (decl.fields().clone(), "service_received"),
+        (components, "service"),
+    ];
+    for (record, key) in &fields {
+        let d = record.id(key).and_then(|id| record.field(id)).expect("declared");
+        let r = d.refers_to.as_ref().expect("a reference");
+        assert_eq!(
+            (r.owner.is_none(), &*r.table, &*r.column),
+            (true, "services", ""),
+            "{key}"
+        );
+    }
+    table("services");
+}

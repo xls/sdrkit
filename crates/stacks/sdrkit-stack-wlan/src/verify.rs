@@ -36,10 +36,14 @@ fn case(
 }
 
 fn ble_cases(o: &VerifyOptions) -> Vec<VerifyCase> {
-    case("test signal, eleven packets", o, 1.0, |r| {
+    case("test signal, legacy and extended advertising", o, 1.0, |r| {
         vec![
             at_least(r, &BleFields::FRAMES_OK, 20.0),
             at_least(r, &BleFields::DEVICES, 4.0),
+            at_least(r, &BleFields::AUX_FOLLOWED, 2.0),
+            at_least(r, &BleFields::PACKETS_2M, 1.0),
+            at_least(r, &BleFields::PACKETS_CODED, 1.0),
+            at_least(r, &BleFields::PERIODIC_TRAINS, 1.0),
         ]
     })
 }

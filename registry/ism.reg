@@ -1,5 +1,5 @@
 # The interface of the stack family ism. The registry test of the family writes this file.
-family ism version=4.0
+family ism version=4.2
 uses.ookdev major=2 since=1.0
 shape.IsmDetectFields since=1.0
 shape.IsmDetectFields.bursts_detected type=i64 unit= optional=no since=1.0
@@ -10,7 +10,7 @@ shape.SigfoxFinderFields.carriers type=i64 unit= optional=no since=1.0
 shape.GuardFields since=1.0
 shape.GuardFields.bad_samples type=i64 unit= optional=no since=1.0
 shape.IsmFields since=1.0
-shape.IsmFields.devices type=i64 unit= optional=no since=1.0
+shape.IsmFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.IsmFields.packets_decoded type=i64 unit= optional=no since=1.0
 shape.IsmFields.unknown_bursts type=i64 unit= optional=no since=1.0
 shape.IsmFields.sigfox_messages type=i64 unit= optional=no since=1.0
@@ -49,6 +49,7 @@ shape.IsmDeviceRow.last_heard type=time unit= optional=yes since=1.0
 shape.IsmDeviceRow.count type=i64 unit= optional=no since=1.0
 shape.IsmDeviceRow.frequency type=hz unit=Hz optional=no since=1.0
 shape.IsmDeviceRow.check type=choice(crc,checksum,parity,repeat,manchester) unit= optional=no since=1.0
+shape.IsmDeviceRow.name type=text unit= optional=no since=4.1
 shape.IsmZwaveRow since=1.0
 shape.IsmZwaveRow.home_id type=text unit= optional=yes since=1.0
 shape.IsmZwaveRow.node type=i64 unit= optional=yes since=1.0
@@ -133,7 +134,7 @@ shape.IsmTxEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,v
 shape.WmbusFields since=1.0
 shape.WmbusFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.WmbusFields.frames_bad type=i64 unit= optional=no since=1.0
-shape.WmbusFields.meters type=i64 unit= optional=no since=1.0
+shape.WmbusFields.meters type=i64 unit= optional=no reading=1 since=1.0
 shape.WmbusFields.syncs type=i64 unit= optional=no since=1.0
 shape.WmbusFields.false_syncs type=i64 unit= optional=no since=1.0
 shape.WmbusFields.encrypted_frames type=i64 unit= optional=no since=1.0
@@ -187,7 +188,7 @@ shape.ZwaveFields since=1.0
 shape.ZwaveFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.ZwaveFields.frames_bad type=i64 unit= optional=no since=1.0
 shape.ZwaveFields.networks type=i64 unit= optional=no since=1.0
-shape.ZwaveFields.nodes type=i64 unit= optional=no since=1.0
+shape.ZwaveFields.nodes type=i64 unit= optional=no reading=1 since=1.0
 shape.ZwaveFields.frames_r1 type=i64 unit= optional=no since=1.0
 shape.ZwaveFields.frames_r2 type=i64 unit= optional=no since=1.0
 shape.ZwaveFields.frames_r3 type=i64 unit= optional=no since=1.0
@@ -222,6 +223,7 @@ shape.ZwaveNodeRow.last_heard type=time unit= optional=yes since=1.0
 shape.ZwaveNodeRow.last_class type=text unit= optional=no since=1.0
 shape.ZwaveNodeRow.beaming type=bool unit= optional=no since=1.0
 shape.ZwaveNodeRow.low_power type=bool unit= optional=no since=1.0
+shape.ZwaveNodeRow.name type=text unit= optional=no since=4.2
 shape.ZwaveNetworkRow since=1.0
 shape.ZwaveNetworkRow.home_id type=text unit= optional=no since=1.0
 shape.ZwaveNetworkRow.nodes type=i64 unit= optional=no since=1.0
@@ -262,7 +264,7 @@ shape.ZigbeeFields.frames_bad type=i64 unit= optional=no since=1.0
 shape.ZigbeeFields.candidates type=i64 unit= optional=no since=1.0
 shape.ZigbeeFields.encrypted_frames type=i64 unit= optional=no since=1.0
 shape.ZigbeeFields.networks type=i64 unit= optional=no since=1.0
-shape.ZigbeeFields.devices type=i64 unit= optional=no since=1.0
+shape.ZigbeeFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.ZigbeeFields.channel type=i64 unit= optional=no since=1.0
 shape.ZigbeeFields.frames_per_s type=i64 unit= optional=no since=1.0
 shape.ZigbeeFields.snr_db type=f64 unit=dB optional=yes since=1.0
@@ -276,6 +278,7 @@ shape.ZigbeeNetworkRow.devices type=i64 unit= optional=no since=1.0
 shape.ZigbeeNetworkRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.ZigbeeNetworkRow.heard type=i64 unit= optional=yes since=1.0
 shape.ZigbeeNetworkRow.last_heard type=time unit= optional=yes since=1.0
+shape.ZigbeeNetworkRow.name type=text unit= optional=no since=4.2
 shape.PanDeviceRow since=1.0
 shape.PanDeviceRow.short type=text unit= optional=yes since=1.0
 shape.PanDeviceRow.extended type=text unit= optional=yes since=1.0
@@ -287,6 +290,7 @@ shape.PanDeviceRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.PanDeviceRow.heard type=i64 unit= optional=yes since=1.0
 shape.PanDeviceRow.last_heard type=time unit= optional=yes since=1.0
 shape.PanDeviceRow.last_frame type=text unit= optional=no since=1.0
+shape.PanDeviceRow.name type=text unit= optional=no since=4.1
 shape.ZigbeeFrameRow since=1.0
 shape.ZigbeeFrameRow.time_s type=f64 unit=s optional=no since=1.0
 shape.ZigbeeFrameRow.ch type=i64 unit= optional=no since=1.0
@@ -329,7 +333,7 @@ shape.SigfoxMessageRow.downlink type=bool unit= optional=no since=1.0
 shape.SigfoxMessageRow.control type=bool unit= optional=no since=1.0
 shape.AntFields since=1.0
 shape.AntFields.frames_ok type=i64 unit= optional=no since=1.0
-shape.AntFields.sensors type=i64 unit= optional=no since=1.0
+shape.AntFields.sensors type=i64 unit= optional=no reading=1 since=1.0
 shape.AntFields.heart_rate_bpm type=f64 unit=bpm optional=yes since=1.0
 shape.AntFields.deviation type=hz unit=Hz optional=yes since=1.0
 shape.AntFields.channel type=hz unit=Hz optional=no since=1.0
@@ -349,6 +353,7 @@ shape.AntSensorRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.AntSensorRow.frequency type=hz unit=Hz optional=no since=1.0
 shape.AntSensorRow.heard type=i64 unit= optional=yes since=1.0
 shape.AntSensorRow.last_heard type=time unit= optional=yes since=1.0
+shape.AntSensorRow.name type=text unit= optional=no since=4.2
 shape.AntFrameRow since=1.0
 shape.AntFrameRow.time_s type=f64 unit=s optional=no since=1.0
 shape.AntFrameRow.device type=i64 unit= optional=no since=1.0
@@ -371,7 +376,7 @@ shape.NrfFields.bad_bursts type=i64 unit= optional=no since=1.0
 shape.NrfFields.bursts type=i64 unit= optional=no since=1.0
 shape.NrfFields.crc16_frames type=i64 unit= optional=no since=1.0
 shape.NrfFields.crc8_frames type=i64 unit= optional=no since=1.0
-shape.NrfFields.addresses type=i64 unit= optional=no since=1.0
+shape.NrfFields.addresses type=i64 unit= optional=no reading=1 since=1.0
 shape.NrfFields.channel type=i64 unit= optional=no since=1.0
 shape.NrfFrameRow since=1.0
 shape.NrfFrameRow.time_s type=f64 unit=s optional=no since=1.0
@@ -445,7 +450,7 @@ shape.SubghzchatStateEvent since=1.0
 shape.SubghzchatStateEvent.text type=text unit= optional=no since=1.0
 shape.SubghzchatStateEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.DectFields since=1.0
-shape.DectFields.bases type=i64 unit= optional=no since=1.0
+shape.DectFields.bases type=i64 unit= optional=no reading=1 since=1.0
 shape.DectFields.base_bursts type=i64 unit= optional=no since=1.0
 shape.DectFields.handset_bursts type=i64 unit= optional=no since=1.0
 shape.DectFields.carrier type=hz unit=Hz optional=no since=1.0
@@ -481,7 +486,7 @@ shape.DectBaseEvent.rfpi type=text unit= optional=no since=1.0
 shape.DectBaseEvent.emc type=i64 unit= optional=yes since=1.0
 shape.NfcFields since=1.0
 shape.NfcFields.frames type=i64 unit= optional=no since=1.0
-shape.NfcFields.tags type=i64 unit= optional=no since=1.0
+shape.NfcFields.tags type=i64 unit= optional=no reading=1 since=1.0
 shape.NfcFields.failures type=i64 unit= optional=no since=1.0
 shape.NfcFields.tag_frames type=i64 unit= optional=no since=1.0
 shape.NfcDetectFields since=1.0
@@ -520,7 +525,7 @@ shape.WisunFields.fec_frames type=i64 unit= optional=no since=1.0
 shape.WisunFields.mode_switches type=i64 unit= optional=no since=1.0
 shape.WisunFields.encrypted_frames type=i64 unit= optional=no since=1.0
 shape.WisunFields.networks type=i64 unit= optional=no since=1.0
-shape.WisunFields.nodes type=i64 unit= optional=no since=1.0
+shape.WisunFields.nodes type=i64 unit= optional=no reading=1 since=1.0
 shape.WisunFields.links type=i64 unit= optional=no since=1.0
 shape.WisunNetworkRow since=1.0
 shape.WisunNetworkRow.name type=text unit= optional=yes since=1.0
@@ -596,7 +601,7 @@ shape.ThreadFields.frames_per_s type=i64 unit= optional=no since=1.0
 shape.ThreadFields.channel type=i64 unit= optional=no since=1.0
 shape.ThreadFields.scanning type=bool unit= optional=no since=1.0
 shape.ThreadFields.networks type=i64 unit= optional=no since=1.0
-shape.ThreadFields.devices type=i64 unit= optional=no since=1.0
+shape.ThreadFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.ThreadFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.ThreadFields.snr_db type=f64 unit=dB optional=yes since=1.0
 shape.ThreadFields.offset_hz type=hz unit=Hz optional=yes since=1.0
@@ -642,7 +647,7 @@ shape.MiotyFields since=1.0
 shape.MiotyFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.MiotyFields.bursts_detected type=i64 unit= optional=no since=1.0
 shape.MiotyFields.failed_hypotheses type=i64 unit= optional=no since=1.0
-shape.MiotyFields.devices type=i64 unit= optional=no since=1.0
+shape.MiotyFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.MiotyFields.snr_db type=f64 unit=dB optional=yes since=1.0
 shape.MiotyFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.MiotyFields.note type=text unit= optional=no since=1.0
@@ -677,7 +682,7 @@ shape.MiotyFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadc
 shape.NrPlusFields since=1.0
 shape.NrPlusFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.NrPlusFields.stf_detections type=i64 unit= optional=no since=1.0
-shape.NrPlusFields.devices type=i64 unit= optional=no since=1.0
+shape.NrPlusFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.NrPlusFields.snr_db type=f64 unit=dB optional=yes since=1.0
 shape.NrPlusFields.cfo_hz type=f64 unit=Hz optional=yes since=1.0
 shape.NrPlusFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
@@ -743,6 +748,43 @@ shape.DsrcFrameEvent since=1.0
 shape.DsrcFrameEvent.kind type=text unit= optional=no since=1.0
 shape.DsrcFrameEvent.bytes type=i64 unit= optional=no since=1.0
 shape.DsrcFrameEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
+shape.EnoceanFields since=4.2
+shape.EnoceanFields.telegrams type=i64 unit= optional=no since=4.2
+shape.EnoceanFields.subtelegrams type=i64 unit= optional=no since=4.2
+shape.EnoceanFields.frames_bad type=i64 unit= optional=no since=4.2
+shape.EnoceanFields.devices type=i64 unit= optional=no reading=1 since=4.2
+shape.EnoceanFields.bursts type=i64 unit= optional=no since=4.2
+shape.EnoceanFields.level_dbfs type=f64 unit=dBFS optional=yes since=4.2
+shape.EnoceanFields.note type=text unit= optional=no since=4.2
+shape.EnoceanDeviceRow since=4.2
+shape.EnoceanDeviceRow.name type=text unit= optional=no since=4.2
+shape.EnoceanDeviceRow.radio type=text unit= optional=no since=4.2
+shape.EnoceanDeviceRow.telegram_type type=text unit= optional=no since=4.2
+shape.EnoceanDeviceRow.profile type=text unit= optional=yes since=4.2
+shape.EnoceanDeviceRow.reading type=text unit= optional=no since=4.2
+shape.EnoceanDeviceRow.telegrams type=i64 unit= optional=no since=4.2
+shape.EnoceanDeviceRow.secure type=i64 unit= optional=no since=4.2
+shape.EnoceanDeviceRow.level_dbfs type=f64 unit=dBFS optional=no since=4.2
+shape.EnoceanDeviceRow.first_heard type=time unit= optional=yes since=4.2
+shape.EnoceanDeviceRow.last_heard type=time unit= optional=yes since=4.2
+shape.EnoceanTelegramRow since=4.2
+shape.EnoceanTelegramRow.utc type=time unit= optional=yes since=4.2
+shape.EnoceanTelegramRow.time_s type=f64 unit=s optional=no since=4.2
+shape.EnoceanTelegramRow.sender type=text unit= optional=no since=4.2
+shape.EnoceanTelegramRow.radio type=text unit= optional=no since=4.2
+shape.EnoceanTelegramRow.telegram_type type=text unit= optional=no since=4.2
+shape.EnoceanTelegramRow.reading type=text unit= optional=no since=4.2
+shape.EnoceanTelegramRow.data type=text unit= optional=no since=4.2
+shape.EnoceanTelegramRow.destination type=text unit= optional=yes since=4.2
+shape.EnoceanTelegramRow.repeater type=text unit= optional=no since=4.2
+shape.EnoceanTelegramRow.subtelegrams type=i64 unit= optional=no since=4.2
+shape.EnoceanTelegramRow.check type=text unit= optional=no since=4.2
+shape.EnoceanTelegramRow.level_dbfs type=f64 unit=dBFS optional=no since=4.2
+shape.EnoceanTelegramEvent since=4.2
+shape.EnoceanTelegramEvent.sender type=text unit= optional=no since=4.2
+shape.EnoceanTelegramEvent.telegram_type type=text unit= optional=no since=4.2
+shape.EnoceanTelegramEvent.reading type=text unit= optional=no since=4.2
+shape.EnoceanTelegramEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=4.2
 ism since=1.0
 ism.content kind=devices since=1.0
 ism.fields.IsmDetectFields since=1.0
@@ -765,7 +807,7 @@ ism.kept.IsmFields since=1.0
 ism.kept.DecodeFields since=1.0
 ism.kept.SigfoxFinderFields since=1.0
 ism.kept.IsmDetectFields.bursts_detected since=1.0
-ism.table.devices row=IsmDeviceRow cap=300 label=id since=1.0
+ism.table.devices row=IsmDeviceRow cap=300 label=name sort=last_heard:descending role=nodes time=last_heard since=1.0
 ism.table.zwave row=IsmZwaveRow cap=300 since=1.0
 ism.table.log row=IsmLogRow cap=400 label=id since=1.0
 ism.table.unknown row=IsmUnknownRow cap=60 since=1.0
@@ -807,7 +849,7 @@ wmbus.kept.meters since=1.0
 wmbus.kept.meter_records since=1.0
 wmbus.kept.frames since=1.0
 wmbus.kept.WmbusFields since=1.0
-wmbus.table.meters row=WmbusMeterRow cap=300 since=1.0
+wmbus.table.meters row=WmbusMeterRow cap=300 label=meter_id sort=last_heard:descending role=nodes time=last_heard since=1.0
 wmbus.table.meter_records row=WmbusRecordRow cap=3000 since=1.0
 wmbus.table.frames row=WmbusFrameRow cap=200 role=log time=time since=1.0
 wmbus.table.channels row=WmbusChannelRow cap=16 since=1.0
@@ -844,8 +886,8 @@ zwave.kept.ZwaveFields.s0_frames since=1.0
 zwave.kept.ZwaveFields.s2_frames since=1.0
 zwave.kept.ZwaveFields.acks since=1.0
 zwave.table.frames row=ZwaveFrameRow cap=600 role=log time=time since=1.0
-zwave.table.nodes row=ZwaveNodeRow cap=1000 since=1.0
-zwave.table.networks row=ZwaveNetworkRow cap=64 sort=level_dbfs:descending since=1.0
+zwave.table.nodes row=ZwaveNodeRow cap=1000 label=name sort=last_heard:descending role=nodes time=last_heard since=1.0
+zwave.table.networks row=ZwaveNetworkRow cap=64 label=home_id sort=level_dbfs:descending since=1.0
 zwave.table.channels row=ZwaveChannelRow cap=32 since=1.0
 zwave.table.classes row=ZwaveClassRow cap=256 since=1.0
 zwave.event.zwave.frame fields=ZwaveFrameEvent since=1.0
@@ -873,8 +915,8 @@ zigbee.kept.ZigbeeFields.candidates since=1.0
 zigbee.kept.ZigbeeFields.encrypted_frames since=1.0
 zigbee.kept.ZigbeeFields.networks since=1.0
 zigbee.kept.ZigbeeFields.devices since=1.0
-zigbee.table.networks row=ZigbeeNetworkRow cap=100 sort=level_dbfs:descending since=1.0
-zigbee.table.devices row=PanDeviceRow cap=600 since=1.0
+zigbee.table.networks row=ZigbeeNetworkRow cap=100 label=name sort=level_dbfs:descending since=1.0
+zigbee.table.devices row=PanDeviceRow cap=600 label=name sort=last_heard:descending role=nodes time=last_heard since=1.0
 zigbee.table.frames row=ZigbeeFrameRow cap=600 role=log time=time_s since=1.0
 zigbee.series.frames_per_second x_unit=s y_unit=frames since=1.0
 zigbee.event.zigbee.pan fields=ZigbeePanEvent since=1.0
@@ -924,7 +966,7 @@ ant.kept.AntFields.frames_ok since=1.0
 ant.kept.AntFields.sensors since=1.0
 ant.kept.AntFields.heart_rate_bpm since=1.0
 ant.kept.AntDemodFields since=1.0
-ant.table.sensors row=AntSensorRow cap=100 since=1.0
+ant.table.sensors row=AntSensorRow cap=100 label=name sort=last_heard:descending role=nodes time=last_heard since=1.0
 ant.table.frames row=AntFrameRow cap=400 since=1.0
 ant.series.history x_unit=s y_unit= since=1.0
 ant.event.ant.sensor fields=AntSensorEvent since=1.0
@@ -951,7 +993,7 @@ nrf24.kept.NrfFields.crc16_frames since=1.0
 nrf24.kept.NrfFields.crc8_frames since=1.0
 nrf24.kept.NrfFields.addresses since=1.0
 nrf24.table.frames row=NrfFrameRow cap=300 label=address since=1.0
-nrf24.table.addresses row=NrfAddressRow cap=100 label=address since=1.0
+nrf24.table.addresses row=NrfAddressRow cap=100 label=address sort=last_heard:descending role=nodes time=last_heard since=1.0
 nrf24.table.bad_bursts row=NrfBadBurstRow cap=60 since=1.0
 nrf24.event.nrf24.address fields=NrfAddressEvent since=1.0
 nrf24.setting.channel type=i64 unit= since=1.0
@@ -997,7 +1039,7 @@ dect.kept.DectFields.bases since=1.0
 dect.kept.DectFields.base_bursts since=1.0
 dect.kept.DectFields.handset_bursts since=1.0
 dect.kept.DectDemodFields since=1.0
-dect.table.bases row=DectBaseRow cap=60 sort=level_dbfs:descending since=1.0
+dect.table.bases row=DectBaseRow cap=60 label=rfpi sort=level_dbfs:descending role=nodes time=last_heard since=1.0
 dect.table.bursts row=DectBurstRow cap=300 label=from since=1.0
 dect.event.dect.base fields=DectBaseEvent since=1.0
 dect.setting.band type=choice(eu,us,br,la,ism900) unit= since=1.0
@@ -1015,7 +1057,7 @@ nfc.component.detect.fields.NfcDetectFields shared=field_dbfs;subcarrier_dbfs si
 nfc.kept.tags since=1.0
 nfc.kept.frames since=1.0
 nfc.kept.NfcFields since=1.0
-nfc.table.tags row=NfcTagRow cap=100 label=uid since=1.0
+nfc.table.tags row=NfcTagRow cap=100 label=uid sort=last_heard:descending role=nodes time=last_heard since=1.0
 nfc.table.frames row=NfcFrameRow cap=200 label=name role=log time=time_s since=1.0
 nfc.event.nfc.tag fields=NfcTagEvent since=1.0
 nfc.command.clear args= reply= since=1.0
@@ -1039,7 +1081,7 @@ wisun.kept.WisunFields.networks since=1.0
 wisun.kept.WisunFields.nodes since=1.0
 wisun.kept.WisunFields.links since=1.0
 wisun.table.networks row=WisunNetworkRow cap=64 label=name sort=level_dbfs:descending since=1.0
-wisun.table.nodes row=WisunNodeRow cap=2000 since=1.0
+wisun.table.nodes row=WisunNodeRow cap=2000 label=address sort=last_heard:descending role=nodes time=last_heard since=1.0
 wisun.table.links row=WisunLinkRow cap=4000 label=from since=1.0
 wisun.table.frames row=WisunFrameRow cap=800 role=log time=time_s since=1.0
 wisun.series.hops x_unit=s y_unit=MHz since=1.0
@@ -1087,7 +1129,7 @@ thread.kept.ThreadFields.ch26 since=1.0
 thread.kept.ThreadFields.networks since=1.0
 thread.kept.ThreadFields.devices since=1.0
 thread.table.networks row=ThreadNetworkRow cap=100 label=network_name sort=level_dbfs:descending since=1.0
-thread.table.devices row=PanDeviceRow cap=600 since=1.0
+thread.table.devices row=PanDeviceRow cap=600 label=name sort=last_heard:descending role=nodes time=last_heard since=1.0
 thread.table.frames row=ThreadFrameRow cap=600 label=source since=1.0
 thread.event.thread.network fields=ThreadNetworkEvent since=1.0
 thread.event.thread.device fields=ThreadDeviceEvent since=1.0
@@ -1111,7 +1153,7 @@ mioty.kept.MiotyFields.bursts_detected since=1.0
 mioty.kept.MiotyFields.failed_hypotheses since=1.0
 mioty.kept.MiotyFields.devices since=1.0
 mioty.table.frames row=MiotyFrameRow cap=200 label=id since=1.0
-mioty.table.devices row=MiotyDeviceRow cap=200 label=id since=1.0
+mioty.table.devices row=MiotyDeviceRow cap=200 label=id sort=last_heard:descending role=nodes time=first_heard since=1.0
 mioty.event.mioty.frame fields=MiotyFrameEvent since=1.0
 mioty.setting.min_bursts type=i64 unit=count since=1.0
 mioty.command.clear args= reply= since=1.0
@@ -1125,7 +1167,7 @@ dect_nrplus.kept.NrPlusFields.frames_ok since=1.0
 dect_nrplus.kept.NrPlusFields.stf_detections since=1.0
 dect_nrplus.kept.NrPlusFields.devices since=1.0
 dect_nrplus.table.packets row=NrPlusPacketRow cap=300 label=id since=1.0
-dect_nrplus.table.devices row=NrPlusDeviceRow cap=200 label=id since=1.0
+dect_nrplus.table.devices row=NrPlusDeviceRow cap=200 label=id sort=last_heard:descending role=nodes time=first_heard since=1.0
 dect_nrplus.event.dect_nrplus.packet fields=NrPlusPacketEvent since=1.0
 dect_nrplus.command.clear args= reply= since=1.0
 npr70 since=1.0
@@ -1136,7 +1178,7 @@ npr70.kept.frames since=1.0
 npr70.kept.networks since=1.0
 npr70.kept.NprFields.sync_words since=1.0
 npr70.table.frames row=NprFrameRow cap=300 since=1.0
-npr70.table.networks row=NprNetworkRow cap=16 since=1.0
+npr70.table.networks row=NprNetworkRow cap=16 label=network sort=last_heard:descending role=nodes time=first_heard since=1.0
 npr70.event.npr70.frame fields=NprFrameEvent since=1.0
 npr70.setting.rates type=text unit=ksym/s since=1.0
 npr70.command.clear args= reply= since=1.0
@@ -1154,3 +1196,19 @@ dsrc_toll.event.dsrc_toll.frame fields=DsrcFrameEvent since=1.0
 dsrc_toll.setting.bit_rate type=hz unit=Hz since=1.0
 dsrc_toll.setting.gen_depth type=f64 unit= since=1.0
 dsrc_toll.command.clear args= reply= since=1.0
+enocean since=4.2
+enocean.content kind=devices since=4.2
+enocean.fields.EnoceanFields since=4.2
+enocean.fields.DecoderFields since=4.2
+enocean.kept.devices since=4.2
+enocean.kept.telegrams since=4.2
+enocean.kept.EnoceanFields.telegrams since=4.2
+enocean.kept.EnoceanFields.subtelegrams since=4.2
+enocean.kept.EnoceanFields.frames_bad since=4.2
+enocean.kept.EnoceanFields.bursts since=4.2
+enocean.table.devices row=EnoceanDeviceRow cap=500 label=name sort=last_heard:descending role=nodes time=first_heard since=4.2
+enocean.table.telegrams row=EnoceanTelegramRow cap=500 label=sender role=log time=utc since=4.2
+enocean.event.enocean.telegram fields=EnoceanTelegramEvent since=4.2
+enocean.setting.threshold type=f64 unit=dB since=4.2
+enocean.setting.gen_radio type=choice(erp1,erp2) unit= since=4.2
+enocean.command.clear args= reply= since=4.2

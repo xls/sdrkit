@@ -71,6 +71,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `facility_id` | Facility id | whole number |
 | `location` | Location | position |
 | `altitude_m` | Altitude | number (m) |
+| `sound` | Sound | choice |
 | `text` | Text | text |
 | `item_running` | Item running | yes or no |
 | `slide_name` | Slide | text |
@@ -113,9 +114,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `broadcast`, version 2.0. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `broadcast`, version 2.1. The C header `sdrkit/broadcast.h`, the registry record `registry/broadcast.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
-Content kind: Broadcast radio (`broadcast`). Media: pictures.
+Content kind: Broadcast radio (`broadcast`). Media: sound (programme), pictures.
 
 ### Result fields
 
@@ -142,7 +143,7 @@ Struct `HdradioFields`. The results of the HD Radio stack. No band or mode befor
 | `aas_bad` | whole number | always | 1.0 | AAS packets bad. |
 | `level_dbfs` | number (dBFS) | optional | 1.0 | The input level. |
 | `signal_time` | duration (s) | always | 1.0 | Signal time. |
-| `codec_note` | text | optional | 1.0 | What the audio codec needs, or why it cannot play. |
+| `codec_note` | text | optional | 1.0 | Why the digital sound (HDC) does not play. |
 | `p1_on` | yes or no | always | 1.0 | P1 frames arrive. |
 | `pids_on` | yes or no | always | 1.0 | PIDS frames arrive. |
 | `psd_on` | yes or no | always | 1.0 | Song data seen. |
@@ -157,6 +158,14 @@ Struct `HdradioFields`. The results of the HD Radio stack. No band or mode befor
 | `facility_id` | whole number | optional | 1.0 | The facility id. |
 | `location` | position | optional | 1.0 | The location of the station. |
 | `altitude_m` | number (m) | optional | 1.0 | The altitude of the station. |
+
+### Result fields
+
+Struct `HdSoundFields`. What the HD Radio stack plays, which its sound stage writes.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `sound` | choice | always | 2.1 | The sound that plays. |
 
 ### Result fields
 

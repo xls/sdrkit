@@ -1,7 +1,7 @@
 //! The `btclassic` test signal: basic-rate packets in GFSK (BT 0.5, index 0.32, 1 Msym/s, a 1 the higher frequency) at unit
-//! power, the radio centre taken as [`TEST_CENTRE_HZ`]. A phone and a headset answer inquiries with FHS packets, a scanner
-//! sends GIAC ID packets, and two piconets send packets of random header and payload bits. A device whose channel lies
-//! outside the capture is moved to channels 38 to 40. As an option, a noise burst over the whole capture every second.
+//! power, around the frequency where the session listens ([`TEST_CENTRE_HZ`] without a session). A phone and a headset answer
+//! inquiries with FHS packets, a scanner sends GIAC ID packets, and two piconets send packets of random header and payload
+//! bits. A device whose channel lies outside the capture is moved to the three channels nearest the centre. As an option, a noise burst over the whole capture every second.
 
 use crate::testgen::GEN_SECTION;
 use sdrkit_algo_sim::modulate::Cpm;
@@ -162,20 +162,29 @@ pub fn gfsk(bits: &[u8], rate: f64) -> Result<Vec<Complex32>, ConfigError> {
     Ok(out)
 }
 
-/// The test signal at `rate` with seed `seed`, with the wideband bursts when `wideband` is set.
+/// The channel nearest `centre_hz` (0 to 78).
+fn nearest_channel(centre_hz: f64) -> u32 {
+    ((centre_hz - sdrkit_proto_bt::baseband::channel_hz(0)) / 1e6)
+        .round()
+        .clamp(0.0, 78.0) as u32
+}
+
+/// The test signal at `rate` with seed `seed` for a radio centred on `centre_hz`, with the wideband bursts when `wideband` is
+/// set.
 ///
 /// # Errors
 ///
 /// [`ConfigError`] if the scene or the modulator refuses the rate.
-pub fn scene(rate: f64, seed: u64, wideband: bool) -> Result<Scene, ConfigError> {
+pub fn scene(rate: f64, seed: u64, wideband: bool, centre_hz: f64) -> Result<Scene, ConfigError> {
     let mut scene = Scene::new(rate)?;
+    let near = nearest_channel(centre_hz);
     for (i, d) in devices().into_iter().enumerate() {
-        let channel = if covered(d.channel, rate, TEST_CENTRE_HZ) {
+        let channel = if covered(d.channel, rate, centre_hz) {
             d.channel
         } else {
-            38 + i as u32 % 3
+            (near + i as u32 % 3).saturating_sub(1).min(78)
         };
-        let offset = sdrkit_proto_bt::baseband::channel_hz(channel) - TEST_CENTRE_HZ + d.cfo_hz;
+        let offset = sdrkit_proto_bt::baseband::channel_hz(channel) - centre_hz + d.cfo_hz;
         let mut rng = Rng::stream(seed, 0xB7 + i as u64);
         let mut t = d.first_s;
         scene.add_source(Box::new(move || {
@@ -228,7 +237,12 @@ impl BtGenerator {
     pub fn from_config(cfg: &GenConfig) -> Result<BtGenerator, ConfigError> {
         let wideband = crate::testgen::gen_setting(cfg, &GEN_WIDEBAND).unwrap_or(false);
         Ok(BtGenerator {
-            scene: scene(cfg.rate_hz, cfg.seed, wideband)?,
+            scene: scene(
+                cfg.rate_hz,
+                cfg.seed,
+                wideband,
+                cfg.tuned_hz().unwrap_or(TEST_CENTRE_HZ),
+            )?,
             rate: cfg.rate_hz,
         })
     }

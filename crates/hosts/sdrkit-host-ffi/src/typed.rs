@@ -270,6 +270,7 @@ unsafe fn fill(base: *mut u8, caller: usize, st: &Struct, ids: &[FieldId], rec: 
                 Value::Text(t) => put(base, limit, m.at, Str::of(t)),
                 Value::Position { lat, lon } => put(base, limit, m.at, Position::at(*lat, *lon)),
                 Value::Choice(i) => put(base, limit, m.at, i32::from(*i)),
+                Value::Flags(mask) => put(base, limit, m.at, *mask),
                 Value::Bytes(b) => put(base, limit, m.at, Bytes::of(b)),
             }
         }
@@ -294,6 +295,7 @@ unsafe fn take(base: *const u8, m: &Member) -> Result<Value, Error> {
             ValueKind::Time => Value::Time(number()),
             ValueKind::Duration => Value::Duration(number()),
             ValueKind::Choice => choice(at.cast::<i32>().read_unaligned())?,
+            ValueKind::Flags => Value::Flags(at.cast::<u64>().read_unaligned()),
             ValueKind::Text => text(at.cast::<Str>().read_unaligned())?,
             ValueKind::Bytes => {
                 let b = at.cast::<Bytes>().read_unaligned();
@@ -1031,4 +1033,70 @@ mod component_tests {
         assert!(resolve(&total.members, "other.", record).is_err());
     }
 
+    sdrkit_core::flag_set! {
+        /// What is wrong with a frame.
+        struct Faults {
+            CRC = ("crc", "CRC", "The checksum does not match."),
+            LATE = ("late", "Late", "The frame is after its slot."),
+        }
+    }
+
+    /// A set with a flag member between members of other sizes.
+    #[derive(Fields)]
+    #[allow(dead_code)]
+    struct FaultFields {
+        /// The decoder is on.
+        #[field(label = "On")]
+        on: bool,
+        /// The faults of the last frame.
+        #[field(label = "Faults")]
+        faults: Faults,
+        /// The frames.
+        #[field(label = "Frames")]
+        frames: i64,
+    }
+
+    /// The C struct of [`FaultFields`], as a header declares it.
+    #[repr(C)]
+    struct CFaultFields {
+        size: u32,
+        on: bool,
+        faults: u64,
+        frames: i64,
+    }
+
+    /// A flag member is a 64-bit mask at its aligned place, and reads back as the same mask.
+    #[test]
+    fn a_flag_member_is_a_mask_in_the_struct() {
+        let family = Family::new("demo", 1, 0);
+        let shape = <FaultFields as Fields>::SHAPE;
+        let st = Struct {
+            name: "demo.FaultFields".into(),
+            head: Head::Plain,
+            layout: layout::of_shape(&family, &shape, Head::Plain),
+        };
+        assert_eq!(st.layout.size, size_of::<CFaultFields>());
+        let mut rec = Record::new(Arc::new(RecordDecl::of(shape.fields)));
+        let values = [Value::Bool(true), Value::Flags(0b10), Value::I64(7)];
+        for (i, v) in values.iter().enumerate() {
+            rec.set_value(FieldId(i as u16), v).expect("a value of the field");
+        }
+        let ids: Vec<FieldId> = st
+            .layout
+            .members
+            .iter()
+            .map(|m| FieldId(m.index as u16))
+            .collect();
+        let mut c = std::mem::MaybeUninit::<CFaultFields>::zeroed();
+        // SAFETY: `c` is valid for a write of its size, and holds a value of every member after the fill.
+        let c = unsafe {
+            fill(c.as_mut_ptr().cast(), size_of::<CFaultFields>(), &st, &ids, &rec);
+            c.assume_init()
+        };
+        assert_eq!((c.on, c.faults, c.frames), (true, 0b10, 7));
+        let m = st.layout.members.iter().find(|m| m.key == "faults").expect("the member");
+        // SAFETY: `c` is a live struct of this layout.
+        let back = unsafe { take(std::ptr::from_ref(&c).cast(), m) };
+        assert_eq!(back.ok(), Some(Value::Flags(0b10)));
+    }
 }

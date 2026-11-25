@@ -124,6 +124,9 @@ pub struct DrmFields<'a> {
     /// The input is mirrored (I and Q swapped).
     #[field(label = "Mirrored")]
     pub mirrored: bool,
+    /// The row key of the service playing in the services table. No value before its first audio frame.
+    #[field(label = "Service playing", refers_to = "services")]
+    pub playing_service: Option<&'a str>,
 }
 
 /// A service. The row key is its short id.

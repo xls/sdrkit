@@ -64,7 +64,7 @@ A line before it looks like this:
 2. Make the copy:
 
        sh tools/package.sh
-       SDRKIT=$PWD/dist/sdrkit-0.1.0-aarch64-apple-darwin
+       SDRKIT=$PWD/dist/sdrkit-0.5.0-aarch64-apple-darwin
 
 3. Build the examples with CMake:
 
@@ -95,7 +95,7 @@ A line before it looks like this:
 2. Make the copy:
 
        sh tools/package.sh
-       SDRKIT=$PWD/dist/sdrkit-0.1.0-x86_64-unknown-linux-gnu
+       SDRKIT=$PWD/dist/sdrkit-0.5.0-x86_64-unknown-linux-gnu
 
 3. Build the examples with CMake:
 
@@ -118,7 +118,7 @@ A line before it looks like this:
 ## Linux aarch64
 
 On an aarch64 machine (a Raspberry Pi 4 or 5 with a 64-bit system, a Graviton server), the steps are those of
-Linux x86_64. The copy is `dist/sdrkit-0.1.0-aarch64-unknown-linux-gnu`.
+Linux x86_64. The copy is `dist/sdrkit-0.5.0-aarch64-unknown-linux-gnu`.
 
 To make the copy on an x86_64 machine:
 
@@ -147,7 +147,7 @@ To make the copy on an x86_64 machine:
 3. Make the copy:
 
        powershell -ExecutionPolicy Bypass -File tools\package.ps1
-       $SDRKIT = "$PWD\dist\sdrkit-0.1.0-x86_64-pc-windows-msvc"
+       $SDRKIT = "$PWD\dist\sdrkit-0.5.0-x86_64-pc-windows-msvc"
 
 4. Build the examples with CMake. The CMake files copy `sdrkit.dll` next to each program:
 
@@ -184,7 +184,7 @@ To make the copy on an x86_64 machine:
 
 3. In the MinGW shell, build the examples with CMake:
 
-       SDRKIT=$PWD/dist/sdrkit-0.1.0-x86_64-pc-windows-gnu
+       SDRKIT=$PWD/dist/sdrkit-0.5.0-x86_64-pc-windows-gnu
        cmake -S examples -B build/examples -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH=$SDRKIT
        cmake --build build/examples
 

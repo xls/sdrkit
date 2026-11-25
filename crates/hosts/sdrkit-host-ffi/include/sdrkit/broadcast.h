@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "broadcast", version 2.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "broadcast", version 2.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -38,7 +38,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_BROADCAST_VERSION_MAJOR 2
-#define SDRKIT_BROADCAST_VERSION_MINOR 0
+#define SDRKIT_BROADCAST_VERSION_MINOR 1
 
 // The stack "drm": its id, and the keys of its event types.
 #define SDRKIT_STACK_DRM "drm"
@@ -424,6 +424,10 @@ typedef struct sdrkit_drm_fields {
   bool holding;
   // The input is mirrored (I and Q swapped).
   bool mirrored;
+  // True if `playing_service` holds a value.
+  bool has_playing_service;
+  // The row key of the service playing in the services table. No value before its first audio frame.
+  sdrkit_string playing_service;
 } sdrkit_drm_fields;
 
 // A service. The row key is its short id.
@@ -842,7 +846,7 @@ typedef struct sdrkit_hdradio_fields {
   double signal_time;
   // True if `codec_note` holds a value.
   bool has_codec_note;
-  // What the audio codec needs, or why it cannot play.
+  // Why the digital sound (HDC) does not play.
   sdrkit_string codec_note;
   // P1 frames arrive.
   bool p1_on;
@@ -891,6 +895,22 @@ typedef struct sdrkit_hdradio_fields {
   // The altitude of the station. Unit: m.
   double altitude_m;
 } sdrkit_hdradio_fields;
+
+// The options of `sound` of `sdrkit_hdradio_hd_sound_fields`.
+typedef enum sdrkit_hdradio_hd_sound_fields_sound {
+  // No sound
+  SDRKIT_HDRADIO_HD_SOUND_FIELDS_SOUND_NONE = 0,
+  // Analogue FM programme
+  SDRKIT_HDRADIO_HD_SOUND_FIELDS_SOUND_ANALOGUE_FM = 1,
+} sdrkit_hdradio_hd_sound_fields_sound;
+
+// What the HD Radio stack plays, which its sound stage writes.
+typedef struct sdrkit_hdradio_hd_sound_fields {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The sound that plays. A value of `sdrkit_hdradio_hd_sound_fields_sound`.
+  int32_t sound;
+} sdrkit_hdradio_hd_sound_fields;
 
 // An audio program. The row key is "HD1" to "HD8".
 typedef struct sdrkit_hdradio_program_row {
@@ -2086,6 +2106,11 @@ static inline int32_t sdrkit_hamdrm_fields_read(SDRKIT_HANDLE handle, sdrkit_ham
 // Fills `fields` with the result fields of the snapshot of `handle`.
 static inline int32_t sdrkit_hdradio_fields_read(SDRKIT_HANDLE handle, sdrkit_hdradio_fields *fields) {
   return sdrkit_typed_fields(handle, "broadcast.HdradioFields", fields, sizeof(sdrkit_hdradio_fields));
+}
+
+// Fills `fields` with the result fields of the snapshot of `handle`.
+static inline int32_t sdrkit_hdradio_hd_sound_fields_read(SDRKIT_HANDLE handle, sdrkit_hdradio_hd_sound_fields *fields) {
+  return sdrkit_typed_fields(handle, "broadcast.HdSoundFields", fields, sizeof(sdrkit_hdradio_hd_sound_fields));
 }
 
 // Fills `fields` with the result fields of the snapshot of `handle`.

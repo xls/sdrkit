@@ -141,6 +141,7 @@ pub struct Seconds(pub f64);
 /// | [`Hertz`], [`Time`], [`Seconds`] | frequency, time, length of time |
 /// | `(f64, f64)` | position, latitude first |
 /// | an enum of [`choice_enum!`](crate::choice_enum) | choice |
+/// | a type of [`flag_set!`](crate::flag_set) | flag set |
 /// | `Arc<[u8]>` | bytes |
 /// | `&Value` | a value that carries its own kind, for a column whose rows hold values of several kinds |
 pub trait Cell<'a>: Sized {

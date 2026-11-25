@@ -1,12 +1,14 @@
 import Foundation
 import SDRKitC
 
-/// One option of a value of type `.option`.
+/// One option of a value of type `.option`, or one flag of a value of type `.flags`.
 public struct Option: Equatable, Sendable {
     /// The key that data files use.
     public var key: String
     /// The name for people.
     public var label: String
+    /// What a flag says, in one line. Empty for an option.
+    public var help: String = ""
 }
 
 /// The declaration of one value: a setting, an argument, a reply field, a result field, a table column or an event
@@ -64,7 +66,7 @@ public struct Declaration: Equatable, Sendable {
     public var defaultValue: Value
     /// What the number 0 means when it is not a quantity ("Automatic"). With a meaning, 0 is valid outside the range.
     public var zeroMeans: String
-    /// The options of a value of type `.option`, by index.
+    /// The options of a value of type `.option`, by index, or the flags of a value of type `.flags`, by bit.
     public var options: [Option]
     /// The values of a number setting that people normally use, for the present option of the setting that they depend
     /// on (the filter widths of a demodulator). Empty for none. Settings only.
@@ -107,6 +109,12 @@ public struct Declaration: Equatable, Sendable {
     public func option(of value: Value) -> Option? {
         guard case .option(let i) = value, Int(i) < options.count else { return nil }
         return options[Int(i)]
+    }
+
+    /// Returns the flags that are set in `value`, in bit order, if `value` is a flag set of this declaration.
+    public func flags(of value: Value) -> [Option]? {
+        guard case .flags(let mask) = value else { return nil }
+        return options.enumerated().filter { $0.offset < 64 && mask >> UInt64($0.offset) & 1 == 1 }.map(\.element)
     }
 
     /// Copies the declaration `d` without its options. The views of `d` must still be valid.

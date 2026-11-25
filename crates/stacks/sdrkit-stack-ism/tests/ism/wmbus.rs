@@ -231,6 +231,7 @@ fn gp(seed: u64) -> GenParams {
         encrypted: true,
         silence: false,
         seed,
+        centre_hz: 0.0,
     }
 }
 
@@ -262,7 +263,7 @@ fn generator_round_trip_868() {
 #[test]
 fn generator_round_trip_169() {
     let run = Harness::new(&WMBUS)
-        .rate(1e6)
+        .rate(1.2e6)
         .freq(wmbus::gen_centre(true))
         .set(&wmbus::GEN_PLAN, wmbus::GenPlan::Mhz169)
         .seconds(3.0)
@@ -359,4 +360,44 @@ fn a_change_of_frequency_keeps_the_meters_and_drops_the_channels() {
     assert_eq!(field(r.results(), "frames_ok"), frames);
     assert!(column(r.results(), &CHANNELS, "frequency").is_empty());
     assert_eq!(r.results().status().level_dbfs, None);
+}
+
+/// The test signal of a session: the meters are on their own channels around the frequency where it listens.
+fn tuned_signal(rate: f64, tuned_hz: f64, seconds: f64) -> Vec<Complex32> {
+    let values = sdrkit_core::Values::defaults(&(WMBUS.settings)());
+    let cfg = sdrkit_core::GenConfig::new(rate, values).with_tuned_hz(Some(tuned_hz));
+    let make = WMBUS.make_generator.unwrap();
+    let mut g = make(&cfg).unwrap();
+    assert!(cfg.reads_tuned());
+    let mut x = vec![Complex32::default(); (rate * seconds) as usize];
+    let n = g.generate(&mut x);
+    x.truncate(n);
+    x
+}
+
+#[test]
+fn tuned_test_signal_decodes_at_the_session_frequency() {
+    // Tuned to the T1 / C1 channel: the S1 meter at 868.3 MHz fits at 2 MS/s too.
+    let x = tuned_signal(2e6, 868.95e6, 8.0);
+    let mut r = rx(2e6, 868.95e6);
+    feed(r.as_mut(), &x, 65536);
+    let ids = column(r.results(), &METERS, "meter_id");
+    for id in ["12345678", "40112233", "61000042", "72004711"] {
+        assert!(ids.iter().any(|x| x == id), "{id} missing: {ids:?}");
+    }
+}
+
+#[test]
+fn a_capture_without_a_channel_says_so() {
+    // At the least rate of the stack the default centre holds the S1 channel and the T1 and C1 channel.
+    let plan = wmbus::rx::plan(868.625e6, wmbus::MIN_RATE_HZ);
+    for hz in [868.3e6, 868.95e6] {
+        assert!(plan.iter().any(|c| c.hz == hz), "{hz}");
+    }
+    let x = tuned_signal(2e6, 433.92e6, 3.0);
+    let mut r = rx(2e6, 433.92e6);
+    feed(r.as_mut(), &x, 65536);
+    assert_eq!(field(r.results(), "frames_ok"), 0);
+    let s = r.results().status().summary.clone();
+    assert!(s.contains("no meter channel in the capture"), "{s}");
 }

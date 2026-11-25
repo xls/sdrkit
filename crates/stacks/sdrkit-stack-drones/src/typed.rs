@@ -12,7 +12,7 @@ use crate::ogn::PacketKind;
 use crate::rc_links::RcStackSetting;
 use crate::remote_id::messages::{MsgType, Transport};
 use crate::remote_id::table::Via;
-use crate::remote_id::trust::TrustVerdict;
+use crate::remote_id::trust::{TrustReasons, TrustVerdict};
 use crate::remote_id::Band;
 use crate::remote_id::RidSetting;
 use sdrkit_core::interface::{
@@ -120,10 +120,9 @@ pub struct RemoteIdDroneRow<'a> {
     /// value before the first packet since the start (a drone of a restored state).
     #[field(label = "Trust verdict")]
     pub verdict: Option<TrustVerdict>,
-    /// The active reasons of the trust verdict: their stable names (`teleport`, `counter_conflict`, ...) joined by ", ".
-    /// Empty when there is none.
+    /// The active reasons of the trust verdict, one flag for each. No flag when there is none.
     #[field(label = "Trust reasons")]
-    pub reasons: &'a str,
+    pub reasons: TrustReasons,
     /// Serial number.
     #[field(label = "Serial number")]
     pub serial: Option<&'a str>,
@@ -340,9 +339,9 @@ pub struct RemoteIdVerdictEvent<'a> {
     /// The new trust verdict.
     #[field(label = "Trust verdict")]
     pub verdict: TrustVerdict,
-    /// The active reasons of the verdict: their stable names joined by ", ". Empty when there is none.
+    /// The active reasons of the verdict, one flag for each. No flag when there is none.
     #[field(label = "Trust reasons")]
-    pub reasons: &'a str,
+    pub reasons: TrustReasons,
     /// The position of the object that the event is about.
     #[field(shared = keys::POSITION)]
     pub position: Option<(f64, f64)>,
@@ -1649,93 +1648,7 @@ pub fn family() -> &'static Described {
     FAMILY.get_or_init(|| {
         // Each stack holds what it heard in one component: the objects heard and the logs are its history, and they
         // stay over a change of frequency, with the counters of the same component.
-        Described::new("drones", 1, 4)
-            .added(
-                1,
-                1,
-                &[
-                    "remote_id.content",
-                    "dji_droneid.content",
-                    "flarm.content",
-                    "adsl.content",
-                    "ogn.content",
-                    "rc_links.content",
-                    "mavlink_sik.content",
-                ],
-            )
-            .added(
-                1,
-                2,
-                &[
-                    "shape.RemoteIdDroneRow.verdict",
-                    "shape.RemoteIdDroneRow.reasons",
-                    "shape.RemoteIdFields.flagged",
-                    "shape.RemoteIdFields.messages_refused",
-                    "shape.RemoteIdFields.fields_out_of_range",
-                    "shape.RemoteIdDroneRow.authentication_length",
-                    "shape.RemoteIdDroneRow.authentication_complete",
-                    "shape.RemoteIdVerdictEvent",
-                    "shape.RemoteIdVerdictEvent.source",
-                    "shape.RemoteIdVerdictEvent.address",
-                    "shape.RemoteIdVerdictEvent.verdict",
-                    "shape.RemoteIdVerdictEvent.reasons",
-                    "shape.RemoteIdVerdictEvent.position",
-                    "shape.RemoteIdVerdictEvent.urgency",
-                    "shape.RemoteIdVerdictEvent.family",
-                    "remote_id.event.remote_id.verdict",
-                    "remote_id.setting.gen_spoofer",
-                    "remote_id.setting.shared_radio",
-                    "shape.DjiDroneidDroneRow.alt_raw",
-                    "shape.DjiDroneidDroneRow.height_raw",
-                    "shape.DjiDroneidEvent.alt_raw",
-                    "shape.DjiDroneidEvent.height_raw",
-                ],
-            )
-            .added(
-                1,
-                3,
-                &[
-                    "shape.DjiDroneidFields.aircraft",
-                    "shape.DjiDroneidFields.droneid_encrypted",
-                    "shape.DjiDroneidFields.droneid_empty",
-                    "shape.DjiDroneidFields.droneid_other",
-                    "shape.DjiDroneidFields.droneid_refused",
-                    "shape.DjiDroneidFields.droneid_pairs",
-                    "shape.DjiDroneidFields.droneid_bursts",
-                    "shape.DjiDroneidFields.droneid_searched",
-                    "shape.DjiDroneidAircraftRow",
-                    "shape.DjiDroneidAircraftRow.aircraft",
-                    "shape.DjiDroneidAircraftRow.session_key",
-                    "shape.DjiDroneidAircraftRow.drone",
-                    "shape.DjiDroneidAircraftRow.format",
-                    "shape.DjiDroneidAircraftRow.frame_type",
-                    "shape.DjiDroneidAircraftRow.frames",
-                    "shape.DjiDroneidAircraftRow.first_s",
-                    "shape.DjiDroneidAircraftRow.last_s",
-                    "shape.DjiDroneidAircraftRow.level_dbfs",
-                    "shape.DjiDroneidAircraftRow.snr_db",
-                    "shape.DjiDroneidAircraftRow.freq_hz",
-                    "shape.DjiDroneidAircraftRow.first_heard",
-                    "shape.DjiDroneidAircraftRow.last_heard",
-                    "shape.DjiDroneidAircraftEvent",
-                    "shape.DjiDroneidAircraftEvent.source",
-                    "shape.DjiDroneidAircraftEvent.session_key",
-                    "shape.DjiDroneidAircraftEvent.format",
-                    "shape.DjiDroneidAircraftEvent.frame_type",
-                    "shape.DjiDroneidAircraftEvent.position",
-                    "shape.DjiDroneidAircraftEvent.snr_db",
-                    "shape.DjiDroneidAircraftEvent.family",
-                    "dji_droneid.table.aircraft",
-                    "dji_droneid.kept.aircraft",
-                    "dji_droneid.event.dji.aircraft",
-                    "dji_droneid.setting.droneid_tuning",
-                    "dji_droneid.setting.droneid_dwell_s",
-                    "dji_droneid.setting.gen_frame",
-                    "dji_droneid.setting.gen_droneid_frequency",
-                    "dji_droneid.setting.gen_two_aircraft",
-                    "dji_droneid.setting.gen_centre_hz",
-                ],
-            )
+        Described::new("drones", 2, 0)
             .content(
                 sdrkit_core::ContentKind::Tracking,
                 &[

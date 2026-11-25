@@ -1,0 +1,377 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "dect_1880",
+      "name": "DECT 1880 to 1900 MHz",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "EN 300 175-2, DECT Common Interface; Part 2: Physical layer",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the ten carriers (1897.344 MHz less c x 1.728 MHz, c = 0 to 9) were not compared with EN 300 175-2",
+      "bands": [
+        {
+          "name": "DECT 1880 to 1900 MHz",
+          "service": "mobile",
+          "start_hz": 1880000000,
+          "end_hz": 1900000000,
+          "modes": [
+            "dect"
+          ],
+          "channel_width_hz": 1728000,
+          "note": "stack dect, band setting eu",
+          "channels": [
+            {
+              "name": "Carrier 0",
+              "centre_hz": 1897344000
+            },
+            {
+              "name": "Carrier 1",
+              "centre_hz": 1895616000
+            },
+            {
+              "name": "Carrier 2",
+              "centre_hz": 1893888000
+            },
+            {
+              "name": "Carrier 3",
+              "centre_hz": 1892160000
+            },
+            {
+              "name": "Carrier 4",
+              "centre_hz": 1890432000
+            },
+            {
+              "name": "Carrier 5",
+              "centre_hz": 1888704000
+            },
+            {
+              "name": "Carrier 6",
+              "centre_hz": 1886976000
+            },
+            {
+              "name": "Carrier 7",
+              "centre_hz": 1885248000
+            },
+            {
+              "name": "Carrier 8",
+              "centre_hz": 1883520000
+            },
+            {
+              "name": "Carrier 9",
+              "centre_hz": 1881792000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dect_us",
+      "name": "DECT 6.0, 1920 to 1930 MHz",
+      "kind": "other",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47, Part 15, Subpart D (unlicensed PCS devices)",
+        "number": "47 CFR 15.303",
+        "date": "2026",
+        "url": "https://www.ecfr.gov/current/title-47/part-15/subpart-D"
+      },
+      "verified": false,
+      "unverified_reason": "the five carriers (1881.792 MHz plus n x 1.728 MHz, n = 23 to 27) were not compared with a published channel list",
+      "bands": [
+        {
+          "name": "UPCS 1920 to 1930 MHz",
+          "service": "mobile",
+          "start_hz": 1920000000,
+          "end_hz": 1930000000,
+          "modes": [
+            "dect"
+          ],
+          "channel_width_hz": 1728000,
+          "note": "stack dect, band setting us",
+          "channels": [
+            {
+              "name": "Carrier 0",
+              "centre_hz": 1921536000
+            },
+            {
+              "name": "Carrier 1",
+              "centre_hz": 1923264000
+            },
+            {
+              "name": "Carrier 2",
+              "centre_hz": 1924992000
+            },
+            {
+              "name": "Carrier 3",
+              "centre_hz": 1926720000
+            },
+            {
+              "name": "Carrier 4",
+              "centre_hz": 1928448000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LI",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "AU",
+      "groups": [
+        "dect_1880"
+      ],
+      "unverified_reason": "1880 to 1900 MHz is the DECT band of the LIPD class licence; the item of the class licence was not read",
+      "sources": [
+        {
+          "publisher": "Australian Government",
+          "title": "Radiocommunications (Low Interference Potential Devices) Class Licence 2025",
+          "number": "F2025L01047",
+          "date": "2025-10-01",
+          "url": "https://www.legislation.gov.au/F2025L01047"
+        }
+      ]
+    },
+    {
+      "code": "US",
+      "groups": [
+        "dect_us"
+      ],
+      "unverified_reason": "not compared with the national rules beyond 47 CFR 15.303"
+    },
+    {
+      "code": "CA",
+      "groups": [
+        "dect_us"
+      ],
+      "unverified_reason": "Canada is taken to use the band of the United States (1920 to 1930 MHz); not compared with RSS-213"
+    }
+  ]
+}

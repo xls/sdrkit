@@ -4,7 +4,7 @@
 use sdrkit_proto_mpegts::packet::TS_SIZE;
 use sdrkit_proto_mpegts::source::{
     null_packet, Data, FileSource, Fill, Numbered, NumberedCheck, NumberedSource, PacketSource,
-    TestMux, TestNetwork, TestService, TestSound,
+    TestMux, TestNetwork, TestService, TestSound, TestVideo,
 };
 use sdrkit_proto_mpegts::{Demultiplexer, DemuxOutput, Error, MuxFault};
 use sdrkit_util_bits::crc::catalog::CRC32_MPEG2;
@@ -147,6 +147,80 @@ fn the_stack_presets() {
     let mut sat = TestMux::satellite_cable(100).unwrap();
     let (d, _) = sections_of(&mut sat, 300);
     assert_eq!(d.si.service(1).unwrap().name, "sdrkit test");
+}
+
+#[test]
+fn the_picture_of_the_first_service_is_colour_bars_at_the_pace_of_the_multiplex() {
+    // The access unit decodes to eight bars of the stated colours.
+    let mut dec = sdrkit_codec_mpeg2video::Decoder::new();
+    let mut shown = Vec::new();
+    for pts in [0, 3600] {
+        dec.decode(&TestVideo::picture(), Some(pts), &mut |f| {
+            shown.push((f.width, f.height, f.aspect, f.frame_rate, f.damaged, f.y[0], f.y[f.width as usize - 1], f.cb[24], f.cr[24]));
+        });
+    }
+    dec.flush(&mut |f| {
+        shown.push((f.width, f.height, f.aspect, f.frame_rate, f.damaged, f.y[0], f.y[f.width as usize - 1], f.cb[24], f.cr[24]));
+    });
+    assert_eq!(shown.len(), 2);
+    let [w, y, c] = [TestVideo::BARS[0], TestVideo::BARS[1], TestVideo::BARS[7]];
+    assert_eq!(shown[0], (256, 144, (16, 9), (25, 1), false, w[0], c[0], y[1], y[2]));
+    // In a multiplex of 5 Mbit/s with sound, the PMT lists the video, the demultiplexer chooses it and gives 25 pictures a
+    // second, each 3600 ticks after the one before, in the places of null packets only.
+    let rate = 5e6;
+    let n = (rate / (188.0 * 8.0)) as usize;
+    let sound = TestSound { pid: 0x0102, mux_bit_rate: rate };
+    let video = TestVideo { pid: 0x0103, mux_bit_rate: rate };
+    let mut mux = TestMux::dvbt_builder(1, "sdrkit").sound(sound).video(video).build().unwrap();
+    let (d, packets) = sections_of(&mut mux, n);
+    assert_eq!((d.selection.video, d.selection.audio, d.selection.pcr), (Some(0x0103), Some(0x0102), Some(0x0102)));
+    let pid = |p: &[u8; TS_SIZE]| (p[1] as u16 & 0x1F) << 8 | p[2] as u16;
+    let (_, plain) = sections_of(&mut TestMux::dvbt(1, "sdrkit").unwrap(), n);
+    let data = |all: &[[u8; TS_SIZE]]| -> Vec<usize> {
+        all.iter().enumerate().filter(|(_, p)| ![0x1FFF, 0x0102, 0x0103, 0x0100].contains(&pid(p))).map(|(i, _)| i).collect()
+    };
+    assert_eq!(data(&packets), data(&plain));
+    let mut demux = Demultiplexer::new();
+    demux.auto_select = true;
+    let mut out = DemuxOutput::default();
+    let mut pictures = Vec::new();
+    for (i, p) in packets.iter().enumerate() {
+        demux.push(p, Some(i as f64 * 188.0 * 8.0 / rate), false, &mut out);
+        pictures.extend(out.media.drain(..).filter(|m| m.pid == 0x0103));
+        out.clear();
+    }
+    assert!((24..=26).contains(&pictures.len()), "{}", pictures.len());
+    let pts: Vec<i64> = pictures.iter().filter_map(|m| m.packet.pts).collect();
+    assert!(pts.windows(2).all(|w| w[1] - w[0] == 3600), "{pts:?}");
+    // Without sound the video carries the PCR.
+    let (d, _) = sections_of(&mut TestMux::dvbt_builder(1, "sdrkit").video(video).build().unwrap(), 600);
+    assert_eq!(d.selection.pcr, Some(0x0103));
+    // A video on a PID of the multiplex, or without room, is refused.
+    assert_eq!(
+        TestMux::dvbt_builder(1, "a").sound(sound).video(TestVideo { pid: 0x0102, ..video }).build().unwrap_err(),
+        Error::TestMux(MuxFault::BadVideoPid(0x0102))
+    );
+    assert_eq!(
+        TestMux::dvbt_builder(1, "a").video(TestVideo { mux_bit_rate: 1e5, ..video }).build().unwrap_err(),
+        Error::TestMux(MuxFault::BadVideoRate)
+    );
+}
+
+#[test]
+fn the_virtual_channel_table_names_the_services_in_place_of_the_sdt() {
+    let mut mux = TestMux::builder(7)
+        .service(TestService::tv(3, "SDRKIT TV", 0))
+        .service(TestService::radio(4, "Radio", 0))
+        .virtual_channels(39)
+        .build()
+        .unwrap();
+    let (d, packets) = sections_of(&mut mux, 600);
+    assert!(!packets.iter().any(|p| p[1] & 0x1F == 0 && p[2] == 0x11), "no SDT");
+    let si = &d.si;
+    let tv = si.service(3).expect("the TV service");
+    assert_eq!((tv.name.as_str(), tv.provider.as_str(), tv.lcn, tv.service_type), ("SDRKIT", "channel 39.1", 3901, 0x01));
+    let radio = si.service(4).expect("the radio service");
+    assert_eq!((radio.name.as_str(), radio.lcn, radio.service_type), ("Radio", 3902, 0x02));
 }
 
 #[test]

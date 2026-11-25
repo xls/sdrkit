@@ -927,8 +927,11 @@ impl Component for Tables {
             Format::new(Kind::typed::<HostRequest>(), 0.0),
         ])
     }
+    fn retuned(&mut self, _centre_hz: f64, tuned_hz: f64) {
+        self.channel = channel_of(tuned_hz);
+    }
     fn attach(&mut self, ctx: &sdrkit_graph::RunContext) {
-        self.live = ctx.live;
+        self.live = ctx.wall_clock();
     }
     fn process(&mut self, io: &mut Io) {
         let mut new = false;

@@ -4,12 +4,20 @@
 mod alloc;
 #[path = "sdrkit_proto_wlan_phy/ble.rs"]
 mod ble;
+#[path = "sdrkit_proto_wlan_phy/ble_ext.rs"]
+mod ble_ext;
+#[path = "sdrkit_proto_wlan_phy/ble_phy.rs"]
+mod ble_phy;
 #[path = "sdrkit_proto_wlan_phy/dsss.rs"]
 mod dsss;
+#[path = "sdrkit_proto_wlan_phy/frames.rs"]
+mod frames;
 #[path = "sdrkit_proto_wlan_phy/mac.rs"]
 mod mac;
 #[path = "sdrkit_proto_wlan_phy/ofdm.rs"]
 mod ofdm;
+#[path = "sdrkit_proto_wlan_phy/ppdu.rs"]
+mod ppdu;
 #[path = "sdrkit_proto_wlan_phy/s1g.rs"]
 mod s1g;
 

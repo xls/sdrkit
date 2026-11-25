@@ -7,6 +7,7 @@
 pub mod gen;
 
 use crate::report::wall;
+use crate::ble::adv::{kind_of_class, DeviceKind as ClassKind};
 use crate::typed::{
     BtclassicDeviceEvent, BtclassicDeviceRow, BtclassicFields, BtclassicInquiryEvent,
     BtclassicPacketRow, BTCLASSIC_DEVICES, BTCLASSIC_DEVICE_NEW, BTCLASSIC_INQUIRY,
@@ -293,6 +294,7 @@ impl Shaped for Device {
             packets: self.packets as i64,
             last_channel_mhz: 2402.0 + f64::from(self.last_channel),
             channels_heard: &format!("{:020X}", self.channels),
+            device_kind: f.map_or(ClassKind::Unknown, |f| kind_of_class(f.class)),
         });
     }
 }
@@ -1022,7 +1024,7 @@ pub fn benchmarks() -> Vec<sdrkit_core::bench::Benchmark> {
 fn bench_receiver(seconds: f64) -> sdrkit_core::bench::BenchResult {
     let rate = 20e6;
     let mut x = vec![Complex32::default(); (rate * 0.5) as usize];
-    if let Ok(mut s) = gen::scene(rate, 1, false) {
+    if let Ok(mut s) = gen::scene(rate, 1, false, gen::TEST_CENTRE_HZ) {
         s.generate(&mut x);
     }
     let Ok(mut rx) = receiver(&StackConfig::new(Values::defaults(&BtSetting::schema()))) else {

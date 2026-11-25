@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 3.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 3.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WLAN_VERSION_MAJOR 3
-#define SDRKIT_WLAN_VERSION_MINOR 0
+#define SDRKIT_WLAN_VERSION_MINOR 1
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -247,6 +247,20 @@ typedef struct sdrkit_ble_fields {
   bool hopping;
   // The privacy note.
   sdrkit_string privacy;
+  // Good packets on the secondary advertising channels and the periodic trains (channels 0 to 36).
+  int64_t packets_secondary;
+  // Good packets on the LE 2M PHY.
+  int64_t packets_2m;
+  // Good packets on the LE Coded PHY.
+  int64_t packets_coded;
+  // The BLE channels inside the capture: the primary ones are received all the time, a secondary one while a packet points to it. 0 when the centre of the input is not known.
+  int64_t channels_in_capture;
+  // Auxiliary packets reached through the AuxPtr that pointed to them.
+  int64_t aux_followed;
+  // AuxPtr fields that point to a channel outside the capture: their data cannot be received here.
+  int64_t aux_outside;
+  // Periodic advertising trains whose packets the receivers take.
+  int64_t periodic_trains;
 } sdrkit_ble_fields;
 
 // The result fields of the advertising sender of `ble` and `bletracker`.
@@ -274,6 +288,28 @@ typedef enum sdrkit_ble_device_row_address_type {
   // Random
   SDRKIT_BLE_DEVICE_ROW_ADDRESS_TYPE_RANDOM = 4,
 } sdrkit_ble_device_row_address_type;
+
+// The options of `device_kind` of `sdrkit_ble_device_row`.
+typedef enum sdrkit_ble_device_row_device_kind {
+  // Phone
+  SDRKIT_BLE_DEVICE_ROW_DEVICE_KIND_PHONE = 0,
+  // Headset
+  SDRKIT_BLE_DEVICE_ROW_DEVICE_KIND_HEADSET = 1,
+  // Watch
+  SDRKIT_BLE_DEVICE_ROW_DEVICE_KIND_WATCH = 2,
+  // Tracker
+  SDRKIT_BLE_DEVICE_ROW_DEVICE_KIND_TRACKER = 3,
+  // Beacon
+  SDRKIT_BLE_DEVICE_ROW_DEVICE_KIND_BEACON = 4,
+  // Computer
+  SDRKIT_BLE_DEVICE_ROW_DEVICE_KIND_COMPUTER = 5,
+  // Audio
+  SDRKIT_BLE_DEVICE_ROW_DEVICE_KIND_AUDIO = 6,
+  // Sensor
+  SDRKIT_BLE_DEVICE_ROW_DEVICE_KIND_SENSOR = 7,
+  // Unknown
+  SDRKIT_BLE_DEVICE_ROW_DEVICE_KIND_UNKNOWN = 8,
+} sdrkit_ble_device_row_device_kind;
 
 // A row of the devices of `ble`. The row key is the address and "r" (random) or "p" (public).
 typedef struct sdrkit_ble_device_row {
@@ -321,6 +357,22 @@ typedef struct sdrkit_ble_device_row {
   bool has_first_heard;
   // The UTC of the first packet. Seconds since 1970 (UTC).
   double first_heard;
+  // The PHYs the device was heard on, as "LE 1M, LE Coded".
+  sdrkit_string phys;
+  // The device uses extended advertising.
+  bool extended;
+  // An AuxPtr of the device points to a channel outside the capture: the row holds what the primary packets gave.
+  bool data_outside;
+  // True if `set_id` holds a value.
+  bool has_set_id;
+  // The advertising set id (SID) of the last extended packet, if one had it.
+  int64_t set_id;
+  // True if `periodic_interval_ms` holds a value.
+  bool has_periodic_interval_ms;
+  // The interval of the device's periodic advertising train, if a SyncInfo gave one. Unit: ms.
+  double periodic_interval_ms;
+  // The kind of device its Appearance or beacon format declares. A value of `sdrkit_ble_device_row_device_kind`.
+  int32_t device_kind;
 } sdrkit_ble_device_row;
 
 // A row of the packet log of `ble`.
@@ -345,6 +397,8 @@ typedef struct sdrkit_ble_packet_row {
   int64_t length;
   // The one-line summary.
   sdrkit_string details;
+  // The PHY of the packet ("LE 1M", "LE 2M", "LE Coded S=8" ...).
+  sdrkit_string phy;
 } sdrkit_ble_packet_row;
 
 // A row of the good packets of each PDU type of `ble`. The row key is the PDU type name.
@@ -565,6 +619,10 @@ typedef struct sdrkit_bletracker_tracker_row {
   bool has_service_data;
   // The service data value under the family's UUID in hex, as sent (Tile, Chipolo, SmartTag).
   sdrkit_string service_data;
+  // True if `last_heard` holds a value.
+  bool has_last_heard;
+  // The UTC of the last sighting, for a live source. Seconds since 1970 (UTC).
+  double last_heard;
 } sdrkit_bletracker_tracker_row;
 
 // A row of the alerts of `bletracker`.
@@ -629,6 +687,10 @@ typedef enum sdrkit_wifi_fields_phy {
   SDRKIT_WIFI_FIELDS_PHY_DSSS = 0,
   // OFDM
   SDRKIT_WIFI_FIELDS_PHY_OFDM = 1,
+  // HT
+  SDRKIT_WIFI_FIELDS_PHY_HT = 2,
+  // VHT
+  SDRKIT_WIFI_FIELDS_PHY_VHT = 3,
 } sdrkit_wifi_fields_phy;
 
 // The result fields of `wifi`.
@@ -699,6 +761,74 @@ typedef struct sdrkit_wifi_fields {
   bool hopping;
   // The passive note.
   sdrkit_string passive;
+  // Client stations in the table.
+  int64_t stations;
+  // HT PPDUs whose signal field was read since the last clear.
+  int64_t ppdu_ht;
+  // VHT PPDUs whose signal field was read since the last clear.
+  int64_t ppdu_vht;
+  // HE SU PPDUs whose signal field was read since the last clear.
+  int64_t ppdu_he_su;
+  // HE ER SU PPDUs whose signal field was read since the last clear.
+  int64_t ppdu_he_er_su;
+  // HE MU PPDUs whose signal field was read since the last clear.
+  int64_t ppdu_he_mu;
+  // HE TB PPDUs whose signal field was read since the last clear.
+  int64_t ppdu_he_tb;
+  // HE with a bad HE-SIG-A PPDUs whose signal field was read since the last clear.
+  int64_t ppdu_he_bad_sig;
+  // EHT PPDUs whose signal field was read since the last clear.
+  int64_t ppdu_eht;
+  // HT, VHT, HE and EHT PPDUs whose data was decoded.
+  int64_t ppdu_decoded;
+  // PPDUs not decoded because of two or more spatial streams.
+  int64_t ppdu_not_decoded_streams;
+  // PPDUs not decoded because of wider than 20 MHz.
+  int64_t ppdu_not_decoded_width;
+  // PPDUs not decoded because of LDPC coding.
+  int64_t ppdu_not_decoded_ldpc;
+  // PPDUs not decoded because of STBC.
+  int64_t ppdu_not_decoded_stbc;
+  // PPDUs not decoded because of multi-user.
+  int64_t ppdu_not_decoded_multi_user;
+  // PPDUs not decoded because of trigger-based.
+  int64_t ppdu_not_decoded_trigger_based;
+  // PPDUs not decoded because of HE data.
+  int64_t ppdu_not_decoded_he_data;
+  // PPDUs not decoded because of EHT data.
+  int64_t ppdu_not_decoded_eht_data;
+  // PPDUs not decoded because of a bad signal field.
+  int64_t ppdu_not_decoded_signal_field;
+  // PPDUs not decoded because of an MCS that is not decoded.
+  int64_t ppdu_not_decoded_mcs;
+  // PPDUs not decoded because of a length that does not fit.
+  int64_t ppdu_not_decoded_length;
+  // PPDUs not decoded because of data that did not decode.
+  int64_t ppdu_not_decoded_data;
+  // PPDUs not decoded because of another reason.
+  int64_t ppdu_not_decoded_other;
+  // PPDUs not decoded because of the decoder was busy.
+  int64_t ppdu_not_decoded_busy;
+  // A-MPDU delimiters with a bad CRC or signature since the last clear.
+  int64_t ampdu_bad_delimiters;
+  // Probe requests since the last clear.
+  int64_t probe_requests;
+  // Authentication frames since the last clear.
+  int64_t authentications;
+  // Association and reassociation frames since the last clear.
+  int64_t associations;
+  // Deauthentication and disassociation frames since the last clear.
+  int64_t departures;
+  // Action frames since the last clear.
+  int64_t actions;
+  // RTS frames since the last clear.
+  int64_t rts;
+  // CTS frames since the last clear.
+  int64_t cts;
+  // ACK frames since the last clear.
+  int64_t acks;
+  // Block Ack frames and requests since the last clear.
+  int64_t block_acks;
 } sdrkit_wifi_fields;
 
 // The options of `band` of `sdrkit_wifi_network_row`.
@@ -763,7 +893,75 @@ typedef struct sdrkit_wifi_network_row {
   sdrkit_string capability;
   // The other elements as text.
   sdrkit_string details;
+  // Client stations heard with this BSSID.
+  int64_t stations;
 } sdrkit_wifi_network_row;
+
+// The options of `link` of `sdrkit_wifi_station_row`.
+typedef enum sdrkit_wifi_station_row_link {
+  // Unknown
+  SDRKIT_WIFI_STATION_ROW_LINK_UNKNOWN = 0,
+  // Probing
+  SDRKIT_WIFI_STATION_ROW_LINK_PROBING = 1,
+  // Joining
+  SDRKIT_WIFI_STATION_ROW_LINK_JOINING = 2,
+  // Associated
+  SDRKIT_WIFI_STATION_ROW_LINK_ASSOCIATED = 3,
+  // Left
+  SDRKIT_WIFI_STATION_ROW_LINK_LEFT = 4,
+} sdrkit_wifi_station_row_link;
+
+// A row of the client stations of `wifi`. The row key is the address.
+typedef struct sdrkit_wifi_station_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The address.
+  sdrkit_string address;
+  // The vendor of the address.
+  sdrkit_string vendor;
+  // The address is locally administered (randomised).
+  bool randomised;
+  // True if `bssid` holds a value.
+  bool has_bssid;
+  // The BSSID of its access point, if a frame tied it to one.
+  sdrkit_string bssid;
+  // How far it got with its access point. A value of `sdrkit_wifi_station_row_link`.
+  int32_t link;
+  // True if `last_heard` holds a value.
+  bool has_last_heard;
+  // The UTC of the last frame, for a live source. Seconds since 1970 (UTC).
+  double last_heard;
+  // True if `level_dbfs` holds a value.
+  bool has_level_dbfs;
+  // The level of the last frame it sent. Unit: dBFS.
+  double level_dbfs;
+  // Frames it sent.
+  int64_t sent;
+  // Frames sent to it.
+  int64_t received;
+  // Probe requests it sent.
+  int64_t probes;
+  // Data frames to or from it.
+  int64_t data;
+  // Null data frames it sent.
+  int64_t null_data;
+  // Protected frames to or from it.
+  int64_t protected_;
+  // The SSIDs it probed for, joined with ", ".
+  sdrkit_string ssids;
+  // The newest Wi-Fi generation its frames declare (0 when none).
+  int64_t generation;
+  // True if `max_rate_mbps` holds a value.
+  bool has_max_rate_mbps;
+  // The highest data rate its frames declare. Unit: Mbit/s.
+  double max_rate_mbps;
+  // True if `channel` holds a value.
+  bool has_channel;
+  // The channel of its last frame (no value when not known).
+  int64_t channel;
+} sdrkit_wifi_station_row;
 
 // A row of the frame log of `wifi`.
 typedef struct sdrkit_wifi_beacon_row {
@@ -783,6 +981,16 @@ typedef struct sdrkit_wifi_beacon_row {
   int64_t bytes;
   // The summary.
   sdrkit_string details;
+  // True if `format` holds a value.
+  bool has_format;
+  // The PPDU format of the frame ("HT", "VHT"); no value for DSSS and non-HT OFDM.
+  sdrkit_string format;
+  // True if `mcs` holds a value.
+  bool has_mcs;
+  // The MCS of an HT or VHT frame.
+  int64_t mcs;
+  // The frame came in an A-MPDU.
+  bool aggregated;
 } sdrkit_wifi_beacon_row;
 
 // A row of the good OFDM frames at each rate of `wifi`. The row key is the rate in Mbit/s.
@@ -1081,6 +1289,28 @@ typedef struct sdrkit_wlan_decoder_fields {
   int64_t dropped;
 } sdrkit_wlan_decoder_fields;
 
+// The options of `device_kind` of `sdrkit_btclassic_device_row`.
+typedef enum sdrkit_btclassic_device_row_device_kind {
+  // Phone
+  SDRKIT_BTCLASSIC_DEVICE_ROW_DEVICE_KIND_PHONE = 0,
+  // Headset
+  SDRKIT_BTCLASSIC_DEVICE_ROW_DEVICE_KIND_HEADSET = 1,
+  // Watch
+  SDRKIT_BTCLASSIC_DEVICE_ROW_DEVICE_KIND_WATCH = 2,
+  // Tracker
+  SDRKIT_BTCLASSIC_DEVICE_ROW_DEVICE_KIND_TRACKER = 3,
+  // Beacon
+  SDRKIT_BTCLASSIC_DEVICE_ROW_DEVICE_KIND_BEACON = 4,
+  // Computer
+  SDRKIT_BTCLASSIC_DEVICE_ROW_DEVICE_KIND_COMPUTER = 5,
+  // Audio
+  SDRKIT_BTCLASSIC_DEVICE_ROW_DEVICE_KIND_AUDIO = 6,
+  // Sensor
+  SDRKIT_BTCLASSIC_DEVICE_ROW_DEVICE_KIND_SENSOR = 7,
+  // Unknown
+  SDRKIT_BTCLASSIC_DEVICE_ROW_DEVICE_KIND_UNKNOWN = 8,
+} sdrkit_btclassic_device_row_device_kind;
+
 // A row of the devices of `btclassic`. The row key is the LAP.
 typedef struct sdrkit_btclassic_device_row {
   // The number of bytes of this struct that the library wrote.
@@ -1131,6 +1361,8 @@ typedef struct sdrkit_btclassic_device_row {
   double last_channel_mhz;
   // The channels heard, as hex: bit k is channel k.
   sdrkit_string channels_heard;
+  // The kind of device its Class of Device declares (unknown before an FHS packet). A value of `sdrkit_btclassic_device_row_device_kind`.
+  int32_t device_kind;
 } sdrkit_btclassic_device_row;
 
 // A row of the packet log of `btclassic`.
@@ -2019,7 +2251,10 @@ typedef struct sdrkit_wlan_network_args {
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "ble" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `name` names a row.
+// Default order: the column `level_dbfs`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_ble_devices_rows(SDRKIT_HANDLE handle,
                                              sdrkit_ble_device_row *rows,
                                              uint32_t capacity,
@@ -2165,7 +2400,10 @@ static inline int32_t sdrkit_ble_gen_set_channel(SDRKIT_HANDLE handle, sdrkit_bl
 
 // Fills `rows` with the changed rows of the table "trackers" of the stack "bletracker" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `identifier` names a row.
+// Default order: the column `level_dbfs`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_bletracker_trackers_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_bletracker_tracker_row *rows,
                                                      uint32_t capacity,
@@ -2276,13 +2514,28 @@ static inline int32_t sdrkit_bletracker_gen_set_schedule(SDRKIT_HANDLE handle, s
 
 // Fills `rows` with the changed rows of the table "networks" of the stack "wifi" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `ssid` names a row.
 // Default order: the column `level_dbfs`, highest first.
+// Time: `first_heard`.
 static inline int32_t sdrkit_wifi_networks_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wifi_network_row *rows,
                                                uint32_t capacity,
                                                sdrkit_rows_info *info) {
   return sdrkit_typed_rows(handle, "wlan.WifiNetworkRow", "networks", rows, sizeof(sdrkit_wifi_network_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "stations" of the stack "wifi" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `address` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
+static inline int32_t sdrkit_wifi_stations_rows(SDRKIT_HANDLE handle,
+                                               sdrkit_wifi_station_row *rows,
+                                               uint32_t capacity,
+                                               sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "wlan.WifiStationRow", "stations", rows, sizeof(sdrkit_wifi_station_row), capacity, info);
 }
 
 // Fills `rows` with the changed rows of the table "beacons" of the stack "wifi" in the snapshot of `handle`,
@@ -2449,8 +2702,10 @@ static inline int32_t sdrkit_wifi_gen_set_channel(SDRKIT_HANDLE handle, int64_t 
 
 // Fills `rows` with the changed rows of the table "networks" of the stack "halow" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `ssid` names a row.
 // Default order: the column `snr_db`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_halow_networks_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_halow_network_row *rows,
                                                 uint32_t capacity,
@@ -2625,7 +2880,10 @@ static inline int32_t sdrkit_halow_set_sub_channel_scan(SDRKIT_HANDLE handle, bo
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "btclassic" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `address` names a row.
+// Default order: the column `level_dbfs`, highest first.
+// Time: `first_heard`.
 static inline int32_t sdrkit_btclassic_devices_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_btclassic_device_row *rows,
                                                    uint32_t capacity,
@@ -2732,7 +2990,10 @@ static inline int32_t sdrkit_wfb_set_links(SDRKIT_HANDLE handle, sdrkit_wfb_link
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "espnow" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `address` names a row.
+// Default order: the column `level_dbfs`, highest first.
+// Time: `first_heard`.
 static inline int32_t sdrkit_espnow_devices_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_espnow_device_row *rows,
                                                 uint32_t capacity,

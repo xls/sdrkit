@@ -54,9 +54,11 @@ The stack has no settings.
 
 ## Typed interface
 
-The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.2. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
+
+Key readings: `devices`.
 
 ### Result fields
 
@@ -110,7 +112,7 @@ Struct `NrPlusDeviceRow`. A row of the devices. The row key is the device number
 | `first_heard` | time | optional | 1.0 | The UTC of the first packet. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last packet. |
 
-The column `id` names a row.
+The rows are the stations or nodes of the stack. The column `id` names a row. Default order: the column `last_heard`, highest first. Time: `first_heard`.
 
 ### Event `dect_nrplus.packet`
 

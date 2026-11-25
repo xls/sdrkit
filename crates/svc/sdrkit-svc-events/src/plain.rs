@@ -82,10 +82,21 @@ impl Serialize for PlainFields<'_> {
                         .get(usize::from(*i))
                         .map_or("", |c| c.key.as_ref()),
                 )?,
+                Value::Flags(mask) => m.serialize_entry(d.key.as_ref(), &FlagKeys(&d.flags, *mask))?,
                 Value::Bytes(b) => m.serialize_entry(d.key.as_ref(), &b[..])?,
             }
         }
         m.end()
+    }
+}
+
+/// The keys of the flags of a mask, as a list.
+struct FlagKeys<'a>(&'a [sdrkit_core::FlagDecl], u64);
+
+impl Serialize for FlagKeys<'_> {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        let set = self.0.iter().enumerate().filter(|(i, _)| self.1 >> i & 1 == 1);
+        s.collect_seq(set.map(|(_, f)| f.key.as_ref()))
     }
 }
 

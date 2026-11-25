@@ -16,6 +16,8 @@ pub enum CType {
     Bool,
     /// `int32_t`: the index of an option.
     Enum,
+    /// `uint64_t`: the mask of a flag set.
+    Flags,
     /// `int64_t`.
     I64,
     /// `double`.
@@ -36,6 +38,7 @@ impl CType {
         match kind {
             ValueKind::Bool => CType::Bool,
             ValueKind::Choice => CType::Enum,
+            ValueKind::Flags => CType::Flags,
             ValueKind::I64 => CType::I64,
             ValueKind::F64 | ValueKind::Hz | ValueKind::Time | ValueKind::Duration => CType::F64,
             ValueKind::Text => CType::Str,
@@ -53,6 +56,7 @@ impl CType {
         match self {
             CType::Bool => (1, 1),
             CType::Enum => (size_of::<i32>(), align_of::<i32>()),
+            CType::Flags => (size_of::<u64>(), align_of::<u64>()),
             CType::I64 => (size_of::<i64>(), align_of::<i64>()),
             CType::F64 => (size_of::<f64>(), align_of::<f64>()),
             // A pointer and a `size_t`.
@@ -77,8 +81,8 @@ pub struct Position {
     pub has_alt: bool,
 }
 
-/// The layout of `sdrkit_variant` of the base header: the type, the members of the plain types, then a string and
-/// bytes, each a pointer and a `size_t`.
+/// The layout of `sdrkit_variant` of the base header: the type, the members of the plain types, a string and bytes,
+/// each a pointer and a `size_t`, then the mask of a flag set.
 #[repr(C)]
 struct Variant {
     r#type: i32,
@@ -90,6 +94,7 @@ struct Variant {
     lon: f64,
     string: [usize; 2],
     bytes: [usize; 2],
+    flags: u64,
 }
 
 /// One member of a struct.
@@ -212,15 +217,16 @@ pub fn of_dropped(decoders: &[&str]) -> Layout {
 ///
 /// # Errors
 ///
-/// A sentence, if an argument is of [`ValueKind::Any`]: an argument of a typed command has one type.
+/// A sentence, if an argument is of [`ValueKind::Any`] or [`ValueKind::Flags`]: an argument of a typed command has one
+/// type, and a flag set is for results only.
 pub fn of_args(args: &ArgShape) -> Result<Layout, String> {
     let mut p = Placer::new();
     let mut members = Vec::with_capacity(args.args.len());
     for (i, a) in args.args.iter().enumerate() {
         let decl = a.decl();
-        if decl.field.kind == ValueKind::Any {
+        if matches!(decl.field.kind, ValueKind::Any | ValueKind::Flags) {
             return Err(format!(
-                "the argument {} of {} is of any kind",
+                "the argument {} of {} is of any kind or a flag set",
                 a.key(),
                 args.name
             ));

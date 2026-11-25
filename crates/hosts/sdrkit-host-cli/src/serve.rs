@@ -150,7 +150,9 @@ fn open_radio(engine: &Engine, source: &Source, tune: &Tune) -> Result<RadioId, 
         put("gain", Value::F64(g))?;
         put("agc", Value::Bool(false))?;
     }
-    let radio = engine.open_radio(&source.driver, &source.address, &values)?;
+    let radio = engine
+        .open_radio(&source.driver, &source.address, &values)
+        .map_err(|e| CliError::of_open(engine, &source.driver, e))?;
     for s in &tune.set {
         let (k, v) = text::key_value(s)?;
         let key = k.strip_prefix("radio.").unwrap_or(k);

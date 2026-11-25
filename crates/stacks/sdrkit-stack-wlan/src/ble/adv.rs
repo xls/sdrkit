@@ -241,14 +241,9 @@ pub fn summary(p: &AdvPdu<'_>, a: &AdvInfo) -> String {
         Body::Direct { target_a, .. } => parts.push(format!("directed to {}", target_a.text())),
         Body::Extended { ext, .. } if p.header.pdu_type == PduType::AdvExtInd => {
             let mut s = String::from("extended");
-            if let Some((ch, phy)) = ext.aux_ptr {
-                let phy = match phy {
-                    0 => "1M",
-                    1 => "2M",
-                    2 => "Coded",
-                    _ => "?",
-                };
-                let _ = write!(s, ", data on channel {ch} ({phy} PHY, not followed)");
+            if let Some(a) = ext.aux_ptr {
+                let phy = a.phy().map_or("reserved", |p| p.name());
+                let _ = write!(s, ", data on channel {} ({phy})", a.channel);
             }
             if let Some((_, sid)) = ext.adi {
                 let _ = write!(s, ", set {sid}");
@@ -273,4 +268,75 @@ pub fn summary(p: &AdvPdu<'_>, a: &AdvInfo) -> String {
         parts.push(s.clone());
     }
     parts.join(", ")
+}
+
+sdrkit_core::choice_enum! {
+    /// The kind of a device, from what its packets declare: the Appearance of BLE advertising data, the Class of Device of
+    /// Bluetooth Classic, a beacon or tracker format. Unknown when nothing declares it.
+    /// Standard: Assigned Numbers, clause 2.6 (Appearance) and clause 2.8 (Class of Device).
+    #[derive(Default, Serialize, Deserialize)]
+    pub enum DeviceKind {
+        /// A phone.
+        Phone = ("phone", "Phone"),
+        /// A headset, earbuds or headphones.
+        Headset = ("headset", "Headset"),
+        /// A watch.
+        Watch = ("watch", "Watch"),
+        /// A tag or tracker.
+        Tracker = ("tracker", "Tracker"),
+        /// A beacon (iBeacon, Eddystone).
+        Beacon = ("beacon", "Beacon"),
+        /// A computer.
+        Computer = ("computer", "Computer"),
+        /// Another audio device (speaker, media player, audio source).
+        Audio = ("audio", "Audio"),
+        /// A sensor (health, fitness, environment).
+        Sensor = ("sensor", "Sensor"),
+        /// Not declared.
+        #[default]
+        Unknown = ("unknown", "Unknown"),
+    }
+}
+
+/// The kind of an Appearance value by its category (bits 6 to 15).
+pub fn kind_of_appearance(appearance: u16) -> DeviceKind {
+    match appearance >> 6 {
+        0x001 => DeviceKind::Phone,
+        0x002 => DeviceKind::Computer,
+        0x003 => DeviceKind::Watch,
+        0x008 | 0x009 => DeviceKind::Tracker,
+        0x00A | 0x021 | 0x022 => DeviceKind::Audio,
+        0x00C..=0x00E | 0x010..=0x012 | 0x015 => DeviceKind::Sensor,
+        0x025 => DeviceKind::Headset,
+        _ => DeviceKind::Unknown,
+    }
+}
+
+/// The kind of a Class of Device by its major class and, for audio and wearable devices, its minor class.
+pub fn kind_of_class(class: u32) -> DeviceKind {
+    let minor = (class >> 2) & 0x3F;
+    match (class >> 8) & 0x1F {
+        1 => DeviceKind::Computer,
+        2 => DeviceKind::Phone,
+        4 if matches!(minor, 1 | 2 | 6) => DeviceKind::Headset,
+        4 => DeviceKind::Audio,
+        7 if minor == 1 => DeviceKind::Watch,
+        9 => DeviceKind::Sensor,
+        _ => DeviceKind::Unknown,
+    }
+}
+
+/// The kind that advertising data declares: its Appearance, else a beacon or a tracker format.
+pub fn kind_of(a: &AdvInfo) -> DeviceKind {
+    let k = a.appearance.map_or(DeviceKind::Unknown, kind_of_appearance);
+    if k != DeviceKind::Unknown {
+        return k;
+    }
+    if a.company == Some(0x004C) && a.mfr.first() == Some(&0x12) {
+        return DeviceKind::Tracker;
+    }
+    if a.beacon.is_some() {
+        return DeviceKind::Beacon;
+    }
+    DeviceKind::Unknown
 }

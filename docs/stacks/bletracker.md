@@ -66,7 +66,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `trackers` | Trackers | `tracker` (text), `kind` (choice), `state` (choice), `stays` (duration (s)), `near_pct` (number (%)), `level_dbfs` (number (dBFS)), `peak_dbfs` (number (dBFS)), `trend` (choice), `addresses` (whole number), `last_s` (number (s)), `packets` (whole number), `separated` (yes or no), `status` (whole number), `following` (yes or no), `mine` (yes or no), `id` (whole number), `mode` (choice), `tag_state` (choice), `tag_state_code` (whole number), `aging_counter` (whole number), `region` (whole number), `e2e` (yes or no), `uwb` (yes or no), `battery` (whole number), `identifier` (text), `service_data` (text) |
+| `trackers` | Trackers | `tracker` (text), `kind` (choice), `state` (choice), `stays` (duration (s)), `near_pct` (number (%)), `level_dbfs` (number (dBFS)), `peak_dbfs` (number (dBFS)), `trend` (choice), `addresses` (whole number), `last_s` (number (s)), `last_heard` (time), `packets` (whole number), `separated` (yes or no), `status` (whole number), `following` (yes or no), `mine` (yes or no), `id` (whole number), `mode` (choice), `tag_state` (choice), `tag_state_code` (whole number), `aging_counter` (whole number), `region` (whole number), `e2e` (yes or no), `uwb` (yes or no), `battery` (whole number), `identifier` (text), `service_data` (text) |
 | `alerts` | Alerts | `time` (time), `signal_s` (number (s)), `level_dbfs` (number (dBFS)), `alert` (text) |
 | `tracker_kinds` | Tracker kinds | `kind` (choice), `last_minute` (whole number), `last_30_min` (whole number) |
 
@@ -88,9 +88,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 3.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 3.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
+
+Key readings: `trackers_now`, `trackers`.
 
 ### Result fields
 
@@ -140,6 +142,7 @@ Struct `BletrackerTrackerRow`. A row of the trackers of `bletracker`. The row ke
 | `trend` | choice | always | 1.0 | Whether the level rises or falls. |
 | `addresses` | whole number | always | 1.0 | The addresses it used. |
 | `last_s` | number (s) | always | 1.0 | The signal time it was last heard. |
+| `last_heard` | time | optional | 3.1 | The UTC of the last sighting, for a live source. |
 | `packets` | whole number | always | 1.0 | Packets heard. |
 | `separated` | yes or no | always | 1.0 | It says it is away from its owner. |
 | `status` | whole number | optional | 1.0 | The status byte, if the advertisement has one. |
@@ -157,7 +160,7 @@ Struct `BletrackerTrackerRow`. A row of the trackers of `bletracker`. The row ke
 | `identifier` | text | optional | 1.0 | The rolling identifier in hex, opaque: the SmartTag privacy ID. |
 | `service_data` | text | optional | 1.0 | The service data value under the family's UUID in hex, as sent (Tile, Chipolo, SmartTag). |
 
-The column `identifier` names a row.
+The rows are the stations or nodes of the stack. The column `identifier` names a row. Default order: the column `level_dbfs`, highest first. Time: `last_heard`.
 
 ### Table `alerts`
 

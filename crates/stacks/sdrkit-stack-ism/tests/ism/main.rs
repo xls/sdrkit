@@ -3,6 +3,7 @@
 mod ant;
 mod dect;
 mod dsrc;
+mod enocean;
 mod family;
 mod ism_frames;
 mod ism_protocols;

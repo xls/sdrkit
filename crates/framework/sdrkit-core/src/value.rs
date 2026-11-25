@@ -1,4 +1,5 @@
-//! The one value type for result fields, table cells, event fields and settings, and the `Choice` trait for Rust enums.
+//! The one value type for result fields, table cells, event fields and settings, the `Choice` trait for Rust enums and
+//! the `FlagSet` trait for sets of named flags.
 
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
@@ -37,6 +38,8 @@ pub enum Value {
     },
     /// An index into the choice list of the field's declaration.
     Choice(u16),
+    /// A set of the flags of the field's declaration: bit n is entry n of the flag list.
+    Flags(u64),
     /// A raw payload.
     Bytes(#[serde(with = "bytes_serde")] Arc<[u8]>),
 }
@@ -66,6 +69,8 @@ pub enum ValueKind {
     Position,
     /// One of a declared list.
     Choice,
+    /// A set of the flags of a declared list.
+    Flags,
     /// A raw payload.
     Bytes,
     /// Any kind: each value carries its own. Only a table column or a command argument has this kind, for a stored setting
@@ -87,6 +92,7 @@ impl Value {
             Value::Duration(_) => ValueKind::Duration,
             Value::Position { .. } => ValueKind::Position,
             Value::Choice(_) => ValueKind::Choice,
+            Value::Flags(_) => ValueKind::Flags,
             Value::Bytes(_) => ValueKind::Bytes,
         })
     }
@@ -99,11 +105,13 @@ impl Value {
     pub fn is_none(&self) -> bool {
         matches!(self, Value::None)
     }
-    /// The text form for people. `choices` is the choice list of the field's declaration.
+    /// The text form for people. `choices` is the choice list of the field's declaration. A flag set shows as its mask:
+    /// [`FieldText::with_flags`] gives it the labels.
     pub fn display<'a>(&'a self, choices: &'a [ChoiceDecl]) -> FieldText<'a> {
         FieldText {
             value: self,
             choices,
+            flags: &[],
         }
     }
 }
@@ -125,6 +133,7 @@ impl Clone for Value {
                 lon: *lon,
             },
             Value::Choice(i) => Value::Choice(*i),
+            Value::Flags(m) => Value::Flags(*m),
             Value::Bytes(b) => Value::Bytes(Arc::clone(b)),
         }
     }
@@ -219,12 +228,165 @@ macro_rules! choice_enum {
     };
 }
 
+/// One entry of a flag list: the key that data files and the C API use, the label people see and one line of help.
+/// Entry n of the list is bit n of the mask.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FlagDecl {
+    /// The key (`"teleport"`).
+    pub key: Cow<'static, str>,
+    /// What people see (`"Teleport"`).
+    pub label: Cow<'static, str>,
+    /// What the flag says, in one line.
+    pub help: Cow<'static, str>,
+}
+
+impl FlagDecl {
+    /// The most entries of one list: the bits of the mask.
+    pub const MAX: usize = 64;
+    /// An entry with this key, label and help line, for a constant list.
+    pub const fn new(key: &'static str, label: &'static str, help: &'static str) -> Self {
+        FlagDecl {
+            key: Cow::Borrowed(key),
+            label: Cow::Borrowed(label),
+            help: Cow::Borrowed(help),
+        }
+    }
+    /// The mask of every entry of a list of `count` entries.
+    pub const fn all(count: usize) -> u64 {
+        if count >= Self::MAX {
+            u64::MAX
+        } else {
+            (1 << count) - 1
+        }
+    }
+}
+
+/// A Rust type that a flag field holds: a set of named flags. The field stores the mask.
+///
+/// Implement it with [`flag_set!`](crate::flag_set), not by hand.
+pub trait FlagSet: Copy + 'static {
+    /// The declared list. Entry n is bit n. At most [`FlagDecl::MAX`] entries.
+    const FLAGS: &'static [FlagDecl];
+    /// The mask.
+    fn bits(self) -> u64;
+    /// The set of mask `bits`. Bits outside the list are dropped.
+    fn from_bits(bits: u64) -> Self;
+    /// The entries of the flags in the set, in list order.
+    fn entries(self) -> impl Iterator<Item = &'static FlagDecl> {
+        let bits = self.bits();
+        Self::FLAGS
+            .iter()
+            .enumerate()
+            .filter(move |(i, _)| bits >> i & 1 == 1)
+            .map(|(_, f)| f)
+    }
+    /// The set of the one flag with key `key`. `None` if no flag has it.
+    fn from_key(key: &str) -> Option<Self> {
+        let i = Self::FLAGS.iter().position(|f| f.key == key)?;
+        Some(Self::from_bits(1 << i))
+    }
+}
+
+/// Declares a set of named flags and implements [`FlagSet`] for it from one list of names, keys, labels and help lines.
+/// The type holds a `u64` mask. Each name is a constant with one flag. The list has at most 64 entries.
+///
+/// ```
+/// sdrkit_core::flag_set! {
+///     /// What is wrong with a frame.
+///     pub struct Faults {
+///         CRC = ("crc", "CRC", "The checksum does not match."),
+///         SHORT = ("short", "Short", "The frame ends before its length."),
+///     }
+/// }
+/// use sdrkit_core::FlagSet;
+/// let f = Faults::CRC | Faults::SHORT;
+/// assert_eq!(f.bits(), 3);
+/// assert!(f.contains(Faults::SHORT) && !Faults::CRC.contains(f));
+/// assert_eq!(Faults::FLAGS[1].key, "short");
+/// assert_eq!(Faults::from_bits(0b110), Faults::SHORT);
+/// ```
+#[macro_export]
+macro_rules! flag_set {
+    ($(#[$m:meta])* $vis:vis struct $name:ident {
+        $($(#[$fm:meta])* $flag:ident = ($key:literal, $label:literal, $help:literal)),+ $(,)?
+    }) => {
+        $(#[$m])*
+        #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+        $vis struct $name(u64);
+        const _: () = assert!(
+            <$name as $crate::value::FlagSet>::FLAGS.len() <= $crate::value::FlagDecl::MAX,
+            "a flag set has at most 64 flags"
+        );
+        impl $name {
+            $crate::flag_set!(@consts 0u32; $($(#[$fm])* $flag = $help;)+);
+            /// The set with no flag.
+            pub const fn empty() -> Self {
+                $name(0)
+            }
+            /// True if the set has no flag.
+            pub const fn is_empty(self) -> bool {
+                self.0 == 0
+            }
+            /// True if every flag of `other` is in the set.
+            pub const fn contains(self, other: Self) -> bool {
+                self.0 & other.0 == other.0
+            }
+            /// Adds the flags of `other`.
+            pub fn insert(&mut self, other: Self) {
+                self.0 |= other.0;
+            }
+        }
+        impl ::core::ops::BitOr for $name {
+            type Output = Self;
+            fn bitor(self, other: Self) -> Self {
+                $name(self.0 | other.0)
+            }
+        }
+        impl $crate::value::FlagSet for $name {
+            const FLAGS: &'static [$crate::value::FlagDecl] =
+                &[$($crate::value::FlagDecl::new($key, $label, $help)),+];
+            fn bits(self) -> u64 {
+                self.0
+            }
+            fn from_bits(bits: u64) -> Self {
+                $name(bits & $crate::value::FlagDecl::all(Self::FLAGS.len()))
+            }
+        }
+        impl<'a> $crate::interface::Cell<'a> for $name {
+            type Kind = $crate::publish::field::Flags<$name>;
+            fn give(&self) -> $name {
+                *self
+            }
+            fn take(v: $name) -> Self {
+                v
+            }
+        }
+    };
+    (@consts $n:expr;) => {};
+    (@consts $n:expr; $(#[$fm:meta])* $flag:ident = $help:literal; $($rest:tt)*) => {
+        $(#[$fm])*
+        #[doc = $help]
+        pub const $flag: Self = Self(1u64 << $n);
+        $crate::flag_set!(@consts $n + 1u32; $($rest)*);
+    };
+}
+
 /// The text form of a [`Value`] for people: numbers with at most six decimals and no trailing zeros, yes and no, a choice by its
-/// label, a position as "lat, lon", a payload by its length. `None` is empty.
+/// label, a flag set by its labels with ", " between them, a position as "lat, lon", a payload by its length. `None` is empty.
 #[derive(Clone, Copy, Debug)]
 pub struct FieldText<'a> {
     value: &'a Value,
     choices: &'a [ChoiceDecl],
+    flags: &'a [FlagDecl],
+}
+
+impl<'a> FieldText<'a> {
+    /// The same text, with `flags` as the flag list of the field's declaration. Without it a flag set shows as its mask.
+    #[must_use]
+    pub fn with_flags(mut self, flags: &'a [FlagDecl]) -> Self {
+        self.flags = flags;
+        self
+    }
 }
 
 impl std::fmt::Display for FieldText<'_> {
@@ -247,6 +409,20 @@ impl std::fmt::Display for FieldText<'_> {
                 Some(c) => f.write_str(&c.label),
                 None => write!(f, "{i}"),
             },
+            Value::Flags(m) if self.flags.is_empty() => write!(f, "{m:#x}"),
+            Value::Flags(m) => {
+                let mut first = true;
+                for (i, d) in self.flags.iter().enumerate() {
+                    if m >> i & 1 == 1 {
+                        if !first {
+                            f.write_str(", ")?;
+                        }
+                        first = false;
+                        f.write_str(&d.label)?;
+                    }
+                }
+                Ok(())
+            }
             Value::Bytes(b) => write!(f, "{} bytes", b.len()),
         }
     }

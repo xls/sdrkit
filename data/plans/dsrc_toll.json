@@ -21,7 +21,8 @@
           "modes": [
             "dsrc_toll"
           ],
-          "note": "stack dsrc_toll"
+          "note": "stack dsrc_toll",
+          "channel_width_hz": 5000000
         },
         {
           "name": "DSRC channel 5802.5 MHz",
@@ -31,7 +32,8 @@
           "modes": [
             "dsrc_toll"
           ],
-          "note": "stack dsrc_toll"
+          "note": "stack dsrc_toll",
+          "channel_width_hz": 5000000
         },
         {
           "name": "DSRC channel 5807.5 MHz",
@@ -41,7 +43,8 @@
           "modes": [
             "dsrc_toll"
           ],
-          "note": "stack dsrc_toll"
+          "note": "stack dsrc_toll",
+          "channel_width_hz": 5000000
         },
         {
           "name": "DSRC channel 5812.5 MHz",
@@ -51,7 +54,8 @@
           "modes": [
             "dsrc_toll"
           ],
-          "note": "stack dsrc_toll"
+          "note": "stack dsrc_toll",
+          "channel_width_hz": 5000000
         }
       ]
     }

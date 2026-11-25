@@ -300,19 +300,22 @@ impl AtvGenerator {
         let s = sys.raster.sync_level;
         let comp = self.p.sync_compression;
         let level = self.p.level;
-        for x in &mut self.vbuf {
-            let mut v = *x as f64;
+        let limit = |x: f32| {
+            let mut v = x as f64;
             if v < 0.0 {
                 v *= 1.0 - comp;
             }
-            let v = v.clamp(1.2 * s, 1.3);
-            let a = if sys.positive {
-                level * ((v - s) / (1.0 - s))
-            } else {
-                let m = 1.0 - sys.peak_white;
-                level * (1.0 - m * (v - s) / (1.0 - s))
-            };
-            *x = a as f32;
+            v.clamp(1.2 * s, 1.3)
+        };
+        if sys.positive {
+            for x in &mut self.vbuf {
+                *x = (level * ((limit(*x) - s) / (1.0 - s))) as f32;
+            }
+        } else {
+            let m = 1.0 - sys.peak_white;
+            for x in &mut self.vbuf {
+                *x = (level * (1.0 - m * (limit(*x) - s) / (1.0 - s))) as f32;
+            }
         }
         let [re, im] = &mut self.vsb_out;
         self.vsb_re.process(&self.vbuf, re);
@@ -345,25 +348,12 @@ impl AtvGenerator {
             _ => [p.value(t), p.value(t), 0.0],
         }
     }
-}
 
-impl Generator for AtvGenerator {
-    fn rate_hz(&self) -> Hz {
-        self.p.rate_hz
-    }
-
-    /// The stated power is the peak power of the vision carrier (the sync tip, or peak white on a positive system), and the
-    /// bandwidth is 5 MHz. So `gen_snr_db` is the carrier-to-noise ratio that television uses: the peak vision carrier against
-    /// the noise in 5 MHz.
-    fn signal_info(&self) -> Option<SignalInfo> {
-        Some(SignalInfo::new(5e6).with_power(self.p.level * self.p.level))
-    }
-
-    fn generate(&mut self, out: &mut [Complex32]) -> usize {
-        if !self.ok {
-            out.fill(Complex32::default());
-            return out.len();
-        }
+    /// Adds the sound carrier, the A2 carrier and NICAM to the vision samples `x` (at most [`SOUND_CHUNK`]). A first pass
+    /// steps the programme and the phases sample by sample; a second makes the carriers and adds them in the order sound,
+    /// A2, NICAM.
+    fn add_sound(&mut self, x: &mut [Complex32]) {
+        let n = x.len();
         let sys = self.sys;
         let level = self.p.level;
         let secam_mn =
@@ -382,16 +372,19 @@ impl Generator for AtvGenerator {
         let nicam_hz =
             self.vision_hz + sys.nicam_hz() * if sys.turned_round() { -1.0 } else { 1.0 };
         let dev = sys.deviation_hz;
-        for o in out.iter_mut() {
-            while self.pos >= self.pending.len() {
-                self.vision_block();
-            }
-            let mut x = self.pending[self.pos];
-            self.pos += 1;
-            let t = self.k as f64 * self.dt + self.p.start_s;
+        let dt = self.dt;
+        // The phase (cycles) and the amplitude of the sound carrier, and the A2 and NICAM carriers, of each sample.
+        let mut phase = [0.0f64; SOUND_CHUNK];
+        let mut amp = [0.0f32; SOUND_CHUNK];
+        let mut a2_out = [Complex32::default(); SOUND_CHUNK];
+        let mut nicam_out = [Complex32::default(); SOUND_CHUNK];
+        let start_s = self.p.start_s;
+        let time = |k: u64| k as f64 * dt + start_s;
+        for j in 0..n {
             if self.k.is_multiple_of(PROGRAMME_STEP) {
+                let t = time(self.k);
                 self.prog = self.prog_next;
-                let tn = t + PROGRAMME_STEP as f64 * self.dt;
+                let tn = t + PROGRAMME_STEP as f64 * dt;
                 let pr = self.programme_at(tn);
                 let emph = |p: &mut Option<PreEmphasis>, x: f64| match p {
                     Some(p) => p.process_sample(x as f32) as f64,
@@ -409,16 +402,13 @@ impl Generator for AtvGenerator {
             let p0 = self.prog[0] + (self.prog_next[0] - self.prog[0]) * frac;
             if sound_amp > 0.0 {
                 if sys.am_sound {
-                    self.sound_phase = (self.sound_phase + sound_hz * self.dt).fract();
-                    let a = sound_amp * (1.0 + 0.8 * p0);
-                    let (s, c) = sdrkit_algo_dsp::approx::sin_cos(TAU * self.sound_phase);
-                    x += Complex32::new(c, s) * a as f32;
+                    self.sound_phase = (self.sound_phase + sound_hz * dt).fract();
+                    amp[j] = (sound_amp * (1.0 + 0.8 * p0)) as f32;
                 } else {
-                    self.sound_phase =
-                        (self.sound_phase + (sound_hz + dev * p0) * self.dt).rem_euclid(1.0);
-                    let (s, c) = sdrkit_algo_dsp::approx::sin_cos(TAU * self.sound_phase);
-                    x += Complex32::new(c, s) * sound_amp as f32;
+                    self.sound_phase = wrap(self.sound_phase + (sound_hz + dev * p0) * dt);
+                    amp[j] = sound_amp as f32;
                 }
+                phase[j] = self.sound_phase;
             }
             if a2 {
                 let p1 = self.prog[1] + (self.prog_next[1] - self.prog[1]) * frac;
@@ -428,28 +418,87 @@ impl Generator for AtvGenerator {
                     _ => 0.0,
                 };
                 let am = if id > 0.0 {
-                    0.5 + 0.5 * (TAU * id * t).sin()
+                    0.5 + 0.5 * (TAU * id * time(self.k)).sin()
                 } else {
                     1.0
                 };
-                self.pilot_phase = (self.pilot_phase + A2_PILOT * self.dt).fract();
+                self.pilot_phase = (self.pilot_phase + A2_PILOT * dt).fract();
                 let pilot = 2.5e3 * am * (TAU * self.pilot_phase).sin();
                 let f = sound_hz + A2_SPACING + 50e3 * p1 + pilot;
-                self.a2_phase = (self.a2_phase + f * self.dt).rem_euclid(1.0);
+                self.a2_phase = wrap(self.a2_phase + f * dt);
                 let (s, c) = sdrkit_algo_dsp::approx::sin_cos(TAU * self.a2_phase);
-                x += Complex32::new(c, s) * a2_amp as f32;
+                a2_out[j] = Complex32::new(c, s) * a2_amp as f32;
             }
-            if let Some(n) = &mut self.nicam {
-                let b = n.at(t);
-                self.nicam_phase = (self.nicam_phase + nicam_hz * self.dt).rem_euclid(1.0);
+            if let Some(nc) = &mut self.nicam {
+                let b = nc.at(time(self.k));
+                self.nicam_phase = wrap(self.nicam_phase + nicam_hz * dt);
                 let (s, c) = sdrkit_algo_dsp::approx::sin_cos(TAU * self.nicam_phase);
-                x += b * Complex32::new(c, s) * nicam_amp;
+                nicam_out[j] = b * Complex32::new(c, s) * nicam_amp;
             }
-            *o = x;
             self.k += 1;
+        }
+        if sound_amp > 0.0 {
+            for ((y, &ph), &a) in x.iter_mut().zip(&phase[..n]).zip(&amp[..n]) {
+                let (s, c) = sdrkit_algo_dsp::approx::sin_cos(TAU * ph);
+                *y += Complex32::new(c, s) * a;
+            }
+        }
+        if a2 {
+            for (y, z) in x.iter_mut().zip(&a2_out[..n]) {
+                *y += *z;
+            }
+        }
+        if self.nicam.is_some() {
+            for (y, z) in x.iter_mut().zip(&nicam_out[..n]) {
+                *y += *z;
+            }
+        }
+    }
+}
+
+/// The samples [`AtvGenerator::add_sound`] works on at a time.
+const SOUND_CHUNK: usize = 256;
+
+impl Generator for AtvGenerator {
+    fn rate_hz(&self) -> Hz {
+        self.p.rate_hz
+    }
+
+    /// The stated power is the peak power of the vision carrier (the sync tip, or peak white on a positive system), and the
+    /// bandwidth is 5 MHz. So `gen_snr_db` is the carrier-to-noise ratio that television uses: the peak vision carrier against
+    /// the noise in 5 MHz.
+    fn signal_info(&self) -> Option<SignalInfo> {
+        Some(SignalInfo::new(5e6).with_power(self.p.level * self.p.level))
+    }
+
+    fn generate(&mut self, out: &mut [Complex32]) -> usize {
+        if !self.ok {
+            out.fill(Complex32::default());
+            return out.len();
+        }
+        let mut i = 0;
+        while i < out.len() {
+            if self.pos >= self.pending.len() {
+                self.vision_block();
+                continue;
+            }
+            let n = (self.pending.len() - self.pos).min(out.len() - i);
+            for o in out[i..i + n].chunks_mut(SOUND_CHUNK) {
+                let m = o.len();
+                o.copy_from_slice(&self.pending[self.pos..self.pos + m]);
+                self.pos += m;
+                self.add_sound(o);
+            }
+            i += n;
         }
         out.len()
     }
+}
+
+/// `x` less its whole part, in `[0, 1]`: the same value as `x.rem_euclid(1.0)` without its division.
+#[inline]
+fn wrap(x: f64) -> f64 {
+    x - x.floor()
 }
 
 #[cfg(test)]

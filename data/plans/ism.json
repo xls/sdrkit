@@ -69,7 +69,15 @@
           "modes": [
             "ism"
           ],
-          "note": "remote controls, sensors"
+          "note": "remote controls, sensors",
+          "channels": [
+            {
+              "name": "433.92 MHz",
+              "centre_hz": 433920000,
+              "note": "the centre of the band; sensors, remote controls and alarms (stack ism)",
+              "width_hz": 1740000
+            }
+          ]
         },
         {
           "name": "SRD 863-870 MHz",
@@ -257,7 +265,15 @@
           "modes": [
             "ism"
           ],
-          "note": "national: Australia, New Zealand, China, others"
+          "note": "national: Australia, New Zealand, China, others",
+          "channels": [
+            {
+              "name": "433.92 MHz",
+              "centre_hz": 433920000,
+              "note": "the centre of the band; sensors, remote controls and alarms (stack ism)",
+              "width_hz": 1740000
+            }
+          ]
         },
         {
           "name": "SRD 915-928 MHz",

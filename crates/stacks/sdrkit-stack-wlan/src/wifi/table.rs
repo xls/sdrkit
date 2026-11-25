@@ -5,11 +5,13 @@ use super::mac::{
     combine, header, is_duplicate, parse_bss, rates_text, security, summary, Bss, BssFrame,
 };
 use super::plan::{centre_mhz, hop_list, parse_channels, valid, Band};
-use super::{DsssCounters, OfdmCounters, PhyKind, WifiMpdu, WifiStats};
-use crate::report::{mac_text, push_history, wall};
+use super::stations::{Heard, Stations};
+use super::{DsssCounters, OfdmCounters, PhyKind, PpduCounters, WifiMpdu, WifiStats};
+use crate::report::{mac_text, push_history, remove_older_rows, wall};
 use crate::typed::{
-    WifiBandRow, WifiBeaconRow, WifiFields, WifiNetworkRow, WifiRateRow, NETWORK_REMOVE,
-    NETWORK_ROW, WIFI_BANDS, WIFI_BEACONS, WIFI_NETWORKS, WIFI_OFDM_RATES,
+    WifiBandRow, WifiBeaconRow, WifiFields, WifiNetworkRow, WifiRateRow, WifiStationRow,
+    NETWORK_REMOVE, NETWORK_ROW, WIFI_BANDS, WIFI_BEACONS, WIFI_NETWORKS, WIFI_OFDM_RATES,
+    WIFI_STATIONS,
 };
 use sdrkit_core::command::{CommandError, CommandId, CommandSet, Commands};
 use sdrkit_core::interface::{Fields as _, Hertz, Seconds, Time};
@@ -38,7 +40,7 @@ pub const ACTIVE_S: f64 = 5.0;
 const NEW_NETWORK_LINES: usize = 30;
 
 /// The passive note.
-pub const PASSIVE_NOTE: &str = "Passive: only the beacons, probe responses and FILS discovery frames that access points broadcast are read. Nothing is transmitted, joined or decrypted.";
+pub const PASSIVE_NOTE: &str = "Passive: only frames sent in the clear and the headers of protected frames are read. Nothing is transmitted, joined or decrypted. One antenna cannot separate two or more spatial streams: such PPDUs, and PPDUs wider than 20 MHz, are counted from their signal fields and their data is not decoded.";
 
 sdrkit_core::choice_enum! {
     /// The choices of the display setting `band_filter`.
@@ -155,6 +157,36 @@ sdrkit_core::commands! {
     }
 }
 
+/// The PHY of a frame as the tables show it: HT and VHT by their PPDU format.
+fn phy_of(m: &WifiMpdu) -> PhyKind {
+    match m.format {
+        Some(sdrkit_proto_wlan_phy::ppdu::Format::Ht) => PhyKind::Ht,
+        Some(sdrkit_proto_wlan_phy::ppdu::Format::Vht) => PhyKind::Vht,
+        _ => m.phy,
+    }
+}
+
+/// Writes an address into `out` (cleared first) as [`mac_text`] does.
+fn mac_into(b: &[u8; 6], out: &mut String) {
+    out.clear();
+    for (i, x) in b.iter().enumerate() {
+        if i > 0 {
+            out.push(':');
+        }
+        sdrkit_core::base64::hex_into(std::slice::from_ref(x), out);
+    }
+}
+
+/// The six bytes of an address written as "AA:BB:CC:DD:EE:FF".
+fn parse_mac(text: &str) -> Option<[u8; 6]> {
+    let mut b = [0u8; 6];
+    let mut parts = text.split(':');
+    for v in &mut b {
+        *v = u8::from_str_radix(parts.next()?, 16).ok()?;
+    }
+    parts.next().is_none().then_some(b)
+}
+
 /// One network (one BSSID).
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Network {
@@ -230,6 +262,9 @@ pub struct Network {
     pub fils_frames: u64,
     /// The text of the details column.
     pub details_text: String,
+    /// Client stations heard with this BSSID, as of the last publish.
+    #[serde(default)]
+    pub stations: u32,
 }
 
 impl Network {
@@ -322,6 +357,7 @@ impl Shaped for Network {
             pmf: &self.pmf,
             capability: &self.capability,
             details: &self.details_text,
+            stations: i64::from(self.stations),
         });
     }
 }
@@ -341,6 +377,15 @@ pub struct LogLine {
     pub len: usize,
     /// Summary.
     pub info: String,
+    /// The PPDU format name of an HT or VHT frame; empty otherwise.
+    #[serde(default)]
+    pub format: String,
+    /// The MCS of an HT or VHT frame.
+    #[serde(default)]
+    pub mcs: Option<u8>,
+    /// The frame came in an A-MPDU.
+    #[serde(default)]
+    pub aggregated: bool,
 }
 
 impl Shift for LogLine {
@@ -359,6 +404,9 @@ impl Shaped for LogLine {
             level_dbfs: self.level_dbfs,
             bytes: self.len as i64,
             details: &self.info,
+            format: (!self.format.is_empty()).then_some(self.format.as_str()),
+            mcs: self.mcs.map(i64::from),
+            aggregated: self.aggregated,
         });
     }
 }
@@ -444,6 +492,9 @@ pub struct NetworkTable {
     stats: WifiStats,
     base_dsss: DsssCounters,
     base_ofdm: OfdmCounters,
+    base_ppdu: PpduCounters,
+    /// The client stations (not in the saved state).
+    pub stations: Stations,
     level_dbfs: Option<f64>,
     filters: Filters,
     band: Band,
@@ -462,12 +513,15 @@ pub struct NetworkTable {
     live: bool,
     clock: Clock,
     configured: bool,
+    /// Text buffers of the station rows, kept so a publish allocates nothing.
+    texts: [String; 3],
 }
 
 impl Default for NetworkTable {
     fn default() -> Self {
         let published = Published::new(WifiFields::SHAPE.fields).with_tables(&[
             WIFI_NETWORKS.def(),
+            WIFI_STATIONS.def(),
             WIFI_BEACONS.def(),
             WIFI_OFDM_RATES.def(),
             WIFI_BANDS.def(),
@@ -484,6 +538,8 @@ impl Default for NetworkTable {
             stats: WifiStats::default(),
             base_dsss: DsssCounters::default(),
             base_ofdm: OfdmCounters::default(),
+            base_ppdu: PpduCounters::default(),
+            stations: Stations::default(),
             level_dbfs: None,
             filters: Filters {
                 min_level_dbfs: MIN_LEVEL.default,
@@ -505,6 +561,7 @@ impl Default for NetworkTable {
             live: false,
             clock: Clock::fixed(0.0),
             configured: false,
+            texts: Default::default(),
         }
     }
 }
@@ -554,10 +611,10 @@ impl NetworkTable {
             (a, None) => a,
         };
         c.offset_hz = m.offset_hz;
-        c.phy = Some(m.phy);
+        c.phy = Some(phy_of(m));
         c.last_good_s = Some(now);
         if let Some(i) = RATES.iter().position(|&r| r == m.rate_mbps) {
-            if m.phy == super::PhyKind::Ofdm {
+            if m.phy == super::PhyKind::Ofdm && m.format.is_none() {
                 c.ofdm_rates[i] += 1;
             }
         }
@@ -567,9 +624,18 @@ impl NetworkTable {
         if h.ftype <= 2 {
             c.per_type[h.ftype as usize] += 1;
         }
+        self.stations.take(
+            &m.bytes,
+            Heard {
+                time_s: now,
+                level_dbfs: m.level_dbfs,
+                channel: m.channel,
+            },
+        );
         let Some(b) = parse_bss(&m.bytes) else {
             return;
         };
+        self.stations.access_point(b.bssid);
         if is_duplicate(&b, m.band, m.channel) {
             c.dup_frames += 1;
             return;
@@ -649,7 +715,7 @@ impl NetworkTable {
         }
         n.heard_on = m.channel;
         n.band = band;
-        n.phy = Some(m.phy);
+        n.phy = Some(phy_of(m));
         if b.frame != BssFrame::Fils {
             n.security.clone_from(&sec.name);
             n.enterprise = sec.enterprise;
@@ -707,14 +773,19 @@ impl NetworkTable {
             level_dbfs: m.level_dbfs,
             len: m.bytes.len() + 4,
             info,
+            format: m.format.map(|f| f.name().to_owned()).unwrap_or_default(),
+            mcs: m.mcs,
+            aggregated: m.aggregated,
         });
     }
 
     fn clear(&mut self) {
         self.store.clear();
+        self.stations.clear();
         self.counters = Counters::default();
         self.base_dsss = self.stats.dsss;
         self.base_ofdm = self.stats.ofdm;
+        self.base_ppdu = self.stats.ppdu;
         self.published.clear_rows(WIFI_OFDM_RATES.def());
         self.published.clear_rows(WIFI_BANDS.def());
     }
@@ -725,6 +796,7 @@ impl NetworkTable {
         let st = self.stats;
         let d = st.dsss.since(self.base_dsss);
         let o = st.ofdm.since(self.base_ofdm);
+        let pp = st.ppdu.since(&self.base_ppdu);
         let c = &self.counters;
         let active = c.last_good_s.is_some_and(|l| now - l <= ACTIVE_S);
         let nets = self.store.networks.len();
@@ -746,6 +818,26 @@ impl NetworkTable {
         } else {
             write!(status.summary, "listening for beacons")
         };
+        if !self.stations.is_empty() {
+            let _ = write!(status.summary, ", {} stations", self.stations.len());
+        }
+        let skipped: u64 = pp.not_decoded.iter().sum();
+        if skipped > 0 {
+            let _ = write!(status.summary, "; {skipped} PPDUs seen and not decoded");
+            let streams = pp.not_decoded_for(sdrkit_proto_wlan_phy::ppdu::Undecoded::Streams);
+            if streams > 0 {
+                let _ = write!(
+                    status.summary,
+                    " ({streams} with two or more spatial streams: one antenna cannot separate them)"
+                );
+            } else if let Some((info, why)) = pp.last {
+                let _ = write!(status.summary, " (last: {}, {})", info.format.name(), why.text());
+            }
+        }
+        let fc = self.stations.counts;
+        for (_, n) in self.store.networks.records_mut() {
+            n.stations = parse_mac(&n.bssid).map_or(0, |b| self.stations.of_bss(&b) as u32);
+        }
         let p = &mut self.published;
         {
             let r = p.results_mut();
@@ -756,8 +848,8 @@ impl NetworkTable {
         }
         p.put(&WifiFields {
             networks: nets as i64,
-            frames_ok: (d.frames + o.frames) as i64,
-            frames_bad: (d.bad_fcs + o.bad_fcs) as i64,
+            frames_ok: (d.frames + o.frames + pp.mpdus) as i64,
+            frames_bad: (d.bad_fcs + o.bad_fcs + pp.bad_fcs) as i64,
             dsss_sfds: d.sfds as i64,
             dsss_headers_ok: d.headers_ok as i64,
             dsss_headers_bad: d.headers_bad as i64,
@@ -781,6 +873,40 @@ impl NetworkTable {
             level_dbfs: self.level_dbfs,
             hopping: self.hop,
             passive: PASSIVE_NOTE,
+            stations: self.stations.len() as i64,
+            ppdu_ht: pp.seen[0] as i64,
+            ppdu_vht: pp.seen[1] as i64,
+            ppdu_he_su: pp.seen[2] as i64,
+            ppdu_he_er_su: pp.seen[3] as i64,
+            ppdu_he_mu: pp.seen[4] as i64,
+            ppdu_he_tb: pp.seen[5] as i64,
+            ppdu_he_bad_sig: pp.seen[6] as i64,
+            ppdu_eht: pp.seen[7] as i64,
+            ppdu_decoded: pp.decoded as i64,
+            ppdu_not_decoded_streams: pp.not_decoded[0] as i64,
+            ppdu_not_decoded_width: pp.not_decoded[1] as i64,
+            ppdu_not_decoded_ldpc: pp.not_decoded[2] as i64,
+            ppdu_not_decoded_stbc: pp.not_decoded[3] as i64,
+            ppdu_not_decoded_multi_user: pp.not_decoded[4] as i64,
+            ppdu_not_decoded_trigger_based: pp.not_decoded[5] as i64,
+            ppdu_not_decoded_he_data: pp.not_decoded[6] as i64,
+            ppdu_not_decoded_eht_data: pp.not_decoded[7] as i64,
+            ppdu_not_decoded_signal_field: pp.not_decoded[8] as i64,
+            ppdu_not_decoded_mcs: pp.not_decoded[9] as i64,
+            ppdu_not_decoded_length: pp.not_decoded[10] as i64,
+            ppdu_not_decoded_data: pp.not_decoded[11] as i64,
+            ppdu_not_decoded_other: pp.not_decoded[12] as i64,
+            ppdu_not_decoded_busy: pp.not_decoded[13] as i64,
+            ampdu_bad_delimiters: pp.bad_delimiters as i64,
+            probe_requests: fc.probe_requests as i64,
+            authentications: fc.authentications as i64,
+            associations: fc.associations as i64,
+            departures: fc.departures as i64,
+            actions: fc.actions as i64,
+            rts: fc.rts as i64,
+            cts: fc.cts as i64,
+            acks: fc.acks as i64,
+            block_acks: fc.block_acks as i64,
         });
         for (i, (&rate, &n)) in RATES.iter().zip(&c.ofdm_rates).enumerate() {
             if n > 0 {
@@ -799,6 +925,49 @@ impl NetworkTable {
             r.record.shown(f)
         });
         shaped::log_rows(&self.store.log, &WIFI_BEACONS, now, p);
+        let wall_now = wall(self.live, &self.clock);
+        let mut written = 0;
+        let [key, bssid, ssids] = &mut self.texts;
+        for s in self.stations.iter() {
+            mac_into(&s.addr, key);
+            if let Some(b) = s.bssid {
+                mac_into(&b, bssid);
+            }
+            ssids.clear();
+            for (i, x) in s.ssids.iter().enumerate() {
+                if i > 0 {
+                    ssids.push_str(", ");
+                }
+                ssids.push_str(x);
+            }
+            WIFI_STATIONS.put(
+                p,
+                key,
+                &WifiStationRow {
+                    address: key,
+                    vendor: s.vendor,
+                    randomised: s.randomised,
+                    bssid: s.bssid.map(|_| bssid.as_str()),
+                    link: s.link.into(),
+                    last_heard: wall_now
+                        .zip(s.last_heard_s)
+                        .map(|(w, t)| Time(w - (now - t))),
+                    level_dbfs: s.level_dbfs,
+                    sent: s.sent as i64,
+                    received: s.received as i64,
+                    probes: s.probes as i64,
+                    data: s.data as i64,
+                    null_data: s.null_data as i64,
+                    protected: s.protected as i64,
+                    ssids,
+                    generation: i64::from(s.generation),
+                    max_rate_mbps: s.max_rate_mbps,
+                    channel: (s.channel != 0).then_some(i64::from(s.channel)),
+                },
+            );
+            written += 1;
+        }
+        remove_older_rows(p, WIFI_STATIONS.def(), written);
         for b in Band::ALL {
             let mut sum = BandSum::default();
             for n in self.store.networks.iter().map(|r| r.record) {
@@ -907,6 +1076,7 @@ impl Component for NetworkTable {
         self.stats = WifiStats::default();
         self.base_dsss = DsssCounters::default();
         self.base_ofdm = OfdmCounters::default();
+        self.base_ppdu = PpduCounters::default();
         Ok(vec![Format::new(Kind::typed::<HostRequest>(), 0.0)])
     }
 
@@ -1088,6 +1258,7 @@ impl Component for NetworkTable {
         self.counters = Counters::default();
         self.base_dsss = self.stats.dsss;
         self.base_ofdm = self.stats.ofdm;
+        self.base_ppdu = self.stats.ppdu;
         self.level_dbfs = None;
         self.published.clear_rows(WIFI_OFDM_RATES.def());
         if !kept.table(WIFI_NETWORKS.key) {

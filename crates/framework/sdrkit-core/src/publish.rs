@@ -33,6 +33,8 @@ pub mod field {
     pub enum Text {}
     /// One variant of the Rust enum `E`, held as its index (see [`crate::Choice`]).
     pub struct Choice<E>(std::marker::PhantomData<fn() -> E>);
+    /// A set of the flags of the Rust type `F`, held as its mask (see [`crate::FlagSet`]).
+    pub struct Flags<F>(std::marker::PhantomData<fn() -> F>);
     /// A raw payload.
     pub enum Bytes {}
     /// A value of any kind, which carries its own kind (see [`crate::ValueKind::Any`]).
@@ -50,6 +52,7 @@ pub(crate) mod sealed {
     impl Sealed for super::field::Position {}
     impl Sealed for super::field::Text {}
     impl<E> Sealed for super::field::Choice<E> {}
+    impl<F> Sealed for super::field::Flags<F> {}
     impl Sealed for super::field::Bytes {}
     impl Sealed for super::field::Any {}
 }
@@ -166,6 +169,7 @@ impl<K: Kind> Field<K> {
             unit: Cow::Borrowed(self.unit),
             kind: K::VALUE_KIND,
             choices: K::choices(),
+            flags: K::flags(),
             refers_to: self.refers_to.map(|(owner, table)| RefersTo {
                 owner: owner.map(OwnerKey::of),
                 table: Cow::Borrowed(table),

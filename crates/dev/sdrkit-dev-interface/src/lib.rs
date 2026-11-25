@@ -570,7 +570,29 @@ pub fn args_structs(family: &Family) -> Vec<ArgShape> {
     out
 }
 
-/// The name of the type of `f` in the registry record: the kind, with the option keys of a choice in brackets.
+/// The words of the flags `flags` of the field `field` of `family` in the generated names, in the order of the flags:
+/// the words that [`option_words`] gives options with these keys and labels.
+///
+/// # Errors
+///
+/// What [`option_words`] returns.
+pub fn flag_words(
+    family: &Family,
+    field: &str,
+    flags: &[sdrkit_core::FlagDecl],
+) -> Result<Vec<String>, String> {
+    let options: Vec<sdrkit_core::ChoiceDecl> = flags
+        .iter()
+        .map(|f| sdrkit_core::ChoiceDecl {
+            key: f.key.clone(),
+            label: f.label.clone(),
+        })
+        .collect();
+    option_words(family, field, &options)
+}
+
+/// The name of the type of `f` in the registry record: the kind, with the option keys of a choice or the flag keys of
+/// a flag set in brackets.
 pub fn type_name(f: &FieldDecl) -> String {
     match f.kind {
         ValueKind::Bool => "bool".into(),
@@ -586,6 +608,10 @@ pub fn type_name(f: &FieldDecl) -> String {
         ValueKind::Choice => {
             let keys: Vec<&str> = f.choices.iter().map(|c| c.key.as_ref()).collect();
             format!("choice({})", keys.join(","))
+        }
+        ValueKind::Flags => {
+            let keys: Vec<&str> = f.flags.iter().map(|c| c.key.as_ref()).collect();
+            format!("flags({})", keys.join(","))
         }
     }
 }

@@ -41,6 +41,7 @@ field FieldDecl { key: "signal_time", label: "Signal time", unit: "s", kind: Dur
 field FieldDecl { key: "first_audio", label: "First audio", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "holding", label: "Holding through a fade", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "mirrored", label: "Mirrored", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "playing_service", label: "Service playing", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "services", column: "" }), content: None, reading: 0 }
 field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "item_running", label: "Item running", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "slide_name", label: "Slide", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -242,6 +243,7 @@ field FieldDecl { key: "country", label: "Country", unit: "", kind: Text, choice
 field FieldDecl { key: "facility_id", label: "Facility id", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "location", label: "Location", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "altitude_m", label: "Altitude", unit: "m", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "sound", label: "Sound", unit: "", kind: Choice, choices: [ChoiceDecl { key: "none", label: "No sound" }, ChoiceDecl { key: "analogue_fm", label: "Analogue FM programme" }], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "item_running", label: "Item running", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "slide_name", label: "Slide", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }

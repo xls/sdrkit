@@ -265,3 +265,66 @@ fn decode_video_of_the_terrestrial_stack_reaches_the_demultiplexer() {
     let id = values.schema().id("decode_video").unwrap();
     assert_eq!(values.value(id), Some(&Value::Bool(true)));
 }
+
+/// The default test signal carries one service with a video and a sound track, and the stack plays the tone.
+#[test]
+fn the_test_signal_carries_a_service_with_video_and_sound() {
+    use sdrkit_core::{Complex32, GenConfig, Generator, InputInfo, Output, Receiver};
+    use sdrkit_proto_mpegts::codec::{EsCodec, EsKind};
+    use sdrkit_proto_mpegts::publish::{TsServiceRow, TsTrackRow, SERVICES, TRACKS};
+    use sdrkit_stack_dvbt2::generator::{SOUND_PID, VIDEO_PID};
+    let schema = Dvbt2Setting::schema();
+    let rate = Bandwidth::B8.rate();
+    let mut g = sdrkit_stack_dvbt2::T2Generator::from_config(&GenConfig::new(
+        rate,
+        Values::defaults(&schema),
+    ));
+    let mut rx =
+        sdrkit_stack_dvbt2::receiver(&StackConfig::new(Values::defaults(&schema))).expect("builds");
+    let mut codecs = sdrkit_core::codec::CodecSet::default();
+    sdrkit_codec_mpa::register(&mut codecs);
+    rx.set_facilities(&sdrkit_core::Facilities {
+        codecs: std::sync::Arc::new(codecs),
+        ..Default::default()
+    });
+    rx.configure(&InputInfo::new(rate, 474e6, 474e6).recording())
+        .expect("rate");
+    let mut x = vec![Complex32::default(); (rate * 0.1) as usize];
+    let mut out = Output::default();
+    let (mut peak, mut pictures) = (0f32, 0);
+    for _ in 0..25 {
+        g.generate(&mut x);
+        for c in x.chunks(16_384) {
+            out.clear();
+            rx.feed(c, &mut out);
+            peak = out.audio().iter().fold(peak, |m, s| m.max(s.abs()));
+            pictures += out
+                .media
+                .iter()
+                .filter(|e| e.format.codec == sdrkit_core::media::Codec::Mpeg2Video)
+                .count();
+        }
+    }
+    let r = sdrkit_core::owner::Owner::results(&rx);
+    let services: Vec<(&str, TsServiceRow)> = SERVICES.rows(r).collect();
+    assert_eq!(services.len(), 1);
+    assert_eq!(services[0].1.name, "sdrkit DVB-T2");
+    let tracks: Vec<(&str, TsTrackRow)> = TRACKS.rows(r).collect();
+    let track = |pid: u16| {
+        tracks
+            .iter()
+            .find(|t| t.1.pid == i64::from(pid))
+            .map(|t| (t.1.service, t.1.kind, t.1.codec))
+    };
+    assert_eq!(
+        track(VIDEO_PID),
+        Some(("1", Some(EsKind::Video), Some(EsCodec::Mpeg2Video)))
+    );
+    assert_eq!(
+        track(SOUND_PID),
+        Some(("1", Some(EsKind::Audio), Some(EsCodec::Mp2)))
+    );
+    // The pictures go to the host, and the tone of a quarter of full scale plays.
+    assert!(pictures > 10, "{pictures} pictures");
+    assert!((0.2..0.3).contains(&peak), "{peak}");
+}

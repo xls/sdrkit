@@ -212,7 +212,6 @@ fn a_known_drones_packet_allocates_only_its_log_lines() {
             unix_ms: Some(1_795_000_000_000 + 10 * k),
             beacon: p.beacon,
         };
-        // The first packets may grow the text of the reasons once.
         let n = allocations(|| {
             trust.observe(&cfg, &h);
         });

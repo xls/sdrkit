@@ -88,6 +88,7 @@ const ZERO_VARIANT: sys::sdrkit_variant = sys::sdrkit_variant {
     lon: 0.0,
     string: EMPTY,
     bytes: NO_BYTES,
+    flags: 0,
 };
 
 /// Copies the string view `s` into `out`, replacing what `out` held. Bytes that are not UTF-8 become U+FFFD.

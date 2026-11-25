@@ -244,7 +244,9 @@ pub fn start(
         }
         out.note(&note)?;
     }
-    let radio_id = engine.open_radio(&source.driver, &source.address, &radio)?;
+    let radio_id = engine
+        .open_radio(&source.driver, &source.address, &radio)
+        .map_err(|e| CliError::of_open(engine, &source.driver, e))?;
     for s in late {
         let (k, v) = text::key_value(s)?;
         let key = k.strip_prefix("radio.").unwrap_or(k);

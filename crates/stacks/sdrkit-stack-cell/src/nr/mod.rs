@@ -2,15 +2,22 @@
 //!
 //! Standard: 3GPP TS 38.211, TS 38.212, TS 38.213 and TS 38.331.
 
+pub mod dlsch;
 pub mod gen;
+pub mod msg;
 pub mod phy;
 pub mod search;
+pub mod sib1;
 
 use crate::bands::{coreset0, hz_to_gscn, nr_band_of};
 use crate::decoder::{
     build_search, capture_setting, plural, BandList, Capture, Headline, Log, SearchStack, BAND_ORDER,
 };
-use crate::typed::{NrCellRow, NrFields, NR_CELL, NR_CELLS};
+use crate::decoder::RowSync;
+use crate::typed::{
+    NrCellRow, NrDetailRow, NrFields, NrNetworkRow, NrSibRow, NR_CELL, NR_CELLS, NR_DETAILS, NR_NETWORKS, NR_SIBS,
+};
+use sdrkit_core::interface::Seconds;
 use sdrkit_core::interface::{EventKind, Hertz, Time};
 use sdrkit_core::publish::{field, Published, TableDef};
 use sdrkit_core::{
@@ -23,6 +30,7 @@ use sdrkit_util_objects::publish::columns;
 use sdrkit_util_objects::shaped::{self, RowOut, Shaped};
 use sdrkit_util_objects::{Format as StateFormat, ObjectTable, Seen, Shift};
 use search::{NrSearchOut, NrSearcher};
+use sib1::Sib1Step;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, OnceLock};
 
@@ -111,6 +119,139 @@ pub struct NrCell {
     pub pss_db: f64,
     /// MIB decodes.
     pub mibs: u64,
+    /// How far the reception of SIB1 went at the newest try.
+    #[serde(default)]
+    pub sib1_step: Sib1Step,
+    /// The sample rate that holds CORESET#0 with the radio centre of the newest try, Hz (0: not known).
+    #[serde(default)]
+    pub sib1_rate_needed_hz: f64,
+    /// SIB1, as far as it was read.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sib1: Option<Sib1Out>,
+    /// SIB1 decodes.
+    #[serde(default)]
+    pub sib1s: u64,
+}
+
+/// A network of a cell, from SIB1.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct NetworkOut {
+    /// MCC and MNC, "262-01".
+    pub plmn: String,
+    /// The operator of the network, when the list of networks names it.
+    pub operator: Option<String>,
+    /// The tracking area code.
+    pub tac: Option<u32>,
+    /// The NR cell identity (36 bits).
+    pub nci: u64,
+    /// The gNB identity, when SIB1 gives its length.
+    pub gnb: Option<u32>,
+    /// The cell identity within the gNB, when SIB1 gives the length of the gNB identity.
+    pub cell: Option<u16>,
+    /// cellReservedForOperatorUse.
+    pub reserved_operator: bool,
+}
+
+/// A SIB that SIB1 schedules.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct SibOut {
+    /// The SIB number.
+    pub sib: u8,
+    /// The period of its SI message, radio frames.
+    pub period_frames: u16,
+    /// Whether the message is broadcast (else sent on request).
+    pub broadcasting: bool,
+    /// The value tag.
+    pub value_tag: Option<u8>,
+}
+
+/// SIB1 as published. `parts` says how much of the message was read: 1 the networks, 2 the scheduling, 3 the downlink
+/// carrier, 4 the SSB facts.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Sib1Out {
+    /// The parts read.
+    pub parts: u8,
+    /// The networks.
+    pub networks: Vec<NetworkOut>,
+    /// cellReservedForOtherUse.
+    pub reserved_other_use: bool,
+    /// q-RxLevMin, dBm.
+    pub q_rx_lev_min_dbm: Option<i32>,
+    /// The SI window, slots.
+    pub si_window_slots: Option<u16>,
+    /// The SIBs scheduled.
+    pub sibs: Vec<SibOut>,
+    /// The bands of the cell.
+    pub bands: Vec<u16>,
+    /// The spacing of the carrier, kHz.
+    pub carrier_scs_khz: Option<u16>,
+    /// The width of the carrier, resource blocks.
+    pub carrier_rb: Option<u16>,
+    /// offsetToPointA, resource blocks.
+    pub offset_to_point_a: Option<u16>,
+    /// The first block of the initial downlink BWP.
+    pub bwp_start_rb: Option<u16>,
+    /// The width of the initial downlink BWP, resource blocks.
+    pub bwp_rb: Option<u16>,
+    /// The SSB period, ms.
+    pub ssb_period_ms: Option<u16>,
+    /// A TDD pattern is configured.
+    pub tdd: Option<bool>,
+}
+
+impl Sib1Out {
+    /// From the message and the count of its parts read.
+    pub fn new(m: &msg::Sib1, parts: u8) -> Sib1Out {
+        let mut networks = Vec::new();
+        for info in &m.networks {
+            let mut prev = None;
+            for p in &info.plmns {
+                let (mcc, mnc, digits) = p.numbers(prev);
+                prev = p.mcc.or(prev);
+                let split = info.gnb_and_cell();
+                networks.push(NetworkOut {
+                    plmn: format!("{mcc:03}-{mnc:0w$}", w = digits as usize),
+                    operator: sdrkit_util_ids::mcc::Plmn::new(mcc, mnc, digits)
+                        .and_then(sdrkit_util_ids::mcc::operator)
+                        .map(str::to_string),
+                    tac: info.tac,
+                    nci: info.cell_identity,
+                    gnb: split.map(|s| s.0),
+                    cell: split.map(|s| s.1),
+                    reserved_operator: info.reserved_operator,
+                });
+            }
+        }
+        let d = m.downlink.as_ref();
+        let carrier = d.and_then(|d| d.carriers.first());
+        Sib1Out {
+            parts,
+            networks,
+            reserved_other_use: m.reserved_other_use,
+            q_rx_lev_min_dbm: m.q_rx_lev_min.map(|v| 2 * i32::from(v)),
+            si_window_slots: m.si_window_slots,
+            sibs: m
+                .si_messages
+                .iter()
+                .flat_map(|s| {
+                    s.sibs.iter().map(|&(sib, value_tag, _)| SibOut {
+                        sib,
+                        period_frames: s.period_frames,
+                        broadcasting: s.broadcasting,
+                        value_tag,
+                    })
+                })
+                .collect(),
+            bands: d.map(|d| d.bands.iter().copied().filter(|&b| b != 0).collect()).unwrap_or_default(),
+            carrier_scs_khz: carrier.map(|c| c.scs_khz),
+            carrier_rb: carrier.map(|c| c.bandwidth_rb),
+            offset_to_point_a: d.map(|d| d.offset_to_point_a),
+            bwp_start_rb: d.map(|d| d.bwp_start_and_width().0),
+            bwp_rb: d.map(|d| d.bwp_start_and_width().1),
+            ssb_period_ms: m.ssb.map(|s| s.period_ms),
+            tdd: m.ssb.map(|s| s.tdd),
+        }
+    }
 }
 
 /// The NR list filters.
@@ -215,7 +356,7 @@ impl Shift for NrTables {
 }
 
 impl Tables for NrTables {
-    const FORMAT: StateFormat = StateFormat::new("cell.nr_cells", 1);
+    const FORMAT: StateFormat = StateFormat::new("cell.nr_cells", 2);
     fn clear(&mut self) {
         self.cells.clear();
         self.gscn_range = None;
@@ -235,12 +376,111 @@ impl sdrkit_graph::Item for NrCell {
 /// The notice the stack publishes.
 pub const BANNER_TEXT: &str =
     "Receive only: the public information every NR cell broadcasts to all phones (cell identity, \
-beams, MIB). Nothing addressed to a phone is decoded.";
+beams, MIB, SIB1). Nothing addressed to a phone is decoded.";
+
+sdrkit_core::choice_enum! {
+    /// How far a cell was decoded.
+    pub enum Decoded {
+        /// The synchronisation signals only.
+        Sync = ("sync", "Sync"),
+        /// The MIB.
+        Mib = ("mib", "MIB"),
+        /// The MIB and SIB1.
+        Sib1 = ("sib1", "SIB1"),
+    }
+}
+
+impl NrCell {
+    /// How far the cell was decoded.
+    pub fn decoded(&self) -> Decoded {
+        match (&self.mib, &self.sib1) {
+            (_, Some(_)) => Decoded::Sib1,
+            (Some(_), None) => Decoded::Mib,
+            (None, None) => Decoded::Sync,
+        }
+    }
+
+    /// Writes the rows of the cell in the tables of the details, the networks and the SIBs.
+    fn write_children(&self, key: &str, t: &mut NrChildren, p: &mut Published) {
+        let s = self.sib1.as_ref();
+        let m = self.mib.as_ref();
+        let bands = s.map(|s| s.bands.iter().map(u16::to_string).collect::<Vec<_>>().join(" "));
+        let width = (self.coreset0_rbs > 0)
+            .then(|| m.map(|m| Hertz(f64::from(self.coreset0_rbs * 12 * m.scs_common_khz) * 1e3)))
+            .flatten();
+        t.details.put(
+            p,
+            key.to_string(),
+            &NrDetailRow {
+                cell: key,
+                sib1: self.sib1_step,
+                sib1_parts: s.map(|s| i64::from(s.parts)),
+                coreset0_width: width,
+                rate_needed: (self.sib1_rate_needed_hz > 0.0).then_some(Hertz(self.sib1_rate_needed_hz)),
+                scs_common: m.map(|m| Hertz(f64::from(m.scs_common_khz) * 1e3)),
+                k_ssb: m.map(|m| i64::from(m.k_ssb)),
+                barred: m.map(|m| m.barred),
+                intra_freq_reselection: m.map(|m| m.intra_freq_reselection),
+                reserved_other_use: s.map(|s| s.reserved_other_use),
+                q_rx_lev_min_dbm: s.and_then(|s| s.q_rx_lev_min_dbm).map(f64::from),
+                bands: bands.as_deref().filter(|b| !b.is_empty()),
+                ssb_period: s.and_then(|s| s.ssb_period_ms).map(|ms| Seconds(f64::from(ms) * 1e-3)),
+                carrier_scs: s.and_then(|s| s.carrier_scs_khz).map(|k| Hertz(f64::from(k) * 1e3)),
+                carrier_rbs: s.and_then(|s| s.carrier_rb).map(i64::from),
+                offset_to_point_a: s.and_then(|s| s.offset_to_point_a).map(i64::from),
+                bwp_start: s.and_then(|s| s.bwp_start_rb).map(i64::from),
+                bwp_rbs: s.and_then(|s| s.bwp_rb).map(i64::from),
+                si_window: s.and_then(|s| s.si_window_slots).map(i64::from),
+                tdd: s.and_then(|s| s.tdd),
+                sib1_count: self.sib1s as i64,
+            },
+        );
+        let Some(s) = s else {
+            return;
+        };
+        for (i, n) in s.networks.iter().enumerate() {
+            let row = NrNetworkRow {
+                cell: key,
+                plmn: &n.plmn,
+                operator: n.operator.as_deref(),
+                tac: n.tac.map(i64::from),
+                nci: n.nci as i64,
+                gnb: n.gnb.map(i64::from),
+                cell_id: n.cell.map(i64::from),
+                reserved_operator: n.reserved_operator,
+            };
+            t.networks.put(p, format!("{key}/{i}"), &row);
+        }
+        for x in &s.sibs {
+            let row = NrSibRow {
+                cell: key,
+                sib: i64::from(x.sib),
+                period: Seconds(f64::from(x.period_frames) * 0.01),
+                broadcasting: x.broadcasting,
+                value_tag: x.value_tag.map(i64::from),
+            };
+            t.sibs.put(p, format!("{key}/{}", x.sib), &row);
+        }
+    }
+}
+
+/// The tables that follow the listed cells.
+struct NrChildren {
+    details: RowSync<NrDetailRow<'static>>,
+    networks: RowSync<NrNetworkRow<'static>>,
+    sibs: RowSync<NrSibRow<'static>>,
+}
 
 impl Shaped for NrCell {
-    type Row = NrCellRow;
+    type Row = NrCellRow<'static>;
     fn row(&self, seen: Option<&Seen>, _now_s: f64, out: RowOut<'_, '_, Self::Row>) {
+        let net = self.sib1.as_ref().and_then(|s| s.networks.first());
         out.put(&NrCellRow {
+            decoded: self.decoded(),
+            plmn: net.map(|n| n.plmn.as_str()),
+            operator: net.and_then(|n| n.operator.as_deref()),
+            tac: net.and_then(|n| n.tac).map(i64::from),
+            nci: net.map(|n| n.nci as i64),
             band: (self.band > 0).then_some(i64::from(self.band)),
             gscn: (self.gscn >= 0).then_some(self.gscn),
             frequency: Hertz(self.frequency_hz),
@@ -353,6 +593,47 @@ impl NrSearch {
             };
             (c.coreset0_rbs, c.coreset0_symbols, c.coreset0_offset_rb) = cs.unwrap_or((0, 0, 0));
             c.mibs += 1;
+            if c.sib1_step == Sib1Step::NoMib {
+                c.sib1_step = if c.sib1_scheduled {
+                    Sib1Step::NotTried
+                } else {
+                    Sib1Step::NotScheduled
+                };
+            }
+        }
+        let had_sib1 = c.sib1.is_some();
+        // A row made anew (after a clear or a removal) whose SIB1 the searcher tried a short time ago: tried again.
+        if new && f.sib1.is_none() {
+            self.searcher.forget_sib1(f.pci, key.raster);
+        }
+        if let Some(r) = &f.sib1 {
+            c.sib1_rate_needed_hz = r.rate_needed_hz;
+            let read = r.payload.as_deref().and_then(msg::Sib1::read);
+            match read {
+                Some((mut m, parts)) => {
+                    // Parts that disagree with the MIB or the block received were read out of place: not kept.
+                    let scs = c.mib.as_ref().map_or(0, |m| m.scs_common_khz as u16);
+                    let parts = m.plausible_parts(parts, scs, f.anchor_ssb);
+                    if parts < 3 {
+                        m.downlink = None;
+                    }
+                    if parts < 4 {
+                        m.ssb = None;
+                    }
+                    c.sib1 = Some(Sib1Out::new(&m, parts));
+                    c.sib1_step = Sib1Step::Decoded;
+                    c.sib1s += 1;
+                }
+                // A cell whose SIB1 is known keeps it and its step through a try that fails.
+                None if !had_sib1 => {
+                    c.sib1_step = match r.step {
+                        // A block that passed its CRC and is no SIB1 the description reads.
+                        Sib1Step::Decoded => Sib1Step::Unreadable,
+                        s => s,
+                    }
+                }
+                None => {}
+            }
         }
         // Beams merged by index; only indices below Lmax.
         for b in &f.beams {
@@ -414,6 +695,19 @@ impl NrSearch {
             }
             _ => {}
         }
+        if let (false, Some(s)) = (had_sib1, &c.sib1) {
+            let text = match s.networks.first() {
+                Some(n) => format!(
+                    "PCI {} at {place}: SIB1, network {}{}, cell identity {}",
+                    c.pci,
+                    n.plmn,
+                    n.tac.map(|t| format!(", tracking area {t}")).unwrap_or_default(),
+                    n.nci
+                ),
+                None => format!("PCI {} at {place}: SIB1", c.pci),
+            };
+            log.event(time, key.to_string(), text);
+        }
     }
 }
 
@@ -449,6 +743,7 @@ impl SearchStack for NrSearch {
             NrSetting::MinRsrp => f.min_rsrp = MIN_RSRP.read(id, v)?,
             NrSetting::MibOnly => f.mib_only = MIB_ONLY.read(id, v)?,
             NrSetting::NotBarred => f.not_barred = NOT_BARRED.read(id, v)?,
+            NrSetting::SymbolPhase => self.searcher.symbol_phase = SYMBOL_PHASE.read(id, v)?,
             NrSetting::BandOrder => {
                 self.order = BandList::read(id, BAND_ORDER.read(id, v)?)?;
                 self.searcher.band_order = self.order.bands.clone();
@@ -471,6 +766,7 @@ impl SearchStack for NrSearch {
             (NrSetting::MibOnly, Value::Bool(f.mib_only)),
             (NrSetting::NotBarred, Value::Bool(f.not_barred)),
             (NrSetting::BandOrder, Value::Text(self.order.text.clone())),
+            (NrSetting::SymbolPhase, Value::Bool(self.searcher.symbol_phase)),
         ])
     }
     fn capture_s(&self) -> f64 {
@@ -496,16 +792,29 @@ impl SearchStack for NrSearch {
     fn publish(&self, t: &NrTables, now: f64, p: &mut Published) -> Headline {
         let n = t.cells.len();
         let with_mib = t.cells.iter().filter(|r| r.record.mib.is_some()).count();
+        let with_sib1 = t.cells.iter().filter(|r| r.record.sib1.is_some()).count();
         let beams: usize = t.cells.iter().map(|r| r.record.beams.len()).sum();
         p.put(&NrFields {
             cell_count: n as i64,
             with_mib: with_mib as i64,
+            with_sib1: with_sib1 as i64,
             gscn_lo: t.gscn_range.map(|r| i64::from(r.0)),
             gscn_hi: t.gscn_range.map(|r| i64::from(r.1)),
             candidates: t.candidates.map(|c| c as i64),
             banner: BANNER_TEXT,
         });
         shaped::rows_where(&t.cells, &NR_CELLS, now, p, |r| self.filter.keep(r.record));
+        let mut children = NrChildren {
+            details: RowSync::new(&NR_DETAILS),
+            networks: RowSync::new(&NR_NETWORKS),
+            sibs: RowSync::new(&NR_SIBS),
+        };
+        for r in t.cells.iter().filter(|r| self.filter.keep(r.record)) {
+            r.record.write_children(&r.key.to_string(), &mut children, p);
+        }
+        children.details.finish(p);
+        children.networks.finish(p);
+        children.sibs.finish(p);
         // The strongest cell by RSRP among those seen within the recent window.
         let best = t
             .cells
@@ -515,7 +824,7 @@ impl SearchStack for NrSearch {
             .map(|r| r.record);
         Headline {
             summary: format!(
-                "{n} NR cell{}, {with_mib} with MIB, {beams} beam{}",
+                "{n} NR cell{}, {with_mib} with MIB, {with_sib1} with SIB1, {beams} beam{}",
                 plural(n),
                 plural(beams)
             ),
@@ -547,6 +856,8 @@ sdrkit_core::settings! {
         NotBarred = NOT_BARRED,
         /// The bands taken first where bands overlap.
         BandOrder = BAND_ORDER,
+        /// Whether the symbols carry the phase of up-conversion.
+        SymbolPhase = SYMBOL_PHASE,
     }
 }
 
@@ -560,6 +871,11 @@ pub const MAX_CELLS: Setting<field::I64> =
 /// The PSS threshold.
 pub const MIN_PSS_DB: Setting<field::F64> =
     Setting::new("min_pss_db", "PSS threshold", "dB", 10.0).range(6.0, 20.0, 0.5);
+/// Whether the symbols carry the phase of up-conversion to the radio frequency (3GPP TS 38.211 clause 5.4), as a cell sends
+/// them. Off reads a signal made without it.
+pub const SYMBOL_PHASE: Setting<field::Bool> = Setting::new("symbol_phase", "Symbol phase of up-conversion", "", true)
+    .advanced()
+    .help("On for cells on the air. Off for a test signal whose symbols all start at phase zero at baseband.");
 /// The section of the list filters.
 const LIST_SECTION: &str = "List";
 /// Bands left out of the list: numbers apart by spaces or commas.

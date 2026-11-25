@@ -1,7 +1,7 @@
 //! Short-range devices: ISM sensors, Wireless M-Bus meters, Z-Wave, Zigbee / IEEE 802.15.4, Thread, Wi-SUN FAN, Sigfox, ANT+, nRF24L01,
 //! the Sub-GHz chat of Flipper Zero devices, DECT base-station identities, NFC tag identities, mioty uplinks, DECT NR+
 //! control fields, New Packet Radio sync words and the
-//! frame structure of DSRC road toll beacons.
+//! frame structure of DSRC road toll beacons, and EnOcean telegrams.
 //!
 //! Each stack receives only what a transmitter broadcasts openly. Encrypted content is shown as encrypted. The Sub-GHz chat
 //! decrypts only with the key that the user types in. The ISM sensor, Wireless M-Bus, Z-Wave, Zigbee, ANT+ and Wi-SUN stacks
@@ -18,6 +18,7 @@
 pub mod ant;
 pub mod dect;
 pub mod dsrc;
+pub mod enocean;
 pub mod family;
 pub mod ism;
 pub mod mac154;
@@ -60,6 +61,7 @@ pub fn descriptors() -> Vec<&'static StackDescriptor> {
         &nrplus::DECT_NRPLUS,
         &npr70::NPR70,
         &dsrc::DSRC_TOLL,
+        &enocean::ENOCEAN,
     ]
 }
 
@@ -76,5 +78,6 @@ pub fn benchmarks() -> Vec<Benchmark> {
     v.extend(npr70::benchmarks());
     v.extend(dsrc::benchmarks());
     v.extend(ism::benchmarks());
+    v.extend(enocean::benchmarks());
     v
 }

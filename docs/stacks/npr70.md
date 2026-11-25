@@ -55,7 +55,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:np
 
 ## Typed interface
 
-The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.2. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -103,6 +103,8 @@ Struct `NprNetworkRow`. A row of the networks heard. The row key is the network 
 | `symbol_rate_hz` | frequency | always | 1.0 | The symbol rate. |
 | `first_heard` | time | optional | 1.0 | The UTC of the first frame. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+
+The rows are the stations or nodes of the stack. The column `network` names a row. Default order: the column `last_heard`, highest first. Time: `first_heard`.
 
 ### Event `npr70.frame`
 

@@ -4,69 +4,100 @@ and lays out an installed copy of it, as tools/package.sh does on other systems:
 
   <Out>\sdrkit-<version>-<Target>\
     include\                 sdrkit.h, sdrkit\<family>.h, sdrkit\init.h, sdrkit_presets.h
-    lib\                     sdrkit.dll, its import library and the static library
-    lib\pkgconfig\           sdrkit.pc (the dynamic library), and for MinGW sdrkit-static.pc
-    lib\cmake\sdrkit\        sdrkitConfig.cmake, sdrkitConfigVersion.cmake
+    lib\                     sdrkit.dll, its import library, the static library and the import library of the
+                             windows crates that the static library names
+    lib\pkgconfig\           sdrkit.pc (the shared library), and for MinGW sdrkit-static.pc
+    lib\cmake\sdrkit\        sdrkitConfig.cmake, sdrkitConfigVersion.cmake, sdrkitTargets.cmake
     share\sdrkit\data\       a copy of the folder data\ of the repository
     share\doc\sdrkit\        the licence files
 
+With -Release the script also builds the command-line tool into bin\, puts LICENSE and THIRD_PARTY.md at the top of
+the folder, names the folder sdrkit-<version>-windows-x86_64 (windows-x86_64-gnu for MinGW), and packs it into
+<Out>\sdrkit-<version>-windows-x86_64.zip.
+
 Usage, from any folder:
   powershell -ExecutionPolicy Bypass -File tools\package.ps1
+  powershell -ExecutionPolicy Bypass -File tools\package.ps1 -Release
   powershell -ExecutionPolicy Bypass -File tools\package.ps1 -Target x86_64-pc-windows-gnu
   -Target  x86_64-pc-windows-msvc (the default on an MSVC tool chain) or x86_64-pc-windows-gnu (MinGW). A target that
            is not the host needs `rustup target add <Target>` and its linker.
   -Out     the folder for the result. The default is dist\ at the root of the workspace.
 
-The script prints the folder of the package on its last line.
+The script prints the folder of the copy on its last line. The build uses CARGO_TARGET_DIR if it is set, else target\
+of the workspace. The cargo arguments are those of CMakeLists.txt with the profile `shipped`.
 #>
 param(
     [string]$Target = "",
-    [string]$Out = ""
+    [string]$Out = "",
+    [switch]$Release
 )
 $ErrorActionPreference = "Stop"
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $ffi = Join-Path $root "crates\hosts\sdrkit-host-ffi"
+$templates = Join-Path $root "cmake"
 $hostTriple = ((rustc -vV) | Where-Object { $_ -like "host:*" }) -replace "^host:\s*", ""
 if (-not $Target) { $Target = $hostTriple }
 if (-not $Out) { $Out = Join-Path $root "dist" }
-$version = (Select-String -Path (Join-Path $ffi "Cargo.toml") -Pattern '^version = "(.*)"$' |
-    Select-Object -First 1).Matches[0].Groups[1].Value
-$dist = Join-Path $Out "sdrkit-$version-$Target"
+$targetDir = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { Join-Path $root "target" }
+$versionLine = Select-String -Path (Join-Path $ffi "Cargo.toml") -Pattern '^version *= *"(.*)"$' |
+    Select-Object -First 1
+if (-not $versionLine) {
+    $versionLine = Select-String -Path (Join-Path $root "Cargo.toml") -Pattern '^version *= *"(.*)"$' |
+        Select-Object -First 1
+}
+$version = $versionLine.Matches[0].Groups[1].Value
 
-# The file names that cargo gives the libraries on the target.
+# The file names that cargo gives the libraries on the target, and the name of the platform in a release archive.
 switch -Wildcard ($Target) {
-    "*-windows-msvc" { $static = "sdrkit.lib"; $dynamic = "sdrkit.dll"; $implib = "sdrkit.dll.lib" }
-    "*-windows-gnu*" { $static = "libsdrkit.a"; $dynamic = "sdrkit.dll"; $implib = "libsdrkit.dll.a" }
+    "*-windows-msvc" { $static = "sdrkit.lib"; $dynamic = "sdrkit.dll"; $implib = "sdrkit.dll.lib"; $suffix = "" }
+    "*-windows-gnu*" { $static = "libsdrkit.a"; $dynamic = "sdrkit.dll"; $implib = "libsdrkit.dll.a"; $suffix = "-gnu" }
     default { throw "tools\package.ps1 builds the Windows targets. Use tools/package.sh for $Target." }
 }
+switch -Wildcard ($Target) {
+    "x86_64-*" { $platform = "windows-x86_64$suffix" }
+    "aarch64-*" { $platform = "windows-arm64$suffix" }
+    default { $platform = $Target }
+}
+$name = if ($Release) { "sdrkit-$version-$platform" } else { "sdrkit-$version-$Target" }
+$dist = Join-Path $Out $name
 
 # One build makes both libraries. `--print native-static-libs` names the system libraries that the static library
 # needs; cargo shows the note again on a build that has nothing to do.
-$cargoArgs = @("rustc", "--profile", "shipped", "-p", "sdrkit-host-ffi", "--features", "presets", "--lib",
-    "--crate-type", "staticlib", "--crate-type", "cdylib")
+$cross = @()
 if ($Target -ne $hostTriple) {
-    $cargoArgs += @("--target", $Target)
-    $built = Join-Path $root "target\$Target\shipped"
+    $cross = @("--target", $Target)
+    $built = Join-Path $targetDir "$Target\shipped"
 } else {
-    $built = Join-Path $root "target\shipped"
+    $built = Join-Path $targetDir "shipped"
 }
-$cargoArgs += @("--", "--print", "native-static-libs")
+$cargoArgs = @("rustc", "--profile", "shipped", "-p", "sdrkit-host-ffi", "--lib", "--features", "presets") + $cross +
+    @("--", "--print", "native-static-libs")
+
+# Runs cargo with `arguments` and returns its output lines; throws if cargo fails.
+function Invoke-Cargo([string[]]$arguments) {
+    Push-Location $root
+    $ErrorActionPreference = "Continue"
+    $lines = & cargo @arguments 2>&1 | ForEach-Object { "$_" }
+    $code = $LASTEXITCODE
+    $ErrorActionPreference = "Stop"
+    Pop-Location
+    if ($code -ne 0) {
+        $lines | Write-Host
+        throw "cargo failed with code $code"
+    }
+    return $lines
+}
 
 Write-Host "building sdrkit $version for $Target"
-Push-Location $root
-$ErrorActionPreference = "Continue"
-$log = & cargo @cargoArgs 2>&1 | ForEach-Object { "$_" }
-$code = $LASTEXITCODE
-$ErrorActionPreference = "Stop"
-Pop-Location
-if ($code -ne 0) {
-    $log | Write-Host
-    throw "cargo failed with code $code"
-}
+$log = Invoke-Cargo $cargoArgs
 $found = $log | Select-String -Pattern "native-static-libs: (.*)$" | Select-Object -Last 1
 if (-not $found) { throw "cargo printed no native-static-libs line" }
 $native = $found.Matches[0].Groups[1].Value.Trim()
+if ($Release) {
+    Write-Host "building the command-line tool for $Target"
+    Invoke-Cargo (@("build", "--profile", "shipped", "-p", "sdrkit-host-cli") + $cross) | Out-Null
+}
 
 if (Test-Path $dist) { Remove-Item -Recurse -Force $dist }
 foreach ($d in @("include\sdrkit", "lib\pkgconfig", "lib\cmake\sdrkit", "share\sdrkit", "share\doc\sdrkit")) {
@@ -79,6 +110,26 @@ Copy-Item (Join-Path $root "LICENSE"), (Join-Path $root "THIRD_PARTY.md") (Join-
 foreach ($f in @($static, $dynamic, $implib)) {
     Copy-Item (Join-Path $built $f) (Join-Path $dist "lib\$f")
 }
+if ($Release) {
+    New-Item -ItemType Directory -Force -Path (Join-Path $dist "bin") | Out-Null
+    Copy-Item (Join-Path $built "sdrkit.exe") (Join-Path $dist "bin\sdrkit.exe")
+    Copy-Item (Join-Path $root "LICENSE"), (Join-Path $root "THIRD_PARTY.md") $dist
+}
+
+# The static library names the import library of the crate windows_<arch>_msvc or windows_<arch>_gnu (such as
+# windows.0.52.0.lib). The linker must find it, so it goes into lib\ beside the library.
+if ($native -match "windows\.[0-9]") {
+    # The metadata is read with a pattern, not as JSON: it is several megabytes long.
+    $metadata = (Invoke-Cargo @("metadata", "--format-version", "1", "--filter-platform", $Target, "--manifest-path",
+        (Join-Path $root "Cargo.toml"))) -join "`n"
+    $pattern = '"manifest_path":"([^"]*?windows_[a-z0-9_]+_(?:msvc|gnu|gnullvm)-[0-9][^"]*?)[\\/]+Cargo\.toml"'
+    $filter = if ($Target -like "*-msvc") { "windows*.lib" } else { "libwindows*.a" }
+    foreach ($match in [regex]::Matches($metadata, $pattern)) {
+        $libDir = Join-Path ($match.Groups[1].Value -replace '\\\\', '\') "lib"
+        Get-ChildItem -Path $libDir -Filter $filter -ErrorAction SilentlyContinue |
+            ForEach-Object { Copy-Item $_.FullName (Join-Path $dist "lib") }
+    }
+}
 
 # The system libraries as CMake list items: `-lws2_32` becomes `ws2_32`, a `.lib` name stays as it is, and
 # `/defaultlib:` is left to the compiler.
@@ -90,100 +141,37 @@ foreach ($word in ($native -split "\s+")) {
 }
 $cmakeLibs = $cmakeLibs -join ";"
 
-# Writes `text` to `path` as UTF-8 without a byte order mark, with Unix line ends. Each `@KEY@` of the text is
-# replaced by the value of KEY in `values`.
-function Write-Text([string]$path, [string]$text, [hashtable]$values) {
+# Fills the template `template` of cmake\ into the file `path`, as UTF-8 without a byte order mark and with Unix line
+# ends: each @KEY@ becomes its value in `values`. CMakeLists.txt fills the same templates for `cmake --install`.
+function Write-Template([string]$template, [string]$path, [hashtable]$values) {
+    $text = [System.IO.File]::ReadAllText((Join-Path $templates $template))
     foreach ($key in $values.Keys) { $text = $text.Replace("@$key@", [string]$values[$key]) }
     [System.IO.File]::WriteAllText($path, ($text -replace "`r`n", "`n"), (New-Object System.Text.UTF8Encoding $false))
 }
 $values = @{
-    VERSION = $version; TARGET = $Target; STATIC = $static; DYNAMIC = $dynamic; IMPLIB = $implib
-    NATIVE = $native; CMAKE_LIBS = $cmakeLibs; MAJOR = $version.Split(".")[0]; MINOR = $version.Split(".")[1]
+    SDRKIT_VERSION = $version; SDRKIT_VERSION_MAJOR = $version.Split(".")[0]
+    SDRKIT_VERSION_MINOR = $version.Split(".")[1]; SDRKIT_RUST_TARGET = $Target
+    SDRKIT_CONFIG_TO_PREFIX = "../../.."; SDRKIT_PC_TO_PREFIX = "../.."
+    SDRKIT_INSTALL_INCLUDEDIR = "include"; SDRKIT_INSTALL_LIBDIR = "lib"; SDRKIT_INSTALL_SHAREDDIR = "lib"
+    SDRKIT_INSTALL_DATADIR = "share/sdrkit/data"
+    SDRKIT_STATIC_NAME = $static; SDRKIT_SHARED_NAME = $dynamic; SDRKIT_IMPLIB_NAME = $implib; SDRKIT_SONAME = ""
+    SDRKIT_SIZEOF_VOID_P = "8"; SDRKIT_SYSTEM_LIBRARIES = $cmakeLibs
+    SDRKIT_PC_SHARED_LIBS = "`${libdir}/$implib"; SDRKIT_PC_SYSTEM_LIBS = $native
 }
-
-# pkg-config is for MinGW: it links the import library, which works for a DLL of either tool chain.
-$pc = @'
-prefix=${pcfiledir}/../..
-includedir=${prefix}/include
-libdir=${prefix}/lib
-datadir=${prefix}/share/sdrkit/data
-
-Name: sdrkit
-Description: A software-defined radio engine (dynamic library)
-Version: @VERSION@
-Cflags: -I${includedir}
-Libs: ${libdir}/@IMPLIB@
-'@
-Write-Text (Join-Path $dist "lib\pkgconfig\sdrkit.pc") $pc $values
-
+$cmakeDir = Join-Path $dist "lib\cmake\sdrkit"
+Write-Template "sdrkitConfig.cmake.in" (Join-Path $cmakeDir "sdrkitConfig.cmake") $values
+Write-Template "sdrkitConfigVersion.cmake.in" (Join-Path $cmakeDir "sdrkitConfigVersion.cmake") $values
+Copy-Item (Join-Path $templates "sdrkitTargets.cmake") $cmakeDir
+# pkg-config is for MinGW: sdrkit.pc links the import library, which works for a DLL of either tool chain.
+Write-Template "sdrkit.pc.in" (Join-Path $dist "lib\pkgconfig\sdrkit.pc") $values
 if ($Target -like "*-windows-gnu*") {
-    $pcStatic = @'
-prefix=${pcfiledir}/../..
-includedir=${prefix}/include
-libdir=${prefix}/lib
-datadir=${prefix}/share/sdrkit/data
-
-Name: sdrkit-static
-Description: A software-defined radio engine (static library)
-Version: @VERSION@
-Cflags: -I${includedir}
-Libs: ${libdir}/@STATIC@ @NATIVE@
-'@
-    Write-Text (Join-Path $dist "lib\pkgconfig\sdrkit-static.pc") $pcStatic $values
+    Write-Template "sdrkit-static.pc.in" (Join-Path $dist "lib\pkgconfig\sdrkit-static.pc") $values
 }
 
-$config = @'
-# The CMake package of sdrkit @VERSION@ for @TARGET@.
-#
-#   find_package(sdrkit CONFIG REQUIRED)
-#   target_link_libraries(app PRIVATE sdrkit::sdrkit)   # the static library and the system libraries it needs
-#   target_link_libraries(app PRIVATE sdrkit::shared)   # the DLL, through its import library
-#
-# SDRKIT_DATA_DIR is the data folder of the package, for the presets calls. A program that links sdrkit::shared finds
-# sdrkit.dll in its own folder or on PATH.
-
-get_filename_component(_sdrkit_prefix "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
-set(SDRKIT_INCLUDE_DIR "${_sdrkit_prefix}/include")
-set(SDRKIT_DATA_DIR "${_sdrkit_prefix}/share/sdrkit/data")
-
-if(NOT TARGET sdrkit::sdrkit)
-    add_library(sdrkit::sdrkit STATIC IMPORTED)
-    set_target_properties(sdrkit::sdrkit PROPERTIES
-        IMPORTED_LOCATION "${_sdrkit_prefix}/lib/@STATIC@"
-        INTERFACE_INCLUDE_DIRECTORIES "${SDRKIT_INCLUDE_DIR}"
-        INTERFACE_LINK_LIBRARIES "@CMAKE_LIBS@")
-endif()
-
-if(NOT TARGET sdrkit::shared)
-    add_library(sdrkit::shared SHARED IMPORTED)
-    set_target_properties(sdrkit::shared PROPERTIES
-        IMPORTED_LOCATION "${_sdrkit_prefix}/lib/@DYNAMIC@"
-        IMPORTED_IMPLIB "${_sdrkit_prefix}/lib/@IMPLIB@"
-        INTERFACE_INCLUDE_DIRECTORIES "${SDRKIT_INCLUDE_DIR}")
-endif()
-
-set(sdrkit_FOUND TRUE)
-'@
-Write-Text (Join-Path $dist "lib\cmake\sdrkit\sdrkitConfig.cmake") $config $values
-
-$configVersion = @'
-# sdrkit @VERSION@. A request is met at this version or below it with the same major version; before 1.0, with the
-# same minor version too. The package is for 64-bit programs.
-set(PACKAGE_VERSION "@VERSION@")
-set(PACKAGE_VERSION_COMPATIBLE FALSE)
-set(PACKAGE_VERSION_EXACT FALSE)
-if(NOT PACKAGE_FIND_VERSION VERSION_GREATER PACKAGE_VERSION
-   AND "${PACKAGE_FIND_VERSION_MAJOR}" STREQUAL "@MAJOR@"
-   AND ("@MAJOR@" STREQUAL "0" AND "${PACKAGE_FIND_VERSION_MINOR}" STREQUAL "@MINOR@" OR NOT "@MAJOR@" STREQUAL "0"))
-    set(PACKAGE_VERSION_COMPATIBLE TRUE)
-endif()
-if(PACKAGE_FIND_VERSION VERSION_EQUAL PACKAGE_VERSION)
-    set(PACKAGE_VERSION_EXACT TRUE)
-endif()
-if(CMAKE_SIZEOF_VOID_P AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(PACKAGE_VERSION_UNSUITABLE TRUE)
-endif()
-'@
-Write-Text (Join-Path $dist "lib\cmake\sdrkit\sdrkitConfigVersion.cmake") $configVersion $values
-
+if ($Release) {
+    $archive = Join-Path $Out "$name.zip"
+    if (Test-Path $archive) { Remove-Item -Force $archive }
+    Compress-Archive -Path $dist -DestinationPath $archive
+    Write-Host "wrote $archive"
+}
 Write-Output $dist

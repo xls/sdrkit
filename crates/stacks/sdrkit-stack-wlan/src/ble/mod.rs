@@ -1,43 +1,47 @@
-//! The Bluetooth LE advertising monitor (`ble`): the packets devices broadcast on the three primary advertising channels with
-//! the LE 1M PHY, a device table and a packet log. The stack sends advertising packets ([`tx`]) into a transmit sink.
+//! The Bluetooth LE advertising monitor (`ble`): the packets devices broadcast on the primary advertising channels (LE 1M and
+//! LE Coded) and on the secondary channels and periodic trains inside the capture (all three PHYs, [`bank`]), extended
+//! advertising followed through its pointers ([`follow`]), a device table and a packet log. The stack sends advertising
+//! packets ([`tx`]) into a transmit sink.
 //! Standard: Bluetooth Core Specification v5.4 Vol 6 Part B; Core Specification Supplement v11 Part A.
 
 pub mod adv;
+pub mod bank;
+pub mod bench;
+pub mod follow;
 pub mod gen;
 pub mod table;
 pub mod tx;
 
-use sdrkit_algo_dsp::meter::IntervalLevel;
-
 use crate::testgen::{route_to, GEN_SECTION};
-use adv::{parse_ad, summary, AdvInfo};
+use adv::AdvInfo;
+pub use bank::AdvDecoder;
 use gen::GenWhitening;
-use sdrkit_components::dsp::Channel;
 use sdrkit_core::publish::field;
 use sdrkit_core::SignalType;
 use sdrkit_core::{
-    AutoGain, Complex32, ConfigError, GenConfig, Generator, LockProfile, Receiver, Setting,
-    SettingSet, StackConfig, StackDescriptor, StageError, Tuning, Value, Values,
+    AutoGain, ConfigError, GenConfig, Generator, LockProfile, Receiver, Setting, SettingSet,
+    StackConfig, StackDescriptor, Tuning,
 };
 use sdrkit_graph::{
-    no_values, Catalog, Decoder, DecoderComponent, Format, Graph, GraphBuilder, GraphError, Item,
-    Kind, Outbox, Port, Registry, RunContext, StackGraph, StackGraphBuilder, Timed,
+    Catalog, DecoderComponent, Graph, GraphBuilder, GraphError, Item, Registry, StackGraph,
+    StackGraphBuilder,
 };
-use sdrkit_proto_wlan_phy::ble::{advertising_channel_at, AdvPdu, AdvReceiver};
+use sdrkit_proto_wlan_phy::ble::{AdvPdu, Coding, LinkKind, Phy};
 use std::sync::Arc;
 
 /// The stack id.
 pub const ID: &str = "ble";
-/// The lowest input rate, Hz.
+/// The lowest input rate, Hz: one channel.
 pub const MIN_RATE_HZ: f64 = 4e6;
-/// The rate the advertising receiver runs at, Hz (4 samples per bit).
+/// The rate each channel's receiver runs at, Hz (4 samples per microsecond).
 pub const RATE_HZ: f64 = 4e6;
-/// The width the channel filter keeps, Hz (650 kHz each side of the carrier).
-pub const CHANNEL_WIDTH_HZ: f64 = 1.3e6;
+/// The rate the stack prefers, Hz: with the radio 1 MHz above channel 37, the capture holds channel 37 and the secondary
+/// channel 0. A wider rate takes more channels at once (all 40 from about 89 Msps).
+pub const PREFERRED_RATE_HZ: f64 = 8e6;
 /// The report period, s.
 pub const REPORT_S: f64 = 0.25;
 /// How near an advertising channel's centre the tuned frequency must be to give the channel hint, Hz.
-const HINT_TOLERANCE_HZ: f64 = 0.1e6;
+pub(crate) const HINT_TOLERANCE_HZ: f64 = 0.1e6;
 
 sdrkit_core::choice_enum! {
     /// A primary advertising channel. Standard: Bluetooth Core Specification v5.4 Vol 6 Part B clause 1.4.1.
@@ -67,7 +71,7 @@ impl AdvChannel {
 pub struct Advert {
     /// Signal time of the end of the access address, s.
     pub time_s: f64,
-    /// The advertising channel whose whitening produced the good CRC (37, 38 or 39).
+    /// The channel whose whitening produced the good CRC (0 to 39).
     pub channel: u8,
     /// The level of the preamble and access address, dBFS.
     pub level_dbfs: f64,
@@ -83,6 +87,14 @@ pub struct Advert {
     pub info: AdvInfo,
     /// The one-line summary.
     pub summary: String,
+    /// The PHY.
+    pub phy: Phy,
+    /// The coding on the LE Coded PHY.
+    pub coding: Option<Coding>,
+    /// The kind of the link the packet came on (advertising or a periodic train).
+    pub kind: LinkKind,
+    /// The access address.
+    pub access_address: u32,
 }
 
 impl Advert {
@@ -111,175 +123,25 @@ pub struct AdvStats {
     pub channel: u8,
     /// The level of the channel over the piece, dBFS.
     pub level_dbfs: Option<f64>,
+    /// The BLE channels inside the capture, bit `c` for channel `c` (0 when the centre is not known).
+    pub capture: u64,
+    /// The periodic trains whose packets the receivers take.
+    pub trains: u32,
 }
 
 impl Item for AdvStats {
     const KIND: &'static str = "ble.adv_stats";
 }
 
-/// The advertising receiver as a decoder (`wlan.ble_adv`): channel samples at a whole number of MHz in, good packets and the
-/// counters out.
-pub struct AdvDecoder {
-    rx: Option<AdvReceiver>,
-    rate: f64,
-    tuned_hz: f64,
-    live: bool,
-    base: Option<u64>,
-    level: IntervalLevel,
-}
-
-impl Default for AdvDecoder {
-    fn default() -> Self {
-        AdvDecoder {
-            rx: None,
-            rate: RATE_HZ,
-            tuned_hz: 0.0,
-            live: false,
-            base: None,
-            level: IntervalLevel::default(),
-        }
-    }
-}
-
-impl AdvDecoder {
-    /// The channel hint: the advertising channel the tuned frequency is on, for a live source only.
-    fn hint(&self) -> u8 {
-        if self.live {
-            advertising_channel_at(self.tuned_hz, HINT_TOLERANCE_HZ).unwrap_or(0)
-        } else {
-            0
-        }
-    }
-
-    fn apply_hint(&mut self) {
-        let h = self.hint();
-        if let Some(rx) = &mut self.rx {
-            // The hint comes from `advertising_channel_at`, so it is always 37, 38 or 39, which the receiver takes.
-            let _ = rx.set_channel_hint((h != 0).then_some(h));
-        }
-    }
-}
-
-impl Decoder for AdvDecoder {
-    type Input = Complex32;
-    fn name(&self) -> &'static str {
-        "wlan.ble_adv"
-    }
-    fn outputs(&self) -> Vec<Port> {
-        vec![
-            Port::typed::<Advert>("adverts"),
-            Port::typed::<AdvStats>("stats"),
-        ]
-    }
-    fn values(&self) -> Values {
-        no_values()
-    }
-    fn configure(&mut self, input: &Format) -> Result<Vec<Format>, ConfigError> {
-        let sps = (input.rate / 1e6).round();
-        if !(2.0..=16.0).contains(&sps) || (input.rate - sps * 1e6).abs() > 1.0 {
-            return Err(ConfigError::WrongRate {
-                need: RATE_HZ,
-                got: input.rate,
-            });
-        }
-        self.rx = Some(
-            AdvReceiver::new(sps as usize).map_err(|e| ConfigError::Stage(StageError::new(e)))?,
-        );
-        self.rate = input.rate;
-        self.tuned_hz = input.tuned_hz;
-        self.base = None;
-        self.level = IntervalLevel::default();
-        self.apply_hint();
-        Ok(vec![
-            Format::new(Kind::typed::<Advert>(), 0.0),
-            Format::new(Kind::typed::<AdvStats>(), 0.0),
-        ])
-    }
-    fn retune(&mut self, input: &Format) {
-        self.tuned_hz = input.tuned_hz;
-        if let Some(rx) = &mut self.rx {
-            rx.reset();
-        }
-        self.apply_hint();
-    }
-    fn attach(&mut self, ctx: &RunContext) {
-        self.live = ctx.live;
-        self.apply_hint();
-    }
-    fn process(&mut self, x: &[Complex32], first: u64, out: &mut Outbox) {
-        let Some(rx) = self.rx.as_mut() else {
-            return;
-        };
-        let base = *self.base.get_or_insert(first.saturating_sub(rx.samples()));
-        let rate = self.rate;
-        let adverts = out.items::<Advert>(0);
-        self.level.push(x);
-        rx.process(x, |p| {
-            let Ok(pdu) = p.parse() else {
-                return;
-            };
-            let data = pdu.data().unwrap_or(&[]);
-            let info = parse_ad(data);
-            let summary = summary(&pdu, &info);
-            let time_s = (base + p.sample) as f64 / rate;
-            adverts.push(Timed {
-                time: time_s,
-                value: Advert {
-                    time_s,
-                    channel: p.channel,
-                    level_dbfs: p.level_dbfs.max(-200.0),
-                    offset_hz: p.offset_hz,
-                    deviation_hz: p.deviation_hz,
-                    snr_db: p.snr_db,
-                    pdu: p.pdu.to_vec(),
-                    info,
-                    summary,
-                },
-            });
-        });
-        let s = rx.stats();
-        let time_s = (first + x.len() as u64) as f64 / rate;
-        let stats = AdvStats {
-            time_s,
-            aa_hits: s.aa_hits,
-            crc_failures: s.crc_failures,
-            packets: s.packets,
-            channel: self.hint(),
-            level_dbfs: self.level.take_dbfs(),
-        };
-        out.items::<AdvStats>(1).push(Timed {
-            time: time_s,
-            value: stats,
-        });
-    }
-}
-
-/// The channel filter in front of the advertising receiver: the signal moved to 0 Hz, 650 kHz kept each side, at exactly
-/// 4 Msps (the graph sets its `exact` setting).
+/// The front of a BLE graph: the receivers of every channel inside the capture, `adv`.
 ///
 /// # Errors
 ///
-/// [`sdrkit_core::SettingError`] if the channel filter refuses the width or the rate.
-pub fn channel() -> Result<Channel, sdrkit_core::SettingError> {
-    Channel::new(CHANNEL_WIDTH_HZ, RATE_HZ)
-}
-
-/// The front of a BLE graph: the channel filter `channel` at exactly 4 Msps and the advertising receiver `adv`.
-///
-/// # Errors
-///
-/// [`GraphError`] if the channel filter refuses its settings.
+/// None at present: the form matches the other fronts of this crate.
 pub fn front() -> Result<GraphBuilder, GraphError> {
-    let chan = channel().map_err(|error| GraphError::Setting {
-        key: "channel".into(),
-        error,
-    })?;
     Ok(GraphBuilder::new()
-        .add("channel", chan)
-        .set("channel.exact", Value::Bool(true))
         .add("adv", DecoderComponent::new(AdvDecoder::default()))
-        .input("channel")
-        .connect("channel", "adv"))
+        .input("adv"))
 }
 
 /// Adds the advertising sender `sender` and the transmit sink `tx` to a BLE graph: the sender takes the graph's input and
@@ -396,18 +258,18 @@ pub static BLE: StackDescriptor = StackDescriptor {
     id: ID,
     name: "Bluetooth LE",
     group: "Data and IoT",
-    blurb: "Bluetooth LE advertising: the devices around, their names, vendors and beacons, as a scanner app shows them.",
+    blurb: "Bluetooth LE advertising on LE 1M, LE 2M and LE Coded, legacy and extended, on every channel inside the capture: the devices around, their names, vendors and beacons, as a scanner app shows them.",
     tuning: Tuning {
         min_hz: 2400e6,
         max_hz: 2484e6,
         default_hz: 2402e6,
-        rate_hz: 4e6,
+        rate_hz: PREFERRED_RATE_HZ,
         min_rate_hz: MIN_RATE_HZ,
         bandwidth_hz: 2e6,
         tune_offset_hz: 1e6,
         carrier_at_centre: false,
         not_circular: false,
-        radio_filter_hz: Some(2e6),
+        radio_filter_hz: None,
         no_offset_tuning: false,
     },
     submodes: &[],
@@ -418,5 +280,5 @@ pub static BLE: StackDescriptor = StackDescriptor {
     signal_types: &[SignalType::BluetoothLe],
     auto_gain: AutoGain::Radio,
     verify: Some(&crate::verify::BLE),
-    benchmarks: Some(sdrkit_proto_wlan_phy::benchmarks),
+    benchmarks: Some(bench::benchmarks),
 };

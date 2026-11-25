@@ -1,0 +1,52 @@
+# The CMake package of sdrkit @SDRKIT_VERSION@ for @SDRKIT_RUST_TARGET@. It needs no Rust tool chain.
+#
+#   find_package(sdrkit CONFIG REQUIRED)
+#   target_link_libraries(app PRIVATE sdrkit::sdrkit)
+#
+# Targets:
+#   sdrkit::static  the static library, with the system libraries that it needs
+#   sdrkit::shared  the shared library; on Windows the DLL and its import library
+#   sdrkit::sdrkit  sdrkit::shared if SDRKIT_SHARED is true, or else if BUILD_SHARED_LIBS is true; sdrkit::static if not
+#
+# Variables:
+#   SDRKIT_INCLUDE_DIR   the folder of sdrkit.h
+#   SDRKIT_DATA_DIR      the data folder for the presets calls
+#   SDRKIT_RUST_TARGET   the Rust target triple that the libraries are built for
+#
+# Set SDRKIT_IMPORTED_GLOBAL to true before find_package to make the targets visible in every folder of the build.
+#
+# A program that links sdrkit::shared finds the library through its run path on Linux and macOS, and finds sdrkit.dll
+# in its own folder or on PATH on Windows. $<TARGET_RUNTIME_DLLS:app> names the DLL for a copy step.
+
+get_filename_component(_sdrkit_prefix "${CMAKE_CURRENT_LIST_DIR}/@SDRKIT_CONFIG_TO_PREFIX@" ABSOLUTE)
+set(SDRKIT_INCLUDE_DIR "${_sdrkit_prefix}/@SDRKIT_INSTALL_INCLUDEDIR@")
+set(SDRKIT_DATA_DIR "${_sdrkit_prefix}/@SDRKIT_INSTALL_DATADIR@")
+set(SDRKIT_RUST_TARGET "@SDRKIT_RUST_TARGET@")
+
+set(_sdrkit_global)
+if(SDRKIT_IMPORTED_GLOBAL)
+    set(_sdrkit_global GLOBAL)
+endif()
+
+set(_sdrkit_system_libraries "@SDRKIT_SYSTEM_LIBRARIES@")
+include("${CMAKE_CURRENT_LIST_DIR}/sdrkitTargets.cmake")
+sdrkit_import_targets(
+    LIBRARY_DIR "${_sdrkit_prefix}/@SDRKIT_INSTALL_LIBDIR@"
+    SHARED_DIR "${_sdrkit_prefix}/@SDRKIT_INSTALL_SHAREDDIR@"
+    INCLUDE_DIR "${SDRKIT_INCLUDE_DIR}"
+    STATIC "@SDRKIT_STATIC_NAME@"
+    SHARED "@SDRKIT_SHARED_NAME@"
+    IMPLIB "@SDRKIT_IMPLIB_NAME@"
+    SONAME "@SDRKIT_SONAME@"
+    SYSTEM_LIBRARIES ${_sdrkit_system_libraries}
+    EXISTING ${_sdrkit_global})
+
+if(TARGET sdrkit::sdrkit)
+    set(sdrkit_FOUND TRUE)
+else()
+    set(sdrkit_FOUND FALSE)
+    set(sdrkit_NOT_FOUND_MESSAGE "no library of sdrkit in ${_sdrkit_prefix}/@SDRKIT_INSTALL_LIBDIR@")
+endif()
+unset(_sdrkit_global)
+unset(_sdrkit_system_libraries)
+unset(_sdrkit_prefix)

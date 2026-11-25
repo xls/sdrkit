@@ -45,6 +45,7 @@ pub struct ShipRow<'a> {
 | `Hertz`, `Time`, `Seconds` | frequency, time, length of time | `double` |
 | `(f64, f64)` | position, latitude first | `sdrkit_position` |
 | an enum of `choice_enum!` | one of a list of options | `int32_t`, with a C enum of the options |
+| a type of `flag_set!` | a set of named flags (at most 64), each with a key, a label and a help line; results only | a `uint64_t` mask type, with a bit constant for each flag |
 | `Arc<[u8]>` | bytes | `sdrkit_bytes` |
 | `&Value` | a value that carries its own kind, for a column whose rows hold values of several kinds | `sdrkit_variant` |
 

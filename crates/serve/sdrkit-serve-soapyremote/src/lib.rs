@@ -31,9 +31,14 @@ pub struct Side {
     pub rates: Vec<Range>,
     /// The overall gain range, dB.
     pub gain: Range,
-    /// The gain elements and their ranges, dB. One element is the overall gain.
+    /// The gain elements and their ranges, dB, from RF to baseband. One element is the overall gain. Empty with an
+    /// empty overall range: the side has no gain.
     pub elements: Vec<(String, Range)>,
-    /// Filter bandwidth ranges, Hz; empty when the radio has no filter setting.
+    /// The side has automatic gain. Without it a gain mode is ignored and reads back as manual.
+    pub agc: bool,
+    /// The side takes a frequency correction. Without it a correction is ignored.
+    pub correction: bool,
+    /// Filter bandwidth ranges, Hz; empty when the radio has no filter setting, and then a bandwidth is ignored.
     pub bandwidths: Vec<Range>,
     /// Antenna names.
     pub antennas: Vec<String>,

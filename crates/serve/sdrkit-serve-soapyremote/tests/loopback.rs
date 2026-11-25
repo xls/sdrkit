@@ -51,6 +51,8 @@ fn device() -> Device {
             rates: vec![Range::new(0.25e6, 3.2e6, 0.0)],
             gain: Range::new(0.0, 49.6, 0.0),
             elements: vec![("TUNER".into(), Range::new(0.0, 49.6, 0.0))],
+            agc: true,
+            correction: true,
             bandwidths: Vec::new(),
             antennas: vec!["RX".into()],
         },
@@ -59,6 +61,8 @@ fn device() -> Device {
             rates: vec![Range::new(0.5e6, 20e6, 0.0)],
             gain: Range::new(-89.75, 0.0, 0.25),
             elements: vec![("PGA".into(), Range::new(-89.75, 0.0, 0.25))],
+            agc: false,
+            correction: false,
             bandwidths: Vec::new(),
             antennas: vec!["TX".into()],
         }),
@@ -117,6 +121,17 @@ fn rig(format: SampleType) -> (Rig, Feeder) {
 
 /// A hub on `net` serving SoapyRemote at `127.0.0.1:port` (0: a port the system chooses); TCP streams listen there too.
 fn rig_on(net: Arc<dyn Transport>, format: SampleType, config: Config, port: u16) -> (Rig, Feeder) {
+    rig_of(net, device(), format, config, port)
+}
+
+/// A hub on `net` serving `device` with SoapyRemote at `127.0.0.1:port`.
+fn rig_of(
+    net: Arc<dyn Transport>,
+    device: Device,
+    format: SampleType,
+    config: Config,
+    port: u16,
+) -> (Rig, Feeder) {
     let (hub, feeder) = Hub::new(config, &block(format, 0)).unwrap();
     let owner = Arc::new(Owner2::default());
     let listen = Listen {
@@ -124,7 +139,7 @@ fn rig_on(net: Arc<dyn Transport>, format: SampleType, config: Config, port: u16
         port,
         allow: Vec::new(),
     };
-    let server = SoapyRemote::new(net.clone(), device(), "uuid-1").with_stream_host("127.0.0.1");
+    let server = SoapyRemote::new(net.clone(), device, "uuid-1").with_stream_host("127.0.0.1");
     let info = hub
         .listen(&net, &listen, Arc::new(server), owner.clone())
         .unwrap();
@@ -363,6 +378,128 @@ fn a_refused_setting_is_the_clients_error_and_a_gap_is_flagged() {
         .iter()
         .any(|c| c.refused_requests == 1));
     src.stop();
+}
+
+/// A radio with three gain stages and no automatic gain, no frequency correction and no filter setting.
+fn staged_device() -> Device {
+    let mut d = device();
+    d.rx.gain = Range::new(0.0, 116.0, 0.0);
+    d.rx.elements = vec![
+        ("LNA".into(), Range::new(0.0, 40.0, 8.0)),
+        ("VGA".into(), Range::new(0.0, 62.0, 2.0)),
+        ("AMP".into(), Range::new(0.0, 14.0, 14.0)),
+    ];
+    d.rx.agc = false;
+    d.rx.correction = false;
+    d
+}
+
+/// Our client opens a radio without automatic gain over UDP and over TCP: the server says it has no gain mode, the client
+/// asks for none, and nothing for a setting that the radio lacks reaches the owner. A bare client that sets them anyway
+/// gets no error and reads back manual gain; an overall gain spreads over the stages in order.
+#[test]
+fn a_radio_without_automatic_gain_opens_and_spreads_the_overall_gain() {
+    for prot in [StreamProt::Udp, StreamProt::Tcp] {
+        let (rig, feeder) = rig_of(
+            Arc::new(FakeTransport::new()),
+            staged_device(),
+            SampleType::Cs16,
+            config(),
+            DEFAULT_PORT,
+        );
+        let stop = Arc::new(AtomicBool::new(false));
+        let p = produce(
+            feeder,
+            SampleType::Cs16,
+            stop.clone(),
+            None,
+            Arc::new(AtomicU64::new(0)),
+        );
+        let (mut src, _r) = rig.open(&[
+            ("serverlog", Value::Bool(false)),
+            ("transport", Value::Choice(prot.index())),
+            ("ppm", Value::F64(1.5)),
+        ]);
+        assert!(!src.capabilities().has_agc);
+        let seen = rig.owner.seen.lock().unwrap().clone();
+        assert!(
+            seen.iter()
+                .all(|r| !matches!(r, Request::Agc { .. } | Request::Correction { .. })),
+            "{seen:?}"
+        );
+        assert!(seen.contains(&Request::Gain { db: 30.0 }), "{seen:?}");
+        src.stop();
+        stop.store(true, Ordering::Relaxed);
+        p.join().unwrap();
+    }
+
+    let (rig, _feeder) = rig_of(
+        Arc::new(FakeTransport::new()),
+        staged_device(),
+        SampleType::Cs16,
+        config(),
+        DEFAULT_PORT,
+    );
+    let mut b = Bare::connect(&rig);
+    let rx = |n: u32| {
+        let mut p = Packer::call(n);
+        p.dir_ch(RX, 0);
+        p
+    };
+    let ask_bool = |b: &mut Bare, n: u32| b.ctl.call(&rx(n), WAIT, |u| u.bool()).unwrap();
+    assert!(!ask_bool(&mut b, call::HAS_GAIN_MODE));
+    assert!(!ask_bool(&mut b, call::HAS_FREQ_CORRECTION));
+    let mut p = rx(call::SET_GAIN_MODE);
+    p.bool(true);
+    b.ctl.call_void(&p, WAIT).unwrap();
+    assert!(!ask_bool(&mut b, call::GET_GAIN_MODE));
+    let mut p = rx(call::SET_FREQ_CORRECTION);
+    p.f64(2.0);
+    b.ctl.call_void(&p, WAIT).unwrap();
+    let mut p = rx(call::SET_BANDWIDTH);
+    p.f64(1e6);
+    b.ctl.call_void(&p, WAIT).unwrap();
+    let mut p = rx(call::SET_GAIN);
+    p.f64(50.0);
+    b.ctl.call_void(&p, WAIT).unwrap();
+    let element = |b: &mut Bare, name: &str| {
+        let mut p = rx(call::GET_GAIN_ELEMENT);
+        p.string(name);
+        b.ctl.call(&p, WAIT, |u| u.f64()).unwrap()
+    };
+    assert_eq!(
+        [element(&mut b, "LNA"), element(&mut b, "VGA"), element(&mut b, "AMP")],
+        [40.0, 10.0, 0.0]
+    );
+    // One stage set by hand: the overall gain reads back as the sum.
+    let mut p = rx(call::SET_GAIN_ELEMENT);
+    p.string("AMP").f64(14.0);
+    b.ctl.call_void(&p, WAIT).unwrap();
+    assert_eq!(b.ctl.call(&rx(call::GET_GAIN), WAIT, |u| u.f64()).unwrap(), 64.0);
+    let seen = rig.owner.seen.lock().unwrap().clone();
+    assert!(
+        seen.iter().all(|r| !matches!(
+            r,
+            Request::Agc { .. } | Request::Correction { .. } | Request::Bandwidth { .. }
+        )),
+        "{seen:?}"
+    );
+    assert!(seen.contains(&Request::Gain { db: 50.0 }), "{seen:?}");
+}
+
+/// An open radio holds the receive and the transmit settings in one schema: no key of the client is in both.
+#[test]
+fn the_receive_and_transmit_settings_of_the_client_have_distinct_keys() {
+    let driver = SoapyRemoteDriver::new(Arc::new(FakeTransport::new()));
+    let rx = DriverKind::new(Box::new(driver)).schema().clone();
+    let tx = tx_schema(SoapyTxSetting::SETTINGS, &TxLimits::default());
+    let both: Vec<&str> = tx
+        .settings()
+        .iter()
+        .map(|d| d.field.key.as_ref())
+        .filter(|k| rx.id(k).is_ok())
+        .collect();
+    assert!(both.is_empty(), "{both:?}");
 }
 
 fn tx_values(src: &dyn Source) -> Values {

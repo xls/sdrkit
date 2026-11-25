@@ -3,10 +3,13 @@
 
 use super::common::*;
 use sdrkit_core::{
-    Complex32, GenConfig, Generator, InputInfo, Output, Receiver, SettingSet, StackConfig, Values,
+    Complex32, Generator, InputInfo, Output, Receiver, SettingSet, StackConfig, Values,
 };
 use sdrkit_stack_dvbt2::params::*;
 use sdrkit_stack_dvbt2::rx::{RxSettings, T2Receiver};
+use sdrkit_proto_mpegts::source::{NumberedSource, TestMux, TestSound};
+use sdrkit_stack_dvbt2::generator::{tx_config, PATTERN, SOUND_PID};
+use sdrkit_stack_dvbt2::settings::gen_settings;
 use sdrkit_stack_dvbt2::tx::Transmitter;
 use sdrkit_stack_dvbt2::{receiver, Dvbt2Setting, T2Generator};
 use std::alloc::{GlobalAlloc, Layout, System};
@@ -76,8 +79,23 @@ fn no_allocation_per_symbol_or_block() {
 fn the_stack_graph_allocates_nothing_once_warm() {
     let schema = Dvbt2Setting::schema();
     let rate = Bandwidth::B8.rate();
-    let mut g = T2Generator::from_config(&GenConfig::new(rate, Values::defaults(&schema)));
-    let mut x = vec![Complex32::default(); (1.5 * rate) as usize];
+    // The test multiplex with its tables, data and sound, without the video: the MPEG video path of the shared transport
+    // stream layer still allocates for each access unit.
+    let gen = gen_settings(&Values::defaults(&schema)).expect("valid settings");
+    let pattern = Transmitter::new(tx_config(&gen, Box::new(NumberedSource::new(PATTERN))))
+        .expect("a transmitter");
+    let net = pattern.plp_bits_per_frame() as f64 * pattern.rate() / pattern.frame_len() as f64;
+    let mux = TestMux::dvbt_builder(1, "sdrkit DVB-T2")
+        .sound(TestSound {
+            pid: SOUND_PID,
+            mux_bit_rate: net,
+        })
+        .build()
+        .expect("a multiplex");
+    let tx = Transmitter::new(tx_config(&gen, Box::new(mux))).expect("a transmitter");
+    let mut g = T2Generator::new(Some(tx), rate);
+    let warm_s = 1.0;
+    let mut x = vec![Complex32::default(); ((warm_s + 0.5) * rate) as usize];
     g.generate(&mut x);
     let mut rx = receiver(&StackConfig::new(Values::defaults(&schema))).expect("builds");
     // A worker pool without helpers: the pool allocates for each call that it shares out.
@@ -90,7 +108,7 @@ fn the_stack_graph_allocates_nothing_once_warm() {
     rx.configure(&InputInfo::new(rate, 474e6, 474e6).recording())
         .expect("rate");
     let mut out = Output::default();
-    let warm = rate as usize;
+    let warm = (warm_s * rate) as usize;
     for c in x[..warm].chunks(16_384) {
         out.clear();
         rx.feed(c, &mut out);

@@ -1756,6 +1756,12 @@ struct DrmState {
     first_audio_s: Option<f64>,
     holding: bool,
     mirrored: bool,
+    /// The short id of the service whose audio frames came last.
+    playing: Option<u8>,
+    /// Its row key in the services table.
+    playing_key: String,
+    /// The signal time of the last audio frame.
+    last_audio_s: f64,
 }
 
 /// The report (`broadcast.drm_report`, a sink of every stream): the mode's results, four times a second of signal.
@@ -2067,7 +2073,10 @@ impl DrmReport {
         } else {
             1
         };
-        let playing = d.services.iter().find(|s| s.audio);
+        let playing = match d.playing {
+            Some(p) => d.services.iter().find(|s| s.short_id == p),
+            None => d.services.iter().find(|s| s.audio),
+        };
         d.audio_info = match playing {
             Some(s) if s.codec.starts_with("xHE") => format!(
                 "{} (xHE-AAC decoder not available. Most DRM stations (AAC) play without it.)",
@@ -2145,6 +2154,7 @@ impl DrmReport {
             first_audio: d.first_audio_s.map(Seconds),
             holding: d.holding,
             mirrored: d.mirrored,
+            playing_service: d.playing.map(|_| d.playing_key.as_str()),
         });
         if self.streams_written != d.streams {
             p.clear_rows(&res::STREAMS);
@@ -2371,6 +2381,11 @@ impl Component for DrmReport {
             self.stats = s.value.clone();
         }
         for a in io.items::<AudioFrameItem>(2) {
+            if self.d.playing != Some(a.value.short_id) {
+                self.d.playing = Some(a.value.short_id);
+                self.d.playing_key = a.value.short_id.to_string();
+            }
+            self.d.last_audio_s = self.d.signal_time_s;
             if a.value.bytes.is_some() {
                 self.d.audio_good += 1;
                 if self.d.first_audio_s.is_none() {
@@ -2386,6 +2401,10 @@ impl Component for DrmReport {
                     .results_mut()
                     .log("AAC frames go to the host's decoder; none is part of the stack");
             }
+        }
+        // No audio frame for a second: no service plays (a data service is chosen, or the audio stream went).
+        if self.d.signal_time_s - self.d.last_audio_s > 1.0 {
+            self.d.playing = None;
         }
         for t in io.items::<TextItem>(3) {
             self.d.text.clone_from(&t.value.text);

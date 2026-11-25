@@ -1,0 +1,33 @@
+# Builds the C library and checks the CMake consumer projects of examples/cmake on Linux, macOS and Windows. It does
+# not run the test suite of the workspace.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cmake:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, macos-15, windows-2025]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Rust
+        shell: bash
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+      - name: Install the Linux packages
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y pkg-config cmake
+      - name: Check the CMake consumers
+        shell: bash
+        run: sh examples/cmake/check.sh both "$RUNNER_TEMP/cmake-check"

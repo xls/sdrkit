@@ -1,5 +1,5 @@
 # The interface of the stack family drones. The registry test of the family writes this file.
-family drones version=1.4
+family drones version=2.0
 shape.RemoteIdFields since=1.0
 shape.RemoteIdFields.ble_channel type=i64 unit= optional=yes since=1.0
 shape.RemoteIdFields.ble_offset_hz type=hz unit=Hz optional=yes since=1.0
@@ -7,10 +7,10 @@ shape.RemoteIdFields.wifi_channel type=i64 unit= optional=yes since=1.0
 shape.RemoteIdFields.wifi_offset_hz type=hz unit=Hz optional=no since=1.0
 shape.RemoteIdFields.band type=choice(2432,2437,2412,2462,2403,2426,2478) unit= optional=yes since=1.0
 shape.RemoteIdFields.drones type=i64 unit= optional=no reading=1 since=1.0
-shape.RemoteIdFields.flagged type=i64 unit= optional=no reading=2 since=1.2
+shape.RemoteIdFields.flagged type=i64 unit= optional=no reading=2 since=1.0
 shape.RemoteIdFields.messages type=i64 unit= optional=no since=1.0
-shape.RemoteIdFields.messages_refused type=i64 unit= optional=no since=1.2
-shape.RemoteIdFields.fields_out_of_range type=i64 unit= optional=no since=1.2
+shape.RemoteIdFields.messages_refused type=i64 unit= optional=no since=1.0
+shape.RemoteIdFields.fields_out_of_range type=i64 unit= optional=no since=1.0
 shape.RemoteIdFields.ble_good type=i64 unit= optional=no since=1.0
 shape.RemoteIdFields.ble_remote_id type=i64 unit= optional=no since=1.0
 shape.RemoteIdFields.wifi_good type=i64 unit= optional=no since=1.0
@@ -28,8 +28,8 @@ shape.RemoteIdFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.RemoteIdDroneRow since=1.0
 shape.RemoteIdDroneRow.source type=text unit= optional=no since=1.0
 shape.RemoteIdDroneRow.address type=text unit= optional=no since=1.0
-shape.RemoteIdDroneRow.verdict type=choice(authenticated,plausible,suspicious,spoofed) unit= optional=yes since=1.2
-shape.RemoteIdDroneRow.reasons type=text unit= optional=no since=1.2
+shape.RemoteIdDroneRow.verdict type=choice(authenticated,plausible,suspicious,spoofed) unit= optional=yes since=1.0
+shape.RemoteIdDroneRow.reasons type=flags(known_spoofer,auth_failed,teleport,counter_conflict,identity_clone,transport_disagreement,speed_implausible,reported_speed_mismatch,reported_course_mismatch,vertical_rate_implausible,timestamp_frozen,location_clock_drift,system_clock_drift,tsf_wall_clock,tsf_discontinuity,counter_interleave,signal_jump,shared_radio,invalid_fields,serial_format,no_basic_id,auth_expired) unit= optional=no since=1.0
 shape.RemoteIdDroneRow.serial type=text unit= optional=yes since=1.0
 shape.RemoteIdDroneRow.session_id type=text unit= optional=yes since=1.0
 shape.RemoteIdDroneRow.caa_registration type=text unit= optional=yes since=1.0
@@ -59,8 +59,8 @@ shape.RemoteIdDroneRow.operator_id type=text unit= optional=yes since=1.0
 shape.RemoteIdDroneRow.self_id type=text unit= optional=yes since=1.0
 shape.RemoteIdDroneRow.authentication type=i64 unit= optional=yes since=1.0
 shape.RemoteIdDroneRow.authentication_pages type=i64 unit= optional=yes since=1.0
-shape.RemoteIdDroneRow.authentication_length type=i64 unit=B optional=yes since=1.2
-shape.RemoteIdDroneRow.authentication_complete type=bool unit= optional=yes since=1.2
+shape.RemoteIdDroneRow.authentication_length type=i64 unit=B optional=yes since=1.0
+shape.RemoteIdDroneRow.authentication_complete type=bool unit= optional=yes since=1.0
 shape.RemoteIdDroneRow.basic_id_messages type=i64 unit= optional=no since=1.0
 shape.RemoteIdDroneRow.location_messages type=i64 unit= optional=no since=1.0
 shape.RemoteIdDroneRow.authentication_messages type=i64 unit= optional=no since=1.0
@@ -95,14 +95,14 @@ shape.RemoteIdDroneEvent.course_deg type=f64 unit=° optional=yes since=1.0
 shape.RemoteIdDroneEvent.operator_position type=position unit= optional=yes since=1.0
 shape.RemoteIdDroneEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
 shape.RemoteIdDroneEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
-shape.RemoteIdVerdictEvent since=1.2
-shape.RemoteIdVerdictEvent.source type=text unit= optional=no since=1.2
-shape.RemoteIdVerdictEvent.address type=text unit= optional=no since=1.2
-shape.RemoteIdVerdictEvent.verdict type=choice(authenticated,plausible,suspicious,spoofed) unit= optional=no since=1.2
-shape.RemoteIdVerdictEvent.reasons type=text unit= optional=no since=1.2
-shape.RemoteIdVerdictEvent.position type=position unit= optional=yes since=1.2
-shape.RemoteIdVerdictEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.2
-shape.RemoteIdVerdictEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.2
+shape.RemoteIdVerdictEvent since=1.0
+shape.RemoteIdVerdictEvent.source type=text unit= optional=no since=1.0
+shape.RemoteIdVerdictEvent.address type=text unit= optional=no since=1.0
+shape.RemoteIdVerdictEvent.verdict type=choice(authenticated,plausible,suspicious,spoofed) unit= optional=no since=1.0
+shape.RemoteIdVerdictEvent.reasons type=flags(known_spoofer,auth_failed,teleport,counter_conflict,identity_clone,transport_disagreement,speed_implausible,reported_speed_mismatch,reported_course_mismatch,vertical_rate_implausible,timestamp_frozen,location_clock_drift,system_clock_drift,tsf_wall_clock,tsf_discontinuity,counter_interleave,signal_jump,shared_radio,invalid_fields,serial_format,no_basic_id,auth_expired) unit= optional=no since=1.0
+shape.RemoteIdVerdictEvent.position type=position unit= optional=yes since=1.0
+shape.RemoteIdVerdictEvent.urgency type=choice(none,notice,urgent,emergency) unit= optional=no since=1.0
+shape.RemoteIdVerdictEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.DjiDroneidFields since=1.0
 shape.DjiDroneidFields.bursts_measured type=i64 unit= optional=no since=1.0
 shape.DjiDroneidFields.bursts_ofdm_like type=i64 unit= optional=no since=1.0
@@ -112,14 +112,14 @@ shape.DjiDroneidFields.droneid_tried type=i64 unit= optional=no since=1.0
 shape.DjiDroneidFields.centre_hz type=hz unit=Hz optional=yes since=1.0
 shape.DjiDroneidFields.burst_cfo_hz type=hz unit=Hz optional=yes since=1.0
 shape.DjiDroneidFields.drones type=i64 unit= optional=no since=1.0
-shape.DjiDroneidFields.aircraft type=i64 unit= optional=no reading=1 since=1.3
-shape.DjiDroneidFields.droneid_encrypted type=i64 unit= optional=no reading=3 since=1.3
-shape.DjiDroneidFields.droneid_empty type=i64 unit= optional=no reading=4 since=1.3
-shape.DjiDroneidFields.droneid_other type=i64 unit= optional=no since=1.3
-shape.DjiDroneidFields.droneid_refused type=i64 unit= optional=no since=1.3
-shape.DjiDroneidFields.droneid_pairs type=i64 unit= optional=no since=1.3
-shape.DjiDroneidFields.droneid_bursts type=i64 unit= optional=no since=1.3
-shape.DjiDroneidFields.droneid_searched type=i64 unit= optional=no since=1.3
+shape.DjiDroneidFields.aircraft type=i64 unit= optional=no reading=1 since=1.0
+shape.DjiDroneidFields.droneid_encrypted type=i64 unit= optional=no reading=3 since=1.0
+shape.DjiDroneidFields.droneid_empty type=i64 unit= optional=no reading=4 since=1.0
+shape.DjiDroneidFields.droneid_other type=i64 unit= optional=no since=1.0
+shape.DjiDroneidFields.droneid_refused type=i64 unit= optional=no since=1.0
+shape.DjiDroneidFields.droneid_pairs type=i64 unit= optional=no since=1.0
+shape.DjiDroneidFields.droneid_bursts type=i64 unit= optional=no since=1.0
+shape.DjiDroneidFields.droneid_searched type=i64 unit= optional=no since=1.0
 shape.DjiDroneidFields.signal type=text unit= optional=yes refers_to=signals since=1.0
 shape.DjiDroneidFields.noise_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.DjiDroneidFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
@@ -153,8 +153,8 @@ shape.DjiDroneidDroneRow.source type=text unit= optional=no since=1.0
 shape.DjiDroneidDroneRow.position type=position unit= optional=yes since=1.0
 shape.DjiDroneidDroneRow.alt_m type=f64 unit=m optional=no since=1.0
 shape.DjiDroneidDroneRow.height_m type=f64 unit=m optional=no since=1.0
-shape.DjiDroneidDroneRow.alt_raw type=i64 unit= optional=no since=1.2
-shape.DjiDroneidDroneRow.height_raw type=i64 unit= optional=no since=1.2
+shape.DjiDroneidDroneRow.alt_raw type=i64 unit= optional=no since=1.0
+shape.DjiDroneidDroneRow.height_raw type=i64 unit= optional=no since=1.0
 shape.DjiDroneidDroneRow.speed_kt type=f64 unit=kt optional=no since=1.0
 shape.DjiDroneidDroneRow.course_deg type=f64 unit=° optional=no since=1.0
 shape.DjiDroneidDroneRow.home type=position unit= optional=yes since=1.0
@@ -187,40 +187,40 @@ shape.DjiDroneidBurstRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.DjiDroneidBurstRow.snr_db type=f64 unit=dB optional=no since=1.0
 shape.DjiDroneidBurstRow.ofdm_pct type=f64 unit=% optional=no since=1.0
 shape.DjiDroneidBurstRow.droneid type=choice(not_tried,no_droneid,crc_failed,decoded) unit= optional=no since=1.0
-shape.DjiDroneidAircraftRow since=1.3
-shape.DjiDroneidAircraftRow.aircraft type=text unit= optional=no since=1.3
-shape.DjiDroneidAircraftRow.session_key type=text unit= optional=yes since=1.3
-shape.DjiDroneidAircraftRow.drone type=text unit= optional=yes refers_to=drones since=1.3
-shape.DjiDroneidAircraftRow.format type=choice(readable,encrypted,encrypted_cryp,empty) unit= optional=no since=1.3
-shape.DjiDroneidAircraftRow.frame_type type=i64 unit= optional=yes since=1.3
-shape.DjiDroneidAircraftRow.frames type=i64 unit= optional=no since=1.3
-shape.DjiDroneidAircraftRow.first_s type=f64 unit=s optional=no since=1.3
-shape.DjiDroneidAircraftRow.last_s type=f64 unit=s optional=no since=1.3
-shape.DjiDroneidAircraftRow.level_dbfs type=f64 unit=dBFS optional=no since=1.3
-shape.DjiDroneidAircraftRow.snr_db type=f64 unit=dB optional=no since=1.3
-shape.DjiDroneidAircraftRow.freq_hz type=hz unit=Hz optional=yes since=1.3
-shape.DjiDroneidAircraftRow.first_heard type=time unit= optional=yes since=1.3
-shape.DjiDroneidAircraftRow.last_heard type=time unit= optional=yes since=1.3
+shape.DjiDroneidAircraftRow since=1.0
+shape.DjiDroneidAircraftRow.aircraft type=text unit= optional=no since=1.0
+shape.DjiDroneidAircraftRow.session_key type=text unit= optional=yes since=1.0
+shape.DjiDroneidAircraftRow.drone type=text unit= optional=yes refers_to=drones since=1.0
+shape.DjiDroneidAircraftRow.format type=choice(readable,encrypted,encrypted_cryp,empty) unit= optional=no since=1.0
+shape.DjiDroneidAircraftRow.frame_type type=i64 unit= optional=yes since=1.0
+shape.DjiDroneidAircraftRow.frames type=i64 unit= optional=no since=1.0
+shape.DjiDroneidAircraftRow.first_s type=f64 unit=s optional=no since=1.0
+shape.DjiDroneidAircraftRow.last_s type=f64 unit=s optional=no since=1.0
+shape.DjiDroneidAircraftRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
+shape.DjiDroneidAircraftRow.snr_db type=f64 unit=dB optional=no since=1.0
+shape.DjiDroneidAircraftRow.freq_hz type=hz unit=Hz optional=yes since=1.0
+shape.DjiDroneidAircraftRow.first_heard type=time unit= optional=yes since=1.0
+shape.DjiDroneidAircraftRow.last_heard type=time unit= optional=yes since=1.0
 shape.DjiDroneidEvent since=1.0
 shape.DjiDroneidEvent.source type=text unit= optional=no since=1.0
 shape.DjiDroneidEvent.position type=position unit= optional=yes since=1.0
 shape.DjiDroneidEvent.alt_m type=f64 unit=m optional=no since=1.0
 shape.DjiDroneidEvent.height_m type=f64 unit=m optional=no since=1.0
-shape.DjiDroneidEvent.alt_raw type=i64 unit= optional=no since=1.2
-shape.DjiDroneidEvent.height_raw type=i64 unit= optional=no since=1.2
+shape.DjiDroneidEvent.alt_raw type=i64 unit= optional=no since=1.0
+shape.DjiDroneidEvent.height_raw type=i64 unit= optional=no since=1.0
 shape.DjiDroneidEvent.speed_kt type=f64 unit=kt optional=no since=1.0
 shape.DjiDroneidEvent.course_deg type=f64 unit=° optional=no since=1.0
 shape.DjiDroneidEvent.home type=position unit= optional=yes since=1.0
 shape.DjiDroneidEvent.pilot type=position unit= optional=yes since=1.0
 shape.DjiDroneidEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
-shape.DjiDroneidAircraftEvent since=1.3
-shape.DjiDroneidAircraftEvent.source type=text unit= optional=no since=1.3
-shape.DjiDroneidAircraftEvent.session_key type=text unit= optional=yes since=1.3
-shape.DjiDroneidAircraftEvent.format type=choice(readable,encrypted,encrypted_cryp,empty) unit= optional=no since=1.3
-shape.DjiDroneidAircraftEvent.frame_type type=i64 unit= optional=yes since=1.3
-shape.DjiDroneidAircraftEvent.position type=position unit= optional=yes since=1.3
-shape.DjiDroneidAircraftEvent.snr_db type=f64 unit=dB optional=no since=1.3
-shape.DjiDroneidAircraftEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.3
+shape.DjiDroneidAircraftEvent since=1.0
+shape.DjiDroneidAircraftEvent.source type=text unit= optional=no since=1.0
+shape.DjiDroneidAircraftEvent.session_key type=text unit= optional=yes since=1.0
+shape.DjiDroneidAircraftEvent.format type=choice(readable,encrypted,encrypted_cryp,empty) unit= optional=no since=1.0
+shape.DjiDroneidAircraftEvent.frame_type type=i64 unit= optional=yes since=1.0
+shape.DjiDroneidAircraftEvent.position type=position unit= optional=yes since=1.0
+shape.DjiDroneidAircraftEvent.snr_db type=f64 unit=dB optional=no since=1.0
+shape.DjiDroneidAircraftEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.FlarmFields since=1.0
 shape.FlarmFields.v6_decoded type=i64 unit= optional=no since=1.0
 shape.FlarmFields.frames_bad type=i64 unit= optional=no since=1.0
@@ -458,7 +458,7 @@ shape.MavlinkSikVehicleEvent.link type=text unit= optional=no since=1.0
 shape.MavlinkSikVehicleEvent.position type=position unit= optional=yes since=1.0
 shape.MavlinkSikVehicleEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 remote_id since=1.0
-remote_id.content kind=tracking since=1.1
+remote_id.content kind=tracking since=1.0
 remote_id.fields.RemoteIdFields since=1.0
 remote_id.kept.drones since=1.0
 remote_id.kept.messages since=1.0
@@ -468,50 +468,50 @@ remote_id.table.drones row=RemoteIdDroneRow cap=200 label=address position=posit
 remote_id.table.messages row=RemoteIdMessageRow cap=400 label=address since=1.0
 remote_id.table.drone_tracks row=DroneTrackRow cap=24000 position=position since=1.0
 remote_id.event.remote_id.drone fields=RemoteIdDroneEvent since=1.0
-remote_id.event.remote_id.verdict fields=RemoteIdVerdictEvent since=1.2
+remote_id.event.remote_id.verdict fields=RemoteIdVerdictEvent since=1.0
 remote_id.setting.band type=choice(2432,2437,2412,2462,2403,2426,2478) unit= since=1.0
 remote_id.setting.ble type=bool unit= since=1.0
 remote_id.setting.wifi_ofdm type=bool unit= since=1.0
-remote_id.setting.shared_radio type=bool unit= since=1.2
+remote_id.setting.shared_radio type=bool unit= since=1.0
 remote_id.setting.gen_carriers type=choice(both,ble,wifi) unit= since=1.0
 remote_id.setting.gen_centre_mhz type=f64 unit=MHz since=1.0
 remote_id.setting.gen_wifi_phy type=choice(dsss,ofdm) unit= since=1.0
-remote_id.setting.gen_spoofer type=bool unit= since=1.2
+remote_id.setting.gen_spoofer type=bool unit= since=1.0
 remote_id.command.clear args= reply= since=1.0
 remote_id.command.remove args=row:text reply= since=1.0
 dji_droneid since=1.0
-dji_droneid.content kind=tracking since=1.1
+dji_droneid.content kind=tracking since=1.0
 dji_droneid.fields.DjiDroneidFields since=1.0
 dji_droneid.kept.signals since=1.0
 dji_droneid.kept.drones since=1.0
 dji_droneid.kept.bursts since=1.0
 dji_droneid.kept.drone_tracks since=1.0
-dji_droneid.kept.aircraft since=1.3
+dji_droneid.kept.aircraft since=1.0
 dji_droneid.kept.DjiDroneidFields since=1.0
 dji_droneid.table.signals row=DjiDroneidSignalRow cap=24 sort=snr_db:descending since=1.0
 dji_droneid.table.drones row=DjiDroneidDroneRow cap=50 label=source position=position altitude=alt_m course=course_deg speed=speed_kt since=1.0
 dji_droneid.table.bursts row=DjiDroneidBurstRow cap=300 since=1.0
 dji_droneid.table.drone_tracks row=DroneTrackRow cap=6000 position=position since=1.0
-dji_droneid.table.aircraft row=DjiDroneidAircraftRow cap=50 label=aircraft sort=aircraft:ascending role=nodes time=last_heard since=1.3
+dji_droneid.table.aircraft row=DjiDroneidAircraftRow cap=50 label=aircraft sort=aircraft:ascending role=nodes time=last_heard since=1.0
 dji_droneid.series.level x_unit=s y_unit=dBFS since=1.0
 dji_droneid.event.dji.droneid fields=DjiDroneidEvent since=1.0
-dji_droneid.event.dji.aircraft fields=DjiDroneidAircraftEvent since=1.3
+dji_droneid.event.dji.aircraft fields=DjiDroneidAircraftEvent since=1.0
 dji_droneid.setting.decode_droneid type=bool unit= since=1.0
 dji_droneid.setting.wall_clock type=bool unit= since=1.0
-dji_droneid.setting.droneid_tuning type=choice(fixed,step) unit= since=1.3
-dji_droneid.setting.droneid_dwell_s type=duration unit=s since=1.3
+dji_droneid.setting.droneid_tuning type=choice(fixed,step) unit= since=1.0
+dji_droneid.setting.droneid_dwell_s type=duration unit=s since=1.0
 dji_droneid.setting.gen_scenario type=choice(0,1,2,3,4,5) unit= since=1.0
 dji_droneid.setting.gen_period_s type=f64 unit=s since=1.0
 dji_droneid.setting.gen_eight_symbols type=bool unit= since=1.0
 dji_droneid.setting.gen_wide type=bool unit= since=1.0
-dji_droneid.setting.gen_frame type=choice(readable,encrypted,empty) unit= since=1.3
-dji_droneid.setting.gen_droneid_frequency type=bool unit= since=1.3
-dji_droneid.setting.gen_two_aircraft type=bool unit= since=1.3
-dji_droneid.setting.gen_centre_hz type=hz unit=Hz since=1.3
+dji_droneid.setting.gen_frame type=choice(readable,encrypted,empty) unit= since=1.0
+dji_droneid.setting.gen_droneid_frequency type=bool unit= since=1.0
+dji_droneid.setting.gen_two_aircraft type=bool unit= since=1.0
+dji_droneid.setting.gen_centre_hz type=hz unit=Hz since=1.0
 dji_droneid.command.clear args= reply= since=1.0
 dji_droneid.command.remove args=row:text reply= since=1.0
 flarm since=1.0
-flarm.content kind=tracking since=1.1
+flarm.content kind=tracking since=1.0
 flarm.fields.FlarmFields since=1.0
 flarm.kept.aircraft since=1.0
 flarm.kept.aircraft_tracks since=1.0
@@ -526,7 +526,7 @@ flarm.setting.gen_centre type=position unit= since=1.0
 flarm.command.clear args= reply= since=1.0
 flarm.command.remove args=row:text reply= since=1.0
 adsl since=1.0
-adsl.content kind=tracking since=1.1
+adsl.content kind=tracking since=1.0
 adsl.fields.AdslFields since=1.0
 adsl.kept.aircraft since=1.0
 adsl.kept.aircraft_tracks since=1.0
@@ -552,7 +552,7 @@ adsl.setting.gen_bad_bit type=i64 unit= since=1.0
 adsl.command.clear args= reply= since=1.0
 adsl.command.remove args=row:text reply= since=1.0
 ogn since=1.0
-ogn.content kind=tracking since=1.1
+ogn.content kind=tracking since=1.0
 ogn.fields.OgnFields since=1.0
 ogn.kept.packets since=1.0
 ogn.kept.aircraft since=1.0
@@ -573,7 +573,7 @@ ogn.setting.gen_emergency type=bool unit= since=1.0
 ogn.command.clear args= reply= since=1.0
 ogn.command.remove args=row:text reply= since=1.0
 rc_links since=1.0
-rc_links.content kind=networks since=1.1
+rc_links.content kind=networks since=1.0
 rc_links.fields.LinkFields since=1.0
 rc_links.fields.DecoderFields since=1.0
 rc_links.fields.RcLinksPpmFields since=1.0
@@ -607,7 +607,7 @@ rc_links.setting.gen_ppm_invert type=bool unit= since=1.0
 rc_links.command.clear args= reply= since=1.0
 rc_links.command.remove args=row:text reply= since=1.0
 mavlink_sik since=1.0
-mavlink_sik.content kind=tracking since=1.1
+mavlink_sik.content kind=tracking since=1.0
 mavlink_sik.fields.LinkFields since=1.0
 mavlink_sik.fields.DecoderFields since=1.0
 mavlink_sik.kept.links since=1.0

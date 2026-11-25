@@ -59,7 +59,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `sensors` | Sensors | `device` (whole number), `type` (text), `marker` (text), `manufacturer` (text), `serial` (whole number), `value` (text), `battery` (text), `period` (duration (s)), `level_dbfs` (number (dBFS)), `frequency` (frequency), `heard` (whole number), `last_heard` (time) |
+| `sensors` | Sensors | `device` (whole number), `type` (text), `marker` (text), `manufacturer` (text), `serial` (whole number), `value` (text), `battery` (text), `period` (duration (s)), `level_dbfs` (number (dBFS)), `frequency` (frequency), `heard` (whole number), `last_heard` (time), `name` (text) |
 | `frames` | Frames | `time_s` (number (s)), `device` (whole number), `type` (text), `tx_type` (whole number), `marker` (text), `level_dbfs` (number (dBFS)), `payload` (text), `text` (text) |
 
 ## Result series
@@ -86,9 +86,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.2. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
+
+Key readings: `sensors`.
 
 ### Result fields
 
@@ -139,6 +141,9 @@ Struct `AntSensorRow`. A row of the sensors. The row key is the device number, t
 | `frequency` | frequency | always | 1.0 | The carrier frequency. |
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
+| `name` | text | always | 4.2 | The name of the sensor for people: its type and device number. |
+
+The rows are the stations or nodes of the stack. The column `name` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
 
 ### Table `frames`
 

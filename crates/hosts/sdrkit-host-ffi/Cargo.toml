@@ -1,6 +1,6 @@
 [package]
 name = "sdrkit-host-ffi"
-version = "0.1.0"
+version = "0.5.0"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
@@ -23,7 +23,7 @@ sdrkit-svc-freqdb = { path = "../../svc/sdrkit-svc-freqdb", optional = true }
 
 [lib]
 name = "sdrkit"
-crate-type = ["staticlib", "rlib"]
+crate-type = ["staticlib", "cdylib", "rlib"]
 
 [dev-dependencies]
 # The writer of the family headers and the Swift files.

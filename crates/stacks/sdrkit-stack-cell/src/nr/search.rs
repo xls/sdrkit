@@ -1,7 +1,9 @@
 //! The NR search of one capture: sync raster candidates, PSS search folded over the 20 ms period, SSB
 //! timing and carrier offset, N_ID1, the SSB index from the PBCH DMRS, PBCH and MIB, beams.
 
+use super::dlsch::Numerology;
 use super::phy::*;
+use super::sib1::{Sib1Receiver, Sib1Result, Sib1Step, Sib1Target};
 use crate::bands::{gscn_to_hz, nr_band_of, nr_bands};
 use crate::decoder::Capture;
 use crate::dsp::{resample_to, ResamplerCache};
@@ -64,6 +66,10 @@ pub struct NrFound {
     pub pbch_tried: u32,
     /// The input sample of this SSB's PSS useful part in the first period.
     pub anchor: f64,
+    /// The index of the SSB of `anchor`.
+    pub anchor_ssb: u8,
+    /// The try to receive SIB1 in this capture, when one was made.
+    pub sib1: Option<Sib1Result>,
 }
 
 /// The results of a capture.
@@ -88,7 +94,17 @@ pub struct NrSearcher {
     /// The bands taken first where the sync rasters of bands overlap.
     pub band_order: Vec<u16>,
     pbch: PbchDecoder,
+    sib1: Sib1Receiver,
+    /// Whether the symbols are taken to carry the phase of up-conversion (3GPP TS 38.211 clause 5.4).
+    pub symbol_phase: bool,
+    /// The cells whose SIB1 was tried: PCI and SS_REF in steps of 30 kHz, the signal time of the try, whether it decoded.
+    sib1_tried: Vec<((u16, i64), f64, bool)>,
 }
+
+/// Seconds until the SIB1 of a cell is read again after a decode.
+pub const SIB1_AGAIN_S: f64 = 30.0;
+/// Seconds until the SIB1 of a cell is tried again after a try without a decode.
+pub const SIB1_RETRY_S: f64 = 1.0;
 
 impl Default for NrSearcher {
     fn default() -> Self {
@@ -99,6 +115,9 @@ impl Default for NrSearcher {
             min_pss_db: 10.0,
             band_order: Vec::new(),
             pbch: PbchDecoder::new(),
+            sib1: Sib1Receiver::default(),
+            symbol_phase: true,
+            sib1_tried: Vec::new(),
         }
     }
 }
@@ -576,6 +595,28 @@ impl NrSearcher {
         order.sort_by(|&a, &b| dm[b].total_cmp(&dm[a]));
         let ibar = order[0] as u8;
         let sure = dm[order[0]] > 1.6 * dm[order[1]];
+        // The phase that up-conversion gives every symbol (38.211 5.4), known with the radio frequency: taken out, so that
+        // the phase between symbols is the carrier offset alone. The place of the block in its subframe follows from its index.
+        let nominal = (self.symbol_phase && cap.centre_known())
+            .then(|| c.gscn.and_then(gscn_to_hz).unwrap_or(cap.centre_hz + c.offset_hz));
+        let turns: [Complex32; 4] = std::array::from_fn(|j| match nominal {
+            Some(f) => Numerology { scs_khz: scs, fft: 256 }
+                .carrier_phase(f, ssb_symbol(ibar as usize & 7) + j)
+                .conj(),
+            None => Complex32::new(1.0, 0.0),
+        });
+        let turn = |g: &mut [[Complex32; 240]; 4]| {
+            for (row, t) in g.iter_mut().zip(&turns) {
+                for v in row.iter_mut() {
+                    *v *= *t;
+                }
+            }
+        };
+        grids.iter_mut().for_each(turn);
+        let es: Vec<Vec<Complex32>> = es
+            .iter()
+            .map(|e| e.iter().map(|v| v * turns[2] * turns[0].conj()).collect())
+            .collect();
         // Residual carrier offset: SSS against PSS, DMRS symbol 3 against symbol 1.
         let sss_seq = sss(nid1, pk.nid2);
         let r = dmrs(pci, ibar);
@@ -600,6 +641,7 @@ impl NrSearcher {
         cfo += fres;
         for (gi, &pl) in places.iter().enumerate() {
             grids[gi] = self.ssb_grid(cap, c.offset_hz + cfo, scs, ssb_start(pl));
+            turn(&mut grids[gi]);
         }
         // Channel and measurements, PBCH.
         let pres = pbch_res(pci);
@@ -692,6 +734,8 @@ impl NrSearcher {
             beams,
             lmax,
             anchor: places[0] + shift * step,
+            anchor_ssb: ssb_index,
+            sib1: None,
             rsrp_dbfs: 10.0 * rsrp.max(1e-30).log10(),
             rsrq_db: 10.0 * (20.0 * rsrp / rssi.max(1e-30)).max(1e-30).log10(),
             sinr_db: 10.0 * (rsrp / noise.max(1e-30)).max(1e-30).log10(),
@@ -878,6 +922,57 @@ impl NrSearcher {
                 }
             }
         }
+        for f in out.cells.iter_mut() {
+            self.read_sib1(cap, f);
+        }
         out
+    }
+
+    /// Forgets that the SIB1 of the cell (PCI, SS_REF in steps of 30 kHz) was tried, so that the next capture tries it.
+    pub fn forget_sib1(&mut self, pci: u16, raster: i64) {
+        self.sib1_tried.retain(|x| x.0 != (pci, raster));
+    }
+
+    /// Tries the SIB1 of a cell with a MIB, unless it was read or tried a short time ago.
+    fn read_sib1(&mut self, cap: &Capture, f: &mut NrFound) {
+        let Some((mib, _, _)) = &f.mib else {
+            return;
+        };
+        let ssb_hz = f.cand.offset_hz + f.cfo_hz;
+        // The nominal frequency of the block: its place on the sync raster, else its place by the radio centre.
+        let nominal = cap.centre_known().then(|| {
+            f.cand
+                .gscn
+                .and_then(gscn_to_hz)
+                .unwrap_or(cap.centre_hz + f.cand.offset_hz)
+        });
+        let key = (f.pci, ((cap.centre_hz + f.cand.offset_hz) / 30e3).round() as i64);
+        let now = cap.end_time;
+        if let Some(&(_, at, ok)) = self.sib1_tried.iter().find(|x| x.0 == key) {
+            let wait = if ok { SIB1_AGAIN_S } else { SIB1_RETRY_S };
+            if now >= at && now - at < wait {
+                return;
+            }
+        }
+        let r = self.sib1.receive(
+            cap,
+            &Sib1Target {
+                pci: f.pci,
+                ssb_scs: f.cand.scs,
+                mib,
+                ssb: f.anchor_ssb,
+                anchor: f.anchor,
+                ssb_hz,
+                ssb_nominal_hz: nominal,
+                symbol_phase: self.symbol_phase,
+            },
+        );
+        let ok = r.step == Sib1Step::Decoded;
+        self.sib1_tried.retain(|x| x.0 != key);
+        if self.sib1_tried.len() >= 4 * crate::nr::CELL_CAP {
+            self.sib1_tried.remove(0);
+        }
+        self.sib1_tried.push((key, now, ok));
+        f.sib1 = Some(r);
     }
 }

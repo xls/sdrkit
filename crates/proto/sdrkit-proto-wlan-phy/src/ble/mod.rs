@@ -1,9 +1,9 @@
-//! The Bluetooth LE link layer of the advertising physical channel (Bluetooth Core Specification v5.4, Vol 6 Part B): RF channels,
-//! the advertising access address, data whitening, the CRC-24, the advertising PDUs (parse and build) and the bits on the air of
-//! the LE 1M PHY.
+//! The Bluetooth LE link layer (Bluetooth Core Specification v5.4, Vol 6 Part B): RF channels, the advertising access address,
+//! data whitening, the CRC-24, the advertising PDUs (parse and build), the bits on the air of the LE 1M, LE 2M and LE Coded PHYs
+//! ([`phy`]) and the receiver of one RF channel ([`BleReceiver`]).
 //!
 //! The pieces underneath are shared: the whitening register is [`sdrkit_util_bits::seq::ble_whitening`] and the CRC is
-//! [`sdrkit_util_bits::crc::catalog::CRC24_BLE`]. The receiver is [`AdvReceiver`]. The GFSK waveform of a transmitter is
+//! [`sdrkit_util_bits::crc::catalog::CRC24_BLE`]. The receiver is [`BleReceiver`]; [`AdvReceiver`] is its LE 1M advertising form. The GFSK waveform of a transmitter is
 //! `sdrkit_algo_sim::modulate::Cpm::gfsk(0.5, 0.5, sps)` fed with [`air_bits`] as levels (bit 1 is the higher frequency).
 //!
 //! ```
@@ -19,9 +19,16 @@
 //! ```
 
 pub mod ad;
+mod coded_rx;
+pub mod csa;
+pub mod ext;
+pub mod phy;
 mod rx;
 
-pub use rx::{AdvReceiver, BlePacket, ReceiverStats};
+pub use coded_rx::code as coded_fec_code;
+pub use ext::{AuxPtr, SyncInfo};
+pub use phy::{Coding, Link, LinkKind, Phy, Uncoded};
+pub use rx::{AdvReceiver, BlePacket, BleReceiver, ChannelPlan, Phys, ReceiverStats, MAX_LINKS};
 
 use crate::{Error, Malformation, Param, Result};
 use sdrkit_util_bits::crc::catalog::CRC24_BLE;
@@ -339,10 +346,10 @@ pub struct ExtHeader {
     pub cte_info: Option<u8>,
     /// AdvDataInfo: (DID, SID).
     pub adi: Option<(u16, u8)>,
-    /// AuxPtr: (channel index, PHY code 0 LE 1M, 1 LE 2M, 2 LE Coded).
-    pub aux_ptr: Option<(u8, u8)>,
-    /// SyncInfo present.
-    pub sync_info: bool,
+    /// AuxPtr.
+    pub aux_ptr: Option<AuxPtr>,
+    /// SyncInfo.
+    pub sync_info: Option<SyncInfo>,
     /// TxPower, dBm.
     pub tx_power: Option<i8>,
 }
@@ -389,10 +396,13 @@ pub enum Body<'a> {
         /// LLData.
         ll: LlData,
     },
-    /// The common extended advertising payload format (ADV_EXT_IND, AUX_CONNECT_RSP): extended header and AdvData.
+    /// The common extended advertising payload format (ADV_EXT_IND, AUX_ADV_IND, AUX_SCAN_RSP, AUX_SYNC_IND, AUX_CHAIN_IND,
+    /// AUX_CONNECT_RSP): extended header and AdvData.
     Extended {
         /// The extended header.
         ext: ExtHeader,
+        /// ACAD: the rest of the extended header after its fields (AD structures of the controller).
+        acad: &'a [u8],
         /// AdvData after the extended header (AD structures).
         data: &'a [u8],
     },
@@ -464,8 +474,8 @@ impl<'a> AdvPdu<'a> {
                 }
             }
             PduType::AdvExtInd | PduType::AuxConnectRsp => {
-                let (ext, data) = parse_ext(p, header.tx_add, header.rx_add)?;
-                Body::Extended { ext, data }
+                let (ext, acad, data) = parse_ext(p, header.tx_add, header.rx_add)?;
+                Body::Extended { ext, acad, data }
             }
             PduType::Reserved(_) => Body::Other(p),
         };
@@ -494,8 +504,8 @@ impl<'a> AdvPdu<'a> {
 }
 
 /// Parses the common extended advertising payload format: the extended header length and AdvMode byte, the flags, the fields
-/// present in flag order, and the AdvData after the header (ACAD is skipped).
-fn parse_ext(p: &[u8], tx_add: bool, rx_add: bool) -> Result<(ExtHeader, &[u8])> {
+/// present in flag order, the ACAD after them, and the AdvData after the header.
+fn parse_ext(p: &[u8], tx_add: bool, rx_add: bool) -> Result<(ExtHeader, &[u8], &[u8])> {
     let first = *p
         .first()
         .ok_or(Error::Malformed(Malformation::ExtendedNoHeader))?;
@@ -533,17 +543,21 @@ fn parse_ext(p: &[u8], tx_add: bool, rx_add: bool) -> Result<(ExtHeader, &[u8])>
         }
         if flags & 0x10 != 0 {
             let i = take(3)?;
-            e.aux_ptr = Some((hdr[i] & 0x3F, hdr[i + 2] >> 5));
+            e.aux_ptr = Some(AuxPtr::read([hdr[i], hdr[i + 1], hdr[i + 2]]));
         }
         if flags & 0x20 != 0 {
-            take(18)?;
-            e.sync_info = true;
+            let i = take(SyncInfo::LEN)?;
+            let mut b = [0u8; SyncInfo::LEN];
+            b.copy_from_slice(&hdr[i..i + SyncInfo::LEN]);
+            e.sync_info = Some(SyncInfo::read(&b));
         }
         if flags & 0x40 != 0 {
             e.tx_power = Some(hdr[take(1)?] as i8);
         }
+        let acad = take(0)?;
+        return Ok((e, &hdr[acad..], &p[1 + hl..]));
     }
-    Ok((e, &p[1 + hl..]))
+    Ok((e, &[], &p[1 + hl..]))
 }
 
 /// Appends a non-extended advertising PDU (header, AdvA, data) for ADV_IND, ADV_NONCONN_IND, ADV_SCAN_IND or SCAN_RSP: TxAdd follows
@@ -584,6 +598,70 @@ pub fn build_pdu(out: &mut Vec<u8>, header: Header, payload: &[u8]) -> Result<()
     out.extend_from_slice(&h.bytes());
     out.extend_from_slice(payload);
     Ok(())
+}
+
+/// Appends a PDU of the common extended advertising payload format (Vol 6 Part B clause 2.3.4): the header of `pdu_type`
+/// (TxAdd from AdvA, RxAdd from TargetA), the extended header length and AdvMode, the flags and fields `ext` holds in flag
+/// order, `acad`, then `data`. Errors for an extended header over 63 bytes or a payload over [`MAX_PAYLOAD`] bytes.
+pub fn build_ext(
+    out: &mut Vec<u8>,
+    pdu_type: PduType,
+    ext: &ExtHeader,
+    acad: &[u8],
+    data: &[u8],
+) -> Result<()> {
+    let mut hdr = vec![0u8];
+    let mut flags = 0u8;
+    if let Some(a) = ext.adv_a {
+        flags |= 0x01;
+        hdr.extend_from_slice(&a.bytes);
+    }
+    if let Some(a) = ext.target_a {
+        flags |= 0x02;
+        hdr.extend_from_slice(&a.bytes);
+    }
+    if let Some(c) = ext.cte_info {
+        flags |= 0x04;
+        hdr.push(c);
+    }
+    if let Some((did, sid)) = ext.adi {
+        flags |= 0x08;
+        hdr.extend_from_slice(&((did & 0x0FFF) | (sid as u16 & 0xF) << 12).to_le_bytes());
+    }
+    if let Some(a) = ext.aux_ptr {
+        flags |= 0x10;
+        hdr.extend_from_slice(&a.bytes());
+    }
+    if let Some(si) = ext.sync_info {
+        flags |= 0x20;
+        hdr.extend_from_slice(&si.bytes());
+    }
+    if let Some(t) = ext.tx_power {
+        flags |= 0x40;
+        hdr.push(t as u8);
+    }
+    hdr[0] = flags;
+    hdr.extend_from_slice(acad);
+    let len = if hdr.len() == 1 && acad.is_empty() {
+        0
+    } else {
+        hdr.len()
+    };
+    if len > 63 {
+        return Err(Error::TooLong);
+    }
+    let mut payload = Vec::with_capacity(1 + len + data.len());
+    payload.push(len as u8 | (ext.adv_mode & 3) << 6);
+    payload.extend_from_slice(&hdr[..len]);
+    payload.extend_from_slice(data);
+    let h = Header {
+        pdu_type,
+        ch_sel: false,
+        tx_add: ext.adv_a.is_some_and(|a| a.random),
+        rx_add: ext.target_a.is_some_and(|a| a.random),
+        length: 0,
+    };
+    build_pdu(out, h, &payload)
 }
 
 /// The preamble byte of an access address (Vol 6 Part B clause 2.1.1): 0xAA when its least significant bit is 0 (so the preamble

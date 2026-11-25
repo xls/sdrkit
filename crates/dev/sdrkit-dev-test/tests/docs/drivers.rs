@@ -1,8 +1,8 @@
 //! The page of one radio driver, written from its descriptor.
 
 use crate::render::{
-    code, commands_table, events_section, hz, results_sections, setting_rows, settings_table,
-    table, SETTING_HEADER,
+    code, commands_table, events_section, flags_section, hz, results_sections, setting_rows,
+    settings_table, table, SETTING_HEADER,
 };
 use sdrkit_core::{Owner, SettingDecl, SettingSet};
 use sdrkit_driver_core::iiod::tx::IiodTxSetting;
@@ -211,6 +211,7 @@ pub fn page(driver: Box<dyn SourceDriver>) -> String {
 
     out.push_str(&results_sections(decl.results(), "Readings"));
     out.push_str(&events_section(decl.results().events()));
+    out.push_str(&flags_section(decl.results()));
 
     out.push_str("## Commands of an open radio\n\n");
     out.push_str(&commands_table(decl.commands().defs()));

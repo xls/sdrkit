@@ -75,9 +75,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.2. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
+
+Key readings: `addresses`.
 
 ### Result fields
 
@@ -129,7 +131,7 @@ Struct `NrfAddressRow`. A row of the addresses. The row key is the address as he
 | `heard` | whole number | optional | 1.0 | The times heard. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
 
-The column `address` names a row.
+The rows are the stations or nodes of the stack. The column `address` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
 
 ### Table `bad_bursts`
 

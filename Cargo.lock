@@ -1749,7 +1749,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "sdrkit-algo-crypto"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -1768,7 +1768,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-algo-dsp"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "rustfft",
@@ -1778,7 +1778,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-algo-fec"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-util-bits",
@@ -1786,7 +1786,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-algo-locate"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-sim",
@@ -1795,7 +1795,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-algo-modem"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -1807,7 +1807,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-algo-sim"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-core",
@@ -1817,7 +1817,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-codec-aac"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-core",
@@ -1827,7 +1827,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-codec-apple"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-codec-mpa",
  "sdrkit-core",
@@ -1835,7 +1835,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-codec-bzip2"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-util-bits",
  "thiserror",
@@ -1843,7 +1843,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-codec-codec2"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-crypto",
  "sdrkit-algo-dsp",
@@ -1852,21 +1852,21 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-codec-custom"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-util-bits",
 ]
 
 [[package]]
 name = "sdrkit-codec-fits"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "thiserror",
 ]
 
 [[package]]
 name = "sdrkit-codec-image"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "hayro-jpeg2000",
  "j2k-native",
@@ -1881,7 +1881,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-codec-mbe"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -1889,7 +1889,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-codec-mpa"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-util-bits",
@@ -1897,7 +1897,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-codec-mpeg2video"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-codec-image",
  "sdrkit-util-bits",
@@ -1905,7 +1905,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-components"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -1920,7 +1920,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-core"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-macros",
@@ -1933,7 +1933,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-data-plans"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-dev-test",
@@ -1946,14 +1946,14 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-dev-interface"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
 ]
 
 [[package]]
 name = "sdrkit-dev-test"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -1975,7 +1975,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-core"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "roxmltree",
@@ -1993,7 +1993,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-hackrf"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "rtrb",
  "sdrkit-core",
@@ -2005,7 +2005,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-hpsdr"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-driver-core",
@@ -2015,7 +2015,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-kiwisdr"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-driver-core",
@@ -2027,7 +2027,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-openwebrx"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "rustls",
  "sdrkit-core",
@@ -2040,7 +2040,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-registry"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-driver-core",
@@ -2060,7 +2060,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-rsptcp"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-driver-core",
@@ -2070,7 +2070,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-rtlusb"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-core",
@@ -2082,7 +2082,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-sdrconnect"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "rustls",
  "sdrkit-algo-crypto",
@@ -2096,7 +2096,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-sdrpp"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "ruzstd",
  "sdrkit-core",
@@ -2107,7 +2107,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-soapyremote"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "rtrb",
  "sdrkit-core",
@@ -2118,7 +2118,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-spyserver"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-driver-core",
@@ -2128,7 +2128,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-tci"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-driver-core",
@@ -2138,7 +2138,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-driver-usb"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "futures-core",
  "nusb",
@@ -2160,7 +2160,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-graph"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "rtrb",
@@ -2174,7 +2174,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-host-catalog"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-codec-aac",
  "sdrkit-codec-apple",
@@ -2225,7 +2225,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-host-cli"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "clap",
  "cpal",
@@ -2248,7 +2248,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-host-engine"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "getrandom 0.2.17",
  "libc",
@@ -2293,7 +2293,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-host-ffi"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-data-plans",
@@ -2309,7 +2309,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-host-tui"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "clap",
  "cpal",
@@ -2322,7 +2322,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-macros"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2331,7 +2331,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-presets"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-data-plans",
@@ -2346,11 +2346,11 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-6lowpan"
-version = "0.1.0"
+version = "0.5.0"
 
 [[package]]
 name = "sdrkit-proto-aero"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-util-bits",
@@ -2364,7 +2364,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-bcdata"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "miniz_oxide 0.8.9",
  "sdrkit-algo-dsp",
@@ -2381,14 +2381,14 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-bt"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-util-bits",
 ]
 
 [[package]]
 name = "sdrkit-proto-ccsds"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-fec",
  "sdrkit-algo-sim",
@@ -2397,7 +2397,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-channels"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-core",
@@ -2408,7 +2408,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-dvbs2"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -2424,14 +2424,14 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-glyph"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-codec-image",
 ]
 
 [[package]]
 name = "sdrkit-proto-ipcast"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "miniz_oxide 0.8.9",
  "sdrkit-components",
@@ -2444,7 +2444,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-link"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -2460,7 +2460,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-lora-phy"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -2474,14 +2474,14 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-meshtastic"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "sdrkit-proto-mpegts"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-fec",
  "sdrkit-codec-aac",
@@ -2498,7 +2498,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-ookdev"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-modem",
@@ -2513,7 +2513,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-pager"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-fec",
  "sdrkit-util-bits",
@@ -2522,7 +2522,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-tones"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -2537,7 +2537,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-proto-wlan-phy"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -2550,7 +2550,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-serve-core"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "rtrb",
  "sdrkit-algo-dsp",
@@ -2562,7 +2562,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-serve-rtltcp"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-driver-core",
@@ -2571,7 +2571,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-serve-soapyremote"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-driver-core",
@@ -2581,7 +2581,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-adsb"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -2604,7 +2604,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-analogtv"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -2628,7 +2628,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-avdata"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -2655,7 +2655,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-avnav"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -2674,13 +2674,14 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-broadcast"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
  "sdrkit-algo-modem",
  "sdrkit-algo-sim",
+ "sdrkit-codec-aac",
  "sdrkit-codec-image",
  "sdrkit-components",
  "sdrkit-core",
@@ -2700,7 +2701,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-cell"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "encoding_rs",
  "num-complex",
@@ -2727,7 +2728,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-custom"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-crypto",
  "sdrkit-algo-dsp",
@@ -2744,7 +2745,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-dab"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "miniz_oxide 0.8.9",
  "num-complex",
@@ -2770,7 +2771,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-drones"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "remoteid",
  "sdrkit-algo-dsp",
@@ -2793,7 +2794,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-dvbcs"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -2814,7 +2815,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-dvbt"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -2834,12 +2835,13 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-dvbt2"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
  "sdrkit-algo-modem",
  "sdrkit-algo-sim",
+ "sdrkit-codec-mpa",
  "sdrkit-components",
  "sdrkit-core",
  "sdrkit-dev-interface",
@@ -2852,7 +2854,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-dvoice"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -2880,7 +2882,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-fm"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -2901,7 +2903,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-general"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "nnnoiseless",
  "num-complex",
@@ -2923,7 +2925,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-gnss"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -2944,7 +2946,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-hfdata"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -2967,7 +2969,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-hfkbd"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -2987,7 +2989,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-ism"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-crypto",
@@ -3013,7 +3015,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-lora"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "getrandom 0.2.17",
  "sdrkit-algo-crypto",
@@ -3040,7 +3042,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-marine"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -3066,7 +3068,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-meter"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-modem",
@@ -3083,7 +3085,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-road"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-sim",
@@ -3101,7 +3103,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-satcom"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -3128,7 +3130,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-satimg"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "miniz_oxide 0.8.9",
  "sdrkit-algo-crypto",
@@ -3157,7 +3159,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-science"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-crypto",
@@ -3183,7 +3185,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-tags"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-modem",
@@ -3198,7 +3200,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-trunk"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -3225,13 +3227,14 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-tvterr"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
  "sdrkit-algo-modem",
  "sdrkit-algo-sim",
+ "sdrkit-codec-mpa",
  "sdrkit-core",
  "sdrkit-dev-interface",
  "sdrkit-dev-test",
@@ -3245,7 +3248,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-voice"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-fec",
@@ -3267,7 +3270,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-wlan"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-crypto",
  "sdrkit-algo-dsp",
@@ -3293,7 +3296,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-stack-wsjt"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "num-complex",
  "sdrkit-algo-dsp",
@@ -3319,7 +3322,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-automation"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-svc-events",
@@ -3331,7 +3334,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-bank"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-core",
@@ -3344,7 +3347,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-events"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-util-geo",
@@ -3354,7 +3357,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-freqdb"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-data-plans",
@@ -3367,7 +3370,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-identify"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-core",
@@ -3379,7 +3382,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-memory"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-util-text",
@@ -3390,7 +3393,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-outputs"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-svc-events",
@@ -3402,7 +3405,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-record"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-core",
@@ -3417,7 +3420,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-scan"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-algo-modem",
@@ -3436,7 +3439,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-store"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-svc-events",
@@ -3449,7 +3452,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-sweep"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-algo-dsp",
  "sdrkit-core",
@@ -3460,7 +3463,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-svc-watch"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-svc-automation",
@@ -3475,11 +3478,11 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-util-bits"
-version = "0.1.0"
+version = "0.5.0"
 
 [[package]]
 name = "sdrkit-util-geo"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "serde",
@@ -3487,11 +3490,11 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-util-ids"
-version = "0.1.0"
+version = "0.5.0"
 
 [[package]]
 name = "sdrkit-util-objects"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "sdrkit-core",
  "sdrkit-util-geo",
@@ -3502,7 +3505,7 @@ dependencies = [
 
 [[package]]
 name = "sdrkit-util-text"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "encoding_rs",
  "sdrkit-algo-dsp",

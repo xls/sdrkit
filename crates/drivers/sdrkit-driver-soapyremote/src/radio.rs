@@ -629,6 +629,11 @@ impl SoapyRadio {
                 .unwrap_or_default();
             f.elements.push(Element { name, range });
         }
+        // An empty overall range with no element that spans more is a radio without gain: no gain is sent.
+        let spans = |r: &Range| r.max > r.min;
+        if f.gain.as_ref().is_some_and(|g| !spans(g)) && !f.elements.iter().any(|e| spans(&e.range)) {
+            f.gain = None;
+        }
         let mut stages = Vec::new();
         for e in plan::stages(&f.elements) {
             let mut p = dir_ch(call::GET_GAIN_ELEMENT, RX);

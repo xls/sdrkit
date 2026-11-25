@@ -3,7 +3,7 @@
 
 use super::messages::{summary, Authentication, Location, Message, MsgType, System, Transport};
 use super::phy::{Phy, PhyStats};
-use super::trust::{Heard, Trust, TrustVerdict};
+use super::trust::{Heard, Trust, TrustReasons, TrustVerdict};
 use super::{plan, Band, Plan, RidItem, RidPacket, BAND, SHARED_RADIO};
 use crate::family::{publish_tracks, wall, SignalClock, StatusLine};
 use crate::typed::{
@@ -276,8 +276,8 @@ impl Drone {
         self.trust.as_ref().map(Trust::verdict)
     }
     /// The active reasons of the verdict, empty when there is none.
-    pub fn reasons(&self) -> &str {
-        self.trust.as_ref().map_or("", Trust::reasons)
+    pub fn reasons(&self) -> TrustReasons {
+        self.trust.as_ref().map_or(TrustReasons::empty(), Trust::reasons)
     }
     /// The urgency of the drone's present state.
     pub fn urgency(&self) -> Urgency {
@@ -1161,7 +1161,7 @@ mod tests {
         spoofed(&mut t, 0, 20);
         let d = t.store().drones.get(ADDR).unwrap();
         assert_eq!(d.verdict(), Some(TrustVerdict::Spoofed));
-        assert!(d.reasons().contains("teleport"), "{}", d.reasons());
+        assert!(d.reasons().contains(TrustReasons::TELEPORT), "{}", d.reasons());
         let e = verdict_events(&t);
         assert_eq!(e.len(), 1, "{:?}", t.events);
         assert_eq!(
@@ -1198,7 +1198,7 @@ mod tests {
         // The packets carry no Basic ID: one weak reason, which leaves the verdict plausible.
         assert_eq!(
             (d.verdict(), d.reasons()),
-            (Some(TrustVerdict::Plausible), "no_basic_id")
+            (Some(TrustVerdict::Plausible), TrustReasons::NO_BASIC_ID)
         );
         assert!(verdict_events(&t).is_empty());
         t.publish();
@@ -1249,7 +1249,10 @@ mod tests {
             }
             let d = t.store().drones.get(ADDR).unwrap();
             assert_eq!(d.verdict().unwrap().flagged(), flagged, "{}", d.reasons());
-            assert_eq!(d.reasons().contains("location_clock_drift"), flagged);
+            assert_eq!(
+                d.reasons().contains(TrustReasons::LOCATION_CLOCK_DRIFT),
+                flagged
+            );
         }
     }
 
@@ -1274,7 +1277,7 @@ mod tests {
         let mut u = DroneTable::default();
         u.restore_state(&blob).unwrap();
         let d = u.store().drones.get(ADDR).unwrap();
-        assert_eq!((d.verdict(), d.reasons()), (None, ""));
+        assert_eq!((d.verdict(), d.reasons()), (None, TrustReasons::empty()));
         u.take(0.0, &packet(0, 8.0));
         assert_eq!(
             u.store().drones.get(ADDR).unwrap().verdict(),
@@ -1327,11 +1330,11 @@ mod tests {
         t
     }
 
-    fn reasons_of(t: &DroneTable) -> Vec<String> {
+    fn reasons_of(t: &DroneTable) -> Vec<TrustReasons> {
         t.store()
             .drones
             .iter()
-            .map(|r| r.record.reasons().to_string())
+            .map(|r| r.record.reasons())
             .collect()
     }
 
@@ -1339,7 +1342,9 @@ mod tests {
     fn drones_that_keep_one_carrier_offset_share_a_radio() {
         let one = three_drones(true, [12e3; 3]);
         assert!(
-            reasons_of(&one).iter().all(|r| r.contains("shared_radio")),
+            reasons_of(&one)
+                .iter()
+                .all(|r| r.contains(TrustReasons::SHARED_RADIO)),
             "{:?}",
             reasons_of(&one)
         );
@@ -1347,12 +1352,14 @@ mod tests {
         assert!(
             reasons_of(&real)
                 .iter()
-                .all(|r| !r.contains("shared_radio")),
+                .all(|r| !r.contains(TrustReasons::SHARED_RADIO)),
             "{:?}",
             reasons_of(&real)
         );
         let off = three_drones(false, [12e3; 3]);
-        assert!(reasons_of(&off).iter().all(|r| !r.contains("shared_radio")));
+        assert!(reasons_of(&off)
+            .iter()
+            .all(|r| !r.contains(TrustReasons::SHARED_RADIO)));
     }
 
     #[test]
@@ -1406,7 +1413,7 @@ mod tests {
             let at = 0.002 + SPOOFER_EVERY_S * j as f64;
             t.take(at, &p);
             let d = t.store().drones.get(ADDR).unwrap();
-            times.push((j, d.verdict(), d.reasons().to_string()));
+            times.push((j, d.verdict(), d.reasons()));
         }
         assert_eq!(times[7].1, Some(TrustVerdict::Spoofed), "{times:?}");
     }

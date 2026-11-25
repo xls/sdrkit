@@ -18,6 +18,7 @@ pub const FAMILIES: &[&str] = &[
     "dvbt2",
     "general",
     "hfkbd",
+    "ism",
     "science",
     "wsjt",
 ];
@@ -104,6 +105,7 @@ mod tests {
                 ("dvbt2", 1),
                 ("general", 4),
                 ("hfkbd", 22),
+                ("ism", 2),
                 ("science", 2),
                 ("wsjt", 29),
             ]
@@ -129,5 +131,26 @@ mod tests {
         let all = d.default_dials().unwrap();
         assert_eq!(dial_hz(&all, "dvbt2", None), Some(474e6));
         assert_eq!(dial_hz(&all, "hamdrm", None), Some(14.233e6));
+        assert_eq!(dial_hz(&all, "zigbee", None), Some(2405e6));
+        assert_eq!(dial_hz(&all, "dsrc_toll", None), Some(5802.5e6));
+    }
+
+    #[test]
+    fn the_ism_stacks_start_from_a_dial_or_a_plan() {
+        let d = Data::open(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../data")).unwrap();
+        let start = |stack: &str, code: &str| {
+            let region = crate::Region::new(code).unwrap();
+            let p = d.preset(stack, &region, &crate::Options::default()).unwrap();
+            (p.plan, p.frequency_hz)
+        };
+        assert_eq!(start("zigbee", "AU"), (String::new(), 2405e6));
+        assert_eq!(start("dsrc_toll", "AU"), (String::new(), 5802.5e6));
+        assert_eq!(start("dsrc_toll", "DE"), ("dsrc_toll_europe".into(), 5797.5e6));
+        assert_eq!(start("ism", "AU"), ("ism_r3".into(), 433.92e6));
+        assert_eq!(start("dect", "AU"), ("dect_1880".into(), 1897.344e6));
+        assert_eq!(start("dect", "US"), ("dect_us".into(), 1921.536e6));
+        assert_eq!(start("subghzchat", "AU"), ("subghzchat_au".into(), 433.92e6));
+        assert_eq!(start("subghzchat", "US"), ("subghzchat_r2".into(), 915e6));
+        assert_eq!(start("wmbus", "DE"), ("wmbus_868".into(), 868.95e6));
     }
 }

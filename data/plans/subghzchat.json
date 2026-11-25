@@ -1,0 +1,152 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "subghzchat_r1",
+      "name": "Sub-GHz chat, ITU Region 1",
+      "kind": "ism",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, footnote 5.138 (ISM band 433.05 to 434.79 MHz)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "also": [
+        {
+          "publisher": "CEPT ERC",
+          "title": "ERC Recommendation 70-03",
+          "number": "ERC/REC 70-03",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the 868.0 to 868.6 MHz band is not compared with ERC/REC 70-03 and national rules",
+      "bands": [
+        {
+          "name": "ISM 433 MHz",
+          "service": "ism",
+          "start_hz": 433050000,
+          "end_hz": 434790000,
+          "modes": [
+            "subghzchat"
+          ],
+          "note": "stack subghzchat, frequency setting 433.92",
+          "channels": [
+            {
+              "name": "433.92 MHz",
+              "centre_hz": 433920000,
+              "width_hz": 200000
+            }
+          ]
+        },
+        {
+          "name": "SRD 868.0 to 868.6 MHz",
+          "service": "short_range",
+          "start_hz": 868000000,
+          "end_hz": 868600000,
+          "modes": [
+            "subghzchat"
+          ],
+          "note": "stack subghzchat, frequency setting 868.35",
+          "channels": [
+            {
+              "name": "868.35 MHz",
+              "centre_hz": 868350000,
+              "width_hz": 200000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subghzchat_r2",
+      "name": "Sub-GHz chat, ITU Region 2",
+      "kind": "ism",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, footnote 5.150 (ISM band 902 to 928 MHz in Region 2)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "not compared with the national rules",
+      "bands": [
+        {
+          "name": "ISM 902-928 MHz",
+          "service": "ism",
+          "start_hz": 902000000,
+          "end_hz": 928000000,
+          "modes": [
+            "subghzchat"
+          ],
+          "note": "stack subghzchat, frequency setting 915.00",
+          "channels": [
+            {
+              "name": "915.00 MHz",
+              "centre_hz": 915000000,
+              "width_hz": 200000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subghzchat_au",
+      "name": "Sub-GHz chat, Australia",
+      "kind": "ism",
+      "source": {
+        "publisher": "Australian Government",
+        "title": "Radiocommunications (Low Interference Potential Devices) Class Licence 2025",
+        "number": "F2025L01047",
+        "date": "2025-10-01",
+        "url": "https://www.legislation.gov.au/F2025L01047"
+      },
+      "verified": false,
+      "unverified_reason": "the item of the class licence for 433.05 to 434.79 MHz was not read; the 915.00 MHz choice of the stack is not inside the 915 to 928 MHz band with its width, so it is left out",
+      "bands": [
+        {
+          "name": "ISM 433 MHz",
+          "service": "ism",
+          "start_hz": 433050000,
+          "end_hz": 434790000,
+          "modes": [
+            "subghzchat"
+          ],
+          "note": "stack subghzchat, frequency setting 433.92",
+          "channels": [
+            {
+              "name": "433.92 MHz",
+              "centre_hz": 433920000,
+              "width_hz": 200000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AU",
+      "groups": [
+        "subghzchat_au"
+      ],
+      "unverified_reason": "the mapping of the country to the plan is from the class licence, whose items were not read"
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "subghzchat_r1"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "subghzchat_r2"
+      ]
+    }
+  ]
+}

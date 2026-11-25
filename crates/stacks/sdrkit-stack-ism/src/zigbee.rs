@@ -534,6 +534,9 @@ impl Component for FrameDec {
     fn values(&self) -> Values {
         no_values()
     }
+    fn retuned(&mut self, _centre_hz: f64, tuned_hz: f64) {
+        self.channel = channel_of(tuned_hz);
+    }
     fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
         self.tuned_hz = inputs[0].tuned_hz;
         self.channel = channel_of(inputs[0].tuned_hz);
@@ -1160,8 +1163,11 @@ pub fn pan_text(p: u16) -> String {
 impl Shaped for Network {
     type Row = ZigbeeNetworkRow<'static>;
     fn row(&self, seen: Option<&Seen>, _now_s: f64, out: RowOut<'_, '_, Self::Row>) {
+        let pan = pan_text(self.pan);
+        let name = self.ext_pan.clone().unwrap_or_else(|| pan.clone());
         out.put(&ZigbeeNetworkRow {
-            pan: &pan_text(self.pan),
+            name: &name,
+            pan: &pan,
             ext_pan: self.ext_pan.as_deref(),
             ch: i64::from(self.channel),
             coordinator: self.coordinator.as_deref(),
@@ -1204,6 +1210,12 @@ impl Shaped for Device {
         let short = self.short.map(|s| format!("0x{s:04X}"));
         let extended = self.ext.map(eui);
         let pan = self.pan.map(pan_text);
+        let name = match (self.vendor.as_deref(), short.as_deref().or(extended.as_deref())) {
+            (Some(v), Some(a)) => format!("{v} {a}"),
+            (None, Some(a)) => a.to_owned(),
+            (Some(v), None) => v.to_owned(),
+            (None, None) => self.role.clone(),
+        };
         out.put(&PanDeviceRow {
             short: short.as_deref(),
             extended: extended.as_deref(),
@@ -1215,6 +1227,7 @@ impl Shaped for Device {
             heard: columns::heard(seen),
             last_heard: columns::last_heard(seen).map(Time),
             last_frame: &self.last_frame,
+            name: &name,
         });
     }
 }
@@ -1796,6 +1809,9 @@ impl Component for Tables {
             Format::new(Kind::Messages, 0.0),
             Format::new(Kind::typed::<HostRequest>(), 0.0),
         ])
+    }
+    fn retuned(&mut self, _centre_hz: f64, tuned_hz: f64) {
+        self.channel = channel_of(tuned_hz);
     }
     fn attach(&mut self, ctx: &sdrkit_graph::RunContext) {
         self.live = ctx.wall_clock();

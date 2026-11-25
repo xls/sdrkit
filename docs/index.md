@@ -221,7 +221,7 @@ Each page lists the settings, results, events and commands of one stack or one d
 | Stack | What it does |
 |---|---|
 | [SCADA telemetry](stacks/scada.md) | Modbus RTU, Modbus ASCII and DNP3 over narrowband FSK radio links: the modem found by itself, the frames, polls paired with replies, and the devices with their registers and points. |
-| [Bluetooth LE](stacks/ble.md) | Bluetooth LE advertising: the devices around, their names, vendors and beacons, as a scanner app shows them. |
+| [Bluetooth LE](stacks/ble.md) | Bluetooth LE advertising on LE 1M, LE 2M and LE Coded, legacy and extended, on every channel inside the capture: the devices around, their names, vendors and beacons, as a scanner app shows them. |
 | [BLE tracker detector](stacks/bletracker.md) | Finds item trackers (AirTag and Find My accessories, Tile, Chipolo, SmartTag, Google tags) that stay with you. |
 | [Wi-Fi networks](stacks/wifi.md) | The Wi-Fi access points around on 2.4, 5 and 6 GHz from their beacons: names, security, channels and capabilities. |
 | [Wi-Fi HaLow (802.11ah)](stacks/halow.md) | Sub-GHz Wi-Fi HaLow networks from their S1G beacons: names, security, channels, widths and MCS. |
@@ -259,7 +259,7 @@ Each page lists the settings, results, events and commands of one stack or one d
 | Stack | What it does |
 |---|---|
 | [LTE cells](stacks/cell.md) | LTE cells: operator, band, cell identity, area code and signal strength from the information every cell broadcasts. |
-| [5G NR cells](stacks/nr.md) | 5G NR cells: physical cell identity, SS/PBCH beams and the MIB of every SSB on the sync raster. |
+| [5G NR cells](stacks/nr.md) | 5G NR cells: physical cell identity, SS/PBCH beams and the MIB of every SSB on the sync raster, and SIB1 (networks, tracking area, cell identity) where CORESET#0 lies in the capture. |
 | [NB-IoT cells](stacks/nbiot.md) | NB-IoT cells: cell identity, operator, band and level from the synchronisation signals, MIB-NB and SIB1-NB. |
 | [GSM / GSM-R](stacks/gsmr.md) | GSM 900 and GSM-R base stations: frequency, BSIC, operator, location area and cell identity from the broadcast channel. |
 | [LBJ](stacks/lbj.md) | Chinese railway train broadcasts: train number, speed, kilometre post, locomotive, route and position. |
@@ -342,6 +342,12 @@ Each page lists the settings, results, events and commands of one stack or one d
 | Stack | What it does |
 |---|---|
 | [DSRC road toll](stacks/dsrc_toll.md) | The 5.8 GHz downlink of road toll beacons, structure only: HDLC frames counted as beacon broadcasts or private link frames; no identifier or content is shown. |
+
+### Home automation
+
+| Stack | What it does |
+|---|---|
+| [EnOcean](stacks/enocean.md) | EnOcean switches, contacts and sensors (ERP1 at 868.3 MHz, ERP2 at 902.875 and 928.35 MHz): sender, telegram type and the readings of the common profiles; secure telegrams shown as encrypted. |
 
 ### HF and utility
 

@@ -716,8 +716,19 @@ impl ShareState {
             Request::Agc { .. } => gain && l.agc,
             Request::BiasTee { .. } | Request::Correction { .. } | Request::Other { .. } => false,
         };
-        if !ok {
-            return Answer::Refused;
+        // A value that the share does not let the client set (the host fixed the rate, the gain stays with the host, the
+        // radio has no automatic gain) is answered with the value in force, as in Follow. A value that the radio
+        // cannot take is refused.
+        let held = match *request {
+            Request::Rate { .. } => self.rate_fixed.load(Ordering::Relaxed),
+            Request::Gain { .. } => !gain,
+            Request::Agc { .. } => !gain || !l.agc,
+            _ => false,
+        };
+        match (ok, held) {
+            (false, true) => return self.in_force(request),
+            (false, false) => return Answer::Refused,
+            (true, _) => {}
         }
         lock(&self.pending).push(*request);
         if let Some(sh) = self.engine.upgrade() {
@@ -746,7 +757,8 @@ impl ShareState {
 
     /// Answers a request that the share does not carry out: the radio stays as it is, and the client is told the value
     /// in force, so that a client that sets the radio when it connects stays connected and shows what it gets.
-    /// A request for a setting that the radio does not have is refused.
+    /// A radio without automatic gain has manual gain in force. A request for another setting that the radio does not
+    /// have is refused.
     fn in_force(&self, request: &Request) -> Answer {
         let bits = |a: &AtomicU64| f64::from_bits(a.load(Ordering::Relaxed));
         let l = &self.limits;
@@ -762,8 +774,8 @@ impl ShareState {
             Request::Gain { .. } if l.gain_db.is_some() => Answer::Adjusted(Request::Gain {
                 db: bits(&self.gain_bits),
             }),
-            Request::Agc { .. } if l.agc => Answer::Adjusted(Request::Agc {
-                on: self.agc.load(Ordering::Relaxed),
+            Request::Agc { .. } => Answer::Adjusted(Request::Agc {
+                on: l.agc && self.agc.load(Ordering::Relaxed),
             }),
             Request::Bandwidth { .. } if l.bandwidth => Answer::Adjusted(Request::Bandwidth {
                 hz: bits(&self.bandwidth_bits),
@@ -1020,15 +1032,21 @@ impl ShareOwner {
         }
     }
 
-    fn protocol(&self, p: ShareProtocol) -> Arc<dyn Protocol> {
+    /// The protocol `p` of a listener on `host`. The TCP streams of SoapyRemote listen on the same host, so that a
+    /// listener on one address opens no stream port on the others; a listener on every address leaves it to the client.
+    fn protocol(&self, p: ShareProtocol, host: &str) -> Arc<dyn Protocol> {
         match p {
             // The greeting of a dongle with an R820T tuner: every rtl_tcp client takes it.
             ShareProtocol::RtlTcp => Arc::new(sdrkit_serve_rtltcp::RtlTcp::rtl_sdr(5)),
-            ShareProtocol::SoapyRemote => Arc::new(SoapyRemote::new(
-                Arc::clone(&self.net),
-                self.device.clone(),
-                &self.uuid,
-            )),
+            ShareProtocol::SoapyRemote => {
+                let s = SoapyRemote::new(Arc::clone(&self.net), self.device.clone(), &self.uuid);
+                let every = host.trim().is_empty()
+                    || host
+                        .trim_matches(['[', ']'])
+                        .parse::<std::net::IpAddr>()
+                        .is_ok_and(|ip| ip.is_unspecified());
+                Arc::new(if every { s } else { s.with_stream_host(host) })
+            }
         }
     }
 
@@ -1043,7 +1061,7 @@ impl ShareOwner {
                 port: l.port,
                 allow: self.allow.clone(),
             },
-            self.protocol(l.protocol),
+            self.protocol(l.protocol, &l.host),
             Arc::new(Policy(Arc::clone(&self.state))),
         )?;
         l.hub_id = info.id;
@@ -1498,12 +1516,24 @@ impl Share {
     }
 }
 
-/// The radio as a SoapyRemote server announces it.
+/// The name of the one gain element of a share: the overall gain of the radio, which the radio's own driver spreads
+/// over its stages.
+const GAIN_ELEMENT: &str = "GAIN";
+
+/// The radio as a SoapyRemote server announces it: what its capabilities declare and nothing more. A gain that can be
+/// set is one element; a radio without automatic gain has no gain mode; the share never sets a frequency correction.
 fn soapy_device(driver: &str, name: &str, caps: &Capabilities) -> Device {
     let range = |lo: f64, hi: f64| Range {
         min: lo,
         max: hi,
         step: 0.0,
+    };
+    let elements = |g: Range| {
+        if g.max > g.min {
+            vec![(GAIN_ELEMENT.to_owned(), g)]
+        } else {
+            Vec::new()
+        }
     };
     let rates = |r: &sdrkit_driver_core::RateLimits| {
         if r.ranges.is_empty() {
@@ -1512,14 +1542,18 @@ fn soapy_device(driver: &str, name: &str, caps: &Capabilities) -> Device {
             r.ranges.iter().map(|(lo, hi)| range(*lo, *hi)).collect()
         }
     };
-    let gain = caps
-        .gain_db
-        .map_or(range(0.0, 0.0), |(lo, hi, _)| range(lo, hi));
+    let gain = caps.gain_db.map_or(range(0.0, 0.0), |(lo, hi, step)| Range {
+        min: lo,
+        max: hi,
+        step,
+    });
     let rx = Side {
         freqs: vec![range(caps.min_freq_hz, caps.max_freq_hz)],
         rates: rates(&caps.rates),
         gain,
-        elements: Vec::new(),
+        elements: elements(gain),
+        agc: caps.has_agc,
+        correction: false,
         bandwidths: caps
             .bandwidth_hz
             .map(|(lo, hi)| vec![range(lo, hi)])
@@ -1530,7 +1564,9 @@ fn soapy_device(driver: &str, name: &str, caps: &Capabilities) -> Device {
         freqs: vec![range(t.min_freq_hz, t.max_freq_hz)],
         rates: rates(&t.rates),
         gain: range(t.power_db.0, t.power_db.1),
-        elements: Vec::new(),
+        elements: elements(range(t.power_db.0, t.power_db.1)),
+        agc: false,
+        correction: false,
         bandwidths: t
             .bandwidth_hz
             .map(|(lo, hi)| vec![range(lo, hi)])

@@ -366,6 +366,7 @@ impl TrackerBook {
                     trend: t.trend(),
                     addresses: i64::from(t.addresses),
                     last_s: t.last_s,
+                    last_heard: t.last_wall.map(Time),
                     packets: t.packets as i64,
                     separated: t.separated,
                     status: t.status.map(i64::from),

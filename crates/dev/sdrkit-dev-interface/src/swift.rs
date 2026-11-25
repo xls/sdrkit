@@ -50,6 +50,8 @@ pub fn render_base(header: &str) -> String {
      \x20   case position(lat: Double, lon: Double)\n\
      \x20   /// The index of an option.\n\
      \x20   case option(UInt32)\n\
+     \x20   /// The mask of a flag set: bit n is flag n of the declaration.\n\
+     \x20   case flags(UInt64)\n\
      \x20   case bytes([UInt8])\n\n\
      \x20   init(_ c: sdrkit_variant) {\n\
      \x20       switch c.type {\n\
@@ -62,9 +64,27 @@ pub fn render_base(header: &str) -> String {
      \x20       case SDRKIT_TYPE_DURATION: self = .duration(c.number)\n\
      \x20       case SDRKIT_TYPE_POSITION: self = .position(lat: c.lat, lon: c.lon)\n\
      \x20       case SDRKIT_TYPE_ENUM: self = .option(c.enum_index)\n\
+     \x20       case SDRKIT_TYPE_FLAGS: self = .flags(c.flags)\n\
      \x20       case SDRKIT_TYPE_BYTES: self = .bytes([UInt8](UnsafeBufferPointer(start: c.bytes.ptr, count: c.bytes.len)))\n\
      \x20       default: self = .none\n\
      \x20       }\n\
+     \x20   }\n\
+     }\n\n\
+     /// One flag of a flag set: its bit, the key that data files use, the name for people and one line of help.\n\
+     public struct SDRKitFlag<Set> {\n\
+     \x20   public let flag: Set\n\
+     \x20   public let key: String\n\
+     \x20   public let label: String\n\
+     \x20   public let help: String\n\
+     }\n\n\
+     /// A set of the named flags of a field, held as a mask. `entries` lists every flag in bit order.\n\
+     public protocol SDRKitFlagSet: OptionSet where RawValue == UInt64, Element == Self {\n\
+     \x20   static var entries: [SDRKitFlag<Self>] { get }\n\
+     }\n\n\
+     extension SDRKitFlagSet {\n\
+     \x20   /// The entries of the flags that are set, in bit order.\n\
+     \x20   public var active: [SDRKitFlag<Self>] {\n\
+     \x20       Self.entries.filter { contains($0.flag) }\n\
      \x20   }\n\
      }\n\n\
      func sdrkitText(_ s: sdrkit_string) -> String {\n\
@@ -124,6 +144,52 @@ fn cases(family: &Family, key: &str, d: &FieldDecl) -> Result<Vec<String>, Strin
     Ok(names)
 }
 
+/// Writes the option set of the flags of the member `d` inside its struct: one constant for each flag with its help
+/// line, and the list of the flags with key, label and help.
+///
+/// # Errors
+///
+/// A sentence, if two flags get one name.
+fn flag_set(out: &mut String, family: &Family, key: &str, d: &FieldDecl) -> Result<(), String> {
+    let name = enum_name(&d.key);
+    let names: Vec<String> = crate::flag_words(family, key, &d.flags)?
+        .iter()
+        .map(|w| camel(w, false))
+        .collect();
+    if let Some(n) = (1..names.len()).find(|i| names[..*i].contains(&names[*i])) {
+        return Err(format!(
+            "two flags of {} have the Swift name {}",
+            d.key, names[n]
+        ));
+    }
+    let _ = writeln!(out, "    public struct {name}: SDRKitFlagSet {{");
+    let _ = writeln!(out, "        public let rawValue: UInt64");
+    let _ = writeln!(
+        out,
+        "        public init(rawValue: UInt64) {{ self.rawValue = rawValue }}"
+    );
+    for (i, (f, n)) in d.flags.iter().zip(&names).enumerate() {
+        let _ = writeln!(out, "        /// {}", f.help);
+        let _ = writeln!(out, "        public static let {n} = {name}(rawValue: 1 << {i})");
+    }
+    let _ = writeln!(
+        out,
+        "        public static let entries: [SDRKitFlag<{name}>] = ["
+    );
+    for (f, n) in d.flags.iter().zip(&names) {
+        let _ = writeln!(
+            out,
+            "            SDRKitFlag(flag: .{}, key: {:?}, label: {:?}, help: {:?}),",
+            n.trim_matches('`'),
+            f.key,
+            f.label,
+            f.help
+        );
+    }
+    let _ = writeln!(out, "        ]\n    }}");
+    Ok(())
+}
+
 /// The Swift type of a setting or an argument of `d`, without an enum.
 fn plain_type(d: &FieldDecl) -> Option<&'static str> {
     Some(match d.kind {
@@ -133,7 +199,7 @@ fn plain_type(d: &FieldDecl) -> Option<&'static str> {
         ValueKind::Text => "String",
         ValueKind::Choice => "Int32",
         ValueKind::Position => "SDRKitPosition",
-        ValueKind::Bytes | ValueKind::Any => return None,
+        ValueKind::Bytes | ValueKind::Any | ValueKind::Flags => return None,
     })
 }
 
@@ -217,12 +283,12 @@ fn swift_type(key: &str, kind: ValueKind) -> String {
         ValueKind::Text => "String".into(),
         ValueKind::Bytes => "[UInt8]".into(),
         ValueKind::Position => "SDRKitPosition".into(),
-        ValueKind::Choice => enum_name(key),
+        ValueKind::Choice | ValueKind::Flags => enum_name(key),
         ValueKind::Any => "SDRKitValue".into(),
     }
 }
 
-/// The name of the enum of the options of the member `key` inside its struct. `Type` and `Protocol` cannot be the
+/// The name of the enum of the options, or of the set of the flags, of the member `key` inside its struct. `Type` and `Protocol` cannot be the
 /// name of a nested type: the member `type` has the enum `TypeOption`.
 fn enum_name(key: &str) -> String {
     let name = camel(key, true);
@@ -240,7 +306,7 @@ fn convert(key: &str, kind: ValueKind, ty: &str) -> String {
             format!("[UInt8](UnsafeBufferPointer(start: c.{key}.ptr, count: c.{key}.len))")
         }
         ValueKind::Position => format!("SDRKitPosition(c.{key})"),
-        ValueKind::Choice => format!("{ty}(rawValue: c.{key})"),
+        ValueKind::Choice | ValueKind::Flags => format!("{ty}(rawValue: c.{key})"),
         ValueKind::Any => format!("SDRKitValue(c.{key})"),
         _ => format!("c.{key}"),
     }
@@ -351,6 +417,9 @@ pub fn render(family: &Family) -> Result<String, String> {
                     let _ = writeln!(out, "        case {case} = {i}");
                 }
                 let _ = writeln!(out, "    }}");
+            }
+            if d.kind == ValueKind::Flags {
+                flag_set(&mut out, family, f.key(), &d)?;
             }
         }
         if uses.row {

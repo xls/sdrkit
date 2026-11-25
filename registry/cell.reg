@@ -1,5 +1,5 @@
 # The interface of the stack family cell. The registry test of the family writes this file.
-family cell version=1.3
+family cell version=1.4
 shape.RailwayCirFields since=1.0
 shape.RailwayCirFields.text type=text unit= optional=no since=1.0
 shape.RailwayCirFields.messages type=i64 unit= optional=no since=1.0
@@ -176,11 +176,17 @@ shape.FoundCellEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadca
 shape.NrFields since=1.0
 shape.NrFields.cell_count type=i64 unit= optional=no since=1.0
 shape.NrFields.with_mib type=i64 unit= optional=no since=1.0
+shape.NrFields.with_sib1 type=i64 unit= optional=no since=1.4
 shape.NrFields.gscn_lo type=i64 unit= optional=yes since=1.0
 shape.NrFields.gscn_hi type=i64 unit= optional=yes since=1.0
 shape.NrFields.candidates type=i64 unit= optional=yes since=1.0
 shape.NrFields.banner type=text unit= optional=no since=1.0
 shape.NrCellRow since=1.0
+shape.NrCellRow.decoded type=choice(sync,mib,sib1) unit= optional=no since=1.4
+shape.NrCellRow.plmn type=text unit= optional=yes since=1.4
+shape.NrCellRow.operator type=text unit= optional=yes since=1.4
+shape.NrCellRow.tac type=i64 unit= optional=yes since=1.4
+shape.NrCellRow.nci type=i64 unit= optional=yes since=1.4
 shape.NrCellRow.band type=i64 unit= optional=yes since=1.0
 shape.NrCellRow.gscn type=i64 unit= optional=yes since=1.0
 shape.NrCellRow.frequency type=hz unit=Hz optional=no since=1.0
@@ -193,6 +199,43 @@ shape.NrCellRow.rsrp_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.NrCellRow.rsrq_db type=f64 unit=dB optional=no since=1.0
 shape.NrCellRow.sinr_db type=f64 unit=dB optional=no since=1.0
 shape.NrCellRow.last_heard type=time unit= optional=yes since=1.0
+shape.NrDetailRow since=1.4
+shape.NrDetailRow.cell type=text unit= optional=no refers_to=cells since=1.4
+shape.NrDetailRow.sib1 type=choice(no_mib,not_tried,not_scheduled,no_frequency,too_narrow,no_control,no_data,unreadable,decoded) unit= optional=no since=1.4
+shape.NrDetailRow.sib1_parts type=i64 unit= optional=yes since=1.4
+shape.NrDetailRow.coreset0_width type=hz unit=Hz optional=yes since=1.4
+shape.NrDetailRow.rate_needed type=hz unit=Hz optional=yes since=1.4
+shape.NrDetailRow.scs_common type=hz unit=Hz optional=yes since=1.4
+shape.NrDetailRow.k_ssb type=i64 unit= optional=yes since=1.4
+shape.NrDetailRow.barred type=bool unit= optional=yes since=1.4
+shape.NrDetailRow.intra_freq_reselection type=bool unit= optional=yes since=1.4
+shape.NrDetailRow.reserved_other_use type=bool unit= optional=yes since=1.4
+shape.NrDetailRow.q_rx_lev_min_dbm type=f64 unit=dBm optional=yes since=1.4
+shape.NrDetailRow.bands type=text unit= optional=yes since=1.4
+shape.NrDetailRow.ssb_period type=duration unit=s optional=yes since=1.4
+shape.NrDetailRow.carrier_scs type=hz unit=Hz optional=yes since=1.4
+shape.NrDetailRow.carrier_rbs type=i64 unit=RB optional=yes since=1.4
+shape.NrDetailRow.offset_to_point_a type=i64 unit=RB optional=yes since=1.4
+shape.NrDetailRow.bwp_start type=i64 unit=RB optional=yes since=1.4
+shape.NrDetailRow.bwp_rbs type=i64 unit=RB optional=yes since=1.4
+shape.NrDetailRow.si_window type=i64 unit=slots optional=yes since=1.4
+shape.NrDetailRow.tdd type=bool unit= optional=yes since=1.4
+shape.NrDetailRow.sib1_count type=i64 unit= optional=no since=1.4
+shape.NrNetworkRow since=1.4
+shape.NrNetworkRow.cell type=text unit= optional=no refers_to=cells since=1.4
+shape.NrNetworkRow.plmn type=text unit= optional=no since=1.4
+shape.NrNetworkRow.operator type=text unit= optional=yes since=1.4
+shape.NrNetworkRow.tac type=i64 unit= optional=yes since=1.4
+shape.NrNetworkRow.nci type=i64 unit= optional=no since=1.4
+shape.NrNetworkRow.gnb type=i64 unit= optional=yes since=1.4
+shape.NrNetworkRow.cell_id type=i64 unit= optional=yes since=1.4
+shape.NrNetworkRow.reserved_operator type=bool unit= optional=no since=1.4
+shape.NrSibRow since=1.4
+shape.NrSibRow.cell type=text unit= optional=no refers_to=cells since=1.4
+shape.NrSibRow.sib type=i64 unit= optional=no since=1.4
+shape.NrSibRow.period type=duration unit=s optional=no since=1.4
+shape.NrSibRow.broadcasting type=bool unit= optional=no since=1.4
+shape.NrSibRow.value_tag type=i64 unit= optional=yes since=1.4
 shape.NbiotFields since=1.0
 shape.NbiotFields.cell_count type=i64 unit= optional=no since=1.0
 shape.NbiotFields.identified type=i64 unit= optional=no since=1.0
@@ -475,10 +518,17 @@ nr.kept.SearchFields.retunes since=1.0
 nr.kept.SearchFields.decoded since=1.0
 nr.kept.SearchFields.failed since=1.0
 nr.kept.cells since=1.0
+nr.kept.nr_details since=1.4
+nr.kept.nr_networks since=1.4
+nr.kept.nr_sibs since=1.4
 nr.kept.NrFields.cell_count since=1.0
 nr.kept.NrFields.with_mib since=1.0
+nr.kept.NrFields.with_sib1 since=1.4
 nr.kept.NrFields.banner since=1.0
 nr.table.cells row=NrCellRow cap=300 since=1.0
+nr.table.nr_details row=NrDetailRow cap=300 since=1.4
+nr.table.nr_networks row=NrNetworkRow cap=1200 since=1.4
+nr.table.nr_sibs row=NrSibRow cap=2400 since=1.4
 nr.event.cell.nr_cell fields=FoundCellEvent since=1.0
 nr.setting.capture_s type=f64 unit=s since=1.0
 nr.setting.max_cells type=i64 unit= since=1.0
@@ -489,6 +539,7 @@ nr.setting.min_rsrp type=f64 unit=dBFS since=1.0
 nr.setting.mib_only type=bool unit= since=1.0
 nr.setting.not_barred type=bool unit= since=1.0
 nr.setting.band_order type=text unit= since=1.0
+nr.setting.symbol_phase type=bool unit= since=1.4
 nr.setting.gen_scene type=choice(0,1,2) unit= since=1.0
 nr.command.clear args= reply= since=1.0
 nr.command.remove args=row:text reply= since=1.0

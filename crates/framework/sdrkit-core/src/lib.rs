@@ -100,7 +100,7 @@ pub use state::{StateBlob, StateError};
 pub use station::{Station, StationError, StationItem};
 pub use storage::{MemStorage, Storage, StorageError, StoreEntry, StorePath, WriteMode};
 pub use time::Clock;
-pub use value::{Choice, ChoiceDecl, Value, ValueKind};
+pub use value::{Choice, ChoiceDecl, FlagDecl, FlagSet, Value, ValueKind};
 pub use verify::{CheckLine, VectorRun, VerifyCase, VerifyHooks, VerifyOptions};
 
 /// A complex baseband sample. I and Q are scaled so a full-scale radio provides magnitudes up to about 1.0.

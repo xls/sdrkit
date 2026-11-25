@@ -38,7 +38,7 @@ pub const SDRKIT_E_REQUIRED: i32 = 11;
 pub const SDRKIT_E_OUT_OF_RANGE: i32 = 12;
 /// A number is not finite.
 pub const SDRKIT_E_NOT_FINITE: i32 = 13;
-/// An option index is outside the options of its setting.
+/// An option index is outside the options of its setting, or a mask has a bit outside the flags of its field.
 pub const SDRKIT_E_NOT_AN_OPTION: i32 = 14;
 /// The object does not allow this value now.
 pub const SDRKIT_E_NOT_PERMITTED: i32 = 15;
@@ -734,6 +734,10 @@ fn record(e: &RecordError, d: &mut ErrorDetail) -> i32 {
         RecordError::NotAChoice { id, index } => {
             d.setting = Id::from(id.0);
             d.index = i64::from(*index);
+            SDRKIT_E_NOT_AN_OPTION
+        }
+        RecordError::NotAFlag { id, .. } => {
+            d.setting = Id::from(id.0);
             SDRKIT_E_NOT_AN_OPTION
         }
     }

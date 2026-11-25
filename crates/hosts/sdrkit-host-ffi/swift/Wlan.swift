@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "wlan", version 3.0. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 3.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum WlanInterface {
     public static let major = 3
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of `ble`.
@@ -41,6 +41,20 @@ public struct BleFields {
     public var hopping: Bool
     /// The privacy note.
     public var privacy: String
+    /// Good packets on the secondary advertising channels and the periodic trains (channels 0 to 36).
+    public var packetsSecondary: Int64
+    /// Good packets on the LE 2M PHY.
+    public var packets2m: Int64
+    /// Good packets on the LE Coded PHY.
+    public var packetsCoded: Int64
+    /// The BLE channels inside the capture: the primary ones are received all the time, a secondary one while a packet points to it. 0 when the centre of the input is not known.
+    public var channelsInCapture: Int64
+    /// Auxiliary packets reached through the AuxPtr that pointed to them.
+    public var auxFollowed: Int64
+    /// AuxPtr fields that point to a channel outside the capture: their data cannot be received here.
+    public var auxOutside: Int64
+    /// Periodic advertising trains whose packets the receivers take.
+    public var periodicTrains: Int64
 
     init(_ c: sdrkit_ble_fields) {
         devices = c.devices
@@ -58,6 +72,13 @@ public struct BleFields {
         packets39 = c.packets_39
         hopping = c.hopping
         privacy = sdrkitText(c.privacy)
+        packetsSecondary = c.packets_secondary
+        packets2m = c.packets_2m
+        packetsCoded = c.packets_coded
+        channelsInCapture = c.channels_in_capture
+        auxFollowed = c.aux_followed
+        auxOutside = c.aux_outside
+        periodicTrains = c.periodic_trains
     }
 
     /// The result fields of the snapshot of `handle`, or the code of the error.
@@ -100,6 +121,17 @@ public struct BleDeviceRow {
         case nonResolvablePrivate = 3
         case random = 4
     }
+    public enum DeviceKind: Int32 {
+        case phone = 0
+        case headset = 1
+        case watch = 2
+        case tracker = 3
+        case beacon = 4
+        case computer = 5
+        case audio = 6
+        case sensor = 7
+        case unknown = 8
+    }
     /// The row key.
     public var key: String
     /// The address.
@@ -128,6 +160,18 @@ public struct BleDeviceRow {
     public var manufacturerData: String?
     /// The UTC of the first packet.
     public var firstHeard: Double?
+    /// The PHYs the device was heard on, as "LE 1M, LE Coded".
+    public var phys: String
+    /// The device uses extended advertising.
+    public var extended: Bool
+    /// An AuxPtr of the device points to a channel outside the capture: the row holds what the primary packets gave.
+    public var dataOutside: Bool
+    /// The advertising set id (SID) of the last extended packet, if one had it.
+    public var setId: Int64?
+    /// The interval of the device's periodic advertising train, if a SyncInfo gave one.
+    public var periodicIntervalMs: Double?
+    /// The kind of device its Appearance or beacon format declares.
+    public var deviceKind: DeviceKind?
 
     init(_ c: sdrkit_ble_device_row) {
         key = sdrkitText(c.key)
@@ -144,6 +188,12 @@ public struct BleDeviceRow {
         scanned = c.scanned
         manufacturerData = c.has_manufacturer_data ? sdrkitText(c.manufacturer_data) : nil
         firstHeard = c.has_first_heard ? c.first_heard : nil
+        phys = sdrkitText(c.phys)
+        extended = c.extended
+        dataOutside = c.data_outside
+        setId = c.has_set_id ? c.set_id : nil
+        periodicIntervalMs = c.has_periodic_interval_ms ? c.periodic_interval_ms : nil
+        deviceKind = DeviceKind(rawValue: c.device_kind)
     }
 }
 
@@ -165,6 +215,8 @@ public struct BlePacketRow {
     public var length: Int64
     /// The one-line summary.
     public var details: String
+    /// The PHY of the packet ("LE 1M", "LE 2M", "LE Coded S=8" ...).
+    public var phy: String
 
     init(_ c: sdrkit_ble_packet_row) {
         key = sdrkitText(c.key)
@@ -175,6 +227,7 @@ public struct BlePacketRow {
         levelDbfs = c.level_dbfs
         length = c.length
         details = sdrkitText(c.details)
+        phy = sdrkitText(c.phy)
     }
 }
 
@@ -329,6 +382,8 @@ public struct BletrackerTrackerRow {
     public var addresses: Int64
     /// The signal time it was last heard.
     public var lastS: Double
+    /// The UTC of the last sighting, for a live source.
+    public var lastHeard: Double?
     /// Packets heard.
     public var packets: Int64
     /// It says it is away from its owner.
@@ -374,6 +429,7 @@ public struct BletrackerTrackerRow {
         trend = Trend(rawValue: c.trend)
         addresses = c.addresses
         lastS = c.last_s
+        lastHeard = c.has_last_heard ? c.last_heard : nil
         packets = c.packets
         separated = c.separated
         status = c.has_status ? c.status : nil
@@ -451,6 +507,8 @@ public struct WifiFields {
     public enum Phy: Int32 {
         case dsss = 0
         case ofdm = 1
+        case ht = 2
+        case vht = 3
     }
     /// Networks in the table.
     public var networks: Int64
@@ -504,6 +562,74 @@ public struct WifiFields {
     public var hopping: Bool
     /// The passive note.
     public var passive: String
+    /// Client stations in the table.
+    public var stations: Int64
+    /// HT PPDUs whose signal field was read since the last clear.
+    public var ppduHt: Int64
+    /// VHT PPDUs whose signal field was read since the last clear.
+    public var ppduVht: Int64
+    /// HE SU PPDUs whose signal field was read since the last clear.
+    public var ppduHeSu: Int64
+    /// HE ER SU PPDUs whose signal field was read since the last clear.
+    public var ppduHeErSu: Int64
+    /// HE MU PPDUs whose signal field was read since the last clear.
+    public var ppduHeMu: Int64
+    /// HE TB PPDUs whose signal field was read since the last clear.
+    public var ppduHeTb: Int64
+    /// HE with a bad HE-SIG-A PPDUs whose signal field was read since the last clear.
+    public var ppduHeBadSig: Int64
+    /// EHT PPDUs whose signal field was read since the last clear.
+    public var ppduEht: Int64
+    /// HT, VHT, HE and EHT PPDUs whose data was decoded.
+    public var ppduDecoded: Int64
+    /// PPDUs not decoded because of two or more spatial streams.
+    public var ppduNotDecodedStreams: Int64
+    /// PPDUs not decoded because of wider than 20 MHz.
+    public var ppduNotDecodedWidth: Int64
+    /// PPDUs not decoded because of LDPC coding.
+    public var ppduNotDecodedLdpc: Int64
+    /// PPDUs not decoded because of STBC.
+    public var ppduNotDecodedStbc: Int64
+    /// PPDUs not decoded because of multi-user.
+    public var ppduNotDecodedMultiUser: Int64
+    /// PPDUs not decoded because of trigger-based.
+    public var ppduNotDecodedTriggerBased: Int64
+    /// PPDUs not decoded because of HE data.
+    public var ppduNotDecodedHeData: Int64
+    /// PPDUs not decoded because of EHT data.
+    public var ppduNotDecodedEhtData: Int64
+    /// PPDUs not decoded because of a bad signal field.
+    public var ppduNotDecodedSignalField: Int64
+    /// PPDUs not decoded because of an MCS that is not decoded.
+    public var ppduNotDecodedMcs: Int64
+    /// PPDUs not decoded because of a length that does not fit.
+    public var ppduNotDecodedLength: Int64
+    /// PPDUs not decoded because of data that did not decode.
+    public var ppduNotDecodedData: Int64
+    /// PPDUs not decoded because of another reason.
+    public var ppduNotDecodedOther: Int64
+    /// PPDUs not decoded because of the decoder was busy.
+    public var ppduNotDecodedBusy: Int64
+    /// A-MPDU delimiters with a bad CRC or signature since the last clear.
+    public var ampduBadDelimiters: Int64
+    /// Probe requests since the last clear.
+    public var probeRequests: Int64
+    /// Authentication frames since the last clear.
+    public var authentications: Int64
+    /// Association and reassociation frames since the last clear.
+    public var associations: Int64
+    /// Deauthentication and disassociation frames since the last clear.
+    public var departures: Int64
+    /// Action frames since the last clear.
+    public var actions: Int64
+    /// RTS frames since the last clear.
+    public var rts: Int64
+    /// CTS frames since the last clear.
+    public var cts: Int64
+    /// ACK frames since the last clear.
+    public var acks: Int64
+    /// Block Ack frames and requests since the last clear.
+    public var blockAcks: Int64
 
     init(_ c: sdrkit_wifi_fields) {
         networks = c.networks
@@ -532,6 +658,40 @@ public struct WifiFields {
         levelDbfs = c.has_level_dbfs ? c.level_dbfs : nil
         hopping = c.hopping
         passive = sdrkitText(c.passive)
+        stations = c.stations
+        ppduHt = c.ppdu_ht
+        ppduVht = c.ppdu_vht
+        ppduHeSu = c.ppdu_he_su
+        ppduHeErSu = c.ppdu_he_er_su
+        ppduHeMu = c.ppdu_he_mu
+        ppduHeTb = c.ppdu_he_tb
+        ppduHeBadSig = c.ppdu_he_bad_sig
+        ppduEht = c.ppdu_eht
+        ppduDecoded = c.ppdu_decoded
+        ppduNotDecodedStreams = c.ppdu_not_decoded_streams
+        ppduNotDecodedWidth = c.ppdu_not_decoded_width
+        ppduNotDecodedLdpc = c.ppdu_not_decoded_ldpc
+        ppduNotDecodedStbc = c.ppdu_not_decoded_stbc
+        ppduNotDecodedMultiUser = c.ppdu_not_decoded_multi_user
+        ppduNotDecodedTriggerBased = c.ppdu_not_decoded_trigger_based
+        ppduNotDecodedHeData = c.ppdu_not_decoded_he_data
+        ppduNotDecodedEhtData = c.ppdu_not_decoded_eht_data
+        ppduNotDecodedSignalField = c.ppdu_not_decoded_signal_field
+        ppduNotDecodedMcs = c.ppdu_not_decoded_mcs
+        ppduNotDecodedLength = c.ppdu_not_decoded_length
+        ppduNotDecodedData = c.ppdu_not_decoded_data
+        ppduNotDecodedOther = c.ppdu_not_decoded_other
+        ppduNotDecodedBusy = c.ppdu_not_decoded_busy
+        ampduBadDelimiters = c.ampdu_bad_delimiters
+        probeRequests = c.probe_requests
+        authentications = c.authentications
+        associations = c.associations
+        departures = c.departures
+        actions = c.actions
+        rts = c.rts
+        cts = c.cts
+        acks = c.acks
+        blockAcks = c.block_acks
     }
 
     /// The result fields of the snapshot of `handle`, or the code of the error.
@@ -591,6 +751,8 @@ public struct WifiNetworkRow {
     public var capability: String
     /// The other elements as text.
     public var details: String
+    /// Client stations heard with this BSSID.
+    public var stations: Int64
 
     init(_ c: sdrkit_wifi_network_row) {
         key = sdrkitText(c.key)
@@ -614,6 +776,75 @@ public struct WifiNetworkRow {
         pmf = sdrkitText(c.pmf)
         capability = sdrkitText(c.capability)
         details = sdrkitText(c.details)
+        stations = c.stations
+    }
+}
+
+/// A row of the client stations of `wifi`. The row key is the address.
+public struct WifiStationRow {
+    public enum Link: Int32 {
+        case unknown = 0
+        case probing = 1
+        case joining = 2
+        case associated = 3
+        case left = 4
+    }
+    /// The row key.
+    public var key: String
+    /// The address.
+    public var address: String
+    /// The vendor of the address.
+    public var vendor: String
+    /// The address is locally administered (randomised).
+    public var randomised: Bool
+    /// The BSSID of its access point, if a frame tied it to one.
+    public var bssid: String?
+    /// How far it got with its access point.
+    public var link: Link?
+    /// The UTC of the last frame, for a live source.
+    public var lastHeard: Double?
+    /// The level of the last frame it sent.
+    public var levelDbfs: Double?
+    /// Frames it sent.
+    public var sent: Int64
+    /// Frames sent to it.
+    public var received: Int64
+    /// Probe requests it sent.
+    public var probes: Int64
+    /// Data frames to or from it.
+    public var data: Int64
+    /// Null data frames it sent.
+    public var nullData: Int64
+    /// Protected frames to or from it.
+    public var protected: Int64
+    /// The SSIDs it probed for, joined with ", ".
+    public var ssids: String
+    /// The newest Wi-Fi generation its frames declare (0 when none).
+    public var generation: Int64
+    /// The highest data rate its frames declare.
+    public var maxRateMbps: Double?
+    /// The channel of its last frame (no value when not known).
+    public var channel: Int64?
+
+    init(_ c: sdrkit_wifi_station_row) {
+        key = sdrkitText(c.key)
+        address = sdrkitText(c.address)
+        vendor = sdrkitText(c.vendor)
+        randomised = c.randomised
+        bssid = c.has_bssid ? sdrkitText(c.bssid) : nil
+        link = Link(rawValue: c.link)
+        lastHeard = c.has_last_heard ? c.last_heard : nil
+        levelDbfs = c.has_level_dbfs ? c.level_dbfs : nil
+        sent = c.sent
+        received = c.received
+        probes = c.probes
+        data = c.data
+        nullData = c.null_data
+        protected = c.protected_
+        ssids = sdrkitText(c.ssids)
+        generation = c.generation
+        maxRateMbps = c.has_max_rate_mbps ? c.max_rate_mbps : nil
+        channel = c.has_channel ? c.channel : nil
     }
 }
 
@@ -633,6 +864,12 @@ public struct WifiBeaconRow {
     public var bytes: Int64
     /// The summary.
     public var details: String
+    /// The PPDU format of the frame ("HT", "VHT"); no value for DSSS and non-HT OFDM.
+    public var format: String?
+    /// The MCS of an HT or VHT frame.
+    public var mcs: Int64?
+    /// The frame came in an A-MPDU.
+    public var aggregated: Bool
 
     init(_ c: sdrkit_wifi_beacon_row) {
         key = sdrkitText(c.key)
@@ -642,6 +879,9 @@ public struct WifiBeaconRow {
         levelDbfs = c.level_dbfs
         bytes = c.bytes
         details = sdrkitText(c.details)
+        format = c.has_format ? sdrkitText(c.format) : nil
+        mcs = c.has_mcs ? c.mcs : nil
+        aggregated = c.aggregated
     }
 }
 
@@ -1023,6 +1263,17 @@ public struct WlanDecoderFields {
 
 /// A row of the devices of `btclassic`. The row key is the LAP.
 public struct BtclassicDeviceRow {
+    public enum DeviceKind: Int32 {
+        case phone = 0
+        case headset = 1
+        case watch = 2
+        case tracker = 3
+        case beacon = 4
+        case computer = 5
+        case audio = 6
+        case sensor = 7
+        case unknown = 8
+    }
     /// The row key.
     public var key: String
     /// The LAP as hex text.
@@ -1053,6 +1304,8 @@ public struct BtclassicDeviceRow {
     public var lastChannelMhz: Double
     /// The channels heard, as hex: bit k is channel k.
     public var channelsHeard: String
+    /// The kind of device its Class of Device declares (unknown before an FHS packet).
+    public var deviceKind: DeviceKind?
 
     init(_ c: sdrkit_btclassic_device_row) {
         key = sdrkitText(c.key)
@@ -1070,6 +1323,7 @@ public struct BtclassicDeviceRow {
         packets = c.packets
         lastChannelMhz = c.last_channel_mhz
         channelsHeard = sdrkitText(c.channels_heard)
+        deviceKind = DeviceKind(rawValue: c.device_kind)
     }
 }
 
@@ -1894,7 +2148,10 @@ public struct EspnowDropped {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum WlanTables {
     /// The changed rows of the table "devices" of the stack "ble", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `name` names a row.
+    /// Default order: the column `level_dbfs`, highest first.
+    /// Time: `last_heard`.
     public static func bleDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[BleDeviceRow], SDRKitCode> {
         var rows = [sdrkit_ble_device_row](repeating: sdrkit_ble_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1931,7 +2188,10 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BleDeviceLevelRow.init))
     }
     /// The changed rows of the table "trackers" of the stack "bletracker", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `identifier` names a row.
+    /// Default order: the column `level_dbfs`, highest first.
+    /// Time: `last_heard`.
     public static func bletrackerTrackers(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[BletrackerTrackerRow], SDRKitCode> {
         var rows = [sdrkit_bletracker_tracker_row](repeating: sdrkit_bletracker_tracker_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -1956,14 +2216,28 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BletrackerKindRow.init))
     }
     /// The changed rows of the table "networks" of the stack "wifi", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `ssid` names a row.
     /// Default order: the column `level_dbfs`, highest first.
+    /// Time: `first_heard`.
     public static func wifiNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[WifiNetworkRow], SDRKitCode> {
         var rows = [sdrkit_wifi_network_row](repeating: sdrkit_wifi_network_row(), count: capacity)
         var info = sdrkit_rows_info.sized
         let code = sdrkit_wifi_networks_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WifiNetworkRow.init))
+    }
+    /// The changed rows of the table "stations" of the stack "wifi", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `address` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
+    public static func wifiStations(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[WifiStationRow], SDRKitCode> {
+        var rows = [sdrkit_wifi_station_row](repeating: sdrkit_wifi_station_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_wifi_stations_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(WifiStationRow.init))
     }
     /// The changed rows of the table "beacons" of the stack "wifi", newest first, at most `capacity` rows.
     /// The column `bssid` names a row.
@@ -1991,8 +2265,10 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WifiBandRow.init))
     }
     /// The changed rows of the table "networks" of the stack "halow", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `ssid` names a row.
     /// Default order: the column `snr_db`, highest first.
+    /// Time: `last_heard`.
     public static func halowNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[HalowNetworkRow], SDRKitCode> {
         var rows = [sdrkit_halow_network_row](repeating: sdrkit_halow_network_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2034,7 +2310,10 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(HalowPreambleRow.init))
     }
     /// The changed rows of the table "devices" of the stack "btclassic", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `address` names a row.
+    /// Default order: the column `level_dbfs`, highest first.
+    /// Time: `first_heard`.
     public static func btclassicDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[BtclassicDeviceRow], SDRKitCode> {
         var rows = [sdrkit_btclassic_device_row](repeating: sdrkit_btclassic_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2069,7 +2348,10 @@ public enum WlanTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WfbFrameRow.init))
     }
     /// The changed rows of the table "devices" of the stack "espnow", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `address` names a row.
+    /// Default order: the column `level_dbfs`, highest first.
+    /// Time: `first_heard`.
     public static func espnowDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[EspnowDeviceRow], SDRKitCode> {
         var rows = [sdrkit_espnow_device_row](repeating: sdrkit_espnow_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized

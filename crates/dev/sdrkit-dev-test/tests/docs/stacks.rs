@@ -1,8 +1,8 @@
 //! The page of one stack, written from its descriptor and the declarations of a receiver made with the default settings.
 
 use crate::render::{
-    code, commands_table, events_section, hz, kind_name, mhz, results_sections, settings_table,
-    table,
+    code, commands_table, events_section, flags_section, hz, kind_name, mhz, results_sections,
+    settings_table, table,
 };
 use crate::source::{self, Home};
 use sdrkit_core::interface::{Family, Shape};
@@ -171,6 +171,7 @@ pub fn page(d: &StackDescriptor, ctx: &Ctx) -> String {
     if !decl.events().is_empty() {
         out.push_str(&events_section(decl.events()));
     }
+    out.push_str(&flags_section(decl));
     let commands = rx.commands();
     if !commands.is_empty() {
         out.push_str("## Commands\n\n");

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "cell", version 1.3. MIT licence.
+ * sdrkit: the typed interface of the stack family "cell", version 1.4. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_CELL_VERSION_MAJOR 1
-#define SDRKIT_CELL_VERSION_MINOR 3
+#define SDRKIT_CELL_VERSION_MINOR 4
 
 // The stack "railway_cir": its id, and the keys of its event types.
 #define SDRKIT_STACK_RAILWAY_CIR "railway_cir"
@@ -711,7 +711,19 @@ typedef struct sdrkit_nr_fields {
   int64_t candidates;
   // The notice.
   sdrkit_string banner;
+  // Cells with a SIB1.
+  int64_t with_sib1;
 } sdrkit_nr_fields;
+
+// The options of `decoded` of `sdrkit_nr_cell_row`.
+typedef enum sdrkit_nr_cell_row_decoded {
+  // Sync
+  SDRKIT_NR_CELL_ROW_DECODED_SYNC = 0,
+  // MIB
+  SDRKIT_NR_CELL_ROW_DECODED_MIB = 1,
+  // SIB1
+  SDRKIT_NR_CELL_ROW_DECODED_SIB1 = 2,
+} sdrkit_nr_cell_row_decoded;
 
 // A row of the cells of `nr`.
 typedef struct sdrkit_nr_cell_row {
@@ -751,7 +763,185 @@ typedef struct sdrkit_nr_cell_row {
   bool has_last_heard;
   // When the cell was last heard. Seconds since 1970 (UTC).
   double last_heard;
+  // How far the cell was decoded. A value of `sdrkit_nr_cell_row_decoded`.
+  int32_t decoded;
+  // True if `plmn` holds a value.
+  bool has_plmn;
+  // The first network of SIB1.
+  sdrkit_string plmn;
+  // True if `operator_` holds a value.
+  bool has_operator_;
+  // The operator of that network.
+  sdrkit_string operator_;
+  // True if `tac` holds a value.
+  bool has_tac;
+  // The tracking area code of SIB1.
+  int64_t tac;
+  // True if `nci` holds a value.
+  bool has_nci;
+  // The NR cell identity of SIB1 (36 bits).
+  int64_t nci;
 } sdrkit_nr_cell_row;
+
+// The options of `sib1` of `sdrkit_nr_detail_row`.
+typedef enum sdrkit_nr_detail_row_sib1 {
+  // No MIB
+  SDRKIT_NR_DETAIL_ROW_SIB1_NO_MIB = 0,
+  // Not tried yet
+  SDRKIT_NR_DETAIL_ROW_SIB1_NOT_TRIED = 1,
+  // Not scheduled
+  SDRKIT_NR_DETAIL_ROW_SIB1_NOT_SCHEDULED = 2,
+  // Radio frequency unknown
+  SDRKIT_NR_DETAIL_ROW_SIB1_NO_FREQUENCY = 3,
+  // CORESET#0 outside the capture
+  SDRKIT_NR_DETAIL_ROW_SIB1_TOO_NARROW = 4,
+  // No PDCCH for SIB1 found
+  SDRKIT_NR_DETAIL_ROW_SIB1_NO_CONTROL = 5,
+  // PDCCH decoded, PDSCH failed
+  SDRKIT_NR_DETAIL_ROW_SIB1_NO_DATA = 6,
+  // Block decoded, not a readable SIB1
+  SDRKIT_NR_DETAIL_ROW_SIB1_UNREADABLE = 7,
+  // Decoded
+  SDRKIT_NR_DETAIL_ROW_SIB1_DECODED = 8,
+} sdrkit_nr_detail_row_sib1;
+
+// The details of a cell of `nr`. The row key is the cell key.
+typedef struct sdrkit_nr_detail_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The row key of the cell.
+  sdrkit_string cell;
+  // How far the reception of SIB1 went. A value of `sdrkit_nr_detail_row_sib1`.
+  int32_t sib1;
+  // True if `sib1_parts` holds a value.
+  bool has_sib1_parts;
+  // The parts of SIB1 read: 1 the networks, 2 the scheduling, 3 the downlink carrier, 4 the SSB facts.
+  int64_t sib1_parts;
+  // True if `coreset0_width` holds a value.
+  bool has_coreset0_width;
+  // The width of CORESET#0. A frequency in Hz.
+  double coreset0_width;
+  // True if `rate_needed` holds a value.
+  bool has_rate_needed;
+  // The sample rate that holds CORESET#0 with the radio centre of the newest try. A frequency in Hz.
+  double rate_needed;
+  // True if `scs_common` holds a value.
+  bool has_scs_common;
+  // subCarrierSpacingCommon of the MIB. A frequency in Hz.
+  double scs_common;
+  // True if `k_ssb` holds a value.
+  bool has_k_ssb;
+  // k_SSB of the MIB.
+  int64_t k_ssb;
+  // True if `barred` holds a value.
+  bool has_barred;
+  // cellBarred of the MIB.
+  bool barred;
+  // True if `intra_freq_reselection` holds a value.
+  bool has_intra_freq_reselection;
+  // intraFreqReselection of the MIB is allowed.
+  bool intra_freq_reselection;
+  // True if `reserved_other_use` holds a value.
+  bool has_reserved_other_use;
+  // cellReservedForOtherUse of SIB1.
+  bool reserved_other_use;
+  // True if `q_rx_lev_min_dbm` holds a value.
+  bool has_q_rx_lev_min_dbm;
+  // q-RxLevMin of SIB1. Unit: dBm.
+  double q_rx_lev_min_dbm;
+  // True if `bands` holds a value.
+  bool has_bands;
+  // The bands of SIB1, apart by spaces.
+  sdrkit_string bands;
+  // True if `ssb_period` holds a value.
+  bool has_ssb_period;
+  // The SSB period of SIB1. A length of time in seconds.
+  double ssb_period;
+  // True if `carrier_scs` holds a value.
+  bool has_carrier_scs;
+  // The spacing of the carrier of SIB1. A frequency in Hz.
+  double carrier_scs;
+  // True if `carrier_rbs` holds a value.
+  bool has_carrier_rbs;
+  // The width of the carrier of SIB1. Unit: RB.
+  int64_t carrier_rbs;
+  // True if `offset_to_point_a` holds a value.
+  bool has_offset_to_point_a;
+  // offsetToPointA of SIB1. Unit: RB.
+  int64_t offset_to_point_a;
+  // True if `bwp_start` holds a value.
+  bool has_bwp_start;
+  // The first block of the initial downlink BWP. Unit: RB.
+  int64_t bwp_start;
+  // True if `bwp_rbs` holds a value.
+  bool has_bwp_rbs;
+  // The width of the initial downlink BWP. Unit: RB.
+  int64_t bwp_rbs;
+  // True if `si_window` holds a value.
+  bool has_si_window;
+  // The SI window, slots. Unit: slots.
+  int64_t si_window;
+  // True if `tdd` holds a value.
+  bool has_tdd;
+  // Whether SIB1 configures a TDD pattern.
+  bool tdd;
+  // SIB1 decodes.
+  int64_t sib1_count;
+} sdrkit_nr_detail_row;
+
+// A network of a cell of `nr`, from SIB1. The row key is the cell key and the place of the network.
+typedef struct sdrkit_nr_network_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The row key of the cell.
+  sdrkit_string cell;
+  // The network.
+  sdrkit_string plmn;
+  // True if `operator_` holds a value.
+  bool has_operator_;
+  // The operator of the network.
+  sdrkit_string operator_;
+  // True if `tac` holds a value.
+  bool has_tac;
+  // The tracking area code.
+  int64_t tac;
+  // The NR cell identity (36 bits).
+  int64_t nci;
+  // True if `gnb` holds a value.
+  bool has_gnb;
+  // The gNB identity, when SIB1 gives its length.
+  int64_t gnb;
+  // True if `cell_id` holds a value.
+  bool has_cell_id;
+  // The cell identity within the gNB.
+  int64_t cell_id;
+  // cellReservedForOperatorUse.
+  bool reserved_operator;
+} sdrkit_nr_network_row;
+
+// A SIB that the SIB1 of a cell of `nr` schedules. The row key is the cell key and the SIB number.
+typedef struct sdrkit_nr_sib_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The row key of the cell.
+  sdrkit_string cell;
+  // The SIB number.
+  int64_t sib;
+  // The period of its SI message. A length of time in seconds.
+  double period;
+  // Whether the message is broadcast (else sent on request).
+  bool broadcasting;
+  // True if `value_tag` holds a value.
+  bool has_value_tag;
+  // The value tag.
+  int64_t value_tag;
+} sdrkit_nr_sib_row;
 
 // The result fields of `nbiot`.
 typedef struct sdrkit_nbiot_fields {
@@ -2409,6 +2599,33 @@ static inline int32_t sdrkit_nr_cells_rows(SDRKIT_HANDLE handle,
   return sdrkit_typed_rows(handle, "cell.NrCellRow", "cells", rows, sizeof(sdrkit_nr_cell_row), capacity, info);
 }
 
+// Fills `rows` with the changed rows of the table "nr_details" of the stack "nr" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+static inline int32_t sdrkit_nr_details_rows(SDRKIT_HANDLE handle,
+                                            sdrkit_nr_detail_row *rows,
+                                            uint32_t capacity,
+                                            sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "cell.NrDetailRow", "nr_details", rows, sizeof(sdrkit_nr_detail_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "nr_networks" of the stack "nr" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+static inline int32_t sdrkit_nr_networks_rows(SDRKIT_HANDLE handle,
+                                             sdrkit_nr_network_row *rows,
+                                             uint32_t capacity,
+                                             sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "cell.NrNetworkRow", "nr_networks", rows, sizeof(sdrkit_nr_network_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "nr_sibs" of the stack "nr" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+static inline int32_t sdrkit_nr_sibs_rows(SDRKIT_HANDLE handle,
+                                         sdrkit_nr_sib_row *rows,
+                                         uint32_t capacity,
+                                         sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "cell.NrSibRow", "nr_sibs", rows, sizeof(sdrkit_nr_sib_row), capacity, info);
+}
+
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "cell.nr_cell"
 // (NR cell). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
 static inline int32_t sdrkit_cell_nr_cell_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_cell_nr_cell_event *event) {
@@ -2498,6 +2715,14 @@ static inline int32_t sdrkit_nr_get_band_order(SDRKIT_HANDLE handle, sdrkit_stri
 }
 static inline int32_t sdrkit_nr_set_band_order(SDRKIT_HANDLE handle, sdrkit_string value) {
   return sdrkit_typed_setting_set_string(handle, "band_order", value);
+}
+
+// The setting "symbol_phase" (Symbol phase of up-conversion) of the stack "nr". On for cells on the air. Off for a test signal whose symbols all start at phase zero at baseband.
+static inline int32_t sdrkit_nr_get_symbol_phase(SDRKIT_HANDLE handle, bool *value) {
+  return sdrkit_typed_setting_get_bool(handle, "symbol_phase", value);
+}
+static inline int32_t sdrkit_nr_set_symbol_phase(SDRKIT_HANDLE handle, bool value) {
+  return sdrkit_typed_setting_set_bool(handle, "symbol_phase", value);
 }
 
 // The setting "gen_scene" (Test signal scene) of the test signal generator of the stack "nr". A value of `sdrkit_nr_gen_scene`.

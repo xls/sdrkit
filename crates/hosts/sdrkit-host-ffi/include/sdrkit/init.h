@@ -16,7 +16,7 @@
 
 #define SDRKIT_COMMAND_INFO_INIT {sizeof(sdrkit_command_info), {0}, {0}, {0}, 0, 0, 0, 0, {0}}
 #define SDRKIT_DECL_INIT {sizeof(sdrkit_decl), {0}, {0}, {0}, {0}, {0}, 0, 0, 0, 0, 0, {0}, {0}, 0, {0}, {0}, 0, {0}, 0, 0, {0}, 0}
-#define SDRKIT_OPTION_INIT {sizeof(sdrkit_option), {0}, {0}}
+#define SDRKIT_OPTION_INIT {sizeof(sdrkit_option), {0}, {0}, {0}}
 #define SDRKIT_INPUT_INIT {sizeof(sdrkit_input), 0, 0, 0, 0}
 #define SDRKIT_RADIO_OPTIONS_INIT {sizeof(sdrkit_radio_options), 0, 0}
 #define SDRKIT_STACK_OPTIONS_INIT {sizeof(sdrkit_stack_options), 0, 0, 0, 0}

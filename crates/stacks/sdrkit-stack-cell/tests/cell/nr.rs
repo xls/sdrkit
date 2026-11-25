@@ -13,7 +13,11 @@ fn recording() {
     };
     let input = InputInfo::new(rec.rate_hz, rec.centre_hz, rec.centre_hz).recording();
     // The recording is of band n28, whose sync raster n20 shares: the order of the data file takes n28 first.
-    let order = [("band_order", J::String(band_row("nr", "band_order", "europe")))];
+    // The recording was made without the phase of up-conversion.
+    let order = [
+        ("band_order", J::String(band_row("nr", "band_order", "europe"))),
+        ("symbol_phase", J::Bool(false)),
+    ];
     let d = run_mode(&NR, &order, input, &rec.samples, &[]);
     let cells = d["cells"].as_array().unwrap();
     assert_eq!(
@@ -229,4 +233,204 @@ fn noise_and_tone() {
         &[],
     );
     assert!(d["cells"].as_array().unwrap().is_empty());
+}
+
+/// The cell of `pci` in a list of cells.
+fn cell_of(cs: &[J], pci: i64) -> &J {
+    cs.iter()
+        .find(|c| c["pci"] == pci)
+        .unwrap_or_else(|| panic!("PCI {pci}: {cs:?}"))
+}
+
+#[test]
+fn sib1_of_the_default_scene() {
+    // The default scene at the default rate: the SIB1 of the cell whose CORESET#0 lies in the capture is read; the other
+    // cell says what its CORESET#0 needs.
+    let (centre, cells) = scene(0);
+    let cs = run_gen(20e6, centre, cells, NrGenOptions::default(), &keys(10.0, 0.0, 0.0), 0.08);
+    let c = cell_of(&cs, 1007);
+    assert_eq!(c["sib1_step"], "decoded", "{c}");
+    let s = &c["sib1"];
+    assert_eq!(s["parts"], 4);
+    let n = &s["networks"][0];
+    assert_eq!(n["plmn"], "001-01");
+    assert_eq!(n["tac"], 0x0A01);
+    assert_eq!(n["nci"], (0x1234u64 << 12) | 1007);
+    assert_eq!((n["gnb"].as_u64(), n["cell"].as_u64()), (Some(0x1234), Some(1007)));
+    assert_eq!(s["bands"], serde_json::json!([78]));
+    assert_eq!((s["carrier_rb"].as_u64(), s["bwp_rb"].as_u64()), (Some(106), Some(106)));
+    assert_eq!(s["ssb_period_ms"], 20);
+    assert_eq!(s["sibs"].as_array().unwrap().len(), 2);
+    assert_eq!(s["sibs"][1]["sib"], 3);
+    let other = cell_of(&cs, 501);
+    assert_eq!(other["sib1_step"], "too_narrow", "{other}");
+    // 48 blocks of 30 kHz from 13.74 MHz below the centre.
+    assert!(near(&other["sib1_rate_needed_hz"], 27.48e6, 0.1e6), "{}", other["sib1_rate_needed_hz"]);
+}
+
+/// Whether the SIB1 of the n28 scene is read at `rate` through the impairments of `keys`, and the cell.
+fn n28_sib1(rate: f64, edit: impl Fn(&mut NrCellCfg), keys: &[(&str, J)], seed: u64) -> J {
+    let (centre, mut cells) = scene(1);
+    edit(&mut cells[0]);
+    let opt = NrGenOptions { seed, ..Default::default() };
+    let cs = run_gen(rate, centre, cells, opt, keys, 0.08);
+    assert_eq!(cs.len(), 1, "{cs:?}");
+    cs[0].clone()
+}
+
+#[test]
+fn sib1_with_offsets_and_noise() {
+    // 15 kHz, CORESET#0 of 3 symbols, DM-RS position 3: carrier 700 Hz off, clock 2 ppm off, 3 dB in the SSB band.
+    let c = n28_sib1(10e6, |_| {}, &keys(3.0, 700.0, 2.0), 1);
+    assert_eq!(c["sib1_step"], "decoded", "{c}");
+    assert_eq!(c["sib1"]["networks"][0]["nci"], (0x1234u64 << 12) | 222);
+    assert_eq!(c["sib1"]["bands"], serde_json::json!([28]));
+    assert_eq!(c["sib1"]["carrier_rb"], 52);
+}
+
+#[test]
+fn sib1_other_allocations() {
+    // Interleaved blocks, mapping type B of 7 symbols (row 8), a part of the width, aggregation level 4, one version.
+    let c = n28_sib1(
+        10e6,
+        |c| {
+            let s = c.sib1.as_mut().unwrap();
+            s.interleaved = true;
+            s.tdra = 7;
+            s.blocks = (2, 21);
+            s.level = 4;
+            s.rv_cycle = vec![0];
+        },
+        &keys(10.0, 0.0, 0.0),
+        2,
+    );
+    assert_eq!(c["sib1_step"], "decoded", "{c}");
+    // Mapping type A of the least length (row 5), versions 3 then 1.
+    let c = n28_sib1(
+        10e6,
+        |c| {
+            let s = c.sib1.as_mut().unwrap();
+            s.tdra = 3;
+            s.rv_cycle = vec![3, 1];
+        },
+        &keys(10.0, 0.0, 0.0),
+        3,
+    );
+    assert_eq!(c["sib1_step"], "decoded", "{c}");
+    // A SIB1 without the length of the gNB identity: the cell identity is whole, not split.
+    let c = n28_sib1(
+        10e6,
+        |c| c.sib1.as_mut().unwrap().msg.networks[0].gnb_id_length = None,
+        &keys(10.0, 0.0, 0.0),
+        4,
+    );
+    assert_eq!(c["sib1_step"], "decoded", "{c}");
+    assert!(c["sib1"]["networks"][0]["gnb"].is_null() && c["sib1"]["networks"][0]["nci"].is_u64());
+}
+
+#[test]
+fn sib1_states_what_stops_it() {
+    // 3.84 Msps holds the SS/PBCH block, not CORESET#0 (1.89 MHz below to 2.43 MHz above the block centre).
+    let c = n28_sib1(3.84e6, |_| {}, &keys(10.0, 0.0, 0.0), 1);
+    assert_eq!(c["sib1_step"], "too_narrow", "{c}");
+    assert!(near(&c["sib1_rate_needed_hz"], 4.86e6, 0.05e6), "{}", c["sib1_rate_needed_hz"]);
+    assert!(c["sib1"].is_null());
+    // A cell that sends no SIB1 in its occasions: no control channel found.
+    let c = n28_sib1(10e6, |c| c.sib1 = None, &keys(10.0, 0.0, 0.0), 1);
+    assert_eq!(c["sib1_step"], "no_control", "{c}");
+    // A MIB that schedules none.
+    let (centre, cells) = scene(2);
+    let cs = run_gen(7.68e6, centre, cells, NrGenOptions::default(), &keys(10.0, 0.0, 0.0), 0.08);
+    assert_eq!(cs[0]["sib1_step"], "not_scheduled");
+}
+
+/// The SNR in the SSB band at which SIB1 is read: prints the decodes of 4 seeds per level. Run with `--ignored --nocapture`.
+#[test]
+#[ignore = "a measurement"]
+fn sib1_sensitivity() {
+    for snr_db in [4.0, 2.0, 0.0, -1.0, -2.0, -3.0, -4.0, -6.0] {
+        let ok = (1..=4u64)
+            .filter(|&seed| {
+                let mut k = keys(snr_db, 300.0, 1.0);
+                k.push(("gen_seed", J::from(seed)));
+                n28_sib1(10e6, |_| {}, &k, seed)["sib1_step"] == "decoded"
+            })
+            .count();
+        println!("SNR {snr_db:+.0} dB: SIB1 read in {ok} of 4");
+    }
+}
+
+#[test]
+fn sib1_at_the_stated_sensitivity() {
+    for seed in 1..=3u64 {
+        let mut k = keys(0.0, 300.0, 1.0);
+        k.push(("gen_seed", J::from(seed)));
+        let c = n28_sib1(10e6, |_| {}, &k, seed);
+        assert_eq!(c["sib1_step"], "decoded", "seed {seed}: {c}");
+    }
+}
+
+#[test]
+fn sib1_is_read_once_and_then_at_a_low_duty() {
+    use sdrkit_stack_cell::decoder::Capture;
+    use sdrkit_stack_cell::nr::search::{NrSearcher, SIB1_AGAIN_S};
+    let (centre, cells) = scene(0);
+    let x = impaired(NrGenerator::new(20e6, cells, NrGenOptions::default()), &keys(10.0, 0.0, 0.0), 0.08);
+    let mut cap = Capture::new(x, 20e6, centre, 0.08);
+    let mut s = NrSearcher::default();
+    let ms = |t: std::time::Instant| t.elapsed().as_secs_f64() * 1e3;
+    let t = std::time::Instant::now();
+    let first = s.search(&cap);
+    let cold = ms(t);
+    let read = |o: &sdrkit_stack_cell::nr::search::NrSearchOut| {
+        o.cells.iter().filter(|c| c.sib1.as_ref().is_some_and(|r| r.payload.is_some())).count()
+    };
+    assert_eq!(read(&first), 1);
+    // The same capture a moment later: the SIB1 of every cell was read or tried, so none is tried.
+    cap.end_time = 0.16;
+    let t = std::time::Instant::now();
+    let second = s.search(&cap);
+    let plain = ms(t);
+    assert!(second.cells.iter().all(|c| c.sib1.is_none()));
+    // After the wait it is read again, with the decoders of the first read.
+    cap.end_time = 0.16 + SIB1_AGAIN_S;
+    let t = std::time::Instant::now();
+    let third = s.search(&cap);
+    let warm = ms(t);
+    assert_eq!(read(&third), 1);
+    // A cell forgotten is tried at once.
+    cap.end_time += 0.08;
+    s.forget_sib1(1007, ((centre + 4.32e6) / 30e3).round() as i64);
+    assert_eq!(read(&s.search(&cap)), 1);
+    println!("an 80 ms capture at 20 Msps: search {plain:.0} ms, with the first SIB1 read {cold:.0} ms, with a later read {warm:.0} ms");
+}
+
+#[test]
+fn sib1_rows_are_published() {
+    use sdrkit_core::Owner;
+    use sdrkit_stack_cell::typed::{NrDetailRow, NrNetworkRow, NrSibRow, NR_DETAILS, NR_NETWORKS, NR_SIBS};
+    let (centre, cells) = scene(0);
+    let x = impaired(NrGenerator::new(20e6, cells, NrGenOptions::default()), &keys(10.0, 0.0, 0.0), 0.08);
+    let mut rx = stack_graph(&NR, &[]);
+    run_graph(&mut rx, InputInfo::new(20e6, centre, centre).recording(), &x, &[]);
+    let r = Owner::results(&rx);
+    let nets: Vec<_> = NR_NETWORKS.rows::<NrNetworkRow>(r).collect();
+    assert_eq!(nets.len(), 1);
+    let (key, n) = &nets[0];
+    assert!(key.starts_with("1007/30@"), "{key}");
+    assert_eq!((n.plmn, n.tac, n.nci, n.gnb, n.cell_id), ("001-01", Some(0x0A01), (0x1234 << 12) | 1007, Some(0x1234), Some(1007)));
+    assert_eq!(NR_SIBS.rows::<NrSibRow>(r).count(), 2);
+    let details: Vec<_> = NR_DETAILS.rows::<NrDetailRow>(r).collect();
+    assert_eq!(details.len(), 2);
+    for (_, d) in &details {
+        if d.cell.starts_with("1007/") {
+            assert_eq!(d.sib1, sdrkit_stack_cell::nr::sib1::Sib1Step::Decoded);
+            assert_eq!((d.sib1_parts, d.bands, d.bwp_rbs, d.carrier_rbs), (Some(4), Some("78"), Some(106), Some(106)));
+            assert_eq!(d.coreset0_width.map(|h| h.0), Some(8.64e6));
+        } else {
+            assert_eq!(d.sib1, sdrkit_stack_cell::nr::sib1::Sib1Step::TooNarrow);
+            assert_eq!(d.coreset0_width.map(|h| h.0), Some(17.28e6));
+            assert!(d.rate_needed.is_some_and(|h| (h.0 - 27.48e6).abs() < 0.1e6));
+        }
+    }
 }

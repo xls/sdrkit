@@ -417,10 +417,10 @@ pub struct Atsc3Fields {
     #[field(label = "Leap seconds", unit = "s")]
     pub leap_seconds: Option<i64>,
     /// The service chosen with `service.select`. No value for the automatic choice.
-    #[field(label = "Service chosen")]
+    #[field(label = "Service chosen", refers_to = "services")]
     pub service: Option<i64>,
     /// The service received: the chosen one, or the first visible linear TV service delivered by ROUTE.
-    #[field(label = "Service received", reading = 1)]
+    #[field(label = "Service received", refers_to = "services", reading = 1)]
     pub service_received: Option<i64>,
     /// ROUTE objects taken.
     #[field(label = "ROUTE objects")]
@@ -621,7 +621,7 @@ pub struct Atsc3ComponentRow<'a> {
     #[field(label = "Destination")]
     pub destination: &'a str,
     /// The service whose session description names the component. No value when none that was read names it.
-    #[field(label = "Service")]
+    #[field(label = "Service", refers_to = "services")]
     pub service: Option<i64>,
     /// What the component carries.
     #[field(label = "Kind")]
@@ -936,7 +936,7 @@ pub fn family() -> &'static Family {
                 .fields::<IsdbtNarrowFields<'static>>(),
         )
         .settings(IsdbtsbSetting::SETTINGS);
-        Family::new("tvterr", 1, 8)
+        Family::new("tvterr", 2, 0)
             .added(1, 8, ADDED_1_8)
             .added(
                 1,

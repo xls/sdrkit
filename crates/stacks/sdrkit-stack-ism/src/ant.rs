@@ -825,7 +825,9 @@ fn main_value(s: &Sensor) -> String {
 impl Shaped for Sensor {
     type Row = AntSensorRow<'static>;
     fn row(&self, seen: Option<&Seen>, _now_s: f64, out: RowOut<'_, '_, Self::Row>) {
+        let name = format!("{} {}", type_name(self.dtype), self.device);
         out.put(&AntSensorRow {
+            name: &name,
             device: i64::from(self.device),
             r#type: type_name(self.dtype),
             marker: &format!("{:04X}", self.marker),

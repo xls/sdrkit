@@ -1,0 +1,385 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "wmbus_868",
+      "name": "Wireless M-Bus, 868 MHz",
+      "kind": "other",
+      "source": {
+        "publisher": "CEN",
+        "title": "EN 13757-4, Communication systems for meters; Part 4: Wireless M-Bus communication",
+        "date": "not recorded"
+      },
+      "also": [
+        {
+          "publisher": "CEPT ERC",
+          "title": "ERC Recommendation 70-03",
+          "number": "ERC/REC 70-03",
+          "date": "2024"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the channels are those that the stack receives (T1 and C1 at 868.95 MHz, S1 at 868.3 MHz, R2 from 868.03 MHz); not compared with EN 13757-4",
+      "bands": [
+        {
+          "name": "SRD 868.7 to 869.2 MHz",
+          "service": "short_range",
+          "start_hz": 868700000,
+          "end_hz": 869200000,
+          "modes": [
+            "wmbus"
+          ],
+          "note": "stack wmbus",
+          "channels": [
+            {
+              "name": "T1 and C1 868.95 MHz",
+              "centre_hz": 868950000,
+              "width_hz": 300000
+            }
+          ]
+        },
+        {
+          "name": "SRD 868.0 to 868.6 MHz",
+          "service": "short_range",
+          "start_hz": 868000000,
+          "end_hz": 868600000,
+          "modes": [
+            "wmbus"
+          ],
+          "note": "stack wmbus",
+          "channels": [
+            {
+              "name": "S1 868.3 MHz",
+              "centre_hz": 868300000,
+              "width_hz": 300000
+            },
+            {
+              "name": "R2 868.03 MHz",
+              "centre_hz": 868030000,
+              "width_hz": 60000
+            },
+            {
+              "name": "R2 868.09 MHz",
+              "centre_hz": 868090000,
+              "width_hz": 60000
+            },
+            {
+              "name": "R2 868.15 MHz",
+              "centre_hz": 868150000,
+              "width_hz": 60000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wmbus_169",
+      "name": "Wireless M-Bus, 169 MHz (mode N)",
+      "kind": "other",
+      "source": {
+        "publisher": "CEN",
+        "title": "EN 13757-4, Communication systems for meters; Part 4: Wireless M-Bus communication",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the six 12.5 kHz channels from 169.40625 MHz are those that the stack receives; not compared with EN 13757-4",
+      "bands": [
+        {
+          "name": "SRD 169.4 to 169.475 MHz",
+          "service": "short_range",
+          "start_hz": 169400000,
+          "end_hz": 169475000,
+          "modes": [
+            "wmbus"
+          ],
+          "channel_width_hz": 12500,
+          "note": "stack wmbus",
+          "channels": [
+            {
+              "name": "N 169.40625 MHz",
+              "centre_hz": 169406250
+            },
+            {
+              "name": "N 169.41875 MHz",
+              "centre_hz": 169418750
+            },
+            {
+              "name": "N 169.43125 MHz",
+              "centre_hz": 169431250
+            },
+            {
+              "name": "N 169.44375 MHz",
+              "centre_hz": 169443750
+            },
+            {
+              "name": "N 169.45625 MHz",
+              "centre_hz": 169456250
+            },
+            {
+              "name": "N 169.46875 MHz",
+              "centre_hz": 169468750
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LI",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "wmbus_868",
+        "wmbus_169"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    }
+  ]
+}

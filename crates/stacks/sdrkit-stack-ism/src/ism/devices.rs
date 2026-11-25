@@ -334,6 +334,13 @@ impl Shaped for Device {
             }
             s
         });
+        let mut name = self.model.clone();
+        for part in [Some(self.id.as_str()), channel.as_deref()].into_iter().flatten() {
+            if !part.is_empty() {
+                name.push(' ');
+                name.push_str(part);
+            }
+        }
         out.put(&IsmDeviceRow {
             model: &self.model,
             kind: &self.kind,
@@ -348,6 +355,7 @@ impl Shaped for Device {
             count: count(self.count),
             frequency: Hertz(self.freq_hz),
             check: self.check,
+            name: &name,
         });
     }
 }

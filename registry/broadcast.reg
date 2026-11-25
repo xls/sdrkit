@@ -1,5 +1,5 @@
 # The interface of the stack family broadcast. The registry test of the family writes this file.
-family broadcast version=2.0
+family broadcast version=2.1
 uses.mpegts major=1 since=1.0
 uses.bcdata major=1 since=1.0
 uses.broadcast_scan major=1 since=1.0
@@ -38,6 +38,7 @@ shape.DrmFields.signal_time type=duration unit=s optional=no since=1.0
 shape.DrmFields.first_audio type=duration unit=s optional=yes since=1.0
 shape.DrmFields.holding type=bool unit= optional=no since=1.0
 shape.DrmFields.mirrored type=bool unit= optional=no since=1.0
+shape.DrmFields.playing_service type=text unit= optional=yes refers_to=services since=2.1
 shape.DrmServiceRow since=1.0
 shape.DrmServiceRow.short_id type=i64 unit= optional=no since=1.0
 shape.DrmServiceRow.service_id type=text unit= optional=no since=1.0
@@ -178,6 +179,8 @@ shape.HdradioFields.country type=text unit= optional=yes since=1.0
 shape.HdradioFields.facility_id type=i64 unit= optional=yes since=1.0
 shape.HdradioFields.location type=position unit= optional=yes since=1.0
 shape.HdradioFields.altitude_m type=f64 unit=m optional=yes since=1.0
+shape.HdSoundFields since=2.1
+shape.HdSoundFields.sound type=choice(none,analogue_fm) unit= optional=no since=2.1
 shape.HdradioProgramRow since=1.0
 shape.HdradioProgramRow.number type=i64 unit= optional=no since=1.0
 shape.HdradioProgramRow.label type=text unit= optional=no since=1.0
@@ -350,8 +353,9 @@ hamdrm.setting.gen_skip_every type=i64 unit= since=1.0
 hamdrm.setting.gen_transmissions type=i64 unit= since=1.0
 hamdrm.command.clear args= reply= since=1.0
 hdradio since=1.0
-hdradio.content kind=broadcast pictures=yes since=1.0
+hdradio.content kind=broadcast audio=programme pictures=yes since=1.0
 hdradio.fields.HdradioFields since=1.0
+hdradio.fields.HdSoundFields since=2.1
 hdradio.fields.LabelFields since=1.0
 hdradio.fields.SlideFields since=1.0
 hdradio.kept.guide_services since=1.0

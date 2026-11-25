@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "ism", version 4.0. MIT licence.
+// sdrkit: the typed interface of the stack family "ism", version 4.2. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum IsmInterface {
     public static let major = 4
-    public static let minor = 0
+    public static let minor = 2
 }
 
 /// The result fields of the burst finder of the ISM sensor stack.
@@ -220,6 +220,8 @@ public struct IsmDeviceRow {
     public var frequency: Double
     /// The frame test of the last reading.
     public var check: Check?
+    /// The name of the device for people: the model and the id ("Acurite-Tower 1234").
+    public var name: String
 
     init(_ c: sdrkit_ism_device_row) {
         key = sdrkitText(c.key)
@@ -236,6 +238,7 @@ public struct IsmDeviceRow {
         count = c.count
         frequency = c.frequency
         check = Check(rawValue: c.check)
+        name = sdrkitText(c.name)
     }
 }
 
@@ -734,6 +737,8 @@ public struct ZwaveNodeRow {
     public var beaming: Bool
     /// The node sent at low power.
     public var lowPower: Bool
+    /// The name of the node for people: the home id and the node id ("C0FFEE01 node 2").
+    public var name: String
 
     init(_ c: sdrkit_zwave_node_row) {
         key = sdrkitText(c.key)
@@ -749,6 +754,7 @@ public struct ZwaveNodeRow {
         lastClass = sdrkitText(c.last_class)
         beaming = c.beaming
         lowPower = c.low_power
+        name = sdrkitText(c.name)
     }
 }
 
@@ -891,6 +897,8 @@ public struct ZigbeeNetworkRow {
     public var heard: Int64?
     /// The UTC of the last frame.
     public var lastHeard: Double?
+    /// The name of the network for people: the extended PAN id when known, else the PAN id.
+    public var name: String
 
     init(_ c: sdrkit_zigbee_network_row) {
         key = sdrkitText(c.key)
@@ -902,6 +910,7 @@ public struct ZigbeeNetworkRow {
         levelDbfs = c.level_dbfs
         heard = c.has_heard ? c.heard : nil
         lastHeard = c.has_last_heard ? c.last_heard : nil
+        name = sdrkitText(c.name)
     }
 }
 
@@ -929,6 +938,8 @@ public struct IsmPanDeviceRow {
     public var lastHeard: Double?
     /// The description of the last frame.
     public var lastFrame: String
+    /// The name of the device for people: the vendor and the short address, else the extended address.
+    public var name: String
 
     init(_ c: sdrkit_ism_pan_device_row) {
         key = sdrkitText(c.key)
@@ -942,6 +953,7 @@ public struct IsmPanDeviceRow {
         heard = c.has_heard ? c.heard : nil
         lastHeard = c.has_last_heard ? c.last_heard : nil
         lastFrame = sdrkitText(c.last_frame)
+        name = sdrkitText(c.name)
     }
 }
 
@@ -1160,6 +1172,8 @@ public struct AntSensorRow {
     public var heard: Int64?
     /// The UTC of the last frame.
     public var lastHeard: Double?
+    /// The name of the sensor for people: its type and device number.
+    public var name: String
 
     init(_ c: sdrkit_ant_sensor_row) {
         key = sdrkitText(c.key)
@@ -1175,6 +1189,7 @@ public struct AntSensorRow {
         frequency = c.frequency
         heard = c.has_heard ? c.heard : nil
         lastHeard = c.has_last_heard ? c.last_heard : nil
+        name = sdrkitText(c.name)
     }
 }
 
@@ -2464,6 +2479,127 @@ public struct DsrcTollDsrcFrameRow {
         bytes = c.bytes
         control = c.has_control ? sdrkitText(c.control) : nil
         identifier = sdrkitText(c.identifier)
+    }
+}
+
+/// The result fields of the EnOcean stack.
+public struct EnoceanFields {
+    /// Telegrams; the subtelegrams of one telegram count once.
+    public var telegrams: Int64
+    /// Subtelegrams with a good check.
+    public var subtelegrams: Int64
+    /// Frames that the line coding accepted and the check refused.
+    public var framesBad: Int64
+    /// Senders heard.
+    public var devices: Int64
+    /// Bursts over the noise floor.
+    public var bursts: Int64
+    /// The power of the input. It has no value before the first input.
+    public var levelDbfs: Double?
+    /// What no real signal has confirmed and what is not read.
+    public var note: String
+
+    init(_ c: sdrkit_enocean_fields) {
+        telegrams = c.telegrams
+        subtelegrams = c.subtelegrams
+        framesBad = c.frames_bad
+        devices = c.devices
+        bursts = c.bursts
+        levelDbfs = c.has_level_dbfs ? c.level_dbfs : nil
+        note = sdrkitText(c.note)
+    }
+
+    /// The result fields of the snapshot of `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE) -> Result<EnoceanFields, SDRKitCode> {
+        var c = sdrkit_enocean_fields()
+        let code = sdrkit_enocean_fields_read(handle, &c)
+        return code == SDRKIT_OK ? .success(EnoceanFields(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// A row of the devices. The row key is the sender id, hex.
+public struct EnoceanDeviceRow {
+    /// The row key.
+    public var key: String
+    /// The name of the device for people: "EnOcean", the profile when known, and the id.
+    public var name: String
+    /// The radio protocol last heard.
+    public var radio: String
+    /// The last telegram type.
+    public var telegramType: String
+    /// The profile (EEP), from a teach-in or certain from the telegram type.
+    public var profile: String?
+    /// The last reading.
+    public var reading: String
+    /// Telegrams heard.
+    public var telegrams: Int64
+    /// Secure telegrams heard.
+    public var secure: Int64
+    /// The level of the last telegram.
+    public var levelDbfs: Double
+    /// The UTC of the first telegram.
+    public var firstHeard: Double?
+    /// The UTC of the last telegram.
+    public var lastHeard: Double?
+
+    init(_ c: sdrkit_enocean_device_row) {
+        key = sdrkitText(c.key)
+        name = sdrkitText(c.name)
+        radio = sdrkitText(c.radio)
+        telegramType = sdrkitText(c.telegram_type)
+        profile = c.has_profile ? sdrkitText(c.profile) : nil
+        reading = sdrkitText(c.reading)
+        telegrams = c.telegrams
+        secure = c.secure
+        levelDbfs = c.level_dbfs
+        firstHeard = c.has_first_heard ? c.first_heard : nil
+        lastHeard = c.has_last_heard ? c.last_heard : nil
+    }
+}
+
+/// A row of the telegram log. The row key is the number of the telegram in the log.
+public struct EnoceanTelegramRow {
+    /// The row key.
+    public var key: String
+    /// The UTC of the first subtelegram, when the samples are live.
+    public var utc: Double?
+    /// The signal time of the first subtelegram.
+    public var timeS: Double
+    /// The sender id, hex.
+    public var sender: String
+    /// The radio protocol: ERP1 or ERP2.
+    public var radio: String
+    /// The telegram type (RORG).
+    public var telegramType: String
+    /// What the telegram says.
+    public var reading: String
+    /// The payload as hex; empty for a secure telegram.
+    public var data: String
+    /// The destination id of an addressed telegram, hex.
+    public var destination: String?
+    /// The repeater level of the first subtelegram.
+    public var repeater: String
+    /// Subtelegrams heard of this telegram.
+    public var subtelegrams: Int64
+    /// The check that passed.
+    public var check: String
+    /// The level of the first subtelegram.
+    public var levelDbfs: Double
+
+    init(_ c: sdrkit_enocean_telegram_row) {
+        key = sdrkitText(c.key)
+        utc = c.has_utc ? c.utc : nil
+        timeS = c.time_s
+        sender = sdrkitText(c.sender)
+        radio = sdrkitText(c.radio)
+        telegramType = sdrkitText(c.telegram_type)
+        reading = sdrkitText(c.reading)
+        data = sdrkitText(c.data)
+        destination = c.has_destination ? sdrkitText(c.destination) : nil
+        repeater = sdrkitText(c.repeater)
+        subtelegrams = c.subtelegrams
+        check = sdrkitText(c.check)
+        levelDbfs = c.level_dbfs
     }
 }
 
@@ -3783,6 +3919,53 @@ public struct DsrcTollFrameEvent {
     }
 }
 
+/// The fields of a telegram event.
+public struct EnoceanTelegramEvent {
+    public enum Family: Int32 {
+        case aircraft = 0
+        case vessel = 1
+        case aprs = 2
+        case pager = 3
+        case sonde = 4
+        case broadcast = 5
+        case voice = 6
+        case message = 7
+        case sensor = 8
+        case satellite = 9
+        case receiver = 10
+        case alert = 11
+        case other = 12
+    }
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The sender id, hex.
+    public var sender: String
+    /// The telegram type (RORG).
+    public var telegramType: String
+    /// What the telegram says.
+    public var reading: String
+    /// The family of the event.
+    public var family: Family?
+
+    init(_ c: sdrkit_enocean_telegram_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        sender = sdrkitText(c.sender)
+        telegramType = sdrkitText(c.telegram_type)
+        reading = sdrkitText(c.reading)
+        family = Family(rawValue: c.family)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<EnoceanTelegramEvent, SDRKitCode> {
+        var c = sdrkit_enocean_telegram_event()
+        let code = sdrkit_enocean_telegram_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(EnoceanTelegramEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
 /// The items that each decoder component of the stack "ant" dropped because it was slow. A member holds a
 /// value while its decoder runs on a helper thread.
 public struct AntDropped {
@@ -3893,7 +4076,10 @@ public enum IsmComponents {
 /// The tables of the family, each read from the snapshot of the handle of a session.
 public enum IsmTables {
     /// The changed rows of the table "devices" of the stack "ism", newest first, at most `capacity` rows.
-    /// The column `id` names a row.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
     public static func ismDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[IsmDeviceRow], SDRKitCode> {
         var rows = [sdrkit_ism_device_row](repeating: sdrkit_ism_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3944,6 +4130,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(IsmPulseFrameRow.init))
     }
     /// The changed rows of the table "meters" of the stack "wmbus", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `meter_id` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
     public static func wmbusMeters(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[WmbusMeterRow], SDRKitCode> {
         var rows = [sdrkit_wmbus_meter_row](repeating: sdrkit_wmbus_meter_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3988,6 +4178,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ZwaveFrameRow.init))
     }
     /// The changed rows of the table "nodes" of the stack "zwave", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
     public static func zwaveNodes(_ handle: SDRKIT_HANDLE, capacity: Int = 1000) -> Result<[ZwaveNodeRow], SDRKitCode> {
         var rows = [sdrkit_zwave_node_row](repeating: sdrkit_zwave_node_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3996,6 +4190,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ZwaveNodeRow.init))
     }
     /// The changed rows of the table "networks" of the stack "zwave", newest first, at most `capacity` rows.
+    /// The column `home_id` names a row.
     /// Default order: the column `level_dbfs`, highest first.
     public static func zwaveNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 64) -> Result<[ZwaveNetworkRow], SDRKitCode> {
         var rows = [sdrkit_zwave_network_row](repeating: sdrkit_zwave_network_row(), count: capacity)
@@ -4021,6 +4216,7 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ZwaveClassRow.init))
     }
     /// The changed rows of the table "networks" of the stack "zigbee", newest first, at most `capacity` rows.
+    /// The column `name` names a row.
     /// Default order: the column `level_dbfs`, highest first.
     public static func zigbeeNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[ZigbeeNetworkRow], SDRKitCode> {
         var rows = [sdrkit_zigbee_network_row](repeating: sdrkit_zigbee_network_row(), count: capacity)
@@ -4030,6 +4226,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ZigbeeNetworkRow.init))
     }
     /// The changed rows of the table "devices" of the stack "zigbee", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
     public static func zigbeeDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[IsmPanDeviceRow], SDRKitCode> {
         var rows = [sdrkit_ism_pan_device_row](repeating: sdrkit_ism_pan_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4057,6 +4257,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SigfoxMessageRow.init))
     }
     /// The changed rows of the table "sensors" of the stack "ant", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
     public static func antSensors(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[AntSensorRow], SDRKitCode> {
         var rows = [sdrkit_ant_sensor_row](repeating: sdrkit_ant_sensor_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4082,7 +4286,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Nrf24NrfFrameRow.init))
     }
     /// The changed rows of the table "addresses" of the stack "nrf24", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `address` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
     public static func nrf24Addresses(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[Nrf24NrfAddressRow], SDRKitCode> {
         var rows = [sdrkit_nrf24_nrf_address_row](repeating: sdrkit_nrf24_nrf_address_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4119,7 +4326,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(SubghzchatPacketRow.init))
     }
     /// The changed rows of the table "bases" of the stack "dect", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `rfpi` names a row.
     /// Default order: the column `level_dbfs`, highest first.
+    /// Time: `last_heard`.
     public static func dectBases(_ handle: SDRKIT_HANDLE, capacity: Int = 60) -> Result<[DectBaseRow], SDRKitCode> {
         var rows = [sdrkit_dect_base_row](repeating: sdrkit_dect_base_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4137,7 +4347,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DectBurstRow.init))
     }
     /// The changed rows of the table "tags" of the stack "nfc", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `uid` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
     public static func nfcTags(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[NfcTagRow], SDRKitCode> {
         var rows = [sdrkit_nfc_tag_row](repeating: sdrkit_nfc_tag_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4167,6 +4380,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(WisunNetworkRow.init))
     }
     /// The changed rows of the table "nodes" of the stack "wisun", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `address` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
     public static func wisunNodes(_ handle: SDRKIT_HANDLE, capacity: Int = 2000) -> Result<[WisunNodeRow], SDRKitCode> {
         var rows = [sdrkit_wisun_node_row](repeating: sdrkit_wisun_node_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4204,6 +4421,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(ThreadNetworkRow.init))
     }
     /// The changed rows of the table "devices" of the stack "thread", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `last_heard`.
     public static func threadDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 600) -> Result<[IsmPanDeviceRow], SDRKitCode> {
         var rows = [sdrkit_ism_pan_device_row](repeating: sdrkit_ism_pan_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4230,7 +4451,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(MiotyFrameRow.init))
     }
     /// The changed rows of the table "devices" of the stack "mioty", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `id` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `first_heard`.
     public static func miotyDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[MiotyDeviceRow], SDRKitCode> {
         var rows = [sdrkit_mioty_device_row](repeating: sdrkit_mioty_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4248,7 +4472,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DectNrplusNrPlusPacketRow.init))
     }
     /// The changed rows of the table "devices" of the stack "dect_nrplus", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
     /// The column `id` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `first_heard`.
     public static func dectNrplusDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[DectNrplusNrPlusDeviceRow], SDRKitCode> {
         var rows = [sdrkit_dect_nrplus_nr_plus_device_row](repeating: sdrkit_dect_nrplus_nr_plus_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4265,6 +4492,10 @@ public enum IsmTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Npr70NprFrameRow.init))
     }
     /// The changed rows of the table "networks" of the stack "npr70", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `network` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `first_heard`.
     public static func npr70Networks(_ handle: SDRKIT_HANDLE, capacity: Int = 16) -> Result<[Npr70NprNetworkRow], SDRKitCode> {
         var rows = [sdrkit_npr70_npr_network_row](repeating: sdrkit_npr70_npr_network_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -4280,6 +4511,29 @@ public enum IsmTables {
         let code = sdrkit_dsrc_toll_frames_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(DsrcTollDsrcFrameRow.init))
+    }
+    /// The changed rows of the table "devices" of the stack "enocean", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Default order: the column `last_heard`, highest first.
+    /// Time: `first_heard`.
+    public static func enoceanDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[EnoceanDeviceRow], SDRKitCode> {
+        var rows = [sdrkit_enocean_device_row](repeating: sdrkit_enocean_device_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_enocean_devices_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(EnoceanDeviceRow.init))
+    }
+    /// The changed rows of the table "telegrams" of the stack "enocean", newest first, at most `capacity` rows.
+    /// The rows are a log: they arrive over time.
+    /// The column `sender` names a row.
+    /// Time: `utc`.
+    public static func enoceanTelegrams(_ handle: SDRKIT_HANDLE, capacity: Int = 500) -> Result<[EnoceanTelegramRow], SDRKitCode> {
+        var rows = [sdrkit_enocean_telegram_row](repeating: sdrkit_enocean_telegram_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_enocean_telegrams_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(EnoceanTelegramRow.init))
     }
 }
 
@@ -4653,6 +4907,11 @@ public enum IsmCommands {
         let code = sdrkit_dsrc_toll_clear(handle)
         return sdrkitResult(code)
     }
+    /// Clear. Forgets everything decoded so far.
+    public static func enoceanClear(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
+        let code = sdrkit_enocean_clear(handle)
+        return sdrkitResult(code)
+    }
 }
 
 /// The settings of the family, each read and written on the handle of a session of its stack. One call sets one
@@ -5008,6 +5267,15 @@ public enum IsmSettings {
     }
     public static func setDsrcTollBitRate(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "bit_rate", value))
+    }
+    /// Detection threshold.
+    public static func enoceanThreshold(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "threshold", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setEnoceanThreshold(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "threshold", value))
     }
 }
 
@@ -5381,5 +5649,19 @@ public enum IsmGeneratorSettings {
     }
     public static func setDsrcTollDepth(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_f64(handle, "gen_depth", value))
+    }
+    /// The options of the setting "gen_radio" of the stack "enocean".
+    public enum EnoceanRadio: Int32 {
+        case erp1 = 0
+        case erp2 = 1
+    }
+    /// Test signal protocol.
+    public static func enoceanRadio(_ handle: SDRKIT_HANDLE) -> Result<EnoceanRadio, SDRKitCode> {
+        var v: Int32 = 0
+        let code = sdrkit_typed_setting_get_enum(handle, "gen_radio", &v)
+        return code == SDRKIT_OK ? .success(EnoceanRadio(rawValue: v) ?? EnoceanRadio(rawValue: 0)!) : .failure(SDRKitCode(code: code))
+    }
+    public static func setEnoceanRadio(_ handle: SDRKIT_HANDLE, _ value: EnoceanRadio) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_enum(handle, "gen_radio", value.rawValue))
     }
 }

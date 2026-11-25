@@ -165,7 +165,7 @@ pub static NR: StackDescriptor = StackDescriptor {
     id: "nr",
     name: "5G NR cells",
     group: GROUP,
-    blurb: "5G NR cells: physical cell identity, SS/PBCH beams and the MIB of every SSB on the sync raster.",
+    blurb: "5G NR cells: physical cell identity, SS/PBCH beams and the MIB of every SSB on the sync raster, and SIB1 (networks, tracking area, cell identity) where CORESET#0 lies in the capture.",
     tuning: Tuning {
         min_hz: 600e6,
         max_hz: 4200e6,

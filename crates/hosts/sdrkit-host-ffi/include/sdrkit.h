@@ -238,7 +238,7 @@
 // A number is not finite.
 #define SDRKIT_E_NOT_FINITE 13
 
-// An option index is outside the options of its setting.
+// An option index is outside the options of its setting, or a mask has a bit outside the flags of its field.
 #define SDRKIT_E_NOT_AN_OPTION 14
 
 // The object does not allow this value now.
@@ -620,6 +620,9 @@
 // Any type: each value carries its own. Only a column or an argument has this type.
 #define SDRKIT_TYPE_ANY 11
 
+// A set of the flags of the declaration, as a mask in `flags`: bit n is option n.
+#define SDRKIT_TYPE_FLAGS 12
+
 // An engine, an object of an engine, or a graph. 0 is never a handle.
 typedef uint64_t SDRKIT_HANDLE;
 
@@ -688,6 +691,8 @@ typedef struct sdrkit_variant {
   struct sdrkit_string string;
   // For `SDRKIT_TYPE_BYTES`.
   struct sdrkit_bytes bytes;
+  // For `SDRKIT_TYPE_FLAGS`: the mask.
+  uint64_t flags;
 } sdrkit_variant;
 
 // A value for the setting or argument `id`.
@@ -729,7 +734,8 @@ typedef struct sdrkit_decl {
   // What the number 0 means when it is not a quantity ("Automatic"), or empty. With a meaning, 0 is valid outside the
   // range, and a front end shows the meaning in place of the number. Settings and arguments only.
   struct sdrkit_string zero_means;
-  // For `SDRKIT_TYPE_ENUM`: the number of options.
+  // For `SDRKIT_TYPE_ENUM`: the number of options. For `SDRKIT_TYPE_FLAGS`: the number of flags; option n is the
+  // flag of bit n.
   uint32_t options;
   // For a column that holds row keys of another table: the key of the object of that table, or empty for the same
   // object.
@@ -756,7 +762,7 @@ typedef struct sdrkit_decl {
   uint32_t reading;
 } sdrkit_decl;
 
-// One option of a value of type `SDRKIT_TYPE_ENUM`.
+// One option of a value of type `SDRKIT_TYPE_ENUM`, or one flag of a value of type `SDRKIT_TYPE_FLAGS`.
 typedef struct sdrkit_option {
   // The number of bytes of the struct. The caller sets it to the sizeof of its struct before the call; the call sets it to
   // the number of bytes that it wrote.
@@ -765,6 +771,8 @@ typedef struct sdrkit_option {
   struct sdrkit_string key;
   // The name for people.
   struct sdrkit_string label;
+  // What a flag says, in one line. Empty for an option.
+  struct sdrkit_string help;
 } sdrkit_option;
 
 // The input of a new session. Make it with `sdrkit_input_radio`, `sdrkit_input_host` or `sdrkit_input_inside`.

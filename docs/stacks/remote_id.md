@@ -76,7 +76,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `drones` | Drones | `source` (text), `address` (text), `verdict` (choice), `reasons` (text), `serial` (text), `session_id` (text), `caa_registration` (text), `utm_uuid` (text), `ua_type` (whole number), `status` (whole number), `position` (position), `alt_geo_m` (number (m)), `alt_baro_m` (number (m)), `height_m` (number (m)), `height_type` (whole number), `speed_kt` (number (kt)), `vspeed_m_s` (number (m/s)), `course_deg` (number (°)), `horiz_acc` (whole number), `vert_acc` (whole number), `speed_acc` (whole number), `timestamp_ds` (whole number (0.1 s)), `operator_position` (position), `operator_alt_m` (number (m)), `location_type` (whole number), `classification` (whole number), `category` (whole number), `class` (whole number), `system_timestamp_s` (whole number (s)), `operator_id` (text), `self_id` (text), `authentication` (whole number), `authentication_pages` (whole number), `authentication_length` (whole number (B)), `authentication_complete` (yes or no), `basic_id_messages` (whole number), `location_messages` (whole number), `authentication_messages` (whole number), `self_id_messages` (whole number), `system_messages` (whole number), `operator_id_messages` (whole number), `track_points` (whole number), `via` (choice), `level_dbfs` (number (dBFS)), `last_heard` (time), `heard` (whole number) |
+| `drones` | Drones | `source` (text), `address` (text), `verdict` (choice), `reasons` (flag set), `serial` (text), `session_id` (text), `caa_registration` (text), `utm_uuid` (text), `ua_type` (whole number), `status` (whole number), `position` (position), `alt_geo_m` (number (m)), `alt_baro_m` (number (m)), `height_m` (number (m)), `height_type` (whole number), `speed_kt` (number (kt)), `vspeed_m_s` (number (m/s)), `course_deg` (number (°)), `horiz_acc` (whole number), `vert_acc` (whole number), `speed_acc` (whole number), `timestamp_ds` (whole number (0.1 s)), `operator_position` (position), `operator_alt_m` (number (m)), `location_type` (whole number), `classification` (whole number), `category` (whole number), `class` (whole number), `system_timestamp_s` (whole number (s)), `operator_id` (text), `self_id` (text), `authentication` (whole number), `authentication_pages` (whole number), `authentication_length` (whole number (B)), `authentication_complete` (yes or no), `basic_id_messages` (whole number), `location_messages` (whole number), `authentication_messages` (whole number), `self_id_messages` (whole number), `system_messages` (whole number), `operator_id_messages` (whole number), `track_points` (whole number), `via` (choice), `level_dbfs` (number (dBFS)), `last_heard` (time), `heard` (whole number) |
 | `messages` | Messages | `time_s` (number (s)), `time` (time), `via` (choice), `radio_channel` (whole number), `address` (text), `level_dbfs` (number (dBFS)), `type` (choice), `message` (text) |
 | `drone_tracks` | Tracks | `drone` (text), `position` (position), `time_s` (number (s)) |
 
@@ -89,7 +89,36 @@ The stack puts points on a map: Drones.
 | Kind | Label | Fields |
 |---|---|---|
 | `remote_id.drone` | Drone | `source` (text), `address` (text), `position` (position), `alt_geo_m` (number (m)), `speed_kt` (number (kt)), `course_deg` (number (°)), `operator_position` (position), `urgency` (choice), `family` (choice) |
-| `remote_id.verdict` | Trust verdict | `source` (text), `address` (text), `verdict` (choice), `reasons` (text), `position` (position), `urgency` (choice), `family` (choice) |
+| `remote_id.verdict` | Trust verdict | `source` (text), `address` (text), `verdict` (choice), `reasons` (flag set), `position` (position), `urgency` (choice), `family` (choice) |
+
+## Flag sets
+
+The flags of the column `reasons` of the table `drones` and the field `reasons` of the event `remote_id.verdict`. The value is a mask with one bit for each flag that is set.
+
+| Bit | Key | Label | Meaning |
+|---|---|---|---|
+| 0 | `known_spoofer` | Known spoofer | The broadcasts have the fingerprint of a public spoofing tool. |
+| 1 | `auth_failed` | Authentication failed | A signature or a key binding of the drone does not verify. |
+| 2 | `teleport` | Teleport | The position jumped further than the speed limit allows. |
+| 3 | `counter_conflict` | Counter conflict | One counter value carried two contents: two radios share an address. |
+| 4 | `identity_clone` | Identity clone | Another transmitter sends the same ID from a position that does not fit. |
+| 5 | `transport_disagreement` | Transport disagreement | The same ID says different things on Bluetooth and Wi-Fi. |
+| 6 | `speed_implausible` | Speed implausible | The track is faster than any drone, over several windows. |
+| 7 | `reported_speed_mismatch` | Reported speed mismatch | The reported horizontal speed does not fit the track. |
+| 8 | `reported_course_mismatch` | Reported course mismatch | The reported direction does not fit the track. |
+| 9 | `vertical_rate_implausible` | Vertical rate implausible | The climb or descent rate is impossible or does not fit the reported vertical speed. |
+| 10 | `timestamp_frozen` | Timestamp frozen | The location timestamps stopped while the clock of the receiver ran. |
+| 11 | `location_clock_drift` | Location clock drift | The location timestamps run at a wrong rate or far from UTC. |
+| 12 | `system_clock_drift` | System clock drift | The system or authentication timestamps are zero or far from UTC. |
+| 13 | `tsf_wall_clock` | TSF wall clock | The Wi-Fi timer holds a wall clock time, as software that injects frames writes it. |
+| 14 | `tsf_discontinuity` | TSF discontinuity | The Wi-Fi timer jumps against the clock of the receiver. |
+| 15 | `counter_interleave` | Counter interleave | The message counter starts again and again. |
+| 16 | `signal_jump` | Signal jump | The signal strength jumps from frame to frame. |
+| 17 | `shared_radio` | Shared radio | Several transmitter addresses share one radio clock. |
+| 18 | `invalid_fields` | Invalid fields | Location fields are outside their ranges or hold reserved codes. |
+| 19 | `serial_format` | Serial format | The serial number does not follow ANSI/CTA-2063-A. |
+| 20 | `no_basic_id` | No Basic ID | The drone sends locations for a while and never a Basic ID. |
+| 21 | `auth_expired` | Authentication expired | A valid signature is outside its time window: a possible replay. |
 
 ## Commands
 
@@ -100,7 +129,7 @@ The stack puts points on a map: Drones.
 
 ## Typed interface
 
-The stack is in the family `drones`, version 1.4. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `drones`, version 2.0. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -118,10 +147,10 @@ Struct `RemoteIdFields`. The result fields of Drone Remote ID.
 | `wifi_offset_hz` | frequency | always | 1.0 | The offset of the Wi-Fi channel from the centre. |
 | `band` | choice | optional | 1.0 | The band of the present centre, when it is one of the bands that the stack offers. |
 | `drones` | whole number | always | 1.0 | Drones in the table. |
-| `flagged` | whole number | always | 1.2 | Drones in the table whose trust verdict is suspicious or spoofed. |
+| `flagged` | whole number | always | 1.0 | Drones in the table whose trust verdict is suspicious or spoofed. |
 | `messages` | whole number | always | 1.0 | Messages decoded. |
-| `messages_refused` | whole number | always | 1.2 | Messages refused: members of a Message Pack that are packs or of a reserved type, authentication pages that fail their checks. |
-| `fields_out_of_range` | whole number | always | 1.2 | Messages with a value outside its range (a Location timestamp above 36000, a latitude or longitude out of range), which the tables show as absent. |
+| `messages_refused` | whole number | always | 1.0 | Messages refused: members of a Message Pack that are packs or of a reserved type, authentication pages that fail their checks. |
+| `fields_out_of_range` | whole number | always | 1.0 | Messages with a value outside its range (a Location timestamp above 36000, a latitude or longitude out of range), which the tables show as absent. |
 | `ble_good` | whole number | always | 1.0 | Good BLE packets. |
 | `ble_remote_id` | whole number | always | 1.0 | Good BLE packets with Remote ID. |
 | `wifi_good` | whole number | always | 1.0 | Good Wi-Fi frames. |
@@ -145,8 +174,8 @@ Struct `RemoteIdDroneRow`. A drone heard on Remote ID. The row key is the broadc
 |---|---|---|---|---|
 | `source` | text | always | 1.0 | The sender of a decoded message: a registration, an address, a call sign or a code. |
 | `address` | text | always | 1.0 | The broadcast address. |
-| `verdict` | choice | optional | 1.2 | The trust verdict of the broadcasts heard since the stack started: authenticated, plausible, suspicious or spoofed. No value before the first packet since the start (a drone of a restored state). |
-| `reasons` | text | always | 1.2 | The active reasons of the trust verdict: their stable names (`teleport`, `counter_conflict`, ...) joined by ", ". Empty when there is none. |
+| `verdict` | choice | optional | 1.0 | The trust verdict of the broadcasts heard since the stack started: authenticated, plausible, suspicious or spoofed. No value before the first packet since the start (a drone of a restored state). |
+| `reasons` | flag set | always | 1.0 | The active reasons of the trust verdict, one flag for each. No flag when there is none. |
 | `serial` | text | optional | 1.0 | Serial number. |
 | `session_id` | text | optional | 1.0 | Session ID. |
 | `caa_registration` | text | optional | 1.0 | CAA registration. |
@@ -176,8 +205,8 @@ Struct `RemoteIdDroneRow`. A drone heard on Remote ID. The row key is the broadc
 | `self_id` | text | optional | 1.0 | Self-ID text. |
 | `authentication` | whole number | optional | 1.0 | Authentication type code. |
 | `authentication_pages` | whole number | optional | 1.0 | Authentication pages. |
-| `authentication_length` | whole number (B) | optional | 1.2 | Authentication data length in bytes, from page 0. |
-| `authentication_complete` | yes or no | optional | 1.2 | Every page of the present authentication was heard. No signature is verified. |
+| `authentication_length` | whole number (B) | optional | 1.0 | Authentication data length in bytes, from page 0. |
+| `authentication_complete` | yes or no | optional | 1.0 | Every page of the present authentication was heard. No signature is verified. |
 | `basic_id_messages` | whole number | always | 1.0 | Basic ID messages (a field: all drones; a column: one drone). |
 | `location_messages` | whole number | always | 1.0 | Location messages. |
 | `authentication_messages` | whole number | always | 1.0 | Authentication messages. |
@@ -243,13 +272,13 @@ Struct `RemoteIdVerdictEvent`. A change of the trust verdict of a Remote ID dron
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `source` | text | always | 1.2 | The sender of a decoded message: a registration, an address, a call sign or a code. |
-| `address` | text | always | 1.2 | The broadcast address. |
-| `verdict` | choice | always | 1.2 | The new trust verdict. |
-| `reasons` | text | always | 1.2 | The active reasons of the verdict: their stable names joined by ", ". Empty when there is none. |
-| `position` | position | optional | 1.2 | The position of the object that the event is about. |
-| `urgency` | choice | always | 1.2 | How urgent an event is. A stack sets it when the decoded message is urgent. Services alert on it. |
-| `family` | choice | always | 1.2 | What an event is about (aircraft, vessel, pager). Outputs and the store filter on it. |
+| `source` | text | always | 1.0 | The sender of a decoded message: a registration, an address, a call sign or a code. |
+| `address` | text | always | 1.0 | The broadcast address. |
+| `verdict` | choice | always | 1.0 | The new trust verdict. |
+| `reasons` | flag set | always | 1.0 | The active reasons of the verdict, one flag for each. No flag when there is none. |
+| `position` | position | optional | 1.0 | The position of the object that the event is about. |
+| `urgency` | choice | always | 1.0 | How urgent an event is. A stack sets it when the decoded message is urgent. Services alert on it. |
+| `family` | choice | always | 1.0 | What an event is about (aircraft, vessel, pager). Outputs and the store filter on it. |
 
 ### Commands
 

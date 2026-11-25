@@ -83,7 +83,7 @@ The stack puts points on a map: Aircraft.
 
 ## Typed interface
 
-The stack is in the family `drones`, version 1.4. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `drones`, version 2.0. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 

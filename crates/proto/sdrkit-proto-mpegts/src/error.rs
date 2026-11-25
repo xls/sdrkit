@@ -195,6 +195,10 @@ pub enum MuxFault {
     BadSoundPid(u16),
     /// The bit rate of the multiplex is too low to carry the sound.
     BadSoundRate,
+    /// The video PID is reserved (0x0000 to 0x000F, 0x0011, 0x1FFF), or the data stream, the sound or a table uses it.
+    BadVideoPid(u16),
+    /// The bit rate of the multiplex is too low to carry the sound and the video.
+    BadVideoRate,
 }
 
 impl fmt::Display for MuxFault {
@@ -210,6 +214,8 @@ impl fmt::Display for MuxFault {
             MuxFault::TextTooLong => write!(f, "a name is longer than 255 bytes"),
             MuxFault::BadSoundPid(p) => write!(f, "PID 0x{p:04X} cannot carry the sound"),
             MuxFault::BadSoundRate => write!(f, "the bit rate of the multiplex is too low for the sound"),
+            MuxFault::BadVideoPid(p) => write!(f, "PID 0x{p:04X} cannot carry the video"),
+            MuxFault::BadVideoRate => write!(f, "the bit rate of the multiplex is too low for the video"),
         }
     }
 }

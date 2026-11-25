@@ -139,7 +139,7 @@ impl Rpc {
         match cx.request(req) {
             Answer::Accepted => Ok(req),
             Answer::Adjusted(r) => Ok(r),
-            Answer::Refused => Err("the server refused the setting".into()),
+            Answer::Refused => Err(format!("the server refused {}", what(&req))),
         }
     }
 
@@ -267,8 +267,14 @@ impl Rpc {
         let source = cx.client().source_format();
         let capture = cx.client().capture();
         match n {
-            call::FULL_DUPLEX | call::HAS_GAIN_MODE | call::HAS_FREQ_CORRECTION => one(|p| {
+            call::FULL_DUPLEX => one(|p| {
                 p.bool(true);
+            }),
+            call::HAS_GAIN_MODE => one(|p| {
+                p.bool(side.agc);
+            }),
+            call::HAS_FREQ_CORRECTION => one(|p| {
+                p.bool(side.correction);
             }),
             call::CHANNEL_INFO => one(|p| {
                 p.kwargs(&Kwargs::new());
@@ -401,6 +407,9 @@ impl Rpc {
             }
             call::SET_BANDWIDTH => {
                 let hz = u.f64().map_err(bad)?;
+                if side.bandwidths.is_empty() {
+                    return Ok(void());
+                }
                 let got = self.ask(cx, dir, Request::Bandwidth { hz })?;
                 self.granted(dir).bandwidth = Some(value_of(&got).unwrap_or(hz));
                 Ok(void())
@@ -413,12 +422,18 @@ impl Rpc {
             }
             call::SET_GAIN => {
                 let db = u.f64().map_err(bad)?;
+                if !has_gain(&side) {
+                    return Ok(void());
+                }
                 let got = self.ask(cx, dir, Request::Gain { db })?;
-                self.granted(dir).gain = Some(value_of(&got).unwrap_or(db));
+                let g = self.granted(dir);
+                g.gain = Some(value_of(&got).unwrap_or(db));
+                // The overall gain spreads over the elements again.
+                g.elements.clear();
                 Ok(void())
             }
             call::GET_GAIN => {
-                let v = self.granted(dir).gain.unwrap_or(side.gain.min);
+                let v = overall(&side, self.granted(dir));
                 one(|p| {
                     p.f64(v);
                 })
@@ -438,36 +453,34 @@ impl Rpc {
                         args: [i as i64, (db * 1000.0).round() as i64],
                     }
                 };
-                self.ask(cx, dir, req)?;
+                let got = self.ask(cx, dir, req)?;
                 let g = self.granted(dir);
-                g.elements.retain(|e| e.0 != name);
-                g.elements.push((name, db));
+                if side.elements.len() == 1 {
+                    g.gain = Some(value_of(&got).unwrap_or(db));
+                } else {
+                    g.elements.retain(|e| e.0 != name);
+                    g.elements.push((name, db));
+                }
                 Ok(void())
             }
             call::GET_GAIN_ELEMENT => {
                 let name = u.string().map_err(bad)?;
-                let range = side
-                    .elements
-                    .iter()
-                    .find(|e| e.0 == name)
-                    .ok_or_else(|| format!("no gain element {name}"))?
-                    .1;
-                let g = self.granted(dir);
-                let v = g
-                    .elements
-                    .iter()
-                    .find(|e| e.0 == name)
-                    .map(|e| e.1)
-                    .or(g.gain)
-                    .unwrap_or(range.min);
+                let v = element(&side, self.granted(dir), &name)
+                    .ok_or_else(|| format!("no gain element {name}"))?;
                 one(|p| {
                     p.f64(v);
                 })
             }
             call::SET_GAIN_MODE => {
                 let on = u.bool().map_err(bad)?;
-                self.ask(cx, dir, Request::Agc { on })?;
-                self.granted(dir).agc = on;
+                if !side.agc {
+                    return Ok(void());
+                }
+                let got = self.ask(cx, dir, Request::Agc { on })?;
+                self.granted(dir).agc = match got {
+                    Request::Agc { on } => on,
+                    _ => on,
+                };
                 Ok(void())
             }
             call::GET_GAIN_MODE => {
@@ -478,6 +491,9 @@ impl Rpc {
             }
             call::SET_FREQ_CORRECTION => {
                 let ppm = u.f64().map_err(bad)?;
+                if !side.correction {
+                    return Ok(void());
+                }
                 self.ask(cx, dir, Request::Correction { ppm })?;
                 self.granted(dir).ppm = ppm;
                 Ok(void())
@@ -738,6 +754,54 @@ impl Rpc {
             self.deactivate(id as i32, cx);
         }
         self.streams.clear();
+    }
+}
+
+/// True if `side` has a gain that can be set.
+fn has_gain(side: &Side) -> bool {
+    side.gain.max > side.gain.min || side.elements.iter().any(|e| e.1.max > e.1.min)
+}
+
+/// The gain of element `name`: the value the client set on it, else its part of the overall gain. The overall gain
+/// above the bottom of its range fills the elements in order, each up to its span. `None` for no such element.
+fn element(side: &Side, g: &Granted, name: &str) -> Option<f64> {
+    let mut left = g.gain.unwrap_or(side.gain.min) - side.gain.min;
+    for (n, r) in &side.elements {
+        let part = left.clamp(0.0, (r.max - r.min).max(0.0));
+        left -= part;
+        if n == name {
+            let set = g.elements.iter().find(|e| e.0 == *name).map(|e| e.1);
+            return Some(set.unwrap_or(r.min + part));
+        }
+    }
+    None
+}
+
+/// The overall gain: the value granted, or with elements that the client set one by one, the bottom of the overall
+/// range plus what each element is above the bottom of its own.
+fn overall(side: &Side, g: &Granted) -> f64 {
+    if g.elements.is_empty() || side.elements.len() < 2 {
+        return g.gain.unwrap_or(side.gain.min);
+    }
+    side.gain.min
+        + side
+            .elements
+            .iter()
+            .filter_map(|(n, r)| element(side, g, n).map(|v| v - r.min))
+            .sum::<f64>()
+}
+
+/// A request as the text of a refusal.
+fn what(r: &Request) -> String {
+    match *r {
+        Request::Frequency { hz } => format!("the frequency {hz} Hz"),
+        Request::Rate { hz } => format!("the sample rate {hz} Hz"),
+        Request::Bandwidth { hz } => format!("the bandwidth {hz} Hz"),
+        Request::Gain { db } => format!("the gain {db} dB"),
+        Request::Agc { on } => format!("automatic gain {}", if on { "on" } else { "off" }),
+        Request::BiasTee { on } => format!("the bias tee {}", if on { "on" } else { "off" }),
+        Request::Correction { ppm } => format!("the frequency correction {ppm} ppm"),
+        Request::Other { name, .. } => format!("the setting {name}"),
     }
 }
 

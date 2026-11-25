@@ -1,5 +1,5 @@
 # The interface of the stack family tvterr. The registry test of the family writes this file.
-family tvterr version=1.8
+family tvterr version=2.0
 uses.mpegts major=1 since=1.0
 uses.ipcast major=1 since=1.0
 uses.graph major=1 since=1.0
@@ -108,8 +108,8 @@ shape.Atsc3Fields.frame_length type=duration unit=s optional=yes since=1.0
 shape.Atsc3Fields.lls_tables type=i64 unit= optional=no since=1.0
 shape.Atsc3Fields.signed_signalling type=bool unit= optional=no since=1.0
 shape.Atsc3Fields.leap_seconds type=i64 unit=s optional=yes since=1.0
-shape.Atsc3Fields.service type=i64 unit= optional=yes since=1.0
-shape.Atsc3Fields.service_received type=i64 unit= optional=yes reading=1 since=1.0
+shape.Atsc3Fields.service type=i64 unit= optional=yes refers_to=services since=1.0
+shape.Atsc3Fields.service_received type=i64 unit= optional=yes refers_to=services reading=1 since=1.0
 shape.Atsc3Fields.route_objects type=i64 unit= optional=no since=1.0
 shape.Atsc3Fields.media_samples type=i64 unit= optional=no since=1.0
 shape.Atsc3Fields.step_bootstrap type=choice(off,amber,green,red) unit= optional=no since=1.0
@@ -160,7 +160,7 @@ shape.Atsc3ComponentRow since=1.0
 shape.Atsc3ComponentRow.tsi type=i64 unit= optional=no since=1.0
 shape.Atsc3ComponentRow.fourcc type=text unit= optional=no since=1.0
 shape.Atsc3ComponentRow.destination type=text unit= optional=no since=1.8
-shape.Atsc3ComponentRow.service type=i64 unit= optional=yes since=1.8
+shape.Atsc3ComponentRow.service type=i64 unit= optional=yes refers_to=services since=1.8
 shape.Atsc3ComponentRow.kind type=choice(video,audio,subtitles,other) unit= optional=no since=1.8
 shape.Atsc3ComponentRow.state type=choice(given,other_service,other_track,encrypted,no_format,unbound) unit= optional=no since=1.8
 shape.Atsc3PlpRow since=1.2

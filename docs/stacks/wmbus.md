@@ -18,7 +18,7 @@ Signal types: Wireless M-Bus.
 | Default frequency | 868.625 MHz |
 | Tuning range | 150 MHz to 880 MHz |
 | Sample rate | 2 MHz |
-| Smallest sample rate | 1 MHz |
+| Smallest sample rate | 1.2 MHz |
 | Signal bandwidth | 1.6 MHz |
 | Automatic gain | Radio AGC |
 
@@ -34,7 +34,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `gen_plan` | Test signal plan | choice | `868` | `868` (868 MHz), `169` (169 MHz) |  |
+| `gen_plan` | Test signal plan | choice | `868` | `868` (868 MHz), `169` (169 MHz) | The plan of a signal made for no session. In a session the meters are those on the channels around the frequency where it listens. |
 | `gen_phy` | Test signal mode | choice | `all` | `all` (All), `S1`, `T1`, `C1A` (C1 format A), `C1B` (C1 format B), `R2`, `N1` |  |
 | `gen_encrypted` | Encrypted meter | yes or no | true |  |  |
 | `gen_silence` | No meters (noise only) | yes or no | false |  |  |
@@ -88,9 +88,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.2. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
+
+Key readings: `meters`.
 
 ### Result fields
 
@@ -140,6 +142,8 @@ Struct `WmbusMeterRow`. A row of the meters. The row key is the maker, the id an
 | `encrypted` | yes or no | always | 1.0 | The payload is encrypted. |
 | `last_reading` | text | always | 1.0 | The summary of the last frame. |
 | `status` | text | always | 1.0 | The application status. |
+
+The rows are the stations or nodes of the stack. The column `meter_id` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
 
 ### Table `meter_records`
 

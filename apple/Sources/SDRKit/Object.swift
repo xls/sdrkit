@@ -94,7 +94,7 @@ public class Object {
         for n in 0..<raw.options {
             var o = sdrkit_option.sized
             try ok(option(n, &o))
-            d.options.append(Option(key: copy(o.key), label: copy(o.label)))
+            d.options.append(Option(key: copy(o.key), label: copy(o.label), help: copy(o.help)))
         }
         return d
     }

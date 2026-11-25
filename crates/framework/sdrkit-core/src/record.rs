@@ -4,7 +4,7 @@
 use crate::media::Codec;
 use crate::owner::OwnerKey;
 use crate::publish::{field, sealed, CatalogueField, Field};
-use crate::value::{Choice, ChoiceDecl, Value, ValueKind};
+use crate::value::{Choice, ChoiceDecl, FlagDecl, FlagSet, Value, ValueKind};
 use serde::de::{DeserializeSeed, MapAccess, Visitor};
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
@@ -12,8 +12,9 @@ use std::borrow::Cow;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
-/// The declaration of one field or table column: its key, what people see, its unit, its kind and, for a choice, its list.
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+/// The declaration of one field or table column: its key, what people see, its unit, its kind and, for a choice or a
+/// flag set, its list.
+#[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct FieldDecl {
     /// The key. The key rules of [`crate::publish`] apply.
     pub key: Cow<'static, str>,
@@ -26,6 +27,9 @@ pub struct FieldDecl {
     /// The choice list of a [`ValueKind::Choice`] field. Empty for other kinds.
     #[serde(default, skip_serializing_if = "<[ChoiceDecl]>::is_empty")]
     pub choices: Cow<'static, [ChoiceDecl]>,
+    /// The flag list of a [`ValueKind::Flags`] field: entry n is bit n of the mask. Empty for other kinds.
+    #[serde(default, skip_serializing_if = "<[FlagDecl]>::is_empty")]
+    pub flags: Cow<'static, [FlagDecl]>,
     /// The table whose row keys this column holds, or whose rows give values for it. `None` for most fields.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub refers_to: Option<RefersTo>,
@@ -36,6 +40,25 @@ pub struct FieldDecl {
     /// field that is no key reading.
     #[serde(default, skip_serializing_if = "is_zero")]
     pub reading: u8,
+}
+
+// The derived form, with the flag list only on a field that has one: the text of the other fields stays as it was.
+impl std::fmt::Debug for FieldDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = f.debug_struct("FieldDecl");
+        s.field("key", &self.key)
+            .field("label", &self.label)
+            .field("unit", &self.unit)
+            .field("kind", &self.kind)
+            .field("choices", &self.choices);
+        if !self.flags.is_empty() {
+            s.field("flags", &self.flags);
+        }
+        s.field("refers_to", &self.refers_to)
+            .field("content", &self.content)
+            .field("reading", &self.reading)
+            .finish()
+    }
 }
 
 /// True for 0, for the serialiser.
@@ -93,6 +116,7 @@ impl FieldDecl {
             unit: unit.into(),
             kind,
             choices: Cow::Borrowed(&[]),
+            flags: Cow::Borrowed(&[]),
             refers_to: None,
             content: None,
             reading: 0,
@@ -110,6 +134,7 @@ impl FieldDecl {
             unit: Cow::Borrowed(""),
             kind: ValueKind::Choice,
             choices: choices.into(),
+            flags: Cow::Borrowed(&[]),
             refers_to: None,
             content: None,
             reading: 0,
@@ -141,6 +166,10 @@ impl FieldDecl {
     pub fn with_content(mut self, content: ContentType) -> Self {
         self.content = Some(content);
         self
+    }
+    /// The mask of the flags that the field declares.
+    pub fn flag_mask(&self) -> u64 {
+        FlagDecl::all(self.flags.len())
     }
     /// The index of the choice with key `key`. `None` if the list has no such key.
     pub fn choice_index(&self, key: &str) -> Option<u16> {
@@ -183,6 +212,21 @@ pub enum DeclError {
         /// The key of the field.
         key: String,
     },
+    /// A flag list has more than 64 entries or a key twice, or a field that is not [`ValueKind::Flags`] has one.
+    #[error("the field {key} has a wrong flag list: at most 64 flags, each key once, on a flag field only")]
+    BadFlags {
+        /// The key of the field.
+        key: String,
+    },
+}
+
+/// True if the flag list of `f` is legal: empty on a field of another kind, else at most 64 entries with unique keys.
+fn flags_ok(f: &FieldDecl) -> bool {
+    let l = &f.flags;
+    if f.kind != ValueKind::Flags {
+        return l.is_empty();
+    }
+    l.len() <= FlagDecl::MAX && (1..l.len()).all(|i| l[..i].iter().all(|o| o.key != l[i].key))
 }
 
 /// An ordered list of field declarations with unique keys. It is built once and shared through an `Arc`.
@@ -200,7 +244,8 @@ impl RecordDecl {
     /// # Errors
     ///
     /// [`DeclError::DuplicateKey`] if two fields share a key, [`DeclError::TooMany`] if there are more than 65535 fields,
-    /// [`DeclError::ContentNotBytes`] if a field that is not bytes declares a content type.
+    /// [`DeclError::ContentNotBytes`] if a field that is not bytes declares a content type, [`DeclError::BadFlags`] if a
+    /// flag list has more than 64 entries or a key twice or is on a field of another kind.
     pub fn new(fields: Vec<FieldDecl>) -> Result<Self, DeclError> {
         let count = fields.len();
         if count > usize::from(u16::MAX) {
@@ -211,6 +256,11 @@ impl RecordDecl {
             .find(|f| f.content.is_some() && f.kind != ValueKind::Bytes)
         {
             return Err(DeclError::ContentNotBytes {
+                key: f.key.to_string(),
+            });
+        }
+        if let Some(f) = fields.iter().find(|f| !flags_ok(f)) {
+            return Err(DeclError::BadFlags {
                 key: f.key.to_string(),
             });
         }
@@ -289,6 +339,10 @@ pub trait Kind: sealed::Sealed + 'static {
     const VALUE_KIND: ValueKind;
     /// The choice list of a field of this kind. Empty for kinds other than [`field::Choice`].
     fn choices() -> Cow<'static, [ChoiceDecl]> {
+        Cow::Borrowed(&[])
+    }
+    /// The flag list of a field of this kind. Empty for kinds other than [`field::Flags`].
+    fn flags() -> Cow<'static, [FlagDecl]> {
         Cow::Borrowed(&[])
     }
     /// Writes `v` into `slot`, in place.
@@ -441,6 +495,34 @@ impl<E: Choice> Kind for field::Choice<E> {
     }
 }
 
+impl<F: FlagSet> Kind for field::Flags<F> {
+    type In<'a> = F;
+    type Out<'a> = F;
+    const VALUE_KIND: ValueKind = ValueKind::Flags;
+    fn flags() -> Cow<'static, [FlagDecl]> {
+        Cow::Borrowed(F::FLAGS)
+    }
+    fn store(slot: &mut Value, v: F) {
+        *slot = Value::Flags(v.bits());
+    }
+    fn store_if_changed(slot: &mut Value, v: F) -> bool {
+        let m = v.bits();
+        match slot {
+            Value::Flags(o) if *o == m => false,
+            _ => {
+                *slot = Value::Flags(m);
+                true
+            }
+        }
+    }
+    fn load(slot: &Value) -> Option<F> {
+        match slot {
+            Value::Flags(m) => Some(F::from_bits(*m)),
+            _ => None,
+        }
+    }
+}
+
 impl Kind for field::Bytes {
     type In<'a> = Arc<[u8]>;
     type Out<'a> = &'a [u8];
@@ -530,6 +612,14 @@ pub enum RecordError {
         id: FieldId,
         /// The index.
         index: u16,
+    },
+    /// The mask has a bit outside the field's flag list.
+    #[error("field number {} has no flag for a bit of the mask {mask:#x}", .id.0)]
+    NotAFlag {
+        /// The field.
+        id: FieldId,
+        /// The mask.
+        mask: u64,
     },
 }
 
@@ -634,7 +724,8 @@ impl Record {
     ///
     /// # Errors
     ///
-    /// [`RecordError`] if the field does not exist, the kind differs, or the choice index is outside the list.
+    /// [`RecordError`] if the field does not exist, the kind differs, the choice index is outside the list or the mask
+    /// has a bit outside the flag list.
     pub fn set_value(&mut self, id: FieldId, v: &Value) -> Result<bool, RecordError> {
         let decl = self.decl.field(id).ok_or(RecordError::NoSuchField { id })?;
         let any = decl.kind == ValueKind::Any;
@@ -652,6 +743,11 @@ impl Record {
                 return Err(RecordError::NotAChoice { id, index: *index });
             }
         }
+        if let (false, Value::Flags(mask)) = (any, v) {
+            if mask & !decl.flag_mask() != 0 {
+                return Err(RecordError::NotAFlag { id, mask: *mask });
+            }
+        }
         let slot = &mut self.slots[id.index()];
         let same = match (&*slot, v) {
             (Value::Bytes(a), Value::Bytes(b)) => Arc::ptr_eq(a, b),
@@ -665,7 +761,7 @@ impl Record {
     /// The text form of field `id` for people.
     pub fn text(&self, id: FieldId) -> Option<crate::value::FieldText<'_>> {
         let d = self.decl.field(id)?;
-        Some(self.slots[id.index()].display(&d.choices))
+        Some(self.slots[id.index()].display(&d.choices).with_flags(&d.flags))
     }
     /// The declared fields with their values, in order.
     pub fn iter(&self) -> impl Iterator<Item = (&FieldDecl, &Value)> {

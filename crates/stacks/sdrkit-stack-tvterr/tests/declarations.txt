@@ -602,8 +602,8 @@ field FieldDecl { key: "frame_length", label: "Frame length", unit: "s", kind: D
 field FieldDecl { key: "lls_tables", label: "Service list tables", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "signed_signalling", label: "Signalling signed", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "leap_seconds", label: "Leap seconds", unit: "s", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "service", label: "Service chosen", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "service_received", label: "Service received", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
+field FieldDecl { key: "service", label: "Service chosen", unit: "", kind: I64, choices: [], refers_to: Some(RefersTo { owner: None, table: "services", column: "" }), content: None, reading: 0 }
+field FieldDecl { key: "service_received", label: "Service received", unit: "", kind: I64, choices: [], refers_to: Some(RefersTo { owner: None, table: "services", column: "" }), content: None, reading: 1 }
 field FieldDecl { key: "route_objects", label: "ROUTE objects", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "media_samples", label: "Media samples", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "step_bootstrap", label: "Bootstrap step", unit: "", kind: Choice, choices: [ChoiceDecl { key: "off", label: "Off" }, ChoiceDecl { key: "amber", label: "Amber" }, ChoiceDecl { key: "green", label: "Green" }, ChoiceDecl { key: "red", label: "Red" }], refers_to: None, content: None, reading: 0 }
@@ -664,7 +664,7 @@ table "components" "Media components" cap 64
   column FieldDecl { key: "tsi", label: "ROUTE session", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "fourcc", label: "FourCC", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "destination", label: "Destination", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
-  column FieldDecl { key: "service", label: "Service", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "service", label: "Service", unit: "", kind: I64, choices: [], refers_to: Some(RefersTo { owner: None, table: "services", column: "" }), content: None, reading: 0 }
   column FieldDecl { key: "kind", label: "Kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "video", label: "Video" }, ChoiceDecl { key: "audio", label: "Sound" }, ChoiceDecl { key: "subtitles", label: "Subtitles" }, ChoiceDecl { key: "other", label: "Other" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "state", label: "State", unit: "", kind: Choice, choices: [ChoiceDecl { key: "given", label: "Given" }, ChoiceDecl { key: "other_service", label: "Of another service" }, ChoiceDecl { key: "other_track", label: "Another track of the service" }, ChoiceDecl { key: "encrypted", label: "Encrypted" }, ChoiceDecl { key: "no_format", label: "No media form" }, ChoiceDecl { key: "unbound", label: "In no session description" }], refers_to: None, content: None, reading: 0 }
 table "plps" "PLPs" cap 64

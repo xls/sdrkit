@@ -104,7 +104,7 @@ The stack puts points on a map: Drones.
 
 ## Typed interface
 
-The stack is in the family `drones`, version 1.4. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `drones`, version 2.0. The C header `sdrkit/drones.h`, the registry record `registry/drones.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Position tracking (`tracking`). Media: none.
 
@@ -124,14 +124,14 @@ Struct `DjiDroneidFields`. The result fields of DJI drones.
 | `centre_hz` | frequency | optional | 1.0 | The capture centre. |
 | `burst_cfo_hz` | frequency | optional | 1.0 | The carrier offset of the last DroneID burst from the 0.5 MHz grid. |
 | `drones` | whole number | always | 1.0 | Drones in the table. |
-| `aircraft` | whole number | always | 1.3 | Aircraft in the aircraft table: the drones with a readable packet, the aircraft that send the encrypted format, and the sender of empty frames. |
-| `droneid_encrypted` | whole number | always | 1.3 | DroneID frames of the encrypted format: the aircraft is present, its position and serial number are not readable. |
-| `droneid_empty` | whole number | always | 1.3 | Empty DroneID frames: the aircraft is present and sends no data in this state. |
-| `droneid_other` | whole number | always | 1.3 | DroneID frames whose CRC-24 passed and whose layout is not known. |
-| `droneid_refused` | whole number | always | 1.3 | Frames of zeros that were refused: the received bits did not agree with an empty frame. |
-| `droneid_pairs` | whole number | always | 1.3 | Pairs of the two DroneID symbols that the continuous search found. |
-| `droneid_bursts` | whole number | always | 1.3 | Bursts of the continuous search whose two symbols passed the check at the full rate. |
-| `droneid_searched` | whole number | always | 1.3 | The DroneID frequencies inside the capture that the continuous search covers. |
+| `aircraft` | whole number | always | 1.0 | Aircraft in the aircraft table: the drones with a readable packet, the aircraft that send the encrypted format, and the sender of empty frames. |
+| `droneid_encrypted` | whole number | always | 1.0 | DroneID frames of the encrypted format: the aircraft is present, its position and serial number are not readable. |
+| `droneid_empty` | whole number | always | 1.0 | Empty DroneID frames: the aircraft is present and sends no data in this state. |
+| `droneid_other` | whole number | always | 1.0 | DroneID frames whose CRC-24 passed and whose layout is not known. |
+| `droneid_refused` | whole number | always | 1.0 | Frames of zeros that were refused: the received bits did not agree with an empty frame. |
+| `droneid_pairs` | whole number | always | 1.0 | Pairs of the two DroneID symbols that the continuous search found. |
+| `droneid_bursts` | whole number | always | 1.0 | Bursts of the continuous search whose two symbols passed the check at the full rate. |
+| `droneid_searched` | whole number | always | 1.0 | The DroneID frequencies inside the capture that the continuous search covers. |
 | `signal` | text | optional | 1.0 | The track with the most likely DJI shape: a row key of the `signals` table. |
 | `noise_dbfs` | number (dBFS) | optional | 1.0 | Noise floor, dBFS. |
 | `level_dbfs` | number (dBFS) | optional | 1.0 | Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). |
@@ -179,8 +179,8 @@ Struct `DjiDroneidDroneRow`. A DJI drone heard on DroneID.
 | `position` | position | optional | 1.0 | The position of the object that the event is about. |
 | `alt_m` | number (m) | always | 1.0 | The drone's altitude, read as 0.01 m. The unit is not confirmed by a public source: the NDSS 2023 receiver reads feet. |
 | `height_m` | number (m) | always | 1.0 | The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude. |
-| `alt_raw` | whole number | always | 1.2 | The altitude field as received (a signed 16-bit number), whose unit is not confirmed. |
-| `height_raw` | whole number | always | 1.2 | The height field as received (a signed 16-bit number), whose unit is not confirmed. |
+| `alt_raw` | whole number | always | 1.0 | The altitude field as received (a signed 16-bit number), whose unit is not confirmed. |
+| `height_raw` | whole number | always | 1.0 | The height field as received (a signed 16-bit number), whose unit is not confirmed. |
 | `speed_kt` | number (kt) | always | 1.0 | The speed over the ground of the object that the event is about, knots. |
 | `course_deg` | number (°) | always | 1.0 | The course over the ground of the object that the event is about, degrees clockwise from true north. |
 | `home` | position | optional | 1.0 | The home position. |
@@ -240,19 +240,19 @@ Struct `DjiDroneidAircraftRow`. A DJI aircraft heard on DroneID, in any format.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `aircraft` | text | always | 1.3 | The name of the row: the serial number of a drone with a readable packet, `session-` and the session key of an aircraft that sends the encrypted format, `empty frames` for the sender of empty frames. |
-| `session_key` | text | optional | 1.3 | The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart within a session. They are not a serial number and do not identify the aircraft. |
-| `drone` | text | optional | 1.3 | The drone of a readable packet: a row key of the `drones` table. |
-| `format` | choice | always | 1.3 | The format of the last frame. |
-| `frame_type` | whole number | optional | 1.3 | The type byte of the last frame of the encrypted format (0x10, 0x11 and 0x13 were seen). |
-| `frames` | whole number | always | 1.3 | The frames received. |
-| `first_s` | number (s) | always | 1.3 | The signal time of the first frame. |
-| `last_s` | number (s) | always | 1.3 | The signal time of the last frame. |
-| `level_dbfs` | number (dBFS) | always | 1.3 | Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). |
-| `snr_db` | number (dB) | always | 1.3 | Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so). |
-| `freq_hz` | frequency | optional | 1.3 | The radio frequency. |
-| `first_heard` | time | optional | 1.3 | Wall-clock time when first heard. |
-| `last_heard` | time | optional | 1.3 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
+| `aircraft` | text | always | 1.0 | The name of the row: the serial number of a drone with a readable packet, `session-` and the session key of an aircraft that sends the encrypted format, `empty frames` for the sender of empty frames. |
+| `session_key` | text | optional | 1.0 | The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart within a session. They are not a serial number and do not identify the aircraft. |
+| `drone` | text | optional | 1.0 | The drone of a readable packet: a row key of the `drones` table. |
+| `format` | choice | always | 1.0 | The format of the last frame. |
+| `frame_type` | whole number | optional | 1.0 | The type byte of the last frame of the encrypted format (0x10, 0x11 and 0x13 were seen). |
+| `frames` | whole number | always | 1.0 | The frames received. |
+| `first_s` | number (s) | always | 1.0 | The signal time of the first frame. |
+| `last_s` | number (s) | always | 1.0 | The signal time of the last frame. |
+| `level_dbfs` | number (dBFS) | always | 1.0 | Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). |
+| `snr_db` | number (dB) | always | 1.0 | Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so). |
+| `freq_hz` | frequency | optional | 1.0 | The radio frequency. |
+| `first_heard` | time | optional | 1.0 | Wall-clock time when first heard. |
+| `last_heard` | time | optional | 1.0 | Wall-clock time when last heard, in whole seconds. A host shows the age from it. |
 
 The rows are the stations or nodes of the stack. The column `aircraft` names a row. Default order: the column `aircraft`, lowest first. Time: `last_heard`.
 
@@ -266,8 +266,8 @@ Struct `DjiDroneidEvent`. A DroneID packet.
 | `position` | position | optional | 1.0 | The position of the object that the event is about. |
 | `alt_m` | number (m) | always | 1.0 | The drone's altitude, read as 0.01 m. The unit is not confirmed by a public source: the NDSS 2023 receiver reads feet. |
 | `height_m` | number (m) | always | 1.0 | The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude. |
-| `alt_raw` | whole number | always | 1.2 | The altitude field as received (a signed 16-bit number), whose unit is not confirmed. |
-| `height_raw` | whole number | always | 1.2 | The height field as received (a signed 16-bit number), whose unit is not confirmed. |
+| `alt_raw` | whole number | always | 1.0 | The altitude field as received (a signed 16-bit number), whose unit is not confirmed. |
+| `height_raw` | whole number | always | 1.0 | The height field as received (a signed 16-bit number), whose unit is not confirmed. |
 | `speed_kt` | number (kt) | always | 1.0 | The speed over the ground of the object that the event is about, knots. |
 | `course_deg` | number (°) | always | 1.0 | The course over the ground of the object that the event is about, degrees clockwise from true north. |
 | `home` | position | optional | 1.0 | The home position. |
@@ -280,13 +280,13 @@ Struct `DjiDroneidAircraftEvent`. A DJI aircraft that was not heard before.
 
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
-| `source` | text | always | 1.3 | The sender of a decoded message: a registration, an address, a call sign or a code. |
-| `session_key` | text | optional | 1.3 | The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart within a session. They are not a serial number and do not identify the aircraft. |
-| `format` | choice | always | 1.3 | The format of the frame. |
-| `frame_type` | whole number | optional | 1.3 | The type byte of a frame of the encrypted format. |
-| `position` | position | optional | 1.3 | The position of the object that the event is about. |
-| `snr_db` | number (dB) | always | 1.3 | Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so). |
-| `family` | choice | always | 1.3 | What an event is about (aircraft, vessel, pager). Outputs and the store filter on it. |
+| `source` | text | always | 1.0 | The sender of a decoded message: a registration, an address, a call sign or a code. |
+| `session_key` | text | optional | 1.0 | The 4 bytes of the encrypted format that are constant for one aircraft, as 8 hex digits. They tell two aircraft apart within a session. They are not a serial number and do not identify the aircraft. |
+| `format` | choice | always | 1.0 | The format of the frame. |
+| `frame_type` | whole number | optional | 1.0 | The type byte of a frame of the encrypted format. |
+| `position` | position | optional | 1.0 | The position of the object that the event is about. |
+| `snr_db` | number (dB) | always | 1.0 | Signal to noise ratio of what is being decoded, dB (in the signal's own bandwidth, or per symbol where the stack says so). |
+| `family` | choice | always | 1.0 | What an event is about (aircraft, vessel, pager). Outputs and the store filter on it. |
 
 ### Commands
 

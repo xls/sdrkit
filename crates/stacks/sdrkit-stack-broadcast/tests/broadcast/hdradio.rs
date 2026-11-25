@@ -1377,3 +1377,55 @@ fn a_change_of_frequency_forgets_the_station() {
     assert!(again > 0 && again <= p1 + 1, "{again} after {p1}");
     assert!(int(r, res::HdradioFields::BLOCKS.key) <= blocks + 2);
 }
+
+/// The sound of `x`: the samples of every run, the rate and channels of the last run, and the results.
+fn listen(x: &[Complex32], rate: f64, dial: f64) -> (Vec<f32>, f64, u16, Results) {
+    let mut rx = hd::make_receiver(&defaults()).unwrap();
+    rx.configure(&InputInfo::new(rate, dial, dial).recording())
+        .unwrap();
+    let mut out = Output::default();
+    let (mut sound, mut fs, mut ch) = (Vec::new(), 0.0, 0);
+    for c in x.chunks(65_536) {
+        rx.feed(c, &mut out);
+        for p in out.audio_runs() {
+            sound.extend_from_slice(p.samples);
+            fs = p.rate_hz;
+            ch = p.channels;
+        }
+        out.clear();
+    }
+    (sound, fs, ch, rx.results().clone())
+}
+
+#[test]
+fn a_hybrid_fm_signal_plays_its_analogue_programme() {
+    let o = GenOptions {
+        waveform: Waveform::Mp1,
+        analog_db: 0.0,
+    };
+    let x = generate(o, l1::FM_RATE, 4.0, &with_seed(snr(30.0).to_vec()));
+    let (s, fs, ch, r) = listen(&x, l1::FM_RATE, 98.5e6);
+    assert_eq!((fs, ch), (48e3, 1));
+    assert!(s.len() as f64 > 3.5 * fs, "{} samples", s.len());
+    // The last second: the 1 kHz tone of the test signal at full deviation.
+    let tail = &s[s.len() - 48_000..];
+    let rms = (tail.iter().map(|v| v * v).sum::<f32>() / tail.len() as f32).sqrt();
+    assert!(rms > 0.3, "rms {rms}");
+    let crossings = tail.windows(2).filter(|w| w[0] < 0.0 && w[1] >= 0.0).count();
+    assert!((990..=1010).contains(&crossings), "{crossings} Hz");
+    assert_eq!(label(&r, res::HdSoundFields::SOUND.key), "Analogue FM programme");
+}
+
+#[test]
+fn an_am_signal_plays_no_sound() {
+    for (wf, rate) in [(Waveform::Ma1, 200e3), (Waveform::Ma3, 912e3)] {
+        let o = GenOptions {
+            waveform: wf,
+            analog_db: 0.0,
+        };
+        let x = generate(o, rate, 3.0, &with_seed(snr(30.0).to_vec()));
+        let (s, _, _, r) = listen(&x, rate, 1.03e6);
+        assert!(s.is_empty(), "{wf:?}: {} samples", s.len());
+        assert_eq!(label(&r, res::HdSoundFields::SOUND.key), "No sound");
+    }
+}

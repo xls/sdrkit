@@ -44,8 +44,10 @@ pub const TX_OUTPUT: Setting<field::I64> = Setting::new("txoutput", "Output", ""
     .help(
         "The transmit output of the radio, from 1. An output the radio does not have is refused.",
     );
-/// The clock error of the transmitter in ppm.
-pub const TX_PPM: Setting<field::F64> = Setting::new("ppm", "Frequency correction", "ppm", 0.0)
+/// The clock error of the transmitter in ppm. Its key differs from the receive correction's: an open radio holds both in
+/// one schema.
+pub const TX_PPM: Setting<field::F64> =
+    Setting::new("tx_ppm", "Transmit frequency correction", "ppm", 0.0)
     .range(-200.0, 200.0, 0.01)
     .help("The clock error in ppm, positive when the clock runs fast.");
 

@@ -1,0 +1,345 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "enocean_868",
+      "name": "EnOcean, 868.3 MHz (ERP1)",
+      "kind": "other",
+      "source": {
+        "publisher": "EnOcean GmbH",
+        "title": "EnOcean Radio Protocol 1, V1.2 (ERP1, ISO/IEC 14543-3-10) and EnOcean Radio Protocol 2, V1.3 (ERP2, ISO/IEC 14543-3-11)",
+        "date": "2020"
+      },
+      "verified": false,
+      "unverified_reason": "the frequency is that of the ERP1 document; the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules or with the products sold",
+      "bands": [
+        {
+          "name": "EnOcean, 868.3 MHz (ERP1)",
+          "service": "short_range",
+          "start_hz": 868000000,
+          "end_hz": 868600000,
+          "modes": [
+            "enocean"
+          ],
+          "note": "stack enocean",
+          "channels": [
+            {
+              "name": "ERP1 868.3 MHz",
+              "centre_hz": 868300000,
+              "width_hz": 300000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "enocean_902",
+      "name": "EnOcean, 902.875 MHz (ERP2)",
+      "kind": "other",
+      "source": {
+        "publisher": "EnOcean GmbH",
+        "title": "EnOcean Radio Protocol 1, V1.2 (ERP1, ISO/IEC 14543-3-10) and EnOcean Radio Protocol 2, V1.3 (ERP2, ISO/IEC 14543-3-11)",
+        "date": "2020"
+      },
+      "verified": false,
+      "unverified_reason": "the frequency is that of the ERP2 document for North America; not compared with the products sold",
+      "bands": [
+        {
+          "name": "EnOcean, 902.875 MHz (ERP2)",
+          "service": "short_range",
+          "start_hz": 902625000,
+          "end_hz": 903125000,
+          "modes": [
+            "enocean"
+          ],
+          "note": "stack enocean",
+          "channels": [
+            {
+              "name": "ERP2 902.875 MHz",
+              "centre_hz": 902875000,
+              "width_hz": 300000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "enocean_928",
+      "name": "EnOcean, 928.35 MHz (ERP2)",
+      "kind": "other",
+      "source": {
+        "publisher": "EnOcean GmbH",
+        "title": "EnOcean Radio Protocol 1, V1.2 (ERP1, ISO/IEC 14543-3-10) and EnOcean Radio Protocol 2, V1.3 (ERP2, ISO/IEC 14543-3-11)",
+        "date": "2020"
+      },
+      "verified": false,
+      "unverified_reason": "the frequency and the 500 kHz of channels 62 to 66 are those of the ERP2 document for Japan; not compared with ARIB STD-T108",
+      "bands": [
+        {
+          "name": "EnOcean, 928.35 MHz (ERP2)",
+          "service": "short_range",
+          "start_hz": 928100000,
+          "end_hz": 928600000,
+          "modes": [
+            "enocean"
+          ],
+          "note": "stack enocean",
+          "channels": [
+            {
+              "name": "ERP2 928.35 MHz",
+              "centre_hz": 928350000,
+              "width_hz": 500000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "LI",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "enocean_868"
+      ],
+      "unverified_reason": "the countries are those of the EU, the EEA, Switzerland and the United Kingdom; not compared with the national rules"
+    },
+    {
+      "code": "US",
+      "groups": [
+        "enocean_902"
+      ],
+      "unverified_reason": "ERP2 names 902.875 MHz for the USA and Canada; not compared with the products sold"
+    },
+    {
+      "code": "CA",
+      "groups": [
+        "enocean_902"
+      ],
+      "unverified_reason": "ERP2 names 902.875 MHz for the USA and Canada; not compared with the products sold"
+    },
+    {
+      "code": "JP",
+      "groups": [
+        "enocean_928"
+      ],
+      "unverified_reason": "ERP2 names 928.35 MHz for Japan; not compared with the products sold"
+    }
+  ]
+}

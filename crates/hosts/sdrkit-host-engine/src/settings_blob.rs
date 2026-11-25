@@ -76,7 +76,8 @@ impl Stored {
                 Value::Duration(_) => TAG_DURATION,
                 Value::Position { .. } => TAG_POSITION,
                 Value::Bytes(_) => TAG_BYTES,
-                Value::None | Value::Choice(_) => return None,
+                // No setting is a flag set.
+                Value::None | Value::Choice(_) | Value::Flags(_) => return None,
             },
             Stored::Choice(_) => TAG_CHOICE,
             Stored::Unknown(t) => *t,
@@ -97,7 +98,7 @@ impl Stored {
                 }
                 Value::Text(t) => out.extend_from_slice(t.as_bytes()),
                 Value::Bytes(b) => out.extend_from_slice(b),
-                Value::None | Value::Choice(_) => {}
+                Value::None | Value::Choice(_) | Value::Flags(_) => {}
             },
             Stored::Choice(k) => out.extend_from_slice(k.as_bytes()),
             Stored::Unknown(_) => {}

@@ -216,7 +216,7 @@
     "pdu": "ADV_EXT_IND",
     "addr": "",
     "len": 7,
-    "info": "extended, data on channel 12 (2M PHY, not followed), set 2"
+    "info": "extended, data on channel 12 (LE 2M), set 2; channel 12 is outside the capture"
    }
   ],
   "tolerance": {

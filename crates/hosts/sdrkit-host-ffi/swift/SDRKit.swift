@@ -41,6 +41,8 @@ public enum SDRKitValue {
     case position(lat: Double, lon: Double)
     /// The index of an option.
     case option(UInt32)
+    /// The mask of a flag set: bit n is flag n of the declaration.
+    case flags(UInt64)
     case bytes([UInt8])
 
     init(_ c: sdrkit_variant) {
@@ -54,9 +56,30 @@ public enum SDRKitValue {
         case SDRKIT_TYPE_DURATION: self = .duration(c.number)
         case SDRKIT_TYPE_POSITION: self = .position(lat: c.lat, lon: c.lon)
         case SDRKIT_TYPE_ENUM: self = .option(c.enum_index)
+        case SDRKIT_TYPE_FLAGS: self = .flags(c.flags)
         case SDRKIT_TYPE_BYTES: self = .bytes([UInt8](UnsafeBufferPointer(start: c.bytes.ptr, count: c.bytes.len)))
         default: self = .none
         }
+    }
+}
+
+/// One flag of a flag set: its bit, the key that data files use, the name for people and one line of help.
+public struct SDRKitFlag<Set> {
+    public let flag: Set
+    public let key: String
+    public let label: String
+    public let help: String
+}
+
+/// A set of the named flags of a field, held as a mask. `entries` lists every flag in bit order.
+public protocol SDRKitFlagSet: OptionSet where RawValue == UInt64, Element == Self {
+    static var entries: [SDRKitFlag<Self>] { get }
+}
+
+extension SDRKitFlagSet {
+    /// The entries of the flags that are set, in bit order.
+    public var active: [SDRKitFlag<Self>] {
+        Self.entries.filter { contains($0.flag) }
     }
 }
 

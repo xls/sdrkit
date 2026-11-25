@@ -858,7 +858,9 @@ impl Shift for Node {
 impl Shaped for Node {
     type Row = ZwaveNodeRow<'static>;
     fn row(&self, seen: Option<&Seen>, _now_s: f64, out: RowOut<'_, '_, Self::Row>) {
+        let name = format!("{} node {}", self.home, self.node);
         out.put(&ZwaveNodeRow {
+            name: &name,
             home_id: &self.home,
             node: i64::from(self.node),
             role: &self.role,

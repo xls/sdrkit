@@ -85,6 +85,7 @@ pub mod llr;
 pub mod mobitex;
 pub mod nordstrom;
 pub mod par;
+pub mod nr_sch;
 pub mod polar;
 pub mod ratematch;
 pub mod reedmuller;

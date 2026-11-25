@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "cell", version 1.3. MIT licence.
+// sdrkit: the typed interface of the stack family "cell", version 1.4. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum CellInterface {
     public static let major = 1
-    public static let minor = 3
+    public static let minor = 4
 }
 
 /// The result fields of `railway_cir`.
@@ -559,6 +559,8 @@ public struct NrFields {
     public var cellCount: Int64
     /// Cells with a MIB.
     public var withMib: Int64
+    /// Cells with a SIB1.
+    public var withSib1: Int64
     /// The lowest GSCN the newest capture searched.
     public var gscnLo: Int64?
     /// The highest GSCN the newest capture searched.
@@ -571,6 +573,7 @@ public struct NrFields {
     init(_ c: sdrkit_nr_fields) {
         cellCount = c.cell_count
         withMib = c.with_mib
+        withSib1 = c.with_sib1
         gscnLo = c.has_gscn_lo ? c.gscn_lo : nil
         gscnHi = c.has_gscn_hi ? c.gscn_hi : nil
         candidates = c.has_candidates ? c.candidates : nil
@@ -587,8 +590,23 @@ public struct NrFields {
 
 /// A row of the cells of `nr`.
 public struct NrCellRow {
+    public enum Decoded: Int32 {
+        case sync = 0
+        case mib = 1
+        case sib1 = 2
+    }
     /// The row key.
     public var key: String
+    /// How far the cell was decoded.
+    public var decoded: Decoded?
+    /// The first network of SIB1.
+    public var plmn: String?
+    /// The operator of that network.
+    public var `operator`: String?
+    /// The tracking area code of SIB1.
+    public var tac: Int64?
+    /// The NR cell identity of SIB1 (36 bits).
+    public var nci: Int64?
     /// The band.
     public var band: Int64?
     /// The GSCN.
@@ -616,6 +634,11 @@ public struct NrCellRow {
 
     init(_ c: sdrkit_nr_cell_row) {
         key = sdrkitText(c.key)
+        decoded = Decoded(rawValue: c.decoded)
+        plmn = c.has_plmn ? sdrkitText(c.plmn) : nil
+        `operator` = c.has_operator_ ? sdrkitText(c.operator_) : nil
+        tac = c.has_tac ? c.tac : nil
+        nci = c.has_nci ? c.nci : nil
         band = c.has_band ? c.band : nil
         gscn = c.has_gscn ? c.gscn : nil
         frequency = c.frequency
@@ -628,6 +651,149 @@ public struct NrCellRow {
         rsrqDb = c.rsrq_db
         sinrDb = c.sinr_db
         lastHeard = c.has_last_heard ? c.last_heard : nil
+    }
+}
+
+/// The details of a cell of `nr`. The row key is the cell key.
+public struct NrDetailRow {
+    public enum Sib1: Int32 {
+        case noMib = 0
+        case notTried = 1
+        case notScheduled = 2
+        case noFrequency = 3
+        case tooNarrow = 4
+        case noControl = 5
+        case noData = 6
+        case unreadable = 7
+        case decoded = 8
+    }
+    /// The row key.
+    public var key: String
+    /// The row key of the cell.
+    public var cell: String
+    /// How far the reception of SIB1 went.
+    public var sib1: Sib1?
+    /// The parts of SIB1 read: 1 the networks, 2 the scheduling, 3 the downlink carrier, 4 the SSB facts.
+    public var sib1Parts: Int64?
+    /// The width of CORESET#0.
+    public var coreset0Width: Double?
+    /// The sample rate that holds CORESET#0 with the radio centre of the newest try.
+    public var rateNeeded: Double?
+    /// subCarrierSpacingCommon of the MIB.
+    public var scsCommon: Double?
+    /// k_SSB of the MIB.
+    public var kSsb: Int64?
+    /// cellBarred of the MIB.
+    public var barred: Bool?
+    /// intraFreqReselection of the MIB is allowed.
+    public var intraFreqReselection: Bool?
+    /// cellReservedForOtherUse of SIB1.
+    public var reservedOtherUse: Bool?
+    /// q-RxLevMin of SIB1.
+    public var qRxLevMinDbm: Double?
+    /// The bands of SIB1, apart by spaces.
+    public var bands: String?
+    /// The SSB period of SIB1.
+    public var ssbPeriod: Double?
+    /// The spacing of the carrier of SIB1.
+    public var carrierScs: Double?
+    /// The width of the carrier of SIB1.
+    public var carrierRbs: Int64?
+    /// offsetToPointA of SIB1.
+    public var offsetToPointA: Int64?
+    /// The first block of the initial downlink BWP.
+    public var bwpStart: Int64?
+    /// The width of the initial downlink BWP.
+    public var bwpRbs: Int64?
+    /// The SI window, slots.
+    public var siWindow: Int64?
+    /// Whether SIB1 configures a TDD pattern.
+    public var tdd: Bool?
+    /// SIB1 decodes.
+    public var sib1Count: Int64
+
+    init(_ c: sdrkit_nr_detail_row) {
+        key = sdrkitText(c.key)
+        cell = sdrkitText(c.cell)
+        sib1 = Sib1(rawValue: c.sib1)
+        sib1Parts = c.has_sib1_parts ? c.sib1_parts : nil
+        coreset0Width = c.has_coreset0_width ? c.coreset0_width : nil
+        rateNeeded = c.has_rate_needed ? c.rate_needed : nil
+        scsCommon = c.has_scs_common ? c.scs_common : nil
+        kSsb = c.has_k_ssb ? c.k_ssb : nil
+        barred = c.has_barred ? c.barred : nil
+        intraFreqReselection = c.has_intra_freq_reselection ? c.intra_freq_reselection : nil
+        reservedOtherUse = c.has_reserved_other_use ? c.reserved_other_use : nil
+        qRxLevMinDbm = c.has_q_rx_lev_min_dbm ? c.q_rx_lev_min_dbm : nil
+        bands = c.has_bands ? sdrkitText(c.bands) : nil
+        ssbPeriod = c.has_ssb_period ? c.ssb_period : nil
+        carrierScs = c.has_carrier_scs ? c.carrier_scs : nil
+        carrierRbs = c.has_carrier_rbs ? c.carrier_rbs : nil
+        offsetToPointA = c.has_offset_to_point_a ? c.offset_to_point_a : nil
+        bwpStart = c.has_bwp_start ? c.bwp_start : nil
+        bwpRbs = c.has_bwp_rbs ? c.bwp_rbs : nil
+        siWindow = c.has_si_window ? c.si_window : nil
+        tdd = c.has_tdd ? c.tdd : nil
+        sib1Count = c.sib1_count
+    }
+}
+
+/// A network of a cell of `nr`, from SIB1. The row key is the cell key and the place of the network.
+public struct NrNetworkRow {
+    /// The row key.
+    public var key: String
+    /// The row key of the cell.
+    public var cell: String
+    /// The network.
+    public var plmn: String
+    /// The operator of the network.
+    public var `operator`: String?
+    /// The tracking area code.
+    public var tac: Int64?
+    /// The NR cell identity (36 bits).
+    public var nci: Int64
+    /// The gNB identity, when SIB1 gives its length.
+    public var gnb: Int64?
+    /// The cell identity within the gNB.
+    public var cellId: Int64?
+    /// cellReservedForOperatorUse.
+    public var reservedOperator: Bool
+
+    init(_ c: sdrkit_nr_network_row) {
+        key = sdrkitText(c.key)
+        cell = sdrkitText(c.cell)
+        plmn = sdrkitText(c.plmn)
+        `operator` = c.has_operator_ ? sdrkitText(c.operator_) : nil
+        tac = c.has_tac ? c.tac : nil
+        nci = c.nci
+        gnb = c.has_gnb ? c.gnb : nil
+        cellId = c.has_cell_id ? c.cell_id : nil
+        reservedOperator = c.reserved_operator
+    }
+}
+
+/// A SIB that the SIB1 of a cell of `nr` schedules. The row key is the cell key and the SIB number.
+public struct NrSibRow {
+    /// The row key.
+    public var key: String
+    /// The row key of the cell.
+    public var cell: String
+    /// The SIB number.
+    public var sib: Int64
+    /// The period of its SI message.
+    public var period: Double
+    /// Whether the message is broadcast (else sent on request).
+    public var broadcasting: Bool
+    /// The value tag.
+    public var valueTag: Int64?
+
+    init(_ c: sdrkit_nr_sib_row) {
+        key = sdrkitText(c.key)
+        cell = sdrkitText(c.cell)
+        sib = c.sib
+        period = c.period
+        broadcasting = c.broadcasting
+        valueTag = c.has_value_tag ? c.value_tag : nil
     }
 }
 
@@ -2171,6 +2337,30 @@ public enum CellTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NrCellRow.init))
     }
+    /// The changed rows of the table "nr_details" of the stack "nr", newest first, at most `capacity` rows.
+    public static func nrDetails(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[NrDetailRow], SDRKitCode> {
+        var rows = [sdrkit_nr_detail_row](repeating: sdrkit_nr_detail_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_nr_details_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(NrDetailRow.init))
+    }
+    /// The changed rows of the table "nr_networks" of the stack "nr", newest first, at most `capacity` rows.
+    public static func nrNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 1200) -> Result<[NrNetworkRow], SDRKitCode> {
+        var rows = [sdrkit_nr_network_row](repeating: sdrkit_nr_network_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_nr_networks_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(NrNetworkRow.init))
+    }
+    /// The changed rows of the table "nr_sibs" of the stack "nr", newest first, at most `capacity` rows.
+    public static func nrSibs(_ handle: SDRKIT_HANDLE, capacity: Int = 2400) -> Result<[NrSibRow], SDRKitCode> {
+        var rows = [sdrkit_nr_sib_row](repeating: sdrkit_nr_sib_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_nr_sibs_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(NrSibRow.init))
+    }
     /// The changed rows of the table "cells" of the stack "nbiot", newest first, at most `capacity` rows.
     public static func nbiotCells(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[NbiotCellRow], SDRKitCode> {
         var rows = [sdrkit_nbiot_cell_row](repeating: sdrkit_nbiot_cell_row(), count: capacity)
@@ -2653,6 +2843,15 @@ public enum CellSettings {
     }
     public static func setNrBandOrder(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "band_order", $0) })
+    }
+    /// Symbol phase of up-conversion.
+    public static func nrSymbolPhase(_ handle: SDRKIT_HANDLE) -> Result<Bool, SDRKitCode> {
+        var v: Bool = false
+        let code = sdrkit_typed_setting_get_bool(handle, "symbol_phase", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setNrSymbolPhase(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_bool(handle, "symbol_phase", value))
     }
     /// Capture length.
     public static func nbiotCaptureS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {

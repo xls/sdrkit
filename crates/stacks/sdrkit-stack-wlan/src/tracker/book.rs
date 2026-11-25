@@ -276,6 +276,8 @@ pub struct Tracker {
     pub last_s: f64,
     /// First heard, wall time.
     pub first_wall: Option<f64>,
+    /// Last heard, wall time.
+    pub last_wall: Option<f64>,
     /// Addresses it used.
     pub addresses: u32,
     /// Seconds heard.
@@ -508,6 +510,7 @@ impl Book {
         let fresh = || Tracker {
             first_s: now,
             first_wall: s.wall,
+            last_wall: s.wall,
             avg: s.level_dbfs,
             peak: s.level_dbfs,
             last_sec: i64::MIN,
@@ -557,6 +560,7 @@ impl Book {
         r.peak = r.peak.max(s.level_dbfs);
         r.packets += 1;
         r.last_s = now;
+        r.last_wall = s.wall;
         let sec = now.floor() as i64;
         if sec != r.last_sec {
             r.last_sec = sec;

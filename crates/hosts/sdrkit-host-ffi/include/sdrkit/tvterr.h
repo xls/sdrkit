@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "tvterr", version 1.8. MIT licence.
+ * sdrkit: the typed interface of the stack family "tvterr", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -37,8 +37,8 @@
 #include "graph.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_TVTERR_VERSION_MAJOR 1
-#define SDRKIT_TVTERR_VERSION_MINOR 8
+#define SDRKIT_TVTERR_VERSION_MAJOR 2
+#define SDRKIT_TVTERR_VERSION_MINOR 0
 
 // The stack "isdbt": its id, and the keys of its event types.
 #define SDRKIT_STACK_ISDBT "isdbt"

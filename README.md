@@ -154,7 +154,7 @@ aircraft, the services of a DVB-T multiplex, Meshtastic messages, a band scan an
 
 ### C
 
-`crates/hosts/sdrkit-host-ffi` builds the static library `libsdrkit.a`. Its header is
+`crates/hosts/sdrkit-host-ffi` builds the C library as a static and a shared library. Its header is
 [`crates/hosts/sdrkit-host-ffi/include/sdrkit.h`](crates/hosts/sdrkit-host-ffi/include/sdrkit.h).
 
 ```c
@@ -204,19 +204,109 @@ int main(void) {
 }
 ```
 
-```sh
-cargo build --release -p sdrkit-host-ffi        # the library; add --target aarch64-apple-ios for iOS
-cc -I crates/hosts/sdrkit-host-ffi/include example.c target/release/libsdrkit.a \
-   -framework AudioToolbox -framework Accelerate -framework Security -framework CoreFoundation -framework IOKit
+The C programs in `crates/hosts/sdrkit-host-ffi/tests/` call every part of the API. The folder
+[`examples/`](examples/README.md) holds small programs in C, C++ and Rust to copy from.
+
+#### Link the C library
+
+The crate builds a static library and a shared library (`libsdrkit.a` and `libsdrkit.dylib` or `libsdrkit.so`;
+`sdrkit.lib`, `sdrkit.dll` and the import library `sdrkit.dll.lib` with MSVC). Use the first way that fits.
+
+**1. CMake with the sources.** The `CMakeLists.txt` at the root runs cargo, so the computer needs Rust. It works
+through `add_subdirectory` and `FetchContent`:
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(sdrkit GIT_REPOSITORY https://github.com/xls/sdrkit.git GIT_TAG v0.5.0)
+FetchContent_MakeAvailable(sdrkit)               # or: add_subdirectory(path/to/sdrkit)
+target_link_libraries(app PRIVATE sdrkit::sdrkit)
 ```
 
-The `-framework` options are for Apple platforms: an application there links AudioToolbox, Accelerate, Security,
-CoreFoundation and, on macOS, IOKit for the USB radios. The C programs in `crates/hosts/sdrkit-host-ffi/tests/` call
-every part of the API.
+`sdrkit::sdrkit` is the static library, with the system libraries that it needs. It is the shared library if
+`BUILD_SHARED_LIBS` is ON, or if `SDRKIT_SHARED` is ON (this one is for sdrkit only). `sdrkit::static` and
+`sdrkit::shared` name one library directly. `SDRKIT_DATA_DIR` is the data folder for the presets calls.
 
-The folder [`examples/`](examples/README.md) holds small programs in C, C++ and Rust to copy from. `sh tools/package.sh`
-(`tools\package.ps1` on Windows) lays out an installed copy of the library with its headers, a pkg-config file and a
-CMake package; [docs/building.md](docs/building.md) has the steps for each system.
+| Variable | Use |
+|---|---|
+| `SDRKIT_CARGO_PROFILE` | `dev`, `release`, `shipped` or `dist`. The default is `dev` for `Debug`, else `release`. |
+| `SDRKIT_RUST_TARGET` | The Rust target triple. The default comes from CMake: the host, one macOS architecture (`CMAKE_OSX_ARCHITECTURES`), iOS or its simulator, or the Android ABI. |
+| `SDRKIT_FEATURES`, `SDRKIT_ALL_FAMILIES` | The cargo features (default `presets`); OFF builds only the families named in the features. |
+| `SDRKIT_CARGO_TARGET_DIR` | The cargo target folder. The default is `CARGO_TARGET_DIR`, else `target/` of the sources. |
+| `SDRKIT_PREBUILT_DIR` | An unpacked release archive. The build uses its libraries and runs no cargo. |
+
+**2. CMake with an installed copy.** `cmake --install` lays out a CMake package and pkg-config files. A program that
+uses the package needs no Rust:
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+cmake --install build --config Release --prefix /opt/sdrkit
+```
+
+```cmake
+find_package(sdrkit CONFIG REQUIRED)             # with -DCMAKE_PREFIX_PATH=/opt/sdrkit
+target_link_libraries(app PRIVATE sdrkit::sdrkit)
+```
+
+**3. Prebuilt releases.** Each GitHub release has `sdrkit-<version>-<os>-<arch>.tar.gz` (`.zip` on Windows) for
+`macos-arm64`, `macos-x86_64`, `linux-x86_64`, `linux-aarch64` and `windows-x86_64`, `SHA256SUMS.txt`, and
+`SDRKitC-<version>.xcframework.zip` with its checksum for a `binaryTarget` of Swift Package Manager. An archive holds
+`include/`, `lib/` (static and shared library), `lib/cmake/sdrkit/`, `lib/pkgconfig/`, `bin/sdrkit` (the command-line
+tool), `share/sdrkit/data/`, `LICENSE` and `THIRD_PARTY.md`. Use it with `find_package` as in way 2
+(`-DCMAKE_PREFIX_PATH=<unpacked folder>`), or fetch it from CMake:
+
+```cmake
+FetchContent_Declare(sdrkit
+    URL https://github.com/xls/sdrkit/releases/download/v0.5.0/sdrkit-0.5.0-linux-x86_64.tar.gz
+    URL_HASH SHA256=<the sum in SHA256SUMS.txt>)
+FetchContent_MakeAvailable(sdrkit)
+find_package(sdrkit CONFIG REQUIRED PATHS "${sdrkit_SOURCE_DIR}" NO_DEFAULT_PATH)
+```
+
+`sh tools/package.sh --release` (`tools\package.ps1 -Release` on Windows) makes the same archive from the sources.
+`.github/workflows/release.yml` builds all of them when a tag `v<version>` is pushed, and attaches them to a draft
+release.
+
+**4. pkg-config.** An installed copy or an archive has `sdrkit.pc` (shared library) and `sdrkit-static.pc` (static
+library with its system libraries):
+
+```sh
+export PKG_CONFIG_PATH=/opt/sdrkit/lib/pkgconfig
+cc app.c $(pkg-config --cflags --libs sdrkit) -Wl,-rpath,/opt/sdrkit/lib -o app
+cc app.c $(pkg-config --cflags --libs sdrkit-static) -o app
+```
+
+**5. Corrosion.** A project that already uses [Corrosion](https://github.com/corrosion-rs/corrosion) can import the
+crate with `corrosion_import_crate` in place of the `CMakeLists.txt` of sdrkit.
+[`examples/cmake/corrosion`](examples/cmake/corrosion/CMakeLists.txt) shows how. Corrosion builds in its own target
+folder, so its first build compiles every crate again. sdrkit does not depend on Corrosion.
+
+**6. The link line by hand.** Use this only if none of the above fits:
+
+```sh
+cargo build --release -p sdrkit-host-ffi --features presets
+cargo rustc --release -p sdrkit-host-ffi --features presets --lib -- --print native-static-libs   # the system libraries
+cc -I crates/hosts/sdrkit-host-ffi/include app.c target/release/libsdrkit.a <the system libraries> -o app
+```
+
+On macOS the system libraries are `-framework AudioToolbox -framework IOKit -framework Security -framework
+CoreFoundation -framework Accelerate -liconv -lSystem -lc -lm`. iOS has no IOKit. On Linux they are usually `-lgcc_s
+-lutil -lrt -lpthread -lm -ldl -lc`.
+
+Notes for Windows: the static library uses the release C run-time library (`/MD`), so build the program as Release.
+The static library names an import library of the `windows` crates (such as `windows.0.52.0.lib`); the CMake files
+and the archive carry it. A program that links the DLL finds `sdrkit.dll` in its own folder or on `PATH`; the CMake
+generator expression `$<TARGET_RUNTIME_DLLS:app>` names it for a copy step.
+
+`sh examples/cmake/check.sh` builds three small consumer projects (`add_subdirectory`, `find_package` against a
+moved install prefix, and a prebuilt archive with no Rust on `PATH`), each with the static and the shared library, and
+prints PASS or FAIL for each. It was run on macOS (Apple silicon). It was not run on Linux or Windows. To check them:
+
+- Linux: `sh examples/cmake/check.sh` (needs a C compiler, CMake 3.21 or newer and Rust).
+- Windows: `sh examples/cmake/check.sh` from Git Bash (needs Visual Studio 2022 or newer with C++, CMake, Rust with
+  the MSVC tool chain).
+
+[docs/building.md](docs/building.md) has the steps for each system.
 
 ### Swift
 

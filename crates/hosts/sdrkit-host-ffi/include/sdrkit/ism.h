@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "ism", version 4.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "ism", version 4.2. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -36,7 +36,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_ISM_VERSION_MAJOR 4
-#define SDRKIT_ISM_VERSION_MINOR 0
+#define SDRKIT_ISM_VERSION_MINOR 2
 
 // The stack "ism": its id, and the keys of its event types.
 #define SDRKIT_STACK_ISM "ism"
@@ -111,6 +111,10 @@
 // The stack "dsrc_toll": its id, and the keys of its event types.
 #define SDRKIT_STACK_DSRC_TOLL "dsrc_toll"
 #define SDRKIT_EVENT_DSRC_TOLL_FRAME "dsrc_toll.frame"
+
+// The stack "enocean": its id, and the keys of its event types.
+#define SDRKIT_STACK_ENOCEAN "enocean"
+#define SDRKIT_EVENT_ENOCEAN_TELEGRAM "enocean.telegram"
 
 // The options of the setting "gen_scene" of the stack "ism".
 typedef enum sdrkit_ism_gen_scene {
@@ -261,6 +265,14 @@ typedef enum sdrkit_dect_gen_option {
   // No base
   SDRKIT_DECT_GEN_OPTION_NO_BASE = 2,
 } sdrkit_dect_gen_option;
+
+// The options of the setting "gen_radio" of the stack "enocean".
+typedef enum sdrkit_enocean_gen_radio {
+  // ERP1 (amplitude keying)
+  SDRKIT_ENOCEAN_GEN_RADIO_ERP1 = 0,
+  // ERP2 (frequency keying)
+  SDRKIT_ENOCEAN_GEN_RADIO_ERP2 = 1,
+} sdrkit_enocean_gen_radio;
 
 // The result fields of the burst finder of the ISM sensor stack.
 typedef struct sdrkit_ism_detect_fields {
@@ -452,6 +464,8 @@ typedef struct sdrkit_ism_device_row {
   double frequency;
   // The frame test of the last reading. A value of `sdrkit_ism_device_row_check`.
   int32_t check;
+  // The name of the device for people: the model and the id ("Acurite-Tower 1234").
+  sdrkit_string name;
 } sdrkit_ism_device_row;
 
 // A row of the Z-Wave view of the devices. The row key is the key of the device.
@@ -848,6 +862,8 @@ typedef struct sdrkit_zwave_node_row {
   bool beaming;
   // The node sent at low power.
   bool low_power;
+  // The name of the node for people: the home id and the node id ("C0FFEE01 node 2").
+  sdrkit_string name;
 } sdrkit_zwave_node_row;
 
 // A row of the Z-Wave networks. The row key is the home id.
@@ -970,6 +986,8 @@ typedef struct sdrkit_zigbee_network_row {
   bool has_last_heard;
   // The UTC of the last frame. Seconds since 1970 (UTC).
   double last_heard;
+  // The name of the network for people: the extended PAN id when known, else the PAN id.
+  sdrkit_string name;
 } sdrkit_zigbee_network_row;
 
 // A row of the devices of an IEEE 802.15.4 stack. The row key is the number of the device.
@@ -1010,6 +1028,8 @@ typedef struct sdrkit_ism_pan_device_row {
   double last_heard;
   // The description of the last frame.
   sdrkit_string last_frame;
+  // The name of the device for people: the vendor and the short address, else the extended address.
+  sdrkit_string name;
 } sdrkit_ism_pan_device_row;
 
 // A row of the Zigbee frame log. The row key is the number of the frame in the log.
@@ -1176,6 +1196,8 @@ typedef struct sdrkit_ant_sensor_row {
   bool has_last_heard;
   // The UTC of the last frame. Seconds since 1970 (UTC).
   double last_heard;
+  // The name of the sensor for people: its type and device number.
+  sdrkit_string name;
 } sdrkit_ant_sensor_row;
 
 // A row of the frame log. The row key is the number of the frame in the log.
@@ -2177,6 +2199,98 @@ typedef struct sdrkit_dsrc_toll_dsrc_frame_row {
   // What is not shown.
   sdrkit_string identifier;
 } sdrkit_dsrc_toll_dsrc_frame_row;
+
+// The result fields of the EnOcean stack.
+typedef struct sdrkit_enocean_fields {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Telegrams; the subtelegrams of one telegram count once.
+  int64_t telegrams;
+  // Subtelegrams with a good check.
+  int64_t subtelegrams;
+  // Frames that the line coding accepted and the check refused.
+  int64_t frames_bad;
+  // Senders heard.
+  int64_t devices;
+  // Bursts over the noise floor.
+  int64_t bursts;
+  // True if `level_dbfs` holds a value.
+  bool has_level_dbfs;
+  // The power of the input. It has no value before the first input. Unit: dBFS.
+  double level_dbfs;
+  // What no real signal has confirmed and what is not read.
+  sdrkit_string note;
+} sdrkit_enocean_fields;
+
+// A row of the devices. The row key is the sender id, hex.
+typedef struct sdrkit_enocean_device_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The name of the device for people: "EnOcean", the profile when known, and the id.
+  sdrkit_string name;
+  // The radio protocol last heard.
+  sdrkit_string radio;
+  // The last telegram type.
+  sdrkit_string telegram_type;
+  // True if `profile` holds a value.
+  bool has_profile;
+  // The profile (EEP), from a teach-in or certain from the telegram type.
+  sdrkit_string profile;
+  // The last reading.
+  sdrkit_string reading;
+  // Telegrams heard.
+  int64_t telegrams;
+  // Secure telegrams heard.
+  int64_t secure;
+  // The level of the last telegram. Unit: dBFS.
+  double level_dbfs;
+  // True if `first_heard` holds a value.
+  bool has_first_heard;
+  // The UTC of the first telegram. Seconds since 1970 (UTC).
+  double first_heard;
+  // True if `last_heard` holds a value.
+  bool has_last_heard;
+  // The UTC of the last telegram. Seconds since 1970 (UTC).
+  double last_heard;
+} sdrkit_enocean_device_row;
+
+// A row of the telegram log. The row key is the number of the telegram in the log.
+typedef struct sdrkit_enocean_telegram_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // True if `utc` holds a value.
+  bool has_utc;
+  // The UTC of the first subtelegram, when the samples are live. Seconds since 1970 (UTC).
+  double utc;
+  // The signal time of the first subtelegram. Unit: s.
+  double time_s;
+  // The sender id, hex.
+  sdrkit_string sender;
+  // The radio protocol: ERP1 or ERP2.
+  sdrkit_string radio;
+  // The telegram type (RORG).
+  sdrkit_string telegram_type;
+  // What the telegram says.
+  sdrkit_string reading;
+  // The payload as hex; empty for a secure telegram.
+  sdrkit_string data;
+  // True if `destination` holds a value.
+  bool has_destination;
+  // The destination id of an addressed telegram, hex.
+  sdrkit_string destination;
+  // The repeater level of the first subtelegram.
+  sdrkit_string repeater;
+  // Subtelegrams heard of this telegram.
+  int64_t subtelegrams;
+  // The check that passed.
+  sdrkit_string check;
+  // The level of the first subtelegram. Unit: dBFS.
+  double level_dbfs;
+} sdrkit_enocean_telegram_row;
 
 // The items that each decoder component of the stack "ant" dropped because it was slow. A member holds a
 // value while its decoder runs on a helper thread.
@@ -3545,6 +3659,54 @@ typedef struct sdrkit_dsrc_toll_frame_event {
   int32_t family;
 } sdrkit_dsrc_toll_frame_event;
 
+// The options of `family` of `sdrkit_enocean_telegram_event`.
+typedef enum sdrkit_enocean_telegram_event_family {
+  // Aircraft
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_AIRCRAFT = 0,
+  // Vessel
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_VESSEL = 1,
+  // APRS
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_APRS = 2,
+  // Pager
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_PAGER = 3,
+  // Radiosonde
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_SONDE = 4,
+  // Broadcast
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_BROADCAST = 5,
+  // Voice
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_VOICE = 6,
+  // Message
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_MESSAGE = 7,
+  // Sensor
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_SENSOR = 8,
+  // Satellite
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_SATELLITE = 9,
+  // Receiver
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_RECEIVER = 10,
+  // Alert
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_ALERT = 11,
+  // Other
+  SDRKIT_ENOCEAN_TELEGRAM_EVENT_FAMILY_OTHER = 12,
+} sdrkit_enocean_telegram_event_family;
+
+// The fields of a telegram event.
+typedef struct sdrkit_enocean_telegram_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The sender id, hex.
+  sdrkit_string sender;
+  // The telegram type (RORG).
+  sdrkit_string telegram_type;
+  // What the telegram says.
+  sdrkit_string reading;
+  // The family of the event. A value of `sdrkit_enocean_telegram_event_family`.
+  int32_t family;
+} sdrkit_enocean_telegram_event;
+
 // The arguments of `remove` of an IEEE 802.15.4 stack.
 typedef struct sdrkit_ism_pan_device_args {
   // The size of this struct: sizeof of the type. The caller sets it.
@@ -3897,7 +4059,10 @@ typedef struct sdrkit_wisun_send_args {
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "ism" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
-// The column `id` names a row.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_ism_devices_rows(SDRKIT_HANDLE handle,
                                              sdrkit_ism_device_row *rows,
                                              uint32_t capacity,
@@ -4146,6 +4311,10 @@ static inline int32_t sdrkit_ism_gen_set_frame_gap_s(SDRKIT_HANDLE handle, doubl
 
 // Fills `rows` with the changed rows of the table "meters" of the stack "wmbus" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `meter_id` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_wmbus_meters_rows(SDRKIT_HANDLE handle,
                                               sdrkit_wmbus_meter_row *rows,
                                               uint32_t capacity,
@@ -4225,7 +4394,7 @@ static inline int32_t sdrkit_wmbus_set_tx_level(SDRKIT_HANDLE handle, double val
   return sdrkit_typed_setting_set_f64(handle, "tx_level", value);
 }
 
-// The setting "gen_plan" (Test signal plan) of the test signal generator of the stack "wmbus". A value of `sdrkit_wmbus_gen_plan`.
+// The setting "gen_plan" (Test signal plan) of the test signal generator of the stack "wmbus". A value of `sdrkit_wmbus_gen_plan`. The plan of a signal made for no session. In a session the meters are those on the channels around the frequency where it listens.
 static inline int32_t sdrkit_wmbus_gen_get_plan(SDRKIT_HANDLE handle, sdrkit_wmbus_gen_plan *value) {
   int32_t index = 0;
   int32_t code = sdrkit_typed_setting_get_enum(handle, "gen_plan", &index);
@@ -4276,6 +4445,10 @@ static inline int32_t sdrkit_zwave_frames_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "nodes" of the stack "zwave" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_zwave_nodes_rows(SDRKIT_HANDLE handle,
                                              sdrkit_zwave_node_row *rows,
                                              uint32_t capacity,
@@ -4285,6 +4458,7 @@ static inline int32_t sdrkit_zwave_nodes_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "networks" of the stack "zwave" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `home_id` names a row.
 // Default order: the column `level_dbfs`, highest first.
 static inline int32_t sdrkit_zwave_networks_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_zwave_network_row *rows,
@@ -4386,6 +4560,7 @@ static inline int32_t sdrkit_zwave_gen_set_centre_hz(SDRKIT_HANDLE handle, doubl
 
 // Fills `rows` with the changed rows of the table "networks" of the stack "zigbee" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `name` names a row.
 // Default order: the column `level_dbfs`, highest first.
 static inline int32_t sdrkit_zigbee_networks_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_zigbee_network_row *rows,
@@ -4396,6 +4571,10 @@ static inline int32_t sdrkit_zigbee_networks_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "zigbee" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_zigbee_devices_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_ism_pan_device_row *rows,
                                                 uint32_t capacity,
@@ -4563,6 +4742,10 @@ static inline int32_t sdrkit_sigfox_gen_set_gap(SDRKIT_HANDLE handle, double val
 
 // Fills `rows` with the changed rows of the table "sensors" of the stack "ant" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_ant_sensors_rows(SDRKIT_HANDLE handle,
                                              sdrkit_ant_sensor_row *rows,
                                              uint32_t capacity,
@@ -4661,7 +4844,10 @@ static inline int32_t sdrkit_nrf24_frames_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "addresses" of the stack "nrf24" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `address` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_nrf24_addresses_rows(SDRKIT_HANDLE handle,
                                                  sdrkit_nrf24_nrf_address_row *rows,
                                                  uint32_t capacity,
@@ -4822,7 +5008,10 @@ static inline int32_t sdrkit_subghzchat_set_frequency(SDRKIT_HANDLE handle, sdrk
 
 // Fills `rows` with the changed rows of the table "bases" of the stack "dect" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `rfpi` names a row.
 // Default order: the column `level_dbfs`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_dect_bases_rows(SDRKIT_HANDLE handle,
                                             sdrkit_dect_base_row *rows,
                                             uint32_t capacity,
@@ -4899,7 +5088,10 @@ static inline int32_t sdrkit_dect_gen_set_option(SDRKIT_HANDLE handle, sdrkit_de
 
 // Fills `rows` with the changed rows of the table "tags" of the stack "nfc" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `uid` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_nfc_tags_rows(SDRKIT_HANDLE handle,
                                           sdrkit_nfc_tag_row *rows,
                                           uint32_t capacity,
@@ -4948,6 +5140,10 @@ static inline int32_t sdrkit_wisun_networks_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "nodes" of the stack "wisun" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `address` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_wisun_nodes_rows(SDRKIT_HANDLE handle,
                                              sdrkit_wisun_node_row *rows,
                                              uint32_t capacity,
@@ -5064,6 +5260,10 @@ static inline int32_t sdrkit_thread_networks_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "thread" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `last_heard`.
 static inline int32_t sdrkit_thread_devices_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_ism_pan_device_row *rows,
                                                 uint32_t capacity,
@@ -5174,7 +5374,10 @@ static inline int32_t sdrkit_mioty_frames_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "mioty" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `id` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `first_heard`.
 static inline int32_t sdrkit_mioty_devices_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mioty_device_row *rows,
                                                uint32_t capacity,
@@ -5213,7 +5416,10 @@ static inline int32_t sdrkit_dect_nrplus_packets_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "devices" of the stack "dect_nrplus" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
 // The column `id` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `first_heard`.
 static inline int32_t sdrkit_dect_nrplus_devices_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_dect_nrplus_nr_plus_device_row *rows,
                                                      uint32_t capacity,
@@ -5243,6 +5449,10 @@ static inline int32_t sdrkit_npr70_frames_rows(SDRKIT_HANDLE handle,
 
 // Fills `rows` with the changed rows of the table "networks" of the stack "npr70" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `network` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `first_heard`.
 static inline int32_t sdrkit_npr70_networks_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_npr70_npr_network_row *rows,
                                                 uint32_t capacity,
@@ -5307,6 +5517,64 @@ static inline int32_t sdrkit_dsrc_toll_gen_get_depth(SDRKIT_HANDLE handle, doubl
 }
 static inline int32_t sdrkit_dsrc_toll_gen_set_depth(SDRKIT_HANDLE handle, double value) {
   return sdrkit_typed_setting_set_f64(handle, "gen_depth", value);
+}
+
+// Fills `rows` with the changed rows of the table "devices" of the stack "enocean" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Default order: the column `last_heard`, highest first.
+// Time: `first_heard`.
+static inline int32_t sdrkit_enocean_devices_rows(SDRKIT_HANDLE handle,
+                                                 sdrkit_enocean_device_row *rows,
+                                                 uint32_t capacity,
+                                                 sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "ism.EnoceanDeviceRow", "devices", rows, sizeof(sdrkit_enocean_device_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "telegrams" of the stack "enocean" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are a log: they arrive over time.
+// The column `sender` names a row.
+// Time: `utc`.
+static inline int32_t sdrkit_enocean_telegrams_rows(SDRKIT_HANDLE handle,
+                                                   sdrkit_enocean_telegram_row *rows,
+                                                   uint32_t capacity,
+                                                   sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "ism.EnoceanTelegramRow", "telegrams", rows, sizeof(sdrkit_enocean_telegram_row), capacity, info);
+}
+
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "enocean.telegram"
+// (EnOcean telegram). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_enocean_telegram_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_enocean_telegram_event *event) {
+  return sdrkit_typed_event(handle, n, "enocean.telegram", "ism.EnoceanTelegramEvent", event, sizeof(sdrkit_enocean_telegram_event));
+}
+
+// Runs the command "clear" (Clear) of the stack "enocean" on the session of `handle`. Forgets everything decoded so far.
+static inline int32_t sdrkit_enocean_clear(SDRKIT_HANDLE handle) {
+  return sdrkit_typed_command(handle, "clear", NULL, NULL, NULL, NULL, 0);
+}
+
+// The settings of the test signal generator of the stack "enocean" are the sdrkit_enocean_gen_*() functions
+// after the settings of its receiver.
+
+// The setting "threshold" (Detection threshold) of the stack "enocean". Unit: dB. How far above the noise floor a burst must rise.
+static inline int32_t sdrkit_enocean_get_threshold(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "threshold", value);
+}
+static inline int32_t sdrkit_enocean_set_threshold(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "threshold", value);
+}
+
+// The setting "gen_radio" (Test signal protocol) of the test signal generator of the stack "enocean". A value of `sdrkit_enocean_gen_radio`.
+static inline int32_t sdrkit_enocean_gen_get_radio(SDRKIT_HANDLE handle, sdrkit_enocean_gen_radio *value) {
+  int32_t index = 0;
+  int32_t code = sdrkit_typed_setting_get_enum(handle, "gen_radio", &index);
+  if (code == SDRKIT_OK && value) *value = (sdrkit_enocean_gen_radio)index;
+  return code;
+}
+static inline int32_t sdrkit_enocean_gen_set_radio(SDRKIT_HANDLE handle, sdrkit_enocean_gen_radio value) {
+  return sdrkit_typed_setting_set_enum(handle, "gen_radio", (int32_t)value);
 }
 
 // Fills `fields` with the result fields of the snapshot of `handle`.
@@ -5437,6 +5705,11 @@ static inline int32_t sdrkit_npr70_npr_fields_read(SDRKIT_HANDLE handle, sdrkit_
 // Fills `fields` with the result fields of the snapshot of `handle`.
 static inline int32_t sdrkit_dsrc_toll_dsrc_fields_read(SDRKIT_HANDLE handle, sdrkit_dsrc_toll_dsrc_fields *fields) {
   return sdrkit_typed_fields(handle, "ism.DsrcFields", fields, sizeof(sdrkit_dsrc_toll_dsrc_fields));
+}
+
+// Fills `fields` with the result fields of the snapshot of `handle`.
+static inline int32_t sdrkit_enocean_fields_read(SDRKIT_HANDLE handle, sdrkit_enocean_fields *fields) {
+  return sdrkit_typed_fields(handle, "ism.EnoceanFields", fields, sizeof(sdrkit_enocean_fields));
 }
 
 // Fills `fields` with the result fields of the component "burstdetect" of the stack "ism" in the snapshot of

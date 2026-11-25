@@ -1,6 +1,8 @@
 //! The `ble` device table, the packet log and what the stack publishes (the `wlan.ble_devices` component). The table and
 //! the log are kept in the saved state.
 
+use super::adv::{kind_of, parse_ad, AdvInfo, DeviceKind};
+use super::follow::{Follower, Role};
 use super::{AdvChannel, AdvStats, Advert};
 use crate::report::{hex, push_history, remove_older_rows, wall, BLE_PRIVACY_NOTE};
 use crate::typed::{
@@ -19,7 +21,7 @@ use sdrkit_core::{
 use sdrkit_graph::{
     values_of, Applied, Component, ComponentInfo, Format, Io, Kept, Kind, Port, RunContext, Timed,
 };
-use sdrkit_proto_wlan_phy::ble::{channel_hz, Addr, AddrKind, Body, PduType};
+use sdrkit_proto_wlan_phy::ble::{channel_hz, Addr, AddrKind, Body, Coding, PduType, Phy};
 use sdrkit_util_objects::commands::{self as objcmd, Tables as _};
 use sdrkit_util_objects::publish::columns;
 use sdrkit_util_objects::shaped::{self, RowOut, Shaped};
@@ -170,6 +172,18 @@ pub struct Device {
     pub beacon_text: String,
     /// The text of the channels column.
     pub channels_text: String,
+    /// PHYs heard (bit 0 LE 1M, 1 LE 2M, 2 LE Coded).
+    pub phys: u8,
+    /// The text of the PHYs column.
+    pub phys_text: String,
+    /// An AuxPtr pointed to a channel outside the capture.
+    pub aux_outside: bool,
+    /// The advertising set id of the last extended packet.
+    pub set_id: Option<u8>,
+    /// The periodic advertising interval, ms.
+    pub periodic_interval_ms: Option<f64>,
+    /// The kind of device.
+    pub device_kind: DeviceKind,
 }
 
 impl Device {
@@ -185,6 +199,17 @@ impl Device {
             }
         }
         s
+    }
+
+    /// The PHYs heard, as "LE 1M, LE Coded".
+    pub fn phys_column(&self) -> String {
+        [Phy::Le1M, Phy::Le2M, Phy::LeCoded]
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| self.phys & (1 << i) != 0)
+            .map(|(_, p)| p.name())
+            .collect::<Vec<_>>()
+            .join(", ")
     }
 
     /// The beacon, then the services, then the TX power, joined with "; ".
@@ -214,6 +239,14 @@ impl Shift for Device {
     fn shift_times(&mut self, _by_s: f64) {}
 }
 
+/// The PHY of a packet as the log shows it: "LE 1M", "LE 2M", "LE Coded S=2" or "LE Coded S=8".
+pub fn phy_text(phy: Phy, coding: Option<Coding>) -> String {
+    match coding {
+        Some(c) if phy == Phy::LeCoded => format!("{} {}", phy.name(), c.name()),
+        _ => phy.name().to_owned(),
+    }
+}
+
 /// `s`, or no value for an empty text.
 fn known(s: &str) -> Option<&str> {
     (!s.is_empty()).then_some(s)
@@ -236,6 +269,12 @@ impl Shaped for Device {
             scanned: self.scanned,
             manufacturer_data: known(&self.mfr_hex),
             first_heard: columns::first_heard(seen).map(Time),
+            phys: &self.phys_text,
+            extended: self.extended,
+            data_outside: self.aux_outside,
+            set_id: self.set_id.map(i64::from),
+            periodic_interval_ms: self.periodic_interval_ms,
+            device_kind: self.device_kind,
         });
     }
 }
@@ -257,6 +296,8 @@ pub struct LogEntry {
     pub len: u8,
     /// Summary.
     pub info: String,
+    /// The PHY text.
+    pub phy: String,
 }
 
 impl Shift for LogEntry {
@@ -276,6 +317,7 @@ impl Shaped for LogEntry {
             level_dbfs: self.level_dbfs,
             length: i64::from(self.len),
             details: &self.info,
+            phy: &self.phy,
         });
     }
 }
@@ -306,7 +348,7 @@ impl Shift for Store {
 }
 
 impl objcmd::Tables for Store {
-    const FORMAT: StateFormat = StateFormat::new("wlan.ble_devices", 2);
+    const FORMAT: StateFormat = StateFormat::new("wlan.ble_devices", 3);
     fn clear(&mut self) {
         self.devices.clear();
         self.log.clear();
@@ -323,12 +365,12 @@ pub fn device_key(a: &Addr) -> String {
 }
 
 /// The counters of the packets taken since the last clear.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Counters {
     /// Good packets.
     pub good: u64,
-    /// Good packets by PDU type code.
-    pub per_type: [u64; 16],
+    /// Good packets by PDU name.
+    pub per_type: Vec<(&'static str, u64)>,
     /// Good packets on 37, 38 and 39.
     pub per_channel: [u64; 3],
     /// The running mean of the eye SNR.
@@ -341,6 +383,16 @@ pub struct Counters {
     pub last_channel: u8,
     /// The last good packet's signal time.
     pub last_good_s: Option<f64>,
+    /// Good packets on channels 0 to 36.
+    pub secondary: u64,
+    /// Good packets on LE 2M.
+    pub two_m: u64,
+    /// Good packets on LE Coded.
+    pub coded: u64,
+    /// Auxiliary packets reached through their pointer.
+    pub aux_followed: u64,
+    /// Pointers to a channel outside the capture.
+    pub aux_outside: u64,
 }
 
 /// The device table and packet log as a component.
@@ -350,6 +402,7 @@ pub struct DeviceTable {
     pub store: Store,
     /// The counters.
     pub counters: Counters,
+    follow: Follower,
     stats: AdvStats,
     base: AdvStats,
     level_dbfs: Option<f64>,
@@ -383,6 +436,7 @@ impl Default for DeviceTable {
             ]),
             store: Store::default(),
             counters: Counters::default(),
+            follow: Follower::default(),
             stats: AdvStats::default(),
             base: AdvStats::default(),
             level_dbfs: None,
@@ -407,8 +461,11 @@ impl Default for DeviceTable {
     }
 }
 
-fn update_from_adv(d: &mut Device, a: &Advert, t: PduType, adv_mode: u8) {
-    let info = &a.info;
+fn update_from_adv(d: &mut Device, info: &AdvInfo, t: PduType, adv_mode: u8) {
+    let k = kind_of(info);
+    if k != DeviceKind::Unknown {
+        d.device_kind = k;
+    }
     if let Some(n) = &info.name {
         if info.name_complete || d.name.is_empty() || d.name.len() <= n.len() {
             d.name.clone_from(n);
@@ -480,11 +537,30 @@ impl DeviceTable {
             Some(w) => Stamp::at(a.time_s).with_wall(w),
             None => Stamp::at(a.time_s),
         };
+        let f = self.follow.take(a, self.stats.capture);
+        let role = f.as_ref().map_or(Role::Primary, |f| f.role);
+        let name = role.pdu_name(t);
         let c = &mut self.counters;
         c.good += 1;
-        c.per_type[t.code() as usize & 15] += 1;
+        match c.per_type.iter_mut().find(|(n, _)| *n == name) {
+            Some(e) => e.1 += 1,
+            None => c.per_type.push((name, 1)),
+        }
         if (37..=39).contains(&a.channel) {
             c.per_channel[(a.channel - 37) as usize] += 1;
+        } else {
+            c.secondary += 1;
+        }
+        match a.phy {
+            Phy::Le2M => c.two_m += 1,
+            Phy::LeCoded => c.coded += 1,
+            Phy::Le1M => {}
+        }
+        if matches!(role, Role::AuxAdv | Role::AuxChain | Role::AuxScanRsp) {
+            c.aux_followed += 1;
+        }
+        if f.as_ref().is_some_and(|f| f.outside.is_some()) {
+            c.aux_outside += 1;
         }
         c.snr_db = Some(match c.snr_db {
             None => a.snr_db,
@@ -494,15 +570,29 @@ impl DeviceTable {
         c.deviation_hz = a.deviation_hz;
         c.last_channel = a.channel;
         c.last_good_s = Some(a.time_s);
-        let sender = super::adv::sender(&p);
+        let owner = f.as_ref().and_then(|f| f.owner);
+        let sender = super::adv::sender(&p).or(owner);
+        let mut info = a.summary.clone();
+        if let Some(f) = &f {
+            if let Some(ch) = f.outside {
+                let _ = write!(info, "; channel {ch} is outside the capture");
+            }
+            if f.incomplete {
+                info.push_str("; data incomplete");
+            }
+            if f.unfollowed {
+                info.push_str("; not followed");
+            }
+        }
         self.store.log.push(LogEntry {
             t: a.time_s,
             ch: a.channel,
-            pdu: t.name().into(),
+            pdu: name.into(),
             addr: sender.map(|x| x.text()).unwrap_or_default(),
             level_dbfs: a.level_dbfs,
             len: p.header.length,
-            info: a.summary.clone(),
+            info,
+            phy: phy_text(a.phy, a.coding),
         });
         if let Body::ScanReq { adv_a, .. } = p.body {
             // The advertiser that the request addresses is marked, but this packet is not its own: a known row is not
@@ -531,8 +621,40 @@ impl DeviceTable {
             d.chan_mask |= 1 << (a.channel - 37);
             d.channels_text = d.channels();
         }
-        if !matches!(t, PduType::ScanReq | PduType::ConnectInd) {
-            update_from_adv(d, a, t, adv_mode);
+        d.phys |= match a.phy {
+            Phy::Le1M => 1,
+            Phy::Le2M => 2,
+            Phy::LeCoded => 4,
+        };
+        d.phys_text = d.phys_column();
+        match &f {
+            Some(f) if f.role != Role::Primary => {
+                d.extended = true;
+                if let Some(data) = &f.complete {
+                    update_from_adv(d, &parse_ad(data), t, adv_mode);
+                }
+            }
+            _ if !matches!(t, PduType::ScanReq | PduType::ConnectInd) => {
+                update_from_adv(d, &a.info, t, adv_mode)
+            }
+            _ => {}
+        }
+        if let Body::Extended { ext, .. } = p.body {
+            if ext.tx_power.is_some_and(|t| t != 127) {
+                d.tx_power_dbm = ext.tx_power;
+                d.beacon_text = d.beacon_column();
+            }
+        }
+        if let Some(f) = &f {
+            if f.outside.is_some() {
+                d.aux_outside = true;
+            }
+            if f.set_id.is_some() {
+                d.set_id = f.set_id;
+            }
+            if let Some(si) = f.sync {
+                d.periodic_interval_ms = Some(si.interval_s() * 1e3);
+            }
         }
         let freq = channel_hz(a.channel).unwrap_or(0.0);
         Some(BLE_DEVICE.event(
@@ -558,6 +680,7 @@ impl DeviceTable {
 
     fn clear(&mut self) {
         self.store.clear();
+        self.follow.clear();
         self.counters = Counters::default();
         self.base = self.stats;
         self.published.clear_rows(BLE_PDU_TYPES.def());
@@ -567,7 +690,12 @@ impl DeviceTable {
     /// Publishes the results now.
     pub fn publish(&mut self) {
         let now = self.now_s;
-        let c = self.counters;
+        // The PDU counts are lent out for the time of the publish, so nothing is copied.
+        let per_type = std::mem::take(&mut self.counters.per_type);
+        let c = Counters {
+            per_type: Vec::new(),
+            ..self.counters
+        };
         let (hits, bad) = self.counters_since_clear();
         let active = c.last_good_s.is_some_and(|l| now - l <= ACTIVE_S);
         let channel = self.stats.channel;
@@ -618,21 +746,25 @@ impl DeviceTable {
             packets_39: c.per_channel[2] as i64,
             hopping: self.hop,
             privacy: BLE_PRIVACY_NOTE,
+            packets_secondary: c.secondary as i64,
+            packets_2m: c.two_m as i64,
+            packets_coded: c.coded as i64,
+            channels_in_capture: i64::from(self.stats.capture.count_ones()),
+            aux_followed: c.aux_followed as i64,
+            aux_outside: c.aux_outside as i64,
+            periodic_trains: i64::from(self.stats.trains),
         });
-        for i in 0..16u8 {
-            let n = c.per_type[usize::from(i)];
-            if n > 0 {
-                let name = PduType::from_code(i).name();
-                BLE_PDU_TYPES.put(
-                    p,
-                    name,
-                    &BlePduTypeRow {
-                        pdu: name,
-                        packets: n as i64,
-                    },
-                );
-            }
+        for &(name, n) in &per_type {
+            BLE_PDU_TYPES.put(
+                p,
+                name,
+                &BlePduTypeRow {
+                    pdu: name,
+                    packets: n as i64,
+                },
+            );
         }
+        self.counters.per_type = per_type;
         let (filter, min_level, named_only) =
             (&self.filter_lower, self.min_level_dbfs, self.named_only);
         shaped::rows_where(&self.store.devices, &BLE_DEVICES, now, p, |r| {

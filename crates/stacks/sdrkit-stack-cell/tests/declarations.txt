@@ -144,6 +144,7 @@ setting SettingDecl { field: FieldDecl { key: "min_rsrp", label: "Minimum RSRP",
 setting SettingDecl { field: FieldDecl { key: "mib_only", label: "Only cells with a MIB", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "List", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "not_barred", label: "Leave out barred cells", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "List", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "band_order", label: "Band order", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Band numbers taken first where bands overlap (\"1 3 7\"); the other bands follow in band number order.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "symbol_phase", label: "Symbol phase of up-conversion", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: true, help: "On for cells on the air. Off for a test signal whose symbols all start at phase zero at baseband.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "gen_scene", label: "Test signal scene", unit: "", kind: Choice, choices: [ChoiceDecl { key: "0", label: "Two n78 cells" }, ChoiceDecl { key: "1", label: "n28 cell" }, ChoiceDecl { key: "2", label: "Barred n78 cell" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 field FieldDecl { key: "captures", label: "Captures searched", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "retunes", label: "Retunes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -153,12 +154,18 @@ field FieldDecl { key: "capture_centre", label: "Capture centre", unit: "Hz", ki
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "with_mib", label: "With MIB", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "with_sib1", label: "With SIB1", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "gscn_lo", label: "Lowest GSCN searched", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "gscn_hi", label: "Highest GSCN searched", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "candidates", label: "Candidates", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "banner", label: "Notice", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "cells" "Cells" cap 300
+  column FieldDecl { key: "decoded", label: "Decoded", unit: "", kind: Choice, choices: [ChoiceDecl { key: "sync", label: "Sync" }, ChoiceDecl { key: "mib", label: "MIB" }, ChoiceDecl { key: "sib1", label: "SIB1" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "plmn", label: "PLMN", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "tac", label: "TAC", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "nci", label: "Cell identity", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "band", label: "Band", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "gscn", label: "GSCN", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "frequency", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
@@ -171,6 +178,43 @@ table "cells" "Cells" cap 300
   column FieldDecl { key: "rsrq_db", label: "RSRQ", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "sinr_db", label: "SINR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+table "nr_details" "Details" cap 300
+  column FieldDecl { key: "cell", label: "Cell", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "cells", column: "" }), content: None, reading: 0 }
+  column FieldDecl { key: "sib1", label: "SIB1", unit: "", kind: Choice, choices: [ChoiceDecl { key: "no_mib", label: "No MIB" }, ChoiceDecl { key: "not_tried", label: "Not tried yet" }, ChoiceDecl { key: "not_scheduled", label: "Not scheduled" }, ChoiceDecl { key: "no_frequency", label: "Radio frequency unknown" }, ChoiceDecl { key: "too_narrow", label: "CORESET#0 outside the capture" }, ChoiceDecl { key: "no_control", label: "No PDCCH for SIB1 found" }, ChoiceDecl { key: "no_data", label: "PDCCH decoded, PDSCH failed" }, ChoiceDecl { key: "unreadable", label: "Block decoded, not a readable SIB1" }, ChoiceDecl { key: "decoded", label: "Decoded" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "sib1_parts", label: "SIB1 parts", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "coreset0_width", label: "CORESET#0 width", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "rate_needed", label: "Rate for CORESET#0", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "scs_common", label: "Common spacing", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "k_ssb", label: "k_SSB", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "barred", label: "Barred", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "intra_freq_reselection", label: "Intra-frequency reselection", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "reserved_other_use", label: "Reserved for other use", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "q_rx_lev_min_dbm", label: "q-RxLevMin", unit: "dBm", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "bands", label: "Bands", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "ssb_period", label: "SSB period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "carrier_scs", label: "Carrier spacing", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "carrier_rbs", label: "Carrier width", unit: "RB", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "offset_to_point_a", label: "Offset to point A", unit: "RB", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "bwp_start", label: "Initial BWP start", unit: "RB", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "bwp_rbs", label: "Initial BWP width", unit: "RB", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "si_window", label: "SI window", unit: "slots", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "tdd", label: "TDD", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "sib1_count", label: "SIB1 decodes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+table "nr_networks" "Networks" cap 1200
+  column FieldDecl { key: "cell", label: "Cell", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "cells", column: "" }), content: None, reading: 0 }
+  column FieldDecl { key: "plmn", label: "PLMN", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "tac", label: "TAC", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "nci", label: "Cell identity", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "gnb", label: "gNB", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "cell_id", label: "Cell in gNB", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "reserved_operator", label: "Reserved for the operator", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+table "nr_sibs" "SIBs" cap 2400
+  column FieldDecl { key: "cell", label: "Cell", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "cells", column: "" }), content: None, reading: 0 }
+  column FieldDecl { key: "sib", label: "SIB", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "broadcasting", label: "Broadcast", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "value_tag", label: "Value tag", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "cell.nr_cell" "NR cell"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }

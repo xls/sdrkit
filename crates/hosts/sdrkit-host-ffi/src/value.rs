@@ -82,6 +82,8 @@ pub const SDRKIT_TYPE_ENUM: i32 = 9;
 pub const SDRKIT_TYPE_BYTES: i32 = 10;
 /// Any type: each value carries its own. Only a column or an argument has this type.
 pub const SDRKIT_TYPE_ANY: i32 = 11;
+/// A set of the flags of the declaration, as a mask in `flags`: bit n is option n.
+pub const SDRKIT_TYPE_FLAGS: i32 = 12;
 
 /// One value. `type` is an `SDRKIT_TYPE_*` constant and selects the member that holds the value. The other members are 0.
 #[repr(C)]
@@ -105,6 +107,8 @@ pub struct Variant {
     pub string: Str,
     /// For `SDRKIT_TYPE_BYTES`.
     pub bytes: Bytes,
+    /// For `SDRKIT_TYPE_FLAGS`: the mask.
+    pub flags: u64,
 }
 
 /// A place on the Earth.
@@ -161,6 +165,7 @@ pub(crate) fn type_code(k: ValueKind) -> i32 {
         ValueKind::Duration => SDRKIT_TYPE_DURATION,
         ValueKind::Position => SDRKIT_TYPE_POSITION,
         ValueKind::Choice => SDRKIT_TYPE_ENUM,
+        ValueKind::Flags => SDRKIT_TYPE_FLAGS,
         ValueKind::Bytes => SDRKIT_TYPE_BYTES,
         ValueKind::Any => SDRKIT_TYPE_ANY,
     }
@@ -189,6 +194,7 @@ impl Variant {
             lon: 0.0,
             string: Str::of(""),
             bytes: Bytes::of(&[]),
+            flags: 0,
         }
     }
 
@@ -225,6 +231,10 @@ impl Variant {
                 enum_index: u32::from(*c),
                 ..Self::empty(SDRKIT_TYPE_ENUM)
             },
+            Value::Flags(m) => Variant {
+                flags: *m,
+                ..Self::empty(SDRKIT_TYPE_FLAGS)
+            },
             Value::Bytes(b) => Variant {
                 bytes: Bytes::of(b),
                 ..Self::empty(SDRKIT_TYPE_BYTES)
@@ -256,6 +266,7 @@ impl Variant {
                     })?,
                 )
             }
+            SDRKIT_TYPE_FLAGS => Value::Flags(self.flags),
             SDRKIT_TYPE_STRING => {
                 // SAFETY: the caller's contract on `string`.
                 let b = unsafe { slice_in(self.string.ptr.cast::<u8>(), self.string.len)? };

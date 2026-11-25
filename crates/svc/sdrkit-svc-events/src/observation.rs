@@ -159,6 +159,8 @@ impl<'e> Observation<'e> {
                     Value::Choice(i) => {
                         Reading::Text(decl.choices.get(usize::from(*i))?.key.as_ref())
                     }
+                    // The mask of a flag set, as a number.
+                    Value::Flags(m) => Reading::Number(*m as f64),
                     Value::Bytes(b) => Reading::Bytes(b),
                 })
             }

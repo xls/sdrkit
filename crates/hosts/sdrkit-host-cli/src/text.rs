@@ -78,6 +78,7 @@ pub fn parse_value(decl: &FieldDecl, text: &str) -> Result<Value, CliError> {
     };
     let number = || text.trim().parse::<f64>().ok().filter(|v| v.is_finite());
     let v = match decl.kind {
+        ValueKind::Flags => return Err(bad(": a flag set is a result, not an input".into())),
         ValueKind::Bool => match text.to_ascii_lowercase().as_str() {
             "yes" | "true" | "on" | "1" => Value::Bool(true),
             "no" | "false" | "off" | "0" => Value::Bool(false),
@@ -223,10 +224,10 @@ pub fn cell(decl: &FieldDecl, v: &Value, now: f64) -> String {
         Value::F64(x) if unit.starts_with("dB") || unit == "%" => s = format!("{x:.1} {unit}"),
         Value::Position { lat, lon } => s = format!("{lat:.4}, {lon:.4}"),
         Value::F64(_) | Value::I64(_) if !unit.is_empty() => {
-            let _ = write!(s, "{} {unit}", v.display(&decl.choices));
+            let _ = write!(s, "{} {unit}", v.display(&decl.choices).with_flags(&decl.flags));
         }
         _ => {
-            let _ = write!(s, "{}", v.display(&decl.choices));
+            let _ = write!(s, "{}", v.display(&decl.choices).with_flags(&decl.flags));
         }
     }
     s

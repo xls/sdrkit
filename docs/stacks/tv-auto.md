@@ -58,7 +58,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:tv
 
 ## Typed interface
 
-The stack is in the family `tvterr`, version 1.8. The C header `sdrkit/tvterr.h`, the registry record `registry/tvterr.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `tvterr`, version 2.0. The C header `sdrkit/tvterr.h`, the registry record `registry/tvterr.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Measurement and analysis (`measurement`). Media: none.
 

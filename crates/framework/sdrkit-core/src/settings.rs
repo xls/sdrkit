@@ -201,7 +201,7 @@ impl SettingDecl {
     }
 }
 
-/// A field kind that a setting can have: every kind except [`field::Bytes`].
+/// A field kind that a setting can have: every kind except [`field::Bytes`] and [`field::Flags`].
 pub trait SettingKind: Kind {
     /// The type of a default given in a constant.
     type Default: Copy + Send + Sync + 'static;
@@ -698,7 +698,8 @@ pub enum SchemaError {
     /// The keys are not unique, or there are too many settings.
     #[error(transparent)]
     Decl(#[from] DeclError),
-    /// A setting has the kind [`ValueKind::Bytes`] or [`ValueKind::Any`], which no setting can have.
+    /// A setting has the kind [`ValueKind::Bytes`] or [`ValueKind::Any`], which no setting can have, or a setting or an
+    /// argument is a flag set, which is for results only.
     #[error("setting number {} has a kind no setting can have", .id.0)]
     Kind {
         /// The setting.
@@ -779,7 +780,9 @@ impl Schema {
         };
         for (i, s) in schema.settings.iter().enumerate() {
             let id = SettingId(i as u16);
-            if !arguments && matches!(s.field.kind, ValueKind::Bytes | ValueKind::Any) {
+            let refused = s.field.kind == ValueKind::Flags
+                || !arguments && matches!(s.field.kind, ValueKind::Bytes | ValueKind::Any);
+            if refused {
                 return Err(SchemaError::Kind { id });
             }
             if s.required {
@@ -1170,6 +1173,8 @@ impl Values {
                     None => Json::from(*i),
                 },
                 Value::Bytes(b) => Json::from(b.to_vec()),
+                // No setting is a flag set ([`SchemaError::Kind`]).
+                Value::Flags(m) => Json::from(*m),
             };
             m.insert(s.field.key.to_string(), j);
         }
@@ -1281,7 +1286,7 @@ fn from_json(id: SettingId, s: &SettingDecl, j: &Json) -> Result<Value, ValuesEr
             let lon = j.get("lon").and_then(Json::as_f64).ok_or_else(wrong)?;
             Value::Position { lat, lon }
         }
-        ValueKind::Bytes | ValueKind::Any => return Err(wrong()),
+        ValueKind::Bytes | ValueKind::Any | ValueKind::Flags => return Err(wrong()),
     })
 }
 

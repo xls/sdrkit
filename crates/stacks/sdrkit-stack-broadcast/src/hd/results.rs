@@ -20,6 +20,24 @@ sdrkit_core::choice_enum! {
     }
 }
 
+sdrkit_core::choice_enum! {
+    /// The sound that the HD Radio stack plays. The digital sound (HDC) is not decoded.
+    pub enum HdSound {
+        /// No sound: no FM signal, or a signal in the AM band.
+        Silent = ("none", "No sound"),
+        /// The analogue FM programme of a hybrid FM signal, mono.
+        AnalogueFm = ("analogue_fm", "Analogue FM programme"),
+    }
+}
+
+/// What the HD Radio stack plays, which its sound stage writes.
+#[derive(Clone, Copy, Debug, PartialEq, Fields)]
+pub struct HdSoundFields {
+    /// The sound that plays.
+    #[field(label = "Sound")]
+    pub sound: HdSound,
+}
+
 /// The results of the HD Radio stack. No band or mode before the first frame, no measurement while the receiver
 /// searches and no station data before the PIDS carry it.
 #[derive(Clone, Debug, PartialEq, Fields)]
@@ -81,7 +99,7 @@ pub struct HdradioFields<'a> {
     /// Signal time.
     #[field(label = "Signal time", unit = "s")]
     pub signal_time: Seconds,
-    /// What the audio codec needs, or why it cannot play.
+    /// Why the digital sound (HDC) does not play.
     #[field(label = "Codec")]
     pub codec_note: Option<&'a str>,
     /// P1 frames arrive.

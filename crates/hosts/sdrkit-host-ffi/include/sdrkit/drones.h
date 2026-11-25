@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "drones", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "drones", version 2.0. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -34,8 +34,8 @@
 #include "../sdrkit.h"
 
 // The version of the family that this header describes.
-#define SDRKIT_DRONES_VERSION_MAJOR 1
-#define SDRKIT_DRONES_VERSION_MINOR 4
+#define SDRKIT_DRONES_VERSION_MAJOR 2
+#define SDRKIT_DRONES_VERSION_MINOR 0
 
 // The stack "remote_id": its id, and the keys of its event types.
 #define SDRKIT_STACK_REMOTE_ID "remote_id"
@@ -258,8 +258,14 @@ typedef struct sdrkit_remote_id_fields {
   int32_t band;
   // Drones in the table.
   int64_t drones;
+  // Drones in the table whose trust verdict is suspicious or spoofed.
+  int64_t flagged;
   // Messages decoded.
   int64_t messages;
+  // Messages refused: members of a Message Pack that are packs or of a reserved type, authentication pages that fail their checks.
+  int64_t messages_refused;
+  // Messages with a value outside its range (a Location timestamp above 36000, a latitude or longitude out of range), which the tables show as absent.
+  int64_t fields_out_of_range;
   // Good BLE packets.
   int64_t ble_good;
   // Good BLE packets with Remote ID.
@@ -294,12 +300,6 @@ typedef struct sdrkit_remote_id_fields {
   bool has_level_dbfs;
   // Level of the signal or channel, dBFS (a mean power of 1 is 0 dBFS). Unit: dBFS.
   double level_dbfs;
-  // Drones in the table whose trust verdict is suspicious or spoofed.
-  int64_t flagged;
-  // Messages refused: members of a Message Pack that are packs or of a reserved type, authentication pages that fail their checks.
-  int64_t messages_refused;
-  // Messages with a value outside its range (a Location timestamp above 36000, a latitude or longitude out of range), which the tables show as absent.
-  int64_t fields_out_of_range;
 } sdrkit_remote_id_fields;
 
 // The options of `verdict` of `sdrkit_remote_id_drone_row`.
@@ -313,6 +313,53 @@ typedef enum sdrkit_remote_id_drone_row_verdict {
   // Spoofed
   SDRKIT_REMOTE_ID_DRONE_ROW_VERDICT_SPOOFED = 3,
 } sdrkit_remote_id_drone_row_verdict;
+
+// The flags of `reasons` of `sdrkit_remote_id_drone_row`: a mask with one bit for each flag that is set.
+typedef uint64_t sdrkit_remote_id_drone_row_reasons;
+// Known spoofer: The broadcasts have the fingerprint of a public spoofing tool.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_KNOWN_SPOOFER (UINT64_C(1) << 0)
+// Authentication failed: A signature or a key binding of the drone does not verify.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_AUTH_FAILED (UINT64_C(1) << 1)
+// Teleport: The position jumped further than the speed limit allows.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_TELEPORT (UINT64_C(1) << 2)
+// Counter conflict: One counter value carried two contents: two radios share an address.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_COUNTER_CONFLICT (UINT64_C(1) << 3)
+// Identity clone: Another transmitter sends the same ID from a position that does not fit.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_IDENTITY_CLONE (UINT64_C(1) << 4)
+// Transport disagreement: The same ID says different things on Bluetooth and Wi-Fi.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_TRANSPORT_DISAGREEMENT (UINT64_C(1) << 5)
+// Speed implausible: The track is faster than any drone, over several windows.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_SPEED_IMPLAUSIBLE (UINT64_C(1) << 6)
+// Reported speed mismatch: The reported horizontal speed does not fit the track.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_REPORTED_SPEED_MISMATCH (UINT64_C(1) << 7)
+// Reported course mismatch: The reported direction does not fit the track.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_REPORTED_COURSE_MISMATCH (UINT64_C(1) << 8)
+// Vertical rate implausible: The climb or descent rate is impossible or does not fit the reported vertical speed.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_VERTICAL_RATE_IMPLAUSIBLE (UINT64_C(1) << 9)
+// Timestamp frozen: The location timestamps stopped while the clock of the receiver ran.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_TIMESTAMP_FROZEN (UINT64_C(1) << 10)
+// Location clock drift: The location timestamps run at a wrong rate or far from UTC.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_LOCATION_CLOCK_DRIFT (UINT64_C(1) << 11)
+// System clock drift: The system or authentication timestamps are zero or far from UTC.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_SYSTEM_CLOCK_DRIFT (UINT64_C(1) << 12)
+// TSF wall clock: The Wi-Fi timer holds a wall clock time, as software that injects frames writes it.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_TSF_WALL_CLOCK (UINT64_C(1) << 13)
+// TSF discontinuity: The Wi-Fi timer jumps against the clock of the receiver.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_TSF_DISCONTINUITY (UINT64_C(1) << 14)
+// Counter interleave: The message counter starts again and again.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_COUNTER_INTERLEAVE (UINT64_C(1) << 15)
+// Signal jump: The signal strength jumps from frame to frame.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_SIGNAL_JUMP (UINT64_C(1) << 16)
+// Shared radio: Several transmitter addresses share one radio clock.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_SHARED_RADIO (UINT64_C(1) << 17)
+// Invalid fields: Location fields are outside their ranges or hold reserved codes.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_INVALID_FIELDS (UINT64_C(1) << 18)
+// Serial format: The serial number does not follow ANSI/CTA-2063-A.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_SERIAL_FORMAT (UINT64_C(1) << 19)
+// No Basic ID: The drone sends locations for a while and never a Basic ID.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_NO_BASIC_ID (UINT64_C(1) << 20)
+// Authentication expired: A valid signature is outside its time window: a possible replay.
+#define SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_AUTH_EXPIRED (UINT64_C(1) << 21)
 
 // The options of `via` of `sdrkit_remote_id_drone_row`.
 typedef enum sdrkit_remote_id_drone_row_via {
@@ -334,6 +381,12 @@ typedef struct sdrkit_remote_id_drone_row {
   sdrkit_string source;
   // The broadcast address.
   sdrkit_string address;
+  // True if `verdict` holds a value.
+  bool has_verdict;
+  // The trust verdict of the broadcasts heard since the stack started: authenticated, plausible, suspicious or spoofed. No value before the first packet since the start (a drone of a restored state). A value of `sdrkit_remote_id_drone_row_verdict`.
+  int32_t verdict;
+  // The active reasons of the trust verdict, one flag for each. No flag when there is none. A mask of the `SDRKIT_REMOTE_ID_DRONE_ROW_REASONS_*` bits.
+  sdrkit_remote_id_drone_row_reasons reasons;
   // True if `serial` holds a value.
   bool has_serial;
   // Serial number.
@@ -450,6 +503,14 @@ typedef struct sdrkit_remote_id_drone_row {
   bool has_authentication_pages;
   // Authentication pages.
   int64_t authentication_pages;
+  // True if `authentication_length` holds a value.
+  bool has_authentication_length;
+  // Authentication data length in bytes, from page 0. Unit: B.
+  int64_t authentication_length;
+  // True if `authentication_complete` holds a value.
+  bool has_authentication_complete;
+  // Every page of the present authentication was heard. No signature is verified.
+  bool authentication_complete;
   // Basic ID messages (a field: all drones; a column: one drone).
   int64_t basic_id_messages;
   // Location messages.
@@ -478,20 +539,6 @@ typedef struct sdrkit_remote_id_drone_row {
   bool has_heard;
   // Times heard.
   int64_t heard;
-  // True if `verdict` holds a value.
-  bool has_verdict;
-  // The trust verdict of the broadcasts heard since the stack started: authenticated, plausible, suspicious or spoofed. No value before the first packet since the start (a drone of a restored state). A value of `sdrkit_remote_id_drone_row_verdict`.
-  int32_t verdict;
-  // The active reasons of the trust verdict: their stable names (`teleport`, `counter_conflict`, ...) joined by ", ". Empty when there is none.
-  sdrkit_string reasons;
-  // True if `authentication_length` holds a value.
-  bool has_authentication_length;
-  // Authentication data length in bytes, from page 0. Unit: B.
-  int64_t authentication_length;
-  // True if `authentication_complete` holds a value.
-  bool has_authentication_complete;
-  // Every page of the present authentication was heard. No signature is verified.
-  bool authentication_complete;
 } sdrkit_remote_id_drone_row;
 
 // The options of `via` of `sdrkit_remote_id_message_row`.
@@ -586,6 +633,22 @@ typedef struct sdrkit_dji_droneid_fields {
   double burst_cfo_hz;
   // Drones in the table.
   int64_t drones;
+  // Aircraft in the aircraft table: the drones with a readable packet, the aircraft that send the encrypted format, and the sender of empty frames.
+  int64_t aircraft;
+  // DroneID frames of the encrypted format: the aircraft is present, its position and serial number are not readable.
+  int64_t droneid_encrypted;
+  // Empty DroneID frames: the aircraft is present and sends no data in this state.
+  int64_t droneid_empty;
+  // DroneID frames whose CRC-24 passed and whose layout is not known.
+  int64_t droneid_other;
+  // Frames of zeros that were refused: the received bits did not agree with an empty frame.
+  int64_t droneid_refused;
+  // Pairs of the two DroneID symbols that the continuous search found.
+  int64_t droneid_pairs;
+  // Bursts of the continuous search whose two symbols passed the check at the full rate.
+  int64_t droneid_bursts;
+  // The DroneID frequencies inside the capture that the continuous search covers.
+  int64_t droneid_searched;
   // True if `signal` holds a value.
   bool has_signal;
   // The track with the most likely DJI shape: a row key of the `signals` table.
@@ -606,22 +669,6 @@ typedef struct sdrkit_dji_droneid_fields {
   bool has_offset_hz;
   // Carrier offset from where it was expected, Hz. A frequency in Hz.
   double offset_hz;
-  // Aircraft in the aircraft table: the drones with a readable packet, the aircraft that send the encrypted format, and the sender of empty frames.
-  int64_t aircraft;
-  // DroneID frames of the encrypted format: the aircraft is present, its position and serial number are not readable.
-  int64_t droneid_encrypted;
-  // Empty DroneID frames: the aircraft is present and sends no data in this state.
-  int64_t droneid_empty;
-  // DroneID frames whose CRC-24 passed and whose layout is not known.
-  int64_t droneid_other;
-  // Frames of zeros that were refused: the received bits did not agree with an empty frame.
-  int64_t droneid_refused;
-  // Pairs of the two DroneID symbols that the continuous search found.
-  int64_t droneid_pairs;
-  // Bursts of the continuous search whose two symbols passed the check at the full rate.
-  int64_t droneid_bursts;
-  // The DroneID frequencies inside the capture that the continuous search covers.
-  int64_t droneid_searched;
 } sdrkit_dji_droneid_fields;
 
 // The options of `class_` of `sdrkit_dji_droneid_signal_row`.
@@ -742,6 +789,10 @@ typedef struct sdrkit_dji_droneid_drone_row {
   double alt_m;
   // The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude. Unit: m.
   double height_m;
+  // The altitude field as received (a signed 16-bit number), whose unit is not confirmed.
+  int64_t alt_raw;
+  // The height field as received (a signed 16-bit number), whose unit is not confirmed.
+  int64_t height_raw;
   // The speed over the ground of the object that the event is about, knots. Unit: kt.
   double speed_kt;
   // The course over the ground of the object that the event is about, degrees clockwise from true north. Unit: °.
@@ -796,10 +847,6 @@ typedef struct sdrkit_dji_droneid_drone_row {
   bool has_heard;
   // Times heard.
   int64_t heard;
-  // The altitude field as received (a signed 16-bit number), whose unit is not confirmed.
-  int64_t alt_raw;
-  // The height field as received (a signed 16-bit number), whose unit is not confirmed.
-  int64_t height_raw;
 } sdrkit_dji_droneid_drone_row;
 
 // The options of `droneid` of `sdrkit_dji_droneid_burst_row`.
@@ -1586,6 +1633,53 @@ typedef enum sdrkit_remote_id_verdict_event_verdict {
   SDRKIT_REMOTE_ID_VERDICT_EVENT_VERDICT_SPOOFED = 3,
 } sdrkit_remote_id_verdict_event_verdict;
 
+// The flags of `reasons` of `sdrkit_remote_id_verdict_event`: a mask with one bit for each flag that is set.
+typedef uint64_t sdrkit_remote_id_verdict_event_reasons;
+// Known spoofer: The broadcasts have the fingerprint of a public spoofing tool.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_KNOWN_SPOOFER (UINT64_C(1) << 0)
+// Authentication failed: A signature or a key binding of the drone does not verify.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_AUTH_FAILED (UINT64_C(1) << 1)
+// Teleport: The position jumped further than the speed limit allows.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_TELEPORT (UINT64_C(1) << 2)
+// Counter conflict: One counter value carried two contents: two radios share an address.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_COUNTER_CONFLICT (UINT64_C(1) << 3)
+// Identity clone: Another transmitter sends the same ID from a position that does not fit.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_IDENTITY_CLONE (UINT64_C(1) << 4)
+// Transport disagreement: The same ID says different things on Bluetooth and Wi-Fi.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_TRANSPORT_DISAGREEMENT (UINT64_C(1) << 5)
+// Speed implausible: The track is faster than any drone, over several windows.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_SPEED_IMPLAUSIBLE (UINT64_C(1) << 6)
+// Reported speed mismatch: The reported horizontal speed does not fit the track.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_REPORTED_SPEED_MISMATCH (UINT64_C(1) << 7)
+// Reported course mismatch: The reported direction does not fit the track.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_REPORTED_COURSE_MISMATCH (UINT64_C(1) << 8)
+// Vertical rate implausible: The climb or descent rate is impossible or does not fit the reported vertical speed.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_VERTICAL_RATE_IMPLAUSIBLE (UINT64_C(1) << 9)
+// Timestamp frozen: The location timestamps stopped while the clock of the receiver ran.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_TIMESTAMP_FROZEN (UINT64_C(1) << 10)
+// Location clock drift: The location timestamps run at a wrong rate or far from UTC.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_LOCATION_CLOCK_DRIFT (UINT64_C(1) << 11)
+// System clock drift: The system or authentication timestamps are zero or far from UTC.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_SYSTEM_CLOCK_DRIFT (UINT64_C(1) << 12)
+// TSF wall clock: The Wi-Fi timer holds a wall clock time, as software that injects frames writes it.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_TSF_WALL_CLOCK (UINT64_C(1) << 13)
+// TSF discontinuity: The Wi-Fi timer jumps against the clock of the receiver.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_TSF_DISCONTINUITY (UINT64_C(1) << 14)
+// Counter interleave: The message counter starts again and again.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_COUNTER_INTERLEAVE (UINT64_C(1) << 15)
+// Signal jump: The signal strength jumps from frame to frame.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_SIGNAL_JUMP (UINT64_C(1) << 16)
+// Shared radio: Several transmitter addresses share one radio clock.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_SHARED_RADIO (UINT64_C(1) << 17)
+// Invalid fields: Location fields are outside their ranges or hold reserved codes.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_INVALID_FIELDS (UINT64_C(1) << 18)
+// Serial format: The serial number does not follow ANSI/CTA-2063-A.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_SERIAL_FORMAT (UINT64_C(1) << 19)
+// No Basic ID: The drone sends locations for a while and never a Basic ID.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_NO_BASIC_ID (UINT64_C(1) << 20)
+// Authentication expired: A valid signature is outside its time window: a possible replay.
+#define SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_AUTH_EXPIRED (UINT64_C(1) << 21)
+
 // The options of `urgency` of `sdrkit_remote_id_verdict_event`.
 typedef enum sdrkit_remote_id_verdict_event_urgency {
   // None
@@ -1642,8 +1736,8 @@ typedef struct sdrkit_remote_id_verdict_event {
   sdrkit_string address;
   // The new trust verdict. A value of `sdrkit_remote_id_verdict_event_verdict`.
   int32_t verdict;
-  // The active reasons of the verdict: their stable names joined by ", ". Empty when there is none.
-  sdrkit_string reasons;
+  // The active reasons of the verdict, one flag for each. No flag when there is none. A mask of the `SDRKIT_REMOTE_ID_VERDICT_EVENT_REASONS_*` bits.
+  sdrkit_remote_id_verdict_event_reasons reasons;
   // True if `position` holds a value.
   bool has_position;
   // The position of the object that the event is about.
@@ -1702,6 +1796,10 @@ typedef struct sdrkit_dji_droneid_event {
   double alt_m;
   // The drone's height above home, read as 0.01 m. The unit is not confirmed, as for the altitude. Unit: m.
   double height_m;
+  // The altitude field as received (a signed 16-bit number), whose unit is not confirmed.
+  int64_t alt_raw;
+  // The height field as received (a signed 16-bit number), whose unit is not confirmed.
+  int64_t height_raw;
   // The speed over the ground of the object that the event is about, knots. Unit: kt.
   double speed_kt;
   // The course over the ground of the object that the event is about, degrees clockwise from true north. Unit: °.
@@ -1716,10 +1814,6 @@ typedef struct sdrkit_dji_droneid_event {
   sdrkit_position pilot;
   // What an event is about (aircraft, vessel, pager). Outputs and the store filter on it. A value of `sdrkit_dji_droneid_event_family`.
   int32_t family;
-  // The altitude field as received (a signed 16-bit number), whose unit is not confirmed.
-  int64_t alt_raw;
-  // The height field as received (a signed 16-bit number), whose unit is not confirmed.
-  int64_t height_raw;
 } sdrkit_dji_droneid_event;
 
 // The options of `format` of `sdrkit_dji_droneid_dji_aircraft_event`.

@@ -134,7 +134,7 @@ The radio can transmit. The range of the transmit power and the power that the t
 | `tx_bandwidth` | Transmit bandwidth | frequency | 0 Hz | 0 Hz to 1 GHz |  |
 | `tx_power` | Transmit power | number (dB) | -10 | -200 to 0 | The output relative to the full output of the radio: 0 dB is full power, -10 dB is a tenth of it. |
 | `txoutput` | Output | whole number | 1 | 1 to 8 | The transmit output of the radio, from 1. An output the radio does not have is refused. |
-| `ppm` | Frequency correction | number (ppm) | 0 | -200 to 200 | The clock error in ppm, positive when the clock runs fast. |
+| `tx_ppm` | Transmit frequency correction | number (ppm) | 0 | -200 to 200 | The clock error in ppm, positive when the clock runs fast. |
 
 Streams it accepts:
 

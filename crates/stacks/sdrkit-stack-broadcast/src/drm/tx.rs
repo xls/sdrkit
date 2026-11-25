@@ -12,6 +12,7 @@ use super::params::{
 };
 use sdrkit_algo_modem::ofdm::FrameModulator;
 use sdrkit_algo_sim::rng::Rng;
+use sdrkit_codec_aac::{Encoder as AacEncoder, FRAME};
 use sdrkit_codec_image::{png, Raster};
 use sdrkit_core::Complex32;
 use sdrkit_proto_bcdata::datagroup::{self, Header};
@@ -25,13 +26,13 @@ use std::collections::VecDeque;
 /// What the audio frames carry.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AudioKind {
-    /// A melody (deterministic frames).
+    /// A melody: a scale of eight notes, 0.4 s each.
     Melody,
     /// A 1 kHz tone.
     Tone,
     /// Silence.
     Silence,
-    /// Noise-like: no two frames alike.
+    /// Noise: no two frames alike.
     Noise,
     /// Not AAC: random bytes the receiver must count as damaged.
     NotAac,
@@ -140,36 +141,116 @@ pub fn usual_protection(mode: Robustness, q: Qam) -> u8 {
 /// The text the test signal sends.
 pub const TEST_TEXT: &str = "DRM test signal";
 
-/// The bits of a test audio frame that its CRC covers (clause 5.4.1): its number and length, which take the place of the side
-/// information and TNS bits of an AAC frame.
+/// The bits of a test audio frame that its CRC covers (clause 5.4.1): the data stream element at its start, which carries its
+/// number and length. The receiver does not check this CRC.
 pub const TEST_FRAME_CRC_BITS: usize = 48;
 
-/// The audio frame of global number `n` and `len` bytes (its first 4 bytes are `n`, then the length, then content).
-pub fn audio_frame(n: u64, len: usize, kind: AudioKind, seed: u64) -> Vec<u8> {
-    let mut f = Vec::with_capacity(len);
-    f.extend_from_slice(&(n as u32).to_be_bytes());
-    f.extend_from_slice(&(len as u16).to_be_bytes());
-    let base = match kind {
-        AudioKind::Melody => (n % 16) * 977,
-        AudioKind::Tone => 1000,
-        AudioKind::Silence => 0,
-        AudioKind::Noise | AudioKind::NotAac => n.wrapping_mul(0x9E37_79B9),
-    };
-    let mut r = Rng::new(base ^ seed.wrapping_mul(31) ^ 0xAAC);
-    while f.len() < len {
-        f.push(r.next_u64() as u8);
+/// The sampling rate of the test sound (SDC rate code 3).
+pub const TEST_AUDIO_RATE: u32 = 24_000;
+
+/// The data stream element at the start of a test frame (ISO/IEC 14496-3 clause 4.4.2.1): ID_DSE, tag 0, byte aligned,
+/// 6 bytes: the frame number (32 bits) and the frame length (16 bits).
+fn frame_tag(n: u64, len: usize) -> [u8; 8] {
+    let n = (n as u32).to_be_bytes();
+    let l = (len as u16).to_be_bytes();
+    [0x81, 6, n[0], n[1], n[2], n[3], l[0], l[1]]
+}
+
+/// The notes of the melody, one per 10 frames (0.4 s).
+const NOTES: [f32; 8] = [523.25, 587.33, 659.26, 698.46, 783.99, 880.0, 987.77, 1046.5];
+
+/// The 960 stereo samples of test frame `n` at [`TEST_AUDIO_RATE`]. Every frame is a function of `n`, `kind` and `seed` only.
+fn frame_pcm(n: u64, kind: AudioKind, seed: u64, left: &mut [f32; FRAME], right: &mut [f32; FRAME]) {
+    let rate = TEST_AUDIO_RATE as f32;
+    match kind {
+        AudioKind::Silence | AudioKind::NotAac => {
+            left.fill(0.0);
+            right.fill(0.0);
+        }
+        AudioKind::Tone => {
+            for (k, (l, r)) in left.iter_mut().zip(right.iter_mut()).enumerate() {
+                let i = (n * FRAME as u64 + k as u64) % TEST_AUDIO_RATE as u64;
+                let v = 0.4 * (std::f32::consts::TAU * 1000.0 * i as f32 / rate).sin();
+                *l = v;
+                *r = v;
+            }
+        }
+        AudioKind::Melody => {
+            let note = NOTES[(n / 10) as usize % NOTES.len()];
+            let len = 10 * FRAME;
+            for (k, (l, r)) in left.iter_mut().zip(right.iter_mut()).enumerate() {
+                // The sample within the note, with a 10 ms rise and fall so the notes join without a click.
+                let j = (n % 10) as usize * FRAME + k;
+                let edge = (j.min(len - 1 - j) as f32 / (0.01 * rate)).min(1.0);
+                let v = 0.4 * edge * (std::f32::consts::TAU * note * j as f32 / rate).sin();
+                *l = v;
+                *r = v;
+            }
+        }
+        AudioKind::Noise => {
+            let mut g = Rng::new(n.wrapping_mul(0x9E37_79B9) ^ seed.wrapping_mul(31) ^ 0xAAC);
+            for (l, r) in left.iter_mut().zip(right.iter_mut()) {
+                *l = 0.2 * (g.next_u64() as u32 as f32 / u32::MAX as f32 * 2.0 - 1.0);
+                *r = 0.2 * (g.next_u64() as u32 as f32 / u32::MAX as f32 * 2.0 - 1.0);
+            }
+        }
     }
-    f.truncate(len);
-    f
+}
+
+/// The test sound encoder: AAC-LC frames of 960 stereo samples at 24 kHz. Frame `n` is the same from a fresh encoder that
+/// encoded frame `n - 1` first ([`audio_frame`]) and from one that encoded every frame before it.
+#[derive(Clone, Debug)]
+pub struct TestAudio {
+    enc: AacEncoder,
+    left: Box<[f32; FRAME]>,
+    right: Box<[f32; FRAME]>,
+}
+
+impl Default for TestAudio {
+    fn default() -> Self {
+        TestAudio {
+            enc: AacEncoder::new(TEST_AUDIO_RATE)
+                .unwrap_or_else(|_| unreachable!("a rate of the encoder")),
+            left: Box::new([0.0; FRAME]),
+            right: Box::new([0.0; FRAME]),
+        }
+    }
+}
+
+impl TestAudio {
+    /// Encodes frame `n` into exactly `len` bytes in `out`: the data stream element with its number and length, then the
+    /// sound. When `len` is too small for both, the frame holds the sound alone, or else zeros.
+    pub fn frame(&mut self, n: u64, len: usize, kind: AudioKind, seed: u64, out: &mut Vec<u8>) {
+        frame_pcm(n, kind, seed, &mut self.left, &mut self.right);
+        let (l, r) = (&self.left[..], &self.right[..]);
+        if self.enc.encode(l, r, &frame_tag(n, len), len, out).is_err()
+            && self.enc.encode(l, r, &[], len, out).is_err()
+        {
+            out.clear();
+            out.resize(len, 0);
+        }
+    }
+}
+
+/// The audio frame of global number `n` and `len` bytes: AAC-LC whose data stream element holds `n` and `len`.
+pub fn audio_frame(n: u64, len: usize, kind: AudioKind, seed: u64) -> Vec<u8> {
+    let mut a = TestAudio::default();
+    let mut out = Vec::with_capacity(len);
+    if n > 0 {
+        // The transform overlaps the frame before: encoding it first gives the encoder the state it has in a stream.
+        a.frame(n - 1, len, kind, seed, &mut out);
+    }
+    a.frame(n, len, kind, seed, &mut out);
+    out
 }
 
 /// Whether received audio frame bytes are exactly a frame [`audio_frame`] made.
 pub fn audio_frame_exact(b: &[u8], kind: AudioKind, seed: u64) -> bool {
-    if b.len() < 6 {
+    if b.len() < 8 || b[..2] != [0x81, 6] {
         return false;
     }
-    let n = u32::from_be_bytes([b[0], b[1], b[2], b[3]]) as u64;
-    let len = u16::from_be_bytes([b[4], b[5]]) as usize;
+    let n = u32::from_be_bytes([b[2], b[3], b[4], b[5]]) as u64;
+    let len = u16::from_be_bytes([b[6], b[7]]) as usize;
     len == b.len() && audio_frame(n, len, kind, seed) == b
 }
 
@@ -358,6 +439,7 @@ pub struct DrmTransmitter {
     frame: u64,
     mux: u64,
     audio_n: u64,
+    sound: TestAudio,
     sf_cells: Vec<Complex32>,
     sf_pos: usize,
     text: TextSender,
@@ -410,6 +492,7 @@ impl DrmTransmitter {
             frame: 0,
             mux: 0,
             audio_n: 0,
+            sound: TestAudio::default(),
             sf_cells: Vec::new(),
             sf_pos: 0,
             text: TextSender::new(TEST_TEXT, false),
@@ -536,7 +619,7 @@ impl DrmTransmitter {
                 stream: 0,
                 coding: 0,
                 sbr: false,
-                mode: 0,
+                mode: 2,
                 rate_code: 3,
                 text: self.cfg.text,
                 ..Default::default()
@@ -731,12 +814,10 @@ impl DrmTransmitter {
                         avail / nf - 2 + (i % 3)
                     };
                     used += len;
-                    frames.push(audio_frame(
-                        self.audio_n,
-                        len.max(8),
-                        self.cfg.audio,
-                        self.cfg.seed,
-                    ));
+                    let mut f = Vec::with_capacity(len.max(8));
+                    self.sound
+                        .frame(self.audio_n, len.max(8), self.cfg.audio, self.cfg.seed, &mut f);
+                    frames.push(f);
                     self.audio_n += 1;
                 }
                 self.frames_sent += nf as u64;

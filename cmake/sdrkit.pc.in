@@ -1,0 +1,10 @@
+prefix=${pcfiledir}/@SDRKIT_PC_TO_PREFIX@
+includedir=${prefix}/@SDRKIT_INSTALL_INCLUDEDIR@
+libdir=${prefix}/@SDRKIT_INSTALL_LIBDIR@
+datadir=${prefix}/@SDRKIT_INSTALL_DATADIR@
+
+Name: sdrkit
+Description: A software-defined radio engine (shared library)
+Version: @SDRKIT_VERSION@
+Cflags: -I${includedir}
+Libs: @SDRKIT_PC_SHARED_LIBS@

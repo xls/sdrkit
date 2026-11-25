@@ -48,8 +48,9 @@ use std::collections::VecDeque;
 use std::fmt::Write as _;
 use std::sync::Arc;
 
-/// The least sample rate of the stack.
-pub const MIN_RATE_HZ: f64 = 1e6;
+/// The least sample rate of the stack: one that holds the S1 channel (868.3 MHz) and the T1 and C1 channel (868.95 MHz)
+/// around the default centre 868.625 MHz. [`rx::plan`] needs 2 x (325 + 150) kHz / 0.92, 1.033 MS/s.
+pub const MIN_RATE_HZ: f64 = 1.2e6;
 /// Meters kept.
 pub const METERS_CAP: usize = 300;
 /// Frames kept in the log.
@@ -565,6 +566,9 @@ impl Meters {
                 );
             }
             1 => summary.push_str("Wireless M-Bus: signal on a channel, no frame yet"),
+            _ if self.ticks > 0 && self.channels.channels.is_empty() => summary.push_str(
+                "Wireless M-Bus: no meter channel in the capture; the channels are at 868.03 to 868.95 MHz and 169.41 to 169.47 MHz",
+            ),
             _ => summary.push_str("Wireless M-Bus: no signal"),
         }
         let p = &mut self.published;
@@ -854,6 +858,7 @@ sdrkit_core::choice_enum! {
 /// The channel plan of the test signal.
 pub const GEN_PLAN: Setting<field::Choice<GenPlan>> =
     Setting::choice("gen_plan", "Test signal plan", GenPlan::Mhz868)
+        .help("The plan of a signal made for no session. In a session the meters are those on the channels around the frequency where it listens.")
         .section("Test signal")
         .advanced();
 /// The physical modes of the test signal.
@@ -1177,6 +1182,8 @@ pub struct GenParams {
     pub silence: bool,
     /// The seed of the encrypted payloads.
     pub seed: u64,
+    /// The capture centre, Hz: where the session listens. At 0 the centre of the plan ([`gen_centre`]).
+    pub centre_hz: f64,
 }
 
 /// The capture centre of the test signal.
@@ -1189,14 +1196,21 @@ pub fn gen_centre(plan169: bool) -> f64 {
 }
 
 /// The `wmbus` generator: the meters in turn, 0.5 s apart from 0.1 s, at their channels around the capture centre
-/// ([`gen_centre`]). `None` when the rate cannot hold the scene.
+/// (`p.centre_hz`, else [`gen_centre`]). Only the meters on a channel that the stack receives at that centre and rate
+/// ([`rx::plan`]) send: a centre far from every channel gives noise only. `None` when the rate cannot hold the scene.
 pub fn generator(rate: f64, p: GenParams) -> Option<CleanScene> {
-    let centre = gen_centre(p.plan169);
+    let centre = if p.centre_hz > 0.0 {
+        p.centre_hz
+    } else {
+        gen_centre(p.plan169)
+    };
+    let received = rx::plan(centre, rate);
     let meters: Vec<usize> = SIM_METERS
         .iter()
         .enumerate()
         .filter(|(i, m)| {
-            (m.hz < 300e6) == p.plan169
+            received.iter().any(|c| (c.hz - m.hz).abs() < 1.0)
+                && (p.centre_hz > 0.0 || (m.hz < 300e6) == p.plan169)
                 && (p.encrypted || *i != 2)
                 && p.only_phy.is_none_or(|ph| ph == m.phy)
                 && !p.silence
@@ -1245,6 +1259,7 @@ pub fn gen_params(cfg: &GenConfig) -> GenParams {
         encrypted: s.get(&GEN_ENCRYPTED),
         silence: s.get(&GEN_SILENCE),
         seed: cfg.seed,
+        centre_hz: cfg.tuned_hz().unwrap_or(0.0),
     }
 }
 

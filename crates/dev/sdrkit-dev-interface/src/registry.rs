@@ -291,17 +291,20 @@ impl std::fmt::Display for Change {
     }
 }
 
-/// True if `new` is the choice type `old` with more options after the old ones.
+/// True if `new` is the choice type `old` with more options after the old ones, or the flag set `old` with more flags
+/// after the old ones.
 fn options_added(old: &str, new: &str) -> bool {
-    let list = |t: &str| {
-        t.strip_prefix("choice(")
-            .and_then(|t| t.strip_suffix(')'))
-            .map(str::to_owned)
-    };
-    match (list(old), list(new)) {
-        (Some(o), Some(n)) => n.starts_with(&o) && n[o.len()..].starts_with(','),
-        _ => false,
-    }
+    ["choice(", "flags("].iter().any(|kind| {
+        let list = |t: &str| {
+            t.strip_prefix(kind)
+                .and_then(|t| t.strip_suffix(')'))
+                .map(str::to_owned)
+        };
+        match (list(old), list(new)) {
+            (Some(o), Some(n)) => n.starts_with(&o) && n[o.len()..].starts_with(','),
+            _ => false,
+        }
+    })
 }
 
 /// True if the list `new` is the list `old` (entries separated by `;`) with more entries at its end. With `optional`, each
@@ -352,7 +355,7 @@ const MARKS: [&str; 23] = [
 /// The differences from record `old` to record `new`. An added item is compatible. A removed item is breaking, so a
 /// renamed item is one breaking removal and one addition. Another order of the fields of a shape is breaking. A changed
 /// type, unit, row shape, argument list or version of appearance is breaking, and so is a field that became optional
-/// or stopped being optional. More options at the end of a choice, another row limit of a table, optional arguments at
+/// or stopped being optional. More options at the end of a choice, more flags at the end of a flag set, another row limit of a table, optional arguments at
 /// the end of the arguments of a command, fields at the end of the reply of a command, the content of a command
 /// that starts to transmit, the stop command of a transmission that had none and a mark of a table or of a stack are compatible: a struct grows at its end, and a host built earlier leaves out what it does
 /// not know.
@@ -578,6 +581,10 @@ mod tests {
         assert!(
             matches!(verdict(&old, &new("1.1", more)).unwrap(), Verdict::Compatible(c) if c.len() == 2)
         );
+        // More flags at the end of a flag set. Another order, or a choice with the same keys, is another type.
+        assert!(options_added("flags(crc,short)", "flags(crc,short,late)"));
+        assert!(!options_added("flags(crc,short)", "flags(short,crc,late)"));
+        assert!(!options_added("choice(crc,short)", "flags(crc,short,late)"));
     }
 
     #[test]

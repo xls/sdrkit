@@ -73,6 +73,7 @@ pub fn kind_name(f: &FieldDecl) -> String {
         ValueKind::Duration => "duration",
         ValueKind::Position => "position",
         ValueKind::Choice => "choice",
+        ValueKind::Flags => "flag set",
         ValueKind::Bytes => "bytes",
         ValueKind::Any => "any",
     };
@@ -98,6 +99,7 @@ fn value_text(v: &Value, f: &FieldDecl) -> String {
             .choices
             .get(usize::from(*i))
             .map_or_else(|| i.to_string(), |c| code(&c.key)),
+        Value::Flags(_) => v.display(&[]).with_flags(&f.flags).to_string(),
         Value::Bytes(b) => format!("{} bytes", b.len()),
     }
 }
@@ -293,6 +295,62 @@ pub fn results_sections(r: &ResultsDecl, fields_title: &str) -> String {
             "## Map points\n\nThe stack puts points on a map: {}.\n\n",
             r.points_label()
         ));
+    }
+    out
+}
+
+/// The section of the flag sets of the result fields, the table columns and the event fields of `r`: for each list of
+/// flags, the places that hold it and every flag with its bit, key, label and help line. Empty if `r` has no flag set.
+pub fn flags_section(r: &ResultsDecl) -> String {
+    fn add<'a>(sets: &mut Vec<(&'a FieldDecl, Vec<String>)>, f: &'a FieldDecl, place: String) {
+        if f.kind != ValueKind::Flags {
+            return;
+        }
+        match sets.iter_mut().find(|(o, _)| o.flags == f.flags) {
+            Some((_, places)) => places.push(place),
+            None => sets.push((f, vec![place])),
+        }
+    }
+    let mut sets = Vec::new();
+    for f in r.fields().fields() {
+        add(&mut sets, f, format!("the field {}", code(&f.key)));
+    }
+    for t in r.tables() {
+        for f in t.columns.fields() {
+            let place = format!("the column {} of the table {}", code(&f.key), code(&t.key));
+            add(&mut sets, f, place);
+        }
+    }
+    for e in r.events() {
+        for f in e.fields.fields() {
+            let place = format!("the field {} of the event {}", code(&f.key), code(&e.kind));
+            add(&mut sets, f, place);
+        }
+    }
+    let mut out = String::new();
+    for (f, places) in &sets {
+        if out.is_empty() {
+            out.push_str("## Flag sets\n\n");
+        }
+        out.push_str(&format!(
+            "The flags of {}. The value is a mask with one bit for each flag that is set.\n\n",
+            places.join(" and ")
+        ));
+        let rows: Vec<Vec<String>> = f
+            .flags
+            .iter()
+            .enumerate()
+            .map(|(i, g)| {
+                vec![
+                    i.to_string(),
+                    code(&g.key),
+                    g.label.to_string(),
+                    g.help.to_string(),
+                ]
+            })
+            .collect();
+        out.push_str(&table(&["Bit", "Key", "Label", "Meaning"], &rows));
+        out.push('\n');
     }
     out
 }

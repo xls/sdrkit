@@ -1,5 +1,6 @@
 //! Transport packet sources for generators and tests: numbered packets that a receiver test can check one by one, a test
-//! multiplex with real PSI and SI, a transport stream file, and null packets.
+//! multiplex with real PSI and SI (or an ATSC virtual channel table), a sound and a picture track, a transport stream file,
+//! and null packets.
 
 use crate::error::{Error, MuxFault};
 use crate::input::TsAligner;
@@ -318,6 +319,155 @@ impl TestSound {
     pub const DELAY_S: f64 = 0.25;
 }
 
+/// The picture track of the first service of a [`TestMux`]: eight vertical colour bars of 75 % (ITU-R BT.801) in a picture
+/// of [`TestVideo::WIDTH`] by [`TestVideo::HEIGHT`] at 25 frames per second, MPEG-2 video main profile at main level
+/// (ISO/IEC 13818-2). Every picture is the same intra picture with its sequence header and a closed group of pictures, one
+/// picture in a PES packet (stream type 0x02, stream_id 0xE0) with its PTS. Without a [`TestSound`] the video carries the
+/// PCR. The pictures go out at the time that the bit rate of the multiplex gives each packet, in the slots of null
+/// packets that the sound leaves.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TestVideo {
+    /// The PID of the video.
+    pub pid: u16,
+    /// The bit rate of the multiplex, bit/s.
+    pub mux_bit_rate: f64,
+}
+
+impl TestVideo {
+    /// The width of the picture, pixels.
+    pub const WIDTH: u32 = 256;
+    /// The height of the picture, pixels.
+    pub const HEIGHT: u32 = 144;
+    /// The frame rate, Hz.
+    pub const FRAME_RATE: f64 = 25.0;
+    /// The colours of the bars from left to right, Y, Cb and Cr: white, yellow, cyan, green, magenta, red, blue, black.
+    pub const BARS: [[u8; 3]; 8] = [
+        [180, 128, 128],
+        [162, 44, 142],
+        [131, 156, 44],
+        [112, 72, 58],
+        [84, 184, 198],
+        [65, 100, 212],
+        [35, 212, 114],
+        [16, 128, 128],
+    ];
+    /// The time from the PCR of a packet to the PTS of the picture that it starts, s.
+    pub const DELAY_S: f64 = 0.25;
+    /// The bit rate that the sequence header states, bit/s.
+    pub const BIT_RATE: u32 = 400_000;
+
+    /// The access unit of one picture: the sequence header and its extension, the group of pictures header, the picture
+    /// header and its coding extension, and one slice per macroblock row. Each macroblock is intra coded with only the DC
+    /// coefficient of each block (ISO/IEC 13818-2 6.2 and tables B-1, B-2, B-12, B-13 and B-14).
+    pub fn picture() -> Vec<u8> {
+        use sdrkit_codec_mpeg2video::tables::{
+            ADDRESS_INCREMENT, COEFF_END_ZERO, DC_SIZE_CHROMA, DC_SIZE_LUMA, MB_INTRA, TYPE_I,
+        };
+        let code = |table: &[(&'static str, u8)], v: u8| {
+            table.iter().find(|e| e.1 == v).map_or("", |e| e.0)
+        };
+        let mut b = Bits::default();
+        b.start(0xB3);
+        b.put(Self::WIDTH, 12);
+        b.put(Self::HEIGHT, 12);
+        b.put(3, 4); // aspect ratio 16:9
+        b.put(3, 4); // 25 Hz
+        b.put(Self::BIT_RATE / 400, 18);
+        b.put(1, 1); // marker
+        b.put(20, 10); // vbv_buffer_size, units of 16 kbit
+        b.put(0, 3); // not constrained, the default quantiser matrices
+        b.start(0xB5);
+        b.put(1, 4); // sequence extension
+        b.put(0x48, 8); // main profile at main level
+        b.put(1, 1); // progressive sequence
+        b.put(1, 2); // 4:2:0
+        b.put(0, 4); // size extensions
+        b.put(0, 12); // bit rate extension
+        b.put(1, 1); // marker
+        b.put(0, 8); // vbv_buffer_size extension
+        b.put(0, 1); // low_delay
+        b.put(0, 7); // frame rate extension
+        b.start(0xB8);
+        b.put(1 << 12, 25); // time code 0 with its marker bit
+        b.put(1, 1); // closed_gop
+        b.put(0, 1); // broken_link
+        b.start(0x00);
+        b.put(0, 10); // temporal_reference
+        b.put(1, 3); // intra picture
+        b.put(0xFFFF, 16); // vbv_delay
+        b.put(0, 1); // extra_bit_picture
+        b.start(0xB5);
+        b.put(8, 4); // picture coding extension
+        b.put(0xFFFF, 16); // f_codes, not used
+        b.put(0, 2); // intra_dc_precision 8 bits
+        b.put(3, 2); // frame picture
+        b.put(0, 1); // top_field_first
+        b.put(1, 1); // frame_pred_frame_dct
+        b.put(0, 5); // concealment vectors, q_scale_type, intra_vlc_format, alternate_scan, repeat_first_field
+        b.put(1, 1); // chroma_420_type
+        b.put(1, 1); // progressive_frame
+        b.put(0, 1); // composite_display_flag
+        let columns = Self::WIDTH / 16;
+        for row in 0..Self::HEIGHT / 16 {
+            b.start(row as u8 + 1);
+            b.put(8, 5); // quantiser_scale_code
+            b.put(0, 1); // extra_bit_slice
+            let mut dc = [128i32; 3];
+            for mx in 0..columns {
+                let bar = Self::BARS[(mx * 8 / columns) as usize];
+                b.code(code(ADDRESS_INCREMENT, 1));
+                b.code(code(TYPE_I, MB_INTRA));
+                for c in [0, 0, 0, 0, 1, 2] {
+                    let diff = i32::from(bar[c]) - dc[c];
+                    dc[c] = i32::from(bar[c]);
+                    let size = 32 - diff.unsigned_abs().leading_zeros();
+                    let table = if c == 0 { DC_SIZE_LUMA } else { DC_SIZE_CHROMA };
+                    b.code(code(table, size as u8));
+                    if size > 0 {
+                        let v = if diff < 0 { diff + (1 << size) - 1 } else { diff };
+                        b.put(v as u32, size);
+                    }
+                    b.code(COEFF_END_ZERO);
+                }
+            }
+        }
+        b.out
+    }
+}
+
+/// A bit writer for [`TestVideo::picture`]: bits from the most significant, start codes byte aligned.
+#[derive(Default)]
+struct Bits {
+    out: Vec<u8>,
+    fill: u32,
+}
+
+impl Bits {
+    fn put(&mut self, v: u32, n: u32) {
+        for i in (0..n).rev() {
+            if self.fill == 0 {
+                self.out.push(0);
+            }
+            if let Some(last) = self.out.last_mut() {
+                *last |= (((v >> i) & 1) as u8) << (7 - self.fill);
+            }
+            self.fill = (self.fill + 1) % 8;
+        }
+    }
+
+    /// A variable-length code written as text, such as "1111 0".
+    fn code(&mut self, code: &str) {
+        for c in code.bytes().filter(|c| *c != b' ') {
+            self.put(u32::from(c == b'1'), 1);
+        }
+    }
+
+    fn start(&mut self, code: u8) {
+        self.fill = 0;
+        self.out.extend([0, 0, 1, code]);
+    }
+}
+
 /// How to make a [`TestMux`]. Start with [`TestMux::builder`].
 #[derive(Clone, Debug)]
 pub struct TestMuxBuilder {
@@ -330,6 +480,8 @@ pub struct TestMuxBuilder {
     period: usize,
     data_every: u64,
     sound: Option<TestSound>,
+    video: Option<TestVideo>,
+    vct_major: Option<u16>,
 }
 
 impl TestMuxBuilder {
@@ -378,6 +530,20 @@ impl TestMuxBuilder {
         self
     }
 
+    /// Gives the first service the picture track `video`. As the sound, it needs null packets.
+    pub fn video(mut self, video: TestVideo) -> Self {
+        self.video = Some(video);
+        self
+    }
+
+    /// Puts the services into a terrestrial virtual channel table (ATSC A/65 6.3.1, PID 0x1FFB) in place of the SDT:
+    /// service `k` is channel `major`.`k + 1`, with the first seven characters of its name. A TV service is a digital
+    /// television channel, a radio service an audio channel, and any other a data channel.
+    pub fn virtual_channels(mut self, major: u16) -> Self {
+        self.vct_major = Some(major);
+        self
+    }
+
     /// Makes the multiplex.
     pub fn build(self) -> Result<TestMux, Error> {
         if self.services.is_empty() {
@@ -419,6 +585,28 @@ impl TestMuxBuilder {
             }
             None => None,
         };
+        let video = match self.video {
+            Some(v) => {
+                let vp = v.pid;
+                if !(0x0010..NULL_PID).contains(&vp)
+                    || vp == 0x0011
+                    || vp == dp
+                    || self.sound.is_some_and(|t| t.pid == vp)
+                    || table_pids.clone().any(|p| p == vp)
+                {
+                    return Err(MuxFault::BadVideoPid(vp).into());
+                }
+                let video = Video::new(v, sound.is_none());
+                // The sound and the video together, at most 3 packets for each sound frame.
+                let sound_rate = if sound.is_some() { 3.0 / FRAME_S } else { 0.0 };
+                let need = (video.packets as f64 * TestVideo::FRAME_RATE + sound_rate) * 188.0 * 8.0;
+                if !v.mux_bit_rate.is_finite() || v.mux_bit_rate <= need {
+                    return Err(MuxFault::BadVideoRate.into());
+                }
+                Some(video)
+            }
+            None => None,
+        };
         let text_ok = |s: &str| s.len() < 255;
         if !text_ok(&self.provider)
             || self.services.iter().any(|s| !text_ok(&s.name))
@@ -439,27 +627,34 @@ impl TestMuxBuilder {
             sections.push((nit(n, self.tsid, &self.services), 0x0010));
         }
         for (i, s) in self.services.iter().enumerate() {
-            let pmt = match (i, &sound) {
-                (0, Some(t)) => build_pmt(
-                    s.service_id,
-                    0,
-                    t.pid,
-                    &[],
-                    &[(0x03, t.pid, vec![]), (0x06, dp, vec![])],
-                ),
-                _ => build_pmt(s.service_id, 0, dp, &[], &[(0x06, dp, vec![])]),
-            };
-            sections.push((pmt, pmt_pid(i)));
+            let mut streams = Vec::new();
+            let mut pcr_pid = dp;
+            if i == 0 {
+                if let Some(v) = &video {
+                    streams.push((0x02, v.pid, vec![]));
+                    pcr_pid = v.pid;
+                }
+                if let Some(t) = &sound {
+                    streams.push((0x03, t.pid, vec![]));
+                    pcr_pid = t.pid;
+                }
+            }
+            streams.push((0x06, dp, vec![]));
+            sections.push((build_pmt(s.service_id, 0, pcr_pid, &[], &streams), pmt_pid(i)));
         }
-        let provider = dvb_name(&self.provider);
-        let names: Vec<String> = self.services.iter().map(|s| dvb_name(&s.name)).collect();
-        let sdt: Vec<(u16, u8, &str, &str)> = self
-            .services
-            .iter()
-            .zip(&names)
-            .map(|(s, n)| (s.service_id, s.service_type, provider.as_str(), n.as_str()))
-            .collect();
-        sections.push((build_sdt(self.tsid, onid, 0, 0, 0, &sdt), 0x0011));
+        if let Some(major) = self.vct_major {
+            sections.push((tvct(self.tsid, major, &self.services), 0x1FFB));
+        } else {
+            let provider = dvb_name(&self.provider);
+            let names: Vec<String> = self.services.iter().map(|s| dvb_name(&s.name)).collect();
+            let sdt: Vec<(u16, u8, &str, &str)> = self
+                .services
+                .iter()
+                .zip(&names)
+                .map(|(s, n)| (s.service_id, s.service_type, provider.as_str(), n.as_str()))
+                .collect();
+            sections.push((build_sdt(self.tsid, onid, 0, 0, 0, &sdt), 0x0011));
+        }
         let mut tables = Vec::new();
         for (sec, pid) in sections {
             let mut cc = 0;
@@ -479,6 +674,7 @@ impl TestMuxBuilder {
             n: 0,
             cc: Vec::new(),
             sound,
+            video,
         }
         .with_counters())
     }
@@ -534,34 +730,125 @@ impl Sound {
             let pts = ((self.frames as f64 * FRAME_S + TestSound::DELAY_S) * 90_000.0).round() as u64 % WRAP;
             let pcr = (now * 27e6).round() as u64 % (WRAP * 300);
             let pes = build_pes(0xC0, Some(pts as i64), None, &self.frame, true);
-            self.queue.extend(pes_with_pcr(&pes, self.pid, &mut self.cc, pcr));
+            self.queue.extend(pes_packets(&pes, self.pid, &mut self.cc, Some(pcr)));
             self.frames += 1;
         }
         self.queue.pop_front()
     }
 }
 
-/// Splits a PES packet into packets of `pid`, the first with PUSI and the PCR `pcr` (27 MHz units) in its adaptation
-/// field, the last filled up with adaptation field stuffing (ISO/IEC 13818-1 2.4.3.4 and 2.4.3.5). `cc` is the counter
-/// of the first packet and is advanced.
-fn pes_with_pcr(pes: &[u8], pid: u16, cc: &mut u8, pcr: u64) -> Vec<[u8; TS_SIZE]> {
+/// The state of the picture track of a [`TestMux`].
+#[derive(Clone, Debug)]
+struct Video {
+    pid: u16,
+    /// The video carries the PCR.
+    pcr: bool,
+    /// The time of one transport packet of the multiplex, s.
+    packet_s: f64,
+    /// The access unit of the picture: every picture is the same.
+    picture: Vec<u8>,
+    /// The transport packets of one picture.
+    packets: usize,
+    /// The pictures sent.
+    pictures: u64,
+    /// The packets of the picture that is on its way.
+    queue: VecDeque<[u8; TS_SIZE]>,
+    cc: u8,
+}
+
+impl Video {
+    fn new(v: TestVideo, pcr: bool) -> Video {
+        let picture = TestVideo::picture();
+        let pes = build_pes(0xE0, Some(0), None, &picture, true);
+        let packets = pes_packets(&pes, v.pid, &mut 0, pcr.then_some(0)).len();
+        Video {
+            pid: v.pid,
+            pcr,
+            packet_s: TS_SIZE as f64 * 8.0 / v.mux_bit_rate,
+            picture,
+            packets,
+            pictures: 0,
+            queue: VecDeque::new(),
+            cc: 0,
+        }
+    }
+
+    /// The next packet of the video for packet `i` of the multiplex, if a picture is on its way or due.
+    fn packet(&mut self, i: u64) -> Option<[u8; TS_SIZE]> {
+        let now = i as f64 * self.packet_s;
+        let at = self.pictures as f64 / TestVideo::FRAME_RATE;
+        if self.queue.is_empty() && at <= now {
+            const WRAP: u64 = 1 << 33;
+            let pts = ((at + TestVideo::DELAY_S) * 90_000.0).round() as u64 % WRAP;
+            let pcr = (now * 27e6).round() as u64 % (WRAP * 300);
+            let pes = build_pes(0xE0, Some(pts as i64), None, &self.picture, true);
+            let pcr = self.pcr.then_some(pcr);
+            self.queue.extend(pes_packets(&pes, self.pid, &mut self.cc, pcr));
+            self.pictures += 1;
+        }
+        self.queue.pop_front()
+    }
+}
+
+/// A terrestrial virtual channel table section (ATSC A/65 6.3.1, table 6.4): service `k` of `services` is channel
+/// `major`.`k + 1` on the transport stream `tsid`, with no descriptors.
+fn tvct(tsid: u16, major: u16, services: &[TestService]) -> Vec<u8> {
+    let mut b = vec![0, services.len() as u8];
+    for (k, s) in services.iter().enumerate() {
+        let mut name = [0u16; 7];
+        for (n, c) in name.iter_mut().zip(s.name.encode_utf16()) {
+            *n = c;
+        }
+        for c in name {
+            b.extend_from_slice(&c.to_be_bytes());
+        }
+        // 4 reserved bits, 10 bits major_channel_number, 10 bits minor_channel_number.
+        let channel = (0xF << 20) | (u32::from(major & 0x3FF) << 10) | (k as u32 + 1) & 0x3FF;
+        b.extend_from_slice(&channel.to_be_bytes()[1..]);
+        b.push(0x04); // modulation_mode 8-VSB
+        b.extend_from_slice(&[0; 4]); // carrier_frequency, not stated
+        b.extend_from_slice(&tsid.to_be_bytes());
+        b.extend_from_slice(&s.service_id.to_be_bytes());
+        // ETM_location 0, not access controlled, not hidden, 2 reserved, hide_guide 0, 3 reserved, service_type.
+        let service_type: u16 = match s.service_type {
+            0x01 => 0x02,
+            0x02 => 0x03,
+            _ => 0x04,
+        };
+        b.extend_from_slice(&(0x0DC0 | service_type).to_be_bytes());
+        b.extend_from_slice(&(k as u16 + 1).to_be_bytes()); // source_id
+        b.extend_from_slice(&[0xFC, 0x00]); // descriptors_length 0
+    }
+    b.extend_from_slice(&[0xFC, 0x00]); // additional_descriptors_length 0
+    build_long(0xC8, tsid, 0, 0, 0, &b)
+}
+
+/// Splits a PES packet into packets of `pid`, the first with PUSI and, when `pcr` is given, the PCR (27 MHz units) in its
+/// adaptation field, the last filled up with adaptation field stuffing (ISO/IEC 13818-1 2.4.3.4 and 2.4.3.5). `cc` is the
+/// counter of the first packet and is advanced.
+fn pes_packets(pes: &[u8], pid: u16, cc: &mut u8, pcr: Option<u64>) -> Vec<[u8; TS_SIZE]> {
     // The adaptation field of the first packet: its length, the flags with PCR_flag, and the PCR.
-    let (base, ext) = (pcr / 300, pcr % 300);
-    let field = [
-        7,
-        0x10,
-        (base >> 25) as u8,
-        (base >> 17) as u8,
-        (base >> 9) as u8,
-        (base >> 1) as u8,
-        ((base & 1) as u8) << 7 | 0x7E | ((ext >> 8) as u8 & 1),
-        ext as u8,
-    ];
+    let field = pcr.map(|pcr| {
+        let (base, ext) = (pcr / 300, pcr % 300);
+        [
+            7,
+            0x10,
+            (base >> 25) as u8,
+            (base >> 17) as u8,
+            (base >> 9) as u8,
+            (base >> 1) as u8,
+            ((base & 1) as u8) << 7 | 0x7E | ((ext >> 8) as u8 & 1),
+            ext as u8,
+        ]
+    });
     let mut out = Vec::new();
     let mut rest = pes;
     let mut first = true;
     while first || !rest.is_empty() {
-        let own: &[u8] = if first { &field } else { &[] };
+        let own: &[u8] = match (first, &field) {
+            (true, Some(f)) => f,
+            _ => &[],
+        };
         let room = TS_SIZE - 4 - own.len();
         let n = rest.len().min(room);
         let stuff = room - n;
@@ -632,8 +919,8 @@ fn nit(net: &TestNetwork, tsid: u16, services: &[TestService]) -> Vec<u8> {
     build_long(0x40, net.network_id, 0, 0, 0, &b)
 }
 
-/// The test multiplex: a PAT, an optional NIT, one PMT for each service and an SDT, again and again, with a data stream
-/// on one PID between them and null packets in the gaps.
+/// The test multiplex: a PAT, an optional NIT, one PMT for each service and an SDT (or a virtual channel table), again and
+/// again, with a data stream on one PID between them, an optional sound and picture track, and null packets in the gaps.
 ///
 /// ```
 /// use sdrkit_proto_mpegts::source::{PacketSource, TestMux, TestService};
@@ -656,6 +943,7 @@ pub struct TestMux {
     /// The continuity counter of each table PID.
     cc: Vec<(u16, u8)>,
     sound: Option<Sound>,
+    video: Option<Video>,
 }
 
 fn pid_of(p: &[u8; TS_SIZE]) -> u16 {
@@ -685,6 +973,8 @@ impl TestMux {
             period: 60,
             data_every: 1,
             sound: None,
+            video: None,
+            vct_major: None,
         }
     }
 
@@ -742,10 +1032,9 @@ impl PacketSource for TestMux {
             }
             _ => {
                 let i = self.i - 1;
-                *out = self
-                    .sound
-                    .as_mut()
-                    .and_then(|s| s.packet(i))
+                let sound = self.sound.as_mut().and_then(|s| s.packet(i));
+                *out = sound
+                    .or_else(|| self.video.as_mut().and_then(|v| v.packet(i)))
                     .unwrap_or_else(null_packet);
             }
         }

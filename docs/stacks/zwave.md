@@ -62,7 +62,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | Key | Label | Columns |
 |---|---|---|
 | `frames` | Frames | `time_s` (number (s)), `time` (time), `frequency` (frequency), `rate` (text), `home_id` (text), `route` (text), `frame_type` (text), `seq` (whole number), `ack_requested` (yes or no), `encryption` (text), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `command` (text), `mpdu` (text) |
-| `nodes` | Nodes | `home_id` (text), `node` (whole number), `role` (text), `sent` (whole number), `addressed` (whole number), `encrypted` (whole number), `rate` (text), `level_dbfs` (number (dBFS)), `last_heard` (time), `last_class` (text), `beaming` (yes or no), `low_power` (yes or no) |
+| `nodes` | Nodes | `home_id` (text), `node` (whole number), `role` (text), `sent` (whole number), `addressed` (whole number), `encrypted` (whole number), `rate` (text), `level_dbfs` (number (dBFS)), `last_heard` (time), `last_class` (text), `beaming` (yes or no), `low_power` (yes or no), `name` (text) |
 | `networks` | Networks | `home_id` (text), `nodes` (whole number), `controller` (yes or no), `heard` (whole number), `encrypted` (whole number), `level_dbfs` (number (dBFS)), `first_heard` (time), `last_heard` (time) |
 | `channels` | Channels | `frequency` (frequency), `rate` (text), `covered` (yes or no), `frames` (whole number), `failed_checks` (whole number) |
 | `classes` | Command classes | `class` (text), `count` (whole number) |
@@ -86,9 +86,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.2. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
+
+Key readings: `nodes`.
 
 ### Result fields
 
@@ -166,6 +168,9 @@ Struct `ZwaveNodeRow`. A row of the Z-Wave nodes. The row key is the home id and
 | `last_class` | text | always | 1.0 | The last command class the node sent. |
 | `beaming` | yes or no | always | 1.0 | The node uses beaming. |
 | `low_power` | yes or no | always | 1.0 | The node sent at low power. |
+| `name` | text | always | 4.2 | The name of the node for people: the home id and the node id ("C0FFEE01 node 2"). |
+
+The rows are the stations or nodes of the stack. The column `name` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
 
 ### Table `networks`
 
@@ -182,7 +187,7 @@ Struct `ZwaveNetworkRow`. A row of the Z-Wave networks. The row key is the home 
 | `first_heard` | time | optional | 1.0 | The UTC of the first frame. |
 | `last_heard` | time | optional | 1.0 | The UTC of the last frame. |
 
-Default order: the column `level_dbfs`, highest first.
+The column `home_id` names a row. Default order: the column `level_dbfs`, highest first.
 
 ### Table `channels`
 

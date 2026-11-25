@@ -1,6 +1,6 @@
 [package]
 name = "sdrkit-stack-broadcast"
-version = "0.1.0"
+version = "0.5.0"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
@@ -20,6 +20,7 @@ sdrkit-components = { path = "../../framework/sdrkit-components" }
 sdrkit-proto-bcdata = { path = "../../proto/sdrkit-proto-bcdata" }
 sdrkit-proto-mpegts = { path = "../../proto/sdrkit-proto-mpegts" }
 sdrkit-codec-image = { path = "../../codec/sdrkit-codec-image" }
+sdrkit-codec-aac = { path = "../../codec/sdrkit-codec-aac" }
 serde.workspace = true
 num-complex.workspace = true
 serde_json.workspace = true

@@ -1,12 +1,12 @@
-// sdrkit: the typed interface of the stack family "drones", version 1.4. MIT licence.
+// sdrkit: the typed interface of the stack family "drones", version 2.0. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
 
 /// The version of the family that this file describes.
 public enum DronesInterface {
-    public static let major = 1
-    public static let minor = 4
+    public static let major = 2
+    public static let minor = 0
 }
 
 /// The result fields of Drone Remote ID.
@@ -112,6 +112,78 @@ public struct RemoteIdDroneRow {
         case suspicious = 2
         case spoofed = 3
     }
+    public struct Reasons: SDRKitFlagSet {
+        public let rawValue: UInt64
+        public init(rawValue: UInt64) { self.rawValue = rawValue }
+        /// The broadcasts have the fingerprint of a public spoofing tool.
+        public static let knownSpoofer = Reasons(rawValue: 1 << 0)
+        /// A signature or a key binding of the drone does not verify.
+        public static let authFailed = Reasons(rawValue: 1 << 1)
+        /// The position jumped further than the speed limit allows.
+        public static let teleport = Reasons(rawValue: 1 << 2)
+        /// One counter value carried two contents: two radios share an address.
+        public static let counterConflict = Reasons(rawValue: 1 << 3)
+        /// Another transmitter sends the same ID from a position that does not fit.
+        public static let identityClone = Reasons(rawValue: 1 << 4)
+        /// The same ID says different things on Bluetooth and Wi-Fi.
+        public static let transportDisagreement = Reasons(rawValue: 1 << 5)
+        /// The track is faster than any drone, over several windows.
+        public static let speedImplausible = Reasons(rawValue: 1 << 6)
+        /// The reported horizontal speed does not fit the track.
+        public static let reportedSpeedMismatch = Reasons(rawValue: 1 << 7)
+        /// The reported direction does not fit the track.
+        public static let reportedCourseMismatch = Reasons(rawValue: 1 << 8)
+        /// The climb or descent rate is impossible or does not fit the reported vertical speed.
+        public static let verticalRateImplausible = Reasons(rawValue: 1 << 9)
+        /// The location timestamps stopped while the clock of the receiver ran.
+        public static let timestampFrozen = Reasons(rawValue: 1 << 10)
+        /// The location timestamps run at a wrong rate or far from UTC.
+        public static let locationClockDrift = Reasons(rawValue: 1 << 11)
+        /// The system or authentication timestamps are zero or far from UTC.
+        public static let systemClockDrift = Reasons(rawValue: 1 << 12)
+        /// The Wi-Fi timer holds a wall clock time, as software that injects frames writes it.
+        public static let tsfWallClock = Reasons(rawValue: 1 << 13)
+        /// The Wi-Fi timer jumps against the clock of the receiver.
+        public static let tsfDiscontinuity = Reasons(rawValue: 1 << 14)
+        /// The message counter starts again and again.
+        public static let counterInterleave = Reasons(rawValue: 1 << 15)
+        /// The signal strength jumps from frame to frame.
+        public static let signalJump = Reasons(rawValue: 1 << 16)
+        /// Several transmitter addresses share one radio clock.
+        public static let sharedRadio = Reasons(rawValue: 1 << 17)
+        /// Location fields are outside their ranges or hold reserved codes.
+        public static let invalidFields = Reasons(rawValue: 1 << 18)
+        /// The serial number does not follow ANSI/CTA-2063-A.
+        public static let serialFormat = Reasons(rawValue: 1 << 19)
+        /// The drone sends locations for a while and never a Basic ID.
+        public static let noBasicId = Reasons(rawValue: 1 << 20)
+        /// A valid signature is outside its time window: a possible replay.
+        public static let authExpired = Reasons(rawValue: 1 << 21)
+        public static let entries: [SDRKitFlag<Reasons>] = [
+            SDRKitFlag(flag: .knownSpoofer, key: "known_spoofer", label: "Known spoofer", help: "The broadcasts have the fingerprint of a public spoofing tool."),
+            SDRKitFlag(flag: .authFailed, key: "auth_failed", label: "Authentication failed", help: "A signature or a key binding of the drone does not verify."),
+            SDRKitFlag(flag: .teleport, key: "teleport", label: "Teleport", help: "The position jumped further than the speed limit allows."),
+            SDRKitFlag(flag: .counterConflict, key: "counter_conflict", label: "Counter conflict", help: "One counter value carried two contents: two radios share an address."),
+            SDRKitFlag(flag: .identityClone, key: "identity_clone", label: "Identity clone", help: "Another transmitter sends the same ID from a position that does not fit."),
+            SDRKitFlag(flag: .transportDisagreement, key: "transport_disagreement", label: "Transport disagreement", help: "The same ID says different things on Bluetooth and Wi-Fi."),
+            SDRKitFlag(flag: .speedImplausible, key: "speed_implausible", label: "Speed implausible", help: "The track is faster than any drone, over several windows."),
+            SDRKitFlag(flag: .reportedSpeedMismatch, key: "reported_speed_mismatch", label: "Reported speed mismatch", help: "The reported horizontal speed does not fit the track."),
+            SDRKitFlag(flag: .reportedCourseMismatch, key: "reported_course_mismatch", label: "Reported course mismatch", help: "The reported direction does not fit the track."),
+            SDRKitFlag(flag: .verticalRateImplausible, key: "vertical_rate_implausible", label: "Vertical rate implausible", help: "The climb or descent rate is impossible or does not fit the reported vertical speed."),
+            SDRKitFlag(flag: .timestampFrozen, key: "timestamp_frozen", label: "Timestamp frozen", help: "The location timestamps stopped while the clock of the receiver ran."),
+            SDRKitFlag(flag: .locationClockDrift, key: "location_clock_drift", label: "Location clock drift", help: "The location timestamps run at a wrong rate or far from UTC."),
+            SDRKitFlag(flag: .systemClockDrift, key: "system_clock_drift", label: "System clock drift", help: "The system or authentication timestamps are zero or far from UTC."),
+            SDRKitFlag(flag: .tsfWallClock, key: "tsf_wall_clock", label: "TSF wall clock", help: "The Wi-Fi timer holds a wall clock time, as software that injects frames writes it."),
+            SDRKitFlag(flag: .tsfDiscontinuity, key: "tsf_discontinuity", label: "TSF discontinuity", help: "The Wi-Fi timer jumps against the clock of the receiver."),
+            SDRKitFlag(flag: .counterInterleave, key: "counter_interleave", label: "Counter interleave", help: "The message counter starts again and again."),
+            SDRKitFlag(flag: .signalJump, key: "signal_jump", label: "Signal jump", help: "The signal strength jumps from frame to frame."),
+            SDRKitFlag(flag: .sharedRadio, key: "shared_radio", label: "Shared radio", help: "Several transmitter addresses share one radio clock."),
+            SDRKitFlag(flag: .invalidFields, key: "invalid_fields", label: "Invalid fields", help: "Location fields are outside their ranges or hold reserved codes."),
+            SDRKitFlag(flag: .serialFormat, key: "serial_format", label: "Serial format", help: "The serial number does not follow ANSI/CTA-2063-A."),
+            SDRKitFlag(flag: .noBasicId, key: "no_basic_id", label: "No Basic ID", help: "The drone sends locations for a while and never a Basic ID."),
+            SDRKitFlag(flag: .authExpired, key: "auth_expired", label: "Authentication expired", help: "A valid signature is outside its time window: a possible replay."),
+        ]
+    }
     public enum Via: Int32 {
         case ble = 0
         case wifi = 1
@@ -125,8 +197,8 @@ public struct RemoteIdDroneRow {
     public var address: String
     /// The trust verdict of the broadcasts heard since the stack started: authenticated, plausible, suspicious or spoofed. No value before the first packet since the start (a drone of a restored state).
     public var verdict: Verdict?
-    /// The active reasons of the trust verdict: their stable names (`teleport`, `counter_conflict`, ...) joined by ", ". Empty when there is none.
-    public var reasons: String
+    /// The active reasons of the trust verdict, one flag for each. No flag when there is none.
+    public var reasons: Reasons
     /// Serial number.
     public var serial: String?
     /// Session ID.
@@ -217,7 +289,7 @@ public struct RemoteIdDroneRow {
         source = sdrkitText(c.source)
         address = sdrkitText(c.address)
         verdict = c.has_verdict ? Verdict(rawValue: c.verdict) : nil
-        reasons = sdrkitText(c.reasons)
+        reasons = Reasons(rawValue: c.reasons)
         serial = c.has_serial ? sdrkitText(c.serial) : nil
         sessionId = c.has_session_id ? sdrkitText(c.session_id) : nil
         caaRegistration = c.has_caa_registration ? sdrkitText(c.caa_registration) : nil
@@ -1473,6 +1545,78 @@ public struct RemoteIdVerdictEvent {
         case suspicious = 2
         case spoofed = 3
     }
+    public struct Reasons: SDRKitFlagSet {
+        public let rawValue: UInt64
+        public init(rawValue: UInt64) { self.rawValue = rawValue }
+        /// The broadcasts have the fingerprint of a public spoofing tool.
+        public static let knownSpoofer = Reasons(rawValue: 1 << 0)
+        /// A signature or a key binding of the drone does not verify.
+        public static let authFailed = Reasons(rawValue: 1 << 1)
+        /// The position jumped further than the speed limit allows.
+        public static let teleport = Reasons(rawValue: 1 << 2)
+        /// One counter value carried two contents: two radios share an address.
+        public static let counterConflict = Reasons(rawValue: 1 << 3)
+        /// Another transmitter sends the same ID from a position that does not fit.
+        public static let identityClone = Reasons(rawValue: 1 << 4)
+        /// The same ID says different things on Bluetooth and Wi-Fi.
+        public static let transportDisagreement = Reasons(rawValue: 1 << 5)
+        /// The track is faster than any drone, over several windows.
+        public static let speedImplausible = Reasons(rawValue: 1 << 6)
+        /// The reported horizontal speed does not fit the track.
+        public static let reportedSpeedMismatch = Reasons(rawValue: 1 << 7)
+        /// The reported direction does not fit the track.
+        public static let reportedCourseMismatch = Reasons(rawValue: 1 << 8)
+        /// The climb or descent rate is impossible or does not fit the reported vertical speed.
+        public static let verticalRateImplausible = Reasons(rawValue: 1 << 9)
+        /// The location timestamps stopped while the clock of the receiver ran.
+        public static let timestampFrozen = Reasons(rawValue: 1 << 10)
+        /// The location timestamps run at a wrong rate or far from UTC.
+        public static let locationClockDrift = Reasons(rawValue: 1 << 11)
+        /// The system or authentication timestamps are zero or far from UTC.
+        public static let systemClockDrift = Reasons(rawValue: 1 << 12)
+        /// The Wi-Fi timer holds a wall clock time, as software that injects frames writes it.
+        public static let tsfWallClock = Reasons(rawValue: 1 << 13)
+        /// The Wi-Fi timer jumps against the clock of the receiver.
+        public static let tsfDiscontinuity = Reasons(rawValue: 1 << 14)
+        /// The message counter starts again and again.
+        public static let counterInterleave = Reasons(rawValue: 1 << 15)
+        /// The signal strength jumps from frame to frame.
+        public static let signalJump = Reasons(rawValue: 1 << 16)
+        /// Several transmitter addresses share one radio clock.
+        public static let sharedRadio = Reasons(rawValue: 1 << 17)
+        /// Location fields are outside their ranges or hold reserved codes.
+        public static let invalidFields = Reasons(rawValue: 1 << 18)
+        /// The serial number does not follow ANSI/CTA-2063-A.
+        public static let serialFormat = Reasons(rawValue: 1 << 19)
+        /// The drone sends locations for a while and never a Basic ID.
+        public static let noBasicId = Reasons(rawValue: 1 << 20)
+        /// A valid signature is outside its time window: a possible replay.
+        public static let authExpired = Reasons(rawValue: 1 << 21)
+        public static let entries: [SDRKitFlag<Reasons>] = [
+            SDRKitFlag(flag: .knownSpoofer, key: "known_spoofer", label: "Known spoofer", help: "The broadcasts have the fingerprint of a public spoofing tool."),
+            SDRKitFlag(flag: .authFailed, key: "auth_failed", label: "Authentication failed", help: "A signature or a key binding of the drone does not verify."),
+            SDRKitFlag(flag: .teleport, key: "teleport", label: "Teleport", help: "The position jumped further than the speed limit allows."),
+            SDRKitFlag(flag: .counterConflict, key: "counter_conflict", label: "Counter conflict", help: "One counter value carried two contents: two radios share an address."),
+            SDRKitFlag(flag: .identityClone, key: "identity_clone", label: "Identity clone", help: "Another transmitter sends the same ID from a position that does not fit."),
+            SDRKitFlag(flag: .transportDisagreement, key: "transport_disagreement", label: "Transport disagreement", help: "The same ID says different things on Bluetooth and Wi-Fi."),
+            SDRKitFlag(flag: .speedImplausible, key: "speed_implausible", label: "Speed implausible", help: "The track is faster than any drone, over several windows."),
+            SDRKitFlag(flag: .reportedSpeedMismatch, key: "reported_speed_mismatch", label: "Reported speed mismatch", help: "The reported horizontal speed does not fit the track."),
+            SDRKitFlag(flag: .reportedCourseMismatch, key: "reported_course_mismatch", label: "Reported course mismatch", help: "The reported direction does not fit the track."),
+            SDRKitFlag(flag: .verticalRateImplausible, key: "vertical_rate_implausible", label: "Vertical rate implausible", help: "The climb or descent rate is impossible or does not fit the reported vertical speed."),
+            SDRKitFlag(flag: .timestampFrozen, key: "timestamp_frozen", label: "Timestamp frozen", help: "The location timestamps stopped while the clock of the receiver ran."),
+            SDRKitFlag(flag: .locationClockDrift, key: "location_clock_drift", label: "Location clock drift", help: "The location timestamps run at a wrong rate or far from UTC."),
+            SDRKitFlag(flag: .systemClockDrift, key: "system_clock_drift", label: "System clock drift", help: "The system or authentication timestamps are zero or far from UTC."),
+            SDRKitFlag(flag: .tsfWallClock, key: "tsf_wall_clock", label: "TSF wall clock", help: "The Wi-Fi timer holds a wall clock time, as software that injects frames writes it."),
+            SDRKitFlag(flag: .tsfDiscontinuity, key: "tsf_discontinuity", label: "TSF discontinuity", help: "The Wi-Fi timer jumps against the clock of the receiver."),
+            SDRKitFlag(flag: .counterInterleave, key: "counter_interleave", label: "Counter interleave", help: "The message counter starts again and again."),
+            SDRKitFlag(flag: .signalJump, key: "signal_jump", label: "Signal jump", help: "The signal strength jumps from frame to frame."),
+            SDRKitFlag(flag: .sharedRadio, key: "shared_radio", label: "Shared radio", help: "Several transmitter addresses share one radio clock."),
+            SDRKitFlag(flag: .invalidFields, key: "invalid_fields", label: "Invalid fields", help: "Location fields are outside their ranges or hold reserved codes."),
+            SDRKitFlag(flag: .serialFormat, key: "serial_format", label: "Serial format", help: "The serial number does not follow ANSI/CTA-2063-A."),
+            SDRKitFlag(flag: .noBasicId, key: "no_basic_id", label: "No Basic ID", help: "The drone sends locations for a while and never a Basic ID."),
+            SDRKitFlag(flag: .authExpired, key: "auth_expired", label: "Authentication expired", help: "A valid signature is outside its time window: a possible replay."),
+        ]
+    }
     public enum Urgency: Int32 {
         case none = 0
         case notice = 1
@@ -1504,8 +1648,8 @@ public struct RemoteIdVerdictEvent {
     public var address: String
     /// The new trust verdict.
     public var verdict: Verdict?
-    /// The active reasons of the verdict: their stable names joined by ", ". Empty when there is none.
-    public var reasons: String
+    /// The active reasons of the verdict, one flag for each. No flag when there is none.
+    public var reasons: Reasons
     /// The position of the object that the event is about.
     public var position: SDRKitPosition?
     /// How urgent an event is. A stack sets it when the decoded message is urgent. Services alert on it.
@@ -1519,7 +1663,7 @@ public struct RemoteIdVerdictEvent {
         source = sdrkitText(c.source)
         address = sdrkitText(c.address)
         verdict = Verdict(rawValue: c.verdict)
-        reasons = sdrkitText(c.reasons)
+        reasons = Reasons(rawValue: c.reasons)
         position = c.has_position ? SDRKitPosition(c.position) : nil
         urgency = Urgency(rawValue: c.urgency)
         family = Family(rawValue: c.family)

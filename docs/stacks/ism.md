@@ -89,7 +89,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `devices` | Devices | `model` (text), `kind` (text), `id` (text), `channel` (text), `battery_ok` (yes or no), `readings` (text), `history` (text), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `last_heard` (time), `count` (whole number), `frequency` (frequency), `check` (choice) |
+| `devices` | Devices | `model` (text), `kind` (text), `id` (text), `channel` (text), `battery_ok` (yes or no), `readings` (text), `history` (text), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `last_heard` (time), `count` (whole number), `frequency` (frequency), `check` (choice), `name` (text) |
 | `zwave` | Z-Wave | `home_id` (text), `node` (whole number), `rate` (text), `last_heard` (time), `level_dbfs` (number (dBFS)), `count` (whole number), `command` (text), `value` (text) |
 | `log` | Log | `time_s` (number (s)), `model` (text), `id` (text), `frequency` (frequency), `level_dbfs` (number (dBFS)), `text` (text) |
 | `unknown` | Unknown signals | `time_s` (number (s)), `frequency` (frequency), `modulation` (text), `line_code` (text), `pulses` (whole number), `short_us` (number (us)), `long_us` (number (us)), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `copy` (text) |
@@ -123,9 +123,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `ism`, version 4.0. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `ism`, version 4.2. The C header `sdrkit/ism.h`, the registry record `registry/ism.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
+
+Key readings: `devices`.
 
 ### Result fields
 
@@ -225,8 +227,9 @@ Struct `IsmDeviceRow`. A row of the devices. The row key is the model, the id an
 | `count` | whole number | always | 1.0 | Distinct transmissions. |
 | `frequency` | frequency | always | 1.0 | The frequency of the last transmission. |
 | `check` | choice | always | 1.0 | The frame test of the last reading. |
+| `name` | text | always | 4.1 | The name of the device for people: the model and the id ("Acurite-Tower 1234"). |
 
-The column `id` names a row.
+The rows are the stations or nodes of the stack. The column `name` names a row. Default order: the column `last_heard`, highest first. Time: `last_heard`.
 
 ### Table `zwave`
 
@@ -517,3 +520,16 @@ sdrkit run ism --source iiod:192.168.2.1 --freq 433.92
 ## Settings: notes
 
 Advanced settings. The owner works without any of them set.
+
+## Rolling-code remotes
+
+Somfy RTS blind and awning remotes (433.42 MHz) and KeeLoq-style remotes in the HCS301 code word are read as device
+protocols. A reading shows only what the remote sends in the clear: the Somfy address and button, or the KeeLoq serial
+number, buttons and battery state, with the type "rolling code". The Somfy rolling code is read for the check and then
+dropped; the KeeLoq hopping code is not read. Nothing that could make or predict a frame is kept or shown. The stack
+sends none of these protocols.
+
+Sources: a public prose description of the Somfy RTS frame; the Microchip HCS301 data sheet (DS21143). KeeLoq words are
+read at TE = 400 µs only and count from their second copy in one transmission. Neither has been confirmed on a real
+remote. Fixed-code remotes (PT2260, PT2262, EV1527) are the protocol "PT2260 / PT2262 / SC2260 / EV1527 remotes and
+sensors".

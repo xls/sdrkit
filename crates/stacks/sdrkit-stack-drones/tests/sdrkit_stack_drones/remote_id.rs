@@ -9,7 +9,7 @@ use sdrkit_dev_test::{sigmf, Harness};
 use sdrkit_stack_drones::typed;
 use sdrkit_stack_drones::remote_id::table::*;
 use sdrkit_stack_drones::remote_id::{plan, receiver, Band};
-use sdrkit_stack_drones::remote_id::trust::TrustVerdict;
+use sdrkit_stack_drones::remote_id::trust::{TrustReasons, TrustVerdict};
 use sdrkit_stack_drones::remote_id::{
     GenCarriers, GenWifiPhy, GEN_CARRIERS, GEN_CENTRE_MHZ, GEN_SPOOFER, GEN_WIFI_PHY,
     SHARED_RADIO,
@@ -269,7 +269,7 @@ fn the_spoofer_of_the_test_signal_is_flagged() {
         d.at(&typed::RemoteIdDroneRow::REASONS),
         d.at(&typed::RemoteIdDroneRow::LOCATION_MESSAGES)
     );
-    assert!(d.at(&typed::RemoteIdDroneRow::REASONS).unwrap().contains("teleport"));
+    assert!(d.at(&typed::RemoteIdDroneRow::REASONS).unwrap().contains(TrustReasons::TELEPORT));
     assert_eq!(drone(r, DRONE1).at(&typed::RemoteIdDroneRow::VERDICT), Some(TrustVerdict::Plausible));
     assert_eq!(count(r, &typed::RemoteIdFields::FLAGGED), 1);
     let e: Vec<_> = out.events.iter().filter(|e| e.is(&typed::REMOTE_ID_VERDICT)).collect();
@@ -290,7 +290,7 @@ fn one_emitter_behind_two_addresses_shares_a_radio() {
     let on = run(h.clone().set(&SHARED_RADIO, true));
     let d = drone(&on.results, DRONE1);
     assert_eq!(d.at(&typed::RemoteIdDroneRow::VERDICT), Some(TrustVerdict::Suspicious));
-    assert!(d.at(&typed::RemoteIdDroneRow::REASONS).unwrap().contains("shared_radio"));
+    assert!(d.at(&typed::RemoteIdDroneRow::REASONS).unwrap().contains(TrustReasons::SHARED_RADIO));
     let off = run(h);
     let d = drone(&off.results, DRONE1);
     assert_eq!(d.at(&typed::RemoteIdDroneRow::VERDICT), Some(TrustVerdict::Plausible));

@@ -567,6 +567,9 @@ pub struct NrFields<'a> {
     /// Cells with a MIB.
     #[field(label = "With MIB")]
     pub with_mib: i64,
+    /// Cells with a SIB1.
+    #[field(label = "With SIB1")]
+    pub with_sib1: i64,
     /// The lowest GSCN the newest capture searched.
     #[field(label = "Lowest GSCN searched")]
     pub gscn_lo: Option<i64>,
@@ -583,7 +586,22 @@ pub struct NrFields<'a> {
 
 /// A row of the cells of `nr`.
 #[derive(Clone, Debug, PartialEq, Fields)]
-pub struct NrCellRow {
+pub struct NrCellRow<'a> {
+    /// How far the cell was decoded.
+    #[field(label = "Decoded")]
+    pub decoded: crate::nr::Decoded,
+    /// The first network of SIB1.
+    #[field(label = "PLMN")]
+    pub plmn: Option<&'a str>,
+    /// The operator of that network.
+    #[field(label = "Operator")]
+    pub operator: Option<&'a str>,
+    /// The tracking area code of SIB1.
+    #[field(label = "TAC")]
+    pub tac: Option<i64>,
+    /// The NR cell identity of SIB1 (36 bits).
+    #[field(label = "Cell identity")]
+    pub nci: Option<i64>,
     /// The band.
     #[field(label = "Band")]
     pub band: Option<i64>,
@@ -622,9 +640,132 @@ pub struct NrCellRow {
     pub last_heard: Option<Time>,
 }
 
+/// The details of a cell of `nr`. The row key is the cell key.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct NrDetailRow<'a> {
+    /// The row key of the cell.
+    #[field(label = "Cell", refers_to = "cells")]
+    pub cell: &'a str,
+    /// How far the reception of SIB1 went.
+    #[field(label = "SIB1")]
+    pub sib1: crate::nr::sib1::Sib1Step,
+    /// The parts of SIB1 read: 1 the networks, 2 the scheduling, 3 the downlink carrier, 4 the SSB facts.
+    #[field(label = "SIB1 parts")]
+    pub sib1_parts: Option<i64>,
+    /// The width of CORESET#0.
+    #[field(label = "CORESET#0 width", unit = "Hz")]
+    pub coreset0_width: Option<Hertz>,
+    /// The sample rate that holds CORESET#0 with the radio centre of the newest try.
+    #[field(label = "Rate for CORESET#0", unit = "Hz")]
+    pub rate_needed: Option<Hertz>,
+    /// subCarrierSpacingCommon of the MIB.
+    #[field(label = "Common spacing", unit = "Hz")]
+    pub scs_common: Option<Hertz>,
+    /// k_SSB of the MIB.
+    #[field(label = "k_SSB")]
+    pub k_ssb: Option<i64>,
+    /// cellBarred of the MIB.
+    #[field(label = "Barred")]
+    pub barred: Option<bool>,
+    /// intraFreqReselection of the MIB is allowed.
+    #[field(label = "Intra-frequency reselection")]
+    pub intra_freq_reselection: Option<bool>,
+    /// cellReservedForOtherUse of SIB1.
+    #[field(label = "Reserved for other use")]
+    pub reserved_other_use: Option<bool>,
+    /// q-RxLevMin of SIB1.
+    #[field(label = "q-RxLevMin", unit = "dBm")]
+    pub q_rx_lev_min_dbm: Option<f64>,
+    /// The bands of SIB1, apart by spaces.
+    #[field(label = "Bands")]
+    pub bands: Option<&'a str>,
+    /// The SSB period of SIB1.
+    #[field(label = "SSB period", unit = "s")]
+    pub ssb_period: Option<Seconds>,
+    /// The spacing of the carrier of SIB1.
+    #[field(label = "Carrier spacing", unit = "Hz")]
+    pub carrier_scs: Option<Hertz>,
+    /// The width of the carrier of SIB1.
+    #[field(label = "Carrier width", unit = "RB")]
+    pub carrier_rbs: Option<i64>,
+    /// offsetToPointA of SIB1.
+    #[field(label = "Offset to point A", unit = "RB")]
+    pub offset_to_point_a: Option<i64>,
+    /// The first block of the initial downlink BWP.
+    #[field(label = "Initial BWP start", unit = "RB")]
+    pub bwp_start: Option<i64>,
+    /// The width of the initial downlink BWP.
+    #[field(label = "Initial BWP width", unit = "RB")]
+    pub bwp_rbs: Option<i64>,
+    /// The SI window, slots.
+    #[field(label = "SI window", unit = "slots")]
+    pub si_window: Option<i64>,
+    /// Whether SIB1 configures a TDD pattern.
+    #[field(label = "TDD")]
+    pub tdd: Option<bool>,
+    /// SIB1 decodes.
+    #[field(label = "SIB1 decodes")]
+    pub sib1_count: i64,
+}
+
+/// A network of a cell of `nr`, from SIB1. The row key is the cell key and the place of the network.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct NrNetworkRow<'a> {
+    /// The row key of the cell.
+    #[field(label = "Cell", refers_to = "cells")]
+    pub cell: &'a str,
+    /// The network.
+    #[field(label = "PLMN")]
+    pub plmn: &'a str,
+    /// The operator of the network.
+    #[field(label = "Operator")]
+    pub operator: Option<&'a str>,
+    /// The tracking area code.
+    #[field(label = "TAC")]
+    pub tac: Option<i64>,
+    /// The NR cell identity (36 bits).
+    #[field(label = "Cell identity")]
+    pub nci: i64,
+    /// The gNB identity, when SIB1 gives its length.
+    #[field(label = "gNB")]
+    pub gnb: Option<i64>,
+    /// The cell identity within the gNB.
+    #[field(label = "Cell in gNB")]
+    pub cell_id: Option<i64>,
+    /// cellReservedForOperatorUse.
+    #[field(label = "Reserved for the operator")]
+    pub reserved_operator: bool,
+}
+
+/// A SIB that the SIB1 of a cell of `nr` schedules. The row key is the cell key and the SIB number.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct NrSibRow<'a> {
+    /// The row key of the cell.
+    #[field(label = "Cell", refers_to = "cells")]
+    pub cell: &'a str,
+    /// The SIB number.
+    #[field(label = "SIB")]
+    pub sib: i64,
+    /// The period of its SI message.
+    #[field(label = "Period", unit = "s")]
+    pub period: Seconds,
+    /// Whether the message is broadcast (else sent on request).
+    #[field(label = "Broadcast")]
+    pub broadcasting: bool,
+    /// The value tag.
+    #[field(label = "Value tag")]
+    pub value_tag: Option<i64>,
+}
+
 /// The cells of `nr`.
-pub static NR_CELLS: Table<NrCellRow> =
+pub static NR_CELLS: Table<NrCellRow<'static>> =
     Table::new(crate::decoder::CELLS_KEY, "Cells", crate::nr::CELL_CAP);
+/// The details of the cells of `nr`.
+pub static NR_DETAILS: Table<NrDetailRow<'static>> = Table::new("nr_details", "Details", crate::nr::CELL_CAP);
+/// The networks of the cells of `nr`.
+pub static NR_NETWORKS: Table<NrNetworkRow<'static>> = Table::new("nr_networks", "Networks", 4 * crate::nr::CELL_CAP);
+/// The SIBs that the cells of `nr` schedule.
+pub static NR_SIBS: Table<NrSibRow<'static>> = Table::new("nr_sibs", "SIBs", 8 * crate::nr::CELL_CAP);
 /// An NR cell found or identified.
 pub static NR_CELL: EventKind<FoundCellEvent<'static>> = EventKind::new("cell.nr_cell", "NR cell");
 
@@ -1543,8 +1684,7 @@ pub const EBICAB_REMOVE: CommandKind<EbicabRemoveArgs<'static>> = objcmd::remove
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        // Version 1.3 marks the logs.
-        Family::new("cell", 1, 3)
+        Family::new("cell", 1, 4)
             .added(
                 1,
                 1,
@@ -1561,6 +1701,64 @@ pub fn family() -> &'static Family {
                     "tdscdma.content",
                     "eot.content",
                     "cv2x.content",
+                ],
+            )
+            // Version 1.4: the SIB1 of NR cells.
+            .added(
+                1,
+                4,
+                &[
+                    "shape.NrFields.with_sib1",
+                    "shape.NrCellRow.decoded",
+                    "shape.NrCellRow.plmn",
+                    "shape.NrCellRow.operator",
+                    "shape.NrCellRow.tac",
+                    "shape.NrCellRow.nci",
+                    "shape.NrDetailRow",
+                    "shape.NrDetailRow.cell",
+                    "shape.NrDetailRow.sib1",
+                    "shape.NrDetailRow.sib1_parts",
+                    "shape.NrDetailRow.coreset0_width",
+                    "shape.NrDetailRow.rate_needed",
+                    "shape.NrDetailRow.scs_common",
+                    "shape.NrDetailRow.k_ssb",
+                    "shape.NrDetailRow.barred",
+                    "shape.NrDetailRow.intra_freq_reselection",
+                    "shape.NrDetailRow.reserved_other_use",
+                    "shape.NrDetailRow.q_rx_lev_min_dbm",
+                    "shape.NrDetailRow.bands",
+                    "shape.NrDetailRow.ssb_period",
+                    "shape.NrDetailRow.carrier_scs",
+                    "shape.NrDetailRow.carrier_rbs",
+                    "shape.NrDetailRow.offset_to_point_a",
+                    "shape.NrDetailRow.bwp_start",
+                    "shape.NrDetailRow.bwp_rbs",
+                    "shape.NrDetailRow.si_window",
+                    "shape.NrDetailRow.tdd",
+                    "shape.NrDetailRow.sib1_count",
+                    "shape.NrNetworkRow",
+                    "shape.NrNetworkRow.cell",
+                    "shape.NrNetworkRow.plmn",
+                    "shape.NrNetworkRow.operator",
+                    "shape.NrNetworkRow.tac",
+                    "shape.NrNetworkRow.nci",
+                    "shape.NrNetworkRow.gnb",
+                    "shape.NrNetworkRow.cell_id",
+                    "shape.NrNetworkRow.reserved_operator",
+                    "shape.NrSibRow",
+                    "shape.NrSibRow.cell",
+                    "shape.NrSibRow.sib",
+                    "shape.NrSibRow.period",
+                    "shape.NrSibRow.broadcasting",
+                    "shape.NrSibRow.value_tag",
+                    "nr.kept.nr_details",
+                    "nr.kept.nr_networks",
+                    "nr.kept.nr_sibs",
+                    "nr.kept.NrFields.with_sib1",
+                    "nr.table.nr_details",
+                    "nr.table.nr_networks",
+                    "nr.table.nr_sibs",
+                    "nr.setting.symbol_phase",
                 ],
             )
             .content(
@@ -1626,13 +1824,21 @@ pub fn family() -> &'static Family {
                 ],
             ))
             .stack(search_end(
-                search_stack::<NrFields>(crate::nr::ID).table(&NR_CELLS),
+                search_stack::<NrFields>(crate::nr::ID)
+                    .table(&NR_CELLS)
+                    .table(&NR_DETAILS)
+                    .table(&NR_NETWORKS)
+                    .table(&NR_SIBS),
                 &NR_CELL,
                 &[crate::nr::NrSetting::SETTINGS, crate::nr::gen::SETTINGS],
                 &[
                     "cells",
+                    "nr_details",
+                    "nr_networks",
+                    "nr_sibs",
                     "NrFields.cell_count",
                     "NrFields.with_mib",
+                    "NrFields.with_sib1",
                     "NrFields.banner",
                 ],
             ))

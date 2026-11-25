@@ -28,8 +28,11 @@ use sdrkit_core::{
     SeriesId, Setting, SettingError, SettingId, SignalInfo, StackConfig, StateBlob, StateError,
     Status, Value, Values,
 };
+use sdrkit_graph::components::{
+    DeemphasisComponent, FirFilter, FmDemod, RealToAudio, Resample,
+};
 use sdrkit_graph::{
-    no_values, Applied, Catalog, Component, ComponentInfo, Format, Graph, GraphBuilder, GraphError,
+    no_values, Applied, Catalog, ChannelsFrom, Component, ComponentInfo, Format, Graph, GraphBuilder, GraphError,
     Io, Item, Kept, Kind, Picture, Port, RateFrom, RateRule, StackGraph, Timed,
 };
 use sdrkit_proto_bcdata::publish::Publisher;
@@ -2287,7 +2290,7 @@ impl HdStation {
             2 => write!(st.summary, "locked, waiting for a frame"),
             _ => write!(
                 st.summary,
-                "{} {}, {}",
+                "{} {}, {}; {}",
                 match d.mode {
                     Some(ServiceMode::Mp1 | ServiceMode::Mp3) => "FM hybrid",
                     Some(ServiceMode::Ma1) => "AM hybrid",
@@ -2295,7 +2298,13 @@ impl HdStation {
                     None => "",
                 },
                 d.mode.map_or("", ServiceMode::name),
-                d.sis.short_name
+                d.sis.short_name,
+                match d.mode {
+                    Some(ServiceMode::Mp1 | ServiceMode::Mp3) => {
+                        "analogue FM sound, digital sound not decoded"
+                    }
+                    _ => "no sound, digital sound not decoded",
+                }
             ),
         };
         let r = p.results_mut();
@@ -2380,10 +2389,8 @@ impl Component for HdStation {
             r.bitrate = n as f64 * 2048.0 / 44_100.0; // packets per second of sound
             if !self.noted {
                 self.noted = true;
-                self.d.codec_note = "HDC sound codec not installed".into();
-                self.published
-                    .results_mut()
-                    .log("HDC sound codec not installed");
+                self.d.codec_note = HDC_NOTE.into();
+                self.published.results_mut().log(HDC_NOTE);
             }
         }
         for p in io.items::<PsdItem>(3) {
@@ -2497,7 +2504,91 @@ impl Component for HdStation {
     }
 }
 
-/// The HD Radio graph.
+/// Why the digital sound does not play: sdrkit has no HDC decoder.
+pub const HDC_NOTE: &str = "HDC digital sound is not decoded";
+
+/// The sound stage (`broadcast.hd_sound`, audio + typed `status` -> audio): passes the analogue FM programme while the
+/// signal is FM: the band that Layer 1 found, or before that a frequency above 30 MHz (or an unknown one). It writes
+/// [`res::HdSoundFields`].
+pub struct HdSoundStage {
+    fm_band: bool,
+    band: Option<Band>,
+    sound: res::HdSound,
+    published: Published,
+}
+
+impl Default for HdSoundStage {
+    fn default() -> Self {
+        let mut published = Published::new(res::HdSoundFields::SHAPE.fields);
+        published.put(&res::HdSoundFields {
+            sound: res::HdSound::Silent,
+        });
+        HdSoundStage {
+            fm_band: true,
+            band: None,
+            sound: res::HdSound::Silent,
+            published,
+        }
+    }
+}
+
+impl HdSoundStage {
+    fn show(&mut self, sound: res::HdSound) {
+        if sound != self.sound {
+            self.sound = sound;
+            self.published.put(&res::HdSoundFields { sound });
+        }
+    }
+}
+
+impl Component for HdSoundStage {
+    fn info(&self) -> ComponentInfo {
+        ComponentInfo::processor(
+            "broadcast.hd_sound",
+            vec![Port::audio("in"), Port::typed::<L1Status>("status")],
+            vec![Port::audio("out")
+                .rate_from(RateFrom::Input(0))
+                .channels_from(ChannelsFrom::Input(0))],
+        )
+    }
+    fn configure(&mut self, inputs: &[Format]) -> Result<Vec<Format>, ConfigError> {
+        let t = inputs[0].tuned_hz;
+        self.fm_band = t <= 0.0 || t > 30e6;
+        Ok(vec![inputs[0].clone()])
+    }
+    fn process(&mut self, io: &mut Io) {
+        for s in io.items::<L1Status>(1) {
+            if s.value.band.is_some() {
+                self.band = s.value.band;
+            }
+        }
+        let x = &io.audio(0).samples;
+        let fm = self.band.map_or(self.fm_band, |b| b == Band::Fm);
+        if !fm {
+            self.show(res::HdSound::Silent);
+            return;
+        }
+        if x.is_empty() {
+            return;
+        }
+        io.audio_out(0).samples.extend_from_slice(x);
+        self.show(res::HdSound::AnalogueFm);
+    }
+    fn results(&self) -> Option<&Results> {
+        Some(self.published.results())
+    }
+    fn values(&self) -> Values {
+        no_values()
+    }
+    /// The band found and the sound shown start again.
+    fn forget(&mut self, _kept: &Kept) {
+        self.band = None;
+        self.show(res::HdSound::Silent);
+    }
+}
+
+/// The HD Radio graph. The FM lane also feeds the analogue programme: ±100 kHz around the carrier, the shared FM
+/// demodulator at 75 kHz deviation, 48 kHz, 15 kHz wide, 75 µs de-emphasis.
 ///
 /// # Errors
 ///
@@ -2510,14 +2601,34 @@ pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
     let am_front =
         crate::component::channel(20e3, l1::AM_RATE).map_err(|e| setting("am_front", e))?;
     let fm_front = FmFront::new().map_err(|e| setting("fm_front", e))?;
+    let analog = crate::component::channel(100e3, 250e3).map_err(|e| setting("analog", e))?;
+    let analog_demod = FmDemod::new(75e3).map_err(|e| setting("analog_demod", e))?;
+    let analog_rate = Resample::new(48e3).map_err(|e| setting("analog_rate", e))?;
+    let analog_filter =
+        FirFilter::lowpass(15e3, 2e3).map_err(|e| setting("analog_filter", e))?;
     GraphBuilder::new()
         .add("fm_front", fm_front)
         .add("am_front", am_front)
         .add("l1", HdL1::default())
         .add("l2", HdL2::default())
         .add("station", HdStation::default())
+        .add("analog", analog)
+        .add("analog_demod", analog_demod)
+        .add("analog_rate", analog_rate)
+        .add("analog_filter", analog_filter)
+        .add("analog_deemph", DeemphasisComponent::new(75.0))
+        .add("analog_audio", RealToAudio::default())
+        .add("sound", HdSoundStage::default())
         .input("fm_front")
         .input("am_front")
+        .connect("fm_front", "analog")
+        .connect("analog", "analog_demod")
+        .connect("analog_demod", "analog_rate")
+        .connect("analog_rate", "analog_filter")
+        .connect("analog_filter", "analog_deemph")
+        .connect("analog_deemph", "analog_audio")
+        .connect("analog_audio", "sound.in")
+        .connect("l1.status", "sound.status")
         .connect("fm_front", "l1.fm")
         .connect("am_front", "l1.am")
         .connect("l1.transfer", "l2")
@@ -2529,6 +2640,7 @@ pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
         .connect("l2.stats", "station.stats")
         .output("station")
         .output("l2.psd")
+        .output("sound")
         .status_from("station")
         .catalog(catalog)
         .build()

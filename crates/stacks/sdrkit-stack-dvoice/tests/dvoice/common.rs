@@ -127,7 +127,7 @@ pub fn cell(v: &Value, choices: &[sdrkit_core::ChoiceDecl]) -> Json {
             .get(usize::from(*i))
             .map_or(Json::Null, |c| json!(c.key)),
         Value::Position { lat, lon } => json!([lat, lon]),
-        Value::None | Value::Bytes(_) => Json::Null,
+        Value::None | Value::Bytes(_) | Value::Flags(_) => Json::Null,
     }
 }
 

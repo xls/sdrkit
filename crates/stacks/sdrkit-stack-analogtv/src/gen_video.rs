@@ -96,6 +96,10 @@ pub struct VideoGen {
     line_raw: [Vec<f32>; 3],
     /// The band-limited Y, U and V of one line, reused for each line.
     line_filtered: [Vec<f32>; 3],
+    /// The line with its held ends that [`filter_line`] reads, reused for each line.
+    line_held: Vec<f32>,
+    /// The shapes of the kinds of line drawn so far.
+    shapes: Vec<LineShape>,
     /// For each picture row: the row changed since the last frame. Reused for each frame.
     changed: Vec<bool>,
     setup: f64,
@@ -109,19 +113,49 @@ pub struct VideoGen {
     teletext: Option<crate::teletext::Service>,
 }
 
-/// Filters one line `x` with the symmetric FIR `taps` into `y`, holding the end samples beyond each end of the line.
-fn filter_line(x: &[f32], taps: &[f32], y: &mut Vec<f32>) {
-    let d = taps.len() / 2;
-    let last = x.len() as i64 - 1;
+/// What sets the shape of a line: where its first sample falls after its 0H (in units of 1 / lines of a sample), its
+/// length, its pulses and whether it carries picture.
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct LineKey {
+    start: u64,
+    len: u64,
+    pulses: [Pulse; 3],
+    picture: bool,
+}
+
+/// The parts of a line that do not depend on the picture, for each of its samples: the time after 0H (µs), the sync, and
+/// on a picture line the blanking window and the pixel of the picture row.
+#[derive(Clone, Debug, Default)]
+struct LineShape {
+    key: Option<LineKey>,
+    t: Vec<f64>,
+    sync: Vec<f64>,
+    window: Vec<f64>,
+    pixel: Vec<usize>,
+}
+
+/// The most line shapes a generator keeps.
+const MAX_SHAPES: usize = 32;
+
+/// Filters one line `x` with the FIR `taps` into `y`, holding the end samples beyond each end of the line: `y[i] = sum_j
+/// taps[j] x[i + j - len / 2]`. `held` is scratch for the line with its held ends. Each output sums its products in the
+/// order of the taps, so the result does not depend on how the loop is vectorised.
+fn filter_line(x: &[f32], taps: &[f32], held: &mut Vec<f32>, y: &mut Vec<f32>) {
+    let n = x.len();
     y.clear();
-    y.extend((0..x.len()).map(|i| {
-        let mut s = 0.0;
-        for (j, &t) in taps.iter().enumerate() {
-            let idx = (i as i64 + j as i64 - d as i64).clamp(0, last);
-            s += t * x[idx as usize];
+    let (Some(&first), Some(&last)) = (x.first(), x.last()) else {
+        return;
+    };
+    held.clear();
+    held.resize(taps.len() / 2, first);
+    held.extend_from_slice(x);
+    held.resize(n + taps.len() - 1, last);
+    y.resize(n, 0.0);
+    for (j, &t) in taps.iter().enumerate() {
+        for (o, &v) in y.iter_mut().zip(&held[j..j + n]) {
+            *o += t * v;
         }
-        s
-    }));
+    }
 }
 
 /// The picture on the air: the host's, or the test card.
@@ -133,6 +167,14 @@ fn source<'a>(host: &'a Option<Planes>, card: &'a Card) -> &'a Planes {
 fn row_differs(a: &Planes, b: &Planes, row: usize) -> bool {
     let r = row * a.w..(row + 1) * a.w;
     a.y[r.clone()] != b.y[r.clone()] || a.u[r.clone()] != b.u[r.clone()] || a.v[r.clone()] != b.v[r]
+}
+
+/// Copies row `row` of `from` into `to` (pictures of one size).
+fn copy_row(from: &Planes, to: &mut Planes, row: usize) {
+    let r = row * from.w..(row + 1) * from.w;
+    to.y[r.clone()].copy_from_slice(&from.y[r.clone()]);
+    to.u[r.clone()].copy_from_slice(&from.u[r.clone()]);
+    to.v[r.clone()].copy_from_slice(&from.v[r]);
 }
 
 /// The internal rate for a system.
@@ -206,6 +248,8 @@ impl VideoGen {
             clp,
             line_raw: Default::default(),
             line_filtered: Default::default(),
+            line_held: Vec::new(),
+            shapes: Vec::new(),
             changed: Vec::new(),
             setup: if r.lines == 525 && o.setup {
                 r.setup
@@ -294,19 +338,85 @@ impl VideoGen {
             && self.secam_ident != SecamIdent::BackPorch
     }
 
-    fn render_line(&mut self, l: u64) {
+    /// The shape of line `l` from [`VideoGen::shapes`], made the first time a line of its kind is drawn.
+    fn line_shape(&mut self, l: u64) -> usize {
         let r = self.r;
         let (s0, s1) = self.line_range(l);
         let half = r.line_us() / 2.0;
         // The pulses of the two half-lines of the line, and the first of the next line, whose leading edge (centred on its
         // 0H) starts in this line.
         let pulses = [
-            self.r.half_line_pulse((2 * (l - 1)) as u32),
-            self.r.half_line_pulse((2 * (l - 1) + 1) as u32),
-            self.r.half_line_pulse((2 * l) as u32),
+            r.half_line_pulse((2 * (l - 1)) as u32),
+            r.half_line_pulse((2 * (l - 1) + 1) as u32),
+            r.half_line_pulse((2 * l) as u32),
         ];
-        let row = r.row_of(l as u32);
+        let picture = r.row_of(l as u32).is_some();
+        // A picture line whose second half carries a pulse (the last line of field 2 in 625 lines) is a half line: its
+        // picture ends a front porch before the half-line.
+        let active_end = if pulses[1] == Pulse::None {
+            r.blank_end_us + r.active_us
+        } else {
+            half - r.front_porch_us
+        };
+        let key = LineKey {
+            start: s0 * self.lines - (l - 1) * self.nf,
+            len: s1 - s0,
+            pulses,
+            picture,
+        };
+        if let Some(i) = self.shapes.iter().position(|sh| sh.key == Some(key)) {
+            return i;
+        }
+        // Past the bound (819 lines have a timing for nearly every line), the last place is made again for each line.
+        let at = self.shapes.len().min(MAX_SHAPES - 1);
+        if at == self.shapes.len() {
+            self.shapes.push(LineShape::default());
+        }
+        let mut sh = std::mem::take(&mut self.shapes[at]);
+        sh.key = Some(key);
+        sh.t.clear();
+        sh.sync.clear();
+        sh.window.clear();
+        sh.pixel.clear();
         let (w, wpx) = (r.active_us, r.width as usize);
+        for k in s0..s1 {
+            let t = self.t_us(l, k);
+            let mut s = 0.0f64;
+            for (hh, p) in pulses.iter().enumerate() {
+                let th = t - hh as f64 * half;
+                let width = match p {
+                    Pulse::Line => r.sync_us,
+                    Pulse::Equalising => r.eq_us,
+                    Pulse::Broad => r.broad_us,
+                    Pulse::None => continue,
+                };
+                if th > -1.0 && th < width + 1.0 {
+                    s += r.sync_level
+                        * (rc_step(th, r.sync_edge_us) - rc_step(th - width, r.sync_edge_us));
+                }
+            }
+            sh.t.push(t);
+            sh.sync.push(s);
+            if picture {
+                sh.window.push(
+                    rc_step(t - r.blank_end_us, r.blank_edge_us)
+                        - rc_step(t - active_end, r.blank_edge_us),
+                );
+                let x = ((t - r.blank_end_us) / w * wpx as f64).floor();
+                sh.pixel.push(x.clamp(0.0, (wpx - 1) as f64) as usize);
+            }
+        }
+        self.shapes[at] = sh;
+        at
+    }
+
+    fn render_line(&mut self, l: u64) {
+        let r = self.r;
+        let (s0, s1) = self.line_range(l);
+        let row = r.row_of(l as u32);
+        let w = r.active_us;
+        let shape = self.line_shape(l);
+        let sh = &self.shapes[shape];
         // Picture: pixel-held card values at the internal samples, then band-limited.
         let len = (s1 - s0) as usize;
         let mut raw = std::mem::take(&mut self.line_raw);
@@ -317,10 +427,7 @@ impl VideoGen {
         if let Some((row, _)) = row {
             let pl = source(&self.host, &self.card);
             let base = row as usize * pl.w;
-            for (i, k) in (s0..s1).enumerate() {
-                let t = self.t_us(l, k);
-                let x = ((t - r.blank_end_us) / w * wpx as f64).floor();
-                let x = x.clamp(0.0, (wpx - 1) as f64) as usize;
+            for (i, &x) in sh.pixel.iter().enumerate() {
                 raw[0][i] = pl.y[base + x];
                 raw[1][i] = pl.u[base + x];
                 raw[2][i] = pl.v[base + x];
@@ -328,9 +435,9 @@ impl VideoGen {
         }
         let mut filtered = std::mem::take(&mut self.line_filtered);
         let (yf, uf, vf) = if row.is_some() {
-            filter_line(&raw[0], &self.ylp, &mut filtered[0]);
-            filter_line(&raw[1], &self.clp, &mut filtered[1]);
-            filter_line(&raw[2], &self.clp, &mut filtered[2]);
+            filter_line(&raw[0], &self.ylp, &mut self.line_held, &mut filtered[0]);
+            filter_line(&raw[1], &self.clp, &mut self.line_held, &mut filtered[1]);
+            filter_line(&raw[2], &self.clp, &mut self.line_held, &mut filtered[2]);
             (&filtered[0], &filtered[1], &filtered[2])
         } else {
             (&raw[0], &raw[1], &raw[2])
@@ -351,34 +458,21 @@ impl VideoGen {
         let mbx0 = r.blank_end_us + MULTIBURST[0] * w;
         let mbx1 = r.blank_end_us + MULTIBURST[1] * w;
         let id_line = self.secam_id_line(l);
-        // A picture line whose second half carries a pulse (the last line of field 2 in 625 lines) is a half line: its
-        // picture ends a front porch before the half-line.
-        let active_end = if pulses[1] == Pulse::None {
-            r.blank_end_us + r.active_us
-        } else {
-            half - r.front_porch_us
-        };
-        for (i, k) in (s0..s1).enumerate() {
-            let t = self.t_us(l, k);
-            let mut s = 0.0f64;
-            for (hh, p) in pulses.iter().enumerate() {
-                let th = t - hh as f64 * half;
-                let width = match p {
-                    Pulse::Line => r.sync_us,
-                    Pulse::Equalising => r.eq_us,
-                    Pulse::Broad => r.broad_us,
-                    Pulse::None => continue,
-                };
-                if th > -1.0 && th < width + 1.0 {
-                    s += r.sync_level
-                        * (rc_step(th, r.sync_edge_us) - rc_step(th - width, r.sync_edge_us));
-                }
+        let at = s0 as usize..s1 as usize;
+        if row.is_none() {
+            for (y, &s) in self.luma[at.clone()].iter_mut().zip(&sh.sync) {
+                *y = s as f32;
             }
-            let mut c = 0.0f64;
-            let (mut uu, mut vv) = (0.0f32, 0.0f32);
-            if row.is_some() {
-                let win = rc_step(t - r.blank_end_us, r.blank_edge_us)
-                    - rc_step(t - active_end, r.blank_edge_us);
+            self.u[at.clone()].fill(0.0);
+            self.v[at].fill(0.0);
+        } else {
+            let (luma, u, v) = (
+                &mut self.luma[at.clone()],
+                &mut self.u[at.clone()],
+                &mut self.v[at],
+            );
+            for i in 0..len {
+                let (t, win) = (sh.t[i], sh.window[i]);
                 let mut y = yf[i] as f64;
                 if mb && t >= mbx0 && t < mbx1 {
                     let pk = ((t - mbx0) / (mbx1 - mbx0) * 6.0).floor() as usize;
@@ -387,14 +481,11 @@ impl VideoGen {
                     let env = rc_step(t - p0 - 0.15 * pw, 0.3) - rc_step(t - p0 - 0.85 * pw, 0.3);
                     y += 0.4 * env * (TAU * packets[pk.min(5)] * (t - p0)).sin();
                 }
-                c = win * (self.setup + (1.0 - self.setup) * y);
-                uu = (win * uf[i] as f64) as f32;
-                vv = (win * vf[i] as f64) as f32;
+                let c = win * (self.setup + (1.0 - self.setup) * y);
+                luma[i] = (sh.sync[i] + c) as f32;
+                u[i] = (win * uf[i] as f64) as f32;
+                v[i] = (win * vf[i] as f64) as f32;
             }
-            let p = k as usize;
-            self.luma[p] = (s + c) as f32;
-            self.u[p] = uu;
-            self.v[p] = vv;
         }
         self.line_raw = raw;
         self.line_filtered = filtered;
@@ -468,13 +559,17 @@ impl VideoGen {
                 self.render_line(l);
             }
         }
-        self.changed = changed;
         self.built = true;
         let now = source(&self.host, &self.card);
         match &mut self.shown {
-            Some(s) => s.clone_from(now),
-            None => self.shown = Some(now.clone()),
+            Some(s) if (s.w, s.h) == (now.w, now.h) => {
+                for row in (0..now.h).filter(|&row| changed[row]) {
+                    copy_row(now, s, row);
+                }
+            }
+            _ => self.shown = Some(now.clone()),
         }
+        self.changed = changed;
         self.frame = frame;
         self.field2_done = false;
         if self.teletext.is_some() {
@@ -505,10 +600,7 @@ impl VideoGen {
             if !row_differs(shown, now, row) {
                 continue;
             }
-            let a = row * now.w..(row + 1) * now.w;
-            shown.y[a.clone()].copy_from_slice(&now.y[a.clone()]);
-            shown.u[a.clone()].copy_from_slice(&now.u[a.clone()]);
-            shown.v[a.clone()].copy_from_slice(&now.v[a]);
+            copy_row(now, shown, row);
             self.render_line(l);
         }
     }
@@ -633,23 +725,39 @@ impl VideoGen {
                     } else {
                         (-1.0, 0.0)
                     };
-                    for j in 0..n_line {
-                        let k = fpos + j as u64;
-                        let kk = ((k as usize) + self.gd).min(self.nf as usize - 1);
+                    let subcarrier = |j: usize| {
                         let ph = ((self.n + j as u64) as f64 * self.fsc_cycles).fract();
-                        let (s, c) = sdrkit_algo_dsp::approx::sin_cos(TAU * ph);
-                        let mut v =
-                            self.luma[k as usize] + self.u[kk] * s + vs as f32 * self.v[kk] * c;
-                        if burst {
-                            let t = self.t_us(l, k);
-                            if t > cp.burst_start_us - 0.3 && t < cp.burst_start_us + blen + 0.3 {
+                        sdrkit_algo_dsp::approx::sin_cos(TAU * ph)
+                    };
+                    let last = self.nf as usize - 1;
+                    for (j, o) in out[i..i + n_line].iter_mut().enumerate() {
+                        let k = fpos as usize + j;
+                        let kk = (k + self.gd).min(last);
+                        let (s, c) = subcarrier(j);
+                        *o = self.luma[k] + self.u[kk] * s + vs as f32 * self.v[kk] * c;
+                    }
+                    if burst {
+                        let (b0, b1) = (cp.burst_start_us - 0.3, cp.burst_start_us + blen + 0.3);
+                        // The samples near the burst; the exact test below picks those inside it.
+                        let near = |t: f64| {
+                            let k = (t * 1e-6 * self.lines as f64 * self.rate
+                                + ((l - 1) * self.nf) as f64)
+                                / self.lines as f64;
+                            (k.max(0.0) as u64).saturating_sub(fpos)
+                        };
+                        let j0 = (near(b0).saturating_sub(2) as usize).min(n_line);
+                        let j1 = ((near(b1) + 2) as usize).min(n_line);
+                        for j in j0..j1 {
+                            let t = self.t_us(l, fpos + j as u64);
+                            if t > b0 && t < b1 {
+                                let (s, c) = subcarrier(j);
                                 let env = rc_step(t - cp.burst_start_us, 0.3)
                                     - rc_step(t - cp.burst_start_us - blen, 0.3);
                                 // The table's burst amplitude is the peak (3/14 of white is 300 mV peak to peak).
-                                v += (cp.burst_amp * env) as f32 * (bu as f32 * s + bv as f32 * c);
+                                out[i + j] +=
+                                    (cp.burst_amp * env) as f32 * (bu as f32 * s + bv as f32 * c);
                             }
                         }
-                        out[i + j] = v;
                     }
                 }
                 _ => {

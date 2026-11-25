@@ -1,5 +1,6 @@
-//! The test signal generator of the stack: one data PLP of the test multiplex (or numbered packets) through the transmitter, at
-//! unit mean power, resampled to the requested rate. It makes the clean signal only. The framework adds the impairments.
+//! The test signal generator of the stack: one data PLP of the test multiplex with a picture and a sound track (or numbered
+//! packets) through the transmitter, at unit mean power, resampled to the requested rate. It makes the clean signal only. The
+//! framework adds the impairments.
 
 use crate::params::{k_bch, Fft, Modulation};
 use crate::pilots::FrameShape;
@@ -7,10 +8,42 @@ use crate::settings::{gen_settings, GenSettings};
 use crate::tx::{MisoOut, Path, PlpKind, PlpSpec, TimeIl, Transmitter, TxConfig};
 use sdrkit_algo_dsp::resample::Resampler;
 use sdrkit_core::{Complex32, GenConfig, Generator, Hz, SignalInfo};
-use sdrkit_proto_mpegts::source::{Fill, Numbered, NumberedSource, PacketSource, TestMux};
+use sdrkit_proto_mpegts::source::{
+    Fill, Numbered, NumberedSource, PacketSource, TestMux, TestSound, TestVideo,
+};
 
 /// The numbered packets of the pattern test signal: PID 0x0101, [`Fill::I31N7`].
 pub const PATTERN: Numbered = Numbered::new(0x0101, Fill::I31N7);
+
+/// The PID of the sound of the test multiplex.
+pub const SOUND_PID: u16 = 0x0102;
+/// The PID of the video of the test multiplex.
+pub const VIDEO_PID: u16 = 0x0103;
+
+/// The test multiplex of the generator: [`TestMux::dvbt`] with service 1 "sdrkit DVB-T2", its colour bars on [`VIDEO_PID`]
+/// and its tone on [`SOUND_PID`], paced for a PLP of `bit_rate` bit/s. A bit rate too low for the tracks gives the numbered
+/// packets of [`PATTERN`].
+pub fn test_mux(bit_rate: f64) -> Box<dyn PacketSource> {
+    let mux = TestMux::dvbt_builder(1, "sdrkit DVB-T2")
+        .sound(TestSound {
+            pid: SOUND_PID,
+            mux_bit_rate: bit_rate,
+        })
+        .video(TestVideo {
+            pid: VIDEO_PID,
+            mux_bit_rate: bit_rate,
+        })
+        .build();
+    match mux {
+        Ok(m) => Box::new(m),
+        Err(_) => Box::new(NumberedSource::new(PATTERN)),
+    }
+}
+
+/// The net bit rate of the PLPs of `tx`, bit/s.
+fn net_rate(tx: &Transmitter) -> f64 {
+    tx.plp_bits_per_frame() as f64 * tx.rate() / tx.frame_len() as f64
+}
 
 /// The paths of MISO groups 1 and 2 to the antenna in the test signal: other gains, power gains that add to 1, and
 /// group 2 five samples at 1/T after group 1.
@@ -77,15 +110,13 @@ impl T2Generator {
     pub fn from_config(cfg: &GenConfig) -> T2Generator {
         let g = gen_settings(&cfg.settings);
         let tx = g.as_ref().ok().and_then(|g| {
-            let source: Box<dyn PacketSource> = if g.pattern {
-                Box::new(NumberedSource::new(PATTERN))
-            } else {
-                match TestMux::dvbt(1, "sdrkit DVB-T2") {
-                    Ok(m) => Box::new(m),
-                    Err(_) => Box::new(NumberedSource::new(PATTERN)),
-                }
-            };
-            Transmitter::new(tx_config(g, source)).ok()
+            let pattern = Transmitter::new(tx_config(g, Box::new(NumberedSource::new(PATTERN))));
+            if g.pattern {
+                return pattern.ok();
+            }
+            // The tracks go at the pace of the net rate of the PLP, which the transmitter of the same settings gives.
+            let rate = net_rate(&pattern.ok()?);
+            Transmitter::new(tx_config(g, test_mux(rate))).ok()
         });
         T2Generator::new(tx, cfg.rate_hz)
     }

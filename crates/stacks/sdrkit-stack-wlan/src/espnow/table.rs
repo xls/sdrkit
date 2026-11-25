@@ -289,7 +289,7 @@ fn rate_group(m: &WifiMpdu) -> usize {
         PhyKind::Dsss if m.short_preamble => 2,
         PhyKind::Dsss => 1,
         PhyKind::Ofdm if m.rate_mbps < 10.0 => 3,
-        PhyKind::Ofdm => 4,
+        PhyKind::Ofdm | PhyKind::Ht | PhyKind::Vht => 4,
     }
 }
 

@@ -198,7 +198,7 @@ pub(crate) fn json_schema(schema: &Schema) -> String {
             ValueKind::Text | ValueKind::Choice => "string",
             ValueKind::Position => "object",
             ValueKind::F64 | ValueKind::Hz | ValueKind::Time | ValueKind::Duration => "number",
-            ValueKind::Bytes | ValueKind::Any => continue,
+            ValueKind::Bytes | ValueKind::Any | ValueKind::Flags => continue,
         };
         p.insert("type".into(), json!(ty));
         if f.kind == ValueKind::Choice {

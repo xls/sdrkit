@@ -56,7 +56,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `devices` | Devices | `lap` (text), `kind` (text), `address` (text), `class` (text), `major_class` (text), `class_raw` (whole number), `clock` (whole number (1.25 ms)), `level_dbfs` (number (dBFS)), `level_history` (text (dBFS)), `first_heard` (time), `last_heard` (time), `packets` (whole number), `last_channel_mhz` (number (MHz)), `channels_heard` (text) |
+| `devices` | Devices | `lap` (text), `kind` (text), `address` (text), `class` (text), `major_class` (text), `class_raw` (whole number), `clock` (whole number (1.25 ms)), `level_dbfs` (number (dBFS)), `level_history` (text (dBFS)), `first_heard` (time), `last_heard` (time), `packets` (whole number), `last_channel_mhz` (number (MHz)), `channels_heard` (text), `device_kind` (choice) |
 | `packets` | Packets | `utc` (time), `time_s` (number (s)), `channel_mhz` (number (MHz)), `lap` (text), `level_dbfs` (number (dBFS)), `sync_errors` (whole number), `text` (text) |
 
 ## Events
@@ -74,9 +74,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 3.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 3.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
+
+Key readings: `devices`.
 
 ### Result fields
 
@@ -127,8 +129,9 @@ Struct `BtclassicDeviceRow`. A row of the devices of `btclassic`. The row key is
 | `packets` | whole number | always | 1.0 | Packets heard. |
 | `last_channel_mhz` | number (MHz) | always | 1.0 | The channel of the last packet. |
 | `channels_heard` | text | always | 1.0 | The channels heard, as hex: bit k is channel k. |
+| `device_kind` | choice | always | 3.1 | The kind of device its Class of Device declares (unknown before an FHS packet). |
 
-The column `address` names a row.
+The rows are the stations or nodes of the stack. The column `address` names a row. Default order: the column `level_dbfs`, highest first. Time: `first_heard`.
 
 ### Table `packets`
 
