@@ -1,0 +1,2230 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "countries": [
+    {
+      "code": "AU",
+      "name": "Australia",
+      "itu": 3,
+      "groups": [
+        "cell_au",
+        "nr_au",
+        "nbiot_au"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "AT",
+      "name": "Austria",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "BE",
+      "name": "Belgium",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "BG",
+      "name": "Bulgaria",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "HR",
+      "name": "Croatia",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "CY",
+      "name": "Cyprus",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "CZ",
+      "name": "Czechia",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "DK",
+      "name": "Denmark",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "EE",
+      "name": "Estonia",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "FI",
+      "name": "Finland",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "GR",
+      "name": "Greece",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "HU",
+      "name": "Hungary",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "IE",
+      "name": "Ireland",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "IT",
+      "name": "Italy",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "LV",
+      "name": "Latvia",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "LT",
+      "name": "Lithuania",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "LU",
+      "name": "Luxembourg",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "MT",
+      "name": "Malta",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "NL",
+      "name": "Netherlands",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "PL",
+      "name": "Poland",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "PT",
+      "name": "Portugal",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "RO",
+      "name": "Romania",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "SK",
+      "name": "Slovakia",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "SI",
+      "name": "Slovenia",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "ES",
+      "name": "Spain",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "SE",
+      "name": "Sweden",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "NO",
+      "name": "Norway",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "IS",
+      "name": "Iceland",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "CH",
+      "name": "Switzerland",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "itu": 1,
+      "groups": [
+        "cell_europe",
+        "nr_europe",
+        "nbiot_europe"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "US",
+      "name": "United States",
+      "itu": 2,
+      "groups": [
+        "cell_us",
+        "nr_us",
+        "nbiot_us"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "itu": 3,
+      "groups": [
+        "cell_jp",
+        "nr_jp",
+        "nbiot_jp"
+      ],
+      "unverified_reason": "the bands in use are unconfirmed; see the note of each group"
+    }
+  ],
+  "groups": [
+    {
+      "id": "cell_au",
+      "name": "LTE downlinks in Australia",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "Australia: Telstra (505-01), Optus (505-02), TPG (505-03). The band 28 blocks are from the ACMA auction summaries (700 MHz 2013, residual lots 2017); the 850 expansion and 900 MHz pairing from the ACMA 850/900 MHz summary (2021); the n5 SSB was seen on the air. Which other bands each operator runs is unconfirmed. GSM closed in 2017 and 2018, 3G in 2023 and 2024.",
+      "bands": [
+        {
+          "name": "LTE band 28",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 803000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 9210 to 9659, 100 kHz raster",
+          "channels": [
+            {
+              "name": "Telstra band 28 (768 to 788 MHz)",
+              "centre_hz": 778000000.0,
+              "width_hz": 20000000.0,
+              "note": "block from ACMA auction summaries, 700 MHz (2013) and 700 MHz residual lots (2017); one 20 MHz carrier at the block centre is unconfirmed"
+            },
+            {
+              "name": "Optus band 28 (758 to 768 MHz)",
+              "centre_hz": 763000000.0,
+              "width_hz": 10000000.0,
+              "note": "block from ACMA auction summaries, 700 MHz (2013) and 700 MHz residual lots (2017); one 10 MHz carrier at the block centre is unconfirmed"
+            },
+            {
+              "name": "TPG band 28 (788 to 803 MHz)",
+              "centre_hz": 795500000.0,
+              "width_hz": 15000000.0,
+              "note": "blocks 788 to 793 (VHA) and 793 to 803 MHz (TPG) from ACMA auction summaries, 700 MHz (2013) and 700 MHz residual lots (2017); the carrier layout is unconfirmed"
+            },
+            {
+              "name": "LTE band 28, search (758 to 803 MHz)",
+              "centre_hz": 780500000.0,
+              "width_hz": 45000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 5",
+          "service": "mobile",
+          "start_hz": 869000000,
+          "end_hz": 894000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 2400 to 2649, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 5, search (869 to 894 MHz)",
+              "centre_hz": 881500000.0,
+              "width_hz": 25000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 26",
+          "service": "mobile",
+          "start_hz": 859000000,
+          "end_hz": 894000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 8690 to 9039, 100 kHz raster; the 850 MHz expansion band, 859 to 870 MHz downlink (ACMA, 850/900 MHz band 2021)",
+          "channels": [
+            {
+              "name": "LTE band 26, search (859 to 894 MHz)",
+              "centre_hz": 876500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 8",
+          "service": "mobile",
+          "start_hz": 925000000,
+          "end_hz": 960000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 3450 to 3799, 100 kHz raster; 890 to 915 paired with 935 to 960 MHz in Australia (ACMA, 850/900 MHz band 2021)",
+          "channels": [
+            {
+              "name": "LTE band 8, search (925 to 960 MHz)",
+              "centre_hz": 942500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 3",
+          "service": "mobile",
+          "start_hz": 1805000000,
+          "end_hz": 1880000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 1200 to 1949, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 3, search (1805 to 1880 MHz)",
+              "centre_hz": 1842500000.0,
+              "width_hz": 75000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 1",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2170000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 0 to 599, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 1, search (2110 to 2170 MHz)",
+              "centre_hz": 2140000000.0,
+              "width_hz": 60000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 7",
+          "service": "mobile",
+          "start_hz": 2620000000,
+          "end_hz": 2690000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 2750 to 3449, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 7, search (2620 to 2690 MHz)",
+              "centre_hz": 2655000000.0,
+              "width_hz": 70000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 40",
+          "service": "mobile",
+          "start_hz": 2300000000,
+          "end_hz": 2400000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 38650 to 39649, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 40, search (2300 to 2400 MHz)",
+              "centre_hz": 2350000000.0,
+              "width_hz": 100000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    },
+    {
+      "id": "nr_au",
+      "name": "NR downlinks in Australia",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "Australia: Telstra (505-01), Optus (505-02), TPG (505-03). The band 28 blocks are from the ACMA auction summaries (700 MHz 2013, residual lots 2017); the 850 expansion and 900 MHz pairing from the ACMA 850/900 MHz summary (2021); the n5 SSB was seen on the air. Which other bands each operator runs is unconfirmed. GSM closed in 2017 and 2018, 3G in 2023 and 2024.",
+      "bands": [
+        {
+          "name": "NR band n5",
+          "service": "mobile",
+          "start_hz": 869000000,
+          "end_hz": 894000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 2177 to 2230 (15 kHz SSB); GSCN 2183 to 2224 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "Telstra n5 (884.72 MHz)",
+              "centre_hz": 884720000.0,
+              "width_hz": 7200000.0,
+              "note": "the width of a 30 kHz SSB; a Telstra cell (PLMN 505-01) was read here on the air in Sydney by this project; 884.72 MHz is not a sync raster point, so the SSB lies on a raster point near it: the exact GSCN is unconfirmed"
+            },
+            {
+              "name": "NR band n5, search (869 to 894 MHz)",
+              "centre_hz": 881500000.0,
+              "width_hz": 25000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n28",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 803000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 1901 to 2002 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n28, search (758 to 803 MHz)",
+              "centre_hz": 780500000.0,
+              "width_hz": 45000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n78",
+          "service": "mobile",
+          "start_hz": 3300000000,
+          "end_hz": 3800000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 7711 to 8051 (30 kHz SSB); NR-ARFCN on the channel raster; 3400 to 3800 MHz in Australia; the 3575 to 3700 MHz lots of the ACMA 3.6 GHz auction (2018)",
+          "channels": [
+            {
+              "name": "NR band n78, search (3300 to 3800 MHz)",
+              "centre_hz": 3550000000.0,
+              "width_hz": 100000000.0,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n1",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2170000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 5279 to 5419 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n1, search (2110 to 2170 MHz)",
+              "centre_hz": 2140000000.0,
+              "width_hz": 60000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n3",
+          "service": "mobile",
+          "start_hz": 1805000000,
+          "end_hz": 1880000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 4517 to 4693 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n3, search (1805 to 1880 MHz)",
+              "centre_hz": 1842500000.0,
+              "width_hz": 75000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n7",
+          "service": "mobile",
+          "start_hz": 2620000000,
+          "end_hz": 2690000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 6554 to 6718 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n7, search (2620 to 2690 MHz)",
+              "centre_hz": 2655000000.0,
+              "width_hz": 70000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n8",
+          "service": "mobile",
+          "start_hz": 925000000,
+          "end_hz": 960000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 2318 to 2395 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n8, search (925 to 960 MHz)",
+              "centre_hz": 942500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n40",
+          "service": "mobile",
+          "start_hz": 2300000000,
+          "end_hz": 2400000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 5762 to 5989 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n40, search (2300 to 2400 MHz)",
+              "centre_hz": 2350000000.0,
+              "width_hz": 100000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    },
+    {
+      "id": "nbiot_au",
+      "name": "NB-IoT bands in Australia",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "Australia: Telstra (505-01), Optus (505-02), TPG (505-03). The band 28 blocks are from the ACMA auction summaries (700 MHz 2013, residual lots 2017); the 850 expansion and 900 MHz pairing from the ACMA 850/900 MHz summary (2021); the n5 SSB was seen on the air. Which other bands each operator runs is unconfirmed. GSM closed in 2017 and 2018, 3G in 2023 and 2024.",
+      "bands": [
+        {
+          "name": "LTE band 28",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 803000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 9210 to 9659, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 28, search (758 to 803 MHz)",
+              "centre_hz": 780500000.0,
+              "width_hz": 45000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 5",
+          "service": "mobile",
+          "start_hz": 869000000,
+          "end_hz": 894000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 2400 to 2649, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 5, search (869 to 894 MHz)",
+              "centre_hz": 881500000.0,
+              "width_hz": 25000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 8",
+          "service": "mobile",
+          "start_hz": 925000000,
+          "end_hz": 960000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 3450 to 3799, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 8, search (925 to 960 MHz)",
+              "centre_hz": 942500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 3",
+          "service": "mobile",
+          "start_hz": 1805000000,
+          "end_hz": 1880000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 1200 to 1949, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 3, search (1805 to 1880 MHz)",
+              "centre_hz": 1842500000.0,
+              "width_hz": 75000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    },
+    {
+      "id": "cell_europe",
+      "name": "LTE downlinks in Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "the bands of the CEPT harmonised mobile allocations",
+      "bands": [
+        {
+          "name": "LTE band 20",
+          "service": "mobile",
+          "start_hz": 791000000,
+          "end_hz": 821000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 6150 to 6449, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 20, search (791 to 821 MHz)",
+              "centre_hz": 806000000.0,
+              "width_hz": 30000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 8",
+          "service": "mobile",
+          "start_hz": 925000000,
+          "end_hz": 960000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 3450 to 3799, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 8, search (925 to 960 MHz)",
+              "centre_hz": 942500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 3",
+          "service": "mobile",
+          "start_hz": 1805000000,
+          "end_hz": 1880000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 1200 to 1949, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 3, search (1805 to 1880 MHz)",
+              "centre_hz": 1842500000.0,
+              "width_hz": 75000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 1",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2170000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 0 to 599, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 1, search (2110 to 2170 MHz)",
+              "centre_hz": 2140000000.0,
+              "width_hz": 60000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 7",
+          "service": "mobile",
+          "start_hz": 2620000000,
+          "end_hz": 2690000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 2750 to 3449, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 7, search (2620 to 2690 MHz)",
+              "centre_hz": 2655000000.0,
+              "width_hz": 70000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 28",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 803000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 9210 to 9659, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 28, search (758 to 803 MHz)",
+              "centre_hz": 780500000.0,
+              "width_hz": 45000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 32",
+          "service": "mobile",
+          "start_hz": 1452000000,
+          "end_hz": 1496000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 9920 to 10359, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 32, search (1452 to 1496 MHz)",
+              "centre_hz": 1474000000.0,
+              "width_hz": 44000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 38",
+          "service": "mobile",
+          "start_hz": 2570000000,
+          "end_hz": 2620000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 37750 to 38249, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 38, search (2570 to 2620 MHz)",
+              "centre_hz": 2595000000.0,
+              "width_hz": 50000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    },
+    {
+      "id": "nr_europe",
+      "name": "NR downlinks in Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "the bands of the CEPT harmonised mobile allocations",
+      "bands": [
+        {
+          "name": "NR band n78",
+          "service": "mobile",
+          "start_hz": 3300000000,
+          "end_hz": 3800000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 7711 to 8051 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n78, search (3300 to 3800 MHz)",
+              "centre_hz": 3550000000.0,
+              "width_hz": 100000000.0,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n28",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 803000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 1901 to 2002 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n28, search (758 to 803 MHz)",
+              "centre_hz": 780500000.0,
+              "width_hz": 45000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n1",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2170000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 5279 to 5419 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n1, search (2110 to 2170 MHz)",
+              "centre_hz": 2140000000.0,
+              "width_hz": 60000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n3",
+          "service": "mobile",
+          "start_hz": 1805000000,
+          "end_hz": 1880000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 4517 to 4693 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n3, search (1805 to 1880 MHz)",
+              "centre_hz": 1842500000.0,
+              "width_hz": 75000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n7",
+          "service": "mobile",
+          "start_hz": 2620000000,
+          "end_hz": 2690000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 6554 to 6718 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n7, search (2620 to 2690 MHz)",
+              "centre_hz": 2655000000.0,
+              "width_hz": 70000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n8",
+          "service": "mobile",
+          "start_hz": 925000000,
+          "end_hz": 960000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 2318 to 2395 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n8, search (925 to 960 MHz)",
+              "centre_hz": 942500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n20",
+          "service": "mobile",
+          "start_hz": 791000000,
+          "end_hz": 821000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 1982 to 2047 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n20, search (791 to 821 MHz)",
+              "centre_hz": 806000000.0,
+              "width_hz": 30000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n38",
+          "service": "mobile",
+          "start_hz": 2570000000,
+          "end_hz": 2620000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 6432 to 6432 (15 kHz SSB); GSCN 6443 to 6443 (15 kHz SSB); GSCN 6457 to 6457 (15 kHz SSB); GSCN 6468 to 6468 (15 kHz SSB); GSCN 6479 to 6479 (15 kHz SSB); GSCN 6493 to 6493 (15 kHz SSB); GSCN 6507 to 6507 (15 kHz SSB); GSCN 6518 to 6518 (15 kHz SSB); GSCN 6532 to 6532 (15 kHz SSB); GSCN 6543 to 6543 (15 kHz SSB); GSCN 6437 to 6538 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n38, search (2570 to 2620 MHz)",
+              "centre_hz": 2595000000.0,
+              "width_hz": 50000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    },
+    {
+      "id": "nbiot_europe",
+      "name": "NB-IoT bands in Europe",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "the bands of the CEPT harmonised mobile allocations",
+      "bands": [
+        {
+          "name": "LTE band 20",
+          "service": "mobile",
+          "start_hz": 791000000,
+          "end_hz": 821000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 6150 to 6449, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 20, search (791 to 821 MHz)",
+              "centre_hz": 806000000.0,
+              "width_hz": 30000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 8",
+          "service": "mobile",
+          "start_hz": 925000000,
+          "end_hz": 960000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 3450 to 3799, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 8, search (925 to 960 MHz)",
+              "centre_hz": 942500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 3",
+          "service": "mobile",
+          "start_hz": 1805000000,
+          "end_hz": 1880000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 1200 to 1949, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 3, search (1805 to 1880 MHz)",
+              "centre_hz": 1842500000.0,
+              "width_hz": 75000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    },
+    {
+      "id": "cell_us",
+      "name": "LTE downlinks in the United States",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "the bands of the FCC mobile allocations",
+      "bands": [
+        {
+          "name": "LTE band 12",
+          "service": "mobile",
+          "start_hz": 729000000,
+          "end_hz": 746000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 5010 to 5179, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 12, search (729 to 746 MHz)",
+              "centre_hz": 737500000.0,
+              "width_hz": 17000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 13",
+          "service": "mobile",
+          "start_hz": 746000000,
+          "end_hz": 756000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 5180 to 5279, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 13, search (746 to 756 MHz)",
+              "centre_hz": 751000000.0,
+              "width_hz": 10000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 14",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 768000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 5280 to 5379, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 14, search (758 to 768 MHz)",
+              "centre_hz": 763000000.0,
+              "width_hz": 10000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 17",
+          "service": "mobile",
+          "start_hz": 734000000,
+          "end_hz": 746000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 5730 to 5849, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 17, search (734 to 746 MHz)",
+              "centre_hz": 740000000.0,
+              "width_hz": 12000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 71",
+          "service": "mobile",
+          "start_hz": 617000000,
+          "end_hz": 652000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 68586 to 68935, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 71, search (617 to 652 MHz)",
+              "centre_hz": 634500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 5",
+          "service": "mobile",
+          "start_hz": 869000000,
+          "end_hz": 894000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 2400 to 2649, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 5, search (869 to 894 MHz)",
+              "centre_hz": 881500000.0,
+              "width_hz": 25000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 26",
+          "service": "mobile",
+          "start_hz": 859000000,
+          "end_hz": 894000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 8690 to 9039, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 26, search (859 to 894 MHz)",
+              "centre_hz": 876500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 2",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1990000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 600 to 1199, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 2, search (1930 to 1990 MHz)",
+              "centre_hz": 1960000000.0,
+              "width_hz": 60000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 25",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1995000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 8040 to 8689, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 25, search (1930 to 1995 MHz)",
+              "centre_hz": 1962500000.0,
+              "width_hz": 65000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 4",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2155000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 1950 to 2399, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 4, search (2110 to 2155 MHz)",
+              "centre_hz": 2132500000.0,
+              "width_hz": 45000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 66",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2200000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 66436 to 67335, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 66, search (2110 to 2200 MHz)",
+              "centre_hz": 2155000000.0,
+              "width_hz": 90000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 30",
+          "service": "mobile",
+          "start_hz": 2350000000,
+          "end_hz": 2360000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 9770 to 9869, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 30, search (2350 to 2360 MHz)",
+              "centre_hz": 2355000000.0,
+              "width_hz": 10000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 41",
+          "service": "mobile",
+          "start_hz": 2496000000,
+          "end_hz": 2690000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 39650 to 41589, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 41, search (2496 to 2690 MHz)",
+              "centre_hz": 2593000000.0,
+              "width_hz": 100000000.0,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    },
+    {
+      "id": "nr_us",
+      "name": "NR downlinks in the United States",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "the bands of the FCC mobile allocations",
+      "bands": [
+        {
+          "name": "NR band n71",
+          "service": "mobile",
+          "start_hz": 617000000,
+          "end_hz": 652000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 1547 to 1624 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n71, search (617 to 652 MHz)",
+              "centre_hz": 634500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n5",
+          "service": "mobile",
+          "start_hz": 869000000,
+          "end_hz": 894000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 2177 to 2230 (15 kHz SSB); GSCN 2183 to 2224 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n5, search (869 to 894 MHz)",
+              "centre_hz": 881500000.0,
+              "width_hz": 25000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n25",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1995000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 4829 to 4981 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n25, search (1930 to 1995 MHz)",
+              "centre_hz": 1962500000.0,
+              "width_hz": 65000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n66",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2200000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 5279 to 5494 (15 kHz SSB); GSCN 5285 to 5488 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n66, search (2110 to 2200 MHz)",
+              "centre_hz": 2155000000.0,
+              "width_hz": 90000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n41",
+          "service": "mobile",
+          "start_hz": 2496000000,
+          "end_hz": 2690000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 6246 to 6717 (15 kHz SSB); GSCN 6252 to 6714 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n41, search (2496 to 2690 MHz)",
+              "centre_hz": 2593000000.0,
+              "width_hz": 100000000.0,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n77",
+          "service": "mobile",
+          "start_hz": 3300000000,
+          "end_hz": 4200000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 7711 to 8329 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n77, search (3300 to 4200 MHz)",
+              "centre_hz": 3750000000.0,
+              "width_hz": 100000000.0,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n48",
+          "service": "mobile",
+          "start_hz": 3550000000,
+          "end_hz": 3700000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 7884 to 7982 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n48, search (3550 to 3700 MHz)",
+              "centre_hz": 3625000000.0,
+              "width_hz": 100000000.0,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n2",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1990000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 4829 to 4969 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n2, search (1930 to 1990 MHz)",
+              "centre_hz": 1960000000.0,
+              "width_hz": 60000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    },
+    {
+      "id": "nbiot_us",
+      "name": "NB-IoT bands in the United States",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "the bands of the FCC mobile allocations",
+      "bands": [
+        {
+          "name": "LTE band 12",
+          "service": "mobile",
+          "start_hz": 729000000,
+          "end_hz": 746000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 5010 to 5179, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 12, search (729 to 746 MHz)",
+              "centre_hz": 737500000.0,
+              "width_hz": 17000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 13",
+          "service": "mobile",
+          "start_hz": 746000000,
+          "end_hz": 756000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 5180 to 5279, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 13, search (746 to 756 MHz)",
+              "centre_hz": 751000000.0,
+              "width_hz": 10000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 71",
+          "service": "mobile",
+          "start_hz": 617000000,
+          "end_hz": 652000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 68586 to 68935, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 71, search (617 to 652 MHz)",
+              "centre_hz": 634500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 5",
+          "service": "mobile",
+          "start_hz": 869000000,
+          "end_hz": 894000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 2400 to 2649, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 5, search (869 to 894 MHz)",
+              "centre_hz": 881500000.0,
+              "width_hz": 25000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 2",
+          "service": "mobile",
+          "start_hz": 1930000000,
+          "end_hz": 1990000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 600 to 1199, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 2, search (1930 to 1990 MHz)",
+              "centre_hz": 1960000000.0,
+              "width_hz": 60000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 4",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2155000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 1950 to 2399, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 4, search (2110 to 2155 MHz)",
+              "centre_hz": 2132500000.0,
+              "width_hz": 45000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 66",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2200000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 66436 to 67335, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 66, search (2110 to 2200 MHz)",
+              "centre_hz": 2155000000.0,
+              "width_hz": 90000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    },
+    {
+      "id": "cell_jp",
+      "name": "LTE downlinks in Japan",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "the bands of the MIC mobile allocations",
+      "bands": [
+        {
+          "name": "LTE band 1",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2170000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 0 to 599, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 1, search (2110 to 2170 MHz)",
+              "centre_hz": 2140000000.0,
+              "width_hz": 60000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 3",
+          "service": "mobile",
+          "start_hz": 1805000000,
+          "end_hz": 1880000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 1200 to 1949, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 3, search (1805 to 1880 MHz)",
+              "centre_hz": 1842500000.0,
+              "width_hz": 75000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 8",
+          "service": "mobile",
+          "start_hz": 925000000,
+          "end_hz": 960000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 3450 to 3799, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 8, search (925 to 960 MHz)",
+              "centre_hz": 942500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 11",
+          "service": "mobile",
+          "start_hz": 1475900000,
+          "end_hz": 1495900000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 4750 to 4949, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 11, search (1475.9 to 1495.9 MHz)",
+              "centre_hz": 1485900000.0,
+              "width_hz": 20000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 18",
+          "service": "mobile",
+          "start_hz": 860000000,
+          "end_hz": 875000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 5850 to 5999, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 18, search (860 to 875 MHz)",
+              "centre_hz": 867500000.0,
+              "width_hz": 15000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 19",
+          "service": "mobile",
+          "start_hz": 875000000,
+          "end_hz": 890000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 6000 to 6149, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 19, search (875 to 890 MHz)",
+              "centre_hz": 882500000.0,
+              "width_hz": 15000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 21",
+          "service": "mobile",
+          "start_hz": 1495900000,
+          "end_hz": 1510900000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 6450 to 6599, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 21, search (1495.9 to 1510.9 MHz)",
+              "centre_hz": 1503400000.0,
+              "width_hz": 15000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 26",
+          "service": "mobile",
+          "start_hz": 859000000,
+          "end_hz": 894000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 8690 to 9039, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 26, search (859 to 894 MHz)",
+              "centre_hz": 876500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 28",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 803000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 9210 to 9659, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 28, search (758 to 803 MHz)",
+              "centre_hz": 780500000.0,
+              "width_hz": 45000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 41",
+          "service": "mobile",
+          "start_hz": 2496000000,
+          "end_hz": 2690000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 39650 to 41589, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 41, search (2496 to 2690 MHz)",
+              "centre_hz": 2593000000.0,
+              "width_hz": 100000000.0,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 42",
+          "service": "mobile",
+          "start_hz": 3400000000,
+          "end_hz": 3600000000,
+          "modes": [
+            "cell"
+          ],
+          "note": "EARFCN 41590 to 43589, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 42, search (3400 to 3600 MHz)",
+              "centre_hz": 3500000000.0,
+              "width_hz": 100000000.0,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    },
+    {
+      "id": "nr_jp",
+      "name": "NR downlinks in Japan",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "the bands of the MIC mobile allocations",
+      "bands": [
+        {
+          "name": "NR band n78",
+          "service": "mobile",
+          "start_hz": 3300000000,
+          "end_hz": 3800000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 7711 to 8051 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n78, search (3300 to 3800 MHz)",
+              "centre_hz": 3550000000.0,
+              "width_hz": 100000000.0,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n77",
+          "service": "mobile",
+          "start_hz": 3300000000,
+          "end_hz": 4200000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 7711 to 8329 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n77, search (3300 to 4200 MHz)",
+              "centre_hz": 3750000000.0,
+              "width_hz": 100000000.0,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n79",
+          "service": "mobile",
+          "start_hz": 4400000000,
+          "end_hz": 5000000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 8480 to 8880 (30 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n79, search (4400 to 5000 MHz)",
+              "centre_hz": 4700000000.0,
+              "width_hz": 100000000.0,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n28",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 803000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 1901 to 2002 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n28, search (758 to 803 MHz)",
+              "centre_hz": 780500000.0,
+              "width_hz": 45000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n3",
+          "service": "mobile",
+          "start_hz": 1805000000,
+          "end_hz": 1880000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 4517 to 4693 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n3, search (1805 to 1880 MHz)",
+              "centre_hz": 1842500000.0,
+              "width_hz": 75000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "NR band n1",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2170000000,
+          "modes": [
+            "nr"
+          ],
+          "note": "GSCN 5279 to 5419 (15 kHz SSB); NR-ARFCN on the channel raster",
+          "channels": [
+            {
+              "name": "NR band n1, search (2110 to 2170 MHz)",
+              "centre_hz": 2140000000.0,
+              "width_hz": 60000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    },
+    {
+      "id": "nbiot_jp",
+      "name": "NB-IoT bands in Japan",
+      "kind": "other",
+      "source": {
+        "publisher": "3GPP",
+        "title": "E-UTRA and NR user equipment radio transmission and reception (operating bands); Australian blocks from ACMA",
+        "number": "TS 36.101 table 5.5-1, TS 38.101-1 table 5.2-1",
+        "date": "Release 17 and 19",
+        "url": "https://www.3gpp.org/ftp/Specs/archive/36_series/36.101/"
+      },
+      "verified": false,
+      "note": "the bands of the MIC mobile allocations",
+      "bands": [
+        {
+          "name": "LTE band 1",
+          "service": "mobile",
+          "start_hz": 2110000000,
+          "end_hz": 2170000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 0 to 599, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 1, search (2110 to 2170 MHz)",
+              "centre_hz": 2140000000.0,
+              "width_hz": 60000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 8",
+          "service": "mobile",
+          "start_hz": 925000000,
+          "end_hz": 960000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 3450 to 3799, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 8, search (925 to 960 MHz)",
+              "centre_hz": 942500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 18",
+          "service": "mobile",
+          "start_hz": 860000000,
+          "end_hz": 875000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 5850 to 5999, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 18, search (860 to 875 MHz)",
+              "centre_hz": 867500000.0,
+              "width_hz": 15000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 19",
+          "service": "mobile",
+          "start_hz": 875000000,
+          "end_hz": 890000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 6000 to 6149, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 19, search (875 to 890 MHz)",
+              "centre_hz": 882500000.0,
+              "width_hz": 15000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 26",
+          "service": "mobile",
+          "start_hz": 859000000,
+          "end_hz": 894000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 8690 to 9039, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 26, search (859 to 894 MHz)",
+              "centre_hz": 876500000.0,
+              "width_hz": 35000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        },
+        {
+          "name": "LTE band 28",
+          "service": "mobile",
+          "start_hz": 758000000,
+          "end_hz": 803000000,
+          "modes": [
+            "nbiot"
+          ],
+          "note": "EARFCN 9210 to 9659, 100 kHz raster",
+          "channels": [
+            {
+              "name": "LTE band 28, search (758 to 803 MHz)",
+              "centre_hz": 780500000.0,
+              "width_hz": 45000000,
+              "note": "the whole downlink: the stack searches the band from here"
+            }
+          ]
+        }
+      ],
+      "unverified_reason": "the band edges and rasters are those of data/plans/cellular.json; which bands the operators of the country use is from memory of public operator and regulator lists and is unconfirmed"
+    }
+  ]
+}

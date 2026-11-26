@@ -81,6 +81,8 @@ pub struct NrSearchOut {
     pub gscn_range: Option<(u32, u32)>,
     /// Candidates searched.
     pub candidates: usize,
+    /// The strongest PSS correlation of the capture over its mean, dB, whether over the threshold or not.
+    pub best_pss_db: f64,
 }
 
 /// The NR searcher.
@@ -99,6 +101,8 @@ pub struct NrSearcher {
     pub symbol_phase: bool,
     /// The cells whose SIB1 was tried: PCI and SS_REF in steps of 30 kHz, the signal time of the try, whether it decoded.
     sib1_tried: Vec<((u16, i64), f64, bool)>,
+    /// The strongest PSS correlation over its mean since the search of the capture started, dB.
+    best_db: f64,
 }
 
 /// Seconds until the SIB1 of a cell is read again after a decode.
@@ -118,6 +122,7 @@ impl Default for NrSearcher {
             sib1: Sib1Receiver::default(),
             symbol_phase: true,
             sib1_tried: Vec::new(),
+            best_db: f64::NEG_INFINITY,
         }
     }
 }
@@ -344,6 +349,10 @@ impl NrSearcher {
             s += step;
         }
         for (nid2, fold) in folds.iter_mut().enumerate() {
+            let n = fold.iter().map(Vec::len).sum::<usize>().max(1);
+            let mean = fold.iter().map(|f| f.iter().sum::<f32>()).sum::<f32>() / n as f32;
+            let top = fold.iter().flat_map(|f| f.iter()).fold(0f32, |a, &b| a.max(b));
+            self.best_db = self.best_db.max(10.0 * f64::from((top / mean.max(1e-30)).max(1e-30)).log10());
             pick_peaks(fold, nid2 as u16, h, scs, self.min_pss_db, &mut peaks);
         }
         peaks.sort_by(|a, b| b.db.total_cmp(&a.db));
@@ -905,6 +914,7 @@ fn channel(
 impl NrSearcher {
     /// Searches the whole capture for every cell it holds.
     pub fn search(&mut self, cap: &Capture) -> NrSearchOut {
+        self.best_db = f64::NEG_INFINITY;
         let (cands, range) = candidates(cap, &self.band_order);
         let mut out = NrSearchOut {
             gscn_range: range,
@@ -926,6 +936,7 @@ impl NrSearcher {
         for f in out.cells.iter_mut() {
             self.read_sib1(cap, f);
         }
+        out.best_pss_db = self.best_db;
         out
     }
 

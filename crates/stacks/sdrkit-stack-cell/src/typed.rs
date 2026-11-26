@@ -241,6 +241,48 @@ pub struct SearchFields {
     pub level_dbfs: Option<f64>,
 }
 
+/// Where the band search of `cell` and `nr` is, and why nothing shows.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct BandSearchFields<'a> {
+    /// The band searched now ("band 28", "n78"). None when no search runs.
+    #[field(label = "Band searched")]
+    pub search_band: Option<&'a str>,
+    /// The radio centre of the search step, counted from 1.
+    #[field(label = "Search step")]
+    pub search_step: Option<i64>,
+    /// The radio centres of the search.
+    #[field(label = "Search steps")]
+    pub search_steps: Option<i64>,
+    /// The passes over every step done since the search started.
+    #[field(label = "Search passes")]
+    pub search_passes: i64,
+    /// Why no cell shows: what the newest capture held, or what the radio gives. None while cells show.
+    #[field(label = "Why nothing shows")]
+    pub quiet_reason: Option<&'a str>,
+}
+
+/// The arguments of `stay` of `cell` and `nr`.
+#[derive(Arguments)]
+pub struct SearchStayArgs<'a> {
+    /// The row key of the cell. Empty: the strongest cell found.
+    #[arg(shared = SEARCH_STAY_ROW)]
+    pub row: &'a str,
+}
+
+/// The row key of the cell to stay on; empty for the strongest.
+pub const SEARCH_STAY_ROW: Argument<field::Text> = Argument::new(sdrkit_core::publish::Field::new("row", "Cell", ""))
+    .help("The row key of the cell in the cells table; empty for the strongest cell found.");
+
+/// Starts a band search now.
+pub const SEARCH_START: sdrkit_core::Command = sdrkit_core::Command::new("search", "Search the bands").help(
+    "Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and \
+     lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.",
+);
+
+/// Ends a band search and stays on one cell.
+pub const SEARCH_STAY: CommandKind<SearchStayArgs<'static>> = CommandKind::new("stay", "Stay on a cell")
+    .help("Ends the band search and tunes to the carrier of a cell of the cells table, or of the strongest cell found.");
+
 /// A cell found or identified by a search stack.
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct FoundCellEvent<'a> {
@@ -298,6 +340,23 @@ fn search_end(
         .command(&SEARCH_REMOVE)
         .kept(&SEARCH_KEPT)
         .kept(kept)
+}
+
+/// [`search_end`] of a stack with a band search: its fields and the commands `search` and `stay`.
+fn band_search_end(
+    s: StackShape,
+    event: &'static EventKind<FoundCellEvent<'static>>,
+    settings: &[&[&'static dyn sdrkit_core::DeclareSetting]],
+    kept: &[&'static str],
+) -> StackShape {
+    search_end(
+        s.fields::<BandSearchFields>(),
+        event,
+        settings,
+        kept,
+    )
+    .command(&SEARCH_START)
+    .command(&SEARCH_STAY)
 }
 
 // ---- tdscdma ----
@@ -1859,7 +1918,7 @@ pub static NR_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey",
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Family::new("cell", 1, 6)
+        Family::new("cell", 1, 7)
             .added(
                 1,
                 1,
@@ -2017,6 +2076,31 @@ pub fn family() -> &'static Family {
             .content(sdrkit_core::ContentKind::Tracking, &["lbj"])
             .content(sdrkit_core::ContentKind::Utility, &["ebicab"])
             .content(sdrkit_core::ContentKind::Devices, &["eot"])
+            // Version 1.7: the band search of LTE and NR cells, and why nothing shows.
+            .added(
+                1,
+                7,
+                &[
+                    "shape.BandSearchFields",
+                    "shape.BandSearchFields.search_band",
+                    "shape.BandSearchFields.search_step",
+                    "shape.BandSearchFields.search_steps",
+                    "shape.BandSearchFields.search_passes",
+                    "shape.BandSearchFields.quiet_reason",
+                    "cell.fields.BandSearchFields",
+                    "cell.setting.band_search",
+                    "cell.setting.search_bands",
+                    "cell.setting.search_dwell_s",
+                    "cell.command.search",
+                    "cell.command.stay",
+                    "nr.fields.BandSearchFields",
+                    "nr.setting.band_search",
+                    "nr.setting.search_bands",
+                    "nr.setting.search_dwell_s",
+                    "nr.command.search",
+                    "nr.command.stay",
+                ],
+            )
             .shared_source(
                 "decoder",
                 &["cell", "nr", "nbiot", "gsmr", "umts", "cdma2000", "tdscdma"],
@@ -2035,7 +2119,7 @@ pub fn family() -> &'static Family {
                     .command(&sdrkit_graph::decoder::CLEAR)
                     .kept(&["messages", "RailwayCirFields.messages"]),
             )
-            .stack(search_end(
+            .stack(band_search_end(
                 search_stack::<CellFields>(crate::lte::ID)
                     .table(&CELL_CELLS)
                     .table(&CELL_DETAILS)
@@ -2066,7 +2150,7 @@ pub fn family() -> &'static Family {
                     "CellFields",
                 ],
             ))
-            .stack(search_end(
+            .stack(band_search_end(
                 search_stack::<NrFields>(crate::nr::ID)
                     .table(&NR_CELLS)
                     .table(&NR_DETAILS)

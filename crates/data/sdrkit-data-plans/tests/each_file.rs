@@ -1,5 +1,6 @@
 //! Each plan file of the repository's data folder is valid on its own: an empty registry takes it as an import. The
-//! file `countries.json` names the groups of every other file, so it is taken last, into a registry that holds them.
+//! file `countries.json` names the groups of every other file, so it is checked with them as one set, as a host loads
+//! the folder.
 
 use sdrkit_data_plans::api::{import_as, is_plan_file, PlanFormat};
 use sdrkit_data_plans::Plans;
@@ -41,13 +42,13 @@ fn an_empty_registry_takes_each_plan_file_alone() {
 
 #[test]
 fn the_country_file_follows_the_other_files() {
-    let mut plans = Plans::new();
-    for p in files() {
-        let t = text(&p);
-        if is_plan_file(&t) {
-            import_as(&mut plans, &t, PlanFormat::Json, "", "").unwrap_or_else(|e| panic!("{}: {e}", p.display()));
-        }
-    }
+    // The host loads the data folder as one set of files, not as user plans (which have a cap of their own).
+    let mut set: Vec<(String, String)> = files()
+        .iter()
+        .map(|p| (p.display().to_string(), text(p)))
+        .filter(|(_, t)| is_plan_file(t))
+        .collect();
     let countries = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../data/plans/countries.json");
-    import_as(&mut plans, &text(&countries), PlanFormat::Json, "", "").expect("the country file");
+    set.push((countries.display().to_string(), text(&countries)));
+    Plans::from_files(&set).expect("the country file with the other files");
 }

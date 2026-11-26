@@ -155,7 +155,7 @@ pub static NBIOT: StackDescriptor = StackDescriptor {
     make_generator: Some(nbiot::make_generator),
     lock_profile: LockProfile::DEFAULT,
     signal_types: &[SignalType::NbIot],
-    auto_gain: AutoGain::Radio,
+    auto_gain: AutoGain::Hold,
     verify: Some(&verify::NBIOT),
     benchmarks: None,
 };
@@ -185,7 +185,7 @@ pub static NR: StackDescriptor = StackDescriptor {
     make_generator: Some(nr::make_generator),
     lock_profile: LockProfile::DEFAULT,
     signal_types: &[SignalType::Nr],
-    auto_gain: AutoGain::Radio,
+    auto_gain: AutoGain::Hold,
     verify: Some(&verify::NR),
     benchmarks: None,
 };
@@ -215,7 +215,7 @@ pub static CELL: StackDescriptor = StackDescriptor {
     make_generator: Some(lte::make_generator),
     lock_profile: LockProfile::DEFAULT,
     signal_types: &[SignalType::Lte],
-    auto_gain: AutoGain::Radio,
+    auto_gain: AutoGain::Hold,
     verify: Some(&verify::LTE),
     benchmarks: None,
 };

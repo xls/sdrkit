@@ -16,5 +16,6 @@ mod nbiot;
 mod nr;
 mod railway_cir;
 mod rates;
+mod search;
 mod tdscdma;
 mod umts;

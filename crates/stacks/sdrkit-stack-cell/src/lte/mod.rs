@@ -12,8 +12,8 @@ pub mod search;
 
 use crate::bands::{apply_mfbi, band_choice, earfcn_to_mhz, lte_band, nearest_earfcn, BandChoice};
 use crate::decoder::{
-    build_search, capture_setting, plural, BandList, Capture, Headline, Log, RowSync, SearchStack,
-    BAND_ORDER,
+    build_search, capture_setting, plural, BandList, Capture, FoundCarrier, Headline, Log, RowSync, SearchConfig,
+    SearchStack, BAND_ORDER, BAND_SEARCH, SEARCH_BANDS, SEARCH_DWELL,
 };
 use crate::typed::{
     CellBandRow, CellCarrierRow, CellDetailRow, CellFields, CellInterCarrierRow, CellNeighbourRow, CellOperatorRow,
@@ -889,6 +889,12 @@ sdrkit_core::settings! {
         OnePerCell = ONE_PER_CELL,
         /// The bands taken first where bands overlap.
         BandOrder = BAND_ORDER,
+        /// When the stack searches its bands.
+        BandSearch = BAND_SEARCH,
+        /// The bands a band search covers.
+        SearchBands = SEARCH_BANDS,
+        /// The least time on each radio centre of a band search.
+        SearchDwell = SEARCH_DWELL,
     }
 }
 
@@ -948,6 +954,10 @@ pub struct LteSearch {
     order: BandList,
     /// The list filters.
     pub filter: LteFilter,
+    /// The band search settings.
+    scan: SearchConfig,
+    /// Why the newest capture showed no cell.
+    quiet: Option<String>,
 }
 
 impl Default for LteSearch {
@@ -959,7 +969,44 @@ impl Default for LteSearch {
             only: BandList::default(),
             order: BandList::default(),
             filter: LteFilter::default(),
+            scan: SearchConfig::new(),
+            quiet: None,
         }
+    }
+}
+
+/// Why a capture of LTE `out` at `rate` showed no cell, for people; None when it showed one.
+fn quiet_reason(out: &LteSearchOut, rate: f64, threshold_db: f64, max_cfo_hz: f64, centre_hz: f64) -> Option<String> {
+    if !out.cells.is_empty() {
+        return None;
+    }
+    if rate < MIN_RATE_HZ {
+        return Some(format!("the capture is too narrow for LTE: it needs {:.2} Msps", MIN_RATE_HZ / 1e6));
+    }
+    let best = if out.best_pss_db.is_finite() {
+        format!("{:.1} dB", out.best_pss_db)
+    } else {
+        "none".to_owned()
+    };
+    if out.best_pss_db >= threshold_db {
+        return Some(format!(
+            "LTE sync seen (PSS {best}) but no cell identity read: the signal is too weak, or the frequency error is too large"
+        ));
+    }
+    match out.humps.iter().max_by(|a, b| a.level_db.total_cmp(&b.level_db)) {
+        Some(h) => Some(format!(
+            "a carrier at {:.1} MHz ({:.1} MHz wide, {:.0} dB over the floor) shows no LTE sync (strongest {best}, {threshold_db:.0} dB \
+             needed): not LTE, or a frequency error beyond the {:.0} kHz searched",
+            (centre_hz + h.offset_hz) / 1e6,
+            h.width_hz / 1e6,
+            h.level_db,
+            max_cfo_hz / 1e3
+        )),
+        None => Some(format!(
+            "no LTE carrier on this frequency: {} carrier positions tried, the strongest sync {best} ({threshold_db:.0} dB \
+             needed); a band search finds the carriers",
+            out.candidates
+        )),
     }
 }
 
@@ -1115,6 +1162,9 @@ impl SearchStack for LteSearch {
             LteSetting::NotBarred => f.not_barred = NOT_BARRED.read(id, v)?,
             LteSetting::OnePerCell => f.one_per_cell = ONE_PER_CELL.read(id, v)?,
             LteSetting::BandOrder => self.order = Self::band_list(id, v, &BAND_ORDER)?,
+            LteSetting::BandSearch => self.scan.mode = BAND_SEARCH.read(id, v)?,
+            LteSetting::SearchBands => self.scan.bands = Self::band_list(id, v, &SEARCH_BANDS)?,
+            LteSetting::SearchDwell => self.scan.dwell_s = SEARCH_DWELL.read(id, v)?,
         }
         Ok(())
     }
@@ -1139,6 +1189,9 @@ impl SearchStack for LteSearch {
             (LteSetting::NotBarred, Value::Bool(f.not_barred)),
             (LteSetting::OnePerCell, Value::Bool(f.one_per_cell)),
             (LteSetting::BandOrder, Value::Text(self.order.text.clone())),
+            (LteSetting::BandSearch, self.scan.mode_value()),
+            (LteSetting::SearchBands, Value::Text(self.scan.bands.text.clone())),
+            (LteSetting::SearchDwell, Value::F64(self.scan.dwell_s)),
         ])
     }
     fn capture_s(&self) -> f64 {
@@ -1168,9 +1221,37 @@ impl SearchStack for LteSearch {
                 ..h.clone()
             })
             .collect();
+        self.quiet = quiet_reason(&found, cap.rate, self.searcher.min_pss_db, self.searcher.max_cfo_hz, base);
         for f in &found.cells {
             self.merge_cell(t, cap, f, log);
         }
+    }
+    fn found_cells(found: &LteSearchOut) -> usize {
+        found.cells.len()
+    }
+    fn quiet_reason(&self) -> Option<String> {
+        self.quiet.clone()
+    }
+    fn band_search(&self) -> Option<&SearchConfig> {
+        Some(&self.scan)
+    }
+    fn search_steps(&self, band: u16, rate: f64) -> Vec<f64> {
+        crate::scan::lte_steps(band, rate)
+    }
+    fn bands_at(&self, hz: f64) -> Vec<u16> {
+        crate::bands::downlink_bands(sdrkit_data_plans::cellular::CellSystem::Lte, hz, &self.order.bands)
+    }
+    fn carriers(t: &LteTables) -> Vec<FoundCarrier> {
+        t.cells
+            .iter()
+            .filter(|r| r.record.frequency_hz > 0.0)
+            .map(|r| FoundCarrier {
+                row: r.key.to_string(),
+                frequency_hz: r.record.frequency_hz,
+                level_dbfs: r.record.rsrp_dbfs,
+                name: format!("PCI {} at {:.1} MHz", r.record.pci, r.record.frequency_hz / 1e6),
+            })
+            .collect()
     }
     fn remove(tables: &mut Self::Tables, row: &str) -> bool {
         sdrkit_util_objects::rows::remove_row(&mut tables.cells, row)

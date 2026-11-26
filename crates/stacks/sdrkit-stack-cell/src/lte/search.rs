@@ -188,6 +188,10 @@ pub struct LteSearchOut {
     pub cells: Vec<LteFound>,
     /// The humps of the capture.
     pub humps: Vec<Hump>,
+    /// The candidate frequencies searched.
+    pub candidates: usize,
+    /// The strongest PSS correlation of the capture over its mean, dB, whether over the threshold or not.
+    pub best_pss_db: f64,
 }
 
 /// The LTE searcher.
@@ -208,6 +212,8 @@ pub struct LteSearcher {
     tbcc: Tbcc,
     turbo: TurboRx,
     chan: ChanEstimator,
+    /// The strongest PSS correlation over its mean since the search of the capture started, dB.
+    best_db: f64,
 }
 
 const SYNC_RATE: f64 = 1.92e6;
@@ -240,6 +246,7 @@ impl Default for LteSearcher {
             tbcc: Tbcc::new(),
             turbo: TurboRx::default(),
             chan: ChanEstimator::default(),
+            best_db: f64::NEG_INFINITY,
         }
     }
 }
@@ -599,6 +606,9 @@ impl LteSearcher {
                     }
                 }
                 let d = 10.0 * (best.3.max(1e-30) as f64).log10();
+                if k == 0 {
+                    self.best_db = self.best_db.max(d);
+                }
                 let need = if k == 0 { thr } else { thr.max(12.0) };
                 if d < need {
                     break;
@@ -1926,12 +1936,15 @@ impl LteSearcher {
     /// Searches the whole capture for every cell it holds.
     pub fn search(&mut self, cap: &Capture) -> LteSearchOut {
         self.borrow_tries = 0;
+        self.best_db = f64::NEG_INFINITY;
         let humps = find_humps(&cap.samples, cap.rate);
         let mut out = LteSearchOut {
             humps: humps.clone(),
             ..Default::default()
         };
-        for c in candidates(self, cap, &humps) {
+        let cands = candidates(self, cap, &humps);
+        out.candidates = cands.len();
+        for c in cands {
             let mut found = self.search_candidate(cap, c);
             if found.is_empty() && c.snapped && (c.raw_hz - c.offset_hz).abs() > 20e3 {
                 let raw = Cand {
@@ -1953,6 +1966,7 @@ impl LteSearcher {
                 }
             }
         }
+        out.best_pss_db = self.best_db;
         out
     }
 }

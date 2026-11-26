@@ -223,7 +223,7 @@ Each page lists the settings, results, events and commands of one stack or one d
 | [SCADA telemetry](stacks/scada.md) | Modbus RTU, Modbus ASCII and DNP3 over narrowband FSK radio links: the modem found by itself, the frames, polls paired with replies, and the devices with their registers and points. |
 | [Bluetooth LE](stacks/ble.md) | Bluetooth LE advertising on LE 1M, LE 2M and LE Coded, legacy and extended, on every channel inside the capture: the devices around, their names, vendors and beacons, as a scanner app shows them. |
 | [BLE tracker detector](stacks/bletracker.md) | Finds item trackers (AirTag and Find My accessories, Tile, Chipolo, SmartTag, Google tags) that stay with you. |
-| [Wi-Fi networks](stacks/wifi.md) | The Wi-Fi access points around on 2.4, 5 and 6 GHz from their beacons: names, security, channels and capabilities. |
+| [Wi-Fi networks](stacks/wifi.md) | The Wi-Fi access points around on 2.4, 5 and 6 GHz from their beacons: names, security, channels and capabilities. Works from 4 Msps with the 802.11b (DSSS) frames of 2.4 GHz only; OFDM and the 5 and 6 GHz bands need 20 Msps. |
 | [Wi-Fi HaLow (802.11ah)](stacks/halow.md) | Sub-GHz Wi-Fi HaLow networks from their S1G beacons: names, security, channels, widths and MCS. |
 | [Bluetooth Classic](stacks/btclassic.md) | Bluetooth BR/EDR discovery over a wide capture: devices and piconets by the LAP of every access code; inquiry responses give the address, class of device and clock. |
 | [wfb-ng / OpenHD](stacks/wfb.md) | Drone video links of injected 802.11n frames: link id, radio port, FEC block and fragment, frames lost. The payload stays encrypted: structure only. |

@@ -17,7 +17,7 @@ Signal types: NB-IoT.
 | Smallest sample rate | 1 MHz |
 | Signal bandwidth | 1.75 MHz |
 | Radio filter | 1.75 MHz |
-| Automatic gain | Radio AGC |
+| Automatic gain | Found once and held |
 
 ## Settings
 
@@ -74,7 +74,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.6. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.7. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 

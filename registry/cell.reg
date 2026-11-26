@@ -1,5 +1,5 @@
 # The interface of the stack family cell. The registry test of the family writes this file.
-family cell version=1.6
+family cell version=1.7
 shape.RailwayCirFields since=1.0
 shape.RailwayCirFields.text type=text unit= optional=no since=1.0
 shape.RailwayCirFields.messages type=i64 unit= optional=no since=1.0
@@ -71,6 +71,12 @@ shape.CellFields.cell_count type=i64 unit= optional=no reading=1 since=1.0
 shape.CellFields.identified type=i64 unit= optional=no since=1.0
 shape.CellFields.operators type=i64 unit= optional=no since=1.0
 shape.CellFields.banner type=text unit= optional=no since=1.0
+shape.BandSearchFields since=1.7
+shape.BandSearchFields.search_band type=text unit= optional=yes since=1.7
+shape.BandSearchFields.search_step type=i64 unit= optional=yes since=1.7
+shape.BandSearchFields.search_steps type=i64 unit= optional=yes since=1.7
+shape.BandSearchFields.search_passes type=i64 unit= optional=no since=1.7
+shape.BandSearchFields.quiet_reason type=text unit= optional=yes since=1.7
 shape.CellRow since=1.0
 shape.CellRow.plmn type=text unit= optional=yes since=1.0
 shape.CellRow.operator type=text unit= optional=yes since=1.0
@@ -512,6 +518,7 @@ cell.content kind=networks since=1.1
 cell.fields.SearchFields since=1.0
 cell.fields.CellFields since=1.0
 cell.fields.DecoderFields since=1.0
+cell.fields.BandSearchFields since=1.7
 cell.kept.SearchFields.retunes since=1.0
 cell.kept.SearchFields.decoded since=1.0
 cell.kept.SearchFields.failed since=1.0
@@ -554,16 +561,22 @@ cell.setting.identified type=bool unit= since=1.0
 cell.setting.not_barred type=bool unit= since=1.0
 cell.setting.one_per_cell type=bool unit= since=1.0
 cell.setting.band_order type=text unit= since=1.0
+cell.setting.band_search type=choice(auto,survey,off) unit= since=1.7
+cell.setting.search_bands type=text unit= since=1.7
+cell.setting.search_dwell_s type=f64 unit=s since=1.7
 cell.setting.gen_scene type=choice(0,1,2,3) unit= since=1.0
 cell.setting.gen_sfn0 type=i64 unit= since=1.0
 cell.setting.gen_load type=bool unit= since=1.0
 cell.command.clear args= reply= since=1.0
 cell.command.remove args=row:text reply= since=1.0
+cell.command.search args= reply= since=1.7
+cell.command.stay args=row:text reply= since=1.7
 nr since=1.0
 nr.content kind=networks since=1.1
 nr.fields.SearchFields since=1.0
 nr.fields.NrFields since=1.0
 nr.fields.DecoderFields since=1.0
+nr.fields.BandSearchFields since=1.7
 nr.kept.SearchFields.retunes since=1.0
 nr.kept.SearchFields.decoded since=1.0
 nr.kept.SearchFields.failed since=1.0
@@ -592,9 +605,14 @@ nr.setting.mib_only type=bool unit= since=1.0
 nr.setting.not_barred type=bool unit= since=1.0
 nr.setting.band_order type=text unit= since=1.0
 nr.setting.symbol_phase type=bool unit= since=1.4
+nr.setting.band_search type=choice(auto,survey,off) unit= since=1.7
+nr.setting.search_bands type=text unit= since=1.7
+nr.setting.search_dwell_s type=f64 unit=s since=1.7
 nr.setting.gen_scene type=choice(0,1,2,3) unit= since=1.0
 nr.command.clear args= reply= since=1.0
 nr.command.remove args=row:text reply= since=1.0
+nr.command.search args= reply= since=1.7
+nr.command.stay args=row:text reply= since=1.7
 nbiot since=1.0
 nbiot.content kind=networks since=1.1
 nbiot.fields.SearchFields since=1.0

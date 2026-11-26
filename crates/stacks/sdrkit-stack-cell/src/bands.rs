@@ -65,6 +65,25 @@ pub fn bands_holding(mhz: f64, order: &[u16]) -> Vec<u16> {
         .collect()
 }
 
+/// The bands of `system` whose downlink holds `hz`, those of `order` first; else the band whose downlink edge lies nearest.
+/// Empty only for an empty band table.
+pub fn downlink_bands(system: CellSystem, hz: f64, order: &[u16]) -> Vec<u16> {
+    let all = cellular::bands(system, order);
+    let holding: Vec<u16> = all
+        .iter()
+        .filter(|b| (b.dl_low_hz..=b.dl_high_hz).contains(&hz))
+        .map(|b| b.number())
+        .collect();
+    if !holding.is_empty() {
+        return holding;
+    }
+    let gap = |b: &CellBand| (b.dl_low_hz - hz).max(hz - b.dl_high_hz);
+    all.iter()
+        .min_by(|a, b| gap(a).total_cmp(&gap(b)))
+        .map(|b| vec![b.number()])
+        .unwrap_or_default()
+}
+
 /// The band chosen for a cell.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct BandChoice {

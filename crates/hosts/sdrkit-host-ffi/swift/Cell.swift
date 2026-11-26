@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "cell", version 1.6. MIT licence.
+// sdrkit: the typed interface of the stack family "cell", version 1.7. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum CellInterface {
     public static let major = 1
-    public static let minor = 6
+    public static let minor = 7
 }
 
 /// The result fields of `railway_cir`.
@@ -170,6 +170,35 @@ public struct CellFields {
         var c = sdrkit_cell_fields()
         let code = sdrkit_cell_fields_read(handle, &c)
         return code == SDRKIT_OK ? .success(CellFields(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// Where the band search of `cell` and `nr` is, and why nothing shows.
+public struct CellBandSearchFields {
+    /// The band searched now ("band 28", "n78"). None when no search runs.
+    public var searchBand: String?
+    /// The radio centre of the search step, counted from 1.
+    public var searchStep: Int64?
+    /// The radio centres of the search.
+    public var searchSteps: Int64?
+    /// The passes over every step done since the search started.
+    public var searchPasses: Int64
+    /// Why no cell shows: what the newest capture held, or what the radio gives. None while cells show.
+    public var quietReason: String?
+
+    init(_ c: sdrkit_cell_band_search_fields) {
+        searchBand = c.has_search_band ? sdrkitText(c.search_band) : nil
+        searchStep = c.has_search_step ? c.search_step : nil
+        searchSteps = c.has_search_steps ? c.search_steps : nil
+        searchPasses = c.search_passes
+        quietReason = c.has_quiet_reason ? sdrkitText(c.quiet_reason) : nil
+    }
+
+    /// The result fields of the snapshot of `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE) -> Result<CellBandSearchFields, SDRKitCode> {
+        var c = sdrkit_cell_band_search_fields()
+        let code = sdrkit_cell_band_search_fields_read(handle, &c)
+        return code == SDRKIT_OK ? .success(CellBandSearchFields(c)) : .failure(SDRKitCode(code: code))
     }
 }
 
@@ -2768,6 +2797,21 @@ public enum CellCommands {
         }() }
         return sdrkitResult(code)
     }
+    /// Search the bands. Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
+    public static func cellSearch(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
+        let code = sdrkit_cell_search(handle)
+        return sdrkitResult(code)
+    }
+    /// Stay on a cell. Ends the band search and tunes to the carrier of a cell of the cells table, or of the strongest cell found.
+    public static func cellStay(_ handle: SDRKIT_HANDLE, row: String) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_cell_search_stay_args()
+        args.size = UInt32(MemoryLayout<sdrkit_cell_search_stay_args>.size)
+        let code: Int32 = sdrkitWithString(row) { row_ in { () -> Int32 in
+        args.row = row_
+        return sdrkit_cell_stay(handle, &args)
+        }() }
+        return sdrkitResult(code)
+    }
     /// Clear. Forgets everything decoded so far.
     public static func nrClear(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
         let code = sdrkit_nr_clear(handle)
@@ -2780,6 +2824,21 @@ public enum CellCommands {
         let code: Int32 = sdrkitWithString(row) { row_ in { () -> Int32 in
         args.row = row_
         return sdrkit_nr_remove(handle, &args)
+        }() }
+        return sdrkitResult(code)
+    }
+    /// Search the bands. Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
+    public static func nrSearch(_ handle: SDRKIT_HANDLE) -> Result<Void, SDRKitCode> {
+        let code = sdrkit_nr_search(handle)
+        return sdrkitResult(code)
+    }
+    /// Stay on a cell. Ends the band search and tunes to the carrier of a cell of the cells table, or of the strongest cell found.
+    public static func nrStay(_ handle: SDRKIT_HANDLE, row: String) -> Result<Void, SDRKitCode> {
+        var args = sdrkit_cell_search_stay_args()
+        args.size = UInt32(MemoryLayout<sdrkit_cell_search_stay_args>.size)
+        let code: Int32 = sdrkitWithString(row) { row_ in { () -> Int32 in
+        args.row = row_
+        return sdrkit_nr_stay(handle, &args)
         }() }
         return sdrkitResult(code)
     }
@@ -3037,6 +3096,39 @@ public enum CellSettings {
     public static func setCellBandOrder(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "band_order", $0) })
     }
+    /// The options of the setting "band_search" of the stack "cell".
+    public enum CellBandSearch: Int32 {
+        case auto = 0
+        case survey = 1
+        case off = 2
+    }
+    /// Band search.
+    public static func cellBandSearch(_ handle: SDRKIT_HANDLE) -> Result<CellBandSearch, SDRKitCode> {
+        var v: Int32 = 0
+        let code = sdrkit_typed_setting_get_enum(handle, "band_search", &v)
+        return code == SDRKIT_OK ? .success(CellBandSearch(rawValue: v) ?? CellBandSearch(rawValue: 0)!) : .failure(SDRKitCode(code: code))
+    }
+    public static func setCellBandSearch(_ handle: SDRKIT_HANDLE, _ value: CellBandSearch) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_enum(handle, "band_search", value.rawValue))
+    }
+    /// Bands searched.
+    public static func cellSearchBands(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
+        var v: sdrkit_string = sdrkit_string()
+        let code = sdrkit_typed_setting_get_string(handle, "search_bands", &v)
+        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
+    }
+    public static func setCellSearchBands(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "search_bands", $0) })
+    }
+    /// Time per step.
+    public static func cellSearchDwellS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "search_dwell_s", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setCellSearchDwellS(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "search_dwell_s", value))
+    }
     /// Capture length.
     public static func nrCaptureS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
         var v: Double = 0
@@ -3126,6 +3218,39 @@ public enum CellSettings {
     }
     public static func setNrSymbolPhase(_ handle: SDRKIT_HANDLE, _ value: Bool) -> Result<Void, SDRKitCode> {
         sdrkitResult(sdrkit_typed_setting_set_bool(handle, "symbol_phase", value))
+    }
+    /// The options of the setting "band_search" of the stack "nr".
+    public enum NrBandSearch: Int32 {
+        case auto = 0
+        case survey = 1
+        case off = 2
+    }
+    /// Band search.
+    public static func nrBandSearch(_ handle: SDRKIT_HANDLE) -> Result<NrBandSearch, SDRKitCode> {
+        var v: Int32 = 0
+        let code = sdrkit_typed_setting_get_enum(handle, "band_search", &v)
+        return code == SDRKIT_OK ? .success(NrBandSearch(rawValue: v) ?? NrBandSearch(rawValue: 0)!) : .failure(SDRKitCode(code: code))
+    }
+    public static func setNrBandSearch(_ handle: SDRKIT_HANDLE, _ value: NrBandSearch) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_enum(handle, "band_search", value.rawValue))
+    }
+    /// Bands searched.
+    public static func nrSearchBands(_ handle: SDRKIT_HANDLE) -> Result<String, SDRKitCode> {
+        var v: sdrkit_string = sdrkit_string()
+        let code = sdrkit_typed_setting_get_string(handle, "search_bands", &v)
+        return code == SDRKIT_OK ? .success(sdrkitText(v)) : .failure(SDRKitCode(code: code))
+    }
+    public static func setNrSearchBands(_ handle: SDRKIT_HANDLE, _ value: String) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkitWithString(value) { sdrkit_typed_setting_set_string(handle, "search_bands", $0) })
+    }
+    /// Time per step.
+    public static func nrSearchDwellS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {
+        var v: Double = 0
+        let code = sdrkit_typed_setting_get_f64(handle, "search_dwell_s", &v)
+        return code == SDRKIT_OK ? .success(v) : .failure(SDRKitCode(code: code))
+    }
+    public static func setNrSearchDwellS(_ handle: SDRKIT_HANDLE, _ value: Double) -> Result<Void, SDRKitCode> {
+        sdrkitResult(sdrkit_typed_setting_set_f64(handle, "search_dwell_s", value))
     }
     /// Capture length.
     public static func nbiotCaptureS(_ handle: SDRKIT_HANDLE) -> Result<Double, SDRKitCode> {

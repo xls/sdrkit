@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "cell", version 1.6. MIT licence.
+ * sdrkit: the typed interface of the stack family "cell", version 1.7. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_CELL_VERSION_MAJOR 1
-#define SDRKIT_CELL_VERSION_MINOR 6
+#define SDRKIT_CELL_VERSION_MINOR 7
 
 // The stack "railway_cir": its id, and the keys of its event types.
 #define SDRKIT_STACK_RAILWAY_CIR "railway_cir"
@@ -85,6 +85,16 @@
 // The stack "cv2x": its id, and the keys of its event types.
 #define SDRKIT_STACK_CV2X "cv2x"
 
+// The options of the setting "band_search" of the stack "cell".
+typedef enum sdrkit_cell_band_search {
+  // When nothing is found
+  SDRKIT_CELL_BAND_SEARCH_AUTO = 0,
+  // Always (survey)
+  SDRKIT_CELL_BAND_SEARCH_SURVEY = 1,
+  // Never
+  SDRKIT_CELL_BAND_SEARCH_OFF = 2,
+} sdrkit_cell_band_search;
+
 // The options of the setting "gen_scene" of the stack "cell".
 typedef enum sdrkit_cell_gen_scene {
   // 10 MHz, 2 ports
@@ -96,6 +106,16 @@ typedef enum sdrkit_cell_gen_scene {
   // 20 MHz
   SDRKIT_CELL_GEN_SCENE_20_MHZ = 3,
 } sdrkit_cell_gen_scene;
+
+// The options of the setting "band_search" of the stack "nr".
+typedef enum sdrkit_nr_band_search {
+  // When nothing is found
+  SDRKIT_NR_BAND_SEARCH_AUTO = 0,
+  // Always (survey)
+  SDRKIT_NR_BAND_SEARCH_SURVEY = 1,
+  // Never
+  SDRKIT_NR_BAND_SEARCH_OFF = 2,
+} sdrkit_nr_band_search;
 
 // The options of the setting "gen_scene" of the stack "nr".
 typedef enum sdrkit_nr_gen_scene {
@@ -306,6 +326,30 @@ typedef struct sdrkit_cell_fields {
   // The notice.
   sdrkit_string banner;
 } sdrkit_cell_fields;
+
+// Where the band search of `cell` and `nr` is, and why nothing shows.
+typedef struct sdrkit_cell_band_search_fields {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // True if `search_band` holds a value.
+  bool has_search_band;
+  // The band searched now ("band 28", "n78"). None when no search runs.
+  sdrkit_string search_band;
+  // True if `search_step` holds a value.
+  bool has_search_step;
+  // The radio centre of the search step, counted from 1.
+  int64_t search_step;
+  // True if `search_steps` holds a value.
+  bool has_search_steps;
+  // The radio centres of the search.
+  int64_t search_steps;
+  // The passes over every step done since the search started.
+  int64_t search_passes;
+  // True if `quiet_reason` holds a value.
+  bool has_quiet_reason;
+  // Why no cell shows: what the newest capture held, or what the radio gives. None while cells show.
+  sdrkit_string quiet_reason;
+} sdrkit_cell_band_search_fields;
 
 // The options of `duplex` of `sdrkit_cell_row`.
 typedef enum sdrkit_cell_row_duplex {
@@ -2531,6 +2575,17 @@ typedef struct sdrkit_cell_search_remove_args {
 // An arguments struct with its size set and every argument at 0.
 #define SDRKIT_CELL_SEARCH_REMOVE_ARGS_INIT {sizeof(sdrkit_cell_search_remove_args), {0}}
 
+// The arguments of `stay` of `cell` and `nr`.
+typedef struct sdrkit_cell_search_stay_args {
+  // The size of this struct: sizeof of the type. The caller sets it.
+  uint32_t size;
+  // The row key of the cell. Empty: the strongest cell found.
+  sdrkit_string row;
+} sdrkit_cell_search_stay_args;
+
+// An arguments struct with its size set and every argument at 0.
+#define SDRKIT_CELL_SEARCH_STAY_ARGS_INIT {sizeof(sdrkit_cell_search_stay_args), {0}}
+
 // The arguments of `remove` of `ebicab`.
 typedef struct sdrkit_ebicab_remove_args {
   // The size of this struct: sizeof of the type. The caller sets it.
@@ -2734,6 +2789,16 @@ static inline int32_t sdrkit_cell_remove(SDRKIT_HANDLE handle, const sdrkit_cell
   return sdrkit_typed_command(handle, "remove", "cell.SearchRemoveArgs", args, NULL, NULL, 0);
 }
 
+// Runs the command "search" (Search the bands) of the stack "cell" on the session of `handle`. Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
+static inline int32_t sdrkit_cell_search(SDRKIT_HANDLE handle) {
+  return sdrkit_typed_command(handle, "search", NULL, NULL, NULL, NULL, 0);
+}
+
+// Runs the command "stay" (Stay on a cell) of the stack "cell" on the session of `handle`. Ends the band search and tunes to the carrier of a cell of the cells table, or of the strongest cell found.
+static inline int32_t sdrkit_cell_stay(SDRKIT_HANDLE handle, const sdrkit_cell_search_stay_args *args) {
+  return sdrkit_typed_command(handle, "stay", "cell.SearchStayArgs", args, NULL, NULL, 0);
+}
+
 // The settings of the test signal generator of the stack "cell" are the sdrkit_cell_gen_*() functions
 // after the settings of its receiver.
 
@@ -2849,6 +2914,33 @@ static inline int32_t sdrkit_cell_set_band_order(SDRKIT_HANDLE handle, sdrkit_st
   return sdrkit_typed_setting_set_string(handle, "band_order", value);
 }
 
+// The setting "band_search" (Band search) of the stack "cell". A value of `sdrkit_cell_band_search`. When the stack steps the radio over the raster of its bands: when the tuned frequency shows no cell (one pass, then the strongest cell found), always (a survey), or never.
+static inline int32_t sdrkit_cell_get_band_search(SDRKIT_HANDLE handle, sdrkit_cell_band_search *value) {
+  int32_t index = 0;
+  int32_t code = sdrkit_typed_setting_get_enum(handle, "band_search", &index);
+  if (code == SDRKIT_OK && value) *value = (sdrkit_cell_band_search)index;
+  return code;
+}
+static inline int32_t sdrkit_cell_set_band_search(SDRKIT_HANDLE handle, sdrkit_cell_band_search value) {
+  return sdrkit_typed_setting_set_enum(handle, "band_search", (int32_t)value);
+}
+
+// The setting "search_bands" (Bands searched) of the stack "cell". Band numbers to search, in order ("28 5 3"). Empty: the band of the tuned frequency, else the nearest band.
+static inline int32_t sdrkit_cell_get_search_bands(SDRKIT_HANDLE handle, sdrkit_string *value) {
+  return sdrkit_typed_setting_get_string(handle, "search_bands", value);
+}
+static inline int32_t sdrkit_cell_set_search_bands(SDRKIT_HANDLE handle, sdrkit_string value) {
+  return sdrkit_typed_setting_set_string(handle, "search_bands", value);
+}
+
+// The setting "search_dwell_s" (Time per step) of the stack "cell". Unit: s. The least time on each radio centre of a band search; longer when one capture takes longer to search.
+static inline int32_t sdrkit_cell_get_search_dwell_s(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "search_dwell_s", value);
+}
+static inline int32_t sdrkit_cell_set_search_dwell_s(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "search_dwell_s", value);
+}
+
 // The setting "gen_scene" (Test signal scene) of the test signal generator of the stack "cell". A value of `sdrkit_cell_gen_scene`.
 static inline int32_t sdrkit_cell_gen_get_scene(SDRKIT_HANDLE handle, sdrkit_cell_gen_scene *value) {
   int32_t index = 0;
@@ -2941,6 +3033,16 @@ static inline int32_t sdrkit_nr_remove(SDRKIT_HANDLE handle, const sdrkit_cell_s
   return sdrkit_typed_command(handle, "remove", "cell.SearchRemoveArgs", args, NULL, NULL, 0);
 }
 
+// Runs the command "search" (Search the bands) of the stack "nr" on the session of `handle`. Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass.
+static inline int32_t sdrkit_nr_search(SDRKIT_HANDLE handle) {
+  return sdrkit_typed_command(handle, "search", NULL, NULL, NULL, NULL, 0);
+}
+
+// Runs the command "stay" (Stay on a cell) of the stack "nr" on the session of `handle`. Ends the band search and tunes to the carrier of a cell of the cells table, or of the strongest cell found.
+static inline int32_t sdrkit_nr_stay(SDRKIT_HANDLE handle, const sdrkit_cell_search_stay_args *args) {
+  return sdrkit_typed_command(handle, "stay", "cell.SearchStayArgs", args, NULL, NULL, 0);
+}
+
 // The settings of the test signal generator of the stack "nr" are the sdrkit_nr_gen_*() functions
 // after the settings of its receiver.
 
@@ -3022,6 +3124,33 @@ static inline int32_t sdrkit_nr_get_symbol_phase(SDRKIT_HANDLE handle, bool *val
 }
 static inline int32_t sdrkit_nr_set_symbol_phase(SDRKIT_HANDLE handle, bool value) {
   return sdrkit_typed_setting_set_bool(handle, "symbol_phase", value);
+}
+
+// The setting "band_search" (Band search) of the stack "nr". A value of `sdrkit_nr_band_search`. When the stack steps the radio over the raster of its bands: when the tuned frequency shows no cell (one pass, then the strongest cell found), always (a survey), or never.
+static inline int32_t sdrkit_nr_get_band_search(SDRKIT_HANDLE handle, sdrkit_nr_band_search *value) {
+  int32_t index = 0;
+  int32_t code = sdrkit_typed_setting_get_enum(handle, "band_search", &index);
+  if (code == SDRKIT_OK && value) *value = (sdrkit_nr_band_search)index;
+  return code;
+}
+static inline int32_t sdrkit_nr_set_band_search(SDRKIT_HANDLE handle, sdrkit_nr_band_search value) {
+  return sdrkit_typed_setting_set_enum(handle, "band_search", (int32_t)value);
+}
+
+// The setting "search_bands" (Bands searched) of the stack "nr". Band numbers to search, in order ("28 5 3"). Empty: the band of the tuned frequency, else the nearest band.
+static inline int32_t sdrkit_nr_get_search_bands(SDRKIT_HANDLE handle, sdrkit_string *value) {
+  return sdrkit_typed_setting_get_string(handle, "search_bands", value);
+}
+static inline int32_t sdrkit_nr_set_search_bands(SDRKIT_HANDLE handle, sdrkit_string value) {
+  return sdrkit_typed_setting_set_string(handle, "search_bands", value);
+}
+
+// The setting "search_dwell_s" (Time per step) of the stack "nr". Unit: s. The least time on each radio centre of a band search; longer when one capture takes longer to search.
+static inline int32_t sdrkit_nr_get_search_dwell_s(SDRKIT_HANDLE handle, double *value) {
+  return sdrkit_typed_setting_get_f64(handle, "search_dwell_s", value);
+}
+static inline int32_t sdrkit_nr_set_search_dwell_s(SDRKIT_HANDLE handle, double value) {
+  return sdrkit_typed_setting_set_f64(handle, "search_dwell_s", value);
 }
 
 // The setting "gen_scene" (Test signal scene) of the test signal generator of the stack "nr". A value of `sdrkit_nr_gen_scene`.
@@ -3726,6 +3855,11 @@ static inline int32_t sdrkit_cell_search_fields_read(SDRKIT_HANDLE handle, sdrki
 // Fills `fields` with the result fields of the snapshot of `handle`.
 static inline int32_t sdrkit_cell_fields_read(SDRKIT_HANDLE handle, sdrkit_cell_fields *fields) {
   return sdrkit_typed_fields(handle, "cell.CellFields", fields, sizeof(sdrkit_cell_fields));
+}
+
+// Fills `fields` with the result fields of the snapshot of `handle`.
+static inline int32_t sdrkit_cell_band_search_fields_read(SDRKIT_HANDLE handle, sdrkit_cell_band_search_fields *fields) {
+  return sdrkit_typed_fields(handle, "cell.BandSearchFields", fields, sizeof(sdrkit_cell_band_search_fields));
 }
 
 // Fills `fields` with the result fields of the snapshot of `handle`.

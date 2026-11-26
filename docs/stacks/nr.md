@@ -17,7 +17,7 @@ Signal types: 5G NR.
 | Smallest sample rate | 3.84 MHz |
 | Signal bandwidth | 20 MHz |
 | Radio filter | 15 MHz |
-| Automatic gain | Radio AGC |
+| Automatic gain | Found once and held |
 
 ## Settings
 
@@ -34,6 +34,9 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:nr
 | `mib_only` | Only cells with a MIB | yes or no | false |  |  |
 | `not_barred` | Leave out barred cells | yes or no | false |  |  |
 | `band_order` | Band order | text | empty |  | Band numbers taken first where bands overlap ("1 3 7"); the other bands follow in band number order. |
+| `band_search` | Band search | choice | `auto` | `auto` (When nothing is found), `survey` (Always (survey)), `off` (Never) | When the stack steps the radio over the raster of its bands: when the tuned frequency shows no cell (one pass, then the strongest cell found), always (a survey), or never. |
+| `search_bands` | Bands searched | text | empty |  | Band numbers to search, in order ("28 5 3"). Empty: the band of the tuned frequency, else the nearest band. |
+| `search_dwell_s` | Time per step | number (s) | 0.5 | 0.1 to 10 | The least time on each radio centre of a band search; longer when one capture takes longer to search. |
 
 Advanced settings. The owner works without any of them set.
 
@@ -65,6 +68,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `candidates` | Candidates | whole number |
 | `banner` | Notice | text |
 | `dropped` | Dropped | whole number |
+| `search_band` | Band searched | text |
+| `search_step` | Search step | whole number |
+| `search_steps` | Search steps | whole number |
+| `search_passes` | Search passes | whole number |
+| `quiet_reason` | Why nothing shows | text |
 
 ## Result tables
 
@@ -88,10 +96,12 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|---|---|
 | `clear` | Clear |  |  | Forgets everything decoded so far. |
 | `remove` | Remove | `row` (text, required) |  | Forgets one object, a favourite too. |
+| `search` | Search the bands |  |  | Steps the radio over the raster of the bands of the setting search_bands (empty: the band of the tuned frequency) and lists every cell found. With band_search on auto the search stays on the strongest cell after one pass. |
+| `stay` | Stay on a cell | `row` (text, required) |  | Ends the band search and tunes to the carrier of a cell of the cells table, or of the strongest cell found. |
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.6. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.7. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -131,6 +141,18 @@ Struct `DecoderFields`. The result set that a [`DecoderComponent`] adds to the r
 | Key | Kind | Value | Since | Description |
 |---|---|---|---|---|
 | `dropped` | whole number | optional | 1.0 | Items dropped because the decoder was slow. It holds a value while the decoder runs on a helper thread. |
+
+### Result fields
+
+Struct `BandSearchFields`. Where the band search of `cell` and `nr` is, and why nothing shows.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `search_band` | text | optional | 1.7 | The band searched now ("band 28", "n78"). None when no search runs. |
+| `search_step` | whole number | optional | 1.7 | The radio centre of the search step, counted from 1. |
+| `search_steps` | whole number | optional | 1.7 | The radio centres of the search. |
+| `search_passes` | whole number | always | 1.7 | The passes over every step done since the search started. |
+| `quiet_reason` | text | optional | 1.7 | Why no cell shows: what the newest capture held, or what the radio gives. None while cells show. |
 
 ### Table `cells`
 
@@ -253,6 +275,8 @@ Struct `FoundCellEvent`. A cell found or identified by a search stack.
 |---|---|---|---|
 | `clear` | `sdrkit_nr_clear` | none | none |
 | `remove` | `sdrkit_nr_remove` | `sdrkit_cell_search_remove_args` | none |
+| `search` | `sdrkit_nr_search` | none | none |
+| `stay` | `sdrkit_nr_stay` | `sdrkit_cell_search_stay_args` | none |
 
 ### Settings
 
@@ -268,6 +292,9 @@ Struct `FoundCellEvent`. A cell found or identified by a search stack.
 | `not_barred` | `sdrkit_nr_get_not_barred` | `sdrkit_nr_set_not_barred` |
 | `band_order` | `sdrkit_nr_get_band_order` | `sdrkit_nr_set_band_order` |
 | `symbol_phase` | `sdrkit_nr_get_symbol_phase` | `sdrkit_nr_set_symbol_phase` |
+| `band_search` | `sdrkit_nr_get_band_search` | `sdrkit_nr_set_band_search` |
+| `search_bands` | `sdrkit_nr_get_search_bands` | `sdrkit_nr_set_search_bands` |
+| `search_dwell_s` | `sdrkit_nr_get_search_dwell_s` | `sdrkit_nr_set_search_dwell_s` |
 
 ### Settings of the test signal generator
 

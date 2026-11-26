@@ -300,3 +300,38 @@ fn every_stack_has_a_known_frequency_where_its_system_is_used() {
     }
     assert!(problems.is_empty(), "{}", problems.join("\n"));
 }
+
+/// The cell stacks: in each country of the table, the channels come from a plan of the country's own (a group named after
+/// the stack and listed for the country), at least one of them is a band of the country, and the start of the preset lies
+/// inside a band of the country. A starting dial of another country, alone or as the start, fails.
+#[test]
+fn cell_stacks_offer_the_bands_of_the_country() {
+    let d = data();
+    let mut problems = Vec::new();
+    for stack in ["cell", "nr", "nbiot"] {
+        for &country in COUNTRIES {
+            let region = Region::new(country).expect("a country code");
+            let channels = d.stack_channels(stack, &region).expect("channels");
+            let bands: Vec<(f64, f64)> = channels
+                .iter()
+                .filter_map(|c| c.width_hz.filter(|w| *w >= 5e6).map(|w| (c.frequency_hz - w / 2.0, c.frequency_hz + w / 2.0)))
+                .collect();
+            if bands.is_empty() {
+                problems.push(format!("{stack} {country}: no band of the country among {} channels", channels.len()));
+                continue;
+            }
+            match d.preset(stack, &region, &Options::default()) {
+                Ok(p) => {
+                    if !p.plan.starts_with(&format!("{stack}_")) {
+                        problems.push(format!("{stack} {country}: the start comes from {}, not from a plan of the country", p.plan));
+                    }
+                    if !bands.iter().any(|(lo, hi)| (*lo..=*hi).contains(&p.frequency_hz)) {
+                        problems.push(format!("{stack} {country}: the start {} MHz lies in no band of the country", p.frequency_hz / 1e6));
+                    }
+                }
+                Err(e) => problems.push(format!("{stack} {country}: no start: {e}")),
+            }
+        }
+    }
+    assert!(problems.is_empty(), "{}", problems.join("\n"));
+}

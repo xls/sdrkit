@@ -11,7 +11,8 @@ pub mod sib1;
 
 use crate::bands::{coreset0, hz_to_gscn, nr_band_of};
 use crate::decoder::{
-    build_search, capture_setting, plural, BandList, Capture, Headline, Log, SearchStack, BAND_ORDER,
+    build_search, capture_setting, plural, BandList, Capture, FoundCarrier, Headline, Log, SearchConfig, SearchStack,
+    BAND_ORDER, BAND_SEARCH, SEARCH_BANDS, SEARCH_DWELL,
 };
 use crate::decoder::RowSync;
 use crate::typed::{
@@ -540,6 +541,10 @@ pub struct NrSearch {
     order: BandList,
     /// The list filters.
     pub filter: NrFilter,
+    /// The band search settings.
+    scan: SearchConfig,
+    /// Why the newest capture showed no cell.
+    quiet: Option<String>,
 }
 
 impl Default for NrSearch {
@@ -551,8 +556,47 @@ impl Default for NrSearch {
             only: BandList::default(),
             order: BandList::default(),
             filter: NrFilter::default(),
+            scan: SearchConfig::new(),
+            quiet: None,
         }
     }
+}
+
+/// Why a capture of NR `out` at `rate` showed no cell, for people; None when it showed one.
+fn quiet_reason(out: &NrSearchOut, rate: f64, threshold_db: f64) -> Option<String> {
+    if !out.cells.is_empty() {
+        return None;
+    }
+    let narrow30 = rate < crate::scan::nr_least_rate(30);
+    let note30 = if narrow30 {
+        format!(
+            "; this capture is too narrow for a 30 kHz SSB (n77, n78, n79 and most n5, n40, n41 cells): that needs {:.2} Msps",
+            256.0 * 30e3 / 1e6
+        )
+    } else {
+        String::new()
+    };
+    let best = if out.best_pss_db.is_finite() {
+        format!("{:.1} dB", out.best_pss_db)
+    } else {
+        "none".to_owned()
+    };
+    if out.best_pss_db >= threshold_db {
+        return Some(format!(
+            "NR sync seen (PSS {best}) but no cell identity read: the signal is too weak, or the frequency error is too large{note30}"
+        ));
+    }
+    Some(match out.gscn_range {
+        Some((a, b)) => format!(
+            "no SSB on the {} sync raster positions of this capture (GSCN {a} to {b}; strongest sync {best}, {threshold_db:.0} dB \
+             needed){note30}",
+            out.candidates
+        ),
+        None => format!(
+            "no sync raster point lies whole in this capture, so only the tuned frequency was tried (strongest sync {best}); a \
+             band search steps the raster{note30}"
+        ),
+    })
 }
 
 impl NrSearch {
@@ -784,6 +828,9 @@ impl SearchStack for NrSearch {
                 self.order = BandList::read(id, BAND_ORDER.read(id, v)?)?;
                 self.searcher.band_order = self.order.bands.clone();
             }
+            NrSetting::BandSearch => self.scan.mode = BAND_SEARCH.read(id, v)?,
+            NrSetting::SearchBands => self.scan.bands = BandList::read(id, SEARCH_BANDS.read(id, v)?)?,
+            NrSetting::SearchDwell => self.scan.dwell_s = SEARCH_DWELL.read(id, v)?,
         }
         Ok(())
     }
@@ -803,6 +850,9 @@ impl SearchStack for NrSearch {
             (NrSetting::NotBarred, Value::Bool(f.not_barred)),
             (NrSetting::BandOrder, Value::Text(self.order.text.clone())),
             (NrSetting::SymbolPhase, Value::Bool(self.searcher.symbol_phase)),
+            (NrSetting::BandSearch, self.scan.mode_value()),
+            (NrSetting::SearchBands, Value::Text(self.scan.bands.text.clone())),
+            (NrSetting::SearchDwell, Value::F64(self.scan.dwell_s)),
         ])
     }
     fn capture_s(&self) -> f64 {
@@ -814,9 +864,40 @@ impl SearchStack for NrSearch {
     fn merge(&mut self, t: &mut NrTables, cap: &Capture, found: NrSearchOut, log: &mut Log<Self>) {
         t.gscn_range = found.gscn_range;
         t.candidates = Some(found.candidates);
+        self.quiet = quiet_reason(&found, cap.rate, self.searcher.min_pss_db);
         for f in &found.cells {
             self.merge_cell(t, cap, f, log);
         }
+    }
+    fn found_cells(found: &NrSearchOut) -> usize {
+        found.cells.len()
+    }
+    fn quiet_reason(&self) -> Option<String> {
+        self.quiet.clone()
+    }
+    fn band_search(&self) -> Option<&SearchConfig> {
+        Some(&self.scan)
+    }
+    fn search_steps(&self, band: u16, rate: f64) -> Vec<f64> {
+        crate::scan::nr_steps(band, rate)
+    }
+    fn bands_at(&self, hz: f64) -> Vec<u16> {
+        crate::bands::downlink_bands(sdrkit_data_plans::cellular::CellSystem::Nr, hz, &self.order.bands)
+    }
+    fn band_name(band: u16) -> String {
+        format!("n{band}")
+    }
+    fn carriers(t: &NrTables) -> Vec<FoundCarrier> {
+        t.cells
+            .iter()
+            .filter(|r| r.record.frequency_hz > 0.0)
+            .map(|r| FoundCarrier {
+                row: r.key.to_string(),
+                frequency_hz: r.record.frequency_hz,
+                level_dbfs: r.record.rsrp_dbfs,
+                name: format!("PCI {} at {:.2} MHz", r.record.pci, r.record.frequency_hz / 1e6),
+            })
+            .collect()
     }
     fn remove(tables: &mut Self::Tables, row: &str) -> bool {
         sdrkit_util_objects::rows::remove_row(&mut tables.cells, row)
@@ -898,6 +979,12 @@ sdrkit_core::settings! {
         BandOrder = BAND_ORDER,
         /// Whether the symbols carry the phase of up-conversion.
         SymbolPhase = SYMBOL_PHASE,
+        /// When the stack searches its bands.
+        BandSearch = BAND_SEARCH,
+        /// The bands a band search covers.
+        SearchBands = SEARCH_BANDS,
+        /// The least time on each radio centre of a band search.
+        SearchDwell = SEARCH_DWELL,
     }
 }
 

@@ -1,6 +1,6 @@
-//! Band scans, a host behaviour: the plan of radio centres for the chosen bands, the stepping rule, and the survey: one row
-//! per cell found in the same columns for every generation, so that a host can draw the coverage of a scan. The host
-//! chooses the bands, their order and the ranges; this module holds no list of its own.
+//! Band searches: the radio centres that cover the raster of a band at a sample rate, and the survey: one row per cell
+//! found in the same columns for every generation, so that a host can draw the coverage of a search. This module holds no
+//! list of bands of its own.
 
 use crate::bands::{gscn_to_hz, lte_band, lte_bands, nbiot_band, nr_bands};
 
@@ -28,122 +28,82 @@ pub fn custom_earfcns(lo: f64, hi: f64, order: &[u16]) -> (i64, i64) {
     )
 }
 
-/// The step of a plan at `rate`: max(1.5 MHz, 0.75 x rate).
-pub fn span(rate: f64) -> f64 {
-    (0.75 * rate).max(1.5e6)
+/// The half width, Hz, around a radio centre in which the LTE search tries carrier centres at `rate`: 0.46 x `rate` less
+/// 0.7 MHz, half the narrowest carrier (`lte::search::candidates`).
+pub fn lte_window(rate: f64) -> f64 {
+    (0.46 * rate - 0.7e6).max(0.0)
 }
 
-/// Centres covering [lo, hi] Hz: from lo + span/2 in steps of span until a step's lower edge passes hi, each rounded to 0.1 MHz.
-pub fn cover(lo: f64, hi: f64, rate: f64) -> Vec<f64> {
-    let s = span(rate);
-    let mut v = Vec::new();
-    let mut c = lo + s / 2.0;
-    while c - s / 2.0 <= hi {
-        v.push((c / 1e5).round() * 1e5);
-        c += s;
-    }
-    v
+/// The half width, Hz, around a radio centre in which the NR search tries sync raster points of SSBs of `scs_khz` at
+/// `rate`; negative when not one whole SSB fits beside the centre (`nr::search::candidates`). The search then tries the
+/// raster point at the centre only.
+pub fn nr_window(rate: f64, scs_khz: u32) -> f64 {
+    0.46 * rate - (120.0 * f64::from(scs_khz) * 1e3 + 0.2e6)
 }
 
-/// The LTE plan: the chosen bands' downlinks, then an optional custom range (Hz).
-pub fn lte_plan(bands: &[u16], custom: Option<(f64, f64)>, rate: f64) -> Vec<f64> {
-    let mut v = Vec::new();
-    for &b in bands {
-        if let Some(x) = lte_band(b) {
-            v.extend(cover(x.dl_low_hz, x.dl_high_hz, rate));
-        }
-    }
-    if let Some((lo, hi)) = custom {
-        v.extend(cover(lo, hi, rate));
-    }
-    v
+/// The least rate, Hz, at which the NR search takes SSBs of `scs_khz`: 256 subcarriers of the spacing, less 3 %.
+pub fn nr_least_rate(scs_khz: u32) -> f64 {
+    0.97 * 256.0 * f64::from(scs_khz) * 1e3
 }
 
-/// The NR plan: the sync raster of the chosen bands.
-pub fn nr_plan(bands: &[u16], rate: f64) -> Vec<f64> {
-    let mut v = Vec::new();
-    let rows = nr_bands(bands)
-        .into_iter()
-        .filter(|b| bands.contains(&b.number()))
-        .flat_map(|b| b.info.sync.iter());
-    for s in rows {
-        let (Some(lo), Some(hi)) = (gscn_to_hz(s.first), gscn_to_hz(s.last)) else {
-            continue;
+/// Radio centres that put every point of `points` (Hz, ascending) within `window` of a centre, each centre rounded down to
+/// `snap` Hz. With a window below half the snap step every point is a centre.
+fn cover_points(points: &[f64], window: f64, snap: f64) -> Vec<f64> {
+    let mut out: Vec<f64> = Vec::new();
+    let mut i = 0;
+    while i < points.len() {
+        let c = if window < snap / 2.0 {
+            points[i]
+        } else {
+            ((points[i] + window) / snap).floor() * snap
         };
-        for c in cover(lo, hi, rate) {
-            if !v.iter().any(|x: &f64| (x - c).abs() < 1.0) {
-                v.push(c);
+        out.push(c);
+        while i < points.len() && points[i] <= c + window.max(0.0) + 1.0 {
+            i += 1;
+        }
+    }
+    out
+}
+
+/// The radio centres of an LTE search of band `band` at `rate`: every 100 kHz raster point of the downlink where a carrier
+/// of 1.4 MHz or more can have its centre lies in the window ([`lte_window`]) of one centre, lowest first. Empty for a band
+/// the table does not hold.
+pub fn lte_steps(band: u16, rate: f64) -> Vec<f64> {
+    let Some(b) = lte_band(band) else {
+        return Vec::new();
+    };
+    let lo = b.dl_low_hz + 0.7e6;
+    let hi = b.dl_high_hz - 0.7e6;
+    let n = ((hi - lo) / 100e3).floor().max(0.0) as usize;
+    let points: Vec<f64> = (0..=n).map(|k| ((lo + k as f64 * 100e3) / 1e3).round() * 1e3).collect();
+    cover_points(&points, lte_window(rate), 100e3)
+}
+
+/// The radio centres of an NR search of band `band` at `rate`: every sync raster point of the band, of each SSB spacing the
+/// rate takes ([`nr_least_rate`]), lies in the window ([`nr_window`]) of one centre, lowest first. Empty for a band the table
+/// does not hold, or a rate below the least of every spacing of the band.
+pub fn nr_steps(band: u16, rate: f64) -> Vec<f64> {
+    let mut out: Vec<f64> = Vec::new();
+    for b in nr_bands(&[band]).into_iter().filter(|b| b.number() == band) {
+        for s in b.info.sync.iter().filter(|s| rate >= nr_least_rate(s.scs_khz)) {
+            let points: Vec<f64> = (s.first..=s.last)
+                .step_by(s.step.max(1) as usize)
+                .filter_map(gscn_to_hz)
+                .collect();
+            for c in cover_points(&points, nr_window(rate, s.scs_khz), 10e3) {
+                if !out.iter().any(|x| (x - c).abs() < 1e3) {
+                    out.push(c);
+                }
             }
         }
     }
-    v
+    out.sort_by(f64::total_cmp);
+    out
 }
 
-/// The NB-IoT plan: the chosen bands that the band table marks for NB-IoT, in the order given, on the LTE table.
-pub fn nbiot_plan(bands: &[u16], rate: f64) -> Vec<f64> {
-    let chosen: Vec<u16> = bands.iter().copied().filter(|&b| nbiot_band(b)).collect();
-    lte_plan(&chosen, None, rate)
-}
-
-/// Steps a scan: a step ends when the dwell has passed and two captures were searched at this centre, or after 30 s.
-#[derive(Clone, Debug)]
-pub struct Stepper {
-    /// The centres.
-    pub plan: Vec<f64>,
-    /// The current step.
-    pub index: usize,
-    /// Dwell, seconds.
-    pub dwell_s: f64,
-    started: f64,
-    captures: u32,
-    /// Stopped (end of plan, Stop, or the source stopped).
-    pub done: bool,
-}
-
-impl Stepper {
-    /// A scan of `plan` starting at time `now`.
-    pub fn new(plan: Vec<f64>, now: f64) -> Self {
-        Stepper {
-            done: plan.is_empty(),
-            plan,
-            index: 0,
-            dwell_s: 3.0,
-            started: now,
-            captures: 0,
-        }
-    }
-    /// The centre to tune to.
-    pub fn centre(&self) -> Option<f64> {
-        (!self.done).then(|| self.plan[self.index])
-    }
-    /// A capture searched at `centre` (captures of an older centre are not counted).
-    pub fn captured(&mut self, centre: f64) {
-        if self.centre().is_some_and(|c| (c - centre).abs() <= 1.0) {
-            self.captures += 1;
-        }
-    }
-    /// The time is `now`: the next centre when the step is over.
-    pub fn tick(&mut self, now: f64) -> Option<f64> {
-        if self.done {
-            return None;
-        }
-        let elapsed = now - self.started;
-        if (elapsed >= self.dwell_s && self.captures >= 2) || elapsed >= 30.0 {
-            self.index += 1;
-            self.captures = 0;
-            self.started = now;
-            if self.index >= self.plan.len() {
-                self.done = true;
-                return None;
-            }
-            return self.centre();
-        }
-        None
-    }
-    /// Stop.
-    pub fn stop(&mut self) {
-        self.done = true;
-    }
+/// The NB-IoT bands of `bands`: those that the band table marks for NB-IoT, in the order given.
+pub fn nbiot_bands(bands: &[u16]) -> Vec<u16> {
+    bands.iter().copied().filter(|&b| nbiot_band(b)).collect()
 }
 
 sdrkit_core::choice_enum! {
@@ -298,23 +258,25 @@ mod tests {
     }
 
     #[test]
-    fn plans_and_stepping() {
-        // Band 20 (791 to 821 MHz) at 20 Msps: 15 MHz steps.
-        let p = lte_plan(&[20], None, 20e6);
-        assert_eq!(p, vec![798.5e6, 813.5e6, 828.5e6]);
-        let c = lte_plan(&[], Some((790e6, 830e6)), 2e6);
-        assert!(c.len() >= 26);
-        assert!(!nr_plan(&[78], 20e6).is_empty());
-        let railway = crate::bands::data_row("gsmr", "scan_mhz", "europe_railway");
-        assert_eq!(cover(railway[0] * 1e6, railway[1] * 1e6, 5e6), vec![922.9e6, 926.6e6]);
-        let mut s = Stepper::new(vec![1.0e9, 1.1e9], 0.0);
-        s.captured(1.0e9);
-        assert_eq!(s.tick(4.0), None);
-        s.captured(0.5e9);
-        s.captured(1.0e9);
-        assert_eq!(s.tick(4.0), Some(1.1e9));
-        assert_eq!(s.tick(40.0), None);
-        assert!(s.done);
+    fn search_steps() {
+        // Band 28 (758 to 803 MHz) at 20 Msps: windows of 8.5 MHz, three centres; at 2.56 Msps windows of 0.48 MHz.
+        let wide = lte_steps(28, 20e6);
+        assert_eq!(wide, vec![767.2e6, 784.3e6, 801.4e6]);
+        let narrow = lte_steps(28, 2.56e6);
+        assert_eq!(narrow.len(), 49);
+        let w = lte_window(2.56e6);
+        for k in 0..=436 {
+            let f = 758.7e6 + f64::from(k) * 100e3;
+            assert!(narrow.iter().any(|c| (c - f).abs() <= w + 1.0), "{f} not covered");
+        }
+        assert!(lte_steps(9999, 20e6).is_empty());
+        // n78 at 20 Msps: every GSCN inside a window; at 3.84 Msps each 15 kHz point is a centre, 30 kHz points need 7.45 Msps.
+        let n78 = nr_steps(78, 20e6);
+        assert!(!n78.is_empty() && n78.len() < 50, "{}", n78.len());
+        assert!(nr_steps(78, 3.84e6).is_empty(), "n78 has 30 kHz blocks only");
+        let n28 = nr_steps(28, 3.84e6);
+        assert!(n28.iter().all(|f| crate::bands::hz_to_gscn(*f).is_some()));
+        assert!(n28.len() > 30, "{}", n28.len());
         // The offered LTE bands: presets first, no 5 GHz band 46, 47 or 49, every other band once.
         let presets = crate::bands::data_order_list("cell", "scan_bands", "europe");
         let first = [presets.clone(), crate::bands::data_order_list("cell", "scan_offer", "europe")].concat();
@@ -327,9 +289,8 @@ mod tests {
         d.sort();
         d.dedup();
         assert_eq!(d.len(), o.len());
-        // NB-IoT: only NB-IoT bands; band 20 as for LTE; band 7 is not an NB-IoT band.
-        assert_eq!(nbiot_plan(&[20], 20e6), p);
-        assert!(nbiot_plan(&[7], 20e6).is_empty());
+        // NB-IoT: only NB-IoT bands; band 7 is not an NB-IoT band.
+        assert_eq!(nbiot_bands(&[20, 7, 8]), vec![20, 8]);
         let custom = crate::bands::data_row("cell", "scan_mhz", "europe");
         let order = crate::bands::data_order("cell", "europe");
         let (a, _) = custom_earfcns(custom[0] * 1e6, custom[1] * 1e6, &order);

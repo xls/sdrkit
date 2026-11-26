@@ -113,7 +113,7 @@ fn other_cell_stacks_take_a_rate_change() {
         let mut rx = stack_graph(desc, &[]);
         let centre = start_hz(desc);
         for rate in [desc.tuning.rate_hz, 2.0 * desc.tuning.rate_hz, desc.tuning.min_rate_hz] {
-            let gcfg = GenConfig::new(rate.into(), Values::defaults(&(desc.settings)()));
+            let gcfg = GenConfig::new(rate, Values::defaults(&(desc.settings)()));
             let make = desc.make_generator.expect("a generator");
             let mut g = make(&gcfg).expect("the generator");
             let mut x = vec![Complex32::default(); (rate * 0.3) as usize];

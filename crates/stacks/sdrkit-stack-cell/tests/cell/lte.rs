@@ -333,35 +333,35 @@ fn synchronised_sectors() {
     );
 }
 
-/// A band scan: three carriers in bands 20, 8 and 3 seen through a 7.68 Msps radio stepped over the plan of
-/// those bands (two captures per centre, then the next): every cell in the table once, with its band confirmed.
+/// The band search of the stack: three carriers in bands 20, 8 and 3 seen through a 7.68 Msps radio. Tuned where no carrier
+/// is, the stack finds nothing for a second, asks the host to hop over the raster of the bands of `search_bands`, lists every
+/// cell once with its band confirmed, and after one pass asks to stay on the strongest cell. The test plays the host.
 #[test]
-fn band_scan() {
-    use sdrkit_core::{Output, Receiver};
-    use sdrkit_stack_cell::scan::{lte_plan, Stepper};
+fn band_search() {
+    use sdrkit_core::{HostRequest, Output, Receiver};
     let rate = 7.68e6;
     let mut b20 = scene(0, Some(124));
     b20.n_rb = 25;
     let carriers = [b20, scene(2, None), scene(1, None)];
     let freq = |c: &LteCell| sdrkit_stack_cell::bands::earfcn_to_mhz(c.earfcn) * 1e6;
-    let plan = lte_plan(&[20, 8, 3], None, rate);
-    assert!(plan.len() > 20, "{plan:?}");
-    let mut stepper = Stepper::new(plan.clone(), 0.0);
-    stepper.dwell_s = 0.0;
-    let mut rx = stack_graph(&CELL, &[]);
-    let mut centre = stepper.centre().unwrap();
-    rx.configure(&InputInfo::new(rate, centre, centre).recording())
-        .unwrap();
+    let mut rx = stack_graph(
+        &CELL,
+        &[("search_bands", J::from("20 8 3")), ("search_dwell_s", J::from(0.3))],
+    );
+    let mut centre = 1000e6;
+    rx.configure(&InputInfo::new(rate, centre, centre).recording()).unwrap();
     let mut out = Output::default();
     let mut noise = sdrkit_algo_sim::rng::Rng::new(31);
-    let piece = (0.1 * rate) as usize;
-    let mut t = 0.0;
-    let mut steps = 0;
-    let captures =
-        |rx: &sdrkit_graph::StackGraph| value(rx.results(), "captures").unwrap_or(0.0) as u64;
-    while !stepper.done {
-        // The signal at this centre: every carrier whole inside the sample band, at its offset, plus noise. The radio's filter
-        // takes away what lies beyond. A generated carrier there folds back into the band, so it is left out.
+    let piece = (0.05 * rate) as usize;
+    // The hop the stack asked for: its centres, the dwell, and the step the host is at.
+    let mut hop: Option<(Vec<f64>, f64, usize)> = None;
+    let mut stayed: Option<f64> = None;
+    let mut visited = 0usize;
+    let mut fed_s = 0.0;
+    let mut step_s = 0.0;
+    while stayed.is_none() {
+        assert!(fed_s < 60.0, "no stay after {fed_s} s, {visited} steps");
+        // The signal at this centre: every carrier whole inside the sample band, at its offset, plus noise.
         let mut gens: Vec<Box<dyn Generator>> = carriers
             .iter()
             .filter(|c| (freq(c) - centre).abs() + c.n_rb as f64 * 90e3 + 30e3 < rate / 2.0)
@@ -372,62 +372,75 @@ fn band_scan() {
                     ..sfn60()
                 };
                 let v = gen_values(&[("gen_offset_hz", J::from(freq(c) - centre))]);
-                sdrkit_components::sim::impaired(
-                    Box::new(LteGenerator::new(rate, c.clone(), opt)),
-                    &v,
-                )
-                .expect("the offset")
+                sdrkit_components::sim::impaired(Box::new(LteGenerator::new(rate, c.clone(), opt)), &v)
+                    .expect("the offset")
             })
             .collect();
         let mut buf = vec![Complex32::new(0.0, 0.0); piece];
         let mut acc = vec![Complex32::new(0.0, 0.0); piece];
-        let mut fed = 0.0;
         loop {
-            acc.iter_mut()
-                .for_each(|v| *v = noise.complex_normal(2.0 * 0.015 * 0.015));
+            acc.iter_mut().for_each(|v| *v = noise.complex_normal(2.0 * 0.015 * 0.015));
             for g in gens.iter_mut() {
                 g.generate(&mut buf);
                 for (a, b) in acc.iter_mut().zip(&buf) {
                     *a += b;
                 }
             }
-            let before = captures(&rx);
             rx.feed(&acc, &mut out);
-            out.clear();
-            t += 0.1;
-            fed += 0.1;
-            for _ in before..captures(&rx) {
-                stepper.captured(centre);
+            fed_s += 0.05;
+            step_s += 0.05;
+            let mut next = None;
+            for r in out.requests.drain(..) {
+                match r {
+                    HostRequest::Hop { channels, dwell_s, .. } => {
+                        assert!(dwell_s >= 0.3);
+                        next = Some(channels[0]);
+                        hop = Some((channels, dwell_s, 0));
+                    }
+                    HostRequest::Retune { tuned_hz, .. } => {
+                        hop = None;
+                        stayed = Some(tuned_hz);
+                        next = Some(tuned_hz);
+                    }
+                    other => panic!("unexpected request {other:?}"),
+                }
             }
-            if let Some(next) = stepper.tick(t) {
-                centre = next;
+            out.clear();
+            if next.is_none() {
+                if let Some((channels, dwell_s, at)) = hop.as_mut() {
+                    if step_s >= *dwell_s {
+                        *at = (*at + 1) % channels.len();
+                        next = Some(channels[*at]);
+                    }
+                }
+            }
+            if let Some(n) = next {
+                centre = n;
+                step_s = 0.0;
+                visited += 1;
                 rx.retuned(&InputInfo::new(rate, centre, centre).recording());
                 break;
             }
-            if stepper.done {
-                break;
-            }
-            assert!(fed < 2.0, "a step never finished at {centre}");
+            assert!(fed_s < 60.0, "stuck at {centre}");
         }
-        steps += 1;
     }
-    assert_eq!(steps, plan.len());
+    let steps = sdrkit_stack_cell::scan::lte_steps(20, rate).len()
+        + sdrkit_stack_cell::scan::lte_steps(8, rate).len()
+        + sdrkit_stack_cell::scan::lte_steps(3, rate).len();
+    // The first step, the other steps, the move back to the first that ends the pass, and the stay.
+    assert_eq!(visited, steps + 2, "one pass, then the stay");
     let s = state(&rx);
     let d = view(&rx, s);
-    assert_eq!(d["retunes"], plan.len() as u64 - 1);
     let cs = d["cells"].as_array().unwrap();
     for c in &carriers {
         let found: Vec<&J> = cs.iter().filter(|x| x["pci"] == c.pci).collect();
         assert_eq!(found.len(), 1, "PCI {} once: {cs:#?}", c.pci);
         assert_eq!(found[0]["earfcn"], c.earfcn, "PCI {}", c.pci);
         assert_eq!(found[0]["band"], c.band, "PCI {}", c.pci);
-        assert_eq!(
-            found[0]["band_confirmed"], true,
-            "PCI {}: {}",
-            c.pci, found[0]
-        );
+        assert_eq!(found[0]["band_confirmed"], true, "PCI {}: {}", c.pci, found[0]);
     }
     assert_eq!(cs.len(), 3, "nothing invented: {cs:#?}");
+    assert!(carriers.iter().any(|c| (freq(c) - stayed.unwrap()).abs() < 1.0), "stayed on a cell: {stayed:?}");
 }
 
 /// The typed rows of the carriers of other systems, the CDMA2000 neighbours and the survey, on the stack's own test signal.
