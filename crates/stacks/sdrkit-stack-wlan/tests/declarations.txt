@@ -507,6 +507,9 @@ field FieldDecl { key: "input_level_dbfs", label: "Input level", unit: "dBFS", k
 field FieldDecl { key: "state", label: "State", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "devices", label: "Devices", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "note", label: "Note", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "eir_responses", label: "Extended inquiry responses", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "headers_read", label: "Headers read", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "packets_without_uap", label: "Packets without a known UAP", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "devices" "Devices" cap 400
   marks TableMarks { label: Some(2), sort: Some((7, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(10), own: None, delivery: None, failure: None }
@@ -525,6 +528,8 @@ table "devices" "Devices" cap 400
   column FieldDecl { key: "last_channel_mhz", label: "Last channel", unit: "MHz", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "channels_heard", label: "Channels heard", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "device_kind", label: "Device kind", unit: "", kind: Choice, choices: [ChoiceDecl { key: "phone", label: "Phone" }, ChoiceDecl { key: "headset", label: "Headset" }, ChoiceDecl { key: "watch", label: "Watch" }, ChoiceDecl { key: "tracker", label: "Tracker" }, ChoiceDecl { key: "beacon", label: "Beacon" }, ChoiceDecl { key: "computer", label: "Computer" }, ChoiceDecl { key: "audio", label: "Audio" }, ChoiceDecl { key: "sensor", label: "Sensor" }, ChoiceDecl { key: "unknown", label: "Unknown" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "services", label: "Services", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "packets" "Packets" cap 300
   column FieldDecl { key: "utc", label: "UTC", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -533,6 +538,11 @@ table "packets" "Packets" cap 300
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "sync_errors", label: "Sync word errors", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "text", label: "Text", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+table "packet_types" "Packet types" cap 256
+  marks TableMarks { label: Some(1), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "lap", label: "LAP", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "devices", column: "" }), content: None, reading: 0 }
+  column FieldDecl { key: "packet_type", label: "Type", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "packets", label: "Packets", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "btclassic.device_new" "New Bluetooth device"
   field FieldDecl { key: "lap", label: "LAP", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }

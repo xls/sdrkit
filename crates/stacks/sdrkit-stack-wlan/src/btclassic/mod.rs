@@ -1,7 +1,10 @@
 //! Bluetooth Classic discovery (`btclassic`): BR/EDR packets on every 1 MHz channel inside a wide capture, found by the access
 //! code of each packet. The LAP in the sync word gives the devices and piconets; inquiry responses (FHS packets) give the full
-//! address, the class of device and the clock. Packets after the access code are not decoded and connections are not
-//! followed: a capture narrower than the 79 channels sees about (covered channels / 79) of the packets.
+//! address, the class of device and the clock, and the extended inquiry response 1.25 ms after an FHS gives the name and
+//! the services. In a piconet whose LAP an FHS named, the UAP of that FHS checks the packet headers: two packets fix the
+//! master clock's whitening seed, and the type of each packet is counted. The headers of other piconets cannot be checked
+//! and their payloads are not decoded; connections are not followed. A capture narrower than the 79 channels sees about
+//! (covered channels / 79) of the packets.
 //! Standard: Bluetooth Core Specification v5.4, Vol 2 Part A and Part B; Bluetooth Assigned Numbers (Class of Device).
 
 pub mod gen;
@@ -10,8 +13,8 @@ use crate::report::wall;
 use crate::ble::adv::{kind_of_class, DeviceKind as ClassKind};
 use crate::typed::{
     BtclassicDeviceEvent, BtclassicDeviceRow, BtclassicFields, BtclassicInquiryEvent,
-    BtclassicPacketRow, BTCLASSIC_DEVICES, BTCLASSIC_DEVICE_NEW, BTCLASSIC_INQUIRY,
-    BTCLASSIC_PACKETS,
+    BtclassicPacketRow, BtclassicPacketTypeRow, BTCLASSIC_DEVICES, BTCLASSIC_DEVICE_NEW, BTCLASSIC_INQUIRY,
+    BTCLASSIC_PACKETS, BTCLASSIC_PACKET_TYPES,
 };
 use sdrkit_algo_dsp::fir::design_by_taps;
 use sdrkit_algo_dsp::nco::Nco;
@@ -33,6 +36,7 @@ use sdrkit_graph::{
 use sdrkit_proto_bt::baseband::{find_access_codes, AccessHit, CHANNELS, GIAC, LIAC};
 use sdrkit_proto_bt::cod;
 use sdrkit_proto_bt::fhs::{read_packet, Fhs, PACKET_AIR_BITS};
+use sdrkit_proto_bt::packet::{header_readings, read_eir, type_name, HeaderReading};
 use sdrkit_util_objects::commands::Tables;
 use sdrkit_util_objects::publish::columns;
 use sdrkit_util_objects::shaped::{self, RowOut, Shaped};
@@ -139,6 +143,10 @@ pub struct Device {
     pub kind: DeviceKind,
     /// The FHS of its last inquiry response.
     pub fhs: Option<FhsFields>,
+    /// The name its extended inquiry response gave ("" when none).
+    pub name: String,
+    /// The services its extended inquiry response listed, joined with ", ".
+    pub services: String,
     /// The last levels, dBFS, oldest first.
     pub levels: Vec<f32>,
     /// Packets heard.
@@ -224,6 +232,12 @@ pub struct Counters {
     pub inquiry_ids: u64,
     /// FHS packets read.
     pub inquiry_responses: u64,
+    /// EIR packets read.
+    pub eir: u64,
+    /// Headers read with a known UAP.
+    pub headers: u64,
+    /// Packets of piconets whose UAP is not known.
+    pub without_uap: u64,
     /// Bursts analysed.
     pub analysed: u64,
 }
@@ -237,6 +251,8 @@ pub struct BtHeld {
     pub packets: LogRing<PacketRow>,
     /// The counters.
     pub counters: Counters,
+    /// The packets of each (LAP, TYPE) whose header was read.
+    pub types: Vec<(u32, u8, u64)>,
 }
 
 impl Default for BtHeld {
@@ -245,6 +261,7 @@ impl Default for BtHeld {
             devices: ObjectTable::new(DEVICE_CAP),
             packets: LogRing::new(PACKET_CAP),
             counters: Counters::default(),
+            types: Vec::new(),
         }
     }
 }
@@ -257,16 +274,18 @@ impl Shift for BtHeld {
 }
 
 impl Tables for BtHeld {
-    const FORMAT: StateFormat = StateFormat::new("wlan.btclassic", 1);
+    const FORMAT: StateFormat = StateFormat::new("wlan.btclassic", 2);
     fn clear(&mut self) {
         self.devices.clear();
         self.packets.clear();
         self.counters = Counters::default();
+        self.types.clear();
     }
     fn adopt(&mut self, saved: Self) {
         self.devices.adopt(saved.devices);
         self.packets.adopt(saved.packets);
         self.counters = saved.counters;
+        self.types = saved.types;
     }
 }
 
@@ -295,6 +314,8 @@ impl Shaped for Device {
             last_channel_mhz: 2402.0 + f64::from(self.last_channel),
             channels_heard: &format!("{:020X}", self.channels),
             device_kind: f.map_or(ClassKind::Unknown, |f| kind_of_class(f.class)),
+            name: (!self.name.is_empty()).then_some(self.name.as_str()),
+            services: (!self.services.is_empty()).then_some(self.services.as_str()),
         });
     }
 }
@@ -382,6 +403,25 @@ pub struct Heard {
     pub hit: AccessHit,
     /// The FHS packet, for a GIAC access code with a trailer that reads as one.
     pub fhs: Option<Fhs>,
+    /// The bits after the access code of a code with a trailer (at most [`AFTER_BITS`]).
+    pub after: Vec<u8>,
+}
+
+/// The bits after an access code that a packet may hold: the header and a DH5 payload.
+pub const AFTER_BITS: usize = 54 + 2744 + 16;
+/// The time from the start of an FHS to the start of its extended inquiry response, s (Vol 2 Part B clause 8.4.3).
+const EIR_AFTER_FHS_S: f64 = 1.25e-3;
+/// One slot, s: CLK1 advances once a slot.
+const SLOT_S: f64 = 625e-6;
+
+/// The master clock of a piconet as its headers show it.
+#[derive(Clone, Debug)]
+struct PiconetClock {
+    lap: u32,
+    /// A packet's start and its whitening seed (CLK1..CLK6), once known.
+    known: Option<(f64, u8)>,
+    /// The last packet's start and its readings, while the clock is not known.
+    pending: Option<(f64, Vec<HeaderReading>)>,
 }
 
 /// The bits of a burst and what they hold.
@@ -428,7 +468,13 @@ pub fn read_bits(d: &[f32], max_errors: u32, bits: &mut Vec<u8>) -> (Vec<Heard>,
             .flatten()
             .and_then(|b| read_packet(b).ok())
             .map(|p| p.fhs);
-        heard.push(Heard { hit, fhs });
+        let after = if hit.trailer {
+            let from = (hit.at + 68).min(bits.len());
+            bits[from..(from + AFTER_BITS).min(bits.len())].to_vec()
+        } else {
+            Vec::new()
+        };
+        heard.push(Heard { hit, fhs, after });
     });
     (heard, f64::from(thr) * WORK_RATE_HZ / std::f64::consts::TAU)
 }
@@ -486,6 +532,10 @@ pub struct BtDecoder {
     clock: Option<Clock>,
     new_devices: Vec<Timed<NewDevice>>,
     responses: Vec<Timed<InquiryResponse>>,
+    /// The last FHS: its start, its channel and the LAP of its sender.
+    last_fhs: Option<(f64, u32, u32)>,
+    /// The clock of each piconet whose headers are read.
+    clocks: Vec<PiconetClock>,
     summary: String,
     dirty: bool,
     cleared: bool,
@@ -524,6 +574,8 @@ impl Default for BtDecoder {
             clock: None,
             new_devices: Vec::new(),
             responses: Vec::new(),
+            last_fhs: None,
+            clocks: Vec::new(),
             summary: String::with_capacity(128),
             dirty: true,
             cleared: false,
@@ -642,12 +694,142 @@ impl BtDecoder {
         self.last_code = t;
         let at = self.stamp(t);
         for h in heard {
-            self.packet(&h, k, level, t, at);
+            // The bits run at 1 Mbit/s from the start of the burst.
+            let tp = t + h.hit.at as f64 * 1e-6;
+            self.packet(&h, k, level, tp, at);
         }
         self.dirty = true;
     }
 
+    /// Reads what follows the access code of `h`: an extended inquiry response after an FHS, or the header of a packet of a
+    /// piconet whose UAP is known. Returns the text for the packet log, when there is one.
+    fn after_code(&mut self, h: &Heard, k: u32, t: f64, at: Stamp) -> Option<String> {
+        if h.after.is_empty() || h.fhs.is_some() {
+            return None;
+        }
+        if h.hit.lap == GIAC {
+            let e = read_eir(&h.after)?;
+            self.held.counters.eir += 1;
+            let info = crate::ble::adv::parse_ad(&e.data);
+            let text = format!(
+                "extended inquiry response ({}){}",
+                type_name(e.kind),
+                info.name.as_deref().map(|n| format!(": {n}")).unwrap_or_default()
+            );
+            // The response belongs to the FHS sent 1.25 ms before it on the same channel.
+            if let Some((tf, kf, lap)) = self.last_fhs {
+                if kf == k && (t - tf - EIR_AFTER_FHS_S).abs() < 0.1e-3 {
+                    if let Ok(up) = self.held.devices.upsert(&lap, at, || Device {
+                        lap,
+                        kind: DeviceKind::Discoverable,
+                        fhs: None,
+                        name: String::new(),
+                        services: String::new(),
+                        levels: Vec::new(),
+                        packets: 0,
+                        last_channel: k,
+                        channels: 0,
+                    }) {
+                        if let Some(n) = info.name {
+                            up.row.name = n;
+                        }
+                        if !info.services.is_empty() {
+                            up.row.services = info.services.join(", ");
+                        }
+                    }
+                }
+            }
+            return Some(text);
+        }
+        if h.hit.lap == LIAC {
+            return None;
+        }
+        let lap = h.hit.lap;
+        let uap = self
+            .held
+            .devices
+            .get_mut(&lap)
+            .and_then(|d| d.fhs.as_ref().map(|f| f.uap));
+        let Some(uap) = uap else {
+            self.held.counters.without_uap += 1;
+            return None;
+        };
+        let readings = header_readings(&h.after, uap);
+        // A seed and its complement whiten a header into two that both pass the HEC: one packet cannot tell the clock. Two
+        // packets can: only the true seed advances by the slots between them. Once known, the clock picks the reading.
+        let slots = |t0: f64| ((t - t0) / SLOT_S).round() as i64;
+        let advance = |c: u8, n: i64| (i64::from(c) + n).rem_euclid(64) as u8;
+        let entry = self.clocks.iter().position(|c| c.lap == lap);
+        let r = match entry.map(|i| self.clocks[i].clone()) {
+            Some(PiconetClock {
+                known: Some((t0, c0)),
+                ..
+            }) => readings.iter().find(|r| r.clk == advance(c0, slots(t0))).copied(),
+            Some(PiconetClock {
+                pending: Some((t0, ref before)),
+                ..
+            }) => {
+                let n = slots(t0);
+                let pairs: Vec<(HeaderReading, HeaderReading)> = readings
+                    .iter()
+                    .flat_map(|r| {
+                        before
+                            .iter()
+                            .filter(move |b| advance(b.clk, n) == r.clk)
+                            .map(move |b| (*b, *r))
+                    })
+                    .collect();
+                // Two fits (the packets an even half-cycle apart) tell nothing yet.
+                let pair = (pairs.len() == 1).then(|| pairs[0]);
+                if let Some((b, _)) = pair {
+                    // The packet before is now read too.
+                    self.count_type(lap, b.kind);
+                }
+                pair.map(|(_, r)| r)
+            }
+            _ => None,
+        };
+        let state = PiconetClock {
+            lap,
+            known: r.map(|r| (t, r.clk)),
+            pending: r.is_none().then(|| (t, readings.clone())),
+        };
+        match entry {
+            Some(i) => {
+                // A clock once known stays known when a packet fits no reading.
+                if r.is_some() || self.clocks[i].known.is_none() {
+                    self.clocks[i] = state;
+                }
+            }
+            None if self.clocks.len() < 64 => self.clocks.push(state),
+            None => {}
+        }
+        let r = r?;
+        self.count_type(lap, r.kind);
+        Some(format!(
+            "{} of LAP {}, LT_ADDR {}",
+            type_name(r.kind),
+            lap_text(lap),
+            r.lt_addr
+        ))
+    }
+
+    /// Counts a header of TYPE `kind` read in the piconet of `lap`.
+    fn count_type(&mut self, lap: u32, kind: u8) {
+        self.held.counters.headers += 1;
+        let types = &mut self.held.types;
+        match types.iter().position(|e| e.0 == lap && e.1 == kind) {
+            Some(i) => types[i].2 += 1,
+            None if types.len() < 256 => types.push((lap, kind, 1)),
+            None => {}
+        }
+    }
+
     fn packet(&mut self, h: &Heard, k: u32, level: f32, t: f64, at: Stamp) {
+        if let Some(f) = &h.fhs {
+            self.last_fhs = Some((t, k, f.lap));
+        }
+        let read = self.after_code(h, k, t, at);
         let c = &mut self.held.counters;
         c.access_codes += 1;
         let (lap, kind, text) = match (&h.fhs, h.hit.lap) {
@@ -706,12 +888,14 @@ impl BtDecoder {
             lap: h.hit.lap,
             level_dbfs: level,
             errors: h.hit.errors,
-            text,
+            text: read.unwrap_or(text),
         });
         if let Ok(up) = self.held.devices.upsert(&lap, at, || Device {
             lap,
             kind,
             fhs: None,
+            name: String::new(),
+            services: String::new(),
             levels: Vec::new(),
             packets: 0,
             last_channel: k,
@@ -804,7 +988,11 @@ impl Decoder for BtDecoder {
     }
     fn results(&self) -> Published {
         Published::new(BtclassicFields::SHAPE.fields)
-            .with_tables(&[BTCLASSIC_DEVICES.def(), BTCLASSIC_PACKETS.def()])
+            .with_tables(&[
+                BTCLASSIC_DEVICES.def(),
+                BTCLASSIC_PACKETS.def(),
+                BTCLASSIC_PACKET_TYPES.def(),
+            ])
     }
     fn configure(&mut self, input: &Format) -> Result<Vec<Format>, ConfigError> {
         if input.rate < MIN_RATE_HZ {
@@ -882,15 +1070,31 @@ impl Decoder for BtDecoder {
             state: i64::from(recent),
             devices: self.held.devices.len() as i64,
             note: NOT_CONFIRMED,
+            eir_responses: c.eir as i64,
+            headers_read: c.headers as i64,
+            packets_without_uap: c.without_uap as i64,
         });
         if std::mem::take(&mut self.cleared) {
             p.results_mut().clear_log();
             p.clear_rows(BTCLASSIC_DEVICES.def());
             p.clear_rows(BTCLASSIC_PACKETS.def());
+            p.clear_rows(BTCLASSIC_PACKET_TYPES.def());
         }
         if std::mem::take(&mut self.dirty) {
             shaped::rows(&self.held.devices, &BTCLASSIC_DEVICES, self.now, p);
             shaped::log_rows(&self.held.packets, &BTCLASSIC_PACKETS, self.now, p);
+            for &(lap, kind, n) in &self.held.types {
+                let l = lap_text(lap);
+                BTCLASSIC_PACKET_TYPES.put(
+                    p,
+                    &format!("{l}/{}", type_name(kind)),
+                    &BtclassicPacketTypeRow {
+                        lap: &l,
+                        packet_type: type_name(kind),
+                        packets: n as i64,
+                    },
+                );
+            }
         }
         let lock = if !self.started {
             LockState::Off
@@ -936,6 +1140,9 @@ impl Decoder for BtDecoder {
         if !kept.table(BTCLASSIC_PACKETS.key) {
             self.held.packets.clear();
         }
+        self.held.types.clear();
+        self.clocks.clear();
+        self.last_fhs = None;
         self.dirty = true;
     }
     fn save_state(&self) -> Option<StateBlob> {

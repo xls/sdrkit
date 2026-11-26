@@ -165,3 +165,35 @@ fn the_data_file() {
     assert_eq!(bands.len(), 1);
     assert_eq!((bands[0].start_hz, bands[0].end_hz), (2401.5e6, 2480.5e6));
 }
+
+#[test]
+fn the_extended_inquiry_response_names_the_phone_and_the_headset_piconet_shows_its_packet_types() {
+    use sdrkit_stack_wlan::typed::BtclassicPacketTypeRow as T;
+    let rate = 20e6;
+    let x = impaired(generator(rate, &[]), &snr(25.0), 2, 2.2);
+    let mut rx = receiver(rate, TEST_CENTRE_HZ);
+    feed(rx.as_mut(), &x, 65_536);
+    let r = rx.results();
+    let phone = rows(r, "devices")
+        .into_iter()
+        .find(|d| text(d, &Dev::LAP) == "A1B2C3")
+        .unwrap();
+    assert_eq!(text(phone, &Dev::NAME), "Test phone");
+    let services = text(phone, &Dev::SERVICES);
+    assert!(services.contains(", "), "{services}");
+    assert!(num(r, "eir_responses").unwrap() >= 3.0);
+    // The headset's UAP came in its FHS: the headers of its piconet are read, one type in turn each 50 ms.
+    let mut types: Vec<(String, f64)> = rows(r, "packet_types")
+        .into_iter()
+        .filter(|t| text(t, &T::LAP) == "0F0E0D")
+        .map(|t| (text(t, &T::PACKET_TYPE), super::help::cnum(t, &T::PACKETS)))
+        .collect();
+    types.sort_by(|a, b| a.0.cmp(&b.0));
+    let names: Vec<&str> = types.iter().map(|t| t.0.as_str()).collect();
+    assert_eq!(names, ["DH1", "DM1", "NULL", "POLL"], "{types:?}");
+    assert!(types.iter().all(|t| t.1 >= 6.0), "{types:?}");
+    // The other piconets have no FHS: their packets are counted, their headers not read.
+    assert!(num(r, "packets_without_uap").unwrap() >= 4.0);
+    assert!(num(r, "headers_read").unwrap() >= 30.0);
+}
+

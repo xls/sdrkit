@@ -1,5 +1,5 @@
 # The interface of the stack family wlan. The registry test of the family writes this file.
-family wlan version=4.4
+family wlan version=4.5
 shape.BleFields since=1.0
 shape.BleFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.BleFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -388,6 +388,9 @@ shape.BtclassicFields.input_level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.BtclassicFields.state type=i64 unit= optional=no since=1.0
 shape.BtclassicFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.BtclassicFields.note type=text unit= optional=no since=1.0
+shape.BtclassicFields.eir_responses type=i64 unit= optional=no since=4.5
+shape.BtclassicFields.headers_read type=i64 unit= optional=no since=4.5
+shape.BtclassicFields.packets_without_uap type=i64 unit= optional=no since=4.5
 shape.DecoderFields since=1.0
 shape.DecoderFields.dropped type=i64 unit= optional=yes since=1.0
 shape.BtclassicDeviceRow since=1.0
@@ -406,6 +409,8 @@ shape.BtclassicDeviceRow.packets type=i64 unit= optional=no since=1.0
 shape.BtclassicDeviceRow.last_channel_mhz type=f64 unit=MHz optional=no since=1.0
 shape.BtclassicDeviceRow.channels_heard type=text unit= optional=no since=1.0
 shape.BtclassicDeviceRow.device_kind type=choice(phone,headset,watch,tracker,beacon,computer,audio,sensor,unknown) unit= optional=no since=1.0
+shape.BtclassicDeviceRow.name type=text unit= optional=yes since=4.5
+shape.BtclassicDeviceRow.services type=text unit= optional=yes since=4.5
 shape.BtclassicPacketRow since=1.0
 shape.BtclassicPacketRow.utc type=time unit= optional=yes since=1.0
 shape.BtclassicPacketRow.time_s type=f64 unit=s optional=no since=1.0
@@ -414,6 +419,10 @@ shape.BtclassicPacketRow.lap type=text unit= optional=no since=1.0
 shape.BtclassicPacketRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.BtclassicPacketRow.sync_errors type=i64 unit= optional=no since=1.0
 shape.BtclassicPacketRow.text type=text unit= optional=no since=1.0
+shape.BtclassicPacketTypeRow since=4.5
+shape.BtclassicPacketTypeRow.lap type=text unit= optional=no refers_to=devices since=4.5
+shape.BtclassicPacketTypeRow.packet_type type=text unit= optional=no since=4.5
+shape.BtclassicPacketTypeRow.packets type=i64 unit= optional=no since=4.5
 shape.BtclassicDeviceEvent since=1.0
 shape.BtclassicDeviceEvent.lap type=text unit= optional=no since=1.0
 shape.BtclassicDeviceEvent.kind type=text unit= optional=no since=1.0
@@ -654,6 +663,7 @@ btclassic.kept.packets since=1.0
 btclassic.kept.BtclassicFields.devices since=1.0
 btclassic.table.devices row=BtclassicDeviceRow cap=400 label=address sort=level_dbfs:descending role=nodes time=last_heard since=1.0
 btclassic.table.packets row=BtclassicPacketRow cap=300 since=1.0
+btclassic.table.packet_types row=BtclassicPacketTypeRow cap=256 label=packet_type since=4.5
 btclassic.event.btclassic.device_new fields=BtclassicDeviceEvent since=1.0
 btclassic.event.btclassic.inquiry_response fields=BtclassicInquiryEvent since=1.0
 btclassic.setting.sync_errors type=i64 unit=bits since=1.0

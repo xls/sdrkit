@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "wlan", version 4.4. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 4.5. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum WlanInterface {
     public static let major = 4
-    public static let minor = 4
+    public static let minor = 5
 }
 
 /// The result fields of `ble`.
@@ -1425,6 +1425,12 @@ public struct BtclassicFields {
     public var devices: Int64
     /// What no public document confirms.
     public var note: String
+    /// Extended inquiry responses read.
+    public var eirResponses: Int64
+    /// Packet headers read in the piconets whose UAP an FHS gave.
+    public var headersRead: Int64
+    /// Packets of piconets whose UAP is not known: their headers cannot be checked.
+    public var packetsWithoutUap: Int64
 
     init(_ c: sdrkit_btclassic_fields) {
         accessCodes = c.access_codes
@@ -1441,6 +1447,9 @@ public struct BtclassicFields {
         state = c.state
         devices = c.devices
         note = sdrkitText(c.note)
+        eirResponses = c.eir_responses
+        headersRead = c.headers_read
+        packetsWithoutUap = c.packets_without_uap
     }
 
     /// The result fields of the snapshot of `handle`, or the code of the error.
@@ -1513,6 +1522,10 @@ public struct BtclassicDeviceRow {
     public var channelsHeard: String
     /// The kind of device its Class of Device declares (unknown before an FHS packet).
     public var deviceKind: DeviceKind?
+    /// The name its extended inquiry response gave.
+    public var name: String?
+    /// The services its extended inquiry response listed, by their assigned names, joined with ", ".
+    public var services: String?
 
     init(_ c: sdrkit_btclassic_device_row) {
         key = sdrkitText(c.key)
@@ -1531,6 +1544,8 @@ public struct BtclassicDeviceRow {
         lastChannelMhz = c.last_channel_mhz
         channelsHeard = sdrkitText(c.channels_heard)
         deviceKind = DeviceKind(rawValue: c.device_kind)
+        name = c.has_name ? sdrkitText(c.name) : nil
+        services = c.has_services ? sdrkitText(c.services) : nil
     }
 }
 
@@ -1562,6 +1577,25 @@ public struct BtclassicPacketRow {
         levelDbfs = c.level_dbfs
         syncErrors = c.sync_errors
         text = sdrkitText(c.text)
+    }
+}
+
+/// A row of the packet types of `btclassic`: the packets of one type in one piconet, from headers read with the UAP that an FHS of the piconet's LAP gave.
+public struct BtclassicPacketTypeRow {
+    /// The row key.
+    public var key: String
+    /// The LAP of the piconet.
+    public var lap: String
+    /// The packet type at basic rate ("POLL", "DH1" ...); an EDR packet shows the basic-rate name of its TYPE code.
+    public var packetType: String
+    /// Packets of the type.
+    public var packets: Int64
+
+    init(_ c: sdrkit_btclassic_packet_type_row) {
+        key = sdrkitText(c.key)
+        lap = sdrkitText(c.lap)
+        packetType = sdrkitText(c.packet_type)
+        packets = c.packets
     }
 }
 
@@ -2566,6 +2600,15 @@ public enum WlanTables {
         let code = sdrkit_btclassic_packets_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(BtclassicPacketRow.init))
+    }
+    /// The changed rows of the table "packet_types" of the stack "btclassic", newest first, at most `capacity` rows.
+    /// The column `packet_type` names a row.
+    public static func btclassicPacketTypes(_ handle: SDRKIT_HANDLE, capacity: Int = 256) -> Result<[BtclassicPacketTypeRow], SDRKitCode> {
+        var rows = [sdrkit_btclassic_packet_type_row](repeating: sdrkit_btclassic_packet_type_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_btclassic_packet_types_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(BtclassicPacketTypeRow.init))
     }
     /// The changed rows of the table "links" of the stack "wfb", newest first, at most `capacity` rows.
     /// The column `id` names a row.

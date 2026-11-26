@@ -2061,6 +2061,15 @@ pub struct BtclassicFields<'a> {
     /// What no public document confirms.
     #[field(label = "Note")]
     pub note: &'a str,
+    /// Extended inquiry responses read.
+    #[field(label = "Extended inquiry responses")]
+    pub eir_responses: i64,
+    /// Packet headers read in the piconets whose UAP an FHS gave.
+    #[field(label = "Headers read")]
+    pub headers_read: i64,
+    /// Packets of piconets whose UAP is not known: their headers cannot be checked.
+    #[field(label = "Packets without a known UAP")]
+    pub packets_without_uap: i64,
 }
 
 /// A row of the devices of `btclassic`. The row key is the LAP.
@@ -2111,6 +2120,12 @@ pub struct BtclassicDeviceRow<'a> {
     /// The kind of device its Class of Device declares (unknown before an FHS packet).
     #[field(label = "Device kind")]
     pub device_kind: DeviceKind,
+    /// The name its extended inquiry response gave.
+    #[field(label = "Name")]
+    pub name: Option<&'a str>,
+    /// The services its extended inquiry response listed, by their assigned names, joined with ", ".
+    #[field(label = "Services")]
+    pub services: Option<&'a str>,
 }
 
 /// A row of the packet log of `btclassic`.
@@ -2137,6 +2152,21 @@ pub struct BtclassicPacketRow<'a> {
     /// What the packet is.
     #[field(shared = keys::TEXT)]
     pub text: &'a str,
+}
+
+/// A row of the packet types of `btclassic`: the packets of one type in one piconet, from headers read with the UAP that an
+/// FHS of the piconet's LAP gave.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct BtclassicPacketTypeRow<'a> {
+    /// The LAP of the piconet.
+    #[field(label = "LAP", refers_to = "devices")]
+    pub lap: &'a str,
+    /// The packet type at basic rate ("POLL", "DH1" ...); an EDR packet shows the basic-rate name of its TYPE code.
+    #[field(label = "Type")]
+    pub packet_type: &'a str,
+    /// Packets of the type.
+    #[field(label = "Packets")]
+    pub packets: i64,
 }
 
 /// The fields of a LAP heard for the first time.
@@ -2176,6 +2206,9 @@ pub static BTCLASSIC_DEVICES: Table<BtclassicDeviceRow<'static>> =
 /// The packet log of `btclassic`, newest first.
 pub static BTCLASSIC_PACKETS: Table<BtclassicPacketRow<'static>> =
     Table::new("packets", "Packets", crate::btclassic::PACKET_CAP);
+/// The packets of each type in each piconet of `btclassic` whose UAP is known. The row key is `<LAP>/<type>`.
+pub static BTCLASSIC_PACKET_TYPES: Table<BtclassicPacketTypeRow<'static>> =
+    Table::new("packet_types", "Packet types", 256).label(&BtclassicPacketTypeRow::PACKET_TYPE);
 /// A LAP heard for the first time.
 pub static BTCLASSIC_DEVICE_NEW: EventKind<BtclassicDeviceEvent<'static>> =
     EventKind::new("btclassic.device_new", "New Bluetooth device");
@@ -2251,13 +2284,27 @@ const ADDED_4_4: &[&str] = &[
     "shape.BleBroadcastRow.last_heard",
 ];
 
+/// What version 4.5 added: the extended inquiry responses and the packet types of `btclassic`.
+const ADDED_4_5: &[&str] = &[
+    "shape.BtclassicDeviceRow.name",
+    "shape.BtclassicDeviceRow.services",
+    "shape.BtclassicFields.eir_responses",
+    "shape.BtclassicFields.headers_read",
+    "shape.BtclassicFields.packets_without_uap",
+    "btclassic.table.packet_types",
+    "shape.BtclassicPacketTypeRow",
+    "shape.BtclassicPacketTypeRow.lap",
+    "shape.BtclassicPacketTypeRow.packet_type",
+    "shape.BtclassicPacketTypeRow.packets",
+];
+
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 4, 4)
+        Described::new("wlan", 4, 5)
             .content(
                 sdrkit_core::ContentKind::Networks,
                 &[
@@ -2303,6 +2350,7 @@ pub fn family() -> &'static Described {
             .added(4, 2, ADDED_4_2)
             .added(4, 3, ADDED_4_3)
             .added(4, 4, ADDED_4_4)
+            .added(4, 5, ADDED_4_5)
             .stack(
                 StackShape::new("bletracker")
                     .fields::<BletrackerFields>()
@@ -2362,6 +2410,7 @@ pub fn family() -> &'static Described {
                     .fields::<DecoderFields>()
                     .table(&BTCLASSIC_DEVICES)
                     .table(&BTCLASSIC_PACKETS)
+                    .table(&BTCLASSIC_PACKET_TYPES)
                     .event(&BTCLASSIC_DEVICE_NEW)
                     .event(&BTCLASSIC_INQUIRY)
                     .settings(BtSetting::SETTINGS)

@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 4.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 4.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WLAN_VERSION_MAJOR 4
-#define SDRKIT_WLAN_VERSION_MINOR 4
+#define SDRKIT_WLAN_VERSION_MINOR 5
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -1521,6 +1521,12 @@ typedef struct sdrkit_btclassic_fields {
   int64_t devices;
   // What no public document confirms.
   sdrkit_string note;
+  // Extended inquiry responses read.
+  int64_t eir_responses;
+  // Packet headers read in the piconets whose UAP an FHS gave.
+  int64_t headers_read;
+  // Packets of piconets whose UAP is not known: their headers cannot be checked.
+  int64_t packets_without_uap;
 } sdrkit_btclassic_fields;
 
 // The result set that a [`DecoderComponent`] adds to the results of its decoder. The description of a stack with a decoder component names it after the result sets of the decoder.
@@ -1607,6 +1613,14 @@ typedef struct sdrkit_btclassic_device_row {
   sdrkit_string channels_heard;
   // The kind of device its Class of Device declares (unknown before an FHS packet). A value of `sdrkit_btclassic_device_row_device_kind`.
   int32_t device_kind;
+  // True if `name` holds a value.
+  bool has_name;
+  // The name its extended inquiry response gave.
+  sdrkit_string name;
+  // True if `services` holds a value.
+  bool has_services;
+  // The services its extended inquiry response listed, by their assigned names, joined with ", ".
+  sdrkit_string services;
 } sdrkit_btclassic_device_row;
 
 // A row of the packet log of `btclassic`.
@@ -1632,6 +1646,20 @@ typedef struct sdrkit_btclassic_packet_row {
   // What the packet is.
   sdrkit_string text;
 } sdrkit_btclassic_packet_row;
+
+// A row of the packet types of `btclassic`: the packets of one type in one piconet, from headers read with the UAP that an FHS of the piconet's LAP gave.
+typedef struct sdrkit_btclassic_packet_type_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The LAP of the piconet.
+  sdrkit_string lap;
+  // The packet type at basic rate ("POLL", "DH1" ...); an EDR packet shows the basic-rate name of its TYPE code.
+  sdrkit_string packet_type;
+  // Packets of the type.
+  int64_t packets;
+} sdrkit_btclassic_packet_type_row;
 
 // The result fields of `wfb`.
 typedef struct sdrkit_wfb_fields {
@@ -3188,6 +3216,16 @@ static inline int32_t sdrkit_btclassic_packets_rows(SDRKIT_HANDLE handle,
                                                    uint32_t capacity,
                                                    sdrkit_rows_info *info) {
   return sdrkit_typed_rows(handle, "wlan.BtclassicPacketRow", "packets", rows, sizeof(sdrkit_btclassic_packet_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "packet_types" of the stack "btclassic" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The column `packet_type` names a row.
+static inline int32_t sdrkit_btclassic_packet_types_rows(SDRKIT_HANDLE handle,
+                                                        sdrkit_btclassic_packet_type_row *rows,
+                                                        uint32_t capacity,
+                                                        sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "wlan.BtclassicPacketTypeRow", "packet_types", rows, sizeof(sdrkit_btclassic_packet_type_row), capacity, info);
 }
 
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "btclassic.device_new"

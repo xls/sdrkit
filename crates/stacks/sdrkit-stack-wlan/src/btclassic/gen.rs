@@ -1,7 +1,8 @@
 //! The `btclassic` test signal: basic-rate packets in GFSK (BT 0.5, index 0.32, 1 Msym/s, a 1 the higher frequency) at unit
 //! power, around the frequency where the session listens ([`TEST_CENTRE_HZ`] without a session). A phone and a headset answer
-//! inquiries with FHS packets, a scanner sends GIAC ID packets, and two piconets send packets of random header and payload
-//! bits. A device whose channel lies outside the capture is moved to the three channels nearest the centre. As an option, a noise burst over the whole capture every second.
+//! inquiries with FHS packets (the phone's with its extended inquiry response 1.25 ms after), a scanner sends GIAC ID
+//! packets, two piconets send packets of random header and payload bits, and the headset's piconet sends packets with good
+//! headers. A device whose channel lies outside the capture is moved to the three channels nearest the centre. As an option, a noise burst over the whole capture every second.
 
 use crate::testgen::GEN_SECTION;
 use sdrkit_algo_sim::modulate::Cpm;
@@ -11,6 +12,7 @@ use sdrkit_core::publish::field;
 use sdrkit_core::{Complex32, ConfigError, GenConfig, Generator, Setting, SignalInfo};
 use sdrkit_proto_bt::baseband::{access_code, sync_word, GIAC};
 use sdrkit_proto_bt::fhs::{packet_bits, Fhs};
+use sdrkit_proto_bt::packet::{eir_air_bits, header_air_bits};
 
 /// The radio centre that the test signal assumes: the default frequency of the stack, Hz.
 pub const TEST_CENTRE_HZ: f64 = 2441e6;
@@ -34,6 +36,20 @@ pub enum Sends {
     Inquiry,
     /// Packets of the piconet of this LAP with random header and payload bits.
     Piconet(u32),
+    /// The extended inquiry response of the phone ([`phone_eir`]), whitened with this seed.
+    Eir(u8),
+    /// Packets of the piconet of this LAP whose master has this UAP: headers with a good HEC, whitened by the master clock
+    /// (one step a slot), the types POLL, NULL, DH1 and DM1 in turn, random payload bits.
+    Connected(u32, u8),
+}
+
+/// The EIR data of the phone: the complete name "Test phone" and the 16-bit services Handsfree Audio Gateway (0x111F) and
+/// Audio Source (0x110A).
+pub fn phone_eir() -> Vec<u8> {
+    let mut d = vec![11, 0x09];
+    d.extend(b"Test phone");
+    d.extend([5, 0x03, 0x1F, 0x11, 0x0A, 0x11]);
+    d
 }
 
 /// A device of the test signal.
@@ -61,6 +77,7 @@ pub fn phone() -> Fhs {
         uap: 0x5E,
         nap: 0x1234,
         class: 1 << 20 | 1 << 22 | 2 << 8 | 3 << 2 | 1,
+        eir: true,
         ..Fhs::default()
     }
 }
@@ -80,7 +97,7 @@ pub fn headset() -> Fhs {
 }
 
 /// The devices of the test signal.
-pub fn devices() -> [TestDevice; 5] {
+pub fn devices() -> [TestDevice; 7] {
     [
         TestDevice {
             sends: Sends::Fhs(phone(), 0x15),
@@ -88,6 +105,20 @@ pub fn devices() -> [TestDevice; 5] {
             cfo_hz: 20e3,
             period_s: 0.50,
             first_s: 0.10,
+        },
+        TestDevice {
+            sends: Sends::Eir(0x15),
+            channel: 38,
+            cfo_hz: 20e3,
+            period_s: 0.50,
+            first_s: 0.10 + 1.25e-3,
+        },
+        TestDevice {
+            sends: Sends::Connected(headset().lap, headset().uap),
+            channel: 40,
+            cfo_hz: 5e3,
+            period_s: 0.05,
+            first_s: 0.0125,
         },
         TestDevice {
             sends: Sends::Fhs(headset(), 0x2A),
@@ -138,6 +169,18 @@ pub fn packet(sends: &Sends, t: f64, rng: &mut Rng) -> Vec<u8> {
         Sends::Piconet(lap) => {
             access_code(lap, true, &mut bits);
             bits.extend((0..294).map(|_| rng.bit()));
+        }
+        Sends::Eir(seed) => {
+            access_code(GIAC, true, &mut bits);
+            eir_air_bits(&phone_eir(), seed, &mut bits);
+        }
+        Sends::Connected(lap, uap) => {
+            // CLK1..CLK6 of the master: one step a slot of 625 µs.
+            let slot = (t / 625e-6).round() as u64;
+            let kind = [1u8, 0, 4, 3][(slot / 80 % 4) as usize];
+            let payload: Vec<u8> = (0..if kind < 2 { 0 } else { 240 }).map(|_| rng.bit()).collect();
+            access_code(lap, true, &mut bits);
+            header_air_bits(1, kind, uap, (slot & 63) as u8, &payload, &mut bits);
         }
     }
     bits

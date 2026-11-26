@@ -50,14 +50,18 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `state` | State | whole number |
 | `devices` | Devices | whole number |
 | `note` | Note | text |
+| `eir_responses` | Extended inquiry responses | whole number |
+| `headers_read` | Headers read | whole number |
+| `packets_without_uap` | Packets without a known UAP | whole number |
 | `dropped` | Dropped | whole number |
 
 ## Result tables
 
 | Key | Label | Columns |
 |---|---|---|
-| `devices` | Devices | `lap` (text), `kind` (text), `address` (text), `class` (text), `major_class` (text), `class_raw` (whole number), `clock` (whole number (1.25 ms)), `level_dbfs` (number (dBFS)), `level_history` (text (dBFS)), `first_heard` (time), `last_heard` (time), `packets` (whole number), `last_channel_mhz` (number (MHz)), `channels_heard` (text), `device_kind` (choice) |
+| `devices` | Devices | `lap` (text), `kind` (text), `address` (text), `class` (text), `major_class` (text), `class_raw` (whole number), `clock` (whole number (1.25 ms)), `level_dbfs` (number (dBFS)), `level_history` (text (dBFS)), `first_heard` (time), `last_heard` (time), `packets` (whole number), `last_channel_mhz` (number (MHz)), `channels_heard` (text), `device_kind` (choice), `name` (text), `services` (text) |
 | `packets` | Packets | `utc` (time), `time_s` (number (s)), `channel_mhz` (number (MHz)), `lap` (text), `level_dbfs` (number (dBFS)), `sync_errors` (whole number), `text` (text) |
+| `packet_types` | Packet types | `lap` (text), `packet_type` (text), `packets` (whole number) |
 
 ## Events
 
@@ -74,7 +78,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.4. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.5. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -100,6 +104,9 @@ Struct `BtclassicFields`. The result fields of `btclassic`.
 | `state` | whole number | always | 1.0 | 1 when an access code was found in the last 5 s of signal. |
 | `devices` | whole number | always | 1.0 | Devices in the table. |
 | `note` | text | always | 1.0 | What no public document confirms. |
+| `eir_responses` | whole number | always | 4.5 | Extended inquiry responses read. |
+| `headers_read` | whole number | always | 4.5 | Packet headers read in the piconets whose UAP an FHS gave. |
+| `packets_without_uap` | whole number | always | 4.5 | Packets of piconets whose UAP is not known: their headers cannot be checked. |
 
 ### Result fields
 
@@ -130,6 +137,8 @@ Struct `BtclassicDeviceRow`. A row of the devices of `btclassic`. The row key is
 | `last_channel_mhz` | number (MHz) | always | 1.0 | The channel of the last packet. |
 | `channels_heard` | text | always | 1.0 | The channels heard, as hex: bit k is channel k. |
 | `device_kind` | choice | always | 1.0 | The kind of device its Class of Device declares (unknown before an FHS packet). |
+| `name` | text | optional | 4.5 | The name its extended inquiry response gave. |
+| `services` | text | optional | 4.5 | The services its extended inquiry response listed, by their assigned names, joined with ", ". |
 
 The rows are the stations or nodes of the stack. The column `address` names a row. Default order: the column `level_dbfs`, highest first. Time: `last_heard`.
 
@@ -146,6 +155,18 @@ Struct `BtclassicPacketRow`. A row of the packet log of `btclassic`.
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level of the packet. |
 | `sync_errors` | whole number | always | 1.0 | Sync-word bits that differed. |
 | `text` | text | always | 1.0 | What the packet is. |
+
+### Table `packet_types`
+
+Struct `BtclassicPacketTypeRow`. A row of the packet types of `btclassic`: the packets of one type in one piconet, from headers read with the UAP that an FHS of the piconet's LAP gave.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `lap` | text | always | 4.5 | The LAP of the piconet. |
+| `packet_type` | text | always | 4.5 | The packet type at basic rate ("POLL", "DH1" ...); an EDR packet shows the basic-rate name of its TYPE code. |
+| `packets` | whole number | always | 4.5 | Packets of the type. |
+
+The column `packet_type` names a row.
 
 ### Event `btclassic.device_new`
 
