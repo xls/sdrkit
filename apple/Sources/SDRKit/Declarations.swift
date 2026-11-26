@@ -226,6 +226,18 @@ public struct TableMessage: Equatable, Sendable {
     public var delivery: UInt32? = nil
     /// The column of the reason of a failed delivery, as text for people.
     public var failure: UInt32? = nil
+
+    /// The columns by their ids; a column left out is `nil`. `TableMessage()` is a table with no message columns.
+    public init(sender: UInt32? = nil, addressee: UInt32? = nil, text: UInt32? = nil, time: UInt32? = nil,
+                own: UInt32? = nil, delivery: UInt32? = nil, failure: UInt32? = nil) {
+        self.sender = sender
+        self.addressee = addressee
+        self.text = text
+        self.time = time
+        self.own = own
+        self.delivery = delivery
+        self.failure = failure
+    }
 }
 
 /// The default order of the rows of a table.
