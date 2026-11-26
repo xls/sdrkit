@@ -4,6 +4,7 @@
 //! than 20 MHz, are counted from their signal fields; one antenna cannot separate two or more streams.
 //! Standard: IEEE Std 802.11-2020 clauses 9, 16, 17, 19 and 21; IEEE Std 802.11ax-2021; IEEE Std 802.11be-2024.
 
+mod bench;
 pub mod frames;
 pub mod gen;
 pub mod mac;
@@ -808,7 +809,7 @@ pub fn receiver(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     let b = StackGraph::of(crate::typed::shape(ID), graph(&Catalog::of(cfg)?)?)
         .min_rate(
             MIN_RATE_HZ,
-            "Wi-Fi needs a sample rate of at least 4 Msps for the 802.11b beacons of 2.4 GHz, and 20 Msps for OFDM",
+            "Wi-Fi works from 4 Msps with the 802.11b (DSSS) frames of 2.4 GHz only; OFDM and the 5 and 6 GHz bands need 20 Msps",
         );
     route_to(b, "table", &WifiSetting::schema())?
         .command("clear", sdrkit_graph::CommandTarget::every("clear"))
@@ -860,7 +861,7 @@ pub static WIFI: StackDescriptor = StackDescriptor {
     id: ID,
     name: "Wi-Fi networks",
     group: "Data and IoT",
-    blurb: "The Wi-Fi access points around on 2.4, 5 and 6 GHz from their beacons: names, security, channels and capabilities.",
+    blurb: "The Wi-Fi access points around on 2.4, 5 and 6 GHz from their beacons: names, security, channels and capabilities. Works from 4 Msps with the 802.11b (DSSS) frames of 2.4 GHz only; OFDM and the 5 and 6 GHz bands need 20 Msps.",
     tuning: Tuning {
         min_hz: 2400e6,
         max_hz: 7125e6,
@@ -882,7 +883,7 @@ pub static WIFI: StackDescriptor = StackDescriptor {
     signal_types: &[SignalType::Wifi],
     auto_gain: AutoGain::Radio,
     verify: Some(&crate::verify::WIFI),
-    benchmarks: None,
+    benchmarks: Some(bench::benchmarks),
 };
 
 #[cfg(test)]

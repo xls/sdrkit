@@ -1127,7 +1127,7 @@ pub struct WifiNetworkRow<'a> {
     #[field(shared = columns::FIRST_HEARD)]
     pub first_heard: Option<Time>,
     /// The UTC of the last frame.
-    #[field(shared = columns::LAST_HEARD)]
+    #[field(shared = columns::LAST_HEARD, role = Time)]
     pub last_heard: Option<Time>,
     /// Beacons heard.
     #[field(label = "Beacons")]
@@ -1477,7 +1477,7 @@ pub struct EspnowDeviceRow<'a> {
     #[field(shared = columns::FIRST_HEARD)]
     pub first_heard: Option<Time>,
     /// The UTC of the last frame.
-    #[field(shared = columns::LAST_HEARD)]
+    #[field(shared = columns::LAST_HEARD, role = Time)]
     pub last_heard: Option<Time>,
     /// The signal time of the first frame.
     #[field(label = "First heard (signal)", unit = "s")]
@@ -1926,7 +1926,7 @@ pub struct BtclassicDeviceRow<'a> {
     #[field(shared = columns::FIRST_HEARD)]
     pub first_heard: Option<Time>,
     /// The UTC of the last packet.
-    #[field(shared = columns::LAST_HEARD)]
+    #[field(shared = columns::LAST_HEARD, role = Time)]
     pub last_heard: Option<Time>,
     /// Packets heard.
     #[field(label = "Packets")]
@@ -2021,7 +2021,7 @@ pub fn family() -> &'static Described {
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 4, 0)
+        Described::new("wlan", 4, 1)
             .content(
                 sdrkit_core::ContentKind::Networks,
                 &[

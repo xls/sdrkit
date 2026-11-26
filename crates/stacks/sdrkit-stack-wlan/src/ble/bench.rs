@@ -1,4 +1,4 @@
-//! Benchmarks of the `ble` receiver on its own test signal at its preferred rate (8 Msps: channels 37 and 0) and at 32 Msps
+//! Benchmarks of the `ble` receiver on its own test signal at its preferred rate (8 Msps: channels 37 and 0), at 20 Msps and at 32 Msps
 //! (channels 37, 0 to 11 and 38), for `sdrkit bench`, then the Wi-Fi and BLE receivers of the protocol crate. Items are input
 //! samples. A benchmark whose receiver decodes nothing from its signal reports no throughput.
 
@@ -51,6 +51,10 @@ pub fn benchmarks() -> Vec<Benchmark> {
         Benchmark {
             name: "ble.receiver_8000k",
             run: |s| run(8e6, s),
+        },
+        Benchmark {
+            name: "ble.receiver_20000k",
+            run: |s| run(20e6, s),
         },
         Benchmark {
             name: "ble.receiver_32000k",

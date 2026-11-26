@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 4.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 4.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WLAN_VERSION_MAJOR 4
-#define SDRKIT_WLAN_VERSION_MINOR 0
+#define SDRKIT_WLAN_VERSION_MINOR 1
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -2603,7 +2603,7 @@ static inline int32_t sdrkit_bletracker_gen_set_schedule(SDRKIT_HANDLE handle, s
 // The rows are the stations or nodes of the stack.
 // The column `ssid` names a row.
 // Default order: the column `level_dbfs`, highest first.
-// Time: `first_heard`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_wifi_networks_rows(SDRKIT_HANDLE handle,
                                                sdrkit_wifi_network_row *rows,
                                                uint32_t capacity,
@@ -2967,7 +2967,7 @@ static inline int32_t sdrkit_halow_set_sub_channel_scan(SDRKIT_HANDLE handle, bo
 // The rows are the stations or nodes of the stack.
 // The column `address` names a row.
 // Default order: the column `level_dbfs`, highest first.
-// Time: `first_heard`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_btclassic_devices_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_btclassic_device_row *rows,
                                                    uint32_t capacity,
@@ -3077,7 +3077,7 @@ static inline int32_t sdrkit_wfb_set_links(SDRKIT_HANDLE handle, sdrkit_wfb_link
 // The rows are the stations or nodes of the stack.
 // The column `address` names a row.
 // Default order: the column `level_dbfs`, highest first.
-// Time: `first_heard`.
+// Time: `last_heard`.
 static inline int32_t sdrkit_espnow_devices_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_espnow_device_row *rows,
                                                 uint32_t capacity,

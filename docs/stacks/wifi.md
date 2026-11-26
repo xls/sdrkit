@@ -1,7 +1,7 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
 # Wi-Fi networks
 
-The Wi-Fi access points around on 2.4, 5 and 6 GHz from their beacons: names, security, channels and capabilities.
+The Wi-Fi access points around on 2.4, 5 and 6 GHz from their beacons: names, security, channels and capabilities. Works from 4 Msps with the 802.11b (DSSS) frames of 2.4 GHz only; OFDM and the 5 and 6 GHz bands need 20 Msps.
 
 Stack id: `wifi`. Group: Data and IoT.
 
@@ -130,7 +130,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -232,7 +232,7 @@ Struct `WifiNetworkRow`. A row of the networks of `wifi`. The row key is the BSS
 | `details` | text | always | 1.0 | The other elements as text. |
 | `stations` | whole number | always | 1.0 | Client stations heard with this BSSID. |
 
-The rows are the stations or nodes of the stack. The column `ssid` names a row. Default order: the column `level_dbfs`, highest first. Time: `first_heard`.
+The rows are the stations or nodes of the stack. The column `ssid` names a row. Default order: the column `level_dbfs`, highest first. Time: `last_heard`.
 
 ### Table `stations`
 

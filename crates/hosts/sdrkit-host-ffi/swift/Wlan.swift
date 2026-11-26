@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "wlan", version 4.0. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 4.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum WlanInterface {
     public static let major = 4
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of `ble`.
@@ -2258,7 +2258,7 @@ public enum WlanTables {
     /// The rows are the stations or nodes of the stack.
     /// The column `ssid` names a row.
     /// Default order: the column `level_dbfs`, highest first.
-    /// Time: `first_heard`.
+    /// Time: `last_heard`.
     public static func wifiNetworks(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[WifiNetworkRow], SDRKitCode> {
         var rows = [sdrkit_wifi_network_row](repeating: sdrkit_wifi_network_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2350,7 +2350,7 @@ public enum WlanTables {
     /// The rows are the stations or nodes of the stack.
     /// The column `address` names a row.
     /// Default order: the column `level_dbfs`, highest first.
-    /// Time: `first_heard`.
+    /// Time: `last_heard`.
     public static func btclassicDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[BtclassicDeviceRow], SDRKitCode> {
         var rows = [sdrkit_btclassic_device_row](repeating: sdrkit_btclassic_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2388,7 +2388,7 @@ public enum WlanTables {
     /// The rows are the stations or nodes of the stack.
     /// The column `address` names a row.
     /// Default order: the column `level_dbfs`, highest first.
-    /// Time: `first_heard`.
+    /// Time: `last_heard`.
     public static func espnowDevices(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[EspnowDeviceRow], SDRKitCode> {
         var rows = [sdrkit_espnow_device_row](repeating: sdrkit_espnow_device_row(), count: capacity)
         var info = sdrkit_rows_info.sized

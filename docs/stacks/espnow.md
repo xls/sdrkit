@@ -95,7 +95,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.0. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.1. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -157,7 +157,7 @@ Struct `EspnowDeviceRow`. A row of the devices of `espnow`. The row key is the s
 | `first_s` | number (s) | always | 1.0 | The signal time of the first frame. |
 | `last_s` | number (s) | always | 1.0 | The signal time of the last frame. |
 
-The rows are the stations or nodes of the stack. The column `address` names a row. Default order: the column `level_dbfs`, highest first. Time: `first_heard`.
+The rows are the stations or nodes of the stack. The column `address` names a row. Default order: the column `level_dbfs`, highest first. Time: `last_heard`.
 
 ### Table `frames`
 

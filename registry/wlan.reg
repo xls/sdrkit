@@ -1,5 +1,5 @@
 # The interface of the stack family wlan. The registry test of the family writes this file.
-family wlan version=4.0
+family wlan version=4.1
 shape.BleFields since=1.0
 shape.BleFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.BleFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -541,7 +541,7 @@ wifi.kept.beacons since=1.0
 wifi.kept.bands since=1.0
 wifi.kept.WifiFields.networks since=1.0
 wifi.table.networks row=WifiNetworkRow cap=300 label=ssid sort=level_dbfs:descending role=nodes time=last_heard since=1.0
-wifi.table.stations row=WifiStationRow cap=1000 label=address sort=last_heard:descending role=nodes time=last_heard since=1.0
+wifi.table.stations row=WifiStationRow cap=1000 label=address sort=last_heard:descending since=1.0
 wifi.table.beacons row=WifiBeaconRow cap=400 label=bssid since=1.0
 wifi.table.ofdm_rates row=WifiRateRow cap=8 since=1.0
 wifi.table.bands row=WifiBandRow cap=3 since=1.0

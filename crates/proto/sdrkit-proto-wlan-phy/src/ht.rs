@@ -672,19 +672,37 @@ impl HtDecoder {
         let acc: Complex32 = pilots.iter().sum();
         let phi0 = approx::atan2(acc.im, acc.re);
         let (mut num, mut den) = (0f32, 0f32);
+        let (s, c) = approx::sin_cos(-f64::from(phi0));
+        let back = Complex32::new(c, s);
         for (&k, &p) in PILOT_K.iter().zip(pilots) {
-            let (s, c) = approx::sin_cos(-f64::from(phi0));
-            let e = p * Complex32::new(c, s);
+            let e = p * back;
             num += k as f32 * approx::atan2(e.im, e.re);
             den += (k * k) as f32;
         }
         let slope = num / den;
+        // The phase -(phi0 + slope * k) as a phasor that turns by one step for each subcarrier: one sin_cos per symbol, not
+        // per cell. A list that goes back restarts the phasor.
+        let (s1, c1) = approx::sin_cos(-f64::from(slope));
+        let step = Complex32::new(c1, s1);
+        let at = |k: i32| {
+            let (s, c) = approx::sin_cos(-f64::from(phi0 + slope * k as f32));
+            Complex32::new(c, s)
+        };
+        let mut last = ks.first().copied().unwrap_or(0);
+        let mut rot = at(last);
         for (o, &k) in out.iter_mut().zip(ks) {
+            if k < last || k - last > 8 {
+                rot = at(k);
+            } else {
+                for _ in last..k {
+                    rot *= step;
+                }
+            }
+            last = k;
             let hk = h[bin(k)];
-            let ph = -(phi0 + slope * k as f32);
-            let (s, c) = approx::sin_cos(f64::from(ph));
-            *o = if hk.norm_sqr() > 1e-20 {
-                y[bin(k)] / hk * Complex32::new(c, s)
+            let n = hk.norm_sqr();
+            *o = if n > 1e-20 {
+                y[bin(k)] * hk.conj() * (rot / n)
             } else {
                 Complex32::default()
             };
@@ -882,10 +900,13 @@ impl HtDecoder {
             fixed += fs;
             rotating += rs;
             let c = &self.consts[ci];
-            for z in &cells {
-                let d = c.nearest(*z);
-                err += f64::from((z - d).norm_sqr());
-                pow += f64::from(d.norm_sqr());
+            // The error vector of one symbol in four gives the SNR: enough cells, a quarter of the work.
+            if i % 4 == 0 {
+                for z in &cells {
+                    let d = c.nearest(*z);
+                    err += f64::from((z - d).norm_sqr());
+                    pow += f64::from(d.norm_sqr());
+                }
             }
             let start = self.llr.len();
             c.demap_block_weighted(&cells, &self.weights, Demap::MaxLog, &mut self.scratch[..n])
