@@ -363,6 +363,7 @@ impl Shift for MeshText {
 impl Shaped for MeshText {
     type Row = MeshMessageRow<'static>;
     fn row(&self, _seen: Option<&Seen>, _now_s: f64, out: RowOut<'_, '_, Self::Row>) {
+        let failure = self.state.and_then(|s| s.failure()).map(|f| f.reason());
         out.put(&MeshMessageRow {
             time_s: self.time,
             net: self.protocol,
@@ -373,7 +374,7 @@ impl Shaped for MeshText {
             text: &self.text,
             hops: hops(self.hops),
             state: self.state.map(|s| s.state()),
-            failure: self.state.and_then(|s| s.failure()).map(|f| f.reason()),
+            failure,
             relays: self.own.then_some(i64::from(self.relays)),
             packet_id: (self.packet_id != 0).then_some(i64::from(self.packet_id)),
             utc: self.wall.map(|w| Time(w.floor())),
@@ -381,6 +382,7 @@ impl Shaped for MeshText {
             level_dbfs: self.level_dbfs,
             crc_ok: (!self.own).then_some(!self.damaged),
             copies: (!self.own && self.copies > 0).then_some(i64::from(self.copies)),
+            failure_text: failure.map(sdrkit_core::Choice::label),
         });
     }
 }

@@ -96,7 +96,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|
 | `packets` | Packets | `time_s` (number (s)), `net` (choice), `type` (text), `source` (text), `target` (text), `bytes` (whole number), `content` (text), `hops` (whole number), `snr_db` (number (dB)), `sf` (whole number), `bw` (frequency), `summary` (text) |
 | `nodes` | Nodes | `net` (choice), `name` (text), `short` (text), `id` (text), `hw` (text), `role` (text), `last_heard` (time), `heard` (whole number), `snr_db` (number (dB)), `hops` (whole number), `battery_pct` (number (%)), `voltage_v` (number (V)), `position` (position) |
-| `messages` | Messages | `time_s` (number (s)), `net` (choice), `channel` (text), `source` (text), `sender` (text), `target` (text), `text` (text), `hops` (whole number), `state` (choice), `failure` (choice), `relays` (whole number), `packet_id` (whole number), `utc` (time), `snr_db` (number (dB)), `level_dbfs` (number (dBFS)), `crc_ok` (yes or no), `copies` (whole number) |
+| `messages` | Messages | `time_s` (number (s)), `net` (choice), `channel` (text), `source` (text), `sender` (text), `target` (text), `text` (text), `hops` (whole number), `state` (choice), `failure` (choice), `relays` (whole number), `packet_id` (whole number), `utc` (time), `snr_db` (number (dB)), `level_dbfs` (number (dBFS)), `crc_ok` (yes or no), `copies` (whole number), `failure_text` (text) |
 | `readings` | Readings | `time_s` (number (s)), `node` (text), `battery_pct` (number (%)), `voltage_v` (number (V)), `ch_util_pct` (number (%)), `air_tx_pct` (number (%)), `temp_c` (number (°C)), `humidity_pct` (number (%)), `pressure_hpa` (number (hPa)), `position` (position), `alt_m` (number (m)) |
 | `stations` | Stations | `net` (choice), `call` (text), `symbol` (text), `position` (position), `type` (text), `last_heard` (time), `heard` (whole number), `snr_db` (number (dB)), `path` (text), `comment` (text), `battery_pct` (number (%)) |
 | `devices` | Devices | `id` (text), `network` (text), `vendor` (text), `last_heard` (time), `heard` (whole number), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `fcnt` (whole number), `missed` (whole number), `sf` (whole number), `freq` (frequency), `uplinks` (whole number), `downlinks` (whole number), `joins` (whole number), `type` (text), `fport` (whole number), `mac` (text) |
@@ -129,7 +129,7 @@ The stack puts points on a map: Nodes and stations.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 5.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 5.1. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Sensors and devices (`devices`). Media: none.
 
@@ -275,8 +275,9 @@ Struct `MeshMessageRow`. A row of the messages. The row key is the place of the 
 | `level_dbfs` | number (dBFS) | optional | 1.0 | The level of the frame of a received text, relative to the full scale of the input (not an absolute power). |
 | `crc_ok` | yes or no | optional | 1.0 | The text comes from a copy with a good CRC. False for a damaged copy that was shown after the wait without a good copy; a later good copy replaces the text and sets it. None for an own message. |
 | `copies` | whole number | optional | 1.0 | The copies of the packet heard while the message is remembered (10 minutes), damaged ones included. None for an own message. |
+| `failure_text` | text | optional | 5.1 | Why the delivery failed, as text for people: the label of `failure`. |
 
-The rows are the messages of the stack. The column `sender` names a row. Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`. Delivery state: `state`. Failure reason: `failure`.
+The rows are the messages of the stack. The column `sender` names a row. Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`. Delivery state: `state`. Failure reason: `failure_text`.
 
 ### Table `readings`
 

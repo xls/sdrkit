@@ -112,7 +112,7 @@ table "nodes" "Nodes" cap 150
   column FieldDecl { key: "voltage_v", label: "Voltage", unit: "V", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
 table "messages" "Messages" cap 100
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(9) }
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(17) }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -130,6 +130,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "failure_text", label: "Failure reason", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "readings" "Readings" cap 200
   marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -418,7 +419,7 @@ table "nodes" "Nodes" cap 150
   column FieldDecl { key: "voltage_v", label: "Voltage", unit: "V", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
 table "messages" "Messages" cap 100
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(9) }
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(17) }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -436,6 +437,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "failure_text", label: "Failure reason", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "readings" "Readings" cap 200
   marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -691,7 +693,7 @@ table "nodes" "Nodes" cap 150
   column FieldDecl { key: "voltage_v", label: "Voltage", unit: "V", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
 table "messages" "Messages" cap 100
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(9) }
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(17) }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -709,6 +711,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "failure_text", label: "Failure reason", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "readings" "Readings" cap 200
   marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -949,7 +952,7 @@ table "nodes" "Nodes" cap 150
   column FieldDecl { key: "voltage_v", label: "Voltage", unit: "V", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
 table "messages" "Messages" cap 100
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(9) }
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(17) }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -967,6 +970,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "failure_text", label: "Failure reason", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "readings" "Readings" cap 200
   marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1198,7 +1202,7 @@ table "nodes" "Nodes" cap 150
   column FieldDecl { key: "voltage_v", label: "Voltage", unit: "V", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
 table "messages" "Messages" cap 100
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(9) }
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(17) }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1216,6 +1220,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "failure_text", label: "Failure reason", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "readings" "Readings" cap 200
   marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1445,7 +1450,7 @@ table "nodes" "Nodes" cap 150
   column FieldDecl { key: "voltage_v", label: "Voltage", unit: "V", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "position", label: "Position", unit: "", kind: Position, choices: [], refers_to: None, content: None, reading: 0 }
 table "messages" "Messages" cap 100
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(9) }
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(17) }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1463,6 +1468,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "failure_text", label: "Failure reason", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "readings" "Readings" cap 200
   marks TableMarks { label: Some(1), sort: None, position: Some(9), latitude: None, longitude: None, altitude: Some(10), course: None, speed: None, role: Some(Log), sender: None, addressee: None, text: None, time: Some(0), own: None, delivery: None, failure: None }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1858,7 +1864,7 @@ table "stations" "Stations" cap 300
   column FieldDecl { key: "comment", label: "Comment", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "via", label: "Via", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "messages" "Messages" cap 100
-  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(9) }
+  marks TableMarks { label: Some(4), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Messages), sender: Some(4), addressee: Some(5), text: Some(6), time: Some(12), own: None, delivery: Some(8), failure: Some(17) }
   column FieldDecl { key: "time_s", label: "Time", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "net", label: "Net", unit: "", kind: Choice, choices: [ChoiceDecl { key: "meshtastic", label: "Meshtastic" }, ChoiceDecl { key: "meshcore", label: "MeshCore" }, ChoiceDecl { key: "loraaprs", label: "LoRa APRS" }, ChoiceDecl { key: "meshcom", label: "MeshCom" }, ChoiceDecl { key: "lorawan", label: "LoRaWAN" }, ChoiceDecl { key: "lora", label: "LoRa" }, ChoiceDecl { key: "aprs", label: "APRS" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "channel", label: "Channel", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -1876,6 +1882,7 @@ table "messages" "Messages" cap 100
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "crc_ok", label: "CRC passed", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "copies", label: "Copies", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "failure_text", label: "Failure reason", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 points "Stations"
 event "aprs.packet" "APRS packet"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }

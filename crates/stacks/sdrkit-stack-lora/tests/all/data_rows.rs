@@ -101,17 +101,17 @@ fn a_station_in_australia_takes_the_anz_plan_and_longfast_slot() {
 
 #[test]
 fn a_region_that_no_plan_covers_dials_its_longfast_slot() {
-    let region = data().meshtastic_region_of("JP").unwrap().unwrap();
-    assert_eq!(region, "JP");
+    let region = data().meshtastic_region_of("KR").unwrap().unwrap();
+    assert_eq!(region, "KR");
     assert_eq!(
         data().mesh_band_plan_in("meshtastic", &region).unwrap(),
         None
     );
     let s = settings_of(&data().meshtastic_settings(&region, "LongFast").unwrap());
     let cfg = config(&sdrkit_stack_lora::MESHTASTIC, "meshtastic", &s);
-    let jp = slot_band("JP");
+    let kr = slot_band("KR");
     let dial = cfg.dial(None);
-    assert!(dial > jp.start_hz && dial < jp.end_hz);
+    assert!(dial > kr.start_hz && dial < kr.end_hz);
     assert_eq!(Some(dial), cfg.mt_slot_hz(dial));
 }
 

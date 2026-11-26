@@ -29,7 +29,8 @@ use std::sync::{Arc, OnceLock};
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Described::new("lora", 5, 0)
+        Described::new("lora", 5, 1)
+            .added(5, 1, &["shape.MeshMessageRow.failure_text"])
             .content(
                 sdrkit_core::ContentKind::Mesh,
                 &[
@@ -1457,7 +1458,7 @@ pub struct MeshMessageRow<'a> {
     #[field(label = "State", role = Delivery)]
     pub state: Option<DeliveryState>,
     /// Why the delivery failed.
-    #[field(label = "Failure", role = Failure)]
+    #[field(label = "Failure")]
     pub failure: Option<FailureReason>,
     /// The distinct relays heard for an own broadcast.
     #[field(label = "Relays")]
@@ -1483,6 +1484,9 @@ pub struct MeshMessageRow<'a> {
     /// message.
     #[field(label = "Copies")]
     pub copies: Option<i64>,
+    /// Why the delivery failed, as text for people: the label of `failure`.
+    #[field(label = "Failure reason", role = Failure)]
+    pub failure_text: Option<&'a str>,
 }
 
 /// A row of the telemetry and position readings. The row key is the number of the reading.

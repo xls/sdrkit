@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "lora", version 5.0. MIT licence.
+// sdrkit: the typed interface of the stack family "lora", version 5.1. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum LoraInterface {
     public static let major = 5
-    public static let minor = 0
+    public static let minor = 1
 }
 
 /// The result fields of the mesh decoder.
@@ -404,6 +404,8 @@ public struct MeshMessageRow {
     public var crcOk: Bool?
     /// The copies of the packet heard while the message is remembered (10 minutes), damaged ones included. None for an own message.
     public var copies: Int64?
+    /// Why the delivery failed, as text for people: the label of `failure`.
+    public var failureText: String?
 
     init(_ c: sdrkit_mesh_message_row) {
         key = sdrkitText(c.key)
@@ -424,6 +426,7 @@ public struct MeshMessageRow {
         levelDbfs = c.has_level_dbfs ? c.level_dbfs : nil
         crcOk = c.has_crc_ok ? c.crc_ok : nil
         copies = c.has_copies ? c.copies : nil
+        failureText = c.has_failure_text ? sdrkitText(c.failure_text) : nil
     }
 }
 
@@ -2363,7 +2366,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-    /// Delivery state: `state`. Failure reason: `failure`.
+    /// Delivery state: `state`. Failure reason: `failure_text`.
     public static func meshMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2478,7 +2481,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-    /// Delivery state: `state`. Failure reason: `failure`.
+    /// Delivery state: `state`. Failure reason: `failure_text`.
     public static func meshtasticMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2593,7 +2596,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-    /// Delivery state: `state`. Failure reason: `failure`.
+    /// Delivery state: `state`. Failure reason: `failure_text`.
     public static func meshcoreMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2708,7 +2711,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-    /// Delivery state: `state`. Failure reason: `failure`.
+    /// Delivery state: `state`. Failure reason: `failure_text`.
     public static func lorawanMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2823,7 +2826,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-    /// Delivery state: `state`. Failure reason: `failure`.
+    /// Delivery state: `state`. Failure reason: `failure_text`.
     public static func loraaprsMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2938,7 +2941,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-    /// Delivery state: `state`. Failure reason: `failure`.
+    /// Delivery state: `state`. Failure reason: `failure_text`.
     public static func meshcomMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3110,7 +3113,7 @@ public enum LoraTables {
     /// The rows are the messages of the stack.
     /// The column `sender` names a row.
     /// Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-    /// Delivery state: `state`. Failure reason: `failure`.
+    /// Delivery state: `state`. Failure reason: `failure_text`.
     public static func aprsMessages(_ handle: SDRKIT_HANDLE, capacity: Int = 100) -> Result<[MeshMessageRow], SDRKitCode> {
         var rows = [sdrkit_mesh_message_row](repeating: sdrkit_mesh_message_row(), count: capacity)
         var info = sdrkit_rows_info.sized

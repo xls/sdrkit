@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "lora", version 5.0. MIT licence.
+ * sdrkit: the typed interface of the stack family "lora", version 5.1. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_LORA_VERSION_MAJOR 5
-#define SDRKIT_LORA_VERSION_MINOR 0
+#define SDRKIT_LORA_VERSION_MINOR 1
 
 // The stack "mesh": its id, and the keys of its event types.
 #define SDRKIT_STACK_MESH "mesh"
@@ -1034,6 +1034,10 @@ typedef struct sdrkit_mesh_message_row {
   bool has_copies;
   // The copies of the packet heard while the message is remembered (10 minutes), damaged ones included. None for an own message.
   int64_t copies;
+  // True if `failure_text` holds a value.
+  bool has_failure_text;
+  // Why the delivery failed, as text for people: the label of `failure`.
+  sdrkit_string failure_text;
 } sdrkit_mesh_message_row;
 
 // A row of the telemetry and position readings. The row key is the number of the reading.
@@ -3092,7 +3096,7 @@ static inline int32_t sdrkit_mesh_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-// Delivery state: `state`. Failure reason: `failure`.
+// Delivery state: `state`. Failure reason: `failure_text`.
 static inline int32_t sdrkit_mesh_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mesh_message_row *rows,
                                                uint32_t capacity,
@@ -3711,7 +3715,7 @@ static inline int32_t sdrkit_meshtastic_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-// Delivery state: `state`. Failure reason: `failure`.
+// Delivery state: `state`. Failure reason: `failure_text`.
 static inline int32_t sdrkit_meshtastic_messages_rows(SDRKIT_HANDLE handle,
                                                      sdrkit_mesh_message_row *rows,
                                                      uint32_t capacity,
@@ -4183,7 +4187,7 @@ static inline int32_t sdrkit_meshcore_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-// Delivery state: `state`. Failure reason: `failure`.
+// Delivery state: `state`. Failure reason: `failure_text`.
 static inline int32_t sdrkit_meshcore_messages_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_mesh_message_row *rows,
                                                    uint32_t capacity,
@@ -4534,7 +4538,7 @@ static inline int32_t sdrkit_lorawan_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-// Delivery state: `state`. Failure reason: `failure`.
+// Delivery state: `state`. Failure reason: `failure_text`.
 static inline int32_t sdrkit_lorawan_messages_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_message_row *rows,
                                                   uint32_t capacity,
@@ -4799,7 +4803,7 @@ static inline int32_t sdrkit_loraaprs_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-// Delivery state: `state`. Failure reason: `failure`.
+// Delivery state: `state`. Failure reason: `failure_text`.
 static inline int32_t sdrkit_loraaprs_messages_rows(SDRKIT_HANDLE handle,
                                                    sdrkit_mesh_message_row *rows,
                                                    uint32_t capacity,
@@ -5130,7 +5134,7 @@ static inline int32_t sdrkit_meshcom_nodes_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-// Delivery state: `state`. Failure reason: `failure`.
+// Delivery state: `state`. Failure reason: `failure_text`.
 static inline int32_t sdrkit_meshcom_messages_rows(SDRKIT_HANDLE handle,
                                                   sdrkit_mesh_message_row *rows,
                                                   uint32_t capacity,
@@ -5711,7 +5715,7 @@ static inline int32_t sdrkit_aprs_stations_rows(SDRKIT_HANDLE handle,
 // The rows are the messages of the stack.
 // The column `sender` names a row.
 // Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`.
-// Delivery state: `state`. Failure reason: `failure`.
+// Delivery state: `state`. Failure reason: `failure_text`.
 static inline int32_t sdrkit_aprs_messages_rows(SDRKIT_HANDLE handle,
                                                sdrkit_mesh_message_row *rows,
                                                uint32_t capacity,

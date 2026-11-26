@@ -1,5 +1,5 @@
 # The interface of the stack family lora. The registry test of the family writes this file.
-family lora version=5.0
+family lora version=5.1
 shape.MeshFields since=1.0
 shape.MeshFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.MeshFields.frames_bad type=i64 unit= optional=no since=1.0
@@ -89,6 +89,7 @@ shape.MeshMessageRow.snr_db type=f64 unit=dB optional=yes since=1.0
 shape.MeshMessageRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.MeshMessageRow.crc_ok type=bool unit= optional=yes since=1.0
 shape.MeshMessageRow.copies type=i64 unit= optional=yes since=1.0
+shape.MeshMessageRow.failure_text type=text unit= optional=yes since=5.1
 shape.MeshReadingRow since=1.0
 shape.MeshReadingRow.time_s type=f64 unit=s optional=no since=1.0
 shape.MeshReadingRow.node type=text unit= optional=no since=1.0
@@ -512,7 +513,7 @@ mesh.kept.MeshMcFields.mc_contacts since=1.0
 mesh.kept.MeshTxFields since=1.0
 mesh.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 mesh.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-mesh.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+mesh.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure_text since=1.0
 mesh.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 mesh.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 mesh.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
@@ -626,7 +627,7 @@ meshtastic.kept.MeshMcFields.mc_contacts since=1.0
 meshtastic.kept.MeshTxFields since=1.0
 meshtastic.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 meshtastic.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-meshtastic.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+meshtastic.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure_text since=1.0
 meshtastic.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 meshtastic.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 meshtastic.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
@@ -722,7 +723,7 @@ meshcore.kept.MeshMcFields.mc_contacts since=1.0
 meshcore.kept.MeshTxFields since=1.0
 meshcore.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 meshcore.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-meshcore.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+meshcore.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure_text since=1.0
 meshcore.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 meshcore.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 meshcore.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
@@ -804,7 +805,7 @@ lorawan.kept.MeshMcFields.mc_contacts since=1.0
 lorawan.kept.MeshTxFields since=1.0
 lorawan.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 lorawan.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-lorawan.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+lorawan.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure_text since=1.0
 lorawan.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 lorawan.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 lorawan.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
@@ -873,7 +874,7 @@ loraaprs.kept.MeshMcFields.mc_contacts since=1.0
 loraaprs.kept.MeshTxFields since=1.0
 loraaprs.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 loraaprs.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-loraaprs.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+loraaprs.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure_text since=1.0
 loraaprs.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 loraaprs.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 loraaprs.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
@@ -951,7 +952,7 @@ meshcom.kept.MeshMcFields.mc_contacts since=1.0
 meshcom.kept.MeshTxFields since=1.0
 meshcom.table.packets row=MeshPacketRow cap=100 label=source role=log time=time_s since=1.0
 meshcom.table.nodes row=MeshNodeRow cap=150 label=name position=position role=nodes time=last_heard since=1.0
-meshcom.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+meshcom.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure_text since=1.0
 meshcom.table.readings row=MeshReadingRow cap=200 label=node position=position altitude=alt_m role=log time=time_s since=1.0
 meshcom.table.stations row=MeshStationRow cap=150 label=call position=position since=1.0
 meshcom.table.devices row=MeshDeviceRow cap=200 label=id since=1.0
@@ -1075,7 +1076,7 @@ aprs.kept.AprsFields.not_ax25 since=1.0
 aprs.kept.AprsFields.stations since=1.0
 aprs.table.frames row=AprsFrameRow cap=200 label=source role=log sender=source addressee=target message=text time=time_s since=1.0
 aprs.table.stations row=AprsStationRow cap=300 label=call position=position altitude=alt_m course=course_deg speed=speed_kt role=nodes time=last_heard since=1.0
-aprs.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure since=1.0
+aprs.table.messages row=MeshMessageRow cap=100 label=sender role=messages sender=sender addressee=target message=text time=utc delivery=state failure=failure_text since=1.0
 aprs.event.aprs.packet fields=AprsPacketEvent since=1.0
 aprs.event.tx.request fields=TxRequestEvent since=1.0
 aprs.setting.narrow type=bool unit= since=1.0

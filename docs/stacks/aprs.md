@@ -81,7 +81,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 |---|---|---|
 | `frames` | Frames | `time_s` (number (s)), `source` (text), `target` (text), `path` (text), `type` (text), `text` (text), `bit_rate` (frequency) |
 | `stations` | Stations | `call` (text), `symbol` (text), `position` (position), `last_heard` (time), `heard` (whole number), `course_deg` (number (°)), `speed_kt` (number (kt)), `alt_m` (number (m)), `comment` (text), `via` (text) |
-| `messages` | Messages | `time_s` (number (s)), `net` (choice), `channel` (text), `source` (text), `sender` (text), `target` (text), `text` (text), `hops` (whole number), `state` (choice), `failure` (choice), `relays` (whole number), `packet_id` (whole number), `utc` (time), `snr_db` (number (dB)), `level_dbfs` (number (dBFS)), `crc_ok` (yes or no), `copies` (whole number) |
+| `messages` | Messages | `time_s` (number (s)), `net` (choice), `channel` (text), `source` (text), `sender` (text), `target` (text), `text` (text), `hops` (whole number), `state` (choice), `failure` (choice), `relays` (whole number), `packet_id` (whole number), `utc` (time), `snr_db` (number (dB)), `level_dbfs` (number (dBFS)), `crc_ok` (yes or no), `copies` (whole number), `failure_text` (text) |
 
 ## Map points
 
@@ -105,7 +105,7 @@ The stack puts points on a map: Stations.
 
 ## Typed interface
 
-The stack is in the family `lora`, version 5.0. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `lora`, version 5.1. The C header `sdrkit/lora.h`, the registry record `registry/lora.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Mesh messaging (`mesh`). Media: sound (monitor), text.
 
@@ -202,8 +202,9 @@ Struct `MeshMessageRow`. A row of the messages. The row key is the place of the 
 | `level_dbfs` | number (dBFS) | optional | 1.0 | The level of the frame of a received text, relative to the full scale of the input (not an absolute power). |
 | `crc_ok` | yes or no | optional | 1.0 | The text comes from a copy with a good CRC. False for a damaged copy that was shown after the wait without a good copy; a later good copy replaces the text and sets it. None for an own message. |
 | `copies` | whole number | optional | 1.0 | The copies of the packet heard while the message is remembered (10 minutes), damaged ones included. None for an own message. |
+| `failure_text` | text | optional | 5.1 | Why the delivery failed, as text for people: the label of `failure`. |
 
-The rows are the messages of the stack. The column `sender` names a row. Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`. Delivery state: `state`. Failure reason: `failure`.
+The rows are the messages of the stack. The column `sender` names a row. Sender: `sender`. Addressee: `target`. Text: `text`. Time: `utc`. Delivery state: `state`. Failure reason: `failure_text`.
 
 ### Event `aprs.packet`
 
