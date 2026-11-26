@@ -51,6 +51,10 @@ pub trait Outlet: Send {
         info: &FrameInfo,
         stop: &mut dyn FnMut() -> bool,
     ) -> Result<(), OutletError>;
+    /// What carries the stream: "tcp" or "udp".
+    fn path(&self) -> &'static str {
+        "tcp"
+    }
 }
 
 /// The header that a protocol puts before each packet of a stream on a connection.

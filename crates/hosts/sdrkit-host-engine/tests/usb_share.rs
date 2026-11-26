@@ -482,7 +482,12 @@ fn a_share_serves_the_test_signal_bit_exact_beside_a_local_stack() {
     // Our own rtl_tcp driver reads the share, and a second stack records what it gives.
     let kind = e.find("driver.rtl_tcp").unwrap();
     let mut v = defaults(&e, kind);
-    for (key, value) in [("rate", Value::Hz(RATE)), ("centre_hz", Value::Hz(100e6))] {
+    // The comparison is of the bytes: the driver's removal of the offset of the converter is off.
+    for (key, value) in [
+        ("rate", Value::Hz(RATE)),
+        ("centre_hz", Value::Hz(100e6)),
+        ("dc_removal", Value::Bool(false)),
+    ] {
         let id = v.schema().id(key).unwrap();
         v.set(id, &value).unwrap();
     }
@@ -1469,4 +1474,82 @@ fn a_steering_client_gets_a_rate_below_the_lowest_rate_of_the_radio() {
     });
     assert!(sliced.is_some(), "{:?}", clients(&e, sh));
     src.stop();
+}
+
+/// The bandwidth setting of radio `r`, Hz.
+fn bandwidth(e: &Engine, r: RadioId) -> f64 {
+    e.owner(OwnerRef::Radio(r), |o| {
+        o.values()
+            .map_or(f64::NAN, |v| v.get(&sdrkit_driver_core::BANDWIDTH))
+    })
+    .unwrap()
+}
+
+/// A client that asks a HackRF for the rate of DVB-T, 64/7 Msps, with the bandwidth on automatic gets that rate
+/// exactly, is told it, and the filter of the radio covers the 7.6 MHz of the channel; a later start at the rate of FM
+/// narrows the filter again.
+#[test]
+fn a_client_at_the_rate_of_dvbt_gets_it_exactly_and_a_filter_that_covers_the_channel() {
+    let net = FakeTransport::new();
+    let e = engine_with(Arc::new(net.clone()), Arc::new(hackrf_bus()));
+    assert!(e.settle(Duration::from_secs(5)));
+    let kind = e.find("driver.hackrf").unwrap();
+    let radio = e.open_radio("hackrf", "", &defaults(&e, kind)).unwrap();
+    let (_, sh) = share(&e, radio);
+    let (_, port) = listen(&e, sh, ShareProtocol::SoapyRemote);
+    let dvbt = 64e6 / 7.0;
+    for (rate, least_filter, most_filter) in [(dvbt, 7.7e6, 10e6), (2.4e6, 1.0, 2.5e6)] {
+        let mut src = soapy_client(&net, port, 506e6, rate, false).unwrap();
+        let (w, mut r) = sdrkit_driver_core::ring(1 << 20, src.sample_type());
+        let started = src.start(w).unwrap();
+        assert_eq!(started.rate_hz, rate, "the rate the client tells the stack");
+        let mut got = 0usize;
+        assert!(wait_for(10.0, || {
+            r.wait(1, Duration::from_millis(20));
+            got += r.read_with(1 << 20, |_| {});
+            (got > 50_000).then_some(())
+        })
+        .is_some());
+        assert!(e.settle(Duration::from_secs(5)));
+        let radio_rate = number(&e, OwnerRef::Radio(radio), "rate_hz");
+        assert!(
+            (radio_rate - rate).abs() < 1.0,
+            "the radio runs at {radio_rate} Hz for {rate}"
+        );
+        let bw = bandwidth(&e, radio);
+        assert!(
+            (least_filter..=most_filter).contains(&bw),
+            "at {rate} Hz the filter is {bw} Hz"
+        );
+        src.stop();
+    }
+}
+
+/// An rtl_tcp client has no request for the filter: a HackRF behind the share gets a filter that covers each rate that
+/// the client asks for, wide for DVB-T and narrow again for FM.
+#[test]
+fn an_rtl_tcp_client_gets_a_filter_that_fits_its_rate() {
+    let net = FakeTransport::new();
+    let e = engine_with(Arc::new(net.clone()), Arc::new(hackrf_bus()));
+    assert!(e.settle(Duration::from_secs(5)));
+    let kind = e.find("driver.hackrf").unwrap();
+    let radio = e.open_radio("hackrf", "", &defaults(&e, kind)).unwrap();
+    let (_, sh) = share(&e, radio);
+    let (_, port) = listen(&e, sh, ShareProtocol::RtlTcp);
+    let mut c = raw_client(&net, port);
+    drain(c.try_clone().unwrap());
+    for (rate, least, most) in [(9_142_857u32, 7.7e6, 10e6), (2_400_000, 1.0, 2.5e6)] {
+        c.write_all(&command(cmd::RATE, rate)).unwrap();
+        let fits = wait_for(5.0, || {
+            let bw = bandwidth(&e, radio);
+            let r = number(&e, OwnerRef::Radio(radio), "rate_hz");
+            ((r - f64::from(rate)).abs() < 1.0 && (least..=most).contains(&bw)).then_some(())
+        });
+        assert!(
+            fits.is_some(),
+            "at {rate} Hz: rate {} Hz, filter {} Hz",
+            number(&e, OwnerRef::Radio(radio), "rate_hz"),
+            bandwidth(&e, radio)
+        );
+    }
 }

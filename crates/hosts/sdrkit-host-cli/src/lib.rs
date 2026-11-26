@@ -10,6 +10,7 @@ pub mod live;
 pub mod out;
 pub mod reflect;
 pub mod serve;
+pub mod serve_screen;
 pub mod sound;
 pub mod text;
 pub mod txaudio;
@@ -225,6 +226,10 @@ enum Command {
         /// Stop after this many seconds.
         #[arg(long)]
         seconds: Option<f64>,
+        /// Print log lines and a status line instead of the live screen, which is shown when the output is a
+        /// terminal.
+        #[arg(long)]
+        plain: bool,
     },
     /// Tools for USB radios.
     Usb {
@@ -788,8 +793,10 @@ fn command(
             gain,
             set,
             seconds,
+            plain,
         } => {
             let s = serve::Serve {
+                plain,
                 source,
                 rtl_tcp,
                 soapy,

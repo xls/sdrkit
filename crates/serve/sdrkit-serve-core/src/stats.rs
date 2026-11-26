@@ -108,6 +108,10 @@ pub struct ClientStats {
     pub engaged: bool,
     /// The last request of each kind that was not carried out as asked, with its answer.
     pub not_done: Vec<(Request, Answer)>,
+    /// What carries its stream: "tcp", "udp", or empty without a stream.
+    pub path: &'static str,
+    /// The rate that it asked for last.
+    pub asked_rate_hz: Option<f64>,
     /// True once its writer has stopped.
     pub closed: bool,
 }
@@ -182,6 +186,9 @@ fn client_stats(s: &ClientShared, inner: &Inner) -> ClientStats {
         }),
         engaged: s.engaged.load(Ordering::Acquire),
         not_done: lock(&s.not_done).clone(),
+        path: *lock(&s.path),
+        asked_rate_hz: Some(f64::from_bits(s.asked_rate.load(Ordering::Relaxed)))
+            .filter(|r| *r > 0.0),
         closed: s.closed.load(Ordering::Acquire),
     }
 }

@@ -146,6 +146,14 @@ impl Outlet for StreamOutlet {
         self.format
     }
 
+    fn path(&self) -> &'static str {
+        if lock(&self.link).data.is_tcp() {
+            "tcp"
+        } else {
+            "udp"
+        }
+    }
+
     fn send(
         &mut self,
         samples: &[u8],

@@ -55,7 +55,7 @@ pub use share::{
     ClientJoinedEvent, ClientLeftEvent, ClientRow, GrantArgs, KickArgs, LeftReason, ListenArgs,
     ListenFailedEvent, ListenReply, ListenerRow, RefusedEvent, RefusedReason, ShareCloseArgs,
     ShareCommand, ShareControl, ShareFields, ShareFormat, ShareOpenArgs, ShareOpenReply,
-    ShareProtocol, ShareRow, ShareSetting, UnlistenArgs, CLIENTS, CLIENT_JOINED, CLIENT_LEFT,
+    RequestNote, ShareProtocol, ShareRow, ShareSetting, ShareView, UnlistenArgs, CLIENTS, CLIENT_JOINED, CLIENT_LEFT,
     DEFAULT_ALLOW, DEFAULT_HOST, GRANT, KICK, LISTEN, LISTENERS, LISTEN_FAILED, REFUSED, SHARES,
     SHARE_CLOSE, SHARE_OPEN, UNLISTEN,
 };
@@ -1430,6 +1430,16 @@ impl Engine {
     /// [`EngineError::NoSuchOwner`].
     pub fn close_share(&self, id: ShareId) -> Result<(), EngineError> {
         self.shared.close_share(None, id)
+    }
+
+    /// What share `id` does now, for a screen of the host: the counters of its clients, the level of its radio and
+    /// the last requests of its clients.
+    ///
+    /// # Errors
+    ///
+    /// [`EngineError::NoSuchOwner`].
+    pub fn share_view(&self, id: ShareId) -> Result<share::ShareView, EngineError> {
+        self.shared.share_view(id)
     }
 
     /// Starts a session of stack `stack` (in its variant `submode`, if given) with the settings `values` of the stack's

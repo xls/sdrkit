@@ -40,6 +40,10 @@ cpal = "0.15"
 hound = "3"
 # Ctrl-C: MIT OR Apache-2.0.
 ctrlc = "3"
+# The requests of the clients of a share, for the screen of `serve`.
+sdrkit-serve-core = { path = "../../serve/sdrkit-serve-core" }
+# The terminal of the screen of `serve`: raw keys, the other screen and cursor moves: MIT.
+ratatui = { version = "0.29", default-features = false, features = ["crossterm"] }
 
 [dev-dependencies]
 # The scripted USB bus, for the tests of the USB commands.

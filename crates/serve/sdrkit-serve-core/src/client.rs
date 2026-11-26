@@ -64,6 +64,10 @@ pub(crate) struct ClientShared {
     pub engaged: AtomicBool,
     /// The last request of each kind that was not carried out as asked, with its answer.
     pub not_done: Mutex<Vec<(Request, Answer)>>,
+    /// What carries the present stream: "tcp", "udp", or empty without a stream.
+    pub path: Mutex<&'static str>,
+    /// The rate that the client asked for last, as f64 bits; 0 for none.
+    pub asked_rate: AtomicU64,
     /// A new outlet for the writer (`Some(None)` removes the outlet), and its flag.
     outlet: OutletSlot,
     outlet_changed: AtomicBool,
@@ -198,6 +202,18 @@ impl ClientHandle {
         self.shared.slice_changed.store(true, Ordering::Release);
         Ok(())
     }
+    /// True if client `id` of the same hub is engaged and not ending.
+    pub fn is_live(&self, id: u64) -> bool {
+        lock(&self.inner.clients).iter().any(|c| {
+            let s = &c.shared;
+            s.id == id
+                && s.engaged.load(Ordering::Acquire)
+                && !(s.closed.load(Ordering::Acquire)
+                    || s.hangup.load(Ordering::Acquire)
+                    || s.kick.load(Ordering::Acquire))
+        })
+    }
+
     /// True once the client asked for a setting or set up a stream: it is counted and gets samples.
     pub fn engaged(&self) -> bool {
         self.shared.engaged.load(Ordering::Acquire)
@@ -259,6 +275,11 @@ impl ClientHandle {
     }
     /// Keeps `request` with its `answer` when the request was not carried out as asked: the last one of each kind.
     pub(crate) fn note_answer(&self, request: &Request, answer: &Answer) {
+        if let Request::Rate { hz } = *request {
+            self.shared
+                .asked_rate
+                .store(hz.to_bits(), Ordering::Relaxed);
+        }
         let done = match answer {
             Answer::Accepted => true,
             Answer::Refused => false,
@@ -341,6 +362,8 @@ pub(crate) fn start(
         slice_changed: AtomicBool::new(false),
         engaged: AtomicBool::new(false),
         not_done: Mutex::new(Vec::new()),
+        path: Mutex::new(session.outlet.as_ref().map_or("", |o| o.path())),
+        asked_rate: AtomicU64::new(0),
         outlet: Mutex::new(None),
         outlet_changed: AtomicBool::new(false),
         writer: Mutex::new(None),
@@ -454,6 +477,7 @@ impl Writer {
                         .as_ref()
                         .map_or(NO_WIRE, |o| format::index(o.format()));
                     s.wire.store(w, Ordering::Relaxed);
+                    *lock(&s.path) = self.outlet.as_ref().map_or("", |o| o.path());
                 }
             }
             let chunk = match self.rx.pop() {

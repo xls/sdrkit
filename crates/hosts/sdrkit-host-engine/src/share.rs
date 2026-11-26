@@ -30,7 +30,7 @@ use sdrkit_serve_core::{
 };
 use sdrkit_serve_soapyremote::{Device, Range, Side, SoapyRemote, Ssdp};
 use std::collections::VecDeque;
-use std::sync::atomic::{AtomicBool, AtomicU64, AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, AtomicU8, Ordering};
 use std::sync::{Arc, Mutex, Weak};
 use std::time::{Duration, SystemTime};
 
@@ -41,6 +41,50 @@ pub const DEFAULT_ALLOW: &str =
 pub const DEFAULT_HOST: &str = "0.0.0.0";
 /// The events a share keeps for the host. The oldest go first.
 const EVENT_CAP: usize = 256;
+/// The requests that a share keeps for [`ShareView::requests`].
+const REQUEST_LOG: usize = 32;
+
+/// One request of a client and the answer of the share.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct RequestNote {
+    /// When it came.
+    pub at: SystemTime,
+    /// The client.
+    pub client: u64,
+    /// The address of the client.
+    pub peer: Option<std::net::SocketAddr>,
+    /// What it asked for.
+    pub request: Request,
+    /// The answer.
+    pub answer: Answer,
+    /// The control of the share then.
+    pub control: ShareControl,
+}
+
+/// What a share does at one moment, for a screen of the host: the counters of its hub, the level of the radio and the
+/// last requests of its clients.
+#[derive(Clone, Debug)]
+pub struct ShareView {
+    /// The name of the radio, as its driver gives it.
+    pub radio_name: String,
+    /// The driver of the radio.
+    pub driver: String,
+    /// The counters of the hub and of each client.
+    pub snapshot: sdrkit_serve_core::Snapshot,
+    /// The mean power of the signal of the radio, dBFS. `None` before the first block.
+    pub level_dbfs: Option<f32>,
+    /// The peak power of the last block, dBFS.
+    pub peak_dbfs: Option<f32>,
+    /// The last requests, the newest first.
+    pub requests: Vec<RequestNote>,
+    /// The control.
+    pub control: ShareControl,
+    /// A session of the host reads the radio.
+    pub host_reads: bool,
+    /// The client that steers the radio now, if one does.
+    pub steering: Option<u64>,
+}
+
 /// The lowest rate that a client gets from a share. Below the lowest rate of the radio, the share brings the capture
 /// down to the client's rate in the client's writer thread.
 pub const OWN_RATE_FLOOR_HZ: f64 = 48e3;
@@ -672,6 +716,11 @@ pub(crate) struct ShareState {
     tx_taken: AtomicU64,
     tx_refused: AtomicU64,
     tx_samples: Arc<AtomicU64>,
+    /// The mean and the peak power of the last block of the radio, dBFS, as f32 bits.
+    level_bits: AtomicU32,
+    peak_bits: AtomicU32,
+    /// The last requests of the clients, the newest first.
+    log: Mutex<VecDeque<RequestNote>>,
     engine: Weak<Shared>,
 }
 
@@ -683,6 +732,21 @@ impl ShareState {
 
     /// True if `client` steers the radio now: the control is Remote, no session of the host reads the radio, and the
     /// client is the one that `grant` named, or the first one if `grant` named none.
+    /// As [`ShareState::steers`] for a client that asks now: when the client that connected first is ending (a front
+    /// end that opens a new connection for the next stack), the asking client takes over at once.
+    fn steers_now(&self, client: &ClientHandle) -> bool {
+        let first = self.first.load(Ordering::Relaxed);
+        if self.steerer.load(Ordering::Relaxed) == 0 && first != 0 && !client.is_live(first - 1) {
+            let _ = self.first.compare_exchange(
+                first,
+                client.id() + 1,
+                Ordering::Relaxed,
+                Ordering::Relaxed,
+            );
+        }
+        self.steers(client.id())
+    }
+
     fn steers(&self, client: u64) -> bool {
         if self.control() != ShareControl::Remote || self.host_reads.load(Ordering::Relaxed) {
             return false;
@@ -841,7 +905,7 @@ impl Control for Policy {
         }
         let answer = match s.control() {
             ShareControl::Slice => s.slice(client, request),
-            ShareControl::Remote if s.steers(client.id()) => s.remote(client, request),
+            ShareControl::Remote if s.steers_now(client) => s.remote(client, request),
             ShareControl::Follow | ShareControl::Remote => s.in_force(request),
         };
         let count = if answer == Answer::Accepted {
@@ -850,6 +914,18 @@ impl Control for Policy {
             &s.refused
         };
         count.fetch_add(1, Ordering::Relaxed);
+        let mut log = lock(&s.log);
+        if log.len() == REQUEST_LOG {
+            log.pop_back();
+        }
+        log.push_front(RequestNote {
+            at: SystemTime::now(),
+            client: client.id(),
+            peer: client.peer(),
+            request: *request,
+            answer,
+            control: s.control(),
+        });
         answer
     }
 
@@ -990,6 +1066,17 @@ impl Receiver for ShareSink {
                 }
                 self.state.feeder_new.store(false, Ordering::Release);
             }
+        }
+        if !iq.is_empty() {
+            let (sum, peak) = iq.iter().fold((0.0f32, 0.0f32), |(s, p), x| {
+                let e = x.norm_sqr();
+                (s + e, p.max(e))
+            });
+            let db = |e: f32| 10.0 * e.max(1e-12).log10();
+            let st = &self.state;
+            st.level_bits
+                .store(db(sum / iq.len() as f32).to_bits(), Ordering::Relaxed);
+            st.peak_bits.store(db(peak).to_bits(), Ordering::Relaxed);
         }
         let Some((feeder, format)) = self.feeder.as_mut() else {
             return;
@@ -1703,6 +1790,32 @@ impl Share {
     }
 }
 
+/// The part of the rate that the analogue filter of a radio passes after a change of rate that no bandwidth request
+/// follows: the whole channel of a stack that fills the rate (DVB-T at 64/7 Msps needs 7.6 MHz), with the filter step
+/// at or above it.
+const FILTER_OF_RATE: f64 = 0.95;
+
+/// `asked`, the requests of a steering client in order, with a bandwidth that fits each new rate that no bandwidth
+/// request follows, on a radio whose filter can be set (`filter`). A client that never sets the filter (rtl_tcp has no
+/// request for it) so gets a filter that covers its rate, not the one left from the stack before.
+fn with_filters(asked: &[Request], filter: bool) -> Vec<Request> {
+    let mut out = Vec::with_capacity(asked.len() + 1);
+    for (i, r) in asked.iter().enumerate() {
+        out.push(*r);
+        if let (true, Request::Rate { hz }) = (filter, r) {
+            let set_later = asked[i + 1..]
+                .iter()
+                .any(|x| matches!(x, Request::Bandwidth { .. }));
+            if !set_later && *hz > 0.0 {
+                out.push(Request::Bandwidth {
+                    hz: FILTER_OF_RATE * hz,
+                });
+            }
+        }
+    }
+    out
+}
+
 /// The tuner type of the rtl_tcp greeting for a radio named `name`: the tuner of an RTL dongle, else the R820T, whose
 /// greeting every rtl_tcp client takes.
 fn rtl_tuner(name: &str) -> u32 {
@@ -1876,6 +1989,9 @@ impl Shared {
             tx_taken: AtomicU64::new(0),
             tx_refused: AtomicU64::new(0),
             tx_samples: Arc::default(),
+            level_bits: AtomicU32::new(f32::NAN.to_bits()),
+            peak_bits: AtomicU32::new(f32::NAN.to_bits()),
+            log: Mutex::new(VecDeque::with_capacity(REQUEST_LOG)),
             engine: Arc::downgrade(self),
         });
         let sink = ShareSink {
@@ -1992,6 +2108,46 @@ impl Shared {
         Ok(())
     }
 
+    /// What share `id` does now ([`ShareView`]).
+    ///
+    /// # Errors
+    ///
+    /// [`EngineError::NoSuchOwner`].
+    pub(crate) fn share_view(&self, id: ShareId) -> Result<ShareView, EngineError> {
+        let share = self
+            .share(id)
+            .ok_or(EngineError::NoSuchOwner(OwnerRef::Share(id)))?;
+        let (snapshot, radio_name, driver) = {
+            let o = share.owner.lock();
+            let name = o.device.info.get("name").cloned().unwrap_or_default();
+            let snap = o.hub.as_ref().map(sdrkit_serve_core::Hub::snapshot);
+            (snap, name, o.device.driver.clone())
+        };
+        let snapshot = snapshot.ok_or(EngineError::NoSuchOwner(OwnerRef::Share(id)))?;
+        let st = &share.state;
+        let db = |a: &AtomicU32| {
+            Some(f32::from_bits(a.load(Ordering::Relaxed))).filter(|x| x.is_finite())
+        };
+        let steering = snapshot
+            .clients
+            .iter()
+            .filter(|c| !c.closed && c.engaged)
+            .map(|c| c.id)
+            .find(|c| st.steers(*c));
+        let requests: Vec<RequestNote> = lock(&st.log).iter().copied().collect();
+        Ok(ShareView {
+            radio_name,
+            driver,
+            level_dbfs: db(&st.level_bits),
+            peak_dbfs: db(&st.peak_bits),
+            requests,
+            control: st.control(),
+            host_reads: st.host_reads.load(Ordering::Relaxed),
+            steering,
+            snapshot,
+        })
+    }
+
     /// Closes the share of radio `radio`, if it has one.
     pub(crate) fn close_share_of(&self, radio: RadioId) {
         if let Some(id) = self.share_of(radio) {
@@ -2018,7 +2174,7 @@ impl Shared {
             let (tuning, set) = {
                 let mut o = radio.owner.lock();
                 if !host_reads {
-                    for r in asked {
+                    for r in with_filters(&asked, share.state.limits.bandwidth) {
                         // A value that the radio refuses stays as it was; the client reads the result back.
                         let _ = o.remote(&r);
                     }

@@ -439,6 +439,8 @@ pub(crate) fn any_local(server: IpAddr) -> SocketAddr {
 struct Sent {
     asked_rate: Option<Hz>,
     bw_wanted: Option<Hz>,
+    /// The width of the filter that the radio took last.
+    bw: Option<Hz>,
     ppm: f64,
     radio_corrects: bool,
     freq: Option<Hz>,
@@ -951,7 +953,7 @@ impl SoapyRadio {
                     let mut p = dir_ch(call::SET_BANDWIDTH, RX);
                     p.f64(bw);
                     match self.void(&p) {
-                        Ok(()) => {}
+                        Ok(()) => self.sent.bw = Some(bw),
                         Err(RpcError::Exception(_)) if asked_bw > 0.0 => {
                             return Err(DriverError::Refused {
                                 id: RadioSetting::Bandwidth.id(),
@@ -1392,8 +1394,12 @@ impl Radio for SoapyRadio {
             Some((_, false)) => v.push("steers the radio".to_owned()),
             None => {}
         }
-        v.extend(sdrkit_driver_core::linkwatch::drop_text(
+        if let Some(bw) = self.sent.bw {
+            v.push(format!("filter {} MHz", sdrkit_driver_core::fmt_m(bw)));
+        }
+        v.extend(sdrkit_driver_core::linkwatch::loss_text(
             self.ctx.link.part(),
+            self.rate,
         ));
         let s = self.ctx.stats.status();
         if !s.is_empty() {
