@@ -368,8 +368,8 @@ impl StackGraphBuilder {
     /// # Errors
     ///
     /// [`GraphError::UnroutedSetting`] for the first setting that resolves to no component, [`GraphError::UnresolvedCommand`]
-    /// or [`GraphError::CommandAliasArgs`] for the first command that does not resolve, [`GraphError::Setting`] for the first
-    /// value of [`StackGraphBuilder::with_settings`] that is refused. [`GraphError::Shape`] if the receiver is made from an
+    /// or [`GraphError::CommandAliasArgs`] for the first command that does not resolve, [`GraphError::NamedSetting`] for the
+    /// first value of [`StackGraphBuilder::with_settings`] that is refused. [`GraphError::Shape`] if the receiver is made from an
     /// interface description ([`StackGraph::of`]) and its settings, results or commands are not those of the description.
     pub fn build(self) -> Result<StackGraph, GraphError> {
         let StackGraphBuilder {
@@ -396,9 +396,12 @@ impl StackGraphBuilder {
                     continue;
                 };
                 if let Some(v) = values.value(SettingId(k as u16)) {
-                    owner::apply(&mut rx, id, v).map_err(|error| GraphError::Setting {
-                        key: key.to_string(),
-                        error,
+                    owner::apply(&mut rx, id, v).map_err(|error| {
+                        GraphError::Setting {
+                            key: key.to_string(),
+                            error,
+                        }
+                        .named(&rx.schema)
                     })?;
                 }
             }

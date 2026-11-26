@@ -62,8 +62,8 @@ pub use share::{
 pub use request::{RequestKind, REQUEST, REQUESTS};
 pub use session::{
     Input, SessionSetting, SessionState, AUDIO_IN_LOST, AUDIO_IN_RATE, AUDIO_IN_WANTED, AUDIO_LOST,
-    DROPPED, PROBLEM, REQUEST_PROBLEM, SAMPLES, SPECTRUM, SPECTRUM_FPS, SPECTRUM_SIZE,
-    SPECTRUM_WINDOW, STATE, TRANSMIT_LOST, TUNED, UNLISTED,
+    DROPPED, EVENTS_LOST, EVENTS_NOT_DELIVERED, NOT_DELIVERED, PROBLEM, REQUEST_PROBLEM, SAMPLES,
+    SPECTRUM, SPECTRUM_FPS, SPECTRUM_SIZE, SPECTRUM_WINDOW, STATE, TRANSMIT_LOST, TUNED, UNLISTED,
 };
 pub use session::{
     COMPONENTS as SESSION_COMPONENTS, CONNECTIONS as SESSION_CONNECTIONS, CORES_DECLARED,
@@ -93,7 +93,8 @@ use sdrkit_driver_core::synth::{values_where, GeneratorFactory, Made, SignalInpu
 use sdrkit_driver_core::{DriverKind, Opens};
 use sdrkit_graph::components::MakeGenerator;
 use sdrkit_graph::{
-    Description, Format, Graph, GraphPlan, Kind, Registry, RunContext, SampleType, ValidateReport,
+    Description, Format, Graph, GraphError, GraphPlan, Kind, Registry, RunContext, SampleType,
+    ValidateReport,
 };
 use services::{First, ServiceKind, Services, Tick};
 use session::{By, Session};
@@ -816,7 +817,12 @@ impl SignalError {
         match self {
             SignalError::Generator(e) => e,
             SignalError::Impairment { error, .. } => error.into(),
-            SignalError::Setting(_, e) => ConfigError::Setting(e),
+            SignalError::Setting(schema, error) => {
+                let key = refused_key(&schema, &error);
+                ConfigError::Stage(sdrkit_core::StageError::new(
+                    GraphError::Setting { key, error }.named(&schema),
+                ))
+            }
             SignalError::Schema(e) => ConfigError::Stage(sdrkit_core::StageError::new(e)),
         }
     }
@@ -886,6 +892,21 @@ impl GeneratorFactory for StackSignals {
         let served = self.served_now(id);
         self.inputs_with(id, values, served.as_ref(), rate)
     }
+}
+
+/// The key in `schema` of the setting that `e` refuses first, or an empty text if `e` names none.
+fn refused_key(schema: &sdrkit_core::Schema, e: &SettingError) -> String {
+    let first = std::cell::Cell::new(None);
+    let _ = e.clone().map_ids(|id| {
+        if first.get().is_none() {
+            first.set(Some(id));
+        }
+        id
+    });
+    first
+        .get()
+        .and_then(|id| schema.setting(id))
+        .map_or_else(String::new, |d| d.field.key.to_string())
 }
 
 /// An owner whose settings make a test signal: a new value that changes the signal is taken only if the signal can be
@@ -1053,6 +1074,7 @@ impl Engine {
             &[
                 REQUEST.decl(),
                 TRANSMIT.decl(),
+                EVENTS_NOT_DELIVERED.decl(),
                 DEVICE_ARRIVED.decl(),
                 DEVICE_LEFT.decl(),
                 CLIENT_JOINED.decl(),
@@ -1322,7 +1344,7 @@ impl Engine {
             OwnerRef::Engine => out.extend(lock(&sh.engine_events).drain(..)),
             OwnerRef::Radio(id) => sh.radio(id).ok_or_else(gone)?.take_events(out),
             OwnerRef::Session(id) => {
-                lock(&sh.session(id).ok_or_else(gone)?.control).take_events(out);
+                lock(&sh.session(id).ok_or_else(gone)?.control).take_events(out, &sh.events);
             }
             OwnerRef::Service(i) => sh
                 .services

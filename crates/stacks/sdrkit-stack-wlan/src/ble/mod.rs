@@ -130,6 +130,8 @@ pub struct AdvStats {
     pub level_dbfs: Option<f64>,
     /// The BLE channels inside the capture, bit `c` for channel `c` (0 when the centre is not known).
     pub capture: u64,
+    /// The centre of the input is known (not a recording without one).
+    pub centre_known: bool,
     /// The periodic trains whose packets the receivers take.
     pub trains: u32,
     /// The connections followed.
@@ -138,6 +140,21 @@ pub struct AdvStats {
 
 impl Item for AdvStats {
     const KIND: &'static str = "ble.adv_stats";
+}
+
+/// The text of a capture that holds no primary advertising channel.
+pub const NO_ADVERTISING_CHANNEL: &str =
+    "No advertising channel is inside the capture: tune to 2402, 2426 or 2480 MHz";
+
+/// The bits of channels 37, 38 and 39 in [`AdvStats::capture`].
+const PRIMARY_CHANNELS: u64 = 0b111 << 37;
+
+impl AdvStats {
+    /// Why nothing can be heard: [`NO_ADVERTISING_CHANNEL`] when the centre is known and the capture holds none of the
+    /// channels 37, 38 and 39. `None` otherwise.
+    pub fn quiet_reason(&self) -> Option<&'static str> {
+        (self.centre_known && self.capture & PRIMARY_CHANNELS == 0).then_some(NO_ADVERTISING_CHANNEL)
+    }
 }
 
 /// The front of a BLE graph: the receivers of every channel inside the capture, `adv`.

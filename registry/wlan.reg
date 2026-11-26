@@ -1,5 +1,5 @@
 # The interface of the stack family wlan. The registry test of the family writes this file.
-family wlan version=4.5
+family wlan version=4.6
 shape.BleFields since=1.0
 shape.BleFields.devices type=i64 unit= optional=no reading=1 since=1.0
 shape.BleFields.frames_ok type=i64 unit= optional=no since=1.0
@@ -25,6 +25,7 @@ shape.BleFields.aux_outside type=i64 unit= optional=no since=1.0
 shape.BleFields.periodic_trains type=i64 unit= optional=no since=1.0
 shape.BleFields.connections_followed type=i64 unit= optional=no since=4.2
 shape.BleFields.connection_packets type=i64 unit= optional=no since=4.2
+shape.BleFields.quiet_reason type=text unit= optional=yes since=4.6
 shape.BleTxFields since=1.0
 shape.BleTxFields.tx_sending type=bool unit= optional=no since=1.0
 shape.BleTxFields.tx_sent type=i64 unit= optional=no since=1.0
@@ -140,6 +141,7 @@ shape.BletrackerFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.BletrackerFields.channel type=i64 unit= optional=yes since=1.0
 shape.BletrackerFields.limits type=text unit= optional=no since=1.0
 shape.BletrackerFields.privacy type=text unit= optional=no since=1.0
+shape.BletrackerFields.quiet_reason type=text unit= optional=yes since=4.6
 shape.BletrackerTrackerRow since=1.0
 shape.BletrackerTrackerRow.tracker type=text unit= optional=no since=1.0
 shape.BletrackerTrackerRow.kind type=choice(find_my,tile,chipolo,smart_tag,google) unit= optional=yes since=1.0

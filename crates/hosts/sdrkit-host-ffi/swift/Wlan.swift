@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "wlan", version 4.5. MIT licence.
+// sdrkit: the typed interface of the stack family "wlan", version 4.6. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum WlanInterface {
     public static let major = 4
-    public static let minor = 5
+    public static let minor = 6
 }
 
 /// The result fields of `ble`.
@@ -59,6 +59,8 @@ public struct BleFields {
     public var connectionsFollowed: Int64
     /// Good packets of followed connections.
     public var connectionPackets: Int64
+    /// Why nothing can be heard: the capture holds no primary advertising channel. None while one is inside, and when the centre of the input is not known.
+    public var quietReason: String?
 
     init(_ c: sdrkit_ble_fields) {
         devices = c.devices
@@ -85,6 +87,7 @@ public struct BleFields {
         periodicTrains = c.periodic_trains
         connectionsFollowed = c.connections_followed
         connectionPackets = c.connection_packets
+        quietReason = c.has_quiet_reason ? sdrkitText(c.quiet_reason) : nil
     }
 
     /// The result fields of the snapshot of `handle`, or the code of the error.
@@ -469,6 +472,8 @@ public struct BletrackerFields {
     public var limits: String
     /// The privacy note.
     public var privacy: String
+    /// Why nothing can be heard: the capture holds no primary advertising channel. None while one is inside, and when the centre of the input is not known.
+    public var quietReason: String?
 
     init(_ c: sdrkit_bletracker_fields) {
         followingNow = c.following_now
@@ -486,6 +491,7 @@ public struct BletrackerFields {
         channel = c.has_channel ? c.channel : nil
         limits = sdrkitText(c.limits)
         privacy = sdrkitText(c.privacy)
+        quietReason = c.has_quiet_reason ? sdrkitText(c.quiet_reason) : nil
     }
 
     /// The result fields of the snapshot of `handle`, or the code of the error.

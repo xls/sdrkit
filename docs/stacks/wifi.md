@@ -26,13 +26,13 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:wi
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `band` | Band | choice | `2.4` | `2.4` (2.4 GHz), `5` (5 GHz), `6` (6 GHz) | Choosing a band asks the host to tune to the first channel of its hop list. |
-| `channel` | Channel | whole number | 6 | 1 to 233 | A channel of the band: the host tunes to it. |
-| `hop` | Hop | yes or no | false |  | Asks the host to step through the hop list; dwell longer than 102.4 ms (the beacon interval). |
-| `dwell_ms` | Dwell | number (ms) | 200 | 100 to 2000 |  |
+| `channel` | Channel | whole number | 6 | 1 to 233 | A channel of the band: the host tunes to it. A number the band lacks selects the first channel of its hop list. |
+| `hop` | Hop | yes or no | true |  | Asks the host to step through the hop list of the band it is tuned to, from the tuned channel. |
+| `dwell_ms` | Dwell | number (ms) | 130 | 110 to 2000 |  |
 | `psc_only` | 6 GHz: preferred scanning channels only | yes or no | true |  |  |
-| `channels_24` | 2.4 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band. |
-| `channels_5` | 5 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band. |
-| `channels_6` | 6 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band. |
+| `channels_24` | 2.4 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits. |
+| `channels_5` | 5 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits. |
+| `channels_6` | 6 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits. |
 | `filter_text` | Filter | text | empty |  | Shows only the networks whose SSID, BSSID, vendor or security holds this text. |
 | `min_level_dbfs` | Level above | number (dBFS) | -120 | -120 to 0 |  |
 | `open_only` | Open only | yes or no | false |  |  |
@@ -130,7 +130,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.5. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.6. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 

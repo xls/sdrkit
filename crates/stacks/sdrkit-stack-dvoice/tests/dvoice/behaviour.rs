@@ -352,3 +352,61 @@ fn the_monitor_mutes_and_filters_by_list() {
     assert_eq!(v(1300).as_deref(), Some("encrypted"));
     assert_eq!(v(2003).as_deref(), Some("play"));
 }
+
+/// The raw 8-bit recording `name` in the folder that the variable `SDRKIT_LIVE_RECORDINGS` names, or None. The recordings
+/// of real signals are kept outside the repository; without the variable the test is skipped.
+fn live_recording(name: &str) -> Option<Vec<sdrkit_core::Complex32>> {
+    let Ok(folder) = std::env::var("SDRKIT_LIVE_RECORDINGS") else {
+        eprintln!("skipped: SDRKIT_LIVE_RECORDINGS is not set");
+        return None;
+    };
+    let p = std::path::PathBuf::from(folder).join(name);
+    let Ok(bytes) = std::fs::read(&p) else {
+        eprintln!("skipped: {name} is not here");
+        return None;
+    };
+    Some(
+        bytes
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|b| {
+                sdrkit_core::Complex32::new(b[0] as i8 as f32 / 128.0, b[1] as i8 as f32 / 128.0)
+            })
+            .collect(),
+    )
+}
+
+/// A recording of a DMR channel at 2.4 Msps with control blocks: the share of blocks that fail stays low, and the CSBKs
+/// are listed as control messages.
+#[test]
+#[ignore = "needs the recordings of real signals"]
+fn live_dmr_blocks_and_csbks() {
+    let Some(x) = live_recording("dmr_csbk_2400k.cs8") else {
+        return;
+    };
+    let mut rx = receiver("dmr", &[]);
+    let (v, _) = run(rx.as_mut(), 2.4e6, &x, 240_000);
+    let d = &v["detail"];
+    let (ok, bad) = (
+        d["blocks_ok"].as_i64().unwrap_or(0),
+        d["blocks_bad"].as_i64().unwrap_or(0),
+    );
+    let all = calls(&v);
+    let named = all
+        .iter()
+        .filter(|c| {
+            c["text"]
+                .as_str()
+                .is_some_and(|t| t.starts_with("manufacturer") && t.contains("CSBK"))
+        })
+        .filter(|c| c["src"].is_null() || c["src"] == "")
+        .count();
+    eprintln!(
+        "blocks {ok} good, {bad} bad ({:.1} %), calls {}, CSBKs of a manufacturer {named}",
+        100.0 * bad as f64 / (ok + bad).max(1) as f64,
+        all.len(),
+    );
+    assert!(ok > 1000 && bad * 50 < ok, "{ok} good, {bad} bad");
+    assert!(named >= 2, "{named} control entries of a manufacturer");
+}

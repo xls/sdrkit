@@ -104,11 +104,14 @@ pub(crate) fn import(sh: &Shared, bytes: &[u8]) -> Result<(), EngineError> {
     }
     for (r, key, changes) in planned {
         sh.owner(r, |o| {
-            changes
-                .iter()
-                .try_for_each(|(id, v)| owner::apply(o, *id, v))
-        })?
-        .map_err(|error| ImportError::Apply { owner: key, error })?;
+            changes.iter().try_for_each(|(id, v)| {
+                owner::apply(o, *id, v).map_err(|error| ImportError::Apply {
+                    owner: key.clone(),
+                    text: owner::setting_error_text(o.schema(), "setting", &error),
+                    error,
+                })
+            })
+        })??;
     }
     Ok(())
 }

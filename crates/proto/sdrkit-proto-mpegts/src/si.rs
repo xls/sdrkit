@@ -10,7 +10,7 @@ use crate::tables::{
     TeletextEntry, TsEntry,
 };
 use sdrkit_core::media::FourCc;
-use sdrkit_util_text::dvb::{DvbText, Options as TextOptions, Usage};
+use sdrkit_util_text::dvb::{DefaultTable, DvbText, Options as TextOptions, Usage};
 use std::collections::{BTreeMap, BTreeSet};
 
 /// Decodes a DVB SI text field (EN 300 468 Annex A) to clean UTF-8 with [`sdrkit_util_text::dvb`].
@@ -276,6 +276,10 @@ pub struct OtherMultiplex {
     pub ts: TsEntry,
 }
 
+/// The table a new database reads text without a selector byte with: GB 2312 names sent with no selector are read, and
+/// table 00 text stays table 00.
+pub const DEFAULT_TABLE: DefaultTable = DefaultTable::GbkWhenValid;
+
 /// The database.
 #[derive(Clone, Debug, Default)]
 pub struct SiDb {
@@ -352,6 +356,9 @@ impl SiDb {
     pub fn new() -> Self {
         SiDb {
             nit_pid: 0x10,
+            text: TextOptions {
+                default_table: DEFAULT_TABLE,
+            },
             ..Default::default()
         }
     }

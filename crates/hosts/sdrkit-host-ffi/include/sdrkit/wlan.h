@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "wlan", version 4.5. MIT licence.
+ * sdrkit: the typed interface of the stack family "wlan", version 4.6. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_WLAN_VERSION_MAJOR 4
-#define SDRKIT_WLAN_VERSION_MINOR 5
+#define SDRKIT_WLAN_VERSION_MINOR 6
 
 // The stack "ble": its id, and the keys of its event types.
 #define SDRKIT_STACK_BLE "ble"
@@ -265,6 +265,10 @@ typedef struct sdrkit_ble_fields {
   int64_t connections_followed;
   // Good packets of followed connections.
   int64_t connection_packets;
+  // True if `quiet_reason` holds a value.
+  bool has_quiet_reason;
+  // Why nothing can be heard: the capture holds no primary advertising channel. None while one is inside, and when the centre of the input is not known.
+  sdrkit_string quiet_reason;
 } sdrkit_ble_fields;
 
 // The result fields of the advertising sender of `ble` and `bletracker`.
@@ -633,6 +637,10 @@ typedef struct sdrkit_bletracker_fields {
   sdrkit_string limits;
   // The privacy note.
   sdrkit_string privacy;
+  // True if `quiet_reason` holds a value.
+  bool has_quiet_reason;
+  // Why nothing can be heard: the capture holds no primary advertising channel. None while one is inside, and when the centre of the input is not known.
+  sdrkit_string quiet_reason;
 } sdrkit_bletracker_fields;
 
 // The options of `kind` of `sdrkit_bletracker_tracker_row`.

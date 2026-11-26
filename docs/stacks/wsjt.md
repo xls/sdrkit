@@ -520,7 +520,3 @@ sdrkit run wsjt --source synth:wsjt
 sdrkit run wsjt --source <driver>:<address> --freq 0
 ```
 <!-- generated: end -->
-
-## Settings: notes
-
-Advanced settings. The owner works without any of them set.

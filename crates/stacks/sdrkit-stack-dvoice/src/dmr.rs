@@ -121,6 +121,12 @@ fn crc_mask(data_type: u8) -> u16 {
     }
 }
 
+/// Whether a block that fails the standard check still counts as received: its BPTC or block code shows no error left and
+/// its feature set id `fid` is a manufacturer's, whose link control may carry a check of its own. Its content is not read.
+fn own_check(code_good: bool, fid: u8) -> bool {
+    code_good && fid != 0
+}
+
 /// A full link control word.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Lc {
@@ -649,7 +655,10 @@ struct SlotState {
     lc: Option<Lc>,
     last_s: f64,
     data: Option<DataAsm>,
-    last_control: Option<(u8, u32, u32, f64)>,
+    /// The last CSBK listed: opcode, feature set id, target, source, time.
+    last_control: Option<(u8, u8, u32, u32, f64)>,
+    /// The manufacturer whose link control with its own check was noted.
+    own_lc: Option<u8>,
     pending_frames: u32,
     enc: Option<Encryption>,
     seen: bool,
@@ -886,8 +895,12 @@ impl Dmr {
                 let (b, fixed, good) = decode_bptc(&info);
                 let bytes = bits_to_bytes(&b);
                 let lc = decode_full_lc(&mut self.codecs.rs, &bytes, dtype);
-                ctx.block(lc.is_some() && good, 96, fixed);
+                let own = lc.is_none() && own_check(good, bytes[1]);
+                ctx.block(lc.is_some() && good || own, 96, fixed);
                 let Some((lcb, _)) = lc else {
+                    if own {
+                        self.manufacturer_lc(slot, bytes[1], ctx);
+                    }
                     return true;
                 };
                 let lc = Lc::from_bytes(&lcb);
@@ -1071,7 +1084,7 @@ impl Dmr {
                             let (lc, cs, good) = decode_embedded(&st.emb);
                             let lcb: [u8; 9] = bits_to_bytes(&lc).try_into().unwrap_or([0; 9]);
                             let ok = good && embedded_lc_checksum(&lcb) == cs;
-                            ctx.block(ok, 77, 0);
+                            ctx.block(ok || own_check(good, lcb[1]), 77, 0);
                             if ok {
                                 self.embedded_lc(slot, &lcb, ctx);
                             }
@@ -1161,40 +1174,78 @@ impl Dmr {
         }
     }
 
+    /// Notes once per slot and manufacturer that link control with the manufacturer's own check arrives and is not read.
+    fn manufacturer_lc(&mut self, slot: u8, fid: u8, ctx: &mut Ctx) {
+        let st = &mut self.slots[slot as usize];
+        if st.own_lc == Some(fid) {
+            return;
+        }
+        st.own_lc = Some(fid);
+        ctx.control(ControlRecord {
+            opcode: 0,
+            mfid: fid as u32,
+            name: "manufacturer link control".into(),
+            text: format!(
+                "TS{} link control of manufacturer {fid:02X} with its own check: not read",
+                slot + 1
+            ),
+            time: ctx.now,
+            slot: slot + 1,
+        });
+    }
+
+    /// Lists a CSBK (TS 102 361-2 clause 7.1 and 361-4) as a control message and a call entry of the control kind. The addresses are read only from a block of
+    /// the standard feature set (feature set id 0) whose opcode is known to carry the target in octets 4 to 6 and the
+    /// source in octets 7 to 9. A block of a manufacturer's feature set is listed with that id and no addresses.
     fn csbk(&mut self, slot: u8, b: &[u8], access: Option<Access>, ctx: &mut Ctx) {
         let opcode = b[0] & 0x3F;
         let fid = b[1];
-        let (dst, src) = (
-            u32::from_be_bytes([0, b[4], b[5], b[6]]),
-            u32::from_be_bytes([0, b[7], b[8], b[9]]),
-        );
         let s = slot as usize;
-        let name = match opcode {
-            0x3D => "preamble",
-            0x04 => "unit to unit voice request",
-            0x05 => "unit to unit answer response",
-            0x07 => "channel timing",
-            0x1F => "call alert",
-            0x20 => "acknowledge response",
-            0x24 => "unit to unit voice service request",
-            0x26 => "negative acknowledge",
-            0x28 => "aloha",
-            0x2E => "clear",
-            0x30 => "private voice grant",
-            0x31 => "talkgroup voice grant",
-            0x38 => "Tier III broadcast",
-            0x3B => "announcement",
-            _ => "CSBK",
+        let known = match opcode {
+            0x3D => Some(("preamble", true)),
+            0x04 => Some(("unit to unit voice request", true)),
+            0x05 => Some(("unit to unit answer response", true)),
+            0x07 => Some(("channel timing", false)),
+            0x1F => Some(("call alert", true)),
+            0x20 => Some(("acknowledge response", true)),
+            0x24 => Some(("unit to unit voice service request", true)),
+            0x26 => Some(("negative acknowledge", true)),
+            0x28 => Some(("aloha", false)),
+            0x2E => Some(("clear", false)),
+            0x30 => Some(("private voice grant", true)),
+            0x31 => Some(("talkgroup voice grant", true)),
+            0x38 => Some(("Tier III broadcast", false)),
+            0x3B => Some(("announcement", false)),
+            _ => None,
+        };
+        let (name, addressed) = match known {
+            Some(k) if fid == 0 => k,
+            _ if fid != 0 => ("manufacturer", false),
+            _ => ("CSBK", false),
+        };
+        let (dst, src) = if addressed {
+            (
+                u32::from_be_bytes([0, b[4], b[5], b[6]]),
+                u32::from_be_bytes([0, b[7], b[8], b[9]]),
+            )
+        } else {
+            (0, 0)
         };
         let now = ctx.now;
-        let dup = self.slots[s]
-            .last_control
-            .is_some_and(|(o, d, sr, t)| o == opcode && d == dst && sr == src && now - t < 1.0);
-        self.slots[s].last_control = Some((opcode, dst, src, now));
-        let text = format!("TS{} CSBK {opcode:02X} {name}: {src} -> {dst}", slot + 1);
+        // A block that repeats within a second is listed once: the same opcode and feature set and, where they are read, the
+        // same parties.
+        let dup = self.slots[s].last_control.is_some_and(|(o, f, d, sr, t)| {
+            o == opcode && f == fid && d == dst && sr == src && now - t < 1.0
+        });
+        self.slots[s].last_control = Some((opcode, fid, dst, src, now));
         if dup {
             return;
         }
+        let text = match (addressed, fid) {
+            (true, _) => format!("TS{} CSBK {opcode:02X} {name}: {src} -> {dst}", slot + 1),
+            (false, 0) => format!("TS{} CSBK {opcode:02X} {name}", slot + 1),
+            (false, _) => format!("TS{} CSBK {opcode:02X} of manufacturer {fid:02X}", slot + 1),
+        };
         ctx.control(ControlRecord {
             opcode: opcode as u32,
             mfid: fid as u32,
@@ -1203,20 +1254,29 @@ impl Dmr {
             time: now,
             slot: slot + 1,
         });
+        let note = if fid == 0 {
+            format!("{name} CSBK (opcode {opcode:02X})")
+        } else {
+            format!("manufacturer {fid:02X} CSBK (opcode {opcode:02X})")
+        };
+        let party = |id: u32| {
+            if addressed {
+                Ident::Number(id as u64)
+            } else {
+                Ident::None
+            }
+        };
         let mut rec = CallRecord {
             slot: slot + 1,
             kind: CallKind::Control,
-            src: Ident::Number(src as u64),
-            dst: Ident::Number(dst as u64),
-            group: opcode == 0x3D && b[2] & 0x40 != 0,
+            src: party(src),
+            dst: party(dst),
+            group: addressed && opcode == 0x3D && b[2] & 0x40 != 0,
             access,
-            text: format!("{name} CSBK (opcode {opcode:02X})"),
+            text: note.clone(),
             ..Default::default()
         };
-        rec.set(
-            CallDetail::Note,
-            Value::Text(format!("{name} CSBK (opcode {opcode:02X})")),
-        );
+        rec.set(CallDetail::Note, Value::Text(note));
         rec.set(CallDetail::Opcode, Value::I64(i64::from(opcode)));
         ctx.log_single(rec);
     }

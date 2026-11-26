@@ -212,6 +212,10 @@ pub struct BleFields<'a> {
     /// Good packets of followed connections.
     #[field(label = "Connection packets")]
     pub connection_packets: i64,
+    /// Why nothing can be heard: the capture holds no primary advertising channel. None while one is inside, and when the
+    /// centre of the input is not known.
+    #[field(label = "Why nothing shows")]
+    pub quiet_reason: Option<&'a str>,
 }
 
 /// A row of the devices of `ble`. The row key is the address and "r" (random) or "p" (public).
@@ -734,6 +738,10 @@ pub struct BletrackerFields<'a> {
     /// The privacy note.
     #[field(label = "Privacy")]
     pub privacy: &'a str,
+    /// Why nothing can be heard: the capture holds no primary advertising channel. None while one is inside, and when the
+    /// centre of the input is not known.
+    #[field(label = "Why nothing shows")]
+    pub quiet_reason: Option<&'a str>,
 }
 
 /// A row of the trackers of `bletracker`. The row key is the tracker id.
@@ -2298,13 +2306,19 @@ const ADDED_4_5: &[&str] = &[
     "shape.BtclassicPacketTypeRow.packets",
 ];
 
+/// What version 4.6 added: why `ble` and `bletracker` hear nothing.
+const ADDED_4_6: &[&str] = &[
+    "shape.BleFields.quiet_reason",
+    "shape.BletrackerFields.quiet_reason",
+];
+
 /// The interface of the family.
 pub fn family() -> &'static Described {
     static FAMILY: OnceLock<Described> = OnceLock::new();
     FAMILY.get_or_init(|| {
         // The tables of what was heard and the frame logs stay over a change of frequency, with the counts of their
         // rows. The counters of the receiver and the measurements of the signal start again.
-        Described::new("wlan", 4, 5)
+        Described::new("wlan", 4, 6)
             .content(
                 sdrkit_core::ContentKind::Networks,
                 &[
@@ -2351,6 +2365,7 @@ pub fn family() -> &'static Described {
             .added(4, 3, ADDED_4_3)
             .added(4, 4, ADDED_4_4)
             .added(4, 5, ADDED_4_5)
+            .added(4, 6, ADDED_4_6)
             .stack(
                 StackShape::new("bletracker")
                     .fields::<BletrackerFields>()

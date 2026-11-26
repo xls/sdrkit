@@ -272,6 +272,10 @@ pub struct FrameDemodulator {
     /// Per symbol: the known carriers that count for the measures.
     known_in_band: Vec<Vec<usize>>,
     pairs: Vec<Pair>,
+    /// Per carrier: its place among the carriers that have pairs in time, or `usize::MAX`.
+    time_slot: Vec<usize>,
+    /// The number of carriers that have pairs in time.
+    time_slots: usize,
     freq_gap: usize,
     buf: Vec<Complex32>,
     base: u64,
@@ -430,6 +434,14 @@ impl FrameDemodulator {
             }
         }
         pairs.retain(|p| in_band[p.k1] && in_band[p.k2]);
+        let mut time_slot = vec![usize::MAX; k];
+        let mut time_slots = 0;
+        for p in pairs.iter().filter(|p| p.group == 0) {
+            if time_slot[p.k1] == usize::MAX {
+                time_slot[p.k1] = time_slots;
+                time_slots += 1;
+            }
+        }
         let rows = if engine.is_some() { (ns + 1) * k } else { 0 };
         FrameDemodulator {
             engine,
@@ -438,6 +450,8 @@ impl FrameDemodulator {
             has,
             known_in_band,
             pairs,
+            time_slot,
+            time_slots,
             freq_gap,
             buf: Vec::new(),
             base: 0,
@@ -657,14 +671,30 @@ impl FrameDemodulator {
                 en[off % ts] += p.norm() / m;
             }
         }
-        let mut best = (0.0f32, 0usize, Complex32::new(0.0, 0.0));
-        for off in 0..ts {
-            let r = acc[off].norm() / en[off].max(1e-20);
-            if r > best.0 {
-                best = (r, off, acc[off]);
+        // A continuous tone (a carrier beside or under the signal) correlates the same at every timing, a guard interval
+        // only within one guard of its place. The tone's share is the correlation half a period from the peak. It is
+        // taken out, so a tone alone scores near 0 and a tone under a signal does not pull the timing or the offset.
+        let zero = Complex32::new(0.0, 0.0);
+        let mean = acc.iter().sum::<Complex32>() / ts as f32;
+        let peak = |base: Complex32| {
+            let mut best = (0.0f32, 0usize, zero);
+            for off in 0..ts {
+                let v = acc[off] - base;
+                let r = v.norm() / en[off].max(1e-20);
+                if r > best.0 {
+                    best = (r, off, v);
+                }
             }
-        }
-        Some(best)
+            best
+        };
+        let first = peak(mean).1;
+        let half = (ts / 16).max(1);
+        let far = first + ts / 2;
+        let base = (far - half..=far + half)
+            .map(|o| acc[o % ts])
+            .sum::<Complex32>()
+            / (2 * half + 1) as f32;
+        Some(peak(base))
     }
 
     /// The FFT of the symbol whose useful part starts at absolute `useful`, the offset `cfo` removed: carriers `k0..` go to
@@ -748,6 +778,10 @@ impl FrameDemodulator {
         self.blocked.retain(|b| b.1 > now);
         let mut best_c = (0.0f32, 0usize, 0i32);
         let nf = n as f64;
+        // The weight of the pairs in time, per carrier: one carrier may hold a third of the weight at most (its fair share
+        // when the layout has fewer than three such carriers). A tone on one pilot carrier then cannot stand in for all.
+        let mut per_carrier = vec![0.0f32; self.time_slots];
+        let fair = self.time_slots.clamp(1, 3) as f32;
         for m in 0..cands {
             for q in -q_max..=q_max {
                 let qq = (q as f64 + frac / self.l.spacing()).round() as i64;
@@ -756,6 +790,7 @@ impl FrameDemodulator {
                 }
                 let mut accs = [Complex32::new(0.0, 0.0); 9];
                 let mut mag = 0.0f32;
+                per_carrier.iter_mut().for_each(|w| *w = 0.0);
                 for p in &self.pairs {
                     let c1 = (p.k1 as i32 + q + q_max) as usize;
                     let c2 = (p.k2 as i32 + q + q_max) as usize;
@@ -777,9 +812,14 @@ impl FrameDemodulator {
                         accs[p.group] +=
                             v * p.r.conj() * Complex32::new(th.cos(), th.sin()) * (wgt / vm);
                         mag += wgt;
+                        if p.group == 0 {
+                            per_carrier[self.time_slot[p.k1]] += wgt;
+                        }
                     }
                 }
-                let sc = accs.iter().map(|a| a.norm()).sum::<f32>() / mag.max(1e-20);
+                let most = per_carrier.iter().fold(0.0f32, |a, &w| a.max(w));
+                let sc =
+                    accs.iter().map(|a| a.norm()).sum::<f32>() / mag.max(fair * most).max(1e-20);
                 if sc > best_c.0 {
                     best_c = (sc, m, q);
                 }

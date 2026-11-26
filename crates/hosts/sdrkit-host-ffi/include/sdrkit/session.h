@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the settings that every session has, version 1.4. MIT licence.
+ * sdrkit: the typed interface of the settings that every session has, version 1.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_SESSION_VERSION_MAJOR 1
-#define SDRKIT_SESSION_VERSION_MINOR 4
+#define SDRKIT_SESSION_VERSION_MINOR 5
 
 // The options of the setting "spectrum_size" of the stack "session".
 typedef enum sdrkit_session_spectrum_size {
@@ -185,6 +185,8 @@ typedef struct sdrkit_session_fields {
   double audio_in_rate_hz;
   // True while a transmission that sends the host audio runs or push-to-talk is pressed: the host opens its microphone and gives the audio only then.
   bool audio_in_wanted;
+  // The events lost because the host did not take them in time: the oldest go first. An event `session.events_lost` tells of each loss.
+  int64_t events_lost;
 } sdrkit_session_fields;
 
 // A row of the table "session.components" (Components).
@@ -367,6 +369,20 @@ typedef struct sdrkit_session_transmit_event {
   double tx_power_db;
 } sdrkit_session_transmit_event;
 
+// Events not delivered.
+typedef struct sdrkit_session_events_lost_event {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // Seconds since the object started, in the time of the signal.
+  double time;
+  // The frequency of the signal in Hz.
+  double freq_hz;
+  // The events lost since the last take of the events: the oldest went first.
+  int64_t lost;
+  // The loss for people to read: "12 events were not delivered".
+  sdrkit_string text;
+} sdrkit_session_events_lost_event;
+
 // Fills `rows` with the changed rows of the table "session.components" of the stack "session" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
 static inline int32_t sdrkit_session_components_rows(SDRKIT_HANDLE handle,
@@ -398,6 +414,12 @@ static inline int32_t sdrkit_session_connections_rows(SDRKIT_HANDLE handle,
 // (Burst). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
 static inline int32_t sdrkit_session_transmit_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_session_transmit_event *event) {
   return sdrkit_typed_event(handle, n, "session.transmit", "session.TransmitEvent", event, sizeof(sdrkit_session_transmit_event));
+}
+
+// Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "session.events_lost"
+// (Events not delivered). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
+static inline int32_t sdrkit_session_events_lost_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_session_events_lost_event *event) {
+  return sdrkit_typed_event(handle, n, "session.events_lost", "session.EventsLostEvent", event, sizeof(sdrkit_session_events_lost_event));
 }
 
 // The setting "tuned_hz" (Frequency) of every session. A frequency in Hz. The frequency that the session listens to. A radio moves its centre when the frequency is outside its samples. The session stays the same and keeps running. From the change until the receiver has taken the frequency, the session shows no result of its stack. Then it shows what the receiver holds: a stack clears the results that belong to one frequency, and a result that it keeps is shown again. The result session.retunes counts the changes that the receiver has taken.

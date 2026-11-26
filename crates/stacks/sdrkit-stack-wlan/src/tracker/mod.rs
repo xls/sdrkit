@@ -284,6 +284,7 @@ impl TrackerBook {
             .last_good_s
             .is_some_and(|l| now - l <= ble::table::ACTIVE_S);
         let channel = self.stats.channel;
+        let quiet = self.stats.quiet_reason();
         let plural = |n: usize| if n == 1 { "tracker" } else { "trackers" };
         let st = &mut self.status;
         st.lock_state = if active {
@@ -296,7 +297,9 @@ impl TrackerBook {
         st.offset_hz = self.offset_hz;
         st.summary.clear();
         // Writing to a String cannot fail.
-        let _ = if good == 0 {
+        let _ = if let Some(q) = quiet {
+            write!(st.summary, "{q}")
+        } else if good == 0 {
             if channel != 0 {
                 write!(st.summary, "listening on channel {channel}")
             } else {
@@ -336,6 +339,7 @@ impl TrackerBook {
             channel: (channel != 0).then_some(i64::from(channel)),
             limits: LIMITS_NOTE,
             privacy: TRACKER_PRIVACY_NOTE,
+            quiet_reason: quiet,
         });
         for k in TrackerKind::ALL {
             BLETRACKER_KINDS.put(

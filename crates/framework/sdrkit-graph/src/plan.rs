@@ -149,21 +149,30 @@ impl GraphPlan {
     ///
     /// # Errors
     ///
-    /// [`GraphError::UnknownComponent`], or [`GraphError::Setting`] for an unknown key, a fixed setting or a refused value.
+    /// [`GraphError::UnknownComponent`], [`GraphError::Setting`] for an unknown key, or [`GraphError::NamedSetting`] for a
+    /// fixed setting or a refused value.
     pub fn set(&mut self, id: &str, key: &str, value: &Value) -> Result<(), GraphError> {
         let i = self.find(id)?;
         let full = format!("{id}.{key}");
         let sid = self.setting_id(i, &full, key)?;
-        let refuse = |error: SettingError| GraphError::Setting {
-            key: full.clone(),
-            error,
+        let c = &mut self.comps[i];
+        let refuse = |error: SettingError, schema: &sdrkit_core::Schema| {
+            GraphError::Setting {
+                key: full.clone(),
+                error,
+            }
+            .named(schema)
         };
         if self.fixed_targets.contains(&(i, sid)) {
-            return Err(refuse(SettingError::Fixed { id: sid }));
+            return Err(refuse(SettingError::Fixed { id: sid }, &c.info.settings));
         }
-        let c = &mut self.comps[i];
-        c.info.settings.check(sid, value).map_err(refuse)?;
-        c.comp.apply(sid, value).map_err(refuse)?;
+        c.info
+            .settings
+            .check(sid, value)
+            .map_err(|e| refuse(e, &c.info.settings))?;
+        c.comp
+            .apply(sid, value)
+            .map_err(|e| refuse(e, &c.info.settings))?;
         Ok(())
     }
 
@@ -708,7 +717,7 @@ mod tests {
         ));
         assert!(matches!(
             p.set("chan", "rate", &Value::Text("fast".into())),
-            Err(GraphError::Setting { .. })
+            Err(GraphError::NamedSetting { .. })
         ));
         // The text form of a number is a wrong kind, and a value out of range is refused, not clamped.
         assert!(p.set("chan", "rate", &Value::Text("24000".into())).is_err());

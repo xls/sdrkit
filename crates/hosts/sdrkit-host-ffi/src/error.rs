@@ -406,7 +406,7 @@ pub(crate) fn engine<'a>(e: &'a EngineError, d: &mut ErrorDetail, names: &mut Na
         }
         EngineError::BadKey(_) => SDRKIT_E_BAD_KEY,
         EngineError::Driver(e) => driver(e, d),
-        EngineError::Config(e) => config(e, d),
+        EngineError::Config(e) => config(e, d, names),
         EngineError::Graph(e) => graph(e, d, names),
         EngineError::Setting { error, .. } => setting(error, d),
         EngineError::Command { error, .. } => command(error, d),
@@ -558,7 +558,7 @@ fn setting(e: &SettingError, d: &mut ErrorDetail) -> i32 {
         }
         SettingError::Config { id, source } => {
             at(*id);
-            config(source, d)
+            config(source, d, &mut [""; 4])
         }
     }
 }
@@ -612,7 +612,7 @@ pub(crate) fn storage(e: StorageError) -> i32 {
     }
 }
 
-fn config(e: &ConfigError, d: &mut ErrorDetail) -> i32 {
+fn config<'a>(e: &'a ConfigError, d: &mut ErrorDetail, names: &mut Names<'a>) -> i32 {
     match e {
         ConfigError::RateTooLow { need: limit, got }
         | ConfigError::WrongRate { need: limit, got } => {
@@ -639,7 +639,11 @@ fn config(e: &ConfigError, d: &mut ErrorDetail) -> i32 {
             SDRKIT_E_CONFIG
         }
         ConfigError::Data { source, .. } => storage(*source),
-        ConfigError::Stage(_) => SDRKIT_E_STAGE,
+        // A refused setting that the graph named keeps the code of a refused setting.
+        ConfigError::Stage(s) => match s.downcast_ref::<GraphError>() {
+            Some(g @ (GraphError::NamedSetting { .. } | GraphError::Setting { .. })) => graph(g, d, names),
+            _ => SDRKIT_E_STAGE,
+        },
     }
 }
 
@@ -679,9 +683,10 @@ fn graph<'a>(e: &'a GraphError, d: &mut ErrorDetail, names: &mut Names<'a>) -> i
             connect(error, d)
         }
         GraphError::Setting { error, .. } => setting(error, d),
+        GraphError::NamedSetting { error, .. } => graph(error, d, names),
         GraphError::Config { component, error } => {
             names[0] = component;
-            config(error, d)
+            config(error, d, names)
         }
         GraphError::UnknownComponent(component) => {
             names[0] = component;

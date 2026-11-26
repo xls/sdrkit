@@ -366,13 +366,22 @@ pub enum GraphError {
         /// Its kind.
         kind: Kind,
     },
-    /// A setting that was refused.
+    /// A setting that was refused. Where the schema of the setting is known, the refusal comes inside
+    /// [`GraphError::NamedSetting`], whose text names the setting by its label.
     #[error("setting {key}: {error}")]
     Setting {
-        /// The key, as the caller supplied it.
+        /// The key, as the caller supplied it, or the component whose configuration refused the value.
         key: String,
         /// Why.
         error: SettingError,
+    },
+    /// A refused setting with the sentence that names it by its label ([`GraphError::named`]).
+    #[error("{text}")]
+    NamedSetting {
+        /// The sentence that a host shows: the label of the setting and why its value was refused.
+        text: String,
+        /// The refusal, a [`GraphError::Setting`].
+        error: Box<GraphError>,
     },
     /// A setting value of a description that does not fit the schema of its component.
     #[error("setting {key}: {error}")]
@@ -518,6 +527,18 @@ impl GraphError {
     pub fn input_kind(input: usize, got: Kind) -> ConfigError {
         ConfigError::Stage(StageError::new(GraphError::InputKind { input, got }))
     }
+    /// A [`GraphError::Setting`] as a [`GraphError::NamedSetting`] that names its setting by its label in `schema`, the
+    /// schema of the setting ids that the refusal holds. Any other error is returned as it is.
+    #[must_use]
+    pub fn named(self, schema: &Schema) -> GraphError {
+        match self {
+            GraphError::Setting { ref error, .. } => GraphError::NamedSetting {
+                text: sdrkit_core::owner::setting_error_text(schema, "setting", error),
+                error: Box::new(self),
+            },
+            e => e,
+        }
+    }
     pub(crate) fn at(self, at: DescPosition) -> GraphError {
         GraphError::Description {
             at,
@@ -530,7 +551,6 @@ impl From<GraphError> for ConfigError {
     fn from(e: GraphError) -> Self {
         match e {
             GraphError::Config { error, .. } => error,
-            GraphError::Setting { error, .. } => ConfigError::Setting(error),
             e => ConfigError::Stage(StageError::new(e)),
         }
     }
@@ -2130,9 +2150,16 @@ impl Graph {
             .iter()
             .map(|p| p.output.derive(&ins, &n.values))
             .collect();
-        let outs = n.comp.configure(&ins).map_err(|error| GraphError::Config {
-            component: n.id.clone(),
-            error,
+        let outs = n.comp.configure(&ins).map_err(|error| match error {
+            ConfigError::Setting(error) => GraphError::Setting {
+                key: n.id.clone(),
+                error,
+            }
+            .named(&n.info.settings),
+            error => GraphError::Config {
+                component: n.id.clone(),
+                error,
+            },
         })?;
         if outs.len() != n.outputs.len() {
             return Err(GraphError::OutputCount {

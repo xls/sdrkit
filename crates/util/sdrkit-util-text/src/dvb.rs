@@ -48,7 +48,8 @@ pub enum DefaultTable {
     Iso6937,
     /// GB 2312 (read with the GBK superset) for every unprefixed text, as some broadcasters in China send.
     Gbk,
-    /// Table 00, but unprefixed text made only of ASCII and valid GBK pairs (at least one) is read as GBK.
+    /// Table 00, but unprefixed text whose bytes above 0x7F all stand in GBK pairs of two such bytes (at least one pair) is
+    /// read as GBK: networks in China send GB 2312 names with no selector, and table 00 text has no such pairs.
     GbkWhenValid,
 }
 
@@ -305,7 +306,10 @@ fn utf8(bytes: &[u8], c: &mut Cleaner) {
     }
 }
 
-/// Whether every byte above 0x7F starts a valid GBK pair, with at least one pair.
+/// Whether the bytes above 0x7F all stand in GBK pairs of two such bytes (lead 0x81 to 0xFE, trail 0x80 to 0xFE), with at
+/// least one pair. GB 2312 text is made of such pairs. Table 00 writes an accented letter as a mark and an ASCII letter and
+/// its other characters above 0x7F stand alone, so its text does not pass. A GBK pair with a trail byte below 0x80 does not
+/// pass either: the same two bytes are a table 00 character and an ASCII letter.
 fn all_gbk_pairs(b: &[u8]) -> bool {
     let (mut i, mut pairs) = (0, 0);
     while i < b.len() {
@@ -313,11 +317,9 @@ fn all_gbk_pairs(b: &[u8]) -> bool {
             i += 1;
             continue;
         }
-        let t = match b.get(i + 1) {
-            Some(&t) if (0x81..=0xFE).contains(&b[i]) => t,
-            _ => return false,
-        };
-        if !((0x40..=0x7E).contains(&t) || (0x80..=0xFE).contains(&t)) {
+        let pair = (0x81..=0xFE).contains(&b[i])
+            && b.get(i + 1).is_some_and(|t| (0x80..=0xFE).contains(t));
+        if !pair {
             return false;
         }
         pairs += 1;
@@ -454,6 +456,30 @@ mod tests {
             },
         );
         assert_eq!(t.text, "A£");
+        // Table 00 text stays table 00: an acute accent and "e", a sharp s before a letter, an o with stroke before a letter.
+        for (raw, want) in [
+            (&b"Caf\xC2e"[..], "Café"),
+            (&b"Fu\xFBball"[..], "Fußball"),
+            (&b"S\xF9ren"[..], "Søren"),
+        ] {
+            t.decode(
+                raw,
+                Usage::Name,
+                &Options {
+                    default_table: DefaultTable::GbkWhenValid,
+                },
+            );
+            assert_eq!(t.text, want);
+        }
+        // A name of ASCII and GB 2312 pairs.
+        t.decode(
+            b"TV-6\xB5\xE7\xD3\xB0",
+            Usage::Name,
+            &Options {
+                default_table: DefaultTable::GbkWhenValid,
+            },
+        );
+        assert_eq!(t.text, "TV-6电影");
         t.decode(
             &[0x81, 0x40],
             Usage::Name,

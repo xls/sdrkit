@@ -43,6 +43,7 @@ use sdrkit_util_bits::pack::pack;
 use sdrkit_util_bits::{BitOrder, Pad};
 use std::collections::{BTreeMap, VecDeque};
 use std::fmt::Write as _;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 /// One demodulated frame with its mode and FAC.
@@ -286,13 +287,127 @@ pub struct Lanes {
     scratch: Vec<Complex32>,
     // centring search
     fft: Option<Fft>,
+    fft_len: usize,
     acc: Vec<f32>,
     frames: usize,
     fill: Vec<Complex32>,
+    /// Samples to pass over before the next frame.
+    skip: usize,
+    /// Set by the OFDM tracker while it decodes the FAC.
+    locked: Arc<AtomicBool>,
+    /// Seconds on the present centre without a FAC.
+    waited: f64,
+    /// Centres that gave no FAC, and the seconds each stays refused.
+    refused: Vec<(f64, f64)>,
 }
 
 impl Default for Lanes {
     fn default() -> Self {
+        Lanes::with_lock(Arc::new(AtomicBool::new(false)))
+    }
+}
+
+/// The spectrum of the centring search has bins of this width at most (the FFT grows with the rate up to 65536 points).
+const CENTRE_BIN_HZ: f64 = 500.0;
+/// FFT frames summed per decision, and the frames from one that is summed to the next: a decision sees half a second.
+const CENTRE_FRAMES: usize = 32;
+const CENTRE_EVERY: usize = 8;
+/// A channel is searched for where this width is filled: the narrowest DRM channel is 4.5 kHz wide.
+const FILLED_HZ: f64 = 4e3;
+/// The tracker reaches a channel whose middle is this near the lane's centre.
+const REACH_HZ: f64 = 10e3;
+/// Seconds a centre may stay without a FAC while another channel is in view, and seconds it is then refused.
+const TRY_S: f64 = 6.0;
+const REFUSE_S: f64 = 60.0;
+
+/// A filled block of the spectrum: its middle from the centre of the sample band and its rank (its level over the noise
+/// floor, times the square of level over peak, and a hundredth of that when a carrier stands beside the block).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Block {
+    /// The middle of the block, Hz from the centre of the sample band.
+    pub centre_hz: f64,
+    /// The level over the floor, lowered for a peak in the block and beside a carrier.
+    pub rank: f32,
+}
+
+/// The blocks of a power spectrum (`power`, lowest frequency first, bins of `bin_hz`) that look like an OFDM channel of 4 to
+/// 25 kHz: filled over at least 4 kHz at 6 dB or more over the median of the spectrum, with no bin 9 dB over the block's
+/// own median (a carrier with its sidebands is not filled and not flat). Best rank first.
+pub fn filled_blocks(power: &[f32], bin_hz: f64) -> Vec<Block> {
+    let m = power.len();
+    let w = ((FILLED_HZ / bin_hz).round() as usize).max(3);
+    if m < 4 * w {
+        return Vec::new();
+    }
+    let mut sorted = power.to_vec();
+    sorted.sort_by(f32::total_cmp);
+    let floor = sorted[m / 2].max(1e-30);
+    let mut win = vec![0.0f32; w];
+    // The median of each window that is filled and flat, else 0.
+    let level: Vec<f32> = (0..=m - w)
+        .map(|i| {
+            win.copy_from_slice(&power[i..i + w]);
+            win.sort_by(f32::total_cmp);
+            let med = win[w / 2];
+            if med > 4.0 * floor && win[w - 1] < 8.0 * med {
+                med
+            } else {
+                0.0
+            }
+        })
+        .collect();
+    let near = ((5e3 / bin_hz).round() as usize).max(1);
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < level.len() {
+        if level[i] == 0.0 {
+            i += 1;
+            continue;
+        }
+        let mut j = i;
+        let mut top = (0.0f32, i);
+        while j < level.len() && level[j] > 0.0 {
+            if level[j] > top.0 {
+                top = (level[j], j);
+            }
+            j += 1;
+        }
+        // The edges: where the power falls to a quarter of the block's level.
+        let inside = |b: usize| power[b] > 0.25 * top.0;
+        let (mut lo, mut hi) = (top.1, top.1 + w - 1);
+        while lo < hi && !inside(lo) {
+            lo += 1;
+        }
+        while hi > lo && !inside(hi) {
+            hi -= 1;
+        }
+        while lo > 0 && inside(lo - 1) {
+            lo -= 1;
+        }
+        while hi + 1 < m && inside(hi + 1) {
+            hi += 1;
+        }
+        let width = (hi - lo + 1) as f64 * bin_hz;
+        let peak = power[lo..=hi].iter().fold(0.0f32, |a, &b| a.max(b));
+        if width <= 25e3 && peak < 8.0 * top.0 {
+            let beside = power[lo.saturating_sub(near)..lo]
+                .iter()
+                .chain(&power[hi + 1..(hi + 1 + near).min(m)])
+                .fold(0.0f32, |a, &b| a.max(b));
+            let flat = (top.0 / peak.max(top.0)).powi(2);
+            let rank = top.0 / floor * flat * if beside > 8.0 * top.0 { 0.01 } else { 1.0 };
+            let centre_hz = ((lo + hi + 1) as f64 / 2.0 - m as f64 / 2.0) * bin_hz;
+            out.push(Block { centre_hz, rank });
+        }
+        i = j.max(hi + 1);
+    }
+    out.sort_by(|a, b| b.rank.total_cmp(&a.rank));
+    out
+}
+
+impl Lanes {
+    /// The front end that reads the tracker's FAC state from `locked`.
+    pub fn with_lock(locked: Arc<AtomicBool>) -> Lanes {
         Lanes {
             r48: None,
             r192: None,
@@ -303,35 +418,44 @@ impl Default for Lanes {
             nco192: None,
             scratch: Vec::new(),
             fft: None,
+            fft_len: 4096,
             acc: Vec::new(),
             frames: 0,
             fill: Vec::new(),
+            skip: 0,
+            locked,
+            waited: 0.0,
+            refused: Vec::new(),
         }
     }
-}
-
-const CENTRE_FFT: usize = 4096;
-
-impl Lanes {
     fn centring(&mut self, x: &[Complex32]) {
         // Only a rate wide enough to hold a channel beyond ±24 kHz is searched.
         if self.in_rate < 100e3 {
             return;
         }
-        for &s in x {
-            self.fill.push(s);
-            if self.fill.len() == CENTRE_FFT {
-                let fft = self.fft.get_or_insert_with(|| Fft::forward(CENTRE_FFT));
+        let n = self.fft_len;
+        let mut x = x;
+        while !x.is_empty() {
+            // One frame in `CENTRE_EVERY` is looked at.
+            let skip = self.skip.min(x.len());
+            self.skip -= skip;
+            x = &x[skip..];
+            let take = (n - self.fill.len()).min(x.len());
+            self.fill.extend_from_slice(&x[..take]);
+            x = &x[take..];
+            if self.fill.len() == n {
+                self.skip = (CENTRE_EVERY - 1) * n;
+                let fft = self.fft.get_or_insert_with(|| Fft::forward(n));
                 fft.process(&mut self.fill);
-                if self.acc.len() != CENTRE_FFT {
-                    self.acc = vec![0.0; CENTRE_FFT];
+                if self.acc.len() != n {
+                    self.acc = vec![0.0; n];
                 }
                 for (a, b) in self.acc.iter_mut().zip(&self.fill) {
                     *a += b.norm_sqr();
                 }
                 self.fill.clear();
                 self.frames += 1;
-                if self.frames == 32 {
+                if self.frames == CENTRE_FRAMES {
                     self.decide();
                     self.frames = 0;
                     self.acc.iter_mut().for_each(|a| *a = 0.0);
@@ -339,40 +463,62 @@ impl Lanes {
             }
         }
     }
+    /// Looks at the spectrum of the last frames. The lane stays where the tracker decodes a FAC, and where a filled
+    /// block is in its reach and has had less than `TRY_S` to give one. Otherwise it moves to the best block out of reach
+    /// that is not refused, and a centre that gave no FAC is refused for `REFUSE_S`.
     fn decide(&mut self) {
-        let n = CENTRE_FFT;
-        let bin = self.in_rate / n as f64;
-        let w = ((10e3 / bin).round() as usize).max(3);
-        let mut sorted = self.acc.clone();
-        sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-        let median = sorted[n / 2].max(1e-30);
-        // The 10 kHz window of most energy (DC bins excluded).
-        let mut best = (0.0f32, 0i64);
-        let mut run = 0.0f32;
-        let shifted: Vec<f32> = (0..n).map(|i| self.acc[(i + n / 2) % n]).collect();
-        for i in 0..n {
-            run += shifted[i];
-            if i >= w {
-                run -= shifted[i - w];
-            }
-            if i + 1 >= w {
-                let centre = i as i64 + 1 - w as i64 / 2 - 1 - n as i64 / 2;
-                if run > best.0 {
-                    best = (run, centre);
-                }
-            }
+        let n = self.fft_len;
+        let dt = (CENTRE_FRAMES * CENTRE_EVERY * n) as f64 / self.in_rate;
+        self.refused.retain_mut(|r| {
+            r.1 -= dt;
+            r.1 > 0.0
+        });
+        if self.locked.load(Ordering::Relaxed) {
+            self.waited = 0.0;
+            return;
         }
-        // The search sees the input as it comes (centred on the radio's centre); the lane is centred on the tuned frequency plus
-        // the shift.
-        let f = best.1 as f64 * bin;
-        let dense = best.0 / w as f32 / median;
-        if dense > 10.0 && (f - self.offset - self.shift).abs() > 24e3 {
-            self.shift = f - self.offset;
-            let mix = -(self.offset + self.shift);
-            match &mut self.nco {
-                Some(o) => o.set_freq(mix),
-                None => self.nco = Some(sdrkit_algo_dsp::nco::Nco::new(self.in_rate, mix)),
-            }
+        self.waited += dt;
+        // The spectrum from the lowest frequency up, in bins of about 500 Hz.
+        let per = ((CENTRE_BIN_HZ * n as f64 / self.in_rate).floor() as usize).max(1);
+        let bin = self.in_rate / n as f64 * per as f64;
+        // The bin at the centre of the sample band holds the radio's own DC offset: it takes the mean of its neighbours.
+        self.acc[0] = 0.5 * (self.acc[1] + self.acc[n - 1]);
+        let power: Vec<f32> = (0..n / per)
+            .map(|b| {
+                (0..per)
+                    .map(|i| self.acc[(b * per + i + n / 2) % n])
+                    .sum::<f32>()
+            })
+            .collect();
+        // The search sees the input as it comes (centred on the radio's centre); the lane is centred on the tuned frequency
+        // plus the shift.
+        let here = self.offset + self.shift;
+        let blocks = filled_blocks(&power, bin);
+        let in_reach = blocks
+            .iter()
+            .any(|b| (b.centre_hz - here).abs() <= REACH_HZ);
+        if in_reach && self.waited < TRY_S {
+            return;
+        }
+        let next = blocks.iter().find(|b| {
+            (b.centre_hz - here).abs() > REACH_HZ
+                && !self
+                    .refused
+                    .iter()
+                    .any(|r| (r.0 - b.centre_hz).abs() <= REACH_HZ)
+        });
+        let Some(next) = next else {
+            return;
+        };
+        if in_reach {
+            self.refused.push((here, REFUSE_S));
+        }
+        self.shift = next.centre_hz - self.offset;
+        self.waited = 0.0;
+        let mix = -(self.offset + self.shift);
+        match &mut self.nco {
+            Some(o) => o.set_freq(mix),
+            None => self.nco = Some(sdrkit_algo_dsp::nco::Nco::new(self.in_rate, mix)),
         }
     }
     /// The shift the centring applied, Hz.
@@ -405,7 +551,16 @@ impl Component for Lanes {
         self.shift = 0.0;
         self.frames = 0;
         self.fill.clear();
+        self.skip = 0;
         self.acc.clear();
+        self.waited = 0.0;
+        self.refused.clear();
+        let want = (f.rate / CENTRE_BIN_HZ).ceil() as usize;
+        let len = want.next_power_of_two().clamp(4096, 65536);
+        if len != self.fft_len {
+            self.fft_len = len;
+            self.fft = None;
+        }
         self.nco =
             (self.offset != 0.0).then(|| sdrkit_algo_dsp::nco::Nco::new(f.rate, -self.offset));
         self.nco192 =
@@ -508,10 +663,19 @@ pub struct DrmOfdm {
     fades: u64,
     resyncs: u64,
     results: Results,
+    /// True while the FAC decodes: the front end then keeps its centre.
+    locked: Arc<AtomicBool>,
 }
 
 impl Default for DrmOfdm {
     fn default() -> Self {
+        DrmOfdm::with_lock(Arc::new(AtomicBool::new(false)))
+    }
+}
+
+impl DrmOfdm {
+    /// The tracker that tells the front end through `locked` whether the FAC decodes.
+    pub fn with_lock(locked: Arc<AtomicBool>) -> DrmOfdm {
         let lanes = Robustness::ALL
             .iter()
             .map(|&m| {
@@ -536,12 +700,11 @@ impl Default for DrmOfdm {
             fades: 0,
             resyncs: 0,
             results: Results::default(),
+            locked,
         }
     }
-}
-
-impl DrmOfdm {
     fn restart(&mut self, why: &str, block: bool) {
+        self.locked.store(false, Ordering::Relaxed);
         if let Some(a) = self.active {
             if block {
                 self.lanes[a].demod.block_current(6.0);
@@ -580,6 +743,7 @@ impl Component for DrmOfdm {
         self.active = None;
         self.frames_since_lock = 0;
         self.fac_ever = false;
+        self.locked.store(false, Ordering::Relaxed);
         Ok(vec![Format::new(Kind::typed::<DrmCells>(), 0.0)])
     }
     fn process(&mut self, io: &mut Io) {
@@ -640,6 +804,7 @@ impl Component for DrmOfdm {
                     Some(_) => {
                         self.fac_ever = true;
                         self.fac_fail_run = 0;
+                        self.locked.store(true, Ordering::Relaxed);
                     }
                     None => self.fac_fail_run += 1,
                 }
@@ -680,6 +845,7 @@ impl Component for DrmOfdm {
         self.active = None;
         self.frames_since_lock = 0;
         self.fac_ever = false;
+        self.locked.store(false, Ordering::Relaxed);
         self.holding = false;
         self.fades = 0;
         self.resyncs = 0;
@@ -699,6 +865,7 @@ impl Component for DrmOfdm {
                 self.active = None;
                 self.frames_since_lock = 0;
                 self.fac_ever = false;
+                self.locked.store(false, Ordering::Relaxed);
                 self.holding = false;
             }
         }
@@ -1149,6 +1316,9 @@ pub fn audio_specific_config(a: &AudioInfo) -> Vec<u8> {
     out
 }
 
+/// What the status and the audio text say of an xHE-AAC service.
+pub const XHE_NOT_DECODED: &str = "xHE-AAC audio is not decoded";
+
 /// The codec text of a service ("AAC, 24 kHz, mono").
 pub fn codec_text(a: &AudioInfo) -> String {
     let khz = a.sample_rate() as f64 / 1000.0;
@@ -1297,6 +1467,11 @@ impl Component for DrmAudio {
                         bad: self.text.bad,
                     });
                 }
+            }
+            // An xHE-AAC stream (SDC type 9, audio coding 3) has its own super frame and needs a USAC decoder. Neither is
+            // here: no frame is cut from it and none goes to the host. The report says that the audio is not decoded.
+            if a.coding == 3 {
+                continue;
             }
             let nf = audio_frames(lf.mode);
             let sf: Option<Vec<u8>> = if lf.mode == Robustness::E {
@@ -1746,6 +1921,8 @@ struct DrmState {
     fades: u64,
     resyncs: u64,
     audio_info: String,
+    /// The service playing has xHE-AAC audio.
+    xhe: bool,
     text: String,
     text_good: u64,
     text_bad: u64,
@@ -2077,11 +2254,11 @@ impl DrmReport {
             Some(p) => d.services.iter().find(|s| s.short_id == p),
             None => d.services.iter().find(|s| s.audio),
         };
+        d.xhe = playing.is_some_and(|s| s.codec.starts_with("xHE"));
         d.audio_info = match playing {
-            Some(s) if s.codec.starts_with("xHE") => format!(
-                "{} (xHE-AAC decoder not available. Most DRM stations (AAC) play without it.)",
-                s.codec
-            ),
+            Some(s) if s.codec.starts_with("xHE") => {
+                format!("{}: {XHE_NOT_DECODED}", s.codec)
+            }
             Some(s) if !s.codec.is_empty() => format!("{}; sound is decoded by the host", s.codec),
             _ => "no audio stream".into(),
         };
@@ -2101,6 +2278,9 @@ impl DrmReport {
             ),
             _ => write!(d.summary, "decoding mode {letter}, {} kHz", d.bandwidth_khz),
         };
+        if d.state == 2 && d.xhe {
+            let _ = write!(d.summary, "; {XHE_NOT_DECODED}");
+        }
         if d.state != self.state_logged {
             let line = d.summary.clone();
             self.published.results_mut().log(line);
@@ -2142,7 +2322,7 @@ impl DrmReport {
             audio_bad: d.audio_bad as i64,
             fades: d.fades as i64,
             resyncs: d.resyncs as i64,
-            audio_state: if d.audio_good + d.audio_bad == 0 {
+            audio_state: if d.audio_good + d.audio_bad == 0 && !(d.xhe && d.state == 2) {
                 res::AudioState::NoAudioStream
             } else {
                 res::AudioState::NoDecoder
@@ -2518,9 +2698,10 @@ pub fn services_text(code: u8) -> String {
 ///
 /// [`GraphError`] if the graph does not build: a fault of this crate, never of the input.
 pub fn graph(catalog: &Arc<Catalog>) -> Result<Graph, GraphError> {
+    let locked = Arc::new(AtomicBool::new(false));
     GraphBuilder::new()
-        .add("lanes", Lanes::default())
-        .add("ofdm", DrmOfdm::default())
+        .add("lanes", Lanes::with_lock(Arc::clone(&locked)))
+        .add("ofdm", DrmOfdm::with_lock(locked))
         .add("decoder", DrmDecoder::default())
         .add("audio", DrmAudio::default())
         .add("packets", DrmPackets::default())

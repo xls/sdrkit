@@ -36,7 +36,7 @@ fn each_country_uses_its_own_plans() {
         assert_eq!(tv(cc).as_deref(), Some(id), "{cc}");
     }
     assert_eq!(d.plan_ids_of(PlanKind::Tv, "AU").len(), 1);
-    assert_eq!(first(&d, PlanKind::Dab, "AU").as_deref(), Some("dab_band3"));
+    assert_eq!(first(&d, PlanKind::Dab, "AU").as_deref(), Some("dab_au"));
     assert_eq!(first(&d, PlanKind::Dab, "US"), None);
     assert_eq!(first(&d, PlanKind::Dab, "NZ"), None);
     assert_eq!(first(&d, PlanKind::Fm, "NZ").as_deref(), Some("fm_nz"));

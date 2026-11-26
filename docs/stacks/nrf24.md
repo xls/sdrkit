@@ -183,7 +183,3 @@ sdrkit run nrf24 --source synth:nrf24
 sdrkit run nrf24 --source iiod:192.168.2.1 --freq 2402
 ```
 <!-- generated: end -->
-
-## Settings: notes
-
-Advanced settings. The owner works without any of them set.

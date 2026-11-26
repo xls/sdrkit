@@ -704,6 +704,7 @@ impl Decoder for AdvDecoder {
             channel: self.hint(),
             level_dbfs: self.level.take_dbfs(),
             capture: self.capture,
+            centre_known: self.centre_hz > 0.0,
             trains: self.trains.len() as u32,
             connections: self.conns.len() as u32,
         };

@@ -26,7 +26,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:es
 | `channel` | Channel | whole number | 1 | 1 to 14 | A 2.4 GHz Wi-Fi channel: the host tunes to it. |
 | `hop` | Hop | yes or no | false |  | Asks the host to step through the channels of the hop list. |
 | `dwell_ms` | Dwell | number (ms) | 300 | 100 to 5000 |  |
-| `channels_24` | 2.4 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band. |
+| `channels_24` | 2.4 GHz channels | text | empty |  | Channel numbers apart by spaces or commas ("1 6 11"). Empty: every channel of the band; on 2.4 GHz channels 1 to 11, which every region permits. |
 | `keys` | Keys | text | empty |  | 16-byte keys, 32 hex digits each, apart by spaces or commas. Each is tried as the CCMP key of a protected frame. |
 
 Settings of the test signal generator. They change the signal of the `synth:` source of the stack.
@@ -95,7 +95,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.5. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.6. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 

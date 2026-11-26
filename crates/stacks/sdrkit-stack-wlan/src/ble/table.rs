@@ -755,6 +755,7 @@ impl DeviceTable {
         let (hits, bad) = self.counters_since_clear();
         let active = c.last_good_s.is_some_and(|l| now - l <= ACTIVE_S);
         let channel = self.stats.channel;
+        let quiet = self.stats.quiet_reason();
         let st = &mut self.status;
         st.lock_state = if active {
             LockState::Locked
@@ -766,7 +767,9 @@ impl DeviceTable {
         st.offset_hz = c.last_good_s.map(|_| c.offset_hz);
         st.summary.clear();
         // Writing to a String cannot fail.
-        let _ = if c.good > 0 {
+        let _ = if let Some(q) = quiet {
+            write!(st.summary, "{q}")
+        } else if c.good > 0 {
             write!(
                 st.summary,
                 "{} devices, {} packets",
@@ -811,6 +814,7 @@ impl DeviceTable {
             periodic_trains: i64::from(self.stats.trains),
             connections_followed: i64::from(self.stats.connections),
             connection_packets: c.conn_packets as i64,
+            quiet_reason: quiet,
         });
         for &(name, n) in &per_type {
             BLE_PDU_TYPES.put(

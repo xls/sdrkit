@@ -580,6 +580,9 @@ sdrkit_core::settings! {
 /// The timing loop's noise bandwidth, per frame.
 const TIMING_BN_T: f64 = 0.02;
 
+/// PN595: taps to each side of the centre of the paths that the timing measure weighs.
+const CLUSTER_HALF: f64 = 5.0;
+
 /// Steps of the timing loop after which it counts as settled.
 const SETTLE_STEPS: u32 = 50;
 
@@ -684,6 +687,8 @@ pub struct Track {
     ifft: Fft,
     timing: LoopFilter,
     t_prev: Option<f64>,
+    /// PN595: the centre of the group of paths at the last header, as a tap index of the fit.
+    cluster: Option<f64>,
     t_acc: f64,
     t_ref: f64,
     d_prev: f64,
@@ -758,6 +763,7 @@ impl Track {
             ifft: Fft::inverse(255),
             timing: Self::timing_loop(),
             t_prev: None,
+            cluster: None,
             t_acc: 0.0,
             t_ref: 0.0,
             d_prev: 0.0,
@@ -879,6 +885,7 @@ impl Track {
         self.rotating_votes = 0;
         self.timing = Self::timing_loop();
         self.t_prev = None;
+        self.cluster = None;
         self.t_acc = 0.0;
         self.steps = 0;
         self.since_step = 0;
@@ -1022,6 +1029,38 @@ impl Track {
         lag as f64 + parabola
     }
 
+    /// PN595: the delay of the group of paths about the strongest lag `lag` of the last fit, symbols: the centre of the tap
+    /// powers over the noise under a raised-cosine window `CLUSTER_HALF` taps to each side, the window moved onto the centre
+    /// it finds. It starts from the centre of the last header while that is within two taps of `lag`. A received pulse
+    /// that is several taps wide and flat has no one strongest tap: its peak hops between taps from header to header, while
+    /// this centre moves with the clock only.
+    fn cluster_delay(&mut self, lag: usize) -> f64 {
+        let p = &self.fit_p;
+        let noise = self.fit_noise;
+        let mut c = match self.cluster {
+            Some(c) if (c - lag as f64).abs() <= 2.0 => c,
+            _ => lag as f64,
+        };
+        for _ in 0..4 {
+            let lo = (c - CLUSTER_HALF).ceil().max(0.0) as usize;
+            let hi = ((c + CLUSTER_HALF).floor() as usize).min(p.len().saturating_sub(1));
+            let (mut m0, mut m1) = (0f64, 0f64);
+            for (i, &v) in p.iter().enumerate().take(hi + 1).skip(lo) {
+                let d = i as f64 - c;
+                let w = 0.5 * (1.0 + (std::f64::consts::PI * d / CLUSTER_HALF).cos());
+                let e = w * (v - noise).max(0.0) as f64;
+                m0 += e;
+                m1 += e * d;
+            }
+            if m0 <= 0.0 {
+                break;
+            }
+            c += m1 / m0;
+        }
+        self.cluster = Some(c);
+        c
+    }
+
     /// PN595: the tap at index `j` of the last fit, and the carrier offset within the header at `at` from the phase step
     /// between the correlations of its two halves at that tap.
     fn pn595_carrier(&mut self, at: usize, h: Header, j: usize) -> Complex32 {
@@ -1109,6 +1148,7 @@ impl Track {
     /// The grid moved: the timing loop and the carrier phase start again from the new place and keep the clock they learnt.
     fn retime(&mut self) {
         self.t_prev = None;
+        self.cluster = None;
         self.ls_prev = None;
     }
 
@@ -1458,7 +1498,11 @@ impl Track {
                 st.echo_span_s = (hi - lo) / self.fsym;
                 st.frames += 1;
                 if next == hb {
-                    let delay = self.delay_at(lag, h != Header::Pn595);
+                    let delay = if h == Header::Pn595 {
+                        self.cluster_delay(lag)
+                    } else {
+                        self.delay_at(lag, true)
+                    };
                     let frac = Track::fraction(delay, lag, self.fit_p.len());
                     if let Some(ppm) = self.timing_step(frac, period, self.since_step + 1) {
                         self.since_step = 0;

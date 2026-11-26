@@ -996,3 +996,66 @@ fn a_tcp_stream_closes_and_opens_again_on_one_connection() {
     let cl = rig.hub.snapshot().clients;
     assert_eq!(cl.len(), 1, "one client all along");
 }
+
+impl Bare {
+    /// Sets the receive frequency to `hz`.
+    fn set_frequency(&mut self, hz: f64) {
+        let mut p = Packer::call(call::SET_FREQUENCY);
+        p.dir_ch(RX, 0).f64(hz).kwargs(&rpc::Kwargs::new());
+        self.ctl.call_void(&p, WAIT).unwrap();
+    }
+
+    /// The receive frequency that the server answers.
+    fn frequency(&mut self) -> f64 {
+        let mut p = Packer::call(call::GET_FREQUENCY);
+        p.dir_ch(RX, 0);
+        self.ctl.call(&p, WAIT, |u| u.f64()).unwrap()
+    }
+}
+
+/// A frequency read answers the centre of the stream that the client receives: the frequency set until the radio moves,
+/// then the centre where the radio really is, also when it differs from the one asked for.
+#[test]
+fn a_frequency_read_answers_the_real_centre_of_the_stream() {
+    let (rig, mut feeder) = rig(SampleType::Cs16);
+    let mut c = Bare::connect(&rig);
+    let bytes = vec![0u8; 4 * 1024];
+    let at = |hz: f64| Block {
+        centre_hz: hz,
+        ..block(SampleType::Cs16, 0)
+    };
+    assert_eq!(c.frequency(), CENTRE);
+    c.set_frequency(101e6);
+    assert_eq!(c.frequency(), 101e6, "the radio has not moved yet");
+    // The radio lands off the frequency asked for (an offset of the engine, a rounding of the radio).
+    feeder.push(&bytes, &at(101e6 + 250.0));
+    assert!(wait_for(|| c.frequency() == 101e6 + 250.0, 2.0));
+    // From now on a read follows the capture, not the frequency asked for.
+    feeder.push(&bytes, &at(CENTRE));
+    assert!(wait_for(|| c.frequency() == CENTRE, 2.0));
+}
+
+/// A client that tunes the radio and reads the frequency back at once gets the frequency set while the radio moves, and
+/// so does not take the old centre for a radio held elsewhere.
+#[test]
+fn a_second_tune_reads_back_as_set_while_the_radio_moves() {
+    let (rig, feeder) = rig(SampleType::Cs16);
+    let stop = Arc::new(AtomicBool::new(false));
+    let p = produce(
+        feeder,
+        SampleType::Cs16,
+        stop.clone(),
+        None,
+        Arc::new(AtomicU64::new(0)),
+    );
+    let (mut src, _r) = rig.open(&[("serverlog", Value::Bool(false))]);
+    let far = rig.values(&[
+        ("serverlog", Value::Bool(false)),
+        ("centre_hz", Value::Hz(CENTRE + 5e6)),
+    ]);
+    let e = src.apply(&far);
+    stop.store(true, Ordering::Relaxed);
+    p.join().unwrap();
+    assert!(e.is_ok(), "{e:?}");
+    src.stop();
+}

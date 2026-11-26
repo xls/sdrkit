@@ -17,9 +17,9 @@ Signal types: Z-Wave.
 |---|---|
 | Default frequency | 0 Hz |
 | Tuning range | 860 MHz to 930 MHz |
-| Sample rate | 2 MHz |
+| Sample rate | 2.4 MHz |
 | Smallest sample rate | 1 MHz |
-| Signal bandwidth | 1.8 MHz |
+| Signal bandwidth | 2.2 MHz |
 | Automatic gain | Radio AGC |
 
 ## Settings

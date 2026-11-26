@@ -94,6 +94,8 @@ pub struct TxConfig {
     pub text: bool,
     /// The data service.
     pub data: Option<DataConfig>,
+    /// The SDC names the audio as xHE-AAC (audio coding 3, 24 kHz). The stream bytes stay those of `audio`.
+    pub xhe: bool,
     /// Seed.
     pub seed: u64,
 }
@@ -116,6 +118,7 @@ impl TxConfig {
             audio: AudioKind::Melody,
             text: true,
             data: None,
+            xhe: false,
             seed: 1,
         }
     }
@@ -617,10 +620,10 @@ impl DrmTransmitter {
             Entity::Audio(AudioInfo {
                 short_id: 0,
                 stream: 0,
-                coding: 0,
+                coding: if self.cfg.xhe { 3 } else { 0 },
                 sbr: false,
                 mode: 2,
-                rate_code: 3,
+                rate_code: if self.cfg.xhe { 4 } else { 3 },
                 text: self.cfg.text,
                 ..Default::default()
             }),

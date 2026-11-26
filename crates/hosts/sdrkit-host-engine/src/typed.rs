@@ -155,8 +155,8 @@ pub fn object_families() -> &'static [Family] {
 fn session() -> Family {
     // The load tables are new in version 1.1 and the table of connections in 1.2: their paths are those that the shape
     // has with them and not without. The field media_lost is new in 1.3, the fields of the host audio input and the
-    // transmit power of a burst in 1.4.
-    Family::object("session", 1, 4)
+    // transmit power of a burst in 1.4, the count of lost events and the event that tells of a loss in 1.5.
+    Family::object("session", 1, 5)
         .stack(session_shape(0))
         .added_in(1, 1, |mut f| {
             f.stacks = vec![session_shape(1)];
@@ -176,6 +176,17 @@ fn session() -> Family {
                 "shape.SessionFields.session.audio_in_rate_hz",
                 "shape.SessionFields.session.audio_in_wanted",
                 "shape.TransmitEvent.tx_power_db",
+            ],
+        )
+        .added(
+            1,
+            5,
+            &[
+                "shape.SessionFields.session.events_lost",
+                "session.event.session.events_lost",
+                "shape.EventsLostEvent",
+                "shape.EventsLostEvent.lost",
+                "shape.EventsLostEvent.text",
             ],
         )
 }
@@ -226,6 +237,7 @@ fn session_shape(tables: u8) -> StackShape {
             ("session.samples", "The samples that the receiver was fed."),
             ("session.dropped", "The samples that the session lost: those that its queue or a stage could not take, and those that its driver lost in the gaps it marked. A gap made on purpose (a retune that flushes the radio, a step of a hop) is told to the stack and is not counted. The column `lost` of the table of connections shows the places."),
             ("session.events_unlisted", "The events of a type that the catalog of the engine does not list. They are dropped."),
+            ("session.events_lost", "The events lost because the host did not take them in time: the oldest go first. An event `session.events_lost` tells of each loss."),
             ("session.problem", "Why the receiver refused its input, or the last setting that it refused."),
             ("session.request_problem", "Why the engine refused the last request of the receiver."),
             ("session.audio_lost", "The audio samples lost because the host did not take them in time."),
@@ -276,6 +288,15 @@ fn session_shape(tables: u8) -> StackShape {
         &[
             ("attenuation", "The attenuation of the transmitter during the burst: the negative of `tx_power_db`."),
             ("tx_power_db", "The radio setting `tx_power` during the burst: the output power relative to the full output of the radio."),
+        ],
+    ));
+    s.events.push(event(
+        &crate::session::EVENTS_NOT_DELIVERED,
+        "EventsLostEvent",
+        &[],
+        &[
+            ("lost", "The events lost since the last take of the events: the oldest went first."),
+            ("text", "The loss for people to read: \"12 events were not delivered\"."),
         ],
     ));
     s

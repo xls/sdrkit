@@ -13,7 +13,7 @@ use crate::transmit::{TxReport, TxSide, TX_FAILED, TX_LAST, TX_SENT};
 use sdrkit_core::publish::{field, keys};
 use sdrkit_core::{CommandError, CommandId, ConfigError};
 use sdrkit_core::{
-    Commands, Elementary, Event, EventCatalog, Field, HostRequest, InputInfo, Operator, Output,
+    Commands, Elementary, Event, EventCatalog, EventDef, Field, HostRequest, InputInfo, Operator, Output,
     Owner, Packet, Receiver, Record, Results, ResultsDecl, Schema, Setting, SettingError,
     SettingId, SettingSet, StackDescriptor, StreamKind, TableOperator, Value, Values,
 };
@@ -103,6 +103,20 @@ pub const DROPPED: Field<field::I64> = Field::new("session.dropped", "Dropped", 
 /// Events whose kind the engine's catalog does not list. They are dropped.
 pub const UNLISTED: Field<field::I64> =
     Field::new("session.events_unlisted", "Unlisted events", "");
+/// Events lost because the host did not take them in time: the oldest go first. Each loss is told by one
+/// [`EVENTS_NOT_DELIVERED`] event.
+pub const EVENTS_LOST: Field<field::I64> =
+    Field::new("session.events_lost", "Events lost", "");
+/// The events that one [`EVENTS_NOT_DELIVERED`] event tells of.
+pub const NOT_DELIVERED: Field<field::I64> = Field::new("lost", "Events lost", "");
+
+/// Events of the session were lost because the host did not take them in time. It comes after the events that were
+/// kept, once for each take of the events that follows a loss. Its text says how many: "12 events were not delivered".
+pub static EVENTS_NOT_DELIVERED: EventDef = EventDef::new(
+    "session.events_lost",
+    "Events not delivered",
+    &[&NOT_DELIVERED, &keys::TEXT],
+);
 /// Why the receiver refused its input, or the last setting it refused.
 pub const PROBLEM: Field<field::Text> = Field::new("session.problem", "Problem", "");
 /// Why the engine refused the last request of the session's receiver.
@@ -307,11 +321,12 @@ pub static STAGES: sdrkit_core::TableDef = sdrkit_core::TableDef {
 };
 
 /// The result fields of every session, after those of its receiver.
-pub(crate) const OWN_FIELDS: [&dyn sdrkit_core::Declare; 29] = [
+pub(crate) const OWN_FIELDS: [&dyn sdrkit_core::Declare; 30] = [
     &STATE,
     &SAMPLES,
     &DROPPED,
     &UNLISTED,
+    &EVENTS_LOST,
     &PROBLEM,
     &REQUEST_PROBLEM,
     &AUDIO_LOST,
@@ -583,7 +598,11 @@ impl Run {
             self.problem_at = self.problem_seq;
             self.problem = match (&self.failure, &self.refused) {
                 (Some(e), _) => Some(e.to_string()),
-                (None, Some(e)) => Some(e.to_string()),
+                (None, Some(e)) => Some(sdrkit_core::owner::setting_error_text(
+                    self.rx.schema(),
+                    "setting",
+                    e,
+                )),
                 (None, None) => None,
             };
         }
@@ -860,6 +879,9 @@ pub(crate) struct Link {
     fresh: Mutex<Fresh>,
     samples: AtomicU64,
     pub(crate) dropped: Arc<AtomicU64>,
+    /// The events lost on the way to the host, and those of them that no [`EVENTS_NOT_DELIVERED`] event has told of yet.
+    events_lost: AtomicU64,
+    events_untold: AtomicU64,
     /// The traffic of the queue of blocks.
     pub(crate) queue: Arc<crate::feed::QueueMeter>,
     stop: AtomicBool,
@@ -979,8 +1001,8 @@ impl Link {
     }
 
     /// Moves `events` and `requests` of the session thread to where the control thread takes them. The oldest events go
-    /// first when more than [`EVENT_CAP`] wait. If the control thread takes them at this moment and `wait` is false,
-    /// they stay for the next call.
+    /// first when more than [`EVENT_CAP`] wait, and are counted as lost. If the control thread takes them at this moment
+    /// and `wait` is false, they stay for the next call.
     fn offer(&self, events: &mut Vec<Event>, requests: &mut Vec<HostRequest>, wait: bool) {
         if events.is_empty() && requests.is_empty() {
             return;
@@ -994,6 +1016,7 @@ impl Link {
                 Err(std::sync::TryLockError::WouldBlock) => {
                     let over = events.len().saturating_sub(EVENT_CAP);
                     events.drain(..over);
+                    self.lost_events(over);
                     return;
                 }
             }
@@ -1002,8 +1025,18 @@ impl Link {
         let held = over.min(f.events.len());
         f.events.drain(..held);
         events.drain(..over - held);
+        self.lost_events(over);
         f.events.append(events);
         f.requests.append(requests);
+    }
+
+    /// Counts `n` events as lost.
+    fn lost_events(&self, n: usize) {
+        if n > 0 {
+            let n = n as u64;
+            self.events_lost.fetch_add(n, Ordering::Relaxed);
+            self.events_untold.fetch_add(n, Ordering::Relaxed);
+        }
     }
 
     /// Moves the events and requests that came from the session thread since the last call into `events` and `requests`.
@@ -1305,6 +1338,8 @@ impl Session {
             fresh: Mutex::default(),
             samples: AtomicU64::new(0),
             dropped: Arc::new(AtomicU64::new(0)),
+            events_lost: AtomicU64::new(0),
+            events_untold: AtomicU64::new(0),
             queue: Arc::default(),
             stop: AtomicBool::new(false),
             demand: Arc::new(Demand::default()),
@@ -1499,19 +1534,41 @@ impl SessionControl {
         }
     }
 
-    /// Moves the session's events into `out`.
-    pub(crate) fn take_events(&mut self, out: &mut Vec<Event>) {
+    /// Moves the session's events into `out`. If events were lost since the last call, one [`EVENTS_NOT_DELIVERED`]
+    /// event of `catalog` follows them and says how many.
+    pub(crate) fn take_events(&mut self, out: &mut Vec<Event>, catalog: &EventCatalog) {
+        let (time, freq_hz) = self.events.back().map_or((0.0, 0.0), |e| (e.time, e.freq_hz));
         out.extend(self.events.drain(..));
+        let lost = self.link.events_untold.swap(0, Ordering::Relaxed);
+        if lost > 0 {
+            let lost_n = i64::try_from(lost).unwrap_or(i64::MAX);
+            let text = if lost == 1 {
+                "1 event was not delivered".to_owned()
+            } else {
+                format!("{lost} events were not delivered")
+            };
+            let mut e = EVENTS_NOT_DELIVERED
+                .event(time, freq_hz)
+                .set(&NOT_DELIVERED, lost_n)
+                .set(&keys::TEXT, text.as_str());
+            if catalog.stamp(&mut e).is_some() {
+                out.push(e);
+            }
+        }
     }
 
-    /// Passes `events` to the host, after the services saw them. The oldest go first when the queue is full.
+    /// Passes `events` to the host, after the services saw them. The oldest go first when the queue is full, and are
+    /// counted as lost.
     pub(crate) fn pass_on(&mut self, events: &mut Vec<Event>) {
+        let mut lost = 0;
         for e in events.drain(..) {
             if self.events.len() == EVENT_CAP {
                 self.events.pop_front();
+                lost += 1;
             }
             self.events.push_back(e);
         }
+        self.link.lost_events(lost);
     }
 
     /// Clears the refusal of the last request of the receiver: the engine carried out the request that followed it.
@@ -1642,6 +1699,8 @@ impl SessionControl {
         let dropped = dropped + run.load.gap_samples;
         f.set(&DROPPED, i64::try_from(dropped).unwrap_or(i64::MAX));
         f.set(&UNLISTED, i64::try_from(run.unlisted).unwrap_or(i64::MAX));
+        let lost = self.link.events_lost.load(Ordering::Relaxed);
+        f.set(&EVENTS_LOST, i64::try_from(lost).unwrap_or(i64::MAX));
         f.set(&RETUNES, i64::try_from(run.retunes).unwrap_or(i64::MAX));
         let load = &run.load;
         if load.seq > 0 {

@@ -870,3 +870,43 @@ fn a_broadcast_source_shows_its_name_codec_and_encryption() {
         assert_eq!(cnum(b, &B::ISO_INTERVAL_MS), 10.0);
     }
 }
+
+/// A capture without channel 37, 38 or 39 says so in its result and its status line; the text goes when channel 37 is
+/// inside, and a recording without a centre never shows it.
+#[test]
+fn a_capture_without_an_advertising_channel_says_so() {
+    let rate = 12e6;
+    let quiet = vec![Complex32::default(); (0.3 * rate) as usize];
+    let reason = |res: &Results| match value(res, "quiet_reason") {
+        Some(Value::Text(t)) => Some(t.clone()),
+        _ => None,
+    };
+    let ble_rx: Box<dyn Fn() -> Box<dyn Receiver>> = Box::new(|| Box::new(rx(&[])));
+    let tracker_rx: Box<dyn Fn() -> Box<dyn Receiver>> = Box::new(|| {
+        Box::new(
+            sdrkit_stack_wlan::tracker::receiver(&config(
+                sdrkit_stack_wlan::tracker::TrackerSetting::schema(),
+                &[],
+            ))
+            .unwrap(),
+        )
+    });
+    for make in [ble_rx, tracker_rx] {
+        let mut r = make();
+        r.configure(&InputInfo::new(rate, 2407e6, 2407e6)).unwrap();
+        feed(r.as_mut(), &quiet, 65536);
+        let res = r.results();
+        assert_eq!(reason(res).as_deref(), Some(ble::NO_ADVERTISING_CHANNEL));
+        assert_eq!(res.status().summary, ble::NO_ADVERTISING_CHANNEL);
+        r.configure(&InputInfo::new(rate, 2404e6, 2402e6)).unwrap();
+        feed(r.as_mut(), &quiet, 65536);
+        let res = r.results();
+        assert_eq!(reason(res), None);
+        assert_ne!(res.status().summary, ble::NO_ADVERTISING_CHANNEL);
+        let mut r = make();
+        r.configure(&InputInfo::new(rate, 0.0, 0.0).recording())
+            .unwrap();
+        feed(r.as_mut(), &quiet, 65536);
+        assert_eq!(reason(r.results()), None);
+    }
+}

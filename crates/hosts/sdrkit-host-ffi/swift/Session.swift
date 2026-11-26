@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the settings that every session has, version 1.4. MIT licence.
+// sdrkit: the typed interface of the settings that every session has, version 1.5. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum SessionInterface {
     public static let major = 1
-    public static let minor = 4
+    public static let minor = 5
 }
 
 /// The state and the counts of a session.
@@ -25,6 +25,8 @@ public struct SessionFields {
     public var dropped: Int64
     /// The events of a type that the catalog of the engine does not list. They are dropped.
     public var eventsUnlisted: Int64
+    /// The events lost because the host did not take them in time: the oldest go first. An event `session.events_lost` tells of each loss.
+    public var eventsLost: Int64
     /// Why the receiver refused its input, or the last setting that it refused.
     public var problem: String?
     /// Why the engine refused the last request of the receiver.
@@ -81,6 +83,7 @@ public struct SessionFields {
         samples = c.samples
         dropped = c.dropped
         eventsUnlisted = c.events_unlisted
+        eventsLost = c.events_lost
         problem = c.has_problem ? sdrkitText(c.problem) : nil
         requestProblem = c.has_request_problem ? sdrkitText(c.request_problem) : nil
         audioLost = c.audio_lost
@@ -325,6 +328,32 @@ public struct SessionTransmitEvent {
         var c = sdrkit_session_transmit_event()
         let code = sdrkit_session_transmit_event_read(handle, n, &c)
         return code == SDRKIT_OK ? .success(SessionTransmitEvent(c)) : .failure(SDRKitCode(code: code))
+    }
+}
+
+/// Events not delivered.
+public struct SessionEventsLostEvent {
+    /// Seconds since the object started, in the time of the signal.
+    public var time: Double
+    /// The frequency of the signal in Hz.
+    public var freqHz: Double
+    /// The events lost since the last take of the events: the oldest went first.
+    public var lost: Int64
+    /// The loss for people to read: "12 events were not delivered".
+    public var text: String
+
+    init(_ c: sdrkit_session_events_lost_event) {
+        time = c.time
+        freqHz = c.freq_hz
+        lost = c.lost
+        text = sdrkitText(c.text)
+    }
+
+    /// Event `n` of the last take on `handle`, or the code of the error.
+    public static func read(_ handle: SDRKIT_HANDLE, _ n: UInt32) -> Result<SessionEventsLostEvent, SDRKitCode> {
+        var c = sdrkit_session_events_lost_event()
+        let code = sdrkit_session_events_lost_event_read(handle, n, &c)
+        return code == SDRKIT_OK ? .success(SessionEventsLostEvent(c)) : .failure(SDRKitCode(code: code))
     }
 }
 

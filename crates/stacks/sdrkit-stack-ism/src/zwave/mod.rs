@@ -56,6 +56,8 @@ use std::sync::Arc;
 
 /// The least sample rate of the stack.
 pub const MIN_RATE_HZ: f64 = 1e6;
+/// The sample rate the stack asks for: it holds channels up to about 1.7 MHz apart with the width of their signals.
+pub const RATE_HZ: f64 = 2.4e6;
 /// Frames kept in the log.
 pub const FRAMES_CAP: usize = 600;
 /// Networks kept.
@@ -254,7 +256,8 @@ impl GroupChain {
             } else {
                 self.below = 0;
             }
-            if self.below >= 160 || self.buf.len() as f64 > 0.25 * self.rate {
+            let capped = self.buf.len() as f64 > 0.25 * self.rate;
+            if self.below >= 160 || capped {
                 self.open = false;
                 // The open part (after the pre-roll, before the quiet tail) must hold a signal on average: noise opens
                 // bursts at the lower gates but does not keep their mean up.
@@ -273,6 +276,11 @@ impl GroupChain {
                         noise: self.start_noise,
                         time: self.t0,
                     });
+                }
+                // No frame lasts as long as the cap: the level rose and stays up (a gain step, a steady carrier), so it is the
+                // new floor.
+                if capped {
+                    self.nz = self.nz.max(mean);
                 }
                 self.buf.clear();
             }
@@ -441,7 +449,8 @@ impl Item for ZwFrame {
 pub enum ZwOutcome {
     /// A frame.
     Frame(ZwFrame),
-    /// A burst with a plausible start of frame and length but no check passing, at these rates, on this group frequency.
+    /// A burst with a preamble, a start of frame and a plausible length but no check passing, at these rates, on this group
+    /// frequency.
     FailedCheck(Vec<u8>, f64),
     /// Nothing.
     Burst,
@@ -566,9 +575,16 @@ fn tone_chip_values(
     true
 }
 
+/// The preamble bits (alternating) that must come just before a start of frame. G.9959 sends 80 at R1 and R2 and 192 at R3;
+/// noise often holds a short alternating run, a run this long almost never.
+const PREAMBLE_BITS: usize = 32;
+/// The neighbouring preamble bits that may be equal (bit errors) among [`PREAMBLE_BITS`].
+const PREAMBLE_ERRORS: usize = 2;
+
 /// A frame from chip values `avg` (Hz, positive for the upper tone) of a burst whose preamble starts at sample `from`, at rate
-/// `r` with `spc` samples a chip: the chip phase from the preamble, a Gardner timing tracker, both polarities, the start of
-/// frame and the checks. Sets `plausible` when a start of frame and length fit but no check passes.
+/// `r` with `spc` samples a chip: the chip phase from the preamble, a Gardner timing tracker, both polarities, the preamble,
+/// the start of frame and the checks. Sets `plausible` when a preamble, a start of frame and a length fit but no check
+/// passes.
 fn chips_to_frame(
     avg: &[f32],
     from: usize,
@@ -629,13 +645,15 @@ fn chips_to_frame(
             _ => &[0xF0],
         };
         for bits in streams {
-            for i in 12..bits.len().saturating_sub(8) {
+            for i in PREAMBLE_BITS..bits.len().saturating_sub(8) {
                 let v = bits[i..i + 8].iter().fold(0u8, |a, &x| (a << 1) | x);
                 if !sofs.contains(&v) {
                     continue;
                 }
-                let non_alt = (i - 11..i - 1).filter(|&k| bits[k] == bits[k + 1]).count();
-                if non_alt > 1 {
+                let non_alt = (i - PREAMBLE_BITS..i - 1)
+                    .filter(|&k| bits[k] == bits[k + 1])
+                    .count();
+                if non_alt > PREAMBLE_ERRORS {
                     continue;
                 }
                 let start = i + 8;
@@ -1731,7 +1749,7 @@ pub static ZWAVE: StackDescriptor = StackDescriptor {
     name: "Z-Wave",
     group: "IoT, sub-GHz",
     blurb: "Z-Wave home automation (ITU-T G.9959, R1 R2 R3): networks, nodes and commands; Security S0 and S2 payloads shown as encrypted.",
-    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 860e6, max_hz: 930e6, no_offset_tuning: true, ..Tuning::anywhere(0.0, 2e6, MIN_RATE_HZ, 1.8e6) },
+    tuning: Tuning { kind: Some(sdrkit_core::TuningKind::Channels), min_hz: 860e6, max_hz: 930e6, no_offset_tuning: true, ..Tuning::anywhere(0.0, RATE_HZ, MIN_RATE_HZ, 2.2e6) },
     submodes: &[],
     settings: ZwaveSetting::schema,
     make_receiver,

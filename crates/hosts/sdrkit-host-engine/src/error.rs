@@ -355,10 +355,12 @@ pub enum ImportError {
         error: ValuesError,
     },
     /// The owner refused a value that its schema accepted.
-    #[error("{owner}: {error}")]
+    #[error("{owner}: {text}")]
     Apply {
         /// The owner key.
         owner: String,
+        /// The sentence that names the setting by its label.
+        text: String,
         /// What was refused.
         error: SettingError,
     },

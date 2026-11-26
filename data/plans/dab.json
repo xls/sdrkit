@@ -202,6 +202,63 @@
       ]
     },
     {
+      "id": "dab_au",
+      "name": "DAB+ Australia (9A-9C, then 8B-9D)",
+      "kind": "dab",
+      "source": {
+        "publisher": "ACMA",
+        "title": "Radio and Television Broadcasting Stations, Internet Edition, General information",
+        "date": "2026-07",
+        "clause": "p. 411-415",
+        "url": "https://www.acma.gov.au/sites/default/files/2026-07/General%20Information.pdf"
+      },
+      "verified": false,
+      "unverified_reason": "the blocks are those of the country note and of reception in a capital city; the regional blocks are not yet compared with the licence area plans",
+      "note": "The blocks on air: 9A, 9B and 9C in the capital cities first, then the regional blocks 8B, 8C, 8D and 9D.",
+      "bands": [
+        {
+          "name": "Band III, blocks on air",
+          "service": "broadcasting",
+          "start_hz": 196880000,
+          "end_hz": 208832000,
+          "modes": [
+            "dab"
+          ],
+          "channel_width_hz": 1536000,
+          "channels": [
+            {
+              "name": "9A",
+              "centre_hz": 202928000
+            },
+            {
+              "name": "9B",
+              "centre_hz": 204640000
+            },
+            {
+              "name": "9C",
+              "centre_hz": 206352000
+            },
+            {
+              "name": "8B",
+              "centre_hz": 197648000
+            },
+            {
+              "name": "8C",
+              "centre_hz": 199360000
+            },
+            {
+              "name": "8D",
+              "centre_hz": 201072000
+            },
+            {
+              "name": "9D",
+              "centre_hz": 208064000
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "dab_band3_lband",
       "name": "DAB Band III and L-band",
       "kind": "dab",

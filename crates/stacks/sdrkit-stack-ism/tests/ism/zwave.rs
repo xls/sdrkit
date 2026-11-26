@@ -295,6 +295,59 @@ fn noise_returns_no_frames() {
     assert_eq!(field(r.results(), "nodes"), 0);
 }
 
+/// `seconds` of noise at the rate the stack asks for, with the level 16 dB up after 0.7 s (a gain that settles).
+fn noise_with_a_step(seed: u64, seconds: f64) -> Vec<Complex32> {
+    let rate = ZWAVE.tuning.rate_hz;
+    let mut rng = sdrkit_algo_sim::rng::Rng::new(seed);
+    (0..(seconds * rate) as usize)
+        .map(|k| {
+            let power = if (k as f64) < 0.7 * rate { 2e-4 } else { 8e-3 };
+            rng.complex_normal(power)
+        })
+        .collect()
+}
+
+/// Noise alone, with a step of its level, counts no frame, good or bad, on the channels of two regions.
+#[test]
+fn noise_counts_no_bad_frames() {
+    for (seed, id) in [(11, "ANZ"), (12, "EU")] {
+        let region = crate::util::zwave_region(id);
+        let mut r = rx(
+            ZWAVE.tuning.rate_hz,
+            region.centre_hz,
+            &[("channels", Value::Text(region.channels_text()))],
+        );
+        feed(r.as_mut(), &noise_with_a_step(seed, 6.0));
+        assert_eq!(field(r.results(), "frames_ok"), 0, "{id}");
+        assert_eq!(field(r.results(), "frames_bad"), 0, "{id}");
+    }
+}
+
+/// After a step of the noise level, a frame still decodes.
+#[test]
+fn a_frame_decodes_after_a_step_of_the_level() {
+    let rate = ZWAVE.tuning.rate_hz;
+    let region = crate::util::zwave_region("ANZ");
+    let (_, mpdu) = zwave::schedule().into_iter().find(|(x, _)| *x == 2).unwrap();
+    let chan = region.rates_hz[1][0];
+    let s = zwave::frame_samples(2, &mpdu, rate);
+    let w = std::f64::consts::TAU * (chan - region.centre_hz) / rate;
+    let mut x = noise_with_a_step(13, 2.0);
+    let at = (1.5 * rate) as usize;
+    for (k, v) in s.iter().enumerate() {
+        let (sin, cos) = (w * k as f64).sin_cos();
+        x[at + k] += v * Complex32::new(0.5 * cos as f32, 0.5 * sin as f32);
+    }
+    let mut r = rx(
+        rate,
+        region.centre_hz,
+        &[("channels", Value::Text(region.channels_text()))],
+    );
+    feed(r.as_mut(), &x);
+    assert_eq!(field(r.results(), "frames_ok"), 1);
+    assert_eq!(field(r.results(), "frames_bad"), 0);
+}
+
 /// The burst of one frame at `r` on `chan`, as the receiver sees it at 2 Msps around the European centre.
 fn burst(r: u8, mpdu: &[u8], chan: f64) -> Vec<Complex32> {
     let rate = 2e6;
@@ -433,6 +486,25 @@ fn the_channels_of_two_regions_of_the_data_folder() {
         assert_eq!(field(r, "frames_bad"), 0, "{id}");
         let freqs = column(r, &CHANNELS, "frequency");
         assert_eq!(freqs.len(), region.channels().len(), "{id}: {freqs:?}");
+        assert!(
+            column(r, &CHANNELS, "covered").iter().all(|c| c == "yes"),
+            "{id}: {:?}",
+            column(r, &CHANNELS, "covered")
+        );
+    }
+}
+
+/// At the rate the stack asks for and the centre of a region row, the capture holds every channel of the row: each frame
+/// of the test signal decodes.
+#[test]
+fn the_requested_capture_holds_the_channels_of_a_region() {
+    let rate = ZWAVE.tuning.rate_hz;
+    let (sent, _, _, _) = sent_in(2.0, rate);
+    for id in ["EU", "ANZ"] {
+        let run = harness_in(id).rate(rate).seconds(2.0).run().unwrap();
+        let r = &run.results;
+        assert_eq!(field(r, "frames_ok") as usize, sent, "{id}");
+        assert_eq!(field(r, "frames_bad"), 0, "{id}");
         assert!(
             column(r, &CHANNELS, "covered").iter().all(|c| c == "yes"),
             "{id}: {:?}",

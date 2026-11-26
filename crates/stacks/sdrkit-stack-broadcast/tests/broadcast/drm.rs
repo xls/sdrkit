@@ -247,6 +247,79 @@ fn not_aac_frames_are_counted_as_damaged() {
     assert_eq!(r.exact, 0);
 }
 
+/// A service that the SDC names as xHE-AAC: the multiplex decodes, the service is listed with its label, no frame goes to
+/// the host as AAC and none is counted, and the status says that the audio is not decoded.
+#[test]
+fn xhe_aac_audio_is_named_and_not_decoded() {
+    let mut cfg = usual(Robustness::B);
+    cfg.xhe = true;
+    cfg.short_interleaver = true;
+    let x = generate(cfg, 48e3, 8.0, &[]);
+    let r = receive(&x, 48e3, 48_000, AudioKind::Melody, 1);
+    assert!(r.locked());
+    assert!(int(&r.r, "mux_ok") > 5);
+    assert_eq!(r.exact + r.bad_frames, 0);
+    assert_eq!(int(&r.r, "audio_ok") + int(&r.r, "audio_bad"), 0);
+    assert_eq!(r.t("audio_state"), "no_decoder");
+    assert!(r.t("audio_info").starts_with("xHE-AAC, 24 kHz stereo"));
+    assert!(r.r.status().summary.ends_with(drm::rx::XHE_NOT_DECODED));
+    assert!(!r.service("0", "label").is_empty());
+}
+
+/// A 10 kHz channel in the middle of 250 ksps with a station 12 dB stronger 80 kHz away (a carrier with noise sidebands
+/// 4 kHz wide): the receiver stays on the DRM channel and decodes it.
+#[test]
+fn a_stronger_am_station_beside_the_channel_is_not_taken() {
+    let rate = 250e3;
+    let mut x = generate(usual(Robustness::B), rate, 12.0, &[]);
+    let p = x.iter().map(|v| v.norm_sqr()).sum::<f32>() / x.len() as f32;
+    // The station: a carrier and audio that is noise through a one-pole low-pass of about 2 kHz.
+    let amp = (16.0 * p).sqrt();
+    let mut rng = sdrkit_algo_sim::rng::Rng::new(9);
+    let mut audio = 0.0f32;
+    for (i, v) in x.iter_mut().enumerate() {
+        audio += 0.05 * (rng.normal_f32() - audio);
+        let ph = (std::f64::consts::TAU * 80e3 * i as f64 / rate) as f32;
+        *v += Complex32::new(ph.cos(), ph.sin()) * amp * (0.7 + 1.5 * audio);
+    }
+    let r = receive(&x, rate, 25_000, AudioKind::Melody, 1);
+    assert!(r.locked());
+    assert!(r.n("offset_hz").abs() < 5.0, "{}", r.n("offset_hz"));
+    assert!(
+        r.exact >= 200 && r.bad_frames == 0,
+        "{} {}",
+        r.exact,
+        r.bad_frames
+    );
+}
+
+/// The spectrum search of the channel centring: a filled 10 kHz block is found at its middle and ranks first, a stronger
+/// carrier with weak sidebands is no block, and a block wider than a DRM channel is left out.
+#[test]
+fn centring_finds_filled_blocks_only() {
+    let bin = 500.0;
+    let mut p = vec![1.0f32; 400];
+    let at = |hz: f64| (200.0 + hz / bin) as usize;
+    for v in &mut p[at(30e3)..at(40e3)] {
+        *v = 50.0;
+    }
+    // A carrier 30 dB over its sidebands.
+    for v in &mut p[at(-64e3)..at(-56e3)] {
+        *v = 20.0;
+    }
+    p[at(-60e3)] = 20_000.0;
+    // 40 kHz of something else.
+    for v in &mut p[at(-40e3)..at(0.0)] {
+        *v = 100.0;
+    }
+    let b = drm::rx::filled_blocks(&p, bin);
+    assert_eq!(b.len(), 1, "{b:?}");
+    assert!(
+        (b[0].centre_hz - 35e3).abs() <= bin && b[0].rank > 40.0,
+        "{b:?}"
+    );
+}
+
 #[test]
 fn data_service_slide_show() {
     let mut cfg = usual(Robustness::B);
@@ -502,4 +575,76 @@ fn the_test_signal_plays_its_melody_through_the_aac_decoder() {
     let left: Vec<f32> = tail.iter().step_by(2).copied().collect();
     let crossings = left.windows(2).filter(|w| w[0] < 0.0 && w[1] >= 0.0).count();
     assert!((500..=1100).contains(&crossings), "{crossings} Hz");
+}
+
+/// The raw 8-bit recording `name` in the folder that the variable `SDRKIT_LIVE_RECORDINGS` names, or None. The recordings
+/// of real signals are kept outside the repository; without the variable the test is skipped.
+fn live_recording(name: &str) -> Option<Vec<Complex32>> {
+    let Ok(folder) = std::env::var("SDRKIT_LIVE_RECORDINGS") else {
+        eprintln!("skipped: SDRKIT_LIVE_RECORDINGS is not set");
+        return None;
+    };
+    let p = std::path::PathBuf::from(folder).join(name);
+    let Ok(bytes) = std::fs::read(&p) else {
+        eprintln!("skipped: {name} is not here");
+        return None;
+    };
+    Some(
+        bytes
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|b| Complex32::new(b[0] as i8 as f32 / 128.0, b[1] as i8 as f32 / 128.0))
+            .collect(),
+    )
+}
+
+/// A recording at 2 Msps with a 10 kHz DRM channel in the middle and a stronger AM station 175 kHz away: the receiver stays
+/// on the DRM channel, decodes the FAC and the SDC, lists the service and says that its xHE-AAC audio is not decoded.
+#[test]
+#[ignore = "needs the recordings of real signals"]
+fn live_drm_beside_an_am_station() {
+    let Some(x) = live_recording("drm_xheaac_2M.cs8") else {
+        return;
+    };
+    let rate = 2e6;
+    let mut rx = drm::make_receiver(&stack_config(drm::DrmSetting::schema(), &[])).unwrap();
+    rx.configure(&InputInfo::new(rate, DIAL, DIAL).recording())
+        .unwrap();
+    let mut out = Output::default();
+    let mut media = 0usize;
+    for (i, c) in x.chunks(200_000).enumerate() {
+        rx.feed(c, &mut out);
+        media += out.media.len();
+        out.clear();
+        if i % 50 == 49 {
+            let r = rx.results();
+            eprintln!(
+                "{:5.1} s  {:?}  mode {}  snr {:.1}  offset {:.1}  fac {}/{}  sdc {}/{}  mux {}/{}  audio {}/{}  {}",
+                (i + 1) as f64 * 0.1,
+                r.status().lock_state,
+                text(r, "robustness_mode"),
+                num(r, "snr_db"),
+                num(r, "offset_hz"),
+                int(r, "fac_ok"),
+                int(r, "fac_bad"),
+                int(r, "sdc_ok"),
+                int(r, "sdc_bad"),
+                int(r, "mux_ok"),
+                int(r, "mux_bad"),
+                int(r, "audio_ok"),
+                int(r, "audio_bad"),
+                r.status().summary,
+            );
+        }
+    }
+    let r = rx.results();
+    assert_eq!(r.status().lock_state, LockState::Locked);
+    assert!(num(r, "offset_hz").abs() < 500.0);
+    let (ok, bad) = (int(r, "fac_ok"), int(r, "fac_bad"));
+    assert!(ok >= 100 && bad * 20 <= ok, "FAC {ok} good, {bad} bad");
+    assert!(int(r, "sdc_ok") >= 30);
+    assert_eq!(row_ids(r, "services").len(), 1);
+    assert!(r.status().summary.contains("xHE-AAC audio is not decoded"));
+    assert_eq!(media, 0);
 }

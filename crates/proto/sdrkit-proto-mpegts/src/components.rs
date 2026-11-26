@@ -815,7 +815,7 @@ const SI_GUIDE_LANG: Setting<field::Text> = Setting::new("guide_lang", "Guide la
 const DEFAULT_TEXT: Setting<field::Choice<DefaultText>> = Setting::choice(
     "default_text",
     "Text without a selector",
-    DefaultText::Iso6937,
+    DefaultText::GbkWhenValid,
 );
 
 sdrkit_core::settings! {

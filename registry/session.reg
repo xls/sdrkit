@@ -1,10 +1,11 @@
 # The interface of the stack family session. The registry test of the family writes this file.
-family session version=1.4
+family session version=1.5
 shape.SessionFields since=1.0
 shape.SessionFields.session.state type=choice(waiting,running,failed,stopped) unit= optional=no since=1.0
 shape.SessionFields.session.samples type=i64 unit= optional=no since=1.0
 shape.SessionFields.session.dropped type=i64 unit= optional=no since=1.0
 shape.SessionFields.session.events_unlisted type=i64 unit= optional=no since=1.0
+shape.SessionFields.session.events_lost type=i64 unit= optional=no since=1.5
 shape.SessionFields.session.problem type=text unit= optional=yes since=1.0
 shape.SessionFields.session.request_problem type=text unit= optional=yes since=1.0
 shape.SessionFields.session.audio_lost type=i64 unit= optional=no since=1.0
@@ -83,12 +84,16 @@ shape.TransmitEvent.attempts type=i64 unit= optional=no since=1.0
 shape.TransmitEvent.refused type=text unit= optional=yes since=1.0
 shape.TransmitEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.TransmitEvent.tx_power_db type=f64 unit=dB optional=yes since=1.4
+shape.EventsLostEvent since=1.5
+shape.EventsLostEvent.lost type=i64 unit= optional=no since=1.5
+shape.EventsLostEvent.text type=text unit= optional=no since=1.5
 session since=1.0
 session.fields.SessionFields since=1.0
 session.table.session.components row=ComponentLoadRow cap=1024 since=1.1
 session.table.session.stages row=StageLoadRow cap=64 since=1.1
 session.table.session.connections row=ConnectionLoadRow cap=1024 since=1.2
 session.event.session.transmit fields=TransmitEvent since=1.0
+session.event.session.events_lost fields=EventsLostEvent since=1.5
 session.setting.tuned_hz type=hz unit=Hz since=1.0
 session.setting.spectrum type=bool unit= since=1.0
 session.setting.spectrum_size type=choice(256,512,1024,2048,4096,8192,16384,32768,65536,131072,262144) unit= since=1.0

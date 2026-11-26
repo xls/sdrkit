@@ -217,7 +217,3 @@ sdrkit run ant --source synth:ant
 sdrkit run ant --source iiod:192.168.2.1 --freq 2457
 ```
 <!-- generated: end -->
-
-## Settings: notes
-
-Advanced settings. The owner works without any of them set.

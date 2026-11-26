@@ -95,12 +95,15 @@ fn a_value_that_the_schema_refuses_never_reaches_apply() {
         .input("a")
         .set("a.gain", Value::F64(-1.0))
         .build();
+    let Err(GraphError::NamedSetting { error, .. }) = refused else {
+        panic!("{refused:?}");
+    };
     assert!(matches!(
-        refused,
-        Err(GraphError::Setting {
+        *error,
+        GraphError::Setting {
             error: SettingError::OutOfRange { .. },
             ..
-        })
+        }
     ));
     assert_eq!(applied.load(Ordering::Relaxed), 1);
 }
@@ -252,7 +255,7 @@ fn a_description_error_names_its_position() {
     match Description::from_json(out_of_range).unwrap().build(&r) {
         Err(GraphError::Description { error, .. }) => assert!(matches!(
             *error,
-            GraphError::SettingValue { .. } | GraphError::Setting { .. }
+            GraphError::SettingValue { .. } | GraphError::NamedSetting { .. }
         )),
         other => panic!("{other:?}"),
     }

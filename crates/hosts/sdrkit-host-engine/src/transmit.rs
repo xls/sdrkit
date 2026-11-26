@@ -111,8 +111,9 @@ enum Refusal {
     NotAllowed,
     #[error("the transmitter did not open: {0}")]
     Open(DriverError),
+    /// The sentence that names the transmit setting by its label.
     #[error("the burst does not fit the transmitter: {0}")]
-    Fit(sdrkit_core::SettingError),
+    Fit(String),
     #[error("the transmitter refused its settings: {0}")]
     Configure(DriverError),
     #[error("the transmitter did not go on air: {0}")]
@@ -134,6 +135,13 @@ enum Refusal {
 }
 
 impl Refusal {
+    /// A burst that the transmit setting refuses, named by its label in `values`, the transmit settings, if known.
+    fn fit(values: Option<&Values>, e: &sdrkit_core::SettingError) -> Refusal {
+        Refusal::Fit(values.map_or_else(
+            || e.to_string(),
+            |v| sdrkit_core::owner::setting_error_text(v.schema(), "setting", e),
+        ))
+    }
     /// True if the radio took the burst and lost a part of it on the way: the same samples can go out whole in a new
     /// burst. False if the burst never started, if its samples are gone, or if the transmitter failed.
     fn lost_on_the_way(&self) -> bool {
@@ -686,7 +694,8 @@ impl TxSide {
                 self.tx = Some(o.transmitter().map_err(Refusal::Open)?);
                 self.configured = None;
             }
-            o.tx_tune(centre_hz, Some(rate_hz)).map_err(Refusal::Fit)?;
+            o.tx_tune(centre_hz, Some(rate_hz))
+                .map_err(|e| Refusal::fit(o.tx_values().as_ref(), &e))?;
             (o.tx_values(), o.tx_seq())
         };
         let cannot = || Refusal::Open(DriverError::CannotTransmit);
@@ -700,7 +709,7 @@ impl TxSide {
             values
                 .set(TxSetting::Frequency.id(), &Value::Hz(centre_hz))
                 .and_then(|()| values.set(TxSetting::Rate.id(), &Value::Hz(rate_hz)))
-                .map_err(Refusal::Fit)?;
+                .map_err(|e| Refusal::fit(Some(&values), &e))?;
             tx.configure(&values).map_err(Refusal::Configure)?;
             self.configured = Some((seq, rate_hz, centre_hz));
         }

@@ -41,3 +41,20 @@ fn sdt_names_use_the_same_decoder() {
     let sdt = tables::sdt(&s, &h, &Options::default()).unwrap();
     assert_eq!(sdt.services[0].name, "TV");
 }
+
+/// A service name of ASCII and GB 2312 pairs with no selector byte, as networks in China send: read as GBK where the option
+/// allows it, and a table 00 name with an accent is not.
+#[test]
+fn gb2312_names_without_a_selector() {
+    use sdrkit_util_text::dvb::DefaultTable;
+    let opt = Options {
+        default_table: DefaultTable::GbkWhenValid,
+    };
+    assert_eq!(
+        dvb_text(b"TV-1\xD7\xDB\xBA\xCF", Usage::Name, &opt),
+        "TV-1综合"
+    );
+    assert_eq!(dvb_text(b"T\xC2el\xC2e", Usage::Name, &opt), "Télé");
+    // With the selector of GB 2312 the option is not needed.
+    assert_eq!(name(b"\x13\xD7\xDB\xBA\xCF"), "综合");
+}

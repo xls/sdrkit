@@ -947,3 +947,19 @@ fn the_receiver_takes_the_channels_of_two_groups() {
         assert_eq!(now(&rx), text);
     }
 }
+
+/// The preset of the stack in Australia, from the data folder, starts on 9A and lists 9A, 9B and 9C first.
+#[test]
+fn the_australian_preset_starts_on_the_blocks_on_air() {
+    let data = sdrkit_presets::Data::open(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../data")).unwrap();
+    let au = sdrkit_presets::Region::new("AU").unwrap();
+    let p = data.preset("dab", &au, &sdrkit_presets::Options::default()).unwrap();
+    assert_eq!(p.frequency_hz, 202.928e6);
+    let first: Vec<f64> = p.channels.iter().take(3).map(|c| c.frequency_hz).collect();
+    assert_eq!(first, [202.928e6, 204.64e6, 206.352e6]);
+    let list = p.settings.iter().find(|(k, _)| k == "channels").map(|(_, v)| v.clone());
+    match list {
+        Some(sdrkit_core::Value::Text(t)) => assert!(t.starts_with("202928000;204640000;206352000"), "{t}"),
+        v => panic!("{v:?}"),
+    }
+}

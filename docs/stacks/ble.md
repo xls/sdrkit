@@ -68,6 +68,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `periodic_trains` | Periodic trains | whole number |
 | `connections_followed` | Connections followed | whole number |
 | `connection_packets` | Connection packets | whole number |
+| `quiet_reason` | Why nothing shows | text |
 | `tx_sending` | Sending | yes or no |
 | `tx_sent` | Packets sent | whole number |
 | `tx_left` | Packets left | whole number |
@@ -103,7 +104,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.5. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.6. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -139,6 +140,7 @@ Struct `BleFields`. The result fields of `ble`.
 | `periodic_trains` | whole number | always | 1.0 | Periodic advertising trains whose packets the receivers take. |
 | `connections_followed` | whole number | always | 4.2 | Connections whose events the receivers follow now (from a CONNECT_IND or AUX_CONNECT_REQ heard). |
 | `connection_packets` | whole number | always | 4.2 | Good packets of followed connections. |
+| `quiet_reason` | text | optional | 4.6 | Why nothing can be heard: the capture holds no primary advertising channel. None while one is inside, and when the centre of the input is not known. |
 
 ### Result fields
 

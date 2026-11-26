@@ -57,6 +57,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 | `channel` | Channel | whole number |
 | `limits` | Limits | text |
 | `privacy` | Privacy | text |
+| `quiet_reason` | Why nothing shows | text |
 | `tx_sending` | Sending | yes or no |
 | `tx_sent` | Packets sent | whole number |
 | `tx_left` | Packets left | whole number |
@@ -88,7 +89,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `wlan`, version 4.5. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `wlan`, version 4.6. The C header `sdrkit/wlan.h`, the registry record `registry/wlan.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
 
@@ -115,6 +116,7 @@ Struct `BletrackerFields`. The result fields of `bletracker`.
 | `channel` | whole number | optional | 1.0 | The tuned advertising channel. No value when it is not known, as for a recording. |
 | `limits` | text | always | 1.0 | What the detector cannot tell. |
 | `privacy` | text | always | 1.0 | The privacy note. |
+| `quiet_reason` | text | optional | 4.6 | Why nothing can be heard: the capture holds no primary advertising channel. None while one is inside, and when the centre of the input is not known. |
 
 ### Result fields
 

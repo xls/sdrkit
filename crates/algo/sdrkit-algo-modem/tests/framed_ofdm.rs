@@ -194,6 +194,42 @@ fn frames_survive_noise_and_the_snr_is_measured() {
     }
 }
 
+/// A plain tone is no signal, also when it sits on a continuous pilot: the guard correlation of a tone is the same at every
+/// timing, and one carrier cannot stand in for all the pilots. A tone as strong as the signal beside it does not stop the
+/// lock or move the offset.
+#[test]
+fn a_tone_is_not_a_signal_and_does_not_hide_one() {
+    let l = layout();
+    let tone = |hz: f64, amp: f32, n: usize| -> Vec<Complex32> {
+        (0..n)
+            .map(|i| {
+                let ph = TAU * hz * i as f64 / l.rate;
+                Complex32::new(ph.cos() as f32, ph.sin() as f32) * amp
+            })
+            .collect()
+    };
+    let (clean, _) = signal(&l, 8);
+    let p = clean.iter().map(|v| v.norm_sqr()).sum::<f32>() / clean.len() as f32;
+    // On the continuous pilot at carrier 10 of the layout, and between two carriers.
+    for hz in [(l.kmin + 10) as f64 * l.spacing(), 7.4 * l.spacing()] {
+        let mut x = tone(hz, 1.0, clean.len());
+        impair(&mut x, 0.0, l.rate, 0.01, 5);
+        assert!(demodulate(&l, &x, 500).is_empty(), "tone at {hz} Hz");
+    }
+    let fo = 2.2 * l.spacing();
+    let mut x = clean.clone();
+    impair(&mut x, fo, l.rate, 0.0, 1);
+    for (v, t) in x
+        .iter_mut()
+        .zip(tone(60.5 * l.spacing(), p.sqrt(), clean.len()))
+    {
+        *v += t;
+    }
+    let got = demodulate(&l, &x, 500);
+    assert!(got.len() >= 4, "{}", got.len());
+    assert!((got[1].cfo_hz - fo).abs() < 2.0, "{}", got[1].cfo_hz);
+}
+
 /// A layout the shared OFDM layout refuses returns an error from `try_new`, and a demodulator from `new` that never locks.
 #[test]
 fn a_refused_layout_never_locks() {

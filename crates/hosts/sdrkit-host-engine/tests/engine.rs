@@ -3,11 +3,18 @@
 mod common;
 
 use common::*;
-use sdrkit_core::{owner, Choice, Complex32, Event, Value};
+use sdrkit_core::publish::{field, keys};
+use sdrkit_core::{
+    owner, Choice, Clock, Complex32, ConfigError, Event, Facilities, InputInfo, MemStorage,
+    Output, Owner, Published, Random, Receiver, Results, ResultsDecl, Setting, SettingError,
+    SettingId, SettingSet, StackDescriptor, Value, Values,
+};
 use sdrkit_graph::{GraphPlan, PortRef, Registry};
 use sdrkit_host_engine::{
-    EngineError, Input, OwnerRef, Samples, SessionState, SAMPLES, SPECTRUM, STATE,
+    Engine, EngineError, Input, OwnerRef, Samples, SessionState, Setup, EVENTS_LOST,
+    EVENTS_NOT_DELIVERED, NOT_DELIVERED, PROBLEM, SAMPLES, SPECTRUM, STATE,
 };
+use std::sync::Arc;
 
 const T: f64 = 5.0;
 
@@ -630,4 +637,164 @@ fn two_sessions_read_one_host_feed_and_a_stalled_one_holds_it_back() {
     });
     assert!(behind.is_some() || pushed > 0);
     e.close_feed(f).unwrap();
+}
+
+/// The band of [`Picky`]: its schema takes 0 to 9, the receiver itself only 0 to 3.
+const BAND: Setting<field::I64> = Setting::new("band", "Band", "", 1).range(0.0, 9.0, 1.0);
+
+sdrkit_core::settings! {
+    /// The settings of [`Picky`].
+    enum PickySetting {
+        Band = BAND,
+    }
+}
+
+/// A receiver that refuses a band above 3, which its schema accepts: the refusal comes from the session thread.
+struct Picky {
+    results: Published,
+    values: Values,
+}
+
+impl Owner for Picky {
+    fn schema(&self) -> &Arc<sdrkit_core::Schema> {
+        self.values.schema()
+    }
+    fn values(&self) -> Option<&Values> {
+        Some(&self.values)
+    }
+    fn apply(&mut self, id: SettingId, value: &Value) -> Result<(), SettingError> {
+        if BAND.read(id, value)? > 3 {
+            return Err(SettingError::NotPermitted { id });
+        }
+        self.values.set(id, value)
+    }
+    fn results_decl(&self) -> &Arc<ResultsDecl> {
+        self.results.results().decl()
+    }
+    fn results(&self) -> &Results {
+        self.results.results()
+    }
+}
+
+impl Receiver for Picky {
+    fn configure(&mut self, _: &InputInfo) -> Result<(), ConfigError> {
+        Ok(())
+    }
+    fn feed(&mut self, _: &[Complex32], _: &mut Output) {}
+}
+
+/// The stack of [`Picky`].
+static PICKY: StackDescriptor = StackDescriptor {
+    id: "picky",
+    name: "Picky",
+    settings: PickySetting::schema,
+    make_receiver: |cfg| {
+        Ok(Box::new(Picky {
+            results: Published::from_decl(Arc::new(ResultsDecl::new())),
+            values: cfg.settings.clone(),
+        }))
+    },
+    benchmarks: None,
+    ..METER_DESC
+};
+
+/// A value that the receiver of a session refuses shows as the problem of the session, which names the setting by its
+/// label and not by its number.
+#[test]
+fn a_refused_setting_is_named_by_its_label() {
+    let e = Engine::new(Setup {
+        facilities: Facilities {
+            storage: Arc::new(MemStorage::new()),
+            clock: Clock::fixed(1.7e9),
+            random: Random::fixed(7),
+            codecs: Arc::default(),
+        },
+        transport: Arc::new(sdrkit_core::net::FakeTransport::new()),
+        stacks: vec![&PICKY],
+        families: Vec::new(),
+        components: Registry::standard(),
+    })
+    .unwrap();
+    let v = defaults(&e, e.find("stack.picky").unwrap());
+    let feed = e.open_feed(48e3, 100e6);
+    let s = e
+        .start_stack("picky", None, &v, Input::Feed(feed), None)
+        .unwrap();
+    e.set(OwnerRef::Session(s), "band", Value::I64(5)).unwrap();
+    let block = tone(100, 1.0);
+    let problem = wait_for(T, || {
+        let _ = e.push(feed, Samples::Iq(&block));
+        match field(&e, OwnerRef::Session(s), PROBLEM.key) {
+            Some(Value::Text(t)) if !t.is_empty() => Some(t),
+            _ => None,
+        }
+    })
+    .expect("a problem");
+    assert!(
+        problem.contains("\"Band\"") && !problem.contains("number"),
+        "{problem}"
+    );
+}
+
+/// Events that the host does not take in time are not lost in silence: the oldest go, the session counts them, and one
+/// event after those that were kept says how many.
+#[test]
+fn events_that_the_host_does_not_take_are_counted_and_told() {
+    const BLOCKS: usize = 3000;
+    let e = engine();
+    let v = defaults(&e, e.find("stack.meter").unwrap());
+    let feed = e.open_feed(48e3, 100e6);
+    let s = e
+        .start_stack("meter", None, &v, Input::Feed(feed), None)
+        .unwrap();
+    // The meter raises one event for each block.
+    let block = tone(100, 1.0);
+    for _ in 0..BLOCKS {
+        wait_for(T, || e.push(feed, Samples::Iq(&block)).ok()).unwrap();
+    }
+    let session = OwnerRef::Session(s);
+    let lost = wait_for(T, || {
+        let fed = number(&e, session, SAMPLES.key) >= (BLOCKS * 100) as f64;
+        let lost = number(&e, session, EVENTS_LOST.key);
+        (fed && lost >= (BLOCKS - 2 * 1024) as f64).then_some(lost)
+    })
+    .expect("the session counts the lost events");
+    // Events that the control thread has not passed on yet come in a later take; each take after a loss ends with
+    // one event that tells of it.
+    let mut events: Vec<Event> = Vec::new();
+    let told = |events: &[Event]| -> usize {
+        events
+            .iter()
+            .filter_map(|x| x.get(&NOT_DELIVERED))
+            .map(|n| n as usize)
+            .sum()
+    };
+    wait_for(T, || {
+        let before = events.len();
+        e.take_events(session, &mut events).unwrap();
+        let taken = &events[before..];
+        if let Some(i) = taken.iter().position(|x| x.is(&EVENTS_NOT_DELIVERED)) {
+            assert_eq!(i, taken.len() - 1, "the loss is told after the events kept");
+        }
+        let notices = events.iter().filter(|x| x.is(&EVENTS_NOT_DELIVERED)).count();
+        (events.len() - notices + told(&events) == BLOCKS).then_some(())
+    })
+    .expect("every event is delivered or told of");
+    let n = told(&events);
+    assert!(n as f64 >= lost, "{n} of {lost}");
+    let first = events
+        .iter()
+        .find(|x| x.is(&EVENTS_NOT_DELIVERED))
+        .unwrap();
+    assert!(first.kind_id().is_some());
+    let k = first.get(&NOT_DELIVERED).unwrap();
+    assert_eq!(
+        first.get(&keys::TEXT),
+        Some(format!("{k} events were not delivered").as_str())
+    );
+    let total = wait_for(T, || {
+        let x = number(&e, session, EVENTS_LOST.key);
+        (x == n as f64).then_some(x)
+    });
+    assert_eq!(total, Some(n as f64), "the count of the session");
 }

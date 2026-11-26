@@ -51,6 +51,9 @@ enum Stream {
 #[derive(Clone, Debug, Default)]
 struct Granted {
     freq: Option<f64>,
+    /// The capture centre when the client last set the receive frequency, while the radio has not moved from it: until
+    /// then a read answers the frequency granted, after it the centre of the capture.
+    tuning_from: Option<f64>,
     rate: Option<f64>,
     gain: Option<f64>,
     agc: bool,
@@ -143,6 +146,23 @@ impl Rpc {
             Answer::Accepted => Ok(req),
             Answer::Adjusted(r) => Ok(r),
             Answer::Refused => Err(format!("the server refused {}", what(&req))),
+        }
+    }
+
+    /// The receive frequency as the client reads it back: the centre of the stream that it receives. That is the centre
+    /// of its slice, or else the centre of the capture, which is where the radio really is after an offset or a rounding.
+    /// A frequency that the client set and that the radio has not reached yet reads as set.
+    fn rx_centre(&mut self, cx: &Context<'_>) -> f64 {
+        if let Some(s) = cx.client().slice() {
+            return s.centre_hz;
+        }
+        let now = cx.client().capture().centre_hz;
+        match (self.rx.tuning_from, self.rx.freq) {
+            (Some(from), Some(set)) if from == now => set,
+            _ => {
+                self.rx.tuning_from = None;
+                now
+            }
         }
     }
 
@@ -404,17 +424,19 @@ impl Rpc {
             call::SET_FREQUENCY => {
                 let hz = u.f64().map_err(bad)?;
                 let got = self.ask(cx, dir, Request::Frequency { hz })?;
-                self.granted(dir).freq = Some(value_of(&got).unwrap_or(hz));
+                let g = self.granted(dir);
+                g.freq = Some(value_of(&got).unwrap_or(hz));
+                g.tuning_from = (dir == RX).then_some(capture.centre_hz);
                 Ok(void())
             }
             call::GET_FREQUENCY => {
                 let v = if dir == RX {
-                    cx.client().slice().map(|s| s.centre_hz).or(self.rx.freq)
+                    self.rx_centre(cx)
                 } else {
-                    self.tx.freq
+                    self.tx.freq.unwrap_or(capture.centre_hz)
                 };
                 one(|p| {
-                    p.f64(v.unwrap_or(capture.centre_hz));
+                    p.f64(v);
                 })
             }
             call::SET_SAMPLE_RATE => {

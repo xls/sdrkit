@@ -32,6 +32,7 @@ field FieldDecl { key: "aux_outside", label: "Pointers outside the capture", uni
 field FieldDecl { key: "periodic_trains", label: "Periodic trains", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "connections_followed", label: "Connections followed", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "connection_packets", label: "Connection packets", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "quiet_reason", label: "Why nothing shows", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_sending", label: "Sending", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_sent", label: "Packets sent", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_left", label: "Packets left", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -175,6 +176,7 @@ field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, ch
 field FieldDecl { key: "channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "limits", label: "Limits", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "privacy", label: "Privacy", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "quiet_reason", label: "Why nothing shows", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_sending", label: "Sending", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_sent", label: "Packets sent", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "tx_left", label: "Packets left", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }

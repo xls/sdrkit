@@ -446,10 +446,16 @@ fn settings_are_applied_strictly_at_construction() {
         .with_settings(&given)
         .build()
         .unwrap_err();
+    let GraphError::NamedSetting { error, .. } = &e else {
+        panic!("{e:?}");
+    };
     assert!(
-        matches!(&e, GraphError::Setting { key, error: SettingError::OutOfRange { .. } } if key == "gen_snr_db"),
+        matches!(&**error, GraphError::Setting { key, error: SettingError::OutOfRange { .. } } if key == "gen_snr_db"),
         "{e}"
     );
+    // The text names the setting by its label, never by its number.
+    let text = e.to_string();
+    assert!(text.contains("\"SNR\"") && !text.contains("number"), "{text}");
 }
 
 #[test]
