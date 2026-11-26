@@ -62,7 +62,7 @@
       "bands": [
         {
           "name": "Radiosondes 400.15 to 406 MHz",
-          "service": "mobile",
+          "service": "meteorological_aids",
           "start_hz": 400150000,
           "end_hz": 406000000,
           "modes": [

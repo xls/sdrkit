@@ -1,0 +1,353 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "rfid_uhf_eu",
+      "name": "UHF RFID, Europe (865 to 868 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "ETSI",
+        "title": "Radio Frequency Identification Equipment operating in the band 865 MHz to 868 MHz",
+        "number": "EN 302 208",
+        "date": "not recorded"
+      },
+      "verified": false,
+      "unverified_reason": "the four high-power reader channels of EN 302 208; the standard was not read for this file",
+      "bands": [
+        {
+          "name": "UHF RFID 865.6 to 867.6 MHz",
+          "service": "short_range",
+          "start_hz": 865600000,
+          "end_hz": 867600000,
+          "modes": [
+            "rfid_uhf"
+          ],
+          "channels": [
+            {
+              "name": "RFID 865.7 MHz",
+              "centre_hz": 865700000,
+              "width_hz": 200000
+            },
+            {
+              "name": "RFID 866.3 MHz",
+              "centre_hz": 866300000,
+              "width_hz": 200000
+            },
+            {
+              "name": "RFID 866.9 MHz",
+              "centre_hz": 866900000,
+              "width_hz": 200000
+            },
+            {
+              "name": "RFID 867.5 MHz",
+              "centre_hz": 867500000,
+              "width_hz": 200000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rfid_uhf_au",
+      "name": "UHF RFID, Australia (920 to 926 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "Australian Government",
+        "title": "Radiocommunications (Low Interference Potential Devices) Class Licence 2025",
+        "number": "F2025L01047",
+        "date": "2025-09-05",
+        "clause": "Schedule 1, Table 5, items 2 and 4",
+        "url": "https://www.legislation.gov.au/F2025L01047"
+      },
+      "verified": false,
+      "unverified_reason": "the band 920 to 926 MHz of the class licence; the 500 kHz reader channels from 920.25 MHz are the usual reader setting, not a value of the licence",
+      "bands": [
+        {
+          "name": "UHF RFID 920 to 926 MHz",
+          "service": "short_range",
+          "start_hz": 920000000,
+          "end_hz": 926000000,
+          "modes": [
+            "rfid_uhf"
+          ],
+          "channel_width_hz": 500000,
+          "raster": {
+            "first_hz": 920250000,
+            "step_hz": 500000
+          }
+        }
+      ]
+    },
+    {
+      "id": "rfid_uhf_us",
+      "name": "UHF RFID, United States (902 to 928 MHz)",
+      "kind": "other",
+      "source": {
+        "publisher": "US Government (eCFR)",
+        "title": "Code of Federal Regulations, Title 47",
+        "number": "47 CFR 15.247",
+        "date": "2026",
+        "url": "https://www.ecfr.gov/current/title-47/section-15.247"
+      },
+      "verified": false,
+      "unverified_reason": "the hopping band of 47 CFR 15.247; the 50 reader channels of 500 kHz from 902.75 MHz are the usual reader setting, not a value of the rule",
+      "bands": [
+        {
+          "name": "UHF RFID 902 to 928 MHz",
+          "service": "short_range",
+          "start_hz": 902000000,
+          "end_hz": 928000000,
+          "modes": [
+            "rfid_uhf"
+          ],
+          "channel_width_hz": 500000,
+          "raster": {
+            "first_hz": 902750000,
+            "step_hz": 500000
+          }
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "code": "AT",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "BE",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "BG",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "HR",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "CY",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "CZ",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "DK",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "EE",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "FI",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "FR",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "DE",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "GR",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "HU",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "IE",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "IT",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "LV",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "LT",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "LU",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "MT",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "NL",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "PL",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "PT",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "RO",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "SK",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "SI",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "ES",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "SE",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "IS",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "LI",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "NO",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "CH",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "GB",
+      "groups": [
+        "rfid_uhf_eu"
+      ],
+      "unverified_reason": "the countries of the EU, the EEA, Switzerland and the United Kingdom"
+    },
+    {
+      "code": "AU",
+      "groups": [
+        "rfid_uhf_au"
+      ],
+      "unverified_reason": "the ACMA class licence"
+    },
+    {
+      "code": "US",
+      "groups": [
+        "rfid_uhf_us"
+      ],
+      "unverified_reason": "the FCC rules"
+    }
+  ]
+}

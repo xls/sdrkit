@@ -1,7 +1,7 @@
 # id: mesh_band_plans
 # name: Band plans of the mesh stacks: a dial and the networks heard around it
 # stacks: mesh meshtastic meshcore loraaprs meshcom lorawan
-# note: stacks lists the stacks that offer the plan, the first plan of a stack is its first choice. A host tunes to dial_mhz (meshcore_dial_mhz for the stack meshcore) and sets mt_slot_start and mt_slot_end from the row meshtastic_region of meshtastic_regions.csv, the setting channels from the presets of meshcore_group in meshcore_presets.csv (meshcore_default of meshcore_defaults.csv when the group has none) and from ham_presets.csv, and lw_channels from the plan lorawan_plan of lorawan_channels.csv (none when empty).
+# note: stacks lists the stacks that offer the plan, the first plan of a stack is its first choice. A host tunes to dial_mhz (meshcore_dial_mhz for the stack meshcore) and sets mt_slot_start and mt_slot_end from the row meshtastic_region of meshtastic_regions.csv, the setting channels from the presets of meshcore_group in meshcore_presets.csv (meshcore_default of meshcore_defaults.csv when the group has none) and from ham_presets.csv, and lw_channels from the plan lorawan_plan of lorawan_channels.csv (none when empty). The LoRa APRS rows outside Europe take 433.775 MHz, the frequency that the LoRa APRS project names for the world and that the Australian iGates on aprs.fi use; not a regulator plan. The JP 920 dial is LongFast by the Meshtastic slot formula (djb2 hash of the preset name modulo the slots of the region).
 plan,name,dial_mhz,stacks,meshtastic_region,meshcore_group,meshcore_default,meshcore_dial_mhz,lorawan_plan
 EU 868,EU 868 (Meshtastic LongFast 869.525 MHz),869.525,mesh meshtastic meshcore,EU_868,Europe,EU,869.618,EU868
 US 915,US 915 (Meshtastic LongFast 906.875 MHz),906.875,mesh meshtastic meshcore,US,North America,US,910.525,US915
@@ -14,3 +14,5 @@ LoRaWAN US915,LoRaWAN US915 903.9 MHz (sub-band 2),903.9,mesh lorawan,US,North A
 ANZ 915,ANZ 915 (Meshtastic LongFast 919.875 MHz),919.875,mesh meshtastic meshcore,ANZ,Oceania,AU,915.8,
 ANZ 915 Mid,ANZ 915 (MeshCore Mid 915.075 MHz),915.075,mesh meshtastic meshcore,ANZ,Oceania,ANZ_MID,915.075,
 JP 920,JP 920 (Meshtastic LongFast 923.375 MHz),923.375,mesh meshtastic,JP,,,923.375,
+LoRa APRS ANZ,LoRa APRS 433.775 MHz SF12 (Australia and New Zealand),433.775,mesh loraaprs,ANZ,,,433.775,
+LoRa APRS US,LoRa APRS 433.775 MHz SF12 (United States),433.775,mesh loraaprs,US,,,433.775,

@@ -16,6 +16,9 @@ const COUNTRIES: &[&str] = &["AU", "US", "DE", "GB", "JP"];
 /// The stack families and the stacks that have no fixed frequency, each with the reason. A family key is the stack
 /// crate `sdrkit-stack-<family>`.
 const NO_FIXED_FREQUENCY: &[(&str, &str)] = &[
+    ("dvbs", "satellite transponders belong to an orbital position, not to a country; the host lists those of the satellite the dish points at"),
+    ("satbeacon", "satellite beacons belong to an orbital position, not to a country; the host lists those of the satellite the dish points at"),
+    ("bgan", "the BGAN forward carriers belong to the satellite and change with the load; the stack finds them in the L band"),
     ("tones", "selective-call tones and codes on whatever voice channel the user tunes"),
     ("iono", "chirp sounders sweep the whole HF range; the stack listens wherever the user tunes"),
     ("meter", "a measurement of whatever signal the user tunes"),
@@ -130,6 +133,7 @@ const NOT_USED: &[(&str, &str, &str)] = &[
     ("cdma2000", "AU US DE GB JP", "no CDMA2000 network is on air in the country (closed by 2022, or never built)"),
     ("tdscdma", "AU US DE GB JP", "TD-SCDMA was a network of China only, now closed"),
     ("eczas", "AU US JP", "e-Czas is the long-wave time service of Poland, heard in Europe"),
+    ("enocean", "AU", "not licensed: 868.3 and 902.875 MHz lie in no band of the ACMA LIPD class licence 2025; 928.35 MHz lies in Table 4 item 7 (928 to 935 MHz), but no EnOcean product for Australia is known"),
 ];
 
 /// The gaps that are still to fill: the stack and the countries of the table where it has no known frequency.
@@ -142,13 +146,12 @@ const OPEN: &[(&str, &str)] = &[
     ("gk2a_cdas", "AU US DE GB JP"),
     ("sband_ccsds", "AU US DE GB JP"),
     ("meshcore", "JP"),
-    ("loraaprs", "AU US JP"),
+    ("loraaprs", "JP"),
     ("meshcom", "AU US JP"),
     ("globalstar", "AU US DE GB JP"),
     ("goes_dcs", "AU US DE GB JP"),
     ("lora_sat", "AU US DE GB JP"),
     ("qo100", "AU US DE GB JP"),
-    ("bgan", "AU US DE GB JP"),
     ("mpt1327", "AU US DE GB JP"),
     ("ltr", "AU US DE GB JP"),
     ("edacs", "AU US DE GB JP"),
@@ -157,28 +160,21 @@ const OPEN: &[(&str, &str)] = &[
     ("opensky", "AU US DE GB JP"),
     ("gsc", "AU US DE GB JP"),
     ("scada", "AU US DE GB JP"),
-    ("hfdl", "AU US DE GB JP"),
-    ("dvbs", "AU US DE GB JP"),
-    ("satbeacon", "AU US DE GB JP"),
     ("ebicab", "AU US DE GB JP"),
     ("cv2x", "AU DE GB JP"),
     ("subghzchat", "JP"),
     ("mioty", "AU US DE GB JP"),
     ("dect_nrplus", "AU US DE GB JP"),
     ("npr70", "AU US DE GB JP"),
-    ("enocean", "AU"),
     ("flarm", "AU US JP"),
     ("ogn", "AU US JP"),
     ("mavlink_sik", "AU US DE GB JP"),
     ("pactor1", "AU US DE GB JP"),
     ("wavebuoy", "AU US DE GB JP"),
-    ("hfradar", "AU US DE GB JP"),
     ("pactor2", "AU US DE GB JP"),
     ("pactor3", "AU US DE GB JP"),
     ("pactor4", "AU US DE GB JP"),
-    ("wfb", "AU US DE GB JP"),
-    ("radar_detect", "AU US DE GB JP"),
-    ("rfid_uhf", "AU US DE GB JP"),
+    ("rfid_uhf", "JP"),
 ];
 
 fn data() -> Data {

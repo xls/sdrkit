@@ -1,0 +1,588 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "hfdl",
+      "name": "HFDL ground station frequencies",
+      "kind": "aviation",
+      "source": {
+        "publisher": "dumphfdl",
+        "title": "HFDL system table (etc/systable.conf), version 52",
+        "date": "not recorded",
+        "url": "https://github.com/szpajder/dumphfdl/blob/master/etc/systable.conf"
+      },
+      "also": [
+        {
+          "publisher": "ARINC",
+          "title": "HF Data Link Protocols",
+          "number": "ARINC 635",
+          "date": "not recorded"
+        }
+      ],
+      "verified": false,
+      "unverified_reason": "the frequencies of version 52 of the system table that the ground stations broadcast, as dumphfdl publishes it; the table changes every few months; ARINC 635 was not read",
+      "bands": [
+        {
+          "name": "HFDL",
+          "service": "aeronautical_mobile",
+          "start_hz": 2939000,
+          "end_hz": 21999000,
+          "modes": [
+            "hfdl"
+          ],
+          "channels": [
+            {
+              "name": "HFDL 2941 kHz (Muan)",
+              "centre_hz": 2941000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 2944 kHz (Barrow)",
+              "centre_hz": 2944000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 2986 kHz (Al Muharraq)",
+              "centre_hz": 2986000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 2992 kHz (Barrow)",
+              "centre_hz": 2992000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 2998 kHz (Shannon)",
+              "centre_hz": 2998000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 3007 kHz (Barrow)",
+              "centre_hz": 3007000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 3016 kHz (Johannesburg)",
+              "centre_hz": 3016000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 3455 kHz (Shannon)",
+              "centre_hz": 3455000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 3497 kHz (Barrow)",
+              "centre_hz": 3497000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 3900 kHz (Reykjavik)",
+              "centre_hz": 3900000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 4654 kHz (Barrow)",
+              "centre_hz": 4654000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 4660 kHz (Santa Cruz)",
+              "centre_hz": 4660000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 4681 kHz (Johannesburg)",
+              "centre_hz": 4681000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 4687 kHz (Barrow)",
+              "centre_hz": 4687000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5451 kHz (Agana)",
+              "centre_hz": 5451000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5502 kHz (Muan)",
+              "centre_hz": 5502000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5508 kHz (San Francisco)",
+              "centre_hz": 5508000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5514 kHz (Molokai)",
+              "centre_hz": 5514000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5529 kHz (Johannesburg, Barrow)",
+              "centre_hz": 5529000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5538 kHz (Barrow)",
+              "centre_hz": 5538000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5544 kHz (Barrow, Al Muharraq)",
+              "centre_hz": 5544000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5547 kHz (Shannon)",
+              "centre_hz": 5547000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5583 kHz (Auckland)",
+              "centre_hz": 5583000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5589 kHz (Albrook)",
+              "centre_hz": 5589000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5622 kHz (Krasnoyarsk)",
+              "centre_hz": 5622000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5652 kHz (Riverhead)",
+              "centre_hz": 5652000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5655 kHz (Hat Yai)",
+              "centre_hz": 5655000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 5720 kHz (Reykjavik)",
+              "centre_hz": 5720000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6529 kHz (Canarias)",
+              "centre_hz": 6529000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6532 kHz (Shannon)",
+              "centre_hz": 6532000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6535 kHz (Auckland, Hat Yai)",
+              "centre_hz": 6535000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6559 kHz (San Francisco)",
+              "centre_hz": 6559000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6565 kHz (Molokai)",
+              "centre_hz": 6565000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6589 kHz (Albrook)",
+              "centre_hz": 6589000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6596 kHz (Krasnoyarsk)",
+              "centre_hz": 6596000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6619 kHz (Muan)",
+              "centre_hz": 6619000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6628 kHz (Santa Cruz)",
+              "centre_hz": 6628000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6646 kHz (Barrow, Al Muharraq)",
+              "centre_hz": 6646000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6652 kHz (Agana)",
+              "centre_hz": 6652000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6661 kHz (Riverhead)",
+              "centre_hz": 6661000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 6712 kHz (Reykjavik)",
+              "centre_hz": 6712000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8825 kHz (Hat Yai)",
+              "centre_hz": 8825000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8834 kHz (Johannesburg)",
+              "centre_hz": 8834000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8843 kHz (Shannon)",
+              "centre_hz": 8843000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8885 kHz (Al Muharraq)",
+              "centre_hz": 8885000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8886 kHz (Krasnoyarsk)",
+              "centre_hz": 8886000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8894 kHz (Albrook)",
+              "centre_hz": 8894000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8912 kHz (Molokai, Riverhead)",
+              "centre_hz": 8912000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8921 kHz (Auckland)",
+              "centre_hz": 8921000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8927 kHz (San Francisco, Barrow, Agana)",
+              "centre_hz": 8927000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8936 kHz (Molokai, Barrow)",
+              "centre_hz": 8936000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8939 kHz (Muan)",
+              "centre_hz": 8939000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8942 kHz (Shannon)",
+              "centre_hz": 8942000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8948 kHz (Canarias)",
+              "centre_hz": 8948000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8957 kHz (Santa Cruz)",
+              "centre_hz": 8957000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 8977 kHz (Reykjavik)",
+              "centre_hz": 8977000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 10027 kHz (Molokai, Barrow)",
+              "centre_hz": 10027000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 10030 kHz (Al Muharraq)",
+              "centre_hz": 10030000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 10060 kHz (Muan)",
+              "centre_hz": 10060000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 10063 kHz (Albrook)",
+              "centre_hz": 10063000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 10066 kHz (Hat Yai)",
+              "centre_hz": 10066000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 10081 kHz (San Francisco, Shannon)",
+              "centre_hz": 10081000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 10084 kHz (Auckland)",
+              "centre_hz": 10084000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 10087 kHz (Krasnoyarsk)",
+              "centre_hz": 10087000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 10093 kHz (Barrow)",
+              "centre_hz": 10093000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 11184 kHz (Reykjavik)",
+              "centre_hz": 11184000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 11306 kHz (Agana)",
+              "centre_hz": 11306000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 11312 kHz (Molokai)",
+              "centre_hz": 11312000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 11318 kHz (Santa Cruz)",
+              "centre_hz": 11318000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 11321 kHz (Johannesburg)",
+              "centre_hz": 11321000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 11327 kHz (San Francisco)",
+              "centre_hz": 11327000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 11348 kHz (Molokai, Canarias)",
+              "centre_hz": 11348000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 11354 kHz (Barrow)",
+              "centre_hz": 11354000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 11384 kHz (Shannon)",
+              "centre_hz": 11384000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 11387 kHz (Riverhead)",
+              "centre_hz": 11387000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 13264 kHz (Albrook)",
+              "centre_hz": 13264000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 13270 kHz (Hat Yai)",
+              "centre_hz": 13270000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 13276 kHz (San Francisco, Molokai, Riverhead)",
+              "centre_hz": 13276000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 13303 kHz (Canarias)",
+              "centre_hz": 13303000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 13312 kHz (Molokai, Al Muharraq, Agana)",
+              "centre_hz": 13312000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 13315 kHz (Santa Cruz)",
+              "centre_hz": 13315000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 13321 kHz (Johannesburg, Krasnoyarsk)",
+              "centre_hz": 13321000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 13324 kHz (Molokai)",
+              "centre_hz": 13324000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 13342 kHz (Muan)",
+              "centre_hz": 13342000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 13351 kHz (Auckland)",
+              "centre_hz": 13351000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 15025 kHz (Reykjavik)",
+              "centre_hz": 15025000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 17901 kHz (Albrook)",
+              "centre_hz": 17901000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 17912 kHz (Krasnoyarsk)",
+              "centre_hz": 17912000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 17916 kHz (Auckland, Santa Cruz)",
+              "centre_hz": 17916000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 17919 kHz (San Francisco, Molokai, Riverhead, Barrow, Agana)",
+              "centre_hz": 17919000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 17922 kHz (Johannesburg)",
+              "centre_hz": 17922000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 17928 kHz (Hat Yai, Canarias)",
+              "centre_hz": 17928000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 17934 kHz (Barrow)",
+              "centre_hz": 17934000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 17958 kHz (Muan)",
+              "centre_hz": 17958000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 17967 kHz (Al Muharraq)",
+              "centre_hz": 17967000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 17985 kHz (Reykjavik)",
+              "centre_hz": 17985000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 21928 kHz (Barrow, Agana)",
+              "centre_hz": 21928000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 21931 kHz (Riverhead, Muan)",
+              "centre_hz": 21931000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 21934 kHz (San Francisco)",
+              "centre_hz": 21934000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 21937 kHz (Molokai, Barrow)",
+              "centre_hz": 21937000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 21949 kHz (Hat Yai, Johannesburg)",
+              "centre_hz": 21949000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 21955 kHz (Canarias)",
+              "centre_hz": 21955000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 21982 kHz (Al Muharraq)",
+              "centre_hz": 21982000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 21990 kHz (Krasnoyarsk)",
+              "centre_hz": 21990000,
+              "width_hz": 3000
+            },
+            {
+              "name": "HFDL 21997 kHz (Santa Cruz)",
+              "centre_hz": 21997000,
+              "width_hz": 3000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "hfdl"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "hfdl"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "hfdl"
+      ]
+    }
+  ]
+}

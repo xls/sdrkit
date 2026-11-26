@@ -1,0 +1,182 @@
+{
+  "$schema": "../../docs/schema/plans.json",
+  "format": 1,
+  "groups": [
+    {
+      "id": "radar_detect",
+      "name": "Pulse radar bands (S, C and X band)",
+      "kind": "other",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, Article 5 (radiolocation and radionavigation bands)",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the bands of the Article 5 table, each as one channel at its centre (at most 100 MHz wide); each radar sends on its own frequency in the band",
+      "bands": [
+        {
+          "name": "S band, air traffic and weather radars",
+          "service": "radiolocation",
+          "start_hz": 2700000000,
+          "end_hz": 2900000000,
+          "modes": [
+            "radar_detect"
+          ],
+          "channels": [
+            {
+              "name": "S band, air traffic and weather radars (2700 to 2900 MHz)",
+              "centre_hz": 2800000000,
+              "width_hz": 100000000
+            }
+          ]
+        },
+        {
+          "name": "S band, ship radars",
+          "service": "radiolocation",
+          "start_hz": 2900000000,
+          "end_hz": 3100000000,
+          "modes": [
+            "radar_detect"
+          ],
+          "channels": [
+            {
+              "name": "S band, ship radars (2900 to 3100 MHz)",
+              "centre_hz": 3000000000,
+              "width_hz": 100000000
+            }
+          ]
+        },
+        {
+          "name": "C band, weather radars",
+          "service": "radiolocation",
+          "start_hz": 5600000000,
+          "end_hz": 5650000000,
+          "modes": [
+            "radar_detect"
+          ],
+          "channels": [
+            {
+              "name": "C band, weather radars (5600 to 5650 MHz)",
+              "centre_hz": 5625000000,
+              "width_hz": 50000000
+            }
+          ]
+        },
+        {
+          "name": "X band, ship and weather radars",
+          "service": "radiolocation",
+          "start_hz": 9300000000,
+          "end_hz": 9500000000,
+          "modes": [
+            "radar_detect"
+          ],
+          "channels": [
+            {
+              "name": "X band, ship and weather radars (9300 to 9500 MHz)",
+              "centre_hz": 9400000000,
+              "width_hz": 100000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hfradar",
+      "name": "HF oceanographic radar bands",
+      "kind": "other",
+      "source": {
+        "publisher": "ITU",
+        "title": "Radio Regulations, Volume 1, footnotes 5.132A, 5.145A, 5.161A (oceanographic radars between 3 and 50 MHz) and Resolution 612",
+        "number": "Edition of 2024",
+        "date": "2024"
+      },
+      "verified": false,
+      "unverified_reason": "the bands of the footnotes, each as one channel at its centre; which bands a region allocates differs and was not compared",
+      "bands": [
+        {
+          "name": "Oceanographic radars",
+          "service": "radiolocation",
+          "start_hz": 4438000,
+          "end_hz": 42500000,
+          "modes": [
+            "hfradar"
+          ],
+          "channels": [
+            {
+              "name": "Ocean radar 4.438 to 4.488 MHz",
+              "centre_hz": 4463000,
+              "width_hz": 50000
+            },
+            {
+              "name": "Ocean radar 5.25 to 5.275 MHz",
+              "centre_hz": 5262500,
+              "width_hz": 25000
+            },
+            {
+              "name": "Ocean radar 9.305 to 9.355 MHz",
+              "centre_hz": 9330000,
+              "width_hz": 50000
+            },
+            {
+              "name": "Ocean radar 13.45 to 13.55 MHz",
+              "centre_hz": 13500000,
+              "width_hz": 100000
+            },
+            {
+              "name": "Ocean radar 16.1 to 16.2 MHz",
+              "centre_hz": 16150000,
+              "width_hz": 100000
+            },
+            {
+              "name": "Ocean radar 24.45 to 24.65 MHz",
+              "centre_hz": 24550000,
+              "width_hz": 200000
+            },
+            {
+              "name": "Ocean radar 26.2 to 26.42 MHz",
+              "centre_hz": 26310000,
+              "width_hz": 220000
+            },
+            {
+              "name": "Ocean radar 39 to 39.5 MHz",
+              "centre_hz": 39250000,
+              "width_hz": 500000
+            },
+            {
+              "name": "Ocean radar 42 to 42.5 MHz",
+              "centre_hz": 42250000,
+              "width_hz": 500000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "itu": 1,
+      "name": "ITU Region 1",
+      "groups": [
+        "radar_detect",
+        "hfradar"
+      ]
+    },
+    {
+      "itu": 2,
+      "name": "ITU Region 2",
+      "groups": [
+        "radar_detect",
+        "hfradar"
+      ]
+    },
+    {
+      "itu": 3,
+      "name": "ITU Region 3",
+      "groups": [
+        "radar_detect",
+        "hfradar"
+      ]
+    }
+  ]
+}

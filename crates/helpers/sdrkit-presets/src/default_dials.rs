@@ -105,7 +105,7 @@ mod tests {
                 ("dvbt2", 1),
                 ("general", 4),
                 ("hfkbd", 22),
-                ("ism", 2),
+                ("ism", 1),
                 ("science", 2),
                 ("wsjt", 29),
             ]
@@ -131,7 +131,7 @@ mod tests {
         let all = d.default_dials().unwrap();
         assert_eq!(dial_hz(&all, "dvbt2", None), Some(474e6));
         assert_eq!(dial_hz(&all, "hamdrm", None), Some(14.233e6));
-        assert_eq!(dial_hz(&all, "zigbee", None), Some(2405e6));
+        assert_eq!(dial_hz(&all, "zigbee", None), None);
         assert_eq!(dial_hz(&all, "dsrc_toll", None), Some(5802.5e6));
     }
 

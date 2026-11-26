@@ -107,9 +107,9 @@ fn ieee_802_15_4_has_16_channels() {
             );
         }
     }
-    // The dial of ism/default_dials.csv is the first channel of the plan.
+    // The plan is the one source of the start: the dial files hold no row for zigbee.
     let dials = d.default_dials().expect("the dial files");
-    assert_eq!(dial_hz(&dials, "zigbee", None), Some(2405e6));
+    assert_eq!(dial_hz(&dials, "zigbee", None), None);
 }
 
 #[test]

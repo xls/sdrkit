@@ -231,6 +231,10 @@ pub enum Service {
     Amateur,
     /// Radio astronomy service.
     RadioAstronomy,
+    /// Radiolocation service (radars other than those of radionavigation).
+    Radiolocation,
+    /// Meteorological aids service (radiosondes).
+    MeteorologicalAids,
     /// Industrial, scientific and medical applications.
     Ism,
     /// Short-range devices.
@@ -251,6 +255,8 @@ impl Service {
             Service::AeronauticalRadionavigation => "aeronautical_radionavigation",
             Service::Amateur => "amateur",
             Service::RadioAstronomy => "radio_astronomy",
+            Service::Radiolocation => "radiolocation",
+            Service::MeteorologicalAids => "meteorological_aids",
             Service::Ism => "ism",
             Service::ShortRange => "short_range",
             Service::Cable => "cable",
@@ -258,7 +264,7 @@ impl Service {
     }
 
     /// Every service, in file order.
-    pub const ALL: [Service; 11] = [
+    pub const ALL: [Service; 13] = [
         Service::Broadcasting,
         Service::Mobile,
         Service::LandMobile,
@@ -267,6 +273,8 @@ impl Service {
         Service::AeronauticalRadionavigation,
         Service::Amateur,
         Service::RadioAstronomy,
+        Service::Radiolocation,
+        Service::MeteorologicalAids,
         Service::Ism,
         Service::ShortRange,
         Service::Cable,

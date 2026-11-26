@@ -328,7 +328,7 @@ fn a_mesh_stack_lists_every_band_plan_of_its_country() {
     let de = sdrkit_presets::Region::new("DE").unwrap();
     assert_eq!(hz("loraaprs", &de), [433.775e6, 434.855e6, 439.9125e6]);
     assert_eq!(hz("mesh", &de).len(), 6);
-    assert!(hz("loraaprs", &au).is_empty());
+    assert_eq!(hz("loraaprs", &au), [433.775e6]);
 }
 
 /// The supplied frequency entries of a stack in a country: those of its stack column, and those of the general receiver

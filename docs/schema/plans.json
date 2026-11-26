@@ -104,6 +104,8 @@
             "aeronautical_radionavigation",
             "amateur",
             "radio_astronomy",
+            "radiolocation",
+            "meteorological_aids",
             "ism",
             "short_range",
             "cable"

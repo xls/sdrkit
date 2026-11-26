@@ -113,19 +113,9 @@
         "date": "2024"
       },
       "verified": false,
-      "unverified_reason": "the links use Wi-Fi channels; which channels each country allows is in the Wi-Fi channel plans and was not compared here",
+      "unverified_reason": "the links use Wi-Fi channels; the list holds 2.4 GHz channels 1 to 13 and the channels of 5725 to 5850 MHz; which channels each country allows is in the Wi-Fi channel plans and was not compared here",
       "note": "stack settings: frequency 5805 MHz, sample rate 20 Msps; tune to the centre of a 20 MHz Wi-Fi channel",
       "bands": [
-        {
-          "name": "wfb 2.4 GHz",
-          "service": "short_range",
-          "start_hz": 2400000000,
-          "end_hz": 2500000000,
-          "modes": [
-            "wfb"
-          ],
-          "channel_width_hz": 20000000
-        },
         {
           "name": "wfb 5 GHz",
           "service": "short_range",
@@ -134,7 +124,111 @@
           "modes": [
             "wfb"
           ],
-          "channel_width_hz": 20000000
+          "channel_width_hz": 20000000,
+          "channels": [
+            {
+              "name": "Channel 161 (5805 MHz)",
+              "centre_hz": 5805000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 149 (5745 MHz)",
+              "centre_hz": 5745000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 153 (5765 MHz)",
+              "centre_hz": 5765000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 157 (5785 MHz)",
+              "centre_hz": 5785000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 165 (5825 MHz)",
+              "centre_hz": 5825000000,
+              "width_hz": 20000000
+            }
+          ]
+        },
+        {
+          "name": "wfb 2.4 GHz",
+          "service": "short_range",
+          "start_hz": 2400000000,
+          "end_hz": 2500000000,
+          "modes": [
+            "wfb"
+          ],
+          "channel_width_hz": 20000000,
+          "channels": [
+            {
+              "name": "Channel 1 (2412 MHz)",
+              "centre_hz": 2412000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 2 (2417 MHz)",
+              "centre_hz": 2417000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 3 (2422 MHz)",
+              "centre_hz": 2422000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 4 (2427 MHz)",
+              "centre_hz": 2427000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 5 (2432 MHz)",
+              "centre_hz": 2432000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 6 (2437 MHz)",
+              "centre_hz": 2437000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 7 (2442 MHz)",
+              "centre_hz": 2442000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 8 (2447 MHz)",
+              "centre_hz": 2447000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 9 (2452 MHz)",
+              "centre_hz": 2452000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 10 (2457 MHz)",
+              "centre_hz": 2457000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 11 (2462 MHz)",
+              "centre_hz": 2462000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 12 (2467 MHz)",
+              "centre_hz": 2467000000,
+              "width_hz": 20000000
+            },
+            {
+              "name": "Channel 13 (2472 MHz)",
+              "centre_hz": 2472000000,
+              "width_hz": 20000000
+            }
+          ]
         }
       ]
     }

@@ -777,7 +777,7 @@ mod tests {
         );
         assert_eq!(d.meshtastic_region_of("XX").unwrap(), None);
         let plans = d.mesh_band_plans().unwrap();
-        assert_eq!(plans.len(), 11);
+        assert_eq!(plans.len(), 13);
         for p in &plans {
             assert!(
                 regions.iter().any(|r| r.name == p.meshtastic_region),
