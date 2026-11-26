@@ -3,7 +3,7 @@
 
 mod common;
 
-use common::{defaults, number};
+use common::{defaults, field, number};
 use sdrkit_core::net::FakeTransport;
 use sdrkit_core::{Values};
 use sdrkit_driver_core::iiod::fake::{FakeIiod, FakeOpts};
@@ -43,26 +43,28 @@ fn a_stack_that_the_link_cannot_carry_starts_all_the_same() {
 }
 
 #[test]
-fn a_stack_that_fits_the_link_below_its_wish_runs_narrower() {
+fn on_automatic_a_stream_that_gets_its_rate_leaves_the_next_stack_its_preferred_rate() {
     let net = FakeTransport::new();
-    // 40 MB/s: about 8.5 Msps with room to spare; Wi-Fi would like 20 and runs at 4 or more.
+    // 100 MB/s: 25 Msps of 16-bit samples. The idle stream runs far below it and gets its rate.
     let srv = FakeIiod::start_at(
         net.clone(),
         "10.0.0.5",
         FakeOpts {
-            link_bytes_per_s: Some(40e6),
+            link_bytes_per_s: Some(100e6),
             ..FakeOpts::default()
         },
     );
     let e = sdrkit_host_catalog::engine_on(Arc::new(net.clone())).unwrap();
     let kind = e.find("driver.iiod").unwrap();
     let r = e.open_radio("iiod", &srv.addr(), &defaults(&e, kind)).unwrap();
-    std::thread::sleep(Duration::from_secs(2));
+    // Long enough for the watch of the idle stream to judge several windows.
+    std::thread::sleep(Duration::from_secs(8));
     e.start_stack("wifi", None, &stack_values("wifi"), Input::Radio(r), None)
         .unwrap();
-    let rate = number(&e, OwnerRef::Radio(r), "rate_hz");
-    assert!((4e6..12e6).contains(&rate), "{rate}");
-    assert!(!srv.board.has("iio:device1 INPUT voltage0 sampling_frequency=20000000"));
+    // Wi-Fi prefers 20 Msps: the rate of the idle stream is no figure of the link, so it gets 20, with no note.
+    assert_eq!(number(&e, OwnerRef::Radio(r), "rate_hz"), 20e6);
+    let problem = field(&e, OwnerRef::Radio(r), "problem");
+    assert!(matches!(problem, None | Some(sdrkit_core::Value::None)), "{problem:?}");
     assert!(srv.board.violations().is_empty(), "{:?}", srv.board.violations());
 }
 

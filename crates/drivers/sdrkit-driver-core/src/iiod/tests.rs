@@ -2013,48 +2013,49 @@ fn a_rate_change_on_a_slow_link_closes_the_old_buffer_before_the_new_one_opens()
 }
 
 #[test]
-fn a_slow_link_is_measured_live_from_the_stream_and_the_notice_clears_when_it_recovers() {
-    // 2.4 Msps needs 9.6 MB/s; the link carries 4 MB/s.
-    let srv = slow_board(Some(4e6));
+fn a_link_that_holds_the_stream_below_its_rate_is_a_limit_while_it_lasts() {
+    // 8 Msps needs 32 MB/s; the link carries 12 MB/s: about 3 Msps.
+    let srv = slow_board(Some(12e6));
     let mut src = IiodDriver::new(srv.transport())
-        .open_w(&srv.addr(), &tune(2.4 * M, &[]))
+        .open_w(&srv.addr(), &tune(8.0 * M, &[]))
         .unwrap();
     // Nothing is timed at open: no figure before a stream runs.
     assert_eq!(src.capabilities().rates.steady_hz, None);
     let (w, mut r) = ring(1 << 22, SampleType::Cs16);
     src.start(w).unwrap();
     let mut seen = Vec::new();
-    let warned = wait_for(
+    let limited = wait_for(
         || {
+            let _ = r.skip_all();
             seen.extend(src.take_notices());
-            seen.iter()
-                .any(|n| matches!(n, Notice::Warning(t) if t.contains("the link delivers 0.")))
+            src.capabilities().rates.steady_hz.is_some()
         },
-        8.0,
+        15.0,
     );
-    assert!(warned, "{seen:?}");
-    std::thread::sleep(Duration::from_millis(300));
+    assert!(limited, "{seen:?}");
+    assert!(
+        seen.iter()
+            .any(|n| matches!(n, Notice::Warning(t) if t.contains("samples are lost"))),
+        "{seen:?}"
+    );
+    let cap = src.capabilities().rates.steady_hz.unwrap();
+    assert!((2.0 * M..3.2 * M).contains(&cap), "{cap}");
     let st = src.readings();
-    assert!(st.status().summary.contains("the link delivers 0."), "{}", st.status().summary);
-    let cap = src.capabilities().rates.steady_hz.expect("a live figure");
-    // About 0.85 of 4 MB/s at 4 bytes a sample.
-    assert!((0.6 * M..1.1 * M).contains(&cap), "{cap}");
-    // The link recovers: the live figure goes up, and the notice and the status clear by themselves.
-    *srv.board.link_now.lock().unwrap() = Some(60e6);
+    assert!(st.status().summary.contains("samples are lost"), "{}", st.status().summary);
+    // The link recovers: the figure and the notice go away by themselves.
+    *srv.board.link_now.lock().unwrap() = Some(200e6);
     let recovered = wait_for(
         || {
             let _ = r.skip_all();
             seen.extend(src.take_notices());
-            seen.iter()
-                .any(|n| matches!(n, Notice::Log(t) if t.contains("the link delivers all of")))
+            src.capabilities().rates.steady_hz.is_none()
         },
-        10.0,
+        LIVE_FRESH.as_secs_f64() + 2.0,
     );
     assert!(recovered, "{seen:?}");
     std::thread::sleep(Duration::from_millis(300));
     let st = src.readings();
-    assert!(!st.status().summary.contains("the link delivers 0."), "{}", st.status().summary);
-    assert!(src.capabilities().rates.steady_hz.is_none_or(|c| c > 2.0 * M));
+    assert!(!st.status().summary.contains("samples are lost"), "{}", st.status().summary);
     src.stop();
 }
 
@@ -2094,7 +2095,7 @@ fn a_link_figure_leaves_the_lists_of_rate_and_bandwidth_as_they_are() {
             radio.poll(0.0, &mut events);
             radio.capabilities().rates.steady_hz.is_some()
         },
-        8.0,
+        15.0,
     );
     assert!(measured);
     assert_eq!(lists(sdrkit_core::Owner::schema(&radio)), opened);
@@ -2102,25 +2103,62 @@ fn a_link_figure_leaves_the_lists_of_rate_and_bandwidth_as_they_are() {
 }
 
 #[test]
-fn a_fast_link_is_timed_at_the_start_of_the_stream() {
-    let srv = slow_board(Some(40e6));
+fn a_stream_that_gets_its_rate_reports_no_limit() {
+    // 60 MB/s carries 15 Msps; the stream runs at 3.5.
+    let srv = slow_board(Some(60e6));
     let mut src = IiodDriver::new(srv.transport())
-        .open_w(&srv.addr(), &tune(2.4 * M, &[]))
+        .open_w(&srv.addr(), &tune(3.5 * M, &[]))
         .unwrap();
     let (w, mut r) = ring(1 << 22, SampleType::Cs16);
     src.start(w).unwrap();
-    assert!(!read_n(&mut r, 1000, 3.0).is_empty());
-    let found = wait_for(
-        || {
-            src.take_notices();
-            src.capabilities().rates.steady_hz.is_some()
-        },
-        3.0,
-    );
-    assert!(found);
-    let cap = src.capabilities().rates.steady_hz.unwrap();
-    // About 0.85 of 40 MB/s at 4 bytes a sample: well above the 2.4 Msps the stream runs.
-    assert!((5.0 * M..10.0 * M).contains(&cap), "{cap}");
+    let t = Instant::now();
+    while t.elapsed() < Duration::from_secs(9) {
+        let _ = r.skip_all();
+        src.take_notices();
+        // The rate of the stream is no figure of the link.
+        assert_eq!(src.capabilities().rates.steady_hz, None);
+        std::thread::sleep(Duration::from_millis(50));
+    }
     src.stop();
 }
 
+#[test]
+fn a_shortfall_in_the_status_is_gone_once_a_lower_rate_arrives_in_full() {
+    // 60 MB/s carries 15 Msps: 20 Msps falls short, 12.5 Msps arrives in full.
+    let srv = slow_board(Some(60e6));
+    let mut src = IiodDriver::new(srv.transport())
+        .open_w(&srv.addr(), &tune(20.0 * M, &[]))
+        .unwrap();
+    let (w, mut r) = ring(1 << 22, SampleType::Cs16);
+    src.start(w).unwrap();
+    let summary = |src: &mut Box<dyn Source>| src.readings().status().summary.clone();
+    let short = wait_for(
+        || {
+            let _ = r.skip_all();
+            src.take_notices();
+            summary(&mut src).contains("of 20 Msps arrive")
+        },
+        15.0,
+    );
+    assert!(short, "{}", summary(&mut src));
+    src.retune(&tune(12.5 * M, &[])).unwrap();
+    let gone = wait_for(
+        || {
+            let _ = r.skip_all();
+            src.take_notices();
+            let s = summary(&mut src);
+            s.contains("12.5") && !s.contains("samples are lost")
+        },
+        5.0,
+    );
+    assert!(gone, "{}", summary(&mut src));
+    // It stays gone while the stream gets its rate.
+    let t = Instant::now();
+    while t.elapsed() < Duration::from_secs(7) {
+        let _ = r.skip_all();
+        src.take_notices();
+        assert!(!summary(&mut src).contains("samples are lost"), "{}", summary(&mut src));
+        std::thread::sleep(Duration::from_millis(100));
+    }
+    src.stop();
+}

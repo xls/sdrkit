@@ -566,10 +566,9 @@ impl Radio for RspRadio {
     fn status(&self) -> String {
         match *lock(&self.addr.last) {
             Some(t) => format!(
-                "rsp_tcp: {:.1} Mbit/s, {} of {} Msps",
+                "rsp_tcp: {:.1} Mbit/s, {}",
                 t.mbit_s,
-                sdrkit_driver_core::fmt_m(t.achieved_hz),
-                sdrkit_driver_core::fmt_m(t.asked_hz)
+                sdrkit_driver_core::arrive_text(t.achieved_hz, t.asked_hz)
             ),
             None => String::new(),
         }

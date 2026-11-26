@@ -80,6 +80,11 @@ const OWN_BUFFER_WAIT: Duration = Duration::from_secs(3);
 const OWN_BUFFER_RECENT: Duration = Duration::from_secs(10);
 /// The longest time the kernel buffers fill before the timing at the start of a stream reads them.
 const PROBE_FILL_MAX: Duration = Duration::from_millis(400);
+/// The start of a stream that the watch does not judge: a start, a retune or a change of stack delivers a little short
+/// for a moment, which says nothing about the link.
+const WATCH_SETTLE: Duration = Duration::from_secs(3);
+/// The windows in a row that must get less than [`SHORT`] of the rate before the link counts as the limit.
+const SHORT_WINDOWS: u32 = 2;
 /// How long a reading of the link counts. The link to a board across Wi-Fi changes from second to second, so an older
 /// reading says nothing about it.
 const LIVE_FRESH: Duration = Duration::from_secs(5);
@@ -1790,7 +1795,7 @@ impl Radio for IiodRadio {
         };
         let line = format!("{} Msps{what} from {}", fmt_m(self.rate), self.label);
         match lock(&self.board).link_short {
-            Some((part, rate)) => format!("{line}; the link delivers {part:.2} of {} Msps", fmt_m(rate)),
+            Some((part, rate)) => format!("{line}; {}: samples are lost", crate::arrive_text(part * rate, rate)),
             None => line,
         }
     }
@@ -1842,6 +1847,8 @@ impl IiodRadio {
                 from: None,
             }
         });
+        // A new stream starts with no shortfall: one of the stream before, at another rate, is gone.
+        lock(&self.board).link_short = None;
         IiodStream {
             holds,
             board: self.board.clone(),
@@ -1900,9 +1907,13 @@ struct Probe {
 /// The watch on what arrives: bytes in the current window, and the part of the rate last warned about.
 #[derive(Default)]
 struct Watch {
+    /// When the stream started: the first [`WATCH_SETTLE`] say nothing about the link.
+    started: Option<Instant>,
     since: Option<Instant>,
     bytes: u64,
     warned: Option<f64>,
+    /// Windows in a row that got less than [`SHORT`] of the rate.
+    short: u32,
 }
 
 /// The held gain of one receiver as the stream measures and steps it.
@@ -1967,20 +1978,17 @@ impl IiodStream {
         }
     }
 
-    /// Takes a reading of `bps` bytes a second of the running stream into the live figure of the board. `at_most`: the link
-    /// carried no more (the reader waited for it), and the figure moves toward the reading; else it carried at least that
-    /// much, and the figure does not go below it. A figure that is no longer fresh is replaced.
-    fn learn(&self, bps: f64, at_most: bool) {
+    /// Takes `bps` bytes a second, what a stream got while the link held it below its rate, into the live figure of the
+    /// board: the figure moves toward the reading. A figure that is no longer fresh is replaced.
+    fn learn_limit(&self, bps: f64) {
         if !self.learns || !bps.is_finite() || bps <= 0.0 {
             return;
         }
         let mut k = lock(&self.known);
         let e = k.entry(self.label.clone()).or_default();
-        let old = e.link.and_then(|l| l.fresh());
-        let bps = match (old, at_most) {
-            (Some(old), true) => LIVE_SMOOTH * old + (1.0 - LIVE_SMOOTH) * bps,
-            (Some(old), false) => old.max(bps),
-            (None, _) => bps,
+        let bps = match e.link.and_then(|l| l.fresh()) {
+            Some(old) => LIVE_SMOOTH * old + (1.0 - LIVE_SMOOTH) * bps,
+            None => bps,
         };
         // Two figures, so that a small change does not make the capabilities of the radio new at every window.
         let shown = round2(bps);
@@ -2011,9 +2019,9 @@ impl IiodStream {
             return;
         }
         let bps = bytes / secs;
-        // Queued buffers that came no faster than the rate say only that the link carries the rate.
+        // Queued buffers that came no faster than the rate say only that the link carries the rate. A timing at the start
+        // of a stream is for the log only: it limits nothing.
         let at_most = timed_at_most(bps, self.need_bps);
-        self.learn(bps, at_most);
         ctx.notices.log(format!(
             "PlutoSDR {}: the link carried {:.1} MB/s at the start of the stream{}",
             self.label,
@@ -2022,11 +2030,14 @@ impl IiodStream {
         ));
     }
 
-    /// Adds `n` bytes to the watch. Over each window it keeps what the link carried and warns while the stream gets clearly less
-    /// than its rate: "the link delivers 0.30 of 20 Msps".
+    /// Adds `n` bytes to the watch, which judges windows of [`WATCH_WINDOW`] after the first [`WATCH_SETTLE`] of the stream.
+    /// When [`SHORT_WINDOWS`] windows in a row get less than [`SHORT`] of the rate, the link is the limit: what arrived goes
+    /// into the live figure, and a warning says "6 of 20 Msps arrive (30 %): samples are lost". A window that gets the rate clears the
+    /// figure: the link carries at least the rate, which limits nothing.
     fn watch(&mut self, n: usize, ctx: &StreamCtx) {
         let now = Instant::now();
         let w = &mut self.watch;
+        let started = *w.started.get_or_insert(now);
         let Some(since) = w.since else {
             w.since = Some(now);
             w.bytes = 0;
@@ -2041,28 +2052,38 @@ impl IiodStream {
         let part = bps / self.need_bps;
         w.since = Some(now);
         w.bytes = 0;
-        lock(&self.board).link_short = (part < SHORT).then_some((part, self.rate));
-        if part < SHORT {
+        if now - started < WATCH_SETTLE {
+            return;
+        }
+        w.short = if part < SHORT { w.short + 1 } else { 0 };
+        // Only a shortfall that lasts says that the link is the limit.
+        let limited = w.short >= SHORT_WINDOWS;
+        lock(&self.board).link_short = limited.then_some((part, self.rate));
+        if limited {
             let shown = w.warned.is_some_and(|p| (p - part).abs() < 0.1);
             if !shown {
                 w.warned = Some(part);
                 ctx.notices.warn(format!(
-                    "PlutoSDR {}: the link delivers {part:.2} of {} Msps (about {} Msps arrive)",
+                    "PlutoSDR {}: {}: samples are lost",
                     self.label,
-                    fmt_m(self.rate),
-                    fmt_m(part * self.rate)
+                    crate::arrive_text(part * self.rate, self.rate)
                 ));
             }
-            self.learn(bps, true);
-        } else {
+            self.learn_limit(bps);
+        } else if part >= SHORT {
             if w.warned.take().is_some() {
                 ctx.notices.log(format!(
-                    "PlutoSDR {}: the link delivers all of {} Msps again",
+                    "PlutoSDR {}: all of {} Msps arrive again",
                     self.label,
                     fmt_m(self.rate)
                 ));
             }
-            self.learn(bps, false);
+            // The stream gets its rate: the link carries at least that, and no figure limits it.
+            if self.learns {
+                if let Some(e) = lock(&self.known).get_mut(&self.label) {
+                    e.link = None;
+                }
+            }
         }
     }
 

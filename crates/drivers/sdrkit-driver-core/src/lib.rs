@@ -612,6 +612,23 @@ pub fn fmt_m(hz: Hz) -> String {
     }
 }
 
+/// How much of a stream arrives, for people: the arriving rate, the asked rate and the percentage, "14 of 20 Msps arrive
+/// (70 %)". Every driver words a shortfall of a stream in this form.
+pub fn arrive_text(arriving_hz: Hz, asked_hz: Hz) -> String {
+    let pct = if asked_hz > 0.0 {
+        (100.0 * arriving_hz / asked_hz).clamp(0.0, 100.0)
+    } else {
+        0.0
+    };
+    format!("{} of {} Msps arrive ({pct:.0} %)", fmt_m(round_rate(arriving_hz)), fmt_m(asked_hz))
+}
+
+/// `hz` to two significant figures above 1 Msps and to 0.01 Msps below: a measured rate shows no false precision.
+fn round_rate(hz: Hz) -> Hz {
+    let step = if hz >= 10e6 { 1e6 } else if hz >= 1e6 { 0.1e6 } else { 0.01e6 };
+    (hz / step).round() * step
+}
+
 /// Helpers for the tests of this crate.
 #[cfg(test)]
 pub(crate) mod testing {

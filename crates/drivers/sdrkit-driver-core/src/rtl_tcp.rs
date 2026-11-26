@@ -877,7 +877,7 @@ impl Radio for RtlRadio {
                     self.label,
                     t.mbit_s
                 );
-                if let Some(d) = crate::linkwatch::drop_text(self.state.link.part()) {
+                if let Some(d) = crate::linkwatch::loss_text(self.state.link.part(), t.asked_hz) {
                     s.push_str(", ");
                     s.push_str(&d);
                 }

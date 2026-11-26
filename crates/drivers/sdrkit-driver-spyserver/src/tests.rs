@@ -1112,7 +1112,7 @@ fn the_format_setting_and_a_forced_format() {
     let f = schema.setting(id).unwrap();
     assert_eq!(
         (f.field.key.as_ref(), f.field.label.as_ref()),
-        ("format", "Wire format")
+        ("format", "Sample format")
     );
     assert_eq!(Values::defaults(&schema).get(&FORMAT), WireFormat::Bits8);
     // A value that is not a choice is refused by the schema, never replaced by the default.

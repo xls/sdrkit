@@ -75,8 +75,15 @@ impl LinkWatch {
     }
 }
 
+/// The status of a stream at `asked_hz` that loses part of its samples on the link, or `None` while nearly all arrive:
+/// "2.1 of 2.4 Msps arrive (88 %): samples are lost" ([`crate::arrive_text`]).
+pub fn loss_text(part: Option<f64>, asked_hz: f64) -> Option<String> {
+    let p = part?;
+    (p < 0.97).then(|| format!("{}: samples are lost", crate::arrive_text(p * asked_hz, asked_hz)))
+}
+
 /// The status of a stream that loses part of its samples on the link, or `None` while nearly all arrive: "the link
-/// drops 12 % of the samples".
+/// drops 12 % of the samples". For a driver that does not know the asked rate; [`loss_text`] where it does.
 pub fn drop_text(part: Option<f64>) -> Option<String> {
     let p = part?;
     (p < 0.97).then(|| {

@@ -582,11 +582,10 @@ impl SpyStream {
         if low && !w.low_warned {
             w.low_warned = true;
             ctx.notices.warn(format!(
-                "SpyServer {}: {} Msps arrive of {} Msps: the network or the server is the limit (8-bit IQ needs 16 Mbit/s \
-                 per Msps)",
+                "SpyServer {}: {}: samples are lost; the network or the server is the limit (8-bit IQ needs 16 Mbit/s per \
+                 Msps)",
                 self.label,
-                sdrkit_driver_core::fmt_m(achieved),
-                sdrkit_driver_core::fmt_m(e.rate_hz),
+                sdrkit_driver_core::arrive_text(achieved, e.rate_hz),
             ));
         }
         if !below {

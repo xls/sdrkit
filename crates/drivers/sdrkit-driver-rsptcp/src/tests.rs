@@ -1069,7 +1069,7 @@ fn throughput_and_the_link_note() {
     assert!(
         status.starts_with("rsp_tcp: ")
             && status.contains("Mbit/s")
-            && status.ends_with("of 8 Msps"),
+            && status.contains("of 8 Msps arrive ("),
         "{status}"
     );
     assert!(res.fields().get(&THROUGHPUT).is_some());

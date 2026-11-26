@@ -734,7 +734,7 @@ impl OpenRadio {
                 self.drop_events = 0;
                 self.results.set(&RATE_GIVEN, s.rate_hz);
                 self.results.set(&CENTRE_GIVEN, s.centre_hz);
-                self.results.none(&PROBLEM);
+                self.clear_problem();
             }
             Err(e) => self.problem(e),
         }
@@ -844,7 +844,11 @@ impl OpenRadio {
         let link = self.source.link();
         if link != self.link {
             match link {
-                Link::Up => events.push(self.event(&CONNECTED, now, "")),
+                Link::Up => {
+                    // The link is back: a problem of the link before is gone.
+                    self.clear_problem();
+                    events.push(self.event(&CONNECTED, now, ""));
+                }
                 Link::Away => events.push(self.event(&LOST, now, "")),
                 _ => {}
             }
@@ -920,6 +924,22 @@ impl OpenRadio {
 
     fn problem(&mut self, e: &DriverError) {
         Owner::problem(self, &e.to_string());
+    }
+
+    /// Removes the problem that [`Owner::problem`] wrote: the field [`PROBLEM`], and the summary of the status while it
+    /// is still that text.
+    fn clear_problem(&mut self) {
+        let Some(text) = self.results.results().fields().get(&PROBLEM).map(str::to_owned) else {
+            return;
+        };
+        self.results.none(&PROBLEM);
+        self.results.results_mut().update_status(|s| {
+            let same = s.summary == text;
+            if same {
+                s.summary.clear();
+            }
+            same
+        });
     }
 
     /// Narrows the ranges of frequency, rate, filter width and gain to what the open radio can do, and moves their
@@ -1004,6 +1024,8 @@ impl Owner for OpenRadio {
             Ok(r) => {
                 self.values = next;
                 self.restart |= restart;
+                // A problem names a state before this change: the device took the change, so it is gone.
+                self.clear_problem();
                 match r {
                     Retuned::Live(s) => {
                         self.results.set(&RATE_GIVEN, s.rate_hz);
