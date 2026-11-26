@@ -103,7 +103,12 @@ pub struct NrSearcher {
     sib1_tried: Vec<((u16, i64), f64, bool)>,
     /// The strongest PSS correlation over its mean since the search of the capture started, dB.
     best_db: f64,
+    /// The clock error of the radio learned from a decoded cell, ppm, and the signal time it was learned.
+    clock: Option<(f64, f64)>,
 }
+
+/// A learned clock error is used for this many seconds of signal.
+const CLOCK_KEPT_S: f64 = 600.0;
 
 /// Seconds until the SIB1 of a cell is read again after a decode.
 pub const SIB1_AGAIN_S: f64 = 30.0;
@@ -123,6 +128,7 @@ impl Default for NrSearcher {
             symbol_phase: true,
             sib1_tried: Vec::new(),
             best_db: f64::NEG_INFINITY,
+            clock: None,
         }
     }
 }
@@ -921,8 +927,20 @@ impl NrSearcher {
             candidates: cands.len(),
             ..Default::default()
         };
+        // A clock error learned from a decoded cell moves each raster point by its error and narrows the carrier offset
+        // searched to 2 ppm about it: fewer offsets to try, so a raster point costs about a third.
+        let clock = self.clock.filter(|(_, t)| (cap.end_time - t).abs() <= CLOCK_KEPT_S).map(|(ppm, _)| ppm);
         for c in &cands {
-            for f in self.search_candidate(cap, c) {
+            let mut s = *c;
+            let mut moved = 0.0;
+            if let (Some(ppm), true, Some(hz)) = (clock, cap.centre_known(), c.gscn.and_then(gscn_to_hz)) {
+                moved = ppm * 1e-6 * hz;
+                s.offset_hz += moved;
+                s.range_hz = (f64::from(c.scs) * 500.0).max(2e-6 * hz);
+            }
+            for mut f in self.search_candidate(cap, &s) {
+                f.cand = *c;
+                f.cfo_hz += moved;
                 let actual = f.cand.offset_hz + f.cfo_hz;
                 if !out.cells.iter().any(|x| {
                     x.pci == f.pci
@@ -935,6 +953,21 @@ impl NrSearcher {
         }
         for f in out.cells.iter_mut() {
             self.read_sib1(cap, f);
+        }
+        // The clock error of the radio, from the strongest decoded cell on a known raster point.
+        if cap.centre_known() {
+            let learned = out
+                .cells
+                .iter()
+                .filter(|f| f.mib.is_some())
+                .max_by(|a, b| a.rsrp_dbfs.total_cmp(&b.rsrp_dbfs))
+                .and_then(|f| {
+                    let hz = f.cand.gscn.and_then(gscn_to_hz)?;
+                    Some((cap.centre_hz + f.cand.offset_hz + f.cfo_hz - hz) / hz * 1e6)
+                });
+            if let Some(ppm) = learned {
+                self.clock = Some((ppm, cap.end_time));
+            }
         }
         out.best_pss_db = self.best_db;
         out

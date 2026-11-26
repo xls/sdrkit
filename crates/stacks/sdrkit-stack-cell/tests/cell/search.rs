@@ -385,3 +385,25 @@ fn live_recording(name: &str) -> Option<sdrkit_dev_test::sigmf::Recording> {
     let data = p.with_file_name(format!("{name}.sigmf-data"));
     Some(sdrkit_dev_test::sigmf::read_pair(&p, &data).expect("the recording"))
 }
+
+/// A radio 15 ppm off at 3.54 GHz (53 kHz) and 12 Msps: the first capture decodes the n78 cell with the wide offset search;
+/// the next ones search 2 ppm about the clock error learned from it, and still decode the cell at the same offset.
+#[test]
+fn nr_learns_the_clock_error_of_the_radio() {
+    use sdrkit_stack_cell::decoder::Capture;
+    let rate = 12e6;
+    let (centre, cells) = scene(2);
+    let mut keys = snr(10.0);
+    keys.push(("gen_clock_ppm", J::from(15.0)));
+    keys.push(("gen_offset_hz", J::from(15e-6 * centre)));
+    let x = impaired(NrGenerator::new(rate, cells, NrGenOptions::default()), &keys, 0.24);
+    let n = (0.08 * rate) as usize;
+    let mut s = sdrkit_stack_cell::nr::search::NrSearcher::default();
+    for i in 0..3 {
+        let cap = Capture::new(x[i * n..(i + 1) * n].to_vec(), rate, centre, 0.08 * (i + 1) as f64);
+        let out = s.search(&cap);
+        let f = out.cells.iter().find(|f| f.pci == 17 && f.mib.is_some()).unwrap_or_else(|| panic!("capture {i}"));
+        let off = f.cand.offset_hz + f.cfo_hz;
+        assert!((off - 15e-6 * centre).abs() < 2e3, "capture {i}: {off}");
+    }
+}
