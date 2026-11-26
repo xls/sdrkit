@@ -1,5 +1,5 @@
 # The interface of the stack family cell. The registry test of the family writes this file.
-family cell version=1.4
+family cell version=1.5
 shape.RailwayCirFields since=1.0
 shape.RailwayCirFields.text type=text unit= optional=no since=1.0
 shape.RailwayCirFields.messages type=i64 unit= optional=no since=1.0
@@ -67,7 +67,7 @@ shape.SearchFields.failed type=i64 unit= optional=no since=1.0
 shape.SearchFields.capture_centre type=hz unit=Hz optional=yes since=1.0
 shape.SearchFields.level_dbfs type=f64 unit=dBFS optional=yes since=1.0
 shape.CellFields since=1.0
-shape.CellFields.cell_count type=i64 unit= optional=no since=1.0
+shape.CellFields.cell_count type=i64 unit= optional=no reading=1 since=1.0
 shape.CellFields.identified type=i64 unit= optional=no since=1.0
 shape.CellFields.operators type=i64 unit= optional=no since=1.0
 shape.CellFields.banner type=text unit= optional=no since=1.0
@@ -96,6 +96,8 @@ shape.CellRow.barred type=bool unit= optional=yes since=1.0
 shape.CellRow.etws type=bool unit= optional=no since=1.0
 shape.CellRow.cmas type=bool unit= optional=no since=1.0
 shape.CellRow.last_heard type=time unit= optional=yes since=1.0
+shape.CellRow.generation type=choice(2g,3g,4g,5g) unit= optional=no since=1.5
+shape.CellRow.name type=text unit= optional=no since=1.5
 shape.CellDetailRow since=1.0
 shape.CellDetailRow.cell type=text unit= optional=no refers_to=cells since=1.0
 shape.CellDetailRow.cyclic_prefix type=choice(normal,extended) unit= optional=no since=1.0
@@ -142,10 +144,11 @@ shape.CellSibRow.period type=i64 unit=frames optional=yes since=1.0
 shape.CellSibRow.seen type=bool unit= optional=no since=1.0
 shape.CellNeighbourRow since=1.0
 shape.CellNeighbourRow.cell type=text unit= optional=no refers_to=cells since=1.0
-shape.CellNeighbourRow.list type=choice(intra,inter) unit= optional=no since=1.0
+shape.CellNeighbourRow.list type=choice(intra,inter,cdma2000) unit= optional=no since=1.0
 shape.CellNeighbourRow.earfcn type=i64 unit= optional=yes since=1.0
 shape.CellNeighbourRow.pci type=i64 unit= optional=no since=1.0
 shape.CellNeighbourRow.q_offset_db type=f64 unit=dB optional=yes since=1.0
+shape.CellNeighbourRow.cdma2000_arfcn type=i64 unit= optional=yes since=1.5
 shape.CellInterCarrierRow since=1.0
 shape.CellInterCarrierRow.cell type=text unit= optional=no refers_to=cells since=1.0
 shape.CellInterCarrierRow.earfcn type=i64 unit= optional=no since=1.0
@@ -169,12 +172,34 @@ shape.CellCarrierRow since=1.0
 shape.CellCarrierRow.frequency type=hz unit=Hz optional=no since=1.0
 shape.CellCarrierRow.width type=hz unit=Hz optional=no since=1.0
 shape.CellCarrierRow.level_db type=f64 unit=dB optional=no since=1.0
+shape.CellOtherCarrierRow since=1.5
+shape.CellOtherCarrierRow.cell type=text unit= optional=no refers_to=cells since=1.5
+shape.CellOtherCarrierRow.system type=choice(umts_fdd,umts_tdd,gsm,cdma2000_hrpd,cdma2000_1x,nr) unit= optional=no since=1.5
+shape.CellOtherCarrierRow.channel type=i64 unit= optional=no since=1.5
+shape.CellOtherCarrierRow.frequency type=hz unit= optional=yes since=1.5
+shape.CellOtherCarrierRow.band type=text unit= optional=yes since=1.5
+shape.CellOtherCarrierRow.ssb_scs type=hz unit= optional=yes since=1.5
+shape.CellOtherCarrierRow.priority type=i64 unit= optional=yes since=1.5
+shape.CellOtherCarrierRow.q_rx_lev_min_dbm type=f64 unit=dBm optional=yes since=1.5
+shape.CellOtherCarrierRow.cells type=i64 unit= optional=no since=1.5
+shape.SurveyRow since=1.5
+shape.SurveyRow.name type=text unit= optional=no since=1.5
+shape.SurveyRow.generation type=choice(2g,3g,4g,5g) unit= optional=no since=1.5
+shape.SurveyRow.operator type=text unit= optional=yes since=1.5
+shape.SurveyRow.plmn type=text unit= optional=yes since=1.5
+shape.SurveyRow.band type=text unit= optional=yes since=1.5
+shape.SurveyRow.channel type=i64 unit= optional=yes since=1.5
+shape.SurveyRow.frequency type=hz unit= optional=no since=1.5
+shape.SurveyRow.pci type=i64 unit= optional=no since=1.5
+shape.SurveyRow.cell_identity type=i64 unit= optional=yes since=1.5
+shape.SurveyRow.area_code type=i64 unit= optional=yes since=1.5
+shape.SurveyRow.level_dbfs type=f64 unit=dBFS optional=yes since=1.5
 shape.FoundCellEvent since=1.0
 shape.FoundCellEvent.source type=text unit= optional=no since=1.0
 shape.FoundCellEvent.text type=text unit= optional=no since=1.0
 shape.FoundCellEvent.family type=choice(aircraft,vessel,aprs,pager,sonde,broadcast,voice,message,sensor,satellite,receiver,alert,other) unit= optional=no since=1.0
 shape.NrFields since=1.0
-shape.NrFields.cell_count type=i64 unit= optional=no since=1.0
+shape.NrFields.cell_count type=i64 unit= optional=no reading=1 since=1.0
 shape.NrFields.with_mib type=i64 unit= optional=no since=1.0
 shape.NrFields.with_sib1 type=i64 unit= optional=no since=1.4
 shape.NrFields.gscn_lo type=i64 unit= optional=yes since=1.0
@@ -199,6 +224,8 @@ shape.NrCellRow.rsrp_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.NrCellRow.rsrq_db type=f64 unit=dB optional=no since=1.0
 shape.NrCellRow.sinr_db type=f64 unit=dB optional=no since=1.0
 shape.NrCellRow.last_heard type=time unit= optional=yes since=1.0
+shape.NrCellRow.generation type=choice(2g,3g,4g,5g) unit= optional=no since=1.5
+shape.NrCellRow.name type=text unit= optional=no since=1.5
 shape.NrDetailRow since=1.4
 shape.NrDetailRow.cell type=text unit= optional=no refers_to=cells since=1.4
 shape.NrDetailRow.sib1 type=choice(no_mib,not_tried,not_scheduled,no_frequency,too_narrow,no_control,no_data,unreadable,decoded) unit= optional=no since=1.4
@@ -221,6 +248,8 @@ shape.NrDetailRow.bwp_rbs type=i64 unit=RB optional=yes since=1.4
 shape.NrDetailRow.si_window type=i64 unit=slots optional=yes since=1.4
 shape.NrDetailRow.tdd type=bool unit= optional=yes since=1.4
 shape.NrDetailRow.sib1_count type=i64 unit= optional=no since=1.4
+shape.NrDetailRow.sib1_occasions type=i64 unit= optional=yes since=1.5
+shape.NrDetailRow.sib1_pdcch type=i64 unit= optional=yes since=1.5
 shape.NrNetworkRow since=1.4
 shape.NrNetworkRow.cell type=text unit= optional=no refers_to=cells since=1.4
 shape.NrNetworkRow.plmn type=text unit= optional=no since=1.4
@@ -237,7 +266,7 @@ shape.NrSibRow.period type=duration unit=s optional=no since=1.4
 shape.NrSibRow.broadcasting type=bool unit= optional=no since=1.4
 shape.NrSibRow.value_tag type=i64 unit= optional=yes since=1.4
 shape.NbiotFields since=1.0
-shape.NbiotFields.cell_count type=i64 unit= optional=no since=1.0
+shape.NbiotFields.cell_count type=i64 unit= optional=no reading=1 since=1.0
 shape.NbiotFields.identified type=i64 unit= optional=no since=1.0
 shape.NbiotCellRow since=1.0
 shape.NbiotCellRow.plmn type=text unit= optional=yes since=1.0
@@ -254,8 +283,10 @@ shape.NbiotCellRow.barred type=bool unit= optional=yes since=1.0
 shape.NbiotCellRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.NbiotCellRow.snr_db type=f64 unit=dB optional=no since=1.0
 shape.NbiotCellRow.last_heard type=time unit= optional=yes since=1.0
+shape.NbiotCellRow.generation type=choice(2g,3g,4g,5g) unit= optional=no since=1.5
+shape.NbiotCellRow.name type=text unit= optional=no since=1.5
 shape.GsmrFields since=1.0
-shape.GsmrFields.cell_count type=i64 unit= optional=no since=1.0
+shape.GsmrFields.cell_count type=i64 unit= optional=no reading=1 since=1.0
 shape.GsmrFields.identified type=i64 unit= optional=no since=1.0
 shape.GsmrFields.railway_cells type=i64 unit= optional=no since=1.0
 shape.GsmrCellRow since=1.0
@@ -272,6 +303,8 @@ shape.GsmrCellRow.band type=choice(gsm_r,gsm_900,gsm_850,dcs_1800) unit= optiona
 shape.GsmrCellRow.level_dbfs type=f64 unit=dBFS optional=no since=1.0
 shape.GsmrCellRow.snr_db type=f64 unit=dB optional=no since=1.0
 shape.GsmrCellRow.last_heard type=time unit= optional=yes since=1.0
+shape.GsmrCellRow.generation type=choice(2g,3g,4g,5g) unit= optional=no since=1.5
+shape.GsmrCellRow.name type=text unit= optional=no since=1.5
 shape.GsmrCarrierRow since=1.0
 shape.GsmrCarrierRow.frequency type=hz unit=Hz optional=no since=1.0
 shape.GsmrCarrierRow.level_db type=f64 unit=dB optional=no since=1.0
@@ -349,7 +382,7 @@ shape.EbicabTelegramEvent.nid_c type=i64 unit= optional=no since=1.0
 shape.EbicabTelegramEvent.nid_bg type=i64 unit= optional=no since=1.0
 shape.EbicabTelegramEvent.n_pig type=i64 unit= optional=no since=1.0
 shape.UmtsFields since=1.0
-shape.UmtsFields.cell_count type=i64 unit= optional=no since=1.0
+shape.UmtsFields.cell_count type=i64 unit= optional=no reading=1 since=1.0
 shape.UmtsCellRow since=1.0
 shape.UmtsCellRow.code type=i64 unit= optional=no since=1.0
 shape.UmtsCellRow.group type=i64 unit= optional=no since=1.0
@@ -366,8 +399,15 @@ shape.UmtsCellRow.cell_id type=i64 unit= optional=yes since=1.0
 shape.UmtsCellRow.cell_id_parts type=text unit= optional=yes since=1.0
 shape.UmtsCellRow.uarfcn type=i64 unit= optional=yes since=1.0
 shape.UmtsCellRow.last_heard type=time unit= optional=yes since=1.0
+shape.UmtsCellRow.frequency type=hz unit= optional=yes since=1.5
+shape.UmtsCellRow.lac type=i64 unit= optional=yes since=1.5
+shape.UmtsCellRow.rac type=i64 unit= optional=yes since=1.5
+shape.UmtsCellRow.barred type=bool unit= optional=yes since=1.5
+shape.UmtsCellRow.reserved_operator type=bool unit= optional=yes since=1.5
+shape.UmtsCellRow.generation type=choice(2g,3g,4g,5g) unit= optional=no since=1.5
+shape.UmtsCellRow.name type=text unit= optional=no since=1.5
 shape.Cdma2000Fields since=1.0
-shape.Cdma2000Fields.station_count type=i64 unit= optional=no since=1.0
+shape.Cdma2000Fields.station_count type=i64 unit= optional=no reading=1 since=1.0
 shape.Cdma2000Fields.identified type=i64 unit= optional=no since=1.0
 shape.Cdma2000CellRow since=1.0
 shape.Cdma2000CellRow.pn type=text unit= optional=no since=1.0
@@ -384,8 +424,11 @@ shape.Cdma2000CellRow.local_time type=text unit= optional=yes since=1.0
 shape.Cdma2000CellRow.lc_state type=text unit= optional=yes since=1.0
 shape.Cdma2000CellRow.messages type=text unit= optional=no since=1.0
 shape.Cdma2000CellRow.last_heard type=time unit= optional=yes since=1.0
+shape.Cdma2000CellRow.frequency type=hz unit= optional=yes since=1.5
+shape.Cdma2000CellRow.generation type=choice(2g,3g,4g,5g) unit= optional=no since=1.5
+shape.Cdma2000CellRow.name type=text unit= optional=no since=1.5
 shape.TdscdmaFields since=1.0
-shape.TdscdmaFields.cell_count type=i64 unit= optional=no since=1.0
+shape.TdscdmaFields.cell_count type=i64 unit= optional=no reading=1 since=1.0
 shape.TdscdmaCellRow since=1.0
 shape.TdscdmaCellRow.sync_dl type=i64 unit= optional=no since=1.0
 shape.TdscdmaCellRow.parameter type=text unit= optional=yes since=1.0
@@ -397,6 +440,9 @@ shape.TdscdmaCellRow.frame_parity type=text unit= optional=yes since=1.0
 shape.TdscdmaCellRow.clarity type=f64 unit= optional=no since=1.0
 shape.TdscdmaCellRow.captures_seen type=i64 unit= optional=no since=1.0
 shape.TdscdmaCellRow.last_heard type=time unit= optional=yes since=1.0
+shape.TdscdmaCellRow.frequency type=hz unit= optional=yes since=1.5
+shape.TdscdmaCellRow.generation type=choice(2g,3g,4g,5g) unit= optional=no since=1.5
+shape.TdscdmaCellRow.name type=text unit= optional=no since=1.5
 shape.EotFields since=1.0
 shape.EotFields.frames_ok type=i64 unit= optional=no since=1.0
 shape.EotFields.frames_bad type=i64 unit= optional=no since=1.0
@@ -476,10 +522,12 @@ cell.kept.cell_bands since=1.0
 cell.kept.cell_sibs since=1.0
 cell.kept.neighbours since=1.0
 cell.kept.inter_carriers since=1.0
+cell.kept.other_carriers since=1.5
+cell.kept.survey since=1.5
 cell.kept.sites since=1.0
 cell.kept.operators since=1.0
 cell.kept.CellFields since=1.0
-cell.table.cells row=CellRow cap=400 since=1.0
+cell.table.cells row=CellRow cap=400 label=name role=nodes time=last_heard since=1.0
 cell.table.details row=CellDetailRow cap=400 since=1.0
 cell.table.cell_plmns row=CellPlmnRow cap=1600 since=1.0
 cell.table.cell_bands row=CellBandRow cap=1600 since=1.0
@@ -489,6 +537,8 @@ cell.table.inter_carriers row=CellInterCarrierRow cap=1600 since=1.0
 cell.table.sites row=CellSiteRow cap=400 since=1.0
 cell.table.operators row=CellOperatorRow cap=400 since=1.0
 cell.table.carriers row=CellCarrierRow cap=24 sort=level_db:descending since=1.0
+cell.table.other_carriers row=CellOtherCarrierRow cap=1600 since=1.5
+cell.table.survey row=SurveyRow cap=400 label=name role=nodes since=1.5
 cell.event.cell.lte_cell fields=FoundCellEvent since=1.0
 cell.setting.capture_s type=f64 unit=s since=1.0
 cell.setting.system_information type=bool unit= since=1.0
@@ -521,14 +571,16 @@ nr.kept.cells since=1.0
 nr.kept.nr_details since=1.4
 nr.kept.nr_networks since=1.4
 nr.kept.nr_sibs since=1.4
+nr.kept.survey since=1.5
 nr.kept.NrFields.cell_count since=1.0
 nr.kept.NrFields.with_mib since=1.0
 nr.kept.NrFields.with_sib1 since=1.4
 nr.kept.NrFields.banner since=1.0
-nr.table.cells row=NrCellRow cap=300 since=1.0
+nr.table.cells row=NrCellRow cap=300 label=name role=nodes time=last_heard since=1.0
 nr.table.nr_details row=NrDetailRow cap=300 since=1.4
 nr.table.nr_networks row=NrNetworkRow cap=1200 since=1.4
 nr.table.nr_sibs row=NrSibRow cap=2400 since=1.4
+nr.table.survey row=SurveyRow cap=300 label=name role=nodes since=1.5
 nr.event.cell.nr_cell fields=FoundCellEvent since=1.0
 nr.setting.capture_s type=f64 unit=s since=1.0
 nr.setting.max_cells type=i64 unit= since=1.0
@@ -540,7 +592,7 @@ nr.setting.mib_only type=bool unit= since=1.0
 nr.setting.not_barred type=bool unit= since=1.0
 nr.setting.band_order type=text unit= since=1.0
 nr.setting.symbol_phase type=bool unit= since=1.4
-nr.setting.gen_scene type=choice(0,1,2) unit= since=1.0
+nr.setting.gen_scene type=choice(0,1,2,3) unit= since=1.0
 nr.command.clear args= reply= since=1.0
 nr.command.remove args=row:text reply= since=1.0
 nbiot since=1.0
@@ -553,7 +605,7 @@ nbiot.kept.SearchFields.decoded since=1.0
 nbiot.kept.SearchFields.failed since=1.0
 nbiot.kept.cells since=1.0
 nbiot.kept.NbiotFields since=1.0
-nbiot.table.cells row=NbiotCellRow cap=400 since=1.0
+nbiot.table.cells row=NbiotCellRow cap=400 label=name role=nodes time=last_heard since=1.0
 nbiot.event.cell.nbiot_cell fields=FoundCellEvent since=1.0
 nbiot.setting.capture_s type=f64 unit=s since=1.0
 nbiot.setting.min_npss type=f64 unit= since=1.0
@@ -574,9 +626,11 @@ gsmr.kept.SearchFields.retunes since=1.0
 gsmr.kept.SearchFields.decoded since=1.0
 gsmr.kept.SearchFields.failed since=1.0
 gsmr.kept.cells since=1.0
+gsmr.kept.survey since=1.5
 gsmr.kept.GsmrFields since=1.0
-gsmr.table.cells row=GsmrCellRow cap=200 since=1.0
+gsmr.table.cells row=GsmrCellRow cap=200 label=name role=nodes time=last_heard since=1.0
 gsmr.table.carriers row=GsmrCarrierRow cap=24 sort=level_db:descending since=1.0
+gsmr.table.survey row=SurveyRow cap=200 label=name role=nodes since=1.5
 gsmr.event.cell.gsm_cell fields=FoundCellEvent since=1.0
 gsmr.setting.capture_s type=f64 unit=s since=1.0
 gsmr.setting.max_carriers type=i64 unit= since=1.0
@@ -635,8 +689,10 @@ umts.kept.SearchFields.retunes since=1.0
 umts.kept.SearchFields.decoded since=1.0
 umts.kept.SearchFields.failed since=1.0
 umts.kept.cells since=1.0
+umts.kept.survey since=1.5
 umts.kept.UmtsFields since=1.0
-umts.table.cells row=UmtsCellRow cap=400 since=1.0
+umts.table.cells row=UmtsCellRow cap=400 label=name role=nodes time=last_heard since=1.0
+umts.table.survey row=SurveyRow cap=400 label=name role=nodes since=1.5
 umts.event.cell.umts_cell fields=FoundCellEvent since=1.0
 umts.setting.capture_s type=f64 unit=s since=1.0
 umts.setting.max_offset_hz type=f64 unit=Hz since=1.0
@@ -655,7 +711,7 @@ cdma2000.kept.SearchFields.decoded since=1.0
 cdma2000.kept.SearchFields.failed since=1.0
 cdma2000.kept.cells since=1.0
 cdma2000.kept.Cdma2000Fields since=1.0
-cdma2000.table.cells row=Cdma2000CellRow cap=200 since=1.0
+cdma2000.table.cells row=Cdma2000CellRow cap=200 label=name role=nodes time=last_heard since=1.0
 cdma2000.event.cell.cdma2000_cell fields=FoundCellEvent since=1.0
 cdma2000.setting.capture_s type=f64 unit=s since=1.0
 cdma2000.setting.band_class type=choice(none,0,1,4) unit= since=1.0
@@ -674,7 +730,7 @@ tdscdma.kept.SearchFields.decoded since=1.0
 tdscdma.kept.SearchFields.failed since=1.0
 tdscdma.kept.cells since=1.0
 tdscdma.kept.TdscdmaFields since=1.0
-tdscdma.table.cells row=TdscdmaCellRow cap=200 since=1.0
+tdscdma.table.cells row=TdscdmaCellRow cap=200 label=name role=nodes time=last_heard since=1.0
 tdscdma.event.cell.tdscdma_cell fields=FoundCellEvent since=1.0
 tdscdma.setting.capture_s type=f64 unit=s since=1.0
 tdscdma.setting.threshold type=f64 unit= since=1.0

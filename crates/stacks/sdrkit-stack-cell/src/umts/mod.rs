@@ -1,12 +1,14 @@
 //! UMTS cells (`umts`): a census of WCDMA FDD cells in one 5 MHz channel. For every cell: the primary scrambling code, the code
 //! group, Ec/Io, level, carrier offset and frame timing from the synchronisation channels and the CPICH, and from the broadcast
-//! channel the PLMN (MIB) and the cell identity (SIB 3). Nothing else of the broadcast is read.
+//! channel the PLMN (MIB), the location and routing area codes (SIB 1), and the cell identity and access (SIB 3). Nothing
+//! else of the broadcast is read.
 //!
 //! Standard: 3GPP TS 25.211, TS 25.212, TS 25.213, TS 25.331.
 
 pub mod bch;
 pub mod gen;
 pub mod search;
+pub mod sib;
 
 use crate::decoder::{build_search, capture_setting, Capture, Headline, Log, SearchStack};
 use crate::typed::{UmtsCellRow, UmtsFields, UMTS_CELL, UMTS_CELLS};
@@ -39,7 +41,7 @@ pub const MIN_RATE_HZ: f64 = 3.84e6;
 /// What the status line shows below [`MIN_RATE_HZ`].
 pub const MIN_RATE_MESSAGE: &str = "UMTS cells needs a sample rate of at least 3.84 Msps";
 /// What the stack does not read, and what no public document read for it confirms.
-pub const NOTE: &str = "Only the MIB (PLMN) and SIB 3 (cell identity) of the broadcast channel are read; an STTD-encoded P-CCPCH is not combined. The decode is verified on generated signals only. Not confirmed against the text of a public document: the BCH transport block of 246 bits, the root raised cosine pulse of roll-off 0.22 (the setting roll_off), the split of the cell identity into 12 bits of RNC and 16 bits of cell, and the channel raster UARFCN = 5 x f (MHz).";
+pub const NOTE: &str = "Only the MIB (PLMN), SIB 1 (location and routing area codes) and SIB 3 (cell identity, barred, reserved) of the broadcast channel are read; SIB 5 and SIB 11 (neighbours) are not; an STTD-encoded P-CCPCH is not combined. The decode is verified on generated signals only. Not confirmed against the text of a public document: the BCH transport block of 246 bits, the root raised cosine pulse of roll-off 0.22 (the setting roll_off), the split of the cell identity into 12 bits of RNC and 16 bits of cell, the channel raster UARFCN = 5 x f (MHz), and the places of the LAC (the first two octets of the common NAS information) and the RAC (the first octet of the NAS information of the PS domain).";
 
 /// The default capture: 8 frames.
 const CAPTURE_DEFAULT_S: f64 = 0.08;
@@ -147,6 +149,18 @@ pub struct UmtsRow {
     pub sttd: Option<bool>,
     /// Captures in which the cell was seen.
     pub captures: u64,
+    /// The radio centre of the capture, Hz (0: not known).
+    #[serde(default)]
+    pub centre_hz: f64,
+    /// The location area code (SIB 1).
+    #[serde(default)]
+    pub lac: Option<u16>,
+    /// The routing area code (SIB 1).
+    #[serde(default)]
+    pub rac: Option<u8>,
+    /// Barred and reserved for operator use (SIB 3).
+    #[serde(default)]
+    pub access: Option<(bool, bool)>,
     /// Transport blocks with a right CRC.
     pub bch_blocks: u64,
     /// The PLMN of the MIB.
@@ -159,6 +173,27 @@ pub struct UmtsRow {
 
 impl Shift for UmtsRow {
     fn shift_times(&mut self, _by_s: f64) {}
+}
+
+impl UmtsRow {
+    /// The cell as a row of the survey.
+    pub fn survey(&self, key: &str) -> crate::scan::SurveyCell {
+        let plmn = self.plmn.as_ref().map(PlmnRow::plmn);
+        crate::scan::SurveyCell {
+            key: key.to_string(),
+            generation: crate::scan::Generation::Third,
+            plmn: plmn.map(|p| p.to_string()),
+            operator_name: plmn.and_then(mcc::operator).map(str::to_string),
+            band: None,
+            channel: self.uarfcn.map(i64::from),
+            frequency_hz: if self.centre_hz > 0.0 { self.centre_hz + self.offset_hz } else { self.offset_hz },
+            id_word: "PSC",
+            pci: i64::from(self.code),
+            cell_identity: self.cell_id.map(i64::from),
+            area_code: self.lac.map(i64::from),
+            level_dbfs: Some(self.rscp_dbfs),
+        }
+    }
 }
 
 impl Shaped for UmtsRow {
@@ -181,6 +216,13 @@ impl Shaped for UmtsRow {
             cell_id_parts: self.cell_id.map(|c| format!("RNC {}, cell {}", c >> 16, c & 0xFFFF)).as_deref(),
             uarfcn: self.uarfcn.map(i64::from),
             last_heard: columns::last_heard(seen).map(Time),
+            frequency: (self.centre_hz > 0.0).then_some(Hertz(self.centre_hz + self.offset_hz)),
+            lac: self.lac.map(i64::from),
+            rac: self.rac.map(i64::from),
+            barred: self.access.map(|a| a.0),
+            reserved_operator: self.access.map(|a| a.1),
+            generation: crate::scan::Generation::Third,
+            name: &self.survey("").label(),
         });
     }
 }
@@ -319,6 +361,7 @@ impl SearchStack for UmtsSearch {
             row.ec_io_db = f.ec_io_db;
             row.rscp_dbfs = f.rscp_dbfs;
             row.offset_hz = f.offset_hz;
+            row.centre_hz = if known { cap.centre_hz } else { 0.0 };
             row.frame_offset = f.frame_offset as u32;
             row.sttd = f.sttd;
             row.captures += 1;
@@ -334,6 +377,9 @@ impl SearchStack for UmtsSearch {
             if f.cell_id.is_some() {
                 row.cell_id = f.cell_id;
             }
+            row.lac = f.lac.or(row.lac);
+            row.rac = f.rac.or(row.rac);
+            row.access = f.access.or(row.access);
             let first_plmn = before.0.is_none() && row.plmn.is_some();
             let first_cell = before.1.is_none() && row.cell_id.is_some();
             if first_plmn || first_cell {
@@ -352,6 +398,8 @@ impl SearchStack for UmtsSearch {
         let n = t.cells.len();
         p.put(&UmtsFields { cell_count: n as i64 });
         shaped::rows(&t.cells, &UMTS_CELLS, now, p);
+        let survey = t.cells.iter().map(|r| r.record.survey(&r.key.to_string())).collect();
+        crate::scan::write_survey(&crate::typed::UMTS_SURVEY, survey, p);
         let best = t
             .cells
             .iter()

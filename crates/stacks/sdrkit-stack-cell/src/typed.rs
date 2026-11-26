@@ -306,7 +306,7 @@ fn search_end(
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct TdscdmaFields {
     /// Cells in the table.
-    #[field(label = "Cells")]
+    #[field(label = "Cells", reading = 1)]
     pub cell_count: i64,
 }
 
@@ -343,11 +343,22 @@ pub struct TdscdmaCellRow<'a> {
     /// When the cell was last heard.
     #[field(shared = columns::LAST_HEARD)]
     pub last_heard: Option<Time>,
+    /// The frequency of the carrier: the radio centre and the carrier offset, when the radio centre is known.
+    #[field(label = "Frequency")]
+    pub frequency: Option<Hertz>,
+    /// The generation of the radio system.
+    #[field(label = "Generation")]
+    pub generation: crate::scan::Generation,
+    /// Operator, generation, band and physical identity.
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// The cells of `tdscdma`.
 pub static TDSCDMA_CELLS: Table<TdscdmaCellRow<'static>> =
-    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::tdscdma::CELL_CAP);
+    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::tdscdma::CELL_CAP)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&TdscdmaCellRow::NAME);
 /// A TD-SCDMA cell found or identified.
 pub static TDSCDMA_CELL: EventKind<FoundCellEvent<'static>> =
     EventKind::new("cell.tdscdma_cell", "TD-SCDMA cell");
@@ -358,7 +369,7 @@ pub static TDSCDMA_CELL: EventKind<FoundCellEvent<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct UmtsFields {
     /// Cells in the table.
-    #[field(label = "Cells")]
+    #[field(label = "Cells", reading = 1)]
     pub cell_count: i64,
 }
 
@@ -410,11 +421,34 @@ pub struct UmtsCellRow<'a> {
     /// When the cell was last heard.
     #[field(shared = columns::LAST_HEARD)]
     pub last_heard: Option<Time>,
+    /// The frequency of the carrier: the radio centre and the carrier offset, when the radio centre is known.
+    #[field(label = "Frequency")]
+    pub frequency: Option<Hertz>,
+    /// The location area code (SIB 1).
+    #[field(label = "LAC")]
+    pub lac: Option<i64>,
+    /// The routing area code (SIB 1).
+    #[field(label = "RAC")]
+    pub rac: Option<i64>,
+    /// The cell is barred (SIB 3).
+    #[field(label = "Barred")]
+    pub barred: Option<bool>,
+    /// The cell is reserved for operator use (SIB 3).
+    #[field(label = "Reserved")]
+    pub reserved_operator: Option<bool>,
+    /// The generation of the radio system.
+    #[field(label = "Generation")]
+    pub generation: crate::scan::Generation,
+    /// Operator, generation, band and physical identity.
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// The cells of `umts`.
 pub static UMTS_CELLS: Table<UmtsCellRow<'static>> =
-    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::umts::CELL_CAP);
+    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::umts::CELL_CAP)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&UmtsCellRow::NAME);
 /// A UMTS cell found or identified.
 pub static UMTS_CELL: EventKind<FoundCellEvent<'static>> =
     EventKind::new("cell.umts_cell", "UMTS cell");
@@ -425,7 +459,7 @@ pub static UMTS_CELL: EventKind<FoundCellEvent<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct Cdma2000Fields {
     /// Base stations in the table.
-    #[field(label = "Base stations")]
+    #[field(label = "Base stations", reading = 1)]
     pub station_count: i64,
     /// Base stations with a Sync Channel Message.
     #[field(label = "Identified")]
@@ -477,6 +511,15 @@ pub struct Cdma2000CellRow<'a> {
     /// When the base station was last heard.
     #[field(shared = columns::LAST_HEARD)]
     pub last_heard: Option<Time>,
+    /// The frequency of the carrier: the radio centre and the carrier offset, when the radio centre is known.
+    #[field(label = "Frequency")]
+    pub frequency: Option<Hertz>,
+    /// The generation of the radio system.
+    #[field(label = "Generation")]
+    pub generation: crate::scan::Generation,
+    /// Operator, generation, band and physical identity.
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// The base stations of `cdma2000`.
@@ -484,7 +527,9 @@ pub static CDMA2000_CELLS: Table<Cdma2000CellRow<'static>> = Table::new(
     crate::decoder::CELLS_KEY,
     "Base stations",
     crate::cdma2000::CELL_CAP,
-);
+)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&Cdma2000CellRow::NAME);
 /// A base station found or identified.
 pub static CDMA2000_CELL: EventKind<FoundCellEvent<'static>> =
     EventKind::new("cell.cdma2000_cell", "CDMA2000 base station");
@@ -495,7 +540,7 @@ pub static CDMA2000_CELL: EventKind<FoundCellEvent<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NbiotFields {
     /// Cells in the table.
-    #[field(label = "Cells")]
+    #[field(label = "Cells", reading = 1)]
     pub cell_count: i64,
     /// Cells with SIB1-NB.
     #[field(label = "Identified")]
@@ -547,11 +592,19 @@ pub struct NbiotCellRow<'a> {
     /// When the cell was last heard.
     #[field(shared = columns::LAST_HEARD)]
     pub last_heard: Option<Time>,
+    /// The generation of the radio system.
+    #[field(label = "Generation")]
+    pub generation: crate::scan::Generation,
+    /// Operator, generation, band and physical identity.
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// The cells of `nbiot`.
 pub static NBIOT_CELLS: Table<NbiotCellRow<'static>> =
-    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::nbiot::CELL_CAP);
+    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::nbiot::CELL_CAP)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&NbiotCellRow::NAME);
 /// An NB-IoT cell found or identified.
 pub static NBIOT_CELL: EventKind<FoundCellEvent<'static>> =
     EventKind::new("cell.nbiot_cell", "NB-IoT cell");
@@ -562,7 +615,7 @@ pub static NBIOT_CELL: EventKind<FoundCellEvent<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct NrFields<'a> {
     /// Cells in the table.
-    #[field(label = "Cells")]
+    #[field(label = "Cells", reading = 1)]
     pub cell_count: i64,
     /// Cells with a MIB.
     #[field(label = "With MIB")]
@@ -638,6 +691,12 @@ pub struct NrCellRow<'a> {
     /// When the cell was last heard.
     #[field(shared = columns::LAST_HEARD)]
     pub last_heard: Option<Time>,
+    /// The generation of the radio system.
+    #[field(label = "Generation")]
+    pub generation: crate::scan::Generation,
+    /// Operator, generation, band and physical identity.
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// The details of a cell of `nr`. The row key is the cell key.
@@ -706,6 +765,12 @@ pub struct NrDetailRow<'a> {
     /// SIB1 decodes.
     #[field(label = "SIB1 decodes")]
     pub sib1_count: i64,
+    /// The slots of Type0 PDCCH occasions that the newest try searched.
+    #[field(label = "SIB1 occasions searched")]
+    pub sib1_occasions: Option<i64>,
+    /// The control channels with the SI-RNTI that the newest try decoded.
+    #[field(label = "SIB1 control channels")]
+    pub sib1_pdcch: Option<i64>,
 }
 
 /// A network of a cell of `nr`, from SIB1. The row key is the cell key and the place of the network.
@@ -759,7 +824,9 @@ pub struct NrSibRow<'a> {
 
 /// The cells of `nr`.
 pub static NR_CELLS: Table<NrCellRow<'static>> =
-    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::nr::CELL_CAP);
+    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::nr::CELL_CAP)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&NrCellRow::NAME);
 /// The details of the cells of `nr`.
 pub static NR_DETAILS: Table<NrDetailRow<'static>> = Table::new("nr_details", "Details", crate::nr::CELL_CAP);
 /// The networks of the cells of `nr`.
@@ -775,7 +842,7 @@ pub static NR_CELL: EventKind<FoundCellEvent<'static>> = EventKind::new("cell.nr
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct GsmrFields {
     /// Cells in the table.
-    #[field(label = "Cells")]
+    #[field(label = "Cells", reading = 1)]
     pub cell_count: i64,
     /// Cells with a location area.
     #[field(label = "Identified")]
@@ -827,6 +894,12 @@ pub struct GsmrCellRow<'a> {
     /// When the cell was last heard.
     #[field(shared = columns::LAST_HEARD)]
     pub last_heard: Option<Time>,
+    /// The generation of the radio system.
+    #[field(label = "Generation")]
+    pub generation: crate::scan::Generation,
+    /// Operator, generation, band and physical identity.
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// A carrier of the newest capture of `gsmr`. The row key is its place, strongest first.
@@ -848,7 +921,9 @@ pub static GSMR_CELLS: Table<GsmrCellRow<'static>> = Table::new(
     crate::decoder::CELLS_KEY,
     "Cells",
     crate::gsm::table::CELL_CAP,
-);
+)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&GsmrCellRow::NAME);
 /// The carriers of the newest capture of `gsmr`.
 pub static GSMR_CARRIERS: Table<GsmrCarrierRow> =
     Table::new("carriers", "Carriers", crate::gsm::table::CARRIER_CAP).sorted(
@@ -865,7 +940,7 @@ pub static GSMR_CELL: EventKind<FoundCellEvent<'static>> =
 #[derive(Clone, Debug, PartialEq, Fields)]
 pub struct CellFields<'a> {
     /// Cells in the table.
-    #[field(label = "Cells")]
+    #[field(label = "Cells", reading = 1)]
     pub cell_count: i64,
     /// Cells with SIB1.
     #[field(label = "Identified")]
@@ -953,6 +1028,12 @@ pub struct CellRow<'a> {
     /// When the cell was last heard.
     #[field(shared = columns::LAST_HEARD)]
     pub last_heard: Option<Time>,
+    /// The generation of the radio system.
+    #[field(label = "Generation")]
+    pub generation: crate::scan::Generation,
+    /// Operator, generation, band and physical identity.
+    #[field(label = "Name")]
+    pub name: &'a str,
 }
 
 /// A row of the details of `cell`. The row key is the cell key.
@@ -1113,6 +1194,42 @@ pub struct CellNeighbourRow<'a> {
     /// q-OffsetCell.
     #[field(label = "q-OffsetCell", unit = "dB")]
     pub q_offset_db: Option<f64>,
+    /// The ARFCN of a CDMA2000 neighbour; `pci` is then its PN offset.
+    #[field(label = "CDMA2000 ARFCN")]
+    pub cdma2000_arfcn: Option<i64>,
+}
+
+/// A carrier of another radio system that a cell of `cell` names in SIB6, SIB7, SIB8 or SIB24. The row key is the cell
+/// key, the system and the channel number.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct CellOtherCarrierRow<'a> {
+    /// The row key of the cell.
+    #[field(label = "Cell", refers_to = "cells")]
+    pub cell: &'a str,
+    /// The system.
+    #[field(label = "System")]
+    pub system: crate::lte::OtherSystem,
+    /// The channel number: UARFCN, GSM ARFCN, CDMA2000 ARFCN or NR-ARFCN.
+    #[field(label = "Channel")]
+    pub channel: i64,
+    /// The downlink frequency, where the channel number gives it alone (GSM and NR).
+    #[field(label = "Frequency")]
+    pub frequency: Option<Hertz>,
+    /// The band: dcs1800 or pcs1900 (GSM), bc0 .. (CDMA2000), n78 .. (NR).
+    #[field(label = "Band")]
+    pub band: Option<&'a str>,
+    /// The SSB spacing (NR).
+    #[field(label = "SSB spacing")]
+    pub ssb_scs: Option<Hertz>,
+    /// The reselection priority.
+    #[field(label = "Priority")]
+    pub priority: Option<i64>,
+    /// q-RxLevMin.
+    #[field(label = "q-RxLevMin", unit = "dBm")]
+    pub q_rx_lev_min_dbm: Option<f64>,
+    /// The cells named on the carrier (CDMA2000).
+    #[field(label = "Cells")]
+    pub cells: i64,
 }
 
 /// Another carrier that a cell of `cell` names in SIB5. The row key is the cell key and the EARFCN.
@@ -1194,7 +1311,9 @@ pub struct CellCarrierRow {
 
 /// The cells of `cell`.
 pub static CELL_CELLS: Table<CellRow<'static>> =
-    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::lte::CELL_CAP);
+    Table::new(crate::decoder::CELLS_KEY, "Cells", crate::lte::CELL_CAP)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&CellRow::NAME);
 /// The details of the cells of `cell`.
 pub static CELL_DETAILS: Table<CellDetailRow<'static>> =
     Table::new("details", "Details", crate::lte::CELL_CAP);
@@ -1216,6 +1335,9 @@ pub static CELL_NEIGHBOURS: Table<CellNeighbourRow<'static>> =
 /// The other carriers of the cells of `cell`.
 pub static CELL_INTER_CARRIERS: Table<CellInterCarrierRow<'static>> =
     Table::new("inter_carriers", "Other carriers", crate::lte::DETAIL_CAP);
+/// The carriers of other systems that the cells of `cell` name.
+pub static CELL_OTHER_CARRIERS: Table<CellOtherCarrierRow<'static>> =
+    Table::new("other_carriers", "Carriers of other systems", crate::lte::DETAIL_CAP);
 /// The sites of `cell`.
 pub static CELL_SITES: Table<CellSiteRow<'static>> =
     Table::new("sites", "Sites", crate::lte::CELL_CAP);
@@ -1680,11 +1802,67 @@ pub struct EbicabRemoveArgs<'a> {
 /// Forgets one balise of `ebicab`.
 pub const EBICAB_REMOVE: CommandKind<EbicabRemoveArgs<'static>> = objcmd::remove_kind();
 
+/// A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of
+/// the cell in the cells table of the stack.
+#[derive(Clone, Debug, PartialEq, Fields)]
+pub struct SurveyRow<'a> {
+    /// Operator, generation, band and physical identity.
+    #[field(label = "Cell")]
+    pub name: &'a str,
+    /// The generation.
+    #[field(label = "Generation")]
+    pub generation: crate::scan::Generation,
+    /// The operator name, else the network.
+    #[field(label = "Operator")]
+    pub operator: Option<&'a str>,
+    /// The network.
+    #[field(label = "Network")]
+    pub plmn: Option<&'a str>,
+    /// The band.
+    #[field(label = "Band")]
+    pub band: Option<&'a str>,
+    /// The channel number: ARFCN, UARFCN, EARFCN or NR-ARFCN.
+    #[field(label = "Channel")]
+    pub channel: Option<i64>,
+    /// The frequency.
+    #[field(label = "Frequency")]
+    pub frequency: Hertz,
+    /// The physical identity: PCI, primary scrambling code or BSIC.
+    #[field(label = "Physical identity")]
+    pub pci: i64,
+    /// The cell identity of the broadcast.
+    #[field(label = "Cell identity")]
+    pub cell_identity: Option<i64>,
+    /// The tracking or location area code.
+    #[field(label = "Area code")]
+    pub area_code: Option<i64>,
+    /// RSRP, RSCP or the received level.
+    #[field(label = "Level", unit = "dBFS")]
+    pub level_dbfs: Option<f64>,
+}
+
+/// The survey of `cell`.
+pub static CELL_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey", crate::lte::CELL_CAP)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&SurveyRow::NAME);
+/// The survey of `umts`.
+pub static UMTS_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey", crate::umts::CELL_CAP)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&SurveyRow::NAME);
+/// The survey of `gsmr`.
+pub static GSMR_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey", crate::gsm::table::CELL_CAP)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&SurveyRow::NAME);
+/// The survey of `nr`.
+pub static NR_SURVEY: Table<SurveyRow<'static>> = Table::new("survey", "Survey", crate::nr::CELL_CAP)
+    .role(sdrkit_core::TableRole::Nodes)
+    .label(&SurveyRow::NAME);
+
 /// The interface of the family.
 pub fn family() -> &'static Family {
     static FAMILY: OnceLock<Family> = OnceLock::new();
     FAMILY.get_or_init(|| {
-        Family::new("cell", 1, 4)
+        Family::new("cell", 1, 5)
             .added(
                 1,
                 1,
@@ -1761,6 +1939,70 @@ pub fn family() -> &'static Family {
                     "nr.setting.symbol_phase",
                 ],
             )
+            // Version 1.5: what the newest SIB1 try of an NR cell searched; the carriers of other systems of LTE cells; the survey;
+            // the generation, name and frequency of the cells.
+            .added(
+                1,
+                5,
+                &[
+                    "shape.NrDetailRow.sib1_occasions",
+                    "shape.NrDetailRow.sib1_pdcch",
+                    "shape.CellNeighbourRow.cdma2000_arfcn",
+                    "shape.CellOtherCarrierRow",
+                    "shape.CellOtherCarrierRow.cell",
+                    "shape.CellOtherCarrierRow.system",
+                    "shape.CellOtherCarrierRow.channel",
+                    "shape.CellOtherCarrierRow.frequency",
+                    "shape.CellOtherCarrierRow.band",
+                    "shape.CellOtherCarrierRow.ssb_scs",
+                    "shape.CellOtherCarrierRow.priority",
+                    "shape.CellOtherCarrierRow.q_rx_lev_min_dbm",
+                    "shape.CellOtherCarrierRow.cells",
+                    "cell.table.other_carriers",
+                    "cell.kept.other_carriers",
+                    "shape.SurveyRow",
+                    "shape.SurveyRow.name",
+                    "shape.SurveyRow.generation",
+                    "shape.SurveyRow.operator",
+                    "shape.SurveyRow.plmn",
+                    "shape.SurveyRow.band",
+                    "shape.SurveyRow.channel",
+                    "shape.SurveyRow.frequency",
+                    "shape.SurveyRow.pci",
+                    "shape.SurveyRow.cell_identity",
+                    "shape.SurveyRow.area_code",
+                    "shape.SurveyRow.level_dbfs",
+                    "cell.table.survey",
+                    "cell.kept.survey",
+                    "nr.table.survey",
+                    "nr.kept.survey",
+                    "gsmr.table.survey",
+                    "gsmr.kept.survey",
+                    "umts.table.survey",
+                    "umts.kept.survey",
+                    "shape.TdscdmaCellRow.frequency",
+                    "shape.TdscdmaCellRow.generation",
+                    "shape.TdscdmaCellRow.name",
+                    "shape.UmtsCellRow.frequency",
+                    "shape.UmtsCellRow.lac",
+                    "shape.UmtsCellRow.rac",
+                    "shape.UmtsCellRow.barred",
+                    "shape.UmtsCellRow.reserved_operator",
+                    "shape.UmtsCellRow.generation",
+                    "shape.UmtsCellRow.name",
+                    "shape.Cdma2000CellRow.frequency",
+                    "shape.Cdma2000CellRow.generation",
+                    "shape.Cdma2000CellRow.name",
+                    "shape.NbiotCellRow.generation",
+                    "shape.NbiotCellRow.name",
+                    "shape.NrCellRow.generation",
+                    "shape.NrCellRow.name",
+                    "shape.GsmrCellRow.generation",
+                    "shape.GsmrCellRow.name",
+                    "shape.CellRow.generation",
+                    "shape.CellRow.name",
+                ],
+            )
             .content(
                 sdrkit_core::ContentKind::Networks,
                 &[
@@ -1807,7 +2049,9 @@ pub fn family() -> &'static Family {
                     .table(&CELL_INTER_CARRIERS)
                     .table(&CELL_SITES)
                     .table(&CELL_OPERATORS)
-                    .table(&CELL_CARRIERS),
+                    .table(&CELL_CARRIERS)
+                    .table(&CELL_OTHER_CARRIERS)
+                    .table(&CELL_SURVEY),
                 &CELL_LTE_CELL,
                 &[crate::lte::LteSetting::SETTINGS, crate::lte::gen::SETTINGS],
                 &[
@@ -1818,6 +2062,8 @@ pub fn family() -> &'static Family {
                     "cell_sibs",
                     "neighbours",
                     "inter_carriers",
+                    "other_carriers",
+                    "survey",
                     "sites",
                     "operators",
                     "CellFields",
@@ -1828,7 +2074,8 @@ pub fn family() -> &'static Family {
                     .table(&NR_CELLS)
                     .table(&NR_DETAILS)
                     .table(&NR_NETWORKS)
-                    .table(&NR_SIBS),
+                    .table(&NR_SIBS)
+                    .table(&NR_SURVEY),
                 &NR_CELL,
                 &[crate::nr::NrSetting::SETTINGS, crate::nr::gen::SETTINGS],
                 &[
@@ -1836,6 +2083,7 @@ pub fn family() -> &'static Family {
                     "nr_details",
                     "nr_networks",
                     "nr_sibs",
+                    "survey",
                     "NrFields.cell_count",
                     "NrFields.with_mib",
                     "NrFields.with_sib1",
@@ -1854,10 +2102,11 @@ pub fn family() -> &'static Family {
             .stack(search_end(
                 search_stack::<GsmrFields>(crate::gsm::ID)
                     .table(&GSMR_CELLS)
-                    .table(&GSMR_CARRIERS),
+                    .table(&GSMR_CARRIERS)
+                    .table(&GSMR_SURVEY),
                 &GSMR_CELL,
                 &[crate::gsm::GsmSetting::SETTINGS, crate::gsm::GEN_SETTINGS],
-                &["cells", "GsmrFields"],
+                &["cells", "survey", "GsmrFields"],
             ))
             .stack(
                 StackShape::new(crate::lbj::ID)
@@ -1903,10 +2152,10 @@ pub fn family() -> &'static Family {
                     ]),
             )
             .stack(search_end(
-                search_stack::<UmtsFields>(crate::umts::ID).table(&UMTS_CELLS),
+                search_stack::<UmtsFields>(crate::umts::ID).table(&UMTS_CELLS).table(&UMTS_SURVEY),
                 &UMTS_CELL,
                 &[crate::umts::UmtsSetting::SETTINGS],
-                &["cells", "UmtsFields"],
+                &["cells", "survey", "UmtsFields"],
             ))
             .stack(search_end(
                 search_stack::<Cdma2000Fields>(crate::cdma2000::ID).table(&CDMA2000_CELLS),

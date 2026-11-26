@@ -1,5 +1,5 @@
 /*
- * sdrkit: the typed interface of the stack family "cell", version 1.4. MIT licence.
+ * sdrkit: the typed interface of the stack family "cell", version 1.5. MIT licence.
  *
  * Written from the interface description of the family. Do not edit.
  *
@@ -35,7 +35,7 @@
 
 // The version of the family that this header describes.
 #define SDRKIT_CELL_VERSION_MAJOR 1
-#define SDRKIT_CELL_VERSION_MINOR 4
+#define SDRKIT_CELL_VERSION_MINOR 5
 
 // The stack "railway_cir": its id, and the keys of its event types.
 #define SDRKIT_STACK_RAILWAY_CIR "railway_cir"
@@ -105,6 +105,8 @@ typedef enum sdrkit_nr_gen_scene {
   SDRKIT_NR_GEN_SCENE_N28_CELL = 1,
   // Barred n78 cell
   SDRKIT_NR_GEN_SCENE_BARRED_N78_CELL = 2,
+  // n5 cell, 30 kHz blocks
+  SDRKIT_NR_GEN_SCENE_N5_CELL_30_KHZ_BLOCKS = 3,
 } sdrkit_nr_gen_scene;
 
 // The options of the setting "gen_scene" of the stack "nbiot".
@@ -313,6 +315,18 @@ typedef enum sdrkit_cell_row_duplex {
   SDRKIT_CELL_ROW_DUPLEX_T_D_D = 1,
 } sdrkit_cell_row_duplex;
 
+// The options of `generation` of `sdrkit_cell_row`.
+typedef enum sdrkit_cell_row_generation {
+  // 2G
+  SDRKIT_CELL_ROW_GENERATION_2G = 0,
+  // 3G
+  SDRKIT_CELL_ROW_GENERATION_3G = 1,
+  // 4G
+  SDRKIT_CELL_ROW_GENERATION_4G = 2,
+  // 5G
+  SDRKIT_CELL_ROW_GENERATION_5G = 3,
+} sdrkit_cell_row_generation;
+
 // A row of the cells of `cell`. The row key is the cell key.
 typedef struct sdrkit_cell_row {
   // The number of bytes of this struct that the library wrote.
@@ -395,6 +409,10 @@ typedef struct sdrkit_cell_row {
   bool has_last_heard;
   // When the cell was last heard. Seconds since 1970 (UTC).
   double last_heard;
+  // The generation of the radio system. A value of `sdrkit_cell_row_generation`.
+  int32_t generation;
+  // Operator, generation, band and physical identity.
+  sdrkit_string name;
 } sdrkit_cell_row;
 
 // The options of `cyclic_prefix` of `sdrkit_cell_detail_row`.
@@ -585,6 +603,8 @@ typedef enum sdrkit_cell_neighbour_row_list {
   SDRKIT_CELL_NEIGHBOUR_ROW_LIST_INTRA = 0,
   // Other carrier (SIB5)
   SDRKIT_CELL_NEIGHBOUR_ROW_LIST_INTER = 1,
+  // CDMA2000 (SIB8)
+  SDRKIT_CELL_NEIGHBOUR_ROW_LIST_CDMA2000 = 2,
 } sdrkit_cell_neighbour_row_list;
 
 // A neighbour of a cell of `cell`.
@@ -607,6 +627,10 @@ typedef struct sdrkit_cell_neighbour_row {
   bool has_q_offset_db;
   // q-OffsetCell. Unit: dB.
   double q_offset_db;
+  // True if `cdma2000_arfcn` holds a value.
+  bool has_cdma2000_arfcn;
+  // The ARFCN of a CDMA2000 neighbour; `pci` is then its PN offset.
+  int64_t cdma2000_arfcn;
 } sdrkit_cell_neighbour_row;
 
 // Another carrier that a cell of `cell` names in SIB5. The row key is the cell key and the EARFCN.
@@ -689,6 +713,114 @@ typedef struct sdrkit_cell_carrier_row {
   double level_db;
 } sdrkit_cell_carrier_row;
 
+// The options of `system` of `sdrkit_cell_other_carrier_row`.
+typedef enum sdrkit_cell_other_carrier_row_system {
+  // UMTS FDD (SIB6)
+  SDRKIT_CELL_OTHER_CARRIER_ROW_SYSTEM_UMTS_FDD = 0,
+  // UMTS TDD (SIB6)
+  SDRKIT_CELL_OTHER_CARRIER_ROW_SYSTEM_UMTS_TDD = 1,
+  // GSM (SIB7)
+  SDRKIT_CELL_OTHER_CARRIER_ROW_SYSTEM_GSM = 2,
+  // CDMA2000 HRPD (SIB8)
+  SDRKIT_CELL_OTHER_CARRIER_ROW_SYSTEM_CDMA2000_HRPD = 3,
+  // CDMA2000 1xRTT (SIB8)
+  SDRKIT_CELL_OTHER_CARRIER_ROW_SYSTEM_CDMA2000_1X = 4,
+  // 5G NR (SIB24)
+  SDRKIT_CELL_OTHER_CARRIER_ROW_SYSTEM_NR = 5,
+} sdrkit_cell_other_carrier_row_system;
+
+// A carrier of another radio system that a cell of `cell` names in SIB6, SIB7, SIB8 or SIB24. The row key is the cell key, the system and the channel number.
+typedef struct sdrkit_cell_other_carrier_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // The row key of the cell.
+  sdrkit_string cell;
+  // The system. A value of `sdrkit_cell_other_carrier_row_system`.
+  int32_t system;
+  // The channel number: UARFCN, GSM ARFCN, CDMA2000 ARFCN or NR-ARFCN.
+  int64_t channel;
+  // True if `frequency` holds a value.
+  bool has_frequency;
+  // The downlink frequency, where the channel number gives it alone (GSM and NR). A frequency in Hz.
+  double frequency;
+  // True if `band` holds a value.
+  bool has_band;
+  // The band: dcs1800 or pcs1900 (GSM), bc0 .. (CDMA2000), n78 .. (NR).
+  sdrkit_string band;
+  // True if `ssb_scs` holds a value.
+  bool has_ssb_scs;
+  // The SSB spacing (NR). A frequency in Hz.
+  double ssb_scs;
+  // True if `priority` holds a value.
+  bool has_priority;
+  // The reselection priority.
+  int64_t priority;
+  // True if `q_rx_lev_min_dbm` holds a value.
+  bool has_q_rx_lev_min_dbm;
+  // q-RxLevMin. Unit: dBm.
+  double q_rx_lev_min_dbm;
+  // The cells named on the carrier (CDMA2000).
+  int64_t cells;
+} sdrkit_cell_other_carrier_row;
+
+// The options of `generation` of `sdrkit_cell_survey_row`.
+typedef enum sdrkit_cell_survey_row_generation {
+  // 2G
+  SDRKIT_CELL_SURVEY_ROW_GENERATION_2G = 0,
+  // 3G
+  SDRKIT_CELL_SURVEY_ROW_GENERATION_3G = 1,
+  // 4G
+  SDRKIT_CELL_SURVEY_ROW_GENERATION_4G = 2,
+  // 5G
+  SDRKIT_CELL_SURVEY_ROW_GENERATION_5G = 3,
+} sdrkit_cell_survey_row_generation;
+
+// A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack.
+typedef struct sdrkit_cell_survey_row {
+  // The number of bytes of this struct that the library wrote.
+  uint32_t size;
+  // The row key.
+  sdrkit_string key;
+  // Operator, generation, band and physical identity.
+  sdrkit_string name;
+  // The generation. A value of `sdrkit_cell_survey_row_generation`.
+  int32_t generation;
+  // True if `operator_` holds a value.
+  bool has_operator_;
+  // The operator name, else the network.
+  sdrkit_string operator_;
+  // True if `plmn` holds a value.
+  bool has_plmn;
+  // The network.
+  sdrkit_string plmn;
+  // True if `band` holds a value.
+  bool has_band;
+  // The band.
+  sdrkit_string band;
+  // True if `channel` holds a value.
+  bool has_channel;
+  // The channel number: ARFCN, UARFCN, EARFCN or NR-ARFCN.
+  int64_t channel;
+  // The frequency. A frequency in Hz.
+  double frequency;
+  // The physical identity: PCI, primary scrambling code or BSIC.
+  int64_t pci;
+  // True if `cell_identity` holds a value.
+  bool has_cell_identity;
+  // The cell identity of the broadcast.
+  int64_t cell_identity;
+  // True if `area_code` holds a value.
+  bool has_area_code;
+  // The tracking or location area code.
+  int64_t area_code;
+  // True if `level_dbfs` holds a value.
+  bool has_level_dbfs;
+  // RSRP, RSCP or the received level. Unit: dBFS.
+  double level_dbfs;
+} sdrkit_cell_survey_row;
+
 // The result fields of `nr`.
 typedef struct sdrkit_nr_fields {
   // The number of bytes of this struct that the library wrote.
@@ -724,6 +856,18 @@ typedef enum sdrkit_nr_cell_row_decoded {
   // SIB1
   SDRKIT_NR_CELL_ROW_DECODED_SIB1 = 2,
 } sdrkit_nr_cell_row_decoded;
+
+// The options of `generation` of `sdrkit_nr_cell_row`.
+typedef enum sdrkit_nr_cell_row_generation {
+  // 2G
+  SDRKIT_NR_CELL_ROW_GENERATION_2G = 0,
+  // 3G
+  SDRKIT_NR_CELL_ROW_GENERATION_3G = 1,
+  // 4G
+  SDRKIT_NR_CELL_ROW_GENERATION_4G = 2,
+  // 5G
+  SDRKIT_NR_CELL_ROW_GENERATION_5G = 3,
+} sdrkit_nr_cell_row_generation;
 
 // A row of the cells of `nr`.
 typedef struct sdrkit_nr_cell_row {
@@ -781,6 +925,10 @@ typedef struct sdrkit_nr_cell_row {
   bool has_nci;
   // The NR cell identity of SIB1 (36 bits).
   int64_t nci;
+  // The generation of the radio system. A value of `sdrkit_nr_cell_row_generation`.
+  int32_t generation;
+  // Operator, generation, band and physical identity.
+  sdrkit_string name;
 } sdrkit_nr_cell_row;
 
 // The options of `sib1` of `sdrkit_nr_detail_row`.
@@ -889,6 +1037,14 @@ typedef struct sdrkit_nr_detail_row {
   bool tdd;
   // SIB1 decodes.
   int64_t sib1_count;
+  // True if `sib1_occasions` holds a value.
+  bool has_sib1_occasions;
+  // The slots of Type0 PDCCH occasions that the newest try searched.
+  int64_t sib1_occasions;
+  // True if `sib1_pdcch` holds a value.
+  bool has_sib1_pdcch;
+  // The control channels with the SI-RNTI that the newest try decoded.
+  int64_t sib1_pdcch;
 } sdrkit_nr_detail_row;
 
 // A network of a cell of `nr`, from SIB1. The row key is the cell key and the place of the network.
@@ -965,6 +1121,18 @@ typedef enum sdrkit_nbiot_cell_row_operation_mode {
   SDRKIT_NBIOT_CELL_ROW_OPERATION_MODE_STANDALONE = 3,
 } sdrkit_nbiot_cell_row_operation_mode;
 
+// The options of `generation` of `sdrkit_nbiot_cell_row`.
+typedef enum sdrkit_nbiot_cell_row_generation {
+  // 2G
+  SDRKIT_NBIOT_CELL_ROW_GENERATION_2G = 0,
+  // 3G
+  SDRKIT_NBIOT_CELL_ROW_GENERATION_3G = 1,
+  // 4G
+  SDRKIT_NBIOT_CELL_ROW_GENERATION_4G = 2,
+  // 5G
+  SDRKIT_NBIOT_CELL_ROW_GENERATION_5G = 3,
+} sdrkit_nbiot_cell_row_generation;
+
 // A row of the cells of `nbiot`.
 typedef struct sdrkit_nbiot_cell_row {
   // The number of bytes of this struct that the library wrote.
@@ -1019,6 +1187,10 @@ typedef struct sdrkit_nbiot_cell_row {
   bool has_last_heard;
   // When the cell was last heard. Seconds since 1970 (UTC).
   double last_heard;
+  // The generation of the radio system. A value of `sdrkit_nbiot_cell_row_generation`.
+  int32_t generation;
+  // Operator, generation, band and physical identity.
+  sdrkit_string name;
 } sdrkit_nbiot_cell_row;
 
 // The result fields of `gsmr`.
@@ -1044,6 +1216,18 @@ typedef enum sdrkit_gsmr_cell_row_band {
   // DCS 1800
   SDRKIT_GSMR_CELL_ROW_BAND_DCS_1800 = 3,
 } sdrkit_gsmr_cell_row_band;
+
+// The options of `generation` of `sdrkit_gsmr_cell_row`.
+typedef enum sdrkit_gsmr_cell_row_generation {
+  // 2G
+  SDRKIT_GSMR_CELL_ROW_GENERATION_2G = 0,
+  // 3G
+  SDRKIT_GSMR_CELL_ROW_GENERATION_3G = 1,
+  // 4G
+  SDRKIT_GSMR_CELL_ROW_GENERATION_4G = 2,
+  // 5G
+  SDRKIT_GSMR_CELL_ROW_GENERATION_5G = 3,
+} sdrkit_gsmr_cell_row_generation;
 
 // A row of the cells of `gsmr`.
 typedef struct sdrkit_gsmr_cell_row {
@@ -1091,6 +1275,10 @@ typedef struct sdrkit_gsmr_cell_row {
   bool has_last_heard;
   // When the cell was last heard. Seconds since 1970 (UTC).
   double last_heard;
+  // The generation of the radio system. A value of `sdrkit_gsmr_cell_row_generation`.
+  int32_t generation;
+  // Operator, generation, band and physical identity.
+  sdrkit_string name;
 } sdrkit_gsmr_cell_row;
 
 // A carrier of the newest capture of `gsmr`. The row key is its place, strongest first.
@@ -1311,6 +1499,18 @@ typedef struct sdrkit_umts_fields {
   int64_t cell_count;
 } sdrkit_umts_fields;
 
+// The options of `generation` of `sdrkit_umts_cell_row`.
+typedef enum sdrkit_umts_cell_row_generation {
+  // 2G
+  SDRKIT_UMTS_CELL_ROW_GENERATION_2G = 0,
+  // 3G
+  SDRKIT_UMTS_CELL_ROW_GENERATION_3G = 1,
+  // 4G
+  SDRKIT_UMTS_CELL_ROW_GENERATION_4G = 2,
+  // 5G
+  SDRKIT_UMTS_CELL_ROW_GENERATION_5G = 3,
+} sdrkit_umts_cell_row_generation;
+
 // A row of the cells of `umts`. The row key is the primary scrambling code and the radio centre.
 typedef struct sdrkit_umts_cell_row {
   // The number of bytes of this struct that the library wrote.
@@ -1361,6 +1561,30 @@ typedef struct sdrkit_umts_cell_row {
   bool has_last_heard;
   // When the cell was last heard. Seconds since 1970 (UTC).
   double last_heard;
+  // True if `frequency` holds a value.
+  bool has_frequency;
+  // The frequency of the carrier: the radio centre and the carrier offset, when the radio centre is known. A frequency in Hz.
+  double frequency;
+  // True if `lac` holds a value.
+  bool has_lac;
+  // The location area code (SIB 1).
+  int64_t lac;
+  // True if `rac` holds a value.
+  bool has_rac;
+  // The routing area code (SIB 1).
+  int64_t rac;
+  // True if `barred` holds a value.
+  bool has_barred;
+  // The cell is barred (SIB 3).
+  bool barred;
+  // True if `reserved_operator` holds a value.
+  bool has_reserved_operator;
+  // The cell is reserved for operator use (SIB 3).
+  bool reserved_operator;
+  // The generation of the radio system. A value of `sdrkit_umts_cell_row_generation`.
+  int32_t generation;
+  // Operator, generation, band and physical identity.
+  sdrkit_string name;
 } sdrkit_umts_cell_row;
 
 // The result fields of `cdma2000`.
@@ -1372,6 +1596,18 @@ typedef struct sdrkit_cdma2000_fields {
   // Base stations with a Sync Channel Message.
   int64_t identified;
 } sdrkit_cdma2000_fields;
+
+// The options of `generation` of `sdrkit_cdma2000_cell_row`.
+typedef enum sdrkit_cdma2000_cell_row_generation {
+  // 2G
+  SDRKIT_CDMA2000_CELL_ROW_GENERATION_2G = 0,
+  // 3G
+  SDRKIT_CDMA2000_CELL_ROW_GENERATION_3G = 1,
+  // 4G
+  SDRKIT_CDMA2000_CELL_ROW_GENERATION_4G = 2,
+  // 5G
+  SDRKIT_CDMA2000_CELL_ROW_GENERATION_5G = 3,
+} sdrkit_cdma2000_cell_row_generation;
 
 // A row of the base stations of `cdma2000`.
 typedef struct sdrkit_cdma2000_cell_row {
@@ -1423,6 +1659,14 @@ typedef struct sdrkit_cdma2000_cell_row {
   bool has_last_heard;
   // When the base station was last heard. Seconds since 1970 (UTC).
   double last_heard;
+  // True if `frequency` holds a value.
+  bool has_frequency;
+  // The frequency of the carrier: the radio centre and the carrier offset, when the radio centre is known. A frequency in Hz.
+  double frequency;
+  // The generation of the radio system. A value of `sdrkit_cdma2000_cell_row_generation`.
+  int32_t generation;
+  // Operator, generation, band and physical identity.
+  sdrkit_string name;
 } sdrkit_cdma2000_cell_row;
 
 // The result fields of `tdscdma`.
@@ -1432,6 +1676,18 @@ typedef struct sdrkit_tdscdma_fields {
   // Cells in the table.
   int64_t cell_count;
 } sdrkit_tdscdma_fields;
+
+// The options of `generation` of `sdrkit_tdscdma_cell_row`.
+typedef enum sdrkit_tdscdma_cell_row_generation {
+  // 2G
+  SDRKIT_TDSCDMA_CELL_ROW_GENERATION_2G = 0,
+  // 3G
+  SDRKIT_TDSCDMA_CELL_ROW_GENERATION_3G = 1,
+  // 4G
+  SDRKIT_TDSCDMA_CELL_ROW_GENERATION_4G = 2,
+  // 5G
+  SDRKIT_TDSCDMA_CELL_ROW_GENERATION_5G = 3,
+} sdrkit_tdscdma_cell_row_generation;
 
 // A row of the cells of `tdscdma`. The row key is the code and the radio centre.
 typedef struct sdrkit_tdscdma_cell_row {
@@ -1465,6 +1721,14 @@ typedef struct sdrkit_tdscdma_cell_row {
   bool has_last_heard;
   // When the cell was last heard. Seconds since 1970 (UTC).
   double last_heard;
+  // True if `frequency` holds a value.
+  bool has_frequency;
+  // The frequency of the carrier: the radio centre and the carrier offset, when the radio centre is known. A frequency in Hz.
+  double frequency;
+  // The generation of the radio system. A value of `sdrkit_tdscdma_cell_row_generation`.
+  int32_t generation;
+  // Operator, generation, band and physical identity.
+  sdrkit_string name;
 } sdrkit_tdscdma_cell_row;
 
 // The result fields of `eot`.
@@ -2343,6 +2607,9 @@ static inline int32_t sdrkit_railway_cir_gen_set_deviation_hz(SDRKIT_HANDLE hand
 
 // Fills `rows` with the changed rows of the table "cells" of the stack "cell" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_cell_cells_rows(SDRKIT_HANDLE handle,
                                             sdrkit_cell_row *rows,
                                             uint32_t capacity,
@@ -2432,6 +2699,26 @@ static inline int32_t sdrkit_cell_carriers_rows(SDRKIT_HANDLE handle,
   return sdrkit_typed_rows(handle, "cell.CellCarrierRow", "carriers", rows, sizeof(sdrkit_cell_carrier_row), capacity, info);
 }
 
+// Fills `rows` with the changed rows of the table "other_carriers" of the stack "cell" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+static inline int32_t sdrkit_cell_other_carriers_rows(SDRKIT_HANDLE handle,
+                                                     sdrkit_cell_other_carrier_row *rows,
+                                                     uint32_t capacity,
+                                                     sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "cell.CellOtherCarrierRow", "other_carriers", rows, sizeof(sdrkit_cell_other_carrier_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "survey" of the stack "cell" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+static inline int32_t sdrkit_cell_survey_rows(SDRKIT_HANDLE handle,
+                                             sdrkit_cell_survey_row *rows,
+                                             uint32_t capacity,
+                                             sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "cell.SurveyRow", "survey", rows, sizeof(sdrkit_cell_survey_row), capacity, info);
+}
+
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "cell.lte_cell"
 // (LTE cell). Returns SDRKIT_E_WRONG_TYPE if the event is of another type.
 static inline int32_t sdrkit_cell_lte_cell_event_read(SDRKIT_HANDLE handle, uint32_t n, sdrkit_cell_lte_cell_event *event) {
@@ -2459,7 +2746,7 @@ static inline int32_t sdrkit_cell_set_capture_s(SDRKIT_HANDLE handle, double val
   return sdrkit_typed_setting_set_f64(handle, "capture_s", value);
 }
 
-// The setting "system_information" (Read system information) of the stack "cell". Decode SIB1 to SIB5 (needs the whole carrier in the sample band).
+// The setting "system_information" (Read system information) of the stack "cell". Decode SIB1 to SIB8 and SIB24 (needs the whole carrier in the sample band).
 static inline int32_t sdrkit_cell_get_system_information(SDRKIT_HANDLE handle, bool *value) {
   return sdrkit_typed_setting_get_bool(handle, "system_information", value);
 }
@@ -2592,6 +2879,9 @@ static inline int32_t sdrkit_cell_gen_set_load(SDRKIT_HANDLE handle, bool value)
 
 // Fills `rows` with the changed rows of the table "cells" of the stack "nr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_nr_cells_rows(SDRKIT_HANDLE handle,
                                           sdrkit_nr_cell_row *rows,
                                           uint32_t capacity,
@@ -2624,6 +2914,17 @@ static inline int32_t sdrkit_nr_sibs_rows(SDRKIT_HANDLE handle,
                                          uint32_t capacity,
                                          sdrkit_rows_info *info) {
   return sdrkit_typed_rows(handle, "cell.NrSibRow", "nr_sibs", rows, sizeof(sdrkit_nr_sib_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "survey" of the stack "nr" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+static inline int32_t sdrkit_nr_survey_rows(SDRKIT_HANDLE handle,
+                                           sdrkit_cell_survey_row *rows,
+                                           uint32_t capacity,
+                                           sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "cell.SurveyRow", "survey", rows, sizeof(sdrkit_cell_survey_row), capacity, info);
 }
 
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "cell.nr_cell"
@@ -2738,6 +3039,9 @@ static inline int32_t sdrkit_nr_gen_set_scene(SDRKIT_HANDLE handle, sdrkit_nr_ge
 
 // Fills `rows` with the changed rows of the table "cells" of the stack "nbiot" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_nbiot_cells_rows(SDRKIT_HANDLE handle,
                                              sdrkit_nbiot_cell_row *rows,
                                              uint32_t capacity,
@@ -2833,6 +3137,9 @@ static inline int32_t sdrkit_nbiot_gen_set_npbch_rotation(SDRKIT_HANDLE handle, 
 
 // Fills `rows` with the changed rows of the table "cells" of the stack "gsmr" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_gsmr_cells_rows(SDRKIT_HANDLE handle,
                                             sdrkit_gsmr_cell_row *rows,
                                             uint32_t capacity,
@@ -2848,6 +3155,17 @@ static inline int32_t sdrkit_gsmr_carriers_rows(SDRKIT_HANDLE handle,
                                                uint32_t capacity,
                                                sdrkit_rows_info *info) {
   return sdrkit_typed_rows(handle, "cell.GsmrCarrierRow", "carriers", rows, sizeof(sdrkit_gsmr_carrier_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "survey" of the stack "gsmr" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+static inline int32_t sdrkit_gsmr_survey_rows(SDRKIT_HANDLE handle,
+                                             sdrkit_cell_survey_row *rows,
+                                             uint32_t capacity,
+                                             sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "cell.SurveyRow", "survey", rows, sizeof(sdrkit_cell_survey_row), capacity, info);
 }
 
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "cell.gsm_cell"
@@ -3053,11 +3371,25 @@ static inline int32_t sdrkit_ebicab_gen_set_bit_rate_pct(SDRKIT_HANDLE handle, d
 
 // Fills `rows` with the changed rows of the table "cells" of the stack "umts" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_umts_cells_rows(SDRKIT_HANDLE handle,
                                             sdrkit_umts_cell_row *rows,
                                             uint32_t capacity,
                                             sdrkit_rows_info *info) {
   return sdrkit_typed_rows(handle, "cell.UmtsCellRow", "cells", rows, sizeof(sdrkit_umts_cell_row), capacity, info);
+}
+
+// Fills `rows` with the changed rows of the table "survey" of the stack "umts" in the snapshot of `handle`,
+// newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+static inline int32_t sdrkit_umts_survey_rows(SDRKIT_HANDLE handle,
+                                             sdrkit_cell_survey_row *rows,
+                                             uint32_t capacity,
+                                             sdrkit_rows_info *info) {
+  return sdrkit_typed_rows(handle, "cell.SurveyRow", "survey", rows, sizeof(sdrkit_cell_survey_row), capacity, info);
 }
 
 // Fills `event` with event `n` of the last sdrkit_events_take() on `handle`, an event of the type "cell.umts_cell"
@@ -3118,6 +3450,9 @@ static inline int32_t sdrkit_umts_set_roll_off(SDRKIT_HANDLE handle, double valu
 
 // Fills `rows` with the changed rows of the table "cells" of the stack "cdma2000" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_cdma2000_cells_rows(SDRKIT_HANDLE handle,
                                                 sdrkit_cdma2000_cell_row *rows,
                                                 uint32_t capacity,
@@ -3186,6 +3521,9 @@ static inline int32_t sdrkit_cdma2000_set_threshold(SDRKIT_HANDLE handle, double
 
 // Fills `rows` with the changed rows of the table "cells" of the stack "tdscdma" in the snapshot of `handle`,
 // newest first, at most `capacity` rows, and fills `info` as sdrkit_snapshot_table() does.
+// The rows are the stations or nodes of the stack.
+// The column `name` names a row.
+// Time: `last_heard`.
 static inline int32_t sdrkit_tdscdma_cells_rows(SDRKIT_HANDLE handle,
                                                sdrkit_tdscdma_cell_row *rows,
                                                uint32_t capacity,

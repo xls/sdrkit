@@ -3,7 +3,8 @@
 //! sample clock of the capture from the synchronisation code over all frames (the capture is resampled and searched again when
 //! the clock is off).
 
-use super::bch::{decode, parse_mib, parse_sib3, Mib, SibAssembly, FRAME_BITS, SIB_3, SIB_MIB};
+use super::bch::{decode, parse_mib, Mib, SibAssembly, FRAME_BITS, SIB_3, SIB_MIB};
+use super::sib::{parse_sib1, parse_sib3, SIB_1};
 use super::gen::NATIVE_RATE;
 use super::CHIP_RATE;
 use crate::decoder::Capture;
@@ -58,6 +59,12 @@ pub struct UmtsFound {
     pub mib: Option<Mib>,
     /// The cell identity of SIB 3.
     pub cell_id: Option<u32>,
+    /// The location area code of SIB 1.
+    pub lac: Option<u16>,
+    /// The routing area code of SIB 1.
+    pub rac: Option<u8>,
+    /// SIB 3: barred, reserved for operator use.
+    pub access: Option<(bool, bool)>,
     /// Transport blocks whose CRC is right.
     pub good_blocks: u32,
 }
@@ -376,6 +383,9 @@ impl UmtsSearcher {
             sttd: None,
             mib: None,
             cell_id: None,
+            lac: None,
+            rac: None,
+            access: None,
             good_blocks: 0,
         };
         // Stage 6: the SCH symbol a and the broadcast channel, on the chips with the measured carrier taken off.
@@ -432,7 +442,18 @@ impl UmtsSearcher {
                         for (ty, data) in done {
                             match ty {
                                 SIB_MIB => out.mib = parse_mib(&data).or(out.mib.take()),
-                                SIB_3 => out.cell_id = parse_sib3(&data).or(out.cell_id),
+                                SIB_3 => {
+                                    if let Some((cell, s3)) = parse_sib3(&data) {
+                                        out.cell_id = Some(cell);
+                                        out.access = s3.map(|s| (s.barred, s.reserved_operator)).or(out.access);
+                                    }
+                                }
+                                SIB_1 => {
+                                    if let Some(s1) = parse_sib1(&data) {
+                                        out.lac = s1.lac().or(out.lac);
+                                        out.rac = s1.rac().or(out.rac);
+                                    }
+                                }
                                 _ => {}
                             }
                         }

@@ -56,7 +56,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `cells` | Cells | `sync_dl` (whole number), `parameter` (text), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `offset_hz` (frequency), `quadruples` (text), `frame_parity` (text), `clarity` (number), `captures_seen` (whole number), `last_heard` (time) |
+| `cells` | Cells | `sync_dl` (whole number), `parameter` (text), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `offset_hz` (frequency), `quadruples` (text), `frame_parity` (text), `clarity` (number), `captures_seen` (whole number), `last_heard` (time), `frequency` (frequency), `generation` (choice), `name` (text) |
 
 ## Events
 
@@ -73,9 +73,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.4. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.5. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
+
+Key readings: `cell_count`.
 
 ### Result fields
 
@@ -122,6 +124,11 @@ Struct `TdscdmaCellRow`. A row of the cells of `tdscdma`. The row key is the cod
 | `clarity` | number | always | 1.0 | The midamble clarity. |
 | `captures_seen` | whole number | always | 1.0 | Captures in which the cell was seen. |
 | `last_heard` | time | optional | 1.0 | When the cell was last heard. |
+| `frequency` | frequency | optional | 1.5 | The frequency of the carrier: the radio centre and the carrier offset, when the radio centre is known. |
+| `generation` | choice | always | 1.5 | The generation of the radio system. |
+| `name` | text | always | 1.5 | Operator, generation, band and physical identity. |
+
+The rows are the stations or nodes of the stack. The column `name` names a row. Time: `last_heard`.
 
 ### Event `cell.tdscdma_cell`
 

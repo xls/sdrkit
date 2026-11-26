@@ -5,8 +5,9 @@ use crate::common::*;
 use sdrkit_algo_modem::spreading::wcdma::{ssc, DlScrambling, SSC_GROUPS};
 use sdrkit_core::InputInfo;
 use sdrkit_stack_cell::decoder::Capture;
+use sdrkit_stack_cell::umts::sib::{parse_sib3, sib3_data, Sib3};
 use sdrkit_stack_cell::umts::bch::{
-    complete_sib_block, crc_bits, decode, encode, mib_data, parse_mib, parse_sib3, sib3_data, Mib,
+    complete_sib_block, crc_bits, decode, encode, mib_data, parse_mib, Mib,
     SibAssembly, SIB_3, SIB_MIB,
 };
 use sdrkit_stack_cell::umts::gen::{UmtsCell, UmtsGenerator, NATIVE_RATE};
@@ -65,8 +66,9 @@ fn mib_246() -> Vec<u8> {
     )
 }
 
+/// A block of the first 30 bits of SIB 3 (to the cell identity), the coding vector of the test.
 fn sib3_0abcdef() -> Vec<u8> {
-    complete_sib_block(0, SIB_3, &sib3_data(0x0AB_CDEF))
+    complete_sib_block(0, SIB_3, &sib3_data(&s3_0abcdef())[..30])
 }
 
 #[test]
@@ -119,7 +121,7 @@ fn the_mib_and_sib3_are_read() {
         })
     );
     let (_, sibs) = a.push(&sib3_0abcdef()).unwrap();
-    let cell = parse_sib3(&sibs[0].1).unwrap();
+    let (cell, _) = parse_sib3(&sibs[0].1).unwrap();
     assert_eq!(cell, 11_259_375);
     assert_eq!((cell >> 16, cell & 0xFFFF), (171, 52_719));
 }
@@ -127,7 +129,7 @@ fn the_mib_and_sib3_are_read() {
 #[test]
 fn a_segmented_sib_is_joined_and_a_missing_segment_discards_it() {
     // SIB 3 data split: a first segment of 222 bits (count 2), then a last short segment.
-    let mut data = sib3_data(0x0AB_CDEF);
+    let mut data = sib3_data(&s3_0abcdef());
     data.resize(230, 1);
     let first = {
         let mut b = Vec::new();
@@ -155,7 +157,7 @@ fn a_segmented_sib_is_joined_and_a_missing_segment_discards_it() {
     let (_, sibs) = a.push(&last).unwrap();
     assert_eq!(sibs.len(), 1);
     assert_eq!(sibs[0].1, data);
-    assert_eq!(parse_sib3(&sibs[0].1), Some(0x0AB_CDEF));
+    assert_eq!(parse_sib3(&sibs[0].1).map(|x| x.0), Some(0x0AB_CDEF));
     // Without the first segment the last one gives nothing.
     let mut b = SibAssembly::default();
     assert!(b.push(&last).unwrap().1.is_empty());
@@ -319,4 +321,32 @@ fn case_23_the_stack_end_to_end() {
     assert_eq!(c17["plmn"]["mcc"], 1);
     assert_eq!(c17["cell_id"], 0x12_3456);
     assert_eq!(c17["uarfcn"], 10_564);
+    // SIB 1: the location area (upper 16 bits of the cell identity in the test signal) and the routing area; SIB 3: the
+    // access restriction.
+    assert_eq!((c17["lac"].as_u64(), c17["rac"].as_u64()), (Some(0x123), Some(0x56)), "{c17}");
+    assert_eq!(c17["access"], serde_json::json!([false, false]));
+    assert!((c17["centre_hz"].as_f64().unwrap() - 2112.8e6).abs() < 1.0);
+    // The typed rows: the cells with their frequency and areas, and the survey.
+    use sdrkit_core::Owner;
+    use sdrkit_stack_cell::scan::Generation;
+    use sdrkit_stack_cell::typed::{SurveyRow, UmtsCellRow, UMTS_CELLS, UMTS_SURVEY};
+    let r = Owner::results(&rx);
+    let rows: Vec<_> = UMTS_CELLS.rows::<UmtsCellRow>(r).map(|x| x.1).collect();
+    let c = rows.iter().find(|c| c.code == 17).unwrap();
+    assert!(c.frequency.is_some_and(|f| (f.0 - 2112.8008e6).abs() < 50.0), "{c:?}");
+    assert_eq!((c.lac, c.rac, c.barred, c.reserved_operator), (Some(0x123), Some(0x56), Some(false), Some(false)));
+    assert_eq!((c.generation, c.name), (Generation::Third, "Test network 3G PSC 17"));
+    let survey: Vec<_> = UMTS_SURVEY.rows::<SurveyRow>(r).map(|x| x.1).collect();
+    assert_eq!(survey.len(), 2);
+    let s = survey.iter().find(|s| s.pci == 17).unwrap();
+    assert_eq!((s.area_code, s.cell_identity, s.channel), (Some(0x123), Some(0x12_3456), Some(10_564)));
+}
+
+/// The SIB 3 of cell 0x0ABCDEF: barred, not reserved.
+fn s3_0abcdef() -> Sib3 {
+    Sib3 {
+        cell_id: 0x0AB_CDEF,
+        barred: true,
+        ..Sib3::default()
+    }
 }

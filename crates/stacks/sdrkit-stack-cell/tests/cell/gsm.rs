@@ -215,4 +215,13 @@ fn published_results() {
     assert!(table_len(r, "carriers") >= 2);
     assert_eq!(value(r, "cell_count"), Some(2.0));
     assert_eq!(value(r, "railway_cells"), Some(2.0));
+    // The survey and the names of the cells.
+    use sdrkit_stack_cell::scan::Generation;
+    use sdrkit_stack_cell::typed::{GsmrCellRow, SurveyRow, GSMR_CELLS, GSMR_SURVEY};
+    let survey: Vec<_> = GSMR_SURVEY.rows::<SurveyRow>(r).map(|x| x.1).collect();
+    assert_eq!(survey.len(), 2);
+    assert!(survey.iter().all(|s| s.generation == Generation::Second && s.area_code.is_some()), "{survey:?}");
+    assert!(survey[0].name.contains(" 2G GSM-R BSIC "), "{}", survey[0].name);
+    let cells: Vec<_> = GSMR_CELLS.rows::<GsmrCellRow>(r).map(|x| x.1).collect();
+    assert!(cells.iter().all(|c| c.generation == Generation::Second && survey.iter().any(|s| s.name == c.name)));
 }

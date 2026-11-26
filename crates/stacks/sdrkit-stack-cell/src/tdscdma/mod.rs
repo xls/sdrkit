@@ -130,6 +130,9 @@ pub struct TdCellRow {
     pub clarity: f64,
     /// Captures in which the cell was seen.
     pub captures: u64,
+    /// The radio centre of the capture, Hz (0: not known).
+    #[serde(default)]
+    pub centre_hz: f64,
 }
 
 impl Shift for TdCellRow {
@@ -163,6 +166,9 @@ impl Shaped for TdCellRow {
             clarity: self.clarity,
             captures_seen: self.captures as i64,
             last_heard: columns::last_heard(seen).map(Time),
+            frequency: (self.centre_hz > 0.0).then_some(Hertz(self.centre_hz + self.offset_hz)),
+            generation: crate::scan::Generation::Third,
+            name: &crate::scan::cell_name(None, crate::scan::Generation::Third, Some("TD-SCDMA"), &format!("SYNC-DL {}", self.code)),
         });
     }
 }
@@ -303,6 +309,7 @@ impl SearchStack for TdSearch {
             row.level_dbfs = f.level_dbfs;
             row.snr_db = f.snr_db;
             row.offset_hz = f.offset_hz;
+            row.centre_hz = if cap.centre_known() { cap.centre_hz } else { 0.0 };
             row.clarity = f.clarity;
             row.s1 += u64::from(f.s1);
             row.s2 += u64::from(f.s2);

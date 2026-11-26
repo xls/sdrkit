@@ -1,4 +1,4 @@
-// sdrkit: the typed interface of the stack family "cell", version 1.4. MIT licence.
+// sdrkit: the typed interface of the stack family "cell", version 1.5. MIT licence.
 // Written from the interface description of the family. Do not edit.
 
 import SDRKitC
@@ -6,7 +6,7 @@ import SDRKitC
 /// The version of the family that this file describes.
 public enum CellInterface {
     public static let major = 1
-    public static let minor = 4
+    public static let minor = 5
 }
 
 /// The result fields of `railway_cir`.
@@ -179,6 +179,12 @@ public struct CellRow {
         case fDD = 0
         case tDD = 1
     }
+    public enum Generation: Int32 {
+        case n2g = 0
+        case n3g = 1
+        case n4g = 2
+        case n5g = 3
+    }
     /// The row key.
     public var key: String
     /// The primary network.
@@ -229,6 +235,10 @@ public struct CellRow {
     public var cmas: Bool
     /// When the cell was last heard.
     public var lastHeard: Double?
+    /// The generation of the radio system.
+    public var generation: Generation?
+    /// Operator, generation, band and physical identity.
+    public var name: String
 
     init(_ c: sdrkit_cell_row) {
         key = sdrkitText(c.key)
@@ -256,6 +266,8 @@ public struct CellRow {
         etws = c.etws
         cmas = c.cmas
         lastHeard = c.has_last_heard ? c.last_heard : nil
+        generation = Generation(rawValue: c.generation)
+        name = sdrkitText(c.name)
     }
 }
 
@@ -432,6 +444,7 @@ public struct CellNeighbourRow {
     public enum List: Int32 {
         case intra = 0
         case inter = 1
+        case cdma2000 = 2
     }
     /// The row key.
     public var key: String
@@ -445,6 +458,8 @@ public struct CellNeighbourRow {
     public var pci: Int64
     /// q-OffsetCell.
     public var qOffsetDb: Double?
+    /// The ARFCN of a CDMA2000 neighbour; `pci` is then its PN offset.
+    public var cdma2000Arfcn: Int64?
 
     init(_ c: sdrkit_cell_neighbour_row) {
         key = sdrkitText(c.key)
@@ -453,6 +468,7 @@ public struct CellNeighbourRow {
         earfcn = c.has_earfcn ? c.earfcn : nil
         pci = c.pci
         qOffsetDb = c.has_q_offset_db ? c.q_offset_db : nil
+        cdma2000Arfcn = c.has_cdma2000_arfcn ? c.cdma2000_arfcn : nil
     }
 }
 
@@ -553,6 +569,100 @@ public struct CellCarrierRow {
     }
 }
 
+/// A carrier of another radio system that a cell of `cell` names in SIB6, SIB7, SIB8 or SIB24. The row key is the cell key, the system and the channel number.
+public struct CellOtherCarrierRow {
+    public enum System: Int32 {
+        case umtsFdd = 0
+        case umtsTdd = 1
+        case gsm = 2
+        case cdma2000Hrpd = 3
+        case cdma20001x = 4
+        case nr = 5
+    }
+    /// The row key.
+    public var key: String
+    /// The row key of the cell.
+    public var cell: String
+    /// The system.
+    public var system: System?
+    /// The channel number: UARFCN, GSM ARFCN, CDMA2000 ARFCN or NR-ARFCN.
+    public var channel: Int64
+    /// The downlink frequency, where the channel number gives it alone (GSM and NR).
+    public var frequency: Double?
+    /// The band: dcs1800 or pcs1900 (GSM), bc0 .. (CDMA2000), n78 .. (NR).
+    public var band: String?
+    /// The SSB spacing (NR).
+    public var ssbScs: Double?
+    /// The reselection priority.
+    public var priority: Int64?
+    /// q-RxLevMin.
+    public var qRxLevMinDbm: Double?
+    /// The cells named on the carrier (CDMA2000).
+    public var cells: Int64
+
+    init(_ c: sdrkit_cell_other_carrier_row) {
+        key = sdrkitText(c.key)
+        cell = sdrkitText(c.cell)
+        system = System(rawValue: c.system)
+        channel = c.channel
+        frequency = c.has_frequency ? c.frequency : nil
+        band = c.has_band ? sdrkitText(c.band) : nil
+        ssbScs = c.has_ssb_scs ? c.ssb_scs : nil
+        priority = c.has_priority ? c.priority : nil
+        qRxLevMinDbm = c.has_q_rx_lev_min_dbm ? c.q_rx_lev_min_dbm : nil
+        cells = c.cells
+    }
+}
+
+/// A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack.
+public struct CellSurveyRow {
+    public enum Generation: Int32 {
+        case n2g = 0
+        case n3g = 1
+        case n4g = 2
+        case n5g = 3
+    }
+    /// The row key.
+    public var key: String
+    /// Operator, generation, band and physical identity.
+    public var name: String
+    /// The generation.
+    public var generation: Generation?
+    /// The operator name, else the network.
+    public var `operator`: String?
+    /// The network.
+    public var plmn: String?
+    /// The band.
+    public var band: String?
+    /// The channel number: ARFCN, UARFCN, EARFCN or NR-ARFCN.
+    public var channel: Int64?
+    /// The frequency.
+    public var frequency: Double
+    /// The physical identity: PCI, primary scrambling code or BSIC.
+    public var pci: Int64
+    /// The cell identity of the broadcast.
+    public var cellIdentity: Int64?
+    /// The tracking or location area code.
+    public var areaCode: Int64?
+    /// RSRP, RSCP or the received level.
+    public var levelDbfs: Double?
+
+    init(_ c: sdrkit_cell_survey_row) {
+        key = sdrkitText(c.key)
+        name = sdrkitText(c.name)
+        generation = Generation(rawValue: c.generation)
+        `operator` = c.has_operator_ ? sdrkitText(c.operator_) : nil
+        plmn = c.has_plmn ? sdrkitText(c.plmn) : nil
+        band = c.has_band ? sdrkitText(c.band) : nil
+        channel = c.has_channel ? c.channel : nil
+        frequency = c.frequency
+        pci = c.pci
+        cellIdentity = c.has_cell_identity ? c.cell_identity : nil
+        areaCode = c.has_area_code ? c.area_code : nil
+        levelDbfs = c.has_level_dbfs ? c.level_dbfs : nil
+    }
+}
+
 /// The result fields of `nr`.
 public struct NrFields {
     /// Cells in the table.
@@ -595,6 +705,12 @@ public struct NrCellRow {
         case mib = 1
         case sib1 = 2
     }
+    public enum Generation: Int32 {
+        case n2g = 0
+        case n3g = 1
+        case n4g = 2
+        case n5g = 3
+    }
     /// The row key.
     public var key: String
     /// How far the cell was decoded.
@@ -631,6 +747,10 @@ public struct NrCellRow {
     public var sinrDb: Double
     /// When the cell was last heard.
     public var lastHeard: Double?
+    /// The generation of the radio system.
+    public var generation: Generation?
+    /// Operator, generation, band and physical identity.
+    public var name: String
 
     init(_ c: sdrkit_nr_cell_row) {
         key = sdrkitText(c.key)
@@ -651,6 +771,8 @@ public struct NrCellRow {
         rsrqDb = c.rsrq_db
         sinrDb = c.sinr_db
         lastHeard = c.has_last_heard ? c.last_heard : nil
+        generation = Generation(rawValue: c.generation)
+        name = sdrkitText(c.name)
     }
 }
 
@@ -711,6 +833,10 @@ public struct NrDetailRow {
     public var tdd: Bool?
     /// SIB1 decodes.
     public var sib1Count: Int64
+    /// The slots of Type0 PDCCH occasions that the newest try searched.
+    public var sib1Occasions: Int64?
+    /// The control channels with the SI-RNTI that the newest try decoded.
+    public var sib1Pdcch: Int64?
 
     init(_ c: sdrkit_nr_detail_row) {
         key = sdrkitText(c.key)
@@ -735,6 +861,8 @@ public struct NrDetailRow {
         siWindow = c.has_si_window ? c.si_window : nil
         tdd = c.has_tdd ? c.tdd : nil
         sib1Count = c.sib1_count
+        sib1Occasions = c.has_sib1_occasions ? c.sib1_occasions : nil
+        sib1Pdcch = c.has_sib1_pdcch ? c.sib1_pdcch : nil
     }
 }
 
@@ -825,6 +953,12 @@ public struct NbiotCellRow {
         case guardband = 2
         case standalone = 3
     }
+    public enum Generation: Int32 {
+        case n2g = 0
+        case n3g = 1
+        case n4g = 2
+        case n5g = 3
+    }
     /// The row key.
     public var key: String
     /// The primary network.
@@ -855,6 +989,10 @@ public struct NbiotCellRow {
     public var snrDb: Double
     /// When the cell was last heard.
     public var lastHeard: Double?
+    /// The generation of the radio system.
+    public var generation: Generation?
+    /// Operator, generation, band and physical identity.
+    public var name: String
 
     init(_ c: sdrkit_nbiot_cell_row) {
         key = sdrkitText(c.key)
@@ -872,6 +1010,8 @@ public struct NbiotCellRow {
         levelDbfs = c.level_dbfs
         snrDb = c.snr_db
         lastHeard = c.has_last_heard ? c.last_heard : nil
+        generation = Generation(rawValue: c.generation)
+        name = sdrkitText(c.name)
     }
 }
 
@@ -906,6 +1046,12 @@ public struct GsmrCellRow {
         case gsm850 = 2
         case dcs1800 = 3
     }
+    public enum Generation: Int32 {
+        case n2g = 0
+        case n3g = 1
+        case n4g = 2
+        case n5g = 3
+    }
     /// The row key.
     public var key: String
     /// The network.
@@ -934,6 +1080,10 @@ public struct GsmrCellRow {
     public var snrDb: Double
     /// When the cell was last heard.
     public var lastHeard: Double?
+    /// The generation of the radio system.
+    public var generation: Generation?
+    /// Operator, generation, band and physical identity.
+    public var name: String
 
     init(_ c: sdrkit_gsmr_cell_row) {
         key = sdrkitText(c.key)
@@ -950,6 +1100,8 @@ public struct GsmrCellRow {
         levelDbfs = c.level_dbfs
         snrDb = c.snr_db
         lastHeard = c.has_last_heard ? c.last_heard : nil
+        generation = Generation(rawValue: c.generation)
+        name = sdrkitText(c.name)
     }
 }
 
@@ -1210,6 +1362,12 @@ public struct UmtsFields {
 
 /// A row of the cells of `umts`. The row key is the primary scrambling code and the radio centre.
 public struct UmtsCellRow {
+    public enum Generation: Int32 {
+        case n2g = 0
+        case n3g = 1
+        case n4g = 2
+        case n5g = 3
+    }
     /// The row key.
     public var key: String
     /// The primary scrambling code.
@@ -1242,6 +1400,20 @@ public struct UmtsCellRow {
     public var uarfcn: Int64?
     /// When the cell was last heard.
     public var lastHeard: Double?
+    /// The frequency of the carrier: the radio centre and the carrier offset, when the radio centre is known.
+    public var frequency: Double?
+    /// The location area code (SIB 1).
+    public var lac: Int64?
+    /// The routing area code (SIB 1).
+    public var rac: Int64?
+    /// The cell is barred (SIB 3).
+    public var barred: Bool?
+    /// The cell is reserved for operator use (SIB 3).
+    public var reservedOperator: Bool?
+    /// The generation of the radio system.
+    public var generation: Generation?
+    /// Operator, generation, band and physical identity.
+    public var name: String
 
     init(_ c: sdrkit_umts_cell_row) {
         key = sdrkitText(c.key)
@@ -1260,6 +1432,13 @@ public struct UmtsCellRow {
         cellIdParts = c.has_cell_id_parts ? sdrkitText(c.cell_id_parts) : nil
         uarfcn = c.has_uarfcn ? c.uarfcn : nil
         lastHeard = c.has_last_heard ? c.last_heard : nil
+        frequency = c.has_frequency ? c.frequency : nil
+        lac = c.has_lac ? c.lac : nil
+        rac = c.has_rac ? c.rac : nil
+        barred = c.has_barred ? c.barred : nil
+        reservedOperator = c.has_reserved_operator ? c.reserved_operator : nil
+        generation = Generation(rawValue: c.generation)
+        name = sdrkitText(c.name)
     }
 }
 
@@ -1285,6 +1464,12 @@ public struct Cdma2000Fields {
 
 /// A row of the base stations of `cdma2000`.
 public struct Cdma2000CellRow {
+    public enum Generation: Int32 {
+        case n2g = 0
+        case n3g = 1
+        case n4g = 2
+        case n5g = 3
+    }
     /// The row key.
     public var key: String
     /// The PN offset.
@@ -1315,6 +1500,12 @@ public struct Cdma2000CellRow {
     public var messages: String
     /// When the base station was last heard.
     public var lastHeard: Double?
+    /// The frequency of the carrier: the radio centre and the carrier offset, when the radio centre is known.
+    public var frequency: Double?
+    /// The generation of the radio system.
+    public var generation: Generation?
+    /// Operator, generation, band and physical identity.
+    public var name: String
 
     init(_ c: sdrkit_cdma2000_cell_row) {
         key = sdrkitText(c.key)
@@ -1332,6 +1523,9 @@ public struct Cdma2000CellRow {
         lcState = c.has_lc_state ? sdrkitText(c.lc_state) : nil
         messages = sdrkitText(c.messages)
         lastHeard = c.has_last_heard ? c.last_heard : nil
+        frequency = c.has_frequency ? c.frequency : nil
+        generation = Generation(rawValue: c.generation)
+        name = sdrkitText(c.name)
     }
 }
 
@@ -1354,6 +1548,12 @@ public struct TdscdmaFields {
 
 /// A row of the cells of `tdscdma`. The row key is the code and the radio centre.
 public struct TdscdmaCellRow {
+    public enum Generation: Int32 {
+        case n2g = 0
+        case n3g = 1
+        case n4g = 2
+        case n5g = 3
+    }
     /// The row key.
     public var key: String
     /// The SYNC-DL code.
@@ -1376,6 +1576,12 @@ public struct TdscdmaCellRow {
     public var capturesSeen: Int64
     /// When the cell was last heard.
     public var lastHeard: Double?
+    /// The frequency of the carrier: the radio centre and the carrier offset, when the radio centre is known.
+    public var frequency: Double?
+    /// The generation of the radio system.
+    public var generation: Generation?
+    /// Operator, generation, band and physical identity.
+    public var name: String
 
     init(_ c: sdrkit_tdscdma_cell_row) {
         key = sdrkitText(c.key)
@@ -1389,6 +1595,9 @@ public struct TdscdmaCellRow {
         clarity = c.clarity
         capturesSeen = c.captures_seen
         lastHeard = c.has_last_heard ? c.last_heard : nil
+        frequency = c.has_frequency ? c.frequency : nil
+        generation = Generation(rawValue: c.generation)
+        name = sdrkitText(c.name)
     }
 }
 
@@ -2249,6 +2458,9 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(RailwayCirMessageRow.init))
     }
     /// The changed rows of the table "cells" of the stack "cell", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Time: `last_heard`.
     public static func cellCells(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[CellRow], SDRKitCode> {
         var rows = [sdrkit_cell_row](repeating: sdrkit_cell_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2329,7 +2541,28 @@ public enum CellTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(CellCarrierRow.init))
     }
+    /// The changed rows of the table "other_carriers" of the stack "cell", newest first, at most `capacity` rows.
+    public static func cellOtherCarriers(_ handle: SDRKIT_HANDLE, capacity: Int = 1600) -> Result<[CellOtherCarrierRow], SDRKitCode> {
+        var rows = [sdrkit_cell_other_carrier_row](repeating: sdrkit_cell_other_carrier_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_cell_other_carriers_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(CellOtherCarrierRow.init))
+    }
+    /// The changed rows of the table "survey" of the stack "cell", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    public static func cellSurvey(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[CellSurveyRow], SDRKitCode> {
+        var rows = [sdrkit_cell_survey_row](repeating: sdrkit_cell_survey_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_cell_survey_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(CellSurveyRow.init))
+    }
     /// The changed rows of the table "cells" of the stack "nr", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Time: `last_heard`.
     public static func nrCells(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[NrCellRow], SDRKitCode> {
         var rows = [sdrkit_nr_cell_row](repeating: sdrkit_nr_cell_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2361,7 +2594,20 @@ public enum CellTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NrSibRow.init))
     }
+    /// The changed rows of the table "survey" of the stack "nr", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    public static func nrSurvey(_ handle: SDRKIT_HANDLE, capacity: Int = 300) -> Result<[CellSurveyRow], SDRKitCode> {
+        var rows = [sdrkit_cell_survey_row](repeating: sdrkit_cell_survey_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_nr_survey_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(CellSurveyRow.init))
+    }
     /// The changed rows of the table "cells" of the stack "nbiot", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Time: `last_heard`.
     public static func nbiotCells(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[NbiotCellRow], SDRKitCode> {
         var rows = [sdrkit_nbiot_cell_row](repeating: sdrkit_nbiot_cell_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2370,6 +2616,9 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(NbiotCellRow.init))
     }
     /// The changed rows of the table "cells" of the stack "gsmr", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Time: `last_heard`.
     public static func gsmrCells(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[GsmrCellRow], SDRKitCode> {
         var rows = [sdrkit_gsmr_cell_row](repeating: sdrkit_gsmr_cell_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2385,6 +2634,16 @@ public enum CellTables {
         let code = sdrkit_gsmr_carriers_rows(handle, &rows, UInt32(capacity), &info)
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(GsmrCarrierRow.init))
+    }
+    /// The changed rows of the table "survey" of the stack "gsmr", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    public static func gsmrSurvey(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[CellSurveyRow], SDRKitCode> {
+        var rows = [sdrkit_cell_survey_row](repeating: sdrkit_cell_survey_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_gsmr_survey_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(CellSurveyRow.init))
     }
     /// The changed rows of the table "messages" of the stack "lbj", newest first, at most `capacity` rows.
     /// The rows are a log: they arrive over time.
@@ -2427,6 +2686,9 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(EbicabOtherBurstRow.init))
     }
     /// The changed rows of the table "cells" of the stack "umts", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Time: `last_heard`.
     public static func umtsCells(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[UmtsCellRow], SDRKitCode> {
         var rows = [sdrkit_umts_cell_row](repeating: sdrkit_umts_cell_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2434,7 +2696,20 @@ public enum CellTables {
         guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(UmtsCellRow.init))
     }
+    /// The changed rows of the table "survey" of the stack "umts", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    public static func umtsSurvey(_ handle: SDRKIT_HANDLE, capacity: Int = 400) -> Result<[CellSurveyRow], SDRKitCode> {
+        var rows = [sdrkit_cell_survey_row](repeating: sdrkit_cell_survey_row(), count: capacity)
+        var info = sdrkit_rows_info.sized
+        let code = sdrkit_umts_survey_rows(handle, &rows, UInt32(capacity), &info)
+        guard code == SDRKIT_OK else { return .failure(SDRKitCode(code: code)) }
+        return .success(rows.prefix(min(Int(info.rows), capacity)).map(CellSurveyRow.init))
+    }
     /// The changed rows of the table "cells" of the stack "cdma2000", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Time: `last_heard`.
     public static func cdma2000Cells(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[Cdma2000CellRow], SDRKitCode> {
         var rows = [sdrkit_cdma2000_cell_row](repeating: sdrkit_cdma2000_cell_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -2443,6 +2718,9 @@ public enum CellTables {
         return .success(rows.prefix(min(Int(info.rows), capacity)).map(Cdma2000CellRow.init))
     }
     /// The changed rows of the table "cells" of the stack "tdscdma", newest first, at most `capacity` rows.
+    /// The rows are the stations or nodes of the stack.
+    /// The column `name` names a row.
+    /// Time: `last_heard`.
     public static func tdscdmaCells(_ handle: SDRKIT_HANDLE, capacity: Int = 200) -> Result<[TdscdmaCellRow], SDRKitCode> {
         var rows = [sdrkit_tdscdma_cell_row](repeating: sdrkit_tdscdma_cell_row(), count: capacity)
         var info = sdrkit_rows_info.sized
@@ -3162,6 +3440,7 @@ public enum CellGeneratorSettings {
         case twoN78Cells = 0
         case n28Cell = 1
         case barredN78Cell = 2
+        case n5Cell30KhzBlocks = 3
     }
     /// Test signal scene.
     public static func nrScene(_ handle: SDRKIT_HANDLE) -> Result<NrScene, SDRKitCode> {

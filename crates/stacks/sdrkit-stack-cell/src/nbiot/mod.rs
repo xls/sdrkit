@@ -236,6 +236,13 @@ impl Shaped for NbCell {
             level_dbfs: self.level_dbfs,
             snr_db: self.snr_db,
             last_heard: columns::last_heard(seen).map(Time),
+            generation: crate::scan::Generation::Fourth,
+            name: &crate::scan::cell_name(
+                s.and_then(|s| s.operator.as_deref().or(s.plmns.first().map(String::as_str))),
+                crate::scan::Generation::Fourth,
+                Some("NB-IoT"),
+                &format!("PCI {}", self.pci),
+            ),
         });
     }
 }

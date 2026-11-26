@@ -121,9 +121,33 @@ pub fn half_frame(scs_khz: u32) -> usize {
     1280 * scs_khz as usize / 15 * 15
 }
 
-/// The first symbol of SSB index `i` in its half frame (Case A for 15 kHz, Case C for 30 kHz: {2, 8} + 14 n).
-pub fn ssb_symbol(i: usize) -> usize {
-    [2usize, 8][i % 2] + 14 * (i / 2)
+/// The time pattern of the SS/PBCH blocks of a cell in frequency range 1 (TS 38.213 clause 4.1).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum SsbPattern {
+    /// Case A (15 kHz) and Case C (30 kHz): first symbols {2, 8} + 14 n.
+    #[default]
+    AC,
+    /// Case B (30 kHz): first symbols {4, 8, 16, 20} + 28 n.
+    B,
+}
+
+impl SsbPattern {
+    /// The pattern of a block of spacing `scs_khz` in NR band `band`: Case B for 30 kHz in n5, n24 and n66 (TS 38.104
+    /// table 5.4.3.3-1), else Case A or C. Without a band, Case A or C.
+    pub fn of(scs_khz: u32, band: Option<u16>) -> SsbPattern {
+        if scs_khz == 30 && matches!(band, Some(5 | 24 | 66)) {
+            SsbPattern::B
+        } else {
+            SsbPattern::AC
+        }
+    }
+    /// The first symbol of SSB index `i` in its half frame.
+    pub fn first_symbol(self, i: usize) -> usize {
+        match self {
+            SsbPattern::AC => [2usize, 8][i % 2] + 14 * (i / 2),
+            SsbPattern::B => [4usize, 8, 16, 20][i % 4] + 28 * (i / 4),
+        }
+    }
 }
 
 /// The MIB with the timing bits of the PBCH payload.

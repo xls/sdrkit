@@ -1,6 +1,8 @@
 //! The LTE broadcast messages (3GPP TS 36.331, unaligned PER): the MIB, SystemInformationBlockType1 and SystemInformation with
-//! SIB2 to SIB5. Each is described once over [`PerIo`]; the same description reads and writes.
+//! SIB2 to SIB8 and SIB24 (the last four in [`super::irat`]). Each is described once over [`PerIo`]; the same description
+//! reads and writes.
 
+pub use super::irat::{Sib24, Sib6, Sib7, Sib8};
 pub use crate::nbiot::msg::Plmn;
 use sdrkit_util_bits::pack::{pack, unpack};
 use sdrkit_util_bits::per::{PerIo, PerReader, PerWriter};
@@ -50,19 +52,19 @@ impl Mib {
     }
 }
 
-fn ext_bit<P: PerIo>(p: &mut P) -> bool {
+pub(super) fn ext_bit<P: PerIo>(p: &mut P) -> bool {
     let mut e = false;
     p.flag(&mut e);
     e
 }
 
-fn ext_end<P: PerIo>(p: &mut P, e: bool) {
+pub(super) fn ext_end<P: PerIo>(p: &mut P, e: bool) {
     if e {
         p.skip_extensions();
     }
 }
 
-fn opt<P: PerIo>(p: &mut P, present: bool) -> bool {
+pub(super) fn opt<P: PerIo>(p: &mut P, present: bool) -> bool {
     let mut b = present;
     p.flag(&mut b);
     b
@@ -72,7 +74,7 @@ fn bits<P: PerIo>(p: &mut P, v: &mut u64, n: u32) {
     p.bits(v, n);
 }
 
-fn int<P: PerIo, T: Copy + TryFrom<i64> + Into<i64>>(p: &mut P, v: &mut T, lo: i64, hi: i64) {
+pub(super) fn int<P: PerIo, T: Copy + TryFrom<i64> + Into<i64>>(p: &mut P, v: &mut T, lo: i64, hi: i64) {
     let mut x: i64 = (*v).into();
     p.int(&mut x, lo, hi);
     if let Ok(t) = T::try_from(x) {
@@ -917,9 +919,22 @@ pub enum SibEntry {
     Sib4(Sib4),
     /// SIB5.
     Sib5(Sib5),
-    /// A later SIB whose content is not parsed (its number; 12 for "12+").
+    /// SIB6.
+    Sib6(Sib6),
+    /// SIB7.
+    Sib7(Sib7),
+    /// SIB8.
+    Sib8(Box<Sib8>),
+    /// SIB24.
+    Sib24(Sib24),
+    /// A SIB whose content is not parsed: its number (0 for an extension this description does not name).
     Other(u16),
 }
+
+/// The SIB numbers of the extension alternatives of sib-TypeAndInfo, in order (sib12-v920 to sib33-v1800).
+const SIB_INFO_EXT: [u16; 21] = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 24, 25, 26, 26, 27, 28, 29, 30, 31, 32, 33];
+/// The place of SIB24 among them.
+const SIB24_EXT: u64 = 10;
 
 /// A BCCH-DL-SCH message.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -965,8 +980,26 @@ impl Bcch {
                 let mut e = false;
                 r.flag(&mut e);
                 if e {
-                    v.push(SibEntry::Other(12));
-                    break;
+                    // An extension alternative is an open type: its length is known, so the entries after it are read.
+                    let mut n = 0u64;
+                    r.small(&mut n);
+                    let mut body = Vec::new();
+                    r.open_type(&mut body);
+                    if r.failed() {
+                        return None;
+                    }
+                    let sib = SIB_INFO_EXT.get(n as usize).copied().unwrap_or(0);
+                    let read = (n == SIB24_EXT).then(|| {
+                        let mut s = Sib24::default();
+                        let mut b = PerReader::new(&body);
+                        s.codec(&mut b);
+                        (!b.failed()).then_some(s)
+                    });
+                    v.push(match read.flatten() {
+                        Some(s) => SibEntry::Sib24(s),
+                        None => SibEntry::Other(sib),
+                    });
+                    continue;
                 }
                 let mut idx = 0usize;
                 r.enumerated(&mut idx, 10, false);
@@ -990,6 +1023,45 @@ impl Bcch {
                         let mut s = Sib5::default();
                         s.codec(&mut r);
                         v.push(SibEntry::Sib5(s));
+                    }
+                    4 => {
+                        // A SIB of another system that this description does not read whole ends the message, as a SIB
+                        // whose content is not read does; the entries before it are kept.
+                        let mut t = r.clone();
+                        let mut s = Sib6::default();
+                        s.codec(&mut t);
+                        if t.failed() {
+                            v.push(SibEntry::Other(6));
+                            break;
+                        }
+                        r = t;
+                        v.push(SibEntry::Sib6(s));
+                    }
+                    5 => {
+                        // A SIB of another system that this description does not read whole ends the message, as a SIB
+                        // whose content is not read does; the entries before it are kept.
+                        let mut t = r.clone();
+                        let mut s = Sib7::default();
+                        s.codec(&mut t);
+                        if t.failed() {
+                            v.push(SibEntry::Other(7));
+                            break;
+                        }
+                        r = t;
+                        v.push(SibEntry::Sib7(s));
+                    }
+                    6 => {
+                        // A SIB of another system that this description does not read whole ends the message, as a SIB
+                        // whose content is not read does; the entries before it are kept.
+                        let mut t = r.clone();
+                        let mut s = Sib8::default();
+                        s.codec(&mut t);
+                        if t.failed() {
+                            v.push(SibEntry::Other(8));
+                            break;
+                        }
+                        r = t;
+                        v.push(SibEntry::Sib8(Box::new(s)));
                     }
                     k => {
                         v.push(SibEntry::Other(k as u16 + 2));
@@ -1022,6 +1094,17 @@ impl Bcch {
                 let mut n = entries.len();
                 w.count(&mut n, 1, 32);
                 for e in entries {
+                    if let SibEntry::Sib24(s) = e {
+                        let mut body = Vec::new();
+                        let mut b = PerWriter::new(&mut body);
+                        s.clone().codec(&mut b);
+                        b.finish();
+                        put(&mut w, 1, 1);
+                        let mut n = SIB24_EXT;
+                        w.small(&mut n);
+                        w.open_type(&mut body);
+                        continue;
+                    }
                     put(&mut w, 0, 1);
                     match e {
                         SibEntry::Sib2(s) => {
@@ -1040,7 +1123,19 @@ impl Bcch {
                             put(&mut w, 3, 4);
                             s.clone().codec(&mut w);
                         }
-                        SibEntry::Other(_) => {}
+                        SibEntry::Sib6(s) => {
+                            put(&mut w, 4, 4);
+                            s.clone().codec(&mut w);
+                        }
+                        SibEntry::Sib7(s) => {
+                            put(&mut w, 5, 4);
+                            s.clone().codec(&mut w);
+                        }
+                        SibEntry::Sib8(s) => {
+                            put(&mut w, 6, 4);
+                            s.as_ref().clone().codec(&mut w);
+                        }
+                        SibEntry::Sib24(_) | SibEntry::Other(_) => {}
                     }
                 }
             }
@@ -1100,18 +1195,60 @@ mod tests {
     }
 
     #[test]
-    fn si_stops_at_a_later_sib() {
+    fn si_reads_past_an_extension_and_stops_at_sib9() {
+        // Two entries: an extension alternative (SIB12, an open type of two octets) and SIB9, whose content is not read.
         let mut bytes = Vec::new();
         let mut w = PerWriter::new(&mut bytes);
         put(&mut w, 0, 1);
         put(&mut w, 0, 1);
         put(&mut w, 0, 2);
         put(&mut w, 1, 5); // two entries
-        put(&mut w, 1, 1); // an extension (SIB12 or later)
+        put(&mut w, 1, 1); // an extension alternative
+        let mut n = 0u64; // sib12-v920
+        w.small(&mut n);
+        let mut body = vec![0xA5, 0x5A];
+        w.open_type(&mut body);
+        put(&mut w, 0, 1);
+        put(&mut w, 7, 4); // sib9
         w.finish();
         let mut b = Vec::new();
         unpack(&bytes, BitOrder::Msb, &mut b);
-        b.resize(64, 0);
-        assert_eq!(Bcch::parse(&b), Some(Bcch::Si(vec![SibEntry::Other(12)])));
+        b.resize(96, 0);
+        assert_eq!(Bcch::parse(&b), Some(Bcch::Si(vec![SibEntry::Other(12), SibEntry::Other(9)])));
+    }
+
+    #[test]
+    fn a_sib6_that_does_not_read_keeps_the_entries_before_it() {
+        // SIB3 then a SIB6 whose carrier list says 16 entries and then ends.
+        let mut bytes = Vec::new();
+        let mut w = PerWriter::new(&mut bytes);
+        put(&mut w, 0, 1);
+        put(&mut w, 0, 1);
+        put(&mut w, 0, 2);
+        put(&mut w, 1, 5); // two entries
+        put(&mut w, 0, 1);
+        put(&mut w, 1, 4); // sib3
+        let s3 = Sib3 {
+            q_rx_lev_min_dbm: -124,
+            ..Sib3::default()
+        };
+        s3.clone().codec(&mut w);
+        put(&mut w, 0, 1);
+        put(&mut w, 4, 4); // sib6
+        put(&mut w, 0b0100, 4); // no extension; the FDD list only
+        put(&mut w, 15, 4); // 16 carriers
+        let n = w.finish();
+        let mut b = Vec::new();
+        unpack(&bytes, BitOrder::Msb, &mut b);
+        b.truncate(n);
+        assert_eq!(Bcch::parse(&b), Some(Bcch::Si(vec![SibEntry::Sib3(s3), SibEntry::Other(6)])));
+    }
+
+    #[test]
+    fn sib6_sib7_sib8_and_sib24_read_back() {
+        let entries = crate::lte::gen::irat_sibs();
+        let bits = Bcch::Si(entries.clone()).encode();
+        assert_eq!(Bcch::parse(&bits), Some(Bcch::Si(entries)));
+        assert_eq!(Bcch::parse(&bits[..bits.len() - 40]), None);
     }
 }

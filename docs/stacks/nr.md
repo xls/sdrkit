@@ -45,7 +45,7 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
-| `gen_scene` | Test signal scene | choice | `0` | `0` (Two n78 cells), `1` (n28 cell), `2` (Barred n78 cell) |  |
+| `gen_scene` | Test signal scene | choice | `0` | `0` (Two n78 cells), `1` (n28 cell), `2` (Barred n78 cell), `3` (n5 cell, 30 kHz blocks) |  |
 
 ## Result fields
 
@@ -70,10 +70,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `cells` | Cells | `decoded` (choice), `plmn` (text), `operator` (text), `tac` (whole number), `nci` (whole number), `band` (whole number), `gscn` (whole number), `frequency` (frequency), `pci` (whole number), `ssb_scs` (frequency), `beams` (whole number), `sfn` (whole number), `sib1` (yes or no), `rsrp_dbfs` (number (dBFS)), `rsrq_db` (number (dB)), `sinr_db` (number (dB)), `last_heard` (time) |
-| `nr_details` | Details | `cell` (text), `sib1` (choice), `sib1_parts` (whole number), `coreset0_width` (frequency), `rate_needed` (frequency), `scs_common` (frequency), `k_ssb` (whole number), `barred` (yes or no), `intra_freq_reselection` (yes or no), `reserved_other_use` (yes or no), `q_rx_lev_min_dbm` (number (dBm)), `bands` (text), `ssb_period` (duration (s)), `carrier_scs` (frequency), `carrier_rbs` (whole number (RB)), `offset_to_point_a` (whole number (RB)), `bwp_start` (whole number (RB)), `bwp_rbs` (whole number (RB)), `si_window` (whole number (slots)), `tdd` (yes or no), `sib1_count` (whole number) |
+| `cells` | Cells | `decoded` (choice), `plmn` (text), `operator` (text), `tac` (whole number), `nci` (whole number), `band` (whole number), `gscn` (whole number), `frequency` (frequency), `pci` (whole number), `ssb_scs` (frequency), `beams` (whole number), `sfn` (whole number), `sib1` (yes or no), `rsrp_dbfs` (number (dBFS)), `rsrq_db` (number (dB)), `sinr_db` (number (dB)), `last_heard` (time), `generation` (choice), `name` (text) |
+| `nr_details` | Details | `cell` (text), `sib1` (choice), `sib1_parts` (whole number), `coreset0_width` (frequency), `rate_needed` (frequency), `scs_common` (frequency), `k_ssb` (whole number), `barred` (yes or no), `intra_freq_reselection` (yes or no), `reserved_other_use` (yes or no), `q_rx_lev_min_dbm` (number (dBm)), `bands` (text), `ssb_period` (duration (s)), `carrier_scs` (frequency), `carrier_rbs` (whole number (RB)), `offset_to_point_a` (whole number (RB)), `bwp_start` (whole number (RB)), `bwp_rbs` (whole number (RB)), `si_window` (whole number (slots)), `tdd` (yes or no), `sib1_count` (whole number), `sib1_occasions` (whole number), `sib1_pdcch` (whole number) |
 | `nr_networks` | Networks | `cell` (text), `plmn` (text), `operator` (text), `tac` (whole number), `nci` (whole number), `gnb` (whole number), `cell_id` (whole number), `reserved_operator` (yes or no) |
 | `nr_sibs` | SIBs | `cell` (text), `sib` (whole number), `period` (duration (s)), `broadcasting` (yes or no), `value_tag` (whole number) |
+| `survey` | Survey | `name` (text), `generation` (choice), `operator` (text), `plmn` (text), `band` (text), `channel` (whole number), `frequency` (frequency), `pci` (whole number), `cell_identity` (whole number), `area_code` (whole number), `level_dbfs` (number (dBFS)) |
 
 ## Events
 
@@ -90,9 +91,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.4. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.5. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
+
+Key readings: `cell_count`.
 
 ### Result fields
 
@@ -152,6 +155,10 @@ Struct `NrCellRow`. A row of the cells of `nr`.
 | `rsrq_db` | number (dB) | always | 1.0 | The RSRQ. |
 | `sinr_db` | number (dB) | always | 1.0 | The SINR. |
 | `last_heard` | time | optional | 1.0 | When the cell was last heard. |
+| `generation` | choice | always | 1.5 | The generation of the radio system. |
+| `name` | text | always | 1.5 | Operator, generation, band and physical identity. |
+
+The rows are the stations or nodes of the stack. The column `name` names a row. Time: `last_heard`.
 
 ### Table `nr_details`
 
@@ -180,6 +187,8 @@ Struct `NrDetailRow`. The details of a cell of `nr`. The row key is the cell key
 | `si_window` | whole number (slots) | optional | 1.4 | The SI window, slots. |
 | `tdd` | yes or no | optional | 1.4 | Whether SIB1 configures a TDD pattern. |
 | `sib1_count` | whole number | always | 1.4 | SIB1 decodes. |
+| `sib1_occasions` | whole number | optional | 1.5 | The slots of Type0 PDCCH occasions that the newest try searched. |
+| `sib1_pdcch` | whole number | optional | 1.5 | The control channels with the SI-RNTI that the newest try decoded. |
 
 ### Table `nr_networks`
 
@@ -207,6 +216,26 @@ Struct `NrSibRow`. A SIB that the SIB1 of a cell of `nr` schedules. The row key 
 | `period` | duration (s) | always | 1.4 | The period of its SI message. |
 | `broadcasting` | yes or no | always | 1.4 | Whether the message is broadcast (else sent on request). |
 | `value_tag` | whole number | optional | 1.4 | The value tag. |
+
+### Table `survey`
+
+Struct `SurveyRow`. A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `name` | text | always | 1.5 | Operator, generation, band and physical identity. |
+| `generation` | choice | always | 1.5 | The generation. |
+| `operator` | text | optional | 1.5 | The operator name, else the network. |
+| `plmn` | text | optional | 1.5 | The network. |
+| `band` | text | optional | 1.5 | The band. |
+| `channel` | whole number | optional | 1.5 | The channel number: ARFCN, UARFCN, EARFCN or NR-ARFCN. |
+| `frequency` | frequency | always | 1.5 | The frequency. |
+| `pci` | whole number | always | 1.5 | The physical identity: PCI, primary scrambling code or BSIC. |
+| `cell_identity` | whole number | optional | 1.5 | The cell identity of the broadcast. |
+| `area_code` | whole number | optional | 1.5 | The tracking or location area code. |
+| `level_dbfs` | number (dBFS) | optional | 1.5 | RSRP, RSCP or the received level. |
+
+The rows are the stations or nodes of the stack. The column `name` names a row.
 
 ### Event `cell.nr_cell`
 

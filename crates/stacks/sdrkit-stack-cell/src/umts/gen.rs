@@ -3,7 +3,8 @@
 //! random chips, and when it has a PLMN, the P-CCPCH with the BCH: the transport blocks alternate between the MIB and SIB 3, coded
 //! as TS 25.212 gives it. Unit mean power.
 
-use super::bch::{complete_sib_block, encode, mib_data, sib3_data, Mib, FRAME_BITS, SIB_3, SIB_MIB};
+use super::bch::{complete_list_block, complete_sib_block, encode, mib_data, Mib, FRAME_BITS, SIB_3, SIB_MIB};
+use super::sib::{sib1_data, sib1_of, sib3_data, Sib3, SIB_1};
 use super::CHIP_RATE;
 use sdrkit_algo_dsp::nco::Nco;
 use sdrkit_algo_dsp::pulse::{self, Norm, Shape};
@@ -103,10 +104,18 @@ impl CellChips {
         let tti = f.div_euclid(2);
         if self.tti.map(|t| t.0) != Some(tti) {
             let sfn = (2 * tti).rem_euclid(4096) as u32;
+            // The MIB every other TTI, SIB 3 and SIB 1 together between. The location area is the upper 16 bits of the cell
+            // identity, the routing area its low 8 bits.
             let block = if tti.rem_euclid(2) == 0 {
                 complete_sib_block(sfn, SIB_MIB, &mib_data(&mib))
             } else {
-                complete_sib_block(sfn, SIB_3, &sib3_data(cell))
+                let s3 = Sib3 {
+                    cell_id: cell,
+                    ..Sib3::default()
+                };
+                let s1 = sib1_of((cell >> 12) as u16, cell as u8);
+                complete_list_block(sfn, &[(SIB_3, sib3_data(&s3)), (SIB_1, sib1_data(&s1))])
+                    .unwrap_or_else(|| complete_sib_block(sfn, SIB_3, &sib3_data(&s3)))
             };
             self.tti = Some((tti, encode(&block)));
         }

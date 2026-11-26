@@ -1,10 +1,11 @@
-//! The LTE cells stack (`cell`): PSS and SSS, MIB, and SIB1 to SIB5 on SI-RNTI. Paging, random access responses, every
+//! The LTE cells stack (`cell`): PSS and SSS, MIB, and SIB1 to SIB8 and SIB24 on SI-RNTI. Paging, random access responses, every
 //! UE-specific RNTI, the uplink and user data are never decoded.
 //!
 //! Standard: 3GPP TS 36.211, TS 36.212, TS 36.213 and TS 36.331.
 
 pub mod cancel;
 pub mod gen;
+pub mod irat;
 pub mod msg;
 pub mod phy;
 pub mod search;
@@ -16,8 +17,9 @@ use crate::decoder::{
 };
 use crate::typed::{
     CellBandRow, CellCarrierRow, CellDetailRow, CellFields, CellInterCarrierRow, CellNeighbourRow, CellOperatorRow,
+    CellOtherCarrierRow,
     CellPlmnRow, CellRow, CellSibRow, CellSiteRow, CELL_BANDS, CELL_CARRIERS, CELL_CELLS, CELL_DETAILS,
-    CELL_INTER_CARRIERS, CELL_LTE_CELL, CELL_NEIGHBOURS, CELL_OPERATORS, CELL_PLMNS, CELL_SIBS, CELL_SITES,
+    CELL_INTER_CARRIERS, CELL_LTE_CELL, CELL_OTHER_CARRIERS, CELL_NEIGHBOURS, CELL_OPERATORS, CELL_PLMNS, CELL_SIBS, CELL_SITES,
 };
 use msg::{Bcch, SibEntry};
 use sdrkit_core::interface::{EventKind, Hertz, Seconds, Time};
@@ -249,6 +251,120 @@ pub struct InterOut {
     pub cells: Vec<u16>,
 }
 
+sdrkit_core::choice_enum! {
+    /// The radio system of a carrier that a cell names for reselection.
+    #[derive(Default, Serialize, Deserialize)]
+    pub enum OtherSystem {
+        /// UMTS FDD (SIB6).
+        #[default]
+        #[serde(rename = "umts_fdd")]
+        UmtsFdd = ("umts_fdd", "UMTS FDD (SIB6)"),
+        /// UMTS TDD (SIB6).
+        #[serde(rename = "umts_tdd")]
+        UmtsTdd = ("umts_tdd", "UMTS TDD (SIB6)"),
+        /// GSM (SIB7).
+        #[serde(rename = "gsm")]
+        Gsm = ("gsm", "GSM (SIB7)"),
+        /// CDMA2000 HRPD (SIB8).
+        #[serde(rename = "cdma2000_hrpd")]
+        Cdma2000Hrpd = ("cdma2000_hrpd", "CDMA2000 HRPD (SIB8)"),
+        /// CDMA2000 1xRTT (SIB8).
+        #[serde(rename = "cdma2000_1x")]
+        Cdma2000OneX = ("cdma2000_1x", "CDMA2000 1xRTT (SIB8)"),
+        /// 5G NR (SIB24).
+        #[serde(rename = "nr")]
+        Nr = ("nr", "5G NR (SIB24)"),
+    }
+}
+
+/// A carrier of another radio system that a cell names in SIB6, SIB7, SIB8 or SIB24.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct OtherCarrier {
+    /// The system.
+    pub system: OtherSystem,
+    /// The channel number: UARFCN, GSM ARFCN, CDMA2000 ARFCN or NR-ARFCN.
+    pub channel: u32,
+    /// The band: "dcs1800" or "pcs1900" for GSM, "bc0" .. for CDMA2000, "n78 n77" for NR.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub band: Option<String>,
+    /// cellReselectionPriority.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub priority: Option<u8>,
+    /// q-RxLevMin, dBm.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub q_rx_lev_min_dbm: Option<i32>,
+    /// The SSB spacing, kHz (NR).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ssb_scs_khz: Option<u16>,
+    /// The cells named on the carrier: PN offsets (CDMA2000).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cells: Vec<u16>,
+}
+
+/// The carriers of other systems in one SIB: SIB6, SIB7, SIB8 or SIB24.
+fn other_carriers(e: &SibEntry) -> Option<(&'static [OtherSystem], Vec<OtherCarrier>)> {
+    let mut v = Vec::new();
+    let systems: &'static [OtherSystem] = match e {
+        SibEntry::Sib6(s) => {
+            for (system, list) in [(OtherSystem::UmtsFdd, &s.fdd), (OtherSystem::UmtsTdd, &s.tdd)] {
+                v.extend(list.iter().map(|c| OtherCarrier {
+                    system,
+                    channel: u32::from(c.uarfcn),
+                    priority: c.priority,
+                    q_rx_lev_min_dbm: Some(c.q_rx_lev_min_dbm()),
+                    ..Default::default()
+                }));
+            }
+            &[OtherSystem::UmtsFdd, OtherSystem::UmtsTdd]
+        }
+        SibEntry::Sib7(s) => {
+            for g in &s.groups {
+                // The band indicator has a meaning for ARFCNs 512 to 810 only.
+                let band = |a: u16| (512..=810).contains(&a).then(|| if g.pcs1900 { "pcs1900" } else { "dcs1800" }.to_string());
+                v.extend(g.arfcns().into_iter().map(|a| OtherCarrier {
+                    system: OtherSystem::Gsm,
+                    channel: u32::from(a),
+                    band: band(a),
+                    priority: g.priority,
+                    q_rx_lev_min_dbm: Some(g.q_rx_lev_min_dbm()),
+                    ..Default::default()
+                }));
+            }
+            &[OtherSystem::Gsm]
+        }
+        SibEntry::Sib8(s) => {
+            for (system, r) in [(OtherSystem::Cdma2000Hrpd, &s.hrpd), (OtherSystem::Cdma2000OneX, &s.one_x)] {
+                for c in r.iter().flat_map(|r| &r.carriers) {
+                    let priority = r.iter().flat_map(|r| &r.bands).find(|b| b.band_class == c.band_class).and_then(|b| b.priority);
+                    v.push(OtherCarrier {
+                        system,
+                        channel: u32::from(c.arfcn),
+                        band: Some(format!("bc{}", c.band_class)),
+                        priority,
+                        cells: c.pn.clone(),
+                        ..Default::default()
+                    });
+                }
+            }
+            &[OtherSystem::Cdma2000Hrpd, OtherSystem::Cdma2000OneX]
+        }
+        SibEntry::Sib24(s) => {
+            v.extend(s.carriers.iter().map(|c| OtherCarrier {
+                system: OtherSystem::Nr,
+                channel: c.nr_arfcn,
+                band: (!c.bands.is_empty()).then(|| c.bands.iter().map(|b| format!("n{b}")).collect::<Vec<_>>().join(" ")),
+                priority: c.priority,
+                q_rx_lev_min_dbm: Some(c.q_rx_lev_min_dbm()),
+                ssb_scs_khz: Some(c.ssb_scs_khz),
+                ..Default::default()
+            }));
+            &[OtherSystem::Nr]
+        }
+        _ => return None,
+    };
+    Some((systems, v))
+}
+
 /// An LTE cell of the table.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct LteCell {
@@ -292,6 +408,9 @@ pub struct LteCell {
     /// SIB5 carriers.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sib5_inter_frequencies: Option<Vec<InterOut>>,
+    /// The carriers of other systems from SIB6, SIB7, SIB8 and SIB24.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub other_carriers: Vec<OtherCarrier>,
     /// SIBs seen.
     pub sibs_seen: Vec<u16>,
     /// RSRP, dBFS.
@@ -502,6 +621,8 @@ sdrkit_core::choice_enum! {
         Intra = ("intra", "Same frequency (SIB4)"),
         /// SIB5: a cell on another carrier.
         Inter = ("inter", "Other carrier (SIB5)"),
+        /// SIB8: a CDMA2000 cell.
+        Cdma2000 = ("cdma2000", "CDMA2000 (SIB8)"),
     }
 }
 
@@ -539,6 +660,8 @@ impl Shaped for LteCell {
             etws: self.etws_scheduled,
             cmas: self.cmas_scheduled,
             last_heard: columns::last_heard(seen).map(Time),
+            generation: crate::scan::Generation::Fourth,
+            name: &self.survey("").label(),
         });
     }
 }
@@ -595,6 +718,25 @@ impl LteCell {
         }
     }
 
+    /// The cell as a row of the survey: the first network of SIB1.
+    pub fn survey(&self, key: &str) -> crate::scan::SurveyCell {
+        let s = self.sib1.as_ref();
+        crate::scan::SurveyCell {
+            key: key.to_string(),
+            generation: crate::scan::Generation::Fourth,
+            id_word: "PCI",
+            plmn: s.and_then(|s| s.plmns.first().cloned()),
+            operator_name: s.and_then(|s| s.operator.clone()),
+            band: (self.band > 0).then(|| format!("B{}", self.band)),
+            channel: (self.earfcn >= 0).then_some(self.earfcn),
+            frequency_hz: self.frequency_hz,
+            pci: i64::from(self.pci),
+            cell_identity: s.map(|s| i64::from(s.cell_id)),
+            area_code: s.map(|s| i64::from(s.tac)),
+            level_dbfs: Some(self.rsrp_dbfs),
+        }
+    }
+
     /// Writes the rows of the cell in the tables of its PLMNs, bands, SIBs, neighbours and other carriers.
     fn write_children(&self, key: &str, t: &mut ChildTables, p: &mut Published) {
         if let Some(s) = &self.sib1 {
@@ -643,6 +785,7 @@ impl LteCell {
                 earfcn: own,
                 pci: i64::from(n.pci),
                 q_offset_db: Some(f64::from(n.q_offset_db)),
+                cdma2000_arfcn: None,
             };
             t.neighbours.put(p, format!("{key}/intra/{}", n.pci), &row);
         }
@@ -664,8 +807,42 @@ impl LteCell {
                     earfcn: Some(i64::from(f.earfcn)),
                     pci: i64::from(pci),
                     q_offset_db: None,
+                    cdma2000_arfcn: None,
                 };
                 t.neighbours.put(p, format!("{key}/{}/{pci}", f.earfcn), &row);
+            }
+        }
+        for o in &self.other_carriers {
+            let frequency = match o.system {
+                OtherSystem::Nr => sdrkit_data_plans::cellular::nr_arfcn_hz(o.channel),
+                OtherSystem::Gsm if o.band.as_deref() != Some("pcs1900") => {
+                    sdrkit_data_plans::cellular::channel_hz(sdrkit_data_plans::cellular::CellSystem::Gsm, o.channel).map(|x| x.0)
+                }
+                _ => None,
+            };
+            let row = CellOtherCarrierRow {
+                cell: key,
+                system: o.system,
+                channel: i64::from(o.channel),
+                frequency: frequency.map(Hertz),
+                band: o.band.as_deref(),
+                ssb_scs: o.ssb_scs_khz.map(|k| Hertz(f64::from(k) * 1e3)),
+                priority: o.priority.map(i64::from),
+                q_rx_lev_min_dbm: o.q_rx_lev_min_dbm.map(f64::from),
+                cells: o.cells.len() as i64,
+            };
+            let id = format!("{key}/{}/{}", <OtherSystem as sdrkit_core::Choice>::CHOICES[usize::from(sdrkit_core::Choice::index(o.system))].key, o.channel);
+            t.others.put(p, id.clone(), &row);
+            for &pn in &o.cells {
+                let row = CellNeighbourRow {
+                    cell: key,
+                    list: NeighbourList::Cdma2000,
+                    earfcn: None,
+                    pci: i64::from(pn),
+                    q_offset_db: None,
+                    cdma2000_arfcn: Some(i64::from(o.channel)),
+                };
+                t.neighbours.put(p, format!("{id}/{pn}"), &row);
             }
         }
     }
@@ -678,6 +855,7 @@ struct ChildTables {
     sibs: RowSync<CellSibRow<'static>>,
     neighbours: RowSync<CellNeighbourRow<'static>>,
     carriers: RowSync<CellInterCarrierRow<'static>>,
+    others: RowSync<CellOtherCarrierRow<'static>>,
 }
 
 sdrkit_core::settings! {
@@ -685,7 +863,7 @@ sdrkit_core::settings! {
     pub enum LteSetting {
         /// Seconds of input searched at a time.
         CaptureS = CAPTURE_S,
-        /// Decode SIB1 to SIB5.
+        /// Decode SIB1 to SIB8 and SIB24.
         SystemInformation = SYSTEM_INFORMATION,
         /// Cells searched per carrier.
         MaxCells = MAX_CELLS,
@@ -718,10 +896,10 @@ sdrkit_core::settings! {
 const CAPTURE_DEFAULT_S: f64 = 0.2;
 /// Seconds of input searched at a time.
 pub const CAPTURE_S: Setting<field::F64> = capture_setting(CAPTURE_DEFAULT_S);
-/// Decode SIB1 to SIB5.
+/// Decode SIB1 to SIB8 and SIB24.
 pub const SYSTEM_INFORMATION: Setting<field::Bool> =
     Setting::new("system_information", "Read system information", "", true)
-        .help("Decode SIB1 to SIB5 (needs the whole carrier in the sample band).");
+        .help("Decode SIB1 to SIB8 and SIB24 (needs the whole carrier in the sample band).");
 /// Cells searched per carrier.
 pub const MAX_CELLS: Setting<field::I64> =
     Setting::new("max_cells", "Cells per carrier", "", 12).range(1.0, 24.0, 1.0);
@@ -1061,11 +1239,14 @@ fn write_listed(listed: &[(LteKey, &LteCell)], p: &mut Published) {
         sibs: RowSync::new(&CELL_SIBS),
         neighbours: RowSync::new(&CELL_NEIGHBOURS),
         carriers: RowSync::new(&CELL_INTER_CARRIERS),
+        others: RowSync::new(&CELL_OTHER_CARRIERS),
     };
     let mut sites: Vec<(String, &Sib1Out, i64)> = Vec::new();
     let mut operators: Vec<(&str, &Sib1Out, i64)> = Vec::new();
+    let mut survey = Vec::new();
     for (key, c) in listed {
         let key = key.to_string();
+        survey.push(c.survey(&key));
         let row = c.details(&key);
         details.put(p, key.clone(), &row);
         c.write_children(&key, &mut children, p);
@@ -1087,6 +1268,8 @@ fn write_listed(listed: &[(LteKey, &LteCell)], p: &mut Published) {
     children.sibs.finish(p);
     children.neighbours.finish(p);
     children.carriers.finish(p);
+    children.others.finish(p);
+    crate::scan::write_survey(&crate::typed::CELL_SURVEY, survey, p);
     let mut rows = RowSync::new(&CELL_SITES);
     for (key, s, n) in sites {
         let row = CellSiteRow {
@@ -1273,6 +1456,20 @@ fn apply_bcch(
                                 .collect(),
                         );
                     }
+                    SibEntry::Sib6(_) | SibEntry::Sib7(_) | SibEntry::Sib8(_) | SibEntry::Sib24(_) => {
+                        let n = match e {
+                            SibEntry::Sib6(_) => 6,
+                            SibEntry::Sib7(_) => 7,
+                            SibEntry::Sib8(_) => 8,
+                            _ => 24,
+                        };
+                        see(c, n);
+                        if let Some((systems, v)) = other_carriers(&e) {
+                            c.other_carriers.retain(|o| !systems.contains(&o.system));
+                            c.other_carriers.extend(v);
+                        }
+                    }
+                    SibEntry::Other(0) => {}
                     SibEntry::Other(n) => see(c, n),
                 }
             }

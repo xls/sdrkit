@@ -1,6 +1,6 @@
 stack cell
 setting SettingDecl { field: FieldDecl { key: "capture_s", label: "Capture length", unit: "s", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 0.01, max: 10.0, step: 0.0 }), default: F64(0.2), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Seconds of input searched at a time.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "system_information", label: "Read system information", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Decode SIB1 to SIB5 (needs the whole carrier in the sample band).", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "system_information", label: "Read system information", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Decode SIB1 to SIB8 and SIB24 (needs the whole carrier in the sample band).", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "max_cells", label: "Cells per carrier", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 1.0, max: 24.0, step: 1.0 }), default: I64(12), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "min_pss_db", label: "PSS threshold", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 6.0, max: 20.0, step: 0.5 }), default: F64(9.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "max_cfo_khz", label: "Carrier offset searched", unit: "kHz", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }, range: Some(Range { min: 5.0, max: 60.0, step: 1.0 }), default: F64(25.0), required: false, restart: false, fixed: false, section: "", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
@@ -22,12 +22,13 @@ field FieldDecl { key: "decoded", label: "Messages decoded", unit: "", kind: I64
 field FieldDecl { key: "failed", label: "Messages failed", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "capture_centre", label: "Capture centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "identified", label: "Identified", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "operators", label: "Operators", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "banner", label: "Notice", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "cells" "Cells" cap 400
+  marks TableMarks { label: Some(25), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(23), own: None, delivery: None, failure: None }
   column FieldDecl { key: "plmn", label: "PLMN", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "country", label: "Country", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -52,6 +53,8 @@ table "cells" "Cells" cap 400
   column FieldDecl { key: "etws", label: "ETWS scheduled", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "cmas", label: "CMAS scheduled", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "details" "Details" cap 400
   column FieldDecl { key: "cell", label: "Cell", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "cells", column: "" }), content: None, reading: 0 }
   column FieldDecl { key: "cyclic_prefix", label: "Cyclic prefix", unit: "", kind: Choice, choices: [ChoiceDecl { key: "normal", label: "Normal" }, ChoiceDecl { key: "extended", label: "Extended" }], refers_to: None, content: None, reading: 0 }
@@ -98,10 +101,11 @@ table "cell_sibs" "System information blocks" cap 1600
   column FieldDecl { key: "seen", label: "Read", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
 table "neighbours" "Neighbours" cap 1600
   column FieldDecl { key: "cell", label: "Cell", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "cells", column: "" }), content: None, reading: 0 }
-  column FieldDecl { key: "list", label: "List", unit: "", kind: Choice, choices: [ChoiceDecl { key: "intra", label: "Same frequency (SIB4)" }, ChoiceDecl { key: "inter", label: "Other carrier (SIB5)" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "list", label: "List", unit: "", kind: Choice, choices: [ChoiceDecl { key: "intra", label: "Same frequency (SIB4)" }, ChoiceDecl { key: "inter", label: "Other carrier (SIB5)" }, ChoiceDecl { key: "cdma2000", label: "CDMA2000 (SIB8)" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "earfcn", label: "EARFCN", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "pci", label: "PCI", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "q_offset_db", label: "q-OffsetCell", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "cdma2000_arfcn", label: "CDMA2000 ARFCN", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "inter_carriers" "Other carriers" cap 1600
   column FieldDecl { key: "cell", label: "Cell", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "cells", column: "" }), content: None, reading: 0 }
   column FieldDecl { key: "earfcn", label: "EARFCN", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -126,6 +130,29 @@ table "carriers" "Carriers" cap 24
   column FieldDecl { key: "frequency", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "width", label: "Width", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+table "other_carriers" "Carriers of other systems" cap 1600
+  column FieldDecl { key: "cell", label: "Cell", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "cells", column: "" }), content: None, reading: 0 }
+  column FieldDecl { key: "system", label: "System", unit: "", kind: Choice, choices: [ChoiceDecl { key: "umts_fdd", label: "UMTS FDD (SIB6)" }, ChoiceDecl { key: "umts_tdd", label: "UMTS TDD (SIB6)" }, ChoiceDecl { key: "gsm", label: "GSM (SIB7)" }, ChoiceDecl { key: "cdma2000_hrpd", label: "CDMA2000 HRPD (SIB8)" }, ChoiceDecl { key: "cdma2000_1x", label: "CDMA2000 1xRTT (SIB8)" }, ChoiceDecl { key: "nr", label: "5G NR (SIB24)" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frequency", label: "Frequency", unit: "", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "ssb_scs", label: "SSB spacing", unit: "", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "priority", label: "Priority", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "q_rx_lev_min_dbm", label: "q-RxLevMin", unit: "dBm", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "cells", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+table "survey" "Survey" cap 400
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "name", label: "Cell", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "plmn", label: "Network", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frequency", label: "Frequency", unit: "", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "pci", label: "Physical identity", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "cell_identity", label: "Cell identity", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "area_code", label: "Area code", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "cell.lte_cell" "LTE cell"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -145,14 +172,14 @@ setting SettingDecl { field: FieldDecl { key: "mib_only", label: "Only cells wit
 setting SettingDecl { field: FieldDecl { key: "not_barred", label: "Leave out barred cells", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(false), required: false, restart: false, fixed: false, section: "List", advanced: false, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "band_order", label: "Band order", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Text(""), required: false, restart: false, fixed: false, section: "", advanced: false, help: "Band numbers taken first where bands overlap (\"1 3 7\"); the other bands follow in band number order.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 setting SettingDecl { field: FieldDecl { key: "symbol_phase", label: "Symbol phase of up-conversion", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }, range: None, default: Bool(true), required: false, restart: false, fixed: false, section: "", advanced: true, help: "On for cells on the air. Off for a test signal whose symbols all start at phase zero at baseband.", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
-setting SettingDecl { field: FieldDecl { key: "gen_scene", label: "Test signal scene", unit: "", kind: Choice, choices: [ChoiceDecl { key: "0", label: "Two n78 cells" }, ChoiceDecl { key: "1", label: "n28 cell" }, ChoiceDecl { key: "2", label: "Barred n78 cell" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
+setting SettingDecl { field: FieldDecl { key: "gen_scene", label: "Test signal scene", unit: "", kind: Choice, choices: [ChoiceDecl { key: "0", label: "Two n78 cells" }, ChoiceDecl { key: "1", label: "n28 cell" }, ChoiceDecl { key: "2", label: "Barred n78 cell" }, ChoiceDecl { key: "3", label: "n5 cell, 30 kHz blocks" }], refers_to: None, content: None, reading: 0 }, range: None, default: Choice(0), required: false, restart: false, fixed: false, section: "Test signal", advanced: true, help: "", zero_means: "", common: Common { values: [], by: "", sets: [] }, role: None }
 field FieldDecl { key: "captures", label: "Captures searched", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "retunes", label: "Retunes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "decoded", label: "Messages decoded", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "failed", label: "Messages failed", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "capture_centre", label: "Capture centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "with_mib", label: "With MIB", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "with_sib1", label: "With SIB1", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "gscn_lo", label: "Lowest GSCN searched", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -161,6 +188,7 @@ field FieldDecl { key: "candidates", label: "Candidates", unit: "", kind: I64, c
 field FieldDecl { key: "banner", label: "Notice", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "cells" "Cells" cap 300
+  marks TableMarks { label: Some(18), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(16), own: None, delivery: None, failure: None }
   column FieldDecl { key: "decoded", label: "Decoded", unit: "", kind: Choice, choices: [ChoiceDecl { key: "sync", label: "Sync" }, ChoiceDecl { key: "mib", label: "MIB" }, ChoiceDecl { key: "sib1", label: "SIB1" }], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "plmn", label: "PLMN", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -178,6 +206,8 @@ table "cells" "Cells" cap 300
   column FieldDecl { key: "rsrq_db", label: "RSRQ", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "sinr_db", label: "SINR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "nr_details" "Details" cap 300
   column FieldDecl { key: "cell", label: "Cell", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "cells", column: "" }), content: None, reading: 0 }
   column FieldDecl { key: "sib1", label: "SIB1", unit: "", kind: Choice, choices: [ChoiceDecl { key: "no_mib", label: "No MIB" }, ChoiceDecl { key: "not_tried", label: "Not tried yet" }, ChoiceDecl { key: "not_scheduled", label: "Not scheduled" }, ChoiceDecl { key: "no_frequency", label: "Radio frequency unknown" }, ChoiceDecl { key: "too_narrow", label: "CORESET#0 outside the capture" }, ChoiceDecl { key: "no_control", label: "No PDCCH for SIB1 found" }, ChoiceDecl { key: "no_data", label: "PDCCH decoded, PDSCH failed" }, ChoiceDecl { key: "unreadable", label: "Block decoded, not a readable SIB1" }, ChoiceDecl { key: "decoded", label: "Decoded" }], refers_to: None, content: None, reading: 0 }
@@ -200,6 +230,8 @@ table "nr_details" "Details" cap 300
   column FieldDecl { key: "si_window", label: "SI window", unit: "slots", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "tdd", label: "TDD", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "sib1_count", label: "SIB1 decodes", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "sib1_occasions", label: "SIB1 occasions searched", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "sib1_pdcch", label: "SIB1 control channels", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "nr_networks" "Networks" cap 1200
   column FieldDecl { key: "cell", label: "Cell", unit: "", kind: Text, choices: [], refers_to: Some(RefersTo { owner: None, table: "cells", column: "" }), content: None, reading: 0 }
   column FieldDecl { key: "plmn", label: "PLMN", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -215,6 +247,19 @@ table "nr_sibs" "SIBs" cap 2400
   column FieldDecl { key: "period", label: "Period", unit: "s", kind: Duration, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "broadcasting", label: "Broadcast", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "value_tag", label: "Value tag", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+table "survey" "Survey" cap 300
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "name", label: "Cell", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "plmn", label: "Network", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frequency", label: "Frequency", unit: "", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "pci", label: "Physical identity", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "cell_identity", label: "Cell identity", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "area_code", label: "Area code", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "cell.nr_cell" "NR cell"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -238,10 +283,11 @@ field FieldDecl { key: "decoded", label: "Messages decoded", unit: "", kind: I64
 field FieldDecl { key: "failed", label: "Messages failed", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "capture_centre", label: "Capture centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "identified", label: "Identified", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "cells" "Cells" cap 400
+  marks TableMarks { label: Some(15), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(13), own: None, delivery: None, failure: None }
   column FieldDecl { key: "plmn", label: "PLMN", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "band", label: "Band", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -256,6 +302,8 @@ table "cells" "Cells" cap 400
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "cell.nbiot_cell" "NB-IoT cell"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -276,11 +324,12 @@ field FieldDecl { key: "decoded", label: "Messages decoded", unit: "", kind: I64
 field FieldDecl { key: "failed", label: "Messages failed", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "capture_centre", label: "Capture centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "identified", label: "Identified", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "railway_cells", label: "In the railway band", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "cells" "Cells" cap 200
+  marks TableMarks { label: Some(14), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(12), own: None, delivery: None, failure: None }
   column FieldDecl { key: "plmn", label: "PLMN", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "arfcn", label: "ARFCN", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -294,11 +343,26 @@ table "cells" "Cells" cap 200
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "snr_db", label: "SNR", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 table "carriers" "Carriers" cap 24
   marks TableMarks { label: None, sort: Some((1, Descending)), position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: None, sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
   column FieldDecl { key: "frequency", label: "Frequency", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "level_db", label: "Level", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "synchronised", label: "Synchronised", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+table "survey" "Survey" cap 200
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "name", label: "Cell", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "plmn", label: "Network", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frequency", label: "Frequency", unit: "", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "pci", label: "Physical identity", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "cell_identity", label: "Cell identity", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "area_code", label: "Area code", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "cell.gsm_cell" "GSM cell"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -452,9 +516,10 @@ field FieldDecl { key: "decoded", label: "Messages decoded", unit: "", kind: I64
 field FieldDecl { key: "failed", label: "Messages failed", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "capture_centre", label: "Capture centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "cells" "Cells" cap 400
+  marks TableMarks { label: Some(21), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(14), own: None, delivery: None, failure: None }
   column FieldDecl { key: "code", label: "Code", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "group", label: "Group", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "ec_io_db", label: "Ec/Io", unit: "dB", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -470,6 +535,26 @@ table "cells" "Cells" cap 400
   column FieldDecl { key: "cell_id_parts", label: "RNC and cell", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "uarfcn", label: "UARFCN", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frequency", label: "Frequency", unit: "", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "lac", label: "LAC", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "rac", label: "RAC", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "barred", label: "Barred", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "reserved_operator", label: "Reserved", unit: "", kind: Bool, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+table "survey" "Survey" cap 400
+  marks TableMarks { label: Some(0), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: None, own: None, delivery: None, failure: None }
+  column FieldDecl { key: "name", label: "Cell", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "operator", label: "Operator", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "plmn", label: "Network", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "band", label: "Band", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "channel", label: "Channel", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frequency", label: "Frequency", unit: "", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "pci", label: "Physical identity", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "cell_identity", label: "Cell identity", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "area_code", label: "Area code", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "cell.umts_cell" "UMTS cell"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -490,10 +575,11 @@ field FieldDecl { key: "decoded", label: "Messages decoded", unit: "", kind: I64
 field FieldDecl { key: "failed", label: "Messages failed", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "capture_centre", label: "Capture centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "station_count", label: "Base stations", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "station_count", label: "Base stations", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "identified", label: "Identified", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "cells" "Base stations" cap 200
+  marks TableMarks { label: Some(16), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(13), own: None, delivery: None, failure: None }
   column FieldDecl { key: "pn", label: "PN", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "sid", label: "SID", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "nid", label: "NID", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -508,6 +594,9 @@ table "cells" "Base stations" cap 200
   column FieldDecl { key: "lc_state", label: "LC_STATE", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "messages", label: "Messages", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frequency", label: "Frequency", unit: "", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "cell.cdma2000_cell" "CDMA2000 base station"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
@@ -528,9 +617,10 @@ field FieldDecl { key: "decoded", label: "Messages decoded", unit: "", kind: I64
 field FieldDecl { key: "failed", label: "Messages failed", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "capture_centre", label: "Capture centre", unit: "Hz", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
 field FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
-field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
+field FieldDecl { key: "cell_count", label: "Cells", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 1 }
 field FieldDecl { key: "dropped", label: "Dropped", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
 table "cells" "Cells" cap 200
+  marks TableMarks { label: Some(12), sort: None, position: None, latitude: None, longitude: None, altitude: None, course: None, speed: None, role: Some(Nodes), sender: None, addressee: None, text: None, time: Some(9), own: None, delivery: None, failure: None }
   column FieldDecl { key: "sync_dl", label: "SYNC-DL", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "parameter", label: "Cell parameter", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "level_dbfs", label: "Level", unit: "dBFS", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
@@ -541,6 +631,9 @@ table "cells" "Cells" cap 200
   column FieldDecl { key: "clarity", label: "Midamble clarity", unit: "", kind: F64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "captures_seen", label: "Captures", unit: "", kind: I64, choices: [], refers_to: None, content: None, reading: 0 }
   column FieldDecl { key: "last_heard", label: "Last heard", unit: "", kind: Time, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "frequency", label: "Frequency", unit: "", kind: Hz, choices: [], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "generation", label: "Generation", unit: "", kind: Choice, choices: [ChoiceDecl { key: "2g", label: "2G" }, ChoiceDecl { key: "3g", label: "3G" }, ChoiceDecl { key: "4g", label: "4G" }, ChoiceDecl { key: "5g", label: "5G" }], refers_to: None, content: None, reading: 0 }
+  column FieldDecl { key: "name", label: "Name", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }
 points ""
 event "cell.tdscdma_cell" "TD-SCDMA cell"
   field FieldDecl { key: "source", label: "Source", unit: "", kind: Text, choices: [], refers_to: None, content: None, reading: 0 }

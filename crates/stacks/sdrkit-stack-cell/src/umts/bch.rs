@@ -1,6 +1,6 @@
 //! The UMTS broadcast channel: the BCH transport channel coding of TS 25.212 (CRC, convolutional code, the two interleavers and
 //! the mapping on the P-CCPCH), and the SYSTEM INFORMATION (BCH) message of TS 25.331 with the two blocks read: the master
-//! information block (the PLMN) and system information block type 3 (the cell identity).
+//! information block (the PLMN); SIB 1 and SIB 3 are in [`super::sib`].
 //!
 //! Standard: 3GPP TS 25.212 4.2.1, 4.2.3.1, 4.2.5, 4.2.11, 4.2.13.6; TS 25.211 5.3.3.3; TS 25.331 (Release 1999 ASN.1, unaligned
 //! PER).
@@ -124,11 +124,6 @@ pub fn parse_mib(d: &[u8]) -> Option<Mib> {
         mnc,
         mnc_digits: if three { 3 } else { 2 },
     })
-}
-
-/// The cell identity (28 bits) of SIB 3.
-pub fn parse_sib3(d: &[u8]) -> Option<u32> {
-    field(d, 2, 28).map(|v| v as u32)
 }
 
 /// One SIB or segment of a SYSTEM INFORMATION message.
@@ -295,6 +290,27 @@ pub fn complete_sib_block(sfn: u32, sib: u8, data: &[u8]) -> Vec<u8> {
     b
 }
 
+/// A transport block holding the complete SIBs `sibs` (type, data; each 1 to 256 bits) for the TTI starting at frame `sfn`: a
+/// complete list. None when they do not fit.
+pub fn complete_list_block(sfn: u32, sibs: &[(u8, Vec<u8>)]) -> Option<Vec<u8>> {
+    if sibs.is_empty() || sibs.len() > 16 || sibs.iter().any(|s| s.1.is_empty() || s.1.len() > 256) {
+        return None;
+    }
+    let mut b = Vec::with_capacity(BLOCK_BITS);
+    push_u64(&mut b, u64::from((sfn / 2) % 2048), 11);
+    push_u64(&mut b, 7, 4);
+    push_u64(&mut b, sibs.len() as u64 - 1, 4);
+    for (t, d) in sibs {
+        push_u64(&mut b, u64::from(*t), 5);
+        push_u64(&mut b, d.len() as u64 - 1, 8);
+        b.extend_from_slice(d);
+    }
+    (b.len() <= BLOCK_BITS).then(|| {
+        b.resize(BLOCK_BITS, 0);
+        b
+    })
+}
+
 /// The data of a MIB: no extensions, value tag 1, gsm-MAP, the PLMN identity.
 pub fn mib_data(m: &Mib) -> Vec<u8> {
     let mut b = Vec::new();
@@ -316,10 +332,3 @@ pub fn mib_data(m: &Mib) -> Vec<u8> {
     b
 }
 
-/// The data of a SIB 3: no extensions, sib4indicator 0, the cell identity.
-pub fn sib3_data(cell: u32) -> Vec<u8> {
-    let mut b = Vec::new();
-    push_u64(&mut b, 0, 2);
-    push_u64(&mut b, u64::from(cell & 0x0FFF_FFFF), 28);
-    b
-}

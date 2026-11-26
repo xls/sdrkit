@@ -26,7 +26,7 @@ Give a value as `key=value` after the stack name. `sdrkit settings kind:stack:ce
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `capture_s` | Capture length | number (s) | 0.2 | 0.01 to 10 | Seconds of input searched at a time. |
-| `system_information` | Read system information | yes or no | true |  | Decode SIB1 to SIB5 (needs the whole carrier in the sample band). |
+| `system_information` | Read system information | yes or no | true |  | Decode SIB1 to SIB8 and SIB24 (needs the whole carrier in the sample band). |
 | `max_cells` | Cells per carrier | whole number | 12 | 1 to 24 |  |
 | `min_pss_db` | PSS threshold | number (dB) | 9 | 6 to 20 |  |
 | `max_cfo_khz` | Carrier offset searched | number (kHz) | 25 | 5 to 60 |  |
@@ -68,16 +68,18 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `cells` | Cells | `plmn` (text), `operator` (text), `country` (text), `plmn_count` (whole number), `band` (whole number), `band_confirmed` (yes or no), `earfcn` (whole number), `frequency` (frequency), `pci` (whole number), `duplex` (choice), `enb` (whole number), `sector` (whole number), `cell_id` (whole number), `tac` (whole number), `width` (frequency), `ports` (whole number), `rsrp_dbfs` (number (dBFS)), `rsrq_db` (number (dB)), `sinr_db` (number (dB)), `carrier_offset` (frequency), `barred` (yes or no), `etws` (yes or no), `cmas` (yes or no), `last_heard` (time) |
+| `cells` | Cells | `plmn` (text), `operator` (text), `country` (text), `plmn_count` (whole number), `band` (whole number), `band_confirmed` (yes or no), `earfcn` (whole number), `frequency` (frequency), `pci` (whole number), `duplex` (choice), `enb` (whole number), `sector` (whole number), `cell_id` (whole number), `tac` (whole number), `width` (frequency), `ports` (whole number), `rsrp_dbfs` (number (dBFS)), `rsrq_db` (number (dB)), `sinr_db` (number (dB)), `carrier_offset` (frequency), `barred` (yes or no), `etws` (yes or no), `cmas` (yes or no), `last_heard` (time), `generation` (choice), `name` (text) |
 | `details` | Details | `cell` (text), `cyclic_prefix` (choice), `phich_duration` (choice), `phich_ng` (whole number), `sfn` (whole number), `clock_ppm` (number (ppm)), `si_messages` (whole number), `si_failed` (whole number), `q_rx_lev_min_dbm` (number (dBm)), `p_max_dbm` (number (dBm)), `si_window` (duration (s)), `value_tag` (whole number), `ref_signal_power_dbm` (number (dBm)), `p_b` (whole number), `ul_earfcn` (whole number), `ul_rbs` (whole number), `ra_preambles` (whole number), `mod_period_coeff` (whole number), `paging_cycle` (whole number (frames)), `t300` (duration (s)), `t310` (duration (s)), `n310` (whole number), `time_alignment` (duration (s)), `ac_barring` (yes or no), `q_hyst_db` (number (dB)), `priority` (whole number), `s_intra_search_db` (number (dB)), `s_non_intra_search_db` (number (dB)), `thresh_serving_low_db` (number (dB)), `t_reselection` (duration (s)) |
 | `cell_plmns` | Networks | `cell` (text), `plmn` (text), `operator` (text) |
 | `cell_bands` | Other bands | `cell` (text), `band` (whole number), `mfbi` (yes or no) |
 | `cell_sibs` | System information blocks | `cell` (text), `sib` (whole number), `period` (whole number (frames)), `seen` (yes or no) |
-| `neighbours` | Neighbours | `cell` (text), `list` (choice), `earfcn` (whole number), `pci` (whole number), `q_offset_db` (number (dB)) |
+| `neighbours` | Neighbours | `cell` (text), `list` (choice), `earfcn` (whole number), `pci` (whole number), `q_offset_db` (number (dB)), `cdma2000_arfcn` (whole number) |
 | `inter_carriers` | Other carriers | `cell` (text), `earfcn` (whole number), `rbs` (whole number), `priority` (whole number), `thresh_high_db` (number (dB)), `thresh_low_db` (number (dB)), `q_rx_lev_min_dbm` (number (dBm)) |
 | `sites` | Sites | `plmn` (text), `operator` (text), `enb` (whole number), `tac` (whole number), `cell_count` (whole number) |
 | `operators` | Operators | `plmn` (text), `operator` (text), `country` (text), `cell_count` (whole number) |
 | `carriers` | Carriers | `frequency` (frequency), `width` (frequency), `level_db` (number (dB)) |
+| `other_carriers` | Carriers of other systems | `cell` (text), `system` (choice), `channel` (whole number), `frequency` (frequency), `band` (text), `ssb_scs` (frequency), `priority` (whole number), `q_rx_lev_min_dbm` (number (dBm)), `cells` (whole number) |
+| `survey` | Survey | `name` (text), `generation` (choice), `operator` (text), `plmn` (text), `band` (text), `channel` (whole number), `frequency` (frequency), `pci` (whole number), `cell_identity` (whole number), `area_code` (whole number), `level_dbfs` (number (dBFS)) |
 
 ## Events
 
@@ -94,9 +96,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.4. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.5. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
+
+Key readings: `cell_count`.
 
 ### Result fields
 
@@ -160,6 +164,10 @@ Struct `CellRow`. A row of the cells of `cell`. The row key is the cell key.
 | `etws` | yes or no | always | 1.0 | Whether SIB1 schedules ETWS. |
 | `cmas` | yes or no | always | 1.0 | Whether SIB1 schedules CMAS. |
 | `last_heard` | time | optional | 1.0 | When the cell was last heard. |
+| `generation` | choice | always | 1.5 | The generation of the radio system. |
+| `name` | text | always | 1.5 | Operator, generation, band and physical identity. |
+
+The rows are the stations or nodes of the stack. The column `name` names a row. Time: `last_heard`.
 
 ### Table `details`
 
@@ -240,6 +248,7 @@ Struct `CellNeighbourRow`. A neighbour of a cell of `cell`.
 | `earfcn` | whole number | optional | 1.0 | The EARFCN of the neighbour. |
 | `pci` | whole number | always | 1.0 | The physical cell identity of the neighbour. |
 | `q_offset_db` | number (dB) | optional | 1.0 | q-OffsetCell. |
+| `cdma2000_arfcn` | whole number | optional | 1.5 | The ARFCN of a CDMA2000 neighbour; `pci` is then its PN offset. |
 
 ### Table `inter_carriers`
 
@@ -289,6 +298,42 @@ Struct `CellCarrierRow`. A carrier of the newest capture of `cell`. The row key 
 | `level_db` | number (dB) | always | 1.0 | The level. |
 
 Default order: the column `level_db`, highest first.
+
+### Table `other_carriers`
+
+Struct `CellOtherCarrierRow`. A carrier of another radio system that a cell of `cell` names in SIB6, SIB7, SIB8 or SIB24. The row key is the cell key, the system and the channel number.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `cell` | text | always | 1.5 | The row key of the cell. |
+| `system` | choice | always | 1.5 | The system. |
+| `channel` | whole number | always | 1.5 | The channel number: UARFCN, GSM ARFCN, CDMA2000 ARFCN or NR-ARFCN. |
+| `frequency` | frequency | optional | 1.5 | The downlink frequency, where the channel number gives it alone (GSM and NR). |
+| `band` | text | optional | 1.5 | The band: dcs1800 or pcs1900 (GSM), bc0 .. (CDMA2000), n78 .. (NR). |
+| `ssb_scs` | frequency | optional | 1.5 | The SSB spacing (NR). |
+| `priority` | whole number | optional | 1.5 | The reselection priority. |
+| `q_rx_lev_min_dbm` | number (dBm) | optional | 1.5 | q-RxLevMin. |
+| `cells` | whole number | always | 1.5 | The cells named on the carrier (CDMA2000). |
+
+### Table `survey`
+
+Struct `SurveyRow`. A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `name` | text | always | 1.5 | Operator, generation, band and physical identity. |
+| `generation` | choice | always | 1.5 | The generation. |
+| `operator` | text | optional | 1.5 | The operator name, else the network. |
+| `plmn` | text | optional | 1.5 | The network. |
+| `band` | text | optional | 1.5 | The band. |
+| `channel` | whole number | optional | 1.5 | The channel number: ARFCN, UARFCN, EARFCN or NR-ARFCN. |
+| `frequency` | frequency | always | 1.5 | The frequency. |
+| `pci` | whole number | always | 1.5 | The physical identity: PCI, primary scrambling code or BSIC. |
+| `cell_identity` | whole number | optional | 1.5 | The cell identity of the broadcast. |
+| `area_code` | whole number | optional | 1.5 | The tracking or location area code. |
+| `level_dbfs` | number (dBFS) | optional | 1.5 | RSRP, RSCP or the received level. |
+
+The rows are the stations or nodes of the stack. The column `name` names a row.
 
 ### Event `cell.lte_cell`
 

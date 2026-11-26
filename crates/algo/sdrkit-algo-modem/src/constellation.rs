@@ -72,24 +72,26 @@ struct Axis {
 /// The cells that the direct max-log form takes at once.
 const LANES: usize = 16;
 
-/// An axis of 2, 4 or 8 levels whose bits each divide the levels in two equal sets (BPSK, QPSK and the square QAM sets up to
-/// 64-QAM): the max-log LLR of a bit is the difference of the least squared distances to the two sets.
+/// An axis of 2, 4, 8 or 16 levels whose bits each divide the levels in two equal sets (BPSK, QPSK and the square QAM sets up
+/// to 256-QAM): the max-log LLR of a bit is the difference of the least squared distances to the two sets.
 #[derive(Clone, Debug)]
 struct Halves {
-    /// Per axis bit: the levels where the bit is 0, then the levels where it is 1. A set of fewer than four levels repeats its
-    /// last level.
-    sides: [[[f32; 4]; 2]; 3],
+    /// Per axis bit: the levels where the bit is 0, then the levels where it is 1, `per` of each.
+    sides: [[[f32; 8]; 2]; 4],
+    /// The levels in each set: half the levels of the axis.
+    per: usize,
 }
 
 impl Halves {
     /// The tables for `levels` with the labels `part`, or `None` when the axis is not of this form.
     fn of(levels: &[f32], part: &[u16], bits: &[u8], label_bits: usize) -> Option<Halves> {
         let n = levels.len();
-        if !matches!(n, 2 | 4 | 8) || 1 << bits.len() != n {
+        if !matches!(n, 2 | 4 | 8 | 16) || 1 << bits.len() != n {
             return None;
         }
         let mut h = Halves {
-            sides: [[[0.0; 4]; 2]; 3],
+            sides: [[[0.0; 8]; 2]; 4],
+            per: n / 2,
         };
         for (sides, &pos) in h.sides.iter_mut().zip(bits) {
             let shift = label_bits - 1 - pos as usize;
@@ -103,9 +105,7 @@ impl Halves {
                 if of_side.len() != n / 2 {
                     return None;
                 }
-                for (k, v) in side.iter_mut().enumerate() {
-                    *v = of_side[k.min(n / 2 - 1)];
-                }
+                side[..n / 2].copy_from_slice(&of_side);
             }
         }
         Some(h)
@@ -131,7 +131,7 @@ impl Halves {
                 d0[c] = e0 * e0;
                 d1[c] = e1 * e1;
             }
-            for (&l0, &l1) in zero[1..].iter().zip(&one[1..]) {
+            for (&l0, &l1) in zero[1..self.per].iter().zip(&one[1..self.per]) {
                 for c in 0..LANES {
                     let e0 = x[c] - l0;
                     let e1 = x[c] - l1;
@@ -700,7 +700,7 @@ impl Constellation {
                 {
                     let m = self.t.bits;
                     // The cells LANES at a time; the last ones in a block of their own that zeros fill up.
-                    let mut tail = [0f32; LANES * 6];
+                    let mut tail = [0f32; LANES * 8];
                     let cells = z.chunks(LANES).zip(weights[..z.len()].chunks(LANES));
                     for (k, (zs, ws)) in cells.enumerate() {
                         let (mut re, mut im, mut w) = ([0f32; LANES], [0f32; LANES], [0f32; LANES]);
@@ -911,7 +911,7 @@ mod tests {
         assert!(direct(PointSet::qpsk()));
         assert!(direct(PointSet::qam(16, QamMap::THREE_GPP).unwrap()));
         assert!(direct(PointSet::qam(64, QamMap::DVB).unwrap()));
-        assert!(!direct(PointSet::qam(256, QamMap::IEEE_802_11).unwrap()));
+        assert!(direct(PointSet::qam(256, QamMap::IEEE_802_11).unwrap()));
     }
 
     #[test]

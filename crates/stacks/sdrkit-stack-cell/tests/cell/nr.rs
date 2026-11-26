@@ -420,6 +420,12 @@ fn sib1_rows_are_published() {
     assert!(key.starts_with("1007/30@"), "{key}");
     assert_eq!((n.plmn, n.tac, n.nci, n.gnb, n.cell_id), ("001-01", Some(0x0A01), (0x1234 << 12) | 1007, Some(0x1234), Some(1007)));
     assert_eq!(NR_SIBS.rows::<NrSibRow>(r).count(), 2);
+    // The survey: one row per cell, the decoded one with its network, area and identity.
+    let survey: Vec<_> = sdrkit_stack_cell::typed::NR_SURVEY.rows::<sdrkit_stack_cell::typed::SurveyRow>(r).collect();
+    assert_eq!(survey.len(), 2);
+    let (_, s) = survey.iter().find(|(k, _)| k.starts_with("1007/")).unwrap();
+    assert_eq!((s.name, s.operator, s.band, s.area_code), ("Test network 5G n77 PCI 1007", Some("Test network"), Some("n77"), Some(0x0A01)));
+    assert_eq!(s.cell_identity, Some((0x1234 << 12) | 1007));
     let details: Vec<_> = NR_DETAILS.rows::<NrDetailRow>(r).collect();
     assert_eq!(details.len(), 2);
     for (_, d) in &details {
@@ -433,4 +439,31 @@ fn sib1_rows_are_published() {
             assert!(d.rate_needed.is_some_and(|h| (h.0 - 27.48e6).abs() < 0.1e6));
         }
     }
+}
+
+#[test]
+fn sib1_of_a_case_b_cell() {
+    // n5 with 30 kHz blocks, block 0 the strongest: the blocks lie at symbols {4, 8, 16, 20} (Case B, not 2 and 22 for
+    // blocks 0 and 3), which sets the frame timing of the
+    // occasions. The cell is found, its band named, and its SIB1 read with 300 Hz and 1 ppm off.
+    let (centre, cells) = scene(3);
+    let cs = run_gen(20e6, centre, cells, NrGenOptions::default(), &keys(6.0, 300.0, 1.0), 0.08);
+    let c = cell_of(&cs, 333);
+    assert_eq!((c["band"].as_u64(), c["ssb_scs_khz"].as_u64()), (Some(5), Some(30)), "{c}");
+    assert_eq!(c["sib1_step"], "decoded", "{c}");
+    assert_eq!(c["sib1"]["bands"], serde_json::json!([5]));
+    assert!(c["sib1_occasions"].as_u64().is_some_and(|n| n >= 1), "{c}");
+    // The same blocks taken as Case C: the timing of the occasions is wrong and no control channel is found.
+    let (centre, mut cells) = scene(3);
+    cells[0].pattern = sdrkit_stack_cell::nr::phy::SsbPattern::AC;
+    let cs = run_gen(20e6, centre, cells, NrGenOptions::default(), &keys(6.0, 0.0, 0.0), 0.08);
+    assert_ne!(cell_of(&cs, 333)["sib1_step"], "decoded");
+}
+
+#[test]
+fn a_try_without_control_channels_says_what_it_searched() {
+    let c = n28_sib1(10e6, |c| c.sib1 = None, &keys(10.0, 0.0, 0.0), 1);
+    assert_eq!(c["sib1_step"], "no_control", "{c}");
+    assert!(c["sib1_occasions"].as_u64().is_some_and(|n| n >= 2), "{c}");
+    assert_eq!(c["sib1_pdcch"], 0, "{c}");
 }

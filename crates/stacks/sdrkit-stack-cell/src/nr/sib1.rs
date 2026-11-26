@@ -2,7 +2,7 @@
 //! decode of DCI format 1_0 with the SI-RNTI, and the PDSCH it schedules. Only the SI-RNTI is tried.
 
 use super::dlsch::*;
-use super::phy::{ssb_symbol, Mib};
+use super::phy::{Mib, SsbPattern};
 use crate::decoder::Capture;
 use crate::dsp::{resample_to, ResamplerCache};
 use sdrkit_algo_dsp::fft::FftPlans;
@@ -68,6 +68,8 @@ pub struct Sib1Target<'a> {
     pub ssb_nominal_hz: Option<f64>,
     /// Whether the symbols carry the phase of up-conversion (3GPP TS 38.211 clause 5.4).
     pub symbol_phase: bool,
+    /// The time pattern of the blocks.
+    pub pattern: SsbPattern,
 }
 
 /// The result of one try.
@@ -77,6 +79,8 @@ pub struct Sib1Result {
     pub step: Sib1Step,
     /// The sample rate that would hold CORESET#0 with the radio centre where it is, Hz (0 when no CORESET#0 is known).
     pub rate_needed_hz: f64,
+    /// Slots of Type0 PDCCH occasions that lay whole in the capture and were searched.
+    pub occasions: u32,
     /// PDCCHs decoded with the SI-RNTI.
     pub pdcch: u32,
     /// The DCI of the newest of them that schedules SIB1.
@@ -363,7 +367,7 @@ impl Sib1Receiver {
             scs_khz: t.ssb_scs,
             fft: 256,
         };
-        let (s, cp) = ssb.symbol(ssb_symbol(t.ssb as usize));
+        let (s, cp) = ssb.symbol(t.pattern.first_symbol(t.ssb as usize));
         let frame0 = t.anchor / cap.rate - (s + cp) as f64 / ssb.rate() - f64::from(t.mib.hrf) * 5e-3;
         let (n0, parity, first) = type0_occasion(t.mib.search_space0, num.mu(), t.ssb as usize, c0.n_symb);
         let slots = num.slots_per_frame();
@@ -383,6 +387,7 @@ impl Sib1Receiver {
                 if !self.slot_grid(cap, &c0, f_cap, nominal, slot, start) {
                     continue;
                 }
+                out.occasions += 1;
                 let Some(dci) = self.pdcch(&c0, t.pci, slot, first) else {
                     continue;
                 };

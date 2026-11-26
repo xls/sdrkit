@@ -55,8 +55,9 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 | Key | Label | Columns |
 |---|---|---|
-| `cells` | Cells | `plmn` (text), `operator` (text), `arfcn` (whole number), `frequency` (frequency), `bsic` (whole number), `ncc` (whole number), `bcc` (whole number), `lac` (whole number), `cell_id` (whole number), `band` (choice), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `last_heard` (time) |
+| `cells` | Cells | `plmn` (text), `operator` (text), `arfcn` (whole number), `frequency` (frequency), `bsic` (whole number), `ncc` (whole number), `bcc` (whole number), `lac` (whole number), `cell_id` (whole number), `band` (choice), `level_dbfs` (number (dBFS)), `snr_db` (number (dB)), `last_heard` (time), `generation` (choice), `name` (text) |
 | `carriers` | Carriers | `frequency` (frequency), `level_db` (number (dB)), `synchronised` (yes or no) |
+| `survey` | Survey | `name` (text), `generation` (choice), `operator` (text), `plmn` (text), `band` (text), `channel` (whole number), `frequency` (frequency), `pci` (whole number), `cell_identity` (whole number), `area_code` (whole number), `level_dbfs` (number (dBFS)) |
 
 ## Events
 
@@ -73,9 +74,11 @@ Settings of the test signal generator. They change the signal of the `synth:` so
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.4. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.5. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
+
+Key readings: `cell_count`.
 
 ### Result fields
 
@@ -127,6 +130,10 @@ Struct `GsmrCellRow`. A row of the cells of `gsmr`.
 | `level_dbfs` | number (dBFS) | always | 1.0 | The level. |
 | `snr_db` | number (dB) | always | 1.0 | The SNR. |
 | `last_heard` | time | optional | 1.0 | When the cell was last heard. |
+| `generation` | choice | always | 1.5 | The generation of the radio system. |
+| `name` | text | always | 1.5 | Operator, generation, band and physical identity. |
+
+The rows are the stations or nodes of the stack. The column `name` names a row. Time: `last_heard`.
 
 ### Table `carriers`
 
@@ -139,6 +146,26 @@ Struct `GsmrCarrierRow`. A carrier of the newest capture of `gsmr`. The row key 
 | `synchronised` | yes or no | always | 1.0 | Whether an SCH decoded on the carrier. |
 
 Default order: the column `level_db`, highest first.
+
+### Table `survey`
+
+Struct `SurveyRow`. A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `name` | text | always | 1.5 | Operator, generation, band and physical identity. |
+| `generation` | choice | always | 1.5 | The generation. |
+| `operator` | text | optional | 1.5 | The operator name, else the network. |
+| `plmn` | text | optional | 1.5 | The network. |
+| `band` | text | optional | 1.5 | The band. |
+| `channel` | whole number | optional | 1.5 | The channel number: ARFCN, UARFCN, EARFCN or NR-ARFCN. |
+| `frequency` | frequency | always | 1.5 | The frequency. |
+| `pci` | whole number | always | 1.5 | The physical identity: PCI, primary scrambling code or BSIC. |
+| `cell_identity` | whole number | optional | 1.5 | The cell identity of the broadcast. |
+| `area_code` | whole number | optional | 1.5 | The tracking or location area code. |
+| `level_dbfs` | number (dBFS) | optional | 1.5 | RSRP, RSCP or the received level. |
+
+The rows are the stations or nodes of the stack. The column `name` names a row.
 
 ### Event `cell.gsm_cell`
 

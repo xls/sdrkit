@@ -164,6 +164,27 @@ impl Shift for GsmCell {
     fn shift_times(&mut self, _by_s: f64) {}
 }
 
+impl GsmCell {
+    /// The cell as a row of the survey.
+    pub fn survey(&self, key: &str) -> crate::scan::SurveyCell {
+        let lai = self.lai.as_ref();
+        crate::scan::SurveyCell {
+            key: key.to_string(),
+            generation: crate::scan::Generation::Second,
+            plmn: lai.map(|l| l.plmn.clone()),
+            operator_name: lai.and_then(|l| l.operator.clone()),
+            band: self.band().map(|b| <GsmBand as sdrkit_core::Choice>::CHOICES[usize::from(sdrkit_core::Choice::index(b))].label.to_string()),
+            channel: (self.arfcn >= 0).then_some(self.arfcn),
+            frequency_hz: self.frequency_hz,
+            id_word: "BSIC",
+            pci: i64::from(self.bsic),
+            cell_identity: self.si3.as_ref().map(|s| i64::from(s.cell_id)),
+            area_code: lai.map(|l| i64::from(l.lac)),
+            level_dbfs: Some(self.level_dbfs),
+        }
+    }
+}
+
 impl Shaped for GsmCell {
     type Row = GsmrCellRow<'static>;
     fn row(&self, seen: Option<&Seen>, _now_s: f64, out: RowOut<'_, '_, Self::Row>) {
@@ -182,6 +203,8 @@ impl Shaped for GsmCell {
             level_dbfs: self.level_dbfs,
             snr_db: self.snr_db,
             last_heard: columns::last_heard(seen).map(Time),
+            generation: crate::scan::Generation::Second,
+            name: &self.survey("").label(),
         });
     }
 }

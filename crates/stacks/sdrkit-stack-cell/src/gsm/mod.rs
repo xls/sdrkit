@@ -187,6 +187,8 @@ impl SearchStack for GsmSearch {
             railway_cells: railway as i64,
         });
         shaped::rows(&t.cells, &GSMR_CELLS, now, p);
+        let survey = t.cells.iter().map(|r| r.record.survey(&r.key.to_string())).collect();
+        crate::scan::write_survey(&crate::typed::GSMR_SURVEY, survey, p);
         shaped::indexed_rows(p, &GSMR_CARRIERS, &t.carriers, |c, out| {
             out.put(&GsmrCarrierRow {
                 frequency: Hertz(c.frequency_hz),

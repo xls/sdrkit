@@ -131,6 +131,12 @@ pub struct NrCell {
     /// SIB1 decodes.
     #[serde(default)]
     pub sib1s: u64,
+    /// Slots of Type0 PDCCH occasions searched at the newest try.
+    #[serde(default)]
+    pub sib1_occasions: u32,
+    /// PDCCHs with the SI-RNTI decoded at the newest try.
+    #[serde(default)]
+    pub sib1_pdcch: u32,
 }
 
 /// A network of a cell, from SIB1.
@@ -400,11 +406,35 @@ impl NrCell {
         }
     }
 
+    /// The cell as a row of the survey: the first network of SIB1.
+    pub fn survey(&self, key: &str) -> crate::scan::SurveyCell {
+        let n = self.sib1.as_ref().and_then(|s| s.networks.first());
+        crate::scan::SurveyCell {
+            key: key.to_string(),
+            generation: crate::scan::Generation::Fifth,
+            id_word: "PCI",
+            plmn: n.map(|n| n.plmn.clone()),
+            operator_name: n.and_then(|n| n.operator.clone()),
+            band: (self.band > 0).then(|| format!("n{}", self.band)),
+            channel: (self.gscn >= 0).then(|| sdrkit_data_plans::cellular::nr_arfcn_of(self.frequency_hz).map(i64::from)).flatten(),
+            frequency_hz: self.frequency_hz,
+            pci: i64::from(self.pci),
+            cell_identity: n.map(|n| n.nci as i64),
+            area_code: n.and_then(|n| n.tac).map(i64::from),
+            level_dbfs: self.mib.is_some().then_some(self.rsrp_dbfs),
+        }
+    }
+
     /// Writes the rows of the cell in the tables of the details, the networks and the SIBs.
     fn write_children(&self, key: &str, t: &mut NrChildren, p: &mut Published) {
         let s = self.sib1.as_ref();
         let m = self.mib.as_ref();
         let bands = s.map(|s| s.bands.iter().map(u16::to_string).collect::<Vec<_>>().join(" "));
+        // A try that reached the search of the occasions.
+        let searched = matches!(
+            self.sib1_step,
+            Sib1Step::NoControl | Sib1Step::NoData | Sib1Step::Unreadable | Sib1Step::Decoded
+        );
         let width = (self.coreset0_rbs > 0)
             .then(|| m.map(|m| Hertz(f64::from(self.coreset0_rbs * 12 * m.scs_common_khz) * 1e3)))
             .flatten();
@@ -433,6 +463,8 @@ impl NrCell {
                 si_window: s.and_then(|s| s.si_window_slots).map(i64::from),
                 tdd: s.and_then(|s| s.tdd),
                 sib1_count: self.sib1s as i64,
+                sib1_occasions: searched.then_some(i64::from(self.sib1_occasions)),
+                sib1_pdcch: searched.then_some(i64::from(self.sib1_pdcch)),
             },
         );
         let Some(s) = s else {
@@ -493,6 +525,8 @@ impl Shaped for NrCell {
             rsrq_db: self.rsrq_db,
             sinr_db: self.sinr_db,
             last_heard: columns::last_heard(seen).map(Time),
+            generation: crate::scan::Generation::Fifth,
+            name: &self.survey("").label(),
         });
     }
 }
@@ -608,6 +642,8 @@ impl NrSearch {
         }
         if let Some(r) = &f.sib1 {
             c.sib1_rate_needed_hz = r.rate_needed_hz;
+            c.sib1_occasions = r.occasions;
+            c.sib1_pdcch = r.pdcch;
             let read = r.payload.as_deref().and_then(msg::Sib1::read);
             match read {
                 Some((mut m, parts)) => {
@@ -809,12 +845,16 @@ impl SearchStack for NrSearch {
             networks: RowSync::new(&NR_NETWORKS),
             sibs: RowSync::new(&NR_SIBS),
         };
+        let mut survey = Vec::new();
         for r in t.cells.iter().filter(|r| self.filter.keep(r.record)) {
-            r.record.write_children(&r.key.to_string(), &mut children, p);
+            let key = r.key.to_string();
+            survey.push(r.record.survey(&key));
+            r.record.write_children(&key, &mut children, p);
         }
         children.details.finish(p);
         children.networks.finish(p);
         children.sibs.finish(p);
+        crate::scan::write_survey(&crate::typed::NR_SURVEY, survey, p);
         // The strongest cell by RSRP among those seen within the recent window.
         let best = t
             .cells

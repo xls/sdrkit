@@ -40,6 +40,8 @@ pub struct NrCellCfg {
     pub ssb_hz: f64,
     /// SIB1 and how it is sent. None sends no CORESET#0.
     pub sib1: Option<Sib1Gen>,
+    /// The time pattern of the blocks.
+    pub pattern: SsbPattern,
 }
 
 /// The SIB1 of a cell of the test signal and its transmission.
@@ -113,7 +115,7 @@ fn default_gains() -> Vec<f64> {
     (0..8).map(|i: i32| -1.5 * (i - 2).abs() as f64).collect()
 }
 
-/// Scene 0 to 2 with the radio centre each assumes.
+/// Scene 0 to 3 with the radio centre each assumes.
 pub fn scene(n: u32) -> (f64, Vec<NrCellCfg>) {
     let mib = |sfn, c0, ss, k, barred| Mib {
         sfn,
@@ -143,6 +145,7 @@ pub fn scene(n: u32) -> (f64, Vec<NrCellCfg>) {
                 second_half: false,
                 ssb_hz: 795.85e6,
                 sib1: Some(Sib1Gen::typical(222, 28, 15, 52, 24)),
+                pattern: SsbPattern::AC,
             }],
         ),
         2 => (
@@ -158,6 +161,27 @@ pub fn scene(n: u32) -> (f64, Vec<NrCellCfg>) {
                 second_half: false,
                 ssb_hz: super::TEST_SIGNAL_HZ,
                 sib1: None,
+                pattern: SsbPattern::AC,
+            }],
+        ),
+        // n5 at GSCN 2195 with 30 kHz blocks: Case B, 4 blocks, CORESET#0 of 24 blocks of 30 kHz.
+        3 => (
+            878.45e6,
+            vec![NrCellCfg {
+                pci: 333,
+                scs: 30,
+                lmax: 4,
+                gains_db: vec![0.0, -1.5, -3.0, -4.5],
+                offset_hz: 0.0,
+                mib: Mib {
+                    scs_common_30: true,
+                    ..mib(200, 2, 4, 4, false)
+                },
+                period_ms: 20,
+                second_half: false,
+                ssb_hz: 878.45e6,
+                sib1: Some(Sib1Gen::typical(333, 5, 30, 51, 24)),
+                pattern: SsbPattern::B,
             }],
         ),
         _ => (
@@ -178,6 +202,7 @@ pub fn scene(n: u32) -> (f64, Vec<NrCellCfg>) {
                     ssb_hz: super::TEST_SIGNAL_HZ - 4.32e6,
                     // CORESET#0 of 48 blocks reaches 13.7 MHz below the centre: outside the test signal, not sent.
                     sib1: None,
+                    pattern: SsbPattern::AC,
                 },
                 NrCellCfg {
                     pci: 1007,
@@ -194,6 +219,7 @@ pub fn scene(n: u32) -> (f64, Vec<NrCellCfg>) {
                     second_half: false,
                     ssb_hz: super::TEST_SIGNAL_HZ + 4.32e6,
                     sib1: Some(Sib1Gen::typical(1007, 78, 30, 106, 24)),
+                    pattern: SsbPattern::AC,
                 },
             ],
         ),
@@ -227,6 +253,8 @@ sdrkit_core::choice_enum! {
         N28 = ("1", "n28 cell"),
         /// A barred n78 cell.
         BarredN78 = ("2", "Barred n78 cell"),
+        /// An n5 cell with 30 kHz blocks of Case B.
+        N5CaseB = ("3", "n5 cell, 30 kHz blocks"),
     }
 }
 
@@ -371,7 +399,7 @@ impl CellState {
                 if g < 1e-4 {
                     continue;
                 }
-                let l0 = ssb_symbol(i);
+                let l0 = self.cfg.pattern.first_symbol(i);
                 let mut grid = [[Complex32::new(0.0, 0.0); 240]; 4];
                 for n in 0..127 {
                     grid[0][56 + n] = Complex32::new(p[n], 0.0);
@@ -477,7 +505,7 @@ impl CellState {
         let blocks: Vec<(f64, f64)> = (0..cfg.lmax as usize)
             .filter(|_| in_burst)
             .map(|i| {
-                let l = ssb_symbol(i);
+                let l = cfg.pattern.first_symbol(i);
                 (ssb_num.symbol(l).0 as f64 / ssb_num.rate(), ssb_num.symbol(l + 4).0 as f64 / ssb_num.rate())
             })
             .collect();

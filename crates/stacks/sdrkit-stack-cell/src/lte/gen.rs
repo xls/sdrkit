@@ -77,7 +77,7 @@ pub fn sib1_of(c: &LteCell) -> Sib1 {
         q_rx_lev_min_dbm: -124,
         p_max_dbm: Some(23),
         band: c.band,
-        scheduling: vec![(16, vec![]), (32, vec![3]), (64, vec![4, 5])],
+        scheduling: vec![(16, vec![]), (32, vec![3]), (64, vec![4, 5]), (64, vec![6, 7, 8, 24])],
         si_window_ms: 20,
         value_tag: 5,
         ..Default::default()
@@ -170,6 +170,88 @@ pub fn sib345_of(c: &LteCell) -> (Sib3, Sib4, Sib5) {
         ],
     };
     (s3, s4, s5)
+}
+
+/// The SIB6, SIB7, SIB8 and SIB24 of the test signal: UMTS FDD carriers 10563 and 4436 and a TDD carrier, two GSM groups
+/// (an explicit list and a bitmap), a CDMA2000 1xRTT carrier with three cells, and the NR carriers 643334 (n78) and 152690
+/// (n28).
+pub fn irat_sibs() -> Vec<SibEntry> {
+    use super::irat::*;
+    let utra = |uarfcn, priority, q| UtraCarrier {
+        uarfcn,
+        priority,
+        thresh_high: 8,
+        thresh_low: 4,
+        q_rx_lev_min: q,
+        p_max: 24,
+        q_qual_min: Some(-18),
+    };
+    let s6 = Sib6 {
+        fdd: vec![utra(10563, Some(2), -58), utra(4436, None, -60)],
+        tdd: vec![UtraCarrier { q_qual_min: None, ..utra(10088, Some(1), -50) }],
+        t_reselection: 2,
+        speed: None,
+    };
+    let s7 = Sib7 {
+        t_reselection: 1,
+        speed: Some((2, 1)),
+        groups: vec![
+            GeranGroup {
+                first: 10,
+                following: GeranFollowing::Explicit(vec![14, 60]),
+                priority: Some(1),
+                ncc_permitted: 0xFF,
+                q_rx_lev_min: 5,
+                thresh_high: 6,
+                thresh_low: 2,
+                ..Default::default()
+            },
+            GeranGroup {
+                first: 600,
+                pcs1900: false,
+                following: GeranFollowing::Bitmap(vec![0b1000_0001]),
+                ncc_permitted: 0x0F,
+                q_rx_lev_min: 3,
+                p_max: Some(33),
+                thresh_high: 5,
+                thresh_low: 1,
+                ..Default::default()
+            },
+        ],
+    };
+    let s8 = Sib8 {
+        search_window: Some(8),
+        one_x_present: true,
+        one_x_long_code: Some(0x2_1234_5678),
+        one_x: Some(CdmaReselection {
+            bands: vec![CdmaBand { band_class: 0, priority: Some(1), thresh_high: 20, thresh_low: 10 }],
+            carriers: vec![CdmaCarrier { band_class: 0, arfcn: 283, pn: vec![12, 108, 300] }],
+            t_reselection: 2,
+            speed: None,
+        }),
+        ..Default::default()
+    };
+    let nr = |nr_arfcn, band, scs, priority| NrCarrier {
+        nr_arfcn,
+        bands: vec![band],
+        mtc: Some((2, 0, 0)),
+        ssb_scs_khz: scs,
+        priority: Some(priority),
+        thresh_high: 10,
+        thresh_low: 4,
+        q_rx_lev_min: -64,
+        p_max: 23,
+        ns_pmax: vec![(Some(20), 1)],
+        derive_ssb_index: true,
+        ..Default::default()
+    };
+    let s24 = Sib24 {
+        carriers: vec![nr(643_334, 78, 30, 6), NrCarrier { thresh_q: Some((3, 1)), ..nr(152_690, 28, 15, 5) }],
+        t_reselection: 1,
+        speed: None,
+        late: None,
+    };
+    vec![SibEntry::Sib6(s6), SibEntry::Sib7(s7), SibEntry::Sib8(Box::new(s8)), SibEntry::Sib24(s24)]
 }
 
 /// The generator's options.
@@ -344,6 +426,7 @@ pub struct LteGenerator {
     si2: Vec<u8>,
     si3: Vec<u8>,
     si45: Vec<u8>,
+    si_irat: Vec<u8>,
     skip: usize,
 }
 
@@ -372,6 +455,7 @@ impl LteGenerator {
             si2: enc(Bcch::Si(vec![SibEntry::Sib2(Box::new(sib2_of(&cell)))])),
             si3: enc(Bcch::Si(vec![SibEntry::Sib3(s3)])),
             si45: enc(Bcch::Si(vec![SibEntry::Sib4(s4), SibEntry::Sib5(s5)])),
+            si_irat: enc(Bcch::Si(irat_sibs())),
             skip: opt.skip,
             cell,
             opt,
@@ -409,6 +493,10 @@ impl LteGenerator {
         }
         if sf == 1 && sfn % 64 == 4 {
             add(&self.si45.clone(), DciFormat::F1c, false, 0, SI_RNTI);
+        }
+        // The fourth SI message: its window starts in the frames with SFN mod 64 = 6 (TS 36.331 clause 5.2.3).
+        if sf == 2 && sfn % 64 == 6 {
+            add(&self.si_irat.clone(), DciFormat::F1a, false, 0, SI_RNTI);
         }
         if sf == 9 {
             let tb: Vec<u8> = (0..72).map(|_| self.data.bit()).collect();

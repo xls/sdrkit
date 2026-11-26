@@ -126,10 +126,12 @@ pub fn nr_band_of(gscn: u32, scs: Option<u32>, order: &[u16]) -> Option<&'static
     cellular::sync_band(gscn, scs, order).map(|(b, _)| b)
 }
 
-/// The usual Lmax of a band at `hz` (FR1, Cases A, B, C).
-pub fn usual_lmax(band: Option<&CellBand>, hz: f64) -> u32 {
-    let tdd = band.is_some_and(|b| b.duplex() == Duplex::Tdd);
-    if hz > if tdd { 2.4e9 } else { 3e9 } {
+/// The usual Lmax of a band at `hz` for SS/PBCH blocks of `scs_khz` (FR1, Cases A, B, C; TS 38.213 clause 4.1): 8 above
+/// 3 GHz, and for Case C (30 kHz) in unpaired spectrum from 1.88 GHz; else 4.
+pub fn usual_lmax(band: Option<&CellBand>, scs_khz: u32, hz: f64) -> u32 {
+    let case_c_unpaired = scs_khz == 30 && band.is_some_and(|b| b.duplex() == Duplex::Tdd);
+    let eight = if case_c_unpaired { hz >= 1.88e9 } else { hz > 3e9 };
+    if eight {
         8
     } else {
         4
@@ -354,10 +356,12 @@ mod tests {
         assert_eq!(nr_band_of(7875, Some(30), &nr).unwrap().number(), 78);
         assert_eq!(nr_band_of(1990, Some(15), &nr).unwrap().number(), 28);
         assert!(nr_band_of(1990, Some(30), &nr).is_none());
-        assert_eq!(usual_lmax(nr_band_of(1990, Some(15), &nr), 795.85e6), 4);
-        assert_eq!(usual_lmax(nr_band_of(7875, Some(30), &nr), 3541.44e6), 8);
-        assert_eq!(usual_lmax(nr_band_of(6252, Some(30), &nr), 2.5e9), 8);
-        assert_eq!(usual_lmax(nr_band_of(5800, Some(30), &nr), 2.35e9), 4);
+        assert_eq!(usual_lmax(nr_band_of(1990, Some(15), &nr), 15, 795.85e6), 4);
+        assert_eq!(usual_lmax(nr_band_of(7875, Some(30), &nr), 30, 3541.44e6), 8);
+        assert_eq!(usual_lmax(nr_band_of(6252, Some(30), &nr), 30, 2.5e9), 8);
+        assert_eq!(usual_lmax(nr_band_of(5800, Some(30), &nr), 30, 2.35e9), 8);
+        // Case A (15 kHz) in unpaired spectrum keeps 3 GHz.
+        assert_eq!(usual_lmax(nr_band_of(6252, Some(15), &nr), 15, 2.5e9), 4);
         assert_eq!(nr_bands(&nr)[0].number(), 78);
     }
 

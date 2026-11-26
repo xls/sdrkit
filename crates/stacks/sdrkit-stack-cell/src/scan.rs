@@ -1,5 +1,6 @@
-//! Band scans, a host behaviour: the plan of radio centres for the chosen bands, and the stepping rule. The host chooses
-//! the bands, their order and the ranges; this module holds no list of its own.
+//! Band scans, a host behaviour: the plan of radio centres for the chosen bands, the stepping rule, and the survey: one row
+//! per cell found in the same columns for every generation, so that a host can draw the coverage of a scan. The host
+//! chooses the bands, their order and the ranges; this module holds no list of its own.
 
 use crate::bands::{gscn_to_hz, lte_band, lte_bands, nbiot_band, nr_bands};
 
@@ -145,9 +146,156 @@ impl Stepper {
     }
 }
 
+sdrkit_core::choice_enum! {
+    /// The generation of the radio system of a cell.
+    #[derive(Default, serde::Serialize, serde::Deserialize)]
+    pub enum Generation {
+        /// 2G: GSM.
+        #[default]
+        #[serde(rename = "2g")]
+        Second = ("2g", "2G"),
+        /// 3G: UMTS, TD-SCDMA, CDMA2000.
+        #[serde(rename = "3g")]
+        Third = ("3g", "3G"),
+        /// 4G: LTE, NB-IoT.
+        #[serde(rename = "4g")]
+        Fourth = ("4g", "4G"),
+        /// 5G: NR.
+        #[serde(rename = "5g")]
+        Fifth = ("5g", "5G"),
+    }
+}
+
+/// The name of a cell in a cells table or a survey: operator, generation, band and the physical identity, "Telstra 4G B3
+/// PCI 301". Missing parts are left out.
+pub fn cell_name(operator: Option<&str>, generation: Generation, band: Option<&str>, id: &str) -> String {
+    let g = &<Generation as sdrkit_core::Choice>::CHOICES[usize::from(sdrkit_core::Choice::index(generation))].label;
+    let mut parts: Vec<&str> = Vec::new();
+    parts.extend(operator);
+    parts.push(g);
+    parts.extend(band);
+    parts.push(id);
+    parts.join(" ")
+}
+
+/// A cell of a survey, as a stack reports it: only what it decoded.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SurveyCell {
+    /// The row key of the cell in the cells table of its stack.
+    pub key: String,
+    /// The generation.
+    pub generation: Generation,
+    /// The network, "505-01".
+    pub plmn: Option<String>,
+    /// The operator name of the network from the list of networks, when it names it.
+    pub operator_name: Option<String>,
+    /// The band: "B3", "n78", "GSM 900".
+    pub band: Option<String>,
+    /// The channel number: ARFCN, UARFCN, EARFCN or NR-ARFCN.
+    pub channel: Option<i64>,
+    /// The frequency, Hz.
+    pub frequency_hz: f64,
+    /// The word for the physical identity: "PCI", "PSC" or "BSIC".
+    pub id_word: &'static str,
+    /// The physical identity: PCI, primary scrambling code or BSIC.
+    pub pci: i64,
+    /// The cell identity of the broadcast.
+    pub cell_identity: Option<i64>,
+    /// The area code: TAC (LTE, NR) or LAC (GSM, UMTS).
+    pub area_code: Option<i64>,
+    /// The level: RSRP, RSCP or the received level, dBFS.
+    pub level_dbfs: Option<f64>,
+}
+
+impl SurveyCell {
+    /// The operator column: the name, else the network, else none.
+    pub fn operator(&self) -> Option<&str> {
+        self.operator_name.as_deref().or(self.plmn.as_deref())
+    }
+    /// The label of the row: operator, generation, band and physical identity, "Telstra 4G B3 PCI 301".
+    pub fn label(&self) -> String {
+        let id = format!("{} {}", self.id_word, self.pci);
+        cell_name(self.operator(), self.generation, self.band.as_deref(), &id)
+    }
+}
+
+/// Sorts survey cells into the order of the survey: by generation, operator, band, channel, cell identity, physical
+/// identity and key. The order is total, so the same cells give the same order.
+pub fn survey_order(cells: &mut [SurveyCell]) {
+    cells.sort_by(|a, b| {
+        sdrkit_core::Choice::index(a.generation)
+            .cmp(&sdrkit_core::Choice::index(b.generation))
+            .then_with(|| a.operator().cmp(&b.operator()))
+            .then_with(|| a.band.cmp(&b.band))
+            .then_with(|| a.channel.cmp(&b.channel))
+            .then_with(|| a.cell_identity.cmp(&b.cell_identity))
+            .then_with(|| a.pci.cmp(&b.pci))
+            .then_with(|| a.key.cmp(&b.key))
+    });
+}
+
+/// Writes the survey rows of `cells`, sorted, into `table`.
+pub fn write_survey(
+    table: &'static sdrkit_core::interface::Table<crate::typed::SurveyRow<'static>>,
+    mut cells: Vec<SurveyCell>,
+    p: &mut sdrkit_core::publish::Published,
+) {
+    survey_order(&mut cells);
+    let mut rows = crate::decoder::RowSync::new(table);
+    for c in &cells {
+        let label = c.label();
+        let row = crate::typed::SurveyRow {
+            name: &label,
+            generation: c.generation,
+            operator: c.operator(),
+            plmn: c.plmn.as_deref(),
+            band: c.band.as_deref(),
+            channel: c.channel,
+            frequency: sdrkit_core::interface::Hertz(c.frequency_hz),
+            pci: c.pci,
+            cell_identity: c.cell_identity,
+            area_code: c.area_code,
+            level_dbfs: c.level_dbfs,
+        };
+        rows.put(p, c.key.clone(), &row);
+    }
+    rows.finish(p);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn survey_order_and_labels() {
+        let cell = |key: &str, generation, plmn: Option<&str>, name: Option<&str>, band: &str, channel, pci| SurveyCell {
+            key: key.into(),
+            generation,
+            plmn: plmn.map(str::to_string),
+            operator_name: name.map(str::to_string),
+            band: Some(band.into()),
+            channel: Some(channel),
+            frequency_hz: 0.0,
+            id_word: "PCI",
+            pci,
+            cell_identity: None,
+            area_code: None,
+            level_dbfs: None,
+        };
+        let mut v = vec![
+            cell("c", Generation::Fifth, Some("505-01"), Some("Telstra"), "n78", 643_334, 7),
+            cell("b", Generation::Fourth, Some("505-02"), None, "B3", 1300, 301),
+            cell("a", Generation::Fourth, Some("505-01"), Some("Telstra"), "B3", 1275, 12),
+            cell("d", Generation::Fourth, None, None, "B28", 9410, 5),
+        ];
+        survey_order(&mut v);
+        let keys: Vec<&str> = v.iter().map(|c| c.key.as_str()).collect();
+        // LTE before NR; a cell without a network first; "505-02" before "Telstra".
+        assert_eq!(keys, ["d", "b", "a", "c"]);
+        assert_eq!(v[2].label(), "Telstra 4G B3 PCI 12");
+        assert_eq!(v[1].label(), "505-02 4G B3 PCI 301");
+        assert_eq!(v[0].label(), "4G B28 PCI 5");
+    }
 
     #[test]
     fn plans_and_stepping() {

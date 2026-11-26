@@ -136,9 +136,21 @@ fn scenes() {
         assert_eq!(r["sib1"]["enb"], c.enb, "scene {sc}");
         assert_eq!(
             r["sibs_seen"],
-            serde_json::json!([1, 2, 3, 4, 5]),
+            serde_json::json!([1, 2, 3, 4, 5, 6, 7, 8, 24]),
             "scene {sc}"
         );
+        // SIB6, SIB7, SIB8 and SIB24: three UMTS carriers, six GSM ARFCNs, a CDMA2000 carrier, two NR carriers.
+        let o = r["other_carriers"].as_array().unwrap();
+        let of = |s: &str| o.iter().filter(|x| x["system"] == s).count();
+        assert_eq!((of("umts_fdd"), of("umts_tdd"), of("gsm"), of("cdma2000_1x"), of("nr")), (2, 1, 6, 1, 2), "scene {sc}: {o:?}");
+        let n78 = o.iter().find(|x| x["channel"] == 643_334).unwrap();
+        assert_eq!((n78["band"].as_str(), n78["ssb_scs_khz"].as_u64(), n78["priority"].as_u64()), (Some("n78"), Some(30), Some(6)));
+        assert_eq!(n78["q_rx_lev_min_dbm"], -128);
+        let gsm: Vec<_> = o.iter().filter(|x| x["system"] == "gsm").map(|x| x["channel"].as_u64().unwrap()).collect();
+        assert_eq!(gsm, [10, 14, 60, 600, 601, 608], "scene {sc}");
+        let cdma = o.iter().find(|x| x["system"] == "cdma2000_1x").unwrap();
+        assert_eq!((cdma["channel"].as_u64(), cdma["band"].as_str()), (Some(283), Some("bc0")));
+        assert_eq!(cdma["cells"], serde_json::json!([12, 108, 300]));
     }
 }
 
@@ -173,7 +185,7 @@ fn moved(mut keys: Vec<(&'static str, J)>, hz: f64) -> Vec<(&'static str, J)> {
 
 #[test]
 fn impairments() {
-    let all = serde_json::json!([1, 2, 3, 4, 5]);
+    let all = serde_json::json!([1, 2, 3, 4, 5, 6, 7, 8, 24]);
     // +20 kHz with the centre known.
     let x = gen(7.68e6, s1(), sfn60(), &moved(snr(25.0), 20e3), 0.45);
     let c = one(7.68e6, 1815e6, &x);
@@ -416,4 +428,46 @@ fn band_scan() {
         );
     }
     assert_eq!(cs.len(), 3, "nothing invented: {cs:#?}");
+}
+
+/// The typed rows of the carriers of other systems, the CDMA2000 neighbours and the survey, on the stack's own test signal.
+#[test]
+fn other_systems_and_the_survey_are_published() {
+    use sdrkit_stack_cell::lte::{NeighbourList, OtherSystem};
+    use sdrkit_stack_cell::scan::Generation;
+    use sdrkit_stack_cell::typed::*;
+    let c = scene(0, None);
+    let centre = sdrkit_stack_cell::bands::earfcn_to_mhz(c.earfcn) * 1e6;
+    let rate = 15e3 * sdrkit_stack_cell::lte::phy::fft_size(c.n_rb) as f64;
+    let x = gen(rate, c.clone(), sfn60(), &snr(25.0), 0.8);
+    let mut rx = stack_graph(&CELL, &[]);
+    run_graph(&mut rx, InputInfo::new(rate, centre, centre).recording(), &x, &[]);
+    let r = Owner::results(&rx);
+    let others: Vec<_> = CELL_OTHER_CARRIERS.rows::<CellOtherCarrierRow>(r).map(|x| x.1).collect();
+    assert_eq!(others.len(), 12, "{others:?}");
+    let nr = others.iter().find(|o| o.system == OtherSystem::Nr && o.channel == 643_334).unwrap();
+    assert_eq!((nr.band, nr.priority), (Some("n78"), Some(6)));
+    assert!(nr.frequency.is_some_and(|f| (f.0 - 3650.01e6).abs() < 1.0), "{nr:?}");
+    assert_eq!(nr.ssb_scs.map(|h| h.0), Some(30e3));
+    let gsm = others.iter().find(|o| o.system == OtherSystem::Gsm && o.channel == 600).unwrap();
+    assert_eq!(gsm.band, Some("dcs1800"));
+    let cdma = others.iter().find(|o| o.system == OtherSystem::Cdma2000OneX).unwrap();
+    assert_eq!((cdma.channel, cdma.band, cdma.cells), (283, Some("bc0"), 3));
+    let mut pn: Vec<i64> = CELL_NEIGHBOURS
+        .rows::<CellNeighbourRow>(r)
+        .filter(|x| x.1.list == NeighbourList::Cdma2000)
+        .map(|x| {
+            assert_eq!((x.1.earfcn, x.1.cdma2000_arfcn), (None, Some(283)));
+            x.1.pci
+        })
+        .collect();
+    pn.sort_unstable();
+    assert_eq!(pn, [12, 108, 300]);
+    let survey: Vec<_> = CELL_SURVEY.rows::<SurveyRow>(r).map(|x| x.1).collect();
+    assert_eq!(survey.len(), 1);
+    let s = &survey[0];
+    assert_eq!((s.generation, s.pci, s.channel), (Generation::Fourth, i64::from(c.pci), Some(i64::from(c.earfcn))));
+    assert_eq!((s.cell_identity, s.area_code), (Some(i64::from(c.enb * 256 + c.sector)), Some(i64::from(c.tac))));
+    let cells: Vec<_> = CELL_CELLS.rows::<CellRow>(r).map(|x| x.1).collect();
+    assert_eq!((cells[0].generation, cells[0].name), (Generation::Fourth, s.name));
 }

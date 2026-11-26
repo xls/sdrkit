@@ -601,7 +601,7 @@ impl NrSearcher {
             .then(|| c.gscn.and_then(gscn_to_hz).unwrap_or(cap.centre_hz + c.offset_hz));
         let turns: [Complex32; 4] = std::array::from_fn(|j| match nominal {
             Some(f) => Numerology { scs_khz: scs, fft: 256 }
-                .carrier_phase(f, ssb_symbol(ibar as usize & 7) + j)
+                .carrier_phase(f, self.pattern_of(c).first_symbol(ibar as usize & 7) + j)
                 .conj(),
             None => Complex32::new(1.0, 0.0),
         });
@@ -706,7 +706,7 @@ impl NrSearcher {
                 match c.gscn {
                     Some(g) => {
                         let b = nr_band_of(g, Some(c.scs), &self.band_order);
-                        crate::bands::usual_lmax(b, gscn_to_hz(g).unwrap_or(0.0)) as u8
+                        crate::bands::usual_lmax(b, c.scs, gscn_to_hz(g).unwrap_or(0.0)) as u8
                     }
                     None => 8,
                 }
@@ -765,10 +765,11 @@ impl NrSearcher {
         let s = sss(nid1, nid2);
         let period = 0.02 * fs;
         let step = fs / rate;
+        let pattern = self.pattern_of(c);
         let mut found: Vec<Beam> = Vec::new();
         for i in 0..lmax.min(8) {
-            let dsamp = (useful_start(scs, ssb_symbol(i)) as f64
-                - useful_start(scs, ssb_symbol(anchor_idx)) as f64)
+            let dsamp = (useful_start(scs, pattern.first_symbol(i)) as f64
+                - useful_start(scs, pattern.first_symbol(anchor_idx)) as f64)
                 * step;
             let mut pl = o.anchor + dsamp;
             while pl - period >= 0.0 {
@@ -928,6 +929,12 @@ impl NrSearcher {
         out
     }
 
+    /// The time pattern of the blocks of candidate `c`: by its band when its GSCN is known.
+    fn pattern_of(&self, c: &Cand) -> SsbPattern {
+        let band = c.gscn.and_then(|g| nr_band_of(g, Some(c.scs), &self.band_order)).map(|b| b.number());
+        SsbPattern::of(c.scs, band)
+    }
+
     /// Forgets that the SIB1 of the cell (PCI, SS_REF in steps of 30 kHz) was tried, so that the next capture tries it.
     pub fn forget_sib1(&mut self, pci: u16, raster: i64) {
         self.sib1_tried.retain(|x| x.0 != (pci, raster));
@@ -965,6 +972,7 @@ impl NrSearcher {
                 ssb_hz,
                 ssb_nominal_hz: nominal,
                 symbol_phase: self.symbol_phase,
+                pattern: self.pattern_of(&f.cand),
             },
         );
         let ok = r.step == Sib1Step::Decoded;

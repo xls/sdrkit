@@ -51,7 +51,8 @@ Advanced settings. The owner works without any of them set.
 
 | Key | Label | Columns |
 |---|---|---|
-| `cells` | Cells | `code` (whole number), `group` (whole number), `ec_io_db` (number (dB)), `level_dbfs` (number (dBFS)), `offset_hz` (frequency), `frame_offset` (whole number (chips)), `sttd` (yes or no), `captures_seen` (whole number), `bch_blocks` (whole number), `plmn` (text), `operator` (text), `cell_id` (whole number), `cell_id_parts` (text), `uarfcn` (whole number), `last_heard` (time) |
+| `cells` | Cells | `code` (whole number), `group` (whole number), `ec_io_db` (number (dB)), `level_dbfs` (number (dBFS)), `offset_hz` (frequency), `frame_offset` (whole number (chips)), `sttd` (yes or no), `captures_seen` (whole number), `bch_blocks` (whole number), `plmn` (text), `operator` (text), `cell_id` (whole number), `cell_id_parts` (text), `uarfcn` (whole number), `last_heard` (time), `frequency` (frequency), `lac` (whole number), `rac` (whole number), `barred` (yes or no), `reserved_operator` (yes or no), `generation` (choice), `name` (text) |
+| `survey` | Survey | `name` (text), `generation` (choice), `operator` (text), `plmn` (text), `band` (text), `channel` (whole number), `frequency` (frequency), `pci` (whole number), `cell_identity` (whole number), `area_code` (whole number), `level_dbfs` (number (dBFS)) |
 
 ## Events
 
@@ -68,9 +69,11 @@ Advanced settings. The owner works without any of them set.
 
 ## Typed interface
 
-The stack is in the family `cell`, version 1.4. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
+The stack is in the family `cell`, version 1.5. The C header `sdrkit/cell.h`, the registry record `registry/cell.reg` and the tables below are written from one description. A struct holds every value of a row, a result set or an event. A command and a setting have a function each.
 
 Content kind: Networks and cells (`networks`). Media: none.
+
+Key readings: `cell_count`.
 
 ### Result fields
 
@@ -122,6 +125,35 @@ Struct `UmtsCellRow`. A row of the cells of `umts`. The row key is the primary s
 | `cell_id_parts` | text | optional | 1.0 | The RNC and the cell of the identity. |
 | `uarfcn` | whole number | optional | 1.0 | The UARFCN. |
 | `last_heard` | time | optional | 1.0 | When the cell was last heard. |
+| `frequency` | frequency | optional | 1.5 | The frequency of the carrier: the radio centre and the carrier offset, when the radio centre is known. |
+| `lac` | whole number | optional | 1.5 | The location area code (SIB 1). |
+| `rac` | whole number | optional | 1.5 | The routing area code (SIB 1). |
+| `barred` | yes or no | optional | 1.5 | The cell is barred (SIB 3). |
+| `reserved_operator` | yes or no | optional | 1.5 | The cell is reserved for operator use (SIB 3). |
+| `generation` | choice | always | 1.5 | The generation of the radio system. |
+| `name` | text | always | 1.5 | Operator, generation, band and physical identity. |
+
+The rows are the stations or nodes of the stack. The column `name` names a row. Time: `last_heard`.
+
+### Table `survey`
+
+Struct `SurveyRow`. A cell of a coverage survey: one row per cell found, in the same columns for every generation. The row key is the key of the cell in the cells table of the stack.
+
+| Key | Kind | Value | Since | Description |
+|---|---|---|---|---|
+| `name` | text | always | 1.5 | Operator, generation, band and physical identity. |
+| `generation` | choice | always | 1.5 | The generation. |
+| `operator` | text | optional | 1.5 | The operator name, else the network. |
+| `plmn` | text | optional | 1.5 | The network. |
+| `band` | text | optional | 1.5 | The band. |
+| `channel` | whole number | optional | 1.5 | The channel number: ARFCN, UARFCN, EARFCN or NR-ARFCN. |
+| `frequency` | frequency | always | 1.5 | The frequency. |
+| `pci` | whole number | always | 1.5 | The physical identity: PCI, primary scrambling code or BSIC. |
+| `cell_identity` | whole number | optional | 1.5 | The cell identity of the broadcast. |
+| `area_code` | whole number | optional | 1.5 | The tracking or location area code. |
+| `level_dbfs` | number (dBFS) | optional | 1.5 | RSRP, RSCP or the received level. |
+
+The rows are the stations or nodes of the stack. The column `name` names a row.
 
 ### Event `cell.umts_cell`
 

@@ -219,6 +219,9 @@ pub struct CdmaRow {
     pub bad: u64,
     /// Captures in which the pilot was seen.
     pub captures: u64,
+    /// The radio centre of the capture, Hz (0: not known).
+    #[serde(default)]
+    pub centre_hz: f64,
 }
 
 impl Shift for CdmaRow {
@@ -284,6 +287,14 @@ impl Shaped for CdmaRow {
             lc_state: m.map(|m| format!("{:011X}", m.lc_state)).as_deref(),
             messages: &format!("{} / {}", self.good, self.good + self.bad),
             last_heard: columns::last_heard(seen).map(Time),
+            frequency: (self.centre_hz > 0.0).then_some(Hertz(self.centre_hz + self.offset_hz)),
+            generation: crate::scan::Generation::Third,
+            name: &crate::scan::cell_name(
+                m.map(|m| format!("SID {}", m.sid)).as_deref(),
+                crate::scan::Generation::Third,
+                Some("CDMA2000"),
+                &format!("PN {}", self.pn_text()),
+            ),
         });
     }
 }
@@ -431,6 +442,7 @@ impl SearchStack for CdmaSearch {
             row.ec_io_db = f.ec_io_db;
             row.level_dbfs = f.level_dbfs;
             row.offset_hz = f.offset_hz;
+            row.centre_hz = if cap.centre_known() { cap.centre_hz } else { 0.0 };
             row.clock_ppm = f.clock_ppm;
             row.captures += 1;
             row.good += u64::from(f.good);
