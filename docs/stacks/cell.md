@@ -1,5 +1,5 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
-# LTE cells
+# 4G LTE cells
 
 LTE cells: operator, band, cell identity, area code and signal strength from the information every cell broadcasts.
 

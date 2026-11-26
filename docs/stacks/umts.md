@@ -1,5 +1,5 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
-# UMTS cells
+# 3G UMTS cells
 
 UMTS (WCDMA) cells: primary scrambling code, Ec/Io, level and carrier offset from the synchronisation channels and the CPICH, and the operator and cell identity from the broadcast channel.
 

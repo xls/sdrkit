@@ -1,5 +1,5 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
-# NB-IoT cells
+# 4G NB-IoT cells
 
 NB-IoT cells: cell identity, operator, band and level from the synchronisation signals, MIB-NB and SIB1-NB.
 

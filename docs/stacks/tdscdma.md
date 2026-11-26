@@ -1,5 +1,5 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
-# TD-SCDMA cells
+# 3G TD-SCDMA cells
 
 TD-SCDMA cells: SYNC-DL code, cell parameter, frame parity, level and carrier offset from the downlink pilot and the midamble; the broadcast channel is not decoded.
 

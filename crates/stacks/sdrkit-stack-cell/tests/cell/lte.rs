@@ -333,9 +333,10 @@ fn synchronised_sectors() {
     );
 }
 
-/// The band search of the stack: three carriers in bands 20, 8 and 3 seen through a 7.68 Msps radio. Tuned where no carrier
-/// is, the stack finds nothing for a second, asks the host to hop over the raster of the bands of `search_bands`, lists every
-/// cell once with its band confirmed, and after one pass asks to stay on the strongest cell. The test plays the host.
+/// The band search of the stack as a survey: three carriers in bands 20, 8 and 3 seen through a 7.68 Msps radio. Tuned where
+/// no carrier is and told to search, the stack asks the host to hop over the raster of the bands of `search_bands` and lists
+/// every cell once with its band confirmed; after one pass the command `stay` asks to tune to the strongest cell. The test
+/// plays the host.
 #[test]
 fn band_search() {
     use sdrkit_core::{HostRequest, Output, Receiver};
@@ -346,10 +347,16 @@ fn band_search() {
     let freq = |c: &LteCell| sdrkit_stack_cell::bands::earfcn_to_mhz(c.earfcn) * 1e6;
     let mut rx = stack_graph(
         &CELL,
-        &[("search_bands", J::from("20 8 3")), ("search_dwell_s", J::from(0.3))],
+        &[
+            ("band_search", J::from("survey")),
+            ("search_bands", J::from("20 8 3")),
+            ("search_dwell_s", J::from(0.3)),
+        ],
     );
     let mut centre = 1000e6;
     rx.configure(&InputInfo::new(rate, centre, centre).recording()).unwrap();
+    // A recording cannot be retuned, so the search does not start by itself: the host asks for it.
+    command(&mut rx, "search");
     let mut out = Output::default();
     let mut noise = sdrkit_algo_sim::rng::Rng::new(31);
     let piece = (0.05 * rate) as usize;
@@ -359,8 +366,15 @@ fn band_search() {
     let mut visited = 0usize;
     let mut fed_s = 0.0;
     let mut step_s = 0.0;
+    let steps = sdrkit_stack_cell::scan::lte_steps(20, rate).len()
+        + sdrkit_stack_cell::scan::lte_steps(8, rate).len()
+        + sdrkit_stack_cell::scan::lte_steps(3, rate).len();
     while stayed.is_none() {
         assert!(fed_s < 60.0, "no stay after {fed_s} s, {visited} steps");
+        // One pass of the survey (the first step, the others, and the move back to the first): then the stay.
+        if visited == steps + 1 {
+            stay(&mut rx, "");
+        }
         // The signal at this centre: every carrier whole inside the sample band, at its offset, plus noise.
         let mut gens: Vec<Box<dyn Generator>> = carriers
             .iter()
@@ -424,10 +438,6 @@ fn band_search() {
             assert!(fed_s < 60.0, "stuck at {centre}");
         }
     }
-    let steps = sdrkit_stack_cell::scan::lte_steps(20, rate).len()
-        + sdrkit_stack_cell::scan::lte_steps(8, rate).len()
-        + sdrkit_stack_cell::scan::lte_steps(3, rate).len();
-    // The first step, the other steps, the move back to the first that ends the pass, and the stay.
     assert_eq!(visited, steps + 2, "one pass, then the stay");
     let s = state(&rx);
     let d = view(&rx, s);

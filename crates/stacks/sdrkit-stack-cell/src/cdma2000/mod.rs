@@ -37,7 +37,7 @@ pub const TEST_SIGNAL_HZ: f64 = 878.49e6;
 /// The least input rate, Hz.
 pub const MIN_RATE_HZ: f64 = 1.6e6;
 /// What the status line shows below [`MIN_RATE_HZ`].
-pub const MIN_RATE_MESSAGE: &str = "CDMA2000 cells needs a sample rate of at least 1.6 Msps";
+pub const MIN_RATE_MESSAGE: &str = "3G CDMA2000 cells needs a sample rate of at least 1.6 Msps";
 /// What the stack does not read, and what no public document confirms.
 pub const NOTE: &str = "The Paging Channel and everything after it are not decoded; Spreading Rate 1 only. The matched filter at two samples a chip is derived from the 48-tap baseband filter of C.S0002-C (adjacent taps added); the standard gives the filter only for the transmitter. The decode is verified on generated signals only.";
 

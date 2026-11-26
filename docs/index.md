@@ -258,16 +258,16 @@ Each page lists the settings, results, events and commands of one stack or one d
 
 | Stack | What it does |
 |---|---|
-| [LTE cells](stacks/cell.md) | LTE cells: operator, band, cell identity, area code and signal strength from the information every cell broadcasts. |
+| [4G LTE cells](stacks/cell.md) | LTE cells: operator, band, cell identity, area code and signal strength from the information every cell broadcasts. |
 | [5G NR cells](stacks/nr.md) | 5G NR cells: physical cell identity, SS/PBCH beams and the MIB of every SSB on the sync raster, and SIB1 (networks, tracking area, cell identity) where CORESET#0 lies in the capture. |
-| [NB-IoT cells](stacks/nbiot.md) | NB-IoT cells: cell identity, operator, band and level from the synchronisation signals, MIB-NB and SIB1-NB. |
-| [GSM / GSM-R](stacks/gsmr.md) | GSM 900 and GSM-R base stations: frequency, BSIC, operator, location area and cell identity from the broadcast channel. |
+| [4G NB-IoT cells](stacks/nbiot.md) | NB-IoT cells: cell identity, operator, band and level from the synchronisation signals, MIB-NB and SIB1-NB. |
+| [2G GSM / GSM-R](stacks/gsmr.md) | GSM 900 and GSM-R base stations: frequency, BSIC, operator, location area and cell identity from the broadcast channel. |
 | [LBJ](stacks/lbj.md) | Chinese railway train broadcasts: train number, speed, kilometre post, locomotive, route and position. |
 | [EBICab / Eurobalise](stacks/ebicab.md) | Eurobalise up-link telegrams between the rails (SUBSET-036), and the bursts of other balise systems. |
 | [End of train (EOT / HOT)](stacks/eot.md) | End-of-train devices: unit, brake pipe pressure, motion, battery and marker light from 1200 bit/s AFSK on FM, or the head-of-train commands. |
-| [UMTS cells](stacks/umts.md) | UMTS (WCDMA) cells: primary scrambling code, Ec/Io, level and carrier offset from the synchronisation channels and the CPICH, and the operator and cell identity from the broadcast channel. |
-| [CDMA2000 cells](stacks/cdma2000.md) | CDMA2000 1x and IS-95 base stations: every pilot by PN offset with Ec/Io, and its Sync Channel Message (SID, NID, System Time, Paging Channel). |
-| [TD-SCDMA cells](stacks/tdscdma.md) | TD-SCDMA cells: SYNC-DL code, cell parameter, frame parity, level and carrier offset from the downlink pilot and the midamble; the broadcast channel is not decoded. |
+| [3G UMTS cells](stacks/umts.md) | UMTS (WCDMA) cells: primary scrambling code, Ec/Io, level and carrier offset from the synchronisation channels and the CPICH, and the operator and cell identity from the broadcast channel. |
+| [3G CDMA2000 cells](stacks/cdma2000.md) | CDMA2000 1x and IS-95 base stations: every pilot by PN offset with Ec/Io, and its Sync Channel Message (SID, NID, System Time, Paging Channel). |
+| [3G TD-SCDMA cells](stacks/tdscdma.md) | TD-SCDMA cells: SYNC-DL code, cell parameter, frame parity, level and carrier offset from the downlink pilot and the midamble; the broadcast channel is not decoded. |
 | [C-V2X (structure)](stacks/cv2x.md) | Structure only: LTE sidelink (C-V2X) transmissions found by the SC-FDMA prefix and the 1 ms subframe, with the carrier offset and the busy subframes; nothing is decoded. |
 | [Railway CIR data](stacks/railway_cir.md) | The data channel of the Chinese railway train radio: end-of-train device frames (KLW) or dispatch frames (TDCS) with the train, the locomotive, the brake pipe pressure, the kilometre post and the speed. |
 

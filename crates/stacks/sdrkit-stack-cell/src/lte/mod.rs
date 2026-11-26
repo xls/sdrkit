@@ -1003,9 +1003,10 @@ fn quiet_reason(out: &LteSearchOut, rate: f64, threshold_db: f64, max_cfo_hz: f6
             max_cfo_hz / 1e3
         )),
         None => Some(format!(
-            "no LTE carrier on this frequency: {} carrier positions tried, the strongest sync {best} ({threshold_db:.0} dB \
+            "no LTE carrier on this frequency: {} carrier position{} searched, the strongest sync {best} ({threshold_db:.0} dB \
              needed); a band search finds the carriers",
-            out.candidates
+            out.candidates,
+            plural(out.candidates)
         )),
     }
 }
@@ -1250,6 +1251,7 @@ impl SearchStack for LteSearch {
                 frequency_hz: r.record.frequency_hz,
                 level_dbfs: r.record.rsrp_dbfs,
                 name: format!("PCI {} at {:.1} MHz", r.record.pci, r.record.frequency_hz / 1e6),
+                last_s: r.seen.last_s,
             })
             .collect()
     }
@@ -1575,7 +1577,7 @@ pub fn build(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     build_search(
         LteSearch::default(),
         MIN_RATE_HZ,
-        "LTE cells needs a sample rate of at least 1.92 Msps",
+        "4G LTE cells needs a sample rate of at least 1.92 Msps",
         cfg,
     )
 }

@@ -29,7 +29,7 @@ pub const ID: &str = "gsmr";
 /// The lowest input rate, Hz: a 200 kHz carrier at 4 samples per symbol after the channeliser needs about 1 Msps.
 pub const MIN_RATE_HZ: f64 = 1e6;
 /// What the status line shows below [`MIN_RATE_HZ`].
-pub const MIN_RATE_MESSAGE: &str = "GSM / GSM-R needs a sample rate of at least 1 Msps";
+pub const MIN_RATE_MESSAGE: &str = "2G GSM / GSM-R needs a sample rate of at least 1 Msps";
 
 sdrkit_core::choice_enum! {
     /// The channel rasters searched.

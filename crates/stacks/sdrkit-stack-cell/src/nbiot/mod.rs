@@ -538,7 +538,7 @@ pub fn build(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     build_search(
         NbSearch::default(),
         MIN_RATE_HZ,
-        "NB-IoT needs a sample rate of at least 1 Msps",
+        "4G NB-IoT cells needs a sample rate of at least 1 Msps",
         cfg,
     )
 }

@@ -33,7 +33,7 @@ pub const TEST_SIGNAL_HZ: f64 = 2017.4e6;
 /// The least input rate, Hz.
 pub const MIN_RATE_HZ: f64 = 1.6e6;
 /// What the status line shows below [`MIN_RATE_HZ`].
-pub const MIN_RATE_MESSAGE: &str = "TD-SCDMA cells needs a sample rate of at least 1.6 Msps";
+pub const MIN_RATE_MESSAGE: &str = "3G TD-SCDMA cells needs a sample rate of at least 1.6 Msps";
 /// What no public document read for this stack confirms.
 pub const NOTE: &str = "The broadcast channel (P-CCPCH) is not decoded. Not confirmed by a public document read for this stack: the root raised cosine pulse with roll-off 0.22 (the setting roll_off), the form of the midamble shifts, the traffic burst of 352 + 144 + 352 + 16 chips, and the complex multipliers of the channelisation codes, which the test signal sends only with gen_multipliers. Multi-frequency cells show no cell on a secondary carrier.";
 

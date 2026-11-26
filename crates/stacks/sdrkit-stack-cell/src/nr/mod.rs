@@ -896,6 +896,7 @@ impl SearchStack for NrSearch {
                 frequency_hz: r.record.frequency_hz,
                 level_dbfs: r.record.rsrp_dbfs,
                 name: format!("PCI {} at {:.2} MHz", r.record.pci, r.record.frequency_hz / 1e6),
+                last_s: r.seen.last_s,
             })
             .collect()
     }
@@ -1040,7 +1041,7 @@ pub fn build(cfg: &StackConfig) -> Result<StackGraph, GraphError> {
     build_search(
         NrSearch::default(),
         MIN_RATE_HZ,
-        "5G NR cells needs a sample rate of at least 3.84 Msps",
+        "5G NR cells needs a sample rate of at least 3.84 Msps (7.68 Msps for 30 kHz SSBs)",
         cfg,
     )
 }

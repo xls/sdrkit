@@ -332,3 +332,18 @@ pub fn band_row(stack: &str, list: &str, name: &str) -> String {
         .trim()
         .to_owned()
 }
+
+/// Runs the command `key` of `rx` without arguments.
+pub fn command<O: Owner + ?Sized>(rx: &mut O, key: &str) {
+    let id = rx.commands().id(key).unwrap_or_else(|e| panic!("a command {key}: {e}"));
+    let args = rx.commands().defs()[id.index()].new_args();
+    sdrkit_core::owner::invoke(rx, id, &args).unwrap_or_else(|e| panic!("{key}: {e}"));
+}
+
+/// Runs the command `stay` of `rx` with the row `row` (empty: the strongest cell).
+pub fn stay<O: Owner + ?Sized>(rx: &mut O, row: &str) {
+    let id = rx.commands().id("stay").unwrap_or_else(|e| panic!("a command stay: {e}"));
+    let mut args = rx.commands().defs()[id.index()].new_args();
+    args.set(&sdrkit_stack_cell::typed::SEARCH_STAY_ROW.field, row);
+    sdrkit_core::owner::invoke(rx, id, &args).unwrap_or_else(|e| panic!("stay: {e}"));
+}

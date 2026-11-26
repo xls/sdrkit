@@ -1,5 +1,5 @@
 <!-- generated: begin. The docs test writes the part down to the end line. Write your text below the end line. -->
-# GSM / GSM-R
+# 2G GSM / GSM-R
 
 GSM 900 and GSM-R base stations: frequency, BSIC, operator, location area and cell identity from the broadcast channel.
 

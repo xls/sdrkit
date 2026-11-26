@@ -103,7 +103,7 @@ pub static EBICAB: StackDescriptor = StackDescriptor {
 /// GSM and GSM-R base stations.
 pub static GSMR: StackDescriptor = StackDescriptor {
     id: "gsmr",
-    name: "GSM / GSM-R",
+    name: "2G GSM / GSM-R",
     group: GROUP,
     blurb: "GSM 900 and GSM-R base stations: frequency, BSIC, operator, location area and cell identity from the broadcast channel.",
     tuning: Tuning {
@@ -133,7 +133,7 @@ pub static GSMR: StackDescriptor = StackDescriptor {
 /// NB-IoT cells.
 pub static NBIOT: StackDescriptor = StackDescriptor {
     id: "nbiot",
-    name: "NB-IoT cells",
+    name: "4G NB-IoT cells",
     group: GROUP,
     blurb: "NB-IoT cells: cell identity, operator, band and level from the synchronisation signals, MIB-NB and SIB1-NB.",
     tuning: Tuning {
@@ -193,7 +193,7 @@ pub static NR: StackDescriptor = StackDescriptor {
 /// LTE cells.
 pub static CELL: StackDescriptor = StackDescriptor {
     id: "cell",
-    name: "LTE cells",
+    name: "4G LTE cells",
     group: GROUP,
     blurb: "LTE cells: operator, band, cell identity, area code and signal strength from the information every cell broadcasts.",
     tuning: Tuning {
@@ -286,7 +286,7 @@ pub static CV2X: StackDescriptor = StackDescriptor {
 /// UMTS cells.
 pub static UMTS: StackDescriptor = StackDescriptor {
     id: umts::ID,
-    name: "UMTS cells",
+    name: "3G UMTS cells",
     group: GROUP,
     blurb: "UMTS (WCDMA) cells: primary scrambling code, Ec/Io, level and carrier offset from the synchronisation channels and the CPICH, and the operator and cell identity from the broadcast channel.",
     tuning: Tuning {
@@ -316,7 +316,7 @@ pub static UMTS: StackDescriptor = StackDescriptor {
 /// CDMA2000 cells.
 pub static CDMA2000: StackDescriptor = StackDescriptor {
     id: cdma2000::ID,
-    name: "CDMA2000 cells",
+    name: "3G CDMA2000 cells",
     group: GROUP,
     blurb: "CDMA2000 1x and IS-95 base stations: every pilot by PN offset with Ec/Io, and its Sync Channel Message (SID, NID, System Time, Paging Channel).",
     tuning: Tuning {
@@ -346,7 +346,7 @@ pub static CDMA2000: StackDescriptor = StackDescriptor {
 /// TD-SCDMA cells.
 pub static TDSCDMA: StackDescriptor = StackDescriptor {
     id: tdscdma::ID,
-    name: "TD-SCDMA cells",
+    name: "3G TD-SCDMA cells",
     group: GROUP,
     blurb: "TD-SCDMA cells: SYNC-DL code, cell parameter, frame parity, level and carrier offset from the downlink pilot and the midamble; the broadcast channel is not decoded.",
     tuning: Tuning {

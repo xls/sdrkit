@@ -110,10 +110,10 @@ fn other_modes_through_their_descriptors() {
 #[test]
 fn low_rates_are_refused() {
     for (desc, msg) in [
-        (&CELL, "LTE cells needs a sample rate of at least 1.92 Msps"),
-        (&NR, "5G NR cells needs a sample rate of at least 3.84 Msps"),
-        (&NBIOT, "NB-IoT needs a sample rate of at least 1 Msps"),
-        (&GSMR, "GSM / GSM-R needs a sample rate of at least 1 Msps"),
+        (&CELL, "4G LTE cells needs a sample rate of at least 1.92 Msps"),
+        (&NR, "5G NR cells needs a sample rate of at least 3.84 Msps (7.68 Msps for 30 kHz SSBs)"),
+        (&NBIOT, "4G NB-IoT cells needs a sample rate of at least 1 Msps"),
+        (&GSMR, "2G GSM / GSM-R needs a sample rate of at least 1 Msps"),
     ] {
         let mut rx = stack_graph(desc, &[]);
         assert!(rx.configure(&InputInfo::new(0.5e6, 900e6, 900e6)).is_err());

@@ -29,6 +29,9 @@ pub const LOG_LINES: usize = 300;
 /// Input level is measured over this many seconds of input.
 const LEVEL_S: f64 = 0.5;
 
+/// Below this input level, dBFS, the status says that the signal is too weak at the radio.
+const WEAK_DBFS: f32 = -35.0;
+
 /// The lock state is written again after this many seconds of signal at the latest, so it follows the signal.
 const REPORT_S: f64 = 0.5;
 
@@ -147,6 +150,8 @@ pub struct FoundCarrier {
     pub level_dbfs: f64,
     /// The cell as the status names it ("PCI 301").
     pub name: String,
+    /// Signal time when the cell was last seen, seconds.
+    pub last_s: f64,
 }
 
 /// One capture of input samples passed to a search.
@@ -437,7 +442,16 @@ struct Pass {
     at: Option<usize>,
     passes: u32,
     dwell_s: f64,
+    /// Signal time of the start of the newest pass, seconds.
+    started_s: f64,
+    /// Signal time of the newest move of the radio (or of the start), seconds.
+    moved_s: f64,
 }
+
+/// A search whose radio does not move for this many dwells ends: the host refused or ended the hop.
+const STUCK_DWELLS: f64 = 4.0;
+/// After a refused search, a search does not start by itself for this many seconds of signal.
+const REFUSED_HOLD_S: f64 = 30.0;
 
 /// Whether the samples `x` use so few levels of the radio's converter that a weak signal is lost in its steps: fewer than 16
 /// different values of the real part in up to 4096 samples.
@@ -520,6 +534,12 @@ pub struct SearchDecoder<M: SearchStack> {
     coarse: bool,
     /// The work space of the test of the converter levels.
     levels: Vec<u32>,
+    /// The samples are live, so the host can move the radio: a band search starts by itself only then.
+    live: bool,
+    /// Signal time when the host last left a band search without moving the radio, seconds.
+    refused_s: Option<f64>,
+    /// The cell the band search stayed on, as the status names it.
+    stayed: Option<String>,
 }
 
 impl<M: SearchStack> SearchDecoder<M> {
@@ -561,6 +581,9 @@ impl<M: SearchStack> SearchDecoder<M> {
             search_s: 0.0,
             coarse: false,
             levels: Vec::with_capacity(4096),
+            live: false,
+            refused_s: None,
+            stayed: None,
         }
     }
     /// The stack.
@@ -598,14 +621,33 @@ impl<M: SearchStack> SearchDecoder<M> {
         self.after_capture(cap.rate);
     }
 
-    /// The band search after a capture: starts one when the setting asks for it.
+    /// The band search after a capture: starts one when the setting asks for it and the samples are live. A recording
+    /// cannot be retuned; the command `search` still asks the host.
     fn after_capture(&mut self, rate: f64) {
-        let Some(cfg) = self.stack.band_search() else { return };
-        if self.pass.is_some() || self.tuned_hz <= 0.0 {
+        let Some(mode) = self.stack.band_search().map(|c| c.mode) else { return };
+        if let Some(since) = self.pass.as_ref().map(|p| p.started_s) {
+            // A cell found in auto: the search ends on the strongest cell of this pass.
+            if mode == SearchMode::Auto && self.quiet == 0 && self.stay("", since) {
+                return;
+            }
+        }
+        if let Some(p) = &self.pass {
+            if self.time_s - p.moved_s > STUCK_DWELLS * p.dwell_s + self.stack.capture_s() {
+                // The host refused the hop or ended it: the search ends, and says so.
+                self.pass = None;
+                self.refused_s = Some(self.time_s);
+                self.changed = true;
+            }
+            return;
+        }
+        if self.tuned_hz <= 0.0 || !self.live {
+            return;
+        }
+        if self.refused_s.is_some_and(|t| self.time_s - t < REFUSED_HOLD_S) {
             return;
         }
         let quiet_for = (1.0 / self.stack.capture_s().max(0.01)).ceil().max(2.0) as u32;
-        let start = match cfg.mode {
+        let start = match mode {
             SearchMode::Off => false,
             SearchMode::Survey => true,
             SearchMode::Auto => self.quiet >= quiet_for,
@@ -636,7 +678,9 @@ impl<M: SearchStack> SearchDecoder<M> {
             .dwell_s
             .max(self.stack.capture_s() + 1.5 * self.search_s + 0.05);
         self.staying_hz = None;
+        self.stayed = None;
         self.quiet = 0;
+        self.refused_s = None;
         self.changed = true;
         match steps.len() {
             0 => {
@@ -664,18 +708,23 @@ impl<M: SearchStack> SearchDecoder<M> {
                     at: None,
                     passes: 0,
                     dwell_s,
+                    started_s: self.time_s,
+                    moved_s: self.time_s,
                 });
                 true
             }
         }
     }
 
-    /// Ends the band search on the cell of row `row` of the cells table, or on the strongest cell when `row` is empty.
-    /// Returns false when no such cell is known.
-    fn stay(&mut self, row: &str) -> bool {
+    /// Ends the band search on the cell of row `row` of the cells table, or, when `row` is empty, on the strongest cell
+    /// seen since signal time `since_s`. Returns false when no such cell is known.
+    fn stay(&mut self, row: &str, since_s: f64) -> bool {
         let cells = M::carriers(&self.held.tables);
         let pick = if row.is_empty() {
-            cells.iter().max_by(|a, b| a.level_dbfs.total_cmp(&b.level_dbfs))
+            cells
+                .iter()
+                .filter(|c| c.last_s >= since_s)
+                .max_by(|a, b| a.level_dbfs.total_cmp(&b.level_dbfs))
         } else {
             cells.iter().find(|c| c.row == row)
         };
@@ -683,6 +732,7 @@ impl<M: SearchStack> SearchDecoder<M> {
         self.pass = None;
         self.quiet = 0;
         self.staying_hz = Some(c.frequency_hz);
+        self.stayed = Some(c.name.clone());
         self.requests.push(HostRequest::retune(
             c.frequency_hz,
             &format!("band search: stays on {}", c.name),
@@ -700,6 +750,7 @@ impl<M: SearchStack> SearchDecoder<M> {
             return;
         }
         self.staying_hz = None;
+        self.stayed = None;
         let Some(pass) = self.pass.as_mut() else { return };
         let Some(i) = pass.steps.iter().position(|(c, _)| (c - tuned).abs() <= 1.0) else {
             // Someone else tuned the radio: the search ends.
@@ -708,11 +759,15 @@ impl<M: SearchStack> SearchDecoder<M> {
         };
         let wrapped = pass.at.is_some_and(|a| i <= a);
         pass.at = Some(i);
+        pass.moved_s = self.time_s;
         if wrapped {
+            let since = pass.started_s;
             pass.passes += 1;
+            pass.started_s = self.time_s;
             let auto = self.stack.band_search().is_some_and(|c| c.mode == SearchMode::Auto);
-            if auto && !M::carriers(&self.held.tables).is_empty() {
-                self.stay("");
+            // Only a cell seen in this pass: an older row of the tables tells nothing of where the radio can hear one now.
+            if auto {
+                self.stay("", since);
             }
         }
     }
@@ -720,24 +775,32 @@ impl<M: SearchStack> SearchDecoder<M> {
     /// The status line: where the band search is, or why nothing shows, before the stack's own summary.
     fn status_text(&self, summary: &str, recent: bool) -> String {
         if let Some(p) = &self.pass {
-            let (at, band) = match p.at {
-                Some(i) => (i + 1, p.steps[i].1),
-                None => (0, p.steps[0].1),
+            let Some(i) = p.at else {
+                return format!(
+                    "Searching {}: {} steps, waiting for the radio to move; {summary}",
+                    M::band_name(p.steps[0].1),
+                    p.steps.len()
+                );
             };
+            let (at, band) = (i + 1, p.steps[i].1);
             let pass = if p.passes > 0 {
                 format!(", pass {}", p.passes + 1)
             } else {
                 String::new()
             };
-            let mhz = p.at.map_or(String::new(), |i| format!(" at {:.1} MHz", p.steps[i].0 / 1e6));
+            let mhz = format!(" at {:.1} MHz", p.steps[i].0 / 1e6);
+            let weak = self.weak_text().map_or(String::new(), |w| format!("; {w}"));
             return format!(
-                "Searching {}: step {at} of {}{mhz}{pass}; {summary}",
+                "Searching {}: step {at} of {}{mhz}{pass}; {summary}{weak}",
                 M::band_name(band),
                 p.steps.len()
             );
         }
         if recent {
-            return summary.to_owned();
+            return match &self.stayed {
+                Some(c) => format!("Staying on {c}; {summary}"),
+                None => summary.to_owned(),
+            };
         }
         match self.quiet_text() {
             Some(r) => format!("{summary}: {r}"),
@@ -747,13 +810,32 @@ impl<M: SearchStack> SearchDecoder<M> {
 
     /// Why no cell shows: a signal too weak for the radio's converter first, then what the stack says of the newest capture.
     fn quiet_text(&self) -> Option<String> {
-        if self.coarse {
+        if self.refused_s.is_some_and(|t| self.time_s - t < REFUSED_HOLD_S) {
             return Some(
-                "the signal is too weak at the radio: its samples use only a few levels of the converter; raise the gain"
+                "the radio did not move for the band search: the frequency is locked, or a step lies outside what the radio \
+                 tunes; set search_bands to bands the radio reaches"
                     .to_owned(),
             );
         }
-        self.stack.quiet_reason()
+        self.weak_text().or_else(|| self.stack.quiet_reason())
+    }
+
+    /// The text of a signal too weak at the radio: samples in a few levels of the converter, or a level below
+    /// [`WEAK_DBFS`].
+    fn weak_text(&self) -> Option<String> {
+        if self.coarse {
+            return Some(
+                "the signal is too weak at the radio: its samples use only a few levels of the converter; raise the gain, \
+                 or use a better antenna"
+                    .to_owned(),
+            );
+        }
+        self.level_dbfs.filter(|l| *l < WEAK_DBFS).map(|l| {
+            format!(
+                "the signal is too weak at the radio ({l:.1} dBFS): raise the gain, or use a better antenna; an 8-bit radio \
+                 loses a weak cell in the steps of its converter below about {WEAK_DBFS:.0} dBFS"
+            )
+        })
     }
 
     fn resize(&mut self) {
@@ -1004,7 +1086,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
             }
             BandSearchCommand::Stay => {
                 let row = SEARCH_STAY.args::<crate::typed::SearchStayArgs>(args)?.row.to_owned();
-                if !self.stay(&row) {
+                if !self.stay(&row, f64::NEG_INFINITY) {
                     return Err(if row.is_empty() {
                         SearchError::NoCell.into()
                     } else {
@@ -1050,6 +1132,7 @@ impl<M: SearchStack> Decoder for SearchDecoder<M> {
     }
     fn attach(&mut self, ctx: &RunContext) {
         self.clock.attach(ctx.wall_clock(), &ctx.clock, self.time_s);
+        self.live = ctx.live;
     }
     fn save_state(&self) -> Option<StateBlob> {
         self.held.save_state(self.time_s).ok()

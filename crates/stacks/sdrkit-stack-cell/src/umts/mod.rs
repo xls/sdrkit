@@ -39,7 +39,7 @@ pub const TEST_SIGNAL_HZ: f64 = 2112.8e6;
 /// The least input rate, Hz.
 pub const MIN_RATE_HZ: f64 = 3.84e6;
 /// What the status line shows below [`MIN_RATE_HZ`].
-pub const MIN_RATE_MESSAGE: &str = "UMTS cells needs a sample rate of at least 3.84 Msps";
+pub const MIN_RATE_MESSAGE: &str = "3G UMTS cells needs a sample rate of at least 3.84 Msps";
 /// What the stack does not read, and what no public document read for it confirms.
 pub const NOTE: &str = "Only the MIB (PLMN), SIB 1 (location and routing area codes) and SIB 3 (cell identity, barred, reserved) of the broadcast channel are read; SIB 5 and SIB 11 (neighbours) are not; an STTD-encoded P-CCPCH is not combined. The decode is verified on generated signals only. Not confirmed against the text of a public document: the BCH transport block of 246 bits, the root raised cosine pulse of roll-off 0.22 (the setting roll_off), the split of the cell identity into 12 bits of RNC and 16 bits of cell, the channel raster UARFCN = 5 x f (MHz), and the places of the LAC (the first two octets of the common NAS information) and the RAC (the first octet of the NAS information of the PS domain).";
 
