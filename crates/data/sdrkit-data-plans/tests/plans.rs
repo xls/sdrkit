@@ -362,7 +362,7 @@ fn sound_broadcasting_rasters() {
     );
     assert_eq!(plan("fm_europe").tune_points(false).len(), 206);
     let au = plan("fm_australia_nz").tune_points(false);
-    assert_eq!((au[0], *au.last().unwrap()), (87.7e6, 107.9e6));
+    assert_eq!((au[0], *au.last().unwrap()), (87.5e6, 108.0e6));
     let jp = plan("fm_japan").tune_points(false);
     assert_eq!((jp[0], *jp.last().unwrap()), (76.1e6, 98.9e6));
     assert_eq!(plan("fm_oirt").segments[0].snap(69.0e6), 68.99e6);

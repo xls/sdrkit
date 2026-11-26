@@ -265,8 +265,8 @@
           ],
           "modulation": "wfm",
           "raster": {
-            "first_hz": 87700000,
-            "step_hz": 200000
+            "first_hz": 87500000,
+            "step_hz": 100000
           }
         }
       ]
