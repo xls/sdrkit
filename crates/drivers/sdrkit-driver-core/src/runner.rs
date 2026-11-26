@@ -495,6 +495,8 @@ struct Shared<R> {
     ending: Arc<AtomicBool>,
     /// The streams whose loop has ended, counted.
     ended: AtomicU64,
+    /// The counters of the ring that the stream writes to, for the DC removal of its reader ([`crate::dc::follow`]).
+    ring: Mutex<Option<Arc<crate::ring::RingStats>>>,
 }
 
 impl<R> Shared<R> {
@@ -626,6 +628,7 @@ impl<R: Radio> StreamRunner<R> {
             link_down: AtomicU64::new(0),
             ending: Arc::new(AtomicBool::new(false)),
             ended: AtomicU64::new(0),
+            ring: Mutex::new(None),
         });
         Ok(StreamRunner {
             shared,
@@ -717,6 +720,11 @@ impl<R: Radio> Source for StreamRunner<R> {
                 .restarted(st.rate);
             s
         };
+        let stats = sink.stats();
+        crate::dc::follow(&stats, &sh.state().wanted);
+        *sh.ring
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(stats);
         let sink = Sink::new(
             sink,
             sh.loss.clone(),
@@ -801,6 +809,15 @@ impl<R: Radio> Source for StreamRunner<R> {
                     return res.map(Retuned::Live);
                 }
                 let note = r.configure(tune, true)?;
+                // A retune or a change of gain moves the DC offset.
+                if let Some(stats) = sh
+                    .ring
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .as_ref()
+                {
+                    crate::dc::follow(stats, tune);
+                }
                 let mut st = sh.state();
                 st.asked_rate = tune.get(&RATE);
                 (st.rate, st.centre) = (r.rate_hz(), r.centre_hz());
@@ -1015,10 +1032,15 @@ fn radio_thread<R: Radio>(
         gain: Some(gain),
     };
     let mut next = Some(first);
+    let mut first_stream = true;
     'outer: loop {
         let Some(mut stream) = next.take() else {
             break;
         };
+        // A stream after the first (a restart, a reconnect) starts the DC estimate again; the start set it for the first.
+        if !std::mem::take(&mut first_stream) {
+            crate::dc::follow(&sink.writer.stats(), &sh.state().wanted);
+        }
         let result = stream.run(&mut sink, &ctx);
         // The old stream closes its connection before anything else goes to the radio: a connection left open and unread
         // would hold the radio's buffer for a client that no longer reads it. Then the abort lets go of its handles on it.

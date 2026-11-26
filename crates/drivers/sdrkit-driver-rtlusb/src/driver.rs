@@ -31,6 +31,8 @@ sdrkit_core::choice_enum! {
     }
 }
 
+/// The DC offset of the RTL2832U removed in software.
+pub const DC_REMOVAL: Setting<field::Bool> = sdrkit_driver_core::form::DC_REMOVAL;
 /// The frequency correction.
 pub const PPM: Setting<field::F64> = sdrkit_driver_core::form::PPM
     .range(-200.0, 200.0, 0.1)
@@ -77,6 +79,8 @@ sdrkit_core::settings! {
         TunerAgc = TUNER_AGC,
         /// [`PPM`].
         Ppm = PPM,
+        /// [`DC_REMOVAL`](sdrkit_driver_core::form::DC_REMOVAL).
+        DcRemoval = DC_REMOVAL,
         /// [`OFFSET_TUNING`].
         OffsetTuning = OFFSET_TUNING,
         /// [`DIRECT_SAMPLING`].

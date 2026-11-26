@@ -37,6 +37,7 @@ Only this driver has these.
 | `rtl_agc` | RTL2832U digital gain | yes or no | false |  | The digital gain stage of the RTL2832U after the ADC. Off: the samples keep the level that the tuner gives. |
 | `tuner_agc` | Tuner AGC loops | yes or no | false |  | With automatic gain on, let the detectors of the tuner set its gain. Off: the driver holds a fixed tuner gain that it chooses from the level of the samples, which keeps strong stations nearby from overloading the dongle. |
 | `ppm` | Frequency correction | number (ppm) | 0 | -200 to 200 | The clock error of the dongle in ppm, positive if its clock runs fast (signals then show a little low). Dongles without a TCXO are often 20 to 100 ppm off. |
+| `dc_removal` | DC removal | yes or no | true |  | Removes the steady offset of the converter, which shows as a carrier at the centre frequency. A signal exactly at the centre loses its carrier. |
 | `offset_tuning` | Offset tuning | yes or no | false |  | Tune an E4000 tuner 85 % of half the sample rate away and shift back in the demodulator, so that the DC spike of the tuner is not at the centre. An R820T or R828D tuner has an IF of its own and does not use this. |
 | `ds` | Direct sampling | choice | `off` | `off` (Off), `i` (I input), `q` (Q input) | Below 24 MHz, sample the antenna input on the I or the Q input of the ADC and leave the tuner off. An RTL-SDR Blog V3 has its HF input on Q; other dongles need a change to the board. A Blog V4 receives HF through its own upconverter and does not use this. |
 

@@ -193,6 +193,8 @@ pub const PPM: Setting<field::F64> = crate::form::PPM.range(-200.0, 200.0, 1.0).
     "The clock error in ppm, positive if the clock runs fast (signals show up a little low). Dongles without a TCXO are often \
      20 to 100 ppm off.",
 );
+/// The DC offset of the dongle removed in software.
+pub const DC_REMOVAL: Setting<field::Bool> = crate::form::DC_REMOVAL;
 /// Direct sampling below 24 MHz.
 pub const DIRECT_SAMPLING: Setting<field::Choice<DirectSampling>> =
     crate::form::direct_sampling(DirectSampling::Auto).help(
@@ -207,6 +209,8 @@ sdrkit_core::settings! {
     pub enum RtlSetting {
         /// [`PPM`].
         Ppm = PPM,
+        /// [`DC_REMOVAL`](crate::form::DC_REMOVAL): the samples of an RTL2832U carry its offset.
+        DcRemoval = DC_REMOVAL,
         /// [`DIRECT_SAMPLING`].
         DirectSampling = DIRECT_SAMPLING,
         /// [`SERVER`].

@@ -102,6 +102,8 @@ pub const AMP: Setting<field::Bool> = form::rf_amp(false).help(
     "The front-end amplifier, about 11 dB, less at high frequencies. The antenna port takes at most -5 dBm: more can \
      damage the device. Use an attenuator for strong signals.",
 );
+/// The DC offset of the converter removed in software: the HackRF has no correction of its own.
+pub const DC_REMOVAL: Setting<field::Bool> = form::DC_REMOVAL;
 /// The 10 MHz clock output.
 pub const CLOCK_OUT: Setting<field::Bool> = form::CLOCK_OUT
     .advanced()
@@ -118,6 +120,8 @@ sdrkit_core::settings! {
         Vga = VGA,
         /// [`AMP`].
         Amp = AMP,
+        /// [`DC_REMOVAL`].
+        DcRemoval = DC_REMOVAL,
         /// [`CLOCK_OUT`].
         ClockOut = CLOCK_OUT,
     }

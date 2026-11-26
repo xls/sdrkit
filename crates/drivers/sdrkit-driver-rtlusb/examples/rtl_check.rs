@@ -8,7 +8,8 @@
 //! - `dc <selector> <MHz>`: the DC offset calibration of an E4000 and the mean of I and Q before and after;
 //! - `drift <selector> <MHz> <seconds>`: the frequency of the station at `<MHz>` every 10 s;
 //! - `dual <selector> <selector> <seconds>`: the counter test mode on two dongles at once;
-//! - `record <selector> <MHz> <file>`: records the open, one tune and a short stream as a script.
+//! - `record <selector> <MHz> <file>`: records the open, one tune and a short stream as a script;
+//! - `spike <selector> <MHz>`: the carrier at the centre against the noise floor, with DC removal off and on.
 
 use sdrkit_algo_dsp::spectrum::{welch, Scaling};
 use sdrkit_algo_dsp::window::Window;
@@ -567,6 +568,43 @@ fn vga(bus: Arc<dyn UsbBus>, sel: &str, f: f64, rate: u32, g: i32, vga: u8, path
     d.close();
 }
 
+/// The power of the bin at the centre against the median bin, in dB, with DC removal off and on.
+fn spike(bus: Arc<dyn UsbBus>, sel: &str, f: f64) {
+    let d = RtlUsbDriver::new(bus);
+    for on in [false, true] {
+        let mut v = values(&d, f, Some(30.0));
+        let id = v.schema().id("dc_removal").unwrap();
+        v.set(id, &Value::Bool(on)).unwrap();
+        let mut src = d.open(sel, &v).unwrap();
+        let mut r = start(&mut *src);
+        let mut buf = vec![Complex32::default(); 1 << 20];
+        // Settle: the first 0.4 s are left out.
+        let mut got = 0;
+        let end = Instant::now() + Duration::from_secs(10);
+        let mut skipped = 0;
+        while got < buf.len() && Instant::now() < end {
+            r.wait(1, Duration::from_millis(20));
+            if skipped < (0.4 * RATE) as usize {
+                let mut tmp = vec![Complex32::default(); 65_536];
+                skipped += r.read_iq(&mut tmp);
+                continue;
+            }
+            got += r.read_iq(&mut buf[got..]);
+        }
+        src.stop();
+        let p = psd(&buf[..got]);
+        let mut sorted: Vec<f32> = p.clone();
+        sorted.sort_by(f32::total_cmp);
+        let floor = f64::from(sorted[sorted.len() / 2]);
+        let centre = f64::from(p[p.len() / 2]);
+        println!(
+            "{f} Hz, DC removal {}: centre bin {:.1} dB above the median bin",
+            if on { "on" } else { "off" },
+            10.0 * (centre / floor).log10()
+        );
+    }
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let bus = platform_bus();
@@ -597,6 +635,7 @@ fn main() {
             &args[6],
         ),
         Some("dc") => dc(bus, &args[1], mhz(&args[2])),
+        Some("spike") => spike(bus, &args[1], mhz(&args[2])),
         Some("e4k") => e4k(bus, &args[1], mhz(&args[2]), &args[3..]),
         _ => println!("usage: see the module documentation"),
     }

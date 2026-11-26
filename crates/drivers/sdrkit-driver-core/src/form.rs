@@ -121,6 +121,9 @@ pub const RF_AMP_FORM: Standard = std("amp", "RF amplifier", "", ValueKind::Bool
 /// The frequency correction.
 pub const PPM_FORM: Standard =
     std("ppm", "Frequency correction", "ppm", ValueKind::F64, CORRECTIONS_SECTION);
+/// The DC offset of the converter removed in software.
+pub const DC_REMOVAL_FORM: Standard =
+    std("dc_removal", "DC removal", "", ValueKind::Bool, CORRECTIONS_SECTION);
 /// I and Q swapped.
 pub const SWAP_IQ_FORM: Standard =
     std("swap_iq", "Swap I and Q", "", ValueKind::Bool, CORRECTIONS_SECTION);
@@ -150,7 +153,7 @@ pub const SERVER_RATE_FORM: Standard =
     std("server_rate", "Rate of the server", "Hz", ValueKind::Hz, LINK_SECTION);
 
 /// Every standard setting.
-pub const STANDARD: [Standard; 25] = [
+pub const STANDARD: [Standard; 26] = [
     CENTRE_FORM,
     GAIN_FORM,
     AGC_FORM,
@@ -166,6 +169,7 @@ pub const STANDARD: [Standard; 25] = [
     IF_REDUCTION_FORM,
     RF_AMP_FORM,
     PPM_FORM,
+    DC_REMOVAL_FORM,
     SWAP_IQ_FORM,
     ANTENNA_FORM,
     DIRECT_SAMPLING_FORM,
@@ -194,6 +198,12 @@ const fn choice<E: Choice + Send + Sync>(f: Standard, default: E) -> Setting<fie
 pub const PPM: Setting<field::F64> = number::<field::F64>(PPM_FORM, 0.0)
     .range(-200.0, 200.0, 0.1)
     .help("The clock error in ppm, positive if the clock runs fast (signals show up a little low).");
+/// The DC offset of the converter removed in software ([`crate::dc`]), for a radio without a correction of its own: the
+/// carrier it makes at the centre frequency goes.
+pub const DC_REMOVAL: Setting<field::Bool> = number::<field::Bool>(DC_REMOVAL_FORM, true).help(
+    "Removes the steady offset of the converter, which shows as a carrier at the centre frequency. A signal exactly at the \
+     centre loses its carrier.",
+);
 /// I and Q swapped, for a radio that delivers them the other way round.
 pub const SWAP_IQ: Setting<field::Bool> = number::<field::Bool>(SWAP_IQ_FORM, false)
     .help("Swaps I and Q: a spectrum that shows mirrored shows the right way round.");

@@ -33,6 +33,7 @@ Only this driver has these.
 | Key | Label | Kind | Default | Range or options | Help |
 |---|---|---|---|---|---|
 | `ppm` | Frequency correction | number (ppm) | 0 | -200 to 200 | The clock error in ppm, positive if the clock runs fast (signals show up a little low). Dongles without a TCXO are often 20 to 100 ppm off. |
+| `dc_removal` | DC removal | yes or no | true |  | Removes the steady offset of the converter, which shows as a carrier at the centre frequency. A signal exactly at the centre loses its carrier. |
 | `ds` | Direct sampling | choice | `auto` | `auto` (Auto), `off` (Off), `i` (I input), `q` (Q input) | I or Q samples HF directly below 24 MHz (a V3 has its HF input on Q). Auto leaves it to the server: a Blog V4 upconverts HF itself. |
 | `server` | Server radio | choice | `auto` | `auto` (Auto), `rtl` (RTL-SDR (up to 2.56 Msps)), `other` (Other radio (up to 20 Msps)), `any` (Any rate (0.1 to 40 Msps)) | RTL-SDR: a real RTL-SDR, which drops samples above 2.56 Msps. Other radio: any rate from 0.25 to 20 Msps. Any rate: 0.1 to 40 Msps; 8-bit I/Q at 10 Msps is 160 Mbit/s, more than most Wi-Fi gives. Auto: an RTL-SDR unless the server greets as another radio or the stack needs more than 2.56 Msps. |
 | `server_rate` | Rate of the server | frequency | 0 Hz | 0 Hz to 40 MHz | The rate the server sends whatever it is asked. The driver finds it. 0 means none was found. |

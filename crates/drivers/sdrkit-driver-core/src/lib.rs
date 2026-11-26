@@ -4,6 +4,7 @@
 #![warn(missing_docs)]
 
 pub mod address;
+pub mod dc;
 mod error;
 pub mod file;
 pub mod form;

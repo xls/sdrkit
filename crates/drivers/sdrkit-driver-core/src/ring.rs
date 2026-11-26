@@ -63,6 +63,12 @@ pub struct RingStats {
     /// The gaps not yet taken: (samples written before the gap, samples missing, made on purpose).
     gaps: Mutex<VecDeque<(u64, u64, bool)>>,
     gap_count: AtomicU64,
+    /// The reader removes the DC offset ([`crate::dc`]).
+    dc_on: AtomicBool,
+    /// Moves on at each restart of the DC estimate.
+    dc_epoch: AtomicU64,
+    /// The samples written before the last restart of the DC estimate.
+    dc_from: AtomicU64,
 }
 
 impl RingStats {
@@ -80,7 +86,19 @@ impl RingStats {
             capacity,
             gaps: Mutex::new(VecDeque::with_capacity(MAX_GAPS)),
             gap_count: AtomicU64::new(0),
+            dc_on: AtomicBool::new(false),
+            dc_epoch: AtomicU64::new(0),
+            dc_from: AtomicU64::new(0),
         }
+    }
+    /// Makes [`RingReader::read_iq`] remove the DC offset of the samples, or stop doing so.
+    pub fn set_dc_removal(&self, on: bool) {
+        self.dc_on.store(on, Ordering::Release);
+    }
+    /// Starts the DC estimate of the reader again from the next sample written: the offset changed (a retune, a gain).
+    pub fn restart_dc(&self) {
+        self.dc_from.store(self.written(), Ordering::Release);
+        self.dc_epoch.fetch_add(1, Ordering::AcqRel);
     }
     /// Notes `lost` samples missing after the samples written so far, left out on purpose if `deliberate`. A gap at the
     /// place of the last one, of the same kind, adds to it.
@@ -168,7 +186,14 @@ pub fn ring(capacity: usize, sample: SampleType) -> (RingWriter, RingReader) {
             part: [0; PART],
             part_len: 0,
         },
-        RingReader { c, sample, stats },
+        RingReader {
+            c,
+            sample,
+            stats,
+            dc: crate::dc::DcBlock::default(),
+            dc_seen: 0,
+            dc_at: None,
+        },
     )
 }
 
@@ -433,6 +458,10 @@ pub struct RingReader {
     c: rtrb::Consumer<u8>,
     sample: SampleType,
     stats: Arc<RingStats>,
+    dc: crate::dc::DcBlock,
+    /// The restart of the DC estimate last seen, and the sample where it takes effect while that is not read yet.
+    dc_seen: u64,
+    dc_at: Option<u64>,
 }
 
 impl RingReader {
@@ -468,11 +497,34 @@ impl RingReader {
         n
     }
 
-    /// Reads up to `out.len()` samples as complex samples ([`sample::to_iq`]) and returns how many.
+    /// Reads up to `out.len()` samples as complex samples ([`sample::to_iq`]) and returns how many. With DC removal on
+    /// ([`RingStats::set_dc_removal`]) the offset is taken out ([`crate::dc`]), its estimate starting again at the sample of
+    /// each [`RingStats::restart_dc`].
     pub fn read_iq(&mut self, out: &mut [Complex32]) -> usize {
         let t = self.sample;
+        let start = self.position();
         let mut at = 0;
-        self.read_with(out.len(), |b| at += sample::to_iq(t, b, &mut out[at..]))
+        let n = self.read_with(out.len(), |b| at += sample::to_iq(t, b, &mut out[at..]));
+        if self.stats.dc_on.load(Ordering::Acquire) {
+            let e = self.stats.dc_epoch.load(Ordering::Acquire);
+            if e != self.dc_seen {
+                self.dc_seen = e;
+                self.dc_at = Some(self.stats.dc_from.load(Ordering::Acquire));
+            }
+            let got = &mut out[..n];
+            match self.dc_at {
+                Some(from) if from < start + n as u64 => {
+                    let cut = usize::try_from(from.saturating_sub(start)).unwrap_or(0).min(n);
+                    let (before, after) = got.split_at_mut(cut);
+                    self.dc.process(before);
+                    self.dc.restart();
+                    self.dc.process(after);
+                    self.dc_at = None;
+                }
+                _ => self.dc.process(got),
+            }
+        }
+        n
     }
 
     /// Waits up to `timeout` for at least `min` samples, or for the writer to go. It returns what is waiting.
